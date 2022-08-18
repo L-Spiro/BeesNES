@@ -9,6 +9,7 @@ Description: A NES emulator with the goal of being "micro-cycle–accurate." Man
 	but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across
 	all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each
 	instruction.
+	
 This means that multi-byte writes are correctly partitioned across cycles and partial data updates are possible, allowing
 	for the more esoteric features of the system to be accurately emulated.  This means we should be able to support interrupt
 	hijacking and any other cases that rely heavily on the cycle timing of the system.
