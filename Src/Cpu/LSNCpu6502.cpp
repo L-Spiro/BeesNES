@@ -1,0 +1,722 @@
+/**
+ * Copyright L. Spiro 2021
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
+ */
+
+
+#include "LSNCpu6502.h"
+#include "../Bus/LSNBus.h"
+
+#define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )											/*m_pccCurContext->ui8Cycle += AMT;*/	\
+																						m_pccCurContext->ui8FuncIdx += AMT
+#define LSN_ADVANCE_CONTEXT_COUNTERS													LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
+#define LSN_PUSH( VAL )																	m_pbBus->CpuWrite( 0x100 + S--, VAL )
+#define LSN_POP()																		m_pbBus->CpuRead( 0x100 + ++S )
+#define LSN_FINISH_INST																	m_vContextStack.pop_back();																		\
+																						m_pccCurContext = m_vContextStack.size()? &m_vContextStack[m_vContextStack.size()-1] : nullptr
+
+
+namespace lsn {
+
+	// == Members.
+	CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {							/**< The instruction set. */
+		/** 00-07 */
+		{	// 00
+			"BRK", {
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PushPch,
+				&CCpu6502::PushPcl,
+				&CCpu6502::PushStatusAndB,
+				&CCpu6502::CopyVectorPcl,
+				&CCpu6502::BRK, },
+				7, LSN_AM_IMPLIED
+		},
+		{	// 01
+			"ORA", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::ReadAtPointerAddress,
+				&CCpu6502::FetchEffectiveAddressLow_IndX,
+				&CCpu6502::FetchEffectiveAddressHigh_IndX,
+				&CCpu6502::ORA_IndX, },
+				6, LSN_AM_INDIRECT_X
+		},
+		{	// 02
+			"X02", {	// Jams the machine.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED
+		},
+		{	// 03
+			"SLO", {	// Jams the machine very rarely.
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::NOP, },
+				8, LSN_AM_IMPLIED
+		},
+		{	// 04
+			"NOP", {	// Undocumented.
+				&CCpu6502::FetchAddressAndIncPc_Zpg,
+				&CCpu6502::NOP_Zpg, },
+				3, LSN_AM_ZERO_PAGE
+		},
+		{	// 05
+			"ORA", {
+				&CCpu6502::FetchAddressAndIncPc_Zpg,
+				&CCpu6502::ORA_Zpg, },
+				3, LSN_AM_ZERO_PAGE
+		},
+		{	// 06
+			"ASL", {
+				&CCpu6502::FetchAddressAndIncPc_Zpg,
+				&CCpu6502::ReadFromEffectiveAddress_Zpg,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::ASL_Zpg, },
+				5, LSN_AM_ZERO_PAGE
+		},
+		{	// 07
+			"SLO", {	// Undocumented.
+				&CCpu6502::FetchAddressAndIncPc_Zpg,
+				&CCpu6502::ReadFromEffectiveAddress_Zpg,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::NOP, },
+				5, LSN_AM_ZERO_PAGE
+		},
+
+		/** 08-0F */
+		{	// 08
+			"PHP", {
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PHP_Imp, },
+				3, LSN_AM_IMPLIED
+		},
+		{	// 09
+			"ORA", {
+				&CCpu6502::ORA_Imm, },
+				2, LSN_AM_IMMEDIATE
+		},
+		{	// 0A
+			"ASL", {
+				&CCpu6502::ASL_Imp, },
+				2, LSN_AM_IMPLIED
+		},
+		{	// 0B
+			"ANC", {	// Unusual operation.
+				&CCpu6502::NopAndIncPc, },
+				2, LSN_AM_IMMEDIATE
+		},
+		{	// 0C
+			"NOP", {	// Undocumented command.
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::FetchHighAddrByteAndIncPc,
+				&CCpu6502::NOP_Abs, },
+				4, LSN_AM_ABSOLUTE
+		},
+		{	// 0D
+			"ORA", {
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::FetchHighAddrByteAndIncPc,
+				&CCpu6502::ORA_Abs, },
+				4, LSN_AM_ABSOLUTE
+		},
+		{	// 0E
+			"ASL", {
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::FetchHighAddrByteAndIncPc,
+				&CCpu6502::ReadFromEffectiveAddress_Abs,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::ASL_Abs, },
+				6, LSN_AM_ABSOLUTE
+		},
+		{	// 0F
+			"SLO", {	// Undocumented command.
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::FetchHighAddrByteAndIncPc,
+				&CCpu6502::ReadFromEffectiveAddress_Abs,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::NOP, },
+				6, LSN_AM_ABSOLUTE
+		},
+
+		/** 10-17 */
+		{	// 10
+			"BPL", {
+				&CCpu6502::Branch_Cycle2<LSN_SF_NEGATIVE, 0>,
+				&CCpu6502::Branch_Cycle3,						// Optional (if branch is taken).
+				&CCpu6502::Branch_Cycle4, },					// Optional (if branch crosses page boundary).
+				2, LSN_AM_RELATIVE
+		},
+		{	// 11
+			"ORA", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::FetchEffectiveAddressLow_IndY,
+				&CCpu6502::FetchEffectiveAddressHigh_IndY,
+				&CCpu6502::AddYAndReadAddress_IndY,				// Optional (if crossing page boundary).
+				&CCpu6502::ORA_IndY, },
+				5, LSN_AM_INDIRECT_Y
+		},
+		{	// 12
+			"X12", {	// Jams the machine.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED
+		},
+		{	// 13
+			"SLO", {	// Jams the machine very rarely.
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::NOP, },
+				8, LSN_AM_INDIRECT_Y
+		},
+		{	// 14
+			"NOP", {	// Undocumented.
+				&CCpu6502::FetchAddressAndIncPc_Zpg,
+				&CCpu6502::ReadFromAddressAndAddX_Zpx,
+				&CCpu6502::NOP_Zpg, },
+				4, LSN_AM_ZERO_PAGE_X
+		},
+		{	// 15
+			"ORA", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::ReadFromAddressAndAddX_Zpx,
+				&CCpu6502::ORA_Zpx, },
+				4, LSN_AM_ZERO_PAGE_X
+		},
+		{	// 16
+			"ASL", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::ReadFromAddressAndAddX_Zpx,
+				&CCpu6502::ReadFromEffectiveAddress_Abs,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::ASL_Zpx, },
+				6, LSN_AM_ZERO_PAGE_X
+		},
+		{	// 17
+			"SLO", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::ReadFromAddressAndAddX_Zpx,
+				&CCpu6502::ReadFromEffectiveAddress_Abs,
+				&CCpu6502::WriteValueBackToEffectiveAddress,
+				&CCpu6502::NOP, },
+				6, LSN_AM_ZERO_PAGE_X
+		},
+
+		/** 18-1F */
+		{	// 18
+			"CLC", {
+				&CCpu6502::CLC, },
+				2, LSN_AM_IMPLIED
+		},
+		{	// 19
+			"ORA", {
+				&CCpu6502::FetchPointerAndIncPc,
+				&CCpu6502::FetchEffectiveAddressLow_IndY,
+				&CCpu6502::FetchEffectiveAddressHigh_IndY,
+				&CCpu6502::AddYAndReadAddress_IndY,
+				&CCpu6502::ORA_IndX, },
+				4, LSN_AM_ABSOLUTE_Y
+		},
+	};
+
+	// == Various constructors.
+	CCpu6502::CCpu6502( class CBus * _pbBus ) :
+		m_pbBus( _pbBus ),
+		m_pccCurContext( nullptr ) {
+	}
+	CCpu6502::~CCpu6502() {
+		ResetToKnown();
+	}
+
+	// == Functions.
+	/**
+	 * Resets the CPU to a known state.
+	 */
+	void CCpu6502::ResetToKnown() {
+		ResetAnalog();
+	}
+
+	/**
+	 * Performs an "analog" reset, allowing previous data to remain.
+	 */
+	void CCpu6502::ResetAnalog() {
+		m_vContextStack.clear();
+	}
+
+	/**
+	 * Fetches the next opcode and increments the program counter.
+	 */
+	void CCpu6502::FetchOpcodeAndIncPc() {
+		// Enter normal instruction context.
+		LSN_CPU_CONTEXT ccContext;
+		ccContext.cContext = LSN_C_NORMAL;
+		ccContext.ui8Cycle = 1;		// Values as they should be after this function exits (this function representing the first cycle in all instructions).
+		ccContext.ui8FuncIdx = 0;	// This function is implicit, so index 0 is the function handler for the 2nd cycle following this one.
+		m_vContextStack.push_back( ccContext );
+		// Store the pointer to the last item on the stack so it doesn't have to be recalculated over and over.
+		m_pccCurContext = &m_vContextStack[m_vContextStack.size()-1];
+
+		// Perform the actual work.
+		m_pccCurContext->ui8OpCode = m_pbBus->CpuRead( PC++ );
+	}
+
+	/**
+	 * Reads the next instruction byte and throws it away.
+	 */
+	void CCpu6502::ReadNextInstByteAndDiscard() {
+		m_pbBus->CpuRead( PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/**
+	 * Fetches a value using immediate addressing.
+	 */
+	void CCpu6502::FetchValueAndIncPc_Imm() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( PC++ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Fetches a pointer and increments PC .*/
+	void CCpu6502::FetchPointerAndIncPc() {
+		m_pccCurContext->ui8Pointer = m_pbBus->CpuRead( PC++ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Fetches an 8-bit address for Zero-Page dereferencing and increments PC. Stores the address in LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::FetchAddressAndIncPc_Zpg() {
+		m_pccCurContext->a.ui16Address = m_pbBus->CpuRead( PC++ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Fetches the low address value for absolute addressing. */
+	void CCpu6502::FetchLowAddrByteAndIncPc() {
+		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( PC++ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Fetches the high address value for absolute/indirect addressing. */
+	void CCpu6502::FetchHighAddrByteAndIncPc() {
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC++ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
+	void CCpu6502::ReadFromEffectiveAddress_Abs() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
+	void CCpu6502::ReadFromEffectiveAddress_Zpg() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address & 0xFF );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores the result into LSN_CPU_CONTEXT::ui8Pointer.  Preceded by FetchPointerAndIncPc(). */
+	void CCpu6502::ReadAtPointerAddress() {
+		m_pccCurContext->ui8Pointer = m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+X)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
+	void CCpu6502::ReadFromAddressAndAddX_Zpx() {
+		m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );	// This read cycle reads from the address prior to it being adjusted by X.
+		m_pccCurContext->a.ui16Address = (m_pccCurContext->ui8Pointer + X) & 0xFF;
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
+	void CCpu6502::AddYAndReadAddress_IndY() {
+		// This is a read cycle and will read whatever the effective address is, but the effective address is updated across 2 cycles if a page boundary is crossed,
+		//	meaning the first read was using an invalid address.
+		// The real hardware uses the extra cycle to fix up the address and read again, so we emulate both the invalid read.
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( (m_pccCurContext->a.ui16Address & 0xFF00) | ((m_pccCurContext->a.ui16Address + Y) & 0xFF) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pushes PCH. */
+	void CCpu6502::PushPch() {
+		LSN_PUSH( static_cast<uint8_t>(PC >> 8) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pushes PCL. */
+	void CCpu6502::PushPcl() {
+		LSN_PUSH( static_cast<uint8_t>(PC) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pushes status with B. */
+	void CCpu6502::PushStatusAndB() {
+		LSN_PUSH( m_ui8Status | LSN_SF_BREAK );
+		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
+		m_pccCurContext->a.ui16Address = (m_ui8Status & LSN_SF_IRQ) ? LSN_V_NMI : LSN_V_IRQ_BRK;
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pushes status without B. */
+	void CCpu6502::PushStatus() {
+		LSN_PUSH( m_ui8Status );
+		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
+		m_pccCurContext->a.ui16Address = (m_ui8Status & LSN_SF_IRQ) ? LSN_V_NMI : LSN_V_IRQ_BRK;
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::FetchEffectiveAddressLow_IndX() {
+		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer + X) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::FetchEffectiveAddressHigh_IndX() {
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer + X + 1) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::FetchEffectiveAddressLow_IndY() {
+		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::FetchEffectiveAddressHigh_IndY() {
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer + 1) );
+		// Check here if we are going to need to skip a cycle (if a page boundary is NOT crossed).
+		const uint16_t ui16Final = m_pccCurContext->a.ui16Address + Y;
+		const uint16_t uiAdvanceBy = ((ui16Final & 0xFF00) == (m_pccCurContext->a.ui16Address & 0xFF00)) + 1;
+		LSN_ADVANCE_CONTEXT_COUNTERS_BY( uiAdvanceBy );
+	}
+
+	/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
+	void CCpu6502::CopyVectorPcl() {
+		PC = (PC & 0xFF00) | m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address. */
+	void CCpu6502::WriteValueBackToEffectiveAddress() {
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** 2nd cycle of branch instructions. Performs the check to decide which cycle comes next (or to end the instruction). */
+	template <unsigned _uBit, unsigned _uVal>
+	void CCpu6502::Branch_Cycle2() {
+		// This is a read instruction.
+		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
+		
+		// If the branch is not taken, we are done here.
+		// _uVal is 1 or 0, so _uVal * _uBit is _uBit or 0.
+		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
+		else {
+			// Branch is taken.
+			// Calculate offset and write to the low byte of PC.
+			uint16_t ui16NewAddr = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + PC;
+			uint16_t ui16PcH = PC & 0xFF00;
+			// Store the high byte to write later.
+			m_pccCurContext->ui8Pointer = static_cast<uint8_t>(ui16NewAddr >> 8);
+			PC = ui16PcH | (ui16NewAddr & 0xFF);	// Write low byte.
+			// m_pccCurContext->ui8Pointer == (ui16PcH >> 8)
+			// (m_pccCurContext->ui8Pointer << 8) == ui16PcH
+
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+	}
+
+	/** 3rd cycle of branch instructions. Branch was taken, so copy part of the address and check for a page boundary. */
+	void CCpu6502::Branch_Cycle3() {
+		// This is a read instruction.
+		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
+		
+		
+		// Check for page crossing. High byte of PC was not modified yet (next instruction).
+		// Remember from cycle 2:
+		// m_pccCurContext->ui8Pointer == (ui16PcH >> 8)
+		// (m_pccCurContext->ui8Pointer << 8) == ui16PcH
+		uint16_t ui16PcH = m_pccCurContext->ui8Pointer << 8;
+		bool bCrossed = ui16PcH != (PC & 0xFF00);
+		PC = (PC & 0xFF) | ui16PcH;
+		if ( ui16PcH != (PC & 0xFF00) ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
+	}
+
+	/** 4th cycle of branch instructions. Branch was takenand crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+	void CCpu6502::Branch_Cycle4() {
+		// This is a read instruction.
+		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
+
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Follows FetchLowAddrByteAndIncPc() and copies the read value into the low byte of PC after fetching the high byte. */
+	void CCpu6502::JMP_Abs() {
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC );
+		PC = m_pccCurContext->a.ui16Address;
+
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. 
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	ReadNextInstByteAndDiscard()
+	 *	PushPch()
+	 *	PushPcl()
+	 *	PushStatusAndB()/PushStatus()
+	 *	CopyVectorPcl()
+	 */
+	void CCpu6502::BRK() {
+		PC = (PC & 0xFF) | (m_pbBus->CpuRead( m_pccCurContext->a.ui16Address + 1 ) << 8);
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Clears the carry flag. */
+	void CCpu6502::CLC() {
+		SetBit( m_ui8Status, LSN_SF_CARRY, false );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Reads the next instruction byte and throws it away. */
+	void CCpu6502::NOP() {
+		m_pbBus->CpuRead( PC );
+
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Reads the next instruction byte and throws it away, increasing PC. */
+	void CCpu6502::NopAndIncPc() {
+		m_pbBus->CpuRead( PC++ );
+
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
+	void CCpu6502::NOP_Abs() {
+		m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchPointerAndIncPc()
+	 *	ReadAtPointerAddress()
+	 *	FetchEffectiveAddressLow_IndX()
+	 *	FetchEffectiveAddressHigh_IndX()
+	 */
+	void CCpu6502::ORA_IndX() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A |= m_pccCurContext->ui8Operand;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address+Y and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	XXXX()
+	 */
+	void CCpu6502::ORA_IndY() {
+		// If FetchEffectiveAddressHigh_IndY() was executed, it read from the wrong address.
+		// This is a read cycle, so read from the correct address.
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address + Y );
+		A |= m_pccCurContext->ui8Operand;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchAddressAndIncPc_Zpg()
+	 */
+	void CCpu6502::ORA_Zpg() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A |= m_pccCurContext->ui8Operand;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchPointerAndIncPc()
+	 *	ReadFromAddressAndAddX_Zpx()
+	 */
+	void CCpu6502::ORA_Zpx() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A |= m_pccCurContext->ui8Operand;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 */
+	void CCpu6502::ORA_Imm() {
+		uint8_t ui8Tmp = m_pbBus->CpuRead( PC++ );
+		A |= ui8Tmp;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchLowAddrByteAndIncPc()
+	 *	FetchHighAddrByteAndIncPc()
+	 */
+	void CCpu6502::ORA_Abs() {
+		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A |= ui8Tmp;
+		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** A zero-page NOP.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchAddressAndIncPc_Zpg()
+	 */
+	void CCpu6502::NOP_Zpg() {
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchAddressAndIncPc_Zpg()
+	 *	ReadFromEffectiveAddress_Zpg()
+	 *	WriteValueBackToEffectiveAddress()
+	 */
+	void CCpu6502::ASL_Zpg() {
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
+		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchPointerAndIncPc()
+	 *	ReadFromAddressAndAddX_Zpx()
+	 *	ReadFromEffectiveAddress_Abs()
+	 *	WriteValueBackToEffectiveAddress()
+	 */
+	void CCpu6502::ASL_Zpx() {
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
+		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 */
+	void CCpu6502::ASL_Imp() {
+		// We have a discarded read here.
+		m_pbBus->CpuRead( PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		
+
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, LSN_SF_CARRY, (A & 0x80) != 0 );
+		A = static_cast<uint8_t>(A << 1);
+		SetBit( m_ui8Status, LSN_SF_ZERO, !A );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	FetchLowAddrByteAndIncPc()
+	 *	FetchHighAddrByteAndIncPc()
+	 *	ReadFromEffectiveAddress_Abs()
+	 *	WriteValueBackToEffectiveAddress()
+	 */
+	void CCpu6502::ASL_Abs() {
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
+		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
+		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Pushes the status byte.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc() (implicit.)
+	 *	ReadNextInstByteAndDiscard()
+	 */
+	void CCpu6502::PHP_Imp() {
+		/* http://users.telenet.be/kim1-6502/6502/proman.html#811
+		8.11 PHP - PUSH PROCESSOR STATUS ON STACK
+
+          This instruction transfers the contents of the processor status reg-
+     ister unchanged to the stack, as governed by the stack pointer.
+          Symbolic notation for this is P v.
+          The PHP instruction affects no registers or flags in the micropro-
+     cessor.
+          PHP is a single-byte instruction and the addressing mode is Implied.
+		*/
+		LSN_PUSH( m_ui8Status );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+}	// namespace lsn
+
+#undef LSN_POP
+#undef LSN_PUSH
+#undef LSN_ADVANCE_CONTEXT_COUNTERS

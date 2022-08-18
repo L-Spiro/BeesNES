@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Bus">
+      <UniqueIdentifier>{533a7340-a5c1-4fe8-9efb-163794ddb3e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Bus">
+      <UniqueIdentifier>{85529bc7-f14e-49a3-a9b5-608953bc0e07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cpu">
+      <UniqueIdentifier>{21a22fe0-a888-4bd4-b3e5-a9783b497e04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cpu">
+      <UniqueIdentifier>{62c25f24-5fa6-49e2-9984-ed549039c39a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\LSNLSpiroNes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Bus\LSNBus.h">
+      <Filter>Header Files\Bus</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Cpu\LSNCpu6502.h">
+      <Filter>Header Files\Cpu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\LSNLSpiroNes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Bus\LSNBus.cpp">
+      <Filter>Source Files\Bus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Cpu\LSNCpu6502.cpp">
+      <Filter>Source Files\Cpu</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
