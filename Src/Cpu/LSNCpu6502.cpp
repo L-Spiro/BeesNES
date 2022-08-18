@@ -145,7 +145,7 @@ namespace lsn {
 		/** 10-17 */
 		{	// 10
 			"BPL", {
-				&CCpu6502::Branch_Cycle2<LSN_SF_NEGATIVE, 0>,
+				&CCpu6502::Branch_Cycle2<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 0>,
 				&CCpu6502::Branch_Cycle3,						// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle4, },					// Optional (if branch crosses page boundary).
 				2, LSN_AM_RELATIVE
@@ -354,9 +354,9 @@ namespace lsn {
 
 	/** Pushes status with B. */
 	void CCpu6502::PushStatusAndB() {
-		LSN_PUSH( m_ui8Status | LSN_SF_BREAK );
+		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
-		m_pccCurContext->a.ui16Address = (m_ui8Status & LSN_SF_IRQ) ? LSN_V_NMI : LSN_V_IRQ_BRK;
+		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? LSN_V_NMI : LSN_V_IRQ_BRK;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -364,7 +364,7 @@ namespace lsn {
 	void CCpu6502::PushStatus() {
 		LSN_PUSH( m_ui8Status );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
-		m_pccCurContext->a.ui16Address = (m_ui8Status & LSN_SF_IRQ) ? LSN_V_NMI : LSN_V_IRQ_BRK;
+		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? LSN_V_NMI : LSN_V_IRQ_BRK;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -491,7 +491,7 @@ namespace lsn {
 
 	/** Clears the carry flag. */
 	void CCpu6502::CLC() {
-		SetBit( m_ui8Status, LSN_SF_CARRY, false );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), false );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -531,8 +531,8 @@ namespace lsn {
 	void CCpu6502::ORA_IndX() {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= m_pccCurContext->ui8Operand;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -547,8 +547,8 @@ namespace lsn {
 		// This is a read cycle, so read from the correct address.
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address + Y );
 		A |= m_pccCurContext->ui8Operand;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -561,8 +561,8 @@ namespace lsn {
 	void CCpu6502::ORA_Zpg() {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= m_pccCurContext->ui8Operand;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -576,8 +576,8 @@ namespace lsn {
 	void CCpu6502::ORA_Zpx() {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= m_pccCurContext->ui8Operand;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -589,8 +589,8 @@ namespace lsn {
 	void CCpu6502::ORA_Imm() {
 		uint8_t ui8Tmp = m_pbBus->CpuRead( PC++ );
 		A |= ui8Tmp;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -604,8 +604,8 @@ namespace lsn {
 	void CCpu6502::ORA_Abs() {
 		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Tmp;
-		SetBit( m_ui8Status, LSN_SF_ZERO, A == 0x00 );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -629,10 +629,10 @@ namespace lsn {
 	 */
 	void CCpu6502::ASL_Zpg() {
 		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
-		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), !ui8Tmp );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (ui8Tmp & 0x80) != 0 );
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -648,10 +648,10 @@ namespace lsn {
 	 */
 	void CCpu6502::ASL_Zpx() {
 		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
-		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), !ui8Tmp );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (ui8Tmp & 0x80) != 0 );
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -667,10 +667,10 @@ namespace lsn {
 		
 
 		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, LSN_SF_CARRY, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x80) != 0 );
 		A = static_cast<uint8_t>(A << 1);
-		SetBit( m_ui8Status, LSN_SF_ZERO, !A );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), !A );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -685,10 +685,10 @@ namespace lsn {
 	 */
 	void CCpu6502::ASL_Abs() {
 		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, LSN_SF_CARRY, (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		uint8_t ui8Tmp = static_cast<uint8_t>(m_pccCurContext->ui8Operand << 1);
-		SetBit( m_ui8Status, LSN_SF_ZERO, !ui8Tmp );
-		SetBit( m_ui8Status, LSN_SF_NEGATIVE, (ui8Tmp & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), !ui8Tmp );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (ui8Tmp & 0x80) != 0 );
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, ui8Tmp );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;

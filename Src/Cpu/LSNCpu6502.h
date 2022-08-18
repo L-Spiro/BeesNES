@@ -33,7 +33,7 @@ namespace lsn {
 
 		// == Enumerations.
 		/** Status flags. */
-		enum LSN_STATUS_FLAGS : uint8_t {
+		enum class LSN_STATUS_FLAGS : uint8_t {
 			LSN_SF_CARRY					= 1 << 0,										/**< Carry         (0=No Carry, 1=Carry) */
 			LSN_SF_ZERO						= 1 << 1,										/**< Zero          (0=Nonzero, 1=Zero) */
 			LSN_SF_IRQ						= 1 << 2,										/**< IRQ Disable   (0=IRQ Enable, 1=IRQ Disable) */

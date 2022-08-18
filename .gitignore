@@ -19,3 +19,22 @@ x64/Release/L. Spiro NES.Build.CppClean.log
 x64/Release/L. Spiro NES.log
 x64/Release/L. Spiro NES.tlog/unsuccessfulbuild
 x64/Release/L. Spiro NES.vcxproj.FileListAbsolute.txt
+x64/Debug/L. Spiro NES.pdb
+x64/Debug/L. Spiro NES.tlog/CL.command.1.tlog
+x64/Debug/L. Spiro NES.tlog/CL.read.1.tlog
+x64/Debug/L. Spiro NES.tlog/CL.write.1.tlog
+x64/Debug/L. Spiro NES.tlog/L. Spiro NES.lastbuildstate
+x64/Debug/L. Spiro NES.tlog/link-cvtres.read.1.tlog
+x64/Debug/L. Spiro NES.tlog/link-cvtres.write.1.tlog
+x64/Debug/L. Spiro NES.tlog/link-rc.read.1.tlog
+x64/Debug/L. Spiro NES.tlog/link-rc.write.1.tlog
+x64/Debug/L. Spiro NES.tlog/link.command.1.tlog
+x64/Debug/L. Spiro NES.tlog/link.read.1.tlog
+x64/Debug/L. Spiro NES.tlog/link.read.2.tlog
+x64/Debug/L. Spiro NES.tlog/link.write.1.tlog
+x64/Debug/L. Spiro NES.tlog/unsuccessfulbuild
+x64/Debug/LSNBus.obj
+x64/Debug/LSNCpu6502.obj
+x64/Debug/LSNLSpiroNes.obj
+x64/Debug/vc143.idb
+x64/Debug/vc143.pdb
