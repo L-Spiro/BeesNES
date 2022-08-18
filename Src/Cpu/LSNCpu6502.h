@@ -211,7 +211,7 @@ namespace lsn {
 		void								Branch_Cycle2();
 		/** 3rd cycle of branch instructions. Branch was taken, so copy part of the address and check for a page boundary. */
 		void								Branch_Cycle3();
-		/** 4th cycle of branch instructions. Branch was takenand crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+		/** 4th cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 		void								Branch_Cycle4();
 
 		/** Copies the read value into the low byte of PC after fetching the high byte.

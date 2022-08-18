@@ -456,7 +456,7 @@ namespace lsn {
 		}
 	}
 
-	/** 4th cycle of branch instructions. Branch was takenand crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+	/** 4th cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 	void CCpu6502::Branch_Cycle4() {
 		// This is a read instruction.
 		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
