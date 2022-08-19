@@ -24,6 +24,29 @@
 #define LSN_FINISH_INST																	m_vContextStack.pop_back();																		\
 																						m_pccCurContext = m_vContextStack.size() ? &m_vContextStack[m_vContextStack.size()-1] : nullptr
 
+#define LSN_INDIRECT_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2
+#define LSN_INDIRECT_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 8, LSN_AM_INDIRECT_X, 2
+
+#define LSN_INDIRECT_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_INDIRECT_Y, 2
+#define LSN_INDIRECT_Y_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 8, LSN_AM_INDIRECT_Y, 2
+
+#define LSN_ZERO_PAGE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::FUNC, }, 3, LSN_AM_ZERO_PAGE, 2
+#define LSN_ZERO_PAGE_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromEffectiveAddress_Zp, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_ZERO_PAGE, 2
+
+#define LSN_ABSOLUTE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::FUNC, }, 4, LSN_AM_ABSOLUTE, 3
+#define LSN_ABSOLUTE_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 6, LSN_AM_ABSOLUTE, 3
+
+#define LSN_IMMEDIATE( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FUNC, }, 2, LSN_AM_IMMEDIATE, 2
+
+#define LSN_ZERO_PAGE_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2
+#define LSN_ZERO_PAGE_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 6, LSN_AM_ZERO_PAGE_X, 2
+
+#define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3
+#define LSN_ABSOLUTE_Y_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 7, LSN_AM_ABSOLUTE_Y, 3
+
+#define LSN_ABSOLUTE_X_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_X, 3
+#define LSN_ABSOLUTE_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 7, LSN_AM_ABSOLUTE_X, 3
+
 /*
  * imm = #$00						Immediate addressing
  * zp = $00							Zero page addressing
@@ -55,262 +78,183 @@ namespace lsn {
 	CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {							/**< The instruction set. */
 		/** 00-07 */
 		{	// 00
-			"BRK", {
+			"BRK",
+			u8"BRK causes a non-maskable interrupt and increments the program counter by one. Therefore an RTI will go to the address of the BRK +2 so that BRK may be used to replace a two-byte instruction for debugging and the subsequent RTI will be correct.",
+			{
 				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
 				&CCpu6502::PushPchWithBFlagAndDecS,
 				&CCpu6502::PushPclAndDecS,
 				&CCpu6502::PushStatusAndDecS,
 				&CCpu6502::FetchPclFromFFFE,
 				&CCpu6502::BRK, },									// Fetches from 0xFFFF and writes to the high byte of PC.
-				7, LSN_AM_IMPLIED
+				7, LSN_AM_IMPLIED, 1
 		},
 		{	// 01
-			"ORA", {
-				&CCpu6502::FetchPointerAndIncPc,
-				&CCpu6502::ReadAddressAddX_IzX,
-				&CCpu6502::FetchEffectiveAddressLow_IzX,
-				&CCpu6502::FetchEffectiveAddressHigh_IzX,
-				&CCpu6502::ORA_IzX, },
-				6, LSN_AM_INDIRECT_X
+			LSN_INDIRECT_X_R( "ORA", ORA_IzX, u8"Bitwise OR with accumulator." )
 		},
 		{	// 02
-			"X02", {	// Jams the machine.
+			"X02",
+			u8"Illegal opcode.",
+			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED
+				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 03
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchPointerAndIncPc,
-				&CCpu6502::ReadAddressAddX_IzX,
-				&CCpu6502::FetchEffectiveAddressLow_IzX,
-				&CCpu6502::FetchEffectiveAddressHigh_IzX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2 },
-				8, LSN_AM_INDIRECT_X
+			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 04
-			"NOP", {	// Undocumented command.
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::NOP_Abs, },
-				3, LSN_AM_ZERO_PAGE
+			LSN_ZERO_PAGE_R( "NOP", NOP_Abs, u8"No operation." )
 		},
 		{	// 05
-			"ORA", {
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ORA_Zp, },
-				3, LSN_AM_ZERO_PAGE
+			LSN_ZERO_PAGE_R( "ORA", ORA_Zp, u8"Bitwise OR with accumulator." )
 		},
 		{	// 06
-			"ASL", {
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromEffectiveAddress_Zp,
-				&CCpu6502::ASL_Zp_1,
-				&CCpu6502::ASL_Zp_2, },
-				5, LSN_AM_ZERO_PAGE
+			LSN_ZERO_PAGE_RMW( "ASL", ASL_Zp_1, ASL_Zp_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 07
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromEffectiveAddress_Zp,
-				&CCpu6502::SLO_Zp_1,
-				&CCpu6502::SLO_Zp_2, },
-				5, LSN_AM_ZERO_PAGE
+			LSN_ZERO_PAGE_RMW( "SLO", SLO_Zp_1, SLO_Zp_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 08-0F */
 		{	// 08
-			"PHP", {
+			"PHP",
+			u8"Push processor status register (with break flag set).",
+			{
 				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PHP_Imp, },
-				3, LSN_AM_IMPLIED
+				3, LSN_AM_IMPLIED, 1
 		},
 		{	// 09
-			"ORA", {
-				&CCpu6502::ORA_Imm, },
-				2, LSN_AM_IMMEDIATE
+			LSN_IMMEDIATE( "ORA", ORA_Imm, u8"Bitwise OR with accumulator." )
 		},
 		{	// 0A
-			"ASL", {
+			"ASL",
+			u8"Arithmetic shift left (shifts in a zero bit on the right).",
+			{
 				&CCpu6502::ASL_Imp, },
-				2, LSN_AM_IMPLIED
+				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 0B
-			"ANC", {	// Unusual operation.
-				&CCpu6502::ANC_Imm, },
-				2, LSN_AM_IMMEDIATE
+			LSN_IMMEDIATE( "ANC", ANC_Imm, u8"Unusual operation. AND with carry." )
 		},
 		{	// 0C
-			"NOP", {	// Undocumented command.
-				&CCpu6502::FetchLowAddrByteAndIncPc,
-				&CCpu6502::FetchHighAddrByteAndIncPc,
-				&CCpu6502::NOP_Abs, },
-				4, LSN_AM_ABSOLUTE
+			LSN_ABSOLUTE_R( "NOP", NOP_Abs, u8"No operation." )
 		},
 		{	// 0D
-			"ORA", {
-				&CCpu6502::FetchLowAddrByteAndIncPc,
-				&CCpu6502::FetchHighAddrByteAndIncPc,
-				&CCpu6502::ORA_Abs, },
-				4, LSN_AM_ABSOLUTE
+			LSN_ABSOLUTE_R( "ORA", ORA_Abs, u8"Bitwise OR with accumulator." )
 		},
 		{	// 0E
-			"ASL", {
-				&CCpu6502::FetchLowAddrByteAndIncPc,
-				&CCpu6502::FetchHighAddrByteAndIncPc,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::ASL_Abs_ZpX_1,
-				&CCpu6502::ASL_Abs_ZpX_2, },
-				6, LSN_AM_ABSOLUTE
+			LSN_ABSOLUTE_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 0F
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchLowAddrByteAndIncPc,
-				&CCpu6502::FetchHighAddrByteAndIncPc,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2, },
-				6, LSN_AM_ABSOLUTE
+			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 10-17 */
 		{	// 10
-			"BPL", {
+			"BPL",
+			u8"Branch on plus (negative clear).",
+			{
 				&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 0>,		// Branch if N == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE
+				2, LSN_AM_RELATIVE, 2
 		},
 		{	// 11
-			"ORA", {
-				&CCpu6502::FetchPointerAndIncPc,
-				&CCpu6502::FetchEffectiveAddressLow_IzY,
-				&CCpu6502::FetchEffectiveAddressHigh_IzY,
-				&CCpu6502::ORA_IzY_1,
-				&CCpu6502::ORA_IzY_2, },
-				5, LSN_AM_INDIRECT_Y
+			LSN_INDIRECT_Y_R( "ORA", ORA_IzY_1, ORA_IzY_2, u8"Bitwise OR with accumulator." )
 		},
 		{	// 12
-			"X12", {	// Jams the machine.
+			"X12",
+			u8"Illegal opcode.",
+			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED
+				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 13
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchPointerAndIncPc,
-				&CCpu6502::FetchEffectiveAddressLow_IzY,
-				&CCpu6502::FetchEffectiveAddressHigh_IzY,
-				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2, },
-				8, LSN_AM_INDIRECT_Y
+			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 14
-			"NOP", {	// Undocumented command.
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromAddressAndAddX_ZpX,
-				&CCpu6502::NOP_Abs, },
-				4, LSN_AM_ZERO_PAGE_X
+			LSN_ZERO_PAGE_X_R( "NOP", NOP_Abs, u8"No operation." )
 		},
 		{	// 15
-			"ORA", {
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromAddressAndAddX_ZpX,
-				&CCpu6502::ORA_Zpx, },
-				4, LSN_AM_ZERO_PAGE_X
+			LSN_ZERO_PAGE_X_R( "ORA", ORA_Zpx, u8"Bitwise OR with accumulator." )
 		},
 		{	// 16
-			"ASL", {
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromAddressAndAddX_ZpX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::ASL_Abs_ZpX_1,
-				&CCpu6502::ASL_Abs_ZpX_2, },
-				6, LSN_AM_ZERO_PAGE_X
+			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 17
-			"SLO", {
-				&CCpu6502::FetchAddressAndIncPc_Zp,
-				&CCpu6502::ReadFromAddressAndAddX_ZpX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2, },
-				6, LSN_AM_ZERO_PAGE_X
+			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 18-1F */
 		{	// 18
-			"CLC", {
+			"CLC",
+			u8"Clear carry.",
+			{
 				&CCpu6502::CLC, },
-				2, LSN_AM_IMPLIED
+				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 19
-			"ORA", {
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddY,
-				&CCpu6502::ORA_AbY_1,
-				&CCpu6502::ORA_AbY_2, },
-				4, LSN_AM_ABSOLUTE_Y
+			LSN_ABSOLUTE_Y_R( "ORA", ORA_AbY_1, ORA_AbY_2, u8"Bitwise OR with accumulator." )
 		},
 		{	// 1A
-			"NOP", {	// Undocumented command.
+			"NOP",
+			u8"No operation.",
+			{	// Undocumented command.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED
+				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 1B
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddY,
-				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2, },
-				7, LSN_AM_ABSOLUTE_Y
+			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 1C
-			"NOP", {	// Undocumented command.
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddX,
-				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
-				&CCpu6502::NOP_Abs, },
-				4, LSN_AM_ABSOLUTE_X
+			LSN_ABSOLUTE_X_R( "NOP", ReadEffectiveAddressFixHighByte_IzY_AbX, NOP_Abs, u8"No operation." )
 		},
 		{	// 1D
-			"ORA", {
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddX,
-				&CCpu6502::ORA_AbY_1,
-				&CCpu6502::ORA_AbY_2, },
-				4, LSN_AM_ABSOLUTE_X
+			LSN_ABSOLUTE_X_R( "ORA", ORA_AbY_1, ORA_AbY_2, u8"Bitwise OR with accumulator." )
 		},
 		{	// 1E
-			"ASL", {
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddX,
-				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::ASL_Abs_ZpX_1,
-				&CCpu6502::ASL_Abs_ZpX_2, },
-				7, LSN_AM_ABSOLUTE_X
+			LSN_ABSOLUTE_X_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 1F
-			"SLO", {	// Undocumented command.
-				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
-				&CCpu6502::FetchHighAddrByteAndIncPcAndAddX,
-				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
-				&CCpu6502::ReadFromEffectiveAddress_Abs,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1,
-				&CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2, },
-				7, LSN_AM_ABSOLUTE_X
+			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+		},
+
+		/** 20-27 */
+		{	// 20
+			"JSR",
+			u8"Jump to subroutine.",
+			{
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::Jsr_Cycle3,
+				&CCpu6502::Jsr_Cycle4,
+				&CCpu6502::Jsr_Cycle5,
+				&CCpu6502::JSR, },
+				6, LSN_AM_ABSOLUTE, 3
+		},
+		{	// 21
+			LSN_INDIRECT_X_R( "AND", AND_IzX, u8"Bitwise AND with accumulator." )
+		},
+		{	// 22
+			"X22",
+			u8"Illegal opcode.",
+			{	// Jams the machine.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED, 1
 		},
 	};
 
 	// == Various constructors.
 	CCpu6502::CCpu6502( class CBus * _pbBus ) :
 		m_pbBus( _pbBus ),
-		m_pccCurContext( nullptr ) {
+		m_pccCurContext( nullptr ),
+		A( 0 ),
+		S( 0xFD ),
+		X( 0 ),
+		Y( 0 ) {
+		pc.PC = 0xC000;
+		m_ui8Status = 0x34;
 	}
 	CCpu6502::~CCpu6502() {
 		ResetToKnown();
@@ -322,6 +266,11 @@ namespace lsn {
 	 */
 	void CCpu6502::ResetToKnown() {
 		ResetAnalog();
+		A = 0;
+		S = 0xFD;
+		X = Y = 0;
+		pc.PC = 0xC000;
+		m_ui8Status = 0x34;
 	}
 
 	/**
@@ -329,6 +278,8 @@ namespace lsn {
 	 */
 	void CCpu6502::ResetAnalog() {
 		m_vContextStack.clear();
+		S -= 3;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true );
 	}
 
 	/**
@@ -345,20 +296,25 @@ namespace lsn {
 		m_pccCurContext = &m_vContextStack[m_vContextStack.size()-1];
 
 		// Perform the actual work.
-		m_pccCurContext->ui8OpCode = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->ui8OpCode = m_pbBus->CpuRead( pc.PC++ );
 	}
 
 	/**
 	 * Reads the next instruction byte and throws it away.
 	 */
 	void CCpu6502::ReadNextInstByteAndDiscard() {
-		m_pbBus->CpuRead( PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Reads the next instruction byte and throws it away. */
 	void CCpu6502::ReadNextInstByteAndDiscardAndIncPc() {
-		m_pbBus->CpuRead( PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		//  #  address R/W description
+		// --- ------- --- -----------------------------------------------
+		//  2    PC     R  read next instruction byte (and throw it away),
+		//                 increment PC
+
+		m_pbBus->CpuRead( pc.PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -366,7 +322,7 @@ namespace lsn {
 	 * Fetches a value using immediate addressing.
 	 */
 	void CCpu6502::FetchValueAndIncPc_Imm() {
-		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -377,7 +333,7 @@ namespace lsn {
 		//  2      PC       R  fetch pointer address, increment PC
 		
 		// Fetch pointer address, increment PC.
-		m_pccCurContext->ui8Pointer = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->ui8Pointer = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -388,7 +344,7 @@ namespace lsn {
 		//  2    PC     R  fetch address, increment PC
 		
 		// Fetches the value from an 8-bit address on the zero page.
-		m_pccCurContext->a.ui16Address = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->a.ui16Address = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -400,7 +356,7 @@ namespace lsn {
 		
 		// val = PEEK(arg + Y)
 		// Fetches the value from a 16-bit address anywhere in memory.
-		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -411,7 +367,7 @@ namespace lsn {
 		//  2    PC     R  fetch low address byte, increment PC
 		
 		// Fetches the value from a 16-bit address anywhere in memory.
-		m_pccCurContext->j.ui8Bytes[0] = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->j.ui8Bytes[0] = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -424,7 +380,7 @@ namespace lsn {
 
 		// Fetches the value from a 16-bit address anywhere in memory.
 		m_pccCurContext->a.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
-		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -437,7 +393,7 @@ namespace lsn {
 		//                   increment PC
 
 		// val = PEEK(arg + Y)
-		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC++ );
 		m_pccCurContext->j.ui16JmpTarget = static_cast<uint16_t>(m_pccCurContext->a.ui16Address + Y);
 		m_pccCurContext->a.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
 		LSN_ADVANCE_CONTEXT_COUNTERS;
@@ -452,7 +408,7 @@ namespace lsn {
 		//                   increment PC
 
 		// val = PEEK(arg + X)
-		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC++ );
 		m_pccCurContext->j.ui16JmpTarget = static_cast<uint16_t>(m_pccCurContext->a.ui16Address + X);
 		m_pccCurContext->a.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
 		LSN_ADVANCE_CONTEXT_COUNTERS;
@@ -508,30 +464,55 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
+	/** 3rd cycle of JSR. */
+	void CCpu6502::Jsr_Cycle3() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  3  $0100,S  R  internal operation (predecrement S?)
+		m_pbBus->CpuRead( 0x100 + S/*(S - 1)*/ );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** 4th cycle of JSR. */
+	void CCpu6502::Jsr_Cycle4() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  4  $0100,S  W  push PCH on stack, decrement S
+		LSN_PUSH( pc.ui8Bytes[1] );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** 5th cycle of JSR. */
+	void CCpu6502::Jsr_Cycle5() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  5  $0100,S  W  push PCL on stack, decrement S
+		LSN_PUSH( pc.ui8Bytes[0] );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
 	/** Pushes PCH. */
 	void CCpu6502::PushPch() {
-		LSN_PUSH( static_cast<uint8_t>(PC >> 8) );
+		LSN_PUSH( pc.ui8Bytes[1] );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Pushes PCH, sets the B flag, and decrements S. */
 	void CCpu6502::PushPchWithBFlagAndDecS() {
-		LSN_PUSH( static_cast<uint8_t>(PC >> 8) );
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  3  $0100,S  W  push PCH on stack (with B flag set), decrement S
+		LSN_PUSH( pc.ui8Bytes[1] );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), true );
-		--S;
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** Pushes PCL. */
-	void CCpu6502::PushPcl() {
-		LSN_PUSH( static_cast<uint8_t>(PC) );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Pushes PCL, decrements S. */
 	void CCpu6502::PushPclAndDecS() {
-		LSN_PUSH( static_cast<uint8_t>(PC) );
-		--S;
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  4  $0100,S  W  push PCL on stack, decrement S
+		LSN_PUSH( pc.ui8Bytes[0] );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -539,14 +520,16 @@ namespace lsn {
 	void CCpu6502::PushStatusAndB() {
 		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
-		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint8_t( LSN_VECTORS::LSN_V_NMI ) : uint8_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Pushes status an decrements S. */
 	void CCpu6502::PushStatusAndDecS() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  5  $0100,S  W  push P on stack, decrement S
 		LSN_PUSH( m_ui8Status );
-		--S;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -554,7 +537,7 @@ namespace lsn {
 	void CCpu6502::PushStatus() {
 		LSN_PUSH( m_ui8Status );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
-		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint8_t( LSN_VECTORS::LSN_V_NMI ) : uint8_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -665,19 +648,22 @@ namespace lsn {
 
 	/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
 	void CCpu6502::CopyVectorPcl() {
-		PC = (PC & 0xFF00) | m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		pc.ui8Bytes[0] = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Fetches the low byte of PC from $FFFE. */
 	void CCpu6502::FetchPclFromFFFE() {
-		PC = (PC & 0xFF00) | m_pbBus->CpuRead( 0xFFFE );
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  6   $FFFE   R  fetch PCL
+		pc.ui8Bytes[0] = m_pbBus->CpuRead( 0xFFFE );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Fetches the high byte of PC from $FFFF. */
 	void CCpu6502::FetchPclFromFFFF() {
-		PC = (PC & 0x00FF) | (m_pbBus->CpuRead( 0xFFFF ) << 8);
+		pc.ui8Bytes[1] = m_pbBus->CpuRead( 0xFFFF );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -695,7 +681,7 @@ namespace lsn {
 
 	/** 2nd cycle of branch instructions. Reads the operand (JMP offset). */
 	void CCpu6502::Branch_Cycle2() {
-		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( PC++ );
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -703,7 +689,7 @@ namespace lsn {
 	template <unsigned _uBit, unsigned _uVal>
 	void CCpu6502::Branch_Cycle3() {
 		// Fetch next opcode.
-		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
+		m_pbBus->CpuRead( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 		// If the branch is not taken, we are done here.
 		// For example:
 		// -> _uBit == LSN_STATUS_FLAGS::LSN_SF_NEGATIVE
@@ -715,14 +701,14 @@ namespace lsn {
 		// -> if ( (m_ui8Status & LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) != (1 * LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) ) {
 		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
 			// Branch not taken.
-			++PC;
+			++pc.PC;
 			LSN_FINISH_INST;
 		}
 		else {
 			// Branch taken.
-			m_pccCurContext->j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + PC;
+			m_pccCurContext->j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + pc.PC;
 			// Set PCL.
-			PC = (PC & 0xFF00) | m_pccCurContext->j.ui8Bytes[0];
+			pc.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 	}
@@ -779,13 +765,12 @@ namespace lsn {
 	/** 4th cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 	void CCpu6502::Branch_Cycle4() {
 		// Fetch next opcode.
-		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
+		m_pbBus->CpuRead( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 
-		uint16_t ui16Hi = (m_pccCurContext->j.ui16JmpTarget & 0xFF00);
-		bool bCrossed = ui16Hi != (PC & 0xFF00);
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != pc.ui8Bytes[1];
 		if ( bCrossed ) {
 			// Crossed a page boundary.
-			PC = (PC & 0x00FF) | ui16Hi;
+			pc.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
@@ -829,14 +814,14 @@ namespace lsn {
 		// I am assuming this means it should behave as expected by putting PC in place and then letting the
 		//	system eat the next opcode on the next cycle, but they could be pre-fetching the opcode as an
 		//	optimization.
-		m_pbBus->CpuRead( PC );
+		m_pbBus->CpuRead( pc.PC );
 		LSN_FINISH_INST;
 	}
 
 	/** Follows FetchLowAddrByteAndIncPc() and copies the read value into the low byte of PC after fetching the high byte. */
 	void CCpu6502::JMP_Abs() {
-		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC );
-		PC = m_pccCurContext->a.ui16Address;
+		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC );
+		pc.PC = m_pccCurContext->a.ui16Address;
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -852,8 +837,10 @@ namespace lsn {
 	 *	FetchPclFromFFFE
 	 */
 	void CCpu6502::BRK() {
-		//PC = (PC & 0xFF) | (m_pbBus->CpuRead( m_pccCurContext->a.ui16Address + 1 ) << 8);
-		PC = (PC & 0x00FF) | (m_pbBus->CpuRead( 0xFFFF ) << 8);
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  7   $FFFF   R  fetch PCH
+		pc.ui8Bytes[1] = m_pbBus->CpuRead( 0xFFFF );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -867,7 +854,7 @@ namespace lsn {
 
 	/** Reads the next instruction byte and throws it away. */
 	void CCpu6502::NOP() {
-		m_pbBus->CpuRead( PC );
+		m_pbBus->CpuRead( pc.PC );
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -875,7 +862,7 @@ namespace lsn {
 
 	/** Reads the next instruction byte and throws it away, increasing PC. */
 	void CCpu6502::NopAndIncPc() {
-		m_pbBus->CpuRead( PC++ );
+		m_pbBus->CpuRead( pc.PC++ );
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1073,7 +1060,7 @@ namespace lsn {
 		//  2    PC     R  fetch value, increment PC
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
-		uint8_t ui8Tmp = m_pbBus->CpuRead( PC++ );
+		uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
 		A |= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
@@ -1108,6 +1095,7 @@ namespace lsn {
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
 		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A &= ui8Tmp;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
@@ -1128,6 +1116,23 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc (implicit.)
+	 *	FetchPointerAndIncPc
+	 *	ReadAddressAddX_IzX
+	 *	FetchEffectiveAddressLow_IzX
+	 *	FetchEffectiveAddressHigh_IzX
+	 */
+	void CCpu6502::AND_IzX() {
+		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A &= m_pccCurContext->ui8Operand;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
 	}
 
 	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
@@ -1187,7 +1192,7 @@ namespace lsn {
 	 */
 	void CCpu6502::ASL_Imp() {
 		// We have a discarded read here.
-		m_pbBus->CpuRead( PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
 		
 
 		// It carries if the last bit gets shifted off.
@@ -1215,6 +1220,7 @@ namespace lsn {
      cessor.
           PHP is a single-byte instruction and the addressing mode is Implied.
 		*/
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), true );
 		LSN_PUSH( m_ui8Status );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1292,6 +1298,25 @@ namespace lsn {
 	 */
 	void CCpu6502::SLO_Zp_2() {
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address & 0xFF, m_pccCurContext->ui8Operand );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** JSR (Jump to Sub-Routine).
+	 * Chain:
+	 *	FetchOpcodeAndIncPc (implicit.)
+	 *	FetchLowAddrByteAndIncPc
+	 *	Jsr_Cycle3
+	 *	Jsr_Cycle4
+	 *	Jsr_Cycle5
+	 */
+	void CCpu6502::JSR() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  6    PC     R  copy low address byte to PCL, fetch high address
+		//                 byte to PCH
+		m_pccCurContext->j.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC );
+		pc.PC = m_pccCurContext->j.ui16JmpTarget;
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}

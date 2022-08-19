@@ -143,16 +143,21 @@ namespace lsn {
 		 */
 		struct LSN_INSTR {
 			const char *					pcName;											/**< Name of the instruction. */
+			const char8_t *					putf8Desc;										/**< Description for the instruction. */
 			PfCycle							pfHandler[LSN_M_MAX_INSTR_CYCLE_COUNT];			/**< Indexed by LSN_CPU_CONTEXT::ui8FuncIdx, these functions handle each cycle of the instruction. */
 			uint8_t							ui8TotalCycles;									/**< Total non-optional non-overlapping cycles in the instruction. Used only for debugging, disassembling, etc. */
 			LSN_ADDRESSING_MODES			amAddrMode;										/**< Addressing mode. Used only for debugging, disassembling, etc. */
+			uint8_t							ui8Size;										/**< Size in bytes of the instruction. Used only for debugging, disassembling, etc. */
 		};
 
 
 		// == Members.
 		class CBus *						m_pbBus;										/**< Pointer to the bus. */
 		std::vector<LSN_CPU_CONTEXT>		m_vContextStack;								/**< Stack of contexts. */
-		uint16_t							PC;												/**< Program counter. */
+		union {
+			uint16_t						PC;												/**< Program counter. */
+			uint8_t							ui8Bytes[2];
+		}									pc;
 		uint8_t								A;												/**< Accumulator. */
 		uint8_t								X;												/**< Index register X. */
 		uint8_t								Y;												/**< Index register Y. */
@@ -198,12 +203,16 @@ namespace lsn {
 		void								ReadFromAddressAndAddX_ZpX();
 		/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
 		void								AddYAndReadAddress_IndY();						// Cycle 5.
+		/** 3rd cycle of JSR. */
+		void								Jsr_Cycle3();									// Cycle 3.
+		/** 4th cycle of JSR. */
+		void								Jsr_Cycle4();									// Cycle 4.
+		/** 5th cycle of JSR. */
+		void								Jsr_Cycle5();									// Cycle 5.
 		/** Pushes PCH. */
 		void								PushPch();										// Cycle 3.
 		/** Pushes PCH, sets the B flag, and decrements S. */
 		void								PushPchWithBFlagAndDecS();						// Cycle 3.
-		/** Pushes PCL. */
-		void								PushPcl();										// Cycle 4.
 		/** Pushes PCL, decrements S. */
 		void								PushPclAndDecS();								// Cycle 4.
 		/** Pushes status with B. */
@@ -361,6 +370,15 @@ namespace lsn {
 		 *	ReadFromEffectiveAddress_Zp
 		 */
 		void								ASL_Zp_1();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchPointerAndIncPc
+		 *	ReadAddressAddX_IzX
+		 *	FetchEffectiveAddressLow_IzX
+		 *	FetchEffectiveAddressHigh_IzX
+		 */
+		void								AND_IzX();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -433,6 +451,15 @@ namespace lsn {
 		 *	SLO_Zp_1
 		 */
 		void								SLO_Zp_2();
+		/** JSR (Jump to Sub-Routine).
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchLowAddrByteAndIncPc
+		 *	Jsr_Cycle3
+		 *	Jsr_Cycle4
+		 *	Jsr_Cycle5
+		 */
+		void								JSR();
 	};
 
 
