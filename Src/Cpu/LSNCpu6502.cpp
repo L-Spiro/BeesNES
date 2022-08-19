@@ -84,7 +84,7 @@ namespace lsn {
 				8, LSN_AM_INDIRECT_X
 		},
 		{	// 04
-			"NOP", {	// Undocumented.
+			"NOP", {	// Undocumented command.
 				&CCpu6502::FetchAddressAndIncPc_Zp,
 				&CCpu6502::NOP_Abs, },
 				3, LSN_AM_ZERO_PAGE
@@ -104,7 +104,7 @@ namespace lsn {
 				5, LSN_AM_ZERO_PAGE
 		},
 		{	// 07
-			"SLO", {	// Undocumented.
+			"SLO", {	// Undocumented command.
 				&CCpu6502::FetchAddressAndIncPc_Zp,
 				&CCpu6502::ReadFromEffectiveAddress_Zp,
 				&CCpu6502::SLO_Zp_1,
@@ -191,7 +191,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED
 		},
 		{	// 13
-			"SLO", {	// Jams the machine very rarely.
+			"SLO", {	// Undocumented command.
 				&CCpu6502::FetchPointerAndIncPc,
 				&CCpu6502::FetchEffectiveAddressLow_IzY,
 				&CCpu6502::FetchEffectiveAddressHigh_IzY,
@@ -202,7 +202,7 @@ namespace lsn {
 				8, LSN_AM_INDIRECT_Y
 		},
 		{	// 14
-			"NOP", {	// Undocumented.
+			"NOP", {	// Undocumented command.
 				&CCpu6502::FetchAddressAndIncPc_Zp,
 				&CCpu6502::ReadFromAddressAndAddX_ZpX,
 				&CCpu6502::NOP_Abs, },
@@ -253,8 +253,8 @@ namespace lsn {
 				&CCpu6502::NOP, },
 				2, LSN_AM_IMPLIED
 		},
-		{	// 1B	// This is LSN_AM_ABSOLUTE_Y.  This goes to 1F.
-			"SLO", {
+		{	// 1B
+			"SLO", {	// Undocumented command.
 				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
 				&CCpu6502::FetchHighAddrByteAndIncPcAndAddY,
 				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
@@ -290,7 +290,7 @@ namespace lsn {
 				7, LSN_AM_ABSOLUTE_X
 		},
 		{	// 1F
-			"SLO", {
+			"SLO", {	// Undocumented command.
 				&CCpu6502::FetchLowAddrByteAndIncPc_WriteImm,
 				&CCpu6502::FetchHighAddrByteAndIncPcAndAddX,
 				&CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX,
