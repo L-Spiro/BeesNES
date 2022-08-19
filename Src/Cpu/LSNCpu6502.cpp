@@ -422,18 +422,41 @@ namespace lsn {
 
 	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, adds X to it, stores the result in LSN_CPU_CONTEXT::ui8Pointer. */
 	void CCpu6502::ReadAddressAddX_IzX() {
-		m_pccCurContext->ui8Pointer = m_pbBus->CpuRead( m_pccCurContext->ui8Pointer ) + X;
+		//  #    address   R/W description
+		//--- ----------- --- ------------------------------------------
+		//  3    pointer    R  read from the address, add X to it
+
+		// val = PEEK(PEEK((arg + X) % 256) + PEEK((arg + X + 1) % 256) * 256)
+		// This is the "(arg + X)" step, but since every cycle is a read or write there is also a superfluous read of "arg" here.
+		m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );
+		m_pccCurContext->ui8Pointer = static_cast<uint8_t>(m_pccCurContext->ui8Pointer + X);
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
+	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::FetchEffectiveAddressLow_IzX() {
-		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer) );
+		//  #    address   R/W description
+		//--- ----------- --- ------------------------------------------
+		//  4   pointer+X   R  fetch effective address low
+		
+		// val = PEEK(PEEK((arg + X) % 256) + PEEK((arg + X + 1) % 256) * 256)
+		// This is the:
+		//	PEEK((arg + X) % 256)
+		//	part.
+		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::FetchEffectiveAddressHigh_IzX() {
+		//  #    address   R/W description
+		//--- ----------- --- ------------------------------------------
+		//  5  pointer+X+1  R  fetch effective address high
+
+		// val = PEEK(PEEK((arg + X) % 256) + PEEK((arg + X + 1) % 256) * 256)
+		// This is the:
+		//	PEEK((arg + X + 1) % 256) * 256
+		//	part.
 		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer + 1) );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
