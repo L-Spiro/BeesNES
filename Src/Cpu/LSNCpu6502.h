@@ -118,7 +118,10 @@ namespace lsn {
 				uint16_t					ui16Address;									/**< For various access types. */
 				uint8_t						ui8Bytes[2];
 			}								a;
-			uint16_t						ui16JmpTarget;
+			union {
+				uint16_t					ui16JmpTarget;
+				uint8_t						ui8Bytes[2];
+			}								j;
 			LSN_CONTEXTS					cContext;										/**< The context for whatever is currently being processed. */
 			uint8_t							ui8Cycle;										/**< The per-instruction cycle count. */
 			uint8_t							ui8FuncIdx;										/**< The index of the next function to call in the instruction. */

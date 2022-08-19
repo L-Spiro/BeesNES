@@ -331,8 +331,8 @@ namespace lsn {
 	/** Fetches the high address value for absolute/indirect addressing.  Adds Y to the low byte of the resulting address. */
 	void CCpu6502::FetchHighAddrByteAndIncPcAndAddY() {
 		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( PC++ );
-		m_pccCurContext->ui16JmpTarget = m_pccCurContext->a.ui16Address + Y;
-		m_pccCurContext->a.ui16Address = (m_pccCurContext->a.ui16Address & 0xFF00) | (m_pccCurContext->ui16JmpTarget & 0x00FF);
+		m_pccCurContext->j.ui16JmpTarget = static_cast<uint16_t>(m_pccCurContext->a.ui16Address + Y);
+		m_pccCurContext->a.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -463,22 +463,38 @@ namespace lsn {
 
 	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::FetchEffectiveAddressLow_IzY() {
+		//  #    address   R/W description
+		//--- ----------- --- ------------------------------------------
+		//  3    pointer    R  fetch effective address low
+		
+		// val = PEEK(PEEK(arg) + PEEK((arg + 1) % 256) * 256 + Y)
 		// Fetch effective address low.
+		// This is the:
+		//	PEEK(arg)
+		//	part.
 		m_pccCurContext->a.ui8Bytes[0] = m_pbBus->CpuRead( m_pccCurContext->ui8Pointer );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
 	void CCpu6502::FetchEffectiveAddressHigh_IzY() {
-		// Fetch effective address high,
-		// add Y to low byte of effective address.
-		// Notes: The effective address is always fetched from zero page,
-        //      i.e. the zero page boundary crossing is not handled.
-		// Hence static_cast<uint8_t>() here.
+		//  #    address   R/W description
+		//--- ----------- --- ------------------------------------------
+		//  4   pointer+1   R  fetch effective address high,
+		//                     add Y to low byte of effective address
+		
+		// val = PEEK(PEEK(arg) + PEEK((arg + 1) % 256) * 256 + Y)
+		// Fetch effective address high.
+		// This is the:
+		//	PEEK((arg + 1) % 256) * 256
+		//	part.
 		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( static_cast<uint8_t>(m_pccCurContext->ui8Pointer + 1) );
+		// And this is the:
+		//	+ Y
+		//	part.
 		// Check here if we are going to need to skip a cycle (if a page boundary is NOT crossed).
-		m_pccCurContext->ui16JmpTarget = m_pccCurContext->a.ui16Address + Y;
-		m_pccCurContext->a.ui16Address = (m_pccCurContext->a.ui16Address & 0xFF00) | (m_pccCurContext->ui16JmpTarget & 0x00FF);
+		m_pccCurContext->j.ui16JmpTarget = static_cast<uint16_t>(m_pccCurContext->a.ui16Address + Y);
+		m_pccCurContext->a.ui8Bytes[0] = m_pccCurContext->j.ui8Bytes[0];
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		//const uint16_t uiAdvanceBy = ((m_pccCurContext->ui16JmpTarget & 0xFF00) == (m_pccCurContext->a.ui16Address & 0xFF00)) + 1;
 		//LSN_ADVANCE_CONTEXT_COUNTERS_BY( uiAdvanceBy );
@@ -491,11 +507,11 @@ namespace lsn {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
-		uint16_t ui16Hi = (m_pccCurContext->ui16JmpTarget & 0xFF00);
-		bool bCrossed = ui16Hi != (m_pccCurContext->a.ui16Address & 0xFF00);
+		;
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
 		if ( bCrossed ) {
 			// Crossed a page boundary.
-			m_pccCurContext->a.ui16Address = (m_pccCurContext->a.ui16Address & 0x00FF) | ui16Hi;
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
@@ -561,9 +577,9 @@ namespace lsn {
 		}
 		else {
 			// Branch taken.
-			m_pccCurContext->ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + PC;
+			m_pccCurContext->j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + PC;
 			// Set PCL.
-			PC = (PC & 0xFF00) | (m_pccCurContext->ui16JmpTarget & 0x00FF);
+			PC = (PC & 0xFF00) | m_pccCurContext->j.ui8Bytes[0];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 	}
@@ -622,7 +638,7 @@ namespace lsn {
 		// Fetch next opcode.
 		m_pbBus->CpuRead( PC );	// Read and discard.  Affects emulation of the floating bus.
 
-		uint16_t ui16Hi = (m_pccCurContext->ui16JmpTarget & 0xFF00);
+		uint16_t ui16Hi = (m_pccCurContext->j.ui16JmpTarget & 0xFF00);
 		bool bCrossed = ui16Hi != (PC & 0xFF00);
 		if ( bCrossed ) {
 			// Crossed a page boundary.
@@ -760,11 +776,10 @@ namespace lsn {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
-		uint16_t ui16Hi = (m_pccCurContext->ui16JmpTarget & 0xFF00);
-		bool bCrossed = ui16Hi != (m_pccCurContext->a.ui16Address & 0xFF00);
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
 		if ( bCrossed ) {
 			// Crossed a page boundary.
-			m_pccCurContext->a.ui16Address = (m_pccCurContext->a.ui16Address & 0x00FF) | ui16Hi;
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
@@ -808,11 +823,10 @@ namespace lsn {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
-		uint16_t ui16Hi = (m_pccCurContext->ui16JmpTarget & 0xFF00);
-		bool bCrossed = ui16Hi != (m_pccCurContext->a.ui16Address & 0xFF00);
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
 		if ( bCrossed ) {
 			// Crossed a page boundary.
-			m_pccCurContext->a.ui16Address = (m_pccCurContext->a.ui16Address & 0x00FF) | ui16Hi;
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
