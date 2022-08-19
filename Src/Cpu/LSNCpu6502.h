@@ -178,12 +178,16 @@ namespace lsn {
 		void								FetchPointerAndIncPc();							// Cycle 2.
 		/** Fetches an 8-bit address for Zero-Page dereferencing and increments PC. Stores the address in LSN_CPU_CONTEXT::a.ui16Address. */
 		void								FetchAddressAndIncPc_Zp();						// Cycle 2.
-		/** Fetches the low address value for absolute addressing. */
+		/** Fetches the low address and writes the value to the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
+		void								FetchLowAddrByteAndIncPc_WriteImm();			// Cycle 2.
+		/** Fetches the low address value for absolute addressing but does not write the value to LSN_CPU_CONTEXT::a.ui16Address yet.  Pair with FetchHighAddrByteAndIncPc(). */
 		void								FetchLowAddrByteAndIncPc();						// Cycle 2.
 		/** Fetches the high address value for absolute/indirect addressing. */
 		void								FetchHighAddrByteAndIncPc();					// Cycle 3.
 		/** Fetches the high address value for absolute/indirect addressing.  Adds Y to the low byte of the resulting address. */
 		void								FetchHighAddrByteAndIncPcAndAddY();				// Cycle 3.
+		/** Fetches the high address value for absolute/indirect addressing.  Adds X to the low byte of the resulting address. */
+		void								FetchHighAddrByteAndIncPcAndAddX();				// Cycle 3.
 		/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
 		void								ReadFromEffectiveAddress_Abs();					// Cycle 4.
 		/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
@@ -191,7 +195,7 @@ namespace lsn {
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores the result into LSN_CPU_CONTEXT::ui8Pointer.  Preceded by FetchPointerAndIncPc(). */
 		void								ReadAtPointerAddress();							// Cycle 3.
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+X)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
-		void								ReadFromAddressAndAddX_Zpx();
+		void								ReadFromAddressAndAddX_ZpX();
 		/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
 		void								AddYAndReadAddress_IndY();						// Cycle 5.
 		/** Pushes PCH. */
@@ -219,7 +223,7 @@ namespace lsn {
 		/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
 		void								FetchEffectiveAddressHigh_IzY();				// Cycle 4.
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
-		void								ReadEffectiveAddressFixHighByte_IzY();			// Cycle 5.
+		void								ReadEffectiveAddressFixHighByte_IzY_AbX();			// Cycle 5.
 		/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
 		void								CopyVectorPcl();								// Cycle 6.
 		/** Fetches the low byte of PC from $FFFE. */
@@ -330,7 +334,7 @@ namespace lsn {
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 *	FetchPointerAndIncPc()
-		 *	ReadFromAddressAndAddX_Zpx()
+		 *	ReadFromAddressAndAddX_ZpX()
 		 */
 		void								ORA_Zpx();
 		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
@@ -350,12 +354,6 @@ namespace lsn {
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 */
 		void								ANC_Imm();
-		/** A zero-page NOP.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 */
-		void								NOP_Zp();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -375,42 +373,24 @@ namespace lsn {
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromAddressAndAddX_Zpx
+		 *	ReadFromAddressAndAddX_ZpX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								ASL_Zpx_1();
+		void								ASL_Abs_ZpX_1();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromAddressAndAddX_Zpx
+		 *	ReadFromAddressAndAddX_ZpX
 		 *	ReadFromEffectiveAddress_Abs
-		 *	ASL_Zpx_1
+		 *	ASL_Abs_ZpX_1
 		 */
-		void								ASL_Zpx_2();
+		void								ASL_Abs_ZpX_2();
 		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 */
 		void								ASL_Imp();
-		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc
-		 *	FetchHighAddrByteAndIncPc
-		 *	ReadFromEffectiveAddress_Abs
-		 */
-		void								ASL_Abs_1();
-		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc()
-		 *	FetchHighAddrByteAndIncPc()
-		 *	ReadFromEffectiveAddress_Abs()
-		 *	WriteValueBackToEffectiveAddress
-		 *	ASL_Abs_1
-		 */
-		void								ASL_Abs_2();
 		/** Pushes the status byte.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -426,7 +406,7 @@ namespace lsn {
 		 *	FetchEffectiveAddressHigh_IzX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								SLO_IndX_1();
+		void								SLO_IzX_IzY_ZpX_AbX_AbY_1();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -435,9 +415,9 @@ namespace lsn {
 		 *	FetchEffectiveAddressLow_IzX
 		 *	FetchEffectiveAddressHigh_IzX
 		 *	ReadFromEffectiveAddress_Abs
-		 *	SLO_IndX_1
+		 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
 		 */
-		void								SLO_IndX_2();
+		void								SLO_IzX_IzY_ZpX_AbX_AbY_2();
 		/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
