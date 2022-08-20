@@ -325,14 +325,6 @@ namespace lsn {
 		 *	ORA_AbY_1
 		 */
 		void								ORA_AbY_2();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address+Y and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchEffectiveAddressLow_IzY()
-		 *	FetchEffectiveAddressHigh_IzY()
-		 *	AddYAndReadAddress_IndY() (On Page Boundary)
-		 */
-		void								ORA_IndY();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -358,18 +350,17 @@ namespace lsn {
 		 *	FetchHighAddrByteAndIncPc()
 		 */
 		void								ORA_Abs();
+		/** Sets flags N, V and Z according to a bit test.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchAddressAndIncPc_Zp
+		 */
+		void								BIT_Zp();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 */
 		void								ANC_Imm();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromEffectiveAddress_Zp
-		 */
-		void								ASL_Zp_1();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -379,6 +370,13 @@ namespace lsn {
 		 *	FetchEffectiveAddressHigh_IzX
 		 */
 		void								AND_IzX();
+		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchAddressAndIncPc_Zp
+		 *	ReadFromEffectiveAddress_Zp
+		 */
+		void								ASL_Zp_1();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -451,6 +449,27 @@ namespace lsn {
 		 *	SLO_Zp_1
 		 */
 		void								SLO_Zp_2();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchPointerAndIncPc
+		 *	ReadAddressAddX_IzX
+		 *	FetchEffectiveAddressLow_IzX
+		 *	FetchEffectiveAddressHigh_IzX
+		 *	ReadFromEffectiveAddress_Abs
+		 */
+		void								RLA_IzX_IzY_ZpX_AbX_AbY_1();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchPointerAndIncPc
+		 *	ReadAddressAddX_IzX
+		 *	FetchEffectiveAddressLow_IzX
+		 *	FetchEffectiveAddressHigh_IzX
+		 *	ReadFromEffectiveAddress_Abs
+		 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
+		 */
+		void								RLA_IzX_IzY_ZpX_AbX_AbY_2();
 		/** JSR (Jump to Sub-Routine).
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
