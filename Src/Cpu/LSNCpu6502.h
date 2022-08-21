@@ -383,7 +383,7 @@ namespace lsn {
 		 *	ReadFromAddressAndAddX_ZpX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								ASL_Zp_Abs_ZpX();
+		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -412,7 +412,7 @@ namespace lsn {
 		 *	FetchLowAddrByteAndIncPc
 		 *	FetchHighAddrByteAndIncPc
 		 */
-		void								ROL_Zp_Abs();
+		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -422,14 +422,7 @@ namespace lsn {
 		 *	FetchEffectiveAddressHigh_IzX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								SLO_IzX_IzY_ZpX_AbX_AbY();
-		/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromEffectiveAddress_Zp
-		 */
-		void								SLO_Zp();
+		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)

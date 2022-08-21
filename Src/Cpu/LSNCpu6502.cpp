@@ -100,7 +100,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 03
-			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 04
 			LSN_ZERO_PAGE_R( "NOP", NOP_Abs, u8"No operation." )
@@ -109,10 +109,10 @@ namespace lsn {
 			LSN_ZERO_PAGE_R( "ORA", ORA_Zp, u8"Bitwise OR with accumulator." )
 		},
 		{	// 06
-			LSN_ZERO_PAGE_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 07
-			LSN_ZERO_PAGE_RMW( "SLO", SLO_Zp, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 08-0F */
@@ -144,10 +144,10 @@ namespace lsn {
 			LSN_ABSOLUTE_R( "ORA", ORA_Abs, u8"Bitwise OR with accumulator." )
 		},
 		{	// 0E
-			LSN_ABSOLUTE_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 0F
-			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 10-17 */
@@ -172,7 +172,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 13
-			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 14
 			LSN_ZERO_PAGE_X_R( "NOP", NOP_Abs, u8"No operation." )
@@ -181,10 +181,10 @@ namespace lsn {
 			LSN_ZERO_PAGE_X_R( "ORA", ORA_ZpX, u8"Bitwise OR with accumulator." )
 		},
 		{	// 16
-			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 17
-			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 18-1F */
@@ -206,7 +206,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 1B
-			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 1C
 			LSN_ABSOLUTE_X_R( "NOP", ReadEffectiveAddressFixHighByte_IzY_AbX, NOP_Abs, u8"No operation." )
@@ -215,10 +215,10 @@ namespace lsn {
 			LSN_ABSOLUTE_X_R( "ORA", ORA_AbY_1, ORA_AbY_2, u8"Bitwise OR with accumulator." )
 		},
 		{	// 1E
-			LSN_ABSOLUTE_X_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_X_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 1F
-			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 20-27 */
@@ -253,7 +253,7 @@ namespace lsn {
 			LSN_ZERO_PAGE_R( "AND", AND_IzX_Zp_Abs, u8"Bitwise AND with accumulator." )
 		},
 		{	// 26
-			LSN_ZERO_PAGE_RMW( "ROL", ROL_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ZERO_PAGE_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
 		},
 		{	// 27
 			LSN_ZERO_PAGE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
@@ -289,7 +289,7 @@ namespace lsn {
 			LSN_ABSOLUTE_R( "AND", AND_IzX_Zp_Abs, u8"Bitwise AND with accumulator." )
 		},
 		{	// 2E
-			LSN_ABSOLUTE_RMW( "ROL", ROL_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ABSOLUTE_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
 		},
 		{	// 2F
 			LSN_ABSOLUTE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
@@ -1211,7 +1211,7 @@ namespace lsn {
 	 *	ReadFromAddressAndAddX_ZpX
 	 *	ReadFromEffectiveAddress_Abs
 	 */
-	void CCpu6502::ASL_Zp_Abs_ZpX() {
+	void CCpu6502::ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
@@ -1300,7 +1300,7 @@ namespace lsn {
 	 *	FetchLowAddrByteAndIncPc
 	 *	FetchHighAddrByteAndIncPc
 	 */
-	void CCpu6502::ROL_Zp_Abs() {
+	void CCpu6502::ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
@@ -1323,31 +1323,12 @@ namespace lsn {
 	 *	FetchEffectiveAddressHigh_IzX
 	 *	ReadFromEffectiveAddress_Abs
 	 */
-	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY() {
+	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
-		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		m_pccCurContext->ui8Operand <<= 1;
-		A |= m_pccCurContext->ui8Operand;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
-	 */
-	void CCpu6502::SLO_Zp() {
-		// m_pccCurContext->a.ui16Address already guaranteed to be on the zero page if necessary.
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
