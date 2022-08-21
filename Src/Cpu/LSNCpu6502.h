@@ -263,21 +263,10 @@ namespace lsn {
 		void								FinalWriteCycle();
 
 		/** Copies the read value into the low byte of PC after fetching the high byte.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc()
 		 */
 		void								JMP_Abs();										// Cycle 3.
-		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	ReadNextInstByteAndDiscardAndIncPc
-		 *	PushPchWithBFlagAndDecS
-		 *	PushPclAndDecS
-		 *	PushStatusAndDecS
-		 *	FetchPclFromFFFE
-		 */
-		void								BRK();											// Cycle 7.
+		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
+		void								BRK();
 		/** Clears the carry flag. */
 		void								CLC();
 		/** Reads the next instruction byte and throws it away. */
@@ -286,161 +275,49 @@ namespace lsn {
 		void								NopAndIncPc();
 		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
 		void								NOP_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_IzX();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	FetchEffectiveAddressLow_IzY
-		 *	FetchEffectiveAddressHigh_IzY
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_IzY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	FetchEffectiveAddressLow_IzY
-		 *	FetchEffectiveAddressHigh_IzY
-		 *	ORA_IzY_1
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_IzY_2();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc
-		 *	FetchHighAddrByteAndIncPcAndAddY
-		 *	FetchEffectiveAddressHigh_IzY
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc
-		 *	FetchHighAddrByteAndIncPcAndAddY
-		 *	FetchEffectiveAddressHigh_IzY
-		 *	ORA_AbY_1
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_AbY_2();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_Zp();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc()
-		 *	ReadFromAddressAndAddX_ZpX()
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_ZpX();
-		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 */
+		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_Imm();
-		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc()
-		 *	FetchHighAddrByteAndIncPc()
-		 */
+		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_Abs();
-		/** Sets flags N, V and Z according to a bit test.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 */
+		/** Sets flags N, V and Z according to a bit test. */
 		void								BIT_Zp_Abs();
-		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 */
+		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								ANC_Imm();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_IzX_Zp_Abs();
-		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 */
+		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromAddressAndAddX_ZpX
-		 *	ReadFromEffectiveAddress_Abs
-		 */
+		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 */
+		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 		void								ASL_Imp();
-		/** Pushes the status byte.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	ReadNextInstByteAndDiscard()
-		 */
+		/** Pushes the status byte. */
 		void								PHP_Imp();
-		/** Pulls the status byte.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	ReadNextInstByteAndDiscard()
-		 */
+		/** Pulls the status byte. */
 		void								PLP_Imp();
-		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 */
+		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
 		void								ROL_Imp();
-		/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc
-		 *	FetchHighAddrByteAndIncPc
-		 */
+		/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z. */
 		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
-		 *	ReadFromEffectiveAddress_Abs
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
-		 *	ReadFromEffectiveAddress_Abs
-		 */
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
 		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** JSR (Jump to Sub-Routine).
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchLowAddrByteAndIncPc
-		 *	Jsr_Cycle3
-		 *	Jsr_Cycle4
-		 *	Jsr_Cycle5
-		 */
+		/** JSR (Jump to Sub-Routine). */
 		void								JSR();
 	};
 

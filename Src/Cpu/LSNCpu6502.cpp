@@ -900,15 +900,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. 
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	ReadNextInstByteAndDiscardAndIncPc
-	 *	PushPchWithBFlagAndDecS
-	 *	PushPclAndDecS
-	 *	PushStatusAndDecS
-	 *	FetchPclFromFFFE
-	 */
+	/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
 	void CCpu6502::BRK() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
@@ -949,14 +941,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_IzX() {
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= m_pccCurContext->ui8Operand;
@@ -966,13 +951,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	FetchEffectiveAddressLow_IzY
-	 *	FetchEffectiveAddressHigh_IzY
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_IzY_1() {
 		//  #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -1000,14 +979,7 @@ namespace lsn {
 		}
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	FetchEffectiveAddressLow_IzY
-	 *	FetchEffectiveAddressHigh_IzY
-	 *	ORA_IzY_1
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_IzY_2() {
 		//  #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -1021,13 +993,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchLowAddrByteAndIncPc
-	 *	FetchHighAddrByteAndIncPcAndAddY
-	 *	FetchEffectiveAddressHigh_IzY
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_AbY_1() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
@@ -1056,14 +1022,7 @@ namespace lsn {
 		}
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchLowAddrByteAndIncPc
-	 *	FetchHighAddrByteAndIncPcAndAddY
-	 *	FetchEffectiveAddressHigh_IzY
-	 *	ORA_AbY_1
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_AbY_2() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
@@ -1078,11 +1037,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_Zp() {
 		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Op;
@@ -1092,12 +1047,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc()
-	 *	ReadFromAddressAndAddX_ZpX()
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_ZpX() {
 		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Op;
@@ -1107,10 +1057,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 */
+	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_Imm() {
 		//  #  address R/W description
 		// --- ------- --- ------------------------------------------
@@ -1125,12 +1072,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchLowAddrByteAndIncPc()
-	 *	FetchHighAddrByteAndIncPc()
-	 */
+	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_Abs() {
 		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Tmp;
@@ -1140,11 +1082,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Sets flags N, V and Z according to a bit test.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 */
+	/** Sets flags N, V and Z according to a bit test. */
 	void CCpu6502::BIT_Zp_Abs() {
 		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), (ui8Op & A) == 0x00 );
@@ -1153,10 +1091,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 */
+	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 	void CCpu6502::ANC_Imm() {
 		//  #  address R/W description
 		// --- ------- --- ------------------------------------------
@@ -1172,11 +1107,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
 	void CCpu6502::AND_IzX_Zp_Abs() {
 		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A &= ui8Tmp;
@@ -1186,10 +1117,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 */
+	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 	void CCpu6502::AND_Imm() {
 		//  #  address R/W description
 		// --- ------- --- ------------------------------------------
@@ -1204,13 +1132,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromAddressAndAddX_ZpX
-	 *	ReadFromEffectiveAddress_Abs
-	 */
+	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 	void CCpu6502::ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
@@ -1225,10 +1147,7 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 */
+	/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 	void CCpu6502::ASL_Imp() {
 		// We have a discarded read here.
 		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
@@ -1243,11 +1162,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Pushes the status byte.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	ReadNextInstByteAndDiscard()
-	 */
+	/** Pushes the status byte. */
 	void CCpu6502::PHP_Imp() {
 		/* http://users.telenet.be/kim1-6502/6502/proman.html#811
 		8.11 PHP - PUSH PROCESSOR STATUS ON STACK
@@ -1265,21 +1180,14 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Pulls the status byte.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	ReadNextInstByteAndDiscard()
-	 */
+	/** Pulls the status byte. */
 	void CCpu6502::PLP_Imp() {
 		m_ui8Status = LSN_POP();
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
 
-	/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 */
+	/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
 	void CCpu6502::ROL_Imp() {
 		// We have a discarded read here.
 		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
@@ -1294,12 +1202,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchLowAddrByteAndIncPc
-	 *	FetchHighAddrByteAndIncPc
-	 */
+	/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z. */
 	void CCpu6502::ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
@@ -1314,15 +1217,7 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
-	 *	ReadFromEffectiveAddress_Abs
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
 	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
@@ -1340,15 +1235,7 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
-	 *	ReadFromEffectiveAddress_Abs
-	 */
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
 	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
@@ -1366,14 +1253,7 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** JSR (Jump to Sub-Routine).
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchLowAddrByteAndIncPc
-	 *	Jsr_Cycle3
-	 *	Jsr_Cycle4
-	 *	Jsr_Cycle5
-	 */
+	/** JSR (Jump to Sub-Routine). */
 	void CCpu6502::JSR() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
