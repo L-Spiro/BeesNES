@@ -1,4 +1,4 @@
-	const CCpu6502::LSN_INSTR_META_DATA CCpu6502::m_smdInstMetaData[LSN_I_TOTAL] = {					/**< Metadata for the instructions (for assembly and disassembly etc.) */
+	const lsn::CCpu6502::LSN_INSTR_META_DATA lsn::CCpu6502::m_smdInstMetaData[LSN_I_TOTAL] = {					/**< Metadata for the instructions (for assembly and disassembly etc.) */
 		{ "ADC",	u8"Add with carry." },
 		{ "AND",	u8"Bitwise AND with accumulator." },
 		{ "ASL",	u8"Arithmetic shift left (shifts in a zero bit on the right)." },
