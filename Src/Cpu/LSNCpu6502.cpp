@@ -398,7 +398,7 @@ namespace lsn {
 			LSN_ZERO_PAGE_R( "EOR", EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise XOR with accumulator." )
 		},
 		{	// 46
-			LSN_ZERO_PAGE_RMW( "LSR", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Logical shift right." )
+			LSN_ZERO_PAGE_RMW( "LSR", LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Logical shift right." )
 		},
 	};
 
@@ -1152,7 +1152,7 @@ namespace lsn {
 	void CCpu6502::CLC() {
 		// #  address R/W description
 		// --- ------- --- -----------------------------------------------
-        // 2    PC     R  read next instruction byte (and throw it away)
+		// 2    PC     R  read next instruction byte (and throw it away)
 		m_pbBus->CpuRead( pc.PC );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), false );
 		// Last cycle in the instruction.
