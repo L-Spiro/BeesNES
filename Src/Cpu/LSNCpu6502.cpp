@@ -1068,8 +1068,8 @@ namespace lsn {
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_IzX() {
-		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
-		A |= m_pccCurContext->ui8Operand;
+		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A |= ui8Op;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
@@ -1145,7 +1145,7 @@ namespace lsn {
 		//  2    PC     R  fetch value, increment PC
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
-		uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
 		A |= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
@@ -1155,7 +1155,7 @@ namespace lsn {
 
 	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
 	void CCpu6502::ORA_Abs() {
-		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
@@ -1179,7 +1179,7 @@ namespace lsn {
 		//  2    PC     R  fetch value, increment PC
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
-		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A &= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
@@ -1190,7 +1190,7 @@ namespace lsn {
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
 	void CCpu6502::AND_IzX_ZpX_Zp_Abs() {
-		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A &= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
