@@ -39,3 +39,14 @@ x64/Debug/LSNLSpiroNes.obj
 x64/Debug/vc143.idb
 x64/Debug/vc143.pdb
 .vs/L. Spiro NES/v17/ipch/AutoPCH/8333abdac9561395/LSNBUS.ipch
+x64/Release/L. Spiro NES.tlog/CL.command.1.tlog
+x64/Release/L. Spiro NES.tlog/CL.read.1.tlog
+x64/Release/L. Spiro NES.tlog/CL.write.1.tlog
+x64/Release/L. Spiro NES.tlog/L. Spiro NES.lastbuildstate
+x64/Release/L. Spiro NES.tlog/link.command.1.tlog
+x64/Release/L. Spiro NES.tlog/link.read.1.tlog
+x64/Release/L. Spiro NES.tlog/link.write.1.tlog
+x64/Release/LSNLSpiroNes.obj
+x64/Release/LSNCpu6502.obj
+x64/Release/LSNBus.obj
+x64/Release/vc143.pdb

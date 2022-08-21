@@ -25,27 +25,27 @@
 																						m_pccCurContext = m_vContextStack.size() ? &m_vContextStack[m_vContextStack.size()-1] : nullptr
 
 #define LSN_INDIRECT_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2
-#define LSN_INDIRECT_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 8, LSN_AM_INDIRECT_X, 2
+#define LSN_INDIRECT_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2
 
 #define LSN_INDIRECT_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_INDIRECT_Y, 2
-#define LSN_INDIRECT_Y_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 8, LSN_AM_INDIRECT_Y, 2
+#define LSN_INDIRECT_Y_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_Y, 2
 
 #define LSN_ZERO_PAGE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::FUNC, }, 3, LSN_AM_ZERO_PAGE, 2
-#define LSN_ZERO_PAGE_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromEffectiveAddress_Zp, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_ZERO_PAGE, 2
+#define LSN_ZERO_PAGE_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromEffectiveAddress_Zp, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 5, LSN_AM_ZERO_PAGE, 2
 
 #define LSN_ABSOLUTE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::FUNC, }, 4, LSN_AM_ABSOLUTE, 3
-#define LSN_ABSOLUTE_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 6, LSN_AM_ABSOLUTE, 3
+#define LSN_ABSOLUTE_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ABSOLUTE, 3
 
 #define LSN_IMMEDIATE( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FUNC, }, 2, LSN_AM_IMMEDIATE, 2
 
 #define LSN_ZERO_PAGE_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2
-#define LSN_ZERO_PAGE_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 6, LSN_AM_ZERO_PAGE_X, 2
+#define LSN_ZERO_PAGE_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ZERO_PAGE_X, 2
 
 #define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3
-#define LSN_ABSOLUTE_Y_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 7, LSN_AM_ABSOLUTE_Y, 3
+#define LSN_ABSOLUTE_Y_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_Y, 3
 
 #define LSN_ABSOLUTE_X_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_X, 3
-#define LSN_ABSOLUTE_X_RMW( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 7, LSN_AM_ABSOLUTE_X, 3
+#define LSN_ABSOLUTE_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_X, 3
 
 /*
  * imm = #$00						Immediate addressing
@@ -100,7 +100,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 03
-			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 04
 			LSN_ZERO_PAGE_R( "NOP", NOP_Abs, u8"No operation." )
@@ -109,10 +109,10 @@ namespace lsn {
 			LSN_ZERO_PAGE_R( "ORA", ORA_Zp, u8"Bitwise OR with accumulator." )
 		},
 		{	// 06
-			LSN_ZERO_PAGE_RMW( "ASL", ASL_Zp_1, ASL_Zp_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 07
-			LSN_ZERO_PAGE_RMW( "SLO", SLO_Zp_1, SLO_Zp_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_RMW( "SLO", SLO_Zp, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 08-0F */
@@ -144,10 +144,10 @@ namespace lsn {
 			LSN_ABSOLUTE_R( "ORA", ORA_Abs, u8"Bitwise OR with accumulator." )
 		},
 		{	// 0E
-			LSN_ABSOLUTE_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 0F
-			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 10-17 */
@@ -172,19 +172,19 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 13
-			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 14
 			LSN_ZERO_PAGE_X_R( "NOP", NOP_Abs, u8"No operation." )
 		},
 		{	// 15
-			LSN_ZERO_PAGE_X_R( "ORA", ORA_Zpx, u8"Bitwise OR with accumulator." )
+			LSN_ZERO_PAGE_X_R( "ORA", ORA_ZpX, u8"Bitwise OR with accumulator." )
 		},
 		{	// 16
-			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 17
-			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 18-1F */
@@ -206,7 +206,7 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 1B
-			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 		{	// 1C
 			LSN_ABSOLUTE_X_R( "NOP", ReadEffectiveAddressFixHighByte_IzY_AbX, NOP_Abs, u8"No operation." )
@@ -215,10 +215,10 @@ namespace lsn {
 			LSN_ABSOLUTE_X_R( "ORA", ORA_AbY_1, ORA_AbY_2, u8"Bitwise OR with accumulator." )
 		},
 		{	// 1E
-			LSN_ABSOLUTE_X_RMW( "ASL", ASL_Abs_ZpX_1, ASL_Abs_ZpX_2, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_X_RMW( "ASL", ASL_Zp_Abs_ZpX, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
 		},
 		{	// 1F
-			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_1, SLO_IzX_IzY_ZpX_AbX_AbY_2, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY, u8"Illegal. OP <<= 1, A &= OP." )
 		},
 
 		/** 20-27 */
@@ -234,7 +234,7 @@ namespace lsn {
 				6, LSN_AM_ABSOLUTE, 3
 		},
 		{	// 21
-			LSN_INDIRECT_X_R( "AND", AND_IzX, u8"Bitwise AND with accumulator." )
+			LSN_INDIRECT_X_R( "AND", AND_IzX_Zp_Abs, u8"Bitwise AND with accumulator." )
 		},
 		{	// 22
 			"X22",
@@ -244,23 +244,23 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1
 		},
 		{	// 23
-			LSN_INDIRECT_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_1, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_2, u8"Illegal. ROL OP, A &= OP." )
+			LSN_INDIRECT_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
 		},
 		{	// 24
-			LSN_ZERO_PAGE_R( "BIT", BIT_Zp, u8"Bit test." )
+			LSN_ZERO_PAGE_R( "BIT", BIT_Zp_Abs, u8"Bit test." )
 		},
 		{	// 25
-			LSN_ZERO_PAGE_R( "AND", AND_Zp, u8"Bitwise AND with accumulator." )
+			LSN_ZERO_PAGE_R( "AND", AND_IzX_Zp_Abs, u8"Bitwise AND with accumulator." )
 		},
 		{	// 26
-			LSN_ZERO_PAGE_RMW( "ROL", ROL_Zp_1, ROL_Zp_2, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ZERO_PAGE_RMW( "ROL", ROL_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
 		},
 		{	// 27
-			LSN_ZERO_PAGE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_1, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_2, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ZERO_PAGE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
 		},
 
 		/** 28-2F */
-		{	// 08
+		{	// 28
 			"PLP",
 			u8"Pull processor status from stack.",
 			{
@@ -268,6 +268,31 @@ namespace lsn {
 				&CCpu6502::Plp_Cycle3,
 				&CCpu6502::PLP_Imp, },
 				4, LSN_AM_IMPLIED, 1
+		},
+		{	// 29
+			LSN_IMMEDIATE( "AND", AND_Imm, u8"Bitwise AND with accumulator." )
+		},
+		{	// 2A
+			"ROL",
+			u8"Rotate left (shifts in carry bit on the right).",
+			{
+				&CCpu6502::ROL_Imp, },
+				2, LSN_AM_IMPLIED, 1
+		},
+		{	// 2B
+			LSN_IMMEDIATE( "ANC", ANC_Imm, u8"Unusual operation. AND with carry." )
+		},
+		{	// 2C
+			LSN_ABSOLUTE_R( "BIT", BIT_Zp_Abs, u8"Bit test." )
+		},
+		{	// 2D
+			LSN_ABSOLUTE_R( "AND", AND_IzX_Zp_Abs, u8"Bitwise AND with accumulator." )
+		},
+		{	// 2E
+			LSN_ABSOLUTE_RMW( "ROL", ROL_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+		},
+		{	// 2F
+			LSN_ABSOLUTE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
 		},
 	};
 
@@ -856,6 +881,16 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Performs m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
+	void CCpu6502::FinalWriteCycle() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  6  address  W  write the new value to effective address
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Follows FetchLowAddrByteAndIncPc() and copies the read value into the low byte of PC after fetching the high byte. */
 	void CCpu6502::JMP_Abs() {
 		m_pccCurContext->a.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC );
@@ -1063,7 +1098,7 @@ namespace lsn {
 	 *	FetchPointerAndIncPc()
 	 *	ReadFromAddressAndAddX_ZpX()
 	 */
-	void CCpu6502::ORA_Zpx() {
+	void CCpu6502::ORA_ZpX() {
 		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A |= ui8Op;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
@@ -1110,7 +1145,7 @@ namespace lsn {
 	 *	FetchOpcodeAndIncPc (implicit.)
 	 *	FetchAddressAndIncPc_Zp
 	 */
-	void CCpu6502::BIT_Zp() {
+	void CCpu6502::BIT_Zp_Abs() {
 		const uint8_t ui8Op = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), (ui8Op & A) == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (ui8Op & (1 << 7)) != 0x00 );
@@ -1140,12 +1175,9 @@ namespace lsn {
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
 	 * Chain:
 	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
+	 *	FetchAddressAndIncPc_Zp
 	 */
-	void CCpu6502::AND_IzX() {
+	void CCpu6502::AND_IzX_Zp_Abs() {
 		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		A &= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
@@ -1154,45 +1186,20 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
+	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
 	 * Chain:
 	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
 	 */
-	void CCpu6502::AND_Zp() {
-		uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+	void CCpu6502::AND_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+
+		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
+		uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
 		A &= ui8Tmp;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
-	}
-
-	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
-	 */
-	void CCpu6502::ASL_Zp_1() {
-		m_pbBus->CpuWrite( static_cast<uint8_t>(m_pccCurContext->a.ui16Address), m_pccCurContext->ui8Operand );
-		// It carries if the last bit gets shifted off.
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		m_pccCurContext->ui8Operand <<= 1;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
-	 *	ASL_Zp_1
-	 */
-	void CCpu6502::ASL_Zp_2() {
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
@@ -1204,7 +1211,7 @@ namespace lsn {
 	 *	ReadFromAddressAndAddX_ZpX
 	 *	ReadFromEffectiveAddress_Abs
 	 */
-	void CCpu6502::ASL_Abs_ZpX_1() {
+	void CCpu6502::ASL_Zp_Abs_ZpX() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
@@ -1216,23 +1223,6 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromAddressAndAddX_ZpX
-	 *	ReadFromEffectiveAddress_Abs
-	 *	ASL_Abs_ZpX_1
-	 */
-	void CCpu6502::ASL_Abs_ZpX_2() {
-		//  #   address  R/W description
-		// --- --------- --- ------------------------------------------
-		//  7  address+X  W  write the new value to effective address
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
@@ -1286,33 +1276,42 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z.
+	 * Chain:
+	 *	FetchOpcodeAndIncPc (implicit.)
+	 */
+	void CCpu6502::ROL_Imp() {
+		// We have a discarded read here.
+		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		
+
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x80) != 0 );
+		A = (A << 1) | (A >> 7);
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z.
 	 * Chain:
 	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
+	 *	FetchLowAddrByteAndIncPc
+	 *	FetchHighAddrByteAndIncPc
 	 */
-	void CCpu6502::ROL_Zp_1() {
-		m_pbBus->CpuWrite( static_cast<uint8_t>(m_pccCurContext->a.ui16Address), m_pccCurContext->ui8Operand );
+	void CCpu6502::ROL_Zp_Abs() {
+		//  #   address  R/W description
+		// --- --------- --- ------------------------------------------
+		//  6  address+X  W  write the value back to effective address,
+		//                   and do the operation on it
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand << 1) | (m_pccCurContext->ui8Operand >> 7);
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
-	 *	ASL_Zp_1
-	 */
-	void CCpu6502::ROL_Zp_2() {
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
@@ -1324,7 +1323,7 @@ namespace lsn {
 	 *	FetchEffectiveAddressHigh_IzX
 	 *	ReadFromEffectiveAddress_Abs
 	 */
-	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_1() {
+	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  address  W  write the value back to effective address,
@@ -1340,25 +1339,6 @@ namespace lsn {
 		
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
-	 *	ReadFromEffectiveAddress_Abs
-	 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
-	 */
-	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_2() {
-		//  #  address R/W description
-		// --- ------- --- -------------------------------------------------
-		//  6  address  W  write the new value to effective address
-
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
-	}
 
 	/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
 	 * Chain:
@@ -1366,8 +1346,9 @@ namespace lsn {
 	 *	FetchAddressAndIncPc_Zp
 	 *	ReadFromEffectiveAddress_Zp
 	 */
-	void CCpu6502::SLO_Zp_1() {
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address & 0xFF, m_pccCurContext->ui8Operand );
+	void CCpu6502::SLO_Zp() {
+		// m_pccCurContext->a.ui16Address already guaranteed to be on the zero page if necessary.
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		m_pccCurContext->ui8Operand <<= 1;
@@ -1376,19 +1357,6 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-
-	/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchAddressAndIncPc_Zp
-	 *	ReadFromEffectiveAddress_Zp
-	 *	SLO_Zp_1
-	 */
-	void CCpu6502::SLO_Zp_2() {
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address & 0xFF, m_pccCurContext->ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
@@ -1400,7 +1368,7 @@ namespace lsn {
 	 *	FetchEffectiveAddressHigh_IzX
 	 *	ReadFromEffectiveAddress_Abs
 	 */
-	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_1() {
+	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  address  W  write the value back to effective address,
@@ -1415,25 +1383,6 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
-	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
-	 * Chain:
-	 *	FetchOpcodeAndIncPc (implicit.)
-	 *	FetchPointerAndIncPc
-	 *	ReadAddressAddX_IzX
-	 *	FetchEffectiveAddressLow_IzX
-	 *	FetchEffectiveAddressHigh_IzX
-	 *	ReadFromEffectiveAddress_Abs
-	 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
-	 */
-	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_2() {
-		//  #  address R/W description
-		// --- ------- --- -------------------------------------------------
-		//  6  address  W  write the new value to effective address
-
-		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** JSR (Jump to Sub-Routine).

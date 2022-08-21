@@ -209,6 +209,8 @@ namespace lsn {
 		void								Jsr_Cycle4();									// Cycle 4.
 		/** 5th cycle of JSR. */
 		void								Jsr_Cycle5();									// Cycle 5.
+		/** 3rd cycle of PLA/PLP. */
+		void								Plp_Cycle3();									// Cycle 3.
 		/** Pushes PCH. */
 		void								PushPch();										// Cycle 3.
 		/** Pushes PCH, sets the B flag, and decrements S. */
@@ -257,6 +259,8 @@ namespace lsn {
 		void								Branch_Cycle4();
 		/** 5th cycle of branch instructions. Page boundary was crossed. */
 		void								Branch_Cycle5();
+		/** Performs m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
+		void								FinalWriteCycle();
 
 		/** Copies the read value into the low byte of PC after fetching the high byte.
 		 * Chain:
@@ -337,7 +341,7 @@ namespace lsn {
 		 *	FetchPointerAndIncPc()
 		 *	ReadFromAddressAndAddX_ZpX()
 		 */
-		void								ORA_Zpx();
+		void								ORA_ZpX();
 		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -355,7 +359,7 @@ namespace lsn {
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 *	FetchAddressAndIncPc_Zp
 		 */
-		void								BIT_Zp();
+		void								BIT_Zp_Abs();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -364,27 +368,14 @@ namespace lsn {
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
+		 *	FetchAddressAndIncPc_Zp
 		 */
-		void								AND_IzX();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
+		void								AND_IzX_Zp_Abs();
+		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromEffectiveAddress_Zp
 		 */
-		void								ASL_Zp_1();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromEffectiveAddress_Zp
-		 *	ASL_Zp_1
-		 */
-		void								ASL_Zp_2();
+		void								AND_Imm();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -392,16 +383,7 @@ namespace lsn {
 		 *	ReadFromAddressAndAddX_ZpX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								ASL_Abs_ZpX_1();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromAddressAndAddX_ZpX
-		 *	ReadFromEffectiveAddress_Abs
-		 *	ASL_Abs_ZpX_1
-		 */
-		void								ASL_Abs_ZpX_2();
+		void								ASL_Zp_Abs_ZpX();
 		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -413,6 +395,24 @@ namespace lsn {
 		 *	ReadNextInstByteAndDiscard()
 		 */
 		void								PHP_Imp();
+		/** Pulls the status byte.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	ReadNextInstByteAndDiscard()
+		 */
+		void								PLP_Imp();
+		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 */
+		void								ROL_Imp();
+		/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z.
+		 * Chain:
+		 *	FetchOpcodeAndIncPc (implicit.)
+		 *	FetchLowAddrByteAndIncPc
+		 *	FetchHighAddrByteAndIncPc
+		 */
+		void								ROL_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -422,33 +422,14 @@ namespace lsn {
 		 *	FetchEffectiveAddressHigh_IzX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								SLO_IzX_IzY_ZpX_AbX_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
-		 *	ReadFromEffectiveAddress_Abs
-		 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
-		 */
-		void								SLO_IzX_IzY_ZpX_AbX_AbY_2();
+		void								SLO_IzX_IzY_ZpX_AbX_AbY();
 		/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
 		 *	FetchAddressAndIncPc_Zp
 		 *	ReadFromEffectiveAddress_Zp
 		 */
-		void								SLO_Zp_1();
-		/** A zero-page SLO (Undocumented).  Sets flags C, N, and Z.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchAddressAndIncPc_Zp
-		 *	ReadFromEffectiveAddress_Zp
-		 *	SLO_Zp_1
-		 */
-		void								SLO_Zp_2();
+		void								SLO_Zp();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part.
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
@@ -458,18 +439,7 @@ namespace lsn {
 		 *	FetchEffectiveAddressHigh_IzX
 		 *	ReadFromEffectiveAddress_Abs
 		 */
-		void								RLA_IzX_IzY_ZpX_AbX_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the second cycle of the function, which performs only the "A = A | (OP)" part.
-		 * Chain:
-		 *	FetchOpcodeAndIncPc (implicit.)
-		 *	FetchPointerAndIncPc
-		 *	ReadAddressAddX_IzX
-		 *	FetchEffectiveAddressLow_IzX
-		 *	FetchEffectiveAddressHigh_IzX
-		 *	ReadFromEffectiveAddress_Abs
-		 *	SLO_IzX_IzY_ZpX_AbX_AbY_1
-		 */
-		void								RLA_IzX_IzY_ZpX_AbX_AbY_2();
+		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** JSR (Jump to Sub-Routine).
 		 * Chain:
 		 *	FetchOpcodeAndIncPc (implicit.)
