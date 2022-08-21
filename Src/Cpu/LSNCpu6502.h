@@ -7,7 +7,7 @@
  *
  * Notes:
  *	The LSN_SF_BREAK flag is not stored in the CPU registers, it is only used when pushing to
- *	the stack inside PushStatusAndB().
+ *	the stack inside PushStatusAndBAndSetAddressByIrq().
  */
 
 
@@ -209,20 +209,28 @@ namespace lsn {
 		void								Jsr_Cycle4();									// Cycle 4.
 		/** 5th cycle of JSR. */
 		void								Jsr_Cycle5();									// Cycle 5.
-		/** 3rd cycle of PLA/PLP. */
-		void								Plp_Cycle3();									// Cycle 3.
+		/** 3rd cycle of PLA/PLP/RTI/RTS. */
+		void								PLA_PLP_RTI_RTS_Cycle3();						// Cycle 3.
 		/** Pushes PCH. */
 		void								PushPch();										// Cycle 3.
 		/** Pushes PCH, sets the B flag, and decrements S. */
-		void								PushPchWithBFlagAndDecS();						// Cycle 3.
+		void								PushPchWithBFlag();								// Cycle 3.
 		/** Pushes PCL, decrements S. */
-		void								PushPclAndDecS();								// Cycle 4.
+		void								PushPcl();										// Cycle 4.
 		/** Pushes status with B. */
-		void								PushStatusAndB();								// Cycle 5.
+		void								PushStatusAndBAndSetAddressByIrq();				// Cycle 5.
 		/** Pushes status an decrements S. */
-		void								PushStatusAndDecS();							// Cycle 5.
-		/** Pushes status without B. */
 		void								PushStatus();									// Cycle 5.
+		/** Pushes status without B. */
+		void								PushStatusAndSetAddressByIrq();					// Cycle 5.
+		/** Pulls status, ignoring B. */
+		void								PullStatusWithoutB();							// Cycle 4.
+		/** Pulls status. */
+		void								PullStatus();									// Cycle 4.
+		/** Pulls PCL. */
+		void								PullPcl();										// Cycle 5.
+		/** Pulls PCH. */
+		void								PullPch();										// Cycle 6.
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, adds X to it, stores the result in LSN_CPU_CONTEXT::ui8Pointer. */
 		void								ReadAddressAddX_IzX();							// Cycle 3.
 		/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -267,6 +275,8 @@ namespace lsn {
 		void								JMP_Abs();										// Cycle 3.
 		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
 		void								BRK();
+		/** Pops into PCH. */
+		void								RTI();
 		/** Clears the carry flag. */
 		void								CLC();
 		/** Sets the carry flag. */
@@ -307,14 +317,22 @@ namespace lsn {
 		void								AND_IzY_AbX_AbY_2();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+		void								EOR_IzX_ZpX_Zp_Abs();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+		void								EOR_IzY_AbX_AbY_1();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+		void								EOR_IzY_AbX_AbY_2();
+		/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
+		void								EOR_Imm();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 		void								ASL_Imp();
 		/** Pushes the status byte. */
-		void								PHP_Imp();
+		void								PHP();
 		/** Pulls the status byte. */
-		void								PLP_Imp();
+		void								PLP();
 		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
 		void								ROL_Imp();
 		/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z. */

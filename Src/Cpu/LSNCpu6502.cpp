@@ -82,9 +82,9 @@ namespace lsn {
 			u8"BRK causes a non-maskable interrupt and increments the program counter by one. Therefore an RTI will go to the address of the BRK +2 so that BRK may be used to replace a two-byte instruction for debugging and the subsequent RTI will be correct.",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
-				&CCpu6502::PushPchWithBFlagAndDecS,
-				&CCpu6502::PushPclAndDecS,
-				&CCpu6502::PushStatusAndDecS,
+				&CCpu6502::PushPchWithBFlag,
+				&CCpu6502::PushPcl,
+				&CCpu6502::PushStatus,
 				&CCpu6502::FetchPclFromFFFE,
 				&CCpu6502::BRK, },									// Fetches from 0xFFFF and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1
@@ -121,7 +121,7 @@ namespace lsn {
 			u8"Push processor status register (with break flag set).",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscard,
-				&CCpu6502::PHP_Imp, },
+				&CCpu6502::PHP, },
 				3, LSN_AM_IMPLIED, 1
 		},
 		{	// 09
@@ -265,8 +265,8 @@ namespace lsn {
 			u8"Pull processor status from stack.",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscard,
-				&CCpu6502::Plp_Cycle3,
-				&CCpu6502::PLP_Imp, },
+				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
+				&CCpu6502::PLP, },
 				4, LSN_AM_IMPLIED, 1
 		},
 		{	// 29
@@ -364,6 +364,29 @@ namespace lsn {
 		},
 		{	// 3F
 			LSN_ABSOLUTE_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+		},
+
+		/** 40-47 */
+		{	// 40
+			"RTI",
+			u8"Return from interrupt. The status register is pulled with the break flag and bit 5 ignored. Then PC is pulled from the stack.",
+			{
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
+				&CCpu6502::PullStatusWithoutB,
+				&CCpu6502::PullPcl,
+				&CCpu6502::RTI, },									// Pops PCH.
+				6, LSN_AM_IMPLIED, 1
+		},
+		{	// 41
+			LSN_INDIRECT_X_R( "EOR", EOR_IzX_ZpX_Zp_Abs, u8"Bitwise XOR with accumulator." )
+		},
+		{	// 42
+			"X42",
+			u8"Illegal opcode.",
+			{	// Jams the machine.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED, 1
 		},
 	};
 
@@ -613,8 +636,8 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** 3rd cycle of PLA/PLP. */
-	void CCpu6502::Plp_Cycle3() {
+	/** 3rd cycle of PLA/PLP/RTI/RTS. */
+	void CCpu6502::PLA_PLP_RTI_RTS_Cycle3() {
 		//  #  address R/W description
 		// --- ------- --- -----------------------------------------------
 		//  3  $0100,S  R  increment S
@@ -632,7 +655,7 @@ namespace lsn {
 	}
 
 	/** Pushes PCH, sets the B flag, and decrements S. */
-	void CCpu6502::PushPchWithBFlagAndDecS() {
+	void CCpu6502::PushPchWithBFlag() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  3  $0100,S  W  push PCH on stack (with B flag set), decrement S
@@ -642,7 +665,7 @@ namespace lsn {
 	}
 
 	/** Pushes PCL, decrements S. */
-	void CCpu6502::PushPclAndDecS() {
+	void CCpu6502::PushPcl() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  4  $0100,S  W  push PCL on stack, decrement S
@@ -651,7 +674,7 @@ namespace lsn {
 	}
 
 	/** Pushes status with B. */
-	void CCpu6502::PushStatusAndB() {
+	void CCpu6502::PushStatusAndBAndSetAddressByIrq() {
 		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
@@ -659,7 +682,7 @@ namespace lsn {
 	}
 
 	/** Pushes status an decrements S. */
-	void CCpu6502::PushStatusAndDecS() {
+	void CCpu6502::PushStatus() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  $0100,S  W  push P on stack, decrement S
@@ -668,10 +691,35 @@ namespace lsn {
 	}
 
 	/** Pushes status without B. */
-	void CCpu6502::PushStatus() {
+	void CCpu6502::PushStatusAndSetAddressByIrq() {
 		LSN_PUSH( m_ui8Status );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_pccCurContext->a.ui16Address = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ )) ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pulls status, ignoring B. */
+	void CCpu6502::PullStatusWithoutB() {
+		const uint8_t ui8Mask = (uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | (1 << 5));
+		m_ui8Status = (LSN_POP() & ~ui8Mask) | (m_ui8Status & ui8Mask);
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pulls status. */
+	void CCpu6502::PullStatus() {
+		m_ui8Status = LSN_POP();
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pulls PCL. */
+	void CCpu6502::PullPcl() {
+		pc.ui8Bytes[0] = LSN_POP();
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Pulls PCH. */
+	void CCpu6502::PullPch() {
+		pc.ui8Bytes[1] = LSN_POP();
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -981,6 +1029,16 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Pops into PCH. */
+	void CCpu6502::RTI() {
+		//  #  address R/W description
+		// --- ------- --- -----------------------------------------------
+		//  6  $0100,S  R  pull PCH from stack
+		pc.ui8Bytes[1] = LSN_POP();
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Clears the carry flag. */
 	void CCpu6502::CLC() {
 		// #  address R/W description
@@ -1255,6 +1313,73 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+	void CCpu6502::EOR_IzX_ZpX_Zp_Abs() {
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A ^= ui8Tmp;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+	void CCpu6502::EOR_IzY_AbX_AbY_1() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  5   address+Y*  R  read from effective address,
+		//                     fix high byte of effective address
+		
+		// Read from effective address,
+		// fix high byte of effective address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		// We may have read from the wrong address if the high byte of the effective address isn't correct.
+		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
+		if ( bCrossed ) {
+			// Crossed a page boundary.
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// We are done.
+			A ^= ui8Tmp;
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
+	}
+
+	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
+	void CCpu6502::EOR_IzY_AbX_AbY_2() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  6+  address+Y   R  read from effective address
+
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		A ^= ui8Tmp;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
+	void CCpu6502::EOR_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+
+		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
+		A ^= ui8Tmp;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
 	void CCpu6502::ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
@@ -1286,7 +1411,7 @@ namespace lsn {
 	}
 
 	/** Pushes the status byte. */
-	void CCpu6502::PHP_Imp() {
+	void CCpu6502::PHP() {
 		/* http://users.telenet.be/kim1-6502/6502/proman.html#811
 		8.11 PHP - PUSH PROCESSOR STATUS ON STACK
 
@@ -1304,8 +1429,10 @@ namespace lsn {
 	}
 
 	/** Pulls the status byte. */
-	void CCpu6502::PLP_Imp() {
-		m_ui8Status = LSN_POP();
+	void CCpu6502::PLP() {
+		const uint8_t ui8Mask = (uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | (1 << 5));
+		m_ui8Status = (LSN_POP() & ~ui8Mask) | (m_ui8Status & ui8Mask);
+		//m_ui8Status = LSN_POP();
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
