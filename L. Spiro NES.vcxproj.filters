@@ -48,4 +48,9 @@
       <Filter>Source Files\Cpu</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Cpu\LSNInstMetaData.inl">
+      <Filter>Header Files\Cpu</Filter>
+    </None>
+  </ItemGroup>
 </Project>

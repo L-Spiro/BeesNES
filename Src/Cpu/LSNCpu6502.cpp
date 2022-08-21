@@ -24,28 +24,28 @@
 #define LSN_FINISH_INST																	m_vContextStack.pop_back();																		\
 																						m_pccCurContext = m_vContextStack.size() ? &m_vContextStack[m_vContextStack.size()-1] : nullptr
 
-#define LSN_INDIRECT_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2
-#define LSN_INDIRECT_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2
+#define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
+#define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 
-#define LSN_INDIRECT_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_INDIRECT_Y, 2
-#define LSN_INDIRECT_Y_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_Y, 2
+#define LSN_INDIRECT_Y_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 5, LSN_AM_INDIRECT_Y, 2, LSN_I_ ## NAME
+#define LSN_INDIRECT_Y_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::FetchEffectiveAddressLow_IzY, &CCpu6502::FetchEffectiveAddressHigh_IzY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_Y, 2, LSN_I_ ## NAME
 
-#define LSN_ZERO_PAGE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::FUNC, }, 3, LSN_AM_ZERO_PAGE, 2
-#define LSN_ZERO_PAGE_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromEffectiveAddress_Zp, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 5, LSN_AM_ZERO_PAGE, 2
+#define LSN_ZERO_PAGE_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::FUNC, }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
+#define LSN_ZERO_PAGE_RMW( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromEffectiveAddress_Zp, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 5, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
 
-#define LSN_ABSOLUTE_R( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::FUNC, }, 4, LSN_AM_ABSOLUTE, 3
-#define LSN_ABSOLUTE_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ABSOLUTE, 3
+#define LSN_ABSOLUTE_R( NAME, FUNC )													{ &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::FUNC, }, 4, LSN_AM_ABSOLUTE, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_RMW( NAME, FUNC )													{ &CCpu6502::FetchLowAddrByteAndIncPc, &CCpu6502::FetchHighAddrByteAndIncPc, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ABSOLUTE, 3, LSN_I_ ## NAME
 
-#define LSN_IMMEDIATE( NAME, FUNC, DESC )												NAME, DESC, { &CCpu6502::FUNC, }, 2, LSN_AM_IMMEDIATE, 2
+#define LSN_IMMEDIATE( NAME, FUNC )														{ &CCpu6502::FUNC, }, 2, LSN_AM_IMMEDIATE, 2, LSN_I_ ## NAME
 
-#define LSN_ZERO_PAGE_X_R( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2
-#define LSN_ZERO_PAGE_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ZERO_PAGE_X, 2
+#define LSN_ZERO_PAGE_X_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
+#define LSN_ZERO_PAGE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
 
-#define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3
-#define LSN_ABSOLUTE_Y_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_Y, 3
+#define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_Y_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
 
-#define LSN_ABSOLUTE_X_R( NAME, FUNC1, FUNC2, DESC )									NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_X, 3
-#define LSN_ABSOLUTE_X_RMW( NAME, FUNC, DESC )											NAME, DESC, { &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_X, 3
+#define LSN_ABSOLUTE_X_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzY_AbX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 
 /*
  * imm = #$00						Immediate addressing
@@ -78,8 +78,7 @@ namespace lsn {
 	CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {							/**< The instruction set. */
 		/** 00-07 */
 		{	// 00
-			"BRK",
-			u8"BRK causes a non-maskable interrupt and increments the program counter by one. Therefore an RTI will go to the address of the BRK +2 so that BRK may be used to replace a two-byte instruction for debugging and the subsequent RTI will be correct.",
+			//u8"BRK causes a non-maskable interrupt and increments the program counter by one. Therefore an RTI will go to the address of the BRK +2 so that BRK may be used to replace a two-byte instruction for debugging and the subsequent RTI will be correct.",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
 				&CCpu6502::PushPchWithBFlag,
@@ -87,320 +86,319 @@ namespace lsn {
 				&CCpu6502::PushStatus,
 				&CCpu6502::FetchPclFromFFFE,
 				&CCpu6502::BRK, },									// Fetches from 0xFFFF and writes to the high byte of PC.
-				7, LSN_AM_IMPLIED, 1
+				7, LSN_AM_IMPLIED, 1, LSN_I_BRK,
 		},
 		{	// 01
-			LSN_INDIRECT_X_R( "ORA", ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_INDIRECT_X_R( ORA, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 02
-			"X02",
-			u8"Illegal opcode.",
+			//u8"Illegal opcode.",
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
 		},
 		{	// 03
-			LSN_INDIRECT_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_X_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 04
-			LSN_ZERO_PAGE_R( "NOP", NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ZERO_PAGE_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 05
-			LSN_ZERO_PAGE_R( "ORA", ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_ZERO_PAGE_R( ORA, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 06
-			LSN_ZERO_PAGE_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_RMW( ASL, ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 07
-			LSN_ZERO_PAGE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 08-0F */
 		{	// 08
-			"PHP",
-			u8"Push processor status register (with break flag set).",
+			//u8"Push processor status register (with break flag set).",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PHP, },
-				3, LSN_AM_IMPLIED, 1
+				3, LSN_AM_IMPLIED, 1, LSN_I_PHP,
 		},
 		{	// 09
-			LSN_IMMEDIATE( "ORA", ORA_Imm, u8"Bitwise OR with accumulator." )
+			LSN_IMMEDIATE( ORA, ORA_Imm )
 		},
 		{	// 0A
-			"ASL",
-			u8"Arithmetic shift left (shifts in a zero bit on the right).",
+			//u8"Arithmetic shift left (shifts in a zero bit on the right).",
 			{
 				&CCpu6502::ASL_Imp, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_ASL,
 		},
 		{	// 0B
-			LSN_IMMEDIATE( "ANC", ANC_Imm, u8"Unusual operation. AND with carry." )
+			LSN_IMMEDIATE( ANC, ANC_Imm )
 		},
 		{	// 0C
-			LSN_ABSOLUTE_R( "NOP", NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ABSOLUTE_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 0D
-			LSN_ABSOLUTE_R( "ORA", ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_ABSOLUTE_R( ORA, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 0E
-			LSN_ABSOLUTE_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_RMW( ASL, ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 0F
-			LSN_ABSOLUTE_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 10-17 */
 		{	// 10
-			"BPL",
-			u8"Branch on plus (negative clear).",
+			//u8"Branch on plus (negative clear).",
 			{
 				&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 0>,		// Branch if N == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2
+				2, LSN_AM_RELATIVE, 2, LSN_I_BPL,
 		},
 		{	// 11
-			LSN_INDIRECT_Y_R( "ORA", ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_INDIRECT_Y_R( ORA, ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 12
-			"X12",
-			u8"Illegal opcode.",
+			//u8"Illegal opcode.",
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
 		},
 		{	// 13
-			LSN_INDIRECT_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_INDIRECT_Y_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 14
-			LSN_ZERO_PAGE_X_R( "NOP", NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ZERO_PAGE_X_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 15
-			LSN_ZERO_PAGE_X_R( "ORA", ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_ZERO_PAGE_X_R( ORA, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 16
-			LSN_ZERO_PAGE_X_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ZERO_PAGE_X_RMW( ASL, ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 17
-			LSN_ZERO_PAGE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ZERO_PAGE_X_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 18-1F */
 		{	// 18
-			"CLC",
-			u8"Clear carry.",
+			//u8"Clear carry.",
 			{
 				&CCpu6502::CLC, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_CLC,
 		},
 		{	// 19
-			LSN_ABSOLUTE_Y_R( "ORA", ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_ABSOLUTE_Y_R( ORA, ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 1A
-			"NOP",
-			u8"No operation.",
+			//u8"No operation.",
 			{	// Undocumented command.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
 		},
 		{	// 1B
-			LSN_ABSOLUTE_Y_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_Y_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 1C
-			LSN_ABSOLUTE_X_R( "NOP", NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ABSOLUTE_X_R( NOP, NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 1D
-			LSN_ABSOLUTE_X_R( "ORA", ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise OR with accumulator." )
+			LSN_ABSOLUTE_X_R( ORA, ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 1E
-			LSN_ABSOLUTE_X_RMW( "ASL", ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Arithmetic shift left (shifts in a zero bit on the right)." )
+			LSN_ABSOLUTE_X_RMW( ASL, ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 1F
-			LSN_ABSOLUTE_X_RMW( "SLO", SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP <<= 1, A &= OP." )
+			LSN_ABSOLUTE_X_RMW( SLO, SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 20-27 */
 		{	// 20
-			"JSR",
-			u8"Jump to subroutine.",
+			//u8"Jump to subroutine.",
 			{
 				&CCpu6502::FetchLowAddrByteAndIncPc,
 				&CCpu6502::Jsr_Cycle3,
 				&CCpu6502::Jsr_Cycle4,
 				&CCpu6502::Jsr_Cycle5,
 				&CCpu6502::JSR, },
-				6, LSN_AM_ABSOLUTE, 3
+				6, LSN_AM_ABSOLUTE, 3, LSN_I_JSR,
 		},
 		{	// 21
-			LSN_INDIRECT_X_R( "AND", AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_INDIRECT_X_R( AND, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 22
-			"X22",
-			u8"Illegal opcode.",
+			//u8"Illegal opcode.",
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
 		},
 		{	// 23
-			LSN_INDIRECT_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_INDIRECT_X_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 24
-			LSN_ZERO_PAGE_R( "BIT", BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bit test." )
+			LSN_ZERO_PAGE_R( BIT, BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 25
-			LSN_ZERO_PAGE_R( "AND", AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_ZERO_PAGE_R( AND, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 26
-			LSN_ZERO_PAGE_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ZERO_PAGE_RMW( ROL, ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 27
-			LSN_ZERO_PAGE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ZERO_PAGE_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 28-2F */
 		{	// 28
-			"PLP",
-			u8"Pull processor status from stack.",
+			//u8"Pull processor status from stack.",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PLP, },
-				4, LSN_AM_IMPLIED, 1
+				4, LSN_AM_IMPLIED, 1, LSN_I_PLP,
 		},
 		{	// 29
-			LSN_IMMEDIATE( "AND", AND_Imm, u8"Bitwise AND with accumulator." )
+			LSN_IMMEDIATE( AND, AND_Imm )
 		},
 		{	// 2A
-			"ROL",
-			u8"Rotate left (shifts in carry bit on the right).",
+			//u8"Rotate left (shifts in carry bit on the right).",
 			{
 				&CCpu6502::ROL_Imp, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_ROL,
 		},
 		{	// 2B
-			LSN_IMMEDIATE( "ANC", ANC_Imm, u8"Unusual operation. AND with carry." )
+			LSN_IMMEDIATE( ANC, ANC_Imm )
 		},
 		{	// 2C
-			LSN_ABSOLUTE_R( "BIT", BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bit test." )
+			LSN_ABSOLUTE_R( BIT, BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 2D
-			LSN_ABSOLUTE_R( "AND", AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_ABSOLUTE_R( AND, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 2E
-			LSN_ABSOLUTE_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ABSOLUTE_RMW( ROL, ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 2F
-			LSN_ABSOLUTE_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ABSOLUTE_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 30-37 */
 		{	// 30
-			"BMI",
-			u8"Branch on minus (negative set).",
+			//u8"Branch on minus (negative set).",
 			{
 				&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 1>,		// Branch if N == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2
+				2, LSN_AM_RELATIVE, 2, LSN_I_BMI,
 		},
 		{	// 31
-			LSN_INDIRECT_Y_R( "AND", AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_INDIRECT_Y_R( AND, AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 32
-			"X32",
-			u8"Illegal opcode.",
+			//u8"Illegal opcode.",
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
 		},
 		{	// 33
-			LSN_INDIRECT_Y_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_INDIRECT_Y_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 34
-			LSN_ZERO_PAGE_X_R( "NOP", NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ZERO_PAGE_X_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 35
-			LSN_ZERO_PAGE_X_R( "AND", AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_ZERO_PAGE_X_R( AND, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 36
-			LSN_ZERO_PAGE_X_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ZERO_PAGE_X_RMW( ROL, ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 37
-			LSN_ZERO_PAGE_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ZERO_PAGE_X_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 38-3F */
 		{	// 38
-			"SEC",
-			u8"Set carry.",
+			//u8"Set carry.",
 			{
 				&CCpu6502::SEC, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_SEC,
 		},
 		{	// 39
-			LSN_ABSOLUTE_Y_R( "AND", AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_ABSOLUTE_Y_R( AND, AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 3A
-			"NOP",
-			u8"No operation.",
+			//u8"No operation.",
 			{	// Undocumented command.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
+				2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
 		},
 		{	// 3B
-			LSN_ABSOLUTE_Y_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ABSOLUTE_Y_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 3C
-			LSN_ABSOLUTE_X_R( "NOP", NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ABSOLUTE_X_R( NOP, NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 3D
-			LSN_ABSOLUTE_X_R( "AND", AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise AND with accumulator." )
+			LSN_ABSOLUTE_X_R( AND, AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 3E
-			LSN_ABSOLUTE_X_RMW( "ROL", ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Rotate left (shifts in carry bit on the right)." )
+			LSN_ABSOLUTE_X_RMW( ROL, ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 3F
-			LSN_ABSOLUTE_X_RMW( "RLA", RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. ROL OP, A &= OP." )
+			LSN_ABSOLUTE_X_RMW( RLA, RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 40-47 */
 		{	// 40
-			"RTI",
-			u8"Return from interrupt. The status register is pulled with the break flag and bit 5 ignored. Then PC is pulled from the stack.",
+			//u8"Return from interrupt. The status register is pulled with the break flag and bit 5 ignored. Then PC is pulled from the stack.",
 			{
 				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PullStatusWithoutB,
 				&CCpu6502::PullPcl,
 				&CCpu6502::RTI, },									// Pops PCH.
-				6, LSN_AM_IMPLIED, 1
+				6, LSN_AM_IMPLIED, 1, LSN_I_RTI,
 		},
 		{	// 41
-			LSN_INDIRECT_X_R( "EOR", EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise XOR with accumulator." )
+			LSN_INDIRECT_X_R( EOR, EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 42
-			"X42",
-			u8"Illegal opcode.",
+			//u8"Illegal opcode.",
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
-				2, LSN_AM_IMPLIED, 1
-		},
-		{	// 43
-			LSN_INDIRECT_X_RMW( "SRE", SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Illegal. OP >>= 1, A ^= OP." )
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
+		},{	// 43
+			LSN_INDIRECT_X_RMW( SRE, SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 44
-			LSN_ZERO_PAGE_R( "NOP", NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"No operation." )
+			LSN_ZERO_PAGE_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 45
-			LSN_ZERO_PAGE_R( "EOR", EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Bitwise XOR with accumulator." )
+			LSN_ZERO_PAGE_R( EOR, EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 46
-			LSN_ZERO_PAGE_RMW( "LSR", LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs, u8"Logical shift right." )
+			LSN_ZERO_PAGE_RMW( LSR, LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 47
+			LSN_ZERO_PAGE_RMW( SRE, SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+
+		/** 48-4F */
+		{	// 48
+			//u8"Push accumulator.",
+			{
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PHA, },
+				3, LSN_AM_IMPLIED, 1, LSN_I_PHA,
+		},
+		{	// 09
+			LSN_IMMEDIATE( EOR, EOR_Imm )
 		},
 	};
+
+#include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
 
 	// == Various constructors.
 	CCpu6502::CCpu6502( class CBus * _pbBus ) :
@@ -1252,7 +1250,7 @@ namespace lsn {
 	void CCpu6502::NOP() {
 		// #  address R/W description
 		// --- ------- --- -----------------------------------------------
-        // 2    PC     R  read next instruction byte (and throw it away)
+		// 2    PC     R  read next instruction byte (and throw it away)
 		m_pbBus->CpuRead( pc.PC );
 
 		// Last cycle in the instruction.
@@ -1345,6 +1343,13 @@ namespace lsn {
 		}
 	}
 
+	/** Pushes the accumulator. */
+	void CCpu6502::PHA() {
+		LSN_PUSH( A );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Pushes the status byte. */
 	void CCpu6502::PHP() {
 		/* http://users.telenet.be/kim1-6502/6502/proman.html#811
@@ -1434,7 +1439,7 @@ namespace lsn {
 	void CCpu6502::SEC() {
 		// #  address R/W description
 		// --- ------- --- -----------------------------------------------
-        // 2    PC     R  read next instruction byte (and throw it away)
+		// 2    PC     R  read next instruction byte (and throw it away)
 		m_pbBus->CpuRead( pc.PC );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), true );
 		// Last cycle in the instruction.

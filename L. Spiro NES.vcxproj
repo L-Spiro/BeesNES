@@ -155,6 +155,9 @@
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Cpu\LSNInstMetaData.inl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

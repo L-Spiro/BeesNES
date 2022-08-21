@@ -98,10 +98,97 @@ namespace lsn {
 			LSN_AM_INDIRECT_X,																/**< Indirect X addressing = 5 extra cycles. */
 			LSN_AM_INDIRECT_Y,																/**< Indirect Y addressing = 4 extra cycles + optional cycle. */
 		};
+		/** Instructions. Numbers specified because these are used in look-up tables. */
+		enum LSN_INSTRUCTIONS : uint8_t {
+			LSN_I_ADC						= 0,											/**< Add with carry. */
+			LSN_I_AND						= 1,											/**< AND with accumulator. */
+			LSN_I_ASL						= 2,											/**< Arithmetic shift left. */
+			LSN_I_BCC						= 3,											/**< Branch on carry clear. */
+			LSN_I_BCS						= 4,											/**< Branch on carry set. */
+			LSN_I_BEQ						= 5,											/**< Branch on equal (zero set). */
+			LSN_I_BIT						= 6,											/**< Bit test. */
+			LSN_I_BMI						= 7,											/**< Branch on minus (negative set). */
+			LSN_I_BNE						= 8,											/**< Branch on not equal (zero clear). */
+			LSN_I_BPL						= 9,											/**< Branch on plus (negative clear). */
+			LSN_I_BRK						= 10,											/**< Break/interrupt. */
+			LSN_I_BVC						= 11,											/**< Branch on overflow clear. */
+			LSN_I_BVS						= 12,											/**< Branch on overflow set. */
+			LSN_I_CLC						= 13,											/**< Clear carry. */
+			LSN_I_CLD						= 14,											/**< Clear decimal. */
+			LSN_I_CLI						= 15,											/**< Clear interrupt-disable. */
+			LSN_I_CLV						= 16,											/**< Clear overflow. */
+			LSN_I_CMP						= 17,											/**< Compare (with accumulator). */
+			LSN_I_CPX						= 18,											/**< Compare with X. */
+			LSN_I_CPY						= 19,											/**< Compare with Y. */
+			LSN_I_DEC						= 20,											/**< Decrement. */
+			LSN_I_DEX						= 21,											/**< Decrement X. */
+			LSN_I_DEY						= 22,											/**< Decrement Y. */
+			LSN_I_EOR						= 23,											/**< XOR with accumulator. */
+			LSN_I_INC						= 24,											/**< Increment. */
+			LSN_I_INX						= 25,											/**< Increment X. */
+			LSN_I_INY						= 26,											/**< Increment Y. */
+			LSN_I_JMP						= 27,											/**< Jump. */
+			LSN_I_JSR						= 28,											/**< Jump subroutine. */
+			LSN_I_LDA						= 29,											/**< Load accumulator. */
+			LSN_I_LDX						= 30,											/**< Load X. */
+			LSN_I_LDY						= 31,											/**< Load Y. */
+			LSN_I_LSR						= 32,											/**< Logical shift right. */
+			LSN_I_NOP						= 33,											/**< No operation. */
+			LSN_I_ORA						= 34,											/**< OR with accumulator. */
+			LSN_I_PHA						= 35,											/**< Push accumulator. */
+			LSN_I_PHP						= 36,											/**< Push processor status (SR). */
+			LSN_I_PLA						= 37,											/**< Pull accumulator. */
+			LSN_I_PLP						= 38,											/**< Pull processor status (SR). */
+			LSN_I_ROL						= 39,											/**< Rotate left. */
+			LSN_I_ROR						= 40,											/**< Rotate right. */
+			LSN_I_RTI						= 41,											/**< Return from interrupt. */
+			LSN_I_RTS						= 42,											/**< Return from subroutine. */
+			LSN_I_SBC						= 43,											/**< Subtract with carry. */
+			LSN_I_SEC						= 44,											/**< Set carry. */
+			LSN_I_SED						= 45,											/**< Set decimal. */
+			LSN_I_SEI						= 46,											/**< Set interrupt-disable. */
+			LSN_I_STA						= 47,											/**< Store accumulator. */
+			LSN_I_STX						= 48,											/**< Store X. */
+			LSN_I_STY						= 49,											/**< Store Y. */
+			LSN_I_TAX						= 50,											/**< Transfer accumulator to X. */
+			LSN_I_TAY						= 51,											/**< Transfer accumulator to Y. */
+			LSN_I_TSX						= 52,											/**< Transfer stack pointer to X. */
+			LSN_I_TXA						= 53,											/**< Transfer X to accumulator. */
+			LSN_I_TXS						= 54,											/**< Transfer X to stack pointer. */
+			LSN_I_TYA						= 55,											/**< Transfer Y to accumulator. */
+
+			LSN_I_ALR						= 56,											/**< DESC. */
+			LSN_I_ANC						= 57,											/**< DESC. */
+			LSN_I_ANC2						= 58,											/**< DESC. */
+			LSN_I_ANE						= 59,											/**< DESC. */
+			LSN_I_ARR						= 60,											/**< DESC. */
+			LSN_I_DCP						= 61,											/**< DESC. */
+			LSN_I_ISC						= 62,											/**< DESC. */
+			LSN_I_LAS						= 63,											/**< DESC. */
+			LSN_I_LAX						= 64,											/**< DESC. */
+			LSN_I_LXA						= 65,											/**< DESC. */
+			LSN_I_RLA						= 66,											/**< DESC. */
+			LSN_I_RRA						= 67,											/**< DESC. */
+			LSN_I_SAX						= 68,											/**< DESC. */
+			LSN_I_SBX						= 69,											/**< DESC. */
+			LSN_I_SHA						= 70,											/**< DESC. */
+			LSN_I_SHX						= 71,											/**< DESC. */
+			LSN_I_SHY						= 72,											/**< DESC. */
+			LSN_I_SLO						= 73,											/**< DESC. */
+			LSN_I_SRE						= 74,											/**< DESC. */
+			LSN_I_TAS						= 75,											/**< DESC. */
+			LSN_I_USBC						= 76,											/**< DESC. */
+			LSN_I_DOP						= 77,											/**< No operation. */
+			LSN_I_TOP						= 78,											/**< No operation. */
+			LSN_I_JAM						= 79,											/**< DESC. */
+
+
+			LSN_I_TOTAL
+		};
 
 		/** Other parameters. */
 		enum LSN_MISC {
-			LSN_M_MAX_INSTR_CYCLE_COUNT		= 8,
+			LSN_M_MAX_INSTR_CYCLE_COUNT		= 7,
 		};
 
 		/** Contexts. */
@@ -142,12 +229,17 @@ namespace lsn {
 		 *	rather than using the additive approach most commonly found in emulators.
 		 */
 		struct LSN_INSTR {
-			const char *					pcName;											/**< Name of the instruction. */
-			const char8_t *					putf8Desc;										/**< Description for the instruction. */
 			PfCycle							pfHandler[LSN_M_MAX_INSTR_CYCLE_COUNT];			/**< Indexed by LSN_CPU_CONTEXT::ui8FuncIdx, these functions handle each cycle of the instruction. */
 			uint8_t							ui8TotalCycles;									/**< Total non-optional non-overlapping cycles in the instruction. Used only for debugging, disassembling, etc. */
 			LSN_ADDRESSING_MODES			amAddrMode;										/**< Addressing mode. Used only for debugging, disassembling, etc. */
 			uint8_t							ui8Size;										/**< Size in bytes of the instruction. Used only for debugging, disassembling, etc. */
+			LSN_INSTRUCTIONS				iInstruction;									/**< The instruction. */
+		};
+
+		/** Instruction data for assembly/disassembly. */
+		struct LSN_INSTR_META_DATA {
+			const char *					pcName;											/**< The name of the instruction. */
+			const char8_t *					putf8Desc;										/**< The instruction description. */
 		};
 
 
@@ -165,6 +257,7 @@ namespace lsn {
 		uint8_t								m_ui8Status;									/**< The status flags. */
 		LSN_CPU_CONTEXT *					m_pccCurContext;								/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		static LSN_INSTR					m_iInstructionSet[256];							/**< The instruction set. */
+		static const LSN_INSTR_META_DATA	m_smdInstMetaData[LSN_I_TOTAL];					/**< Metadata for the instructions (for assembly and disassembly etc.) */
 		
 		
 		// == Functions.
@@ -315,6 +408,8 @@ namespace lsn {
 		void								ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_IzY_AbX_AbY_1();
+		/** Pushes the accumulator. */
+		void								PHA();
 		/** Pushes the status byte. */
 		void								PHP();
 		/** Pulls the status byte. */
