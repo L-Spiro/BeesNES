@@ -269,22 +269,24 @@ namespace lsn {
 		void								BRK();
 		/** Clears the carry flag. */
 		void								CLC();
+		/** Sets the carry flag. */
+		void								SEC();
 		/** Reads the next instruction byte and throws it away. */
 		void								NOP();
+		/** No operation. */
+		void								NOP_AbX_1();
+		/** No operation. */
+		void								NOP_AbX_2();
 		/** Reads the next instruction byte and throws it away, increasing PC. */
 		void								NopAndIncPc();
 		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
-		void								NOP_Abs();
+		void								NOP_IzX_ZpX_AbX_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_IzX();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_IzY_1();
+		void								ORA_IzY_AbY_1();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_IzY_2();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_AbY_2();
+		void								ORA_IzY_AbY_2();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
 		void								ORA_Zp();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
@@ -298,7 +300,11 @@ namespace lsn {
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								ANC_Imm();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
-		void								AND_IzX_Zp_Abs();
+		void								AND_IzX_ZpX_Zp_Abs();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
+		void								AND_IzY_AbX_AbY_1();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
+		void								AND_IzY_AbX_AbY_2();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
 		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
