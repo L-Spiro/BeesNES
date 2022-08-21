@@ -177,6 +177,8 @@ namespace lsn {
 		void								ReadNextInstByteAndDiscard();					// Cycle 2.
 		/** Reads the next instruction byte and throws it away. */
 		void								ReadNextInstByteAndDiscardAndIncPc();			// Cycle 2.
+		/** Reads the next instruction byte and throws it away, increasing PC. */
+		void								NopAndIncPcAndFinish();
 		/** Fetches a value using immediate addressing. */
 		void								FetchValueAndIncPc_Imm();						// Cycle 2.
 		/** Fetches a pointer and increments PC .*/
@@ -234,15 +236,15 @@ namespace lsn {
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, adds X to it, stores the result in LSN_CPU_CONTEXT::ui8Pointer. */
 		void								ReadAddressAddX_IzX();							// Cycle 3.
 		/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
-		void								FetchEffectiveAddressLow_IzX();				// Cycle 4.
+		void								FetchEffectiveAddressLow_IzX();					// Cycle 4.
 		/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 		void								FetchEffectiveAddressHigh_IzX();				// Cycle 5.
 		/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
-		void								FetchEffectiveAddressLow_IzY();				// Cycle 3.
+		void								FetchEffectiveAddressLow_IzY();					// Cycle 3.
 		/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
 		void								FetchEffectiveAddressHigh_IzY();				// Cycle 4.
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
-		void								ReadEffectiveAddressFixHighByte_IzY_AbX();			// Cycle 5.
+		void								ReadEffectiveAddressFixHighByte_IzY_AbX();		// Cycle 5.
 		/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
 		void								CopyVectorPcl();								// Cycle 6.
 		/** Fetches the low byte of PC from $FFFE. */
@@ -270,79 +272,69 @@ namespace lsn {
 		/** Performs m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
 		void								FinalWriteCycle();
 
-		/** Copies the read value into the low byte of PC after fetching the high byte.
-		 */
-		void								JMP_Abs();										// Cycle 3.
-		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
-		void								BRK();
-		/** Pops into PCH. */
-		void								RTI();
-		/** Clears the carry flag. */
-		void								CLC();
-		/** Sets the carry flag. */
-		void								SEC();
-		/** Reads the next instruction byte and throws it away. */
-		void								NOP();
-		/** No operation. */
-		void								NOP_AbX_1();
-		/** No operation. */
-		void								NOP_AbX_2();
-		/** Reads the next instruction byte and throws it away, increasing PC. */
-		void								NopAndIncPc();
-		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
-		void								NOP_IzX_ZpX_AbX_Zp_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_IzX();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_IzY_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_IzY_AbY_2();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_Zp();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_ZpX();
-		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_Imm();
-		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
-		void								ORA_Abs();
-		/** Sets flags N, V and Z according to a bit test. */
-		void								BIT_Zp_Abs();
+		// == Work functions.
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								ANC_Imm();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
-		void								AND_IzX_ZpX_Zp_Abs();
+		void								AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_IzY_AbX_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
-		void								AND_IzY_AbX_AbY_2();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
+		/** Performs OP <<= 1.  Sets flags C, N, and Z. */
+		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A <<= 1.  Sets flags C, N, and Z. */
+		void								ASL_Imp();
+		/** Sets flags N, V and Z according to a bit test. */
+		void								BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
+		void								BRK();
+		/** Clears the carry flag. */
+		void								CLC();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
-		void								EOR_IzX_ZpX_Zp_Abs();
+		void								EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_IzY_AbX_AbY_1();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
-		void								EOR_IzY_AbX_AbY_2();
 		/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_Imm();
-		/** A zero-page ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
-		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** An ASL (Arithmetic Shift Left).  Sets flags C, N, and Z. */
-		void								ASL_Imp();
+		/** Copies the read value into the low byte of PC after fetching the high byte. */
+		void								JMP_Abs();
+		/** JSR (Jump to Sub-Routine). */
+		void								JSR();
+		/** Performs OP >>= 1.  Sets flags C, N, and Z. */
+		void								LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Reads the next instruction byte and throws it away. */
+		void								NOP();
+		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
+		void								NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** No operation. */
+		void								NOP_IzY_AbX_AbY_1();
+		/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
+		void								ORA_Imm();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
+		void								ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
+		void								ORA_IzY_AbX_AbY_1();
 		/** Pushes the status byte. */
 		void								PHP();
 		/** Pulls the status byte. */
 		void								PLP();
-		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
-		void								ROL_Imp();
+		/** Performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags C, N and Z. */
+		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z. */
 		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
+		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
+		void								ROL_Imp();		
+		/** Pops into PCH. */
+		void								RTI();		
+		/** Sets the carry flag. */
+		void								SEC();
+		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags N and Z.  This is the first cycle of the function, which performs only the "OP = (OP << 1)" part. */
-		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** JSR (Jump to Sub-Routine). */
-		void								JSR();
+		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
+		void								SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		
+		
 	};
 
 
