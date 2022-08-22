@@ -60,7 +60,7 @@
 		{ "ANC",	u8"Unusual operation. Bitwise AND with carry." },
 		{ "ANC2",	u8"DESC." },
 		{ "ANE",	u8"DESC." },
-		{ "ARR",	u8"DESC." },
+		{ "ARR",	u8"Illegal. Performs A = A & OP; A = (A >> 1) | (C << 7)" },
 		{ "DCP",	u8"DESC." },
 		{ "ISC",	u8"DESC." },
 		{ "LAS",	u8"DESC." },
@@ -77,7 +77,7 @@
 		{ "SRE",	u8"Illegal. OP >>= 1, A ^= OP." },
 		{ "TAS",	u8"DESC." },
 		{ "USBC",	u8"DESC." },
-		{ "DOP",	u8"No operation." },
-		{ "TOP",	u8"No operation." },
+		{ "DOP",	u8"Illegal. No operation." },
+		{ "TOP",	u8"Illegal. No operation." },
 		{ "JAM",	u8"DESC." },
 	};

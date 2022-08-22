@@ -497,6 +497,106 @@ namespace lsn {
 		{	// 67
 			LSN_ZERO_PAGE_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
+
+		/** 68-6F */
+		{	// 68
+			{
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
+				&CCpu6502::PLA, },
+				4, LSN_AM_IMPLIED, 1, LSN_I_PLA,
+		},
+		{	// 69
+			LSN_IMMEDIATE( ADC, ADC_Imm )
+		},
+		{	// 6A
+			{
+				&CCpu6502::ROR_Imp, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_ROR,
+		},
+		{	// 6B
+			LSN_IMMEDIATE( ARR, ARR_Imm )
+		},
+		{	// 6C
+			{
+				&CCpu6502::FetchLowAddrByteAndIncPc,
+				&CCpu6502::FetchHighAddrByteAndIncPc,
+				&CCpu6502::Jmp_Ind_Cycle4,
+				&CCpu6502::JMP_Ind, },
+				5, LSN_AM_INDIRECT, 3, LSN_I_JMP,
+		},
+		{	// 6D
+			LSN_ABSOLUTE_R( ADC, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 6E
+			LSN_ABSOLUTE_RMW( ROR, ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 6F
+			LSN_ABSOLUTE_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+
+		/** 70-77 */
+		{	// 70
+			{
+				&CCpu6502::Branch_Cycle2,
+				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), 1>,		// Branch if V == 1.
+				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
+				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
+				2, LSN_AM_RELATIVE, 2, LSN_I_BVS,
+		},
+		{	// 71
+			LSN_INDIRECT_Y_R( ADC, ADC_IzY_AbX_AbY_1, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 72
+			{	// Jams the machine.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
+		},
+		{	// 73
+			LSN_INDIRECT_Y_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 74
+			LSN_ZERO_PAGE_X_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 75
+			LSN_ZERO_PAGE_X_R( ADC, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 76
+			LSN_ZERO_PAGE_X_RMW( ROR, ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 77
+			LSN_ZERO_PAGE_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+
+		/** 78-7F */
+		{	// 78
+			{
+				&CCpu6502::SEI, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_SEI,
+		},
+		{	// 79
+			LSN_ABSOLUTE_Y_R( ADC, ADC_IzY_AbX_AbY_1, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 7A
+			{	// Undocumented command.
+				&CCpu6502::NOP, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
+		},
+		{	// 7B
+			LSN_ABSOLUTE_Y_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 7C
+			LSN_ABSOLUTE_X_R( NOP, NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 7D
+			LSN_ABSOLUTE_X_R( ADC, ADC_IzY_AbX_AbY_1, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 7E
+			LSN_ABSOLUTE_X_RMW( ROR, ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 7F
+			LSN_ABSOLUTE_X_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -725,6 +825,15 @@ namespace lsn {
 		//	meaning the first read was using an invalid address.
 		// The real hardware uses the extra cycle to fix up the address and read again, so we emulate both the invalid read.
 		m_pccCurContext->ui8Operand = m_pbBus->CpuRead( (m_pccCurContext->a.ui16Address & 0xFF00) | ((m_pccCurContext->a.ui16Address + Y) & 0xFF) );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** 4th cycle of JMP (indorect). */
+	void CCpu6502::Jmp_Ind_Cycle4() {
+		//  #   address  R/W description
+		// --- --------- --- ------------------------------------------
+		//  4   pointer   R  fetch low address to latch
+		m_pccCurContext->j.ui8Bytes[0] = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -1260,6 +1369,27 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Fetches from PC and performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
+	void CCpu6502::ARR_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+
+		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( pc.PC++ );
+		A &= ui8Tmp;
+		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x01) != 0 );
+		A = (A >> 1) | ui8HiBit;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ),
+			((m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) & ((A >> 5) & 0x1)) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Performs OP <<= 1.  Sets flags C, N, and Z. */
 	void CCpu6502::ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
@@ -1284,7 +1414,7 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x80) != 0 );
 		A <<= 1;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1302,7 +1432,7 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x01) != 0 );
 		A >>= 1;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1415,6 +1545,20 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Copies the read value into the low byte of PC after fetching the high byte. */
+	void CCpu6502::JMP_Ind() {
+		//  #   address  R/W description
+		// --- --------- --- ------------------------------------------
+		//  5  pointer+1* R  fetch PCH, copy latch to PCL
+
+		// Note: * The PCH will always be fetched from the same page
+		//	as PCL, i.e. page boundary crossing is not handled.
+		m_pccCurContext->j.ui8Bytes[1] = m_pbBus->CpuRead( (m_pccCurContext->a.ui16Address & 0xFF00) | uint8_t( m_pccCurContext->a.ui8Bytes[0] + 1 ) );
+		pc.PC = m_pccCurContext->j.ui16JmpTarget;
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** JSR (Jump to Sub-Routine). */
 	void CCpu6502::JSR() {
 		//  #  address R/W description
@@ -1451,7 +1595,7 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x01) != 0 );
 		A >>= 1;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1579,10 +1723,17 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Pulls the accumulator. */
+	void CCpu6502::PLA() {
+		A = LSN_POP();
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Pulls the status byte. */
 	void CCpu6502::PLP() {
 		const uint8_t ui8Mask = (uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | (1 << 5));
-		m_ui8Status = (LSN_POP() & ~ui8Mask) | (m_ui8Status & ui8Mask);
+		m_ui8Status = (LSN_POP() & ~ui8Mask);// | (m_ui8Status & ui8Mask);
 		//m_ui8Status = LSN_POP();
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1632,7 +1783,7 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x80) != 0 );
 		A = (A << 1) | ui8LowBit;
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -1652,6 +1803,21 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+	void CCpu6502::ROR_Imp() {
+		// We have a discarded read here.
+		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+		
+		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x01) != 0 );
+		A = (A >> 1) | ui8HiBit;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
@@ -1702,6 +1868,17 @@ namespace lsn {
 		// 2    PC     R  read next instruction byte (and throw it away)
 		m_pbBus->CpuRead( pc.PC );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), true );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Sets the IRQ flag. */
+	void CCpu6502::SEI() {
+		// #  address R/W description
+		// --- ------- --- -----------------------------------------------
+		// 2    PC     R  read next instruction byte (and throw it away)
+		m_pbBus->CpuRead( pc.PC );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}

@@ -97,6 +97,7 @@ namespace lsn {
 			LSN_AM_ABSOLUTE_Y,																/**< Absolute Y addressing = 3 extra cycles + optional cycle. */
 			LSN_AM_INDIRECT_X,																/**< Indirect X addressing = 5 extra cycles. */
 			LSN_AM_INDIRECT_Y,																/**< Indirect Y addressing = 4 extra cycles + optional cycle. */
+			LSN_AM_INDIRECT,																/**< Absolute indirect addressing (JMP) = 4 extra cycles. */
 		};
 		/** Instructions. Numbers specified because these are used in look-up tables. */
 		enum LSN_INSTRUCTIONS : uint8_t {
@@ -299,6 +300,8 @@ namespace lsn {
 		void								ReadFromAddressAndAddX_ZpX();
 		/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
 		void								AddYAndReadAddress_IndY();						// Cycle 5.
+		/** 4th cycle of JMP (indorect). */
+		void								Jmp_Ind_Cycle4();								// Cycle 4.
 		/** 3rd cycle of JSR. */
 		void								Jsr_Cycle3();									// Cycle 3.
 		/** 4th cycle of JSR. */
@@ -381,6 +384,8 @@ namespace lsn {
 		void								AND_IzY_AbX_AbY_1();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
+		/** Fetches from PC and performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
+		void								ARR_Imm();
 		/** Performs OP <<= 1.  Sets flags C, N, and Z. */
 		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A <<= 1.  Sets flags C, N, and Z. */
@@ -403,6 +408,8 @@ namespace lsn {
 		void								EOR_Imm();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
 		void								JMP_Abs();
+		/** Copies the read value into the low byte of PC after fetching the high byte. */
+		void								JMP_Ind();
 		/** JSR (Jump to Sub-Routine). */
 		void								JSR();
 		/** Performs OP >>= 1.  Sets flags C, N, and Z. */
@@ -425,6 +432,8 @@ namespace lsn {
 		void								PHA();
 		/** Pushes the status byte. */
 		void								PHP();
+		/** Pulls the accumulator. */
+		void								PLA();
 		/** Pulls the status byte. */
 		void								PLP();
 		/** Performs OP = (OP << 1) | (C); A = A | (OP).  Sets flags C, N and Z. */
@@ -435,6 +444,8 @@ namespace lsn {
 		void								ROL_Imp();
 		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
 		void								ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+		void								ROR_Imp();
 		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
 		void								RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Pops into PCH. */
@@ -443,6 +454,8 @@ namespace lsn {
 		void								RTS();
 		/** Sets the carry flag. */
 		void								SEC();
+		/** Sets the IRQ flag. */
+		void								SEI();
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
