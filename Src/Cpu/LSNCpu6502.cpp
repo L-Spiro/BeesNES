@@ -1654,7 +1654,7 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Performs OP = (OP >> 1) | (OP << 7); A += OP + C.  Sets flags C, V, N and Z. */
+	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
 	void CCpu6502::RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------

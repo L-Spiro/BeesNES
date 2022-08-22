@@ -435,7 +435,7 @@ namespace lsn {
 		void								ROL_Imp();
 		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
 		void								ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		/** Performs OP = (OP >> 1) | (OP << 7); A += OP + C.  Sets flags C, V, N and Z. */
+		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
 		void								RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Pops into PCH. */
 		void								RTI();
