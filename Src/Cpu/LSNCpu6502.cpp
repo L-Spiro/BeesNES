@@ -485,6 +485,18 @@ namespace lsn {
 		{	// 63
 			LSN_INDIRECT_X_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
+		{	// 64
+			LSN_ZERO_PAGE_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 65
+			LSN_ZERO_PAGE_R( ADC, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 66
+			LSN_ZERO_PAGE_RMW( ROR, ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 67
+			LSN_ZERO_PAGE_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -1576,7 +1588,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
-	/** Performs OP = (OP << 1) | (OP >> 7); A = A | (OP).  Sets flags C, N and Z. */
+	/** Performs OP = (OP << 1) | (C); A = A | (OP).  Sets flags C, N and Z. */
 	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
@@ -1584,9 +1596,10 @@ namespace lsn {
 		//                 and do the operation on it
 
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand << 1) | (m_pccCurContext->ui8Operand >> 7);
+		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand << 1) | ui8LowBit;
 		A |= m_pccCurContext->ui8Operand;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
@@ -1594,34 +1607,51 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Performs OP = (OP << 1) | (OP >> 7).  Sets flags C, N, and Z. */
+	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
 	void CCpu6502::ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #   address  R/W description
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
-		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand << 1) | (m_pccCurContext->ui8Operand >> 7);
+		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand << 1) | ui8LowBit;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
+	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
 	void CCpu6502::ROL_Imp() {
 		// We have a discarded read here.
 		m_pbBus->CpuRead( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
 		
-
+		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (A & 0x80) != 0 );
-		A = (A << 1) | (A >> 7);
+		A = (A << 1) | ui8LowBit;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+	}
+
+	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+	void CCpu6502::ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		//  #   address  R/W description
+		// --- --------- --- ------------------------------------------
+		//  6  address+X  W  write the value back to effective address,
+		//                   and do the operation on it
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x01) != 0 );
+		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand >> 1) | ui8HiBit;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), m_pccCurContext->ui8Operand == 0 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (m_pccCurContext->ui8Operand & 0x80) != 0 );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Performs OP = (OP >> 1) | (OP << 7); A += OP + C.  Sets flags C, V, N and Z. */
@@ -1632,9 +1662,10 @@ namespace lsn {
 		//                 and do the operation on it
 
 		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
 		// It carries if the last bit gets shifted off.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x01) != 0 );		// This affects whether the carry bit gets added below.
-		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand >> 1) | (m_pccCurContext->ui8Operand << 7);
+		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand >> 1) | ui8HiBit;
 
 		const uint8_t ui8Tmp = m_pccCurContext->ui8Operand;
 		uint16_t ui16Result = uint16_t( A ) + uint16_t( ui8Tmp ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
