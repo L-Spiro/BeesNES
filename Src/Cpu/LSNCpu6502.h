@@ -158,6 +158,7 @@ namespace lsn {
 			LSN_I_TYA						= 55,											/**< Transfer Y to accumulator. */
 
 			LSN_I_ALR						= 56,											/**< DESC. */
+			LSN_I_ASR						= 56,											/**< Same as LSN_I_ALR. */
 			LSN_I_ANC						= 57,											/**< DESC. */
 			LSN_I_ANC2						= 58,											/**< DESC. */
 			LSN_I_ANE						= 59,											/**< DESC. */
@@ -366,6 +367,12 @@ namespace lsn {
 		void								FinalWriteCycle();
 
 		// == Work functions.
+		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
+		void								ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
+		void								ADC_IzY_AbX_AbY_1();
+		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
+		void								ADC_Imm();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								ANC_Imm();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
@@ -378,12 +385,16 @@ namespace lsn {
 		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A <<= 1.  Sets flags C, N, and Z. */
 		void								ASL_Imp();
+		/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
+		void								ASR_Imm();
 		/** Sets flags N, V and Z according to a bit test. */
 		void								BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
 		void								BRK();
 		/** Clears the carry flag. */
 		void								CLC();
+		/** Clears the IRQ flag. */
+		void								CLI();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -396,6 +407,8 @@ namespace lsn {
 		void								JSR();
 		/** Performs OP >>= 1.  Sets flags C, N, and Z. */
 		void								LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A >>= 1.  Sets flags C, N, and Z. */
+		void								LSR_Imp();
 		/** Reads the next instruction byte and throws it away. */
 		void								NOP();
 		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
@@ -421,7 +434,9 @@ namespace lsn {
 		/** Performs A = (A << 1) | (A >> 7).  Sets flags C, N, and Z. */
 		void								ROL_Imp();		
 		/** Pops into PCH. */
-		void								RTI();		
+		void								RTI();
+		/** Reads PC and increments it. */
+		void								RTS();
 		/** Sets the carry flag. */
 		void								SEC();
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
