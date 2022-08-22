@@ -67,7 +67,7 @@
 		{ "LAX",	u8"DESC." },
 		{ "LXA",	u8"DESC." },
 		{ "RLA",	u8"Illegal. ROL OP, A &= OP." },
-		{ "RRA",	u8"DESC." },
+		{ "RRA",	u8"Illegal. ROR OP, A += OP + C." },
 		{ "SAX",	u8"DESC." },
 		{ "SBX",	u8"DESC." },
 		{ "SHA",	u8"DESC." },

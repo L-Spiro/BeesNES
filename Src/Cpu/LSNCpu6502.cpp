@@ -392,7 +392,7 @@ namespace lsn {
 				3, LSN_AM_ABSOLUTE, 3, LSN_I_JMP,
 		},
 		{	// 4D
-			LSN_ABSOLUTE_R( EOR, EOR_IzY_AbX_AbY_1, EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+			LSN_ABSOLUTE_R( EOR, EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 4E
 			LSN_ABSOLUTE_RMW( LSR, LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -481,6 +481,9 @@ namespace lsn {
 			{	// Jams the machine.
 				&CCpu6502::NOP, },
 				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
+		},
+		{	// 63
+			LSN_INDIRECT_X_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 	};
 
@@ -1619,6 +1622,29 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+	}
+
+	/** Performs OP = (OP >> 1) | (OP << 7); A += OP + C.  Sets flags C, V, N and Z. */
+	void CCpu6502::RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		//  #  address R/W description
+		// --- ------- --- -------------------------------------------------
+		//  5  address  W  write the value back to effective address,
+		//                 and do the operation on it
+
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand );
+		// It carries if the last bit gets shifted off.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), (m_pccCurContext->ui8Operand & 0x01) != 0 );		// This affects whether the carry bit gets added below.
+		m_pccCurContext->ui8Operand = (m_pccCurContext->ui8Operand >> 1) | (m_pccCurContext->ui8Operand << 7);
+
+		const uint8_t ui8Tmp = m_pccCurContext->ui8Operand;
+		uint16_t ui16Result = uint16_t( A ) + uint16_t( ui8Tmp ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), (~(A ^ ui8Tmp) & (A ^ ui16Result) & 0x80) == 0 );
+		A = uint8_t( ui16Result );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), ui16Result > 0xFF );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), ui16Result == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		
+		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
 	/** Pops into PCH. */
