@@ -72,7 +72,7 @@ namespace lsn {
 		 * \param _ui16Addr The address to read.
 		 * \return Returns the requested value.
 		 */
-		inline  uint8_t						CpuRead( uint16_t _ui16Addr );
+		inline uint8_t						CpuRead( uint16_t _ui16Addr );
 
 		/**
 		 * Performs a CPU write of a given address.
@@ -81,6 +81,13 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void							CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val );
+
+		/**
+		 * Special-case function to set the floating value on the bus.  Only used by JAM instructions or in very rare specialized cases.
+		 *
+		 * \param _ui8Val The value to write.
+		 */
+		inline uint8_t						SetFloat( uint8_t _ui8Val );
 
 
 	protected :
@@ -123,6 +130,15 @@ namespace lsn {
 			m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
 			return;
 		}
+	}
+
+	/**
+	 * Special-case function to set the floating value on the bus.  Only used by JAM instructions or in very rare specialized cases.
+	 *
+	 * \param _ui8Val The value to write.
+	 */
+	inline uint8_t CBus::SetFloat( uint8_t _ui8Val ) {
+		m_ui8LastRead = _ui8Val;
 	}
 
 }	// namespace lsn

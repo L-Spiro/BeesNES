@@ -59,7 +59,7 @@
 		{ "ALR",	u8"DESC." },
 		{ "ANC",	u8"Unusual operation. Bitwise AND with carry." },
 		{ "ANC2",	u8"DESC." },
-		{ "ANE",	u8"DESC." },
+		{ "ANE",	u8"Illegal and highly unstable. Performs A = (A | CONST) & X & OP, where CONST is effectively random." },
 		{ "ARR",	u8"Illegal. Performs A = A & OP; A = (A >> 1) | (C << 7)" },
 		{ "DCP",	u8"DESC." },
 		{ "ISC",	u8"DESC." },

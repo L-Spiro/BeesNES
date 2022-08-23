@@ -341,7 +341,8 @@ namespace lsn {
 		/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
 		void								FetchEffectiveAddressHigh_IzY();				// Cycle 4.
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
-		void								ReadEffectiveAddressFixHighByte_IzY_AbX();		// Cycle 5.
+		template <bool _bHandleCrossing>
+		void								ReadEffectiveAddressFixHighByte_IzX_IzY_AbX();		// Cycle 5.
 		/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
 		void								CopyVectorPcl();								// Cycle 6.
 		/** Fetches the low byte of PC from $FFFE. */
@@ -384,6 +385,8 @@ namespace lsn {
 		void								AND_IzY_AbX_AbY_1();
 		/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
 		void								AND_Imm();
+		/** Fetches from PC and performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
+		void								ANE();
 		/** Fetches from PC and performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
 		void								ARR_Imm();
 		/** Performs OP <<= 1.  Sets flags C, N, and Z. */
@@ -408,6 +411,8 @@ namespace lsn {
 		void								EOR_IzY_AbX_AbY_1();
 		/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_Imm();
+		/** Jams the machine, putting 0xFF on the bus repeatedly. */
+		void								JAM();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
 		void								JMP_Abs();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
@@ -419,7 +424,7 @@ namespace lsn {
 		/** Performs A >>= 1.  Sets flags C, N, and Z. */
 		void								LSR_Imp();
 		/** Reads the next instruction byte and throws it away. */
-		void								NOP();
+		void								NOP_Imp();
 		/** Reads the next instruction byte and throws it away, increments PC. */
 		void								NOP_Imm();
 		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
@@ -472,7 +477,8 @@ namespace lsn {
 		void								STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
 		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
-		
+		/** Copies X into A.  Sets flags N, and Z. */
+		void								TXA();
 		
 	};
 
