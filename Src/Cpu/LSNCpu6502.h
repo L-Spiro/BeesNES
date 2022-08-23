@@ -400,6 +400,8 @@ namespace lsn {
 		void								CLC();
 		/** Clears the IRQ flag. */
 		void								CLI();
+		/** Performs Y--.  Sets flags N and Z. */
+		void								DEY();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -418,6 +420,8 @@ namespace lsn {
 		void								LSR_Imp();
 		/** Reads the next instruction byte and throws it away. */
 		void								NOP();
+		/** Reads the next instruction byte and throws it away, increments PC. */
+		void								NOP_Imm();
 		/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
 		void								NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** No operation. */
@@ -452,6 +456,8 @@ namespace lsn {
 		void								RTI();
 		/** Reads PC and increments it. */
 		void								RTS();
+		/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
+		void								SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Sets the carry flag. */
 		void								SEC();
 		/** Sets the IRQ flag. */
@@ -460,6 +466,12 @@ namespace lsn {
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
 		void								SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
+		void								STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
+		void								STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
+		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		
 		
 	};
