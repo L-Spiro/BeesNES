@@ -298,6 +298,8 @@ namespace lsn {
 		void								ReadAtPointerAddress();							// Cycle 3.
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+X)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
 		void								ReadFromAddressAndAddX_ZpX();
+		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+Y)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
+		void								ReadFromAddressAndAddX_ZpY();
 		/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
 		void								AddYAndReadAddress_IndY();						// Cycle 5.
 		/** 4th cycle of JMP (indorect). */
@@ -467,6 +469,8 @@ namespace lsn {
 		void								SEC();
 		/** Sets the IRQ flag. */
 		void								SEI();
+		/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
+		void								SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
@@ -479,6 +483,8 @@ namespace lsn {
 		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Copies X into A.  Sets flags N, and Z. */
 		void								TXA();
+		/** Copies Y into A.  Sets flags N, and Z. */
+		void								TYA();
 		
 	};
 

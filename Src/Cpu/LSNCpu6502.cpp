@@ -44,6 +44,9 @@
 
 #define LSN_ZERO_PAGE_X_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
 #define LSN_ZERO_PAGE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 6, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
+#define LSN_ZERO_PAGE_X_W( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpX, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
+
+#define LSN_ZERO_PAGE_Y_W( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Zp, &CCpu6502::ReadFromAddressAndAddX_ZpY, &CCpu6502::FUNC, }, 4, LSN_AM_ZERO_PAGE_Y, 2, LSN_I_ ## NAME
 
 #define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_Y_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
@@ -675,6 +678,28 @@ namespace lsn {
 				&CCpu6502::JAM, },
 				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
 		},
+		{	// 93
+			LSN_INDIRECT_Y_W( SHA, SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 94
+			LSN_ZERO_PAGE_X_W( STY, STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 95
+			LSN_ZERO_PAGE_X_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 96
+			LSN_ZERO_PAGE_Y_W( STY, STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 97
+			LSN_ZERO_PAGE_Y_W( SAX, SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+
+		/** 98-9F */
+		{	// 98
+			{
+				&CCpu6502::TYA, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_TYA,
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -894,6 +919,21 @@ namespace lsn {
 		//	part.
 		m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );	// This read cycle reads from the address prior to it being adjusted by X.
 		m_pccCurContext->a.ui16Address = uint8_t( m_pccCurContext->a.ui16Address + X );
+		LSN_ADVANCE_CONTEXT_COUNTERS;
+	}
+
+	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+Y)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
+	void CCpu6502::ReadFromAddressAndAddX_ZpY() {
+		//  #   address  R/W description
+		// --- --------- --- ------------------------------------------
+		//  3   address   R  read from address, add index register to it
+
+		// val = PEEK((arg + Y) % 256)
+		// This is the:
+		//	(arg + Y) % 256
+		//	part.
+		m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );	// This read cycle reads from the address prior to it being adjusted by X.
+		m_pccCurContext->a.ui16Address = uint8_t( m_pccCurContext->a.ui16Address + Y );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -2019,6 +2059,23 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
+	void CCpu6502::SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		// #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		// 6   address+Y   W  write to effective address
+
+		/* Stores A AND X AND (high-byte of addr. + 1) at addr.
+		
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		A AND X AND (H+1) -> M
+		*/
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, uint8_t( m_pccCurContext->a.ui8Bytes[1] + 1 ) & A & X );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
@@ -2079,6 +2136,16 @@ namespace lsn {
 	void CCpu6502::TXA() {
 		m_pbBus->CpuRead( pc.PC );
 		A = X;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Copies Y into A.  Sets flags N, and Z. */
+	void CCpu6502::TYA() {
+		m_pbBus->CpuRead( pc.PC );
+		A = Y;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
 		// Last cycle in the instruction.
