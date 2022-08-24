@@ -70,7 +70,7 @@
 		{ "RRA",	u8"Illegal. ROR OP, A += OP + C." },
 		{ "SAX",	u8"DESC." },
 		{ "SBX",	u8"DESC." },
-		{ "SHA",	u8"DESC." },
+		{ "SHA",	u8"Illegal. Stores A & X & (high-byte of address + 1) at the address." },
 		{ "SHX",	u8"DESC." },
 		{ "SHY",	u8"DESC." },
 		{ "SLO",	u8"Illegal. OP <<= 1, A &= OP." },
