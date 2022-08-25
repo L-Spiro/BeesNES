@@ -752,6 +752,21 @@ namespace lsn {
 		{	// A7
 			LSN_ZERO_PAGE_R( LAX, LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
+
+		/** A8-AF */
+		{	// A8
+			{
+				&CCpu6502::TAY, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_TAY,
+		},
+		{	// A9
+			LSN_IMMEDIATE( LDA, LDA_Imm )
+		},
+		{	// AA
+			{
+				&CCpu6502::TAX, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_TAX,
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -2315,6 +2330,27 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
+
+	/** Copies A into X.  Sets flags N, and Z. */
+	void CCpu6502::TAX() {
+		m_pbBus->CpuRead( pc.PC );
+		X = A;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), X == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (X & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Copies A into Y.  Sets flags N, and Z. */
+	void CCpu6502::TAY() {
+		m_pbBus->CpuRead( pc.PC );
+		Y = A;
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), Y == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (Y & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Copies X into A.  Sets flags N, and Z. */
 	void CCpu6502::TXA() {
 		m_pbBus->CpuRead( pc.PC );

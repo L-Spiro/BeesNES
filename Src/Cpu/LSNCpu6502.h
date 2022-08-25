@@ -502,6 +502,10 @@ namespace lsn {
 		void								STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
 		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Copies A into X.  Sets flags N, and Z. */
+		void								TAX();
+		/** Copies A into Y.  Sets flags N, and Z. */
+		void								TAY();
 		/** Copies X into A.  Sets flags N, and Z. */
 		void								TXA();
 		/** Copies X into S. */
