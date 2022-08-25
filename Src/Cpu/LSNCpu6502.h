@@ -406,6 +406,8 @@ namespace lsn {
 		void								CLC();
 		/** Clears the IRQ flag. */
 		void								CLI();
+		/** Clears the overflow flag. */
+		void								CLV();
 		/** Performs Y--.  Sets flags N and Z. */
 		void								DEY();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -424,10 +426,14 @@ namespace lsn {
 		void								JSR();
 		/** Performs A = X = OP.  Sets flags N and Z. */
 		void								LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = X = OP.  Sets flags N and Z. */
+		void								LAX_IzY_AbX_AbY_1();
+		/** Performs A = OP.  Sets flags N and Z. */
+		void								LDA_Imm();
 		/** Performs A = OP.  Sets flags N and Z. */
 		void								LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A = OP.  Sets flags N and Z. */
-		void								LDA_Imm();
+		void								LDA_IzY_AbX_AbY_1();
 		/** Performs X = OP.  Sets flags N and Z. */
 		void								LDX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs X = OP.  Sets flags N and Z. */
@@ -440,6 +446,8 @@ namespace lsn {
 		void								LSR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A >>= 1.  Sets flags C, N, and Z. */
 		void								LSR_Imp();
+		/** Fetches from PC and performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
+		void								LXA();
 		/** Reads the next instruction byte and throws it away. */
 		void								NOP_Imp();
 		/** Reads the next instruction byte and throws it away, increments PC. */
@@ -506,6 +514,8 @@ namespace lsn {
 		void								TAX();
 		/** Copies A into Y.  Sets flags N, and Z. */
 		void								TAY();
+		/** Copies S into X. */
+		void								TSX();
 		/** Copies X into A.  Sets flags N, and Z. */
 		void								TXA();
 		/** Copies X into S. */
