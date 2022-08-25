@@ -372,6 +372,13 @@ namespace lsn {
 		void								Branch_Cycle5();
 		/** Performs m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
 		void								FinalWriteCycle();
+		/**
+		 * Performs a compare against a register and an operand by setting flags.
+		 *
+		 * \param _ui8RegVal The register value used in the comparison.
+		 * \param _ui8OpVal The operand value used in the comparison.
+		 */
+		inline void							Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
 
 		// == Work functions.
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -408,6 +415,20 @@ namespace lsn {
 		void								CLI();
 		/** Clears the overflow flag. */
 		void								CLV();
+		/** Compares A with OP. */
+		void								CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Compares X with OP. */
+		void								CPX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Compares X with OP. */
+		void								CPX_Imm();
+		/** Compares Y with OP. */
+		void								CPY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Compares Y with OP. */
+		void								CPY_Imm();
+		/** Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z. */
+		void								DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs [ADDR]--.  Sets flags N and Z. */
+		void								DEC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs Y--.  Sets flags N and Z. */
 		void								DEY();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -537,5 +558,19 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	/**
+	 * Performs a compare against a register and an operand by setting flags.
+	 *
+	 * \param _ui8RegVal The register value used in the comparison.
+	 * \param _ui8OpVal The operand value used in the comparison.
+	 */
+	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
+		// If the value in the accumulator is equal or greater than the compared value, the Carry will be set.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), _ui8RegVal >= _ui8OpVal );
+		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof…
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), _ui8RegVal == _ui8OpVal );
+		// …and the sign (i.e. A>=$80) of the accumulator.
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
+	}
 
 }	// namespace lsn
