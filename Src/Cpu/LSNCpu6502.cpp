@@ -726,6 +726,32 @@ namespace lsn {
 		{	// 9F
 			LSN_ABSOLUTE_Y_W( SHA, SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
+
+		/** A0-A7 */
+		{	// A0
+			LSN_IMMEDIATE( LDY, LDY_Imm )
+		},
+		{	// A1
+			LSN_INDIRECT_X_R( LDA, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// A2
+			LSN_IMMEDIATE( LDX, LDX_Imm )
+		},
+		{	// A3
+			LSN_INDIRECT_X_R( LAX, LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// A4
+			LSN_ZERO_PAGE_R( LDY, LDY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// A5
+			LSN_ZERO_PAGE_R( LDA, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// A6
+			LSN_ZERO_PAGE_R( LDX, LDX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// A7
+			LSN_ZERO_PAGE_R( LAX, LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -1751,6 +1777,85 @@ namespace lsn {
 		//                 byte to PCH
 		m_pccCurContext->j.ui8Bytes[1] = m_pbBus->CpuRead( pc.PC );
 		pc.PC = m_pccCurContext->j.ui16JmpTarget;
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs A = X = OP.  Sets flags N and Z. */
+	void CCpu6502::LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		A = X = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs A = OP.  Sets flags N and Z. */
+	void CCpu6502::LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		A = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs A = OP.  Sets flags N and Z. */
+	void CCpu6502::LDA_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+		A = m_pbBus->CpuRead( pc.PC++ );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs X = OP.  Sets flags N and Z. */
+	void CCpu6502::LDX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		X = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), X == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (X & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs X = OP.  Sets flags N and Z. */
+	void CCpu6502::LDX_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+		X = m_pbBus->CpuRead( pc.PC++ );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), X == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (X & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs Y = OP.  Sets flags N and Z. */
+	void CCpu6502::LDY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		Y = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), Y == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (Y & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs Y = OP.  Sets flags N and Z. */
+	void CCpu6502::LDY_Imm() {
+		//  #  address R/W description
+		// --- ------- --- ------------------------------------------
+		//  2    PC     R  fetch value, increment PC
+		Y = m_pbBus->CpuRead( pc.PC++ );
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), Y == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (Y & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
