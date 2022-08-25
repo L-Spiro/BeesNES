@@ -50,9 +50,11 @@
 
 #define LSN_ABSOLUTE_Y_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_Y_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_Y_W( NAME, FUNC )													{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddY, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::FUNC, }, 5, LSN_AM_ABSOLUTE_Y, 3, LSN_I_ ## NAME
 
 #define LSN_ABSOLUTE_X_R( NAME, FUNC1, FUNC2 )											{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::FUNC1, &CCpu6502::FUNC2, }, 4, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_X_W( NAME, FUNC )													{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::FUNC, }, 5, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 
 /*
  * imm = #$00						Immediate addressing
@@ -699,6 +701,29 @@ namespace lsn {
 			{
 				&CCpu6502::TYA, },
 				2, LSN_AM_IMPLIED, 1, LSN_I_TYA,
+		},
+		{	// 99
+			LSN_ABSOLUTE_Y_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 9A
+			{
+				&CCpu6502::TXS, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_TXS,
+		},
+		{	// 9B
+			LSN_ABSOLUTE_Y_W( SHS, SHS )
+		},
+		{	// 9C
+			LSN_ABSOLUTE_X_W( SHY, SHY )
+		},
+		{	// 9D
+			LSN_ABSOLUTE_X_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// 9E
+			LSN_ABSOLUTE_Y_W( SHX, SHX )
+		},
+		{	// 9F
+			LSN_ABSOLUTE_Y_W( SHA, SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 	};
 
@@ -2076,6 +2101,58 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
+	void CCpu6502::SHS() {
+		// #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		// 6   address+Y   W  write to effective address
+
+		/* Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		A AND X -> SP, A AND X AND (H+1) -> M
+		*/
+		S = X & A;
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, uint8_t( m_pccCurContext->a.ui8Bytes[1] + 1 ) & S );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
+	void CCpu6502::SHX() {
+		// #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		// 6   address+Y   W  write to effective address
+
+		/* Stores Y AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		Y AND (H+1) -> M
+		*/
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, uint8_t( m_pccCurContext->a.ui8Bytes[1] + 1 ) & X );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
+	void CCpu6502::SHY() {
+		// #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		// 6   address+Y   W  write to effective address
+
+		/* Stores Y AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		Y AND (H+1) -> M
+		*/
+		m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, uint8_t( m_pccCurContext->a.ui8Bytes[1] + 1 ) & Y );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 	void CCpu6502::SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		//  #  address R/W description
@@ -2138,6 +2215,14 @@ namespace lsn {
 		A = X;
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Copies X into S. */
+	void CCpu6502::TXS() {
+		m_pbBus->CpuRead( pc.PC );
+		S = X;
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}

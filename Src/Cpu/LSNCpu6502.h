@@ -179,6 +179,7 @@ namespace lsn {
 			LSN_I_SLO						= 73,											/**< DESC. */
 			LSN_I_SRE						= 74,											/**< DESC. */
 			LSN_I_TAS						= 75,											/**< DESC. */
+			LSN_I_SHS						= 75,											/**< Same as LSN_I_TAS. */
 			LSN_I_USBC						= 76,											/**< DESC. */
 			LSN_I_DOP						= 77,											/**< No operation. */
 			LSN_I_TOP						= 78,											/**< No operation. */
@@ -471,6 +472,12 @@ namespace lsn {
 		void								SEI();
 		/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
 		void								SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
+		void								SHS();
+		/** Illegal. Stores X & (high-byte of address + 1) at the address. */
+		void								SHX();
+		/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
+		void								SHY();
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
@@ -483,6 +490,8 @@ namespace lsn {
 		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Copies X into A.  Sets flags N, and Z. */
 		void								TXA();
+		/** Copies X into S. */
+		void								TXS();
 		/** Copies Y into A.  Sets flags N, and Z. */
 		void								TYA();
 		
