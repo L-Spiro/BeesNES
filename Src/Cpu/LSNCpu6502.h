@@ -424,6 +424,10 @@ namespace lsn {
 		void								JMP_Ind();
 		/** JSR (Jump to Sub-Routine). */
 		void								JSR();
+		/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
+		void								LAS_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
+		void								LAS_IzY_AbX_AbY_1();
 		/** Performs A = X = OP.  Sets flags N and Z. */
 		void								LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A = X = OP.  Sets flags N and Z. */
@@ -437,9 +441,13 @@ namespace lsn {
 		/** Performs X = OP.  Sets flags N and Z. */
 		void								LDX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs X = OP.  Sets flags N and Z. */
+		void								LDX_IzY_AbX_AbY_1();
+		/** Performs X = OP.  Sets flags N and Z. */
 		void								LDX_Imm();
 		/** Performs Y = OP.  Sets flags N and Z. */
 		void								LDY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs Y = OP.  Sets flags N and Z. */
+		void								LDY_IzY_AbX_AbY_1();
 		/** Performs Y = OP.  Sets flags N and Z. */
 		void								LDY_Imm();
 		/** Performs OP >>= 1.  Sets flags C, N, and Z. */

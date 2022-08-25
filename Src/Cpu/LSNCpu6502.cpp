@@ -824,12 +824,27 @@ namespace lsn {
 				2, LSN_AM_IMPLIED, 1, LSN_I_CLV,
 		},
 		{	// B9
-			LSN_ABSOLUTE_Y_W( LDA, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+			LSN_ABSOLUTE_Y_R( LDA, LDA_IzY_AbX_AbY_1, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// BA
 			{
 				&CCpu6502::TSX, },
 				2, LSN_AM_IMPLIED, 1, LSN_I_TSX,
+		},
+		{	// BB
+			LSN_ABSOLUTE_Y_R( LAS, LAS_IzY_AbX_AbY_1, LAS_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// BC
+			LSN_ABSOLUTE_X_R( LDY, LDY_IzY_AbX_AbY_1, LDY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// BD
+			LSN_ABSOLUTE_X_R( LDA, LDA_IzY_AbX_AbY_1, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// BE
+			LSN_ABSOLUTE_Y_R( LDX, LDX_IzY_AbX_AbY_1, LDX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// BF
+			LSN_ABSOLUTE_Y_R( LAX, LAX_IzY_AbX_AbY_1, LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 	};
 
@@ -1871,6 +1886,44 @@ namespace lsn {
 		LSN_FINISH_INST;
 	}
 
+	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
+	void CCpu6502::LAS_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		A = X = S = (m_pbBus->CpuRead( m_pccCurContext->a.ui16Address ) & S);
+
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
+	void CCpu6502::LAS_IzY_AbX_AbY_1() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  5   address+Y*  R  read from effective address,
+		//                     fix high byte of effective address
+		
+		// Read from effective address,
+		// fix high byte of effective address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		// We may have read from the wrong address if the high byte of the effective address isn't correct.
+		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
+		if ( bCrossed ) {
+			// Crossed a page boundary.
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// We are done.
+			A = X = S = (ui8Tmp & S);
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), A == 0x00 );
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (A & 0x80) != 0 );
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
+	}
+
 	/** Performs A = X = OP.  Sets flags N and Z. */
 	void CCpu6502::LAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		A = X = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
@@ -1971,6 +2024,34 @@ namespace lsn {
 	}
 
 	/** Performs X = OP.  Sets flags N and Z. */
+	void CCpu6502::LDX_IzY_AbX_AbY_1() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  5   address+Y*  R  read from effective address,
+		//                     fix high byte of effective address
+		
+		// Read from effective address,
+		// fix high byte of effective address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		// We may have read from the wrong address if the high byte of the effective address isn't correct.
+		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
+		if ( bCrossed ) {
+			// Crossed a page boundary.
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// We are done.
+			X = ui8Tmp;
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), X == 0x00 );
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (X & 0x80) != 0 );
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
+	}
+
+	/** Performs X = OP.  Sets flags N and Z. */
 	void CCpu6502::LDX_Imm() {
 		//  #  address R/W description
 		// --- ------- --- ------------------------------------------
@@ -1991,6 +2072,34 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (Y & 0x80) != 0 );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+	}
+
+	/** Performs Y = OP.  Sets flags N and Z. */
+	void CCpu6502::LDY_IzY_AbX_AbY_1() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  5   address+Y*  R  read from effective address,
+		//                     fix high byte of effective address
+		
+		// Read from effective address,
+		// fix high byte of effective address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		// We may have read from the wrong address if the high byte of the effective address isn't correct.
+		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
+		if ( bCrossed ) {
+			// Crossed a page boundary.
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// We are done.
+			Y = ui8Tmp;
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), Y == 0x00 );
+			SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (Y & 0x80) != 0 );
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
 	}
 
 	/** Performs Y = OP.  Sets flags N and Z. */
