@@ -360,7 +360,8 @@ namespace lsn {
 			{	// Jams the machine.
 				&CCpu6502::JAM, },
 				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
-		},{	// 43
+		},
+		{	// 43
 			LSN_INDIRECT_X_RMW( SRE, SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 44
