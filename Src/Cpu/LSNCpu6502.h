@@ -554,6 +554,8 @@ namespace lsn {
 		void								SBX();
 		/** Sets the carry flag. */
 		void								SEC();
+		/** Sets the decimal flag. */
+		void								SED();
 		/** Sets the IRQ flag. */
 		void								SEI();
 		/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */

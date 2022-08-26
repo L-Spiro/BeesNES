@@ -1055,6 +1055,36 @@ namespace lsn {
 		{	// F7
 			LSN_ZERO_PAGE_X_RMW( ISB, ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
+
+		/** F8-FF */
+		{	// F8
+			{
+				&CCpu6502::SED, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_SED,
+		},
+		{	// F9
+			LSN_ABSOLUTE_Y_R( SBC, SBC_IzY_AbX_AbY_1, SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// FA
+			{
+				&CCpu6502::NOP_Imp, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
+		},
+		{	// FB
+			LSN_ABSOLUTE_Y_RMW( ISB, ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// FC
+			LSN_ABSOLUTE_X_R( NOP, NOP_IzY_AbX_AbY_1, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// FD
+			LSN_ABSOLUTE_X_R( SBC, SBC_IzY_AbX_AbY_1, SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// FE
+			LSN_ABSOLUTE_X_RMW( INC, INC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// FF
+			LSN_ABSOLUTE_X_RMW( ISB, ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -2883,6 +2913,17 @@ namespace lsn {
 		// 2    PC     R  read next instruction byte (and throw it away)
 		m_pbBus->CpuRead( pc.PC );
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), true );
+		// Last cycle in the instruction.
+		LSN_FINISH_INST;
+	}
+
+	/** Sets the decimal flag. */
+	void CCpu6502::SED() {
+		// #  address R/W description
+		// --- ------- --- -----------------------------------------------
+		// 2    PC     R  read next instruction byte (and throw it away)
+		m_pbBus->CpuRead( pc.PC );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_DECIMAL ), true );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 	}
