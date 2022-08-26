@@ -417,6 +417,8 @@ namespace lsn {
 		void								CLV();
 		/** Compares A with OP. */
 		void								CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Compares A with OP. */
+		void								CMP_Imm();
 		/** Compares X with OP. */
 		void								CPX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Compares X with OP. */
@@ -429,6 +431,8 @@ namespace lsn {
 		void								DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs [ADDR]--.  Sets flags N and Z. */
 		void								DEC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs X--.  Sets flags N and Z. */
+		void								DEX();
 		/** Performs Y--.  Sets flags N and Z. */
 		void								DEY();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -437,6 +441,8 @@ namespace lsn {
 		void								EOR_IzY_AbX_AbY_1();
 		/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_Imm();
+		/** Performs Y++.  Sets flags N and Z. */
+		void								INY();
 		/** Jams the machine, putting 0xFF on the bus repeatedly. */
 		void								JAM();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
@@ -517,6 +523,8 @@ namespace lsn {
 		void								RTS();
 		/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
 		void								SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Fetches from PC and performs X = (A & X) - OP.  Sets flags C, N and Z. */
+		void								SBX();
 		/** Sets the carry flag. */
 		void								SEC();
 		/** Sets the IRQ flag. */
