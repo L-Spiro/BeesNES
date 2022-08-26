@@ -903,6 +903,38 @@ namespace lsn {
 			LSN_ABSOLUTE_RMW( DCP, DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		
+		/** D0-D7 */
+		{	// D0
+			{
+				&CCpu6502::Branch_Cycle2,
+				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), 0>,			// Branch if Z == 0.
+				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
+				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
+				2, LSN_AM_RELATIVE, 2, LSN_I_BNE,
+		},
+		{	// D1
+			LSN_INDIRECT_Y_R( CMP, CMP_IzY_AbX_AbY_1, CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// D2
+			{	// Jams the machine.
+				&CCpu6502::JAM, },
+				2, LSN_AM_IMPLIED, 1, LSN_I_JAM,
+		},
+		{	// D3
+			LSN_INDIRECT_Y_RMW( DCP, DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// D4
+			LSN_ZERO_PAGE_X_R( NOP, NOP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// D5
+			LSN_ZERO_PAGE_X_R( CMP, CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// D6
+			LSN_ZERO_PAGE_X_RMW( DEC, DEC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
+		{	// D7
+			LSN_ZERO_PAGE_X_RMW( DCP, DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+		},
 	};
 
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -1837,6 +1869,32 @@ namespace lsn {
 		Cmp( A, m_pbBus->CpuRead( m_pccCurContext->a.ui16Address ) );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+	}
+
+	/** Compares A with OP. */
+	void CCpu6502::CMP_IzY_AbX_AbY_1() {
+		//  #    address   R/W description
+		// --- ----------- --- ------------------------------------------
+		//  5   address+Y*  R  read from effective address,
+		//                     fix high byte of effective address
+		
+		// Read from effective address,
+		// fix high byte of effective address.
+		const uint8_t ui8Tmp = m_pbBus->CpuRead( m_pccCurContext->a.ui16Address );
+		// We may have read from the wrong address if the high byte of the effective address isn't correct.
+		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
+		bool bCrossed = m_pccCurContext->j.ui8Bytes[1] != m_pccCurContext->a.ui8Bytes[1];
+		if ( bCrossed ) {
+			// Crossed a page boundary.
+			m_pccCurContext->a.ui8Bytes[1] = m_pccCurContext->j.ui8Bytes[1];
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+		}
+		else {
+			// We are done.
+			Cmp( A, ui8Tmp );
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+		}
 	}
 
 	/** Compares A with OP. */

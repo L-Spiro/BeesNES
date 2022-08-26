@@ -418,6 +418,8 @@ namespace lsn {
 		/** Compares A with OP. */
 		void								CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Compares A with OP. */
+		void								CMP_IzY_AbX_AbY_1();
+		/** Compares A with OP. */
 		void								CMP_Imm();
 		/** Compares X with OP. */
 		void								CPX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
