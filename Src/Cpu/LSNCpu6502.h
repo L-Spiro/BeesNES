@@ -414,6 +414,8 @@ namespace lsn {
 		void								BRK();
 		/** Clears the carry flag. */
 		void								CLC();
+		/** Clears the decimal flag. */
+		void								CLD();
 		/** Clears the IRQ flag. */
 		void								CLI();
 		/** Clears the overflow flag. */
