@@ -169,6 +169,7 @@ namespace lsn {
 			LSN_I_ARR						= 60,											/**< DESC. */
 			LSN_I_DCP						= 61,											/**< DESC. */
 			LSN_I_ISC						= 62,											/**< DESC. */
+			LSN_I_ISB						= 62,											/**< Same as LSN_I_ISC. */
 			LSN_I_LAS						= 63,											/**< DESC. */
 			LSN_I_LAX						= 64,											/**< DESC. */
 			LSN_I_LXA						= 65,											/**< DESC. */
@@ -382,6 +383,13 @@ namespace lsn {
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
 		inline void							Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
+		/**
+		 * Performs an add-with-carry with an operand, setting flags X, N, and Z.
+		 *
+		 * \param _ui8RegVal The register value used in the comparison.
+		 * \param _ui8OpVal The operand value used in the comparison.
+		 */
+		inline void							Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
 
 		// == Work functions.
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -448,8 +456,14 @@ namespace lsn {
 		void								EOR_IzY_AbX_AbY_1();
 		/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_Imm();
+		/** Performs [ADDR]++.  Sets flags N and Z. */
+		void								INC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs X++.  Sets flags N and Z. */
+		void								INX();
 		/** Performs Y++.  Sets flags N and Z. */
 		void								INY();
+		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
+		void								ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Jams the machine, putting 0xFF on the bus repeatedly. */
 		void								JAM();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
@@ -530,6 +544,12 @@ namespace lsn {
 		void								RTS();
 		/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
 		void								SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
+		void								SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
+		void								SBC_IzY_AbX_AbY_1();
+		/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
+		void								SBC_Imm();
 		/** Fetches from PC and performs X = (A & X) - OP.  Sets flags C, N and Z. */
 		void								SBX();
 		/** Sets the carry flag. */
@@ -586,6 +606,21 @@ namespace lsn {
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), _ui8RegVal == _ui8OpVal );
 		// …and the sign (i.e. A>=$80) of the accumulator.
 		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
+	}
+
+	/**
+	 * Performs an add-with-carry with an operand, setting flags X, N, and Z.
+	 *
+	 * \param _ui8RegVal The register value used in the comparison.
+	 * \param _ui8OpVal The operand value used in the comparison.
+	 */
+	inline void CCpu6502::Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), (~(_ui8RegVal ^ _ui8OpVal) & (_ui8RegVal ^ ui16Result) & 0x80) == 0 );
+		_ui8RegVal = uint8_t( ui16Result );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), ui16Result > 0xFF );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), ui16Result == 0x00 );
+		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (_ui8RegVal & 0x80) != 0 );
 	}
 
 }	// namespace lsn
