@@ -96,16 +96,35 @@ namespace lsn {
 	/**
 	 * Sets a bit in a flag to 1 or 0.
 	 *
+	 * \param _uBit Bit mask.
 	 * \param _ui8Val The value to modify in-place.
-	 * \param _ui8Bit Index of the bit in the flag to set.
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
-	inline void								SetBit( uint8_t &_ui8Val, const uint8_t _ui8Bit, const bool _bOn ) {
+	template <unsigned _uBit>
+	inline void									SetBit( uint8_t &_ui8Val, const bool _bOn ) {
 		if ( _bOn ) {
-			_ui8Val |= (1 << _ui8Bit);
+			_ui8Val |= _uBit;
 		}
 		else {
-			_ui8Val &= ~(1 << _ui8Bit);
+			_ui8Val &= ~_uBit;
+		}
+	}
+
+	/**
+	 * Sets a bit in a flag to 1 or 0.
+	 *
+	 * \param _uBit Bit mask.
+	 * \param _bVal The bit valu to write (0 or 1).
+	 * \param _ui8Val The value to modify in-place.
+	 * \param _bOn If true, the bit is set, otherwise it is unset.
+	 */
+	template <unsigned _uBit, bool _bVal>
+	inline void									SetBit( uint8_t &_ui8Val ) {
+		if constexpr ( _bVal != 0 ) {
+			_ui8Val |= _uBit;
+		}
+		else {
+			_ui8Val &= ~_uBit;
 		}
 	}
 

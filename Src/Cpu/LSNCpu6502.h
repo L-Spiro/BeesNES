@@ -603,11 +603,11 @@ namespace lsn {
 	 */
 	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
 		// If the value in the accumulator is equal or greater than the compared value, the Carry will be set.
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), _ui8RegVal >= _ui8OpVal );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, _ui8RegVal >= _ui8OpVal );
 		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof…
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), _ui8RegVal == _ui8OpVal );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == _ui8OpVal );
 		// …and the sign (i.e. A>=$80) of the accumulator.
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 
 	/**
@@ -618,11 +618,11 @@ namespace lsn {
 	 */
 	inline void CCpu6502::Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
 		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), (~(_ui8RegVal ^ _ui8OpVal) & (_ui8RegVal ^ ui16Result) & 0x80) == 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(_ui8RegVal ^ _ui8OpVal) & (_ui8RegVal ^ ui16Result) & 0x80) == 0 );
 		_ui8RegVal = uint8_t( ui16Result );
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), ui16Result > 0xFF );
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), ui16Result == 0x00 );
-		SetBit( m_ui8Status, uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), (_ui8RegVal & 0x80) != 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 }	// namespace lsn
