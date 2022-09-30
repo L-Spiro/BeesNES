@@ -1,9 +1,6 @@
 # L. Spiro NES
- A sub-cycle–accurate Nintendo Entertainment System emulator.
-
- Copyright L. Spiro 2020  
-
-Written by: Shawn (L. Spiro) Wilcoxen  
+A sub-cycle–accurate Nintendo Entertainment System emulator.
+Shawn (L. Spiro) Wilcoxen  
 
 Description: A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.  
 
