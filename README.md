@@ -25,7 +25,7 @@ The CPU should be completely cycle-accurate, as every individual cycle is docume
 Timing will not be based off audio as is done in many emulators. We will use a real clock (with at minimum microsecond accuracy) and try to match real timings to real time units, which we can speed up and slow down as options.  The NTSC version’s CPU will need to pump out ~29,780.506887 cycles per frame at 60.098814 FPS, while the PAL will need to pump out ~33,247.485977 cycles at 50.006979 FPS.
 
 ## Performance
-Performance should be decent enough for real-time (though this remains an uncertainty at the moment). We are adding work to frames by adding a dereference and pointer-function call for each cycle, but the functions never leave instruction cache. If performance becomes a problem, it may warrant the creation of the approximate loops used in other emulators, leading to the scenario in which the approximate loops are used by most for gameplay and the slower original version of the emulator is used as a reference.  
+Performance should be decent enough for real-time (though this remains an uncertainty at the moment). We are adding work to frames by adding a dereference and function-pointer call for each cycle, but the functions never leave instruction cache. If performance becomes a problem, it may warrant the creation of the approximate loops used in other emulators, leading to the scenario in which the approximate loops are used by most for gameplay and the slower original version of the emulator is used as a reference.  
 
 ## Other Features
 Other features will include:  
