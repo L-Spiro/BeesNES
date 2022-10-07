@@ -161,33 +161,33 @@ namespace lsn {
 			LSN_I_TXS						= 54,											/**< Transfer X to stack pointer. */
 			LSN_I_TYA						= 55,											/**< Transfer Y to accumulator. */
 
-			LSN_I_ALR						= 56,											/**< DESC. */
+			LSN_I_ALR						= 56,											/**< Illegal. Performs A & OP; LSR. */
 			LSN_I_ASR						= 56,											/**< Same as LSN_I_ALR. */
-			LSN_I_ANC						= 57,											/**< DESC. */
-			LSN_I_ANC2						= 58,											/**< DESC. */
-			LSN_I_ANE						= 59,											/**< DESC. */
-			LSN_I_ARR						= 60,											/**< DESC. */
-			LSN_I_DCP						= 61,											/**< DESC. */
-			LSN_I_ISC						= 62,											/**< DESC. */
+			LSN_I_ANC						= 57,											/**< Illegal. Bitwise AND with carry. C flag is set using ASL rules. */
+			LSN_I_ANC2						= 58,											/**< Illegal. Bitwise AND with carry. C flag is set using ROL rules. */
+			LSN_I_ANE						= 59,											/**< Illegal and highly unstable. Performs A = (A | CONST) & X & OP, where CONST is effectively random. */
+			LSN_I_ARR						= 60,											/**< Illegal. Performs A = A & OP; A = (A >> 1) | (C << 7). */
+			LSN_I_DCP						= 61,											/**< Illegal. Performs OP--; CMP(A, OP). */
+			LSN_I_ISC						= 62,											/**< Illegal. Performs INC; SBC. */
 			LSN_I_ISB						= 62,											/**< Same as LSN_I_ISC. */
-			LSN_I_LAS						= 63,											/**< DESC. */
-			LSN_I_LAX						= 64,											/**< DESC. */
-			LSN_I_LXA						= 65,											/**< DESC. */
-			LSN_I_RLA						= 66,											/**< DESC. */
-			LSN_I_RRA						= 67,											/**< DESC. */
-			LSN_I_SAX						= 68,											/**< DESC. */
-			LSN_I_SBX						= 69,											/**< DESC. */
-			LSN_I_SHA						= 70,											/**< DESC. */
-			LSN_I_SHX						= 71,											/**< DESC. */
-			LSN_I_SHY						= 72,											/**< DESC. */
-			LSN_I_SLO						= 73,											/**< DESC. */
-			LSN_I_SRE						= 74,											/**< DESC. */
-			LSN_I_TAS						= 75,											/**< DESC. */
+			LSN_I_LAS						= 63,											/**< Illegal. Performs A = X = S = (OP & S). */
+			LSN_I_LAX						= 64,											/**< Illegal. Performs A = X = OP. */
+			LSN_I_LXA						= 65,											/**< Illegal and highly unstable. Performs X = A = ((A | CONST) & OP), where CONST is effectively random. */
+			LSN_I_RLA						= 66,											/**< Illegal. ROL OP, A &= OP. */
+			LSN_I_RRA						= 67,											/**< Illegal. ROR OP, A += OP + C. */
+			LSN_I_SAX						= 68,											/**< Illegal. Performs OP = A & X. */
+			LSN_I_SBX						= 69,											/**< Illegal. Performs X = (A & X) - OP, setting flags as with CMP. */
+			LSN_I_SHA						= 70,											/**< Illegal. Stores A & X & (high-byte of address + 1) at the address. */
+			LSN_I_SHX						= 71,											/**< Illegal. Stores X & (high-byte of address + 1) at the address. */
+			LSN_I_SHY						= 72,											/**< Illegal. Stores Y & (high-byte of address + 1) at the address. */
+			LSN_I_SLO						= 73,											/**< Illegal. OP <<= 1, A &= OP. */
+			LSN_I_SRE						= 74,											/**< Illegal. OP >>= 1, A ^= OP. */
+			LSN_I_TAS						= 75,											/**< Illegal. Performs S = A & X; Stores A & X & (high-byte of address + 1) at the address. */
 			LSN_I_SHS						= 75,											/**< Same as LSN_I_TAS. */
-			LSN_I_USBC						= 76,											/**< DESC. */
+			LSN_I_USBC						= 76,											/**< Illegal. Performs SBC + NOP. */
 			LSN_I_DOP						= 77,											/**< No operation. */
 			LSN_I_TOP						= 78,											/**< No operation. */
-			LSN_I_JAM						= 79,											/**< DESC. */
+			LSN_I_JAM						= 79,											/**< Illegal. Jams the machine repeatedly putting 0xFF on the bus. */
 
 
 			LSN_I_TOTAL

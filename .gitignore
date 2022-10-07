@@ -50,3 +50,13 @@ x64/Release/LSNLSpiroNes.obj
 x64/Release/LSNCpu6502.obj
 x64/Release/LSNBus.obj
 x64/Release/vc143.pdb
+Tests/branch_timing_tests.zip
+Tests/cpu_dummy_reads.nes
+Tests/cpu_dummy_writes.zip
+Tests/cpu_exec_space.zip
+Tests/nestest.nes
+Tests/nestest.txt
+Tests/test1.zip
+.vs/L. Spiro NES/v17/ipch/AutoPCH/ad4d5bb853ee563d/LSNNESFILE.ipch
+*.obj
+*.ipch

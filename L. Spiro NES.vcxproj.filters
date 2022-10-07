@@ -25,6 +25,12 @@
     <Filter Include="Source Files\Cpu">
       <UniqueIdentifier>{62c25f24-5fa6-49e2-9984-ed549039c39a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Roms">
+      <UniqueIdentifier>{300e0b78-e99d-4764-826b-233c90875dfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Roms">
+      <UniqueIdentifier>{5f211b08-d656-4061-81d7-19a4bafb4c35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -36,6 +42,12 @@
     <ClInclude Include="Src\Cpu\LSNCpu6502.h">
       <Filter>Header Files\Cpu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Roms\LSNNesHeader.h">
+      <Filter>Header Files\Roms</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Roms\LSNRomConstants.h">
+      <Filter>Header Files\Roms</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -46,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp">
       <Filter>Source Files\Cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Roms\LSNNesHeader.cpp">
+      <Filter>Source Files\Roms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

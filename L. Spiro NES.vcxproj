@@ -149,11 +149,14 @@
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
+    <ClInclude Include="Src\Roms\LSNNesHeader.h" />
+    <ClInclude Include="Src\Roms\LSNRomConstants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
+    <ClCompile Include="Src\Roms\LSNNesHeader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
