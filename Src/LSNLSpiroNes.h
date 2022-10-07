@@ -88,7 +88,36 @@ namespace lsn {
 		LSN_ROM_GRAN						= 0x2000,
 		LSN_ROM_PAGES						= LSN_MEM_FULL_SIZE / LSN_ROM_GRAN,	
 		LSN_PACK_RAM_SIZE					= 0x2000,
+	};
 
+	/** Clock speeds. */
+	enum LSN_CLOCK_SPEEDS : uint64_t {
+		LSN_CS_NTSC_MASTER					= 236250000ULL,						/**< The master clock speed (236.25 MHz) without the 11 divisor. */
+		LSN_CS_NTSC_MASTER_DIVISOR			= 11ULL,							/**< The master clock speed divisor. 236.25 MHz / 11 = 21477272.727272727272727272727273. */
+
+		LSN_CS_PAL_MASTER					= 53203425ULL,						/**< The master clock speed (26.6017125 MHz * 2). */
+		LSN_CS_PAL_MASTER_DIVISOR			= 2ULL,								/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
+
+		LSN_CS_DENDY_MASTER					= 53203425ULL,						/**< The master clock speed (26.6017125 MHz * 2). */
+		LSN_CS_DENDY_MASTER_DIVISOR			= 2ULL,								/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
+
+		LSN_CS_NTSC_CPU_DIVISOR				= 12ULL,							/**< 236.25 MHz / 11 / 12 = 1789772.7272727272727272727272727. */
+		LSN_CS_PAL_CPU_DIVISOR				= 16ULL,							/**< 53.203425 MHz / 2 / 16 = 1662607.03125. */
+		LSN_CS_DENDY_CPU_DIVISOR			= 15ULL,							/**< 53.203425 MHz / 2 / 15 = 1773447.5. */
+
+		LSN_CS_NTSC_PPU_DIVISOR				= 4ULL,								/**< 236.25 MHz / 11 / 4 = 5369318.1818181818181818181818183. */
+		LSN_CS_PAL_PPU_DIVISOR				= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
+		LSN_CS_DENDY_PPU_DIVISOR			= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
+
+		/*
+		 * To run clocks precisely, floating-point math must be avoided.  All inputs must be accumulated in integers.
+		 * The formula to determine how many cycles go into a single tick is:
+		 *	ELAPSED_TIME * MASTER / (ELAPSED_TIME_RESOLUTION * MASTER_DIVISOR * HW_DIVISOR).
+		 * For example, if the system time resolution is 1000000 (microseconds), and the elapsed time is 2000000 (2 seconds), then the number of NTSC CPU cycles is:
+		 *	2000000 * 236250000ULL / (1000000 * 11ULL * 12ULL) = 3579545 cycles.
+		 * In PAL, that would be:
+		 *	2000000 * 53203425ULL / (1000000 * 2ULL * 16ULL) = 3325214 cycles.
+		 */
 	};
 
 
@@ -101,7 +130,7 @@ namespace lsn {
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
 	template <unsigned _uBit>
-	inline void									SetBit( uint8_t &_ui8Val, const bool _bOn ) {
+	inline void								SetBit( uint8_t &_ui8Val, const bool _bOn ) {
 		if ( _bOn ) {
 			_ui8Val |= _uBit;
 		}
@@ -119,7 +148,7 @@ namespace lsn {
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
 	template <unsigned _uBit, bool _bVal>
-	inline void									SetBit( uint8_t &_ui8Val ) {
+	inline void								SetBit( uint8_t &_ui8Val ) {
 		if constexpr ( _bVal != 0 ) {
 			_ui8Val |= _uBit;
 		}
