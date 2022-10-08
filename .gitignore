@@ -60,3 +60,9 @@ Tests/test1.zip
 .vs/L. Spiro NES/v17/ipch/AutoPCH/ad4d5bb853ee563d/LSNNESFILE.ipch
 *.obj
 *.ipch
+Src/MiniZ/examples/example6.c
+Src/MiniZ/examples/example4.c
+Src/MiniZ/examples/example1.c
+Src/MiniZ/examples/example2.c
+Src/MiniZ/examples/example3.c
+Src/MiniZ/examples/example5.c
