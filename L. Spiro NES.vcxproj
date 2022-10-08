@@ -158,7 +158,6 @@
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
-    <ClCompile Include="Src\Roms\LSNNesHeader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
