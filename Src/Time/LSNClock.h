@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../OS/LSNWindows.h"
+#include "../OS/LSNOs.h"
 
 namespace lsn {
 

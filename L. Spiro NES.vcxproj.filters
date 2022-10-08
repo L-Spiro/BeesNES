@@ -49,6 +49,18 @@
     <Filter Include="Source Files\Time">
       <UniqueIdentifier>{ec9928f6-16df-44ef-a12c-bae201fcd73d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\File">
+      <UniqueIdentifier>{eab7ca04-3c6c-4dbe-bf3e-1ca3b5ff6d3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\File">
+      <UniqueIdentifier>{e29bdab4-1f60-4a0f-9168-118176fa57cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utilities">
+      <UniqueIdentifier>{2b0426b2-4476-4320-8d3a-ba5325f342b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities">
+      <UniqueIdentifier>{bbad92aa-1dcc-4deb-b3f1-22f23a704cb3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -75,6 +87,24 @@
     <ClInclude Include="Src\Time\LSNClock.h">
       <Filter>Header Files\Time</Filter>
     </ClInclude>
+    <ClInclude Include="Src\File\LSNFileBase.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OS\LSNOs.h">
+      <Filter>Header Files\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\File\LSNStdFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\File\LSNArchiveFileBase.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\File\LSNZipFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNUtilities.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -91,6 +121,21 @@
     </ClCompile>
     <ClCompile Include="Src\Time\LSNClock.cpp">
       <Filter>Source Files\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\File\LSNFileBase.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\File\LSNStdFile.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\File\LSNArchiveFileBase.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\File\LSNZipFile.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utilities\LSNUtilities.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

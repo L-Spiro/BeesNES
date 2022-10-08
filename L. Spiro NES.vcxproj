@@ -156,19 +156,30 @@
   <ItemGroup>
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
+    <ClInclude Include="Src\File\LSNArchiveFileBase.h" />
+    <ClInclude Include="Src\File\LSNFileBase.h" />
+    <ClInclude Include="Src\File\LSNStdFile.h" />
+    <ClInclude Include="Src\File\LSNZipFile.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
+    <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
+    <ClInclude Include="Src\Utilities\LSNUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
+    <ClCompile Include="Src\File\LSNArchiveFileBase.cpp" />
+    <ClCompile Include="Src\File\LSNFileBase.cpp" />
+    <ClCompile Include="Src\File\LSNStdFile.cpp" />
+    <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
+    <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
