@@ -115,6 +115,7 @@ namespace lsn {
 			m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
 			return m_ui8LastRead;
 		}
+		return m_ui8LastRead;
 	}
 
 	/**
@@ -139,6 +140,7 @@ namespace lsn {
 	 */
 	inline uint8_t CBus::SetFloat( uint8_t _ui8Val ) {
 		m_ui8LastRead = _ui8Val;
+		return m_ui8LastRead;
 	}
 
 }	// namespace lsn

@@ -37,6 +37,18 @@
     <Filter Include="Source Files\MiniZ">
       <UniqueIdentifier>{27343919-e009-447b-90ed-d8c60b27dbad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OS">
+      <UniqueIdentifier>{79f609fe-7fb4-4c26-af66-281b983c1212}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\OS">
+      <UniqueIdentifier>{be39b550-761f-41bc-adb9-772677dd979d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Time">
+      <UniqueIdentifier>{b14e0a92-bf57-4400-b646-6ebdf8fed9a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Time">
+      <UniqueIdentifier>{ec9928f6-16df-44ef-a12c-bae201fcd73d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -57,6 +69,12 @@
     <ClInclude Include="Src\MiniZ\miniz.h">
       <Filter>Header Files\MiniZ</Filter>
     </ClInclude>
+    <ClInclude Include="Src\OS\LSNWindows.h">
+      <Filter>Header Files\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Time\LSNClock.h">
+      <Filter>Header Files\Time</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -70,6 +88,9 @@
     </ClCompile>
     <ClCompile Include="Src\MiniZ\miniz.c">
       <Filter>Source Files\MiniZ</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Time\LSNClock.cpp">
+      <Filter>Source Files\Time</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

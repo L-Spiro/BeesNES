@@ -66,3 +66,11 @@ Src/MiniZ/examples/example1.c
 Src/MiniZ/examples/example2.c
 Src/MiniZ/examples/example3.c
 Src/MiniZ/examples/example5.c
+*.recipe
+*.ilk
+*.enc
+x64/Debug/L. Spiro NES.exe
+*.iobj
+*.pdb
+*.tlog
+*.ipdb
