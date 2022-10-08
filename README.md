@@ -18,7 +18,7 @@ Additional options/features to facilitate accurate emulation:
 * The bus will be open and correctly maintain the last floating read.  
 * Etc.  
 
-If behavior differes from the actual in-game result, it is considered a bug.  Hacks are to be avoided as much as possible.
+If behavior differes from the actual hardware result, it is considered a bug.  Hacks are to be avoided as much as possible.
 
 The CPU should be completely cycle-accurate, as every individual cycle is documented there. The same should apply to the PPU (questions surround PAL differences at the cycle level) and probably only loosely applies to the APU.  In the case of the APU, while each individual cycle may not be doing exactly the correct work, the goal is for the output to be exactly correct. This means envelope counters and sweep units etc. get updated within the correct cycles and then perhaps only minor adjustments to match the output exactly to the real thing.  
 
