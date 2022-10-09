@@ -40,6 +40,32 @@ namespace lsn {
 		 * \return Returns the converted UTF-8 string.
 		 */
 		static std::string									Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored = nullptr );
+
+		/**
+		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
+		 *
+		 * \param _s16String The string in which replacements are to be made.
+		 * \param _cReplaceMe The character to replace.
+		 * \param _cWithMe The character with which to replace _cReplaceMe.
+		 * \return Returns the new string with the given replacements made.
+		 */
+		static std::u16string								Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe );
+
+		/**
+		 * Gets the extension from a file path.
+		 *
+		 * \param _s16Path The file path whose extension is to be obtained.
+		 * \return Returns a string containing the file extension.
+		 */
+		static std::u16string								GetFileExtension( const std::u16string &_s16Path );
+
+		/**
+		 * Gets the file name from a file path.
+		 *
+		 * \param _s16Path The file path whose name is to be obtained.
+		 * \return Returns a string containing the file name.
+		 */
+		static std::u16string								GetFileName( const std::u16string &_s16Path );
 	};
 
 }	// namespace lsn

@@ -52,7 +52,7 @@
 
 
 #ifndef LSN_ELEMENTS
-#define LSN_ELEMENTS( x )							((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof(0[x])))))
+#define LSN_ELEMENTS( x )					((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof(0[x])))))
 #endif	// #ifndef LSN_ELEMENTS
 
 

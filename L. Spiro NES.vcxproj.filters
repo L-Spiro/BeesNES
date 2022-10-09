@@ -105,6 +105,9 @@
     <ClInclude Include="Src\Utilities\LSNUtilities.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Roms\LSNRom.h">
+      <Filter>Header Files\Roms</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -136,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp">
       <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Roms\LSNRom.cpp">
+      <Filter>Source Files\Roms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

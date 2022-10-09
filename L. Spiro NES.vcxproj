@@ -165,6 +165,7 @@
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
+    <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
@@ -178,6 +179,7 @@
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
+    <ClCompile Include="Src\Roms\LSNRom.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
   </ItemGroup>

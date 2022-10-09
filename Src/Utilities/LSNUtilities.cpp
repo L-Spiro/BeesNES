@@ -85,4 +85,49 @@ namespace lsn {
 #endif	// #ifdef LSN_WINDOWS
 	}
 
+	/**
+	 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
+	 *
+	 * \param _s16String The string in which replacements are to be made.
+	 * \param _cReplaceMe The character to replace.
+	 * \param _cWithMe The character with which to replace _cReplaceMe.
+	 * \return Returns the new string with the given replacements made.
+	 */
+	std::u16string CUtilities::Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe ) {
+		std::u16string s16Copy = _s16String;
+		auto aFound = s16Copy.find( _cReplaceMe );
+		while ( aFound != std::string::npos ) {
+			s16Copy[aFound] = _cWithMe;
+			aFound = s16Copy.find( _cReplaceMe, aFound + 1 );
+		}
+		return s16Copy;
+	}
+
+	/**
+	 * Gets the extension from a file path.
+	 *
+	 * \param _s16Path The file path whose extension is to be obtained.
+	 * \return Returns a string containing the file extension.
+	 */
+	std::u16string CUtilities::GetFileExtension( const std::u16string &_s16Path ) {
+		std::u16string s16File = GetFileName( _s16Path );
+		std::string::size_type stFound = s16File.rfind( u'.' );
+		if ( stFound == std::string::npos ) { return std::u16string(); }
+		return s16File.substr( stFound + 1 );
+	}
+
+	/**
+	 * Gets the file name from a file path.
+	 *
+	 * \param _s16Path The file path whose name is to be obtained.
+	 * \return Returns a string containing the file name.
+	 */
+	std::u16string CUtilities::GetFileName( const std::u16string &_s16Path ) {
+		std::u16string s16Normalized = Replace( _s16Path, u'/', u'\\' );
+		std::string::size_type stFound = s16Normalized.rfind( u'\\' );
+		std::u16string s16File = s16Normalized.substr( stFound + 1 );
+
+		return s16File;
+	}
+
 }	// namespace lsn

@@ -37,6 +37,6 @@ namespace lsn {
 	 * \param _vResult The location where to store the file in memory.
 	 * \return Returns true if the file was extracted successfully.
 	 */
-	bool CArchiveFileBase::ExtractToMemory( const std::u16string &_s16File, std::vector<uint8_t> &_vResult ) const { return false; }
+	bool CArchiveFileBase::ExtractToMemory( const std::u16string &/*_s16File*/, std::vector<uint8_t> &/*_vResult*/ ) const { return false; }
 
 }	// namespace lsn
