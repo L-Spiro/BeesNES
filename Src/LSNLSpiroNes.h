@@ -98,8 +98,8 @@ namespace lsn {
 		LSN_CS_PAL_MASTER					= 53203425ULL,						/**< The master clock speed (26.6017125 MHz * 2). */
 		LSN_CS_PAL_MASTER_DIVISOR			= 2ULL,								/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
 
-		LSN_CS_DENDY_MASTER					= 53203425ULL,						/**< The master clock speed (26.6017125 MHz * 2). */
-		LSN_CS_DENDY_MASTER_DIVISOR			= 2ULL,								/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
+		LSN_CS_DENDY_MASTER					= LSN_CS_PAL_MASTER,				/**< The master clock speed (26.6017125 MHz * 2). */
+		LSN_CS_DENDY_MASTER_DIVISOR			= LSN_CS_PAL_MASTER_DIVISOR,		/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
 
 		LSN_CS_NTSC_CPU_DIVISOR				= 12ULL,							/**< 236.25 MHz / 11 / 12 = 1789772.7272727272727272727272727. */
 		LSN_CS_PAL_CPU_DIVISOR				= 16ULL,							/**< 53.203425 MHz / 2 / 16 = 1662607.03125. */
@@ -107,7 +107,11 @@ namespace lsn {
 
 		LSN_CS_NTSC_PPU_DIVISOR				= 4ULL,								/**< 236.25 MHz / 11 / 4 = 5369318.1818181818181818181818182. */
 		LSN_CS_PAL_PPU_DIVISOR				= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
-		LSN_CS_DENDY_PPU_DIVISOR			= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
+		LSN_CS_DENDY_PPU_DIVISOR			= LSN_CS_PAL_PPU_DIVISOR,			/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
+
+		LSN_CS_NTSC_APU_DIVISOR				= LSN_CS_NTSC_CPU_DIVISOR * 2ULL,	/**< 236.25 MHz / 11 / (12 * 2) = 894886.36363636363636363636363636. */
+		LSN_CS_PAL_APU_DIVISOR				= LSN_CS_PAL_CPU_DIVISOR * 2ULL,	/**< 53.203425 MHz / 2 / (16 * 2) = 831303.515625. */
+		LSN_CS_DENDY_APU_DIVISOR			= LSN_CS_DENDY_CPU_DIVISOR * 2ULL,	/**< 53.203425 MHz / 2 / (15 * 2) = 886723.75. */
 
 		/*
 		 * To run clocks precisely, floating-point math must be avoided.  All inputs must be accumulated in integers.
