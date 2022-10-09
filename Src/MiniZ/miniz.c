@@ -25,6 +25,10 @@
  *
  **************************************************************************/
 
+#pragma warning( push )
+// warning C4127: conditional expression is constant
+#pragma warning( disable : 4127 )
+
 
 
 typedef unsigned char mz_validate_uint16[sizeof(mz_uint16) == 2 ? 1 : -1];
@@ -7731,3 +7735,5 @@ mz_bool mz_zip_end(mz_zip_archive *pZip)
 #endif
 
 #endif /*#ifndef MINIZ_NO_ARCHIVE_APIS*/
+
+#pragma warning( pop )
