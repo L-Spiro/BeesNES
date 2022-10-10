@@ -156,7 +156,6 @@
   <ItemGroup>
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
-    <ClInclude Include="Src\File\LSNArchiveFileBase.h" />
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
@@ -174,7 +173,6 @@
   <ItemGroup>
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
-    <ClCompile Include="Src\File\LSNArchiveFileBase.cpp" />
     <ClCompile Include="Src\File\LSNFileBase.cpp" />
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />

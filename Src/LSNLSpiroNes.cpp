@@ -23,7 +23,6 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 		std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
 		std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
 		fbFile.ExtractToMemory( vFiles[I], vExtracted );
-		
 	}
 	return 0;
 }

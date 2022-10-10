@@ -33,6 +33,13 @@ namespace lsn {
 	}
 
 	/**
+	 * If true, the file is an archive containing more files.
+	 *
+	 * \return Returns true if the file is an archive, false otherwise.
+	 */
+	bool CZipFile::IsArchive() const { return m_zaArchive.m_zip_mode != MZ_ZIP_MODE_INVALID; }
+
+	/**
 	 * Gathers the file names in the archive into an array.
 	 *
 	 * \param _vResult The location where to store the file names.

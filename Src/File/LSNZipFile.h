@@ -11,7 +11,6 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../MiniZ/miniz.h"
-#include "LSNArchiveFileBase.h"
 #include "LSNStdFile.h"
 
 namespace lsn {
@@ -22,7 +21,7 @@ namespace lsn {
 	 *
 	 * Description: A class for working with ZIP files.
 	 */
-	class CZipFile : public CArchiveFileBase {
+	class CZipFile : public CStdFile {
 	public :
 		CZipFile();
 		virtual ~CZipFile();
@@ -33,6 +32,13 @@ namespace lsn {
 		 * Closes the opened file.
 		 */
 		virtual void										Close();
+
+		/**
+		 * If true, the file is an archive containing more files.
+		 *
+		 * \return Returns true if the file is an archive, false otherwise.
+		 */
+		virtual bool										IsArchive() const;
 
 		/**
 		 * Gathers the file names in the archive into an array.

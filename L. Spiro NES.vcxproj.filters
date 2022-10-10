@@ -96,9 +96,6 @@
     <ClInclude Include="Src\File\LSNStdFile.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
-    <ClInclude Include="Src\File\LSNArchiveFileBase.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
     <ClInclude Include="Src\File\LSNZipFile.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
@@ -132,9 +129,6 @@
       <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="Src\File\LSNStdFile.cpp">
-      <Filter>Source Files\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\File\LSNArchiveFileBase.cpp">
       <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="Src\File\LSNZipFile.cpp">
