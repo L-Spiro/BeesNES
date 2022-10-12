@@ -13,6 +13,7 @@ int main() {
 }
 
 int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
+	lsn::CNtscSystem nsSystem;
 	lsn::CZipFile fbFile;
 	fbFile.Open( u8"J:\\水\\cpu_dummy_writes.zip" );
 	/*std::vector<uint8_t> vData;
@@ -25,7 +26,17 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 		std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
 		fbFile.ExtractToMemory( vFiles[I], vExtracted );
 	}
-	
-	lsn::CNtscSystem nsSystem;
+	lsn::CClock cClock;
+	nsSystem.ResetState( false );
+	uint64_t ui64TickCount = 0;
+	while ( nsSystem.GetAccumulatedRealTime() / nsSystem.GetClockResolution() < 1 * (60 * 30) ) {
+		nsSystem.Tick();
+		++ui64TickCount;
+	}
+	uint64_t ui64Time = cClock.GetRealTick() - cClock.GetStartTick();
+	double dTime = ui64Time / double( cClock.GetResolution() );
+	char szBuffer[128];
+	::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n", ui64TickCount, dTime );
+	::OutputDebugStringA( szBuffer );
 	return 0;
 }
