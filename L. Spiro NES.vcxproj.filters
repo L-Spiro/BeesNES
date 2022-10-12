@@ -61,6 +61,12 @@
     <Filter Include="Source Files\Utilities">
       <UniqueIdentifier>{bbad92aa-1dcc-4deb-b3f1-22f23a704cb3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\System">
+      <UniqueIdentifier>{e7d7e5f1-de6e-4d8b-a369-51a63b97e46b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\System">
+      <UniqueIdentifier>{19804d0f-a29c-4049-a84b-ce5c2cca9cb3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -108,6 +114,9 @@
     <ClInclude Include="Src\Roms\LSNRomInfo.h">
       <Filter>Header Files\Roms</Filter>
     </ClInclude>
+    <ClInclude Include="Src\System\LSNSystem.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -142,6 +151,9 @@
     </ClCompile>
     <ClCompile Include="Src\Roms\LSNRomInfo.cpp">
       <Filter>Source Files\Roms</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System\LSNSystem.cpp">
+      <Filter>Source Files\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

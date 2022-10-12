@@ -94,7 +94,7 @@ namespace lsn {
 		// == Members.
 		uint8_t								m_ui8Ram[1024*64];				/**< System memory of 64 kilobytes. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
-		std::unique_ptr<CCpu6502>			m_pcCpu;						/**< Pointer to the CPU. */
+		//std::unique_ptr<CCpu6502>			m_pcCpu;						/**< Pointer to the CPU. */
 	};
 
 

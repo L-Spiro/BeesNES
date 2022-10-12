@@ -1,6 +1,7 @@
 ﻿#include "LSNLSpiroNes.h"
 #include "File/LSNZipFile.h"
 #include "OS/LSNOs.h"
+#include "System/LSNSystem.h"
 #include "Utilities/LSNUtilities.h"
 
 int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
@@ -24,5 +25,7 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 		std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
 		fbFile.ExtractToMemory( vFiles[I], vExtracted );
 	}
+	
+	lsn::CNtscSystem nsSystem;
 	return 0;
 }
