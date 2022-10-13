@@ -94,7 +94,6 @@ namespace lsn {
 		// == Members.
 		uint8_t								m_ui8Ram[1024*64];				/**< System memory of 64 kilobytes. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
-		//std::unique_ptr<CCpu6502>			m_pcCpu;						/**< Pointer to the CPU. */
 	};
 
 
@@ -110,7 +109,6 @@ namespace lsn {
 	 */
 	inline uint8_t CBus::CpuRead( uint16_t _ui16Addr ) {
 		if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-			//assert( m_pcCpu );
 			//m_ui8LastRead = m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START];
 			m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
 			return m_ui8LastRead;
@@ -126,7 +124,6 @@ namespace lsn {
 	 */
 	inline void CBus::CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val ) {
 		if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-			//assert( m_pcCpu );
 			//m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START] = _ui8Val;
 			m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
 			return;

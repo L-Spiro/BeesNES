@@ -50,6 +50,7 @@ namespace lsn {
 				m_cCpu.ResetToKnown();
 			}
 			m_ui64AccumTime = 0;
+			m_ui64MasterCounter = 0;
 			m_ui64CpuCounter = 0;
 			m_ui64PpuCounter = 0;
 			m_ui64ApuCounter = 0;
@@ -62,50 +63,71 @@ namespace lsn {
 		/**
 		 * Performs an update of the system state.  This means getting the amount of time that has passed since this was last called,
 		 *	determining how many cycles need to be run for each hardware component, and running all of them.
-		 *
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return RETURN
 		 */
 		void											Tick() {
 			uint64_t ui64CurrealTime = m_cClock.GetRealTick();
 			if ( !m_bPaused ) {
 				uint64_t ui64Diff = ui64CurrealTime - m_ui64LastRealTime;
 				m_ui64AccumTime += ui64Diff;
-				uint64_t ui64MasterCyclesUntilNow = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
-				/*uint64_t ui64TotalCpuCyclesToDo = (ui64MasterCyclesUntilNow / _tCpuDiv) - m_ui64CpuTicks;
-				uint64_t ui64TotalPpuCyclesToDo = (ui64MasterCyclesUntilNow / _tPpuDiv) - m_ui64PpuTicks;
-				uint64_t ui64TotalApuCyclesToDo = (ui64MasterCyclesUntilNow / _tApuDiv) - m_ui64ApuTicks;*/
+				m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
 
-				uint64_t ui64NextCpuCycleCount = m_ui64CpuCounter + _tCpuDiv;
+				/*uint64_t ui64NextCpuCycleCount = m_ui64CpuCounter + _tCpuDiv;
 				uint64_t ui64NextPpuCycleCount = m_ui64PpuCounter + _tPpuDiv;
-				uint64_t ui64NextApuCycleCount = m_ui64ApuCounter + _tApuDiv;
+				uint64_t ui64NextApuCycleCount = m_ui64ApuCounter + _tApuDiv;*/
 //#define LSN_PRINT_CYCLES
 #ifdef LSN_PRINT_CYCLES
 				char szDebug[1024*8];
 				size_t stIdx = 0;
 #endif	// LSN_PRINT_CYCLES
-				bool bFound = true;
+
+
+				//bool bFound = true;
+
+#define LSN_CPU_SLOT											0
+#define LSN_PPU_SLOT											1
+#define LSN_APU_SLOT											2
+				struct LSN_HW_SLOTS {
+					CTickable *									ptHw;
+					CTickable::PfTickFunc						pfTick;
+					uint64_t 									ui64Counter;
+					uint64_t									ui64Inc;
+				} hsSlots[3] = {
+					{ &m_cCpu, &_cCpu::Tick, m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
+					{ &m_cCpu, &_cCpu::Tick, m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
+					{ &m_cCpu, &_cCpu::Tick, m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
+				};
+				size_t stIdx;
 				do {
-					char cWhichTicked = '\0';
+					stIdx = ~size_t( 0 );
+					//char cWhichTicked = '\0';
 					uint64_t ui64Low = ~0ULL;
-					bFound = false;
-					if ( ui64NextCpuCycleCount < ui64MasterCyclesUntilNow && ui64NextCpuCycleCount < ui64Low ) {
-						ui64Low = ui64NextCpuCycleCount;
-						cWhichTicked = 'C';
-						bFound = true;
+					//bFound = false;
+					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
+					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter < ui64Low ) {
+						stIdx = LSN_CPU_SLOT;
+						ui64Low = hsSlots[LSN_CPU_SLOT].ui64Counter;
+						//cWhichTicked = 'C';
+						//bFound = true;
 					}
-					if ( ui64NextPpuCycleCount < ui64MasterCyclesUntilNow && ui64NextPpuCycleCount < ui64Low ) {
-						ui64Low = ui64NextPpuCycleCount;
-						cWhichTicked = 'P';
-						bFound = true;
+					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
+						stIdx = LSN_PPU_SLOT;
+						ui64Low = hsSlots[LSN_PPU_SLOT].ui64Counter;
+						//cWhichTicked = 'P';
+						//bFound = true;
 					}
-					if ( ui64NextApuCycleCount < ui64MasterCyclesUntilNow && ui64NextApuCycleCount < ui64Low ) {
-						ui64Low = ui64NextApuCycleCount;
-						cWhichTicked = 'A';
-						bFound = true;
+					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
+						stIdx = LSN_APU_SLOT;
+						ui64Low = hsSlots[LSN_APU_SLOT].ui64Counter;
+						//cWhichTicked = 'A';
+						//bFound = true;
 					}
-					switch ( cWhichTicked ) {
+					if ( stIdx != ~size_t( 0 ) ) {
+						hsSlots[stIdx].ui64Counter += hsSlots[stIdx].ui64Inc;
+						(hsSlots[stIdx].ptHw->*hsSlots[stIdx].pfTick)();
+					}
+					else { break; }
+
+					/*switch ( cWhichTicked ) {
 						case 'C' : {
 							ui64NextCpuCycleCount += _tCpuDiv;
 							break;
@@ -118,7 +140,7 @@ namespace lsn {
 							ui64NextApuCycleCount += _tApuDiv;
 							break;
 						}
-					}
+					}*/
 #ifdef LSN_PRINT_CYCLES
 					if ( cWhichTicked != '\0' ) {
 						szDebug[stIdx++] = cWhichTicked;
@@ -130,20 +152,22 @@ namespace lsn {
 						}
 					}
 #endif	// LSN_PRINT_CYCLES
-				}
-				while ( bFound );
-				m_ui64CpuCounter = ui64NextCpuCycleCount - _tCpuDiv;
-				m_ui64PpuCounter = ui64NextPpuCycleCount - _tPpuDiv;
-				m_ui64ApuCounter = ui64NextApuCycleCount - _tApuDiv;
+				} while ( true );
+				m_ui64CpuCounter = hsSlots[LSN_CPU_SLOT].ui64Counter - _tCpuDiv;
+				m_ui64PpuCounter = hsSlots[LSN_PPU_SLOT].ui64Counter - _tPpuDiv;
+				m_ui64ApuCounter = hsSlots[LSN_APU_SLOT].ui64Counter - _tApuDiv;
 
 #ifdef LSN_PRINT_CYCLES
 				szDebug[stIdx] = '\0';
 				//std::printf( szDebug );
 				::OutputDebugStringA( szDebug );
 #endif	// LSN_PRINT_CYCLES
+
+#undef LSN_APU_SLOT
+#undef LSN_PPU_SLOT
+#undef LSN_CPU_SLOT
 			}
 			m_ui64LastRealTime = ui64CurrealTime;
-			
 		}
 
 		/**
@@ -154,11 +178,82 @@ namespace lsn {
 		inline uint64_t									GetAccumulatedRealTime() const { return m_ui64AccumTime; }
 
 		/**
+		 * Gets the master counter.
+		 *
+		 * \return Returns the master counter.
+		 */
+		inline uint64_t									GetMasterCounter() const { return m_ui64MasterCounter; }
+
+		/**
+		 * Gets the CPU counter.
+		 *
+		 * \return Returns the CPU counter.
+		 */
+		inline uint64_t									GetCpuCounter() const { return m_ui64CpuCounter; }
+
+		/**
+		 * Gets the PPU counter.
+		 *
+		 * \return Returns the PPU counter.
+		 */
+		inline uint64_t									GetPpuCounter() const { return m_ui64PpuCounter; }
+
+		/**
+		 * Gets the APU counter.
+		 *
+		 * \return Returns the APU counter.
+		 */
+		inline uint64_t									GetApuCounter() const { return m_ui64ApuCounter; }
+
+		/**
 		 * Gets the clock resolution.
 		 *
 		 * \return Returns the clock resolution.
 		 */
 		inline uint64_t									GetClockResolution() const { return m_cClock.GetResolution(); }
+
+		/**
+		 * Gets the clock.
+		 *
+		 * \return Returns the clock.
+		 */
+		inline const CClock &							GetClock() const { return m_cClock; }
+
+		/**
+		 * Gets the master Hz.
+		 *
+		 * \return Returns the master Hz.
+		 */
+		inline constexpr uint64_t						MasterHz() const { return _tMasterClock; }
+
+		/**
+		 * Gets the master divider.
+		 *
+		 * \return Returns the master divider.
+		 */
+		inline constexpr uint64_t						MasterDiv() const { return _tMasterDiv; }
+
+		/**
+		 * Gets the CPU divider.
+		 *
+		 * \return Returns the CPU divider.
+		 */
+		inline constexpr uint64_t						CpuDiv() const { return _tCpuDiv; }
+
+		/**
+		 * Gets the PPU divider.
+		 *
+		 * \return Returns the PPU divider.
+		 */
+		inline constexpr uint64_t						PpuDiv() const { return _tPpuDiv; }
+
+
+		/**
+		 * Gets the APU divider.
+		 *
+		 * \return Returns the APU divider.
+		 */
+		inline constexpr uint64_t						ApuDiv() const { return _tApuDiv; }
 
 
 	protected :
@@ -166,6 +261,7 @@ namespace lsn {
 		CClock											m_cClock;							/**< The master clock. */
 		uint64_t										m_ui64AccumTime;					/**< The master accumulated ral time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
+		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
 		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */

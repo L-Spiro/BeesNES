@@ -168,6 +168,7 @@
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
+    <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
   </ItemGroup>

@@ -17,6 +17,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../System/LSNTickable.h"
 #include <vector>
 
 namespace lsn {
@@ -27,7 +28,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 {
+	class CCpu6502 : public CTickable {
 	public :
 		// == Various constructors.
 		CCpu6502( class CBus * _pbBus );
@@ -595,6 +596,7 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// == Fuctions.
 	/**
 	 * Performs a compare against a register and an operand by setting flags.
 	 *
