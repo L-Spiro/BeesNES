@@ -54,9 +54,6 @@ namespace lsn {
 			m_ui64CpuCounter = 0;
 			m_ui64PpuCounter = 0;
 			m_ui64ApuCounter = 0;
-			/*m_ui64CpuTicks = 0;
-			m_ui64PpuTicks = 0;
-			m_ui64ApuTicks = 0;*/
 			m_ui64LastRealTime = m_cClock.GetRealTick();
 		}
 
@@ -71,15 +68,6 @@ namespace lsn {
 				m_ui64AccumTime += ui64Diff;
 				m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
 
-				/*uint64_t ui64NextCpuCycleCount = m_ui64CpuCounter + _tCpuDiv;
-				uint64_t ui64NextPpuCycleCount = m_ui64PpuCounter + _tPpuDiv;
-				uint64_t ui64NextApuCycleCount = m_ui64ApuCounter + _tApuDiv;*/
-//#define LSN_PRINT_CYCLES
-#ifdef LSN_PRINT_CYCLES
-				char szDebug[1024*8];
-				size_t stIdx = 0;
-#endif	// LSN_PRINT_CYCLES
-
 
 				//bool bFound = true;
 
@@ -90,7 +78,7 @@ namespace lsn {
 					CTickable *									ptHw;
 					CTickable::PfTickFunc						pfTick;
 					uint64_t 									ui64Counter;
-					uint64_t									ui64Inc;
+					const uint64_t								ui64Inc;
 				} hsSlots[3] = {
 					{ &m_cCpu, &_cCpu::Tick, m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
 					{ &m_cCpu, &_cCpu::Tick, m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
@@ -99,69 +87,36 @@ namespace lsn {
 				size_t stIdx;
 				do {
 					stIdx = ~size_t( 0 );
-					//char cWhichTicked = '\0';
 					uint64_t ui64Low = ~0ULL;
-					//bFound = false;
 					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
 					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter < ui64Low ) {
 						stIdx = LSN_CPU_SLOT;
 						ui64Low = hsSlots[LSN_CPU_SLOT].ui64Counter;
-						//cWhichTicked = 'C';
-						//bFound = true;
 					}
 					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
 						stIdx = LSN_PPU_SLOT;
 						ui64Low = hsSlots[LSN_PPU_SLOT].ui64Counter;
-						//cWhichTicked = 'P';
-						//bFound = true;
 					}
 					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
-						stIdx = LSN_APU_SLOT;
-						ui64Low = hsSlots[LSN_APU_SLOT].ui64Counter;
-						//cWhichTicked = 'A';
-						//bFound = true;
+						// If we come in here then we know that the APU will be the one to tick.
+						//	This means we can optimize away the "if ( stIdx != ~size_t( 0 ) )" check
+						//	as well as the dynamic array accesses ("hsSlots[stIdx]").
+						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
+						//	0.68499566 cycles-per-tick.
+						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
+						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
+						/*stIdx = LSN_APU_SLOT;
+						ui64Low = hsSlots[LSN_APU_SLOT].ui64Counter;*/
 					}
-					if ( stIdx != ~size_t( 0 ) ) {
+					else if ( stIdx != ~size_t( 0 ) ) {
 						hsSlots[stIdx].ui64Counter += hsSlots[stIdx].ui64Inc;
 						(hsSlots[stIdx].ptHw->*hsSlots[stIdx].pfTick)();
 					}
 					else { break; }
-
-					/*switch ( cWhichTicked ) {
-						case 'C' : {
-							ui64NextCpuCycleCount += _tCpuDiv;
-							break;
-						}
-						case 'P' : {
-							ui64NextPpuCycleCount += _tPpuDiv;
-							break;
-						}
-						case 'A' : {
-							ui64NextApuCycleCount += _tApuDiv;
-							break;
-						}
-					}*/
-#ifdef LSN_PRINT_CYCLES
-					if ( cWhichTicked != '\0' ) {
-						szDebug[stIdx++] = cWhichTicked;
-						if ( stIdx == sizeof( szDebug ) - 1 ) {
-							szDebug[stIdx] = '\0';
-							//std::printf( szDebug );
-							::OutputDebugStringA( szDebug );
-							stIdx = 0;
-						}
-					}
-#endif	// LSN_PRINT_CYCLES
 				} while ( true );
 				m_ui64CpuCounter = hsSlots[LSN_CPU_SLOT].ui64Counter - _tCpuDiv;
 				m_ui64PpuCounter = hsSlots[LSN_PPU_SLOT].ui64Counter - _tPpuDiv;
 				m_ui64ApuCounter = hsSlots[LSN_APU_SLOT].ui64Counter - _tApuDiv;
-
-#ifdef LSN_PRINT_CYCLES
-				szDebug[stIdx] = '\0';
-				//std::printf( szDebug );
-				::OutputDebugStringA( szDebug );
-#endif	// LSN_PRINT_CYCLES
 
 #undef LSN_APU_SLOT
 #undef LSN_PPU_SLOT
@@ -265,9 +220,6 @@ namespace lsn {
 		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
-		//uint64_t										m_ui64CpuTicks;						/**< Keeps track of how many ticks have accumulated on the CPU.  Used to determine how many times to tick the component during an update. */
-		//uint64_t										m_ui64PpuTicks;						/**< Keeps track of how many ticks have accumulated on the PPU.  Used to determine how many times to tick the component during an update. */
-		//uint64_t										m_ui64ApuTicks;						/**< Keeps track of how many ticks have accumulated on the APU.  Used to determine how many times to tick the component during an update. */
 		CBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		bool											m_bPaused;							/**< Pause flag. */

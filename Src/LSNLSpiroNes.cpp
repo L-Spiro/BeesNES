@@ -14,22 +14,24 @@ int main() {
 
 int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
 	lsn::CNtscSystem nsSystem;
-	lsn::CZipFile fbFile;
-	fbFile.Open( u8"J:\\水\\cpu_dummy_writes.zip" );
-	/*std::vector<uint8_t> vData;
-	fbFile.LoadToMemory( vData );*/
-	std::vector<std::u16string> vFiles;
-	fbFile.GatherArchiveFiles( vFiles );
-	std::vector<uint8_t> vExtracted;
-	for ( auto I = vFiles.size(); I--; ) {
-		std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
-		std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
-		fbFile.ExtractToMemory( vFiles[I], vExtracted );
+	{
+		lsn::CZipFile fbFile;
+		fbFile.Open( u8"J:\\水\\cpu_dummy_writes.zip" );
+		/*std::vector<uint8_t> vData;
+		fbFile.LoadToMemory( vData );*/
+		std::vector<std::u16string> vFiles;
+		fbFile.GatherArchiveFiles( vFiles );
+		std::vector<uint8_t> vExtracted;
+		for ( auto I = vFiles.size(); I--; ) {
+			std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
+			std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
+			fbFile.ExtractToMemory( vFiles[I], vExtracted );
+		}
 	}
 	lsn::CClock cClock;
 	nsSystem.ResetState( false );
 	uint64_t ui64TickCount = 0;
-	while ( nsSystem.GetAccumulatedRealTime() / nsSystem.GetClockResolution() < 1 * (60 * 60) ) {
+	while ( nsSystem.GetAccumulatedRealTime() / nsSystem.GetClockResolution() < 1 * (60 * 60 * 2) ) {
 		nsSystem.Tick();
 		++ui64TickCount;
 	}
