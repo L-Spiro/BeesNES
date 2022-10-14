@@ -163,6 +163,7 @@
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
+    <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
+    <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />
     <ClCompile Include="Src\Roms\LSNRomInfo.cpp" />
     <ClCompile Include="Src\System\LSNSystem.cpp" />

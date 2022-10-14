@@ -67,6 +67,12 @@
     <Filter Include="Source Files\System">
       <UniqueIdentifier>{19804d0f-a29c-4049-a84b-ce5c2cca9cb3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Ppu">
+      <UniqueIdentifier>{4866c286-214c-4ca1-b974-fe8bdd87ef63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Ppu">
+      <UniqueIdentifier>{b681e8b2-a83c-439d-a1ba-489e028656aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -120,6 +126,9 @@
     <ClInclude Include="Src\System\LSNTickable.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Ppu\LSNPpu2C0X.h">
+      <Filter>Header Files\Ppu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -157,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="Src\System\LSNSystem.cpp">
       <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp">
+      <Filter>Source Files\Ppu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

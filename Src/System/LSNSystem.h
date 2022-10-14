@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpu6502.h"
+#include "../Ppu/LSNPpu2C0X.h"
 #include "../Time/LSNClock.h"
 
 namespace lsn {
@@ -26,7 +27,8 @@ namespace lsn {
 		unsigned _tCpuDiv,
 		unsigned _tPpuDiv,
 		unsigned _tApuDiv,
-		class _cCpu>
+		class _cCpu,
+		class _cPpu>
 	class CSystem {
 	public :
 		CSystem() :
@@ -80,9 +82,9 @@ namespace lsn {
 					uint64_t 									ui64Counter;
 					const uint64_t								ui64Inc;
 				} hsSlots[3] = {
-					{ &m_cCpu, &_cCpu::Tick, m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
-					{ &m_cCpu, &_cCpu::Tick, m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
-					{ &m_cCpu, &_cCpu::Tick, m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
+					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
+					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
+					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
 				};
 				size_t stIdx;
 				do {
@@ -222,6 +224,7 @@ namespace lsn {
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
 		CBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
+		_cPpu											m_pPpu;								/**< The PPU. */
 		bool											m_bPaused;							/**< Pause flag. */
 	};
 	
@@ -236,41 +239,41 @@ namespace lsn {
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502>																			CNtscSystem;
+		CCpu6502, CPpu2C0X>																	CNtscSystem;
 
 	/**
 	 * A PAL system.
 	 */
 	typedef CSystem<LSN_CS_PAL_MASTER, LSN_CS_PAL_MASTER_DIVISOR,
 		LSN_CS_PAL_CPU_DIVISOR, LSN_CS_PAL_PPU_DIVISOR, LSN_CS_PAL_APU_DIVISOR,
-		CCpu6502>																			CPalSystem;
+		CCpu6502, CPpu2C0X>																	CPalSystem;
 
 	/**
 	 * A Dendy system.
 	 */
 	typedef CSystem<LSN_CS_DENDY_MASTER, LSN_CS_DENDY_MASTER_DIVISOR,
 		LSN_CS_DENDY_CPU_DIVISOR, LSN_CS_DENDY_PPU_DIVISOR, LSN_CS_DENDY_APU_DIVISOR,
-		CCpu6502>																			CDendySystem;
+		CCpu6502, CPpu2C0X>																	CDendySystem;
 
 	/**
 	 * An RGB (2C03) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502>																			CRgb2C03System;
+		CCpu6502, CPpu2C0X>																	CRgb2C03System;
 
 	/**
 	 * An RGB (2C04) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502>																			CRgb2C04System;
+		CCpu6502, CPpu2C0X>																	CRgb2C04System;
 
 	/**
 	 * An RGB (2C05) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502>																			CRgb2C05System;
+		CCpu6502, CPpu2C0X>																	CRgb2C05System;
 
 }	// namespace lsn
