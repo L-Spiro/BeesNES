@@ -66,6 +66,13 @@ namespace lsn {
 		inline uint32_t							GetPgmRomSize() const;
 
 		/**
+		 * Gets the CHR ROM size.
+		 *
+		 * \return Returns the CHR ROM size.
+		 */
+		inline uint32_t							GetChrRomSize() const;
+
+		/**
 		 * Translates the iNES 2.0 size, returning 0 in the case of error.
 		 *
 		 * \param _ui32Exp The exponent.
@@ -141,11 +148,11 @@ namespace lsn {
 	}
 
 	/**
-	 * Gets the PGM ROM size.
+	 * Gets the CHR ROM size.
 	 *
-	 * \return Returns the PGM ROM size.
+	 * \return Returns the CHR ROM size.
 	 */
-	inline uint32_t LSN_NES_HEADER::GetPgmRomSize() const {
+	inline uint32_t LSN_NES_HEADER::GetChrRomSize() const {
 		switch ( GetHeaderVersion() ) {
 			case LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 : {
 				// If the MSB nibble is $F, an exponent-multiplier notation is used.

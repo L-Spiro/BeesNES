@@ -13,7 +13,10 @@
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpu6502.h"
 #include "../Ppu/LSNPpu2C0X.h"
+#include "../Roms/LSNNesHeader.h"
+#include "../Roms/LSNRom.h"
 #include "../Time/LSNClock.h"
+#include "../Utilities/LSNUtilities.h"
 
 namespace lsn {
 
@@ -204,7 +207,6 @@ namespace lsn {
 		 */
 		inline constexpr uint64_t						PpuDiv() const { return _tPpuDiv; }
 
-
 		/**
 		 * Gets the APU divider.
 		 *
@@ -212,11 +214,36 @@ namespace lsn {
 		 */
 		inline constexpr uint64_t						ApuDiv() const { return _tApuDiv; }
 
+		/**
+		 * Loads a ROM image.
+		 *
+		 * \param _vRom The ROM image to load.
+		 * \param _s16Path The ROM file path.
+		 * \return Returns true if the image was loaded, false otherwise.
+		 */
+		bool											LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
+			m_rRom = LSN_ROM();
+			m_rRom.riInfo.s16File = _s16Path;
+			m_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
+
+			if ( _vRom.size() >= 4 ) {
+				const uint8_t ui8NesHeader[] = {
+					0x4E, 0x45, 0x53, 0x1A
+				};
+				if ( std::memcmp( _vRom.data(), ui8NesHeader, sizeof( ui8NesHeader ) ) == 0 ) {
+					// .NES.
+					if ( !LoadNes( _vRom ) ) { return false; }
+					return true;
+				}
+			}
+			return false;
+		}
+
 
 	protected :
 		// == Members.
 		CClock											m_cClock;							/**< The master clock. */
-		uint64_t										m_ui64AccumTime;					/**< The master accumulated ral time. */
+		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
 		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
 		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
@@ -225,7 +252,29 @@ namespace lsn {
 		CBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
+		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		bool											m_bPaused;							/**< Pause flag. */
+
+
+		// == Functions.
+		/**
+		 * Loads a ROM image in .NES format.
+		 *
+		 * \param _vRom The ROM image to load.
+		 * \return Returns true if the image was loaded, false otherwise.
+		 */
+		bool											LoadNes( const std::vector<uint8_t> &_vRom ) {
+			if ( _vRom.size() >= sizeof( LSN_NES_HEADER ) ) {
+				//size_t stDataSize = _vRom.size() - sizeof( LSN_NES_HEADER );
+				const LSN_NES_HEADER * pnhHeader = reinterpret_cast<const LSN_NES_HEADER *>(_vRom.data());
+				m_rRom.i32ChrRamSize = pnhHeader->GetChrRomSize();
+				m_rRom.i32WorkRamSize = pnhHeader->GetPgmRomSize();
+				//m_rRom.
+
+				return true;
+			}
+			return false;
+		}
 	};
 	
 

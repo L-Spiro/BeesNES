@@ -13,22 +13,35 @@ int main() {
 }
 
 int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
+#define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
 	lsn::CNtscSystem nsSystem;
+	std::vector<uint8_t> vExtracted;
+	std::u16string s16Path;
 	{
 		lsn::CZipFile fbFile;
-		fbFile.Open( u8"J:\\水\\cpu_dummy_writes.zip" );
+		fbFile.Open( LSN_PATH );
 		/*std::vector<uint8_t> vData;
 		fbFile.LoadToMemory( vData );*/
 		std::vector<std::u16string> vFiles;
 		fbFile.GatherArchiveFiles( vFiles );
-		std::vector<uint8_t> vExtracted;
-		for ( auto I = vFiles.size(); I--; ) {
-			std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
-			std::u16string s16File = lsn::CUtilities::GetFileName( vFiles[I] );
-			fbFile.ExtractToMemory( vFiles[I], vExtracted );
+		if ( vFiles.size() ) {
+			for ( auto I = vFiles.size(); I--; ) {
+				std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
+				if ( ::_wcsicmp( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"NES" ) == 0 ) {
+					s16Path = lsn::CUtilities::GetFileName( vFiles[I] );
+					fbFile.ExtractToMemory( vFiles[I], vExtracted );
+					break;
+				}
+			}
+		}
+		else {
+			s16Path = LSN_PATH;
+			fbFile.LoadToMemory( vExtracted );
 		}
 	}
+#undef LSN_PATH
 	lsn::CClock cClock;
+	nsSystem.LoadRom( vExtracted, s16Path );
 	nsSystem.ResetState( false );
 	uint64_t ui64TickCount = 0;
 	while ( nsSystem.GetAccumulatedRealTime() / nsSystem.GetClockResolution() < 1 * (60 * 60 * 2) ) {
