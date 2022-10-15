@@ -40,6 +40,7 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 		}
 	}
 #undef LSN_PATH
+
 	lsn::CClock cClock;
 	nsSystem.LoadRom( vExtracted, s16Path );
 	nsSystem.ResetState( false );
