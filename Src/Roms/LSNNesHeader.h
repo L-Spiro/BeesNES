@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNRomConstants.h"
+#include <cmath>
 
 namespace lsn {
 
@@ -71,6 +72,34 @@ namespace lsn {
 		 * \return Returns the CHR ROM size.
 		 */
 		inline uint32_t							GetChrRomSize() const;
+
+		/**
+		 * Gets the work RAM size.
+		 *
+		 * \return Returns the work RAM size.
+		 */
+		inline uint32_t							GetWorkRamSize() const;
+
+		/**
+		 * Gets the save RAM size.
+		 *
+		 * \return Returns the save RAM size.
+		 */
+		inline uint32_t							GetSaveRamSize() const;
+
+		/**
+		 * Gets the CHR RAM size.
+		 *
+		 * \return Returns the CHR RAM size.
+		 */
+		inline uint32_t							GetChrRamSize() const;
+
+		/**
+		 * Gets the save CHR RAM size.
+		 *
+		 * \return Returns the save CHR RAM size.
+		 */
+		inline uint32_t							GetSaveChrRamSize() const;
 
 		/**
 		 * Translates the iNES 2.0 size, returning 0 in the case of error.
@@ -166,6 +195,58 @@ namespace lsn {
 				return ui8ChrRomSize * 0x2000;
 			}
 		}
+	}
+
+	/**
+	 * Gets the work RAM size.
+	 *
+	 * \return Returns the work RAM size.
+	 */
+	uint32_t LSN_NES_HEADER::GetWorkRamSize() const {
+		if ( GetHeaderVersion() == LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 ) {
+			uint8_t ui8Val = ui8Byte10 & 0x0F;
+			return ui8Val == 0 ? 0 : uint32_t( std::pow( 2.0, ui8Val - 1.0 ) ) << 7;
+		}
+		return 0;
+	}
+
+	/**
+	 * Gets the save RAM size.
+	 *
+	 * \return Returns the save RAM size.
+	 */
+	uint32_t LSN_NES_HEADER::GetSaveRamSize() const {
+		if ( GetHeaderVersion() == LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 ) {
+			uint8_t ui8Val = (ui8Byte10 & 0xF0) >> 4;
+			return ui8Val == 0 ? 0 : uint32_t( std::pow( 2.0, ui8Val - 1.0 ) ) << 7;
+		}
+		return 0;
+	}
+
+	/**
+	 * Gets the CHR RAM size.
+	 *
+	 * \return Returns the CHR RAM size.
+	 */
+	uint32_t LSN_NES_HEADER::GetChrRamSize() const {
+		if ( GetHeaderVersion() == LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 ) {
+			uint8_t ui8Val = ui8Byte11 & 0x0F;
+			return ui8Val == 0 ? 0 : uint32_t( std::pow( 2.0, ui8Val - 1.0 ) ) << 7;
+		}
+		return 0;
+	}
+
+	/**
+	 * Gets the save CHR RAM size.
+	 *
+	 * \return Returns the save CHR RAM size.
+	 */
+	uint32_t LSN_NES_HEADER::GetSaveChrRamSize() const {
+		if ( GetHeaderVersion() == LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 ) {
+			uint8_t ui8Val = (ui8Byte11 & 0xF0) >> 4;
+			return ui8Val == 0 ? 0 : uint32_t( std::pow( 2.0, ui8Val - 1.0 ) ) << 7;
+		}
+		return 0;
 	}
 
 	/**

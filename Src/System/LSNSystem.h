@@ -265,11 +265,27 @@ namespace lsn {
 		 */
 		bool											LoadNes( const std::vector<uint8_t> &_vRom ) {
 			if ( _vRom.size() >= sizeof( LSN_NES_HEADER ) ) {
-				//size_t stDataSize = _vRom.size() - sizeof( LSN_NES_HEADER );
+				size_t stDataSize = _vRom.size() - sizeof( LSN_NES_HEADER );
+				const uint8_t * pui8Data = _vRom.data() + sizeof( LSN_NES_HEADER );
 				const LSN_NES_HEADER * pnhHeader = reinterpret_cast<const LSN_NES_HEADER *>(_vRom.data());
 				m_rRom.i32ChrRamSize = pnhHeader->GetChrRomSize();
-				m_rRom.i32WorkRamSize = pnhHeader->GetPgmRomSize();
-				//m_rRom.
+				m_rRom.i32SaveChrRamSize = pnhHeader->GetSaveChrRamSize();
+				m_rRom.i32WorkRamSize = pnhHeader->GetWorkRamSize();
+				m_rRom.i32SaveRamSize = pnhHeader->GetSaveRamSize();
+
+				if ( pnhHeader->HasTrainer() ) {
+					if ( stDataSize < 512 ) { return false; }
+					// Load trainer.
+					stDataSize -= 512;
+					pui8Data += 512;
+				}
+
+				uint32_t ui32PrgSize = pnhHeader->GetPgmRomSize();
+				uint32_t ui32ChrSize = pnhHeader->GetChrRomSize();
+				if ( ui32PrgSize + ui32ChrSize > stDataSize ) { return false; }
+				m_rRom.vPrgRom.insert( m_rRom.vPrgRom.end(), pui8Data, pui8Data + ui32PrgSize );
+				pui8Data += ui32PrgSize;
+				m_rRom.vChrRom.insert( m_rRom.vChrRom.end(), pui8Data, pui8Data + ui32ChrSize );
 
 				return true;
 			}
