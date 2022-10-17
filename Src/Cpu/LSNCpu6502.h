@@ -17,6 +17,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Bus/LSNBus.h"
 #include "../System/LSNTickable.h"
 #include <vector>
 
@@ -31,7 +32,7 @@ namespace lsn {
 	class CCpu6502 : public CTickable {
 	public :
 		// == Various constructors.
-		CCpu6502( class CBus * _pbBus );
+		CCpu6502( CCpuBus * _pbBus );
 		~CCpu6502();
 
 
@@ -252,7 +253,7 @@ namespace lsn {
 
 
 		// == Members.
-		class CBus *						m_pbBus;										/**< Pointer to the bus. */
+		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
 		std::vector<LSN_CPU_CONTEXT>		m_vContextStack;								/**< Stack of contexts. */
 		union {
 			uint16_t						PC;												/**< Program counter. */

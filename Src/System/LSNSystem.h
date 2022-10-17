@@ -108,6 +108,8 @@ namespace lsn {
 						//	as well as the dynamic array accesses ("hsSlots[stIdx]").
 						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
 						//	0.68499566 cycles-per-tick.
+						// From there, using virtual functions instead of function pointers raises it to
+						//	0.69186794 cycles-per-tick.
 						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
 						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
 						/*stIdx = LSN_APU_SLOT;
@@ -249,7 +251,7 @@ namespace lsn {
 		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
-		CBus											m_bBus;								/**< The bus. */
+		CCpuBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */

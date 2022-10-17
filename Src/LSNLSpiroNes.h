@@ -88,6 +88,9 @@ namespace lsn {
 		LSN_ROM_GRAN						= 0x2000,
 		LSN_ROM_PAGES						= LSN_MEM_FULL_SIZE / LSN_ROM_GRAN,	
 		LSN_PACK_RAM_SIZE					= 0x2000,
+
+		// PPU memory.
+		LSN_PPU_MEM_FULL_SIZE				= 0x4000,
 	};
 
 	/** Clock speeds. */

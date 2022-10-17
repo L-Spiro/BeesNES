@@ -22,32 +22,10 @@
 
 
 #include "LSNBus.h"
-#include <cstring>
+
 
 
 namespace lsn {
 
-	// == Various constructors.
-	CBus::CBus() :
-		m_ui8LastRead( 0 ) {
-	}
-	CBus::~CBus() {
-		ResetToKnown();
-	}
-
-	// == Functions.
-	/**
-	 * Resets the bus to a known state.
-	 */
-	void CBus::ResetToKnown() {
-		std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
-		m_ui8LastRead = 0;
-	}
-
-	/**
-	 * Performs an "analog" reset, allowing previous data to remain.
-	 */
-	void CBus::ResetAnalog() {
-	}
 
 }	// namespace lsn

@@ -24,7 +24,6 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../Cpu/LSNCpu6502.h"
 
 namespace lsn {
 
@@ -48,23 +47,32 @@ namespace lsn {
 	 * Since the memory is contiguous and directly part of this class, allocating this on the stack
 	 *	may cause a stack overflow.
 	 */
+	template <unsigned _uSize>
 	class CBus {
 	public :
 		// == Various constructors.
-		CBus();
-		~CBus();
+		CBus() :
+			m_ui8LastRead( 0 ) {
+		}
+		~CBus() {
+			ResetToKnown();
+		}
 
 
 		// == Functions.
 		/**
 		 * Resets the bus to a known state.
 		 */
-		void								ResetToKnown();
+		void								ResetToKnown() {
+			std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
+			m_ui8LastRead = 0;
+		}
 
 		/**
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
-		void								ResetAnalog();
+		void								ResetAnalog() {
+		}
 
 		/**
 		 * Performs a CPU read of a given address.
@@ -72,7 +80,14 @@ namespace lsn {
 		 * \param _ui16Addr The address to read.
 		 * \return Returns the requested value.
 		 */
-		inline uint8_t						CpuRead( uint16_t _ui16Addr );
+		inline uint8_t						CpuRead( uint16_t _ui16Addr ) {
+			if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
+				//m_ui8LastRead = m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START];
+				m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
+				return m_ui8LastRead;
+			}
+			return m_ui8LastRead;
+		}
 
 		/**
 		 * Performs a CPU write of a given address.
@@ -80,19 +95,28 @@ namespace lsn {
 		 * \param _ui16Addr The address to write.
 		 * \param _ui8Val The value to write.
 		 */
-		inline void							CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val );
+		inline void							CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val ) {
+			if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
+				//m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START] = _ui8Val;
+				m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
+				return;
+			}
+		}
 
 		/**
 		 * Special-case function to set the floating value on the bus.  Only used by JAM instructions or in very rare specialized cases.
 		 *
 		 * \param _ui8Val The value to write.
 		 */
-		inline uint8_t						SetFloat( uint8_t _ui8Val );
+		inline uint8_t						SetFloat( uint8_t _ui8Val ) {
+			m_ui8LastRead = _ui8Val;
+			return m_ui8LastRead;
+		}
 
 
 	protected :
 		// == Members.
-		uint8_t								m_ui8Ram[1024*64];				/**< System memory of 64 kilobytes. */
+		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
 	};
 
@@ -100,44 +124,11 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	// == Functions.
-	/**
-	 * Performs a CPU read of a given address.
-	 *
-	 * \param _ui16Addr The address to read.
-	 * \return Returns the requested value.
-	 */
-	inline uint8_t CBus::CpuRead( uint16_t _ui16Addr ) {
-		if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-			//m_ui8LastRead = m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START];
-			m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
-			return m_ui8LastRead;
-		}
-		return m_ui8LastRead;
-	}
+	// == Types.
+	/** The system-wide CPU bus. */
+	typedef CBus<LSN_MEM_FULL_SIZE>			CCpuBus;
 
-	/**
-	 * Performs a CPU write of a given address.
-	 *
-	 * \param _ui16Addr The address to write.
-	 * \param _ui8Val The value to write.
-	 */
-	inline void CBus::CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val ) {
-		if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-			//m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START] = _ui8Val;
-			m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
-			return;
-		}
-	}
-
-	/**
-	 * Special-case function to set the floating value on the bus.  Only used by JAM instructions or in very rare specialized cases.
-	 *
-	 * \param _ui8Val The value to write.
-	 */
-	inline uint8_t CBus::SetFloat( uint8_t _ui8Val ) {
-		m_ui8LastRead = _ui8Val;
-		return m_ui8LastRead;
-	}
+	/** The PPU bus. */
+	typedef CBus<LSN_PPU_MEM_FULL_SIZE>		CPpuBus;
 
 }	// namespace lsn

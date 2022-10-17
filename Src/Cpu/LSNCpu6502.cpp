@@ -1090,7 +1090,7 @@ namespace lsn {
 #include "LSNInstMetaData.inl"					/**< Metadata for the instructions (for assembly and disassembly etc.) */
 
 	// == Various constructors.
-	CCpu6502::CCpu6502( class CBus * _pbBus ) :
+	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
 		m_pbBus( _pbBus ),
 		m_pccCurContext( nullptr ),
 		A( 0 ),
