@@ -83,6 +83,7 @@ namespace lsn {
 		// == Various constructors.
 		CBus() :
 			m_ui8LastRead( 0 ) {
+			std::memset( m_aaAccessors, 0, sizeof( m_aaAccessors ) );
 		}
 		~CBus() {
 			ResetToKnown();
@@ -145,7 +146,26 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** An address-reading function. */
+		typedef bool (__fastcall *			PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+
+		/** An address-reading function. */
+		typedef bool (__fastcall *			PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
+
+		/** An address accessor. */
+		struct LSN_ADDR_ACCESSOR {
+			PfReadFunc						pfrfReader;						/**< The function for reading the assigned address. */
+			void *							pvReaderParm0;					/**< The reader's first parameter. */
+			PfWriteFunc						pfwfWriter;						/**< The function for writing the assigned address. */
+			void *							pvWriterParm0;					/**< The writer's first parameter. */
+			uint16_t						ui16ReaderParm1;				/**< The reader's second parameter. */
+			uint16_t						ui16WriterParm1;				/**< The writer's second parameter. */
+		};
+
+
 		// == Members.
+		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
 	};

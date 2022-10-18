@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Bus/LSNBus.h"
 #include "../System/LSNTickable.h"
 
 namespace lsn {
@@ -31,6 +32,11 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void						Tick() {}
+
+
+	protected :
+		// == Members.
+		CPpuBus								m_bBus;
 	};
 
 }	// namespace lsn

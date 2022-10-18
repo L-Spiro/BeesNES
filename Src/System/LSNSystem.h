@@ -89,18 +89,22 @@ namespace lsn {
 					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
 					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
 				};
-				size_t stIdx;
+				//size_t stIdx;
+				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
-					stIdx = ~size_t( 0 );
+					//stIdx = ~size_t( 0 );
+					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
 					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter < ui64Low ) {
-						stIdx = LSN_CPU_SLOT;
-						ui64Low = hsSlots[LSN_CPU_SLOT].ui64Counter;
+						//stIdx = LSN_CPU_SLOT;
+						phsSlot = &hsSlots[LSN_CPU_SLOT];
+						ui64Low = phsSlot->ui64Counter;
 					}
 					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
-						stIdx = LSN_PPU_SLOT;
-						ui64Low = hsSlots[LSN_PPU_SLOT].ui64Counter;
+						//stIdx = LSN_PPU_SLOT;
+						phsSlot = &hsSlots[LSN_PPU_SLOT];
+						ui64Low = phsSlot->ui64Counter;
 					}
 					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
@@ -110,14 +114,17 @@ namespace lsn {
 						//	0.68499566 cycles-per-tick.
 						// From there, using virtual functions instead of function pointers raises it to
 						//	0.69186794 cycles-per-tick.
+						//phsSlot = &hsSlots[LSN_APU_SLOT];
+						//phsSlot->ui64Counter += phsSlot->ui64Inc;
+						//phsSlot->ptHw->Tick();
+						//(phsSlot->ptHw->*phsSlot->pfTick)();
 						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
 						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
-						/*stIdx = LSN_APU_SLOT;
-						ui64Low = hsSlots[LSN_APU_SLOT].ui64Counter;*/
 					}
-					else if ( stIdx != ~size_t( 0 ) ) {
-						hsSlots[stIdx].ui64Counter += hsSlots[stIdx].ui64Inc;
-						(hsSlots[stIdx].ptHw->*hsSlots[stIdx].pfTick)();
+					else if ( /*stIdx != ~size_t( 0 )*/phsSlot != nullptr ) {
+						phsSlot->ui64Counter += phsSlot->ui64Inc;
+						(phsSlot->ptHw->*phsSlot->pfTick)();
+						//phsSlot->ptHw->Tick();
 					}
 					else { break; }
 				} while ( true );
