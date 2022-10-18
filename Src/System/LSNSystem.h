@@ -242,8 +242,14 @@ namespace lsn {
 				if ( std::memcmp( _vRom.data(), ui8NesHeader, sizeof( ui8NesHeader ) ) == 0 ) {
 					// .NES.
 					if ( !LoadNes( _vRom ) ) { return false; }
-					return true;
+					//return true;
 				}
+				else {
+					return false;
+				}
+				// ROM loaded.
+				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
+				return true;
 			}
 			return false;
 		}

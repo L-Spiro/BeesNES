@@ -203,6 +203,21 @@ namespace lsn {
 		}
 
 		/**
+		 * Copy data to the bus.
+		 *
+		 * \param _pui8Data The data to copy.
+		 * \param _ui32Size The size of the data to which _pui8Data points.
+		 * \param _ui16Address The address to which to copy the data.
+		 */
+		inline void						CopyToMemory( const uint8_t * _pui8Data, uint32_t _ui32Size, uint16_t _ui16Address ) {
+			if ( _ui16Address < Size() ) {
+				size_t stEnd = _ui32Size + _ui16Address;
+				if ( stEnd > Size() ) { stEnd = Size(); }
+				std::memcpy( &m_ui8Ram[_ui16Address], _pui8Data, stEnd - _ui16Address );
+			}
+		}
+
+		/**
 		 * A standard read function.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
