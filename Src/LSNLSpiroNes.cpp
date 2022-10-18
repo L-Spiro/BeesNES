@@ -12,7 +12,7 @@ int main() {
 	return 0;
 }
 
-int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
+int __stdcall wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
 #define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
 	std::unique_ptr<lsn::CNtscSystem> pnsSystem = std::make_unique<lsn::CNtscSystem>();
 	std::vector<uint8_t> vExtracted;

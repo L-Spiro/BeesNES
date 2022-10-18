@@ -71,17 +71,6 @@
  * ind = ($0000)					Absolute indirect addressing (JMP)
  * rel = $0000 (PC-relative)		Relative addressing
  */
-// Considered handled:
-//	LSN_AM_IMPLIED
-//	LSN_AM_INDIRECT_X
-//	LSN_AM_ZERO_PAGE
-//	LSN_AM_IMMEDIATE
-//	LSN_AM_ABSOLUTE
-//	LSN_AM_RELATIVE (Testing needed.)
-//	LSN_AM_INDIRECT_Y
-//	LSN_AM_ZERO_PAGE_X
-//	LSN_AM_ABSOLUTE_Y
-//	LSN_AM_ABSOLUTE_X
 
 namespace lsn {
 
@@ -1099,6 +1088,12 @@ namespace lsn {
 		Y( 0 ) {
 		pc.PC = 0xC000;
 		m_ui8Status = 0x34;
+
+		// Apply the CPU memory map to the bus.
+		for ( uint32_t I = LSN_CPU_START; I < (LSN_CPU_START + LSN_CPU_FULL_SIZE); ++I ) {
+			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
+			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
+		}
 	}
 	CCpu6502::~CCpu6502() {
 		ResetToKnown();

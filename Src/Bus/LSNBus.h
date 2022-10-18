@@ -83,11 +83,23 @@ namespace lsn {
 		// == Various constructors.
 		CBus() :
 			m_ui8LastRead( 0 ) {
-			std::memset( m_aaAccessors, 0, sizeof( m_aaAccessors ) );
+			//std::memset( m_aaAccessors, 0, sizeof( m_aaAccessors ) );
+			for ( auto I = Size(); I--; ) {
+				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
+				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
+			}
 		}
 		~CBus() {
 			ResetToKnown();
 		}
+
+
+		// == Types.
+		/** An address-reading function. */
+		typedef void (__fastcall *			PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+
+		/** An address-reading function. */
+		typedef void (__fastcall *			PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
 
 
 		// == Functions.
@@ -112,12 +124,16 @@ namespace lsn {
 		 * \return Returns the requested value.
 		 */
 		inline uint8_t						CpuRead( uint16_t _ui16Addr ) {
-			if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
+			m_aaAccessors[_ui16Addr].pfReader( m_aaAccessors[_ui16Addr].pvReaderParm0,
+				m_aaAccessors[_ui16Addr].ui16ReaderParm1,
+				m_ui8Ram, m_ui8LastRead );
+			return m_ui8LastRead;
+			/*if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
 				//m_ui8LastRead = m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START];
 				m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
 				return m_ui8LastRead;
 			}
-			return m_ui8LastRead;
+			return m_ui8LastRead;*/
 		}
 
 		/**
@@ -127,11 +143,14 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void							CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val ) {
-			if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
+			m_aaAccessors[_ui16Addr].pfWriter( m_aaAccessors[_ui16Addr].pvWriterParm0,
+				m_aaAccessors[_ui16Addr].ui16WriterParm1,
+				m_ui8Ram, _ui8Val );
+			/*if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
 				//m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START] = _ui8Val;
 				m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
 				return;
-			}
+			}*/
 		}
 
 		/**
@@ -144,20 +163,102 @@ namespace lsn {
 			return m_ui8LastRead;
 		}
 
+		/**
+		 * Gets the size of the bus in bytes.
+		 *
+		 * \return Returns the size of the bus in bytes.
+		 */
+		inline constexpr uint32_t			Size() const { return _uSize; }
+
+		/**
+		 * Sets the read function for a given address.
+		 *
+		 * \param _ui16Address The address to assign the read function.
+		 * \param _pfReadFunc The function to assign to the address.
+		 * \param _pvParm0 A data value assigned to the address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
+		 */
+		void								SetReadFunc( uint16_t _ui16Address, PfReadFunc _pfReadFunc, void * _pvParm0, uint16_t _ui16Parm1 ) {
+			if ( _ui16Parm1 < Size() ) {
+				m_aaAccessors[_ui16Address].pfReader = _pfReadFunc;
+				m_aaAccessors[_ui16Address].pvReaderParm0 = _pvParm0;
+				m_aaAccessors[_ui16Address].ui16ReaderParm1 = _ui16Parm1;
+			}
+		}
+
+		/**
+		 * Sets the write function for a given address.
+		 *
+		 * \param _ui16Address The address to assign the write function.
+		 * \param _pfWriteFunc The function to assign to the address.
+		 * \param _pvParm0 A data value assigned to the address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
+		 */
+		void								SetWriteFunc( uint16_t _ui16Address, PfWriteFunc _pfWriteFunc, void * _pvParm0, uint16_t _ui16Parm1 ) {
+			if ( _ui16Parm1 < Size() ) {
+				m_aaAccessors[_ui16Address].pfWriter = _pfWriteFunc;
+				m_aaAccessors[_ui16Address].pvWriterParm0 = _pvParm0;
+				m_aaAccessors[_ui16Address].ui16WriterParm1 = _ui16Parm1;
+			}
+		}
+
+		/**
+		 * A standard read function.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 * \return Returns true if the operation succeeds.  Return false to have the bus return the floating value.
+		 */
+		static void __fastcall				StdRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			_ui8Ret = _pui8Data[_ui16Parm1];
+		}
+
+		/**
+		 * A standard write function.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void __fastcall				StdWrite( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
+			_pui8Data[_ui16Parm1] = _ui8Val;
+		}
+
+		/**
+		 * A function usable for addresses that can't be read.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 * \return Returns true if the operation succeeds.  Return false to have the bus return the floating value.
+		 */
+		static void							NoRead( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &/*_ui8Ret*/ ) {
+		}
+
+		/**
+		 * A function usable for addresses that can't be written.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void							NoWrite( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+		}
+
+
 
 	protected :
 		// == Types.
-		/** An address-reading function. */
-		typedef bool (__fastcall *			PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
-
-		/** An address-reading function. */
-		typedef bool (__fastcall *			PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
-
 		/** An address accessor. */
 		struct LSN_ADDR_ACCESSOR {
-			PfReadFunc						pfrfReader;						/**< The function for reading the assigned address. */
+			PfReadFunc						pfReader;						/**< The function for reading the assigned address. */
 			void *							pvReaderParm0;					/**< The reader's first parameter. */
-			PfWriteFunc						pfwfWriter;						/**< The function for writing the assigned address. */
+			PfWriteFunc						pfWriter;						/**< The function for writing the assigned address. */
 			void *							pvWriterParm0;					/**< The writer's first parameter. */
 			uint16_t						ui16ReaderParm1;				/**< The reader's second parameter. */
 			uint16_t						ui16WriterParm1;				/**< The writer's second parameter. */
