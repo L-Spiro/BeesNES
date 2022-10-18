@@ -14,7 +14,7 @@ int main() {
 
 int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
 #define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
-	lsn::CNtscSystem nsSystem;
+	std::unique_ptr<lsn::CNtscSystem> pnsSystem = std::make_unique<lsn::CNtscSystem>();
 	std::vector<uint8_t> vExtracted;
 	std::u16string s16Path;
 	{
@@ -42,11 +42,11 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 #undef LSN_PATH
 
 	lsn::CClock cClock;
-	nsSystem.LoadRom( vExtracted, s16Path );
-	nsSystem.ResetState( false );
+	pnsSystem->LoadRom( vExtracted, s16Path );
+	pnsSystem->ResetState( false );
 	uint64_t ui64TickCount = 0;
-	while ( nsSystem.GetAccumulatedRealTime() / nsSystem.GetClockResolution() < 1 * (60 * 60 * 2) ) {
-		nsSystem.Tick();
+	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1 * (30) ) {
+		pnsSystem->Tick();
 		++ui64TickCount;
 	}
 	uint64_t ui64Time = cClock.GetRealTick() - cClock.GetStartTick();
@@ -56,8 +56,8 @@ int wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_
 		"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
 		"%.8f cycles per Tick().\r\n",
 		ui64TickCount, dTime,
-		nsSystem.GetMasterCounter(), nsSystem.GetMasterCounter() / dTime, double( nsSystem.MasterHz() ) / nsSystem.MasterDiv(),
-		nsSystem.GetMasterCounter() / double( ui64TickCount )
+		pnsSystem->GetMasterCounter(), pnsSystem->GetMasterCounter() / dTime, double( pnsSystem->MasterHz() ) / pnsSystem->MasterDiv(),
+		pnsSystem->GetMasterCounter() / double( ui64TickCount )
 		);
 	::OutputDebugStringA( szBuffer );
 	return 0;
