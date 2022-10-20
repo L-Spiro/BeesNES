@@ -44,6 +44,7 @@ namespace lsn {
 			LSN_SF_IRQ						= 1 << 2,										/**< IRQ Disable   (0=IRQ Enable, 1=IRQ Disable) */
 			LSN_SF_DECIMAL					= 1 << 3,										/**< Decimal Mode  (0=Normal, 1=BCD Mode for ADC/SBC opcodes) */
 			LSN_SF_BREAK					= 1 << 4,										/**< Break Flag    (0=IRQ/NMI, 1=RESET or BRK/PHP opcode) */
+			LSN_SF_RESERVED					= 1 << 5,										/**< Reserved. */
 			LSN_SF_OVERFLOW					= 1 << 6,										/**< Overflow      (0=No Overflow, 1=Overflow) */
 			LSN_SF_NEGATIVE					= 1 << 7,										/**< Negative/Sign (0=Positive, 1=Negative) */
 		};
@@ -53,6 +54,12 @@ namespace lsn {
 			LSN_V_NMI						= 0xFFFA,										/**< The address of execution during an NMI interrupt. */
 			LSN_V_RESET						= 0xFFFC,										/**< The address of execution during a reset. */
 			LSN_V_IRQ_BRK					= 0xFFFE,										/**< The address of execution during an IRQ or BRK interrupt. */
+		};
+
+		/** Special opcodes. */
+		enum LSN_SPECIAL_OPS {
+			LSN_SO_NMI						= 0x100,										/**< The NMI instruction. */
+			LSN_SO_IRQ						= 0x101,										/**< The NMI instruction. */
 		};
 
 
@@ -68,13 +75,9 @@ namespace lsn {
 		void								ResetAnalog();
 
 		/**
-		 * DESC
-		 *
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return RETURN
+		 * Performs a single cycle update.
 		 */
-		void								Irq();
+		virtual void						Tick();
 
 		/**
 		 * DESC
@@ -83,7 +86,16 @@ namespace lsn {
 		 * \param PARM DESC
 		 * \return RETURN
 		 */
-		void								Nmi();
+		//void								Irq();
+
+		/**
+		 * DESC
+		 *
+		 * \param PARM DESC
+		 * \param PARM DESC
+		 * \return RETURN
+		 */
+		//void								Nmi();
 
 
 	protected :
@@ -191,6 +203,8 @@ namespace lsn {
 			LSN_I_TOP						= 78,											/**< No operation. */
 			LSN_I_JAM						= 79,											/**< Illegal. Jams the machine repeatedly putting 0xFF on the bus. */
 
+			LSN_I_NMI						= 80,											/**< Non-opcode: NMI. */
+			LSN_I_IRQ						= 81,											/**< Non-opcode: IRQ. */
 
 			LSN_I_TOTAL
 		};
@@ -210,6 +224,7 @@ namespace lsn {
 		// == Types.
 		/** Data for the current context of execution (most often just regular instruction execution). */
 		struct LSN_CPU_CONTEXT {
+			uint16_t						ui16OpCode;										/**< The current opcode. */
 			union {
 				uint16_t					ui16Address;									/**< For various access types. */
 				uint8_t						ui8Bytes[2];
@@ -218,10 +233,9 @@ namespace lsn {
 				uint16_t					ui16JmpTarget;
 				uint8_t						ui8Bytes[2];
 			}								j;
-			LSN_CONTEXTS					cContext;										/**< The context for whatever is currently being processed. */
+			//LSN_CONTEXTS					cContext;										/**< The context for whatever is currently being processed. */
 			uint8_t							ui8Cycle;										/**< The per-instruction cycle count. */
 			uint8_t							ui8FuncIdx;										/**< The index of the next function to call in the instruction. */
-			uint8_t							ui8OpCode;										/**< The current opcode. */
 			uint8_t							ui8Operand;										/**< The operand and low byte of addresses. */
 			uint8_t							ui8Pointer;										/**< For indirect indexed access. */
 		};
@@ -254,6 +268,7 @@ namespace lsn {
 
 		// == Members.
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
+		LSN_CPU_CONTEXT *					m_pccCurContext;								/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		std::vector<LSN_CPU_CONTEXT>		m_vContextStack;								/**< Stack of contexts. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
@@ -264,8 +279,10 @@ namespace lsn {
 		uint8_t								Y;												/**< Index register Y. */
 		uint8_t								S;												/**< Stack pointer (addresses 0x0100 + S). */
 		uint8_t								m_ui8Status;									/**< The status flags. */
-		LSN_CPU_CONTEXT *					m_pccCurContext;								/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
-		static LSN_INSTR					m_iInstructionSet[256];							/**< The instruction set. */
+		bool								m_bNmiHistory[2];								/**< The NMI value for the last cycle and the current cycle. */
+		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
+		
+		static LSN_INSTR					m_iInstructionSet[256+2];						/**< The instruction set. */
 		static const LSN_INSTR_META_DATA	m_smdInstMetaData[LSN_I_TOTAL];					/**< Metadata for the instructions (for assembly and disassembly etc.) */
 		
 		
@@ -322,15 +339,17 @@ namespace lsn {
 		/** Pushes PCH. */
 		void								PushPch();										// Cycle 3.
 		/** Pushes PCH, sets the B flag, and decrements S. */
-		void								PushPchWithBFlag();								// Cycle 3.
+		//void								PushPchWithBFlag();								// Cycle 3.
 		/** Pushes PCL, decrements S. */
 		void								PushPcl();										// Cycle 4.
 		/** Pushes status with B. */
 		void								PushStatusAndBAndSetAddressByIrq();				// Cycle 5.
+		/** Pushes status without B. */
+		void								PushStatusAndNoBAndSetAddressByIrq();			// Cycle 5.
 		/** Pushes status an decrements S. */
 		void								PushStatus();									// Cycle 5.
 		/** Pushes status without B. */
-		void								PushStatusAndSetAddressByIrq();					// Cycle 5.
+		//void								PushStatusAndSetAddressByIrq();					// Cycle 5.
 		/** Pulls status, ignoring B. */
 		void								PullStatusWithoutB();							// Cycle 4.
 		/** Pulls status. */
@@ -352,8 +371,10 @@ namespace lsn {
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 		template <bool _bHandleCrossing>
 		void								ReadEffectiveAddressFixHighByte_IzX_IzY_AbX();		// Cycle 5.
-		/** Pops the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC. */
+		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
 		void								CopyVectorPcl();								// Cycle 6.
+		/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
+		void								CopyVectorPch();								// Cycle 7.
 		/** Fetches the low byte of PC from $FFFE. */
 		void								FetchPclFromFFFE();								// Cycle 6.
 		/** Fetches the high byte of PC from $FFFF. */
@@ -376,7 +397,7 @@ namespace lsn {
 		void								Branch_Cycle4();
 		/** 5th cycle of branch instructions. Page boundary was crossed. */
 		void								Branch_Cycle5();
-		/** Performs m_pbBus->CpuWrite( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
+		/** Performs m_pbBus->Write( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
 		void								FinalWriteCycle();
 		/**
 		 * Performs a compare against a register and an operand by setting flags.
@@ -392,6 +413,13 @@ namespace lsn {
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
 		inline void							Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
+
+		/**
+		 * Prepares to enter a new instruction.
+		 *
+		 * \param _ui16Op The instruction to begin executing.
+		 */
+		inline void							BeginInst( uint16_t _ui16Op );
 
 		// == Work functions.
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -626,6 +654,25 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
+	}
+
+	/**
+	 * Prepares to enter a new instruction.
+	 *
+	 * \param _ui16Op The instruction to begin executing.
+	 */
+	inline void CCpu6502::BeginInst( uint16_t _ui16Op ) {
+		// Enter normal instruction context.
+		LSN_CPU_CONTEXT ccContext;
+		//ccContext.cContext = LSN_C_NORMAL;
+		ccContext.ui8Cycle = 1;		// Values as they should be after this function exits (this function representing the first cycle in all instructions).
+		ccContext.ui8FuncIdx = 0;	// This function is implicit, so index 0 is the function handler for the 2nd cycle following this one.
+		m_vContextStack.push_back( ccContext );
+		// Store the pointer to the last item on the stack so it doesn't have to be recalculated over and over.
+		m_pccCurContext = &m_vContextStack[m_vContextStack.size()-1];
+
+		// Perform the actual work.
+		m_pccCurContext->ui16OpCode = _ui16Op;
 	}
 
 }	// namespace lsn

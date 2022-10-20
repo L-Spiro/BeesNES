@@ -96,10 +96,10 @@ namespace lsn {
 
 		// == Types.
 		/** An address-reading function. */
-		typedef void (__fastcall *			PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+		typedef void (LSN_FASTCALL *		PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
 
 		/** An address-reading function. */
-		typedef void (__fastcall *			PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
+		typedef void (LSN_FASTCALL *		PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
 
 
 		// == Functions.
@@ -123,7 +123,7 @@ namespace lsn {
 		 * \param _ui16Addr The address to read.
 		 * \return Returns the requested value.
 		 */
-		inline uint8_t						CpuRead( uint16_t _ui16Addr ) {
+		inline uint8_t						Read( uint16_t _ui16Addr ) {
 			m_aaAccessors[_ui16Addr].pfReader( m_aaAccessors[_ui16Addr].pvReaderParm0,
 				m_aaAccessors[_ui16Addr].ui16ReaderParm1,
 				m_ui8Ram, m_ui8LastRead );
@@ -142,7 +142,7 @@ namespace lsn {
 		 * \param _ui16Addr The address to write.
 		 * \param _ui8Val The value to write.
 		 */
-		inline void							CpuWrite( uint16_t _ui16Addr, uint8_t _ui8Val ) {
+		inline void							Write( uint16_t _ui16Addr, uint8_t _ui8Val ) {
 			m_aaAccessors[_ui16Addr].pfWriter( m_aaAccessors[_ui16Addr].pvWriterParm0,
 				m_aaAccessors[_ui16Addr].ui16WriterParm1,
 				m_ui8Ram, _ui8Val );
@@ -211,7 +211,7 @@ namespace lsn {
 		 */
 		inline void						CopyToMemory( const uint8_t * _pui8Data, uint32_t _ui32Size, uint16_t _ui16Address ) {
 			if ( _ui16Address < Size() ) {
-				size_t stEnd = _ui32Size + _ui16Address;
+				size_t stEnd = _ui32Size + size_t( _ui16Address );
 				if ( stEnd > Size() ) { stEnd = Size(); }
 				std::memcpy( &m_ui8Ram[_ui16Address], _pui8Data, stEnd - _ui16Address );
 			}
@@ -226,7 +226,7 @@ namespace lsn {
 		 * \param _ui8Ret The read value.
 		 * \return Returns true if the operation succeeds.  Return false to have the bus return the floating value.
 		 */
-		static void __fastcall				StdRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL			StdRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			_ui8Ret = _pui8Data[_ui16Parm1];
 		}
 
@@ -238,7 +238,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void __fastcall				StdWrite( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL			StdWrite( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
 			_pui8Data[_ui16Parm1] = _ui8Val;
 		}
 

@@ -87,7 +87,7 @@ namespace lsn {
 				} hsSlots[3] = {
 					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
 					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
-					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
+					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
 				};
 				//size_t stIdx;
 				LSN_HW_SLOTS * phsSlot = nullptr;
@@ -297,7 +297,7 @@ namespace lsn {
 
 				uint32_t ui32PrgSize = pnhHeader->GetPgmRomSize();
 				uint32_t ui32ChrSize = pnhHeader->GetChrRomSize();
-				if ( ui32PrgSize + ui32ChrSize > stDataSize ) { return false; }
+				if ( size_t( ui32PrgSize ) + size_t( ui32ChrSize ) > stDataSize ) { return false; }
 				m_rRom.vPrgRom.insert( m_rRom.vPrgRom.end(), pui8Data, pui8Data + ui32PrgSize );
 				pui8Data += ui32PrgSize;
 				m_rRom.vChrRom.insert( m_rRom.vChrRom.end(), pui8Data, pui8Data + ui32ChrSize );

@@ -45,4 +45,6 @@
 #define NOMINMAX
 #include <Windows.h>
 
+#define LSN_FASTCALL						__fastcall
+
 #endif	// #ifdef LSN_WINDOWS

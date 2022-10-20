@@ -9,3 +9,7 @@
 #pragma once
 
 #include "LSNWindows.h"
+
+#ifndef LSN_FASTCALL
+#define LSN_FASTCALL
+#endif	// LSN_FASTCALL

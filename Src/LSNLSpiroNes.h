@@ -46,6 +46,8 @@
 
 #pragma once
 
+#include "OS/LSNOs.h"
+
 #include <cassert>
 #include <cstdint>
 #include <memory>
@@ -144,13 +146,14 @@ namespace lsn {
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
 	template <unsigned _uBit>
-	inline void								SetBit( uint8_t &_ui8Val, const bool _bOn ) {
+	inline uint8_t							SetBit( uint8_t &_ui8Val, const bool _bOn ) {
 		if ( _bOn ) {
 			_ui8Val |= _uBit;
 		}
 		else {
 			_ui8Val &= ~_uBit;
 		}
+		return _ui8Val;
 	}
 
 	/**
@@ -162,13 +165,14 @@ namespace lsn {
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
 	template <unsigned _uBit, bool _bVal>
-	inline void								SetBit( uint8_t &_ui8Val ) {
+	inline uint8_t							SetBit( uint8_t &_ui8Val ) {
 		if constexpr ( _bVal != 0 ) {
 			_ui8Val |= _uBit;
 		}
 		else {
 			_ui8Val &= ~_uBit;
 		}
+		return _ui8Val;
 	}
 
 	/**

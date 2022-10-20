@@ -80,4 +80,7 @@
 		{ "DOP",	u8"Illegal. No operation." },
 		{ "TOP",	u8"Illegal. No operation." },
 		{ "JAM",	u8"Illegal. Jams the machine repeatedly putting 0xFF on the bus." },
+
+		{ "NMI",	u8"Non-opcode: NMI handler." },
+		{ "IRQ",	u8"Non-opcode: IRQ handler." },
 	};

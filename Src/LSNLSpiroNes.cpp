@@ -12,7 +12,7 @@ int main() {
 	return 0;
 }
 
-int __stdcall wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, LPWSTR /*_lpCmdLine*/, int /*_nCmdShow*/ ) {
+int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
 #define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
 	std::unique_ptr<lsn::CNtscSystem> pnsSystem = std::make_unique<lsn::CNtscSystem>();
 	std::vector<uint8_t> vExtracted;
@@ -45,7 +45,7 @@ int __stdcall wWinMain( HINSTANCE /*_hInstance*/, HINSTANCE /*_hPrevInstance*/, 
 	pnsSystem->LoadRom( vExtracted, s16Path );
 	pnsSystem->ResetState( false );
 	uint64_t ui64TickCount = 0;
-	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1 * (30) ) {
+	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1ULL * (30ULL) ) {
 		pnsSystem->Tick();
 		++ui64TickCount;
 	}
