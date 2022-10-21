@@ -338,8 +338,6 @@ namespace lsn {
 		void								PLA_PLP_RTI_RTS_Cycle3();						// Cycle 3.
 		/** Pushes PCH. */
 		void								PushPch();										// Cycle 3.
-		/** Pushes PCH, sets the B flag, and decrements S. */
-		//void								PushPchWithBFlag();								// Cycle 3.
 		/** Pushes PCL, decrements S. */
 		void								PushPcl();										// Cycle 4.
 		/** Pushes status with B. */
@@ -384,19 +382,14 @@ namespace lsn {
 		/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address&0xFF. */
 		void								WriteValueBackToEffectiveAddress_Zp();			// Cycle 5.
 		/** 2nd cycle of branch instructions. Reads the operand (JMP offset). */
-		void								Branch_Cycle2();
-		/** 3rd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+		//void								Branch_Cycle2();
+		/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 		template <unsigned _uBit, unsigned _uVal>
+		void								Branch_Cycle2();
+		/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 		void								Branch_Cycle3();
-		/** 2nd cycle of branch instructions. Performs the check to decide which cycle comes next (or to end the instruction). */
-		/*template <unsigned _uBit, unsigned _uVal>
-		void								Branch_Cycle2();*/
-		/** 3rd cycle of branch instructions. Branch was taken, so copy part of the address and check for a page boundary. */
-		//void								Branch_Cycle3();
-		/** 4th cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+		/** 4th cycle of branch instructions. Page boundary was crossed. */
 		void								Branch_Cycle4();
-		/** 5th cycle of branch instructions. Page boundary was crossed. */
-		void								Branch_Cycle5();
 		/** Performs m_pbBus->Write( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
 		void								FinalWriteCycle();
 		/**

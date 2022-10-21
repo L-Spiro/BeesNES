@@ -59,6 +59,8 @@
 #define LSN_ABSOLUTE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 7, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_X_W( NAME, FUNC )													{ &CCpu6502::FetchLowAddrByteAndIncPc_WriteImm, &CCpu6502::FetchHighAddrByteAndIncPcAndAddX, &CCpu6502::ReadEffectiveAddressFixHighByte_IzX_IzY_AbX<false>, &CCpu6502::FUNC, }, 5, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 
+#define LSN_BRANCH( NAME, COND, VAL )													{ &CCpu6502::Branch_Cycle2<uint8_t( LSN_STATUS_FLAGS::COND ), VAL>, &CCpu6502::Branch_Cycle3, &CCpu6502::Branch_Cycle4, }, 2, LSN_AM_RELATIVE, 2, LSN_I_ ## NAME,
+
 /*
  * imm = #$00						Immediate addressing
  * zp = $00							Zero page addressing
@@ -145,12 +147,7 @@ namespace lsn {
 
 		/** 10-17 */
 		{	// 10
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 0>,		// Branch if N == 0.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BPL,
+			LSN_BRANCH( BPL, LSN_SF_NEGATIVE, 0 )										// Branch if N == 0.
 		},
 		{	// 11
 			LSN_INDIRECT_Y_R( ORA, ORA_IzY_AbX_AbY_1, ORA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -274,12 +271,7 @@ namespace lsn {
 
 		/** 30-37 */
 		{	// 30
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 1>,		// Branch if N == 0.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BMI,
+			LSN_BRANCH( BMI, LSN_SF_NEGATIVE, 1 )										// Branch if N == 1.
 		},
 		{	// 31
 			LSN_INDIRECT_Y_R( AND, AND_IzY_AbX_AbY_1, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -405,12 +397,7 @@ namespace lsn {
 
 		/** 50-57 */
 		{	// 50
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), 0>,		// Branch if V == 0.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BVC,
+			LSN_BRANCH( BVC, LSN_SF_OVERFLOW, 0 )										// Branch if V == 0.
 		},
 		{	// 51
 			LSN_INDIRECT_Y_R( EOR, EOR_IzY_AbX_AbY_1, EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -539,12 +526,7 @@ namespace lsn {
 
 		/** 70-77 */
 		{	// 70
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), 1>,		// Branch if V == 1.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BVS,
+			LSN_BRANCH( BVS, LSN_SF_OVERFLOW, 1 )										// Branch if V == 1.
 		},
 		{	// 71
 			LSN_INDIRECT_Y_R( ADC, ADC_IzY_AbX_AbY_1, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -658,12 +640,7 @@ namespace lsn {
 
 		/** 90-97 */
 		{	// 90
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), 0>,			// Branch if C == 0.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BCC,
+			LSN_BRANCH( BCC, LSN_SF_CARRY, 0 )										// Branch if C == 0.
 		},
 		{	// 91
 			LSN_INDIRECT_Y_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -777,12 +754,7 @@ namespace lsn {
 
 		/** B0-B7 */
 		{	// B0
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), 1>,			// Branch if C == 1.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BCS,
+			LSN_BRANCH( BCS, LSN_SF_CARRY, 0 )										// Branch if C == 1.
 		},
 		{	// B1
 			LSN_INDIRECT_Y_R( LDA, LDA_IzY_AbX_AbY_1, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -896,12 +868,7 @@ namespace lsn {
 		
 		/** D0-D7 */
 		{	// D0
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), 0>,			// Branch if Z == 0.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BNE,
+			LSN_BRANCH( BNE, LSN_SF_ZERO, 0 )										// Branch if Z == 0.
 		},
 		{	// D1
 			LSN_INDIRECT_Y_R( CMP, CMP_IzY_AbX_AbY_1, CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -1015,12 +982,7 @@ namespace lsn {
 
 		/** F0-F7 */
 		{	// F0
-			{
-				//&CCpu6502::Branch_Cycle2,
-				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), 1>,			// Branch if Z == 1.
-				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
-				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
-				2, LSN_AM_RELATIVE, 2, LSN_I_BEQ,
+			LSN_BRANCH( BEQ, LSN_SF_ZERO, 1 )										// Branch if Z == 0.
 		},
 		{	// F1
 			LSN_INDIRECT_Y_R( SBC, SBC_IzY_AbX_AbY_1, SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -1461,16 +1423,6 @@ namespace lsn {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
-	/** Pushes PCH, sets the B flag, and decrements S. */
-	/*void CCpu6502::PushPchWithBFlag() {
-		//  #  address R/W description
-		// --- ------- --- -------------------------------------------------
-		//  3  $0100,S  W  push PCH on stack (with B flag set), decrement S
-		LSN_PUSH( pc.ui8Bytes[1] );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), true>( m_ui8Status );
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}*/
-
 	/** Pushes PCL, decrements S. */
 	void CCpu6502::PushPcl() {
 		//  #  address R/W description
@@ -1694,14 +1646,14 @@ namespace lsn {
 	}
 
 	/** 2nd cycle of branch instructions. Reads the operand (JMP offset). */
-	void CCpu6502::Branch_Cycle2() {
+	/*void CCpu6502::Branch_Cycle2() {
 		m_pccCurContext->ui8Operand = m_pbBus->Read( pc.PC++ );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}
+	}*/
 
-	/** 3rd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	template <unsigned _uBit, unsigned _uVal>
-	void CCpu6502::Branch_Cycle3() {
+	void CCpu6502::Branch_Cycle2() {
 		// Fetch next opcode.
 		//m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 		m_pccCurContext->ui8Operand = m_pbBus->Read( pc.PC++ );
@@ -1728,57 +1680,8 @@ namespace lsn {
 		}
 	}
 
-	/** 2nd cycle of branch instructions. Performs the check to decide which cycle comes next (or to end the instruction). */
-	/*template <unsigned _uBit, unsigned _uVal>
-	void CCpu6502::Branch_Cycle2() {
-		// This is a read instruction.
-		m_pbBus->Read( PC );	// Read and discard.  Affects emulation of the floating bus.
-		
-		// If the branch is not taken, we are done here.
-		// _uVal is 1 or 0, so _uVal * _uBit is _uBit or 0.
-		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
-		}
-		else {
-			// Branch is taken.
-			// Calculate offset and write to the low byte of PC.
-			uint16_t ui16NewAddr = static_cast<int16_t>(static_cast<int8_t>(m_pccCurContext->ui8Operand)) + PC;
-			uint16_t ui16PcH = PC & 0xFF00;
-			// Store the high byte to write later.
-			m_pccCurContext->ui8Pointer = static_cast<uint8_t>(ui16NewAddr >> 8);
-			PC = ui16PcH | (ui16NewAddr & 0xFF);	// Write low byte.
-			// m_pccCurContext->ui8Pointer == (ui16PcH >> 8)
-			// (m_pccCurContext->ui8Pointer << 8) == ui16PcH
-
-			LSN_ADVANCE_CONTEXT_COUNTERS;
-		}
-	}*/
-
-	/** 3rd cycle of branch instructions. Branch was taken, so copy part of the address and check for a page boundary. */
-	/*void CCpu6502::Branch_Cycle3() {
-		// This is a read instruction.
-		m_pbBus->Read( PC );	// Read and discard.  Affects emulation of the floating bus.
-		
-		
-		// Check for page crossing. High byte of PC was not modified yet (next instruction).
-		// Remember from cycle 2:
-		// m_pccCurContext->ui8Pointer == (ui16PcH >> 8)
-		// (m_pccCurContext->ui8Pointer << 8) == ui16PcH
-		uint16_t ui16PcH = m_pccCurContext->ui8Pointer << 8;
-		bool bCrossed = ui16PcH != (PC & 0xFF00);
-		PC = (PC & 0xFF) | ui16PcH;
-		if ( ui16PcH != (PC & 0xFF00) ) {
-			LSN_ADVANCE_CONTEXT_COUNTERS;
-		}
-		else {
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
-		}
-	}*/
-
-	/** 4th cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
-	void CCpu6502::Branch_Cycle4() {
+	/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+	void CCpu6502::Branch_Cycle3() {
 		// Fetch next opcode.
 		m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 
@@ -1795,8 +1698,8 @@ namespace lsn {
 		}
 	}
 
-	/** 5th cycle of branch instructions. Page boundary was crossed. */
-	void CCpu6502::Branch_Cycle5() {
+	/** 4th cycle of branch instructions. Page boundary was crossed. */
+	void CCpu6502::Branch_Cycle4() {
 		/**
 		Relative addressing (BCC, BCS, BNE, BEQ, BPL, BMI, BVC, BVS)
 
@@ -3220,6 +3123,43 @@ namespace lsn {
 
 }	// namespace lsn
 
+#undef LSN_BRANCH
+
+#undef LSN_ABSOLUTE_X_W
+#undef LSN_ABSOLUTE_X_RMW
+#undef LSN_ABSOLUTE_X_R
+
+#undef LSN_ABSOLUTE_Y_W
+#undef LSN_ABSOLUTE_Y_RMW
+#undef LSN_ABSOLUTE_Y_R
+
+#undef LSN_ZERO_PAGE_Y_W
+#undef LSN_ZERO_PAGE_Y_R
+
+#undef LSN_ZERO_PAGE_X_W
+#undef LSN_ZERO_PAGE_X_RMW
+#undef LSN_ZERO_PAGE_X_R
+
+#undef LSN_IMMEDIATE
+
+#undef LSN_ABSOLUTE_W
+#undef LSN_ABSOLUTE_RMW
+#undef LSN_ABSOLUTE_R
+
+#undef LSN_ZERO_PAGE_W
+#undef LSN_ZERO_PAGE_RMW
+#undef LSN_ZERO_PAGE_R
+
+#undef LSN_INDIRECT_Y_W
+#undef LSN_INDIRECT_Y_RMW
+#undef LSN_INDIRECT_Y_R
+
+#undef LSN_INDIRECT_X_W
+#undef LSN_INDIRECT_X_RMW
+#undef LSN_INDIRECT_X_R
+
+#undef LSN_FINISH_INST
 #undef LSN_POP
 #undef LSN_PUSH
 #undef LSN_ADVANCE_CONTEXT_COUNTERS
+#undef LSN_ADVANCE_CONTEXT_COUNTERS_BY
