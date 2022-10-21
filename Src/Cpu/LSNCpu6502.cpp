@@ -146,7 +146,7 @@ namespace lsn {
 		/** 10-17 */
 		{	// 10
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 0>,		// Branch if N == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -275,7 +275,7 @@ namespace lsn {
 		/** 30-37 */
 		{	// 30
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), 1>,		// Branch if N == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -406,7 +406,7 @@ namespace lsn {
 		/** 50-57 */
 		{	// 50
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), 0>,		// Branch if V == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -540,7 +540,7 @@ namespace lsn {
 		/** 70-77 */
 		{	// 70
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), 1>,		// Branch if V == 1.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -659,7 +659,7 @@ namespace lsn {
 		/** 90-97 */
 		{	// 90
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), 0>,			// Branch if C == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -778,7 +778,7 @@ namespace lsn {
 		/** B0-B7 */
 		{	// B0
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), 1>,			// Branch if C == 1.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -897,7 +897,7 @@ namespace lsn {
 		/** D0-D7 */
 		{	// D0
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), 0>,			// Branch if Z == 0.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -1016,7 +1016,7 @@ namespace lsn {
 		/** F0-F7 */
 		{	// F0
 			{
-				&CCpu6502::Branch_Cycle2,
+				//&CCpu6502::Branch_Cycle2,
 				&CCpu6502::Branch_Cycle3<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO ), 1>,			// Branch if Z == 1.
 				&CCpu6502::Branch_Cycle4,														// Optional (if branch is taken).
 				&CCpu6502::Branch_Cycle5, },													// Optional (if branch crosses page boundary).
@@ -1139,7 +1139,10 @@ namespace lsn {
 		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2002 );
 		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2003 );
 		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2006 );
-		
+
+		// TMP.
+		ui8Zero = 0xFF;
+		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2002 );
 	}
 
 	/**
@@ -1166,22 +1169,47 @@ namespace lsn {
 	 * Performs a single cycle update.
 	 */
 	void CCpu6502::Tick() {
+#ifdef _DEBUG
+		if ( pc.PC == 0xC293 ) {
+			volatile int gjhg = 0;
+		}
+		// TMP.
+		static uint64_t ui64Cycles = 0;
+		static uint64_t ui64CyclesAtStart = 0;
+		static uint64_t ui64LastCycles = 0;
+		static uint16_t ui16LastInstr = 0;
+		static uint16_t ui16LastPc = 0;
+#endif	// #ifdef _DEBUG
 		if ( m_bNmiHistory[1] && !m_bNmiHistory[0] ) {
 			// The NMI edge has been detected.
 			m_bHandleNmi = true;
 		}
 		m_bNmiHistory[0] = m_bNmiHistory[1];
 		if ( m_pccCurContext == nullptr ) {
+#ifdef _DEBUG
+			ui64LastCycles = ui64Cycles - ui64CyclesAtStart;
+			ui64CyclesAtStart = ui64Cycles;
+			char szBuffer[256];
+			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
+			::OutputDebugStringA( szBuffer );
+			ui16LastPc = pc.PC;
+#endif	// #ifdef _DEBUG
 			if ( m_bHandleNmi ) {
 				BeginInst( LSN_SO_NMI );
 			}
 			else {
 				FetchOpcodeAndIncPc();
 			}
+#ifdef _DEBUG
+			ui16LastInstr = m_pccCurContext->ui16OpCode;
+#endif	// #ifdef _DEBUG
 		}
 		else {
 			(this->*m_iInstructionSet[m_pccCurContext->ui16OpCode].pfHandler[m_pccCurContext->ui8FuncIdx])();
 		}
+#ifdef _DEBUG
+		ui64Cycles++;
+#endif	// #ifdef _DEBUG
 	}
 
 	/**
@@ -1675,7 +1703,8 @@ namespace lsn {
 	template <unsigned _uBit, unsigned _uVal>
 	void CCpu6502::Branch_Cycle3() {
 		// Fetch next opcode.
-		m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
+		//m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
+		m_pccCurContext->ui8Operand = m_pbBus->Read( pc.PC++ );
 		// If the branch is not taken, we are done here.
 		// For example:
 		// -> _uBit == LSN_STATUS_FLAGS::LSN_SF_NEGATIVE
@@ -1687,7 +1716,7 @@ namespace lsn {
 		// -> if ( (m_ui8Status & LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) != (1 * LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) ) {
 		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
 			// Branch not taken.
-			++pc.PC;
+			//++pc.PC;
 			LSN_FINISH_INST;
 		}
 		else {
