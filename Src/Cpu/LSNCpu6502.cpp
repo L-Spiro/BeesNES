@@ -23,7 +23,7 @@
 #define LSN_ADVANCE_CONTEXT_COUNTERS													LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
 #define LSN_PUSH( VAL )																	m_pbBus->Write( 0x100 + S--, (VAL) )
 #define LSN_POP()																		m_pbBus->Read( 0x100 + ++S )
-#define LSN_FINISH_INST																	m_ccCurContext.bActive = false
+#define LSN_FINISH_INST																	m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd		//m_ccCurContext.bActive = false
 
 #define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
@@ -1064,6 +1064,7 @@ namespace lsn {
 	// == Various constructors.
 	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
 		m_pbBus( _pbBus ),
+		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		A( 0 ),
 		S( 0xFD ),
 		X( 0 ),
@@ -1109,7 +1110,8 @@ namespace lsn {
 	 * Performs an "analog" reset, allowing previous data to remain.
 	 */
 	void CCpu6502::ResetAnalog() {
-		m_ccCurContext.bActive = false;
+		//m_ccCurContext.bActive = false;
+		m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd;
 		S -= 3;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
 
@@ -1129,6 +1131,9 @@ namespace lsn {
 	 * Performs a single cycle update.
 	 */
 	void CCpu6502::Tick() {
+#if 1
+		(this->*m_pfTickFunc)();
+#else
 #ifdef _DEBUG
 		if ( pc.PC == 0xC293 ) {
 			volatile int gjhg = 0;
@@ -1170,13 +1175,18 @@ namespace lsn {
 #ifdef _DEBUG
 		ui64Cycles++;
 #endif	// #ifdef _DEBUG
+
+#endif	// 1
 	}
 
-	/**
-	 * Fetches the next opcode and increments the program counter.
-	 */
-	void CCpu6502::FetchOpcodeAndIncPc() {
-		BeginInst( m_pbBus->Read( pc.PC++ ) );
+	/** Fetches the next opcode and begins the next instruction. */
+	void CCpu6502::Tick_NextInstructionStd() {
+		FetchOpcodeAndIncPc();
+	}
+
+	/** Performs a cycle inside an instruction. */
+	void CCpu6502::Tick_InstructionCycleStd() {
+		(this->*m_iInstructionSet[m_ccCurContext.ui16OpCode].pfHandler[m_ccCurContext.ui8FuncIdx])();
 	}
 
 	/**

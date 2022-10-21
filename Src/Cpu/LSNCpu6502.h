@@ -238,11 +238,14 @@ namespace lsn {
 			uint8_t							ui8FuncIdx;										/**< The index of the next function to call in the instruction. */
 			uint8_t							ui8Operand;										/**< The operand and low byte of addresses. */
 			uint8_t							ui8Pointer;										/**< For indirect indexed access. */
-			bool							bActive;										/**< If true, keep running the current instruction.  Otherwise move on to the next instruction. */
+			//bool							bActive;										/**< If true, keep running the current instruction.  Otherwise move on to the next instruction. */
 		};
 
 		/** A function pointer for the functions that handle each cycle. */
 		typedef void (CCpu6502:: *			PfCycle)();
+
+		/** A function pointer for the tick handlers. */
+		typedef void (CCpu6502:: *			PfTicks)();
 
 		/** An instruction. The micro-functions (pfHandler) that make up each cycle of each instruction are programmed to know what to do and can correctly pass the cycles without
 		 *	using ui8TotalCycles or amAddrMode. This means pcName, ui8TotalCycles, and amAddrMode are only used for debugging, verification, printing things, etc.
@@ -269,6 +272,7 @@ namespace lsn {
 
 		// == Members.
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
+		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
@@ -287,11 +291,16 @@ namespace lsn {
 		
 		
 		// == Functions.
+		/** Fetches the next opcode and begins the next instruction. */
+		void								Tick_NextInstructionStd();
+
+		/** Performs a cycle inside an instruction. */
+		void								Tick_InstructionCycleStd();
 
 
 		// == Cycle functions.
 		/** Fetches the next opcode and increments the program counter. */
-		void								FetchOpcodeAndIncPc();							// Cycle 1 (always).
+		inline void							FetchOpcodeAndIncPc();							// Cycle 1 (always).
 		/** Reads the next instruction byte and throws it away. */
 		void								ReadNextInstByteAndDiscard();					// Cycle 2.
 		/** Reads the next instruction byte and throws it away. */
@@ -620,6 +629,13 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Fuctions.
 	/**
+	 * Fetches the next opcode and increments the program counter.
+	 */
+	inline void CCpu6502::FetchOpcodeAndIncPc() {
+		BeginInst( m_pbBus->Read( pc.PC++ ) );
+	}
+
+	/**
 	 * Performs a compare against a register and an operand by setting flags.
 	 *
 	 * \param _ui8RegVal The register value used in the comparison.
@@ -630,7 +646,7 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, _ui8RegVal >= _ui8OpVal );
 		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof…
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == _ui8OpVal );
-		// …and the sign (i.e. A>=$80) of the accumulator.
+		// …and the sign (IE A>=$80) of the accumulator.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 
@@ -656,20 +672,11 @@ namespace lsn {
 	 */
 	inline void CCpu6502::BeginInst( uint16_t _ui16Op ) {
 		// Enter normal instruction context.
-		m_ccCurContext.bActive = true;
+		//m_ccCurContext.bActive = true;
 		m_ccCurContext.ui8Cycle = 1;
 		m_ccCurContext.ui8FuncIdx = 0;
 		m_ccCurContext.ui16OpCode = _ui16Op;
-		/*LSN_CPU_CONTEXT ccContext;
-		//ccContext.cContext = LSN_C_NORMAL;
-		ccContext.ui8Cycle = 1;		// Values as they should be after this function exits (this function representing the first cycle in all instructions).
-		ccContext.ui8FuncIdx = 0;	// This function is implicit, so index 0 is the function handler for the 2nd cycle following this one.
-		m_vContextStack.push_back( ccContext );
-		// Store the pointer to the last item on the stack so it doesn't have to be recalculated over and over.
-		m_pccCurContext = &m_vContextStack[m_vContextStack.size()-1];
-
-		// Perform the actual work.
-		m_pccCurContext->ui16OpCode = _ui16Op;*/
+		m_pfTickFunc = &CCpu6502::Tick_InstructionCycleStd;
 	}
 
 }	// namespace lsn

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Apu/LSNApu2A0X.h"
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpu6502.h"
 #include "../Ppu/LSNPpu2C0X.h"
@@ -31,7 +32,8 @@ namespace lsn {
 		unsigned _tPpuDiv,
 		unsigned _tApuDiv,
 		class _cCpu,
-		class _cPpu>
+		class _cPpu,
+		class _cApu>
 	class CSystem {
 	public :
 		CSystem() :
@@ -74,20 +76,18 @@ namespace lsn {
 				m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
 
 
-				//bool bFound = true;
-
 #define LSN_CPU_SLOT											0
 #define LSN_PPU_SLOT											1
 #define LSN_APU_SLOT											2
 				struct LSN_HW_SLOTS {
 					CTickable *									ptHw;
-					CTickable::PfTickFunc						pfTick;
+					//CTickable::PfTickFunc						pfTick;
 					uint64_t 									ui64Counter;
 					const uint64_t								ui64Inc;
 				} hsSlots[3] = {
-					{ &m_cCpu, reinterpret_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
-					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
-					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
+					{ &m_cCpu, m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
+					{ &m_pPpu, m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },
+					{ &m_pApu, m_ui64ApuCounter + _tApuDiv, _tApuDiv },
 				};
 				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
@@ -95,12 +95,10 @@ namespace lsn {
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
 					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter < ui64Low ) {
-						//stIdx = LSN_CPU_SLOT;
 						phsSlot = &hsSlots[LSN_CPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
 					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
-						//stIdx = LSN_PPU_SLOT;
 						phsSlot = &hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
@@ -110,19 +108,16 @@ namespace lsn {
 						//	as well as the pointer-access ("phsSlot").
 						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
 						//	0.68499566 cycles-per-tick.
-						// From there, using virtual functions instead of function pointers raises it to
-						//	0.69186794 cycles-per-tick.
-						//phsSlot = &hsSlots[LSN_APU_SLOT];
-						//phsSlot->ui64Counter += phsSlot->ui64Inc;
-						//phsSlot->ptHw->Tick();
-						//(phsSlot->ptHw->*phsSlot->pfTick)();
+						// Switching to function pointers inside the CPU Tick() function brought it
+						//	down to 0.63103939.
 						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
-						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
+						//(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
+						hsSlots[LSN_APU_SLOT].ptHw->Tick();
 					}
 					else if ( phsSlot != nullptr ) {
 						phsSlot->ui64Counter += phsSlot->ui64Inc;
-						(phsSlot->ptHw->*phsSlot->pfTick)();
-						//phsSlot->ptHw->Tick();
+						//(phsSlot->ptHw->*phsSlot->pfTick)();
+						phsSlot->ptHw->Tick();
 					}
 					else { break; }
 				} while ( true );
@@ -265,6 +260,7 @@ namespace lsn {
 		CCpuBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
+		_cApu											m_pApu;								/**< The APU. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		bool											m_bPaused;							/**< Pause flag. */
 
@@ -317,41 +313,41 @@ namespace lsn {
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CNtscSystem;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CNtscSystem;
 
 	/**
 	 * A PAL system.
 	 */
 	typedef CSystem<LSN_CS_PAL_MASTER, LSN_CS_PAL_MASTER_DIVISOR,
 		LSN_CS_PAL_CPU_DIVISOR, LSN_CS_PAL_PPU_DIVISOR, LSN_CS_PAL_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CPalSystem;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CPalSystem;
 
 	/**
 	 * A Dendy system.
 	 */
 	typedef CSystem<LSN_CS_DENDY_MASTER, LSN_CS_DENDY_MASTER_DIVISOR,
 		LSN_CS_DENDY_CPU_DIVISOR, LSN_CS_DENDY_PPU_DIVISOR, LSN_CS_DENDY_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CDendySystem;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CDendySystem;
 
 	/**
 	 * An RGB (2C03) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CRgb2C03System;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C03System;
 
 	/**
 	 * An RGB (2C04) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CRgb2C04System;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C04System;
 
 	/**
 	 * An RGB (2C05) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X>																	CRgb2C05System;
+		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C05System;
 
 }	// namespace lsn

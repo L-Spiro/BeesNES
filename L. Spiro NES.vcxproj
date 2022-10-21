@@ -154,6 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\File\LSNFileBase.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\File\LSNFileBase.cpp" />
