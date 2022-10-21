@@ -89,10 +89,8 @@ namespace lsn {
 					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },	// Temp.  Just want a function call to be made in all 3 slots so that the below can be coded properly and to test performance of adding function calls.
 					{ &m_pPpu, reinterpret_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },	// Temp.
 				};
-				//size_t stIdx;
 				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
-					//stIdx = ~size_t( 0 );
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
@@ -108,8 +106,8 @@ namespace lsn {
 					}
 					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
-						//	This means we can optimize away the "if ( stIdx != ~size_t( 0 ) )" check
-						//	as well as the dynamic array accesses ("hsSlots[stIdx]").
+						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
+						//	as well as the pointer-access ("phsSlot").
 						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
 						//	0.68499566 cycles-per-tick.
 						// From there, using virtual functions instead of function pointers raises it to
@@ -121,7 +119,7 @@ namespace lsn {
 						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
 						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
 					}
-					else if ( /*stIdx != ~size_t( 0 )*/phsSlot != nullptr ) {
+					else if ( phsSlot != nullptr ) {
 						phsSlot->ui64Counter += phsSlot->ui64Inc;
 						(phsSlot->ptHw->*phsSlot->pfTick)();
 						//phsSlot->ptHw->Tick();
