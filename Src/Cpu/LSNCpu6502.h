@@ -238,6 +238,7 @@ namespace lsn {
 			uint8_t							ui8FuncIdx;										/**< The index of the next function to call in the instruction. */
 			uint8_t							ui8Operand;										/**< The operand and low byte of addresses. */
 			uint8_t							ui8Pointer;										/**< For indirect indexed access. */
+			bool							bActive;										/**< If true, keep running the current instruction.  Otherwise move on to the next instruction. */
 		};
 
 		/** A function pointer for the functions that handle each cycle. */
@@ -268,8 +269,7 @@ namespace lsn {
 
 		// == Members.
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
-		LSN_CPU_CONTEXT *					m_pccCurContext;								/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
-		std::vector<LSN_CPU_CONTEXT>		m_vContextStack;								/**< Stack of contexts. */
+		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
 			uint8_t							ui8Bytes[2];
@@ -656,7 +656,11 @@ namespace lsn {
 	 */
 	inline void CCpu6502::BeginInst( uint16_t _ui16Op ) {
 		// Enter normal instruction context.
-		LSN_CPU_CONTEXT ccContext;
+		m_ccCurContext.bActive = true;
+		m_ccCurContext.ui8Cycle = 1;
+		m_ccCurContext.ui8FuncIdx = 0;
+		m_ccCurContext.ui16OpCode = _ui16Op;
+		/*LSN_CPU_CONTEXT ccContext;
 		//ccContext.cContext = LSN_C_NORMAL;
 		ccContext.ui8Cycle = 1;		// Values as they should be after this function exits (this function representing the first cycle in all instructions).
 		ccContext.ui8FuncIdx = 0;	// This function is implicit, so index 0 is the function handler for the 2nd cycle following this one.
@@ -665,7 +669,7 @@ namespace lsn {
 		m_pccCurContext = &m_vContextStack[m_vContextStack.size()-1];
 
 		// Perform the actual work.
-		m_pccCurContext->ui16OpCode = _ui16Op;
+		m_pccCurContext->ui16OpCode = _ui16Op;*/
 	}
 
 }	// namespace lsn
