@@ -38,6 +38,7 @@ namespace lsn {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
+			m_pPpu( &m_bBus ),
 			m_bPaused( false ) {
 			ResetState( false );
 		}
@@ -52,9 +53,11 @@ namespace lsn {
 		void											ResetState( bool _bAnalog ) {
 			if ( _bAnalog ) {
 				m_cCpu.ResetAnalog();
+				m_pPpu.ResetAnalog();
 			}
 			else {
 				m_cCpu.ResetToKnown();
+				m_pPpu.ResetToKnown();
 			}
 			m_ui64AccumTime = 0;
 			m_ui64MasterCounter = 0;
@@ -247,6 +250,20 @@ namespace lsn {
 			return false;
 		}
 
+		/**
+		 * Gets the PPU.
+		 *
+		 * \return Returns the PPU.
+		 */
+		inline const _cPpu &							GetPpu() const { return m_pPpu; }
+
+		/**
+		 * Gets the PPU.
+		 *
+		 * \return Returns the PPU.
+		 */
+		inline _cPpu &									GetPpu() { return m_pPpu; }
+
 
 	protected :
 		// == Members.
@@ -313,41 +330,41 @@ namespace lsn {
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CNtscSystem;
+		CCpu6502, CNtscPpu, CApu2A0X>														CNtscSystem;
 
 	/**
 	 * A PAL system.
 	 */
 	typedef CSystem<LSN_CS_PAL_MASTER, LSN_CS_PAL_MASTER_DIVISOR,
 		LSN_CS_PAL_CPU_DIVISOR, LSN_CS_PAL_PPU_DIVISOR, LSN_CS_PAL_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CPalSystem;
+		CCpu6502, CPalPpu, CApu2A0X>														CPalSystem;
 
 	/**
 	 * A Dendy system.
 	 */
 	typedef CSystem<LSN_CS_DENDY_MASTER, LSN_CS_DENDY_MASTER_DIVISOR,
 		LSN_CS_DENDY_CPU_DIVISOR, LSN_CS_DENDY_PPU_DIVISOR, LSN_CS_DENDY_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CDendySystem;
+		CCpu6502, CDendyPpu, CApu2A0X>														CDendySystem;
 
 	/**
 	 * An RGB (2C03) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C03System;
+		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C03System;
 
 	/**
 	 * An RGB (2C04) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C04System;
+		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C04System;
 
 	/**
 	 * An RGB (2C05) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CPpu2C0X, CApu2A0X>														CRgb2C05System;
+		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C05System;
 
 }	// namespace lsn

@@ -11,9 +11,4 @@
 
 namespace lsn {
 
-	CPpu2C0X::CPpu2C0X() {
-	}
-	CPpu2C0X::~CPpu2C0X() {
-	}
-
 }	// namespace lsn

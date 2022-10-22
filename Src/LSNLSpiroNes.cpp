@@ -45,7 +45,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	pnsSystem->LoadRom( vExtracted, s16Path );
 	pnsSystem->ResetState( false );
 	uint64_t ui64TickCount = 0;
-	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1ULL * 60 * 1 ) {
+	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1ULL * 60 ) {
 		pnsSystem->Tick();
 		++ui64TickCount;
 	}
@@ -54,10 +54,12 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	char szBuffer[256];
 	::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n"
 		"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
-		"%.8f cycles per Tick().\r\n",
+		"%.8f cycles per Tick().\r\n"
+		"%.8f FPS.\r\n",
 		ui64TickCount, dTime,
 		pnsSystem->GetMasterCounter(), pnsSystem->GetMasterCounter() / dTime, double( pnsSystem->MasterHz() ) / pnsSystem->MasterDiv(),
-		pnsSystem->GetMasterCounter() / double( ui64TickCount )
+		pnsSystem->GetMasterCounter() / double( ui64TickCount ),
+		pnsSystem->GetPpu().GetFrameCount() / dTime
 		);
 	::OutputDebugStringA( szBuffer );
 	return 0;
