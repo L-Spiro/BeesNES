@@ -286,8 +286,8 @@ namespace lsn {
 		uint8_t								Y;												/**< Index register Y. */
 		uint8_t								S;												/**< Stack pointer (addresses 0x0100 + S). */
 		uint8_t								m_ui8Status;									/**< The status flags. */
-		bool								m_bNmiHistory[2];								/**< The NMI value for the last cycle and the current cycle. */
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
+		bool								m_bDelayInterrupt;								/**< If set, interrupts are delayed by a cycle. */
 		
 		static LSN_INSTR					m_iInstructionSet[256+2];						/**< The instruction set. */
 		static const LSN_INSTR_META_DATA	m_smdInstMetaData[LSN_I_TOTAL];					/**< Metadata for the instructions (for assembly and disassembly etc.) */

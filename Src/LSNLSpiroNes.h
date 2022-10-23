@@ -92,7 +92,13 @@ namespace lsn {
 		LSN_PACK_RAM_SIZE					= 0x2000,
 
 		// PPU memory.
-		LSN_PPU_MEM_FULL_SIZE				= 0x4000,
+		LSN_PPU_MEM_FULL_SIZE				= 0x4000,							/**< Full size of the PPU memory. */
+		LSN_PPU_PATTERN_TABLES				= 0x1000,							/**< The start of all pattern tables. */
+		LSN_PPU_PATTERN_TABLE_SIZE			= 0x2000,							/**< The size of all pattern tables. */
+		LSN_PPU_NAMETABLES					= 0x2000,							/**< The start of all nametables. */
+		LSN_PPU_NAMETABLES_SIZE				= 0x0400 * 4,						/**< The size of all nametables. */
+		LSN_PPU_PALETTE_MEMORY				= 0x3F00,							/** Start of the palette memory. */
+		LSN_PPU_PALETTE_MEMORY_SIZE			= 0x20,								/** Size of the palette memory. */
 	};
 
 	/** Clock speeds. */

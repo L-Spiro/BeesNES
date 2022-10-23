@@ -1070,13 +1070,10 @@ namespace lsn {
 		S( 0xFD ),
 		X( 0 ),
 		Y( 0 ),
-		m_bHandleNmi( false ) {
+		m_bHandleNmi( false ),
+		m_bDelayInterrupt( false ) {
 		pc.PC = 0xC000;
 		m_ui8Status = 0x04;
-		std::memset( m_bNmiHistory, 0, sizeof( m_bNmiHistory ) );
-
-		
-
 	}
 	CCpu6502::~CCpu6502() {
 		ResetToKnown();
@@ -1122,7 +1119,7 @@ namespace lsn {
 
 		pc.PC = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 
-		m_bNmiHistory[0] = m_bNmiHistory[1] = m_bHandleNmi = false;
+		m_bHandleNmi = m_bDelayInterrupt = false;
 	}
 
 	/**
@@ -1130,52 +1127,7 @@ namespace lsn {
 	 */
 	void CCpu6502::Tick() {
 		++m_ui64CycleCount;
-#if 1
 		(this->*m_pfTickFunc)();
-#else
-#ifdef _DEBUG
-		if ( pc.PC == 0xC293 ) {
-			volatile int gjhg = 0;
-		}
-		// TMP.
-		static uint64_t ui64Cycles = 0;
-		static uint64_t ui64CyclesAtStart = 0;
-		static uint64_t ui64LastCycles = 0;
-		static uint16_t ui16LastInstr = 0;
-		static uint16_t ui16LastPc = 0;
-#endif	// #ifdef _DEBUG
-		if ( m_bNmiHistory[1] && !m_bNmiHistory[0] ) {
-			// The NMI edge has been detected.
-			m_bHandleNmi = true;
-		}
-		m_bNmiHistory[0] = m_bNmiHistory[1];
-		if ( !m_ccCurContext.bActive ) {
-#ifdef _DEBUG
-			ui64LastCycles = ui64Cycles - ui64CyclesAtStart;
-			ui64CyclesAtStart = ui64Cycles;
-			char szBuffer[256];
-			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
-			::OutputDebugStringA( szBuffer );
-			ui16LastPc = pc.PC;
-#endif	// #ifdef _DEBUG
-			if ( m_bHandleNmi ) {
-				BeginInst( LSN_SO_NMI );
-			}
-			else {
-				FetchOpcodeAndIncPc();
-			}
-#ifdef _DEBUG
-			ui16LastInstr = m_ccCurContext.ui16OpCode;
-#endif	// #ifdef _DEBUG
-		}
-		else {
-			(this->*m_iInstructionSet[m_ccCurContext.ui16OpCode].pfHandler[m_ccCurContext.ui8FuncIdx])();
-		}
-#ifdef _DEBUG
-		ui64Cycles++;
-#endif	// #ifdef _DEBUG
-
-#endif	// 1
 	}
 
 	/**
@@ -1208,26 +1160,22 @@ namespace lsn {
 		static uint16_t ui16LastInstr = 0;
 		static uint16_t ui16LastPc = 0;
 #endif	// #ifdef _DEBUG
-		/*if ( m_bNmiHistory[1] && !m_bNmiHistory[0] ) {
-			// The NMI edge has been detected.
-			m_bHandleNmi = true;
-		}
-		m_bNmiHistory[0] = m_bNmiHistory[1];*/
 #ifdef _DEBUG
 		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
 		ui64CyclesAtStart = m_ui64CycleCount;
-		if ( ui16LastPc ) {
+		/*if ( ui16LastPc ) {
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
 			::OutputDebugStringA( szBuffer );
-		}
+		}*/
 		ui16LastPc = pc.PC;
 #endif	// #ifdef _DEBUG
-		if ( m_bHandleNmi ) {
+		if ( m_bHandleNmi && !m_bDelayInterrupt ) {
 			BeginInst( LSN_SO_NMI );
 		}
 		else {
 			FetchOpcodeAndIncPc();
+			m_bDelayInterrupt = false;
 		}
 
 #ifdef _DEBUG
@@ -1729,7 +1677,7 @@ namespace lsn {
 		// -> if ( (m_ui8Status & LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) != (1 * LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) ) {
 		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
 			// Branch not taken.
-			//++pc.PC;
+			m_bDelayInterrupt = true;
 			LSN_FINISH_INST;
 		}
 		else {
@@ -1755,6 +1703,7 @@ namespace lsn {
 		else {
 			// Did not cross a page boundary.
 			// Last cycle in the instruction.
+			m_bDelayInterrupt = true;
 			LSN_FINISH_INST;
 		}
 	}
@@ -1789,7 +1738,7 @@ namespace lsn {
               ! If branch occurs to different page, this cycle will be
                 executed.
 		**/
-		// Subtract the last cycle?  opcode fetch is just for illustration?
+		// Subtract the last cycle?  Opcode fetch is just for illustration?
 		// I am assuming this means it should behave as expected by putting PC in place and then letting the
 		//	system eat the next opcode on the next cycle, but they could be pre-fetching the opcode as an
 		//	optimization.

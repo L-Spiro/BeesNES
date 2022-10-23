@@ -34,7 +34,8 @@ namespace lsn {
 			m_ui64Frame( 0 ),
 			m_ui64Cycle( 0 ),
 			m_ui16Scanline( 0 ),
-			m_ui16RowDot( 0 ) {
+			m_ui16RowDot( 0 ),
+			m_bAddresLatch( false ) {
 		}
 		~CPpu2C0X() {
 		}
@@ -83,6 +84,7 @@ namespace lsn {
 			m_ui64Cycle = 0;
 			m_ui16Scanline = 0;
 			m_ui16RowDot = 0;
+			m_paPpuAddr.ui16Addr = 0;
 		}
 
 		/**
@@ -91,21 +93,44 @@ namespace lsn {
 		void											ResetAnalog() {
 			m_pcPpuCtrl.ui8Reg = 0;
 
+			m_pmPpuMask.ui8Reg = 0;
+
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			m_psPpuStatus.s.ui8VBlank = 0;
+
+			m_bAddresLatch = false;
 		}
 
 		/**
 		 * Applies the PPU's memory mapping t the bus.
 		 */
 		void											ApplyMemoryMap() {
+			// Pattern tables.
+			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
+			}
+
+			// Nametables.
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE) + LSN_PPU_NAMETABLES ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE) + LSN_PPU_NAMETABLES ) );
+			}
+
+			// Palettes.
+			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+			}
+
 			// 0x2000: PPUCTRL.
 			m_pbBus->SetReadFunc( 0x2000, PpuNoRead, this, 0x2000 );
-			m_pbBus->SetWriteFunc( 0x2000, Write2000, this, 0x2000 );
+			m_pbBus->SetWriteFunc( 0x2000, Write2000, this, 0 );
 
 			// 0x2001: PPUMASK.
 			m_pbBus->SetReadFunc( 0x2001, PpuNoRead, this, 0x2001 );
+			m_pbBus->SetWriteFunc( 0x2001, Write2001, this, 0 );
 
 			// 0x2002: PPUSTATUS.
 			m_pbBus->SetReadFunc( 0x2002, Read2002, this, 0 );
@@ -120,6 +145,11 @@ namespace lsn {
 
 			// 0x2006: PPUADDR.
 			m_pbBus->SetReadFunc( 0x2006, PpuNoRead, this, 0x2006 );
+			m_pbBus->SetWriteFunc( 0x2006, Write2006, this, 0 );
+
+			// 0x2007: PPUDATA.
+			m_pbBus->SetReadFunc( 0x2007, Read2007, this, 0 );
+			m_pbBus->SetWriteFunc( 0x2007, Write2007, this, 0 );
 		}
 
 		/**
@@ -174,8 +204,20 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Only the top 3 bits can be modified on the floating bus.
 			ppPpu->m_ui8IoBusFloater = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
+		}
+
+		/**
+		 * Writing to 0x2001.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_ui8IoBusFloater = ppPpu->m_pmPpuMask.ui8Reg = _ui8Val;
 		}
 
 		/**
@@ -194,6 +236,8 @@ namespace lsn {
 			_ui8Ret = ppPpu->m_ui8IoBusFloater;
 			// Reads cause the v-blank flag to reset.
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+			// The address latch also gets reset.
+			ppPpu->m_bAddresLatch = false;
 		}
 
 		/**
@@ -211,7 +255,63 @@ namespace lsn {
 		}
 
 		/**
-		 * Reading from 0x2002 (resets the v-blank flag).
+		 * Writing to 0x2006.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
+			ppPpu->m_bAddresLatch ^= 1;
+			ppPpu->m_paPpuAddr.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
+			ppPpu->m_paPpuAddr.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
+		}
+
+		/**
+		 * Reading from 0x2007 (PPU bus memory).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Read2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			// m_paPpuAddr.ui16Addr is expected to be sanitized so no initial checks for that.
+			uint16_t ui16Addr = ppPpu->m_paPpuAddr.ui16Addr;
+			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
+				// Palette memory is placed on the bus and returned immediately.
+				_ui8Ret = ppPpu->m_bBus.Read( ui16Addr );
+			}
+			else {
+				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
+				//	to be fetched on the next read.
+				_ui8Ret = ppPpu->m_bBus.GetFloat();
+				ppPpu->m_bBus.Read( ui16Addr );
+			}
+			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + 1) & (LSN_PPU_MEM_FULL_SIZE - 1);
+		}
+
+		/**
+		 * Writing to 0x2007 ((PPU bus memory).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			uint16_t ui16Addr = ppPpu->m_paPpuAddr.ui16Addr;
+			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
+			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + 1) & (LSN_PPU_MEM_FULL_SIZE - 1);
+		}
+
+		/**
+		 * Reading from a write-only address (returns the IO bus contents and fills the bus with the contents at the address).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
@@ -258,6 +358,24 @@ namespace lsn {
 			};
 		};
 
+		/** The PPUMASK register. */
+		struct LSN_PPUMASK {
+			union {
+				struct {
+					uint8_t								ui8Greyscale			: 1;					/**< 0 = color, 1 = greyscale. */
+					uint8_t								ui8LeftBackground		: 1;					/**< Show the background in the left-most 8 pixels. */
+					uint8_t								ui8LeftSprites			: 1;					/**< Show sprites in the left-most 8 pixels. */
+					uint8_t								ui8ShowBackground		: 1;					/**< Show the background. */
+					uint8_t								ui8ShowSprites			: 1;					/**< Show sprites. */
+					uint8_t								ui8RedEmph				: 1;					/**< Emphasize red (green on PAL/Dendy). */
+					uint8_t								ui8GreenEmph			: 1;					/**< Emphasize green (red on PAL/Dendy). */
+					uint8_t								ui8BlueEmph				: 1;					/**< Emphasize blue. */
+				}										s;
+
+				uint8_t									ui8Reg;											/**< Register as a uint8_t. */
+			};
+		};
+
 		/** The PPUSTATUS register. */
 		struct LSN_PPUSTATUS {
 			union {
@@ -272,6 +390,14 @@ namespace lsn {
 			};
 		};
 
+		/** The PPUADDR register. */
+		struct LSN_PPUADDR {
+			union {
+				uint16_t								ui16Addr;										/**< The full 16-bit address. */
+				uint8_t									ui8Bytes[2];									/**< Per-byte access to the address. */
+			};
+		};
+
 
 		// == Members.
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
@@ -281,9 +407,15 @@ namespace lsn {
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
+		LSN_PPUADDR										m_paPpuAddr;									/**< The PPUADDR register. */
 		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
-		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
+		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
+		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */		
+		bool											m_bAddresLatch;									/**< The address latch. */
+
+
+		// == Functions.
 	};
 	
 

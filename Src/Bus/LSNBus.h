@@ -216,7 +216,7 @@ namespace lsn {
 		 * \param _ui32Size The size of the data to which _pui8Data points.
 		 * \param _ui16Address The address to which to copy the data.
 		 */
-		inline void						CopyToMemory( const uint8_t * _pui8Data, uint32_t _ui32Size, uint16_t _ui16Address ) {
+		inline void							CopyToMemory( const uint8_t * _pui8Data, uint32_t _ui32Size, uint16_t _ui16Address ) {
 			if ( _ui16Address < Size() ) {
 				size_t stEnd = _ui32Size + size_t( _ui16Address );
 				if ( stEnd > Size() ) { stEnd = Size(); }
