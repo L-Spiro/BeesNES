@@ -164,6 +164,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets the floating value on the bus.
+		 *
+		 * \return Returns the floating value on the bus.
+		 */
+		inline uint8_t						GetFloat() const { return m_ui8LastRead; }
+
+		/**
 		 * Gets the size of the bus in bytes.
 		 *
 		 * \return Returns the size of the bus in bytes.
@@ -224,7 +231,6 @@ namespace lsn {
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
-		 * \return Returns true if the operation succeeds.  Return false to have the bus return the floating value.
 		 */
 		static void LSN_FASTCALL			StdRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			_ui8Ret = _pui8Data[_ui16Parm1];
@@ -249,9 +255,8 @@ namespace lsn {
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
-		 * \return Returns true if the operation succeeds.  Return false to have the bus return the floating value.
 		 */
-		static void							NoRead( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &/*_ui8Ret*/ ) {
+		static void LSN_FASTCALL			NoRead( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &/*_ui8Ret*/ ) {
 		}
 
 		/**
@@ -262,7 +267,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void							NoWrite( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+		static void LSN_FASTCALL			NoWrite( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
 		}
 
 

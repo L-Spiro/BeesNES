@@ -18,6 +18,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 #include <vector>
 
@@ -29,7 +30,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 : public CTickable {
+	class CCpu6502 : public CTickable, public CNmiable {
 	public :
 		// == Various constructors.
 		CCpu6502( CCpuBus * _pbBus );
@@ -80,6 +81,11 @@ namespace lsn {
 		virtual void						Tick();
 
 		/**
+		 * Applies the CPU's memory mapping t the bus.
+		 */
+		void								ApplyMemoryMap();
+
+		/**
 		 * DESC
 		 *
 		 * \param PARM DESC
@@ -89,13 +95,9 @@ namespace lsn {
 		//void								Irq();
 
 		/**
-		 * DESC
-		 *
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return RETURN
+		 * Notifies the class that an NMI has occurred.
 		 */
-		//void								Nmi();
+		virtual void						Nmi();
 
 
 	protected :
@@ -271,6 +273,7 @@ namespace lsn {
 
 
 		// == Members.
+		uint64_t							m_ui64CycleCount;								/**< The total CPU cycles that have ticked. */
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */

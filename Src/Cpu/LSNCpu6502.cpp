@@ -1039,7 +1039,7 @@ namespace lsn {
 
 		{	// 100
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PushPch,
 				&CCpu6502::PushPcl,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
@@ -1049,7 +1049,7 @@ namespace lsn {
 		},
 		{	// 101
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PushPch,
 				&CCpu6502::PushPcl,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
@@ -1063,6 +1063,7 @@ namespace lsn {
 
 	// == Various constructors.
 	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
+		m_ui64CycleCount( 0 ),
 		m_pbBus( _pbBus ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		A( 0 ),
@@ -1074,11 +1075,7 @@ namespace lsn {
 		m_ui8Status = 0x04;
 		std::memset( m_bNmiHistory, 0, sizeof( m_bNmiHistory ) );
 
-		// Apply the CPU memory map to the bus.
-		for ( uint32_t I = LSN_CPU_START; I < (LSN_CPU_START + LSN_CPU_FULL_SIZE); ++I ) {
-			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
-			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
-		}
+		
 
 	}
 	CCpu6502::~CCpu6502() {
@@ -1091,6 +1088,7 @@ namespace lsn {
 	 */
 	void CCpu6502::ResetToKnown() {
 		ResetAnalog();
+		m_ui64CycleCount = 0;
 		A = 0;
 		S = 0xFD;
 		X = Y = 0;
@@ -1131,6 +1129,7 @@ namespace lsn {
 	 * Performs a single cycle update.
 	 */
 	void CCpu6502::Tick() {
+		++m_ui64CycleCount;
 #if 1
 		(this->*m_pfTickFunc)();
 #else
@@ -1179,9 +1178,61 @@ namespace lsn {
 #endif	// 1
 	}
 
+	/**
+	 * Applies the CPU's memory mapping t the bus.
+	 */
+	void CCpu6502::ApplyMemoryMap() {
+		// Apply the CPU memory map to the bus.
+		for ( uint32_t I = LSN_CPU_START; I < (LSN_CPU_START + LSN_CPU_FULL_SIZE); ++I ) {
+			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
+			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
+		}
+	}
+
+	/**
+	 * Notifies the class that an NMI has occurred.
+	 */
+	void CCpu6502::Nmi() {
+		m_bHandleNmi = true;
+	}
+
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {
-		FetchOpcodeAndIncPc();
+#ifdef _DEBUG
+		if ( pc.PC == 0xC293 ) {
+			volatile int gjhg = 0;
+		}
+		// TMP.
+		static uint64_t ui64CyclesAtStart = 0;
+		static uint64_t ui64LastCycles = 0;
+		static uint16_t ui16LastInstr = 0;
+		static uint16_t ui16LastPc = 0;
+#endif	// #ifdef _DEBUG
+		/*if ( m_bNmiHistory[1] && !m_bNmiHistory[0] ) {
+			// The NMI edge has been detected.
+			m_bHandleNmi = true;
+		}
+		m_bNmiHistory[0] = m_bNmiHistory[1];*/
+#ifdef _DEBUG
+		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
+		ui64CyclesAtStart = m_ui64CycleCount;
+		if ( ui16LastPc ) {
+			char szBuffer[256];
+			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
+			::OutputDebugStringA( szBuffer );
+		}
+		ui16LastPc = pc.PC;
+#endif	// #ifdef _DEBUG
+		if ( m_bHandleNmi ) {
+			BeginInst( LSN_SO_NMI );
+		}
+		else {
+			FetchOpcodeAndIncPc();
+		}
+
+#ifdef _DEBUG
+		ui16LastInstr = m_ccCurContext.ui16OpCode;
+#endif	// #ifdef _DEBUG
 	}
 
 	/** Performs a cycle inside an instruction. */
@@ -1446,6 +1497,7 @@ namespace lsn {
 		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		if ( m_bHandleNmi ) { m_bHandleNmi = false; }
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 
@@ -1457,6 +1509,7 @@ namespace lsn {
 		LSN_PUSH( ui8Status );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		if ( m_bHandleNmi ) { m_bHandleNmi = false; }
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 	}
 

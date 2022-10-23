@@ -38,7 +38,7 @@ namespace lsn {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
-			m_pPpu( &m_bBus ),
+			m_pPpu( &m_bBus, &m_cCpu ),
 			m_bPaused( false ) {
 			ResetState( false );
 		}
@@ -65,6 +65,9 @@ namespace lsn {
 			m_ui64PpuCounter = 0;
 			m_ui64ApuCounter = 0;
 			m_ui64LastRealTime = m_cClock.GetRealTick();
+
+			m_cCpu.ApplyMemoryMap();
+			m_pPpu.ApplyMemoryMap();
 		}
 
 		/**

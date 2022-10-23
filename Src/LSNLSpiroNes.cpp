@@ -45,12 +45,17 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	pnsSystem->LoadRom( vExtracted, s16Path );
 	pnsSystem->ResetState( false );
 	uint64_t ui64TickCount = 0;
-	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < 1ULL * 60 ) {
+#define LSN_TIME								(1ULL * 60)
+	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < LSN_TIME ) {
 		pnsSystem->Tick();
 		++ui64TickCount;
 	}
 	uint64_t ui64Time = cClock.GetRealTick() - cClock.GetStartTick();
-	double dTime = ui64Time / double( cClock.GetResolution() );
+	// If there are more Tick()'s than cycles then we definitely didn't go slower than the real system, so we can shave off excess time.
+
+	double dTime = (ui64TickCount >= pnsSystem->GetMasterCounter()) ?
+		double( LSN_TIME ) :
+		ui64Time / double( cClock.GetResolution() );
 	char szBuffer[256];
 	::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n"
 		"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
