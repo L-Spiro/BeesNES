@@ -23,7 +23,7 @@
 #define LSN_ADVANCE_CONTEXT_COUNTERS													LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
 #define LSN_PUSH( VAL )																	m_pbBus->Write( 0x100 + S--, (VAL) )
 #define LSN_POP()																		m_pbBus->Read( 0x100 + ++S )
-#define LSN_FINISH_INST																	m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd		//m_ccCurContext.bActive = false
+#define LSN_FINISH_INST																	m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd
 
 #define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
@@ -1074,6 +1074,7 @@ namespace lsn {
 		m_bDelayInterrupt( false ) {
 		pc.PC = 0xC000;
 		m_ui8Status = 0x04;
+		std::memset( &m_ccCurContext, 0, sizeof( m_ccCurContext ) );
 	}
 	CCpu6502::~CCpu6502() {
 		ResetToKnown();
@@ -1090,15 +1091,6 @@ namespace lsn {
 		S = 0xFD;
 		X = Y = 0;
 		m_ui8Status = 0x04;
-
-		uint8_t ui8Zero = 0;
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2002 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2003 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2006 );
-
-		// TMP.
-		ui8Zero = 0xFF;
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2002 );
 	}
 
 	/**
@@ -1109,13 +1101,6 @@ namespace lsn {
 		m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd;
 		S -= 3;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
-
-		uint8_t ui8Zero = 0;
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2000 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2001 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2005 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2006 );
-		m_pbBus->CopyToMemory( &ui8Zero, 1, 0x2007 );
 
 		pc.PC = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 
@@ -1163,11 +1148,11 @@ namespace lsn {
 #ifdef _DEBUG
 		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
 		ui64CyclesAtStart = m_ui64CycleCount;
-		/*if ( ui16LastPc ) {
+		if ( ui16LastPc ) {
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
 			::OutputDebugStringA( szBuffer );
-		}*/
+		}
 		ui16LastPc = pc.PC;
 #endif	// #ifdef _DEBUG
 		if ( m_bHandleNmi && !m_bDelayInterrupt ) {

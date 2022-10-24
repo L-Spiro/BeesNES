@@ -195,6 +195,13 @@ namespace lsn {
 		inline uint16_t									GetCurrentScanline() const { return m_ui16Scanline; }
 
 		/**
+		 * Gets the PPU bus.
+		 *
+		 * \return Returns the PPU bus.
+		 */
+		inline CPpuBus &								GetPpuBus() { return m_bBus; }
+
+		/**
 		 * Writing to 0x2000.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.

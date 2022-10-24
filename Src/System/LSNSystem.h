@@ -19,6 +19,8 @@
 #include "../Time/LSNClock.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <algorithm>
+
 namespace lsn {
 
 	/**
@@ -248,6 +250,7 @@ namespace lsn {
 				}
 				// ROM loaded.
 				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
+				m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
 				return true;
 			}
 			return false;
