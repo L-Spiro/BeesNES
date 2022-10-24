@@ -63,13 +63,18 @@ namespace lsn {
 					++m_ui64Frame;
 				}
 			}
-			else if ( m_ui16RowDot == 1 && m_ui16Scanline == (_tPreRender + _tRender + _tPostRender) ) {
-				// [1, 241] on NTSC.
-				// [1, 241] on PAL.
-				// [1, 241] on Dendy.
-				m_psPpuStatus.s.ui8VBlank = 1;
-				if ( m_pcPpuCtrl.s.ui8Nmi ) {
-					m_pnNmiTarget->Nmi();
+			else if ( m_ui16RowDot == 1 ) {
+				if ( m_ui16Scanline == (_tPreRender + _tRender + _tPostRender) ) {
+					// [1, 241] on NTSC.
+					// [1, 241] on PAL.
+					// [1, 241] on Dendy.
+					m_psPpuStatus.s.ui8VBlank = 1;
+					if ( m_pcPpuCtrl.s.ui8Nmi ) {
+						m_pnNmiTarget->Nmi();
+					}
+				}
+				else if ( m_ui16Scanline == (_tDotHeight - 1) ) {
+					m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
 				}
 			}
 			
@@ -299,7 +304,7 @@ namespace lsn {
 				_ui8Ret = ppPpu->m_bBus.GetFloat();
 				ppPpu->m_bBus.Read( ui16Addr );
 			}
-			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + 1) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
@@ -314,7 +319,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddr.ui16Addr;
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
-			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + 1) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
