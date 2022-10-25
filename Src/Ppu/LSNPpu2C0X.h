@@ -105,6 +105,7 @@ namespace lsn {
 			m_psPpuStatus.s.ui8VBlank = 0;
 
 			m_bAddresLatch = false;
+			m_ui8FineScrollX = m_ui8FineScrollY = 0;
 		}
 
 		/**
@@ -267,6 +268,27 @@ namespace lsn {
 		}
 
 		/**
+		 * Writing to 0x2005.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
+			if ( !ppPpu->m_bAddresLatch ) {
+				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
+				// TODO: Course X and Y.
+			}
+			else if ( !ppPpu->m_bAddresLatch ) {
+				ppPpu->m_ui8FineScrollY = _ui8Val & 0x7;
+			}
+			ppPpu->m_bAddresLatch ^= 1;
+		}
+
+		/**
 		 * Writing to 0x2006.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -420,10 +442,12 @@ namespace lsn {
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
 		LSN_PPUADDR										m_paPpuAddr;									/**< The PPUADDR register. */
-		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */		
+		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
+		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
+		uint8_t											m_ui8FineScrollY;								/**< The fine Y scroll position. */
 		bool											m_bAddresLatch;									/**< The address latch. */
 
 
