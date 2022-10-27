@@ -14,6 +14,9 @@
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 
+#define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
+#define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
+
 namespace lsn {
 
 	/**
@@ -89,7 +92,8 @@ namespace lsn {
 			m_ui64Cycle = 0;
 			m_ui16Scanline = 0;
 			m_ui16RowDot = 0;
-			m_paPpuAddr.ui16Addr = 0;
+			m_paPpuAddrT.ui16Addr = 0;
+			m_paPpuAddrV.ui16Addr = 0;
 		}
 
 		/**
@@ -105,7 +109,7 @@ namespace lsn {
 			m_psPpuStatus.s.ui8VBlank = 0;
 
 			m_bAddresLatch = false;
-			m_ui8FineScrollX = m_ui8FineScrollY = 0;
+			m_ui8FineScrollX = 0;
 		}
 
 		/**
@@ -218,6 +222,8 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			ppPpu->m_ui8IoBusFloater = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
+			ppPpu->m_paPpuAddrT.s.ui16NametableX = LSN_CTRL_NAMETABLE_X( ppPpu->m_pcPpuCtrl );
+			ppPpu->m_paPpuAddrT.s.ui16NametableY = LSN_CTRL_NAMETABLE_Y( ppPpu->m_pcPpuCtrl );
 		}
 
 		/**
@@ -280,10 +286,11 @@ namespace lsn {
 			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
-				// TODO: Course X and Y.
+				ppPpu->m_paPpuAddrT.ui16CourseX = _ui8Val >> 3;
 			}
-			else if ( !ppPpu->m_bAddresLatch ) {
-				ppPpu->m_ui8FineScrollY = _ui8Val & 0x7;
+			else {
+				ppPpu->m_paPpuAddrT.ui16FineY = _ui8Val & 0x7;
+				ppPpu->m_paPpuAddrT.ui16CourseY = _ui8Val >> 3;
 			}
 			ppPpu->m_bAddresLatch ^= 1;
 		}
@@ -300,8 +307,12 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
 			ppPpu->m_bAddresLatch ^= 1;
-			ppPpu->m_paPpuAddr.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
-			ppPpu->m_paPpuAddr.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
+			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
+			ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
+			if ( !ppPpu->m_bAddresLatch ) {
+				// ppPpu->m_bAddresLatch was 1 when we came here, flipped at the start.  This is the 2nd write.
+				ppPpu->m_paPpuAddrV.ui16Addr = ppPpu->m_paPpuAddrT.ui16Addr;
+			}
 		}
 
 		/**
@@ -315,7 +326,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Read2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// m_paPpuAddr.ui16Addr is expected to be sanitized so no initial checks for that.
-			uint16_t ui16Addr = ppPpu->m_paPpuAddr.ui16Addr;
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
 				_ui8Ret = ppPpu->m_bBus.Read( ui16Addr );
@@ -326,7 +337,7 @@ namespace lsn {
 				_ui8Ret = ppPpu->m_bBus.GetFloat();
 				ppPpu->m_bBus.Read( ui16Addr );
 			}
-			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
@@ -339,9 +350,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Addr = ppPpu->m_paPpuAddr.ui16Addr;
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
-			ppPpu->m_paPpuAddr.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
@@ -424,11 +435,18 @@ namespace lsn {
 			};
 		};
 
-		/** The PPUADDR register. */
+		/** The PPUADDR register (loopy). */
 		struct LSN_PPUADDR {
 			union {
 				uint16_t								ui16Addr;										/**< The full 16-bit address. */
 				uint8_t									ui8Bytes[2];									/**< Per-byte access to the address. */
+				struct {
+					uint16_t							ui16CourseX : 5;								/**< Course X scroll position. */
+					uint16_t							ui16CourseY : 5;								/**< Course Y scroll position. */
+					uint16_t							ui16NametableX : 1;								/**< Nametable X. */
+					uint16_t							ui16NametableY : 1;								/**< Nametable Y. */
+					uint16_t							ui16FineY : 3;									/**< Fine Y. */
+				}										s;
 			};
 		};
 
@@ -441,13 +459,13 @@ namespace lsn {
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
-		LSN_PPUADDR										m_paPpuAddr;									/**< The PPUADDR register. */
+		LSN_PPUADDR										m_paPpuAddrT;									/**< The "t" PPUADDR register. */
+		LSN_PPUADDR										m_paPpuAddrV;									/**< The "v" PPUADDR register. */
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */		
 		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
-		uint8_t											m_ui8FineScrollY;								/**< The fine Y scroll position. */
 		bool											m_bAddresLatch;									/**< The address latch. */
 
 
@@ -480,3 +498,6 @@ namespace lsn {
 
 
 }	// namespace lsn
+
+#undef LSN_CTRL_NAMETABLE_X
+#undef LSN_CTRL_NAMETABLE_Y
