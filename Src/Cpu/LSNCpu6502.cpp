@@ -1146,13 +1146,13 @@ namespace lsn {
 		static uint16_t ui16LastPc = 0;
 #endif	// #ifdef _DEBUG
 #ifdef _DEBUG
-		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
+		/*ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
 		ui64CyclesAtStart = m_ui64CycleCount;
 		if ( ui16LastPc ) {
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
 			::OutputDebugStringA( szBuffer );
-		}
+		}*/
 		ui16LastPc = pc.PC;
 #endif	// #ifdef _DEBUG
 		if ( m_bHandleNmi && !m_bDelayInterrupt ) {

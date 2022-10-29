@@ -39,6 +39,33 @@ namespace lsn {
 			m_ui16Scanline( 0 ),
 			m_ui16RowDot( 0 ),
 			m_bAddresLatch( false ) {
+
+			for ( auto Y = _tDotHeight; Y--; ) {
+				for ( auto X = _tDotWidth; X--; ) {
+					LSN_CYCLE & cThis = m_cCycles[Y*_tDotWidth+X];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Idle;
+				}
+			}
+			// Add row ends.
+			for ( auto Y = _tDotHeight; Y--; ) {
+				LSN_CYCLE & cThis = m_cCycles[Y*_tDotWidth+(_tDotWidth-1)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndRow;
+			}
+			// Add frame end.
+			{
+				LSN_CYCLE & cThis = m_cCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame;
+			}
+			// Add v-blank.
+			{
+				LSN_CYCLE & cThis = m_cCycles[(_tPreRender+_tRender+_tPostRender)*_tDotWidth+1];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_VBlank;
+			}
+			// Clear v-blank and friends.
+			{
+				LSN_CYCLE & cThis = m_cCycles[(_tDotHeight-1)*_tDotWidth+1];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_StartFrame;
+			}
 		}
 		~CPpu2C0X() {
 		}
@@ -50,9 +77,10 @@ namespace lsn {
 		 */
 		virtual void									Tick() {
 			++m_ui64Cycle;
+			(this->*m_cCycles[m_ui16Scanline*_tDotWidth+m_ui16RowDot].pfFunc)();
 
 			// Temporary hack to get things working.
-			uint16_t ui16LineWidth = _tDotWidth;
+			/*uint16_t ui16LineWidth = _tDotWidth;
 			if constexpr ( _bOddFrameShenanigans ) {
 				if ( m_ui64Frame & 0x1 && m_ui16RowDot == (_tDotWidth - 1) && m_ui16Scanline == _tDotHeight ) {
 					ui16LineWidth = _tDotWidth - 1;
@@ -79,7 +107,7 @@ namespace lsn {
 				else if ( m_ui16Scanline == (_tDotHeight - 1) ) {
 					m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
 				}
-			}
+			}*/
 			
 		}
 
@@ -210,6 +238,58 @@ namespace lsn {
 		 * \return Returns the PPU bus.
 		 */
 		inline CPpuBus &								GetPpuBus() { return m_bBus; }
+
+		/**
+		 * An "idle" pixel handler.
+		 */
+		void LSN_FASTCALL								Pixel_Idle() {
+			++m_ui16RowDot;
+		}
+
+		/**
+		 * An "idle" pixel handler for the end of rows.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_EndRow() {
+			m_ui16RowDot = 0;
+			++m_ui16Scanline;
+		}
+
+		/**
+		 * Starting a frame at [1,_tDotHeight-1] clears some flags.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_StartFrame() {
+			m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
+			++m_ui16RowDot;
+		}
+
+		/**
+		 * An "idle" pixel handler for the end of the frame.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_EndFrame() {
+			m_ui16Scanline = 0;
+			
+			if ( _bOddFrameShenanigans && m_ui64Frame & 0x1 ) {
+				m_ui16RowDot = 1;
+			}
+			else {
+				m_ui16RowDot = 0;
+			}
+			++m_ui64Frame;
+		}
+
+		/**
+		 * Handling v-blank.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_VBlank() {
+			// [1, 241] on NTSC.
+			// [1, 241] on PAL.
+			// [1, 241] on Dendy.
+			m_psPpuStatus.s.ui8VBlank = 1;
+			if ( m_pcPpuCtrl.s.ui8Nmi ) {
+				m_pnNmiTarget->Nmi();
+			}
+			++m_ui16RowDot;
+		}
 
 		/**
 		 * Writing to 0x2000.
@@ -386,6 +466,9 @@ namespace lsn {
 
 	protected :
 		// == Types.
+		/** Function pointer for per-cycle work. */
+		typedef void (LSN_FASTCALL CPpu2C0X:: *			PfCycles)();
+
 		/** The PPUCTRL register. */
 		struct LSN_PPUCTRL {
 			union {
@@ -450,12 +533,18 @@ namespace lsn {
 			};
 		};
 
+		/** Cycle handlers (function pointers doing per-cycle/per-pixel work). */
+		struct LSN_CYCLE {
+			PfCycles									pfFunc;											/**< The function pointer doing the work on this pixel. */
+		};
+
 
 		// == Members.
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
+		LSN_CYCLE										m_cCycles[_tDotWidth*_tDotHeight];				/**< The per-pixel array of function pointers to do per-cycle work. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */

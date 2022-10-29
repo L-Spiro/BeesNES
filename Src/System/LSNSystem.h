@@ -20,6 +20,7 @@
 #include "../Utilities/LSNUtilities.h"
 
 #include <algorithm>
+#include <immintrin.h>
 
 namespace lsn {
 
@@ -81,7 +82,13 @@ namespace lsn {
 			if ( !m_bPaused ) {
 				uint64_t ui64Diff = ui64CurrealTime - m_ui64LastRealTime;
 				m_ui64AccumTime += ui64Diff;
-				m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
+				{
+					uint64_t ui64Hi;
+					uint64_t ui64Low = _umul128( m_ui64AccumTime, _tMasterClock, &ui64Hi );
+					m_ui64MasterCounter = _udiv128( ui64Hi, ui64Low, m_cClock.GetResolution() * _tMasterDiv, nullptr );
+
+					//m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
+				}
 
 
 #define LSN_CPU_SLOT											0
