@@ -1,4 +1,4 @@
-# Loch NES
+# NES Emulator
 A sub-cycle–accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
