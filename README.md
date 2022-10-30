@@ -1,4 +1,4 @@
-# L. Spiro NES
+# Loch NES
 A sub-cycle–accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
