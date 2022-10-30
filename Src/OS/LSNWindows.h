@@ -47,4 +47,34 @@
 
 #define LSN_FASTCALL						__fastcall
 
+#ifndef LSN_WIN64
+// Mercilessly ripped from: https://stackoverflow.com/a/46924301
+// Still need to find somewhere from which to mercilessly rip a _udiv128() implementation.  MERCILESSLY.
+#include <cstdint>
+#include <intrin.h>
+inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64Multiplicand, 
+    uint64_t *_pui64ProductHi ) {
+    // _ui64Multiplier   = ab = a * 2^32 + b
+    // _ui64Multiplicand = cd = c * 2^32 + d
+    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
+    uint64_t ui64A = _ui64Multiplier >> 32;
+    uint64_t ui64B = static_cast<uint32_t>(_ui64Multiplier);
+    uint64_t ui64C = _ui64Multiplicand >> 32;
+    uint64_t ui64D = static_cast<uint32_t>(_ui64Multiplicand);
+
+    uint64_t ui64Ad = __emulu( static_cast<unsigned int>(ui64A), static_cast<unsigned int>(ui64D) );
+    uint64_t ui64Bd = __emulu( static_cast<unsigned int>(ui64B), static_cast<unsigned int>(ui64D) );
+
+    uint64_t ui64Abdc = ui64Ad + __emulu( static_cast<unsigned int>(ui64B), static_cast<unsigned int>(ui64C) );
+    uint64_t ui64AbdcCarry = (ui64Abdc < ui64Ad);
+
+    // _ui64Multiplier * _ui64Multiplicand = _pui64ProductHi * 2^64 + ui64ProductLo
+    uint64_t ui64ProductLo = ui64Bd + (ui64Abdc << 32);
+    uint64_t ui64ProductLoCarry = (ui64ProductLo < ui64Bd);
+    (*_pui64ProductHi) = __emulu( static_cast<unsigned int>(ui64A), static_cast<unsigned int>(ui64C) ) + (ui64Abdc >> 32) + (ui64AbdcCarry << 32) + ui64ProductLoCarry;
+
+    return ui64ProductLo;
+}
+#endif  // #ifndef LSN_WIN64
+
 #endif	// #ifdef LSN_WINDOWS

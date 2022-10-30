@@ -1136,9 +1136,9 @@ namespace lsn {
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {
 #ifdef _DEBUG
-		if ( pc.PC == 0xC293 ) {
+		/*if ( pc.PC == 0xC293 ) {
 			volatile int gjhg = 0;
-		}
+		}*/
 		// TMP.
 		static uint64_t ui64CyclesAtStart = 0;
 		static uint64_t ui64LastCycles = 0;
