@@ -1,4 +1,4 @@
-# That NES Emulator
+# 10 NES
 A sub-cycle–accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
