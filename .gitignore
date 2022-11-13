@@ -83,3 +83,13 @@ Release/L. Spiro NES.exe
 Release/L. Spiro NES.log
 Research/6500-50A_MCS6500pgmManJan76.pdf
 Research/mcs6500_family_hardware_manual.pdf
+Libraries/ExpressionEvaluator/.vs/ExpressionEvaluator/v14/.suo
+Libraries/LSWindows/x64/Release/LSWindows.vcxproj.FileListAbsolute.txt
+Libraries/LSWindows/x64/Release/LSWindows.log
+Libraries/LSWindows/x64/Release/LSWindows.Build.CppClean.log
+Libraries/LSWindows/.vs/LSWindows/v14/.suo
+Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.vcxproj.FileListAbsolute.txt
+Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.log
+Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.Build.CppClean.log
+*.sdf
+*.user

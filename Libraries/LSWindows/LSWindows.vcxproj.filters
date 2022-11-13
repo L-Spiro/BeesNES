@@ -1,0 +1,437 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Base">
+      <UniqueIdentifier>{3f770a54-c2b1-48d2-b1ad-9920e35c10f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Base">
+      <UniqueIdentifier>{054472bb-0cf2-4540-9d56-6b6e07a7dbfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Helpers">
+      <UniqueIdentifier>{f6c4f3b3-21fc-4264-ab8d-a2c23d60998d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Helpers">
+      <UniqueIdentifier>{94e99e97-6aa7-4b81-bd61-dcabe47a7cc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MainWindow">
+      <UniqueIdentifier>{f06de690-166a-4a62-9f7b-51543c91b95e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MainWindow">
+      <UniqueIdentifier>{7c3c9c3f-4ee1-4bf1-9eba-3e8690a38e2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Widget">
+      <UniqueIdentifier>{5018b5a2-ae09-4430-97ce-e28f2546a4b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Widget">
+      <UniqueIdentifier>{775661fe-5ade-4a35-9c35-90dc90d4817e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Layout">
+      <UniqueIdentifier>{2f06f5c2-e736-48b2-93fc-a6439d424210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Layout">
+      <UniqueIdentifier>{25f5d5eb-d185-4bf2-a9f6-072a0b853ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ListView">
+      <UniqueIdentifier>{d705f71a-f510-4802-912d-7f8bbedc649d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ListView">
+      <UniqueIdentifier>{cfd673e7-e571-417e-b6d0-cadd35dc521f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GroupBox">
+      <UniqueIdentifier>{f6340dcd-ce48-49ae-936d-6eff1056968c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GroupBox">
+      <UniqueIdentifier>{e006350f-70f8-45f0-94ae-58754f153af6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Button">
+      <UniqueIdentifier>{e5e97404-0352-420f-98bf-c1c96caf4514}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Button">
+      <UniqueIdentifier>{84a380c9-967b-4961-af47-faff48452462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RadioButton">
+      <UniqueIdentifier>{1444effb-cf63-4cb4-85c7-694c40601d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RadioButton">
+      <UniqueIdentifier>{32188393-f452-4bd0-a3a1-c05a772d4687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CheckButton">
+      <UniqueIdentifier>{d255560b-18b4-40ea-b467-6403fe0d6732}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CheckButton">
+      <UniqueIdentifier>{f7a1e2b7-370b-4ba5-a5bc-ccd677a01079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Expressions">
+      <UniqueIdentifier>{e59ff7cb-0f2f-474d-942c-a9eba98ed24d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Expressions">
+      <UniqueIdentifier>{64c3a51f-18bd-4b3c-ac1c-bf7d8719723d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Images">
+      <UniqueIdentifier>{2fd43982-16dc-4264-bdf2-252e2261d2bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Images">
+      <UniqueIdentifier>{80afa81a-84cb-4544-b932-e2f4cd583fb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Rebar">
+      <UniqueIdentifier>{58e0adc1-d214-4db0-8e44-9e56c44bb562}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Rebar">
+      <UniqueIdentifier>{e4d2554b-75f9-4036-b756-d6f353d4b064}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImageList">
+      <UniqueIdentifier>{abbd1f6e-e110-42bb-85f6-71c7fbd00f8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImageList">
+      <UniqueIdentifier>{8090b50d-1d50-4d96-abc6-27583b987159}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ToolBar">
+      <UniqueIdentifier>{e07a610a-e2c8-47fb-b56f-242f6a8dc55f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ToolBar">
+      <UniqueIdentifier>{d6a26ffd-bb11-41d8-a529-df4042f7e9fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ComboBox">
+      <UniqueIdentifier>{9a547097-81eb-43df-85be-e237724a3665}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ComboBox">
+      <UniqueIdentifier>{612fc0ba-10e5-4d81-98cf-e14eb3bcc57e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\StatusBar">
+      <UniqueIdentifier>{8a352d3d-8a32-4213-9f4f-d7dcdb6c7c40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\StatusBar">
+      <UniqueIdentifier>{94871ddf-040e-4665-a806-818a9d732012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ListBox">
+      <UniqueIdentifier>{14b3773b-8455-4c7c-b367-af842f54a4ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ListBox">
+      <UniqueIdentifier>{22e6ad0b-3ae8-4a34-98ab-cfcfe798b732}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Static">
+      <UniqueIdentifier>{3d845aa3-9849-43ce-8e3f-1b37f493da13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Static">
+      <UniqueIdentifier>{55dd3fc8-761f-401c-9190-6c7048d42c41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Edit">
+      <UniqueIdentifier>{113b58f8-5a91-492b-a8da-c8dbc0c16281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Edit">
+      <UniqueIdentifier>{2deaf9e8-2bca-4496-90ca-844dcee701d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CriticalSection">
+      <UniqueIdentifier>{ec1efacf-a20a-4260-8ec2-aa9663bff720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CriticalSection">
+      <UniqueIdentifier>{ef26f39a-c2ff-4037-b8f6-5f2459aa6eb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Docking">
+      <UniqueIdentifier>{96bb8519-aa07-4fdc-8c7d-ddadfcd27b9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Docking">
+      <UniqueIdentifier>{c8571715-d84f-4943-b652-209f8875d113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Brush">
+      <UniqueIdentifier>{c14235a2-f17a-44b3-a408-e575c3ac28d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Brush">
+      <UniqueIdentifier>{35e63e3b-8c7f-40f8-ad31-a5b42cbf8571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Splitter">
+      <UniqueIdentifier>{e88adbf0-88a9-4be6-b113-c0c848d791a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Splitter">
+      <UniqueIdentifier>{d41af4ab-d9d6-41e3-8b1a-0a736cc8e7b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MultiSplitter">
+      <UniqueIdentifier>{ed693924-694f-490d-98ac-ab3c486aa024}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MultiSplitter">
+      <UniqueIdentifier>{70d57c23-ff33-4f75-a1e7-a6afdc11c44d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ProgressBar">
+      <UniqueIdentifier>{96ef8c8a-804f-4830-9dd9-ce2e67c38e4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ProgressBar">
+      <UniqueIdentifier>{a9b45f29-b13d-4c07-ae9b-1e84fcb9dad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Threads">
+      <UniqueIdentifier>{f0777a9b-1a10-4c50-83a9-f3100d45f5ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Threads">
+      <UniqueIdentifier>{cdf724b9-7b9a-41cc-81b6-362dbf0e14be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tab">
+      <UniqueIdentifier>{e7cc9f8d-af26-4312-9e9d-0f7b413b16dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tab">
+      <UniqueIdentifier>{a9847d5b-418f-49b8-90f9-33a7a17eb778}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TreeList">
+      <UniqueIdentifier>{ecc85381-dbc9-4c07-ae72-e500db6a3282}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TreeList">
+      <UniqueIdentifier>{61a48374-aa3f-4877-8b8c-db241d57764a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ToolTip">
+      <UniqueIdentifier>{79a2af9a-1dda-451c-a39b-e71e3df5b8cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ToolTip">
+      <UniqueIdentifier>{308755f4-670b-4903-afd3-64824d7ca5e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UpDown">
+      <UniqueIdentifier>{01a18199-cb8d-4384-a4d5-7b064e2d887a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UpDown">
+      <UniqueIdentifier>{861ebc9d-fa0c-49d8-89c8-a3b3b389da51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TreeListView">
+      <UniqueIdentifier>{d183ec3b-d893-484f-a655-13a046677bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TreeListView">
+      <UniqueIdentifier>{a733732d-caeb-4908-ab35-cabff35c0df6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Base\LSWBase.h">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Helpers\LSWHelpers.h">
+      <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MainWindow\LSWMainWindow.h">
+      <Filter>Header Files\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Widget\LSWWidget.h">
+      <Filter>Header Files\Widget</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Layout\LSWLayoutTypes.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Layout\LSWWidgetLayout.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Base\LSWWndClassEx.h">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Layout\LSWMenuLayout.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ListView\LSWListView.h">
+      <Filter>Header Files\ListView</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Layout\LSWLayoutManager.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Base\LSWGlobalAlloc.h">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GroupBox\LSWGroupBox.h">
+      <Filter>Header Files\GroupBox</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LSWWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Button\LSWButton.h">
+      <Filter>Header Files\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RadioButton\LSWRadioButton.h">
+      <Filter>Header Files\RadioButton</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CheckButton\LSWCheckButton.h">
+      <Filter>Header Files\CheckButton</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Expressions\LSWExpression.h">
+      <Filter>Header Files\Expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Images\LSWBitmap.h">
+      <Filter>Header Files\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Rebar\LSWRebar.h">
+      <Filter>Header Files\Rebar</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ImageList\LSWImageList.h">
+      <Filter>Header Files\ImageList</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ToolBar\LSWToolBar.h">
+      <Filter>Header Files\ToolBar</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ComboBox\LSWComboBox.h">
+      <Filter>Header Files\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ComboBox\LSWComboBoxEx.h">
+      <Filter>Header Files\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\StatusBar\LSWStatusBar.h">
+      <Filter>Header Files\StatusBar</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ListBox\LSWListBox.h">
+      <Filter>Header Files\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Static\LSWStatic.h">
+      <Filter>Header Files\Static</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Edit\LSWEdit.h">
+      <Filter>Header Files\Edit</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CriticalSection\LSWCriticalSection.h">
+      <Filter>Header Files\CriticalSection</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Docking\LSWDockable.h">
+      <Filter>Header Files\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Brush\LSWBrush.h">
+      <Filter>Header Files\Brush</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Splitter\LSWSplitter.h">
+      <Filter>Header Files\Splitter</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MultiSplitter\LSWMultiSplitter.h">
+      <Filter>Header Files\MultiSplitter</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Docking\LSWDockTarget.h">
+      <Filter>Header Files\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Helpers\LSWMessages.h">
+      <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ProgressBar\LSWProgressBar.h">
+      <Filter>Header Files\ProgressBar</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Threads\LSWThread.h">
+      <Filter>Header Files\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Tab\LSWTab.h">
+      <Filter>Header Files\Tab</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TreeList\LSWTreeList.h">
+      <Filter>Header Files\TreeList</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ToolTip\LSWToolTip.h">
+      <Filter>Header Files\ToolTip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\UpDown\LSWUpDown.h">
+      <Filter>Header Files\UpDown</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TreeListView\LSWTreeListView.h">
+      <Filter>Header Files\TreeListView</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Base\LSWBase.cpp">
+      <Filter>Source Files\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MainWindow\LSWMainWindow.cpp">
+      <Filter>Source Files\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Widget\LSWWidget.cpp">
+      <Filter>Source Files\Widget</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ListView\LSWListView.cpp">
+      <Filter>Source Files\ListView</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Layout\LSWLayoutManager.cpp">
+      <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GroupBox\LSWGroupBox.cpp">
+      <Filter>Source Files\GroupBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Button\LSWButton.cpp">
+      <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RadioButton\LSWRadioButton.cpp">
+      <Filter>Source Files\RadioButton</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CheckButton\LSWCheckButton.cpp">
+      <Filter>Source Files\CheckButton</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Expressions\LSWExpressions.cpp">
+      <Filter>Source Files\Expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Images\LSWBitmap.cpp">
+      <Filter>Source Files\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rebar\LSWRebar.cpp">
+      <Filter>Source Files\Rebar</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ImageList\LSWImageList.cpp">
+      <Filter>Source Files\ImageList</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ToolBar\LSWToolBar.cpp">
+      <Filter>Source Files\ToolBar</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ComboBox\LSWComboBox.cpp">
+      <Filter>Source Files\ComboBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ComboBox\LSWComboBoxEx.cpp">
+      <Filter>Source Files\ComboBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\StatusBar\LSWStatusBar.cpp">
+      <Filter>Source Files\StatusBar</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ListBox\LSWListBox.cpp">
+      <Filter>Source Files\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Static\LSWStatic.cpp">
+      <Filter>Source Files\Static</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Edit\LSWEdit.cpp">
+      <Filter>Source Files\Edit</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CriticalSection\LSWCriticalSection.cpp">
+      <Filter>Source Files\CriticalSection</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Docking\LSWDockable.cpp">
+      <Filter>Source Files\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Brush\LSWBrush.cpp">
+      <Filter>Source Files\Brush</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Splitter\LSWSplitter.cpp">
+      <Filter>Source Files\Splitter</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MultiSplitter\LSWMultiSplitter.cpp">
+      <Filter>Source Files\MultiSplitter</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Docking\LSWDockTarget.cpp">
+      <Filter>Source Files\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Helpers\LSWHelpers.cpp">
+      <Filter>Source Files\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ProgressBar\LSWProgressBar.cpp">
+      <Filter>Source Files\ProgressBar</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Threads\LSWThread.cpp">
+      <Filter>Source Files\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Tab\LSWTab.cpp">
+      <Filter>Source Files\Tab</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TreeList\LSWTreeList.cpp">
+      <Filter>Source Files\TreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ToolTip\LSWToolTip.cpp">
+      <Filter>Source Files\ToolTip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\UpDown\LSWUpDown.cpp">
+      <Filter>Source Files\UpDown</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TreeListView\LSWTreeListView.cpp">
+      <Filter>Source Files\TreeListView</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

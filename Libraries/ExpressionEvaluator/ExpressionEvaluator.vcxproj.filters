@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Gen">
+      <UniqueIdentifier>{e4d0e3b6-5453-46cc-9b24-77464b4e35de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gen">
+      <UniqueIdentifier>{358d15c0-8a1f-4dd9-b127-f4af42c16e88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\BigInt">
+      <UniqueIdentifier>{5b422735-b2ef-49fb-bdab-71113e1fe210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\BigInt">
+      <UniqueIdentifier>{c735382a-ed30-4e04-bab8-ad08015ae4e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Unicode">
+      <UniqueIdentifier>{19398ae6-6ba4-424f-b562-a55a218f0035}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Unicode">
+      <UniqueIdentifier>{14c960d2-30fd-4385-9888-246153b392f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Array">
+      <UniqueIdentifier>{9ecede83-1325-432d-941d-846151427b12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Array">
+      <UniqueIdentifier>{bb67682d-5da5-4ee4-84d3-1e49ebd71cdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Object">
+      <UniqueIdentifier>{52d7a24e-3dd6-4616-89ed-c95946033c9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Object">
+      <UniqueIdentifier>{2f85ad7b-e56b-4e95-883b-5508d69806ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Html">
+      <UniqueIdentifier>{889ebf8b-1813-4920-9071-39e0a781bcc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Html">
+      <UniqueIdentifier>{53d746ff-3ae9-42a7-aa5d-be747974a2ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Context">
+      <UniqueIdentifier>{b34e9924-f18a-45f2-80d6-4ffaff661044}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Context">
+      <UniqueIdentifier>{8fd530c0-b9d5-46f0-a6d5-6102508695ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Api">
+      <UniqueIdentifier>{c68c6eaa-4cc1-48fc-8e10-a531a5945eb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Api">
+      <UniqueIdentifier>{db88c220-9418-4799-a69a-d005633a60fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PreProcGen">
+      <UniqueIdentifier>{14e25497-30c6-4543-ad16-f7e358eaf4ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PreProcGen">
+      <UniqueIdentifier>{253542aa-42a5-474c-90b4-47972538e52a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PreProc">
+      <UniqueIdentifier>{28f4f3b0-1e25-47a4-a915-32a62851accc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PreProc">
+      <UniqueIdentifier>{5f47222f-f27d-4184-bdb3-da14945f2b26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{c25b6c65-ad7c-4cc7-9e90-854a4f9826a9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Gen\EEExpEvalLexBase.cpp">
+      <Filter>Source Files\Gen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gen\EEExpEvalParser.cpp">
+      <Filter>Source Files\Gen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\EEExpEvalContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\EEFloatX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BigInt\EEBigInt.cpp">
+      <Filter>Source Files\BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\EEExpEval.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Unicode\EEUnicode.cpp">
+      <Filter>Source Files\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Array\EEArrayBase.cpp">
+      <Filter>Source Files\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Html\EEHtml.cpp">
+      <Filter>Source Files\Html</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\EEString.cpp">
+      <Filter>Source Files\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\EEStringBaseApi.cpp">
+      <Filter>Source Files\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PreProcGen\EEPreProcLexBase.cpp">
+      <Filter>Source Files\PreProcGen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PreProcGen\EEPreProcParser.cpp">
+      <Filter>Source Files\PreProcGen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PreProc\EEPreProc.cpp">
+      <Filter>Source Files\PreProc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PreProc\EEPreProcContainer.cpp">
+      <Filter>Source Files\PreProc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PreProc\EEPreProcLexer.cpp">
+      <Filter>Source Files\PreProc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Gen\EEExpEvalLexBase.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\EEExpEvalParser.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\EEExpEvalParserLocation.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\EEExpEvalParserPosition.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\EEExpEvalParserStack.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEExpEvalContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEExpEvalLexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEExpEvalSyntaxNodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEExpEval.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEFloatX.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BigInt\EEBigInt.h">
+      <Filter>Header Files\BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Unicode\EEUnicode.h">
+      <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Unicode\EEUnicodeTable.h">
+      <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEArrayBase.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEInt8Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEUInt8Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEInt16Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEInt32Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEInt64Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEUInt16Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEUInt32Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEUInt64Array.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEPrimitiveArrayUnsigned.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEPrimitiveArrayFloat.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEPrimitiveArraySigned.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEFloatArray.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEDoubleArray.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Array\EEDefaultArray.h">
+      <Filter>Header Files\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\EEObject.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Html\EEHtml.h">
+      <Filter>Header Files\Html</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Api\EEBaseApi.h">
+      <Filter>Header Files\Api</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\EEString.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\EEStringBaseApi.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProcGen\EEPreProcLexBase.h">
+      <Filter>Header Files\PreProcGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProcGen\EEPreProcParser.h">
+      <Filter>Header Files\PreProcGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProcGen\EEPreProcParserLocation.h">
+      <Filter>Header Files\PreProcGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProcGen\EEPreProcParserPosition.h">
+      <Filter>Header Files\PreProcGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProcGen\EEPreProcParserStack.h">
+      <Filter>Header Files\PreProcGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProc\EEPreProc.h">
+      <Filter>Header Files\PreProc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProc\EEPreProcContainer.h">
+      <Filter>Header Files\PreProc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProc\EEPreProcLexer.h">
+      <Filter>Header Files\PreProc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PreProc\EEPreProcSyntaxNodes.h">
+      <Filter>Header Files\PreProc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Tree\EETree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

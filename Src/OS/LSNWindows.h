@@ -52,8 +52,12 @@
 // Still need to find somewhere from which to mercilessly rip a _udiv128() implementation.  MERCILESSLY.
 #include <cstdint>
 #include <intrin.h>
+//#include <winnt.h>
 inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64Multiplicand, 
     uint64_t *_pui64ProductHi ) {
+#if 0
+    return UnsignedMultiply128( _ui64Multiplier, _ui64Multiplicand, _pui64ProductHi );
+#else
     // _ui64Multiplier   = ab = a * 2^32 + b
     // _ui64Multiplicand = cd = c * 2^32 + d
     // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
@@ -74,6 +78,7 @@ inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64M
     (*_pui64ProductHi) = __emulu( static_cast<unsigned int>(ui64A), static_cast<unsigned int>(ui64C) ) + (ui64Abdc >> 32) + (ui64AbdcCarry << 32) + ui64ProductLoCarry;
 
     return ui64ProductLo;
+#endif  // 1
 }
 #endif  // #ifndef LSN_WIN64
 
