@@ -1,18 +1,46 @@
-﻿#include "LSNLSpiroNes.h"
-#include "File/LSNZipFile.h"
-#include "OS/LSNOs.h"
-#include "System/LSNSystem.h"
-#include "Utilities/LSNUtilities.h"
+﻿#ifdef LSN_USE_WINDOWS
+#include "LSNLSpiroNes.h"
+#include "Windows/Layout/LSNLayoutManager.h"
+#include "Windows/MainWindow/LSNMainWindowLayout.h"
+#endif	// #ifdef LSN_USE_WINDOWS
 
-int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
-	return 0;
-}
 
 int main() {
 	return 0;
 }
 
-int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
+#ifdef LSN_USE_WINDOWS
+int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
+	lsw::CBase::Initialize( _hInstance, new lsn::CLayoutManager(),
+		L"LSNDOCK",
+		L"LSNSPLITTER",
+		L"LSNMULTISPLITTER",
+		L"LSNTREEVIEW",
+		L"LSNTREELISTVIEW" );
+
+	lsw::CWidget * pwMainWindow = lsn::CMainWindowLayout::CreateMainWindow();
+
+	// Controls seconds_since_start(), milliseconds_since_start(), etc., Expression Evaluator.
+	// We move it up as close to the start of the loop as possible so that these values most closely mark the actual time that meaningful execution
+	//	takes place (clock() returns the time since the EXE actually started (before main() is even called), so we don't need more tickers from that
+	//	time.
+	// In a way, this allows (clock() - milliseconds_since_start()) to print the time it takes to initialize.
+	ee::InitializeExpressionEvaluatorLibrary();
+	MSG mMsg = {};
+	while ( ::GetMessageW( &mMsg, NULL, 0, 0 ) > 0 ) {
+		if ( mMsg.message == WM_QUIT ) {
+			break;
+		}
+		::TranslateMessage( &mMsg );
+		::DispatchMessageW( &mMsg );
+	}
+
+
+	lsw::CBase::ShutDown();
+	return static_cast<int>(mMsg.wParam);
+}
+#else
+int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
 #define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
 	std::unique_ptr<lsn::CNtscSystem> pnsSystem = std::make_unique<lsn::CNtscSystem>();
 	std::vector<uint8_t> vExtracted;
@@ -45,7 +73,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	pnsSystem->LoadRom( vExtracted, s16Path );
 	pnsSystem->ResetState( false );
 	uint64_t ui64TickCount = 0;
-#define LSN_TIME								(1ULL * 100)
+#define LSN_TIME								(1ULL * 10)
 	while ( pnsSystem->GetAccumulatedRealTime() / pnsSystem->GetClockResolution() < LSN_TIME ) {
 		pnsSystem->Tick();
 		++ui64TickCount;
@@ -69,3 +97,4 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	::OutputDebugStringA( szBuffer );
 	return 0;
 }
+#endif	// #ifdef LSN_USE_WINDOWS
