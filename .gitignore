@@ -1,96 +1,24 @@
 
-.vs/L. Spiro NES/v14/.suo
-.vs/L. Spiro NES/v17/.suo
-.vs/L. Spiro NES/v17/Browse.VC.db
-.vs/L. Spiro NES/v17/Browse.VC.db-shm
-.vs/L. Spiro NES/v17/Browse.VC.db-wal
-.vs/L. Spiro NES/v17/Browse.VC.opendb
-.vs/L. Spiro NES/v17/ipch/AutoPCH/134dcd5224569c4e/LSNCPU6502.ipch
-.vs/L. Spiro NES/v17/ipch/AutoPCH/21acd3cde5349b3a/LSNLSPIRONES.ipch
-.vs/L. Spiro NES/v17/ipch/AutoPCH/23b3548e6bfc0dcc/LSNLSPIRONES.ipch
-.vs/L. Spiro NES/v17/ipch/AutoPCH/9bb50cc7815bf3f/LSNBUS.ipch
-.vs/L. Spiro NES/v17/ipch/AutoPCH/f0ca83c139fd6c30/LSNCPU6502.ipch
 L. Spiro NES.VC.db
-L. Spiro NES.vcxproj.user
-x64/Debug/L. Spiro NES.Build.CppClean.log
-x64/Debug/L. Spiro NES.log
-x64/Debug/L. Spiro NES.vcxproj.FileListAbsolute.txt
-x64/Release/L. Spiro NES.Build.CppClean.log
-x64/Release/L. Spiro NES.log
-x64/Release/L. Spiro NES.tlog/unsuccessfulbuild
-x64/Release/L. Spiro NES.vcxproj.FileListAbsolute.txt
-x64/Debug/L. Spiro NES.pdb
-x64/Debug/L. Spiro NES.tlog/CL.command.1.tlog
-x64/Debug/L. Spiro NES.tlog/CL.read.1.tlog
-x64/Debug/L. Spiro NES.tlog/CL.write.1.tlog
-x64/Debug/L. Spiro NES.tlog/L. Spiro NES.lastbuildstate
-x64/Debug/L. Spiro NES.tlog/link-cvtres.read.1.tlog
-x64/Debug/L. Spiro NES.tlog/link-cvtres.write.1.tlog
-x64/Debug/L. Spiro NES.tlog/link-rc.read.1.tlog
-x64/Debug/L. Spiro NES.tlog/link-rc.write.1.tlog
-x64/Debug/L. Spiro NES.tlog/link.command.1.tlog
-x64/Debug/L. Spiro NES.tlog/link.read.1.tlog
-x64/Debug/L. Spiro NES.tlog/link.read.2.tlog
-x64/Debug/L. Spiro NES.tlog/link.write.1.tlog
-x64/Debug/L. Spiro NES.tlog/unsuccessfulbuild
-x64/Debug/LSNBus.obj
-x64/Debug/LSNCpu6502.obj
-x64/Debug/LSNLSpiroNes.obj
-x64/Debug/vc143.idb
-x64/Debug/vc143.pdb
-.vs/L. Spiro NES/v17/ipch/AutoPCH/8333abdac9561395/LSNBUS.ipch
-x64/Release/L. Spiro NES.tlog/CL.command.1.tlog
-x64/Release/L. Spiro NES.tlog/CL.read.1.tlog
-x64/Release/L. Spiro NES.tlog/CL.write.1.tlog
-x64/Release/L. Spiro NES.tlog/L. Spiro NES.lastbuildstate
-x64/Release/L. Spiro NES.tlog/link.command.1.tlog
-x64/Release/L. Spiro NES.tlog/link.read.1.tlog
-x64/Release/L. Spiro NES.tlog/link.write.1.tlog
-x64/Release/LSNLSpiroNes.obj
-x64/Release/LSNCpu6502.obj
-x64/Release/LSNBus.obj
-x64/Release/vc143.pdb
-Tests/branch_timing_tests.zip
-Tests/cpu_dummy_reads.nes
-Tests/cpu_dummy_writes.zip
-Tests/cpu_exec_space.zip
-Tests/nestest.nes
-Tests/nestest.txt
-Tests/test1.zip
-.vs/L. Spiro NES/v17/ipch/AutoPCH/ad4d5bb853ee563d/LSNNESFILE.ipch
+Tests/*
+.vs/*
 *.obj
 *.ipch
-Src/MiniZ/examples/example6.c
-Src/MiniZ/examples/example4.c
-Src/MiniZ/examples/example1.c
-Src/MiniZ/examples/example2.c
-Src/MiniZ/examples/example3.c
-Src/MiniZ/examples/example5.c
+Src/MiniZ/examples/*
 *.recipe
 *.ilk
 *.enc
-x64/Debug/L. Spiro NES.exe
 *.iobj
 *.pdb
 *.tlog
 *.ipdb
-Debug/L. Spiro NES.exe
-Debug/L. Spiro NES.log
-Debug/L. Spiro NES.vcxproj.FileListAbsolute.txt
-Debug/vc143.idb
-Release/L. Spiro NES.vcxproj.FileListAbsolute.txt
-Release/L. Spiro NES.exe
-Release/L. Spiro NES.log
-Research/6500-50A_MCS6500pgmManJan76.pdf
-Research/mcs6500_family_hardware_manual.pdf
-Libraries/ExpressionEvaluator/.vs/ExpressionEvaluator/v14/.suo
-Libraries/LSWindows/x64/Release/LSWindows.vcxproj.FileListAbsolute.txt
-Libraries/LSWindows/x64/Release/LSWindows.log
-Libraries/LSWindows/x64/Release/LSWindows.Build.CppClean.log
-Libraries/LSWindows/.vs/LSWindows/v14/.suo
-Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.vcxproj.FileListAbsolute.txt
-Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.log
-Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.Build.CppClean.log
+Debug/*
+Release/*
+Research/*
+Libraries/ExpressionEvaluator/.vs/*
+Libraries/LSWindows/x64/Release/*
+Libraries/LSWindows/.vs/*
+Libraries/ExpressionEvaluator/x64/Release/*
 *.sdf
 *.user
 *.lib
