@@ -5,11 +5,11 @@
 #define MW_MENU_TXT( ENC_STR, ENC_LEN )	reinterpret_cast<LPCWSTR>(ENC_STR), ENC_LEN
 
 #ifndef LSN_MAIN_WINDOW_W
-#define LSN_MAIN_WINDOW_W				1000
+#define LSN_MAIN_WINDOW_W				(256 * 1)
 #endif	// LSN_MAIN_WINDOW_W
 
 #ifndef LSN_MAIN_WINDOW_H
-#define LSN_MAIN_WINDOW_H				750
+#define LSN_MAIN_WINDOW_H				(240 * 1)
 #endif	// LSN_MAIN_WINDOW_H
 
 #ifndef LSN_LOCK_LEFT

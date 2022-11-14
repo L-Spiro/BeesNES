@@ -230,4 +230,9 @@
       <Filter>Header Files\Cpu</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="L. Spiro NES.exe.intermediate.manifest">
+      <Filter>Resource Files</Filter>
+    </Manifest>
+  </ItemGroup>
 </Project>

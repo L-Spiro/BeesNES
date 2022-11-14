@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <ImageList/LSWImageList.h>
+#include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
 
 namespace lsw {
@@ -16,12 +18,25 @@ namespace lsn {
 		~CMainWindow();
 
 
+		// == Enumerations.
+		// Images.
+		enum LSN_IMAGES {
+			LSN_I_OPENROM,
+			LSN_I_OPTIONS,
+
+			LSN_I_TOTAL,
+		};
+
+
 		// == Functions.
 		// WM_INITDIALOG.
 		virtual LSW_HANDLED						InitDialog();
 
 		// WM_NCDESTROY.
 		virtual LSW_HANDLED						NcDestroy();
+
+		// Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+		virtual const lsw::LSW_RECT				VirtualClientRect( const lsw::CWidget * _pwChild ) const;
 
 		/**
 		 * Gets the status bar.
@@ -36,6 +51,18 @@ namespace lsn {
 		 * \return the status bar.
 		 */
 		const lsw::CStatusBar *					StatusBar() const;
+
+
+	protected :
+		// == Members.
+		// Image list.
+		lsw::CImageList							m_iImages;
+
+		// Images.
+		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
+
+		// Image mapping.
+		INT										m_iImageMap[LSN_I_TOTAL];
 	};
 
 }

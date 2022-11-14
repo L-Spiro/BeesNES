@@ -23,7 +23,6 @@ namespace lsn {
 			LSN_MWI_REBAR0,
 			LSN_MWI_TOOLBAR0,
 			LSN_MWI_STATUSBAR,
-			LSN_MWI_SPLITTER,
 
 		};
 

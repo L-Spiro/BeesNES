@@ -97,3 +97,5 @@ Libraries/ExpressionEvaluator/x64/Release/ExpressionEvaluator.Build.CppClean.log
 *.exe
 *.idb
 *.log
+x64/Debug/*
+x64/Release/*
