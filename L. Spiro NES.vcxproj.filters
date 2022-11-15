@@ -97,6 +97,12 @@
     <Filter Include="Source Files\Windows\MainWindow">
       <UniqueIdentifier>{0ac217b1-a6df-42bb-b02a-7358003d8e0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\SelectRom">
+      <UniqueIdentifier>{6311361a-65a0-4d6a-824b-6a1851687c7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\SelectRom">
+      <UniqueIdentifier>{41500c5f-0759-4c5b-a91a-e680e5265ccb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -171,6 +177,12 @@
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h">
       <Filter>Header Files\Windows\MainWindow</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialog.h">
+      <Filter>Header Files\Windows\SelectRom</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h">
+      <Filter>Header Files\Windows\SelectRom</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -223,6 +235,12 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp">
       <Filter>Source Files\Windows\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialog.cpp">
+      <Filter>Source Files\Windows\SelectRom</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp">
+      <Filter>Source Files\Windows\SelectRom</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

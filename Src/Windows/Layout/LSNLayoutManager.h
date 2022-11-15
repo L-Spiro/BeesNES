@@ -9,7 +9,8 @@ using namespace lsw;
 namespace lsn {
 
 	enum LSN_LAYOUT_TYPES : DWORD {
-		LSN_MAIN_WINDOW					= LSW_LT_CUSTOM,
+		LSN_LT_MAIN_WINDOW					= LSW_LT_CUSTOM,
+		LSN_LT_SELECT_ROM_DIALOG,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

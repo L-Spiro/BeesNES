@@ -257,10 +257,23 @@ namespace lsn {
 				}
 				// ROM loaded.
 				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
-				m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
+				if ( m_rRom.vChrRom.size() ) {
+					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
+				}
 				return true;
 			}
+
+			m_rRom = LSN_ROM();
 			return false;
+		}
+
+		/**
+		 * Determnines is a ROM is loaded or not.
+		 *
+		 * \return Returns true if a ROM is loaded.
+		 */
+		bool											IsRomLoaded() const {
+			return !!m_rRom.vPrgRom.size();
 		}
 
 		/**

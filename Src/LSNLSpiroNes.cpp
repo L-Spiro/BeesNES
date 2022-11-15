@@ -1,6 +1,7 @@
 ﻿#ifdef LSN_USE_WINDOWS
 #include "LSNLSpiroNes.h"
 #include "Windows/Layout/LSNLayoutManager.h"
+#include "Windows/MainWindow/LSNMainWindow.h"
 #include "Windows/MainWindow/LSNMainWindowLayout.h"
 #endif	// #ifdef LSN_USE_WINDOWS
 
@@ -18,7 +19,8 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		L"LSNTREEVIEW",
 		L"LSNTREELISTVIEW" );
 
-	lsw::CWidget * pwMainWindow = lsn::CMainWindowLayout::CreateMainWindow();
+	std::atomic_bool abIsAlive = false;
+	lsn::CMainWindow * pwMainWindow = static_cast<lsn::CMainWindow *>(lsn::CMainWindowLayout::CreateMainWindow( &abIsAlive ));
 
 	// Controls seconds_since_start(), milliseconds_since_start(), etc., Expression Evaluator.
 	// We move it up as close to the start of the loop as possible so that these values most closely mark the actual time that meaningful execution
@@ -27,12 +29,21 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	// In a way, this allows (clock() - milliseconds_since_start()) to print the time it takes to initialize.
 	ee::InitializeExpressionEvaluatorLibrary();
 	MSG mMsg = {};
-	while ( ::GetMessageW( &mMsg, NULL, 0, 0 ) > 0 ) {
-		if ( mMsg.message == WM_QUIT ) {
-			break;
+	::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_NOREMOVE );
+
+	while ( mMsg.message != WM_QUIT ) {
+		// Use ::PeekMessage() so we can use idle time to render the scene.
+		while ( (::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_REMOVE ) != 0) ) {
+			// Translate and dispatch the message.
+			if ( ::TranslateAcceleratorW( pwMainWindow->Wnd(), NULL, &mMsg ) == 0 ) {
+				::TranslateMessage( &mMsg );
+				::DispatchMessageW( &mMsg );
+			}
 		}
-		::TranslateMessage( &mMsg );
-		::DispatchMessageW( &mMsg );
+		if ( !abIsAlive ) { break; }
+		if ( mMsg.message != WM_QUIT ) {
+			pwMainWindow->Tick();
+		}
 	}
 
 

@@ -1133,9 +1133,12 @@ namespace lsn {
 		m_bHandleNmi = true;
 	}
 
+#ifdef _DEBUG
+//#define LSN_PRINT_CYCLES
+#endif	// #ifdef _DEBUG
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {
-#ifdef _DEBUG
+#ifdef LSN_PRINT_CYCLES
 		/*if ( pc.PC == 0xC293 ) {
 			volatile int gjhg = 0;
 		}*/
@@ -1144,17 +1147,17 @@ namespace lsn {
 		static uint64_t ui64LastCycles = 0;
 		static uint16_t ui16LastInstr = 0;
 		static uint16_t ui16LastPc = 0;
-#endif	// #ifdef _DEBUG
-#ifdef _DEBUG
-		/*ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
+#endif	// #ifdef LSN_PRINT_CYCLES
+#ifdef LSN_PRINT_CYCLES
+		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
 		ui64CyclesAtStart = m_ui64CycleCount;
 		if ( ui16LastPc ) {
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
 			::OutputDebugStringA( szBuffer );
-		}*/
+		}
 		ui16LastPc = pc.PC;
-#endif	// #ifdef _DEBUG
+#endif	// #ifdef LSN_PRINT_CYCLES
 		if ( m_bHandleNmi && !m_bDelayInterrupt ) {
 			BeginInst( LSN_SO_NMI );
 		}
@@ -1163,9 +1166,9 @@ namespace lsn {
 			m_bDelayInterrupt = false;
 		}
 
-#ifdef _DEBUG
+#ifdef LSN_PRINT_CYCLES
 		ui16LastInstr = m_ccCurContext.ui16OpCode;
-#endif	// #ifdef _DEBUG
+#endif	// #ifdef LSN_PRINT_CYCLES
 	}
 
 	/** Performs a cycle inside an instruction. */

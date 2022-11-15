@@ -9,8 +9,10 @@
 #include <LSWWin.h>
 #include <shlwapi.h>
 
-#include "../../Utilities/LSNUtilities.h"
 #include "LSNMainWindow.h"
+#include "../../File/LSNZipFile.h"
+#include "../../Utilities/LSNUtilities.h"
+#include "../SelectRom/LSNSelectRomDialogLayout.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
 #include <StatusBar/LSWStatusBar.h>
@@ -20,7 +22,8 @@
 namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 
 
 		static const struct {
@@ -32,11 +35,13 @@ namespace lsn {
 			{ L"73", LSN_I_OPTIONS },
 		};
 		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
-		WCHAR szBuffer[MAX_PATH];
-		::GetModuleFileNameW( NULL, szBuffer, MAX_PATH );
-		PWSTR pwsEnd = std::wcsrchr( szBuffer, L'\\' ) + 1;
-		(*pwsEnd) = L'\0';
-		std::wstring wsRoot = szBuffer;
+		//WCHAR szBuffer[MAX_PATH];
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 ); 
+		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 		for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
 			std::wstring wsTemp = wsRoot + L"Resources\\";
 			wsTemp += sImages[I].lpwsImageName;
@@ -46,8 +51,13 @@ namespace lsn {
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
 		}
 
+
+		m_pnsSystem = std::make_unique<lsn::CNtscSystem>();
+
+		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
+		(*m_pabIsAlive) = false;
 	}
 
 	// == Functions.
@@ -133,11 +143,15 @@ namespace lsn {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::wstring szFileName;
 				szFileName.resize( 0xFFFF + 2 );
-#define LSN_FILE_OPEN_FORMAT				L"ROM Files (*.nes, *.zip)\0*.nes;*.zip\0All Files (*.*)\0*.*\0\0"
+#define LSN_ALL_SUPPORTED					L"All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0"
+#define LSN_NES_FILES						L"NES Files (*.nes)\0*.nes\0"
+#define LSN_ZIP_FILES						L"ZIP Files (*.zip)\0*.zip\0"
+#define LSN_ALL_FILES						L"All Files (*.*)\0*.*\0"
+#define LSN_FILE_OPEN_FORMAT				LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
 				std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
 				ofnOpenFile.hwndOwner = Wnd();
 				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = &szFileName[0];
+				ofnOpenFile.lpstrFile = szFileName.data();
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
 				//ofnOpenFile.lpstrDefExt = L"";
@@ -146,13 +160,36 @@ namespace lsn {
 					const LPWSTR lpstrExt = &ofnOpenFile.lpstrFile[ofnOpenFile.nFileExtension];
 					if ( lpstrExt ) {
 						if ( ::StrCmpIW( lpstrExt, L"zip" ) == 0 ) {
-
+							lsn::CZipFile zfFile;
+							if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
+								std::vector<std::u16string> vFiles;
+								if ( zfFile.GatherArchiveFiles( vFiles ) ) {
+									std::vector<std::u16string> vFinalFiles;
+									for ( size_t I = 0; I < vFiles.size(); ++I ) {
+										std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
+										if ( ::StrCmpIW( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"nes" ) == 0 ) {
+											vFinalFiles.push_back( vFiles[I] );
+										}
+									}
+									DWORD dwIdx = CSelectRomDialogLayout::CreateSelectRomDialog( this, &vFinalFiles );
+									if ( dwIdx < DWORD( vFinalFiles.size() ) ) {
+										std::vector<uint8_t> vExtracted;
+										zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
+										m_pnsSystem->LoadRom( vExtracted, vFinalFiles[dwIdx] );
+										m_pnsSystem->ResetState( false );
+										return LSW_H_CONTINUE;
+									}
+								}
+							}
 							return LSW_H_CONTINUE;
 						}
 					}
-					/*if ( !LoadFile( ofnOpenFile.lpstrFile ) ) {
-					}*/
 				}
+#undef LSN_FILE_OPEN_FORMAT
+#undef LSN_ALL_FILES
+#undef LSN_ZIP_FILES
+#undef LSN_NES_FILES
+#undef LSN_ALL_SUPPORTED
 				break;
 			}
 		}
@@ -165,7 +202,21 @@ namespace lsn {
 		return LSW_H_CONTINUE;
 	}
 
-	// Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+	/**
+	 * Advances the emulation state by the amount of time that has passed since the last advancement.
+	 */
+	void CMainWindow::Tick() {
+		if ( m_pnsSystem->IsRomLoaded() ) {
+			m_pnsSystem->Tick();
+		}
+	}
+
+	/**
+	 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+	 *
+	 * \param _pwChild Optional child control.
+	 * \return Returns the virtual client rectangle of this object or of the optional child object.
+	 */
 	const lsw::LSW_RECT CMainWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
 		LSW_RECT rTemp = ClientRect( this );
 		const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));

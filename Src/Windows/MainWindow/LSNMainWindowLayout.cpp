@@ -12,7 +12,7 @@ namespace lsn {
 	// == Members.
 	LSW_WIDGET_LAYOUT CMainWindowLayout::m_wlMainWindow[] = {
 		{
-			LSN_MAIN_WINDOW,						// ltType
+			LSN_LT_MAIN_WINDOW,						// ltType
 			LSN_MWI_MAINWINDOW,						// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
@@ -174,7 +174,7 @@ namespace lsn {
 
 	// == Functions.
 	// Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
-	CWidget * CMainWindowLayout::CreateMainWindow() {
+	CWidget * CMainWindowLayout::CreateMainWindow( std::atomic_bool * _pabIsAlive ) {
 		if ( !m_aMainClass ) {
 			// Register the window classes we need.
 			lsw::CWndClassEx wceEx( lsw::CWidget::WindowProc, L"LSNMAIN" );
@@ -192,7 +192,7 @@ namespace lsn {
 		m_pwMainWindow = lsw::CBase::LayoutManager()->CreateWindowX( m_wlMainWindow, LSN_ELEMENTS( m_wlMainWindow ),
 			LSN_ELEMENTS( m_miMenus ) ? m_miMenus : nullptr, LSN_ELEMENTS( m_miMenus ),
 			nullptr,
-			0 );
+			reinterpret_cast<uint64_t>(_pabIsAlive) );
 		_pwMain->lpwcClass = nullptr;
 		return m_pwMainWindow;
 	}

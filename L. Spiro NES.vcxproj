@@ -200,6 +200,8 @@
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindowLayout.h" />
+    <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialog.h" />
+    <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
@@ -219,6 +221,8 @@
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialog.cpp" />
+    <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
