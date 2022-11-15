@@ -1,3 +1,8 @@
+#ifdef LSN_USE_WINDOWS
+#include <LSWWin.h>
+
+#pragma comment( lib, "shlwapi.lib" )
+#else
 /**
  * Copyright L. Spiro 2022
  *
@@ -7,19 +12,6 @@
  */
 
 #pragma once
-
-#if defined( WIN32 ) || defined( _WIN32 ) || defined( _WIN64 )
-#define LSN_WINDOWS
-#if defined( WIN32 ) || defined( _WIN32 )
-#define LSN_WIN32
-#endif	// #ifdef defined( WIN32 ) || defined( _WIN32 )
-#ifdef _WIN64
-#define LSN_WIN64
-#endif	// #ifdef _WIN64
-#endif	// #if defined( WIN32 ) || defined( _WIN32 ) || defined( _WIN64 )
-
-
-#ifdef LSN_WINDOWS
 
 /*
 // Just for reference.
@@ -44,6 +36,21 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+
+#endif  // #ifdef LSN_USE_WINDOWS
+
+#if defined( WIN32 ) || defined( _WIN32 ) || defined( _WIN64 )
+#define LSN_WINDOWS
+#if defined( WIN32 ) || defined( _WIN32 )
+#define LSN_WIN32
+#endif	// #ifdef defined( WIN32 ) || defined( _WIN32 )
+#ifdef _WIN64
+#define LSN_WIN64
+#endif	// #ifdef _WIN64
+#endif	// #if defined( WIN32 ) || defined( _WIN32 ) || defined( _WIN64 )
+
+
+#ifdef LSN_WINDOWS
 
 #define LSN_FASTCALL						__fastcall
 
@@ -83,3 +90,4 @@ inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64M
 #endif  // #ifndef LSN_WIN64
 
 #endif	// #ifdef LSN_WINDOWS
+

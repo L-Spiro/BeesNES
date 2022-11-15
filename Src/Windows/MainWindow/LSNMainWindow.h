@@ -32,6 +32,12 @@ namespace lsn {
 		// WM_INITDIALOG.
 		virtual LSW_HANDLED						InitDialog();
 
+		// WM_COMMAND from control.
+		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _Id, CWidget * _pwSrc );
+
+		// WM_COMMAND from menu.
+		virtual LSW_HANDLED						MenuCommand( WORD _Id ) { return Command( 0, _Id, nullptr ); }
+
 		// WM_NCDESTROY.
 		virtual LSW_HANDLED						NcDestroy();
 

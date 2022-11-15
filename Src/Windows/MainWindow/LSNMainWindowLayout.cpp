@@ -50,7 +50,7 @@ namespace lsn {
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
 		},
-		{
+		/*{
 			LSW_LT_REBAR,							// ltType
 			LSN_MWI_REBAR0,							// wId
 			REBARCLASSNAMEW,						// lpwcClass
@@ -92,7 +92,7 @@ namespace lsn {
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_MWI_MAINWINDOW,						// dwParentId
-		},
+		},*/
 	};
 
 	// Menu bar items for the main window.
@@ -107,7 +107,7 @@ namespace lsn {
 	// File menu.
 	LSW_MENU_ITEM CMainWindowLayout::m_miFileMenu[] {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-		{ FALSE,		LSN_MWMI_OPENPROCESS,		FALSE,		FALSE,		TRUE,		L"Open &ROM" },
+		{ FALSE,		LSN_MWMI_OPENROM,		FALSE,		FALSE,		TRUE,		L"Open &ROM" },
 		{ FALSE,		LSN_MWMI_OPENRECENT,		FALSE,		FALSE,		TRUE,		L"Open Re&cent" },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_OPENSAVEFILE,		FALSE,		FALSE,		TRUE,		L"Dummy &0" },

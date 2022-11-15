@@ -1,11 +1,21 @@
 #ifdef LSN_USE_WINDOWS
 
+/**
+ * First because of:
+ *	1>C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\objidlbase.h(7882,79): error C2872: 'byte': ambiguous symbol
+ *	1>C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared\rpcndr.h(191,23): message : could be 'unsigned char byte'
+ *	1>T:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.31.31103\include\cstddef(28,12): message : or       'std::byte'
+ **/
+#include <LSWWin.h>
+#include <shlwapi.h>
+
 #include "../../Utilities/LSNUtilities.h"
 #include "LSNMainWindow.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
+#include <commdlg.h>
 
 namespace lsn {
 
@@ -48,36 +58,42 @@ namespace lsn {
 
 
 		// ==== TOOL BAR ==== //
-		plvToolBar->SetImageList( 0, m_iImages );
+		if ( plvToolBar ) {
+			plvToolBar->SetImageList( 0, m_iImages );
 //#define LSN_TOOL_STR( TXT )					reinterpret_cast<INT_PTR>(TXT)
 #define LSN_TOOL_STR( TXT )						0
-		const TBBUTTON bButtons[] = {
-			// iBitmap							idCommand									fsState				fsStyle			bReserved	dwData	iString
-			{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENPROCESS,	TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Open Process" ) },
-			{ -1,								0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-			{ m_iImageMap[LSN_I_OPTIONS],		CMainWindowLayout::LSN_MWMI_OPTIONS,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Options" ) },
-		};
+			const TBBUTTON bButtons[] = {
+				// iBitmap							idCommand									fsState				fsStyle			bReserved	dwData	iString
+				{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENROM,	TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Open Process" ) },
+				{ -1,								0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ m_iImageMap[LSN_I_OPTIONS],		CMainWindowLayout::LSN_MWMI_OPTIONS,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Options" ) },
+			};
 #undef LSN_TOOL_STR
 
-		plvToolBar->AddButtons( bButtons, LSN_ELEMENTS( bButtons ) );
-
-		plvRebar->SetImageList( m_iImages );
-		{
-			LSW_REBARBANDINFO riRebarInfo;
-			riRebarInfo.SetColors( ::GetSysColor( COLOR_BTNTEXT ), ::GetSysColor( COLOR_BTNFACE ) );
-			riRebarInfo.SetStyle( RBBS_CHILDEDGE |
-			  RBBS_FIXEDBMP );
-			riRebarInfo.SetChild( plvToolBar->Wnd() );
-			riRebarInfo.SetChildSize( plvToolBar->GetMinBoundingRect().Width(), plvToolBar->GetMinBoundingRect().Height() );
-			riRebarInfo.SetId( CMainWindowLayout::LSN_MWI_TOOLBAR0 );
-			plvRebar->InsertBand( -1, riRebarInfo );
+			plvToolBar->AddButtons( bButtons, LSN_ELEMENTS( bButtons ) );
 		}
 
 		LSW_RECT rRebarRect = ClientRect( this );
-		LONG lRebarHeight = plvRebar->WindowRect( this ).Height();
-	   ::MoveWindow( plvRebar->Wnd(), 0, 0, rRebarRect.Width(), lRebarHeight, FALSE );
+		LONG lRebarHeight = 0;
+		if ( plvRebar ) {
+			plvRebar->SetImageList( m_iImages );
+			{
+				LSW_REBARBANDINFO riRebarInfo;
+				riRebarInfo.SetColors( ::GetSysColor( COLOR_BTNTEXT ), ::GetSysColor( COLOR_BTNFACE ) );
+				riRebarInfo.SetStyle( RBBS_CHILDEDGE |
+				  RBBS_FIXEDBMP );
+				riRebarInfo.SetChild( plvToolBar->Wnd() );
+				riRebarInfo.SetChildSize( plvToolBar->GetMinBoundingRect().Width(), plvToolBar->GetMinBoundingRect().Height() );
+				riRebarInfo.SetId( CMainWindowLayout::LSN_MWI_TOOLBAR0 );
+				plvRebar->InsertBand( -1, riRebarInfo );
+			}
 
-		plvRebar->UpdateRects();
+			lRebarHeight = plvRebar->WindowRect( this ).Height();
+		   ::MoveWindow( plvRebar->Wnd(), 0, 0, rRebarRect.Width(), lRebarHeight, FALSE );
+
+			plvRebar->UpdateRects();
+		}
+
 		
 
 		// ==== STATUS BAR ==== //
@@ -107,6 +123,39 @@ namespace lsn {
 		LSW_RECT rScreen = rRebarRect.ClientToScreen( Wnd() );
 		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 
+		return LSW_H_CONTINUE;
+	}
+
+	// WM_COMMAND from control.
+	CWidget::LSW_HANDLED CMainWindow::Command( WORD /*_wCtrlCode*/, WORD _Id, CWidget * /*_pwSrc*/ ) {
+		switch ( _Id ) {
+			case CMainWindowLayout::LSN_MWMI_OPENROM : {
+				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+				std::wstring szFileName;
+				szFileName.resize( 0xFFFF + 2 );
+#define LSN_FILE_OPEN_FORMAT				L"ROM Files (*.nes, *.zip)\0*.nes;*.zip\0All Files (*.*)\0*.*\0\0"
+				std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
+				ofnOpenFile.hwndOwner = Wnd();
+				ofnOpenFile.lpstrFilter = wsFilter.c_str();
+				ofnOpenFile.lpstrFile = &szFileName[0];
+				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+				//ofnOpenFile.lpstrDefExt = L"";
+
+				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+					const LPWSTR lpstrExt = &ofnOpenFile.lpstrFile[ofnOpenFile.nFileExtension];
+					if ( lpstrExt ) {
+						if ( ::StrCmpIW( lpstrExt, L"zip" ) == 0 ) {
+
+							return LSW_H_CONTINUE;
+						}
+					}
+					/*if ( !LoadFile( ofnOpenFile.lpstrFile ) ) {
+					}*/
+				}
+				break;
+			}
+		}
 		return LSW_H_CONTINUE;
 	}
 
