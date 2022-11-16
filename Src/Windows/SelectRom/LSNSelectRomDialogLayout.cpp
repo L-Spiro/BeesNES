@@ -10,13 +10,7 @@
 #define LSN_SF_VIEW_HEIGHT							50
 #define LSN_SF_SEARCH_LABEL_W						22
 #define LSN_SF_SELECT_GROUP_HEIGHT					(LSN_SF_VIEW_HEIGHT + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + LSN_GROUP_TOP + LSN_GROUP_BOTTOM)
-#define LSN_SF_SHOW_GROUP_TOP						(LSN_SF_SELECT_GROUP_TOP + LSN_SF_SELECT_GROUP_HEIGHT + LSN_TOP_JUST)
-#define LSN_SF_SHOW_GROUP_HEIGHT					(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_RADIO_HEIGHT)
-#define LSN_SF_MAIN_CHECK_W							29
-#define LSN_SF_ALL_CHECK_W							17
-#define LSN_SF_LAST_SECTION_TOP						(LSN_SF_SHOW_GROUP_TOP + LSN_SF_SHOW_GROUP_HEIGHT + LSN_TOP_JUST)
-#define LSN_SF_LAST_SECTION_H						(LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT)
-#define LSN_SF_H									(LSN_SF_LAST_SECTION_TOP + LSN_SF_LAST_SECTION_H + LSN_TOP_JUST * 4 + LSN_DEF_BUTTON_HEIGHT)
+#define LSN_SF_H									(LSN_SF_SELECT_GROUP_HEIGHT + LSN_TOP_JUST * 4 + LSN_DEF_BUTTON_HEIGHT)
 
 namespace lsn {
 
@@ -131,6 +125,53 @@ namespace lsn {
 			nullptr, 0,								// pcTopSizeExp
 			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
+
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_SFI_BUTTON_OK,						// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			TRUE,									// bActive
+			LSN_SF_W - LSN_DEF_BUTTON_WIDTH * 2 - 2 - 2,	// iLeft
+			LSN_SF_H - LSN_DEF_BUTTON_HEIGHT - 2,		// iTop
+			LSN_DEF_BUTTON_WIDTH,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_DEFBUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,						// dwStyleEx
+			L"OK",									// pwcText
+			0,										// sTextLen
+			LSN_SFI_DIALOG,							// dwParentId
+
+			nullptr, 0,								// pcLeftSizeExp
+			LSN_LOCK_RIGHT,							// pcRightSizeExp
+			nullptr, 0,								// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_SFI_BUTTON_CANCEL,					// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_SF_W - LSN_DEF_BUTTON_WIDTH * 1 - 2,// iLeft
+			LSN_SF_H - LSN_DEF_BUTTON_HEIGHT - 2,	// iTop
+			LSN_DEF_BUTTON_WIDTH,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,						// dwStyleEx
+			L"Cancel",								// pwcText
+			0,										// sTextLen
+			LSN_SFI_DIALOG,							// dwParentId
+
+			nullptr, 0,								// pcLeftSizeExp
+			LSN_LOCK_RIGHT,							// pcRightSizeExp
+			nullptr, 0,								// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
 			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 	};

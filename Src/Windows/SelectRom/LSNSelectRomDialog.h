@@ -18,7 +18,7 @@ namespace lsn {
 		virtual LSW_HANDLED					InitDialog();
 
 		// WM_COMMAND from control.
-		virtual LSW_HANDLED					Command( WORD _wCtrlCode, WORD _Id, CWidget * _pwSrc );
+		virtual LSW_HANDLED					Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		// WM_CLOSE.
 		virtual LSW_HANDLED					Close();

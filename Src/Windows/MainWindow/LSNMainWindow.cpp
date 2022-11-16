@@ -126,7 +126,7 @@ namespace lsn {
 		
 
 		ForceSizeUpdate();
-		rRebarRect.SetWidth( LONG( rRebarRect.Height() / 3.0 * 4.0 ) );
+		rRebarRect.SetWidth( LONG( rRebarRect.Height() / 240.0 * 292.0 ) );
 		rRebarRect.bottom += lRebarHeight + rStatusBar.Height();
 		::AdjustWindowRectEx( &rRebarRect, ::GetWindowLongW( Wnd(), GWL_STYLE ),
 			TRUE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );

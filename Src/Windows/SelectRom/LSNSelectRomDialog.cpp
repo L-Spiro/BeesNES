@@ -31,7 +31,7 @@ namespace lsn {
 	}
 
 	// WM_COMMAND from control.
-	CWidget::LSW_HANDLED CSelectRomDialog::Command( WORD _wCtrlCode, WORD _Id, CWidget * _pwSrc ) {
+	CWidget::LSW_HANDLED CSelectRomDialog::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wCtrlCode ) {
 			case LBN_DBLCLK : {
 				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
@@ -41,7 +41,7 @@ namespace lsn {
 					}
 					return LSW_H_HANDLED;
 				}
-				break;
+				return LSW_H_HANDLED;;
 			}
 			case EN_CHANGE : {
 				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
@@ -64,11 +64,27 @@ namespace lsn {
 						}
 					}
 				}
-				break;
+				return LSW_H_HANDLED;;
 			}
 		}
 
-		return CMainWindow::Command( _wCtrlCode, _Id, _pwSrc );
+		switch ( _wId ) {
+			case CSelectRomDialogLayout::LSN_SFI_BUTTON_OK : {
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+				if ( plvList ) {
+					if ( plvList->GetCurSel() != LB_ERR ) {
+						::EndDialog( Wnd(), plvList->GetCurSelItemData() );
+					}
+					return LSW_H_HANDLED;
+				}
+				break;
+			}
+			case CSelectRomDialogLayout::LSN_SFI_BUTTON_CANCEL : {
+				return Close();
+			}
+		}
+
+		return CMainWindow::Command( _wCtrlCode, _wId, _pwSrc );
 	}
 
 	// WM_CLOSE.
@@ -80,7 +96,7 @@ namespace lsn {
 	// WM_GETMINMAXINFO.
 	CWidget::LSW_HANDLED CSelectRomDialog::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
 		_pmmiInfo->ptMinTrackSize.x = 250;
-		_pmmiInfo->ptMinTrackSize.y = 250;
+		_pmmiInfo->ptMinTrackSize.y = 200;
 		return LSW_H_HANDLED;
 	}
 
