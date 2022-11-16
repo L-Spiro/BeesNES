@@ -29,3 +29,4 @@ x64/Debug/*
 x64/Release/*
 Libraries/ExpressionEvaluator/x64/*
 Libraries/LSWindows/x64/*
+x64/Final/*

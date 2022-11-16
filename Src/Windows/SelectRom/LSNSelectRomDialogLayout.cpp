@@ -5,17 +5,18 @@
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
 
-#define LSN_OPL_W									350
-#define LSN_OPL_SELECT_GROUP_TOP					LSN_TOP_JUST
-#define LSN_OPL_VIEW_HEIGHT							50
-#define LSN_OPL_SELECT_GROUP_HEIGHT					(LSN_OPL_VIEW_HEIGHT + LSN_GROUP_TOP + LSN_GROUP_BOTTOM)
-#define LSN_OPL_SHOW_GROUP_TOP						(LSN_OPL_SELECT_GROUP_TOP + LSN_OPL_SELECT_GROUP_HEIGHT + LSN_TOP_JUST)
-#define LSN_OPL_SHOW_GROUP_HEIGHT					(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_RADIO_HEIGHT)
-#define LSN_OPL_MAIN_CHECK_W						29
-#define LSN_OPL_ALL_CHECK_W							17
-#define LSN_OPL_LAST_SECTION_TOP					(LSN_OPL_SHOW_GROUP_TOP + LSN_OPL_SHOW_GROUP_HEIGHT + LSN_TOP_JUST)
-#define LSN_OPL_LAST_SECTION_H						(LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT)
-#define LSN_OPL_H									(LSN_OPL_LAST_SECTION_TOP + LSN_OPL_LAST_SECTION_H + LSN_TOP_JUST * 4 + LSN_DEF_BUTTON_HEIGHT)
+#define LSN_SF_W									350
+#define LSN_SF_SELECT_GROUP_TOP						LSN_TOP_JUST
+#define LSN_SF_VIEW_HEIGHT							50
+#define LSN_SF_SEARCH_LABEL_W						22
+#define LSN_SF_SELECT_GROUP_HEIGHT					(LSN_SF_VIEW_HEIGHT + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + LSN_GROUP_TOP + LSN_GROUP_BOTTOM)
+#define LSN_SF_SHOW_GROUP_TOP						(LSN_SF_SELECT_GROUP_TOP + LSN_SF_SELECT_GROUP_HEIGHT + LSN_TOP_JUST)
+#define LSN_SF_SHOW_GROUP_HEIGHT					(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_RADIO_HEIGHT)
+#define LSN_SF_MAIN_CHECK_W							29
+#define LSN_SF_ALL_CHECK_W							17
+#define LSN_SF_LAST_SECTION_TOP						(LSN_SF_SHOW_GROUP_TOP + LSN_SF_SHOW_GROUP_HEIGHT + LSN_TOP_JUST)
+#define LSN_SF_LAST_SECTION_H						(LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT)
+#define LSN_SF_H									(LSN_SF_LAST_SECTION_TOP + LSN_SF_LAST_SECTION_H + LSN_TOP_JUST * 4 + LSN_DEF_BUTTON_HEIGHT)
 
 namespace lsn {
 
@@ -30,10 +31,9 @@ namespace lsn {
 			FALSE,									// bActive
 			64,										// iLeft
 			64,										// iTop
-			LSN_OPL_W,								// dwWidth
-			LSN_OPL_H,								// dwHeight
+			LSN_SF_W,								// dwWidth
+			LSN_SF_H,								// dwHeight
 			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | WS_THICKFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,					// dwStyle
-			//WS_POPUP | WS_BORDER | WS_SYSMENU | DS_MODALFRAME | WS_CAPTION,
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
 			L"Select ROM",							// pwcText
 			0,										// sTextLen
@@ -48,9 +48,9 @@ namespace lsn {
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			LSN_LEFT_JUST,							// iLeft
-			LSN_OPL_SELECT_GROUP_TOP,				// iTop
-			LSN_OPL_W - (LSN_LEFT_JUST * 2),		// dwWidth
-			LSN_OPL_SELECT_GROUP_HEIGHT,			// dwHeight
+			LSN_SF_SELECT_GROUP_TOP,				// iTop
+			LSN_SF_W - (LSN_LEFT_JUST * 2),		// dwWidth
+			LSN_SF_SELECT_GROUP_HEIGHT,			// dwHeight
 			LSN_GROUPSTYLE,																																// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																// dwStyleEx
 			L"File Listing",						// pwcText
@@ -71,11 +71,11 @@ namespace lsn {
 			TRUE,									// bEnabled
 			TRUE,									// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
-			LSN_OPL_SELECT_GROUP_TOP + LSN_GROUP_TOP,	// iTop
-			LSN_OPL_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2,																								// dwWidth
-			LSN_OPL_VIEW_HEIGHT,					// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | WS_HSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS,						// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE,		// dwStyleEx
+			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP,	// iTop
+			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2,																							// dwWidth
+			LSN_SF_VIEW_HEIGHT,					// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | WS_HSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS,					// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE,												// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
@@ -87,19 +87,65 @@ namespace lsn {
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
 		},
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_SFI_LABEL_SEARCH,					// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2),																// iTop
+			LSN_SF_SEARCH_LABEL_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			L"Search:",								// pwcText
+			0,										// sTextLen
+			LSN_SFI_DIALOG,							// dwParentId
+
+			LSN_LOCK_LEFT,							// pcLeftSizeExp
+			nullptr, 0,								// pcRightSizeExp
+			nullptr, 0,								// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
+		{
+			LSW_LT_EDIT,							// ltType
+			LSN_SFI_EDIT_SEARCH,					// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT + LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST,							// iLeft
+			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST,																// iTop
+			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2 - (LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST),		// dwWidth
+			LSN_DEF_EDIT_HEIGHT,					// dwHeight
+			LSN_EDITSTYLE,							// dwStyle
+			WS_EX_CLIENTEDGE,						// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_SFI_DIALOG,							// dwParentId
+
+			LSN_LOCK_LEFT,							// pcLeftSizeExp
+			LSN_LOCK_RIGHT,							// pcRightSizeExp
+			nullptr, 0,								// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			nullptr, 0,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
 	};
 
-#undef LSN_OPL_H
-#undef LSN_OPL_LAST_SECTION_H
-#undef LSN_OPL_LAST_SECTION_TOP
-#undef LSN_OPL_ALL_CHECK_W
-#undef LSN_OPL_MAIN_CHECK_W
-#undef LSN_OPL_SHOW_GROUP_HEIGHT
-#undef LSN_OPL_SHOW_GROUP_TOP
-#undef LSN_OPL_SELECT_GROUP_HEIGHT
-#undef LSN_OPL_VIEW_HEIGHT
-#undef LSN_OPL_SELECT_GROUP_TOP
-#undef LSN_OPL_W
+#undef LSN_SF_H
+#undef LSN_SF_LAST_SECTION_H
+#undef LSN_SF_LAST_SECTION_TOP
+#undef LSN_SF_ALL_CHECK_W
+#undef LSN_SF_MAIN_CHECK_W
+#undef LSN_SF_SHOW_GROUP_HEIGHT
+#undef LSN_SF_SHOW_GROUP_TOP
+#undef LSN_SF_SELECT_GROUP_HEIGHT
+#undef LSN_SF_VIEW_HEIGHT
+#undef LSN_SF_SELECT_GROUP_TOP
+#undef LSN_SF_W
 
 	// == Functions.
 	// Creates the Select ROM dialog.

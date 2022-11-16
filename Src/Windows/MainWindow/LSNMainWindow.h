@@ -74,6 +74,11 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		uint64_t								m_ui64TickCount;
+		// Outside "is alive" atomic.
+		std::atomic_bool *						m_pabIsAlive;
+		// A clock.
+		lsn::CClock								m_cClock;
 		// The console pointer.
 		std::unique_ptr<lsn::CNtscSystem>		m_pnsSystem;
 		// Image list.
@@ -82,8 +87,7 @@ namespace lsn {
 		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
 		// Image mapping.
 		INT										m_iImageMap[LSN_I_TOTAL];
-		// Outside "is alive" atomic.
-		std::atomic_bool *						m_pabIsAlive;
+		
 	};
 
 }

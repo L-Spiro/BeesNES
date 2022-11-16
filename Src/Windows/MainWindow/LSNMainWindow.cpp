@@ -171,17 +171,41 @@ namespace lsn {
 											vFinalFiles.push_back( vFiles[I] );
 										}
 									}
-									DWORD dwIdx = CSelectRomDialogLayout::CreateSelectRomDialog( this, &vFinalFiles );
-									if ( dwIdx < DWORD( vFinalFiles.size() ) ) {
-										std::vector<uint8_t> vExtracted;
+									std::vector<uint8_t> vExtracted;
+									DWORD dwIdx;
+									if ( vFinalFiles.size() == 1 ) {
+										dwIdx = 0;
 										zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
-										m_pnsSystem->LoadRom( vExtracted, vFinalFiles[dwIdx] );
-										m_pnsSystem->ResetState( false );
-										return LSW_H_CONTINUE;
 									}
+									else {
+										dwIdx = CSelectRomDialogLayout::CreateSelectRomDialog( this, &vFinalFiles );
+										if ( dwIdx < DWORD( vFinalFiles.size() ) ) {
+											zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
+										}
+										else { return LSW_H_CONTINUE; }
+									}
+									m_pnsSystem->LoadRom( vExtracted, vFinalFiles[dwIdx] );
+									m_pnsSystem->ResetState( false );
+									m_ui64TickCount = 0;
+									m_cClock.SetStartingTick();
+									return LSW_H_CONTINUE;
 								}
 							}
 							return LSW_H_CONTINUE;
+						}
+						else {
+							lsn::CStdFile sfFile;
+							std::u16string s16File = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+							if ( sfFile.Open( s16File.c_str() ) ) {
+								std::vector<uint8_t> vExtracted;
+								if ( sfFile.LoadToMemory( vExtracted ) ) {
+									m_pnsSystem->LoadRom( vExtracted, s16File );
+									m_pnsSystem->ResetState( false );
+									m_ui64TickCount = 0;
+									m_cClock.SetStartingTick();
+									return LSW_H_CONTINUE;
+								}
+							}
 						}
 					}
 				}
@@ -198,6 +222,21 @@ namespace lsn {
 
 	// WM_NCDESTROY.
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
+		uint64_t ui64Time = m_cClock.GetRealTick() - m_cClock.GetStartTick();
+		if ( m_pnsSystem->IsRomLoaded() ) {
+			double dTime = ui64Time / double( m_cClock.GetResolution() );
+			char szBuffer[256];
+			::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n"
+				"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
+				"%.8f cycles per Tick().\r\n"
+				"%.8f FPS.\r\n",
+				m_ui64TickCount, dTime,
+				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->MasterHz() ) / m_pnsSystem->MasterDiv(),
+				m_pnsSystem->GetMasterCounter() / double( m_ui64TickCount ),
+				m_pnsSystem->GetPpu().GetFrameCount() / dTime
+				);
+			::OutputDebugStringA( szBuffer );
+		}
 		::PostQuitMessage( 0 );
 		return LSW_H_CONTINUE;
 	}
@@ -208,6 +247,7 @@ namespace lsn {
 	void CMainWindow::Tick() {
 		if ( m_pnsSystem->IsRomLoaded() ) {
 			m_pnsSystem->Tick();
+			++m_ui64TickCount;
 		}
 	}
 

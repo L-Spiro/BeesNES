@@ -2,6 +2,7 @@
 
 #include "LSNSelectRomDialog.h"
 #include "LSNSelectRomDialogLayout.h"
+#include <Edit/LSWEdit.h>
 #include <ListBox/LSWListBox.h>
 
 
@@ -18,10 +19,11 @@ namespace lsn {
 	// WM_INITDIALOG.
 	CWidget::LSW_HANDLED CSelectRomDialog::InitDialog() {
 
-		CListBox * plvLIst = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
-		if ( plvLIst && m_pvFiles ) {
+		CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+		if ( plvList && m_pvFiles ) {
 			for ( size_t I = 0; I < m_pvFiles->size(); I++ ) {
-				plvLIst->AddString( reinterpret_cast<LPCWSTR>((*m_pvFiles)[I].c_str()) );
+				INT iIdx = plvList->AddString( reinterpret_cast<LPCWSTR>((*m_pvFiles)[I].c_str()) );
+				plvList->SetItemData( iIdx, I );
 			}
 		}
 
@@ -32,10 +34,35 @@ namespace lsn {
 	CWidget::LSW_HANDLED CSelectRomDialog::Command( WORD _wCtrlCode, WORD _Id, CWidget * _pwSrc ) {
 		switch ( _wCtrlCode ) {
 			case LBN_DBLCLK : {
-				CListBox * plvLIst = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
-				if ( plvLIst ) {
-					::EndDialog( Wnd(), plvLIst->GetCurSel() );
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+				if ( plvList ) {
+					if ( plvList->GetCurSel() != LB_ERR ) {
+						::EndDialog( Wnd(), plvList->GetCurSelItemData() );
+					}
 					return LSW_H_HANDLED;
+				}
+				break;
+			}
+			case EN_CHANGE : {
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+				CEdit * peEdit = static_cast<CEdit *>(FindChild( CSelectRomDialogLayout::LSN_SFI_EDIT_SEARCH ));
+				if ( peEdit && plvList ) {
+					std::wstring wsText = peEdit->GetTextW();
+					plvList->ResetContent();
+					if ( !wsText.size() ) {
+						for ( size_t I = 0; I < m_pvFiles->size(); I++ ) {
+							INT iIdx = plvList->AddString( reinterpret_cast<LPCWSTR>((*m_pvFiles)[I].c_str()) );
+							plvList->SetItemData( iIdx, I );
+						}
+					}
+					else {
+						for ( size_t I = 0; I < m_pvFiles->size(); I++ ) {
+							if ( (*m_pvFiles)[I].find( reinterpret_cast<const char16_t *>(wsText.c_str()), 0 ) != std::string::npos ) {
+								INT iIdx = plvList->AddString( reinterpret_cast<LPCWSTR>((*m_pvFiles)[I].c_str()) );
+								plvList->SetItemData( iIdx, I );
+							}
+						}
+					}
 				}
 				break;
 			}
