@@ -23,7 +23,7 @@
 #define LSN_ADVANCE_CONTEXT_COUNTERS													LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
 #define LSN_PUSH( VAL )																	m_pbBus->Write( 0x100 + S--, (VAL) )
 #define LSN_POP()																		m_pbBus->Read( 0x100 + ++S )
-#define LSN_FINISH_INST																	m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd
+#define LSN_FINISH_INST																	m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
 #define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
@@ -1098,7 +1098,7 @@ namespace lsn {
 	 */
 	void CCpu6502::ResetAnalog() {
 		//m_ccCurContext.bActive = false;
-		m_pfTickFunc = &CCpu6502::Tick_NextInstructionStd;
+		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd;
 		S -= 3;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
 
@@ -1124,6 +1124,14 @@ namespace lsn {
 			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 		}
+	}
+
+	/**
+	 * Begins a DMA transfer.
+	 */
+	void CCpu6502::BeginDma() {
+		m_pfTickFunc = &CCpu6502::Tick_DmaStart;
+		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
 
 	/**
@@ -1174,6 +1182,29 @@ namespace lsn {
 	/** Performs a cycle inside an instruction. */
 	void CCpu6502::Tick_InstructionCycleStd() {
 		(this->*m_iInstructionSet[m_ccCurContext.ui16OpCode].pfHandler[m_ccCurContext.ui8FuncIdx])();
+	}
+
+	/** DMA start. Moves on to the DMA read/write cycle when the current CPU cycle is even (IE odd cycles take 1 extra cycle). */
+	void CCpu6502::Tick_DmaStart() {
+		if ( (this->m_ui64CycleCount & 0x1) == 0 ) {
+			ui16DmaCounter = 256;
+			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+		}
+	}
+
+	/** DMA read cycle. */
+	void CCpu6502::Tick_DmaRead() {
+		m_pfTickFunc = &CCpu6502::Tick_DmaWrite;
+	}
+
+	/** DMA write cycle. */
+	void CCpu6502::Tick_DmaWrite() {
+		if ( --ui16DmaCounter == 0 ) {
+			m_pfTickFunc = m_pfTickFuncCopy;
+		}
+		else {
+			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+		}
 	}
 
 	/**
@@ -1736,12 +1767,13 @@ namespace lsn {
 
 	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
 	void CCpu6502::FinalWriteCycle() {
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
+		LSN_FINISH_INST;
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  6  address  W  write the new value to effective address
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		
 	}
 
 	/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -2838,9 +2870,10 @@ namespace lsn {
 
 	/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, A & X );
-		// Last cycle in the instruction.
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
+
+		m_pbBus->Write( m_ccCurContext.a.ui16Address, A & X );
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -2939,6 +2972,9 @@ namespace lsn {
 
 	/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
+		LSN_FINISH_INST;
+
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
 		// 6   address+Y   W  write to effective address
@@ -2950,12 +2986,13 @@ namespace lsn {
 		A AND X AND (H+1) -> M
 		*/
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHS() {
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
+		LSN_FINISH_INST;
+
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
 		// 6   address+Y   W  write to effective address
@@ -2968,12 +3005,13 @@ namespace lsn {
 		*/
 		S = X & A;
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHX() {
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
+		LSN_FINISH_INST;
+
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
 		// 6   address+Y   W  write to effective address
@@ -2985,12 +3023,13 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHY() {
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
+		LSN_FINISH_INST;
+
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
 		// 6   address+Y   W  write to effective address
@@ -3002,8 +3041,6 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y );
-		// Last cycle in the instruction.
-		LSN_FINISH_INST;
 	}
 
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
@@ -3044,23 +3081,26 @@ namespace lsn {
 
 	/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, A );
-		// Last cycle in the instruction.
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
+
+		m_pbBus->Write( m_ccCurContext.a.ui16Address, A );
 	}
 
 	/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, X );
-		// Last cycle in the instruction.
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
+
+		m_pbBus->Write( m_ccCurContext.a.ui16Address, X );
 	}
 
 	/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, Y );
-		// Last cycle in the instruction.
+		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
+
+		m_pbBus->Write( m_ccCurContext.a.ui16Address, Y );
 	}
 
 	/** Copies A into X.  Sets flags N, and Z. */

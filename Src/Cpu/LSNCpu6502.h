@@ -86,13 +86,9 @@ namespace lsn {
 		void								ApplyMemoryMap();
 
 		/**
-		 * DESC
-		 *
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return RETURN
+		 * Begins a DMA transfer.
 		 */
-		//void								Irq();
+		void								BeginDma();
 
 		/**
 		 * Notifies the class that an NMI has occurred.
@@ -276,11 +272,13 @@ namespace lsn {
 		uint64_t							m_ui64CycleCount;								/**< The total CPU cycles that have ticked. */
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
+		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
 			uint8_t							ui8Bytes[2];
 		}									pc;
+		uint16_t							ui16DmaCounter;									/**< DMA counter. */
 		uint8_t								A;												/**< Accumulator. */
 		uint8_t								X;												/**< Index register X. */
 		uint8_t								Y;												/**< Index register Y. */
@@ -299,6 +297,15 @@ namespace lsn {
 
 		/** Performs a cycle inside an instruction. */
 		void								Tick_InstructionCycleStd();
+
+		/** DMA start. Moves on to the DMA read/write cycle when the current CPU cycle is even (IE odd cycles take 1 extra cycle). */
+		void								Tick_DmaStart();
+
+		/** DMA read cycle. */
+		void								Tick_DmaRead();
+
+		/** DMA write cycle. */
+		void								Tick_DmaWrite();
 
 
 		// == Cycle functions.
@@ -679,7 +686,7 @@ namespace lsn {
 		m_ccCurContext.ui8Cycle = 1;
 		m_ccCurContext.ui8FuncIdx = 0;
 		m_ccCurContext.ui16OpCode = _ui16Op;
-		m_pfTickFunc = &CCpu6502::Tick_InstructionCycleStd;
+		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 	}
 
 }	// namespace lsn
