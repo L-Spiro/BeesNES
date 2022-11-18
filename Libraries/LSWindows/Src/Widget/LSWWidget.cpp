@@ -182,7 +182,7 @@ namespace lsw {
 	// Gets the window text in UTF-8.
 	std::string CWidget::GetTextUTF8() const {
 		std::wstring wText = GetTextW();
-		return ee::WStringToString( wText );
+		return ee::CExpEval::WStringToString( wText );
 	}
 
 	// Get the value of the text as an expression.
@@ -336,7 +336,7 @@ namespace lsw {
 
 	// Translate a child's tooltip text.
 	std::wstring CWidget::TranslateTooltip( const std::string &_sText ) { 
-		return ee::ToUtf16( _sText );
+		return ee::CExpEval::ToUtf16( _sText );
 	}
 
 	// Sets a given font on all children of a window.
@@ -1153,6 +1153,9 @@ namespace lsw {
 						}
 						LSW_RET( 1, TRUE );
 					}
+					case LVN_ODSTATECHANGED : {
+						break;
+					}
 					case NM_CUSTOMDRAW : {
 						LPNMCUSTOMDRAW pcdCustomDraw = reinterpret_cast<LPNMCUSTOMDRAW>(_lParam);
 						CWidget * pmwSrc = LSW_WIN2CLASS( pcdCustomDraw->hdr.hwndFrom );
@@ -1164,7 +1167,7 @@ namespace lsw {
 									if ( _bIsDlg ) {
 										::SetWindowLongPtrW( _hWnd, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW );
 									}
-									LSW_RET( CDRF_NOTIFYITEMDRAW, TRUE );
+									LSW_RET( CDRF_NOTIFYITEMDRAW, CDRF_NOTIFYITEMDRAW );
 								}
 								if ( pcdListViewDraw->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 									if ( pcdListViewDraw->nmcd.dwItemSpec % 2 == 0 ) {
@@ -1173,7 +1176,7 @@ namespace lsw {
 										if ( _bIsDlg ) {
 											::SetWindowLongPtrW( _hWnd, DWLP_MSGRESULT, CDRF_NEWFONT );
 										}
-										LSW_RET( CDRF_NEWFONT, TRUE );
+										LSW_RET( CDRF_NEWFONT, CDRF_NEWFONT );
 									}
 									/*else {
 										pcdListViewDraw->clrText = RGB( 0, 0, 0 );
@@ -1181,11 +1184,11 @@ namespace lsw {
 									}*/
 								}
 								if ( (CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pcdListViewDraw->nmcd.dwDrawStage ) {
-									LSW_RET( CDRF_NEWFONT, TRUE );
+									LSW_RET( CDRF_NEWFONT, CDRF_NEWFONT );
 								}
 							}
 						}
-						LSW_RET( 1, TRUE );
+						LSW_RET( CDRF_DODEFAULT, CDRF_DODEFAULT );
 					}
 					case NM_DBLCLK : {
 						HWND hFrom = lpHdr->hwndFrom;

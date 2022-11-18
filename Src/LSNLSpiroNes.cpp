@@ -27,7 +27,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	//	takes place (clock() returns the time since the EXE actually started (before main() is even called), so we don't need more tickers from that
 	//	time.
 	// In a way, this allows (clock() - milliseconds_since_start()) to print the time it takes to initialize.
-	ee::InitializeExpressionEvaluatorLibrary();
+	ee::CExpEval::InitializeExpressionEvaluatorLibrary();
 	MSG mMsg = {};
 	::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_NOREMOVE );
 
