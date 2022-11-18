@@ -1164,7 +1164,7 @@ namespace lsw {
 									if ( _bIsDlg ) {
 										::SetWindowLongPtrW( _hWnd, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW );
 									}
-									LSW_RET( CDRF_NOTIFYITEMDRAW, CDRF_NOTIFYITEMDRAW );
+									LSW_RET( CDRF_NOTIFYITEMDRAW, TRUE );
 								}
 								if ( pcdListViewDraw->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 									if ( pcdListViewDraw->nmcd.dwItemSpec % 2 == 0 ) {
@@ -1173,7 +1173,7 @@ namespace lsw {
 										if ( _bIsDlg ) {
 											::SetWindowLongPtrW( _hWnd, DWLP_MSGRESULT, CDRF_NEWFONT );
 										}
-										LSW_RET( CDRF_NEWFONT, CDRF_NEWFONT );
+										LSW_RET( CDRF_NEWFONT, TRUE );
 									}
 									/*else {
 										pcdListViewDraw->clrText = RGB( 0, 0, 0 );
@@ -1181,7 +1181,7 @@ namespace lsw {
 									}*/
 								}
 								if ( (CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pcdListViewDraw->nmcd.dwDrawStage ) {
-									LSW_RET( CDRF_NEWFONT, CDRF_NEWFONT );
+									LSW_RET( CDRF_NEWFONT, TRUE );
 								}
 							}
 						}

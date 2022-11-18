@@ -282,6 +282,7 @@
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />
+    <ClInclude Include="Src\System\LSNDmaSource.h" />
     <ClInclude Include="Src\System\LSNNmiable.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
     <ClInclude Include="Src\System\LSNTickable.h" />

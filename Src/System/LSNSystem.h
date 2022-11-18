@@ -41,7 +41,7 @@ namespace lsn {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
-			m_pPpu( &m_bBus, &m_cCpu ),
+			m_pPpu( &m_bBus, &m_cCpu, &m_cCpu ),
 			m_bPaused( false ) {
 			ResetState( false );
 		}

@@ -18,6 +18,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 #include <vector>
@@ -30,7 +31,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 : public CTickable, public CNmiable {
+	class CCpu6502 : public CTickable, public CNmiable, public CDmaSource {
 	public :
 		// == Various constructors.
 		CCpu6502( CCpuBus * _pbBus );
@@ -86,9 +87,16 @@ namespace lsn {
 		void								ApplyMemoryMap();
 
 		/**
-		 * Begins a DMA transfer.
+		 * Sets the target DMA address.
 		 */
-		void								BeginDma();
+		virtual void						SetDmaTarget( uint8_t * _pui8Target );
+
+		/**
+		 * Begins a DMA transfer.
+		 * 
+		 * \param _ui8Val The value written to 0x4014.
+		 */
+		void								BeginDma( uint8_t _ui8Val );
 
 		/**
 		 * Notifies the class that an NMI has occurred.
@@ -273,17 +281,21 @@ namespace lsn {
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
+		uint8_t *							m_pui8DmaTarget;								/**< The DMA target address. */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
 			uint8_t							ui8Bytes[2];
 		}									pc;
-		uint16_t							ui16DmaCounter;									/**< DMA counter. */
+		uint16_t							m_ui16DmaCounter;								/**< DMA counter. */
+		uint16_t							m_ui16DmaAddress;								/**< The DMA address from which to start copying. */
 		uint8_t								A;												/**< Accumulator. */
 		uint8_t								X;												/**< Index register X. */
 		uint8_t								Y;												/**< Index register Y. */
 		uint8_t								S;												/**< Stack pointer (addresses 0x0100 + S). */
 		uint8_t								m_ui8Status;									/**< The status flags. */
+		uint8_t								m_ui8DmaPos;									/**< The DMA transfer offset.*/
+		uint8_t								m_ui8DmaValue;									/**< The DMA transfer value.*/
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
 		bool								m_bDelayInterrupt;								/**< If set, interrupts are delayed by a cycle. */
 		
@@ -306,6 +318,18 @@ namespace lsn {
 
 		/** DMA write cycle. */
 		void								Tick_DmaWrite();
+
+		/**
+		 * Writing to 0x4014 initiates a DMA transfer
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL			Write4014( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			reinterpret_cast<CCpu6502 *>(_pvParm0)->BeginDma( _ui8Val );
+		}
 
 
 		// == Cycle functions.

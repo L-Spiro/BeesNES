@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 
@@ -31,9 +32,10 @@ namespace lsn {
 		bool _bOddFrameShenanigans>
 	class CPpu2C0X : public CTickable {
 	public :
-		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget ) :
+		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget, CDmaSource * _pdsDmaSrc ) :
 			m_pbBus( _pbBus ),
 			m_pnNmiTarget( _pnNmiTarget ),
+			m_pdsDmaSrc( _pdsDmaSrc ),
 			m_ui64Frame( 0 ),
 			m_ui64Cycle( 0 ),
 			m_ui16Scanline( 0 ),
@@ -144,6 +146,10 @@ namespace lsn {
 		 * Applies the PPU's memory mapping t the bus.
 		 */
 		void											ApplyMemoryMap() {
+			if ( m_pdsDmaSrc ) {
+				m_pdsDmaSrc->SetDmaTarget( m_oOam.ui8Bytes );
+			}
+
 			// Pattern tables.
 			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
@@ -296,7 +302,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -311,7 +317,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -344,7 +350,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -358,7 +364,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -380,7 +386,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -425,7 +431,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -455,7 +461,7 @@ namespace lsn {
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer from which to read.
+		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						PpuNoWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
@@ -538,14 +544,24 @@ namespace lsn {
 			PfCycles									pfFunc;											/**< The function pointer doing the work on this pixel. */
 		};
 
+		/** OAM memory. */
+		struct LSN_OAM {
+			union {
+				uint32_t								ui32Obj[64];
+				uint8_t									ui8Bytes[256];
+			};
+		};
+
 
 		// == Members.
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
+		CDmaSource *									m_pdsDmaSrc;
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		LSN_CYCLE										m_cCycles[_tDotWidth*_tDotHeight];				/**< The per-pixel array of function pointers to do per-cycle work. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
+		LSN_OAM											m_oOam;											/**< OAM memory. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
 		LSN_PPUADDR										m_paPpuAddrT;									/**< The "t" PPUADDR register. */

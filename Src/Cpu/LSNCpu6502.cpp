@@ -1066,10 +1066,14 @@ namespace lsn {
 		m_ui64CycleCount( 0 ),
 		m_pbBus( _pbBus ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
+		m_pui8DmaTarget( nullptr ),
 		A( 0 ),
 		S( 0xFD ),
 		X( 0 ),
 		Y( 0 ),
+		m_ui16DmaAddress( 0 ),
+		m_ui8DmaPos( 0 ),
+		m_ui8DmaValue( 0 ),
 		m_bHandleNmi( false ),
 		m_bDelayInterrupt( false ) {
 		pc.PC = 0xC000;
@@ -1124,13 +1128,27 @@ namespace lsn {
 			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 		}
+
+		// DMA transfer.
+		m_pbBus->SetReadFunc( 0x4014, CCpuBus::NoRead, this, 0x4014 );
+		m_pbBus->SetWriteFunc( 0x4014, CCpu6502::Write4014, this, 0x4014 );
+	}
+
+	/**
+	 * Sets the target DMA address.
+	 */
+	void CCpu6502::SetDmaTarget( uint8_t * _pui8Target ) {
+		m_pui8DmaTarget = _pui8Target;
 	}
 
 	/**
 	 * Begins a DMA transfer.
+	 * 
+	 * \param _ui8Val The value written to 0x4014.
 	 */
-	void CCpu6502::BeginDma() {
+	void CCpu6502::BeginDma( uint8_t _ui8Val ) {
 		m_pfTickFunc = &CCpu6502::Tick_DmaStart;
+		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
 		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
 
@@ -1187,23 +1205,27 @@ namespace lsn {
 	/** DMA start. Moves on to the DMA read/write cycle when the current CPU cycle is even (IE odd cycles take 1 extra cycle). */
 	void CCpu6502::Tick_DmaStart() {
 		if ( (this->m_ui64CycleCount & 0x1) == 0 ) {
-			ui16DmaCounter = 256;
+			m_ui16DmaCounter = 256;
+			m_ui8DmaPos = 0;
 			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
 		}
 	}
 
 	/** DMA read cycle. */
 	void CCpu6502::Tick_DmaRead() {
+		m_ui8DmaValue = m_pbBus->Read( m_ui16DmaAddress + m_ui8DmaPos );
 		m_pfTickFunc = &CCpu6502::Tick_DmaWrite;
 	}
 
 	/** DMA write cycle. */
 	void CCpu6502::Tick_DmaWrite() {
-		if ( --ui16DmaCounter == 0 ) {
+		m_pui8DmaTarget[m_ui8DmaPos] = m_ui8DmaValue;
+		if ( --m_ui16DmaCounter == 0 ) {
 			m_pfTickFunc = m_pfTickFuncCopy;
 		}
 		else {
 			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+			++m_ui8DmaPos;
 		}
 	}
 
