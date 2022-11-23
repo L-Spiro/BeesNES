@@ -12,6 +12,7 @@
 #include "LSNMainWindow.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Utilities/LSNUtilities.h"
+#include "../../Localization/LSNLocalization.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
@@ -74,9 +75,9 @@ namespace lsn {
 #define LSN_TOOL_STR( TXT )						0
 			const TBBUTTON bButtons[] = {
 				// iBitmap							idCommand									fsState				fsStyle			bReserved	dwData	iString
-				{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENROM,	TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Open Process" ) },
+				{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENROM,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_OPEN_PROCESS ) ) },
 				{ -1,								0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-				{ m_iImageMap[LSN_I_OPTIONS],		CMainWindowLayout::LSN_MWMI_OPTIONS,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( L"Options" ) },
+				{ m_iImageMap[LSN_I_OPTIONS],		CMainWindowLayout::LSN_MWMI_OPTIONS,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_OPTIONS ) ) },
 			};
 #undef LSN_TOOL_STR
 
@@ -143,11 +144,8 @@ namespace lsn {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::wstring szFileName;
 				szFileName.resize( 0xFFFF + 2 );
-#define LSN_ALL_SUPPORTED					L"All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0"
-#define LSN_NES_FILES						L"NES Files (*.nes)\0*.nes\0"
-#define LSN_ZIP_FILES						L"ZIP Files (*.zip)\0*.zip\0"
-#define LSN_ALL_FILES						L"All Files (*.*)\0*.*\0"
-#define LSN_FILE_OPEN_FORMAT				LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
+
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_ ) LSN_LSTR( LSN_NES_FILES____NES____NES_ ) LSN_LSTR( LSN_ZIP_FILES____ZIP____ZIP_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0" //LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
 				std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
 				ofnOpenFile.hwndOwner = Wnd();
 				ofnOpenFile.lpstrFilter = wsFilter.c_str();
@@ -210,10 +208,6 @@ namespace lsn {
 					}
 				}
 #undef LSN_FILE_OPEN_FORMAT
-#undef LSN_ALL_FILES
-#undef LSN_ZIP_FILES
-#undef LSN_NES_FILES
-#undef LSN_ALL_SUPPORTED
 				break;
 			}
 		}
@@ -226,11 +220,11 @@ namespace lsn {
 		if ( m_pnsSystem->IsRomLoaded() ) {
 			double dTime = ui64Time / double( m_cClock.GetResolution() );
 			char szBuffer[256];
-			::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n"
+			::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f (%.8f hours).\r\n"
 				"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
 				"%.8f cycles per Tick().\r\n"
 				"%.8f FPS.\r\n",
-				m_ui64TickCount, dTime,
+				m_ui64TickCount, dTime, dTime / 60.0 / 60.0,
 				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->MasterHz() ) / m_pnsSystem->MasterDiv(),
 				m_pnsSystem->GetMasterCounter() / double( m_ui64TickCount ),
 				m_pnsSystem->GetPpu().GetFrameCount() / dTime

@@ -130,7 +130,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -151,7 +151,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -174,7 +174,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -199,7 +199,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -224,7 +224,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -249,7 +249,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -273,6 +273,8 @@
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
+    <ClInclude Include="Src\Localization\LSNLocalization.h" />
+    <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
@@ -321,6 +323,9 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\Localization\LSNLanguageCodes.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

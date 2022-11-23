@@ -103,6 +103,9 @@
     <Filter Include="Source Files\Windows\SelectRom">
       <UniqueIdentifier>{41500c5f-0759-4c5b-a91a-e680e5265ccb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Localization">
+      <UniqueIdentifier>{77b52392-25f0-49b3-b4a2-33544ffebd17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -186,6 +189,12 @@
     <ClInclude Include="Src\System\LSNDmaSource.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Localization\LSNLocalization_en_us.h">
+      <Filter>Header Files\Localization</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Localization\LSNLocalization.h">
+      <Filter>Header Files\Localization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -255,5 +264,10 @@
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest">
       <Filter>Resource Files</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\Localization\LSNLanguageCodes.txt">
+      <Filter>Header Files\Localization</Filter>
+    </Text>
   </ItemGroup>
 </Project>

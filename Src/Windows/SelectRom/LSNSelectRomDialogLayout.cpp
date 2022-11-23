@@ -1,6 +1,7 @@
 #ifdef LSN_USE_WINDOWS
 
 #include "LSNSelectRomDialogLayout.h"
+#include "../../Localization/LSNLocalization.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -28,8 +29,8 @@ namespace lsn {
 			LSN_SF_W,								// dwWidth
 			LSN_SF_H,								// dwHeight
 			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | WS_THICKFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,					// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
-			L"Select ROM",							// pwcText
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																				// dwStyleEx
+			LSN_LSTR( LSN_SELECT_ROM ),				// pwcText
 			0,										// sTextLen
 			LSN_SFI_NONE,							// dwParentId
 		},
@@ -43,11 +44,11 @@ namespace lsn {
 			FALSE,									// bActive
 			LSN_LEFT_JUST,							// iLeft
 			LSN_SF_SELECT_GROUP_TOP,				// iTop
-			LSN_SF_W - (LSN_LEFT_JUST * 2),		// dwWidth
-			LSN_SF_SELECT_GROUP_HEIGHT,			// dwHeight
-			LSN_GROUPSTYLE,																																// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																// dwStyleEx
-			L"File Listing",						// pwcText
+			LSN_SF_W - (LSN_LEFT_JUST * 2),			// dwWidth
+			LSN_SF_SELECT_GROUP_HEIGHT,				// dwHeight
+			LSN_GROUPSTYLE,																																								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_FILE_LISTING ),			// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
 
@@ -66,10 +67,10 @@ namespace lsn {
 			TRUE,									// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
 			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP,	// iTop
-			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2,																							// dwWidth
+			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2,																															// dwWidth
 			LSN_SF_VIEW_HEIGHT,					// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | WS_HSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS,					// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE,												// dwStyleEx
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | WS_HSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS,													// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE,																				// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
@@ -88,12 +89,12 @@ namespace lsn {
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
-			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2),																// iTop
+			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2),											// iTop
 			LSN_SF_SEARCH_LABEL_W,					// dwWidth
 			LSN_DEF_STATIC_HEIGHT,					// dwHeight
 			LSN_STATICSTYLE,						// dwStyle
 			0,										// dwStyleEx
-			L"Search:",								// pwcText
+			LSN_LSTR( LSN_SEARCH_ ),				// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
 
@@ -110,9 +111,9 @@ namespace lsn {
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
-			LSN_LEFT_JUST + LSN_GROUP_LEFT + LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST,							// iLeft
-			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST,																// iTop
-			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2 - (LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST),		// dwWidth
+			LSN_LEFT_JUST + LSN_GROUP_LEFT + LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST,																										// iLeft
+			LSN_SF_SELECT_GROUP_TOP + LSN_GROUP_TOP + LSN_SF_VIEW_HEIGHT + LSN_TOP_JUST,																								// iTop
+			LSN_SF_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2 - (LSN_SF_SEARCH_LABEL_W + LSN_LEFT_JUST),																					// dwWidth
 			LSN_DEF_EDIT_HEIGHT,					// dwHeight
 			LSN_EDITSTYLE,							// dwStyle
 			WS_EX_CLIENTEDGE,						// dwStyleEx
@@ -139,8 +140,8 @@ namespace lsn {
 			LSN_DEF_BUTTON_WIDTH,					// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
 			LSN_DEFBUTTONSTYLE,						// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,						// dwStyleEx
-			L"OK",									// pwcText
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_OK ),						// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
 
@@ -162,8 +163,8 @@ namespace lsn {
 			LSN_DEF_BUTTON_WIDTH,					// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
 			LSN_BUTTONSTYLE,						// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,						// dwStyleEx
-			L"Cancel",								// pwcText
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_CANCEL ),					// pwcText
 			0,										// sTextLen
 			LSN_SFI_DIALOG,							// dwParentId
 

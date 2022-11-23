@@ -3,6 +3,7 @@
 #include "LSNMainWindowLayout.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../../Localization/LSNLocalization.h"
 #include "../../Utilities/LSNUtilities.h"
 #include <Base/LSWWndClassEx.h>
 
@@ -98,17 +99,17 @@ namespace lsn {
 	// Menu bar items for the main window.
 	LSW_MENU_ITEM CMainWindowLayout::m_miMenuBar[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-		{ FALSE,		LSN_MWMI_FILE,				FALSE,		FALSE,		TRUE,		L"&File" },
-		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		L"&Tools" },
-		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		L"&Window" },
-		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		L"&Help" },
+		{ FALSE,		LSN_MWMI_FILE,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__FILE ) },
+		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
+		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
+		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 
 	// File menu.
 	LSW_MENU_ITEM CMainWindowLayout::m_miFileMenu[] {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-		{ FALSE,		LSN_MWMI_OPENROM,		FALSE,		FALSE,		TRUE,		L"Open &ROM" },
-		{ FALSE,		LSN_MWMI_OPENRECENT,		FALSE,		FALSE,		TRUE,		L"Open Re&cent" },
+		{ FALSE,		LSN_MWMI_OPENROM,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN__ROM ) },
+		{ FALSE,		LSN_MWMI_OPENRECENT,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN_REC_ENT ) },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_OPENSAVEFILE,		FALSE,		FALSE,		TRUE,		L"Dummy &0" },
 		{ FALSE,		LSN_MWMI_SAVE,				FALSE,		FALSE,		TRUE,		L"Dummy &1" },
