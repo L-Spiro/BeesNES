@@ -194,7 +194,7 @@ namespace lsw {
 	/**
 	 * Expands selected items.
 	 */
-	void CTreeListView::ExpandSelected() const {
+	void CTreeListView::ExpandSelected() {
 		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
 		bool bFound = false;
 		while ( ptNode ) {
@@ -216,7 +216,7 @@ namespace lsw {
 	/**
 	 * Expands all items.
 	 */
-	void CTreeListView::ExpandAll() const {
+	void CTreeListView::ExpandAll() {
 		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
 		bool bFound = false;
 		while ( ptNode ) {
@@ -238,7 +238,7 @@ namespace lsw {
 	 *
 	 * \return Collapses selected items.
 	 */
-	void CTreeListView::CollapseSelected() const {
+	void CTreeListView::CollapseSelected() {
 		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
 		bool bFound = false;
 		while ( ptNode ) {
@@ -262,7 +262,7 @@ namespace lsw {
 	 *
 	 * \return Collapses all items.
 	 */
-	void CTreeListView::CollapseAll() const {
+	void CTreeListView::CollapseAll() {
 		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
 		bool bFound = false;
 		while ( ptNode ) {
@@ -307,6 +307,24 @@ namespace lsw {
 	}
 
 	/**
+	 * Gets the index of the highlighted item or returns size_t( -1 ).
+	 *
+	 * \return Returs the index of the highlighted item or size_t( -1 ) if there is none.
+	 */
+	size_t CTreeListView::FindHighlighted() const {
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
+		size_t stIdx = 0;
+		while ( ptNode ) {
+			if ( ptNode->Value().uiState & LSW_TREELIST_HIGHLIGHTED ) {
+				return stIdx;
+			}
+			ptNode = NextByExpansion( ptNode );
+			++stIdx;
+		}
+		return size_t( -1 );
+	}
+
+	/**
 	 * Unselects all.
 	 */
 	void CTreeListView::UnselectAll() {
@@ -315,6 +333,25 @@ namespace lsw {
 			ptNode->Value().uiState &= ~TVIS_SELECTED;
 			ptNode = Next( ptNode );
 		}
+	}
+
+	/**
+	 * Determines if the given tree item is hidden.
+	 *
+	 * \param _hiItem The item to check for being hidden
+	 * \return Returns true if any parent of the item is collapsed.
+	 */
+	bool CTreeListView::IsHidden( HTREEITEM _hiItem ) const {
+		const ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = TreeItemToPointer( _hiItem );
+		if ( ptNode ) { ptNode = ptNode->Parent(); }
+		while ( ptNode ) {
+			// Children of the root can't be hidden.
+			if ( !ptNode->Parent() ) { return false; }
+			// This parent is not directly under the root.  If it is collapsed then everything under it is hidden.
+			if ( !(ptNode->Value().uiState & TVIS_EXPANDED) ) { return true; }
+			ptNode = ptNode->Parent();
+		}
+		return false;
 	}
 
 	/**
@@ -636,6 +673,76 @@ namespace lsw {
 	}
 
 	/**
+	 * WM_KEYDOWN.
+	 *
+	 * \param _uiKeyCode The virtual-key code of the nonsystem key.
+	 * \param _uiFlags The repeat count, scan code, extended-key flag, context code, previous key-state flag, and transition-state flag.
+	 * \return Returns a HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CTreeListView::KeyDown( UINT _uiKeyCode, UINT _uiFlags ) {
+		switch ( _uiKeyCode ) {
+			case VK_LEFT : {
+				if ( (::GetAsyncKeyState( VK_CONTROL ) & 0x8000) == 0 ) {
+					LSW_KEY_FLAGS kfFlags = { _uiFlags };
+					ee::CTree<LSW_TREE_ROW> * ptNode = GetHighlighted();
+					if ( ptNode ) {
+						if ( (ptNode->Value().uiState & TVIS_EXPANDED) && ptNode->Size() ) {
+							ptNode->Value().uiState &= ~TVIS_EXPANDED;
+							UpdateListView();
+							return LSW_H_HANDLED;
+						}
+						else {
+							// Move up to parent.  If Shift is held, select all the children between here and there, otherwise set the selection to just the parent.
+							if ( (::GetAsyncKeyState( VK_SHIFT ) & 0x8000) == 0 ) {
+								// No shift, Sherlock!
+								if ( ptNode->Parent() && ptNode->Parent() != &m_tRoot ) {
+									UnselectAll();
+									UnfocusAll();
+									ptNode->Parent()->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
+									UpdateListView();
+									return LSW_H_HANDLED;
+								}
+							}
+							else {
+								// Holy shift!
+								if ( ptNode->Parent() && ptNode->Parent() != &m_tRoot ) {
+									UnfocusAll();
+									ptNode->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
+									ee::CTree<LSW_TREE_ROW> * ptPrev = ptNode->Prev();
+									while ( ptPrev ) {
+										ptPrev->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
+										ptPrev = ptPrev->Prev();
+									}
+									ptNode->Parent()->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
+									UpdateListView();
+									return LSW_H_HANDLED;
+								}
+							}
+						}
+					}
+				}
+				break;
+			}
+			case VK_RIGHT : {
+				if ( (::GetAsyncKeyState( VK_CONTROL ) & 0x8000) == 0 ) {
+					LSW_KEY_FLAGS kfFlags = { _uiFlags };
+					ee::CTree<LSW_TREE_ROW> * ptNode = GetHighlighted();
+					if ( ptNode ) {
+						if ( !(ptNode->Value().uiState & TVIS_EXPANDED) && ptNode->Size() ) {
+							ptNode->Value().uiState |= TVIS_EXPANDED;
+							UpdateListView();
+							return LSW_H_HANDLED;
+						}
+					}
+				}
+				break;
+			}
+		}
+		//
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
 	 *
 	 * \param _lplvParm The notifacation structure.
@@ -674,12 +781,26 @@ namespace lsw {
 				}
 
 				if ( (_lplvParm->uOldState & LVIS_FOCUSED) && !(_lplvParm->uNewState & LVIS_FOCUSED) ) {
+					// Single node un-hot.
+					UnfocusAll();
 					m_stHotItem = size_t( -1 );
 				}
 				else if ( (_lplvParm->uOldState & LVIS_FOCUSED) && (_lplvParm->uNewState & LVIS_FOCUSED) ) {
+					// Single node hot.
+					UnfocusAll();
+					ee::CTree<LSW_TREE_ROW> * ptNode = ItemByIndex_Cached( _lplvParm->iItem );
+					if ( ptNode ) {
+						ptNode->Value().uiState |= LSW_TREELIST_HIGHLIGHTED;
+					}
 					m_stHotItem = size_t( _lplvParm->iItem );
 				}
 				else if ( !(_lplvParm->uOldState & LVIS_FOCUSED) && (_lplvParm->uNewState & LVIS_FOCUSED) ) {
+					// Single node hot.
+					UnfocusAll();
+					ee::CTree<LSW_TREE_ROW> * ptNode = ItemByIndex_Cached( _lplvParm->iItem );
+					if ( ptNode ) {
+						ptNode->Value().uiState |= LSW_TREELIST_HIGHLIGHTED;
+					}
 					m_stHotItem = size_t( _lplvParm->iItem );
 				}
 			}
@@ -789,12 +910,38 @@ namespace lsw {
 	}
 
 	/**
+	 * Gets the highlighted item or returns nullptr.
+	 *
+	 * \return Returs the highlighted item or nullptr if there is none.
+	 */
+	ee::CTree<CTreeListView::LSW_TREE_ROW> * CTreeListView::GetHighlighted() {
+		ee::CTree<LSW_TREE_ROW> * ptNode = Next( nullptr );
+		while ( ptNode ) {
+			if ( ptNode->Value().uiState & LSW_TREELIST_HIGHLIGHTED ) {
+				return ptNode;
+			}
+			ptNode = NextByExpansion( ptNode );
+		}
+		return nullptr;
+	}
+
+	/**
 	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).
 	 */
-	void CTreeListView::UpdateListView() const {
+	void CTreeListView::UpdateListView() {
 		ClearCache();
 		size_t stTotal = CountExpanded();
-		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );		
+		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );
+
+		UnfocusCollapsed();
+		size_t stHighlighted = FindHighlighted();
+		if ( stHighlighted == size_t( -1 ) ) {
+			SetItemHighlight( -1, FALSE );
+		}
+		else {
+			SetItemHighlight( INT( stHighlighted ), TRUE );
+		}
+
 		// Get the selected indices based on the tree.
 		std::vector<size_t> vSelection;
 		GatherSelected( vSelection );
@@ -813,7 +960,7 @@ namespace lsw {
 			}
 			else {
 				// It is unselected.
-				const_cast<CTreeListView *>(this)->SetItemSelection( static_cast<INT>(vListSelection[I]), FALSE );
+				SetItemSelection( static_cast<INT>(vListSelection[I]), FALSE );
 			}
 		}
 
@@ -827,8 +974,35 @@ namespace lsw {
 			}
 			else {
 				// It is selected.
-				const_cast<CTreeListView *>(this)->SetItemSelection( static_cast<INT>(vSelection[I]), TRUE );
+				SetItemSelection( static_cast<INT>(vSelection[I]), TRUE );
 			}
+		}
+	}
+
+	/**
+	 * Removes focus from any hidden items.
+	 */
+	void CTreeListView::UnfocusCollapsed() {
+		ee::CTree<LSW_TREE_ROW> * ptFrom = Next( nullptr );
+		while ( ptFrom ) {
+			UINT uiState = ptFrom->Value().uiState;
+			if ( uiState & LSW_TREELIST_HIGHLIGHTED ) {
+				if ( IsHidden( PointerToTreeItem( ptFrom ) ) ) {
+					ptFrom->Value().uiState &= ~LSW_TREELIST_HIGHLIGHTED;
+				}
+			}
+			ptFrom = Next( ptFrom );
+		}
+	}
+
+	/**
+	 * Removes focus from all items.
+	 */
+	void CTreeListView::UnfocusAll() {
+		ee::CTree<LSW_TREE_ROW> * ptFrom = Next( nullptr );
+		while ( ptFrom ) {
+			ptFrom->Value().uiState &= ~LSW_TREELIST_HIGHLIGHTED;
+			ptFrom = Next( ptFrom );
 		}
 	}
 
@@ -859,6 +1033,16 @@ namespace lsw {
 			case WM_NCLBUTTONDBLCLK : {
 				volatile int ghjg = 0;
 				//::MoveWindow( _hWnd, ee::CExpEval::Time() % 10, ee::CExpEval::Time() % 20, ee::CExpEval::Time() % 10 + 350, ee::CExpEval::Time() % 10 + 250, TRUE );
+				break;
+			}
+			case WM_KEYDOWN : {
+				if ( ptlThis ) {
+					LSW_HANDLED hHandled = ptlThis->KeyDown( static_cast<UINT>(_wParam), static_cast<UINT>(_lParam) );
+
+					// Return value
+					//	An application should return zero if it processes this message.
+					if ( hHandled == LSW_H_HANDLED ) { return 0; }
+				}
 				break;
 			}
 			/*case WM_PAINT : {
