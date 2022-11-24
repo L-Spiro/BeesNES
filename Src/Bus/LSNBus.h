@@ -128,12 +128,6 @@ namespace lsn {
 				m_aaAccessors[_ui16Addr].ui16ReaderParm1,
 				m_ui8Ram, m_ui8LastRead );
 			return m_ui8LastRead;
-			/*if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-				//m_ui8LastRead = m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START];
-				m_ui8LastRead = m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)];
-				return m_ui8LastRead;
-			}
-			return m_ui8LastRead;*/
 		}
 
 		/**
@@ -146,11 +140,6 @@ namespace lsn {
 			m_aaAccessors[_ui16Addr].pfWriter( m_aaAccessors[_ui16Addr].pvWriterParm0,
 				m_aaAccessors[_ui16Addr].ui16WriterParm1,
 				m_ui8Ram, _ui8Val );
-			/*if ( _ui16Addr >= LSN_CPU_START && _ui16Addr < (LSN_CPU_START + LSN_CPU_FULL_SIZE) ) {
-				//m_ui8Ram[((_ui16Addr-LSN_CPU_START)%LSN_INTERNAL_RAM)+LSN_CPU_START] = _ui8Val;
-				m_ui8Ram[_ui16Addr&(LSN_INTERNAL_RAM-1)] = _ui8Val;
-				return;
-			}*/
 		}
 
 		/**
