@@ -9,7 +9,6 @@
 
 #pragma once
 
-
 #define LSN_OPEN_PROCESS													Open Process
 #define LSN_OPTIONS															Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
