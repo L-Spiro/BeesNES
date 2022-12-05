@@ -279,7 +279,6 @@ namespace lsn {
 		 * An "idle" work pixel handler.  Does nothing.
 		 */
 		void LSN_FASTCALL								Pixel_Idle_Work() {
-			++m_ui16RowDot;
 		}
 
 		/**
