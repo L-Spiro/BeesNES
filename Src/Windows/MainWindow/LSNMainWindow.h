@@ -44,6 +44,9 @@ namespace lsn {
 		// WM_NCDESTROY.
 		virtual LSW_HANDLED						NcDestroy();
 
+		// WM_GETMINMAXINFO.
+		virtual LSW_HANDLED						GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
+
 		/**
 		 * Advances the emulation state by the amount of time that has passed since the last advancement.
 		 */
@@ -75,6 +78,10 @@ namespace lsn {
 	protected :
 		// == Members.
 		uint64_t								m_ui64TickCount;
+		// The output scale.
+		double									m_dScale;
+		// The output ratio.
+		double									m_dRatio;
 		// Outside "is alive" atomic.
 		std::atomic_bool *						m_pabIsAlive;
 		// A clock.
@@ -87,6 +94,18 @@ namespace lsn {
 		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
 		// Image mapping.
 		INT										m_iImageMap[LSN_I_TOTAL];
+		
+
+
+		// == Functions.
+		/**
+		 * Gets the window rectangle for correct output at a given scale and ratio.
+		 *
+		 * \param _dScale The output scale.
+		 * \param _dRatio The output ratio.
+		 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
+		 */
+		LSW_RECT								FinalWindowRect( double _dScale, double _dRatio ) const;
 		
 	};
 

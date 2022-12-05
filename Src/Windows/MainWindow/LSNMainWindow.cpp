@@ -24,6 +24,8 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_dScale( 1.0 ),
+		m_dRatio( /*292.0 / 256.0*/1.0 ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 
 
@@ -113,12 +115,7 @@ namespace lsn {
 		rStatusBar.Zero();
 		if ( psbStatus ) {
 			const CStatusBar::LSW_STATUS_PART spParts[] = {
-				// Last status message.
-				//{ 450, TRUE },
-				// Current process ID.
-				//{ 450 + 48, TRUE },
 				{ rRebarRect.Width() - psbStatus->ClientRect( this ).Height() - 48, TRUE },
-
 				{ rRebarRect.Width() - psbStatus->ClientRect( this ).Height(), TRUE },
 			};
 			psbStatus->SetParts( spParts, LSN_ELEMENTS( spParts ) );
@@ -127,11 +124,8 @@ namespace lsn {
 		
 
 		ForceSizeUpdate();
-		rRebarRect.SetWidth( LONG( rRebarRect.Height() / 240.0 * 292.0 ) );
-		rRebarRect.bottom += lRebarHeight + rStatusBar.Height();
-		::AdjustWindowRectEx( &rRebarRect, ::GetWindowLongW( Wnd(), GWL_STYLE ),
-			TRUE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );
-		LSW_RECT rScreen = rRebarRect.ClientToScreen( Wnd() );
+		
+		LSW_RECT rScreen = FinalWindowRect( m_dScale, m_dRatio );
 		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 
 		return LSW_H_CONTINUE;
@@ -235,6 +229,15 @@ namespace lsn {
 		return LSW_H_CONTINUE;
 	}
 
+	// WM_GETMINMAXINFO.
+	CWidget::LSW_HANDLED CMainWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
+		LSW_RECT rRect = FinalWindowRect( m_dScale, m_dRatio );
+		_pmmiInfo->ptMinTrackSize.x = rRect.Width();
+		_pmmiInfo->ptMinTrackSize.y = rRect.Height();
+		_pmmiInfo->ptMaxTrackSize = _pmmiInfo->ptMinTrackSize;
+		return LSW_H_HANDLED;
+	}
+
 	/**
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
@@ -283,6 +286,37 @@ namespace lsn {
 	 */
 	const lsw::CStatusBar * CMainWindow::StatusBar() const {
 		return static_cast<const lsw::CStatusBar *>(FindChild( CMainWindowLayout::LSN_MWI_STATUSBAR ));
+	}
+
+	/**
+	 * Gets the window rectangle for correct output at a given scale and ratio.
+	 *
+	 * \param _dScale The output scale.
+	 * \param _dRatio The output ratio.
+	 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
+	 */
+	LSW_RECT CMainWindow::FinalWindowRect( double _dScale, double _dRatio ) const {
+		LONG lHeight = 0L;
+		const lsw::CRebar * plvRebar = static_cast<const lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+		if ( plvRebar ) {
+			lHeight += plvRebar->WindowRect().Height();
+		}
+		const lsw::CStatusBar * psbStatus = StatusBar();
+		if ( psbStatus ) {
+			lHeight += psbStatus->WindowRect().Height();
+		}
+		LSW_RECT rClientRect;
+		rClientRect.Zero();
+		rClientRect.SetWidth( LONG( std::round( 256.0 * _dRatio * _dScale ) ) );
+		rClientRect.SetHeight( LONG( std::round( 240.0 * _dScale ) ) );
+		::AdjustWindowRectEx( &rClientRect, ::GetWindowLongW( Wnd(), GWL_STYLE ),
+			TRUE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );
+		rClientRect.bottom += lHeight;
+
+		LSW_RECT rScreen = rClientRect.ClientToScreen( Wnd() );
+		rScreen.SetWidth( rClientRect.Width() );
+		rScreen.SetHeight( rClientRect.Height() );
+		return rScreen;
 	}
 
 }	// namespace lsn

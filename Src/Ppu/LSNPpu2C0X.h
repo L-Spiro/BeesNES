@@ -18,6 +18,8 @@
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
+//#define LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
+
 namespace lsn {
 
 	/**
@@ -44,29 +46,47 @@ namespace lsn {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
 				for ( auto X = _tDotWidth; X--; ) {
-					LSN_CYCLE & cThis = m_cCycles[Y*_tDotWidth+X];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Idle;
+					{
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
+						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Control;
+					}
+					{
+						LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+X];
+						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Work;
+					}
 				}
 			}
 			// Add row ends.
 			for ( auto Y = _tDotHeight; Y--; ) {
-				LSN_CYCLE & cThis = m_cCycles[Y*_tDotWidth+(_tDotWidth-1)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndRow;
+				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+(_tDotWidth-1)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndRow_Control;
 			}
 			// Add frame end.
 			{
-				LSN_CYCLE & cThis = m_cCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame;
+#ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
+				LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Control;
+#else
+				{
+					LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-2)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Control;
+				}
+				{
+					LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Even_Control;
+				}
+#endif
+				
 			}
 			// Add v-blank.
 			{
-				LSN_CYCLE & cThis = m_cCycles[(_tPreRender+_tRender+_tPostRender)*_tDotWidth+1];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_VBlank;
+				LSN_CYCLE & cThis = m_cControlCycles[(_tPreRender+_tRender+_tPostRender)*_tDotWidth+1];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_VBlank_Control;
 			}
 			// Clear v-blank and friends.
 			{
-				LSN_CYCLE & cThis = m_cCycles[(_tDotHeight-1)*_tDotWidth+1];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_StartFrame;
+				LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+1];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_StartFrame_Control;
 			}
 		}
 		~CPpu2C0X() {
@@ -78,39 +98,10 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
+			(this->*m_cWorkCycles[stIdx].pfFunc)();
+			(this->*m_cControlCycles[stIdx].pfFunc)();
 			++m_ui64Cycle;
-			(this->*m_cCycles[m_ui16Scanline*_tDotWidth+m_ui16RowDot].pfFunc)();
-
-			// Temporary hack to get things working.
-			/*uint16_t ui16LineWidth = _tDotWidth;
-			if constexpr ( _bOddFrameShenanigans ) {
-				if ( m_ui64Frame & 0x1 && m_ui16RowDot == (_tDotWidth - 1) && m_ui16Scanline == _tDotHeight ) {
-					ui16LineWidth = _tDotWidth - 1;
-				}
-			}
-			if ( ++m_ui16RowDot == ui16LineWidth ) {
-				m_ui16RowDot = 0;
-				++m_ui16Scanline;
-				if ( m_ui16Scanline == _tDotHeight ) {
-					m_ui16Scanline = 0;
-					++m_ui64Frame;
-				}
-			}
-			else if ( m_ui16RowDot == 1 ) {
-				if ( m_ui16Scanline == (_tPreRender + _tRender + _tPostRender) ) {
-					// [1, 241] on NTSC.
-					// [1, 241] on PAL.
-					// [1, 241] on Dendy.
-					m_psPpuStatus.s.ui8VBlank = 1;
-					if ( m_pcPpuCtrl.s.ui8Nmi ) {
-						m_pnNmiTarget->Nmi();
-					}
-				}
-				else if ( m_ui16Scanline == (_tDotHeight - 1) ) {
-					m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
-				}
-			}*/
-			
 		}
 
 		/**
@@ -158,10 +149,7 @@ namespace lsn {
 			}
 
 			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE) + LSN_PPU_NAMETABLES ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE) + LSN_PPU_NAMETABLES ) );
-			}
+			ApplyVerticalMirroring();
 
 			// == Palettes
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
@@ -192,6 +180,7 @@ namespace lsn {
 
 			// 0x2005: PPUSCROLL.
 			m_pbBus->SetReadFunc( 0x2005, PpuNoRead, this, 0x2005 );
+			m_pbBus->SetWriteFunc( 0x2005, Write2005, this, 0 );
 
 			// 0x2006: PPUADDR.
 			m_pbBus->SetReadFunc( 0x2006, PpuNoRead, this, 0x2006 );
@@ -200,6 +189,34 @@ namespace lsn {
 			// 0x2007: PPUDATA.
 			m_pbBus->SetReadFunc( 0x2007, Read2007, this, 0 );
 			m_pbBus->SetWriteFunc( 0x2007, Write2007, this, 0 );
+		}
+
+		/**
+		 * Applies vertical mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
+		 */
+		void											ApplyVerticalMirroring() {
+			// == Nametables
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				ui16Root %= LSN_PPU_NAMETABLES_SCREEN * 2;									// Map $2800 to $2000 and $2C00 to $2400.
+				ui16Root += LSN_PPU_NAMETABLES;
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
+			}
+		}
+
+		/**
+		 * Applies horizontal mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
+		 */
+		void											ApplyHorizontalMirroring() {
+			// == Nametables
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				// Mirror $2400 to $2000 and $2C00 to $2800.
+				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2)) + LSN_PPU_NAMETABLES;
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
+			}
 		}
 
 		/**
@@ -254,14 +271,21 @@ namespace lsn {
 		/**
 		 * An "idle" pixel handler.
 		 */
-		void LSN_FASTCALL								Pixel_Idle() {
+		void LSN_FASTCALL								Pixel_Idle_Control() {
+			++m_ui16RowDot;
+		}
+
+		/**
+		 * An "idle" work pixel handler.  Does nothing.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_Work() {
 			++m_ui16RowDot;
 		}
 
 		/**
 		 * An "idle" pixel handler for the end of rows.
 		 */
-		void LSN_FASTCALL								Pixel_Idle_EndRow() {
+		void LSN_FASTCALL								Pixel_Idle_EndRow_Control() {
 			m_ui16RowDot = 0;
 			++m_ui16Scanline;
 		}
@@ -269,7 +293,7 @@ namespace lsn {
 		/**
 		 * Starting a frame at [1,_tDotHeight-1] clears some flags.
 		 */
-		void LSN_FASTCALL								Pixel_Idle_StartFrame() {
+		void LSN_FASTCALL								Pixel_Idle_StartFrame_Control() {
 			m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			++m_ui16RowDot;
 		}
@@ -277,22 +301,44 @@ namespace lsn {
 		/**
 		 * An "idle" pixel handler for the end of the frame.
 		 */
-		void LSN_FASTCALL								Pixel_Idle_EndFrame() {
+		void LSN_FASTCALL								Pixel_Idle_EndFrame_Control() {
+#ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
 			m_ui16Scanline = 0;
 			
-			if ( _bOddFrameShenanigans && m_ui64Frame & 0x1 ) {
+			if ( _bOddFrameShenanigans && (m_ui64Frame & 0x1) ) {
 				m_ui16RowDot = 1;
 			}
 			else {
 				m_ui16RowDot = 0;
 			}
 			++m_ui64Frame;
+#else
+			if ( _bOddFrameShenanigans && (m_ui64Frame & 0x1) ) {
+				// Skips Pixel_Idle_EndFrame_Even_Control().
+				m_ui16Scanline = 0;
+				m_ui16RowDot = 0;
+				++m_ui64Frame;
+			}
+			else {
+				// Goes to Pixel_Idle_EndFrame_Even_Control().
+				++m_ui16RowDot;
+			}
+#endif	// #ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
+		}
+
+		/**
+		 * An "idle" pixel handler for the end of even frames.  Skipped on odd frames if rendering is off.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_EndFrame_Even_Control() {
+			m_ui16Scanline = 0;
+			m_ui16RowDot = 0;
+			++m_ui64Frame;
 		}
 
 		/**
 		 * Handling v-blank.
 		 */
-		void LSN_FASTCALL								Pixel_Idle_VBlank() {
+		void LSN_FASTCALL								Pixel_Idle_VBlank_Control() {
 			// [1, 241] on NTSC.
 			// [1, 241] on PAL.
 			// [1, 241] on Dendy.
@@ -366,7 +412,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x2005.
+		 * Writing to 0x2005 (PPUSCROLL).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -375,20 +421,19 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
-				ppPpu->m_paPpuAddrT.ui16CourseX = _ui8Val >> 3;
+				ppPpu->m_paPpuAddrT.s.ui16CourseX = _ui8Val >> 3;
 			}
 			else {
-				ppPpu->m_paPpuAddrT.ui16FineY = _ui8Val & 0x7;
-				ppPpu->m_paPpuAddrT.ui16CourseY = _ui8Val >> 3;
+				ppPpu->m_paPpuAddrT.s.ui16FineY = _ui8Val & 0x7;
+				ppPpu->m_paPpuAddrT.s.ui16CourseY = _ui8Val >> 3;
 			}
 			ppPpu->m_bAddresLatch ^= 1;
 		}
 
 		/**
-		 * Writing to 0x2006.
+		 * Writing to 0x2006 (PPUADDR).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -408,7 +453,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reading from 0x2007 (PPU bus memory).
+		 * Reading from 0x2007 (PPU bus memory/PPUDATA).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
@@ -433,7 +478,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x2007 ((PPU bus memory).
+		 * Writing to 0x2007 (PPU bus memory/PPUDATA).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -455,8 +500,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						WritePaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
+			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			_pui8Data[_ui16Parm1] = _pui8Data[LSN_PPU_PALETTE_MEMORY] = _ui8Val;
 		}
 
@@ -578,7 +623,8 @@ namespace lsn {
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CDmaSource *									m_pdsDmaSrc;
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
-		LSN_CYCLE										m_cCycles[_tDotWidth*_tDotHeight];				/**< The per-pixel array of function pointers to do per-cycle work. */
+		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
+		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/** The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		LSN_OAM											m_oOam;											/**< OAM memory. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
