@@ -31,6 +31,7 @@ namespace lsn {
 	template <unsigned _tDotWidth, unsigned _tDotHeight,
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tVBlank, unsigned _tPostVBlank,
+		unsigned _tRenderW,
 		bool _bOddFrameShenanigans>
 	class CPpu2C0X : public CTickable {
 	public :
@@ -42,6 +43,9 @@ namespace lsn {
 			m_ui64Cycle( 0 ),
 			m_ui16Scanline( 0 ),
 			m_ui16RowDot( 0 ),
+			m_ui8NtAtBuffer( 0 ),
+			m_ui8NextTileId( 0 ),
+			m_ui8NextTileAttribute( 0 ),
 			m_bAddresLatch( false ) {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
@@ -56,6 +60,17 @@ namespace lsn {
 					}
 				}
 			}
+			// Add pixel gather/render functions.
+			{
+				// The main rendering area.
+				for ( auto Y = _tPreRender; Y < (_tRender + _tPreRender); ++Y ) {
+					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
+						AssignGatherRenderFuncs( X, Y );
+					}
+				}
+			}
+
+
 			// Add row ends.
 			for ( auto Y = _tDotHeight; Y--; ) {
 				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+(_tDotWidth-1)];
@@ -349,6 +364,40 @@ namespace lsn {
 		}
 
 		/**
+		 * The first of the 2 NT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadNt_0_Work() {
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
+		}
+
+		/**
+		 * The second of the 2 NT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadNt_1_Work() {
+			m_ui8NextTileId = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 AT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_ATTRIBUTE_TABLE_OFFSET | (m_paPpuAddrV.s.ui16NametableY << 11) |
+				(m_paPpuAddrV.s.ui16NametableX << 10) |
+				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
+				(m_paPpuAddrV.s.ui16CourseX >> 2) );
+		}
+
+		/**
+		 * The second of the 2 AT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadAt_1_Work() {
+			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+			if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
+			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NextTileAttribute >>= 2; }
+			m_ui8NextTileAttribute &= 0x3;
+		}
+
+		/**
 		 * Writing to 0x2000.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -635,10 +684,39 @@ namespace lsn {
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */		
 		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
+		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
+
+		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
+		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
+
 		bool											m_bAddresLatch;									/**< The address latch. */
 
 
 		// == Functions.
+		/**
+		 * Assigns the gather/render functions at a given X Y pixel location.
+		 *
+		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
+		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
+		 */
+		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY ) {
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadAt_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadAt_1_Work;
+			}
+		}
 	};
 	
 
@@ -647,7 +725,7 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Types.
-#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES, LSN_PM_ ## REGION ## _PRERENDER, LSN_PM_ ## REGION ## _RENDER_LINES, LSN_PM_ ## REGION ## _POSTRENDER_LINES, LSN_PM_ ## REGION ## _VBLANK_LINES, LSN_PM_ ## REGION ## _POSTBLANK_LINES
+#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES, LSN_PM_ ## REGION ## _PRERENDER, LSN_PM_ ## REGION ## _RENDER_LINES, LSN_PM_ ## REGION ## _POSTRENDER_LINES, LSN_PM_ ## REGION ## _VBLANK_LINES, LSN_PM_ ## REGION ## _POSTBLANK_LINES, LSN_PM_ ## REGION ## _RENDER_WIDTH
 	/**
 	 * An NTSC PPU.
 	 */
