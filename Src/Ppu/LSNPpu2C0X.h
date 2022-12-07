@@ -46,6 +46,8 @@ namespace lsn {
 			m_ui8NtAtBuffer( 0 ),
 			m_ui8NextTileId( 0 ),
 			m_ui8NextTileAttribute( 0 ),
+			m_ui8NextTileLsb( 0 ),
+			m_ui8NextTileMsb( 0 ),
 			m_bAddresLatch( false ) {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
@@ -398,6 +400,40 @@ namespace lsn {
 		}
 
 		/**
+		 * The first of the 2 LSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadLsb_0_Work() {
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+				(m_paPpuAddrV.s.ui16FineY) +
+				0) );
+		}
+
+		/**
+		 * The second of the 2 LSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadLsb_1_Work() {
+			m_ui8NextTileLsb = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 MSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadMsb_0_Work() {
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+				(m_paPpuAddrV.s.ui16FineY) +
+				8) );
+		}
+
+		/**
+		 * The second of the 2 MSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadMsb_1_Work() {
+			m_ui8NextTileMsb = m_ui8NtAtBuffer;
+		}
+
+		/**
 		 * Writing to 0x2000.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -688,6 +724,8 @@ namespace lsn {
 
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
+		uint8_t											m_ui8NextTileLsb;								/**< The queued background tile LSB. */
+		uint8_t											m_ui8NextTileMsb;								/**< The queued background tile MSB. */
 
 		bool											m_bAddresLatch;									/**< The address latch. */
 
@@ -715,6 +753,22 @@ namespace lsn {
 			{
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_LoadAt_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadLsb_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadLsb_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadMsb_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_LoadMsb_1_Work;
 			}
 		}
 	};
