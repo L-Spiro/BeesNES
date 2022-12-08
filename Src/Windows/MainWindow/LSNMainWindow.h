@@ -16,6 +16,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow {
+		typedef lsn::CPalSystem					CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CMainWindow();
@@ -87,7 +88,7 @@ namespace lsn {
 		// A clock.
 		lsn::CClock								m_cClock;
 		// The console pointer.
-		std::unique_ptr<lsn::CNtscSystem>		m_pnsSystem;
+		std::unique_ptr<CRegionalSystem>		m_pnsSystem;
 		// Image list.
 		lsw::CImageList							m_iImages;
 		// Images.

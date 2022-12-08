@@ -55,7 +55,7 @@ namespace lsn {
 		}
 
 
-		m_pnsSystem = std::make_unique<lsn::CNtscSystem>();
+		m_pnsSystem = std::make_unique<CRegionalSystem>();
 
 		(*m_pabIsAlive) = true;
 	}

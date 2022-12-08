@@ -20,6 +20,8 @@
 
 //#define LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
 
+#define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
+
 namespace lsn {
 
 	/**
@@ -67,7 +69,7 @@ namespace lsn {
 				// The main rendering area.
 				for ( auto Y = _tPreRender; Y < (_tRender + _tPreRender); ++Y ) {
 					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y );
+						AssignGatherRenderFuncs( X, Y, true );
 					}
 				}
 			}
@@ -289,7 +291,7 @@ namespace lsn {
 		 * An "idle" pixel handler.
 		 */
 		void LSN_FASTCALL								Pixel_Idle_Control() {
-			++m_ui16RowDot;
+			LSN_END_CONTROL_CYCLE;
 		}
 
 		/**
@@ -311,7 +313,7 @@ namespace lsn {
 		 */
 		void LSN_FASTCALL								Pixel_Idle_StartFrame_Control() {
 			m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
-			++m_ui16RowDot;
+			LSN_END_CONTROL_CYCLE;
 		}
 
 		/**
@@ -329,15 +331,21 @@ namespace lsn {
 			}
 			++m_ui64Frame;
 #else
-			if ( _bOddFrameShenanigans && (m_ui64Frame & 0x1) ) {
-				// Skips Pixel_Idle_EndFrame_Even_Control().
-				m_ui16Scanline = 0;
-				m_ui16RowDot = 0;
-				++m_ui64Frame;
+			if constexpr ( _bOddFrameShenanigans ) {
+				if ( (m_ui64Frame & 0x1) && Rendering() ) {
+					// Skips Pixel_Idle_EndFrame_Even_Control().
+					m_ui16Scanline = 0;
+					m_ui16RowDot = 0;
+					++m_ui64Frame;
+				}
+				else {
+					// Goes to Pixel_Idle_EndFrame_Even_Control().
+					LSN_END_CONTROL_CYCLE;
+				}
 			}
 			else {
 				// Goes to Pixel_Idle_EndFrame_Even_Control().
-				++m_ui16RowDot;
+				LSN_END_CONTROL_CYCLE;
 			}
 #endif	// #ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
 		}
@@ -362,7 +370,7 @@ namespace lsn {
 			if ( m_pcPpuCtrl.s.ui8Nmi ) {
 				m_pnNmiTarget->Nmi();
 			}
-			++m_ui16RowDot;
+			LSN_END_CONTROL_CYCLE;
 		}
 
 		/**
@@ -432,6 +440,28 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_LoadMsb_1_Work() {
 			m_ui8NextTileMsb = m_ui8NtAtBuffer;
 		}
+
+		/**
+		 * Incrementing the X scroll register.
+		 */
+		void LSN_FASTCALL								Pixel_IncScrollX_Control() {
+			if ( Rendering() ) {
+				// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
+				if ( m_paPpuAddrV.s.ui16CourseX == 31 ) {
+					// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
+					m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
+				}
+				++m_paPpuAddrV.s.ui16CourseX;
+			}
+			LSN_END_CONTROL_CYCLE;
+		}
+
+		/**
+		 * Determines if any rendering is taking place.
+		 *
+		 * \return Returns true if either the background or sprites are enabled, false otherwise.
+		 */
+		bool											Rendering() const { return m_pmPpuMask.s.ui8ShowBackground || m_pmPpuMask.s.ui8ShowSprites; }
 
 		/**
 		 * Writing to 0x2000.
@@ -678,11 +708,11 @@ namespace lsn {
 				uint16_t								ui16Addr;										/**< The full 16-bit address. */
 				uint8_t									ui8Bytes[2];									/**< Per-byte access to the address. */
 				struct {
-					uint16_t							ui16CourseX : 5;								/**< Course X scroll position. */
-					uint16_t							ui16CourseY : 5;								/**< Course Y scroll position. */
-					uint16_t							ui16NametableX : 1;								/**< Nametable X. */
-					uint16_t							ui16NametableY : 1;								/**< Nametable Y. */
-					uint16_t							ui16FineY : 3;									/**< Fine Y. */
+					uint16_t							ui16CourseX				: 5;					/**< Course X scroll position. */
+					uint16_t							ui16CourseY				: 5;					/**< Course Y scroll position. */
+					uint16_t							ui16NametableX			: 1;					/**< Nametable X. */
+					uint16_t							ui16NametableY			: 1;					/**< Nametable Y. */
+					uint16_t							ui16FineY				: 3;					/**< Fine Y. */
 				}										s;
 			};
 		};
@@ -705,7 +735,7 @@ namespace lsn {
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
-		CDmaSource *									m_pdsDmaSrc;
+		CDmaSource *									m_pdsDmaSrc;									/**< The DMA source object.  Gets told where to send DMA transfers. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
 		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/** The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
@@ -736,8 +766,9 @@ namespace lsn {
 		 *
 		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
 		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
+		 * \param _bIncludeControls If true, control functions such as incrementing the horizontal and vertical addresses are added.
 		 */
-		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY ) {
+		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls ) {
 			{
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
@@ -769,6 +800,13 @@ namespace lsn {
 			{
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_LoadMsb_1_Work;
+			}
+			if ( _bIncludeControls ) {
+				_stX -= 8;
+				{
+					LSN_CYCLE & cThis = m_cControlCycles[_stY*_tDotWidth+(_stX+7)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollX_Control;
+				}
 			}
 		}
 	};
