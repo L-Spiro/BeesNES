@@ -1621,26 +1621,34 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		m_ccCurContext.ui8Operand = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
-		if ( _bHandleCrossing ) {
+		if constexpr ( _bHandleCrossing ) {
 			bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 			if ( bCrossed ) {
+				LSN_ADVANCE_CONTEXT_COUNTERS;
+				// Read from effective address,
+				// fix high byte of effective address.
+				m_ccCurContext.ui8Operand = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+
 				// Crossed a page boundary.
 				m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-				LSN_ADVANCE_CONTEXT_COUNTERS;
 			}
 			else {
 				// Skip a cycle.  m_ccCurContext.ui8Operand already holds the correct value.
 				LSN_ADVANCE_CONTEXT_COUNTERS_BY( 2 );
+
+				// Read from effective address,
+				// fix high byte of effective address.
+				m_ccCurContext.ui8Operand = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			}
 		}
 		else {
-			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
 			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_ccCurContext.ui8Operand = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
 		}
 	}
 
@@ -1684,18 +1692,9 @@ namespace lsn {
 		m_pbBus->Write( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
 	}
 
-	/** 2nd cycle of branch instructions. Reads the operand (JMP offset). */
-	/*void CCpu6502::Branch_Cycle2() {
-		m_ccCurContext.ui8Operand = m_pbBus->Read( pc.PC++ );
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-	}*/
-
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	template <unsigned _uBit, unsigned _uVal>
 	void CCpu6502::Branch_Cycle2() {
-		// Fetch next opcode.
-		//m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
-		m_ccCurContext.ui8Operand = m_pbBus->Read( pc.PC++ );
 		// If the branch is not taken, we are done here.
 		// For example:
 		// -> _uBit == LSN_STATUS_FLAGS::LSN_SF_NEGATIVE
@@ -1706,35 +1705,40 @@ namespace lsn {
 		// -> _uVal == 1
 		// -> if ( (m_ui8Status & LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) != (1 * LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) ) {
 		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
+			LSN_FINISH_INST;
+			// Fetch next opcode.
+			m_ccCurContext.ui8Operand = m_pbBus->Read( pc.PC++ );
 			// Branch not taken.
 			m_bDelayInterrupt = true;
-			LSN_FINISH_INST;
 		}
 		else {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Fetch next opcode.
+			m_ccCurContext.ui8Operand = m_pbBus->Read( pc.PC++ );
 			// Branch taken.
 			m_ccCurContext.j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_ccCurContext.ui8Operand)) + pc.PC;
 			// Set PCL.
 			pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 	}
 
 	/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 	void CCpu6502::Branch_Cycle3() {
-		// Fetch next opcode.
-		m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
-
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != pc.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Fetch next opcode.
+			m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 			// Crossed a page boundary.
 			pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			LSN_FINISH_INST;
+			// Fetch next opcode.
+			m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 			// Did not cross a page boundary.
 			// Last cycle in the instruction.
 			m_bDelayInterrupt = true;
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -1802,22 +1806,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+		
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
-			// We are done.
-			Adc( A, m_pbBus->Read( ui8Tmp ) );
 			// Last cycle in the instruction.
 			LSN_FINISH_INST;
+
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+			// We are done.
+			Adc( A, ui8Tmp );
 		}
 	}
 
@@ -1865,24 +1874,28 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+		
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A &= ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2063,22 +2076,25 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
-			// We are done.
-			Cmp( A, ui8Tmp );
 			// Last cycle in the instruction.
 			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+			// We are done.
+			Cmp( A, ui8Tmp );
 		}
 	}
 
@@ -2201,24 +2217,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A ^= ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2350,24 +2369,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A = X = S = (ui8Tmp & S);
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2388,24 +2410,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A = X = ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2439,24 +2464,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A = ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2477,24 +2505,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			X = ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2528,24 +2559,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			Y = ui8Tmp;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2642,21 +2676,24 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
-			// We are done.
 			// Last cycle in the instruction.
 			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
+			// We are done.
 		}
 	}
 
@@ -2692,24 +2729,27 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		const uint8_t ui8Op = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
+			// Last cycle in the instruction.
+			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Op = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
 			A |= ui8Op;
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
-			// Last cycle in the instruction.
-			LSN_FINISH_INST;
 		}
 	}
 
@@ -2897,22 +2937,25 @@ namespace lsn {
 		//  5   address+Y*  R  read from effective address,
 		//                     fix high byte of effective address
 		
-		// Read from effective address,
-		// fix high byte of effective address.
-		uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 		// We may have read from the wrong address if the high byte of the effective address isn't correct.
 		// If it is correct, we can skip to the work routine, otherwise continue to the next cycle.
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != m_ccCurContext.a.ui8Bytes[1];
 		if ( bCrossed ) {
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			// Read from effective address,
+			// fix high byte of effective address.
+			m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// Crossed a page boundary.
 			m_ccCurContext.a.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
-			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
 		else {
-			// We are done.
-			Adc( A, ui8Tmp ^= 0xFF );
 			// Last cycle in the instruction.
 			LSN_FINISH_INST;
+			// Read from effective address,
+			// fix high byte of effective address.
+			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+			// We are done.
+			Adc( A, ui8Tmp ^ 0xFF );
 		}
 	}
 

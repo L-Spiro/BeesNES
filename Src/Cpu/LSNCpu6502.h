@@ -448,7 +448,7 @@ namespace lsn {
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
-		inline void							Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
+		inline void							Adc( uint8_t & _ui8RegVal, uint8_t _ui8OpVal );
 
 		/**
 		 * Prepares to enter a new instruction.
@@ -690,7 +690,7 @@ namespace lsn {
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
-	inline void CCpu6502::Adc( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
+	inline void CCpu6502::Adc( uint8_t & _ui8RegVal, uint8_t _ui8OpVal ) {
 		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(_ui8RegVal ^ _ui8OpVal) & (_ui8RegVal ^ ui16Result) & 0x80) == 0 );
 		_ui8RegVal = uint8_t( ui16Result );
