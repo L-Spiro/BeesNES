@@ -71,6 +71,39 @@ namespace lsn {
 					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
 						AssignGatherRenderFuncs( X, Y, true );
 					}
+					{	// Transfer horizontal.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
+					}
+					{	// Increase vertical.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
+						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
+					}
+					AssignGatherRenderFuncs( 321, Y, true );
+					AssignGatherRenderFuncs( 321 + 8, Y, true );
+				}
+				// The "-1" scanline.
+				{
+					constexpr size_t Y = _tDotHeight - 1;
+					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
+						AssignGatherRenderFuncs( X, Y, true );
+					}
+					{	// Transfer horizontal.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
+					}
+					{	// Increase vertical.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
+						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
+					}
+					AssignGatherRenderFuncs( 321, Y, true );
+					AssignGatherRenderFuncs( 321 + 8, Y, true );
+					for ( auto X = 280; X <= 304; ++X ) {
+						{	// Transfer vertical.
+							LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+							cThis.pfFunc = &CPpu2C0X::Pixel_TransferY_Control;
+						}
+					}
 				}
 			}
 
@@ -177,8 +210,10 @@ namespace lsn {
 			}
 			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
 			}
 
 			// 0x2000: PPUCTRL.
@@ -457,6 +492,63 @@ namespace lsn {
 		}
 
 		/**
+		 * Incrementing the Y scroll register.  Also increments the X.
+		 */
+		void LSN_FASTCALL								Pixel_IncScrollY_Control() {
+			if ( Rendering() ) {
+				if ( m_paPpuAddrV.s.ui16FineY < 7 ) {
+					++m_paPpuAddrV.s.ui16FineY;
+				}
+				else {
+					m_paPpuAddrV.s.ui16FineY = 0;
+					// Wrap and increment the course.
+					// Do we need to swap vertical nametable targets?
+					switch ( m_paPpuAddrV.s.ui16CourseY ) {
+						case 29 : {
+							// Wrap the course offset and flip the nametable bit.
+							m_paPpuAddrV.s.ui16CourseY = 0;
+							m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;
+							break;
+						}
+						case 31 : {
+							// We are in attribute memory.  Reset but without flipping the nametable.
+							m_paPpuAddrV.s.ui16CourseY = 0;
+							break;
+						}
+						default : {
+							// Somewhere between.  Just increment.
+							++m_paPpuAddrV.s.ui16CourseY;
+						}
+					}
+				}
+			}
+			Pixel_IncScrollX_Control();
+		}
+
+		/**
+		 * Transfer the X values from the T pointer to the V pointer.
+		 */
+		void LSN_FASTCALL								Pixel_TransferX_Control() {
+			if ( Rendering() ) {
+				m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
+				m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
+			}
+			LSN_END_CONTROL_CYCLE;
+		}
+
+		/**
+		 * Transfer the Y values from the T pointer to the V pointer.
+		 */
+		void LSN_FASTCALL								Pixel_TransferY_Control() {
+			if ( Rendering() ) {
+				m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
+				m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
+				m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
+			}
+			LSN_END_CONTROL_CYCLE;
+		}
+
+		/**
 		 * Determines if any rendering is taking place.
 		 *
 		 * \return Returns true if either the background or sprites are enabled, false otherwise.
@@ -615,8 +707,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			_pui8Data[_ui16Parm1] = _pui8Data[LSN_PPU_PALETTE_MEMORY] = _ui8Val;
+			_pui8Data[_ui16Parm1] = /*_pui8Data[LSN_PPU_PALETTE_MEMORY] = */_ui8Val;
 		}
 
 		/**
