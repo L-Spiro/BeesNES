@@ -906,7 +906,7 @@ namespace lsn {
 		 * \param _bIncludeControls If true, control functions such as incrementing the horizontal and vertical addresses are added.
 		 * \param _bDummy If true, functions to use the latched values are not added.
 		 */
-		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls, bool _bDummy ) {
+		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls, bool /*_bDummy*/ ) {
 			{
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;

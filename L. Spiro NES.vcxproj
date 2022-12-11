@@ -295,6 +295,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNDmaSource.h" />
     <ClInclude Include="Src\System\LSNNmiable.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
+    <ClInclude Include="Src\System\LSNSystemBase.h" />
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />

@@ -219,9 +219,9 @@ namespace lsn {
 				"%.8f cycles per Tick().\r\n"
 				"%.8f FPS.\r\n",
 				m_ui64TickCount, dTime, dTime / 60.0 / 60.0,
-				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->MasterHz() ) / m_pnsSystem->MasterDiv(),
+				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->GetMasterHz() ) / m_pnsSystem->GetMasterDiv(),
 				m_pnsSystem->GetMasterCounter() / double( m_ui64TickCount ),
-				m_pnsSystem->GetPpu().GetFrameCount() / dTime
+				m_pnsSystem->GetPpuFrameCount() / dTime
 				);
 			::OutputDebugStringA( szBuffer );
 		}

@@ -11,13 +11,12 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Apu/LSNApu2A0X.h"
-#include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpu6502.h"
 #include "../Ppu/LSNPpu2C0X.h"
 #include "../Roms/LSNNesHeader.h"
 #include "../Roms/LSNRom.h"
-#include "../Time/LSNClock.h"
 #include "../Utilities/LSNUtilities.h"
+#include "LSNSystemBase.h"
 
 #include <algorithm>
 #include <immintrin.h>
@@ -37,15 +36,12 @@ namespace lsn {
 		class _cCpu,
 		class _cPpu,
 		class _cApu>
-	class CSystem {
+	class CSystem : public CSystemBase {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
-			m_pPpu( &m_bBus, &m_cCpu, &m_cCpu ),
-			m_bPaused( false ) {
+			m_pPpu( &m_bBus, &m_cCpu, &m_cCpu ) {
 			ResetState( false );
-			// Temporary.
-			m_bBus.ResetToKnown();
 		}
 
 
@@ -150,55 +146,6 @@ namespace lsn {
 		}
 
 		/**
-		 * Gets the accumulated real time.
-		 *
-		 * \return Returns the accumulated real time.
-		 */
-		inline uint64_t									GetAccumulatedRealTime() const { return m_ui64AccumTime; }
-
-		/**
-		 * Gets the master counter.
-		 *
-		 * \return Returns the master counter.
-		 */
-		inline uint64_t									GetMasterCounter() const { return m_ui64MasterCounter; }
-
-		/**
-		 * Gets the CPU counter.
-		 *
-		 * \return Returns the CPU counter.
-		 */
-		inline uint64_t									GetCpuCounter() const { return m_ui64CpuCounter; }
-
-		/**
-		 * Gets the PPU counter.
-		 *
-		 * \return Returns the PPU counter.
-		 */
-		inline uint64_t									GetPpuCounter() const { return m_ui64PpuCounter; }
-
-		/**
-		 * Gets the APU counter.
-		 *
-		 * \return Returns the APU counter.
-		 */
-		inline uint64_t									GetApuCounter() const { return m_ui64ApuCounter; }
-
-		/**
-		 * Gets the clock resolution.
-		 *
-		 * \return Returns the clock resolution.
-		 */
-		inline uint64_t									GetClockResolution() const { return m_cClock.GetResolution(); }
-
-		/**
-		 * Gets the clock.
-		 *
-		 * \return Returns the clock.
-		 */
-		inline const CClock &							GetClock() const { return m_cClock; }
-
-		/**
 		 * Gets the master Hz.
 		 *
 		 * \return Returns the master Hz.
@@ -232,6 +179,48 @@ namespace lsn {
 		 * \return Returns the APU divider.
 		 */
 		inline constexpr uint64_t						ApuDiv() const { return _tApuDiv; }
+
+		/**
+		 * Gets the master Hz.
+		 *
+		 * \return Returns the master Hz.
+		 */
+		virtual uint64_t								GetMasterHz() const { return MasterHz(); }
+
+		/**
+		 * Gets the master divider.
+		 *
+		 * \return Returns the master divider.
+		 */
+		virtual uint64_t								GetMasterDiv() const { return MasterDiv(); }
+
+		/**
+		 * Gets the CPU divider.
+		 *
+		 * \return Returns the CPU divider.
+		 */
+		virtual uint64_t								GetCpuDiv() const { return CpuDiv(); }
+
+		/**
+		 * Gets the PPU divider.
+		 *
+		 * \return Returns the PPU divider.
+		 */
+		virtual uint64_t								GetPpuDiv() const { return PpuDiv(); }
+
+		/**
+		 * Gets the APU divider.
+		 *
+		 * \return Returns the APU divider.
+		 */
+		virtual uint64_t								GetApuDiv() const { return ApuDiv(); }
+
+		/**
+		 * Gets the PPU frame count
+		 *
+		 * \return Returns the PPU frame count.
+		 */
+		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.GetFrameCount(); }
 
 		/**
 		 * Loads a ROM image.
@@ -270,15 +259,6 @@ namespace lsn {
 		}
 
 		/**
-		 * Determnines is a ROM is loaded or not.
-		 *
-		 * \return Returns true if a ROM is loaded.
-		 */
-		bool											IsRomLoaded() const {
-			return !!m_rRom.vPrgRom.size();
-		}
-
-		/**
 		 * Gets the PPU.
 		 *
 		 * \return Returns the PPU.
@@ -295,19 +275,9 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		CClock											m_cClock;							/**< The master clock. */
-		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
-		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
-		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
-		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
-		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
-		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
-		CCpuBus											m_bBus;								/**< The bus. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
 		_cApu											m_pApu;								/**< The APU. */
-		LSN_ROM											m_rRom;								/**< The current cartridge. */
-		bool											m_bPaused;							/**< Pause flag. */
 
 
 		// == Functions.

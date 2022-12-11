@@ -207,6 +207,9 @@
     <ClInclude Include="Src\Display\LSNDisplayClient.h">
       <Filter>Header Files\Display</Filter>
     </ClInclude>
+    <ClInclude Include="Src\System\LSNSystemBase.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "../../Display/LSNDisplayHost.h"
 #include "../../System/LSNSystem.h"
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
@@ -15,7 +16,7 @@ namespace lsw {
 
 namespace lsn {
 	
-	class CMainWindow : public lsw::CMainWindow {
+	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost {
 		typedef lsn::CNtscSystem				CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -88,7 +89,7 @@ namespace lsn {
 		// A clock.
 		lsn::CClock								m_cClock;
 		// The console pointer.
-		std::unique_ptr<CRegionalSystem>		m_pnsSystem;
+		std::unique_ptr<CSystemBase>			m_pnsSystem;
 		// Image list.
 		lsw::CImageList							m_iImages;
 		// Images.
