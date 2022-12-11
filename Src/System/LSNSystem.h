@@ -44,6 +44,8 @@ namespace lsn {
 			m_pPpu( &m_bBus, &m_cCpu, &m_cCpu ),
 			m_bPaused( false ) {
 			ResetState( false );
+			// Temporary.
+			m_bBus.ResetToKnown();
 		}
 
 
@@ -109,15 +111,15 @@ namespace lsn {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
-					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter < ui64Low ) {
+					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low ) {
 						phsSlot = &hsSlots[LSN_CPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
+					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter <= ui64Low ) {
 						phsSlot = &hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
+					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter <= ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
 						//	as well as the pointer-access ("phsSlot").

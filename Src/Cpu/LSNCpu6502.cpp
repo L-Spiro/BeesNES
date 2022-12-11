@@ -1115,8 +1115,8 @@ namespace lsn {
 	 * Performs a single cycle update.
 	 */
 	void CCpu6502::Tick() {
-		++m_ui64CycleCount;
 		(this->*m_pfTickFunc)();
+		++m_ui64CycleCount;
 	}
 
 	/**
@@ -1165,9 +1165,9 @@ namespace lsn {
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {
 #ifdef LSN_PRINT_CYCLES
-		/*if ( pc.PC == 0xC293 ) {
+		if ( pc.PC == 0xC293 ) {
 			volatile int gjhg = 0;
-		}*/
+		}
 		// TMP.
 		static uint64_t ui64CyclesAtStart = 0;
 		static uint64_t ui64LastCycles = 0;
@@ -1179,7 +1179,9 @@ namespace lsn {
 		ui64CyclesAtStart = m_ui64CycleCount;
 		if ( ui16LastPc ) {
 			char szBuffer[256];
-			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X\r\n", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
+			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
+			::OutputDebugStringA( szBuffer );
+			::sprintf_s( szBuffer, "\tA: %.2X; X: %.2X; Y: %.2X; S: %.2X; P: %.2X; Cycle: %llu\r\n", A, X, Y, S, m_ui8Status, m_ui64CycleCount );
 			::OutputDebugStringA( szBuffer );
 		}
 		ui16LastPc = pc.PC;
@@ -1204,7 +1206,7 @@ namespace lsn {
 
 	/** DMA start. Moves on to the DMA read/write cycle when the current CPU cycle is even (IE odd cycles take 1 extra cycle). */
 	void CCpu6502::Tick_DmaStart() {
-		if ( (this->m_ui64CycleCount & 0x1) == 0 ) {
+		if ( (m_ui64CycleCount & 0x1) == 0 ) {
 			m_ui16DmaCounter = 256;
 			m_ui8DmaPos = 0;
 			m_pfTickFunc = &CCpu6502::Tick_DmaRead;

@@ -50,6 +50,7 @@ namespace lsn {
 			m_ui8NextTileAttribute( 0 ),
 			m_ui8NextTileLsb( 0 ),
 			m_ui8NextTileMsb( 0 ),
+			m_ui8IoBusFloater( 0 ),
 			m_bAddresLatch( false ) {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
@@ -69,7 +70,29 @@ namespace lsn {
 				// The main rendering area.
 				for ( auto Y = _tPreRender; Y < (_tRender + _tPreRender); ++Y ) {
 					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, true );
+						AssignGatherRenderFuncs( X, Y, true, false );
+					}
+					// Dummy reads.
+					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 8); X += 8 ) {
+						AssignGatherRenderFuncs( X, Y, false, true );
+					}
+					{	// Unused NT fetches.
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+						}
 					}
 					{	// Transfer horizontal.
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
@@ -79,14 +102,36 @@ namespace lsn {
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
 						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
 					}
-					AssignGatherRenderFuncs( 321, Y, true );
-					AssignGatherRenderFuncs( 321 + 8, Y, true );
+					AssignGatherRenderFuncs( 321, Y, true, false );
+					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
 				}
 				// The "-1" scanline.
 				{
 					constexpr size_t Y = _tDotHeight - 1;
 					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, true );
+						AssignGatherRenderFuncs( X, Y, true, false );
+					}
+					// Dummy reads.
+					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 8); X += 8 ) {
+						AssignGatherRenderFuncs( X, Y, false, true );
+					}
+					{	// Unused NT fetches.
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+						}
+						{
+							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+						}
 					}
 					{	// Transfer horizontal.
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
@@ -96,8 +141,8 @@ namespace lsn {
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
 						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
 					}
-					AssignGatherRenderFuncs( 321, Y, true );
-					AssignGatherRenderFuncs( 321 + 8, Y, true );
+					AssignGatherRenderFuncs( 321, Y, true, false );
+					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
 					for ( auto X = 280; X <= 304; ++X ) {
 						{	// Transfer vertical.
 							LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
@@ -167,6 +212,7 @@ namespace lsn {
 			m_ui16RowDot = 0;
 			m_paPpuAddrT.ui16Addr = 0;
 			m_paPpuAddrV.ui16Addr = 0;
+			m_ui8IoBusFloater = 0;
 		}
 
 		/**
@@ -858,8 +904,9 @@ namespace lsn {
 		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
 		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
 		 * \param _bIncludeControls If true, control functions such as incrementing the horizontal and vertical addresses are added.
+		 * \param _bDummy If true, functions to use the latched values are not added.
 		 */
-		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls ) {
+		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls, bool _bDummy ) {
 			{
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
