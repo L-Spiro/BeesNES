@@ -150,41 +150,6 @@ namespace lsn {
 		 *
 		 * \return Returns the master Hz.
 		 */
-		inline constexpr uint64_t						MasterHz() const { return _tMasterClock; }
-
-		/**
-		 * Gets the master divider.
-		 *
-		 * \return Returns the master divider.
-		 */
-		inline constexpr uint64_t						MasterDiv() const { return _tMasterDiv; }
-
-		/**
-		 * Gets the CPU divider.
-		 *
-		 * \return Returns the CPU divider.
-		 */
-		inline constexpr uint64_t						CpuDiv() const { return _tCpuDiv; }
-
-		/**
-		 * Gets the PPU divider.
-		 *
-		 * \return Returns the PPU divider.
-		 */
-		inline constexpr uint64_t						PpuDiv() const { return _tPpuDiv; }
-
-		/**
-		 * Gets the APU divider.
-		 *
-		 * \return Returns the APU divider.
-		 */
-		inline constexpr uint64_t						ApuDiv() const { return _tApuDiv; }
-
-		/**
-		 * Gets the master Hz.
-		 *
-		 * \return Returns the master Hz.
-		 */
 		virtual uint64_t								GetMasterHz() const { return MasterHz(); }
 
 		/**
@@ -272,6 +237,13 @@ namespace lsn {
 		 */
 		inline _cPpu &									GetPpu() { return m_pPpu; }
 
+		/**
+		 * Gets the PPU as a display client.
+		 *
+		 * \return Returns the PPU as a CDisplayClient *.
+		 */
+		virtual CDisplayClient *						GetDisplayClient() { return &m_pPpu; }
+
 
 	protected :
 		// == Members.
@@ -315,6 +287,41 @@ namespace lsn {
 			}
 			return false;
 		}
+
+		/**
+		 * Gets the master Hz.
+		 *
+		 * \return Returns the master Hz.
+		 */
+		inline constexpr uint64_t						MasterHz() const { return _tMasterClock; }
+
+		/**
+		 * Gets the master divider.
+		 *
+		 * \return Returns the master divider.
+		 */
+		inline constexpr uint64_t						MasterDiv() const { return _tMasterDiv; }
+
+		/**
+		 * Gets the CPU divider.
+		 *
+		 * \return Returns the CPU divider.
+		 */
+		inline constexpr uint64_t						CpuDiv() const { return _tCpuDiv; }
+
+		/**
+		 * Gets the PPU divider.
+		 *
+		 * \return Returns the PPU divider.
+		 */
+		inline constexpr uint64_t						PpuDiv() const { return _tPpuDiv; }
+
+		/**
+		 * Gets the APU divider.
+		 *
+		 * \return Returns the APU divider.
+		 */
+		inline constexpr uint64_t						ApuDiv() const { return _tApuDiv; }
 	};
 	
 

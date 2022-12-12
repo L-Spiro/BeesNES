@@ -310,6 +310,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
+    <ClCompile Include="Src\Display\LSNDisplayClient.cpp" />
+    <ClCompile Include="Src\Display\LSNDisplayHost.cpp" />
     <ClCompile Include="Src\File\LSNFileBase.cpp" />
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />

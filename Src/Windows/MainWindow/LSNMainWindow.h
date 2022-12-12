@@ -17,7 +17,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost {
-		typedef lsn::CNtscSystem				CRegionalSystem;
+		typedef lsn::CPalSystem				CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CMainWindow();
@@ -49,10 +49,21 @@ namespace lsn {
 		// WM_GETMINMAXINFO.
 		virtual LSW_HANDLED						GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
 
+		// WM_PAINT.
+		virtual LSW_HANDLED						Paint();
+
+		// WM_MOVE.
+		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
+
 		/**
 		 * Advances the emulation state by the amount of time that has passed since the last advancement.
 		 */
 		void									Tick();
+
+		/**
+		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
+		 */
+		virtual void							Swap();
 
 		/**
 		 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
@@ -61,6 +72,20 @@ namespace lsn {
 		 * \return Returns the virtual client rectangle of this object or of the optional child object.
 		 */
 		virtual const LSW_RECT					VirtualClientRect( const CWidget * _pwChild ) const;
+
+		/**
+		 * Gets the final display width.
+		 *
+		 * \return Returns the final display width (native width * scale * ratio).
+		 */
+		LONG									FinalWidth() const { return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayWidth() * m_dScale * m_dRatio ) ) : 0; }
+
+		/**
+		 * Gets the final display height.
+		 *
+		 * \return Returns the final display height (native height * scale).
+		 */
+		LONG									FinalHeight() const { return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayHeight() * m_dScale ) ) : 0; }
 
 		/**
 		 * Gets the status bar.
@@ -94,8 +119,12 @@ namespace lsn {
 		lsw::CImageList							m_iImages;
 		// Images.
 		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
-		// Image mapping.
+		/** Image mapping. */
 		INT										m_iImageMap[LSN_I_TOTAL];
+		/** The BITMAP reender target buffer cast to a BITMAPINFO object. */
+		size_t									m_stBufferIdx;
+		/** The BITMAP render target for very basic software rendering.  N-buffered. */
+		std::vector<std::vector<uint8_t>>		m_vBasicRenderTarget;
 		
 
 
@@ -103,11 +132,20 @@ namespace lsn {
 		/**
 		 * Gets the window rectangle for correct output at a given scale and ratio.
 		 *
-		 * \param _dScale The output scale.
-		 * \param _dRatio The output ratio.
 		 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
 		 */
-		LSW_RECT								FinalWindowRect( double _dScale, double _dRatio ) const;
+		LSW_RECT								FinalWindowRect() const;
+
+		/**
+		 * Gets a BITMAP stride given its row width in bytes.
+		 *
+		 * \param _ui32RowWidth The row width in RGB(A) pixels.
+		 * \param _ui32BitDepth The total bits for a single RGB(A) pixel.
+		 * \return Reurns the byte width rounded up to the nearest DWORD.
+		 */
+		static inline DWORD						RowStride( uint32_t _ui32RowWidth, uint32_t _ui32BitDepth ) {
+			return ((((_ui32RowWidth * _ui32BitDepth) + 31) & ~31) >> 3);
+		}
 		
 	};
 

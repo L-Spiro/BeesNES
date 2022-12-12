@@ -269,6 +269,12 @@
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp">
       <Filter>Source Files\Windows\SelectRom</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Display\LSNDisplayClient.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Display\LSNDisplayHost.cpp">
+      <Filter>Source Files\Display</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">

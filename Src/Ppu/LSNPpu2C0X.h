@@ -11,6 +11,8 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Display/LSNDisplayClient.h"
+#include "../Display/LSNDisplayHost.h"
 #include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
@@ -35,7 +37,7 @@ namespace lsn {
 		unsigned _tVBlank, unsigned _tPostVBlank,
 		unsigned _tRenderW,
 		bool _bOddFrameShenanigans>
-	class CPpu2C0X : public CTickable {
+	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
 		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget, CDmaSource * _pdsDmaSrc ) :
 			m_pbBus( _pbBus ),
@@ -184,6 +186,11 @@ namespace lsn {
 			{
 				LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+1];
 				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_StartFrame_Control;
+			}
+			// Swap the display buffer.
+			{
+				LSN_CYCLE & cThis = m_cControlCycles[(_tPreRender+_tRender)*_tDotWidth+(1+_tRenderW+2)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Swap_Control;
 			}
 		}
 		~CPpu2C0X() {
@@ -369,6 +376,20 @@ namespace lsn {
 		inline CPpuBus &								GetPpuBus() { return m_bBus; }
 
 		/**
+		 * Gets the display width in pixels.  Used to create render targets.
+		 *
+		 * \return Returns the pixel width of the display area.
+		 */
+		virtual uint32_t								DisplayWidth() const { return _tRenderW; }
+
+		/**
+		 * Gets the display height in pixels.  Used to create render targets.
+		 *
+		 * \return Returns the pixel height of the display area.
+		 */
+		virtual uint32_t								DisplayHeight() const { return _tRender; }
+
+		/**
 		 * An "idle" pixel handler.
 		 */
 		void LSN_FASTCALL								Pixel_Idle_Control() {
@@ -450,6 +471,30 @@ namespace lsn {
 			m_psPpuStatus.s.ui8VBlank = 1;
 			if ( m_pcPpuCtrl.s.ui8Nmi ) {
 				m_pnNmiTarget->Nmi();
+			}
+			LSN_END_CONTROL_CYCLE;
+		}
+
+		/**
+		 * Informing the display host that a render is done.
+		 */
+		void LSN_FASTCALL								Pixel_Swap_Control() {
+			if ( m_pdhHost ) {
+				if ( m_pui8RenderTarget ) {
+					// For fun.
+					for ( auto Y = DisplayHeight(); Y--; ) {
+						for ( auto X = DisplayWidth(); X--; ) {
+							uint8_t * pui8This = &m_pui8RenderTarget[Y*m_stRenderTargetStride+X*3];
+							uint16_t ui16Addr = uint16_t( (Y + m_ui64Frame) * 256 + X * 1 );
+							
+							uint8_t ui8Val = m_pbBus->DBG_Inspect( ui16Addr + 0 );
+							pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
+							/*pui8This[2] = m_pbBus->DBG_Inspect( ui16Addr + 1 );
+							pui8This[0] = m_pbBus->DBG_Inspect( ui16Addr + 0 );*/
+						}
+					}
+				}
+				m_pdhHost->Swap();
 			}
 			LSN_END_CONTROL_CYCLE;
 		}

@@ -163,6 +163,13 @@ namespace lsn {
 		 */
 		virtual uint64_t								GetPpuFrameCount() const { return 0; }
 
+		/**
+		 * Gets the PPU as a display client.
+		 *
+		 * \return Returns the PPU as a CDisplayClient *.
+		 */
+		virtual CDisplayClient *						GetDisplayClient() { return nullptr; }
+
 
 	protected :
 		// == Members.

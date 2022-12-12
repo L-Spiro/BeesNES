@@ -24,8 +24,9 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 1.0 ),
-		m_dRatio( /*292.0 / 256.0*/1.0 ),
+		m_dScale( 4.0 ),
+		m_dRatio( 292.608 / 256.0 ),
+		m_stBufferIdx( 0 ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 
 
@@ -54,8 +55,43 @@ namespace lsn {
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
 		}
 
-
 		m_pnsSystem = std::make_unique<CRegionalSystem>();
+		m_pdcClient = m_pnsSystem->GetDisplayClient();
+		if ( m_pdcClient ) {
+			m_pdcClient->SetDisplayHost( this );
+			// Create the basic render target.
+			const size_t stBuffers = 2;
+			const WORD wBitDepth = 24;
+			m_vBasicRenderTarget.resize( stBuffers );
+			for ( auto I = stBuffers; I--; ) {
+				DWORD dwStride = RowStride( m_pdcClient->DisplayWidth(), wBitDepth );
+				m_vBasicRenderTarget[I].resize( sizeof( BITMAPINFOHEADER ) + (dwStride * m_pdcClient->DisplayHeight()) );
+				BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[I].data());
+				pbiHeader->bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+				pbiHeader->bmiHeader.biWidth = m_pdcClient->DisplayWidth();
+				pbiHeader->bmiHeader.biHeight = m_pdcClient->DisplayHeight();
+				pbiHeader->bmiHeader.biPlanes = 1;
+				pbiHeader->bmiHeader.biBitCount = wBitDepth;
+				pbiHeader->bmiHeader.biCompression = BI_RGB;
+				pbiHeader->bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
+				pbiHeader->bmiHeader.biXPelsPerMeter = 0;
+				pbiHeader->bmiHeader.biYPelsPerMeter = 0;
+				pbiHeader->bmiHeader.biClrUsed = 0;
+				pbiHeader->bmiHeader.biClrImportant = 0;
+
+				// For fun.
+				uint8_t * pui8Pixels = m_vBasicRenderTarget[I].data() + pbiHeader->bmiHeader.biSize;
+				for ( auto Y = m_pdcClient->DisplayHeight(); Y--; ) {
+					for ( auto X = m_pdcClient->DisplayWidth(); X--; ) {
+						uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
+						/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
+						pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
+						pui8This[2] = uint8_t( CHelpers::sRGBtoLinear( X / 255.0 ) * 255.0 );
+						pui8This[0] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );
+					}
+				}
+			}
+		}
 
 		(*m_pabIsAlive) = true;
 	}
@@ -125,7 +161,7 @@ namespace lsn {
 
 		ForceSizeUpdate();
 		
-		LSW_RECT rScreen = FinalWindowRect( m_dScale, m_dRatio );
+		LSW_RECT rScreen = FinalWindowRect();
 		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 
 		return LSW_H_CONTINUE;
@@ -231,11 +267,50 @@ namespace lsn {
 
 	// WM_GETMINMAXINFO.
 	CWidget::LSW_HANDLED CMainWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
-		LSW_RECT rRect = FinalWindowRect( m_dScale, m_dRatio );
+		LSW_RECT rRect = FinalWindowRect();
 		_pmmiInfo->ptMinTrackSize.x = rRect.Width();
 		_pmmiInfo->ptMinTrackSize.y = rRect.Height();
 		_pmmiInfo->ptMaxTrackSize = _pmmiInfo->ptMinTrackSize;
 		return LSW_H_HANDLED;
+	}
+
+	// WM_PAINT.
+	CWidget::LSW_HANDLED CMainWindow::Paint() {
+		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
+		LSW_BEGINPAINT bpPaint( Wnd() );
+
+		BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
+		DWORD dwFinalW = FinalWidth();
+		DWORD dwFinalH = FinalHeight();
+		if ( dwFinalW != m_pdcClient->DisplayWidth() || dwFinalH != m_pdcClient->DisplayHeight() ) {
+			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+			::StretchDIBits( bpPaint.hDc,
+				0, 0, int( dwFinalW ), int( dwFinalH ),
+				0, 0, m_pdcClient->DisplayWidth(), m_pdcClient->DisplayHeight(),
+				&pbiHeader->bmiColors,
+				pbiHeader,
+				DIB_RGB_COLORS,
+				SRCCOPY );
+		}
+		else {
+			::SetDIBitsToDevice( bpPaint.hDc,
+				0, 0,
+				m_pdcClient->DisplayWidth(), m_pdcClient->DisplayHeight(),
+				0, 0,
+				0, m_pdcClient->DisplayHeight(),
+				&pbiHeader->bmiColors,
+				pbiHeader,
+				DIB_RGB_COLORS );
+		}
+
+
+		return LSW_H_HANDLED;
+	}
+
+	// WM_MOVE.
+	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
+		Tick();
+		return LSW_H_CONTINUE;
 	}
 
 	/**
@@ -246,6 +321,25 @@ namespace lsn {
 			m_pnsSystem->Tick();
 			++m_ui64TickCount;
 		}
+	}
+
+	/**
+	 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
+	 */
+	void CMainWindow::Swap() {
+		if ( m_pdcClient ) {
+			m_stBufferIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
+			size_t stNextIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
+
+			BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[stNextIdx].data());
+			m_pdcClient->SetRenderTarget( reinterpret_cast<uint8_t *>(&pbiHeader->bmiColors), RowStride( m_pdcClient->DisplayWidth(), 24 ) );
+			::RedrawWindow( Wnd(), NULL, NULL,
+				RDW_INVALIDATE |
+				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
+				RDW_UPDATENOW |
+				RDW_NOCHILDREN );
+		}
+
 	}
 
 	/**
@@ -291,11 +385,10 @@ namespace lsn {
 	/**
 	 * Gets the window rectangle for correct output at a given scale and ratio.
 	 *
-	 * \param _dScale The output scale.
-	 * \param _dRatio The output ratio.
 	 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
 	 */
-	LSW_RECT CMainWindow::FinalWindowRect( double _dScale, double _dRatio ) const {
+	LSW_RECT CMainWindow::FinalWindowRect() const {
+		
 		LONG lHeight = 0L;
 		const lsw::CRebar * plvRebar = static_cast<const lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
 		if ( plvRebar ) {
@@ -307,8 +400,8 @@ namespace lsn {
 		}
 		LSW_RECT rClientRect;
 		rClientRect.Zero();
-		rClientRect.SetWidth( LONG( std::round( 256.0 * _dRatio * _dScale ) ) );
-		rClientRect.SetHeight( LONG( std::round( 240.0 * _dScale ) ) );
+		rClientRect.SetWidth( FinalWidth() );
+		rClientRect.SetHeight( FinalHeight() );
 		::AdjustWindowRectEx( &rClientRect, ::GetWindowLongW( Wnd(), GWL_STYLE ),
 			TRUE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );
 		rClientRect.bottom += lHeight;
