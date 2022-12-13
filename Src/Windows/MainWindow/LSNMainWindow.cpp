@@ -93,6 +93,19 @@ namespace lsn {
 			}
 		}
 
+		{
+			// Center it in the screen.
+			LSW_RECT rFinal = FinalWindowRect();
+			LSW_RECT rDesktop;
+			if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
+				rDesktop.left = (rDesktop.Width() - rFinal.Width()) / 2;
+				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2 - 32;
+				/*rDesktop.SetWidth( rFinal.Width() );
+				rDesktop.SetHeight( rFinal.Height() );*/
+				::MoveWindow( Wnd(), rDesktop.left, rDesktop.top, rFinal.Width(), rFinal.Height(), TRUE );
+			}
+		}
+
 		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
@@ -328,10 +341,11 @@ namespace lsn {
 	 */
 	void CMainWindow::Swap() {
 		if ( m_pdcClient ) {
+			BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
 			m_stBufferIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
-			size_t stNextIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
+			//size_t stNextIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
 
-			BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[stNextIdx].data());
+			
 			m_pdcClient->SetRenderTarget( reinterpret_cast<uint8_t *>(&pbiHeader->bmiColors), RowStride( m_pdcClient->DisplayWidth(), 24 ) );
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |

@@ -76,9 +76,9 @@ namespace lsn {
 		 *	determining how many cycles need to be run for each hardware component, and running all of them.
 		 */
 		void											Tick() {
-			uint64_t ui64CurrealTime = m_cClock.GetRealTick();
+			uint64_t ui64CurRealTime = m_cClock.GetRealTick();
 			if ( !m_bPaused ) {
-				uint64_t ui64Diff = ui64CurrealTime - m_ui64LastRealTime;
+				uint64_t ui64Diff = ui64CurRealTime - m_ui64LastRealTime;
 				m_ui64AccumTime += ui64Diff;
 				{
 					uint64_t ui64Hi;
@@ -142,7 +142,7 @@ namespace lsn {
 #undef LSN_PPU_SLOT
 #undef LSN_CPU_SLOT
 			}
-			m_ui64LastRealTime = ui64CurrealTime;
+			m_ui64LastRealTime = ui64CurRealTime;
 		}
 
 		/**

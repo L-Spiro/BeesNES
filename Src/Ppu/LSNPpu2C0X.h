@@ -47,6 +47,10 @@ namespace lsn {
 			m_ui64Cycle( 0 ),
 			m_ui16Scanline( 0 ),
 			m_ui16RowDot( 0 ),
+			m_ui16ShiftPatternLo( 0 ),
+			m_ui16ShiftPatternHi( 0 ),
+			m_ui16ShiftAttribLo( 0 ),
+			m_ui16ShiftAttribHi( 0 ),
 			m_ui8NtAtBuffer( 0 ),
 			m_ui8NextTileId( 0 ),
 			m_ui8NextTileAttribute( 0 ),
@@ -75,34 +79,34 @@ namespace lsn {
 						AssignGatherRenderFuncs( X, Y, true, false );
 					}
 					// Dummy reads.
-					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 8); X += 8 ) {
+					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 4); X += 8 ) {
 						AssignGatherRenderFuncs( X, Y, false, true );
 					}
 					{	// Unused NT fetches.
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
 						}
-					}
-					{	// Transfer horizontal.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
-						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
 					}
 					{	// Increase vertical.
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
 						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
+					}
+					{	// Transfer horizontal.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
 					}
 					AssignGatherRenderFuncs( 321, Y, true, false );
 					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
@@ -114,34 +118,34 @@ namespace lsn {
 						AssignGatherRenderFuncs( X, Y, true, false );
 					}
 					// Dummy reads.
-					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 8); X += 8 ) {
+					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 4); X += 8 ) {
 						AssignGatherRenderFuncs( X, Y, false, true );
 					}
 					{	// Unused NT fetches.
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
 						}
 						{
 							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
 						}
-					}
-					{	// Transfer horizontal.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
-						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
 					}
 					{	// Increase vertical.
 						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
 						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
+					}
+					{	// Transfer horizontal.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
 					}
 					AssignGatherRenderFuncs( 321, Y, true, false );
 					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
@@ -482,6 +486,7 @@ namespace lsn {
 			if ( m_pdhHost ) {
 				if ( m_pui8RenderTarget ) {
 					// For fun.
+#if 0
 					for ( auto Y = DisplayHeight(); Y--; ) {
 						for ( auto X = DisplayWidth(); X--; ) {
 							uint8_t * pui8This = &m_pui8RenderTarget[Y*m_stRenderTargetStride+X*3];
@@ -493,6 +498,7 @@ namespace lsn {
 							pui8This[0] = m_pbBus->DBG_Inspect( ui16Addr + 0 );*/
 						}
 					}
+#endif
 				}
 				m_pdhHost->Swap();
 			}
@@ -502,7 +508,24 @@ namespace lsn {
 		/**
 		 * The first of the 2 NT read cycles.
 		 */
+		void LSN_FASTCALL								Pixel_LoadNtNoShift_0_Work() {
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
+		}
+
+		/**
+		 * The second of the 2 NT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_LoadNtNoShift_1_Work() {
+			m_ui8NextTileId = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 NT read cycles.
+		 */
 		void LSN_FASTCALL								Pixel_LoadNt_0_Work() {
+			ShiftBackgroundRegisters();
+			LoadLatchedBackgroundIntoShiftRegisters();
+			RenderPixel();
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
 		}
 
@@ -510,6 +533,8 @@ namespace lsn {
 		 * The second of the 2 NT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadNt_1_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NextTileId = m_ui8NtAtBuffer;
 		}
 
@@ -517,6 +542,8 @@ namespace lsn {
 		 * The first of the 2 AT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_ATTRIBUTE_TABLE_OFFSET | (m_paPpuAddrV.s.ui16NametableY << 11) |
 				(m_paPpuAddrV.s.ui16NametableX << 10) |
 				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
@@ -527,6 +554,8 @@ namespace lsn {
 		 * The second of the 2 AT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadAt_1_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
 			if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
 			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NextTileAttribute >>= 2; }
@@ -537,6 +566,8 @@ namespace lsn {
 		 * The first of the 2 LSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadLsb_0_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 				(m_paPpuAddrV.s.ui16FineY) +
@@ -547,6 +578,8 @@ namespace lsn {
 		 * The second of the 2 LSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadLsb_1_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NextTileLsb = m_ui8NtAtBuffer;
 		}
 
@@ -554,6 +587,8 @@ namespace lsn {
 		 * The first of the 2 MSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadMsb_0_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 				(m_paPpuAddrV.s.ui16FineY) +
@@ -564,6 +599,8 @@ namespace lsn {
 		 * The second of the 2 MSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadMsb_1_Work() {
+			ShiftBackgroundRegisters();
+			RenderPixel();
 			m_ui8NextTileMsb = m_ui8NtAtBuffer;
 		}
 
@@ -798,7 +835,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] = /*_pui8Data[LSN_PPU_PALETTE_MEMORY] = */_ui8Val;
+			_pui8Data[_ui16Parm1] = _pui8Data[LSN_PPU_PALETTE_MEMORY] = _ui8Val;
 		}
 
 		/**
@@ -923,13 +960,17 @@ namespace lsn {
 		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/** The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		LSN_OAM											m_oOam;											/**< OAM memory. */
-		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
-		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
 		LSN_PPUADDR										m_paPpuAddrT;									/**< The "t" PPUADDR register. */
 		LSN_PPUADDR										m_paPpuAddrV;									/**< The "v" PPUADDR register. */
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
-		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */		
+		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
+		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
+		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
+		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
+		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
+		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
+		uint16_t										m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
 		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
@@ -990,6 +1031,76 @@ namespace lsn {
 					LSN_CYCLE & cThis = m_cControlCycles[_stY*_tDotWidth+(_stX+7)];
 					cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollX_Control;
 				}
+			}
+		}
+
+		/**
+		 * Shifts the background registers left one.
+		 */
+		void											ShiftBackgroundRegisters() {
+			if ( Rendering() ) {
+				m_ui16ShiftPatternLo <<= 1;
+				m_ui16ShiftPatternHi <<= 1;
+				m_ui16ShiftAttribLo <<= 1;
+				m_ui16ShiftAttribHi <<= 1;
+			}
+		}
+
+		/**
+		 * Loads the latched tile data into the shift registers.
+		 */
+		void											LoadLatchedBackgroundIntoShiftRegisters() {
+			m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+			m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+			m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+			m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+		}
+
+		/**
+		 * Given an X and a Y scanline/row-cycle combination, determine if the pixel is represents can be output to the render target.
+		 *
+		 * \param _ui16X The X (row cycle).
+		 * \param _ui16Y The Y (scanline).
+		 * \param _ui16RtX The resulting render-target X if true is returned.
+		 * \param _ui16RtY The resulting render-target Y if true is returned.
+		 * \return Returns true if the given X and Y are contained within the render target
+		 */
+		inline bool										CycleToRenderTarget( uint16_t _ui16X, uint16_t _ui16Y, uint16_t &_ui16RtX, uint16_t &_ui16RtY ) {
+			if ( _ui16X >= 1 && _ui16X < (_tRenderW + 1) ) {
+				if ( _ui16Y > (_tPreRender) && _ui16Y < (_tPreRender + _tRender) ) {
+					_ui16RtX = _ui16X - 1;
+					_ui16RtY = (_tRender - 1) - (_ui16Y - _tPreRender);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Renders a pixel based on the current state of the PPU.
+		 */
+		inline void										RenderPixel() {
+			uint16_t ui16X, ui16Y;
+			if ( CycleToRenderTarget( m_ui16RowDot, m_ui16Scanline, ui16X, ui16Y ) && m_pui8RenderTarget ) {
+				uint8_t ui8BackgroundPixel = 0;
+				uint8_t ui8BackgroundPalette = 0;
+				if ( m_pmPpuMask.s.ui8ShowBackground ) {
+				
+					const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
+					ui8BackgroundPixel = (((m_ui16ShiftPatternLo & ui16Bit) > 0) << 1) |
+						((m_ui16ShiftPatternHi & ui16Bit) > 0);
+					ui8BackgroundPalette = (((m_ui16ShiftAttribLo & ui16Bit) > 0) << 1) |
+						((m_ui16ShiftAttribHi & ui16Bit) > 0);
+				}
+
+				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
+				uint8_t ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
+				pui8RenderPixel[0] = ui8Val;
+				pui8RenderPixel[1] = ui8Val;
+				pui8RenderPixel[2] = ui8Val;
+				
+				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
 			}
 		}
 	};
