@@ -10,6 +10,7 @@
 #include <shlwapi.h>
 
 #include "LSNMainWindow.h"
+#include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
@@ -24,7 +25,7 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 4.0 ),
+		m_dScale( 3.0 ),
 		m_dRatio( 292.608 / 256.0 ),
 		m_stBufferIdx( 0 ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
@@ -103,6 +104,17 @@ namespace lsn {
 				/*rDesktop.SetWidth( rFinal.Width() );
 				rDesktop.SetHeight( rFinal.Height() );*/
 				::MoveWindow( Wnd(), rDesktop.left, rDesktop.top, rFinal.Width(), rFinal.Height(), TRUE );
+			}
+		}
+
+		{
+			std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
+			lsn::CStdFile sfFile;
+			if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
+				std::vector<uint8_t> vPal;
+				if ( sfFile.LoadToMemory( vPal ) ) {
+					SetPalette( vPal );
+				}
 			}
 		}
 
@@ -424,6 +436,24 @@ namespace lsn {
 		rScreen.SetWidth( rClientRect.Width() );
 		rScreen.SetHeight( rClientRect.Height() );
 		return rScreen;
+	}
+
+	/**
+	 * Sends a given palette to the console.
+	 *
+	 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
+	 */
+	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette ) {
+		if ( _vPalette.size() != 0x40 * 3 ) { return; }
+		if ( !m_pnsSystem.get() ) { return; }
+		lsn::LSN_PALETTE * ppPal = m_pnsSystem->Palette();
+		if ( !ppPal ) { return; }
+		for ( size_t I = 0; I < _vPalette.size(); I += 3 ) {
+			size_t stIdx = (I / 3);
+			ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
+			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
+			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];
+		}
 	}
 
 }	// namespace lsn

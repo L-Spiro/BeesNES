@@ -17,7 +17,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost {
-		typedef lsn::CPalSystem				CRegionalSystem;
+		typedef lsn::CNtscSystem				CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CMainWindow();
@@ -135,6 +135,13 @@ namespace lsn {
 		 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
 		 */
 		LSW_RECT								FinalWindowRect() const;
+
+		/**
+		 * Sends a given palette to the console.
+		 *
+		 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
+		 */
+		void									SetPalette( const std::vector<uint8_t> &_vPalette );
 
 		/**
 		 * Gets a BITMAP stride given its row width in bytes.

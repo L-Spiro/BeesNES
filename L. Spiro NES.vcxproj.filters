@@ -112,6 +112,12 @@
     <Filter Include="Source Files\Display">
       <UniqueIdentifier>{e3385b90-f20d-4ec0-bf32-feaef6e78880}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Palette">
+      <UniqueIdentifier>{2ae4939f-89b7-4018-9ebd-3870a4128a63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Palette">
+      <UniqueIdentifier>{3cc40828-9399-482d-83b5-5f06e65a810a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -209,6 +215,9 @@
     </ClInclude>
     <ClInclude Include="Src\System\LSNSystemBase.h">
       <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Palette\LSNPalette.h">
+      <Filter>Header Files\Palette</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

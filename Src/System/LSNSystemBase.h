@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Palette/LSNPalette.h"
 #include "../Time/LSNClock.h"
 
 
@@ -32,9 +33,6 @@ namespace lsn {
 			m_ui64PpuCounter( 0 ),
 			m_ui64ApuCounter( 0 ),
 			m_bPaused( false ) {
-
-			// Temporary.
-			m_bBus.ResetToKnown();
 		}
 		virtual ~CSystemBase() {
 		}
@@ -169,6 +167,13 @@ namespace lsn {
 		 * \return Returns the PPU as a CDisplayClient *.
 		 */
 		virtual CDisplayClient *						GetDisplayClient() { return nullptr; }
+
+		/**
+		 * Gets a pointer to the palette.
+		 *
+		 * \return Returns a pointer to the palette.
+		 */
+		virtual LSN_PALETTE *							Palette() { return nullptr; }
 
 
 	protected :

@@ -287,6 +287,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
+    <ClInclude Include="Src\Palette\LSNPalette.h" />
     <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
     <ClInclude Include="Src\Roms\LSNRom.h" />

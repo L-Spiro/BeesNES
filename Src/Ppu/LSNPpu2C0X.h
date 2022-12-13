@@ -13,6 +13,7 @@
 #include "../Bus/LSNBus.h"
 #include "../Display/LSNDisplayClient.h"
 #include "../Display/LSNDisplayHost.h"
+#include "../Palette/LSNPalette.h"
 #include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
@@ -151,7 +152,7 @@ namespace lsn {
 					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
 					for ( auto X = 280; X <= 304; ++X ) {
 						{	// Transfer vertical.
-							LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+							LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
 							cThis.pfFunc = &CPpu2C0X::Pixel_TransferY_Control;
 						}
 					}
@@ -392,6 +393,20 @@ namespace lsn {
 		 * \return Returns the pixel height of the display area.
 		 */
 		virtual uint32_t								DisplayHeight() const { return _tRender; }
+
+		/**
+		 * Gets the palette.
+		 *
+		 * \return Returns a reference to the palette.
+		 */
+		LSN_PALETTE &									Palette() { return m_pPalette; }
+
+		/**
+		 * Gets the palette as read-only.
+		 *
+		 * \return Returns a constant reference to the palette.
+		 */
+		const LSN_PALETTE &								Palette() const { return m_pPalette; }
 
 		/**
 		 * An "idle" pixel handler.
@@ -951,6 +966,7 @@ namespace lsn {
 
 
 		// == Members.
+		LSN_PALETTE										m_pPalette;
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
@@ -1096,9 +1112,12 @@ namespace lsn {
 
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 				uint8_t ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
-				pui8RenderPixel[0] = ui8Val;
+				/*pui8RenderPixel[0] = ui8Val;
 				pui8RenderPixel[1] = ui8Val;
-				pui8RenderPixel[2] = ui8Val;
+				pui8RenderPixel[2] = ui8Val;*/
+				pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
+				pui8RenderPixel[1] = m_pPalette.uVals[ui8Val].ui8Rgb[1];
+				pui8RenderPixel[2] = m_pPalette.uVals[ui8Val].ui8Rgb[2];
 				
 				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
 			}

@@ -211,11 +211,15 @@ namespace lsn {
 				else {
 					return false;
 				}
+				// Temporary.
+				m_bBus.ResetToKnown();
+
 				// ROM loaded.
 				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
 				if ( m_rRom.vChrRom.size() ) {
 					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
 				}
+
 				return true;
 			}
 
@@ -236,6 +240,13 @@ namespace lsn {
 		 * \return Returns the PPU.
 		 */
 		inline _cPpu &									GetPpu() { return m_pPpu; }
+
+		/**
+		 * Gets a pointer to the palette.
+		 *
+		 * \return Returns a pointer to the palette.
+		 */
+		virtual LSN_PALETTE *							Palette() { return &m_pPpu.Palette(); }
 
 		/**
 		 * Gets the PPU as a display client.
