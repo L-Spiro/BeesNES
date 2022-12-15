@@ -25,7 +25,7 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 3.0 ),
+		m_dScale( 1.0 ),
 		m_dRatio( 292.608 / 256.0 ),
 		m_stBufferIdx( 0 ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
@@ -65,11 +65,11 @@ namespace lsn {
 			const WORD wBitDepth = 24;
 			m_vBasicRenderTarget.resize( stBuffers );
 			for ( auto I = stBuffers; I--; ) {
-				DWORD dwStride = RowStride( m_pdcClient->DisplayWidth(), wBitDepth );
+				DWORD dwStride = RowStride( RenderTargetWidth(), wBitDepth );
 				m_vBasicRenderTarget[I].resize( sizeof( BITMAPINFOHEADER ) + (dwStride * m_pdcClient->DisplayHeight()) );
 				BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[I].data());
 				pbiHeader->bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
-				pbiHeader->bmiHeader.biWidth = m_pdcClient->DisplayWidth();
+				pbiHeader->bmiHeader.biWidth = RenderTargetWidth();
 				pbiHeader->bmiHeader.biHeight = m_pdcClient->DisplayHeight();
 				pbiHeader->bmiHeader.biPlanes = 1;
 				pbiHeader->bmiHeader.biBitCount = wBitDepth;
@@ -83,7 +83,7 @@ namespace lsn {
 				// For fun.
 				uint8_t * pui8Pixels = m_vBasicRenderTarget[I].data() + pbiHeader->bmiHeader.biSize;
 				for ( auto Y = m_pdcClient->DisplayHeight(); Y--; ) {
-					for ( auto X = m_pdcClient->DisplayWidth(); X--; ) {
+					for ( auto X = RenderTargetWidth(); X--; ) {
 						uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
 						/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
 						pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
@@ -307,11 +307,12 @@ namespace lsn {
 		BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
 		DWORD dwFinalW = FinalWidth();
 		DWORD dwFinalH = FinalHeight();
-		if ( dwFinalW != m_pdcClient->DisplayWidth() || dwFinalH != m_pdcClient->DisplayHeight() ) {
+		if ( dwFinalW != DWORD( RenderTargetWidth() ) || dwFinalH != m_pdcClient->DisplayHeight() ) {
 			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
 				0, 0, int( dwFinalW ), int( dwFinalH ),
-				0, 0, m_pdcClient->DisplayWidth(), m_pdcClient->DisplayHeight(),
+				0, 0, RenderTargetWidth(), m_pdcClient->DisplayHeight(),
 				&pbiHeader->bmiColors,
 				pbiHeader,
 				DIB_RGB_COLORS,
@@ -320,7 +321,7 @@ namespace lsn {
 		else {
 			::SetDIBitsToDevice( bpPaint.hDc,
 				0, 0,
-				m_pdcClient->DisplayWidth(), m_pdcClient->DisplayHeight(),
+				RenderTargetWidth(), m_pdcClient->DisplayHeight(),
 				0, 0,
 				0, m_pdcClient->DisplayHeight(),
 				&pbiHeader->bmiColors,
@@ -358,7 +359,7 @@ namespace lsn {
 			//size_t stNextIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
 
 			
-			m_pdcClient->SetRenderTarget( reinterpret_cast<uint8_t *>(&pbiHeader->bmiColors), RowStride( m_pdcClient->DisplayWidth(), 24 ) );
+			m_pdcClient->SetRenderTarget( reinterpret_cast<uint8_t *>(&pbiHeader->bmiColors), RowStride( RenderTargetWidth(), 24 ) );
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |

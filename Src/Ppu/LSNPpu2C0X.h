@@ -268,10 +268,10 @@ namespace lsn {
 			}
 			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
-				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
+				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
 			// 0x2000: PPUCTRL.
@@ -395,6 +395,13 @@ namespace lsn {
 		virtual uint32_t								DisplayHeight() const { return _tRender; }
 
 		/**
+		 * If true, extra room is added to the side of the view to display some debug information.
+		 *
+		 * \return Returns true in order to add an extra 512 pixels horizontally for debug display, otherwise false.  Defaults to false.
+		 */
+		virtual bool									DebugSideDisplay() const { return false; }
+
+		/**
 		 * Gets the palette.
 		 *
 		 * \return Returns a reference to the palette.
@@ -500,8 +507,38 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_Swap_Control() {
 			if ( m_pdhHost ) {
 				if ( m_pui8RenderTarget ) {
-					// For fun.
+					
+					if ( DebugSideDisplay() ) {
+						for ( uint16_t I = 0; I < 2; ++I ) {
+							for ( uint16_t ui16TileY = 0; ui16TileY < 16; ++ui16TileY ) {
+								for ( uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX ) {
+									uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;
+									for ( uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row ) {
+										uint8_t ui8TileLsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 0 );
+										uint8_t ui8TileMsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 8 );
+										for ( uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col ) {
+											uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);
+											ui8TileLsb >>= 1;
+											ui8TileMsb >>= 1;
+											uint16_t ui16X = ui16TileX * 8 + (7 - ui16Col);
+											ui16X += _tRenderW;
+
+											uint16_t ui16Y = I * (16 * 8) + ui16TileY * 8 + ui16Row;
+											ui16Y = (_tRender - 1) - ui16Y;
+											if ( ui16Y < _tRender ) {
+
+												uint8_t * pui8This = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
+												uint8_t ui8Val = ui8Pixel * (256 / 4);
+												pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 #if 0
+					// For fun.
 					for ( auto Y = DisplayHeight(); Y--; ) {
 						for ( auto X = DisplayWidth(); X--; ) {
 							uint8_t * pui8This = &m_pui8RenderTarget[Y*m_stRenderTargetStride+X*3];
@@ -850,7 +887,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] = _pui8Data[LSN_PPU_PALETTE_MEMORY] = _ui8Val;
+			_pui8Data[_ui16Parm1] = /*_pui8Data[LSN_PPU_PALETTE_MEMORY] =*/ _ui8Val;
 		}
 
 		/**
@@ -1084,9 +1121,11 @@ namespace lsn {
 		 */
 		inline bool										CycleToRenderTarget( uint16_t _ui16X, uint16_t _ui16Y, uint16_t &_ui16RtX, uint16_t &_ui16RtY ) {
 			if ( _ui16X >= 1 && _ui16X < (_tRenderW + 1) ) {
-				if ( _ui16Y > (_tPreRender) && _ui16Y < (_tPreRender + _tRender) ) {
+				if ( _ui16Y >= (_tPreRender) && _ui16Y < (_tPreRender + _tRender) ) {
 					_ui16RtX = _ui16X - 1;
 					_ui16RtY = (_tRender - 1) - (_ui16Y - _tPreRender);
+
+					//_ui16RtY = static_cast<uint16_t>((_ui16RtY + m_ui64Frame) % _tRender);
 					return true;
 				}
 			}
@@ -1112,7 +1151,8 @@ namespace lsn {
 
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 				uint8_t ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
-				/*pui8RenderPixel[0] = ui8Val;
+				/*ui8Val = ui8BackgroundPixel * (255 / 3);	// TMP
+				pui8RenderPixel[0] = ui8Val;
 				pui8RenderPixel[1] = ui8Val;
 				pui8RenderPixel[2] = ui8Val;*/
 				pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];

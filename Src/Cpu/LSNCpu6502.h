@@ -220,12 +220,6 @@ namespace lsn {
 			LSN_M_MAX_INSTR_CYCLE_COUNT		= 7,
 		};
 
-		/** Contexts. */
-		enum LSN_CONTEXTS : uint8_t {
-			LSN_C_NORMAL																	/**< Normal processing.  Execute the current cycle of the current instruction or move on to the next instruction. */
-
-		};
-
 		
 		// == Types.
 		/** Data for the current context of execution (most often just regular instruction execution). */
@@ -239,12 +233,10 @@ namespace lsn {
 				uint16_t					ui16JmpTarget;
 				uint8_t						ui8Bytes[2];
 			}								j;
-			//LSN_CONTEXTS					cContext;										/**< The context for whatever is currently being processed. */
 			uint8_t							ui8Cycle;										/**< The per-instruction cycle count. */
 			uint8_t							ui8FuncIdx;										/**< The index of the next function to call in the instruction. */
 			uint8_t							ui8Operand;										/**< The operand and low byte of addresses. */
 			uint8_t							ui8Pointer;										/**< For indirect indexed access. */
-			//bool							bActive;										/**< If true, keep running the current instruction.  Otherwise move on to the next instruction. */
 		};
 
 		/** A function pointer for the functions that handle each cycle. */
@@ -298,6 +290,12 @@ namespace lsn {
 		uint8_t								m_ui8DmaValue;									/**< The DMA transfer value.*/
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
 		bool								m_bDelayInterrupt;								/**< If set, interrupts are delayed by a cycle. */
+
+
+		// Temporary input.
+		uint8_t								m_ui8Inputs[8];
+		uint8_t								m_ui8InputsState[8];
+		uint8_t								m_ui8InputsPoll[8];
 		
 		static LSN_INSTR					m_iInstructionSet[256+2];						/**< The instruction set. */
 		static const LSN_INSTR_META_DATA	m_smdInstMetaData[LSN_I_TOTAL];					/**< Metadata for the instructions (for assembly and disassembly etc.) */
@@ -320,7 +318,7 @@ namespace lsn {
 		void								Tick_DmaWrite();
 
 		/**
-		 * Writing to 0x4014 initiates a DMA transfer
+		 * Writing to 0x4014 initiates a DMA transfer.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -329,6 +327,62 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL			Write4014( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			reinterpret_cast<CCpu6502 *>(_pvParm0)->BeginDma( _ui8Val );
+		}
+
+		/**
+		 * Reading from 0x4016 gets the MSB of the current controller-1 state.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL			Read4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
+			_ui8Ret = (pcThis->m_ui8InputsState[0] & 0x80) != 0;
+			pcThis->m_ui8InputsState[0] <<= 1;
+		}
+
+		/**
+		 * Writing to 0x4016 puts bits on the controller-1 port.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL			Write4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
+			pcThis->m_ui8Inputs[0] = (pcThis->m_ui8Inputs[0] & 0b11111000) | (_ui8Val & 0b00000111);
+			pcThis->m_ui8InputsState[0] = pcThis->m_ui8InputsPoll[0];
+		}
+
+		/**
+		 * Reading from 0x4016 gets the MSB of the current controller-2 state.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL			Read4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
+			_ui8Ret = (pcThis->m_ui8InputsState[1] & 0x80) != 0;
+			pcThis->m_ui8InputsState[1] <<= 1;
+		}
+
+		/**
+		 * Writing to 0x4017 puts bits on the controller-2 port.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL			Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
+			pcThis->m_ui8Inputs[1] = (pcThis->m_ui8Inputs[1] & 0b11111000) | (_ui8Val & 0b00000111);
+			pcThis->m_ui8InputsState[1] = pcThis->m_ui8InputsPoll[1];
 		}
 
 
@@ -448,7 +502,14 @@ namespace lsn {
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
-		inline void							Adc( uint8_t & _ui8RegVal, uint8_t _ui8OpVal );
+		inline void							Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
+		/**
+		 * Performs an subtract-with-carry with an operand, setting flags X, N, and Z.
+		 *
+		 * \param _ui8RegVal The register value used in the comparison.
+		 * \param _ui8OpVal The operand value used in the comparison.
+		 */
+		inline void							Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
 
 		/**
 		 * Prepares to enter a new instruction.
@@ -690,9 +751,24 @@ namespace lsn {
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
-	inline void CCpu6502::Adc( uint8_t & _ui8RegVal, uint8_t _ui8OpVal ) {
+	inline void CCpu6502::Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
 		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(_ui8RegVal ^ _ui8OpVal) & (_ui8RegVal ^ ui16Result) & 0x80) == 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
+		_ui8RegVal = uint8_t( ui16Result );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
+	}
+
+	/**
+	 * Performs an subtract-with-carry with an operand, setting flags X, N, and Z.
+	 *
+	 * \param _ui8RegVal The register value used in the comparison.
+	 * \param _ui8OpVal The operand value used in the comparison.
+	 */
+	inline void CCpu6502::Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (uint16_t( _ui8OpVal ) ^ 0x00FF) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, ((uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );

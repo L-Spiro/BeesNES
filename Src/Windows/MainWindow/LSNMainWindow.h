@@ -74,11 +74,23 @@ namespace lsn {
 		virtual const LSW_RECT					VirtualClientRect( const CWidget * _pwChild ) const;
 
 		/**
+		 * Gets the render target width, accounting for any extra debug information to be displayed on the side.
+		 *
+		 * \return Returns the width of the console screen plsu any side debug information.
+		 */
+		LONG									RenderTargetWidth() const {
+			return m_pdcClient ? LONG( m_pdcClient->DisplayWidth() + (m_pdcClient->DebugSideDisplay() ? 128 : 0) ) :
+				0;
+		}
+
+		/**
 		 * Gets the final display width.
 		 *
 		 * \return Returns the final display width (native width * scale * ratio).
 		 */
-		LONG									FinalWidth() const { return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayWidth() * m_dScale * m_dRatio ) ) : 0; }
+		LONG									FinalWidth() const {
+			return LONG( std::round( RenderTargetWidth() * m_dScale * m_dRatio ) );
+		}
 
 		/**
 		 * Gets the final display height.

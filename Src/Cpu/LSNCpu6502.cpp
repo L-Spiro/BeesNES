@@ -1095,6 +1095,9 @@ namespace lsn {
 		S = 0xFD;
 		X = Y = 0;
 		m_ui8Status = 0x04;
+		std::memset( m_ui8Inputs, 0, sizeof( m_ui8Inputs ) );
+		std::memset( m_ui8InputsState, 0, sizeof( m_ui8InputsState ) );
+		std::memset( m_ui8InputsPoll, 0, sizeof( m_ui8InputsPoll ) );
 	}
 
 	/**
@@ -1132,6 +1135,12 @@ namespace lsn {
 		// DMA transfer.
 		m_pbBus->SetReadFunc( 0x4014, CCpuBus::NoRead, this, 0x4014 );
 		m_pbBus->SetWriteFunc( 0x4014, CCpu6502::Write4014, this, 0x4014 );
+
+		// Controller ports.
+		m_pbBus->SetReadFunc( 0x4016, CCpu6502::Read4016, this, 0 );
+		m_pbBus->SetWriteFunc( 0x4016, CCpu6502::Write4016, this, 0 );
+		m_pbBus->SetReadFunc( 0x4017, CCpu6502::Read4017, this, 0 );
+		m_pbBus->SetWriteFunc( 0x4017, CCpu6502::Write4017, this, 0 );
 	}
 
 	/**
@@ -1166,6 +1175,7 @@ namespace lsn {
 	void CCpu6502::Tick_NextInstructionStd() {
 #ifdef LSN_PRINT_CYCLES
 		if ( pc.PC == 0xC293 ) {
+		//if ( pc.PC == 0xE127 ) {
 			volatile int gjhg = 0;
 		}
 		// TMP.
@@ -1173,26 +1183,30 @@ namespace lsn {
 		static uint64_t ui64LastCycles = 0;
 		static uint16_t ui16LastInstr = 0;
 		static uint16_t ui16LastPc = 0;
-#endif	// #ifdef LSN_PRINT_CYCLES
-#ifdef LSN_PRINT_CYCLES
-		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
-		ui64CyclesAtStart = m_ui64CycleCount;
-		if ( ui16LastPc ) {
-			char szBuffer[256];
-			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
-			::OutputDebugStringA( szBuffer );
-			::sprintf_s( szBuffer, "\tA: %.2X; X: %.2X; Y: %.2X; S: %.2X; P: %.2X; Cycle: %llu\r\n", A, X, Y, S, m_ui8Status, m_ui64CycleCount );
-			::OutputDebugStringA( szBuffer );
-		}
+
 		ui16LastPc = pc.PC;
 #endif	// #ifdef LSN_PRINT_CYCLES
-		if ( m_bHandleNmi && !m_bDelayInterrupt ) {
+
+		if ( m_bHandleNmi /*&& !m_bDelayInterrupt*/ ) {
 			BeginInst( LSN_SO_NMI );
 		}
 		else {
 			FetchOpcodeAndIncPc();
 			m_bDelayInterrupt = false;
 		}
+
+#ifdef LSN_PRINT_CYCLES
+		ui64LastCycles = m_ui64CycleCount - ui64CyclesAtStart;
+		ui64CyclesAtStart = m_ui64CycleCount;
+		if ( pc.PC ) {
+			char szBuffer[256];
+			::sprintf_s( szBuffer, "Op: %.2X (%s); Cycles: %llu; PC: %.4X", ui16LastInstr, m_smdInstMetaData[m_iInstructionSet[ui16LastInstr].iInstruction].pcName, ui64LastCycles, ui16LastPc );
+			::OutputDebugStringA( szBuffer );
+			::sprintf_s( szBuffer, "\tA: %.2X; X: %.2X; Y: %.2X; S: %.2X; P: %.2X; Cycle: %llu\r\n", A, X, Y, S, m_ui8Status, m_ui64CycleCount );
+			::OutputDebugStringA( szBuffer );
+		}
+		
+#endif	// #ifdef LSN_PRINT_CYCLES
 
 #ifdef LSN_PRINT_CYCLES
 		ui16LastInstr = m_ccCurContext.ui16OpCode;
@@ -2778,6 +2792,8 @@ namespace lsn {
 		*/
 		uint8_t ui8Copy = m_ui8Status;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( ui8Copy );
+		// Can be set by PLP().
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), false>( m_ui8Status );
 		LSN_PUSH( ui8Copy );
 	}
 
@@ -2786,6 +2802,9 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		A = LSN_POP();
+
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 	}
 
 	/** Pulls the status byte. */
@@ -2794,6 +2813,7 @@ namespace lsn {
 		LSN_FINISH_INST;
 		const uint8_t ui8Mask = (uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ));
 		m_ui8Status = (LSN_POP() & ~ui8Mask);// | (m_ui8Status & ui8Mask);
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( m_ui8Status );
 	}
 
 	/** Performs OP = (OP << 1) | (C); A = A | (OP).  Sets flags C, N and Z. */
@@ -2929,7 +2949,7 @@ namespace lsn {
 	void CCpu6502::SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
-		Adc( A, m_pbBus->Read( m_ccCurContext.a.ui16Address ) ^ 0xFF );
+		Sbc( A, m_pbBus->Read( m_ccCurContext.a.ui16Address ) );
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -2957,7 +2977,7 @@ namespace lsn {
 			// fix high byte of effective address.
 			const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
 			// We are done.
-			Adc( A, ui8Tmp ^ 0xFF );
+			Sbc( A, ui8Tmp );
 		}
 	}
 
@@ -2970,7 +2990,7 @@ namespace lsn {
 		//  2    PC     R  fetch value, increment PC
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
-		Adc( A, m_pbBus->Read( pc.PC++ ) ^ 0xFF );
+		Sbc( A, m_pbBus->Read( pc.PC++ ) );
 	}
 
 	/** Fetches from PC and performs X = (A & X) - OP.  Sets flags C, N and Z. */
