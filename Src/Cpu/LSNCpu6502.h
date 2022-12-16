@@ -354,6 +354,23 @@ namespace lsn {
 		static void LSN_FASTCALL			Write4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
 			pcThis->m_ui8Inputs[0] = (pcThis->m_ui8Inputs[0] & 0b11111000) | (_ui8Val & 0b00000111);
+			// Temp.
+			{
+				pcThis->m_ui8InputsPoll[0] = 0;
+				SHORT sState;
+#define LSN_POLL( KEY, FLAG )														\
+	sState = ::GetAsyncKeyState( KEY );												\
+	if ( sState & 0x8000 ) { pcThis->m_ui8InputsPoll[0] |= (FLAG); }
+				LSN_POLL( 'X', 0x80 );
+				LSN_POLL( 'Z', 0x40 );
+				LSN_POLL( 'A', 0x20 );
+				LSN_POLL( 'S', 0x10 );
+				LSN_POLL( VK_UP, 0x08 );
+				LSN_POLL( VK_DOWN, 0x04 );
+				LSN_POLL( VK_LEFT, 0x02 );
+				LSN_POLL( VK_RIGHT, 0x01 );
+#undef LSN_POLL
+			}
 			pcThis->m_ui8InputsState[0] = pcThis->m_ui8InputsPoll[0];
 		}
 
@@ -497,14 +514,14 @@ namespace lsn {
 		 */
 		inline void							Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
 		/**
-		 * Performs an add-with-carry with an operand, setting flags X, N, and Z.
+		 * Performs an add-with-carry with an operand, setting flags C, N, V, and Z.
 		 *
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
 		inline void							Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
 		/**
-		 * Performs an subtract-with-carry with an operand, setting flags X, N, and Z.
+		 * Performs an subtract-with-carry with an operand, setting flags C, N, V, and Z.
 		 *
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
@@ -653,7 +670,7 @@ namespace lsn {
 		void								PLA();
 		/** Pulls the status byte. */
 		void								PLP();
-		/** Performs OP = (OP << 1) | (C); A = A | (OP).  Sets flags C, N and Z. */
+		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
 		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
 		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
@@ -746,7 +763,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Performs an add-with-carry with an operand, setting flags X, N, and Z.
+	 * Performs an add-with-carry with an operand, setting flags C, N, V, and Z.
 	 *
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
@@ -756,22 +773,23 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 	/**
-	 * Performs an subtract-with-carry with an operand, setting flags X, N, and Z.
+	 * Performs an subtract-with-carry with an operand, setting flags C, N, V, and Z.
 	 *
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
 	inline void CCpu6502::Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
-		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (uint16_t( _ui8OpVal ) ^ 0x00FF) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, ((uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
+		uint16_t ui16Val = uint16_t( _ui8OpVal ) ^ 0x00FF;
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (ui16Val) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, ((uint16_t( _ui8RegVal ) ^ ui16Result) & (ui16Val ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 

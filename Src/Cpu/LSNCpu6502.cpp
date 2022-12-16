@@ -548,7 +548,7 @@ namespace lsn {
 			LSN_ZERO_PAGE_X_RMW( ROR, ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 77
-			LSN_ZERO_PAGE_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+			LSN_ZERO_PAGE_X_RMW( RRA, RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 
 		/** 78-7F */
@@ -659,7 +659,7 @@ namespace lsn {
 			LSN_ZERO_PAGE_X_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 96
-			LSN_ZERO_PAGE_Y_W( STY, STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
+			LSN_ZERO_PAGE_Y_W( STX, STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
 		},
 		{	// 97
 			LSN_ZERO_PAGE_Y_W( SAX, SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -1187,7 +1187,7 @@ namespace lsn {
 		ui16LastPc = pc.PC;
 #endif	// #ifdef LSN_PRINT_CYCLES
 
-		if ( m_bHandleNmi /*&& !m_bDelayInterrupt*/ ) {
+		if ( m_bHandleNmi && !m_bDelayInterrupt ) {
 			BeginInst( LSN_SO_NMI );
 		}
 		else {
@@ -2321,7 +2321,8 @@ namespace lsn {
 		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		++m_ccCurContext.ui8Operand;
-		Cmp( A, m_ccCurContext.ui8Operand & 0xFF );
+		Sbc( A, m_ccCurContext.ui8Operand );
+		//Cmp( A, m_ccCurContext.ui8Operand & 0xFF );
 	}
 
 	/** Jams the machine, putting 0xFF on the bus repeatedly. */
@@ -2816,7 +2817,7 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( m_ui8Status );
 	}
 
-	/** Performs OP = (OP << 1) | (C); A = A | (OP).  Sets flags C, N and Z. */
+	/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
 	void CCpu6502::RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		//  #  address R/W description
@@ -2829,9 +2830,9 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand << 1) | ui8LowBit;
-		A |= m_ccCurContext.ui8Operand;
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+		A &= m_ccCurContext.ui8Operand;
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 	}
 
 	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
@@ -2911,13 +2912,14 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );		// This affects whether the carry bit gets added below.
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand >> 1) | ui8HiBit;
 
-		const uint8_t ui8Tmp = m_ccCurContext.ui8Operand;
-		uint16_t ui16Result = uint16_t( A ) + uint16_t( ui8Tmp ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
+		//const uint8_t ui8Tmp = m_ccCurContext.ui8Operand;
+		Adc( A, m_ccCurContext.ui8Operand );
+		/*uint16_t ui16Result = uint16_t( A ) + uint16_t( ui8Tmp ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(A ^ ui8Tmp) & (A ^ ui16Result) & 0x80) == 0 );
 		A = uint8_t( ui16Result );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, ui16Result == 0x00 );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );*/
 	}
 
 	/** Pops into PCH. */
@@ -3128,8 +3130,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand <<= 1;
 		A |= m_ccCurContext.ui8Operand;
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 	}
 
 	/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
@@ -3145,8 +3147,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand >> 1);
 		A ^= m_ccCurContext.ui8Operand;
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false>( m_ui8Status );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 	}
 
 	/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3199,6 +3201,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 		m_pbBus->Read( pc.PC );
 		X = S;
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
 	}
 
 	/** Copies X into A.  Sets flags N, and Z. */

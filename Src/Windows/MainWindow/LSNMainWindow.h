@@ -17,7 +17,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost {
-		typedef lsn::CNtscSystem				CRegionalSystem;
+		typedef lsn::CPalSystem				CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CMainWindow();

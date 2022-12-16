@@ -271,37 +271,39 @@ namespace lsn {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				//m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
-			// 0x2000: PPUCTRL.
-			m_pbBus->SetReadFunc( 0x2000, PpuNoRead, this, 0x2000 );
-			m_pbBus->SetWriteFunc( 0x2000, Write2000, this, 0 );
+			for ( uint32_t I = LSN_PPU_START; I < LSN_APU_START; I += LSN_PPU ) {
+				// 0x2000: PPUCTRL.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x00 ), PpuNoRead, this, LSN_PPU_START );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x00 ), Write2000, this, 0 );
 
-			// 0x2001: PPUMASK.
-			m_pbBus->SetReadFunc( 0x2001, PpuNoRead, this, 0x2001 );
-			m_pbBus->SetWriteFunc( 0x2001, Write2001, this, 0 );
+				// 0x2001: PPUMASK.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x01 ), PpuNoRead, this, LSN_PPU_START + 0x01 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x01 ), Write2001, this, 0 );
 
-			// 0x2002: PPUSTATUS.
-			m_pbBus->SetReadFunc( 0x2002, Read2002, this, 0 );
-			m_pbBus->SetWriteFunc( 0x2002, Write2002, this, 0 );
+				// 0x2002: PPUSTATUS.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x02 ), Read2002, this, 0 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x02 ), Write2002, this, 0 );
 
-			// 0x2003: OAMADDR.
-			m_pbBus->SetReadFunc( 0x2003, PpuNoRead, this, 0x2003 );
+				// 0x2003: OAMADDR.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x03 ), PpuNoRead, this, LSN_PPU_START + 0x03 );
 
-			// 0x2004: OAMDATA.
+				// 0x2004: OAMDATA.
 
-			// 0x2005: PPUSCROLL.
-			m_pbBus->SetReadFunc( 0x2005, PpuNoRead, this, 0x2005 );
-			m_pbBus->SetWriteFunc( 0x2005, Write2005, this, 0 );
+				// 0x2005: PPUSCROLL.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x05 ), PpuNoRead, this, LSN_PPU_START + 0x05 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x05 ), Write2005, this, 0 );
 
-			// 0x2006: PPUADDR.
-			m_pbBus->SetReadFunc( 0x2006, PpuNoRead, this, 0x2006 );
-			m_pbBus->SetWriteFunc( 0x2006, Write2006, this, 0 );
+				// 0x2006: PPUADDR.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x06 ), PpuNoRead, this, LSN_PPU_START + 0x06 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x06 ), Write2006, this, 0 );
 
-			// 0x2007: PPUDATA.
-			m_pbBus->SetReadFunc( 0x2007, Read2007, this, 0 );
-			m_pbBus->SetWriteFunc( 0x2007, Write2007, this, 0 );
+				// 0x2007: PPUDATA.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x07 ), Read2007, this, 0 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x07 ), Write2007, this, 0 );
+			}
 		}
 
 		/**
@@ -555,6 +557,7 @@ namespace lsn {
 				}
 				m_pdhHost->Swap();
 			}
+
 			LSN_END_CONTROL_CYCLE;
 		}
 
