@@ -28,7 +28,7 @@ namespace lsn {
 			0,										// sTextLen
 			LSN_MWI_NONE,							// dwParentId
 		},
-		{
+		/*{
 			LSW_LT_STATUSBAR,						// ltType
 			LSN_MWI_STATUSBAR,						// wId
 			STATUSCLASSNAMEW,						// lpwcClass
@@ -50,7 +50,7 @@ namespace lsn {
 			nullptr, 0,								// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
-		},
+		},*/
 		/*{
 			LSW_LT_REBAR,							// ltType
 			LSN_MWI_REBAR0,							// wId

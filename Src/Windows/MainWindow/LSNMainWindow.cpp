@@ -25,7 +25,7 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 1.0 ),
+		m_dScale( 4.0 ),
 		m_dRatio( 292.608 / 256.0 ),
 		m_stBufferIdx( 0 ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {

@@ -77,7 +77,7 @@ namespace lsn {
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
 		 *
-		 * \return Returns true in order to add an extra 512 pixels horizontally for debug display, otherwise false.  Defaults to false.
+		 * \return Returns true in order to add an extra 128 pixels horizontally for debug display, otherwise false.  Defaults to false.
 		 */
 		virtual bool							DebugSideDisplay() const { return false; }
 

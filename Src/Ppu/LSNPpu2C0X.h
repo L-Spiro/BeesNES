@@ -271,7 +271,7 @@ namespace lsn {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				//m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
 			// 0x2000: PPUCTRL.
@@ -287,6 +287,7 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x2002, Write2002, this, 0 );
 
 			// 0x2003: OAMADDR.
+			m_pbBus->SetReadFunc( 0x2003, PpuNoRead, this, 0x2003 );
 
 			// 0x2004: OAMDATA.
 
@@ -397,7 +398,7 @@ namespace lsn {
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
 		 *
-		 * \return Returns true in order to add an extra 512 pixels horizontally for debug display, otherwise false.  Defaults to false.
+		 * \return Returns true in order to add an extra 128 pixels horizontally for debug display, otherwise false.  Defaults to false.
 		 */
 		virtual bool									DebugSideDisplay() const { return false; }
 
@@ -596,7 +597,7 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
 			ShiftBackgroundRegisters();
 			RenderPixel();
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_ATTRIBUTE_TABLE_OFFSET | (m_paPpuAddrV.s.ui16NametableY << 11) |
+			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 				(m_paPpuAddrV.s.ui16NametableX << 10) |
 				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
 				(m_paPpuAddrV.s.ui16CourseX >> 2) );
@@ -1151,7 +1152,7 @@ namespace lsn {
 
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 				uint8_t ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
-				/*ui8Val = ui8BackgroundPixel * (255 / 3);	// TMP
+				/*ui8Val = ui8BackgroundPalette * (255 / 4) + ui8BackgroundPixel * 10;	// TMP
 				pui8RenderPixel[0] = ui8Val;
 				pui8RenderPixel[1] = ui8Val;
 				pui8RenderPixel[2] = ui8Val;*/

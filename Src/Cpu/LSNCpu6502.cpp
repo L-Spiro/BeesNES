@@ -753,7 +753,7 @@ namespace lsn {
 
 		/** B0-B7 */
 		{	// B0
-			LSN_BRANCH( BCS, LSN_SF_CARRY, 0 )										// Branch if C == 1.
+			LSN_BRANCH( BCS, LSN_SF_CARRY, 1 )										// Branch if C == 1.
 		},
 		{	// B1
 			LSN_INDIRECT_Y_R( LDA, LDA_IzY_AbX_AbY_1, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -1169,12 +1169,12 @@ namespace lsn {
 	}
 
 #ifdef _DEBUG
-//#define LSN_PRINT_CYCLES
+#define LSN_PRINT_CYCLES
 #endif	// #ifdef _DEBUG
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {
 #ifdef LSN_PRINT_CYCLES
-		if ( pc.PC == 0xC293 ) {
+		if ( pc.PC == 0xC0AF ) {
 		//if ( pc.PC == 0xE127 ) {
 			volatile int gjhg = 0;
 		}
