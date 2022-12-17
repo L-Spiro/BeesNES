@@ -60,6 +60,20 @@ namespace lsn {
 		inline bool								HasTrainer() const;
 
 		/**
+		 * Gets the mapper.
+		 *
+		 * \return Returns the mapper ID.
+		 */
+		inline uint16_t							GetMapper() const;
+
+		/**
+		 * Gets the ROM mirror mode.
+		 *
+		 * \return Gets the mirroring mode for the ROM.
+		 */
+		inline LSN_MIRROR_MODE					GetMirrorMode() const;
+
+		/**
 		 * Gets the PGM ROM size.
 		 *
 		 * \return Returns the PGM ROM size.
@@ -152,6 +166,35 @@ namespace lsn {
 	 */
 	inline bool LSN_NES_HEADER::HasTrainer() const {
 		return (ui8Byte6 & 0x04) == 0x04;
+	}
+
+	/**
+	 * Gets the mapper.
+	 *
+	 * \return Returns the mapper ID.
+	 */
+	inline uint16_t LSN_NES_HEADER::GetMapper() const {
+		switch( GetHeaderVersion() ) {
+			case LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 : {
+				return ((ui8Byte8 & 0x0F) << 8) | (ui8Byte7 & 0xF0) | (ui8Byte6 >> 4);
+			}
+			case LSN_ROM_HEADER_VERSION::LSN_RHV_ARCHAIC_INES : {
+				return (ui8Byte6 >> 4);
+			}
+			default : {
+				return (ui8Byte7 & 0xF0) | (ui8Byte6 >> 4);
+			}
+		}
+	}
+
+	/**
+	 * Gets the ROM mirror mode.
+	 *
+	 * \return Gets the mirroring mode for the ROM.
+	 */
+	inline LSN_MIRROR_MODE LSN_NES_HEADER::GetMirrorMode() const {
+		if ( ui8Byte6 & 0x08 ) { return LSN_MM_FOURSCREENS;}
+		return (ui8Byte6 & 0x01) ? LSN_MM_VERTICAL : LSN_MM_HORIZONTAL;
 	}
 
 	/**

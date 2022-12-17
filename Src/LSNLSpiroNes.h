@@ -54,7 +54,7 @@
 
 
 #ifndef LSN_ELEMENTS
-#define LSN_ELEMENTS( x )					((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof(0[x])))))
+#define LSN_ELEMENTS( x )					((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof( 0[x] )))))
 #endif	// #ifndef LSN_ELEMENTS
 
 
@@ -172,6 +172,13 @@ namespace lsn {
 		LSN_PM_DENDY_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
 		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
 		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+	};
+
+	/** Mirroring modes. */
+	enum LSN_MIRROR_MODE {
+		LSN_MM_VERTICAL,														/**< Vertical mirroring. */
+		LSN_MM_HORIZONTAL,														/**< Horizontal mirroring. */
+		LSN_MM_FOURSCREENS,														/**< 4 screens. */
 	};
 
 

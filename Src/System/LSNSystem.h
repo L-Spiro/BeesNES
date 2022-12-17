@@ -69,6 +69,19 @@ namespace lsn {
 
 			m_cCpu.ApplyMemoryMap();
 			m_pPpu.ApplyMemoryMap();
+
+			if ( IsRomLoaded() ) {
+				switch ( m_rRom.riInfo.mmMirroring ) {
+					case LSN_MM_VERTICAL : {
+						m_pPpu.ApplyVerticalMirroring();
+						break;
+					}
+					case LSN_MM_HORIZONTAL : {
+						m_pPpu.ApplyHorizontalMirroring();
+						break;
+					}
+				}
+			}
 		}
 
 		/**
@@ -275,6 +288,8 @@ namespace lsn {
 				size_t stDataSize = _vRom.size() - sizeof( LSN_NES_HEADER );
 				const uint8_t * pui8Data = _vRom.data() + sizeof( LSN_NES_HEADER );
 				const LSN_NES_HEADER * pnhHeader = reinterpret_cast<const LSN_NES_HEADER *>(_vRom.data());
+				m_rRom.riInfo.ui16Mapper = pnhHeader->GetMapper();
+				m_rRom.riInfo.mmMirroring = pnhHeader->GetMirrorMode();
 				m_rRom.i32ChrRamSize = pnhHeader->GetChrRomSize();
 				m_rRom.i32SaveChrRamSize = pnhHeader->GetSaveChrRamSize();
 				m_rRom.i32WorkRamSize = pnhHeader->GetWorkRamSize();
