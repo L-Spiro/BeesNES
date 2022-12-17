@@ -1169,7 +1169,7 @@ namespace lsn {
 	}
 
 #ifdef _DEBUG
-#define LSN_PRINT_CYCLES
+//#define LSN_PRINT_CYCLES
 #endif	// #ifdef _DEBUG
 	/** Fetches the next opcode and begins the next instruction. */
 	void CCpu6502::Tick_NextInstructionStd() {

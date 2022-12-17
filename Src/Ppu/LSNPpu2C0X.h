@@ -582,6 +582,7 @@ namespace lsn {
 			ShiftBackgroundRegisters();
 			LoadLatchedBackgroundIntoShiftRegisters();
 			RenderPixel();
+			// LSN_PPU_NAMETABLES = 0x2000.
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
 		}
 
@@ -600,10 +601,15 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
 			ShiftBackgroundRegisters();
 			RenderPixel();
+			// LSN_PPU_NAMETABLES = 0x2000.
+			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
 			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 				(m_paPpuAddrV.s.ui16NametableX << 10) |
 				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
 				(m_paPpuAddrV.s.ui16CourseX >> 2) );
+			if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NtAtBuffer >>= 4; }
+			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NtAtBuffer >>= 2; }
+			m_ui8NtAtBuffer &= 0x3;
 		}
 
 		/**
@@ -613,9 +619,9 @@ namespace lsn {
 			ShiftBackgroundRegisters();
 			RenderPixel();
 			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-			if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
+			/*if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
 			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NextTileAttribute >>= 2; }
-			m_ui8NextTileAttribute &= 0x3;
+			m_ui8NextTileAttribute &= 0x3;*/
 		}
 
 		/**
@@ -624,6 +630,7 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_LoadLsb_0_Work() {
 			ShiftBackgroundRegisters();
 			RenderPixel();
+			// LSN_PPU_PATTERN_TABLES = 0x0000.
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 				(m_paPpuAddrV.s.ui16FineY) +
@@ -645,6 +652,7 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_LoadMsb_0_Work() {
 			ShiftBackgroundRegisters();
 			RenderPixel();
+			// LSN_PPU_PATTERN_TABLES = 0x0000.
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 				(m_paPpuAddrV.s.ui16FineY) +
@@ -1147,10 +1155,10 @@ namespace lsn {
 				if ( m_pmPpuMask.s.ui8ShowBackground ) {
 				
 					const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
-					ui8BackgroundPixel = (((m_ui16ShiftPatternLo & ui16Bit) > 0) << 1) |
-						((m_ui16ShiftPatternHi & ui16Bit) > 0);
-					ui8BackgroundPalette = (((m_ui16ShiftAttribLo & ui16Bit) > 0) << 1) |
-						((m_ui16ShiftAttribHi & ui16Bit) > 0);
+					ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
+						((m_ui16ShiftPatternLo & ui16Bit) > 0);
+					ui8BackgroundPalette = (((m_ui16ShiftAttribHi & ui16Bit) > 0) << 1) |
+						((m_ui16ShiftAttribLo & ui16Bit) > 0);
 				}
 
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
