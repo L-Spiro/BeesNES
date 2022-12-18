@@ -1115,11 +1115,13 @@ namespace lsn {
 		 * Loads the latched tile data into the shift registers.
 		 */
 		void											LoadLatchedBackgroundIntoShiftRegisters() {
-			m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-			m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+			//if ( m_ui16RowDot >= 9 && m_ui16RowDot <= 257 ) {
+				m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+				m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
 
-			m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-			m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+				m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+				m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+			//}
 		}
 
 		/**
@@ -1152,7 +1154,7 @@ namespace lsn {
 			if ( CycleToRenderTarget( m_ui16RowDot, m_ui16Scanline, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				uint8_t ui8BackgroundPixel = 0;
 				uint8_t ui8BackgroundPalette = 0;
-				if ( m_pmPpuMask.s.ui8ShowBackground ) {
+				if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || m_ui16RowDot >= 9) ) {
 				
 					const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
 					ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
