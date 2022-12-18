@@ -118,6 +118,12 @@
     <Filter Include="Source Files\Palette">
       <UniqueIdentifier>{3cc40828-9399-482d-83b5-5f06e65a810a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{372e31f5-4985-48d9-a678-f5828047eac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{83b69144-cb82-46ac-8751-b623998fa002}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -218,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="Src\Palette\LSNPalette.h">
       <Filter>Header Files\Palette</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Input\LSNInputPoller.h">
+      <Filter>Header Files\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

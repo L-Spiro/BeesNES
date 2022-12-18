@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Input/LSNInputPoller.h"
 #include "../Palette/LSNPalette.h"
 #include "../Time/LSNClock.h"
 
@@ -60,6 +61,13 @@ namespace lsn {
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
 		virtual bool									LoadRom( const std::vector<uint8_t> &/*_vRom*/, const std::u16string &/*_s16Path*/ ) = 0 { return false; }
+
+		/**
+		 * Sets the input poller.
+		 *
+		 * \param _pipPoller The input poller pointer.
+		 */
+		virtual void									SetInputPoller( CInputPoller * /*_pipPoller*/ ) {}
 
 		/**
 		 * Gets the accumulated real time.

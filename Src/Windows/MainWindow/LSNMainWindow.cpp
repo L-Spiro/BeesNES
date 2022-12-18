@@ -93,6 +93,7 @@ namespace lsn {
 				}
 			}
 		}
+		m_pnsSystem->SetInputPoller( this );
 
 		{
 			// Center it in the screen.
@@ -366,7 +367,34 @@ namespace lsn {
 				RDW_UPDATENOW |
 				RDW_NOCHILDREN );
 		}
+	}
 
+	/**
+	 * Polls the given port and returns a byte containing the result of polling by combining the LSN_INPUT_BITS values.
+	 *
+	 * \param _ui8Port The port being polled (0 or 1).
+	 * \return Returns the result of polling the given port.
+	 */
+	uint8_t CMainWindow::PollPort( uint8_t _ui8Port ) {
+		if ( GetFocus() ) {
+			BYTE bPoll[256];
+			::GetKeyboardState( bPoll );
+			uint8_t ui8Ret = 0;
+			if ( bPoll['X'] & 0x80 ) { ui8Ret |= LSN_IB_A; }
+			if ( bPoll['Z'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
+
+			if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
+			if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }
+
+			if ( bPoll[VK_UP] & 0x80 ) { ui8Ret |= LSN_IB_UP; }
+			if ( bPoll[VK_DOWN] & 0x80 ) { ui8Ret |= LSN_IB_DOWN; }
+			if ( bPoll[VK_LEFT] & 0x80 ) { ui8Ret |= LSN_IB_LEFT; }
+			if ( bPoll[VK_RIGHT] & 0x80 ) { ui8Ret |= LSN_IB_RIGHT; }
+
+
+			return ui8Ret;
+		}
+		return 0;
 	}
 
 	/**

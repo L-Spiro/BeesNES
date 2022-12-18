@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../Display/LSNDisplayHost.h"
+#include "../../Input/LSNInputPoller.h"
 #include "../../System/LSNSystem.h"
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
@@ -16,7 +17,7 @@ namespace lsw {
 
 namespace lsn {
 	
-	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost {
+	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
 		typedef lsn::CNtscSystem				CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -64,6 +65,14 @@ namespace lsn {
 		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
 		 */
 		virtual void							Swap();
+
+		/**
+		 * Polls the given port and returns a byte containing the result of polling by combining the LSN_INPUT_BITS values.
+		 *
+		 * \param _ui8Port The port being polled (0 or 1).
+		 * \return Returns the result of polling the given port.
+		 */
+		virtual uint8_t							PollPort( uint8_t _ui8Port );
 
 		/**
 		 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.

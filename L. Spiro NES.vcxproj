@@ -281,6 +281,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
+    <ClInclude Include="Src\Input\LSNInputPoller.h" />
     <ClInclude Include="Src\Localization\LSNLocalization.h" />
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />

@@ -1067,6 +1067,7 @@ namespace lsn {
 		m_pbBus( _pbBus ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		m_pui8DmaTarget( nullptr ),
+		m_pipPoller( nullptr ),
 		A( 0 ),
 		S( 0xFD ),
 		X( 0 ),

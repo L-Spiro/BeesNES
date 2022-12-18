@@ -241,6 +241,15 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets the input poller.
+		 *
+		 * \param _pipPoller The input poller pointer.
+		 */
+		virtual void									SetInputPoller( CInputPoller * _pipPoller ) {
+			m_cCpu.SetInputPoller( _pipPoller );
+		}
+
+		/**
 		 * Gets the PPU.
 		 *
 		 * \return Returns the PPU.
@@ -267,6 +276,8 @@ namespace lsn {
 		 * \return Returns the PPU as a CDisplayClient *.
 		 */
 		virtual CDisplayClient *						GetDisplayClient() { return &m_pPpu; }
+
+		
 
 
 	protected :

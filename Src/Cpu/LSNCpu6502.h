@@ -18,6 +18,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Input/LSNInputPoller.h"
 #include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
@@ -102,6 +103,15 @@ namespace lsn {
 		 * Notifies the class that an NMI has occurred.
 		 */
 		virtual void						Nmi();
+
+		/**
+		 * Sets the input poller.
+		 *
+		 * \param _pipPoller The input poller pointer.
+		 */
+		void								SetInputPoller( CInputPoller * _pipPoller ) {
+			m_pipPoller = _pipPoller;
+		}
 
 
 	protected :
@@ -274,6 +284,7 @@ namespace lsn {
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		uint8_t *							m_pui8DmaTarget;								/**< The DMA target address. */
+		CInputPoller *						m_pipPoller;										/**< The input poller. */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
@@ -355,9 +366,9 @@ namespace lsn {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
 			pcThis->m_ui8Inputs[0] = (pcThis->m_ui8Inputs[0] & 0b11111000) | (_ui8Val & 0b00000111);
 			// Temp.
-			{
-				pcThis->m_ui8InputsPoll[0] = 0;
-				SHORT sState;
+			if ( pcThis->m_pipPoller ) {
+				pcThis->m_ui8InputsPoll[0] = pcThis->m_pipPoller->PollPort( 0 );
+				/*SHORT sState;
 #define LSN_POLL( KEY, FLAG )														\
 	sState = ::GetAsyncKeyState( KEY );												\
 	if ( sState & 0x8000 ) { pcThis->m_ui8InputsPoll[0] |= (FLAG); }
@@ -369,7 +380,10 @@ namespace lsn {
 				LSN_POLL( VK_DOWN, 0x04 );
 				LSN_POLL( VK_LEFT, 0x02 );
 				LSN_POLL( VK_RIGHT, 0x01 );
-#undef LSN_POLL
+#undef LSN_POLL*/
+			}
+			else {
+				pcThis->m_ui8InputsPoll[0] = 0;
 			}
 			pcThis->m_ui8InputsState[0] = pcThis->m_ui8InputsPoll[0];
 		}
