@@ -14,7 +14,6 @@
 #include "../Display/LSNDisplayClient.h"
 #include "../Display/LSNDisplayHost.h"
 #include "../Palette/LSNPalette.h"
-#include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 
@@ -40,10 +39,9 @@ namespace lsn {
 		bool _bOddFrameShenanigans>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
-		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget, CDmaSource * _pdsDmaSrc ) :
+		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget ) :
 			m_pbBus( _pbBus ),
 			m_pnNmiTarget( _pnNmiTarget ),
-			m_pdsDmaSrc( _pdsDmaSrc ),
 			m_ui64Frame( 0 ),
 			m_ui64Cycle( 0 ),
 			m_ui16Scanline( 0 ),
@@ -58,6 +56,7 @@ namespace lsn {
 			m_ui8NextTileLsb( 0 ),
 			m_ui8NextTileMsb( 0 ),
 			m_ui8IoBusFloater( 0 ),
+			m_ui8OamAddr( 0 ),
 			m_bAddresLatch( false ) {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
@@ -75,88 +74,16 @@ namespace lsn {
 			// Add pixel gather/render functions.
 			{
 				// The main rendering area.
+
 				for ( auto Y = _tPreRender; Y < (_tRender + _tPreRender); ++Y ) {
-					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, true, false );
-					}
-					// Dummy reads.
-					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 4); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, false, true );
-					}
-					{	// Unused NT fetches.
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-						}
-					}
-					{	// Increase vertical.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
-						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
-					}
-					{	// Transfer horizontal.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
-						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
-					}
-					AssignGatherRenderFuncs( 321, Y, true, false );
-					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
+					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
 				}
 				// The "-1" scanline.
 				{
 					constexpr size_t Y = _tDotHeight - 1;
-					for ( auto X = 1; X < (_tRenderW + 1); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, true, false );
-					}
-					// Dummy reads.
-					for ( auto X = (_tRenderW + 1); X < (_tDotWidth - 4); X += 8 ) {
-						AssignGatherRenderFuncs( X, Y, false, true );
-					}
-					{	// Unused NT fetches.
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-						}
-						{
-							LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
-							cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-						}
-					}
-					{	// Increase vertical.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
-						cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
-					}
-					{	// Transfer horizontal.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
-						cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
-					}
-					AssignGatherRenderFuncs( 321, Y, true, false );
-					AssignGatherRenderFuncs( 321 + 8, Y, true, false );
-					for ( auto X = 280; X <= 304; ++X ) {
-						{	// Transfer vertical.
-							LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
-							cThis.pfFunc = &CPpu2C0X::Pixel_TransferY_Control;
-						}
-					}
+					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
 				}
+
 			}
 
 
@@ -241,16 +168,14 @@ namespace lsn {
 
 			m_bAddresLatch = false;
 			m_ui8FineScrollX = 0;
+
+			m_ui8OamAddr = 0;
 		}
 
 		/**
 		 * Applies the PPU's memory mapping t the bus.
 		 */
 		void											ApplyMemoryMap() {
-			if ( m_pdsDmaSrc ) {
-				m_pdsDmaSrc->SetDmaTarget( m_oOam.ui8Bytes );
-			}
-
 			// == Pattern Tables
 			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
@@ -289,8 +214,11 @@ namespace lsn {
 
 				// 0x2003: OAMADDR.
 				m_pbBus->SetReadFunc( uint16_t( I + 0x03 ), PpuNoRead, this, LSN_PPU_START + 0x03 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x03 ), Write2003, this, 0 );
 
 				// 0x2004: OAMDATA.
+				m_pbBus->SetReadFunc( uint16_t( I + 0x04 ), Read2004, this, 0 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x04 ), Write2004, this, 0 );
 
 				// 0x2005: PPUSCROLL.
 				m_pbBus->SetReadFunc( uint16_t( I + 0x05 ), PpuNoRead, this, LSN_PPU_START + 0x05 );
@@ -403,6 +331,13 @@ namespace lsn {
 		 * \return Returns true in order to add an extra 128 pixels horizontally for debug display, otherwise false.  Defaults to false.
 		 */
 		virtual bool									DebugSideDisplay() const { return false; }
+
+		/**
+		 * Gets a reference to the PPU bus.
+		 *
+		 * \return Returns a reference to the PPU bus.
+		 */
+		CPpuBus &										GetBus() { return m_bBus; }
 
 		/**
 		 * Gets the palette.
@@ -669,6 +604,84 @@ namespace lsn {
 		}
 
 		/**
+		 * The first of the 2 NT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadNt_0_Work() {
+			m_ui8OamAddr = 0;
+			// LSN_PPU_NAMETABLES = 0x2000.
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
+		}
+
+		/**
+		 * The second of the 2 NT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadNt_1_Work() {
+			m_ui8OamAddr = 0;
+			m_ui8NextTileId = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 AT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadAt_0_Work() {
+			m_ui8OamAddr = 0;
+			// LSN_PPU_NAMETABLES = 0x2000.
+			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
+			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+				(m_paPpuAddrV.s.ui16NametableX << 10) |
+				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
+				(m_paPpuAddrV.s.ui16CourseX >> 2) );
+		}
+
+		/**
+		 * The second of the 2 AT read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadAt_1_Work() {
+			m_ui8OamAddr = 0;
+			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 LSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadLsb_0_Work() {
+			m_ui8OamAddr = 0;
+			// LSN_PPU_PATTERN_TABLES = 0x0000.
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+				(m_paPpuAddrV.s.ui16FineY) +
+				0) );
+		}
+
+		/**
+		 * The second of the 2 LSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadLsb_1_Work() {
+			m_ui8OamAddr = 0;
+			m_ui8NextTileLsb = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first of the 2 MSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadMsb_0_Work() {
+			m_ui8OamAddr = 0;
+			// LSN_PPU_PATTERN_TABLES = 0x0000.
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+				(m_paPpuAddrV.s.ui16FineY) +
+				8) );
+		}
+
+		/**
+		 * The second of the 2 MSB read cycles.
+		 */
+		void LSN_FASTCALL								Pixel_GarbageLoadMsb_1_Work() {
+			m_ui8OamAddr = 0;
+			m_ui8NextTileMsb = m_ui8NtAtBuffer;
+		}
+
+		/**
 		 * Incrementing the X scroll register.
 		 */
 		void LSN_FASTCALL								Pixel_IncScrollX_Control() {
@@ -748,7 +761,7 @@ namespace lsn {
 		bool											Rendering() const { return m_pmPpuMask.s.ui8ShowBackground || m_pmPpuMask.s.ui8ShowSprites; }
 
 		/**
-		 * Writing to 0x2000.
+		 * Writing to 0x2000 (PPUCTRL).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -763,7 +776,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x2001.
+		 * Writing to 0x2001 (PPUMASK).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -776,7 +789,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reading from 0x2002 (resets the v-blank flag).
+		 * Reading from 0x2002 (PPUMASK) (resets the v-blank flag).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
@@ -796,7 +809,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x2002.
+		 * Writing to 0x2002 (PPUSTATUS).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -807,6 +820,51 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Only the top 3 bits can be modified on the floating bus.
 			ppPpu->m_ui8IoBusFloater = (ppPpu->m_ui8IoBusFloater & 0x1F) | (_ui8Val & 0xE0);
+		}
+
+		/**
+		 * Writing to 0x2003 (OAMADDR).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_ui8IoBusFloater = ppPpu->m_ui8OamAddr = _ui8Val;
+		}
+
+		/**
+		 * Reading from 0x2004 (OAMDATA).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			if ( (ppPpu->m_ui16Scanline >= _tPreRender && ppPpu->m_ui16Scanline < (_tPreRender + _tRender)) || ppPpu->m_ui16Scanline == (_tDotHeight - 1) ) {
+				if ( ppPpu->m_ui16RowDot >= 1 && ppPpu->m_ui16RowDot <= 64 ) {
+					_ui8Ret = 0xFF;
+					return;
+				} 
+			}
+			_ui8Ret = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+		}
+
+		/**
+		 * Writing to 0x2004 (OAMDATA).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
 		}
 
 		/**
@@ -851,7 +909,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reading from 0x2007 (PPU bus memory/PPUDATA).
+		 * Reading from 0x2007 (PPUDATA) (PPU bus memory/PPUDATA).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
@@ -876,7 +934,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x2007 (PPU bus memory/PPUDATA).
+		 * Writing to 0x2007 (PPUDATA) (PPU bus memory/PPUDATA).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -1008,8 +1066,28 @@ namespace lsn {
 		/** OAM memory. */
 		struct LSN_OAM {
 			union {
+				struct {
+					uint8_t								ui8Y;											/**< Sprite Y position. */
+					uint8_t								ui8Id;											/**< Pattern-memory tile ID. */
+					uint8_t								ui8Flags;										/**< Flags indicating how to render the sprite. */
+					uint8_t								ui8X;											/**< Sprite X position. */
+				}										s[64];
 				uint32_t								ui32Obj[64];
 				uint8_t									ui8Bytes[256];
+			};
+		};
+
+		/** Secondary OAM memory. */
+		struct LSN_SECONDARY_OAM {
+			union {
+				struct {
+					uint8_t								ui8Y;											/**< Sprite Y position. */
+					uint8_t								ui8Id;											/**< Pattern-memory tile ID. */
+					uint8_t								ui8Flags;										/**< Flags indicating how to render the sprite. */
+					uint8_t								ui8X;											/**< Sprite X position. */
+				}										s[8];
+				uint32_t								ui32Obj[8];
+				uint8_t									ui8Bytes[32];
 			};
 		};
 
@@ -1019,12 +1097,12 @@ namespace lsn {
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
-		CDmaSource *									m_pdsDmaSrc;									/**< The DMA source object.  Gets told where to send DMA transfers. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
-		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/** The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
+		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/**< The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		LSN_OAM											m_oOam;											/**< OAM memory. */
+		LSN_SECONDARY_OAM								m_soSecondaryOam;								/**< Secondary OAM used for rendering during a scanline. */
 		LSN_PPUADDR										m_paPpuAddrT;									/**< The "t" PPUADDR register. */
 		LSN_PPUADDR										m_paPpuAddrV;									/**< The "v" PPUADDR register. */
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
@@ -1039,6 +1117,7 @@ namespace lsn {
 		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
+		uint8_t											m_ui8OamAddr;									/**< OAM address. */
 
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
@@ -1097,6 +1176,112 @@ namespace lsn {
 					cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollX_Control;
 				}
 			}
+		}
+
+		/**
+		 * Assigns the garbage gather/render functions at a given X Y pixel location.
+		 *
+		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
+		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
+		 */
+		void											AssignGarbageGatherRenderFuncs( size_t _stX, size_t _stY ) {
+			//AssignGatherRenderFuncs( _stX, _stY, false, false );
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadNt_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadNt_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadAt_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadAt_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadLsb_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadLsb_1_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadMsb_0_Work;
+			}
+			{
+				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadMsb_1_Work;
+			}
+		}
+
+		/**
+		 * Applies the function pointers for a given render scanline.
+		 *
+		 * \param _ui16Scanline The scanline whose function pointers for standard rendering are to be set.
+		 */
+		void											ApplyStdRenderFunctionPointers( uint16_t _ui16Scanline ) {
+#define LSN_LEFT				1
+#define LSN_RIGHT				(_tRenderW + LSN_LEFT)
+#define LSN_SPR_RIGHT			(LSN_RIGHT + 8 * 8)
+			const auto Y = _ui16Scanline;
+			for ( auto X = LSN_LEFT; X < LSN_RIGHT; X += 8 ) {
+				AssignGatherRenderFuncs( X, Y, true, false );
+			}
+			// Garbage reads.
+			for ( auto X = LSN_RIGHT; X < LSN_SPR_RIGHT; X += 8 ) {
+				AssignGarbageGatherRenderFuncs( X, Y );
+			}
+			// Dummy reads.
+			for ( auto X = LSN_SPR_RIGHT; X < (_tDotWidth - 4); X += 8 ) {
+				AssignGatherRenderFuncs( X, Y, false, true );
+			}
+			{	// Unused NT fetches.
+				{
+					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
+				}
+				{
+					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
+				}
+				{
+					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
+				}
+				{
+					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
+				}
+			}
+			{	// Increase vertical.
+				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
+				cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
+			}
+			{	// Transfer horizontal.
+				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
+				cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
+			}
+			AssignGatherRenderFuncs( LSN_SPR_RIGHT, Y, true, false );
+			AssignGatherRenderFuncs( LSN_SPR_RIGHT + 8, Y, true, false );
+
+			if ( _tDotHeight - 1 == Y ) {
+				for ( auto X = 280; X <= 304; ++X ) {
+					{	// Transfer vertical.
+						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
+						cThis.pfFunc = &CPpu2C0X::Pixel_TransferY_Control;
+					}
+				}
+			}
+
+#undef LSN_SPR_RIGHT
+#undef LSN_RIGHT
+#undef LSN_LEFT
 		}
 
 		/**

@@ -285,6 +285,11 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Localization\LSNLocalization.h" />
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
+    <ClInclude Include="Src\Mappers\LSNAllMappers.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper000.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper001.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper003.h" />
+    <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
@@ -294,7 +299,6 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />
-    <ClInclude Include="Src\System\LSNDmaSource.h" />
     <ClInclude Include="Src\System\LSNNmiable.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
     <ClInclude Include="Src\System\LSNSystemBase.h" />
@@ -318,6 +322,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper000.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper003.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapperBase.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />

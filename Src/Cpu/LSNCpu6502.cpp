@@ -1066,7 +1066,6 @@ namespace lsn {
 		m_ui64CycleCount( 0 ),
 		m_pbBus( _pbBus ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
-		m_pui8DmaTarget( nullptr ),
 		m_pipPoller( nullptr ),
 		A( 0 ),
 		S( 0xFD ),
@@ -1142,13 +1141,6 @@ namespace lsn {
 		m_pbBus->SetWriteFunc( 0x4016, CCpu6502::Write4016, this, 0 );
 		m_pbBus->SetReadFunc( 0x4017, CCpu6502::Read4017, this, 0 );
 		m_pbBus->SetWriteFunc( 0x4017, CCpu6502::Write4017, this, 0 );
-	}
-
-	/**
-	 * Sets the target DMA address.
-	 */
-	void CCpu6502::SetDmaTarget( uint8_t * _pui8Target ) {
-		m_pui8DmaTarget = _pui8Target;
 	}
 
 	/**
@@ -1236,7 +1228,7 @@ namespace lsn {
 
 	/** DMA write cycle. */
 	void CCpu6502::Tick_DmaWrite() {
-		m_pui8DmaTarget[m_ui8DmaPos] = m_ui8DmaValue;
+		m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
 		if ( --m_ui16DmaCounter == 0 ) {
 			m_pfTickFunc = m_pfTickFuncCopy;
 		}

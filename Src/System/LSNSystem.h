@@ -40,7 +40,7 @@ namespace lsn {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
-			m_pPpu( &m_bBus, &m_cCpu, &m_cCpu ) {
+			m_pPpu( &m_bBus, &m_cCpu ) {
 			ResetState( false );
 		}
 
@@ -52,6 +52,7 @@ namespace lsn {
 		 * \param _bAnalog If true, a soft reset is performed on the CPU, otherwise the CPU is reset to a known state.
 		 */
 		void											ResetState( bool _bAnalog ) {
+			m_bBus.ResetAnalog();
 			if ( _bAnalog ) {
 				m_cCpu.ResetAnalog();
 				m_pPpu.ResetAnalog();
@@ -80,6 +81,10 @@ namespace lsn {
 						m_pPpu.ApplyHorizontalMirroring();
 						break;
 					}
+				}
+
+				if ( m_pmbMapper.get() ) {
+					m_pmbMapper->ApplyMap( &m_bBus, &m_pPpu.GetBus() );
 				}
 			}
 		}
@@ -208,6 +213,7 @@ namespace lsn {
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
 		bool											LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
+			m_pmbMapper.release();
 			m_rRom = LSN_ROM();
 			m_rRom.riInfo.s16File = _s16Path;
 			m_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
@@ -231,6 +237,21 @@ namespace lsn {
 				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
 				if ( m_rRom.vChrRom.size() ) {
 					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
+				}
+
+				switch ( m_rRom.riInfo.ui16Mapper ) {
+					case 0 : {
+						m_pmbMapper = std::make_unique<CMapper000>();
+						break;
+					}
+					case 3 : {
+						m_pmbMapper = std::make_unique<CMapper003>();
+						break;
+					}
+				}
+
+				if ( m_pmbMapper ) {
+					m_pmbMapper->InitWithRom( m_rRom );
 				}
 
 				return true;

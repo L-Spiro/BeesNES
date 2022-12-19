@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Input/LSNInputPoller.h"
+#include "../Mappers/LSNAllMappers.h"
 #include "../Palette/LSNPalette.h"
 #include "../Time/LSNClock.h"
 
@@ -195,6 +196,7 @@ namespace lsn {
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
 		CCpuBus											m_bBus;								/**< The bus. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
+		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
 		bool											m_bPaused;							/**< Pause flag. */
 	};
 

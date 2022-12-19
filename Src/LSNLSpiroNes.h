@@ -174,6 +174,18 @@ namespace lsn {
 		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 	};
 
+	/** PPU registers. */
+	enum LSN_PPU_REGISTERS : uint16_t {
+		LSN_PR_PPUCTRL						= 0x2000,							/**< The PPUCTRL register. */
+		LSN_PR_PPUMASK						= 0x2001,							/**< The PPUMASK register. */
+		LSN_PR_PPUSTATUS					= 0x2002,							/**< The PPUSTATUS register. */
+		LSN_PR_OAMADDR						= 0x2003,							/**< The OAMADDR register. */
+		LSN_PR_OAMDATA						= 0x2004,							/**< The OAMDATA register. */
+		LSN_PR_PPUSCROLL					= 0x2005,							/**< The PPUSCROLL register. */
+		LSN_PR_PPUADDR						= 0x2006,							/**< The PPUADDR register. */
+		LSN_PR_PPUDATA						= 0x2007,							/**< The PPUDATA register. */
+	};
+
 	/** Mirroring modes. */
 	enum LSN_MIRROR_MODE {
 		LSN_MM_VERTICAL,														/**< Vertical mirroring. */

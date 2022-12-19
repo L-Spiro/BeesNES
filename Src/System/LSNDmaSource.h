@@ -24,8 +24,10 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * Sets the target DMA address.
+		 * 
+		 * \param _ppuBus The PPU bus for writing DMA.
 		 */
-		virtual void						SetDmaTarget( uint8_t * /*_pui8Target*/ ) {}
+		virtual void						SetDmaTarget( CPpuBus * /*_ppuBus*/ ) {}
 	};
 
 }	// namespace lsn

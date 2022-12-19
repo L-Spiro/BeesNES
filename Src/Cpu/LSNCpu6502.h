@@ -19,7 +19,6 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Input/LSNInputPoller.h"
-#include "../System/LSNDmaSource.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 #include <vector>
@@ -32,7 +31,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 : public CTickable, public CNmiable, public CDmaSource {
+	class CCpu6502 : public CTickable, public CNmiable {
 	public :
 		// == Various constructors.
 		CCpu6502( CCpuBus * _pbBus );
@@ -86,11 +85,6 @@ namespace lsn {
 		 * Applies the CPU's memory mapping t the bus.
 		 */
 		void								ApplyMemoryMap();
-
-		/**
-		 * Sets the target DMA address.
-		 */
-		virtual void						SetDmaTarget( uint8_t * _pui8Target );
 
 		/**
 		 * Begins a DMA transfer.
@@ -283,8 +277,7 @@ namespace lsn {
 		CCpuBus *							m_pbBus;										/**< Pointer to the bus. */
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
-		uint8_t *							m_pui8DmaTarget;								/**< The DMA target address. */
-		CInputPoller *						m_pipPoller;										/**< The input poller. */
+		CInputPoller *						m_pipPoller;									/**< The input poller. */
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */
@@ -368,19 +361,6 @@ namespace lsn {
 			// Temp.
 			if ( pcThis->m_pipPoller ) {
 				pcThis->m_ui8InputsPoll[0] = pcThis->m_pipPoller->PollPort( 0 );
-				/*SHORT sState;
-#define LSN_POLL( KEY, FLAG )														\
-	sState = ::GetAsyncKeyState( KEY );												\
-	if ( sState & 0x8000 ) { pcThis->m_ui8InputsPoll[0] |= (FLAG); }
-				LSN_POLL( 'X', 0x80 );
-				LSN_POLL( 'Z', 0x40 );
-				LSN_POLL( 'A', 0x20 );
-				LSN_POLL( 'S', 0x10 );
-				LSN_POLL( VK_UP, 0x08 );
-				LSN_POLL( VK_DOWN, 0x04 );
-				LSN_POLL( VK_LEFT, 0x02 );
-				LSN_POLL( VK_RIGHT, 0x01 );
-#undef LSN_POLL*/
 			}
 			else {
 				pcThis->m_ui8InputsPoll[0] = 0;

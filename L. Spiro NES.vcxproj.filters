@@ -124,6 +124,12 @@
     <Filter Include="Source Files\Input">
       <UniqueIdentifier>{83b69144-cb82-46ac-8751-b623998fa002}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Mappers">
+      <UniqueIdentifier>{ecadf0d8-e96d-4621-8bc4-6a92b0eccb85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mappers">
+      <UniqueIdentifier>{1cdc68fc-9220-4234-a542-0914c9a7df3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -204,9 +210,6 @@
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h">
       <Filter>Header Files\Windows\SelectRom</Filter>
     </ClInclude>
-    <ClInclude Include="Src\System\LSNDmaSource.h">
-      <Filter>Header Files\System</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h">
       <Filter>Header Files\Localization</Filter>
     </ClInclude>
@@ -227,6 +230,21 @@
     </ClInclude>
     <ClInclude Include="Src\Input\LSNInputPoller.h">
       <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapperBase.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper001.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper000.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNAllMappers.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper003.h">
+      <Filter>Header Files\Mappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -292,6 +310,15 @@
     </ClCompile>
     <ClCompile Include="Src\Display\LSNDisplayHost.cpp">
       <Filter>Source Files\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Mappers\LSNMapperBase.cpp">
+      <Filter>Source Files\Mappers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Mappers\LSNMapper000.cpp">
+      <Filter>Source Files\Mappers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Mappers\LSNMapper003.cpp">
+      <Filter>Source Files\Mappers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

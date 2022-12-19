@@ -375,7 +375,7 @@ namespace lsn {
 	 * \param _ui8Port The port being polled (0 or 1).
 	 * \return Returns the result of polling the given port.
 	 */
-	uint8_t CMainWindow::PollPort( uint8_t _ui8Port ) {
+	uint8_t CMainWindow::PollPort( uint8_t /*_ui8Port*/ ) {
 		if ( GetFocus() ) {
 			BYTE bPoll[256];
 			::GetKeyboardState( bPoll );
@@ -479,6 +479,10 @@ namespace lsn {
 		if ( !ppPal ) { return; }
 		for ( size_t I = 0; I < _vPalette.size(); I += 3 ) {
 			size_t stIdx = (I / 3);
+			/*ppPal->uVals[stIdx].sRgb.ui8R = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+2] / 255.0 ) * 255.0 ) );
+			ppPal->uVals[stIdx].sRgb.ui8G = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+1] / 255.0 ) * 255.0 ) );
+			ppPal->uVals[stIdx].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+0] / 255.0 ) * 255.0 ) );*/
+
 			ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
 			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];

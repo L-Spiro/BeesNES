@@ -83,11 +83,6 @@ namespace lsn {
 		// == Various constructors.
 		CBus() :
 			m_ui8LastRead( 0 ) {
-			//std::memset( m_aaAccessors, 0, sizeof( m_aaAccessors ) );
-			for ( auto I = Size(); I--; ) {
-				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
-				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
-			}
 		}
 		~CBus() {
 			ResetToKnown();
@@ -101,12 +96,30 @@ namespace lsn {
 		/** An address-reading function. */
 		typedef void (LSN_FASTCALL *		PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
 
+		/** An address accessor. */
+		struct LSN_ADDR_ACCESSOR {
+			PfReadFunc						pfReader;						/**< The function for reading the assigned address. */
+			void *							pvReaderParm0;					/**< The reader's first parameter. */
+			PfWriteFunc						pfWriter;						/**< The function for writing the assigned address. */
+			void *							pvWriterParm0;					/**< The writer's first parameter. */
+			uint16_t						ui16ReaderParm1;				/**< The reader's second parameter. */
+			uint16_t						ui16WriterParm1;				/**< The writer's second parameter. */
+		};
+
+		/** A trampoline is a read/write function that has been inserted to perform its own operation at a given address and then optionally call the original read/write function for that address. */
+		struct LSN_TRAMPOLINE {
+			void *							pvReaderParm0;					/**< The trampoline reader's first parameter. */
+			void *							pvWriterParm0;					/**< The trampoline writer's first parameter. */
+			LSN_ADDR_ACCESSOR				aaOriginalFuncs;				/**< The original read/write functions and parameters so that the trampoline can call them if needed. */
+		};
+
 
 		// == Functions.
 		/**
 		 * Resets the bus to a known state.
 		 */
 		void								ResetToKnown() {
+			ResetAnalog();
 			std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
 			m_ui8LastRead = 0;
 		}
@@ -115,6 +128,10 @@ namespace lsn {
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
 		void								ResetAnalog() {
+			for ( auto I = Size(); I--; ) {
+				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
+				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
+			}
 		}
 
 		/**
@@ -201,6 +218,48 @@ namespace lsn {
 		}
 
 		/**
+		 * Inserts a read trampoline function for a given address.  The read function's _pvParm0 value will be a pointer to the trampoline.  reinterpret_cast<LSN_TRAMPOLINE *>(_pvParm0)->pvReaderParm0 holds the "_pvParm0" value passed here.
+		 *
+		 * \param _ui16Address The address to assign the read function.
+		 * \param _pfReadFunc The function to assign to the address.
+		 * \param _pvParm0 A data value assigned to the address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
+		 * \param _ptTrampoline A pointer to receive the trampoline's "original" data.
+		 */
+		void								SetTrampolineReadFunc( uint16_t _ui16Address, PfReadFunc _pfReadFunc, void * _pvParm0, uint16_t _ui16Parm1, LSN_TRAMPOLINE * _ptTrampoline ) {
+			if ( _ui16Parm1 < Size() && _ptTrampoline ) {
+				_ptTrampoline->pvReaderParm0 = _pvParm0;
+				_ptTrampoline->aaOriginalFuncs.pfReader = m_aaAccessors[_ui16Address].pfReader;
+				_ptTrampoline->aaOriginalFuncs.pvReaderParm0 = m_aaAccessors[_ui16Address].pvReaderParm0;
+				_ptTrampoline->aaOriginalFuncs.ui16ReaderParm1 = m_aaAccessors[_ui16Address].ui16ReaderParm1;
+				m_aaAccessors[_ui16Address].pfReader = _pfReadFunc;
+				m_aaAccessors[_ui16Address].pvReaderParm0 = _ptTrampoline;
+				m_aaAccessors[_ui16Address].ui16ReaderParm1 = _ui16Parm1;
+			}
+		}
+
+		/**
+		 * Inserts a write trampoline function for a given address.  The write function's _pvParm0 value will be a pointer to the trampoline.  reinterpret_cast<LSN_TRAMPOLINE *>(_pvParm0)->pvWriterParm0 holds the "_pvParm0" value passed here.
+		 *
+		 * \param _ui16Address The address to assign the write function.
+		 * \param _pfWriteFunc The function to assign to the address.
+		 * \param _pvParm0 A data value assigned to the address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
+		 * \param _ptTrampoline A pointer to receive the trampoline's "original" data.
+		 */
+		void								SetTrampolineWriteFunc( uint16_t _ui16Address, PfWriteFunc _pfWriteFunc, void * _pvParm0, uint16_t _ui16Parm1, LSN_TRAMPOLINE * _ptTrampoline ) {
+			if ( _ui16Parm1 < Size() && _ptTrampoline ) {
+				_ptTrampoline->pvWriterParm0 = _pvParm0;
+				_ptTrampoline->aaOriginalFuncs.pfWriter = m_aaAccessors[_ui16Address].pfWriter;
+				_ptTrampoline->aaOriginalFuncs.pvWriterParm0 = m_aaAccessors[_ui16Address].pvWriterParm0;
+				_ptTrampoline->aaOriginalFuncs.ui16WriterParm1 = m_aaAccessors[_ui16Address].ui16WriterParm1;
+				m_aaAccessors[_ui16Address].pfWriter = _pfWriteFunc;
+				m_aaAccessors[_ui16Address].pvWriterParm0 = _ptTrampoline;
+				m_aaAccessors[_ui16Address].ui16WriterParm1 = _ui16Parm1;
+			}
+		}
+
+		/**
 		 * Copy data to the bus.
 		 *
 		 * \param _pui8Data The data to copy.
@@ -274,18 +333,6 @@ namespace lsn {
 
 
 	protected :
-		// == Types.
-		/** An address accessor. */
-		struct LSN_ADDR_ACCESSOR {
-			PfReadFunc						pfReader;						/**< The function for reading the assigned address. */
-			void *							pvReaderParm0;					/**< The reader's first parameter. */
-			PfWriteFunc						pfWriter;						/**< The function for writing the assigned address. */
-			void *							pvWriterParm0;					/**< The writer's first parameter. */
-			uint16_t						ui16ReaderParm1;				/**< The reader's second parameter. */
-			uint16_t						ui16WriterParm1;				/**< The writer's second parameter. */
-		};
-
-
 		// == Members.
 		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
