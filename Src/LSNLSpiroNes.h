@@ -154,6 +154,7 @@ namespace lsn {
 		LSN_PM_NTSC_VBLANK_LINES			= 20,								/**< The number of v-blank scanlines. */
 		LSN_PM_NTSC_POSTBLANK_LINES			= 1,								/**< The number of post-blank scanlines. */
 		LSN_PM_NTSC_RENDER_WIDTH			= 256,								/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_NTSC_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
 
 		LSN_PM_PAL_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_PAL_SCANLINES				= 312,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
@@ -163,6 +164,7 @@ namespace lsn {
 		LSN_PM_PAL_VBLANK_LINES				= 70,								/**< The number of v-blank scanlines. */
 		LSN_PM_PAL_POSTBLANK_LINES			= 1,								/**< The number of post-blank scanlines. */
 		LSN_PM_PAL_RENDER_WIDTH				= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_PAL_H_BORDER					= 2,								/**< The number of pixels to the left and right that are blackened out. */
 
 		LSN_PM_DENDY_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_DENDY_SCANLINES				= LSN_PM_PAL_SCANLINES,				/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
@@ -172,6 +174,7 @@ namespace lsn {
 		LSN_PM_DENDY_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
 		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
 		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_DENDY_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
 	};
 
 	/** PPU registers. */

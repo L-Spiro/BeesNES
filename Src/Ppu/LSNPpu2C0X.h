@@ -35,7 +35,7 @@ namespace lsn {
 	template <unsigned _tDotWidth, unsigned _tDotHeight,
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tVBlank, unsigned _tPostVBlank,
-		unsigned _tRenderW,
+		unsigned _tRenderW, unsigned _tBorderW,
 		bool _bOddFrameShenanigans>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
@@ -75,7 +75,7 @@ namespace lsn {
 			{
 				// The main rendering area.
 
-				for ( auto Y = _tPreRender; Y < (_tRender + _tPreRender); ++Y ) {
+				for ( auto Y = 0; Y < (_tPreRender + _tRender); ++Y ) {
 					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
 				}
 				// The "-1" scanline.
@@ -323,7 +323,7 @@ namespace lsn {
 		 *
 		 * \return Returns the pixel height of the display area.
 		 */
-		virtual uint32_t								DisplayHeight() const { return _tRender; }
+		virtual uint32_t								DisplayHeight() const { return _tRender + _tPreRender; }
 
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
@@ -845,7 +845,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			if ( (ppPpu->m_ui16Scanline >= _tPreRender && ppPpu->m_ui16Scanline < (_tPreRender + _tRender)) || ppPpu->m_ui16Scanline == (_tDotHeight - 1) ) {
+			if ( (ppPpu->m_ui16Scanline < (_tPreRender + _tRender)) || ppPpu->m_ui16Scanline == (_tDotHeight - 1) ) {
 				if ( ppPpu->m_ui16RowDot >= 1 && ppPpu->m_ui16RowDot <= 64 ) {
 					_ui8Ret = 0xFF;
 					return;
@@ -1320,11 +1320,9 @@ namespace lsn {
 		 */
 		inline bool										CycleToRenderTarget( uint16_t _ui16X, uint16_t _ui16Y, uint16_t &_ui16RtX, uint16_t &_ui16RtY ) {
 			if ( _ui16X >= 1 && _ui16X < (_tRenderW + 1) ) {
-				if ( _ui16Y >= (_tPreRender) && _ui16Y < (_tPreRender + _tRender) ) {
+				if ( _ui16Y < (_tPreRender + _tRender) ) {
 					_ui16RtX = _ui16X - 1;
-					_ui16RtY = (_tRender - 1) - (_ui16Y - _tPreRender);
-
-					//_ui16RtY = static_cast<uint16_t>((_ui16RtY + m_ui64Frame) % _tRender);
+					_ui16RtY = (_tPreRender + _tRender - 1) - _ui16Y;
 					return true;
 				}
 			}
@@ -1337,21 +1335,28 @@ namespace lsn {
 		inline void										RenderPixel() {
 			uint16_t ui16X, ui16Y;
 			if ( CycleToRenderTarget( m_ui16RowDot, m_ui16Scanline, ui16X, ui16Y ) && m_pui8RenderTarget ) {
-				uint8_t ui8BackgroundPixel = 0;
-				uint8_t ui8BackgroundPalette = 0;
-				if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || m_ui16RowDot >= 9) ) {
-				
-					const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
-					ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
-						((m_ui16ShiftPatternLo & ui16Bit) > 0);
-					ui8BackgroundPalette = (((m_ui16ShiftAttribHi & ui16Bit) > 0) << 1) |
-						((m_ui16ShiftAttribLo & ui16Bit) > 0);
-				}
-
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
-				uint8_t ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
-				/*ui8Val = ui8BackgroundPalette * (255 / 4) + ui8BackgroundPixel * 10;	// TMP
-				pui8RenderPixel[0] = ui8Val;
+				uint8_t ui8Val = 0x0F;
+				if ( ui16Y >= _tRender ) {}												// Black pre-render scanline on PAL.
+				else if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {}		// Horizontal black border on PAL.
+				else {
+					uint8_t ui8BackgroundPixel = 0;
+					uint8_t ui8BackgroundPalette = 0;
+					if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || m_ui16RowDot >= 9) ) {
+				
+						const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
+						ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
+							((m_ui16ShiftPatternLo & ui16Bit) > 0);
+						ui8BackgroundPalette = (((m_ui16ShiftAttribHi & ui16Bit) > 0) << 1) |
+							((m_ui16ShiftAttribLo & ui16Bit) > 0);
+					}
+
+					ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
+					//ui8Val = ui8BackgroundPalette * (255 / 4) + ui8BackgroundPixel * 10;	// TMP
+				}
+					
+				
+				/*pui8RenderPixel[0] = ui8Val;
 				pui8RenderPixel[1] = ui8Val;
 				pui8RenderPixel[2] = ui8Val;*/
 				pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
@@ -1369,7 +1374,10 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Types.
-#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES, LSN_PM_ ## REGION ## _PRERENDER, LSN_PM_ ## REGION ## _RENDER_LINES, LSN_PM_ ## REGION ## _POSTRENDER_LINES, LSN_PM_ ## REGION ## _VBLANK_LINES, LSN_PM_ ## REGION ## _POSTBLANK_LINES, LSN_PM_ ## REGION ## _RENDER_WIDTH
+#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES,														\
+														LSN_PM_ ## REGION ## _PRERENDER, LSN_PM_ ## REGION ## _RENDER_LINES, LSN_PM_ ## REGION ## _POSTRENDER_LINES,		\
+														LSN_PM_ ## REGION ## _VBLANK_LINES, LSN_PM_ ## REGION ## _POSTBLANK_LINES,											\
+														LSN_PM_ ## REGION ## _RENDER_WIDTH, LSN_PM_ ## REGION ## _H_BORDER
 	/**
 	 * An NTSC PPU.
 	 */
