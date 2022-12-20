@@ -36,7 +36,7 @@ namespace lsn {
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tVBlank, unsigned _tPostVBlank,
 		unsigned _tRenderW, unsigned _tBorderW,
-		bool _bOddFrameShenanigans>
+		bool _bOddFrameShenanigans, double _dPerferredRatio>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
 		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget ) :
@@ -57,6 +57,8 @@ namespace lsn {
 			m_ui8NextTileMsb( 0 ),
 			m_ui8IoBusFloater( 0 ),
 			m_ui8OamAddr( 0 ),
+			m_ui8OamLatch( 0 ),
+			m_ui8Oam2ClearIdx( 0 ),
 			m_bAddresLatch( false ) {
 
 			for ( auto Y = _tDotHeight; Y--; ) {
@@ -69,6 +71,10 @@ namespace lsn {
 						LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+X];
 						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Work;
 					}
+					{
+						LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+X];
+						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Sprite;
+					}
 				}
 			}
 			// Add pixel gather/render functions.
@@ -77,11 +83,13 @@ namespace lsn {
 
 				for ( auto Y = 0; Y < (_tPreRender + _tRender); ++Y ) {
 					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
+					ApplySpriteFunctionPointers( uint16_t( Y ) );
 				}
 				// The "-1" scanline.
 				{
 					constexpr size_t Y = _tDotHeight - 1;
 					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
+					ApplySpriteFunctionPointers( uint16_t( Y ) );
 				}
 
 			}
@@ -135,6 +143,7 @@ namespace lsn {
 		 */
 		virtual void									Tick() {
 			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
+			(this->*m_cSpriteCycles[stIdx].pfFunc)();
 			(this->*m_cWorkCycles[stIdx].pfFunc)();
 			(this->*m_cControlCycles[stIdx].pfFunc)();
 			++m_ui64Cycle;
@@ -170,6 +179,8 @@ namespace lsn {
 			m_ui8FineScrollX = 0;
 
 			m_ui8OamAddr = 0;
+			m_ui8OamLatch = 0;
+			m_ui8Oam2ClearIdx = 0;
 		}
 
 		/**
@@ -326,6 +337,13 @@ namespace lsn {
 		virtual uint32_t								DisplayHeight() const { return _tRender + _tPreRender; }
 
 		/**
+		 * Gets the display ratio in pixels.
+		 *
+		 * \return Returns the ratio of the display area.
+		 */
+		virtual double									DisplayRatio() const { return _dPerferredRatio; }
+
+		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
 		 *
 		 * \return Returns true in order to add an extra 128 pixels horizontally for debug display, otherwise false.  Defaults to false.
@@ -364,6 +382,12 @@ namespace lsn {
 		 * An "idle" work pixel handler.  Does nothing.
 		 */
 		void LSN_FASTCALL								Pixel_Idle_Work() {
+		}
+
+		/**
+		 * An "idle" sprite pixel handler.  Does nothing.
+		 */
+		void LSN_FASTCALL								Pixel_Idle_Sprite() {
 		}
 
 		/**
@@ -679,6 +703,28 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_GarbageLoadMsb_1_Work() {
 			m_ui8OamAddr = 0;
 			m_ui8NextTileMsb = m_ui8NtAtBuffer;
+		}
+
+		/**
+		 * The first cycle in clearing secondary OAM.  Reads from the main OAM (which returns 0xFF during this period) and latches the value.
+		 */
+		void LSN_FASTCALL								Pixel_ClearOam2_0_Sprite() {
+			m_ui8OamLatch = m_pbBus->Read( LSN_PR_OAMDATA );
+		}
+
+		/**
+		 * The second cycle in clearing secondary OAM.  Copies the latched value read from OAM (0x2004) to the current index in the secondary OAM buffer.
+		 */
+		void LSN_FASTCALL								Pixel_ClearOam2_1_Sprite() {
+			m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch;
+			m_ui8Oam2ClearIdx %= sizeof( m_soSecondaryOam.ui8Bytes );
+		}
+
+		/**
+		 * Handles populating the secondary OAM buffer during cycles 65-256.
+		 */
+		template <bool _bIsFirst>
+		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 		}
 
 		/**
@@ -1100,6 +1146,7 @@ namespace lsn {
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
 		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/**< The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
+		LSN_CYCLE										m_cSpriteCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle sprite-handing work.  Sprite work cycles are used to fetch sprite data for rendering. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		LSN_OAM											m_oOam;											/**< OAM memory. */
 		LSN_SECONDARY_OAM								m_soSecondaryOam;								/**< Secondary OAM used for rendering during a scanline. */
@@ -1118,6 +1165,8 @@ namespace lsn {
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
+		uint8_t											m_ui8OamLatch;									/**< Holds temporary OAM data. */
+		uint8_t											m_ui8Oam2ClearIdx;								/**< The index of the byte being cleared during the secondary OAM clear. */
 
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
@@ -1285,6 +1334,29 @@ namespace lsn {
 		}
 
 		/**
+		 * Applies the sprite-shepherding function pointers for a given render scanline.
+		 *
+		 * \param _ui16Scanline The scanline whose function pointers for sprite-handling are to be set.
+		 */
+		void											ApplySpriteFunctionPointers( uint16_t _ui16Scanline ) {
+#define LSN_LEFT				1
+			const auto Y = _ui16Scanline;
+			// Clear secondary OAM.
+			for ( auto X = LSN_LEFT; X < (LSN_LEFT + 8 * 8); X += 2 ) {
+				{	// Latch data.
+					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(X+0)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_0_Sprite;
+				}
+				{	// Write data.
+					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(X+1)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_1_Sprite;
+				}
+			}
+
+#undef LSN_LEFT
+		}
+
+		/**
 		 * Shifts the background registers left one.
 		 */
 		void											ShiftBackgroundRegisters() {
@@ -1381,17 +1453,17 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true>														CNtscPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 1.143>													CNtscPpu;
 
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false>														CPalPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 1.386>													CPalPpu;
 
 	/**
 	 * A Dendy PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false>														CDendyPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 1.143>												CDendyPpu;
 
 #undef LSN_PPU_TYPE
 

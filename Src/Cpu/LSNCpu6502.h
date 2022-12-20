@@ -423,7 +423,7 @@ namespace lsn {
 		/** Fetches the high address value for absolute/indirect addressing.  Adds X to the low byte of the resulting address. */
 		void								FetchHighAddrByteAndIncPcAndAddX();				// Cycle 3.
 		/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
-		void								ReadFromEffectiveAddress_Abs();					// Cycle 4.
+		void								ReadFromEffectiveAddress_IzX_IzY_ZpX_AbX_AbY_Abs();					// Cycle 4.
 		/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
 		void								ReadFromEffectiveAddress_Zp();					// Cycles 2, 4.
 		/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores the result into LSN_CPU_CONTEXT::ui8Pointer.  Preceded by FetchPointerAndIncPc(). */
@@ -476,7 +476,7 @@ namespace lsn {
 		void								FetchEffectiveAddressHigh_IzY();				// Cycle 4.
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 		template <bool _bHandleCrossing>
-		void								ReadEffectiveAddressFixHighByte_IzX_IzY_AbX();		// Cycle 5.
+		void								ReadEffectiveAddressFixHighByte_IzY_AbX_AbY();		// Cycle 5.
 		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
 		void								CopyVectorPcl();								// Cycle 6.
 		/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */

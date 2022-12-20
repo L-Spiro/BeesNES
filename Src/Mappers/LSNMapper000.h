@@ -45,8 +45,6 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The trampoline data. */
-		CCpuBus::LSN_TRAMPOLINE							m_tCpuTrampolines[0x8000];
 	};
 
 }	// namespace lsn

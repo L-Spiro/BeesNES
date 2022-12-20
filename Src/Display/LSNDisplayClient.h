@@ -64,6 +64,13 @@ namespace lsn {
 		virtual uint32_t						DisplayHeight() const = 0 { return 0; }
 
 		/**
+		 * Gets the display ratio in pixels.
+		 *
+		 * \return Returns the ratio of the display area.
+		 */
+		virtual double							DisplayRatio() const = 0 { return 1.0; }
+
+		/**
 		 * Sets the render target.
 		 *
 		 * \param _pui8Target Pointer to the pixel buffer to be used as a render target.  This is filled in during frame rendering.

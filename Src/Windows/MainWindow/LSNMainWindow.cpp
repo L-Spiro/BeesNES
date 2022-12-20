@@ -60,6 +60,7 @@ namespace lsn {
 		m_pdcClient = m_pnsSystem->GetDisplayClient();
 		if ( m_pdcClient ) {
 			m_pdcClient->SetDisplayHost( this );
+			m_dRatio = m_pdcClient->DisplayRatio();
 			// Create the basic render target.
 			const size_t stBuffers = 2;
 			const WORD wBitDepth = 24;

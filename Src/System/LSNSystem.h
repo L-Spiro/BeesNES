@@ -244,9 +244,17 @@ namespace lsn {
 						m_pmbMapper = std::make_unique<CMapper000>();
 						break;
 					}
+					case 2 : {
+						m_pmbMapper = std::make_unique<CMapper002>();
+						break;
+					}
 					case 3 : {
 						m_pmbMapper = std::make_unique<CMapper003>();
 						break;
+					}
+					default : {
+						std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
+						::OutputDebugStringA( sText.c_str() );
 					}
 				}
 
