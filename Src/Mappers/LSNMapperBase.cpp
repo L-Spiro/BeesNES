@@ -40,7 +40,7 @@ namespace lsn {
 	 * \param _pui8Data The buffer from which to read.
 	 * \param _ui8Ret The read value.
 	 */
-	void LSN_FASTCALL CMapperBase::StdMapperCpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+	void LSN_FASTCALL CMapperBase::StdMapperCpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 		CMapperBase * pmBase = reinterpret_cast<CMapperBase *>(_pvParm0);
 		_ui8Ret = pmBase->m_prRom->vPrgRom[_ui16Parm1];
 	}

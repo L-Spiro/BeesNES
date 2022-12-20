@@ -45,10 +45,12 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The current bank. */
-		uint8_t											m_ui8Bank;
 		/** The offset of the fixed bank. */
 		size_t											m_stFixedOffset;
+		/** The current bank. */
+		uint8_t											m_ui8Bank;
+		/** The bank-select mask. */
+		uint8_t											m_ui8Mask;
 
 
 		// == Functions.

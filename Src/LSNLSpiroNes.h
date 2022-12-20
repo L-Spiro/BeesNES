@@ -98,6 +98,7 @@ namespace lsn {
 		LSN_PPU_NAMETABLES					= 0x2000,							/**< The start of all nametables. */
 		LSN_PPU_NAMETABLES_SCREEN			= 0x0400,							/**< A single nametable screen. */
 		LSN_PPU_NAMETABLES_SIZE				= LSN_PPU_NAMETABLES_SCREEN * 4,	/**< The size of all nametables. */
+		LSN_PPU_NAMETABLES_END				= LSN_PPU_NAMETABLES_SCREEN + LSN_PPU_NAMETABLES_SIZE,
 		LSN_PPU_PALETTE_MEMORY				= 0x3F00,							/**< Start of the palette memory. */
 		LSN_PPU_PALETTE_MEMORY_SIZE			= 0x20,								/**< Size of the palette memory. */
 		LSN_PPU_ATTRIBUTE_TABLE_OFFSET		= 0x03C0,							/**< The offset of the attribute data in each nametable. */
@@ -194,6 +195,7 @@ namespace lsn {
 		LSN_MM_VERTICAL,														/**< Vertical mirroring. */
 		LSN_MM_HORIZONTAL,														/**< Horizontal mirroring. */
 		LSN_MM_FOURSCREENS,														/**< 4 screens. */
+		LSN_MM_ONESCREEN,														/**< 1 screen. */
 	};
 
 

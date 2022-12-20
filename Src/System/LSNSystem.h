@@ -81,6 +81,14 @@ namespace lsn {
 						m_pPpu.ApplyHorizontalMirroring();
 						break;
 					}
+					case LSN_MM_FOURSCREENS : {
+						m_pPpu.ApplyFourScreensMirroring();
+						break;
+					}
+					case LSN_MM_ONESCREEN : {
+						m_pPpu.ApplyOneScreenMirroring();
+						break;
+					}
 				}
 
 				if ( m_pmbMapper.get() ) {
@@ -234,7 +242,15 @@ namespace lsn {
 				m_bBus.ResetToKnown();
 
 				// ROM loaded.
-				m_bBus.CopyToMemory( m_rRom.vPrgRom.data(), uint32_t( m_rRom.vPrgRom.size() ), uint16_t( LSN_MEM_FULL_SIZE - m_rRom.vPrgRom.size() ) );
+				uint16_t ui16Addr = 0x8000;
+				uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );
+				
+				if ( m_rRom.vPrgRom.size() < ui16Size ) {
+					ui16Addr = uint16_t( 0x10000 - m_rRom.vPrgRom.size() );
+					ui16Size = uint16_t( m_rRom.vPrgRom.size() );
+				}
+				size_t stOffset = m_rRom.vPrgRom.size() - ui16Size;
+				m_bBus.CopyToMemory( m_rRom.vPrgRom.data() + stOffset, ui16Size, ui16Addr );
 				if ( m_rRom.vChrRom.size() ) {
 					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
 				}
@@ -329,6 +345,7 @@ namespace lsn {
 				const uint8_t * pui8Data = _vRom.data() + sizeof( LSN_NES_HEADER );
 				const LSN_NES_HEADER * pnhHeader = reinterpret_cast<const LSN_NES_HEADER *>(_vRom.data());
 				m_rRom.riInfo.ui16Mapper = pnhHeader->GetMapper();
+				m_rRom.riInfo.ui16SubMapper = pnhHeader->GetSubMapper();
 				m_rRom.riInfo.mmMirroring = pnhHeader->GetMirrorMode();
 				m_rRom.i32ChrRamSize = pnhHeader->GetChrRomSize();
 				m_rRom.i32SaveChrRamSize = pnhHeader->GetSaveChrRamSize();

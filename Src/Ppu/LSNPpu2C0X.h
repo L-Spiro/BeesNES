@@ -189,9 +189,10 @@ namespace lsn {
 		void											ApplyMemoryMap() {
 			// == Pattern Tables
 			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
+				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
 				// Default to ROM.  Allow cartridges to udpate the write pointers to make it RAM.
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::NoWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
+				//m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
 			}
 
 			// == Nametables
@@ -199,14 +200,14 @@ namespace lsn {
 
 			// == Palettes
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
@@ -268,6 +269,45 @@ namespace lsn {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				// Mirror $2400 to $2000 and $2C00 to $2800.
 				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2)) + LSN_PPU_NAMETABLES;
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
+			}
+		}
+
+		/**
+		 * Applies 4-screens mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
+		 */
+		void											ApplyFourScreensMirroring() {
+			// == Nametables
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				ui16Root += LSN_PPU_NAMETABLES;
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
+			}
+		}
+
+		/**
+		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
+		 */
+		void											ApplyOneScreenMirroring() {
+			// == Nametables
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES;
+				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
+				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
+			}
+		}
+
+		/**
+		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
+		 */
+		void											ApplyOneScreenMirroring_B() {
+			// == Nametables
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES + LSN_PPU_NAMETABLES_SCREEN;
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
 			}
@@ -897,7 +937,9 @@ namespace lsn {
 					return;
 				} 
 			}
-			_ui8Ret = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+			_ui8Ret = ppPpu->m_ui8IoBusFloater;
+			ppPpu->m_ui8IoBusFloater = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+			//_ui8Ret = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
 		}
 
 		/**
@@ -973,8 +1015,10 @@ namespace lsn {
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
-				_ui8Ret = ppPpu->m_bBus.GetFloat();
-				ppPpu->m_bBus.Read( ui16Addr );
+				_ui8Ret = ppPpu->m_ui8IoBusFloater;
+				ppPpu->m_ui8IoBusFloater = ppPpu->m_bBus.Read( ui16Addr );
+				/*_ui8Ret = ppPpu->m_bBus.GetFloat();
+				ppPpu->m_bBus.Read( ui16Addr );*/
 			}
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
@@ -1003,7 +1047,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] = /*_pui8Data[LSN_PPU_PALETTE_MEMORY] =*/ _ui8Val;
+			_pui8Data[_ui16Parm1] /*= _pui8Data[LSN_PPU_PALETTE_MEMORY]*/ = _ui8Val;
 		}
 
 		/**
@@ -1018,7 +1062,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			_ui8Ret = ppPpu->m_ui8IoBusFloater;
 
-			ppPpu->m_ui8IoBusFloater = _pui8Data[_ui16Parm1];
+			//ppPpu->m_ui8IoBusFloater = _pui8Data[_ui16Parm1];
 		}
 
 		/**
@@ -1424,16 +1468,21 @@ namespace lsn {
 					}
 
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
-					//ui8Val = ui8BackgroundPalette * (255 / 4) + ui8BackgroundPixel * 10;	// TMP
+//#define LSN_SHOW_PIXEL
+#ifdef LSN_SHOW_PIXEL
+					ui8Val = ui8BackgroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
+#endif	// #ifdef LSN_SHOW_PIXEL
 				}
 					
-				
-				/*pui8RenderPixel[0] = ui8Val;
+#ifdef LSN_SHOW_PIXEL
+				pui8RenderPixel[0] = ui8Val;
 				pui8RenderPixel[1] = ui8Val;
-				pui8RenderPixel[2] = ui8Val;*/
+				pui8RenderPixel[2] = ui8Val;
+#else
 				pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
 				pui8RenderPixel[1] = m_pPalette.uVals[ui8Val].ui8Rgb[1];
 				pui8RenderPixel[2] = m_pPalette.uVals[ui8Val].ui8Rgb[2];
+#endif	// #ifdef LSN_SHOW_PIXEL
 				
 				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
 			}

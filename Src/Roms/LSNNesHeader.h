@@ -67,6 +67,13 @@ namespace lsn {
 		inline uint16_t							GetMapper() const;
 
 		/**
+		 * Gets the sub-mapper.
+		 *
+		 * \return Returns the sub-mapper ID.
+		 */
+		inline uint16_t							GetSubMapper() const;
+
+		/**
 		 * Gets the ROM mirror mode.
 		 *
 		 * \return Gets the mirroring mode for the ROM.
@@ -188,12 +195,26 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the sub-mapper.
+	 *
+	 * \return Returns the sub-mapper ID.
+	 */
+	inline uint16_t LSN_NES_HEADER::GetSubMapper() const {
+		switch( GetHeaderVersion() ) {
+			case LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 : {
+				return (ui8Byte8 & 0xF0) >> 4;
+			}
+			default : { return 0; }
+		}
+	}
+
+	/**
 	 * Gets the ROM mirror mode.
 	 *
 	 * \return Gets the mirroring mode for the ROM.
 	 */
 	inline LSN_MIRROR_MODE LSN_NES_HEADER::GetMirrorMode() const {
-		if ( ui8Byte6 & 0x08 ) { return LSN_MM_FOURSCREENS;}
+		if ( ui8Byte6 & 0x08 ) { return LSN_MM_FOURSCREENS; }
 		return (ui8Byte6 & 0x01) ? LSN_MM_VERTICAL : LSN_MM_HORIZONTAL;
 	}
 
