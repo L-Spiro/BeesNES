@@ -952,7 +952,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
+			ppPpu->m_ui8IoBusFloater = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
 		}
 
 		/**
@@ -965,6 +965,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_ui8IoBusFloater = _ui8Val;
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
 				ppPpu->m_paPpuAddrT.s.ui16CourseX = _ui8Val >> 3;
@@ -987,6 +988,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
+			ppPpu->m_ui8IoBusFloater = _ui8Val;
 			ppPpu->m_bAddresLatch ^= 1;
 			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
 			ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
@@ -1035,6 +1037,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
+			ppPpu->m_ui8IoBusFloater = _ui8Val;
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
@@ -1058,7 +1061,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PpuNoRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						PpuNoRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			_ui8Ret = ppPpu->m_ui8IoBusFloater;
 
