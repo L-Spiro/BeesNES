@@ -55,7 +55,7 @@ namespace lsn {
 			m_ui8NextTileAttribute( 0 ),
 			m_ui8NextTileLsb( 0 ),
 			m_ui8NextTileMsb( 0 ),
-			m_ui8IoBusFloater( 0 ),
+			m_ui8IoBusLatch( 0 ),
 			m_ui8OamAddr( 0 ),
 			m_ui8OamLatch( 0 ),
 			m_ui8Oam2ClearIdx( 0 ),
@@ -160,7 +160,7 @@ namespace lsn {
 			m_ui16RowDot = 0;
 			m_paPpuAddrT.ui16Addr = 0;
 			m_paPpuAddrV.ui16Addr = 0;
-			m_ui8IoBusFloater = 0;
+			m_ui8IoBusLatch = 0;
 		}
 
 		/**
@@ -856,7 +856,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
 			ppPpu->m_paPpuAddrT.s.ui16NametableX = LSN_CTRL_NAMETABLE_X( ppPpu->m_pcPpuCtrl );
 			ppPpu->m_paPpuAddrT.s.ui16NametableY = LSN_CTRL_NAMETABLE_Y( ppPpu->m_pcPpuCtrl );
 		}
@@ -871,7 +871,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = ppPpu->m_pmPpuMask.ui8Reg = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_pmPpuMask.ui8Reg = _ui8Val;
 		}
 
 		/**
@@ -886,8 +886,8 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Most registers return the I/O float and then update the I/O float with the red value.
 			// 0x2002 immediately updates the floating bus.
-			ppPpu->m_ui8IoBusFloater = (ppPpu->m_ui8IoBusFloater & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
-			_ui8Ret = ppPpu->m_ui8IoBusFloater;
+			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
+			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 			// Reads cause the v-blank flag to reset.
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 			// The address latch also gets reset.
@@ -905,7 +905,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Only the top 3 bits can be modified on the floating bus.
-			ppPpu->m_ui8IoBusFloater = (ppPpu->m_ui8IoBusFloater & 0x1F) | (_ui8Val & 0xE0);
+			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (_ui8Val & 0xE0);
 		}
 
 		/**
@@ -918,7 +918,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = ppPpu->m_ui8OamAddr = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8OamAddr = _ui8Val;
 		}
 
 		/**
@@ -937,8 +937,8 @@ namespace lsn {
 					return;
 				} 
 			}
-			_ui8Ret = ppPpu->m_ui8IoBusFloater;
-			ppPpu->m_ui8IoBusFloater = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+			_ui8Ret = ppPpu->m_ui8IoBusLatch;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
 			//_ui8Ret = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
 		}
 
@@ -952,7 +952,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
 		}
 
 		/**
@@ -965,7 +965,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
 				ppPpu->m_paPpuAddrT.s.ui16CourseX = _ui8Val >> 3;
@@ -988,7 +988,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
-			ppPpu->m_ui8IoBusFloater = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->m_bAddresLatch ^= 1;
 			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
 			ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
@@ -1017,8 +1017,9 @@ namespace lsn {
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
-				_ui8Ret = ppPpu->m_ui8IoBusFloater;
-				ppPpu->m_ui8IoBusFloater = ppPpu->m_bBus.Read( ui16Addr );
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
+				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
+				//_ui8Ret = ppPpu->m_bBus.Read( ui16Addr );
 				/*_ui8Ret = ppPpu->m_bBus.GetFloat();
 				ppPpu->m_bBus.Read( ui16Addr );*/
 			}
@@ -1037,7 +1038,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
-			ppPpu->m_ui8IoBusFloater = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
@@ -1063,9 +1064,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PpuNoRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			_ui8Ret = ppPpu->m_ui8IoBusFloater;
+			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 
-			//ppPpu->m_ui8IoBusFloater = _pui8Data[_ui16Parm1];
+			//ppPpu->m_ui8IoBusLatch = _pui8Data[_ui16Parm1];
 		}
 
 		/**
@@ -1078,7 +1079,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PpuNoWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusFloater = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
 		}
 
 
@@ -1208,7 +1209,8 @@ namespace lsn {
 		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
 		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
 		uint16_t										m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
-		uint8_t											m_ui8IoBusFloater;								/**< The I/O bus floater. */
+		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
+		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
