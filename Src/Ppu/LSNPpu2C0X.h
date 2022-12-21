@@ -20,7 +20,7 @@
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
-//#define LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
+#define LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
 
 #define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
 
@@ -89,7 +89,7 @@ namespace lsn {
 				{
 					constexpr size_t Y = _tDotHeight - 1;
 					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
-					ApplySpriteFunctionPointers( uint16_t( Y ) );
+					//ApplySpriteFunctionPointers( uint16_t( Y ) );
 				}
 
 			}
@@ -135,6 +135,16 @@ namespace lsn {
 		}
 		~CPpu2C0X() {
 		}
+
+
+		// == Types.
+		/** Sprite-evaluation stages. */
+		enum LSN_SPRITE_EVAL_STATE {
+			LSN_SES_CHECK_NEXT,							/**< Copies the Y from the next OAM sprite. */
+			LSN_SES_ADD_SPRITE,							/**< Copies the remaining 3 bytes from the OAM sprite to the secondary OAM sprite. */
+			LSN_SES_OF_SEARCH_ADD_SPRITE,				/**< Reads the remaining 3 bytes of the OAM sprite and then goes to LSN_SES_FINISHED_OAM_LIST. */
+			LSN_SES_FINISHED_OAM_LIST,					/**< When evaluation has gone through all of the OAM sprites. */
+		};
 
 
 		// == Functions.
@@ -190,9 +200,7 @@ namespace lsn {
 			// == Pattern Tables
 			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
 				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
-				// Default to ROM.  Allow cartridges to udpate the write pointers to make it RAM.
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::NoWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
-				//m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
 			}
 
 			// == Nametables
@@ -442,7 +450,9 @@ namespace lsn {
 		 * Starting a frame at [1,_tDotHeight-1] clears some flags.
 		 */
 		void LSN_FASTCALL								Pixel_Idle_StartFrame_Control() {
-			m_psPpuStatus.s.ui8VBlank = m_psPpuStatus.s.ui8Sprite0Hit = 0;
+			m_psPpuStatus.s.ui8VBlank = 0;
+			m_psPpuStatus.s.ui8SpriteOverflow = 0;
+			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			LSN_END_CONTROL_CYCLE;
 		}
 
@@ -765,6 +775,124 @@ namespace lsn {
 		 */
 		template <bool _bIsFirst>
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
+			if constexpr ( _bIsFirst ) {
+				m_ui8SpriteN = m_ui8SpriteCount = 0;
+				m_ui8SpriteM = m_ui8OamAddr;
+				m_sesStage = LSN_SES_CHECK_NEXT;
+				m_bSprite0IsInSecondary = false;
+				/*
+				// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
+				if ( m_ui8OamAddr != 0 ) {
+				}
+				*/
+				/*if ( m_ui8OamAddr != 0 ) {
+					volatile int gjhg  =0;
+				}*/
+			}
+			if ( !Rendering() ) { return; }
+
+			uint8_t ui8PrevOamAddr = m_ui8OamAddr;
+
+#define LSN_INC_ADDR( BY )				{						\
+		m_ui8OamAddr += BY;										\
+		if ( m_ui8OamAddr < ui8PrevOamAddr ) {					\
+			m_sesStage = LSN_SES_FINISHED_OAM_LIST;				\
+			break;												\
+		}														\
+	}
+			
+			if ( m_ui16RowDot & 0x1 ) {
+				// Odd cycles allow reading.
+				switch ( m_sesStage ) {
+					case LSN_SES_FINISHED_OAM_LIST : {}
+					case LSN_SES_CHECK_NEXT : {
+						/** On odd cycles, data is read from (primary) OAM **/
+						m_ui8OamLatch = m_oOam.ui8Bytes[m_ui8OamAddr];	// Sprite's Y.
+						//LSN_INC_ADDR( 4 );
+						break;
+					}
+					case LSN_SES_OF_SEARCH_ADD_SPRITE : {}
+					case LSN_SES_ADD_SPRITE : {
+						m_ui8OamLatch = m_oOam.ui8Bytes[m_ui8OamAddr];	// Sprite's Y.
+						break;
+					}
+				}
+			}
+			else {
+				// Even cycles allow writing.
+				uint8_t ui8M = (m_ui8OamAddr - m_ui8SpriteM) & 0x3;
+				switch ( m_sesStage ) {
+					case LSN_SES_CHECK_NEXT : {
+						/** On even cycles, data is written to secondary OAM (unless secondary OAM is full, in which case it will read the value in secondary OAM instead) */
+						if ( m_ui8SpriteCount < 8 ) {
+							/** 1. Starting at n = 0, read a sprite's Y-coordinate (OAM[n][0], copying it to the next open slot in secondary OAM (unless 8 sprites have been found, in which case the write is ignored). */
+							m_soSecondaryOam.ui8Bytes[m_ui8SpriteCount*4+ui8M] = m_ui8OamLatch;
+							/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
+							int16_t i16Diff = int16_t( m_ui16Scanline ) - int16_t( m_ui8OamLatch );
+
+							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
+								// Move to the copy stage.
+								if ( m_ui8OamAddr == 0 ) {
+									m_bSprite0IsInSecondary = true;
+								}
+								m_sesStage = LSN_SES_ADD_SPRITE;
+								LSN_INC_ADDR( 1 );
+								break;
+							}
+							else {
+								// Sprite is of no interest.
+								LSN_INC_ADDR( 4 );
+							}
+						}
+						else {
+							// A read of secondary OAM is prescribed here, but it would have 0 side-effects, so skipping.
+							// Check for overflow.
+							int16_t i16Diff = int16_t( m_ui16Scanline ) - int16_t( m_ui8OamLatch );
+
+							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
+								// Overflow, baby!
+								m_psPpuStatus.s.ui8SpriteOverflow = true;
+								LSN_INC_ADDR( 1 );
+							}
+							else {
+								m_sesStage = LSN_SES_OF_SEARCH_ADD_SPRITE;
+								// Let's cause a sprite-overflow bug by modifying M here!
+								LSN_INC_ADDR( 1 );
+								// This causes an extra 4 reads.  m_ui8SpriteM is never used from LSN_SES_OF_SEARCH_ADD_SPRITE on except to track how many bytes copied.
+								m_ui8SpriteM = m_ui8OamAddr;
+							}
+						}
+						break;
+					}
+					case LSN_SES_ADD_SPRITE : {
+						m_soSecondaryOam.ui8Bytes[m_ui8SpriteCount*4+ui8M] = m_ui8OamLatch;
+						if ( ui8M == 3 ) {
+							// Copied 4 bytes.
+							++m_ui8SpriteCount;
+							m_sesStage = LSN_SES_CHECK_NEXT;
+							LSN_INC_ADDR( 1 );
+							break;
+						}
+						LSN_INC_ADDR( 1 );
+						break;
+					}
+					case LSN_SES_OF_SEARCH_ADD_SPRITE : {
+						if ( ui8M == 3 ) {
+							LSN_INC_ADDR( 1 );
+							m_sesStage = LSN_SES_FINISHED_OAM_LIST;
+							break;
+						}
+						LSN_INC_ADDR( 1 );
+						break;
+					}
+					case LSN_SES_FINISHED_OAM_LIST : {
+						/** 4. Attempt (and fail) to copy OAM[n][0] into the next free slot in secondary OAM, and increment n (repeat until HBLANK is reached) */
+						break;
+					}
+				}
+			}
+
+#undef LSN_INC_ADDR
 		}
 
 		/**
@@ -884,7 +1012,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Most registers return the I/O float and then update the I/O float with the red value.
+			// Most registers return the I/O float and then update the I/O float with the read value.
 			// 0x2002 immediately updates the floating bus.
 			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
@@ -902,10 +1030,9 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						Write2002( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
-			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Only the top 3 bits can be modified on the floating bus.
-			//ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (_ui8Val & 0xE0);
+		static void LSN_FASTCALL						Write2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
 		}
 
 		/**
@@ -939,7 +1066,6 @@ namespace lsn {
 			}
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
-			//_ui8Ret = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
 		}
 
 		/**
@@ -1023,7 +1149,7 @@ namespace lsn {
 				/*_ui8Ret = ppPpu->m_bBus.GetFloat();
 				ppPpu->m_bBus.Read( ui16Addr );*/
 			}
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
 		}
 
 		/**
@@ -1037,9 +1163,9 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
-			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
+			ppPpu->m_bBus.Write( ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1), _ui8Val );
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
 		}
 
 		/**
@@ -1203,6 +1329,7 @@ namespace lsn {
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
+		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
 		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
 		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
 		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
@@ -1217,12 +1344,17 @@ namespace lsn {
 		uint8_t											m_ui8OamLatch;									/**< Holds temporary OAM data. */
 		uint8_t											m_ui8Oam2ClearIdx;								/**< The index of the byte being cleared during the secondary OAM clear. */
 
+		uint8_t											m_ui8SpriteN;									/**< The N index during sprite evaluation. */
+		uint8_t											m_ui8SpriteM;									/**< The M index during sprite evaluation. */
+		uint8_t											m_ui8SpriteCount;								/**< The number of sprites transferred to the secondary OAM array. */
+
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
 		uint8_t											m_ui8NextTileLsb;								/**< The queued background tile LSB. */
 		uint8_t											m_ui8NextTileMsb;								/**< The queued background tile MSB. */
 
 		bool											m_bAddresLatch;									/**< The address latch. */
+		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
 
 
 		// == Functions.
@@ -1389,9 +1521,11 @@ namespace lsn {
 		 */
 		void											ApplySpriteFunctionPointers( uint16_t _ui16Scanline ) {
 #define LSN_LEFT				1
+#define LSN_EVAL_START			(LSN_LEFT + 8 * 8)
+#define LSN_FETCH_START			(LSN_EVAL_START + 8 * 32)
 			const auto Y = _ui16Scanline;
 			// Clear secondary OAM.
-			for ( auto X = LSN_LEFT; X < (LSN_LEFT + 8 * 8); X += 2 ) {
+			for ( auto X = LSN_LEFT; X < LSN_EVAL_START; X += 2 ) {
 				{	// Latch data.
 					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(X+0)];
 					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_0_Sprite;
@@ -1401,7 +1535,20 @@ namespace lsn {
 					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_1_Sprite;
 				}
 			}
+			{	// Start evaluation process.
+				LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+LSN_EVAL_START];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<true>;
+			}
+			// Finish the evaluation process.
+			for ( auto X = LSN_EVAL_START + 1; X < LSN_FETCH_START; ++X ) {
+				{	// Start evaluation process.
+					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+X];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false>;
+				}
+			}
 
+#undef LSN_FETCH_START
+#undef LSN_EVAL_START
 #undef LSN_LEFT
 		}
 

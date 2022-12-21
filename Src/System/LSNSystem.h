@@ -260,6 +260,10 @@ namespace lsn {
 						m_pmbMapper = std::make_unique<CMapper000>();
 						break;
 					}
+					case 1 : {
+						m_pmbMapper = std::make_unique<CMapper001>();
+						break;
+					}
 					case 2 : {
 						m_pmbMapper = std::make_unique<CMapper002>();
 						break;
@@ -268,10 +272,18 @@ namespace lsn {
 						m_pmbMapper = std::make_unique<CMapper003>();
 						break;
 					}
+					case 94 : {
+						m_pmbMapper = std::make_unique<CMapper094>();
+						break;
+					}
 					default : {
 						std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
 						::OutputDebugStringA( sText.c_str() );
 					}
+				}
+				{
+					std::string sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
+					::OutputDebugStringA( sText.c_str() );
 				}
 
 				if ( m_pmbMapper ) {

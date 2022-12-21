@@ -93,7 +93,7 @@ namespace lsn {
 		/** An address-reading function. */
 		typedef void (LSN_FASTCALL *		PfReadFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
 
-		/** An address-reading function. */
+		/** An address-writing function. */
 		typedef void (LSN_FASTCALL *		PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
 
 		/** An address accessor. */

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 002 implementation.
+ * Description: Mapper 094 implementation.
  */
 
 
@@ -15,15 +15,15 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper002
-	 * \brief Mapper 002 implementation.
+	 * Class CMapper094
+	 * \brief Mapper 094 implementation.
 	 *
-	 * Description: Mapper 002 implementation.
+	 * Description: Mapper 094 implementation.
 	 */
-	class CMapper002 : public CMapperBase {
+	class CMapper094 : public CMapperBase {
 	public :
-		CMapper002();
-		virtual ~CMapper002();
+		CMapper094();
+		virtual ~CMapper094();
 
 
 		// == Functions.

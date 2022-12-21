@@ -24,7 +24,7 @@ namespace lsn {
 	 */
 	void CMapper003::InitWithRom( LSN_ROM &_rRom ) {
 		CMapperBase::InitWithRom( _rRom );
-		m_ui16ChrBank = 0;
+		m_ui8ChrBank = 0;
 	}
 
 	/**
@@ -40,7 +40,7 @@ namespace lsn {
 		}
 
 		for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-			_pbPpuBus->SetReadFunc( uint16_t( I ), &Mapper003PpuRead, this, uint16_t( I ) );
+			_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead_2000, this, uint16_t( I ) );
 		}
 	}
 
@@ -54,21 +54,8 @@ namespace lsn {
 	 */
 	void LSN_FASTCALL CMapper003::Mapper003CpuWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 		CMapper003 * pm3This = reinterpret_cast<CMapper003 *>(_pvParm0);
-		pm3This->m_ui16ChrBank = _ui8Val & 0x3;
+		pm3This->m_ui8ChrBank = _ui8Val & 0x3;
 		// This area is ROM so deny any further writing operations.
-	}
-
-	/**
-	 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current bank.
-	 *
-	 * \param _pvParm0 A data value assigned to this address.
-	 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
-	 * \param _pui8Data The buffer from which to read.
-	 * \param _ui8Ret The read value.
-	 */
-	void LSN_FASTCALL CMapper003::Mapper003PpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-		CMapper003 * pm3This = reinterpret_cast<CMapper003 *>(_pvParm0);
-		_ui8Ret = pm3This->m_prRom->vChrRom[pm3This->m_ui16ChrBank*0x2000+_ui16Parm1];
 	}
 
 }	// namespace lsn

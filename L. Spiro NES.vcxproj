@@ -207,6 +207,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -259,6 +260,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -290,6 +292,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper001.h" />
     <ClInclude Include="Src\Mappers\LSNMapper002.h" />
     <ClInclude Include="Src\Mappers\LSNMapper003.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper094.h" />
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
@@ -324,8 +327,10 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper000.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper001.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper002.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper003.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper094.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapperBase.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />
