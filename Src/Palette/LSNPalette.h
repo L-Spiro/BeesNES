@@ -21,7 +21,7 @@ namespace lsn {
 				uint8_t		ui8G;
 				uint8_t		ui8B;
 			}				sRgb;
-		}					uVals[0x40];
+		}					uVals[1<<(6+1+1+1)];	// 6 bits for the standard set of colors, then 1 more bit for each emphasis set.
 	};
 
 }	// namespace lsn

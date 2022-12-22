@@ -169,22 +169,18 @@ namespace lsn {
 					pmThis->m_ui8Control = pmThis->m_ui8Load & 0b11111;
 					switch ( pmThis->m_ui8Control & 0b11 ) {
 						case 0 : {
-							::OutputDebugStringA( "Mirror: LSN_MM_1_SCREEN_A\r\n" );
 							pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
 							break;
 						}
 						case 1 : {
-							::OutputDebugStringA( "Mirror: LSN_MM_1_SCREEN_B\r\n" );
 							pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
 							break;
 						}
 						case 2 : {
-							::OutputDebugStringA( "Mirror: LSN_MM_VERTICAL\r\n" );
 							pmThis->m_mmMirror = LSN_MM_VERTICAL;
 							break;
 						}
 						case 3 : {
-							::OutputDebugStringA( "Mirror: LSN_MM_HORIZONTAL\r\n" );
 							pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
 							break;
 						}

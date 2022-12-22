@@ -463,8 +463,13 @@ namespace lsn {
 #ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
 			m_ui16Scanline = 0;
 			
-			if ( _bOddFrameShenanigans && (m_ui64Frame & 0x1) ) {
-				m_ui16RowDot = 1;
+			if constexpr ( _bOddFrameShenanigans ) {
+				if ( m_ui64Frame & 0x1 ) {
+					m_ui16RowDot = 1;
+				}
+				else {
+					m_ui16RowDot = 0;
+				}
 			}
 			else {
 				m_ui16RowDot = 0;
@@ -588,7 +593,7 @@ namespace lsn {
 		 * The first of the 2 NT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadNt_0_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			LoadLatchedBackgroundIntoShiftRegisters();
 			RenderPixel();
 			// LSN_PPU_NAMETABLES = 0x2000.
@@ -599,7 +604,7 @@ namespace lsn {
 		 * The second of the 2 NT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadNt_1_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			m_ui8NextTileId = m_ui8NtAtBuffer;
 		}
@@ -608,7 +613,7 @@ namespace lsn {
 		 * The first of the 2 AT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			// LSN_PPU_NAMETABLES = 0x2000.
 			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
@@ -625,7 +630,7 @@ namespace lsn {
 		 * The second of the 2 AT read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadAt_1_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
 			/*if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
@@ -637,7 +642,7 @@ namespace lsn {
 		 * The first of the 2 LSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadLsb_0_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			// LSN_PPU_PATTERN_TABLES = 0x0000.
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
@@ -650,7 +655,7 @@ namespace lsn {
 		 * The second of the 2 LSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadLsb_1_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			m_ui8NextTileLsb = m_ui8NtAtBuffer;
 		}
@@ -659,7 +664,7 @@ namespace lsn {
 		 * The first of the 2 MSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadMsb_0_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			// LSN_PPU_PATTERN_TABLES = 0x0000.
 			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
@@ -672,7 +677,7 @@ namespace lsn {
 		 * The second of the 2 MSB read cycles.
 		 */
 		void LSN_FASTCALL								Pixel_LoadMsb_1_Work() {
-			ShiftBackgroundRegisters();
+			ShiftBackgroundAndSpriteRegisters();
 			RenderPixel();
 			m_ui8NextTileMsb = m_ui8NtAtBuffer;
 		}
@@ -893,6 +898,122 @@ namespace lsn {
 			}
 
 #undef LSN_INC_ADDR
+		}
+
+		/**
+		 * Handles fetching sprites (copying from secondary OAM to the current-line shifters during cycles 257-320.
+		 */
+		template <unsigned _uSpriteIdx, unsigned _uStage>
+		void LSN_FASTCALL								Pixel_Fetch_Sprite() {
+			// 1-4: Read the Y-coordinate, tile number, attributes, and X-coordinate of the selected sprite from secondary OAM
+			if constexpr ( _uStage == 0 ) {
+				if constexpr ( _uSpriteIdx == 0 ) {
+					m_ui8ThisLineSpriteCount = m_ui8SpriteCount;
+					m_bSprite0IsInSecondaryThisLine = m_bSprite0IsInSecondary;
+				}
+				m_ui8SpriteN = m_soSecondaryOam.s[_uSpriteIdx].ui8Y;
+			}
+			if constexpr ( _uStage == 1 ) {
+				m_ui8SpriteM = m_soSecondaryOam.s[_uSpriteIdx].ui8Id;
+			}
+			if constexpr ( _uStage == 2 ) {
+				m_ui8SpriteAttrib = m_soSecondaryOam.s[_uSpriteIdx].ui8Flags;
+			}
+			if constexpr ( _uStage == 3 ) {
+				m_ui8SpriteX = m_soSecondaryOam.s[_uSpriteIdx].ui8X;
+			}
+
+			// Pretty famous bit-flipper: https://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
+			auto FlipBits = []( uint8_t _ui8Byte ) {
+				_ui8Byte = ((_ui8Byte & 0xF0) >> 4) | ((_ui8Byte & 0x0F) << 4);
+				_ui8Byte = ((_ui8Byte & 0xCC) >> 2) | ((_ui8Byte & 0x33) << 2);
+				_ui8Byte = ((_ui8Byte & 0xAA) >> 1) | ((_ui8Byte & 0x55) << 1);
+				return _ui8Byte;
+
+			};
+			// 5-8: Read the X-coordinate of the selected sprite from secondary OAM 4 times (while the PPU fetches the sprite tile data)
+			if constexpr ( _uStage == 4 ) {
+				m_ui16SpritePatternTmp = 0;
+				
+				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
+					// Calculate m_ui16SpritePatternTmp.
+					if ( !m_pcPpuCtrl.s.ui8SpriteSize ) {
+						// 8-by-8.
+						if ( !(m_ui8SpriteAttrib & 0x80) ) {
+							// No vertical flip.
+							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
+								(m_ui8SpriteM << 4) |
+								(m_ui16Scanline - m_ui8SpriteN);
+						}
+						else {
+							// Major vertical flippage going on here.
+							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
+								(m_ui8SpriteM << 4) |
+								(7 - (m_ui16Scanline - m_ui8SpriteN));
+						}
+					}
+					else {
+						// 8-by-16.
+						uint8_t ui8PatternLine = uint8_t( m_ui16Scanline - m_ui8SpriteN );
+						if ( !(m_ui8SpriteAttrib & 0x80) ) {
+							// No vertical flip.
+							if ( ui8PatternLine < 8 ) {
+								// Top half.
+								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+									((m_ui8SpriteM & 0xFE) << 4) |
+									ui8PatternLine;
+							}
+							else {
+								// Bottom half.
+								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+									(((m_ui8SpriteM & 0xFE) + 1) << 4) |
+									(ui8PatternLine & 0x7);
+							}
+						}
+						else {
+							// Major vertical flippage going on here.
+							if ( ui8PatternLine < 8 ) {
+								// Top half (using bottom tile).
+								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+									(((m_ui8SpriteM & 0xFE) + 1) << 4) |
+									(7 - ui8PatternLine);
+							}
+							else {
+								// Bottom half (using top tile).
+								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+									((m_ui8SpriteM & 0xFE) << 4) |
+									((7 - ui8PatternLine) & 0x7);
+							}
+						}
+					}
+					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp );
+					if ( m_ui8SpriteAttrib & 0x40 ) {
+						ui8Bits = FlipBits( ui8Bits );
+					}
+					m_asActiveSprites.ui8ShiftLo[_uSpriteIdx] = ui8Bits;
+				}
+				else {
+					m_asActiveSprites.ui8ShiftLo[_uSpriteIdx] = 0;
+				}
+			}
+			if constexpr ( _uStage == 5 ) {
+				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
+					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp + 8 );
+					if ( m_ui8SpriteAttrib & 0x40 ) {
+						ui8Bits = FlipBits( ui8Bits );
+					}
+					m_asActiveSprites.ui8ShiftHi[_uSpriteIdx] = ui8Bits;
+				}
+				else {
+					m_asActiveSprites.ui8ShiftHi[_uSpriteIdx] = 0;
+				}
+			}
+			if constexpr ( _uStage == 6 ) {
+				m_asActiveSprites.ui8Latch[_uSpriteIdx] = m_ui8SpriteAttrib;
+			}
+			if constexpr ( _uStage == 7 ) {
+				m_asActiveSprites.ui8X[_uSpriteIdx] = m_ui8SpriteX;
+			}
 		}
 
 		/**
@@ -1311,11 +1432,20 @@ namespace lsn {
 			};
 		};
 
+		/** Sprites loaded to be rendered on the current scanline. */
+		struct LSN_ACTIVE_SPRITE {
+			uint8_t										ui8ShiftLo[8];									/**< The first of a pair of shift registers for sprite attributes/patterns. */
+			uint8_t										ui8ShiftHi[8];									/**< The second of a pair of shift registers for sprite attributes/patterns. */
+			uint8_t										ui8Latch[8];									/**< Attribute bytes for the sprite. */
+			uint8_t										ui8X[8];										/**< The X position of the sprite. */
+		};
+
 
 		// == Members.
 		LSN_PALETTE										m_pPalette;
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
+		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
@@ -1336,6 +1466,7 @@ namespace lsn {
 		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
 		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
 		uint16_t										m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
+		uint16_t										m_ui16SpritePatternTmp;							/**< A temporary used during sprite fetches. */
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
@@ -1344,22 +1475,26 @@ namespace lsn {
 		uint8_t											m_ui8OamLatch;									/**< Holds temporary OAM data. */
 		uint8_t											m_ui8Oam2ClearIdx;								/**< The index of the byte being cleared during the secondary OAM clear. */
 
-		uint8_t											m_ui8SpriteN;									/**< The N index during sprite evaluation. */
-		uint8_t											m_ui8SpriteM;									/**< The M index during sprite evaluation. */
+		uint8_t											m_ui8SpriteN;									/**< The N index during sprite evaluation and the sprite Y during fetches. */
+		uint8_t											m_ui8SpriteM;									/**< The M index during sprite evaluation and the sprite tile number during fetches. */
+		uint8_t											m_ui8SpriteAttrib;								/**< The sprite attributes during fetches. */
+		uint8_t											m_ui8SpriteX;									/**< The sprite X during fetches. */
 		uint8_t											m_ui8SpriteCount;								/**< The number of sprites transferred to the secondary OAM array. */
 
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
 		uint8_t											m_ui8NextTileLsb;								/**< The queued background tile LSB. */
 		uint8_t											m_ui8NextTileMsb;								/**< The queued background tile MSB. */
+		uint8_t											m_ui8ThisLineSpriteCount;						/**< The number of sprites in the current scanline. */
 
 		bool											m_bAddresLatch;									/**< The address latch. */
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
+		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
 
 		// == Functions.
 		/**
-		 * Assigns the gather/render functions at a given X Y pixel location.
+		 * Assigns the gather/render functions at a given X/Y pixel location.
 		 *
 		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
 		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
@@ -1409,7 +1544,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Assigns the garbage gather/render functions at a given X Y pixel location.
+		 * Assigns the garbage gather/render functions at a given X/Y pixel location.
 		 *
 		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
 		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
@@ -1448,6 +1583,72 @@ namespace lsn {
 				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadMsb_1_Work;
 			}
+		}
+
+		/**
+		 * Assigns the sprite-fetch functions (for a given sprite index) at a given X/Y pixel location.
+		 *
+		 * \param _stX The X pixel location from which to begin assiging the fetch functions.
+		 * \param _stY The Y pixel location from which to begin assiging the fetch functions.
+		 */
+		template <unsigned _uSpriteIdx>
+		void											AssignSpriteFetchFuncs_BySpriteIdx( size_t _stX, size_t _stY ) {
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 0>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 1>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 2>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 3>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 4>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 5>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 6>;
+			}
+			{
+				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 7>;
+			}
+		}
+
+		/**
+		 * Assigns the sprite-fetch functions at a given X/Y pixel location.
+		 *
+		 * \param _stX The X pixel location from which to begin assiging the fetch functions.
+		 * \param _stY The Y pixel location from which to begin assiging the fetch functions.
+		 */
+		void											AssignSpriteFetchFuncs( size_t _stX, size_t _stY ) {
+			AssignSpriteFetchFuncs_BySpriteIdx<0>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<1>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<2>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<3>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<4>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<5>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<6>( _stX, _stY );
+			_stX += 8;
+			AssignSpriteFetchFuncs_BySpriteIdx<7>( _stX, _stY );
 		}
 
 		/**
@@ -1522,7 +1723,7 @@ namespace lsn {
 		void											ApplySpriteFunctionPointers( uint16_t _ui16Scanline ) {
 #define LSN_LEFT				1
 #define LSN_EVAL_START			(LSN_LEFT + 8 * 8)
-#define LSN_FETCH_START			(LSN_EVAL_START + 8 * 32)
+#define LSN_FETCH_START			(LSN_EVAL_START + 8 * 24)
 			const auto Y = _ui16Scanline;
 			// Clear secondary OAM.
 			for ( auto X = LSN_LEFT; X < LSN_EVAL_START; X += 2 ) {
@@ -1546,6 +1747,7 @@ namespace lsn {
 					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false>;
 				}
 			}
+			AssignSpriteFetchFuncs( LSN_FETCH_START, Y );
 
 #undef LSN_FETCH_START
 #undef LSN_EVAL_START
@@ -1555,12 +1757,23 @@ namespace lsn {
 		/**
 		 * Shifts the background registers left one.
 		 */
-		void											ShiftBackgroundRegisters() {
+		void											ShiftBackgroundAndSpriteRegisters() {
 			if ( Rendering() ) {
 				m_ui16ShiftPatternLo <<= 1;
 				m_ui16ShiftPatternHi <<= 1;
 				m_ui16ShiftAttribLo <<= 1;
 				m_ui16ShiftAttribHi <<= 1;
+				if ( m_ui16RowDot >= 2 && m_ui16RowDot <= 256 ) {
+					for ( uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
+						if ( m_asActiveSprites.ui8X[I] ) {
+							--m_asActiveSprites.ui8X[I];
+						}
+						else {
+							m_asActiveSprites.ui8ShiftLo[I] <<= 1;
+							m_asActiveSprites.ui8ShiftHi[I] <<= 1;
+						}
+					}
+				}
 			}
 		}
 
@@ -1619,10 +1832,70 @@ namespace lsn {
 							((m_ui16ShiftAttribLo & ui16Bit) > 0);
 					}
 
-					ui8Val = m_bBus.Read( 0x3F00 + (ui8BackgroundPalette << 2) | ui8BackgroundPixel ) & 0x3F;
+					uint8_t ui8ForegroundPixel = 0;
+					uint8_t ui8ForegroundPalette = 0;
+					uint8_t ui8ForegroundPriority = 0;
+					bool bIsRenderingSprite0 = false;
+					if ( m_pmPpuMask.s.ui8ShowSprites && (m_pmPpuMask.s.ui8LeftSprites || m_ui16RowDot >= 9) ) {
+						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
+							if ( m_asActiveSprites.ui8X[I] == 0 ) {
+								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
+									((m_asActiveSprites.ui8ShiftLo[I] & 0x80) > 0);
+								ui8ForegroundPalette = (m_asActiveSprites.ui8Latch[I] & 0x03) + 4;
+								ui8ForegroundPriority = (m_asActiveSprites.ui8Latch[I] & 0x20) == 0;
+
+								if ( ui8ForegroundPixel != 0 ) {
+									bIsRenderingSprite0 = (I == 0);
+									break;
+								}
+							}
+						}
+					}
+
+					// Handle priority.
+					uint8_t ui8FinalPixel = 0;
+					uint8_t ui8FinalPalette = 0;
+
+					if ( ui8BackgroundPixel && !ui8ForegroundPixel ) {
+						ui8FinalPixel = ui8BackgroundPixel;
+						ui8FinalPalette = ui8BackgroundPalette;
+					}
+					else if ( !ui8BackgroundPixel && ui8ForegroundPixel ) {
+						ui8FinalPixel = ui8ForegroundPixel;
+						ui8FinalPalette = ui8ForegroundPalette;
+					}
+					else if ( ui8BackgroundPixel && ui8ForegroundPixel ) {
+						if ( ui8ForegroundPriority ) {
+							ui8FinalPixel = ui8ForegroundPixel;
+							ui8FinalPalette = ui8ForegroundPalette;
+						}
+						else {
+							ui8FinalPixel = ui8BackgroundPixel;
+							ui8FinalPalette = ui8BackgroundPalette;
+						}
+
+
+						// Since we already made the "ui8BackgroundPixel && ui8ForegroundPixel" check, handle sprite-0 here too.
+						// If sprite 0 was in the secondary OAM last scanline, m_bSprite0IsInSecondaryThisLine is set for this scanline.
+						if ( m_bSprite0IsInSecondaryThisLine && bIsRenderingSprite0 ) {
+							// bIsRenderingSprite0 automatically means that sprites are enabled and that this pixel was not 0.
+							if ( !(m_pmPpuMask.s.ui8LeftBackground | m_pmPpuMask.s.ui8LeftSprites) ) {
+								if ( m_ui16RowDot >= 9 && m_ui16RowDot < 258 ) {
+									m_psPpuStatus.s.ui8Sprite0Hit = 1;
+								}
+							}
+							else {
+								if ( m_ui16RowDot >= 1 && m_ui16RowDot < 258 ) {
+									m_psPpuStatus.s.ui8Sprite0Hit = 1;
+								}
+							}
+						}
+					}
+
+					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
 //#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
-					ui8Val = ui8BackgroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
+					ui8Val = ui8ForegroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
 				}
 					
