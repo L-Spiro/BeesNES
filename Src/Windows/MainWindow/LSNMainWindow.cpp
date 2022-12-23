@@ -381,8 +381,8 @@ namespace lsn {
 			BYTE bPoll[256];
 			::GetKeyboardState( bPoll );
 			uint8_t ui8Ret = 0;
-			if ( bPoll['X'] & 0x80 ) { ui8Ret |= LSN_IB_A; }
-			if ( bPoll['Z'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
+			if ( bPoll['X'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
+			if ( bPoll['Z'] & 0x80 ) { ui8Ret |= LSN_IB_A; }
 
 			if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
 			if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }

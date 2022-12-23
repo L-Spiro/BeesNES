@@ -34,7 +34,7 @@ namespace lsn {
 	 * \param _pbCpuBus A pointer to the CPU bus.
 	 * \param _pbPpuBus A pointer to the PPU bus.
 	 */
-	void CMapper002::ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+	void CMapper002::ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * /*_pbPpuBus*/ ) {
 		// Set the reads of the fixed bank at the end.		
 		m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), 0x4000 ) - 0x4000;
 		for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {

@@ -340,6 +340,12 @@
     <None Include="Src\Cpu\LSNInstMetaData.inl">
       <Filter>Header Files\Cpu</Filter>
     </None>
+    <None Include="Src\Ppu\LSNCreateCycleTable.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncs.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest">

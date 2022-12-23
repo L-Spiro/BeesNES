@@ -24,6 +24,15 @@
 
 #define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
 
+#define LSN_TEMPLATE_PPU
+#define LSN_GEN_PPU
+
+#ifdef LSN_GEN_PPU
+#include <map>
+#include <string>
+#include <vector>
+#endif	// #ifdef LSN_GEN_PPU
+
 namespace lsn {
 
 	/**
@@ -50,6 +59,7 @@ namespace lsn {
 			m_ui16ShiftPatternHi( 0 ),
 			m_ui16ShiftAttribLo( 0 ),
 			m_ui16ShiftAttribHi( 0 ),
+			m_ui8ThisLineSpriteCount( 0 ),
 			m_ui8NtAtBuffer( 0 ),
 			m_ui8NextTileId( 0 ),
 			m_ui8NextTileAttribute( 0 ),
@@ -60,6 +70,14 @@ namespace lsn {
 			m_ui8OamLatch( 0 ),
 			m_ui8Oam2ClearIdx( 0 ),
 			m_bAddresLatch( false ) {
+
+#ifdef LSN_TEMPLATE_PPU
+#ifdef LSN_GEN_PPU
+			GenerateCycleFuncs();
+#else
+#include "LSNCreateCycleTable.inl"
+#endif	// #ifdef LSN_GEN_PPU
+#endif	// #ifdef LSN_TEMPLATE_PPU
 
 			for ( auto Y = _tDotHeight; Y--; ) {
 				for ( auto X = _tDotWidth; X--; ) {
@@ -152,10 +170,14 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+#ifdef LSN_TEMPLATE_PPU
+			(this->*m_cCycle[m_stCurCycle])();
+#else
 			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
 			(this->*m_cSpriteCycles[stIdx].pfFunc)();
 			(this->*m_cWorkCycles[stIdx].pfFunc)();
 			(this->*m_cControlCycles[stIdx].pfFunc)();
+#endif	// #ifdef LSN_TEMPLATE_PPU
 			++m_ui64Cycle;
 		}
 
@@ -171,6 +193,10 @@ namespace lsn {
 			m_paPpuAddrT.ui16Addr = 0;
 			m_paPpuAddrV.ui16Addr = 0;
 			m_ui8IoBusLatch = 0;
+
+#ifdef LSN_TEMPLATE_PPU
+			m_stCurCycle = 0;
+#endif	// #ifdef LSN_TEMPLATE_PPU
 		}
 
 		/**
@@ -571,8 +597,9 @@ namespace lsn {
 				}
 				m_pdhHost->Swap();
 			}
-
+#ifndef LSN_TEMPLATE_PPU
 			LSN_END_CONTROL_CYCLE;
+#endif	// #ifndef LSN_TEMPLATE_PPU
 		}
 
 		/**
@@ -782,6 +809,7 @@ namespace lsn {
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 			if constexpr ( _bIsFirst ) {
 				m_ui8SpriteN = m_ui8SpriteCount = 0;
+				m_ui8OamAddr = 0;	// TMP.
 				m_ui8SpriteM = m_ui8OamAddr;
 				m_sesStage = LSN_SES_CHECK_NEXT;
 				m_bSprite0IsInSecondary = false;
@@ -1093,7 +1121,7 @@ namespace lsn {
 		 *
 		 * \return Returns true if either the background or sprites are enabled, false otherwise.
 		 */
-		bool											Rendering() const { return m_pmPpuMask.s.ui8ShowBackground || m_pmPpuMask.s.ui8ShowSprites; }
+		inline bool										Rendering() const { return m_pmPpuMask.s.ui8ShowBackground || m_pmPpuMask.s.ui8ShowSprites; }
 
 		/**
 		 * Writing to 0x2000 (PPUCTRL).
@@ -1448,6 +1476,10 @@ namespace lsn {
 		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
+#ifdef LSN_TEMPLATE_PPU
+		PfCycles										m_cCycle[_tDotWidth*_tDotHeight];				/**< The cycle function. */
+		size_t											m_stCurCycle;									/**< The current cycle function. */
+#endif	// #ifdef LSN_TEMPLATE_PPU
 		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
 		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/**< The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
 		LSN_CYCLE										m_cSpriteCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle sprite-handing work.  Sprite work cycles are used to fetch sprite data for rendering. */
@@ -1814,17 +1846,21 @@ namespace lsn {
 		 * Renders a pixel based on the current state of the PPU.
 		 */
 		inline void										RenderPixel() {
+#ifdef LSN_TEMPLATE_PPU
+			uint16_t ui16ThisX = uint16_t( m_stCurCycle % _tDotWidth ), ui16ThisY = uint16_t( m_stCurCycle / _tDotWidth );
+#else
+			uint16_t ui16ThisX = m_ui16RowDot, ui16ThisY = m_ui16Scanline;
+#endif	// #ifdef LSN_TEMPLATE_PPU
 			uint16_t ui16X, ui16Y;
-			if ( CycleToRenderTarget( m_ui16RowDot, m_ui16Scanline, ui16X, ui16Y ) && m_pui8RenderTarget ) {
+			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 				uint8_t ui8Val = 0x0F;
-				if ( ui16Y >= _tRender ) {}												// Black pre-render scanline on PAL.
+				if ( ui16Y >= _tRender ) {}													// Black pre-render scanline on PAL.
 				else if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {}		// Horizontal black border on PAL.
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;
-					if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || m_ui16RowDot >= 9) ) {
-				
+					if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || ui16X >= 8) ) {
 						const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
 						ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
 							((m_ui16ShiftPatternLo & ui16Bit) > 0);
@@ -1836,7 +1872,7 @@ namespace lsn {
 					uint8_t ui8ForegroundPalette = 0;
 					uint8_t ui8ForegroundPriority = 0;
 					bool bIsRenderingSprite0 = false;
-					if ( m_pmPpuMask.s.ui8ShowSprites && (m_pmPpuMask.s.ui8LeftSprites || m_ui16RowDot >= 9) ) {
+					if ( m_pmPpuMask.s.ui8ShowSprites && (m_pmPpuMask.s.ui8LeftSprites || ui16X >= 8) ) {
 						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
 							if ( m_asActiveSprites.ui8X[I] == 0 ) {
 								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
@@ -1880,12 +1916,12 @@ namespace lsn {
 						if ( m_bSprite0IsInSecondaryThisLine && bIsRenderingSprite0 ) {
 							// bIsRenderingSprite0 automatically means that sprites are enabled and that this pixel was not 0.
 							if ( !(m_pmPpuMask.s.ui8LeftBackground | m_pmPpuMask.s.ui8LeftSprites) ) {
-								if ( m_ui16RowDot >= 9 && m_ui16RowDot < 258 ) {
+								if ( ui16ThisX >= 9 && ui16ThisX < 258 ) {
 									m_psPpuStatus.s.ui8Sprite0Hit = 1;
 								}
 							}
 							else {
-								if ( m_ui16RowDot >= 1 && m_ui16RowDot < 258 ) {
+								if ( ui16ThisX >= 1 && ui16ThisX < 258 ) {
 									m_psPpuStatus.s.ui8Sprite0Hit = 1;
 								}
 							}
@@ -1895,7 +1931,7 @@ namespace lsn {
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
 //#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
-					ui8Val = ui8ForegroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
+					ui8Val = ui8BackgroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
 				}
 					
@@ -1912,6 +1948,364 @@ namespace lsn {
 				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
 			}
 		}
+
+
+#ifdef LSN_TEMPLATE_PPU
+		/**
+		 * Returns the scanline converted to a render-target Y.
+		 *
+		 * \param _uScanline The scanline.
+		 * \return Returns the scanline converted to a render-target Y. 
+		 */
+		template <unsigned _uScanline>
+		static constexpr int16_t						ScanlineToRenderTarget() {
+			return int16_t( _tPreRender + _tRender - 1 ) - int16_t( _uScanline );
+		}
+
+		/**
+		 * Returns the row dot converted to a render-target X.
+		 *
+		 * \param _uDot The row dot.
+		 * \return Returns the row dot converted to a render-target X.
+		 */
+		template <unsigned _uDot>
+		static constexpr int16_t						DotToRenderTarget() {
+			return int16_t( _uDot ) - 1;
+		}
+
+		/**
+		 * Returns true if the given scanline and dot are within the render target.
+		 *
+		 * \param _uDot The row dot.
+		 * \param _uScanline The scanline.
+		 * \return Returns true if the [dot,scanline] conversion gives a result that is inside the render target.
+		 */
+		template <unsigned _uX, unsigned _uY>
+		static constexpr bool							InRenderTargetView() {
+			return (uint16_t( ScanlineToRenderTarget<_uY>() ) < (_tPreRender + _tRender)) &&
+				(uint16_t( DotToRenderTarget<_uX>() ) < _tRenderW);
+		}
+
+#ifdef LSN_GEN_PPU
+		/**
+		 * Executing a single PPU cycle.
+		 */
+		//template <unsigned _uX, unsigned _uY>
+		std::string										Cycle_Generate( uint16_t _uX, uint16_t _uY ) {
+#define LSN_LEFT				1
+#define LSN_RIGHT				(_tRenderW + LSN_LEFT)		// 257.
+#define LSN_NEXT_TWO			(LSN_RIGHT + 8 * 8)			// 321.
+#define LSN_DUMMY_BEGIN			(LSN_NEXT_TWO + 8 * 2)		// 337.
+
+			std::string sRet;
+
+			
+
+			// Unused reads at the end of a line.
+			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+				(_uX >= LSN_DUMMY_BEGIN) ) {
+				{
+					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
+						sRet += "\r\n"
+						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"/*m_ui8NtAtBuffer = */m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
+						sRet += "\r\n"
+						"/*m_ui8NextTileId = m_ui8NtAtBuffer;*/\r\n";
+					}
+				}
+			}
+
+			// Shifting and transferring to shifters.
+			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+				sRet += "\r\n"
+				"if ( Rendering() ) {\r\n"
+				"	m_ui16ShiftPatternLo <<= 1;\r\n"
+				"	m_ui16ShiftPatternHi <<= 1;\r\n"
+				"	m_ui16ShiftAttribLo <<= 1;\r\n"
+				"	m_ui16ShiftAttribHi <<= 1;\r\n";
+				if ( (_uX - LSN_LEFT) % 8 == 0 ) {
+					sRet += "\r\n"
+				"	m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;\r\n"
+				"	m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;\r\n"
+				"\r\n"
+				"	m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);\r\n"
+				"	m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);\r\n";
+				}
+				sRet +=	
+				"}\r\n";
+			}
+
+
+			// Render.
+			{
+				uint16_t ui16X, ui16Y;
+				if ( CycleToRenderTarget( _uX, _uY, ui16X, ui16Y ) ) {
+					sRet += "\r\n"
+					"RenderPixel();\r\n";
+				}
+			}
+
+			// Background processing (1-256, 321-336).
+			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+				// Load background data.
+				{
+					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
+						sRet += "\r\n"
+						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
+						sRet += "\r\n"
+						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 2 ) {
+						sRet += "\r\n"
+						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |\r\n"
+						"	(m_paPpuAddrV.s.ui16NametableX << 10) |\r\n"
+						"	((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |\r\n"
+						"	(m_paPpuAddrV.s.ui16CourseX >> 2) );\r\n"
+						"if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NtAtBuffer >>= 4; }\r\n"
+						"if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NtAtBuffer >>= 2; }\r\n"
+						"m_ui8NtAtBuffer &= 0x3;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
+						sRet += "\r\n"
+						"m_ui8NextTileAttribute = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
+						sRet += "\r\n"
+						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
+						"	0) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 5 ) {
+						sRet += "\r\n"
+						"m_ui8NextTileLsb = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 6 ) {
+						sRet += "\r\n"
+						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
+						"	8) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 7 ) {
+						sRet += "\r\n"
+						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
+					}
+				}
+			}
+
+			
+			// Increase H and V.
+			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+				if ( (_uX - LSN_LEFT) % 8 == 7 ) {
+					sRet += "\r\n"
+					"// Increase v.H.\r\n"
+					"if ( Rendering() ) {\r\n"
+					"	// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.\r\n"
+					"	if ( m_paPpuAddrV.s.ui16CourseX == 31 ) {\r\n"
+					"		// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.\r\n"
+					"		m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;\r\n"
+					"	}\r\n"
+					"	++m_paPpuAddrV.s.ui16CourseX;\r\n"
+					"}\r\n";
+				}
+				if ( _uX == LSN_RIGHT - 1 ) {
+					sRet += "\r\n"
+					"// Increase v.V.\r\n"
+					"if ( Rendering() ) {\r\n"
+					"	if ( m_paPpuAddrV.s.ui16FineY < 7 ) {\r\n"
+					"		++m_paPpuAddrV.s.ui16FineY;\r\n"
+					"	}\r\n"
+					"	else {\r\n"
+					"		m_paPpuAddrV.s.ui16FineY = 0;\r\n"
+					"		// Wrap and increment the course.\r\n"
+					"		// Do we need to swap vertical nametable targets?\r\n"
+					"		switch ( m_paPpuAddrV.s.ui16CourseY ) {\r\n"
+					"			case 29 : {\r\n"
+					"				// Wrap the course offset and flip the nametable bit.\r\n"
+					"				m_paPpuAddrV.s.ui16CourseY = 0;\r\n"
+					"				m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;\r\n"
+					"				break;\r\n"
+					"			}\r\n"
+					"			case 31 : {\r\n"
+					"				// We are in attribute memory.  Reset but without flipping the nametable.\r\n"
+					"				m_paPpuAddrV.s.ui16CourseY = 0;\r\n"
+					"				break;\r\n"
+					"			}\r\n"
+					"			default : {\r\n"
+					"				// Somewhere between.  Just increment.\r\n"
+					"				++m_paPpuAddrV.s.ui16CourseY;\r\n"
+					"			}\r\n"
+					"		}\r\n"
+					"	}\r\n"
+					"}\r\n";
+				}
+			}
+
+			// Transfer horizontal T -> V.
+			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+				(_uX == LSN_RIGHT) ) {
+				sRet += "\r\n"
+				"if ( Rendering() ) {\r\n"
+				"	m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;\r\n"
+				"	m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;\r\n"
+				"}\r\n";
+			}
+
+			// Copy vertical T into V.
+			if ( (_uY == _tDotHeight - 1) && (_uX >= 280 && _uX < 305) ) {
+				sRet += "\r\n"
+				"if ( Rendering() ) {\r\n"
+				"	m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;\r\n"
+				"	m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;\r\n"
+				"	m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;\r\n"
+				"}\r\n";
+			}
+
+			// Swap render targets.
+			if ( _uY == (_tPreRender + _tRender) && _uX == (1 + _tRenderW) ) {
+				sRet += "\r\n"
+				"Pixel_Swap_Control();\r\n";
+			}
+
+			// Set V-blank and friends.
+			if ( _uY == (_tPreRender + _tRender + _tPostRender) && _uX == 1 ) {
+				sRet += "\r\n"
+				"// [1, 241] on NTSC.\r\n"
+				"// [1, 241] on PAL.\r\n"
+				"// [1, 241] on Dendy.\r\n"
+				"m_psPpuStatus.s.ui8VBlank = 1;\r\n"
+				"if ( m_pcPpuCtrl.s.ui8Nmi ) {\r\n"
+				"	m_pnNmiTarget->Nmi();\r\n"
+				"}\r\n";
+			}
+
+			// Clear V-blank and friends.
+			if ( _uY == _tDotHeight - 1 && _uX == 1 ) {
+				sRet += "\r\n"
+				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
+				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
+				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n";
+			}
+
+
+			// End cycle.
+			sRet += "\r\n"
+			"++m_stCurCycle;\r\n";
+
+			// End frame.
+			{
+				if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
+					sRet += "\r\n"
+					"if constexpr ( _bOddFrameShenanigans ) {\r\n"
+					"	if ( m_ui64Frame & 0x1 ) {\r\n"
+					"		m_stCurCycle = 1;\r\n"
+					"	}\r\n"
+					"	else {\r\n"
+					"		m_stCurCycle = 0;\r\n"
+					"	}\r\n"
+					"}\r\n"
+					"else {\r\n"
+					"	m_stCurCycle = 0;\r\n"
+					"}\r\n"
+					"++m_ui64Frame;\r\n";
+				}
+			}
+
+			return sRet;
+#undef LSN_DUMMY_BEGIN
+#undef LSN_NEXT_TWO
+#undef LSN_RIGHT
+#undef LSN_LEFT
+		}
+
+		/**
+		 * Generates the PPU functions and the code to create the table.
+		 */
+		void											GenerateCycleFuncs() {
+			struct LSN_TABLE_INDICES {
+				uint16_t								ui16X;
+				uint16_t								ui16Y;
+
+				/*bool									operator < ( const LSN_TABLE_INDICES &_tiOther ) const {
+				}*/
+			};
+			typedef std::vector<LSN_TABLE_INDICES>		CStringList;
+			std::map<std::string, CStringList> mMap;
+
+			LSN_TABLE_INDICES tiI = { 0, 0 };
+			while ( tiI.ui16Y < _tDotHeight ) {
+				while ( tiI.ui16X < _tDotWidth ) {
+					std::string sThis = Cycle_Generate( tiI.ui16X, tiI.ui16Y );
+					auto aInMap = mMap.find( sThis );
+					if ( aInMap == mMap.end() ) {
+						CStringList slList;
+						slList.push_back( tiI );
+						mMap.insert( std::make_pair( sThis, slList ) );
+					}
+					else {
+						aInMap->second.push_back( tiI );
+					}
+					++tiI.ui16X;
+				}
+				++tiI.ui16Y;
+				tiI.ui16X = 0;
+			}
+
+			auto FuncName = []( const CStringList &_slDots ) {
+				std::string sName = "Cycle";
+				size_t I = 0;
+				for ( ; I < _slDots.size() && I < 10; ++I ) {
+					sName += "_" + std::to_string( _slDots[I].ui16X ) + "x" + std::to_string( _slDots[I].ui16Y );
+				}
+				if ( I < _slDots.size() ) {
+					sName += "_X";
+				}
+				return sName;
+			};
+
+			for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {
+				std::string sTmp;
+				sTmp = "{\r\n";
+				sTmp += "PfCycles pfTmp = &CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
+				::OutputDebugStringA( sTmp.c_str() );
+				sTmp = "";
+				for ( size_t J = 0; J < (*I).second.size(); ++J ) {
+					sTmp += "m_cCycle[" + std::to_string( (*I).second[J].ui16Y * _tDotWidth + (*I).second[J].ui16X ) +
+						"] = pfTmp;\r\n";
+					::OutputDebugStringA( sTmp.c_str() );
+					sTmp = "";
+				}
+				//sTmp += "&CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
+				sTmp += "}\r\n";
+				::OutputDebugStringA( sTmp.c_str() );
+			}
+
+			::OutputDebugStringA( "\r\n\r\n\r\n" );
+
+			for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {
+				std::string sTmp = "void LSN_FASTCALL								" + FuncName( (*I).second ) + "() {\r\n" +
+					(*I).first +
+					"}\r\n\r\n\r\n";
+				::OutputDebugStringA( sTmp.c_str() );
+			}
+		}
+#endif	// #ifdef LSN_GEN_PPU
+
+#include "LSNGenFuncs.inl"
+#endif	// #ifdef LSN_TEMPLATE_PPU
 	};
 	
 
