@@ -105,6 +105,16 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
+		static void LSN_FASTCALL						PgmBankRead_8000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
+		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
 		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
 
 		/**
@@ -159,25 +169,25 @@ namespace lsn {
 				case LSN_MM_HORIZONTAL : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
 					// Mirror $2400 to $2000 and $2C00 to $2800.
-					ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2));
-					return ui16Root + LSN_PPU_NAMETABLES;
+					ui16Root = (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2));
+					return ui16Root | LSN_PPU_NAMETABLES;
 				}
 				case LSN_MM_VERTICAL : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
 					ui16Root %= LSN_PPU_NAMETABLES_SCREEN * 2;									// Map $2800 to $2000 and $2C00 to $2400.
-					return ui16Root + LSN_PPU_NAMETABLES;
+					return ui16Root | LSN_PPU_NAMETABLES;
 				}
 				case LSN_MM_1_SCREEN_A : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
-					return (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES;
+					return (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) | LSN_PPU_NAMETABLES;
 				}
 				case LSN_MM_1_SCREEN_B : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
-					return (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES + LSN_PPU_NAMETABLES_SCREEN;
+					return (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) | LSN_PPU_NAMETABLES | LSN_PPU_NAMETABLES_SCREEN;
 				}
 				case LSN_MM_4_SCREENS : {}
 				default : {
-					return _ui16Addr + LSN_PPU_NAMETABLES_SCREEN;
+					return _ui16Addr | LSN_PPU_NAMETABLES_SCREEN;
 				}
 			}
 		}

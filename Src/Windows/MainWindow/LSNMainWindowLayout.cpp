@@ -24,7 +24,7 @@ namespace lsn {
 			LSN_MAIN_WINDOW_H,						// dwHeight
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS,							// dwStyle
 			0,										// dwStyleEx
-			L"10 NES",								// pwcText
+			L"BeesNES",								// pwcText
 			0,										// sTextLen
 			LSN_MWI_NONE,							// dwParentId
 		},

@@ -300,9 +300,13 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper001.h" />
     <ClInclude Include="Src\Mappers\LSNMapper002.h" />
     <ClInclude Include="Src\Mappers\LSNMapper003.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper007.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper009.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper010.h" />
     <ClInclude Include="Src\Mappers\LSNMapper075.h" />
     <ClInclude Include="Src\Mappers\LSNMapper094.h" />
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
+    <ClInclude Include="Src\Mappers\LSNMapperXXX.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
@@ -339,9 +343,13 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Mappers\LSNMapper001.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper002.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper003.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper007.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper009.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper010.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper075.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper094.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapperBase.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapperXXX.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />

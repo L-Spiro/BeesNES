@@ -2113,9 +2113,8 @@ namespace lsn {
 					}
 
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
-					/*if ( m_pmPpuMask.s.ui8RedEmph || m_pmPpuMask.s.ui8GreenEmph || m_pmPpuMask.s.ui8BlueEmph ) {
-						volatile int ljjjj = 0;
-					}*/
+					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
+					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
 					ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
 					ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
 					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
