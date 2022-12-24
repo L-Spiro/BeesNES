@@ -335,14 +335,14 @@ namespace lsn {
 
 			// == Palettes
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
-				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
-				m_bBus.SetReadFunc( uint16_t( I ), CPpuBus::StdRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
@@ -1039,9 +1039,13 @@ namespace lsn {
 		template <unsigned _uSpriteIdx, unsigned _uStage>
 		inline void LSN_FASTCALL						Pixel_Fetch_Sprite() {
 			// 1-4: Read the Y-coordinate, tile number, attributes, and X-coordinate of the selected sprite from secondary OAM
+			// ========================
+			// Garbage NT fetch 0.
+			// ========================
 			if constexpr ( _uStage == 0 ) {
 				if constexpr ( _uSpriteIdx == 0 ) {
 					m_ui8ThisLineSpriteCount = m_ui8SpriteCount;
+					m_ui8SpriteCount = 0;
 					m_bSprite0IsInSecondaryThisLine = m_bSprite0IsInSecondary;
 				}
 				m_ui8SpriteN = m_soSecondaryOam.s[_uSpriteIdx].ui8Y;
@@ -1049,13 +1053,22 @@ namespace lsn {
 			if constexpr ( _uStage == 1 ) {
 				m_ui8SpriteM = m_soSecondaryOam.s[_uSpriteIdx].ui8Id;
 			}
+
+			// ========================
+			// Garbage NT fetch 1.
+			// ========================
 			if constexpr ( _uStage == 2 ) {
 				m_ui8SpriteAttrib = m_soSecondaryOam.s[_uSpriteIdx].ui8Flags;
 			}
+			
 			if constexpr ( _uStage == 3 ) {
 				m_ui8SpriteX = m_soSecondaryOam.s[_uSpriteIdx].ui8X;
 			}
 
+
+			// ========================
+			// Sprite LSB.
+			// ========================
 			// Pretty famous bit-flipper: https://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
 			auto FlipBits = []( uint8_t _ui8Byte ) {
 				_ui8Byte = ((_ui8Byte & 0xF0) >> 4) | ((_ui8Byte & 0x0F) << 4);
@@ -1136,6 +1149,14 @@ namespace lsn {
 				}
 			}
 			if constexpr ( _uStage == 5 ) {
+				m_asActiveSprites.ui8Latch[_uSpriteIdx] = m_ui8SpriteAttrib;
+			}
+
+
+			// ========================
+			// Sprite MSB.
+			// ========================
+			if constexpr ( _uStage == 6 ) {
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
 					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp + 8 );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
@@ -1146,9 +1167,6 @@ namespace lsn {
 				else {
 					m_asActiveSprites.ui8ShiftHi[_uSpriteIdx] = 0;
 				}
-			}
-			if constexpr ( _uStage == 6 ) {
-				m_asActiveSprites.ui8Latch[_uSpriteIdx] = m_ui8SpriteAttrib;
 			}
 			if constexpr ( _uStage == 7 ) {
 				m_asActiveSprites.ui8X[_uSpriteIdx] = m_ui8SpriteX;
@@ -1407,7 +1425,8 @@ namespace lsn {
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & 0x3FFF;
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_bBus.Read( ui16Addr );
+				ppPpu->m_ui8DataBuffer = 0;
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
@@ -1434,6 +1453,7 @@ namespace lsn {
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
 		}
 
+		/**
 		 * Reading from the palette
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -1441,7 +1461,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PaletteRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						PaletteRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			//_ui8Ret = ppPpu->m_ui8IoBusLatch;
 
@@ -2023,7 +2043,6 @@ namespace lsn {
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 				uint8_t ui8Val = 0x0F;
 				if ( ui16Y >= _tRender ) {}													// Black pre-render scanline on PAL.
-				else if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {}		// Horizontal black border on PAL.
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;
@@ -2082,15 +2101,13 @@ namespace lsn {
 						// If sprite 0 was in the secondary OAM last scanline, m_bSprite0IsInSecondaryThisLine is set for this scanline.
 						if ( m_bSprite0IsInSecondaryThisLine && bIsRenderingSprite0 ) {
 							// bIsRenderingSprite0 automatically means that sprites are enabled and that this pixel was not 0.
-							if ( !(m_pmPpuMask.s.ui8LeftBackground | m_pmPpuMask.s.ui8LeftSprites) ) {
-								if ( ui16ThisX >= 9 && ui16ThisX < 258 ) {
+							if ( !(m_pmPpuMask.s.ui8LeftBackground | m_pmPpuMask.s.ui8LeftSprites) && !m_psPpuStatus.s.ui8Sprite0Hit && ui16X != 255 ) {
+								if ( ui16X >= 8 ) {
 									m_psPpuStatus.s.ui8Sprite0Hit = 1;
 								}
 							}
 							else {
-								if ( ui16ThisX >= 1 && ui16ThisX < 258 ) {
-									m_psPpuStatus.s.ui8Sprite0Hit = 1;
-								}
+								m_psPpuStatus.s.ui8Sprite0Hit = 1;
 							}
 						}
 					}
@@ -2113,9 +2130,18 @@ namespace lsn {
 				pui8RenderPixel[1] = ui8Val;
 				pui8RenderPixel[2] = ui8Val;
 #else
-				pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
-				pui8RenderPixel[1] = m_pPalette.uVals[ui8Val].ui8Rgb[1];
-				pui8RenderPixel[2] = m_pPalette.uVals[ui8Val].ui8Rgb[2];
+
+				if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {				// Horizontal black border on PAL.
+					// Above pixel processing done because Sprite 0 can be hit even inside these borders.
+					pui8RenderPixel[0] = 0;
+					pui8RenderPixel[1] = 0;
+					pui8RenderPixel[2] = 0;
+				}
+				else {
+					pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
+					pui8RenderPixel[1] = m_pPalette.uVals[ui8Val].ui8Rgb[1];
+					pui8RenderPixel[2] = m_pPalette.uVals[ui8Val].ui8Rgb[2];
+				}
 #endif	// #ifdef LSN_SHOW_PIXEL
 				
 				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
@@ -2219,7 +2245,7 @@ namespace lsn {
 				// Sprite fetches.
 				if ( (_uX >= LSN_RIGHT && _uX < LSN_NEXT_TWO) ) {
 					sRet += "\r\n"
-					"Pixel_Fetch_Sprite<" + std::to_string( (_uX - LSN_RIGHT) / 8 ) + ", " + std::to_string( (_uX - LSN_RIGHT) % 8 ) + ">();\r\n";
+					"Pixel_Fetch_Sprite<" + std::to_string( (_uX - LSN_RIGHT) / 8 ) + ", " + std::to_string( (_uX - LSN_RIGHT) % 8 ) + ">();	// Sprite fetches (257-320).\r\n";
 				}
 
 				if ( (_uX >= (LSN_LEFT + 1) && _uX < LSN_RIGHT) ) {
@@ -2236,6 +2262,10 @@ namespace lsn {
 					"	}\r\n"
 					"}\r\n";
 				}
+			}
+			if ( _uY == ui61RenderHeight && _uX == 0 ) {
+				sRet += "\r\n"
+				"m_ui8ThisLineSpriteCount = 0;\r\n";
 			}
 
 
@@ -2337,7 +2367,7 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
 						sRet += "\r\n"
@@ -2348,7 +2378,7 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
 						sRet += "\r\n"
@@ -2357,31 +2387,19 @@ namespace lsn {
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
 						sRet += "\r\n"
-						"m_ui8OamAddr = 0;\r\n"
-						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
-						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
-						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
-						"	0) );\r\n";
+						"m_ui8OamAddr = 0;\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 5 ) {
 						sRet += "\r\n"
-						"m_ui8OamAddr = 0;\r\n"
-						"m_ui8NextTileLsb = m_ui8NtAtBuffer;\r\n";
+						"m_ui8OamAddr = 0;\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 6 ) {
 						sRet += "\r\n"
-						"m_ui8OamAddr = 0;\r\n"
-						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
-						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
-						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
-						"	8) );\r\n";
+						"m_ui8OamAddr = 0;\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 7 ) {
 						sRet += "\r\n"
-						"m_ui8OamAddr = 0;\r\n"
-						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
+						"m_ui8OamAddr = 0;\r\n";
 					}
 				}
 			}
@@ -2599,11 +2617,11 @@ namespace lsn {
 			for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {
 				std::string sTmp;
 				sTmp = "{\r\n";
-				sTmp += "PfCycles pfTmp = &CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
+				sTmp += "	PfCycles pfTmp = &CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
 				::OutputDebugStringA( sTmp.c_str() );
 				sTmp = "";
 				for ( size_t J = 0; J < (*I).second.size(); ++J ) {
-					sTmp += "m_cCycle[" + std::to_string( (*I).second[J].ui16Y * _tDotWidth + (*I).second[J].ui16X ) +
+					sTmp += "	m_cCycle[" + std::to_string( (*I).second[J].ui16Y * _tDotWidth + (*I).second[J].ui16X ) +
 						"] = pfTmp;\r\n";
 					::OutputDebugStringA( sTmp.c_str() );
 					sTmp = "";
