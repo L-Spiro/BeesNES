@@ -25,7 +25,8 @@
 #define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
 
 #define LSN_TEMPLATE_PPU
-#define LSN_GEN_PPU
+//#define LSN_GEN_PPU
+//#define LSN_PPU_GEN_DEBUG
 
 #ifdef LSN_GEN_PPU
 #include <map>
@@ -170,14 +171,114 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+#ifdef LSN_PPU_GEN_DEBUG
+			LSN_DEBUG_COPY dcAtStart = {
+				m_ui64Frame,
+				m_paPpuAddrT, m_paPpuAddrV, m_psPpuStatus, m_stCurCycle / _tDotWidth, m_stCurCycle % _tDotWidth,
+				m_ui16ShiftPatternLo, m_ui16ShiftPatternHi, m_ui16ShiftAttribLo, m_ui16ShiftAttribHi,
+				m_ui8FineScrollX, m_ui8NtAtBuffer,
+				m_ui8NextTileId, m_ui8NextTileAttribute, m_ui8NextTileLsb, m_ui8NextTileMsb
+			};
+
+			size_t stThisIdx = m_stCurCycle;
+			(this->*m_cCycle[stThisIdx])();
+			LSN_DEBUG_COPY dcAfter = {
+				m_ui64Frame,
+				m_paPpuAddrT, m_paPpuAddrV, m_psPpuStatus, m_stCurCycle / _tDotWidth, m_stCurCycle % _tDotWidth,
+				m_ui16ShiftPatternLo, m_ui16ShiftPatternHi, m_ui16ShiftAttribLo, m_ui16ShiftAttribHi,
+				m_ui8FineScrollX, m_ui8NtAtBuffer,
+				m_ui8NextTileId, m_ui8NextTileAttribute, m_ui8NextTileLsb, m_ui8NextTileMsb
+			};
+
+			m_ui64Frame = dcAtStart.m_ui64Frame;
+
+			m_paPpuAddrT = dcAtStart.m_paPpuAddrT;
+			m_paPpuAddrV = dcAtStart.m_paPpuAddrV;
+			m_psPpuStatus = dcAtStart.m_psPpuStatus;
+
+			m_ui16ShiftPatternLo = dcAtStart.m_ui16ShiftPatternLo;
+			m_ui16ShiftPatternHi = dcAtStart.m_ui16ShiftPatternHi;
+			m_ui16ShiftAttribLo = dcAtStart.m_ui16ShiftAttribLo;
+			m_ui16ShiftAttribHi = dcAtStart.m_ui16ShiftAttribHi;
+
+			m_ui8FineScrollX = dcAtStart.m_ui8FineScrollX;
+			m_ui8NtAtBuffer = dcAtStart.m_ui8NtAtBuffer;
+
+			m_ui8NextTileId = dcAtStart.m_ui8NextTileId;
+			m_ui8NextTileAttribute = dcAtStart.m_ui8NextTileAttribute;
+			m_ui8NextTileLsb = dcAtStart.m_ui8NextTileLsb;
+			m_ui8NextTileMsb = dcAtStart.m_ui8NextTileMsb;
+
+			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
+			/*if ( m_ui16RowDot == 321 ) {
+				int gjhg = 0;
+			}*/
+			//(this->*m_cSpriteCycles[stIdx].pfFunc)();
+			(this->*m_cWorkCycles[stIdx].pfFunc)();
+			(this->*m_cControlCycles[stIdx].pfFunc)();
+
+			if ( m_ui64Frame != dcAfter.m_ui64Frame ) {
+				volatile int gjhg =0;
+			}
+			if ( m_paPpuAddrT.ui16Addr != dcAfter.m_paPpuAddrT.ui16Addr ) {
+				volatile int gjhg =0;
+			}
+			if ( m_paPpuAddrV.ui16Addr != dcAfter.m_paPpuAddrV.ui16Addr ) {
+				volatile int gjhg =0;
+			}
+			if ( m_psPpuStatus.ui8Reg != dcAfter.m_psPpuStatus.ui8Reg ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui16Scanline != dcAfter.m_ui16Scanline ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui16RowDot != dcAfter.m_ui16RowDot ) {
+				volatile int gjhg =0;
+			}
+
+
+			if ( m_ui16ShiftPatternLo != dcAfter.m_ui16ShiftPatternLo ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui16ShiftPatternHi != dcAfter.m_ui16ShiftPatternHi ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui16ShiftAttribLo != dcAfter.m_ui16ShiftAttribLo ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui16ShiftAttribHi != dcAfter.m_ui16ShiftAttribHi ) {
+				volatile int gjhg =0;
+			}
+
+			if ( m_ui8FineScrollX != dcAfter.m_ui8FineScrollX ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui8NtAtBuffer != dcAfter.m_ui8NtAtBuffer ) {
+				volatile int gjhg =0;
+			}
+
+			if ( m_ui8NextTileId != dcAfter.m_ui8NextTileId ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui8NextTileAttribute != dcAfter.m_ui8NextTileAttribute ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui8NextTileLsb != dcAfter.m_ui8NextTileLsb ) {
+				volatile int gjhg =0;
+			}
+			if ( m_ui8NextTileMsb != dcAfter.m_ui8NextTileMsb ) {
+				volatile int gjhg =0;
+			}
+#else
 #ifdef LSN_TEMPLATE_PPU
 			(this->*m_cCycle[m_stCurCycle])();
 #else
 			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
-			(this->*m_cSpriteCycles[stIdx].pfFunc)();
+			//(this->*m_cSpriteCycles[stIdx].pfFunc)();
 			(this->*m_cWorkCycles[stIdx].pfFunc)();
 			(this->*m_cControlCycles[stIdx].pfFunc)();
 #endif	// #ifdef LSN_TEMPLATE_PPU
+#endif	// #ifdef LSN_PPU_GEN_DEBUG
 			++m_ui64Cycle;
 		}
 
@@ -597,7 +698,7 @@ namespace lsn {
 				}
 				m_pdhHost->Swap();
 			}
-#ifndef LSN_TEMPLATE_PPU
+#if !defined( LSN_TEMPLATE_PPU ) || defined( LSN_PPU_GEN_DEBUG )
 			LSN_END_CONTROL_CYCLE;
 #endif	// #ifndef LSN_TEMPLATE_PPU
 		}
@@ -731,12 +832,14 @@ namespace lsn {
 		 */
 		void LSN_FASTCALL								Pixel_GarbageLoadAt_0_Work() {
 			m_ui8OamAddr = 0;
-			// LSN_PPU_NAMETABLES = 0x2000.
+			/*// LSN_PPU_NAMETABLES = 0x2000.
 			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
 			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 				(m_paPpuAddrV.s.ui16NametableX << 10) |
 				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-				(m_paPpuAddrV.s.ui16CourseX >> 2) );
+				(m_paPpuAddrV.s.ui16CourseX >> 2) );*/
+			// LSN_PPU_NAMETABLES = 0x2000.
+			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
 		}
 
 		/**
@@ -744,7 +847,8 @@ namespace lsn {
 		 */
 		void LSN_FASTCALL								Pixel_GarbageLoadAt_1_Work() {
 			m_ui8OamAddr = 0;
-			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+			//m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+			m_ui8NextTileId = m_ui8NtAtBuffer;
 		}
 
 		/**
@@ -805,11 +909,10 @@ namespace lsn {
 		/**
 		 * Handles populating the secondary OAM buffer during cycles 65-256.
 		 */
-		template <bool _bIsFirst>
+		template <bool _bIsFirst, bool _bIsOdd>
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 			if constexpr ( _bIsFirst ) {
 				m_ui8SpriteN = m_ui8SpriteCount = 0;
-				m_ui8OamAddr = 0;	// TMP.
 				m_ui8SpriteM = m_ui8OamAddr;
 				m_sesStage = LSN_SES_CHECK_NEXT;
 				m_bSprite0IsInSecondary = false;
@@ -818,9 +921,6 @@ namespace lsn {
 				if ( m_ui8OamAddr != 0 ) {
 				}
 				*/
-				/*if ( m_ui8OamAddr != 0 ) {
-					volatile int gjhg  =0;
-				}*/
 			}
 			if ( !Rendering() ) { return; }
 
@@ -834,7 +934,7 @@ namespace lsn {
 		}														\
 	}
 			
-			if ( m_ui16RowDot & 0x1 ) {
+			if constexpr ( _bIsOdd ) {
 				// Odd cycles allow reading.
 				switch ( m_sesStage ) {
 					case LSN_SES_FINISHED_OAM_LIST : {}
@@ -852,6 +952,11 @@ namespace lsn {
 				}
 			}
 			else {
+#ifdef LSN_TEMPLATE_PPU
+				int16_t i16ScanLine = int16_t( m_stCurCycle / _tDotWidth );
+#else
+				int16_t i16ScanLine = int16_t( m_ui16Scanline );
+#endif	// LSN_TEMPLATE_PPU
 				// Even cycles allow writing.
 				uint8_t ui8M = (m_ui8OamAddr - m_ui8SpriteM) & 0x3;
 				switch ( m_sesStage ) {
@@ -861,7 +966,7 @@ namespace lsn {
 							/** 1. Starting at n = 0, read a sprite's Y-coordinate (OAM[n][0], copying it to the next open slot in secondary OAM (unless 8 sprites have been found, in which case the write is ignored). */
 							m_soSecondaryOam.ui8Bytes[m_ui8SpriteCount*4+ui8M] = m_ui8OamLatch;
 							/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
-							int16_t i16Diff = int16_t( m_ui16Scanline ) - int16_t( m_ui8OamLatch );
+							int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
 								// Move to the copy stage.
@@ -880,7 +985,7 @@ namespace lsn {
 						else {
 							// A read of secondary OAM is prescribed here, but it would have 0 side-effects, so skipping.
 							// Check for overflow.
-							int16_t i16Diff = int16_t( m_ui16Scanline ) - int16_t( m_ui8OamLatch );
+							int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
 								// Overflow, baby!
@@ -932,7 +1037,7 @@ namespace lsn {
 		 * Handles fetching sprites (copying from secondary OAM to the current-line shifters during cycles 257-320.
 		 */
 		template <unsigned _uSpriteIdx, unsigned _uStage>
-		void LSN_FASTCALL								Pixel_Fetch_Sprite() {
+		inline void LSN_FASTCALL						Pixel_Fetch_Sprite() {
 			// 1-4: Read the Y-coordinate, tile number, attributes, and X-coordinate of the selected sprite from secondary OAM
 			if constexpr ( _uStage == 0 ) {
 				if constexpr ( _uSpriteIdx == 0 ) {
@@ -962,6 +1067,12 @@ namespace lsn {
 			// 5-8: Read the X-coordinate of the selected sprite from secondary OAM 4 times (while the PPU fetches the sprite tile data)
 			if constexpr ( _uStage == 4 ) {
 				m_ui16SpritePatternTmp = 0;
+
+#ifdef LSN_TEMPLATE_PPU
+				uint16_t ui16ScanLine = uint16_t( m_stCurCycle / _tDotWidth );
+#else
+				uint16_t ui16ScanLine = m_ui16Scanline;
+#endif	// LSN_TEMPLATE_PPU
 				
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
 					// Calculate m_ui16SpritePatternTmp.
@@ -971,18 +1082,18 @@ namespace lsn {
 							// No vertical flip.
 							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
 								(m_ui8SpriteM << 4) |
-								(m_ui16Scanline - m_ui8SpriteN);
+								(ui16ScanLine - m_ui8SpriteN);
 						}
 						else {
 							// Major vertical flippage going on here.
 							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
 								(m_ui8SpriteM << 4) |
-								(7 - (m_ui16Scanline - m_ui8SpriteN));
+								(7 - (ui16ScanLine - m_ui8SpriteN));
 						}
 					}
 					else {
 						// 8-by-16.
-						uint8_t ui8PatternLine = uint8_t( m_ui16Scanline - m_ui8SpriteN );
+						uint8_t ui8PatternLine = uint8_t( ui16ScanLine - m_ui8SpriteN );
 						if ( !(m_ui8SpriteAttrib & 0x80) ) {
 							// No vertical flip.
 							if ( ui8PatternLine < 8 ) {
@@ -1207,14 +1318,24 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			if ( (ppPpu->m_ui16Scanline < (_tPreRender + _tRender)) || ppPpu->m_ui16Scanline == (_tDotHeight - 1) ) {
-				if ( ppPpu->m_ui16RowDot >= 1 && ppPpu->m_ui16RowDot <= 64 ) {
+#ifdef LSN_TEMPLATE_PPU
+			uint16_t ui16Scan = uint16_t( ppPpu->m_stCurCycle / _tDotWidth );
+			uint16_t ui16Dot = ppPpu->m_stCurCycle % _tDotWidth;
+#else
+			uint16_t ui16Scan = ppPpu->m_ui16Scanline;
+			uint16_t ui16Dot = ppPpu->m_ui16RowDot;
+#endif
+			//m_stCurCycle
+			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
 					_ui8Ret = 0xFF;
 					return;
 				} 
 			}
-			_ui8Ret = ppPpu->m_ui8IoBusLatch;
+			/*_ui8Ret = ppPpu->m_ui8IoBusLatch;
+			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];*/
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 		}
 
 		/**
@@ -1283,20 +1404,16 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// m_paPpuAddr.ui16Addr is expected to be sanitized so no initial checks for that.
-			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & 0x3FFF;
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				_ui8Ret = ppPpu->m_bBus.Read( ui16Addr );
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
-				//_ui8Ret = ppPpu->m_bBus.Read( ui16Addr );
-				/*_ui8Ret = ppPpu->m_bBus.GetFloat();
-				ppPpu->m_bBus.Read( ui16Addr );*/
 			}
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
 		}
@@ -1311,10 +1428,25 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr;
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & 0x3FFF;
 			ppPpu->m_bBus.Write( ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1), _ui8Val );
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
+		}
+
+		 * Reading from the palette
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						PaletteRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			//_ui8Ret = ppPpu->m_ui8IoBusLatch;
+
+			//ppPpu->m_ui8IoBusLatch = _pui8Data[_ui16Parm1];
+			_ui8Ret = /*ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer =*/ _pui8Data[_ui16Parm1];
 		}
 
 		/**
@@ -1523,6 +1655,29 @@ namespace lsn {
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
 		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
+		// TMP.
+		struct LSN_DEBUG_COPY {
+			uint64_t									m_ui64Frame;									/**< The frame counter. */
+			LSN_PPUADDR									m_paPpuAddrT;									/**< The "t" PPUADDR register. */
+			LSN_PPUADDR									m_paPpuAddrV;									/**< The "v" PPUADDR register. */
+			LSN_PPUSTATUS								m_psPpuStatus;									/**< The PPUSTATUS register. */
+			uint16_t									m_ui16Scanline;									/**< The scanline counter. */
+			uint16_t									m_ui16RowDot;									/**< The horizontal counter. */
+
+			uint16_t									m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
+			uint16_t									m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
+			uint16_t									m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
+			uint16_t									m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
+
+			uint8_t										m_ui8FineScrollX;								/**< The fine X scroll position. */
+			uint8_t										m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
+
+			uint8_t										m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
+			uint8_t										m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
+			uint8_t										m_ui8NextTileLsb;								/**< The queued background tile LSB. */
+			uint8_t										m_ui8NextTileMsb;								/**< The queued background tile MSB. */
+		};
+
 
 		// == Functions.
 		/**
@@ -1624,7 +1779,7 @@ namespace lsn {
 		 * \param _stY The Y pixel location from which to begin assiging the fetch functions.
 		 */
 		template <unsigned _uSpriteIdx>
-		void											AssignSpriteFetchFuncs_BySpriteIdx( size_t _stX, size_t _stY ) {
+		inline void										AssignSpriteFetchFuncs_BySpriteIdx( size_t _stX, size_t _stY ) {
 			{
 				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
 				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 0>;
@@ -1768,15 +1923,25 @@ namespace lsn {
 					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_1_Sprite;
 				}
 			}
+			size_t stX = LSN_EVAL_START;
 			{	// Start evaluation process.
 				LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+LSN_EVAL_START];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<true>;
+				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<true, true>;
 			}
+			{	// Start evaluation process.
+				LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(stX+1)];
+				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, false>;
+			}
+			stX += 2;
 			// Finish the evaluation process.
-			for ( auto X = LSN_EVAL_START + 1; X < LSN_FETCH_START; ++X ) {
+			for ( ; stX < LSN_FETCH_START; stX += 2 ) {
 				{	// Start evaluation process.
-					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+X];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false>;
+					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+stX];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, true>;
+				}
+				{	// Start evaluation process.
+					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(stX+1)];
+					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, false>;
 				}
 			}
 			AssignSpriteFetchFuncs( LSN_FETCH_START, Y );
@@ -1789,7 +1954,7 @@ namespace lsn {
 		/**
 		 * Shifts the background registers left one.
 		 */
-		void											ShiftBackgroundAndSpriteRegisters() {
+		inline void										ShiftBackgroundAndSpriteRegisters() {
 			if ( Rendering() ) {
 				m_ui16ShiftPatternLo <<= 1;
 				m_ui16ShiftPatternHi <<= 1;
@@ -1812,13 +1977,15 @@ namespace lsn {
 		/**
 		 * Loads the latched tile data into the shift registers.
 		 */
-		void											LoadLatchedBackgroundIntoShiftRegisters() {
+		inline void										LoadLatchedBackgroundIntoShiftRegisters() {
 			//if ( m_ui16RowDot >= 9 && m_ui16RowDot <= 257 ) {
+			if ( Rendering() ) {
 				m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
 				m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
 
 				m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
 				m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+			}
 			//}
 		}
 
@@ -1929,6 +2096,12 @@ namespace lsn {
 					}
 
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					/*if ( m_pmPpuMask.s.ui8RedEmph || m_pmPpuMask.s.ui8GreenEmph || m_pmPpuMask.s.ui8BlueEmph ) {
+						volatile int ljjjj = 0;
+					}*/
+					ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
+					ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
+					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
 //#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
 					ui8Val = ui8BackgroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
@@ -1993,33 +2166,82 @@ namespace lsn {
 		//template <unsigned _uX, unsigned _uY>
 		std::string										Cycle_Generate( uint16_t _uX, uint16_t _uY ) {
 #define LSN_LEFT				1
+#define LSN_SPR_EVAL_START		(LSN_LEFT + 8 * 8)			// 65.
 #define LSN_RIGHT				(_tRenderW + LSN_LEFT)		// 257.
 #define LSN_NEXT_TWO			(LSN_RIGHT + 8 * 8)			// 321.
 #define LSN_DUMMY_BEGIN			(LSN_NEXT_TWO + 8 * 2)		// 337.
 
 			std::string sRet;
 
+			const uint16_t ui61RenderHeight = _tPreRender + _tRender;
 			
 
 			// Unused reads at the end of a line.
-			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX >= LSN_DUMMY_BEGIN) ) {
 				{
 					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"/*m_ui8NtAtBuffer = */m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 						sRet += "\r\n"
-						"/*m_ui8NextTileId = m_ui8NtAtBuffer;*/\r\n";
+						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
 					}
 				}
 			}
 
+
+			// Sprites.
+			if ( (_uY >= 0 && _uY < ui61RenderHeight) ) {
+				// Sprite secondary OAM clear
+				if ( (_uX >= LSN_LEFT && _uX < LSN_SPR_EVAL_START) ) {
+					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
+						sRet += "\r\n"
+						"m_ui8OamLatch = m_pbBus->Read( LSN_PR_OAMDATA );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
+						sRet += "\r\n"
+						"m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch;"
+						"m_ui8Oam2ClearIdx %= sizeof( m_soSecondaryOam.ui8Bytes );\r\n";
+					}
+				}
+				// Sprite evaluation.
+				if ( (_uX >= LSN_SPR_EVAL_START && _uX < LSN_RIGHT) ) {
+					sRet += "\r\n"
+					"Pixel_Evaluation_Sprite<";
+					sRet += _uX == LSN_SPR_EVAL_START ? "true" : "false";
+					sRet += ", ";
+					sRet += (_uX & 1) ? "true" : "false";
+					sRet += ">();\r\n";
+				}
+				// Sprite fetches.
+				if ( (_uX >= LSN_RIGHT && _uX < LSN_NEXT_TWO) ) {
+					sRet += "\r\n"
+					"Pixel_Fetch_Sprite<" + std::to_string( (_uX - LSN_RIGHT) / 8 ) + ", " + std::to_string( (_uX - LSN_RIGHT) % 8 ) + ">();\r\n";
+				}
+
+				if ( (_uX >= (LSN_LEFT + 1) && _uX < LSN_RIGHT) ) {
+					sRet += "\r\n"
+					"if ( Rendering() ) {\r\n"
+					"	for ( uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {\r\n"
+					"		if ( m_asActiveSprites.ui8X[I] ) {\r\n"
+					"			--m_asActiveSprites.ui8X[I];\r\n"
+					"		}\r\n"
+					"		else {\r\n"
+					"			m_asActiveSprites.ui8ShiftLo[I] <<= 1;\r\n"
+					"			m_asActiveSprites.ui8ShiftHi[I] <<= 1;\r\n"
+					"		}\r\n"
+					"	}\r\n"
+					"}\r\n";
+				}
+			}
+
+
 			// Shifting and transferring to shifters.
-			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
-				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
+				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				sRet += "\r\n"
 				"if ( Rendering() ) {\r\n"
 				"	m_ui16ShiftPatternLo <<= 1;\r\n"
@@ -2049,8 +2271,8 @@ namespace lsn {
 			}
 
 			// Background processing (1-256, 321-336).
-			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
-				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
+				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				// Load background data.
 				{
 					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
@@ -2105,10 +2327,69 @@ namespace lsn {
 				}
 			}
 
+			// Garbage fetches (257-320).
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
+				(_uX >= LSN_RIGHT && _uX < LSN_NEXT_TWO) ) {
+				{
+					// This has 2 pttern fetches instead of a pattern fetch and then an attribute fetch.
+					// It also sets OAMADDR to 0.
+					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 2 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
+						"	0) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 5 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"m_ui8NextTileLsb = m_ui8NtAtBuffer;\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 6 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
+						"	8) );\r\n";
+					}
+					if ( (_uX - LSN_LEFT) % 8 == 7 ) {
+						sRet += "\r\n"
+						"m_ui8OamAddr = 0;\r\n"
+						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
+					}
+				}
+			}
+
 			
 			// Increase H and V.
-			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
-				(_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN) ) {
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
+				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				if ( (_uX - LSN_LEFT) % 8 == 7 ) {
 					sRet += "\r\n"
 					"// Increase v.H.\r\n"
@@ -2155,7 +2436,7 @@ namespace lsn {
 			}
 
 			// Transfer horizontal T -> V.
-			if ( ((_uY >= 0 && _uY < (_tPreRender + _tRender)) || (_uY == _tDotHeight - 1)) &&
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX == LSN_RIGHT) ) {
 				sRet += "\r\n"
 				"if ( Rendering() ) {\r\n"
@@ -2175,9 +2456,43 @@ namespace lsn {
 			}
 
 			// Swap render targets.
-			if ( _uY == (_tPreRender + _tRender) && _uX == (1 + _tRenderW) ) {
+			if ( _uY == ui61RenderHeight && _uX == (1 + _tRenderW) ) {
 				sRet += "\r\n"
-				"Pixel_Swap_Control();\r\n";
+				"if ( m_pdhHost ) {\r\n"
+				"	if ( m_pui8RenderTarget ) {\r\n"
+				"		if ( DebugSideDisplay() ) {\r\n"
+				"			for ( uint16_t I = 0; I < 2; ++I ) {\r\n"
+				"				for ( uint16_t ui16TileY = 0; ui16TileY < 16; ++ui16TileY ) {\r\n"
+				"					for ( uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX ) {\r\n"
+				"						uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;\r\n"
+				"						for ( uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row ) {\r\n"
+				"							uint8_t ui8TileLsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 0 );\r\n"
+				"							uint8_t ui8TileMsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 8 );\r\n"
+				"							for ( uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col ) {\r\n"
+				"								uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);\r\n"
+				"								ui8TileLsb >>= 1;\r\n"
+				"								ui8TileMsb >>= 1;\r\n"
+				"								uint16_t ui16X = ui16TileX * 8 + (7 - ui16Col);\r\n"
+				"								ui16X += _tRenderW;\r\n"
+				"\r\n"
+				"								uint16_t ui16Y = I * (16 * 8) + ui16TileY * 8 + ui16Row;\r\n"
+				"								ui16Y = (_tRender - 1) - ui16Y;\r\n"
+				"								if ( ui16Y < _tRender ) {\r\n"
+				"\r\n"
+				"									uint8_t * pui8This = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];\r\n"
+				"									uint8_t ui8Val = ui8Pixel * (256 / 4);\r\n"
+				"									pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;\r\n"
+				"								}\r\n"
+				"							}\r\n"
+				"						}\r\n"
+				"					}\r\n"
+				"				}\r\n"
+				"			}\r\n"
+				"		}\r\n"
+				"	}\r\n"
+				"	m_pdhHost->Swap();\r\n"
+				"}\r\n";
+				//"Pixel_Swap_Control();\r\n";
 			}
 
 			// Set V-blank and friends.
@@ -2227,6 +2542,7 @@ namespace lsn {
 			return sRet;
 #undef LSN_DUMMY_BEGIN
 #undef LSN_NEXT_TWO
+#undef LSN_SPR_EVAL_START
 #undef LSN_RIGHT
 #undef LSN_LEFT
 		}
@@ -2248,7 +2564,11 @@ namespace lsn {
 			LSN_TABLE_INDICES tiI = { 0, 0 };
 			while ( tiI.ui16Y < _tDotHeight ) {
 				while ( tiI.ui16X < _tDotWidth ) {
+					/*if ( tiI.ui16Y == 241 && tiI.ui16X == 321 ) {
+						volatile int ghg = 0;
+					}*/
 					std::string sThis = Cycle_Generate( tiI.ui16X, tiI.ui16Y );
+					
 					auto aInMap = mMap.find( sThis );
 					if ( aInMap == mMap.end() ) {
 						CStringList slList;

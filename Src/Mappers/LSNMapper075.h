@@ -1,0 +1,150 @@
+/**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: Mapper 075 implementation.
+ */
+
+
+#pragma once
+
+#include "../LSNLSpiroNes.h"
+#include "LSNMapperBase.h"
+
+namespace lsn {
+
+	/**
+	 * Class CMapper075
+	 * \brief Mapper 075 implementation.
+	 *
+	 * Description: Mapper 075 implementation.
+	 */
+	class CMapper075 : public CMapperBase {
+	public :
+		CMapper075();
+		virtual ~CMapper075();
+
+
+		// == Functions.
+		/**
+		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
+		 *
+		 * \param _rRom The ROM data.
+		 */
+		virtual void									InitWithRom( LSN_ROM &_rRom );
+
+		/**
+		 * Applies mapping to the CPU and PPU busses.
+		 *
+		 * \param _pbCpuBus A pointer to the CPU bus.
+		 * \param _pbPpuBus A pointer to the PPU bus.
+		 */
+		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus );
+
+
+	protected :
+		// == Members.
+		/** PGM bank 2. */
+		uint8_t											m_ui8PgmBank1;
+
+		/** PGM bank 3. */
+		uint8_t											m_ui8PgmBank2;
+
+		/** CHR bank 2. */
+		uint8_t											m_ui8ChrBank1;
+
+
+		// == Functions.
+		/**
+		 * Reads from PGM ROM using m_ui8PgmBank1 to select a bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						PgmBank1Read_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
+		 * Reads from PGM ROM using m_ui8PgmBank2 to select a bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						PgmBank2Read_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
+		 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current 4-kilobyte bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ChrBank1Read_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
+		 * Select 8 KB PRG ROM at $8000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBank8000_9FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+
+		/**
+		 * Select 8 KB PRG ROM at $A000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBankA000_BFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+
+		/**
+		 * Select 8 KB PRG ROM at $C000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBankC000_CFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+
+		/**
+		 * Mirroring  (0: Vertical; 1: Horizontal), High Bit of 4 KB CHR bank at PPU $0000, High Bit of 4 KB CHR bank at PPU $1000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBank9000_9FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+
+		/**
+		 * Low 4 bits of 4 KB CHR bank at PPU $0000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBankE000_EFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+
+		/**
+		 * Low 4 bits of 4 KB CHR bank at PPU $1000.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						SelectBankF000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
+	};
+
+}	// namespace lsn

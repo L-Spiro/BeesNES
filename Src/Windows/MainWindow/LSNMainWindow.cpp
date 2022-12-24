@@ -110,7 +110,8 @@ namespace lsn {
 		}
 
 		{
-			std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
+			//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
+			std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.pal";
 			lsn::CStdFile sfFile;
 			if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 				std::vector<uint8_t> vPal;
@@ -381,16 +382,16 @@ namespace lsn {
 			BYTE bPoll[256];
 			::GetKeyboardState( bPoll );
 			uint8_t ui8Ret = 0;
-			if ( bPoll['X'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
-			if ( bPoll['Z'] & 0x80 ) { ui8Ret |= LSN_IB_A; }
+			if ( bPoll['L'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
+			if ( bPoll[VK_OEM_1] & 0x80 ) { ui8Ret |= LSN_IB_A; }
 
-			if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
-			if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }
+			if ( bPoll['O'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }
+			if ( bPoll['P'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
 
-			if ( bPoll[VK_UP] & 0x80 ) { ui8Ret |= LSN_IB_UP; }
-			if ( bPoll[VK_DOWN] & 0x80 ) { ui8Ret |= LSN_IB_DOWN; }
-			if ( bPoll[VK_LEFT] & 0x80 ) { ui8Ret |= LSN_IB_LEFT; }
-			if ( bPoll[VK_RIGHT] & 0x80 ) { ui8Ret |= LSN_IB_RIGHT; }
+			if ( bPoll['W'] & 0x80 ) { ui8Ret |= LSN_IB_UP; }
+			if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_DOWN; }
+			if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_LEFT; }
+			if ( bPoll['D'] & 0x80 ) { ui8Ret |= LSN_IB_RIGHT; }
 
 
 			return ui8Ret;
@@ -474,19 +475,19 @@ namespace lsn {
 	 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
 	 */
 	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette ) {
-		if ( _vPalette.size() != 0x40 * 3 ) { return; }
+		if ( _vPalette.size() != 0x40 * 3 && _vPalette.size() != (1 << 9) * 3 ) { return; }
 		if ( !m_pnsSystem.get() ) { return; }
 		lsn::LSN_PALETTE * ppPal = m_pnsSystem->Palette();
 		if ( !ppPal ) { return; }
 		for ( size_t I = 0; I < _vPalette.size(); I += 3 ) {
 			size_t stIdx = (I / 3);
-			/*ppPal->uVals[stIdx].sRgb.ui8R = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+2] / 255.0 ) * 255.0 ) );
+			ppPal->uVals[stIdx].sRgb.ui8R = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+2] / 255.0 ) * 255.0 ) );
 			ppPal->uVals[stIdx].sRgb.ui8G = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+1] / 255.0 ) * 255.0 ) );
-			ppPal->uVals[stIdx].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+0] / 255.0 ) * 255.0 ) );*/
+			ppPal->uVals[stIdx].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB( _vPalette[I+0] / 255.0 ) * 255.0 ) );
 
-			ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
+			/*ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
-			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];
+			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
 		}
 	}
 

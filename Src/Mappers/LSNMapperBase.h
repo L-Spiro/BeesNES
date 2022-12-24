@@ -108,6 +108,16 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
 
 		/**
+		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
 		 * Reads the fixed bank.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -126,6 +136,16 @@ namespace lsn {
 		 * \param _ui8Ret The read value.
 		 */
 		static void LSN_FASTCALL						ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+
+		/**
+		 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current 4-kilobyte bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
 
 		/**
 		 * Converts an address in the range from LSN_PPU_NAMETABLES to LSN_PPU_NAMETABLES_END into a mirrored address given the mirroring type.

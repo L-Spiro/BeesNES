@@ -35,7 +35,7 @@ namespace lsn {
 	 */
 	void CMapper003::ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 		for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-			_pbCpuBus->SetTrampolineReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead_Trampoline, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ), &m_tCpuTrampolines[I-0x8000] );
+			_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			_pbCpuBus->SetWriteFunc( uint16_t( I ), &Mapper003CpuWrite, this, 0 );	// Treated as ROM.
 		}
 

@@ -78,6 +78,19 @@ namespace lsn {
 	}
 
 	/**
+	 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
+	 *
+	 * \param _pvParm0 A data value assigned to this address.
+	 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+	 * \param _pui8Data The buffer from which to read.
+	 * \param _ui8Ret The read value.
+	 */
+	void LSN_FASTCALL CMapperBase::PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+		_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x2000)];
+	}
+
+	/**
 	 * Reads the fixed bank.
 	 *
 	 * \param _pvParm0 A data value assigned to this address.
@@ -101,6 +114,19 @@ namespace lsn {
 	void LSN_FASTCALL CMapperBase::ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 		CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
 		_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x2000+_ui16Parm1];
+	}
+
+	/**
+	 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current 4-kilobyte bank.
+	 *
+	 * \param _pvParm0 A data value assigned to this address.
+	 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+	 * \param _pui8Data The buffer from which to read.
+	 * \param _ui8Ret The read value.
+	 */
+	void LSN_FASTCALL CMapperBase::ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+		_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x1000+_ui16Parm1];
 	}
 
 	/**
