@@ -332,11 +332,10 @@ namespace lsn {
 	void LSN_FASTCALL CMapper010::SetLatch_0FD8_0FDF_Trampoline( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 		CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
 		CMapper010 * pmBase = reinterpret_cast<CMapper010 *>(ptTramp->pvReaderParm0);
-		pmBase->m_ui8Latch0 = 0xFD;
 		ptTramp->aaOriginalFuncs.pfReader( ptTramp->aaOriginalFuncs.pvReaderParm0,
 			ptTramp->aaOriginalFuncs.ui16ReaderParm1,
 			_pui8Data, _ui8Ret );
-		
+		pmBase->m_ui8Latch0 = 0xFD;
 	}
 
 	/**
@@ -350,11 +349,10 @@ namespace lsn {
 	void LSN_FASTCALL CMapper010::SetLatch_0FE8_0FEF_Trampoline( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 		CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
 		CMapper010 * pmBase = reinterpret_cast<CMapper010 *>(ptTramp->pvReaderParm0);
-		pmBase->m_ui8Latch0 = 0xFE;
 		ptTramp->aaOriginalFuncs.pfReader( ptTramp->aaOriginalFuncs.pvReaderParm0,
 			ptTramp->aaOriginalFuncs.ui16ReaderParm1,
 			_pui8Data, _ui8Ret );
-		
+		pmBase->m_ui8Latch0 = 0xFE;
 	}
 
 	/**
@@ -368,11 +366,10 @@ namespace lsn {
 	void LSN_FASTCALL CMapper010::SetLatch_1FD8_1FDF_Trampoline( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 		CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
 		CMapper010 * pmBase = reinterpret_cast<CMapper010 *>(ptTramp->pvReaderParm0);
-		pmBase->m_ui8Latch1 = 0xFD;
 		ptTramp->aaOriginalFuncs.pfReader( ptTramp->aaOriginalFuncs.pvReaderParm0,
 			ptTramp->aaOriginalFuncs.ui16ReaderParm1,
 			_pui8Data, _ui8Ret );
-		
+		pmBase->m_ui8Latch1 = 0xFD;
 	}
 
 	/**
@@ -386,11 +383,10 @@ namespace lsn {
 	void LSN_FASTCALL CMapper010::SetLatch_1FE8_1FEF_Trampoline( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 		CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
 		CMapper010 * pmBase = reinterpret_cast<CMapper010 *>(ptTramp->pvReaderParm0);
-		pmBase->m_ui8Latch1 = 0xFE;
 		ptTramp->aaOriginalFuncs.pfReader( ptTramp->aaOriginalFuncs.pvReaderParm0,
 			ptTramp->aaOriginalFuncs.ui16ReaderParm1,
 			_pui8Data, _ui8Ret );
-		
+		pmBase->m_ui8Latch1 = 0xFE;
 	}
 
 }	// namespace lsn
