@@ -24,7 +24,7 @@ namespace lsn {
 	 */
 	void CMapper001::InitWithRom( LSN_ROM &_rRom ) {
 		CMapperBase::InitWithRom( _rRom );
-		m_ui8PgmBank = 0;
+		m_ui8PgmBank = 3;
 		m_ui8Control = 0x1C;
 		m_ui8Load = 0;
 		m_ui8LoadCnt = 0;
@@ -60,9 +60,9 @@ namespace lsn {
 		}
 
 		// Make the pattern memory into RAM.
-		for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
+		/*for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
 			_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
-		}
+		}*/
 
 
 		ApplyControllableMirrorMap( _pbPpuBus );
@@ -201,7 +201,7 @@ namespace lsn {
 					 */
 					// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 					if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
-						pmThis->m_ui8ChrBank = pmThis->m_ui8Load & 0b11110;
+						pmThis->m_ui8ChrBank = (pmThis->m_ui8Load & 0b11110) >> 1;
 						if ( pmThis->m_prRom->vChrRom.size() ) {
 							pmThis->m_ui8ChrBank %= uint8_t( pmThis->m_prRom->vChrRom.size() / (0x2000) );
 						}

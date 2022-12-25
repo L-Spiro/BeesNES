@@ -169,7 +169,7 @@ namespace lsn {
 				case LSN_MM_HORIZONTAL : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
 					// Mirror $2400 to $2000 and $2C00 to $2800.
-					ui16Root = (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2));
+					ui16Root = (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) + ((ui16Root >> 11/*/ (LSN_PPU_NAMETABLES_SCREEN * 2)*/) * (LSN_PPU_NAMETABLES_SCREEN * 1));
 					return ui16Root | LSN_PPU_NAMETABLES;
 				}
 				case LSN_MM_VERTICAL : {

@@ -385,11 +385,12 @@ namespace lsn {
 		 * Applies vertical mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyVerticalMirroring() {
+			::OutputDebugStringA( "****** LSN_MM_VERTICAL.\r\n" );
 			// == Nametables
 			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				ui16Root %= LSN_PPU_NAMETABLES_SCREEN * 2;									// Map $2800 to $2000 and $2C00 to $2400.
-				ui16Root += LSN_PPU_NAMETABLES;
+				ui16Root |= LSN_PPU_NAMETABLES;
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
 			}
@@ -399,11 +400,12 @@ namespace lsn {
 		 * Applies horizontal mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyHorizontalMirroring() {
+			::OutputDebugStringA( "****** LSN_MM_HORIZONTAL.\r\n" );
 			// == Nametables
 			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				// Mirror $2400 to $2000 and $2C00 to $2800.
-				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 2)) + LSN_PPU_NAMETABLES;
+				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 1)) + LSN_PPU_NAMETABLES;
 				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
 			}
@@ -413,6 +415,7 @@ namespace lsn {
 		 * Applies 4-screens mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyFourScreensMirroring() {
+			::OutputDebugStringA( "****** LSN_MM_FOURSCREENS.\r\n" );
 			// == Nametables
 			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
@@ -426,6 +429,7 @@ namespace lsn {
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring() {
+			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_A.\r\n" );
 			// == Nametables
 			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
@@ -439,6 +443,7 @@ namespace lsn {
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring_B() {
+			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_B.\r\n" );
 			// == Nametables
 			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
@@ -1426,7 +1431,7 @@ namespace lsn {
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_bBus.Read( ui16Addr );
-				ppPpu->m_ui8DataBuffer = 0;
+				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value

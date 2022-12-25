@@ -195,7 +195,8 @@ namespace lsn {
 		LSN_MM_VERTICAL,														/**< Vertical mirroring. */
 		LSN_MM_HORIZONTAL,														/**< Horizontal mirroring. */
 		LSN_MM_FOURSCREENS,														/**< 4 screens. */
-		LSN_MM_ONESCREEN,														/**< 1 screen. */
+		LSN_MM_ONESCREEN_A,														/**< 1 screen. */
+		LSN_MM_ONESCREEN_B,														/**< 1 screen. */
 	};
 
 

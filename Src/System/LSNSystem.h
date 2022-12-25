@@ -53,14 +53,7 @@ namespace lsn {
 		 */
 		void											ResetState( bool _bAnalog ) {
 			m_bBus.ResetAnalog();
-			if ( _bAnalog ) {
-				m_cCpu.ResetAnalog();
-				m_pPpu.ResetAnalog();
-			}
-			else {
-				m_cCpu.ResetToKnown();
-				m_pPpu.ResetToKnown();
-			}
+			
 			m_ui64AccumTime = 0;
 			m_ui64MasterCounter = 0;
 			m_ui64CpuCounter = 0;
@@ -85,8 +78,12 @@ namespace lsn {
 						m_pPpu.ApplyFourScreensMirroring();
 						break;
 					}
-					case LSN_MM_ONESCREEN : {
+					case LSN_MM_ONESCREEN_A : {
 						m_pPpu.ApplyOneScreenMirroring();
+						break;
+					}
+					case LSN_MM_ONESCREEN_B : {
+						m_pPpu.ApplyOneScreenMirroring_B();
 						break;
 					}
 				}
@@ -94,6 +91,15 @@ namespace lsn {
 				if ( m_pmbMapper.get() ) {
 					m_pmbMapper->ApplyMap( &m_bBus, &m_pPpu.GetBus() );
 				}
+			}
+
+			if ( _bAnalog ) {
+				m_cCpu.ResetAnalog();
+				m_pPpu.ResetAnalog();
+			}
+			else {
+				m_cCpu.ResetToKnown();
+				m_pPpu.ResetToKnown();
 			}
 		}
 
@@ -284,6 +290,10 @@ namespace lsn {
 						m_pmbMapper = std::make_unique<CMapper010>();
 						break;
 					}
+					case 66 : {
+						m_pmbMapper = std::make_unique<CMapper066>();
+						break;
+					}
 					case 75 : {
 						m_pmbMapper = std::make_unique<CMapper075>();
 						break;
@@ -298,7 +308,9 @@ namespace lsn {
 					}
 				}
 				{
-					std::string sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
+					std::string sText = "****** Mapper: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
+					::OutputDebugStringA( sText.c_str() );
+					sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
 					::OutputDebugStringA( sText.c_str() );
 				}
 

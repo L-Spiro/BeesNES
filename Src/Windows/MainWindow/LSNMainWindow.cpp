@@ -111,7 +111,7 @@ namespace lsn {
 
 		{
 			//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
-			std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.pal";
+			std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.brightness1.07_saturation1.2.pal";
 			lsn::CStdFile sfFile;
 			if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 				std::vector<uint8_t> vPal;

@@ -303,6 +303,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper007.h" />
     <ClInclude Include="Src\Mappers\LSNMapper009.h" />
     <ClInclude Include="Src\Mappers\LSNMapper010.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper066.h" />
     <ClInclude Include="Src\Mappers\LSNMapper075.h" />
     <ClInclude Include="Src\Mappers\LSNMapper094.h" />
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
@@ -346,6 +347,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Mappers\LSNMapper007.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper009.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper010.cpp" />
+    <ClCompile Include="Src\Mappers\LSNMapper066.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper075.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapper094.cpp" />
     <ClCompile Include="Src\Mappers\LSNMapperBase.cpp" />
