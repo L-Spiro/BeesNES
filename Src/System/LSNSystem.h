@@ -52,15 +52,8 @@ namespace lsn {
 		 * \param _bAnalog If true, a soft reset is performed on the CPU, otherwise the CPU is reset to a known state.
 		 */
 		void											ResetState( bool _bAnalog ) {
-			m_bBus.ResetAnalog();
+			m_bBus.ApplyMap();
 			
-			m_ui64AccumTime = 0;
-			m_ui64MasterCounter = 0;
-			m_ui64CpuCounter = 0;
-			m_ui64PpuCounter = 0;
-			m_ui64ApuCounter = 0;
-			m_ui64LastRealTime = m_cClock.GetRealTick();
-
 			m_cCpu.ApplyMemoryMap();
 			m_pPpu.ApplyMemoryMap();
 
@@ -101,6 +94,13 @@ namespace lsn {
 				m_cCpu.ResetToKnown();
 				m_pPpu.ResetToKnown();
 			}
+
+			m_ui64AccumTime = 0;
+			m_ui64MasterCounter = 0;
+			m_ui64CpuCounter = 0;
+			m_ui64PpuCounter = 0;
+			m_ui64ApuCounter = 0;
+			m_ui64LastRealTime = m_cClock.GetRealTick();
 		}
 
 		/**
@@ -244,8 +244,6 @@ namespace lsn {
 				else {
 					return false;
 				}
-				// Temporary.
-				m_bBus.ResetToKnown();
 
 				// ROM loaded.
 				uint16_t ui16Addr = 0x8000;
@@ -304,6 +302,10 @@ namespace lsn {
 					}
 					case 94 : {
 						m_pmbMapper = std::make_unique<CMapper094>();
+						break;
+					}
+					case 184 : {
+						m_pmbMapper = std::make_unique<CMapper184>();
 						break;
 					}
 					default : {

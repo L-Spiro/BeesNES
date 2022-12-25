@@ -26,3 +26,5 @@
 #include "../Mappers/LSNMapper087.h"
 
 #include "../Mappers/LSNMapper094.h"
+
+#include "../Mappers/LSNMapper184.h"

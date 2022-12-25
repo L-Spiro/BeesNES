@@ -78,6 +78,13 @@ namespace lsn {
 		void											ApplyControllableMirrorMap( CPpuBus * _pbPpuBus );
 
 		/**
+		 * Applies a default CHR ROM map (read pointers set, writes disabled).
+		 *
+		 * \param _pbPpuBus A pointer to the PPU bus.
+		 */
+		void											ApplyStdChrRom( CPpuBus * _pbPpuBus );
+
+		/**
 		 * A standard mapper PGM trampoline read function.  Maps an address to a given byte in the ROM's PGM space.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.

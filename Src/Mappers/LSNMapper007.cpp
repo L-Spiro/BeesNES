@@ -24,7 +24,8 @@ namespace lsn {
 	 */
 	void CMapper007::InitWithRom( LSN_ROM &_rRom ) {
 		CMapperBase::InitWithRom( _rRom );
-		m_ui8PgmBank = 0;
+
+		m_ui8PgmBank = uint8_t( m_prRom->vPrgRom.size() / (32 * 1024) - 1 );
 	}
 
 	/**

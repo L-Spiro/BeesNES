@@ -38,6 +38,23 @@ namespace lsn {
 	}
 
 	/**
+	 * Applies a default CHR ROM map (read pointers set, writes disabled).
+	 *
+	 * \param _pbPpuBus A pointer to the PPU bus.
+	 */
+	void CMapperBase::ApplyStdChrRom( CPpuBus * _pbPpuBus ) {
+		if ( m_prRom && m_prRom->vChrRom.size() ) {
+			m_ui8ChrBank = 0;
+			for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
+				uint16_t ui16MappedAddr = ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE);
+				ui16MappedAddr %= m_prRom->vChrRom.size();
+				_pbPpuBus->SetReadFunc( uint16_t( I ), CMapperBase::ChrBankRead_2000, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
+			}
+		}
+	}
+
+	/**
 	 * A standard mapper PGM trampoline read function.  Maps an address to a given byte in the ROM's PGM space.
 	 *
 	 * \param _pvParm0 A data value assigned to this address.

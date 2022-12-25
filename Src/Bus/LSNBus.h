@@ -128,6 +128,12 @@ namespace lsn {
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
 		void								ResetAnalog() {
+		}
+
+		/**
+		 * Applies the default map to the memory.
+		 */
+		void								ApplyMap() {
 			for ( auto I = Size(); I--; ) {
 				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
 				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
