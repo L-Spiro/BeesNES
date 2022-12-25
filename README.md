@@ -1,11 +1,23 @@
-# 10 NES
+# BeesNES
 A sub-cycle–accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
-![image](https://user-images.githubusercontent.com/7362666/208350759-d7f11fc1-8a0d-46ce-80a7-ee87d077bb8e.png)
+![image](https://user-images.githubusercontent.com/7362666/209457943-0ea5581c-2220-44bf-a046-ed2be6bf77d4.png)
+![image](https://user-images.githubusercontent.com/7362666/209458107-919f63ed-2a4b-4bc0-ae65-46aff1c799b4.png)
+![image](https://user-images.githubusercontent.com/7362666/209458143-d44796b1-c0cf-40e1-9f89-b71b8be555b1.png)
+![image](https://user-images.githubusercontent.com/7362666/209458158-a01a7a05-bcee-494e-a0cc-8ee3e759cae8.png)
+![image](https://user-images.githubusercontent.com/7362666/209458173-abb73203-21b0-4f74-8b76-e0113ed76cf7.png)
+![image](https://user-images.githubusercontent.com/7362666/209458188-0fb8a5c5-3d25-4583-b618-e7ea92e3c75d.png)
+![image](https://user-images.githubusercontent.com/7362666/209458230-92ef54ae-ce4e-4ceb-9a0d-e7e235c57feb.png)
+![image](https://user-images.githubusercontent.com/7362666/209458242-87f07e69-22bf-44de-b3ba-ad15ddc157e0.png)
+![image](https://user-images.githubusercontent.com/7362666/209458269-7ffe82aa-63fd-4327-b56a-fbbd392cbd38.png)
+![image](https://user-images.githubusercontent.com/7362666/209458418-5e562f83-043b-4e38-aefc-cc8fb6eb568f.png)
+![image](https://user-images.githubusercontent.com/7362666/209458490-10276135-25ad-40c0-930d-b0b273b6ef1d.png)
+
+
 
 ## Accuracy
 Most emulators have thus far have aimed for “Cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Cycle_accuracy  
