@@ -388,7 +388,7 @@ namespace lsn {
 		 * Applies vertical mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyVerticalMirroring() {
-			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_VERTICAL, &m_bBus, this );
+			CMapperBase::ApplyMirroring( LSN_MM_VERTICAL, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_VERTICAL.\r\n" );
 		}
 
@@ -396,7 +396,7 @@ namespace lsn {
 		 * Applies horizontal mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyHorizontalMirroring() {
-			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_HORIZONTAL, &m_bBus, this );
+			CMapperBase::ApplyMirroring( LSN_MM_HORIZONTAL, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_HORIZONTAL.\r\n" );
 		}
 
@@ -404,24 +404,24 @@ namespace lsn {
 		 * Applies 4-screens mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyFourScreensMirroring() {
-			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_4_SCREENS, &m_bBus, this );
-			::OutputDebugStringA( "****** LSN_MM_FOURSCREENS.\r\n" );
+			CMapperBase::ApplyMirroring( LSN_MM_4_SCREENS, &m_bBus, this );
+			::OutputDebugStringA( "****** LSN_MM_4_SCREENS.\r\n" );
 		}
 
 		/**
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring() {
-			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_1_SCREEN_A, &m_bBus, this );
-			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_A.\r\n" );
+			CMapperBase::ApplyMirroring( LSN_MM_1_SCREEN_A, &m_bBus, this );
+			::OutputDebugStringA( "****** LSN_MM_1_SCREEN_A.\r\n" );
 		}
 
 		/**
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring_B() {
-			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_1_SCREEN_B, &m_bBus, this );
-			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_B.\r\n" );
+			CMapperBase::ApplyMirroring( LSN_MM_1_SCREEN_B, &m_bBus, this );
+			::OutputDebugStringA( "****** LSN_MM_1_SCREEN_B.\r\n" );
 		}
 
 		/**

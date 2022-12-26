@@ -197,9 +197,9 @@ namespace lsn {
 	enum LSN_MIRROR_MODE {
 		LSN_MM_VERTICAL,														/**< Vertical mirroring. */
 		LSN_MM_HORIZONTAL,														/**< Horizontal mirroring. */
-		LSN_MM_FOURSCREENS,														/**< 4 screens. */
-		LSN_MM_ONESCREEN_A,														/**< 1 screen. */
-		LSN_MM_ONESCREEN_B,														/**< 1 screen. */
+		LSN_MM_4_SCREENS,														/**< 4 screens. */
+		LSN_MM_1_SCREEN_A,														/**< 1 screen. */
+		LSN_MM_1_SCREEN_B,														/**< 1 screen. */
 	};
 
 

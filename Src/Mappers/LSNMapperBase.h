@@ -34,17 +34,6 @@ namespace lsn {
 		}
 
 
-		// == Enumerations.
-		/** Mirroring modes. */
-		enum LSN_MIRROR_MODE {
-			LSN_MM_HORIZONTAL,
-			LSN_MM_VERTICAL,
-			LSN_MM_1_SCREEN_A,
-			LSN_MM_1_SCREEN_B,
-			LSN_MM_4_SCREENS,
-		};
-
-
 		// == Functions.
 		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.

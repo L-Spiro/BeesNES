@@ -68,15 +68,15 @@ namespace lsn {
 						m_pPpu.ApplyHorizontalMirroring();
 						break;
 					}
-					case LSN_MM_FOURSCREENS : {
+					case LSN_MM_4_SCREENS : {
 						m_pPpu.ApplyFourScreensMirroring();
 						break;
 					}
-					case LSN_MM_ONESCREEN_A : {
+					case LSN_MM_1_SCREEN_A : {
 						m_pPpu.ApplyOneScreenMirroring();
 						break;
 					}
-					case LSN_MM_ONESCREEN_B : {
+					case LSN_MM_1_SCREEN_B : {
 						m_pPpu.ApplyOneScreenMirroring_B();
 						break;
 					}
@@ -232,7 +232,7 @@ namespace lsn {
 			m_rRom = LSN_ROM();
 			m_rRom.riInfo.s16File = _s16Path;
 			m_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
-			m_rRom.riInfo.ui32Crc = CCrc::GetCrc( _vRom.data(), _vRom.size() );
+			
 
 			if ( _vRom.size() >= 4 ) {
 				const uint8_t ui8NesHeader[] = {
@@ -248,6 +248,8 @@ namespace lsn {
 				}
 
 				// ROM loaded.
+				m_rRom.riInfo.ui32Crc = CCrc::GetCrc( m_rRom.vPrgRom.data(), m_rRom.vPrgRom.size() );
+
 				uint16_t ui16Addr = 0x8000;
 				uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );
 				
@@ -304,6 +306,14 @@ namespace lsn {
 					}
 					case 77 : {
 						m_pmbMapper = std::make_unique<CMapper077>();
+						break;
+					}
+					case 78 : {
+						m_pmbMapper = std::make_unique<CMapper078>();
+						break;
+					}
+					case 79 : {
+						m_pmbMapper = std::make_unique<CMapper079>();
 						break;
 					}
 					case 87 : {

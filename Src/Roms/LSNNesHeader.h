@@ -214,7 +214,7 @@ namespace lsn {
 	 * \return Gets the mirroring mode for the ROM.
 	 */
 	inline LSN_MIRROR_MODE LSN_NES_HEADER::GetMirrorMode() const {
-		if ( ui8Byte6 & 0x08 ) { return LSN_MM_FOURSCREENS; }
+		if ( ui8Byte6 & 0x08 ) { return LSN_MM_4_SCREENS; }
 		return (ui8Byte6 & 0x01) ? LSN_MM_VERTICAL : LSN_MM_HORIZONTAL;
 	}
 

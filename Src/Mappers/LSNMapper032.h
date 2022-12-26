@@ -54,7 +54,7 @@ namespace lsn {
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 
-#define LSN_MAJOR_BALL_CRC								0xD8DFD3D1
+#define LSN_MAJOR_BALL_CRC								0xC0FED437
 			// ================
 			// FIXED BANKS
 			// ================
