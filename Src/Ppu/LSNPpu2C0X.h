@@ -13,6 +13,7 @@
 #include "../Bus/LSNBus.h"
 #include "../Display/LSNDisplayClient.h"
 #include "../Display/LSNDisplayHost.h"
+#include "../Mappers/LSNMapperBase.h"
 #include "../Palette/LSNPalette.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
@@ -387,72 +388,40 @@ namespace lsn {
 		 * Applies vertical mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyVerticalMirroring() {
+			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_VERTICAL, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_VERTICAL.\r\n" );
-			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
-				ui16Root %= LSN_PPU_NAMETABLES_SCREEN * 2;									// Map $2800 to $2000 and $2C00 to $2400.
-				ui16Root |= LSN_PPU_NAMETABLES;
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
-			}
 		}
 
 		/**
 		 * Applies horizontal mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyHorizontalMirroring() {
+			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_HORIZONTAL, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_HORIZONTAL.\r\n" );
-			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
-				// Mirror $2400 to $2000 and $2C00 to $2800.
-				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + ((ui16Root / (LSN_PPU_NAMETABLES_SCREEN * 2)) * (LSN_PPU_NAMETABLES_SCREEN * 1)) + LSN_PPU_NAMETABLES;
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
-			}
 		}
 
 		/**
 		 * Applies 4-screens mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyFourScreensMirroring() {
+			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_4_SCREENS, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_FOURSCREENS.\r\n" );
-			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
-				ui16Root += LSN_PPU_NAMETABLES;
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
-			}
 		}
 
 		/**
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring() {
+			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_1_SCREEN_A, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_A.\r\n" );
-			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
-				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES;
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
-			}
 		}
 
 		/**
 		 * Applies 1-screen mirroring to the nametable addresses ([LSN_PPU_NAMETABLES..LSN_PPU_PALETTE_MEMORY]).
 		 */
 		void											ApplyOneScreenMirroring_B() {
+			CMapperBase::ApplyMirroring( CMapperBase::LSN_MM_1_SCREEN_B, &m_bBus, this );
 			::OutputDebugStringA( "****** LSN_MM_ONESCREEN_B.\r\n" );
-			// == Nametables
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
-				ui16Root = (ui16Root % LSN_PPU_NAMETABLES_SCREEN) + LSN_PPU_NAMETABLES + LSN_PPU_NAMETABLES_SCREEN;
-				m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, ui16Root );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, ui16Root );
-			}
 		}
 
 		/**

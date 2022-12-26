@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Apu/LSNApu2A0X.h"
 #include "../Cpu/LSNCpu6502.h"
+#include "../Crc/LSNCrc.h"
 #include "../Ppu/LSNPpu2C0X.h"
 #include "../Roms/LSNNesHeader.h"
 #include "../Roms/LSNRom.h"
@@ -231,6 +232,7 @@ namespace lsn {
 			m_rRom = LSN_ROM();
 			m_rRom.riInfo.s16File = _s16Path;
 			m_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
+			m_rRom.riInfo.ui32Crc = CCrc::GetCrc( _vRom.data(), _vRom.size() );
 
 			if ( _vRom.size() >= 4 ) {
 				const uint8_t ui8NesHeader[] = {
@@ -286,6 +288,10 @@ namespace lsn {
 					}
 					case 10 : {
 						m_pmbMapper = std::make_unique<CMapper010>();
+						break;
+					}
+					case 32 : {
+						m_pmbMapper = std::make_unique<CMapper032>();
 						break;
 					}
 					case 66 : {

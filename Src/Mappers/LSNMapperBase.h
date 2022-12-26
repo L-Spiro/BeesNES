@@ -61,9 +61,29 @@ namespace lsn {
 		 */
 		virtual void									ApplyMap( CCpuBus * /*_pbCpuBus*/, CPpuBus * /*_pbPpuBus*/ ) {}
 
+		/**
+		 * Applies a mirroring mode to a PPU bus.
+		 *
+		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).
+		 * \param _pbPpuBus A pointer to the PPU bus.
+		 * \param _pvParm0 The pointer to pass to the read/write functions.
+		 */
+		static void										ApplyMirroring( uint16_t _ui16Mirror, CPpuBus * _pbPpuBus, void * _pvParm0 ) {
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				uint16_t ui16Final = MirrorAddress( ui16Root, static_cast<LSN_MIRROR_MODE>(_ui16Mirror) );
+				_pbPpuBus->SetReadFunc( uint16_t( I ), CPpuBus::StdRead, _pvParm0, ui16Final );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, _pvParm0, ui16Final );
+			}
+		}
+
 
 	protected :
 		// == Members.
+		/** The PGM banks. */
+		uint8_t											m_ui8PgmBanks[32];
+		/** The CHR ROM banks. */
+		uint8_t											m_ui8ChrBanks[32];
 		/** The ROM used to initialize this mapper. */
 		LSN_ROM *										m_prRom;
 		/** The offset of the fixed bank. */
@@ -72,12 +92,8 @@ namespace lsn {
 		uint8_t &										m_ui8PgmBank;
 		/** The CHR ROM bank. */
 		uint8_t &										m_ui8ChrBank;
-		/** Themirroring mode. */
+		/** The mirroring mode. */
 		LSN_MIRROR_MODE									m_mmMirror;
-		/** The PGM banks. */
-		uint8_t											m_ui8PgmBanks[32];
-		/** The CHR ROM banks. */
-		uint8_t											m_ui8ChrBanks[32];
 
 
 		// == Functions.
@@ -140,16 +156,131 @@ namespace lsn {
 		}
 
 		/**
-		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
+		 * Reads from PGM ROM using m_ui8PgmBanks[_uReg] to select a bank among _uSize-sized banks.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_8000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		template <unsigned _uReg, unsigned _uSize>
+		static void LSN_FASTCALL						PgmBankRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x8000)];
+			_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[_uReg])*_uSize)];
+		}
+
+		/**
+		 * Reads from CHR ROM using m_ui8PgmBanks[_uReg] to select a bank among _uSize-sized banks.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		static void LSN_FASTCALL						ChrBankRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vChrRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8ChrBanks[_uReg])*_uSize)];
+		}
+
+		/**
+		 * Sets a PGM bank by index.
+		 *
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		void											SetPgmBank( int16_t _i16Bank ) {
+			size_t stBanks = m_prRom->vPrgRom.size() / _uSize;
+			size_t stIdx;
+			if ( _i16Bank < 0 ) {
+				stIdx = stBanks - (-_i16Bank % stBanks);
+			}
+			else {
+				stIdx = _i16Bank % stBanks;
+			}
+			m_ui8PgmBanks[_uReg] = uint8_t( stIdx );
+		}
+
+		/**
+		 * Sets a PGM bank by index.
+		 *
+		 * \param _ui16Reg The register index.
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uSize>
+		void											SetPgmBank( uint16_t _ui16Reg, int16_t _i16Bank ) {
+			size_t stBanks = m_prRom->vPrgRom.size() / _uSize;
+			size_t stIdx;
+			if ( _i16Bank < 0 ) {
+				stIdx = stBanks - (-_i16Bank % stBanks);
+			}
+			else {
+				stIdx = _i16Bank % stBanks;
+			}
+			m_ui8PgmBanks[_ui16Reg] = uint8_t( stIdx );
+		}
+
+		/**
+		 * Sets a CHR bank by index.
+		 *
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		void											SetChrBank( int16_t _i16Bank ) {
+			size_t stBanks = m_prRom->vChrRom.size() / _uSize;
+			size_t stIdx;
+			if ( _i16Bank < 0 ) {
+				stIdx = stBanks - (-_i16Bank % stBanks);
+			}
+			else {
+				stIdx = _i16Bank % stBanks;
+			}
+			m_ui8ChrBanks[_uReg] = uint8_t( stIdx );
+		}
+
+		/**
+		 * Sets a CHR bank by index.
+		 *
+		 * \param _ui16Reg The register index.
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uSize>
+		void											SetChrBank( uint16_t _ui16Reg, int16_t _i16Bank ) {
+			size_t stBanks = m_prRom->vChrRom.size() / _uSize;
+			size_t stIdx;
+			if ( _i16Bank < 0 ) {
+				stIdx = stBanks - (-_i16Bank % stBanks);
+			}
+			else {
+				stIdx = _i16Bank % stBanks;
+			}
+			m_ui8ChrBanks[_ui16Reg] = uint8_t( stIdx );
+		}
+
+		/**
+		 * Sanitizes all bank registers without initializing their values.
+		 */
+		template <unsigned _uPgmBankSize, unsigned _uChrBankSize>
+		void											SanitizeRegs() {
+			if ( m_prRom ) {
+				// Sanitize all register ranges.
+				for ( auto I = LSN_ELEMENTS( m_ui8PgmBanks ); I--; ) {
+					SetPgmBank<_uPgmBankSize>( uint16_t( I ), m_ui8PgmBanks[I] );
+				}
+				for ( auto I = LSN_ELEMENTS( m_ui8ChrBanks ); I--; ) {
+					SetChrBank<_uChrBankSize>( uint16_t( I ), m_ui8ChrBanks[I] );
+				}
+			}
 		}
 
 		/**
@@ -160,9 +291,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x4000)];
+		static void LSN_FASTCALL						PgmBankRead_8000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			PgmBankRead<0, 0x8000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
 		}
 
 		/**
@@ -173,9 +303,20 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x2000)];
+		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			PgmBankRead<0, 0x4000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
+		}
+
+		/**
+		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			PgmBankRead<0, 0x2000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
 		}
 
 		/**
@@ -199,9 +340,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x2000+_ui16Parm1];
+		static void LSN_FASTCALL						ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			ChrBankRead<0, 0x2000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
 		}
 
 		/**
@@ -212,9 +352,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x1000+_ui16Parm1];
+		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			ChrBankRead<0, 0x1000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
 		}
 
 		/**
@@ -228,7 +367,7 @@ namespace lsn {
 			switch ( _mmMode ) {
 				case LSN_MM_HORIZONTAL : {
 					uint16_t ui16Root = (_ui16Addr /*- LSN_PPU_NAMETABLES*/);
-					// Mirror $2400 to $2000 and $2C00 to $2800.
+					// Mirror $2400 to $2000 and $2C00 to $2800 (and then $2800 to $2400).
 					ui16Root = (ui16Root & (LSN_PPU_NAMETABLES_SCREEN - 1)) + ((ui16Root >> 11/*/ (LSN_PPU_NAMETABLES_SCREEN * 2)*/) * (LSN_PPU_NAMETABLES_SCREEN * 1));
 					return ui16Root | LSN_PPU_NAMETABLES;
 				}

@@ -21,6 +21,6 @@ namespace lsn {
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
 	}
 
-}	// namespace ns4
+}	// namespace lsn
 
 #endif	// #ifdef LSN_USE_WINDOWS

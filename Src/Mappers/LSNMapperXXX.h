@@ -45,21 +45,39 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * /*_pbPpuBus*/ ) {
+		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			// ================
+			// FIXED BANKS
+			// ================
 			// Set the reads of the fixed bank at the end.		
 			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), 0x4000 ) - 0x4000;
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xC000 ) );
 			}
-			// Set the reads of the selectable bank.
+			
+
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_4000, this, uint16_t( I - 0x8000 ) );
 			}
 
-			// Writes to the whole area are used to select a bank.
+
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapperXXX::SelectBankY000_YFFF, this, 0 );	// Treated as ROM.
 			}
+
+
+			// ================
+			// MIRRORING
+			// ================
+			ApplyControllableMirrorMap( _pbPpuBus );
 		}
 
 

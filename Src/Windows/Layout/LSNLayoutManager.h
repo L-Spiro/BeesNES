@@ -20,6 +20,6 @@ namespace lsn {
 		virtual CWidget *				CreateWidget( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data );
 	};
 
-}	// namespace ns4
+}	// namespace lsn
 
 #endif	// #ifdef LSN_USE_WINDOWS
