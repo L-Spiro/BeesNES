@@ -200,6 +200,8 @@ namespace lsn {
 		LSN_MM_4_SCREENS,														/**< 4 screens. */
 		LSN_MM_1_SCREEN_A,														/**< 1 screen. */
 		LSN_MM_1_SCREEN_B,														/**< 1 screen. */
+
+		LSN_MM_NO_OVERRIDE					= -1,								/**< No mirror override (databse only). */
 	};
 
 

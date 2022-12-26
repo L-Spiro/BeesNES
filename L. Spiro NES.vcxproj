@@ -287,6 +287,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\Crc\LSNCrc.h" />
+    <ClInclude Include="Src\Database\LSNDatabase.h" />
     <ClInclude Include="Src\Display\LSNDisplayClient.h" />
     <ClInclude Include="Src\Display\LSNDisplayHost.h" />
     <ClInclude Include="Src\File\LSNFileBase.h" />
@@ -349,6 +350,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\Crc\LSNCrc.cpp" />
+    <ClCompile Include="Src\Database\LSNDatabase.cpp" />
     <ClCompile Include="Src\Display\LSNDisplayClient.cpp" />
     <ClCompile Include="Src\Display\LSNDisplayHost.cpp" />
     <ClCompile Include="Src\File\LSNFileBase.cpp" />

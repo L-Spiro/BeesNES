@@ -13,6 +13,7 @@
 #include "../Apu/LSNApu2A0X.h"
 #include "../Cpu/LSNCpu6502.h"
 #include "../Crc/LSNCrc.h"
+#include "../Database/LSNDatabase.h"
 #include "../Ppu/LSNPpu2C0X.h"
 #include "../Roms/LSNNesHeader.h"
 #include "../Roms/LSNRom.h"
@@ -249,6 +250,21 @@ namespace lsn {
 
 				// ROM loaded.
 				m_rRom.riInfo.ui32Crc = CCrc::GetCrc( m_rRom.vPrgRom.data(), m_rRom.vPrgRom.size() );
+				{
+					char szBuffer[128];
+					std::sprintf( szBuffer, "****** CRC: %.8X\r\n", m_rRom.riInfo.ui32Crc );
+					::OutputDebugStringA( szBuffer );
+				}
+
+				// Apply overrides from the database.
+				{
+					auto aEntry = CDatabase::m_mDatabase.find( m_rRom.riInfo.ui32Crc );
+					if ( aEntry != CDatabase::m_mDatabase.end() ) {
+						if ( aEntry->second.mmMirrorOverride != LSN_MM_NO_OVERRIDE ) {
+							m_rRom.riInfo.mmMirroring = aEntry->second.mmMirrorOverride;
+						}
+					}
+				}
 
 				uint16_t ui16Addr = 0x8000;
 				uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );

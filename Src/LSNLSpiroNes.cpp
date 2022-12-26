@@ -18,6 +18,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		L"LSNMULTISPLITTER",
 		L"LSNTREEVIEW",
 		L"LSNTREELISTVIEW" );
+	lsn::CDatabase::Init();
 
 	std::atomic_bool abIsAlive = false;
 	lsn::CMainWindow * pwMainWindow = static_cast<lsn::CMainWindow *>(lsn::CMainWindowLayout::CreateMainWindow( &abIsAlive ));
@@ -48,6 +49,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 
 
 	lsw::CBase::ShutDown();
+	lsn::CDatabase::Reset();
 	return static_cast<int>(mMsg.wParam);
 }
 #else

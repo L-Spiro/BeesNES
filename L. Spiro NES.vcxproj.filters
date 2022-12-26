@@ -136,6 +136,12 @@
     <Filter Include="Source Files\Crc">
       <UniqueIdentifier>{23230c31-825a-4647-83e4-04e4da1ce932}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Database">
+      <UniqueIdentifier>{56f2df96-b4be-4930-801f-c67946c8eda2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Database">
+      <UniqueIdentifier>{f58d992c-d190-479a-871d-60a2b4be23b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -318,6 +324,9 @@
     <ClInclude Include="Src\Mappers\LSNMapper093.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Database\LSNDatabase.h">
+      <Filter>Header Files\Database</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -385,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="Src\Crc\LSNCrc.cpp">
       <Filter>Source Files\Crc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Database\LSNDatabase.cpp">
+      <Filter>Source Files\Database</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
