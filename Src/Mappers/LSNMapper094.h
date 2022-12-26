@@ -36,7 +36,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			m_ui8PgmBank = 0;
+			SanitizeRegs<0x4000, 0x2000>();
 			m_ui8Mask = 0b11100;
 		}
 

@@ -79,7 +79,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						ChrBank1Read_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper184 * pmThis = reinterpret_cast<CMapper184 *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank1*0x1000+_ui16Parm1];
+			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBank1*0x1000+_ui16Parm1];
 		}
 
 		/**

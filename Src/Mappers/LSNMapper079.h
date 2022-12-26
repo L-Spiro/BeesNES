@@ -51,7 +51,7 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, 32 * 1024>, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, 32 * 1024>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {

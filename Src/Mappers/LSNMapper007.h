@@ -36,8 +36,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-
-			m_ui8PgmBank = uint8_t( m_prRom->vPrgRom.size() / (32 * 1024) - 1 );
+			SetPgmBank<0, 32 * 1024>( -1 );
 		}
 
 		/**
@@ -83,7 +82,7 @@ namespace lsn {
 			 *	   |  +++- Select 32 KB PRG ROM bank for CPU $8000-$FFFF
 			 *	   +------ Select 1 KB VRAM page for all 4 nametables
 			 */
-			pmThis->m_ui8PgmBank = (_ui8Val & 0b0111) % (pmThis->m_prRom->vPrgRom.size() / 0x8000);
+			pmThis->SetPgmBank<0, 0x8000>( _ui8Val & 0b0111 );
 			switch ( _ui8Val & 0b10000 ) {
 				case 0b10000 : {
 					pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;

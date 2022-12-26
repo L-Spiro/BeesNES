@@ -36,7 +36,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			m_ui8ChrBank = 0;
+			SanitizeRegs<32 * 1024, 8 * 1024>();
 		}
 
 		/**
@@ -71,9 +71,8 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper003 * pm3This = reinterpret_cast<CMapper003 *>(_pvParm0);
-			pm3This->m_ui8ChrBank = _ui8Val & 0x3;
-			// This area is ROM so deny any further writing operations.
+			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
+			pmThis->SetChrBank<0, 8 * 1024>( _ui8Val & 0x3 );
 		}
 		
 	};

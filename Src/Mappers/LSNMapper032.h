@@ -224,10 +224,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_8000_A000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
 			}
 		}
 
@@ -242,10 +242,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_A000_C000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
 			}
 		}
 
@@ -260,10 +260,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_C000_E000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
 			}
 		}
 	};

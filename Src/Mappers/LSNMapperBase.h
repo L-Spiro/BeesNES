@@ -136,7 +136,7 @@ namespace lsn {
 		static void LSN_FASTCALL						StdMapperCpuRead_Trampoline( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
 			CMapperBase * pmBase = reinterpret_cast<CMapperBase *>(ptTramp->pvReaderParm0);
-			_ui8Ret = pmBase->m_prRom->vPrgRom[_ui16Parm1];
+			_ui8Ret = pmBase->m_prRom->vPrgRom.data()[_ui16Parm1];
 		}
 
 		/**
@@ -149,7 +149,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						StdMapperCpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmBase = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmBase->m_prRom->vPrgRom[_ui16Parm1];
+			_ui8Ret = pmBase->m_prRom->vPrgRom.data()[_ui16Parm1];
 		}
 
 		/**
@@ -165,7 +165,7 @@ namespace lsn {
 		template <unsigned _uReg, unsigned _uSize>
 		static void LSN_FASTCALL						PgmBankRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vPrgRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[_uReg])*_uSize)];
+			_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[_uReg])*_uSize)];
 		}
 
 		/**
@@ -181,7 +181,7 @@ namespace lsn {
 		template <unsigned _uReg, unsigned _uSize>
 		static void LSN_FASTCALL						ChrBankRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vChrRom[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8ChrBanks[_uReg])*_uSize)];
+			_ui8Ret = pmThis->m_prRom->vChrRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8ChrBanks[_uReg])*_uSize)];
 		}
 
 		/**
@@ -203,6 +203,9 @@ namespace lsn {
 					stIdx = _i16Bank % stBanks;
 				}
 				m_ui8PgmBanks[_uReg] = uint8_t( stIdx );
+			}
+			else {
+				m_ui8PgmBanks[_uReg] = 0;
 			}
 		}
 
@@ -226,6 +229,9 @@ namespace lsn {
 				}
 				m_ui8PgmBanks[_ui16Reg] = uint8_t( stIdx );
 			}
+			else {
+				m_ui8PgmBanks[_ui16Reg] = 0;
+			}
 		}
 
 		/**
@@ -248,6 +254,9 @@ namespace lsn {
 				}
 				m_ui8ChrBanks[_uReg] = uint8_t( stIdx );
 			}
+			else {
+				m_ui8ChrBanks[_uReg] = 0;
+			}
 		}
 
 		/**
@@ -269,6 +278,9 @@ namespace lsn {
 					stIdx = _i16Bank % stBanks;
 				}
 				m_ui8ChrBanks[_ui16Reg] = uint8_t( stIdx );
+			}
+			else {
+				m_ui8ChrBanks[_ui16Reg] = 0;
 			}
 		}
 
@@ -334,7 +346,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PgmBankRead_Fixed( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
-			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+pmThis->m_stFixedOffset];
+			_ui8Ret = pmThis->m_prRom->vPrgRom.data()[_ui16Parm1+pmThis->m_stFixedOffset];
 		}
 
 		/**

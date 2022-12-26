@@ -40,7 +40,10 @@
 #include "../Mappers/LSNMapper092.h"
 #include "../Mappers/LSNMapper093.h"
 #include "../Mappers/LSNMapper094.h"
+#include "../Mappers/LSNMapper095.h"
 
 #include "../Mappers/LSNMapper097.h"
+
+#include "../Mappers/LSNMapper112.h"
 
 #include "../Mappers/LSNMapper184.h"

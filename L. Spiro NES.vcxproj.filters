@@ -327,6 +327,12 @@
     <ClInclude Include="Src\Database\LSNDatabase.h">
       <Filter>Header Files\Database</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper095.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper112.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
