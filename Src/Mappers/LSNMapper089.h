@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper XXX implementation.
+ * Description: Mapper 089 implementation.
  */
 
 
@@ -15,34 +15,20 @@
 namespace lsn {
 
 	/**
-	 * Class CMapperXXX
-	 * \brief Mapper XXX implementation.
+	 * Class CMapper089
+	 * \brief Mapper 089 implementation.
 	 *
-	 * Description: Mapper XXX implementation.
+	 * Description: Mapper 089 implementation.
 	 */
-	class CMapperXXX : public CMapperBase {
+	class CMapper089 : public CMapperBase {
 	public :
-		CMapperXXX() {
+		CMapper089() {
 		}
-		virtual ~CMapperXXX() {
+		virtual ~CMapper089() {
 		}
 
 
 		// == Functions.
-		/**
-		 * Gets the PGM bank size.
-		 *
-		 * \return Returns the size of the PGM banks.
-		 */
-		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
-
-		/**
-		 * Gets the CHR bank size.
-		 *
-		 * \return Returns the size of the CHR banks.
-		 */
-		static constexpr uint16_t						ChrBankSize() { return 2 * 1024; }
-
 		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
@@ -50,7 +36,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			SanitizeRegs<16 * 1024, 8 * 1024>();
 		}
 
 		/**
@@ -64,7 +50,7 @@ namespace lsn {
 			// FIXED BANKS
 			// ================
 			// Set the reads of the fixed bank at the end.		
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), 16 * 1024 ) - 16 * 1024;
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xC000 ) );
 			}
@@ -75,11 +61,11 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, 16 * 1024>, this, uint16_t( I - 0x8000 ) );
 			}
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, 8 * 1024>, this, uint16_t( I - 0x0000 ) );
 			}
 
 
@@ -88,7 +74,7 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapperXXX::SelectBankY000_YFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper089::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
 			}
 
 
@@ -112,9 +98,20 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBankY000_YFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapperXXX * pmThis = reinterpret_cast<CMapperXXX *>(_pvParm0);
-			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
+		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper089 * pmThis = reinterpret_cast<CMapper089 *>(_pvParm0);
+			pmThis->SetChrBank<0, 8 * 1024>( ((_ui8Val & 0b10000000) >> 4) | (_ui8Val & 0b111) );
+			pmThis->SetPgmBank<0, 16 * 1024>( (_ui8Val >> 4) & 0b111 );
+			switch ( (_ui8Val >> 3) & 1 ) {
+				case 0 : {
+					pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
+					break;
+				}
+				case 1 : {
+					pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
+					break;
+				}
+			}
 		}
 	};
 
