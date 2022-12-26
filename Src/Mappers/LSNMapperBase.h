@@ -197,14 +197,16 @@ namespace lsn {
 		template <unsigned _uReg, unsigned _uSize>
 		void											SetPgmBank( int16_t _i16Bank ) {
 			size_t stBanks = m_prRom->vPrgRom.size() / _uSize;
-			size_t stIdx;
-			if ( _i16Bank < 0 ) {
-				stIdx = stBanks - (-_i16Bank % stBanks);
+			if ( stBanks ) {
+				size_t stIdx;
+				if ( _i16Bank < 0 ) {
+					stIdx = stBanks - (-_i16Bank % stBanks);
+				}
+				else {
+					stIdx = _i16Bank % stBanks;
+				}
+				m_ui8PgmBanks[_uReg] = uint8_t( stIdx );
 			}
-			else {
-				stIdx = _i16Bank % stBanks;
-			}
-			m_ui8PgmBanks[_uReg] = uint8_t( stIdx );
 		}
 
 		/**
@@ -217,14 +219,16 @@ namespace lsn {
 		template <unsigned _uSize>
 		void											SetPgmBank( uint16_t _ui16Reg, int16_t _i16Bank ) {
 			size_t stBanks = m_prRom->vPrgRom.size() / _uSize;
-			size_t stIdx;
-			if ( _i16Bank < 0 ) {
-				stIdx = stBanks - (-_i16Bank % stBanks);
+			if ( stBanks ) {
+				size_t stIdx;
+				if ( _i16Bank < 0 ) {
+					stIdx = stBanks - (-_i16Bank % stBanks);
+				}
+				else {
+					stIdx = _i16Bank % stBanks;
+				}
+				m_ui8PgmBanks[_ui16Reg] = uint8_t( stIdx );
 			}
-			else {
-				stIdx = _i16Bank % stBanks;
-			}
-			m_ui8PgmBanks[_ui16Reg] = uint8_t( stIdx );
 		}
 
 		/**
@@ -237,14 +241,16 @@ namespace lsn {
 		template <unsigned _uReg, unsigned _uSize>
 		void											SetChrBank( int16_t _i16Bank ) {
 			size_t stBanks = m_prRom->vChrRom.size() / _uSize;
-			size_t stIdx;
-			if ( _i16Bank < 0 ) {
-				stIdx = stBanks - (-_i16Bank % stBanks);
+			if ( stBanks ) {
+				size_t stIdx;
+				if ( _i16Bank < 0 ) {
+					stIdx = stBanks - (-_i16Bank % stBanks);
+				}
+				else {
+					stIdx = _i16Bank % stBanks;
+				}
+				m_ui8ChrBanks[_uReg] = uint8_t( stIdx );
 			}
-			else {
-				stIdx = _i16Bank % stBanks;
-			}
-			m_ui8ChrBanks[_uReg] = uint8_t( stIdx );
 		}
 
 		/**
@@ -257,14 +263,16 @@ namespace lsn {
 		template <unsigned _uSize>
 		void											SetChrBank( uint16_t _ui16Reg, int16_t _i16Bank ) {
 			size_t stBanks = m_prRom->vChrRom.size() / _uSize;
-			size_t stIdx;
-			if ( _i16Bank < 0 ) {
-				stIdx = stBanks - (-_i16Bank % stBanks);
+			if ( stBanks ) {
+				size_t stIdx;
+				if ( _i16Bank < 0 ) {
+					stIdx = stBanks - (-_i16Bank % stBanks);
+				}
+				else {
+					stIdx = _i16Bank % stBanks;
+				}
+				m_ui8ChrBanks[_ui16Reg] = uint8_t( stIdx );
 			}
-			else {
-				stIdx = _i16Bank % stBanks;
-			}
-			m_ui8ChrBanks[_ui16Reg] = uint8_t( stIdx );
 		}
 
 		/**

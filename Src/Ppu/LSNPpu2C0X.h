@@ -1398,11 +1398,12 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & 0x3FFF;
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_bBus.Read( ui16Addr );
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
+				//ppPpu->m_ui8DataBuffer = _pui8Data[(ui16Addr & 0x7FF) | 0x2000];
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
@@ -1410,7 +1411,7 @@ namespace lsn {
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
 			}
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
@@ -1423,10 +1424,10 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & 0x3FFF;
-			ppPpu->m_bBus.Write( ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1), _ui8Val );
+			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1));
+			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
 		}
 
 		/**
