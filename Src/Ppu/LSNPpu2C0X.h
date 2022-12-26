@@ -1071,13 +1071,13 @@ namespace lsn {
 							// No vertical flip.
 							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
 								(m_ui8SpriteM << 4) |
-								(ui16ScanLine - m_ui8SpriteN);
+								((ui16ScanLine - m_ui8SpriteN) & 0x7);
 						}
 						else {
 							// Major vertical flippage going on here.
 							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
 								(m_ui8SpriteM << 4) |
-								(7 - (ui16ScanLine - m_ui8SpriteN));
+								((7 - (ui16ScanLine - m_ui8SpriteN)) & 0x7);
 						}
 					}
 					else {
@@ -1134,7 +1134,7 @@ namespace lsn {
 			// ========================
 			if constexpr ( _uStage == 6 ) {
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
-					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp + 8 );
+					uint8_t ui8Bits = m_bBus.Read( (m_ui16SpritePatternTmp + 8) );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
