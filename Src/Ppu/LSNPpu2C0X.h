@@ -42,9 +42,9 @@ namespace lsn {
 	 *
 	 * Description: The 2C0X series of PPU's.
 	 */
-	template <unsigned _tDotWidth, unsigned _tDotHeight,
+	template <unsigned _tRegCode,
+		unsigned _tDotWidth, unsigned _tDotHeight,
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
-		unsigned _tVBlank, unsigned _tPostVBlank,
 		unsigned _tRenderW, unsigned _tBorderW,
 		bool _bOddFrameShenanigans, double _dPerferredRatio>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
@@ -76,7 +76,9 @@ namespace lsn {
 #ifdef LSN_GEN_PPU
 			GenerateCycleFuncs();
 #else
-#include "LSNCreateCycleTable.inl"
+#include "LSNCreateCycleTableNtsc.inl"
+#include "LSNCreateCycleTablePal.inl"
+#include "LSNCreateCycleTableDendy.inl"
 #endif	// #ifdef LSN_GEN_PPU
 #endif	// #ifdef LSN_TEMPLATE_PPU
 
@@ -2586,9 +2588,6 @@ namespace lsn {
 			LSN_TABLE_INDICES tiI = { 0, 0 };
 			while ( tiI.ui16Y < _tDotHeight ) {
 				while ( tiI.ui16X < _tDotWidth ) {
-					/*if ( tiI.ui16Y == 241 && tiI.ui16X == 321 ) {
-						volatile int ghg = 0;
-					}*/
 					std::string sThis = Cycle_Generate( tiI.ui16X, tiI.ui16Y );
 					
 					auto aInMap = mMap.find( sThis );
@@ -2607,7 +2606,7 @@ namespace lsn {
 			}
 
 			auto FuncName = []( const CStringList &_slDots ) {
-				std::string sName = "Cycle";
+				std::string sName = "Cycle_" + std::to_string( _tRegCode ) + "_";
 				size_t I = 0;
 				for ( ; I < _slDots.size() && I < 10; ++I ) {
 					sName += "_" + std::to_string( _slDots[I].ui16X ) + "x" + std::to_string( _slDots[I].ui16Y );
@@ -2618,22 +2617,26 @@ namespace lsn {
 				return sName;
 			};
 
+			
+			::OutputDebugStringA( ("if constexpr ( _tRegCode == " + std::to_string( _tRegCode ) + " ) {\r\n").c_str() );
+
 			for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {
 				std::string sTmp;
-				sTmp = "{\r\n";
-				sTmp += "	PfCycles pfTmp = &CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
+				sTmp = "	{\r\n";
+				sTmp += "		PfCycles pfTmp = &CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
 				::OutputDebugStringA( sTmp.c_str() );
 				sTmp = "";
 				for ( size_t J = 0; J < (*I).second.size(); ++J ) {
-					sTmp += "	m_cCycle[" + std::to_string( (*I).second[J].ui16Y * _tDotWidth + (*I).second[J].ui16X ) +
+					sTmp += "		m_cCycle[" + std::to_string( (*I).second[J].ui16Y * _tDotWidth + (*I).second[J].ui16X ) +
 						"] = pfTmp;\r\n";
 					::OutputDebugStringA( sTmp.c_str() );
 					sTmp = "";
 				}
 				//sTmp += "&CPpu2C0X::" + FuncName( (*I).second ) + ";\r\n";
-				sTmp += "}\r\n";
+				sTmp += "	}\r\n";
 				::OutputDebugStringA( sTmp.c_str() );
 			}
+			::OutputDebugStringA( "}\r\n" );
 
 			::OutputDebugStringA( "\r\n\r\n\r\n" );
 
@@ -2646,7 +2649,9 @@ namespace lsn {
 		}
 #endif	// #ifdef LSN_GEN_PPU
 
-#include "LSNGenFuncs.inl"
+#include "LSNGenFuncsNtsc.inl"
+#include "LSNGenFuncsPal.inl"
+#include "LSNGenFuncsDendy.inl"
 #endif	// #ifdef LSN_TEMPLATE_PPU
 	};
 	
@@ -2656,9 +2661,9 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Types.
-#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES,														\
+#define LSN_PPU_TYPE( REGION )							LSN_PM_ ## REGION,																									\
+														LSN_PM_ ## REGION ## _DOTS_X, LSN_PM_ ## REGION ## _SCANLINES,														\
 														LSN_PM_ ## REGION ## _PRERENDER, LSN_PM_ ## REGION ## _RENDER_LINES, LSN_PM_ ## REGION ## _POSTRENDER_LINES,		\
-														LSN_PM_ ## REGION ## _VBLANK_LINES, LSN_PM_ ## REGION ## _POSTBLANK_LINES,											\
 														LSN_PM_ ## REGION ## _RENDER_WIDTH, LSN_PM_ ## REGION ## _H_BORDER
 	/**
 	 * An NTSC PPU.

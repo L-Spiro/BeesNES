@@ -22,8 +22,10 @@ namespace lsn {
 	 */
 	class CMapper003 : public CMapperBase {
 	public :
-		CMapper003();
-		virtual ~CMapper003();
+		CMapper003() {
+		}
+		virtual ~CMapper003() {
+		}
 
 
 		// == Functions.
@@ -32,7 +34,10 @@ namespace lsn {
 		 *
 		 * \param _rRom The ROM data.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom );
+		virtual void									InitWithRom( LSN_ROM &_rRom ) {
+			CMapperBase::InitWithRom( _rRom );
+			m_ui8ChrBank = 0;
+		}
 
 		/**
 		 * Applies mapping to the CPU and PPU busses.
@@ -40,7 +45,16 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus );
+		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &Mapper003CpuWrite, this, 0 );	// Treated as ROM.
+			}
+
+			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead_2000, this, uint16_t( I ) );
+			}
+		}
 
 
 	protected :
@@ -49,16 +63,6 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * A standard mapper PGM read function.  Maps an address to a given byte in the ROM's PGM space.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
-		 * \param _pui8Data The buffer from which to read.
-		 * \param _ui8Ret The read value.
-		 */
-		//static void LSN_FASTCALL						Mapper003CpuRead_Trampoline( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
-
-		/**
 		 * CPU ROM-area writes are used to set the CHR bank.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -66,8 +70,11 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val );
-
+		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper003 * pm3This = reinterpret_cast<CMapper003 *>(_pvParm0);
+			pm3This->m_ui8ChrBank = _ui8Val & 0x3;
+			// This area is ROM so deny any further writing operations.
+		}
 		
 	};
 

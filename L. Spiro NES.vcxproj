@@ -303,6 +303,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper007.h" />
     <ClInclude Include="Src\Mappers\LSNMapper009.h" />
     <ClInclude Include="Src\Mappers\LSNMapper010.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper032.h" />
     <ClInclude Include="Src\Mappers\LSNMapper066.h" />
     <ClInclude Include="Src\Mappers\LSNMapper075.h" />
     <ClInclude Include="Src\Mappers\LSNMapper087.h" />
@@ -342,20 +343,6 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper000.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper001.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper002.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper003.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper007.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper009.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper010.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper066.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper075.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper087.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper094.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapper184.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapperBase.cpp" />
-    <ClCompile Include="Src\Mappers\LSNMapperXXX.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />
@@ -371,8 +358,12 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
-    <None Include="Src\Ppu\LSNCreateCycleTable.inl" />
-    <None Include="Src\Ppu\LSNGenFuncs.inl" />
+    <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
+    <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
+    <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />
+    <None Include="Src\Ppu\LSNGenFuncsDendy.inl" />
+    <None Include="Src\Ppu\LSNGenFuncsNtsc.inl" />
+    <None Include="Src\Ppu\LSNGenFuncsPal.inl" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest" />

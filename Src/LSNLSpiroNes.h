@@ -147,6 +147,7 @@ namespace lsn {
 
 	/** PPU metrics. */
 	enum LSN_PPU_METRICS {
+		LSN_PM_NTSC							= 0,								/**< NTSC code. */
 		LSN_PM_NTSC_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_NTSC_SCANLINES				= 262,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_NTSC_PRERENDER				= 0,								/**< The number of pre-render scanlines. */
@@ -157,6 +158,7 @@ namespace lsn {
 		LSN_PM_NTSC_RENDER_WIDTH			= 256,								/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_NTSC_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
 
+		LSN_PM_PAL							= 1,								/**< PAL code. */
 		LSN_PM_PAL_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_PAL_SCANLINES				= 312,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_PAL_PRERENDER				= 1,								/**< The number of pre-render scanlines. */
@@ -167,6 +169,7 @@ namespace lsn {
 		LSN_PM_PAL_RENDER_WIDTH				= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_PAL_H_BORDER					= 2,								/**< The number of pixels to the left and right that are blackened out. */
 
+		LSN_PM_DENDY						= 2,								/**< Dendy code. */
 		LSN_PM_DENDY_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_DENDY_SCANLINES				= LSN_PM_PAL_SCANLINES,				/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_DENDY_PRERENDER				= LSN_PM_NTSC_PRERENDER,			/**< The number of pre-render scanlines. */

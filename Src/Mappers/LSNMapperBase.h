@@ -23,8 +23,15 @@ namespace lsn {
 	 */
 	class CMapperBase {
 	public :
-		CMapperBase();
-		virtual ~CMapperBase();
+		CMapperBase() :
+			m_prRom( nullptr ),
+			m_stFixedOffset( 0 ),
+			m_mmMirror( LSN_MM_HORIZONTAL ),
+			m_ui8PgmBank( m_ui8PgmBanks[0] ),
+			m_ui8ChrBank( m_ui8ChrBanks[0] ) {
+		}
+		virtual ~CMapperBase() {
+		}
 
 
 		// == Enumerations.
@@ -61,12 +68,16 @@ namespace lsn {
 		LSN_ROM *										m_prRom;
 		/** The offset of the fixed bank. */
 		size_t											m_stFixedOffset;
+		/** The PGM bank. */
+		uint8_t &										m_ui8PgmBank;
+		/** The CHR ROM bank. */
+		uint8_t &										m_ui8ChrBank;
 		/** Themirroring mode. */
 		LSN_MIRROR_MODE									m_mmMirror;
-		/** The PGM bank. */
-		uint8_t											m_ui8PgmBank;
-		/** The CHR ROM bank. */
-		uint8_t											m_ui8ChrBank;
+		/** The PGM banks. */
+		uint8_t											m_ui8PgmBanks[32];
+		/** The CHR ROM banks. */
+		uint8_t											m_ui8ChrBanks[32];
 
 
 		// == Functions.
@@ -75,14 +86,31 @@ namespace lsn {
 		 *
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		void											ApplyControllableMirrorMap( CPpuBus * _pbPpuBus );
+		void											ApplyControllableMirrorMap( CPpuBus * _pbPpuBus ) {
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+				//ui16Root += LSN_PPU_NAMETABLES;
+				_pbPpuBus->SetReadFunc( uint16_t( I ), CMapperBase::Read_ControllableMirror, this, ui16Root );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), CMapperBase::Write_ControllableMirror, this, ui16Root );
+			}
+		}
 
 		/**
 		 * Applies a default CHR ROM map (read pointers set, writes disabled).
 		 *
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		void											ApplyStdChrRom( CPpuBus * _pbPpuBus );
+		void											ApplyStdChrRom( CPpuBus * _pbPpuBus ) {
+			if ( m_prRom && m_prRom->vChrRom.size() ) {
+				m_ui8ChrBank = 0;
+				for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
+					uint16_t ui16MappedAddr = ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE);
+					ui16MappedAddr %= m_prRom->vChrRom.size();
+					_pbPpuBus->SetReadFunc( uint16_t( I ), CMapperBase::ChrBankRead_2000, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
+					_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
+				}
+			}
+		}
 
 		/**
 		 * A standard mapper PGM trampoline read function.  Maps an address to a given byte in the ROM's PGM space.
@@ -92,7 +120,11 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						StdMapperCpuRead_Trampoline( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						StdMapperCpuRead_Trampoline( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
+			CMapperBase * pmBase = reinterpret_cast<CMapperBase *>(ptTramp->pvReaderParm0);
+			_ui8Ret = pmBase->m_prRom->vPrgRom[_ui16Parm1];
+		}
 
 		/**
 		 * A standard mapper PGM read function.  Maps an address to a given byte in the ROM's PGM space.
@@ -102,7 +134,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						StdMapperCpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						StdMapperCpuRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmBase = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmBase->m_prRom->vPrgRom[_ui16Parm1];
+		}
 
 		/**
 		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
@@ -112,7 +147,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_8000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						PgmBankRead_8000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x8000)];
+		}
 
 		/**
 		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
@@ -122,7 +160,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						PgmBankRead_4000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x4000)];
+		}
 
 		/**
 		 * Reads from PGM ROM using m_ui8PgmBank to select a bank.
@@ -132,7 +173,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						PgmBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+(pmThis->m_ui8PgmBank*0x2000)];
+		}
 
 		/**
 		 * Reads the fixed bank.
@@ -142,7 +186,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PgmBankRead_Fixed( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						PgmBankRead_Fixed( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vPrgRom[_ui16Parm1+pmThis->m_stFixedOffset];
+		}
 
 		/**
 		 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current bank.
@@ -152,7 +199,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						ChrBankRead_2000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x2000+_ui16Parm1];
+		}
 
 		/**
 		 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current 4-kilobyte bank.
@@ -162,7 +212,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_prRom->vChrRom[pmThis->m_ui8ChrBank*0x1000+_ui16Parm1];
+		}
 
 		/**
 		 * Converts an address in the range from LSN_PPU_NAMETABLES to LSN_PPU_NAMETABLES_END into a mirrored address given the mirroring type.
@@ -207,7 +260,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Read_ControllableMirror( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+		static void LSN_FASTCALL						Read_ControllableMirror( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = _pui8Data[MirrorAddress( _ui16Parm1, pmThis->m_mmMirror )];
+		}
 
 		/**
 		 * Handles writes to controllable mirror.
@@ -217,7 +273,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						Write_ControllableMirror( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
+		static void LSN_FASTCALL						Write_ControllableMirror( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_pui8Data[MirrorAddress( _ui16Parm1, pmThis->m_mmMirror )] = _ui8Val;
+		}
 
 	};
 

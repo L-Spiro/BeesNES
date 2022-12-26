@@ -276,6 +276,9 @@
     <ClInclude Include="Src\Mappers\LSNMapper184.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper032.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -341,57 +344,27 @@
     <ClCompile Include="Src\Display\LSNDisplayHost.cpp">
       <Filter>Source Files\Display</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapperBase.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper000.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper003.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper002.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper001.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper094.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper075.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper007.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapperXXX.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper009.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper010.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper066.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper087.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Mappers\LSNMapper184.cpp">
-      <Filter>Source Files\Mappers</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
       <Filter>Header Files\Cpu</Filter>
     </None>
-    <None Include="Src\Ppu\LSNCreateCycleTable.inl">
+    <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
-    <None Include="Src\Ppu\LSNGenFuncs.inl">
+    <None Include="Src\Ppu\LSNCreateCycleTablePal.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncsDendy.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncsNtsc.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncsPal.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
   </ItemGroup>

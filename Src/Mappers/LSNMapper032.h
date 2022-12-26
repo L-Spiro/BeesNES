@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 002 implementation.
+ * Description: Mapper 032 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper002
-	 * \brief Mapper 002 implementation.
+	 * Class CMapper032
+	 * \brief Mapper 032 implementation.
 	 *
-	 * Description: Mapper 002 implementation.
+	 * Description: Mapper 032 implementation.
 	 */
-	class CMapper002 : public CMapperBase {
+	class CMapper032 : public CMapperBase {
 	public :
-		CMapper002() {
+		CMapper032() {
 		}
-		virtual ~CMapper002() {
+		virtual ~CMapper032() {
 		}
 
 
@@ -37,7 +37,6 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
 			m_ui8PgmBank = 0;
-			m_ui8Mask = 0b0111;
 		}
 
 		/**
@@ -58,31 +57,28 @@ namespace lsn {
 			}
 
 			// Writes to the whole area are used to select a bank.
-			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, 0 );	// Treated as ROM.
+			for ( uint32_t I = 0x8000; I < 0x8007; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );	// Treated as ROM.
 			}
 		}
 
 
 	protected :
 		// == Members.
-		/** The bank-select mask. */
-		uint8_t											m_ui8Mask;
 
 
 		// == Functions.
 		/**
-		 * Selects a bank.
+		 * PRG register 0.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBank( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper002 * pmThis = reinterpret_cast<CMapper002 *>(_pvParm0);
-			pmThis->m_ui8PgmBank = (_ui8Val & pmThis->m_ui8Mask) % (pmThis->m_prRom->vPrgRom.size() / 0x4000);
-
+		static void LSN_FASTCALL						SelectBank8000_8007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
+			pmThis->m_ui8PgmBank = (_ui8Val & 0b1111) % (pmThis->m_prRom->vPrgRom.size() / 0x4000);
 		}
 	};
 
