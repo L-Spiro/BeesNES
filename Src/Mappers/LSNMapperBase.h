@@ -67,11 +67,19 @@ namespace lsn {
 		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 * \param _pvParm0 The pointer to pass to the read/write functions.
+		 * \param _ui16NametableStart Start of the addresses to map.
+		 * \param _ui16NametableEnd End of the range of addresses to map.
 		 */
-		static void										ApplyMirroring( uint16_t _ui16Mirror, CPpuBus * _pbPpuBus, void * _pvParm0 ) {
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
-				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
+		static void										ApplyMirroring( uint16_t _ui16Mirror, CPpuBus * _pbPpuBus, void * _pvParm0,
+			uint16_t _ui16NametableStart = LSN_PPU_NAMETABLES,
+			uint16_t _ui16NametableEnd = LSN_PPU_PALETTE_MEMORY ) {
+			for ( uint32_t I = _ui16NametableStart; I < _ui16NametableEnd; ++I ) {
+				uint16_t ui16Root = ((I - _ui16NametableStart) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				uint16_t ui16Final = MirrorAddress( ui16Root, static_cast<LSN_MIRROR_MODE>(_ui16Mirror) );
+				// MirrorAddress() is built for speed since it is used for run-time mirroring, so it
+				//	always sets LSN_PPU_NAMETABLES.
+				ui16Final &= ~LSN_PPU_NAMETABLES;
+				ui16Final += _ui16NametableStart;
 				_pbPpuBus->SetReadFunc( uint16_t( I ), CPpuBus::StdRead, _pvParm0, ui16Final );
 				_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, _pvParm0, ui16Final );
 			}
@@ -362,6 +370,18 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						ChrBankRead_1000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			ChrBankRead<0, 0x1000>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
+		}
+
+		/**
+		 * Reading from the PPU range 0x0000-0x2000 returns a value read from the current 2-kilobyte bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ChrBankRead_0800( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			ChrBankRead<0, 0x0800>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
 		}
 
 		/**
