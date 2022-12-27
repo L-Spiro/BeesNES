@@ -299,10 +299,29 @@ namespace lsn {
 
 	// WM_GETMINMAXINFO.
 	CWidget::LSW_HANDLED CMainWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
-		LSW_RECT rRect = FinalWindowRect();
-		_pmmiInfo->ptMinTrackSize.x = rRect.Width();
-		_pmmiInfo->ptMinTrackSize.y = rRect.Height();
-		_pmmiInfo->ptMaxTrackSize = _pmmiInfo->ptMinTrackSize;
+		{
+			// Minimum.
+			LSW_RECT rRect = FinalWindowRect( 1.0 );
+			_pmmiInfo->ptMinTrackSize.x = rRect.Width();
+			_pmmiInfo->ptMinTrackSize.y = rRect.Height();
+		}
+		{
+			// Maximum.
+			LSW_RECT rDesktop;
+			if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
+				LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
+				double dScaleW = double( rDesktop.Width() - rWindowArea.Width() ) / FinalWidth( 1.0 );
+				double dScaleH = double( rDesktop.Height() - rWindowArea.Height() ) / FinalHeight( 1.0 );
+				LSW_RECT rRect = FinalWindowRect( std::min( dScaleW, dScaleH ) );
+				_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
+				_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
+			}
+			else {
+				LSW_RECT rRect = FinalWindowRect( 8.0 );
+				_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
+				_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
+			}
+		}
 		return LSW_H_HANDLED;
 	}
 
@@ -343,6 +362,72 @@ namespace lsn {
 	// WM_MOVE.
 	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
 		Tick();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_SIZE handler.
+	 *
+	 * \param _wParam The type of resizing requested.
+	 * \param _lWidth The new width of the client area.
+	 * \param _lHeight The new height of the client area.
+	 * \return Returns a LSW_HANDLED enumeration.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
+		Parent::Size( _wParam, _lWidth, _lHeight );
+
+		LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
+		double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
+		double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
+		m_dScale = std::min( dScaleW, dScaleH );
+
+		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * The WM_SIZING handler.
+	 *
+	 * \param _iEdge The edge of the window that is being sized.
+	 * \param _prRect A pointer to a RECT structure with the screen coordinates of the drag rectangle. To change the size or position of the drag rectangle, an application must change the members of this structure.
+	 * \return Returns a LSW_HANDLED enumeration.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::Sizing( INT _iEdge, LSW_RECT * _prRect ) {
+		if ( m_pdcClient ) {
+			LSW_RECT rBorders = FinalWindowRect( 0.0 );
+			// Dragging horizontal bars means "expand the width to match."
+			if ( _iEdge == WMSZ_BOTTOM || _iEdge == WMSZ_BOTTOMRIGHT || _iEdge == WMSZ_BOTTOMLEFT ||
+				_iEdge == WMSZ_TOP || _iEdge == WMSZ_TOPRIGHT || _iEdge == WMSZ_TOPLEFT ) {
+				double dScale = double( _prRect->Height() - rBorders.Height() ) / FinalHeight( 1.0 );
+
+
+				LSW_RECT rNew = FinalWindowRect( dScale );
+				// If the drag was on the top, move the rectangle to maintain the TOP coordinate.
+				if ( _iEdge == WMSZ_TOP || _iEdge == WMSZ_TOPRIGHT || _iEdge == WMSZ_TOPLEFT ) {
+					rNew.MoveBy( 0, (*_prRect).top - rNew.top );
+				}
+				// If the drag was on the left, move the rectangle to maintain the RIGHT coordinate.
+				if ( _iEdge == WMSZ_BOTTOMLEFT || _iEdge == WMSZ_TOPLEFT ) {
+					rNew.MoveBy( (*_prRect).right - rNew.right, 0 );
+				}
+				(*_prRect) = rNew;
+				m_dScale = dScale;
+			}
+			// dragging verticals expands the height.
+			else if ( _iEdge == WMSZ_LEFT || _iEdge == WMSZ_RIGHT ) {
+				double dScale = double( _prRect->Width() - rBorders.Width() ) / FinalWidth( 1.0 );
+
+
+				LSW_RECT rNew = FinalWindowRect( dScale );
+				// If the drag was on the left, move the rectangle to maintain the RIGHT coordinate.
+				if ( _iEdge == WMSZ_LEFT ) {
+					rNew.MoveBy( (*_prRect).right - rNew.right, 0 );
+				}
+				(*_prRect) = rNew;
+				m_dScale = dScale;
+			}
+			return LSW_H_HANDLED;
+		}
+
 		return LSW_H_CONTINUE;
 	}
 
@@ -494,9 +579,10 @@ namespace lsn {
 	/**
 	 * Gets the window rectangle for correct output at a given scale and ratio.
 	 *
+	 * \param _dScale A scale override or -1.0 to use m_dScale.
 	 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
 	 */
-	LSW_RECT CMainWindow::FinalWindowRect() const {
+	LSW_RECT CMainWindow::FinalWindowRect( double _dScale ) const {
 		
 		LONG lHeight = 0L;
 		const lsw::CRebar * plvRebar = static_cast<const lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
@@ -509,8 +595,8 @@ namespace lsn {
 		}
 		LSW_RECT rClientRect;
 		rClientRect.Zero();
-		rClientRect.SetWidth( FinalWidth() );
-		rClientRect.SetHeight( FinalHeight() );
+		rClientRect.SetWidth( FinalWidth( _dScale ) );
+		rClientRect.SetHeight( FinalHeight( _dScale ) );
 		::AdjustWindowRectEx( &rClientRect, ::GetWindowLongW( Wnd(), GWL_STYLE ),
 			TRUE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );
 		rClientRect.bottom += lHeight;

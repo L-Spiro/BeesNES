@@ -449,8 +449,24 @@ namespace lsw {
 		// WM_CANCELMODE.
 		virtual LSW_HANDLED					CancelMode() { return LSW_H_CONTINUE; }
 
-		// WM_SIZE.
+		/**
+		 * The WM_SIZE handler.
+		 *
+		 * \param _wParam The type of resizing requested.
+		 * \param _lWidth The new width of the client area.
+		 * \param _lHeight The new height of the client area.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
 		virtual LSW_HANDLED					Size( WPARAM /*_wParam*/, LONG /*_lWidth*/, LONG /*_lHeight*/ );
+
+		/**
+		 * The WM_SIZING handler.
+		 *
+		 * \param _iEdge The edge of the window that is being sized.
+		 * \param _prRect A pointer to a RECT structure with the screen coordinates of the drag rectangle. To change the size or position of the drag rectangle, an application must change the members of this structure.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED					Sizing( INT /*_iEdge*/, LSW_RECT * /*_prRect*/ ) { return LSW_H_CONTINUE; }
 
 		// WM_SIZE, SIZE_MINIMIZED.
 		virtual LSW_HANDLED					Minimized( LONG /*_lWidth*/, LONG /*_lHeight*/ ) { return LSW_H_CONTINUE; }

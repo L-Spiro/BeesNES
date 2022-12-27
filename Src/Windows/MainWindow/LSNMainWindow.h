@@ -59,6 +59,25 @@ namespace lsn {
 		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
 
 		/**
+		 * The WM_SIZE handler.
+		 *
+		 * \param _wParam The type of resizing requested.
+		 * \param _lWidth The new width of the client area.
+		 * \param _lHeight The new height of the client area.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED						Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight );
+
+		/**
+		 * The WM_SIZING handler.
+		 *
+		 * \param _iEdge The edge of the window that is being sized.
+		 * \param _prRect A pointer to a RECT structure with the screen coordinates of the drag rectangle. To change the size or position of the drag rectangle, an application must change the members of this structure.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED						Sizing( INT _iEdge, LSW_RECT * _prRect );
+
+		/**
 		 * Advances the emulation state by the amount of time that has passed since the last advancement.
 		 */
 		void									Tick();
@@ -107,18 +126,24 @@ namespace lsn {
 		/**
 		 * Gets the final display width.
 		 *
+		 * \param _dScale A scale override or -1.0 to use m_dScale.
 		 * \return Returns the final display width (native width * scale * ratio).
 		 */
-		LONG									FinalWidth() const {
-			return LONG( std::round( RenderTargetWidth() * m_dScale * m_dRatio ) );
+		LONG									FinalWidth( double _dScale = -1.0 ) const {
+			if ( _dScale == -1.0 ) { _dScale = m_dScale; }
+			return LONG( std::round( RenderTargetWidth() * _dScale * m_dRatio ) );
 		}
 
 		/**
 		 * Gets the final display height.
 		 *
+		 * \param _dScale A scale override or -1.0 to use m_dScale.
 		 * \return Returns the final display height (native height * scale).
 		 */
-		LONG									FinalHeight() const { return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayHeight() * m_dScale ) ) : 0; }
+		LONG									FinalHeight( double _dScale = -1.0 ) const {
+			if ( _dScale == -1.0 ) { _dScale = m_dScale; }
+			return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayHeight() * _dScale ) ) : 0;
+		}
 
 		/**
 		 * Gets the status bar.
@@ -143,6 +168,10 @@ namespace lsn {
 			LSN_TS_ACTIVE						= 1,
 			LSN_TS_STOP							= -1,
 		};
+
+
+		// == Types.
+		typedef lsw::CMainWindow				Parent;
 
 
 		// == Members.
@@ -177,9 +206,10 @@ namespace lsn {
 		/**
 		 * Gets the window rectangle for correct output at a given scale and ratio.
 		 *
+		 * \param _dScale A scale override or -1.0 to use m_dScale.
 		 * \return Returns the window rectangle for a given client area, derived from the desired output scale and ratio.
 		 */
-		LSW_RECT								FinalWindowRect() const;
+		LSW_RECT								FinalWindowRect( double _dScale = -1.0 ) const;
 
 		/**
 		 * Sends a given palette to the console.

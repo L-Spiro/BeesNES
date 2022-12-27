@@ -376,7 +376,14 @@ namespace lsw {
 	}
 
 	// == Message Handlers.
-	// WM_SIZE.
+	/**
+	 * The WM_SIZE handler.
+	 *
+	 * \param _wParam The type of resizing requested.
+	 * \param _lWidth The new width of the client area.
+	 * \param _lHeight The new height of the client area.
+	 * \return Returns a LSW_HANDLED enumeration.
+	 */
 	CWidget::LSW_HANDLED CWidget::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		::EnumChildWindows( Wnd(), EnumChildWindows_ResizeControls, 0 );
 		return LSW_H_CONTINUE;
@@ -1041,6 +1048,13 @@ namespace lsw {
 			// =======================================
 			// Sizing.
 			// =======================================
+			case WM_SIZING : {
+				LSW_HANDLED hHandled = pmwThis->Sizing( static_cast<INT>(_wParam), reinterpret_cast<LSW_RECT *>(_lParam) );
+
+				// An application should return TRUE if it processes this message.
+				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( TRUE, TRUE ); }
+				break;
+			}
 			case WM_SIZE : {
 				LSW_HANDLED hHandled;
 				switch ( _wParam ) {
@@ -1056,7 +1070,7 @@ namespace lsw {
 						::RedrawWindow( _hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW );
 					}
 				}
-				
+				// If an application processes this message, it should return zero.
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
 				break;
 			}
