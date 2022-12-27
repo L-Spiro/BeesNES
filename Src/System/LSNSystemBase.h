@@ -78,6 +78,13 @@ namespace lsn {
 		inline uint64_t									GetAccumulatedRealTime() const { return m_ui64AccumTime; }
 
 		/**
+		 * Gets the total number of ticks.
+		 *
+		 * \return Returns the total number of ticks.
+		 */
+		inline uint64_t									GetTickCount() const { return m_ui64TickCount; }
+
+		/**
 		 * Gets the master counter.
 		 *
 		 * \return Returns the master counter.
@@ -188,6 +195,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		CClock											m_cClock;							/**< The master clock. */
+		uint64_t										m_ui64TickCount;					/**< The number of times the emulator has ticked. */
 		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
 		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */

@@ -8,6 +8,7 @@
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
+#include <thread>
 
 using namespace lsw;
 
@@ -68,6 +69,16 @@ namespace lsn {
 		virtual void							Swap();
 
 		/**
+		 * Starts running the rom on a thread.  Tick() no longer becomes useful while the emulator is running in its own thread.
+		 */
+		virtual void							StartThread();
+
+		/**
+		 * Stops the game thread and waits for it to join before returning.
+		 */
+		virtual void							StopThread();
+
+		/**
 		 * Polls the given port and returns a byte containing the result of polling by combining the LSN_INPUT_BITS values.
 		 *
 		 * \param _ui8Port The port being polled (0 or 1).
@@ -125,21 +136,29 @@ namespace lsn {
 
 
 	protected :
+		// == Enumerations.
+		/** Thread state. */
+		enum LSN_THREAD_STATE : int32_t {
+			LSN_TS_INACTIVE						= 0,
+			LSN_TS_ACTIVE						= 1,
+			LSN_TS_STOP							= -1,
+		};
+
+
 		// == Members.
-		uint64_t								m_ui64TickCount;
-		// The output scale.
+		/** The output scale. */
 		double									m_dScale;
-		// The output ratio.
+		/** The output ratio. */
 		double									m_dRatio;
-		// Outside "is alive" atomic.
+		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
-		// A clock.
+		/** A clock. */
 		lsn::CClock								m_cClock;
-		// The console pointer.
+		/** The console pointer. */
 		std::unique_ptr<CSystemBase>			m_pnsSystem;
-		// Image list.
+		/** Image list. */
 		lsw::CImageList							m_iImages;
-		// Images.
+		/** Images. */
 		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
 		/** Image mapping. */
 		INT										m_iImageMap[LSN_I_TOTAL];
@@ -147,6 +166,10 @@ namespace lsn {
 		size_t									m_stBufferIdx;
 		/** The BITMAP render target for very basic software rendering.  N-buffered. */
 		std::vector<std::vector<uint8_t>>		m_vBasicRenderTarget;
+		/** The emulator thread. */
+		std::unique_ptr<std::thread>			m_ptThread;
+		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
+		volatile std::atomic_int				m_aiThreadState;
 		
 
 
@@ -175,6 +198,13 @@ namespace lsn {
 		static inline DWORD						RowStride( uint32_t _ui32RowWidth, uint32_t _ui32BitDepth ) {
 			return ((((_ui32RowWidth * _ui32BitDepth) + 31) & ~31) >> 3);
 		}
+
+		/**
+		 * The emulator thread.
+		 *
+		 * \param _pmwWindow Pointer to this object.
+		 */
+		static void								EmuThread( lsn::CMainWindow * _pmwWindow );
 		
 	};
 

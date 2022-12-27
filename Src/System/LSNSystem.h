@@ -97,6 +97,7 @@ namespace lsn {
 				m_pPpu.ResetToKnown();
 			}
 
+			m_ui64TickCount = 0;
 			m_ui64AccumTime = 0;
 			m_ui64MasterCounter = 0;
 			m_ui64CpuCounter = 0;
@@ -110,6 +111,7 @@ namespace lsn {
 		 *	determining how many cycles need to be run for each hardware component, and running all of them.
 		 */
 		void											Tick() {
+			m_ui64TickCount++;
 			uint64_t ui64CurRealTime = m_cClock.GetRealTick();
 			if ( !m_bPaused ) {
 				uint64_t ui64Diff = ui64CurRealTime - m_ui64LastRealTime;

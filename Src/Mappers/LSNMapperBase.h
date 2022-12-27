@@ -235,6 +235,32 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets a PGM bank by index.
+		 *
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		void											SetPgmBank2x( int16_t _i16Bank ) {
+			SetPgmBank<_uReg, _uSize>( _i16Bank );
+			SetPgmBank<_uReg+1, _uSize>( _i16Bank + 1 );
+		}
+
+		/**
+		 * Sets 2 PGM banks by index.
+		 *
+		 * \param _ui16Reg The register index.
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uSize>
+		void											SetPgmBank2x( uint16_t _ui16Reg, int16_t _i16Bank ) {
+			SetPgmBank<_uSize>( _ui16Reg, _i16Bank );
+			SetPgmBank<_uSize>( _ui16Reg + 1, _i16Bank + 1 );
+		}
+
+		/**
 		 * Sets a CHR bank by index.
 		 *
 		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
@@ -282,6 +308,32 @@ namespace lsn {
 			else {
 				m_ui8ChrBanks[_ui16Reg] = 0;
 			}
+		}
+
+		/**
+		 * Sets a CHR bank by index.
+		 *
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uReg The register index.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		void											SetChrBank2x( int16_t _i16Bank ) {
+			SetPgmBank<_uReg, _uSize>( _i16Bank );
+			SetPgmBank<_uReg+1, _uSize>( _i16Bank + 1 );
+		}
+
+		/**
+		 * Sets a CHR bank by index.
+		 *
+		 * \param _ui16Reg The register index.
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _uSize The bank size.
+		 */
+		template <unsigned _uSize>
+		void											SetChrBank2x( uint16_t _ui16Reg, int16_t _i16Bank ) {
+			SetChrBank<_uSize>( _ui16Reg, _i16Bank );
+			SetChrBank<_uSize>( _ui16Reg + 1, _i16Bank + 1 );
 		}
 
 		/**

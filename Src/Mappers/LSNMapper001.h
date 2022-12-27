@@ -52,33 +52,37 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
-			// Set the reads and writes of the RAM.
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
+			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_PGM_8000_FFFF, this, uint16_t( I - 0x8000 ) );
+			}
+			// PPU.
+			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+			}
+			// RAM.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Mapper001PgmRamRead, this, uint16_t( I - 0x6000 ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Mapper001PgmRamWrite, this, uint16_t( I - 0x6000 ) );
 			}
 
-			// Writes to the whole area are used to select a bank.
+
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_PGM_8000_FFFF, this, uint16_t( I - 0x8000 ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_PGM_8000_FFFF, this, uint16_t( I ) );
 			}
 
-			// CHR ROM.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
-			}
 
-			// Make the pattern memory into RAM.
-			/*for ( uint32_t I = LSN_PPU_PATTERN_TABLES; I < LSN_PPU_NAMETABLES; ++I ) {
-				_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE) + LSN_PPU_PATTERN_TABLES ) );
-			}*/
-
-
-			ApplyControllableMirrorMap( _pbPpuBus );
-
-
-			
+			// ================
+			// MIRRORING
+			// ================
+			ApplyControllableMirrorMap( _pbPpuBus );			
 		}
 
 
@@ -172,8 +176,6 @@ namespace lsn {
 				pmThis->m_ui8Load = 0x00;
 				pmThis->m_ui8LoadCnt = 0;
 				pmThis->m_ui8Control = pmThis->m_ui8Control | 0x0C;
-				pmThis->SetPgmBank<1, 16 * 1024>( pmThis->m_ui8Load & 0b1111 );
-				pmThis->SetPgmBank<2, 16 * 1024>( -1 );
 			}
 			else {
 				++pmThis->m_ui8LoadCnt;

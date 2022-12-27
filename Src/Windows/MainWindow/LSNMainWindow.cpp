@@ -28,6 +28,7 @@ namespace lsn {
 		m_dScale( 4.0 ),
 		m_dRatio( 292.608 / 256.0 ),
 		m_stBufferIdx( 0 ),
+		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 
 
@@ -124,6 +125,7 @@ namespace lsn {
 		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
+		StopThread();
 		(*m_pabIsAlive) = false;
 	}
 
@@ -240,10 +242,11 @@ namespace lsn {
 										}
 										else { return LSW_H_CONTINUE; }
 									}
+									StopThread();
 									m_pnsSystem->LoadRom( vExtracted, vFinalFiles[dwIdx] );
 									m_pnsSystem->ResetState( false );
-									m_ui64TickCount = 0;
 									m_cClock.SetStartingTick();
+									StartThread();
 									return LSW_H_CONTINUE;
 								}
 							}
@@ -255,10 +258,11 @@ namespace lsn {
 							if ( sfFile.Open( s16File.c_str() ) ) {
 								std::vector<uint8_t> vExtracted;
 								if ( sfFile.LoadToMemory( vExtracted ) ) {
+									StopThread();
 									m_pnsSystem->LoadRom( vExtracted, s16File );
 									m_pnsSystem->ResetState( false );
-									m_ui64TickCount = 0;
 									m_cClock.SetStartingTick();
+									StartThread();
 									return LSW_H_CONTINUE;
 								}
 							}
@@ -282,9 +286,9 @@ namespace lsn {
 				"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
 				"%.8f cycles per Tick().\r\n"
 				"%.8f FPS.\r\n",
-				m_ui64TickCount, dTime, dTime / 60.0 / 60.0,
+				m_pnsSystem->GetTickCount(), dTime, dTime / 60.0 / 60.0,
 				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->GetMasterHz() ) / m_pnsSystem->GetMasterDiv(),
-				m_pnsSystem->GetMasterCounter() / double( m_ui64TickCount ),
+				m_pnsSystem->GetMasterCounter() / double( m_pnsSystem->GetTickCount() ),
 				m_pnsSystem->GetPpuFrameCount() / dTime
 				);
 			::OutputDebugStringA( szBuffer );
@@ -346,9 +350,8 @@ namespace lsn {
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {
-		if ( m_pnsSystem->IsRomLoaded() ) {
+		if ( m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
 			m_pnsSystem->Tick();
-			++m_ui64TickCount;
 		}
 	}
 
@@ -366,8 +369,35 @@ namespace lsn {
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
-				RDW_UPDATENOW |
+				/*RDW_UPDATENOW |*/
 				RDW_NOCHILDREN );
+		}
+	}
+
+	/**
+	 * Starts running the rom on a thread.  Tick() no longer becomes useful while the emulator is running in its own thread.
+	 */
+	void CMainWindow::StartThread() {
+		StopThread();
+		if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() ) {
+			m_ptThread = std::make_unique<std::thread>( EmuThread, this );
+		}
+	}
+
+	/**
+	 * Stops the game thread and waits for it to join before returning.
+	 */
+	void CMainWindow::StopThread() {
+		if ( m_ptThread.get() ) {
+			if ( m_aiThreadState == LSN_TS_ACTIVE ) {
+				m_aiThreadState = LSN_TS_STOP;
+				while ( true ) {
+					std::this_thread::sleep_for( std::chrono::milliseconds( 30 ) );
+					if ( m_aiThreadState != LSN_TS_STOP ) { break; }
+				}
+				m_ptThread->join();
+			}
+			m_ptThread.reset();
 		}
 	}
 
@@ -379,20 +409,42 @@ namespace lsn {
 	 */
 	uint8_t CMainWindow::PollPort( uint8_t /*_ui8Port*/ ) {
 		if ( GetFocus() ) {
-			BYTE bPoll[256];
-			::GetKeyboardState( bPoll );
 			uint8_t ui8Ret = 0;
-			if ( bPoll['L'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
-			if ( bPoll[VK_OEM_1] & 0x80 ) { ui8Ret |= LSN_IB_A; }
+			if ( m_ptThread.get() ) {
+				SHORT sState = ::GetAsyncKeyState( 'L' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_B; }
+				sState = ::GetAsyncKeyState( VK_OEM_1 );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_A; }
 
-			if ( bPoll['O'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }
-			if ( bPoll['P'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
+				sState = ::GetAsyncKeyState( 'O' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_SELECT; }
+				sState = ::GetAsyncKeyState( 'P' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_START; }
 
-			if ( bPoll['W'] & 0x80 ) { ui8Ret |= LSN_IB_UP; }
-			if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_DOWN; }
-			if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_LEFT; }
-			if ( bPoll['D'] & 0x80 ) { ui8Ret |= LSN_IB_RIGHT; }
+				sState = ::GetAsyncKeyState( 'W' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_UP; }
+				sState = ::GetAsyncKeyState( 'S' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_DOWN; }
+				sState = ::GetAsyncKeyState( 'A' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_LEFT; }
+				sState = ::GetAsyncKeyState( 'D' );
+				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_RIGHT; }
+			}
+			else {
+				BYTE bPoll[256];
+				::GetKeyboardState( bPoll );
+				
+				if ( bPoll['L'] & 0x80 ) { ui8Ret |= LSN_IB_B; }
+				if ( bPoll[VK_OEM_1] & 0x80 ) { ui8Ret |= LSN_IB_A; }
 
+				if ( bPoll['O'] & 0x80 ) { ui8Ret |= LSN_IB_SELECT; }
+				if ( bPoll['P'] & 0x80 ) { ui8Ret |= LSN_IB_START; }
+
+				if ( bPoll['W'] & 0x80 ) { ui8Ret |= LSN_IB_UP; }
+				if ( bPoll['S'] & 0x80 ) { ui8Ret |= LSN_IB_DOWN; }
+				if ( bPoll['A'] & 0x80 ) { ui8Ret |= LSN_IB_LEFT; }
+				if ( bPoll['D'] & 0x80 ) { ui8Ret |= LSN_IB_RIGHT; }
+			}
 
 			return ui8Ret;
 		}
@@ -489,6 +541,24 @@ namespace lsn {
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
 			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
 		}
+	}
+
+	/**
+	 * The emulator thread.
+	 *
+	 * \param _pmwWindow Pointer to this object.
+	 */
+	void CMainWindow::EmuThread( lsn::CMainWindow * _pmwWindow ) {
+		if ( !_pmwWindow->m_pnsSystem.get() || !_pmwWindow->m_pnsSystem->IsRomLoaded() ) {
+			_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;
+			return;
+		}
+		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
+
+		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
+			_pmwWindow->m_pnsSystem->Tick();
+		}
+		_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;
 	}
 
 }	// namespace lsn
