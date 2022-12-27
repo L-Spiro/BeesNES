@@ -1,5 +1,13 @@
 #ifdef LSN_USE_WINDOWS
 
+/**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: The main window layout.
+ */
+
 #pragma once
 
 #include <Layout/LSWMenuLayout.h>

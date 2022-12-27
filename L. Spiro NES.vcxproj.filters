@@ -154,6 +154,12 @@
     <Filter Include="Source Files\Filters\nes_ntsc">
       <UniqueIdentifier>{ecd4b4b3-d9e0-45b2-9c5d-e375e9510790}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\DirectInput8">
+      <UniqueIdentifier>{a3fa55e3-5816-4e81-86ce-712deff6c489}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\DirectInput8">
+      <UniqueIdentifier>{9ddc83f7-5086-454d-91bd-9343d9971600}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -360,6 +366,12 @@
     <ClInclude Include="Src\Mappers\LSNMapper041.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\DirectInput8\LSNDirectInput8Device.h">
+      <Filter>Header Files\Windows\DirectInput8</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\DirectInput8\LSNDirectInput8.h">
+      <Filter>Header Files\Windows\DirectInput8</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -433,6 +445,12 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c">
       <Filter>Source Files\Filters\nes_ntsc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\DirectInput8\LSNDirectInput8.cpp">
+      <Filter>Source Files\Windows\DirectInput8</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\DirectInput8\LSNDirectInput8Device.cpp">
+      <Filter>Source Files\Windows\DirectInput8</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

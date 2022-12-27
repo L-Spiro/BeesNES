@@ -23,6 +23,12 @@
 #include "../System/LSNTickable.h"
 #include <vector>
 
+#define LSN_USE_INTRINS
+
+#ifdef LSN_USE_INTRINS
+#include <intrin.h>
+#endif	// #ifdef LSN_USE_INTRINS
+
 namespace lsn {
 
 	/**
@@ -763,12 +769,22 @@ namespace lsn {
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
 	inline void CCpu6502::Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
+#if defined( LSN_USE_INTRINS ) && 0
+		// _addcarry_u8() returns carry, not overflow.
+		uint8_t ui8Sum;
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, _addcarry_u8( m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), _ui8RegVal, _ui8OpVal, &ui8Sum ) );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, _ui8RegVal > ui8Sum );
+		_ui8RegVal = ui8Sum;
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == 0x00 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
+#else
 		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ));
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, ui16Result > 0xFF );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (_ui8RegVal & 0x80) != 0 );
+#endif	// #ifdef LSN_USE_INTRINS
 	}
 
 	/**

@@ -1,5 +1,13 @@
 #ifdef LSN_USE_WINDOWS
 
+/**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: The ROM-selecting dialog.
+ */
+
 #pragma once
 
 #include <Layout/LSWWidgetLayout.h>

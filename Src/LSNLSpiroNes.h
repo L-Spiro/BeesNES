@@ -251,7 +251,7 @@ namespace lsn {
 	 * \return Returns true if the bit is set, otherwise false.
 	 */
 	inline bool								CheckBit( const uint8_t _ui8Val, const uint8_t _ui8Bit ) {
-		return _ui8Val & (1 << _ui8Bit) ? true : false;
+		return (_ui8Val & _ui8Bit) ? true : false;
 	}
 
 }	// namespace lsn

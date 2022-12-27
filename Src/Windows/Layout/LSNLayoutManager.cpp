@@ -1,5 +1,13 @@
 #ifdef LSN_USE_WINDOWS
 
+/**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: The layout manager provides the classes for the windows defined in this project.
+ */
+
 #include "LSNLayoutManager.h"
 #include "../MainWindow/LSNMainWindow.h"
 #include "../SelectRom/LSNSelectRomDialog.h"

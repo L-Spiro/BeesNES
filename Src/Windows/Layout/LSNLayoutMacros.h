@@ -1,5 +1,13 @@
 #ifdef LSN_USE_WINDOWS
 
+/**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: Macros useful for making consistent layouts.
+ */
+
 #pragma once
 
 #define MW_MENU_TXT( ENC_STR, ENC_LEN )	reinterpret_cast<LPCWSTR>(ENC_STR), ENC_LEN

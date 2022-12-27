@@ -1,6 +1,14 @@
 #ifdef LSN_USE_WINDOWS
 
 /**
+ * Copyright L. Spiro 2022
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: The main window of the emulator.
+ */
+
+/**
  * First because of:
  *	1>C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\objidlbase.h(7882,79): error C2872: 'byte': ambiguous symbol
  *	1>C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared\rpcndr.h(191,23): message : could be 'unsigned char byte'
@@ -25,7 +33,7 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 4.0 ),
+		m_dScale( 3.0 ),
 		m_dRatio( 292.608 / 256.0 ),
 		m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
@@ -104,7 +112,7 @@ namespace lsn {
 			LSW_RECT rDesktop;
 			if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
 				rDesktop.left = (rDesktop.Width() - rFinal.Width()) / 2;
-				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2 - 32;
+				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2 - 30;
 				/*rDesktop.SetWidth( rFinal.Width() );
 				rDesktop.SetHeight( rFinal.Height() );*/
 				::MoveWindow( Wnd(), rDesktop.left, rDesktop.top, rFinal.Width(), rFinal.Height(), TRUE );
@@ -377,10 +385,13 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
 
-		LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
-		double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
-		double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
-		m_dScale = std::min( dScaleW, dScaleH );
+		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
+			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
+			//double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
+			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
+			//m_dScale = std::min( dScaleW, dScaleH );
+			m_dScale = dScaleH;
+		}
 
 		return LSW_H_HANDLED;
 	}
