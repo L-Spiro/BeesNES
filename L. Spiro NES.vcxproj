@@ -299,6 +299,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h" />
     <ClInclude Include="Src\Input\LSNInputPoller.h" />
     <ClInclude Include="Src\Localization\LSNLocalization.h" />
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
@@ -312,6 +315,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper009.h" />
     <ClInclude Include="Src\Mappers\LSNMapper010.h" />
     <ClInclude Include="Src\Mappers\LSNMapper032.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper041.h" />
     <ClInclude Include="Src\Mappers\LSNMapper066.h" />
     <ClInclude Include="Src\Mappers\LSNMapper072.h" />
     <ClInclude Include="Src\Mappers\LSNMapper075.h" />
@@ -365,6 +369,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNFileBase.cpp" />
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
+    <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />

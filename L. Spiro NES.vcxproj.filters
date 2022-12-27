@@ -142,6 +142,18 @@
     <Filter Include="Source Files\Database">
       <UniqueIdentifier>{f58d992c-d190-479a-871d-60a2b4be23b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Filters">
+      <UniqueIdentifier>{3e310ba7-5655-4b4d-8970-cdfbc849de25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Filters">
+      <UniqueIdentifier>{e864c31c-dc8b-4f37-9b57-4ef6cd3e775d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Filters\nes_ntsc">
+      <UniqueIdentifier>{2840a11a-9ab0-4985-b2c3-6b8f349aecb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Filters\nes_ntsc">
+      <UniqueIdentifier>{ecd4b4b3-d9e0-45b2-9c5d-e375e9510790}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -336,6 +348,18 @@
     <ClInclude Include="Src\Mappers\LSNMapper113.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h">
+      <Filter>Header Files\Filters\nes_ntsc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h">
+      <Filter>Header Files\Filters\nes_ntsc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h">
+      <Filter>Header Files\Filters\nes_ntsc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper041.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -406,6 +430,9 @@
     </ClCompile>
     <ClCompile Include="Src\Database\LSNDatabase.cpp">
       <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c">
+      <Filter>Source Files\Filters\nes_ntsc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
