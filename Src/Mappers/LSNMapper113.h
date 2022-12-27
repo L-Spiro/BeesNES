@@ -126,7 +126,7 @@ namespace lsn {
 				}
 			}
 			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val >> 3) & 0b111 );
-			pmThis->SetChrBank<0, ChrBankSize()>( ((_ui8Val & 0b01000000) >> 6) | (_ui8Val & 0b111) );
+			pmThis->SetChrBank<0, ChrBankSize()>( ((_ui8Val & 0b01000000) >> 3) | (_ui8Val & 0b111) );
 		}
 	};
 

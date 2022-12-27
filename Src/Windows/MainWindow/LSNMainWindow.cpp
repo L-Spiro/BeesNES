@@ -30,6 +30,7 @@ namespace lsn {
 		m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
+		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
 
 
 		static const struct {
@@ -496,24 +497,31 @@ namespace lsn {
 		if ( GetFocus() ) {
 			uint8_t ui8Ret = 0;
 			if ( m_ptThread.get() ) {
-				SHORT sState = ::GetAsyncKeyState( 'L' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_B; }
-				sState = ::GetAsyncKeyState( VK_OEM_1 );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_A; }
+				SHORT sState;
+#define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )						\
+	sState = ::GetAsyncKeyState( RAPID_KEY );									\
+	if ( sState & 0x8000 ) {													\
+		if ( m_ui8RpidFires[RAPID_IDX] & 0b10000000 ) {							\
+			ui8Ret |= BUTTON;													\
+		}																		\
+		m_ui8RpidFires[RAPID_IDX] = _rotl8( m_ui8RpidFires[RAPID_IDX], 1 );		\
+	}																			\
+	else {																		\
+		m_ui8RpidFires[RAPID_IDX] = 0b11110000;									\
+		sState = ::GetAsyncKeyState( MAIN_KEY );								\
+		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; }							\
+	}
+				LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
+				LSN_CKECK( VK_OEM_1, VK_OEM_2, 1, LSN_IB_A );
 
-				sState = ::GetAsyncKeyState( 'O' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_SELECT; }
-				sState = ::GetAsyncKeyState( 'P' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_START; }
+				LSN_CKECK( 'O', '9', 2, LSN_IB_SELECT );
+				LSN_CKECK( 'P', '0', 3, LSN_IB_START );
 
-				sState = ::GetAsyncKeyState( 'W' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_UP; }
-				sState = ::GetAsyncKeyState( 'S' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_DOWN; }
-				sState = ::GetAsyncKeyState( 'A' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_LEFT; }
-				sState = ::GetAsyncKeyState( 'D' );
-				if ( sState & 0x8000 ) { ui8Ret |= LSN_IB_RIGHT; }
+				LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
+				LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
+				LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
+				LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
+#undef LSN_CKECK
 			}
 			else {
 				BYTE bPoll[256];

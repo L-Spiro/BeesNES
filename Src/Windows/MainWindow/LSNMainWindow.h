@@ -199,6 +199,8 @@ namespace lsn {
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
 		volatile std::atomic_int				m_aiThreadState;
+		/** Rapid-fire buttons. */
+		uint8_t									m_ui8RpidFires[8];
 		
 
 
