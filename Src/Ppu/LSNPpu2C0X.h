@@ -2095,9 +2095,9 @@ namespace lsn {
 					ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
 					ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
 					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
-//#define LSN_SHOW_PIXEL
+#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
-					ui8Val = ui8BackgroundPixel * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
+					ui8Val = ui8BackgroundPalette * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
 				}
 					
@@ -2189,7 +2189,7 @@ namespace lsn {
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 						sRet += "\r\n"
-						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
 					}
 				}
 			}
@@ -2348,7 +2348,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
-						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 2 ) {
 						sRet += "\r\n"
@@ -2359,7 +2359,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
-						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
 						sRet += "\r\n"

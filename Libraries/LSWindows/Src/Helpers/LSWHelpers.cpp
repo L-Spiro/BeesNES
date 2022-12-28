@@ -80,11 +80,10 @@ namespace lsw {
 			::GetRawInputDeviceInfoW( _hHandle,
 				RIDI_DEVICENAME, _wsIdentString.data(), &uiSize );
 
-			HANDLE hThis = ::CreateFileW( _wsIdentString.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL );
-			if ( hThis ) {
+			LSW_HID_HANLE hHandle( _wsIdentString.c_str() );
+			if ( hHandle.m_bOpened ) {
 				wchar_t wcName[128] = { 0 };
-				BOOLEAN bResult = ::HidD_GetProductString( hThis, wcName, sizeof( wchar_t ) * 126 );
-				CloseHandle( hThis );
+				BOOLEAN bResult = ::HidD_GetProductString( hHandle.hHandle, wcName, sizeof( wchar_t ) * 126 );
 				if ( bResult ) {
 					wsRet = wcName;
 				}
@@ -135,6 +134,39 @@ namespace lsw {
 			}
 		}
 		return vRet;
+	}
+
+	/**
+	 * Registers raw input devices.
+	 *
+	 * \param _pridDevices An array of devices to register.
+	 * \param _uiNumDevices The number of devices to which _uiNumDevices points.
+	 * \return Returns TRUE if registration succeeded.
+	 */
+	bool CHelpers::RegisterRawInputDevices( const RAWINPUTDEVICE * _pridDevices, UINT _uiNumDevices ) {
+		if ( ::RegisterRawInputDevices( _pridDevices, _uiNumDevices, sizeof( RAWINPUTDEVICE ) ) == FALSE ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Gets the raw input data from a WM_INPUT message.
+	 *
+	 * \param _hRawInput The handle provided by WM_INPUT.
+	 * \return Returns an array of the gathered input data.
+	 */
+	std::vector<uint8_t> CHelpers::GetRawInputData_Input( HRAWINPUT _hRawInput ) {
+		std::vector<uint8_t> vRaw;
+		UINT uiSize;
+		if ( ::GetRawInputData( _hRawInput, RID_INPUT, NULL, &uiSize, sizeof( RAWINPUTHEADER ) ) ) {
+			return vRaw;
+		}
+		vRaw.resize( uiSize );
+		if ( UINT( -1 ) == ::GetRawInputData( _hRawInput, RID_INPUT, vRaw.data(), &uiSize, sizeof( RAWINPUTHEADER ) ) ) {
+			return std::vector<uint8_t>();
+		}
+		return vRaw;
 	}
 
 }	// namespace lsw

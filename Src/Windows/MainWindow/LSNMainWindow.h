@@ -67,6 +67,24 @@ namespace lsn {
 		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
 
 		/**
+		 * The WM_INPUT handler.
+		 *
+		 * \param _iCode The input code. Use GET_RAWINPUT_CODE_WPARAM macro to get the value. Can be one of the following values: RIM_INPUT, RIM_INPUTSINK.
+		 * \param _hRawInput A HRAWINPUT handle to the RAWINPUT structure that contains the raw input from the device. To get the raw data, use this handle in the call to GetRawInputData.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						Input( INT _iCode, HRAWINPUT _hRawInput );
+
+		/**
+		 * The WM_INPUT_DEVICE_CHANGE handler.
+		 *
+		 * \param _iNotifCode This parameter can be one of the following values: GIDC_ARRIVAL, GIDC_REMOVAL.
+		 * \param _hDevice The HANDLE to the raw input device.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						InputDeviceChanged( INT _iNotifCode, HANDLE _hDevice );
+
+		/**
 		 * The WM_SIZE handler.
 		 *
 		 * \param _wParam The type of resizing requested.
@@ -187,6 +205,8 @@ namespace lsn {
 		double									m_dScale;
 		/** The output ratio. */
 		double									m_dRatio;
+		/** Used to derive m_dRatio. */
+		double									m_dRatioActual;
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
 		/** A clock. */
@@ -222,6 +242,11 @@ namespace lsn {
 		LSW_RECT								FinalWindowRect( double _dScale = -1.0 ) const;
 
 		/**
+		 * Updates m_dRatio after a change to m_dRatioActual.
+		 */
+		void									UpdateRatio();
+
+		/**
 		 * Sends a given palette to the console.
 		 *
 		 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
@@ -239,6 +264,14 @@ namespace lsn {
 		 * Scans for USB controllers.
 		 */
 		void									ScanInputDevices();
+
+		/**
+		 * Opens an HID device by its ID string.
+		 *
+		 * \param PARM The ID string of the device to open.
+		 * \return Returns if the device was opened.  It handle will be stored in YYY.
+		 */
+		bool									OpenHidDevice();
 
 		/**
 		 * Gets a BITMAP stride given its row width in bytes.

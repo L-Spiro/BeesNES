@@ -550,6 +550,24 @@ namespace lsw {
 		// WM_VSCROLL
 		virtual LSW_HANDLED					VScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, HWND /*_hSender*/ ) { return LSW_H_CONTINUE; }
 
+		/**
+		 * The WM_INPUT handler.
+		 *
+		 * \param _iCode The input code. Use GET_RAWINPUT_CODE_WPARAM macro to get the value. Can be one of the following values: RIM_INPUT, RIM_INPUTSINK.
+		 * \param _hRawInput A HRAWINPUT handle to the RAWINPUT structure that contains the raw input from the device. To get the raw data, use this handle in the call to GetRawInputData.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Input( INT /*_iCode*/, HRAWINPUT /*_hRawInput*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * The WM_INPUT_DEVICE_CHANGE handler.
+		 *
+		 * \param _iNotifCode This parameter can be one of the following values: GIDC_ARRIVAL, GIDC_REMOVAL.
+		 * \param _hDevice The HANDLE to the raw input device.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					InputDeviceChanged( INT /*_iNotifCode*/, HANDLE /*_hDevice*/ ) { return LSW_H_CONTINUE; }
+
 		// WM_KEYDOWN
 		virtual LSW_HANDLED					KeyDown( UINT /*_uiKeyCode*/, UINT /*_uiFlags*/ ) { return LSW_H_CONTINUE; }
 

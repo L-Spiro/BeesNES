@@ -28,14 +28,15 @@
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 #include <commdlg.h>
+#include <hidpi.h>
 
 
 namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 3.0 ),
-		m_dRatio( 292.608 / 256.0 ),
+		m_dScale( 4.0 ),
+		m_dRatioActual( 256.0 / 240.0 ),
 		m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
@@ -71,8 +72,11 @@ namespace lsn {
 		m_pdcClient = m_pnsSystem->GetDisplayClient();
 		if ( m_pdcClient ) {
 			m_pdcClient->SetDisplayHost( this );
-			m_dRatio = (m_pdcClient->DisplayRatio() * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
-			//m_dRatio = m_pdcClient->DisplayRatio();
+			
+			// Set ratios.
+			m_dRatioActual = m_pdcClient->DisplayRatio();
+			// UpdateRatio() called later.
+
 			// Create the basic render target.
 			const size_t stBuffers = 2;
 			const WORD wBitDepth = 24;
@@ -108,6 +112,7 @@ namespace lsn {
 		}
 		m_pnsSystem->SetInputPoller( this );
 
+		UpdateRatio();
 		{
 			// Center it in the screen.
 			LSW_RECT rFinal = FinalWindowRect();
@@ -115,9 +120,7 @@ namespace lsn {
 			if ( ::SystemParametersInfoW( SPI_GETWORKAREA, 0, &rDesktop, 0 ) ) {
 			//if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
 				rDesktop.left = (rDesktop.Width() - rFinal.Width()) / 2;
-				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2 - 30;
-				/*rDesktop.SetWidth( rFinal.Width() );
-				rDesktop.SetHeight( rFinal.Height() );*/
+				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2;
 				::MoveWindow( Wnd(), rDesktop.left, rDesktop.top, rFinal.Width(), rFinal.Height(), TRUE );
 			}
 		}
@@ -136,6 +139,7 @@ namespace lsn {
 
 		RegisterRawInput();
 		ScanInputDevices();
+
 		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
@@ -369,6 +373,63 @@ namespace lsn {
 	// WM_MOVE.
 	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
 		Tick();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_INPUT handler.
+	 *
+	 * \param _iCode The input code. Use GET_RAWINPUT_CODE_WPARAM macro to get the value. Can be one of the following values: RIM_INPUT, RIM_INPUTSINK.
+	 * \param _hRawInput A HRAWINPUT handle to the RAWINPUT structure that contains the raw input from the device. To get the raw data, use this handle in the call to GetRawInputData.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::Input( INT _iCode, HRAWINPUT _hRawInput ) {
+		if ( _iCode == RIM_INPUT ) {
+			std::vector<uint8_t> vInputs = CHelpers::GetRawInputData_Input( _hRawInput );
+			if ( vInputs.size() ) {
+				RAWINPUT * rihHeader = reinterpret_cast<RAWINPUT *>(vInputs.data());
+				PHIDP_PREPARSED_DATA pdPreparsed;
+				BOOLEAN bPrep = ::HidD_GetPreparsedData( _hRawInput, &pdPreparsed );
+				if ( bPrep ) {
+					HIDP_CAPS cCaps;
+					::HidP_GetCaps( pdPreparsed, &cCaps );
+					std::vector<CHAR> vReport;
+					vReport.resize( cCaps.OutputReportByteLength );
+
+					ULONG ulLen = 0;
+					NTSTATUS hStatus = HidP_GetUsages( HidP_Input, HID_USAGE_PAGE_GENERIC,
+						0, nullptr, &ulLen,
+						pdPreparsed,
+						vReport.data(),
+						ULONG( vReport.size() ) );
+
+					::HidD_FreePreparsedData( pdPreparsed );
+				}
+				else {
+					//CBase::PrintError( L"Failed to get preparsed data for HID device." );
+				}
+				return LSW_H_CONTINUE;
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_INPUT_DEVICE_CHANGE handler.
+	 *
+	 * \param _iNotifCode This parameter can be one of the following values: GIDC_ARRIVAL, GIDC_REMOVAL.
+	 * \param _hDevice The HANDLE to the raw input device.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::InputDeviceChanged( INT _iNotifCode, HANDLE _hDevice ) {
+		switch ( _iNotifCode ) {
+			case GIDC_ARRIVAL : {
+				break;
+			}
+			case GIDC_REMOVAL : {
+				break;
+			}
+		}
 		return LSW_H_CONTINUE;
 	}
 
@@ -625,6 +686,15 @@ namespace lsn {
 	}
 
 	/**
+	 * Updates m_dRatio after a change to m_dRatioActual.
+	 */
+	void CMainWindow::UpdateRatio() {
+		if ( m_pdcClient ) {
+			m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
+		}
+	}
+
+	/**
 	 * Sends a given palette to the console.
 	 *
 	 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
@@ -654,12 +724,12 @@ namespace lsn {
 	bool CMainWindow::RegisterRawInput() {
 		RAWINPUTDEVICE ridDevices[1];
         
-		ridDevices[0].usUsagePage = 0x01;          // HID_USAGE_PAGE_GENERIC
-		ridDevices[0].usUsage = 0x05;              // HID_USAGE_GENERIC_GAMEPAD
-		ridDevices[0].dwFlags = 0;                 // adds game pad
+		ridDevices[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+		ridDevices[0].usUsage = HID_USAGE_GENERIC_GAMEPAD;
+		ridDevices[0].dwFlags = RIDEV_DEVNOTIFY;
 		ridDevices[0].hwndTarget = Wnd();
 
-		if ( ::RegisterRawInputDevices( ridDevices, 1, sizeof( ridDevices[0] ) ) == FALSE ) {
+		if ( CHelpers::RegisterRawInputDevices( ridDevices, 1 ) == FALSE ) {
 			return false;
 		}
 		return true;
@@ -672,7 +742,7 @@ namespace lsn {
 		std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
 		// Remove non-game usage pages.
 		for ( auto I = vList.size(); I--; ) {
-			if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD ) {
+			if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD || vList[I].diInfo.hid.usUsagePage != HID_USAGE_PAGE_GENERIC ) {
 				vList.erase( vList.begin() + I );
 			}
 		}

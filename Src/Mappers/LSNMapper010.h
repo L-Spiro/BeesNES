@@ -22,7 +22,11 @@ namespace lsn {
 	 */
 	class CMapper010 : public CMapperBase {
 	public :
-		CMapper010() {
+		CMapper010() :
+			m_ui8ChrBankLatch0_FD( m_ui8ChrBanks[0] ),
+			m_ui8ChrBankLatch0_FE( m_ui8ChrBanks[1] ),
+			m_ui8ChrBankLatch1_FD( m_ui8ChrBanks[2] ),
+			m_ui8ChrBankLatch1_FE( m_ui8ChrBanks[3] ) {
 		}
 		virtual ~CMapper010() {
 		}
@@ -30,17 +34,31 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 16 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 4 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			m_ui8PgmBank = 0;
-			m_ui8Latch0 = 0xFD;
-			m_ui8Latch1 = 0xFD;
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			m_ui8Latch0 = 0xFE;
+			m_ui8Latch1 = 0xFE;
 
-			m_ui8ChrBankLatch0_FD = m_ui8ChrBankLatch0_FE = m_ui8ChrBankLatch1_FD = m_ui8ChrBankLatch1_FE = 0;
+			std::memset( m_ui8PgmRam, 0, sizeof( m_ui8PgmRam ) );
 		}
 
 		/**
@@ -54,7 +72,7 @@ namespace lsn {
 			// FIXED BANKS
 			// ================
 			// 16-kilobyte fixed bank.
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), (16 * 1024) ) - (16 * 1024);
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), (PgmBankSize()) ) - (PgmBankSize());
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xC000 ) );
 			}
@@ -142,13 +160,13 @@ namespace lsn {
 		/** RAM. */
 		uint8_t											m_ui8PgmRam[8*1024];
 		/** The 0000 CHR ROM bank used when m_ui8Latch0 == 0xFD. */
-		uint8_t											m_ui8ChrBankLatch0_FD;
+		const uint8_t &									m_ui8ChrBankLatch0_FD;
 		/** The 0000 CHR ROM bank used when m_ui8Latch0 == 0xFE. */
-		uint8_t											m_ui8ChrBankLatch0_FE;
+		const uint8_t &									m_ui8ChrBankLatch0_FE;
 		/** The 1000 CHR ROM bank used when m_ui8Latch1 == 0xFD. */
-		uint8_t											m_ui8ChrBankLatch1_FD;
+		const uint8_t &									m_ui8ChrBankLatch1_FD;
 		/** The 1000 CHR ROM bank used when m_ui8Latch1 == 0xFE. */
-		uint8_t											m_ui8ChrBankLatch1_FE;
+		const uint8_t &									m_ui8ChrBankLatch1_FE;
 		/** Latch 0. */
 		uint8_t											m_ui8Latch0;
 		/** Latch 1. */
@@ -194,11 +212,11 @@ namespace lsn {
 			CMapper010 * pmThis = reinterpret_cast<CMapper010 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch0 ) {
 				case 0xFD : {
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FD*(4*1024)+_ui16Parm1];
+					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FD*(ChrBankSize())+_ui16Parm1];
 					break;
 				}
 				case 0xFE : {
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FE*(4*1024)+_ui16Parm1];
+					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FE*(ChrBankSize())+_ui16Parm1];
 					break;
 				}
 				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
@@ -217,12 +235,16 @@ namespace lsn {
 			CMapper010 * pmThis = reinterpret_cast<CMapper010 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch1 ) {
 				case 0xFD : {
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch1_FD*(4*1024)+_ui16Parm1];
+					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch1_FD*(ChrBankSize())+_ui16Parm1];
 					break;
 				}
 				case 0xFE : {
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch1_FE*(4*1024)+_ui16Parm1];
+					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch1_FE*(ChrBankSize())+_ui16Parm1];
 					break;
+				}
+				default : {
+					_ui8Ret = 0xFF;
+					return;
 				}
 				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
 			}
@@ -245,7 +267,7 @@ namespace lsn {
 			 *		 ||||
 			 *		 ++++- Select 16 KB PRG ROM bank for CPU $8000-$BFFF
 			 */
-			pmThis->m_ui8PgmBank = (_ui8Val & 0b1111) % (pmThis->m_prRom->vPrgRom.size() / (16 * 1024));
+			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
 		}
 
 		/**
@@ -266,7 +288,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $0000-$0FFF
 			 *			   used when latch 0 = $FD
 			 */
-			pmThis->m_ui8ChrBankLatch0_FD = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -287,7 +309,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $0000-$0FFF
 			 *			   used when latch 0 = $FE
 			 */
-			pmThis->m_ui8ChrBankLatch0_FE = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<1, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -308,7 +330,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $1000-$1FFF
 			 *			   used when latch 1 = $FD
 			 */
-			pmThis->m_ui8ChrBankLatch1_FD = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<2, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -329,7 +351,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $1000-$1FFF
 			 *			   used when latch 1 = $FE
 			 */
-			pmThis->m_ui8ChrBankLatch1_FE = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<3, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
