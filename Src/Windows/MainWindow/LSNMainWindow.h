@@ -229,11 +229,23 @@ namespace lsn {
 		void									SetPalette( const std::vector<uint8_t> &_vPalette );
 
 		/**
+		 * Registers for raw input.
+		 * 
+		 * \return Returns true if registration for raw input succeeded.
+		 */
+		bool									RegisterRawInput();
+
+		/**
+		 * Scans for USB controllers.
+		 */
+		void									ScanInputDevices();
+
+		/**
 		 * Gets a BITMAP stride given its row width in bytes.
 		 *
 		 * \param _ui32RowWidth The row width in RGB(A) pixels.
 		 * \param _ui32BitDepth The total bits for a single RGB(A) pixel.
-		 * \return Reurns the byte width rounded up to the nearest DWORD.
+		 * \return Returns the byte width rounded up to the nearest DWORD.
 		 */
 		static inline DWORD						RowStride( uint32_t _ui32RowWidth, uint32_t _ui32BitDepth ) {
 			return ((((_ui32RowWidth * _ui32BitDepth) + 31) & ~31) >> 3);

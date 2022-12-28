@@ -29,6 +29,7 @@
 #include <ToolBar/LSWToolBar.h>
 #include <commdlg.h>
 
+
 namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
@@ -39,7 +40,7 @@ namespace lsn {
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
-
+		
 
 		static const struct {
 			LPCWSTR				lpwsImageName;
@@ -131,6 +132,8 @@ namespace lsn {
 			}
 		}
 
+		RegisterRawInput();
+		ScanInputDevices();
 		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
@@ -646,6 +649,39 @@ namespace lsn {
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
 			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
 		}
+	}
+
+	/**
+	 * Registers for raw input.
+	 * 
+	 * \return Returns true if registration for raw input succeeded.
+	 */
+	bool CMainWindow::RegisterRawInput() {
+		RAWINPUTDEVICE ridDevices[1];
+        
+		ridDevices[0].usUsagePage = 0x01;          // HID_USAGE_PAGE_GENERIC
+		ridDevices[0].usUsage = 0x05;              // HID_USAGE_GENERIC_GAMEPAD
+		ridDevices[0].dwFlags = 0;                 // adds game pad
+		ridDevices[0].hwndTarget = Wnd();
+
+		if ( ::RegisterRawInputDevices( ridDevices, 1, sizeof( ridDevices[0] ) ) == FALSE ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Scans for USB controllers.
+	 */
+	void CMainWindow::ScanInputDevices() {
+		std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
+		// Remove non-game usage pages.
+		for ( auto I = vList.size(); I--; ) {
+			if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD ) {
+				vList.erase( vList.begin() + I );
+			}
+		}
+		return;
 	}
 
 	/**

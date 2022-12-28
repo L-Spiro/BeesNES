@@ -10,11 +10,22 @@
 
 #pragma once
 
-#include <dinput.h>
+//#include <dinput.h>
 
 namespace lsn {
 
+	/**
+	 * Class CDirectInput8
+	 * \brief A wrapper around DirectInput8.
+	 *
+	 * Description: A wrapper around DirectInput8.
+	 */
+	class CDirectInput8 {
+	public :
+		CDirectInput8();
+		~CDirectInput8();
 
+	};
 
 }	// namespace lsn
 

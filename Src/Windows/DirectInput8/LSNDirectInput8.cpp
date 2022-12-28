@@ -9,6 +9,13 @@
 
 #include "LSNDirectInput8.h"
 
+namespace lsn {
 
+	CDirectInput8::CDirectInput8() {
+	}
+	CDirectInput8::~CDirectInput8() {
+	}
+
+}	// namespace lsn
 
 #endif	// #ifdef LSN_USE_WINDOWS
