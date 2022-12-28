@@ -31,3 +31,4 @@ Libraries/ExpressionEvaluator/x64/*
 Libraries/LSWindows/x64/*
 x64/Final/*
 !x64/Final/BeesNES.zip
+Licenses.txt

@@ -19,6 +19,7 @@
 namespace lsn {
 
 	// == Members.
+	/** The layout for the main window. */
 	LSW_WIDGET_LAYOUT CMainWindowLayout::m_wlMainWindow[] = {
 		{
 			LSN_LT_MAIN_WINDOW,						// ltType
@@ -104,7 +105,7 @@ namespace lsn {
 		},*/
 	};
 
-	// Menu bar items for the main window.
+	/** Menu bar items for the main window. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miMenuBar[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_FILE,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__FILE ) },
@@ -113,7 +114,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 
-	// File menu.
+	/** File menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miFileMenu[] {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_OPENROM,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN__ROM ) },
@@ -124,7 +125,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_SAVEAS,			FALSE,		FALSE,		TRUE,		L"Dummy &2" },
 	};
 
-	// Options menu.
+	/** Options menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miOptionsMenu[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		L"Dummy &0" },
@@ -133,7 +134,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_FLOATINGPOINTSTUDIO,FALSE,		FALSE,		TRUE,		L"Dummy &3" },
 	};
 
-	// Windows menu.
+	/** Windows menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miWindowsMenu[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_SHOW_EXPEVAL,		TRUE,		FALSE,		TRUE,		L"Dummy &0" },
@@ -143,7 +144,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_SHOW_ALL,			TRUE,		FALSE,		TRUE,		L"Dummy &3" },
 	};
 
-	// Menus.
+	/** Menus. */
 	LSW_MENU_LAYOUT CMainWindowLayout::m_miMenus[] = {
 		{
 			LSN_MWMI_MENU_BAR,
@@ -175,14 +176,19 @@ namespace lsn {
 		},
 	};
 
-	// The class for the main window.
+	/** The class for the main window. */
 	ATOM CMainWindowLayout::m_aMainClass = 0;
 
-	// The main window.
+	/** The main window. */
 	CWidget * CMainWindowLayout::m_pwMainWindow = nullptr;
 
 	// == Functions.
-	// Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
+	/**
+	 * Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
+	 *
+	 * \param _pabIsAlive An atomic that tells the main loop that the window has closed and its pointer is no longer valid.
+	 * \return Returns the main window widget.
+	 */
 	CWidget * CMainWindowLayout::CreateMainWindow( std::atomic_bool * _pabIsAlive ) {
 		if ( !m_aMainClass ) {
 			// Register the window classes we need.
@@ -206,7 +212,12 @@ namespace lsn {
 		return m_pwMainWindow;
 	}
 
-	// Creates the main menu and adds it to the window.
+	/**
+	 * Creates the main menu and adds it to the window.
+	 *
+	 * \param _pwMainWindow The main window, used for parenting the menu.
+	 * \return Returns TRUE if the menu was created.
+	 */
 	BOOL CMainWindowLayout::CreateMenu( CWidget * _pwMainWindow ) {
 		if ( !_pwMainWindow ) { return FALSE; }
 		HMENU hMenu = lsw::CBase::LayoutManager()->CreateMenu( m_miMenus, LSN_ELEMENTS( m_miMenus ) );

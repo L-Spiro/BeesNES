@@ -86,40 +86,54 @@ namespace lsn {
 
 
 		// == Functions.
-		// Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
+		/**
+		 * Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
+		 *
+		 * \param _pabIsAlive An atomic that tells the main loop that the window has closed and its pointer is no longer valid.
+		 * \return Returns the main window widget.
+		 */
 		static CWidget *						CreateMainWindow( std::atomic_bool * _pabIsAlive );
 
-		// Creates the main menu and adds it to the window.
+		/**
+		 * Creates the main menu and adds it to the window.
+		 *
+		 * \param _pwMainWindow The main window, used for parenting the menu.
+		 * \return Returns TRUE if the menu was created.
+		 */
 		static BOOL								CreateMenu( CWidget * _pwMainWindow );
 
-		// Gets the main window widget.
+		/**
+		 * Gets the main window widget.
+		 *
+		 * \return Returns the main window widget.
+		 */
 		static CWidget *						MainWindow() { return m_pwMainWindow; }
 
 
 	protected :
 		// == Members.
-		// The layout for the main window.
+		/** The layout for the main window. */
 		static LSW_WIDGET_LAYOUT				m_wlMainWindow[];
 
-		// Menu bar items for the main window.
+		/** Menu bar items for the main window. */
 		static LSW_MENU_ITEM					m_miMenuBar[];
 
-		// File menu.
+		/** File menu. */
 		static LSW_MENU_ITEM					m_miFileMenu[];
 
-		// Options menu.
+		/** Options menu. */
 		static LSW_MENU_ITEM					m_miOptionsMenu[];
 
-		// Windows menu.
+		/** Windows menu. */
 		static LSW_MENU_ITEM					m_miWindowsMenu[];
 
-		// Menus.
+		/** Menus. */
 		static LSW_MENU_LAYOUT					m_miMenus[];
 
-		// The class for the main window.
+		/** The class for the main window. */
 		static ATOM								m_aMainClass;
 
-		// The main window.
+		/** The main window. */
 		static CWidget *						m_pwMainWindow;
 
 	};

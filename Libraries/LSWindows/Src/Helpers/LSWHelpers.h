@@ -807,6 +807,23 @@ namespace lsw {
 		static std::vector<LSW_RAW_INPUT_DEVICE_LIST>
 											GatherRawInputDevices( DWORD _dwType );
 
+		/**
+		 * Gets the desktop space minus the taskbar.
+		 *
+		 * \return RETURN
+		 */
+		static LSW_RECT						UsableDesktopRect() {
+			LSW_RECT rDesktop;
+			rDesktop.Zero();
+			if ( ::SystemParametersInfoW( SPI_GETWORKAREA, 0, &rDesktop, 0 ) ) {
+				/*LSW_RECT rTmp;
+				if ( ::GetWindowRect( ::GetDesktopWindow(), &rTmp ) ) {
+					return rDesktop;
+				}*/
+			}
+			return rDesktop;
+		}
+
 
 	protected :
 		// == Types.

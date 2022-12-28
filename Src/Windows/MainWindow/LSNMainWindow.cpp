@@ -71,7 +71,8 @@ namespace lsn {
 		m_pdcClient = m_pnsSystem->GetDisplayClient();
 		if ( m_pdcClient ) {
 			m_pdcClient->SetDisplayHost( this );
-			m_dRatio = m_pdcClient->DisplayRatio();
+			m_dRatio = (m_pdcClient->DisplayRatio() * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
+			//m_dRatio = m_pdcClient->DisplayRatio();
 			// Create the basic render target.
 			const size_t stBuffers = 2;
 			const WORD wBitDepth = 24;
@@ -111,7 +112,8 @@ namespace lsn {
 			// Center it in the screen.
 			LSW_RECT rFinal = FinalWindowRect();
 			LSW_RECT rDesktop;
-			if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
+			if ( ::SystemParametersInfoW( SPI_GETWORKAREA, 0, &rDesktop, 0 ) ) {
+			//if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
 				rDesktop.left = (rDesktop.Width() - rFinal.Width()) / 2;
 				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2 - 30;
 				/*rDesktop.SetWidth( rFinal.Width() );
@@ -319,20 +321,13 @@ namespace lsn {
 		}
 		{
 			// Maximum.
-			LSW_RECT rDesktop;
-			if ( ::GetWindowRect( ::GetDesktopWindow(), &rDesktop ) ) {
-				LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
-				double dScaleW = double( rDesktop.Width() - rWindowArea.Width() ) / FinalWidth( 1.0 );
-				double dScaleH = double( rDesktop.Height() - rWindowArea.Height() ) / FinalHeight( 1.0 );
-				LSW_RECT rRect = FinalWindowRect( std::min( dScaleW, dScaleH ) );
-				_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
-				_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
-			}
-			else {
-				LSW_RECT rRect = FinalWindowRect( 8.0 );
-				_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
-				_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
-			}
+			LSW_RECT rDesktop = CHelpers::UsableDesktopRect();
+			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
+			double dScaleW = double( rDesktop.Width() - rWindowArea.Width() ) / FinalWidth( 1.0 );
+			double dScaleH = double( rDesktop.Height() - rWindowArea.Height() ) / FinalHeight( 1.0 );
+			LSW_RECT rRect = FinalWindowRect( std::min( dScaleW, dScaleH ) );
+			_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
+			_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
 		}
 		return LSW_H_HANDLED;
 	}

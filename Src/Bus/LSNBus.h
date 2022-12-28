@@ -147,10 +147,18 @@ namespace lsn {
 		 * \return Returns the requested value.
 		 */
 		inline uint8_t						Read( uint16_t _ui16Addr ) {
-			LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
-			aaAcc.pfReader( aaAcc.pvReaderParm0,
-				aaAcc.ui16ReaderParm1,
-				m_ui8Ram, m_ui8LastRead );
+			if constexpr ( _uSize == 0xFFFF ) {
+				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
+				aaAcc.pfReader( aaAcc.pvReaderParm0,
+					aaAcc.ui16ReaderParm1,
+					m_ui8Ram, m_ui8LastRead );
+			}
+			else {
+				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr&(_uSize-1)];
+				aaAcc.pfReader( aaAcc.pvReaderParm0,
+					aaAcc.ui16ReaderParm1,
+					m_ui8Ram, m_ui8LastRead );
+			}
 			return m_ui8LastRead;
 		}
 
@@ -161,10 +169,18 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void							Write( uint16_t _ui16Addr, uint8_t _ui8Val ) {
-			LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
-			aaAcc.pfWriter( aaAcc.pvWriterParm0,
-				aaAcc.ui16WriterParm1,
-				m_ui8Ram, _ui8Val );
+			if constexpr ( _uSize == 0xFFFF ) {
+				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
+				aaAcc.pfWriter( aaAcc.pvWriterParm0,
+					aaAcc.ui16WriterParm1,
+					m_ui8Ram, _ui8Val );
+			}
+			else {
+				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr&(_uSize-1)];
+				aaAcc.pfWriter( aaAcc.pvWriterParm0,
+					aaAcc.ui16WriterParm1,
+					m_ui8Ram, _ui8Val );
+			}
 		}
 
 		/**
