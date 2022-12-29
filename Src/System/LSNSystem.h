@@ -268,6 +268,8 @@ namespace lsn {
 					}
 				}
 
+				m_pPpu.GetPpuBus().DGB_FillMemory( 0xFF );
+
 				uint16_t ui16Addr = 0x8000;
 				uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );
 				
@@ -277,9 +279,9 @@ namespace lsn {
 				}
 				size_t stOffset = m_rRom.vPrgRom.size() - ui16Size;
 				m_bBus.CopyToMemory( m_rRom.vPrgRom.data() + stOffset, ui16Size, ui16Addr );
-				if ( m_rRom.vChrRom.size() ) {
-					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::max<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
-				}
+				/*if ( m_rRom.vChrRom.size() ) {
+					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::min<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
+				}*/
 
 				switch ( m_rRom.riInfo.ui16Mapper ) {
 					case 0 : {

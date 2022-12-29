@@ -648,7 +648,7 @@ namespace lsn {
 											if ( ui16Y < _tRender ) {
 
 												uint8_t * pui8This = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
-												uint8_t ui8Val = ui8Pixel * (256 / 4);
+												uint8_t ui8Val = ui8Pixel * (255 / 4);
 												pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
 											}
 										}
@@ -2474,7 +2474,7 @@ namespace lsn {
 				"								if ( ui16Y < _tRender ) {\r\n"
 				"\r\n"
 				"									uint8_t * pui8This = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];\r\n"
-				"									uint8_t ui8Val = ui8Pixel * (256 / 4);\r\n"
+				"									uint8_t ui8Val = ui8Pixel * (255 / 4);\r\n"
 				"									pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;\r\n"
 				"								}\r\n"
 				"							}\r\n"

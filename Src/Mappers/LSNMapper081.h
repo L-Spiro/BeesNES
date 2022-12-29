@@ -45,7 +45,7 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * /*_pbPpuBus*/ ) {
+		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			// ================
 			// FIXED BANKS
 			// ================
@@ -72,6 +72,8 @@ namespace lsn {
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper081::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
 			}
+
+			ApplyStdChrRom( _pbPpuBus );
 		}
 
 

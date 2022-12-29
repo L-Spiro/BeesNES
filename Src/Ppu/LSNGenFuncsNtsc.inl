@@ -1395,7 +1395,7 @@ void LSN_FASTCALL								Cycle_0__257x240() {
 									if (ui16Y < _tRender) {
 
 										uint8_t* pui8This = &m_pui8RenderTarget[ui16Y * m_stRenderTargetStride + ui16X * 3];
-										uint8_t ui8Val = ui8Pixel * (256 / 4);
+										uint8_t ui8Val = ui8Pixel * (255 / 4);
 										pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
 									}
 								}

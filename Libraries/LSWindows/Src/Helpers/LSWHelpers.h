@@ -460,6 +460,7 @@ namespace lsw {
 	struct LSW_RAW_INPUT_DEVICE_LIST {
 		std::wstring						wsName;									/**< The device's name. */
 		std::wstring						wsIdent;								/**< The device's identifier. */
+		HANDLE								hDevice;								/**< A handle to the device. */
 		RID_DEVICE_INFO						diInfo;									/**< The device's information. */
 	};
 

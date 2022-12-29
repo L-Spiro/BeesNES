@@ -120,7 +120,7 @@ namespace lsn {
 					uint16_t ui16MappedAddr = ((I - LSN_PPU_PATTERN_TABLES) % LSN_PPU_PATTERN_TABLE_SIZE);
 					ui16MappedAddr %= m_prRom->vChrRom.size();
 					_pbPpuBus->SetReadFunc( uint16_t( I ), CMapperBase::ChrBankRead_2000, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
-					_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
+					_pbPpuBus->SetWriteFunc( uint16_t( I ), CPpuBus::NoWrite, this, ui16MappedAddr | LSN_PPU_PATTERN_TABLES );
 				}
 			}
 		}

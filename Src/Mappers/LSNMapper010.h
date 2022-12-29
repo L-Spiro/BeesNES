@@ -150,9 +150,9 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** Latch-0 trampolines from 0x0FD8 to 0x0FDF. */
-		CPpuBus::LSN_TRAMPOLINE							m_tLatch0Trampoline_0FD8_0FDF[0x0FDF-0x0FDF+1];
+		CPpuBus::LSN_TRAMPOLINE							m_tLatch0Trampoline_0FD8_0FDF[0x0FDF-0x0FD8+1];
 		/** Latch-0 trampolines from 0x0FE8 to 0x0FEF. */
-		CPpuBus::LSN_TRAMPOLINE							m_tLatch0Trampoline_0FE8_0FEF[0x0FEF-0x0FEF+1];
+		CPpuBus::LSN_TRAMPOLINE							m_tLatch0Trampoline_0FE8_0FEF[0x0FEF-0x0FE8+1];
 		/** Latch-1 trampoline from 0x1FD8 to 0x1FDF. */
 		CPpuBus::LSN_TRAMPOLINE							m_tLatch1Trampoline_1FD8_1FDF[0x1FDF-0x1FD8+1];
 		/** Latch-1 trampoline from 0x1FE8 to 0x1FEF. */

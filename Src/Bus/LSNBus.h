@@ -169,7 +169,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void							Write( uint16_t _ui16Addr, uint8_t _ui8Val ) {
-			if constexpr ( _uSize == 0xFFFF ) {
+			if constexpr ( _uSize == 0x10000 ) {
 				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
 				aaAcc.pfWriter( aaAcc.pvWriterParm0,
 					aaAcc.ui16WriterParm1,
@@ -304,6 +304,17 @@ namespace lsn {
 		 */
 		inline uint8_t						DBG_Inspect( uint16_t _ui16Address ) {
 			return m_ui8Ram[_ui16Address];
+		}
+
+		/**
+		 * Fills the memory with a value.
+		 *
+		 * \param _ui8Val the value with which to fill the memory.
+		 */
+		void								DGB_FillMemory( uint8_t _ui8Val ) {
+			for ( auto I = _uSize; I--; ) {
+				m_ui8Ram[I] = _ui8Val;
+			}
 		}
 
 		/**

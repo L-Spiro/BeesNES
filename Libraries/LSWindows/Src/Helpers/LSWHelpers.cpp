@@ -122,6 +122,7 @@ namespace lsw {
 		for ( size_t I = 0; I < vList.size(); ++I ) {
 			if ( RIM_TYPEHID == vList[I].dwType ) {
 				LSW_RAW_INPUT_DEVICE_LIST ridlList;
+				ridlList.hDevice = vList[I].hDevice;
 				ridlList.wsName = CHelpers::GetRawInputDeviceName( vList[I].hDevice, ridlList.wsIdent );
 				if ( ridlList.wsName.size() == 0 ) {
 					CBase::PrintError( L"Error Gathering Input Device Name." );
