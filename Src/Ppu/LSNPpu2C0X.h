@@ -2188,8 +2188,10 @@ namespace lsn {
 						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
+#if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
 						sRet += "\r\n"
 						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
+#endif	// #if 0
 					}
 				}
 			}
@@ -2346,9 +2348,11 @@ namespace lsn {
 						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
+#if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
+#endif	// #if 0
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 2 ) {
 						sRet += "\r\n"
@@ -2357,9 +2361,11 @@ namespace lsn {
 						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
+#if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
+#endif	// #if 0
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
 						sRet += "\r\n"

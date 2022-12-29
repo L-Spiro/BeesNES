@@ -111,6 +111,29 @@ namespace lsw {
 	}
 
 	/**
+	 * Gets an input device's preparsed data.
+	 *
+	 * \param _hHandle The handle to the device.
+	 * \return Returns the device's preparsed data.
+	 */
+	std::vector<uint8_t> CHelpers::GetRawInputDevicePreparsedData( HANDLE _hHandle ) {
+		std::vector<uint8_t> vRet;
+		UINT uiSize;
+		PHIDP_PREPARSED_DATA pdData = nullptr;
+		UINT uiThis = ::GetRawInputDeviceInfoW( _hHandle,
+			RIDI_PREPARSEDDATA, NULL, &uiSize );
+		if ( UINT( -1 ) == uiThis ) {
+			CBase::PrintError( L"Error Gathering Input Device Preparsed Data." );
+			return vRet;
+		}
+		vRet.resize( uiSize );
+		::GetRawInputDeviceInfoW( _hHandle,
+			RIDI_PREPARSEDDATA, vRet.data(), &uiSize );
+		
+		return vRet;
+	}
+
+	/**
 	 * Gathers all of the raw nput devices of a given type into an array.
 	 *
 	 * \param _dwType The type of device to gather.
@@ -130,6 +153,7 @@ namespace lsw {
 				}
 
 				ridlList.diInfo = CHelpers::GetRawInputDeviceInformation( vList[I].hDevice );
+				ridlList.vPreparsedData = CHelpers::GetRawInputDevicePreparsedData( vList[I].hDevice );
 				
 				vRet.push_back( ridlList );
 			}

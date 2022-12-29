@@ -179,6 +179,9 @@ namespace lsn {
 		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
 		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_DENDY_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
+
+
+		LSN_PM_UNKNOWN						= 0xFFE2,							/**< Unknown code. */
 	};
 
 	/** PPU registers. */

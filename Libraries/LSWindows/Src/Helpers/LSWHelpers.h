@@ -462,6 +462,8 @@ namespace lsw {
 		std::wstring						wsIdent;								/**< The device's identifier. */
 		HANDLE								hDevice;								/**< A handle to the device. */
 		RID_DEVICE_INFO						diInfo;									/**< The device's information. */
+		std::vector<uint8_t>				vPreparsedData;							/**< The device's preparsed data.  Cast .data() to PHIDP_PREPARSED_DATA. */
+		PHIDP_PREPARSED_DATA				pdPreparsedData;						/**< The device's preparsed data. */
 	};
 
 	struct LSW_HID_HANLE {
@@ -818,6 +820,14 @@ namespace lsw {
 		 * \return Returns the device's information.
 		 */
 		static RID_DEVICE_INFO				GetRawInputDeviceInformation( HANDLE _hHandle );
+
+		/**
+		 * Gets an input device's preparsed data.
+		 *
+		 * \param _hHandle The handle to the device.
+		 * \return Returns the device's preparsed data.
+		 */
+		static std::vector<uint8_t>			GetRawInputDevicePreparsedData( HANDLE _hHandle );
 
 		/**
 		 * Gathers all of the raw nput devices of a given type into an array.

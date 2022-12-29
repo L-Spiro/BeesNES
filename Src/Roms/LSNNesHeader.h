@@ -46,6 +46,13 @@ namespace lsn {
 		inline LSN_ROM_HEADER_VERSION			GetHeaderVersion() const;
 
 		/**
+		 * Gets the game console region.
+		 *
+		 * \return Returns the game console region.
+		 */
+		inline LSN_PPU_METRICS					GetGameRegion() const;
+
+		/**
 		 * Determines if a battery is present.
 		 *
 		 * \return Returns true if a battery is present, false otherwise.
@@ -155,6 +162,29 @@ namespace lsn {
 
 		// Otherwise, iNES 0.7 or archaic iNES.
 		return LSN_ROM_HEADER_VERSION::LSN_RHV_ARCHAIC_INES;
+	}
+
+	/**
+	 * Gets the game console region.
+	 *
+	 * \return Returns the game console region.
+	 */
+	inline LSN_PPU_METRICS LSN_NES_HEADER::GetGameRegion() const {
+		switch ( GetHeaderVersion() ) {
+			case LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 : {
+				switch ( ui8Byte12 & 0x03 ) {
+					case 0 : { return LSN_PPU_METRICS::LSN_PM_NTSC; }
+					case 1 : { return LSN_PPU_METRICS::LSN_PM_PAL; }
+					case 2 : { return LSN_PPU_METRICS::LSN_PM_NTSC; }
+					case 3 : { return LSN_PPU_METRICS::LSN_PM_DENDY; }
+				}
+				break;
+			}
+			case LSN_ROM_HEADER_VERSION::LSN_RHV_ARCHAIC_INES : {
+				return (ui8Byte9 & 0x01) ? LSN_PPU_METRICS::LSN_PM_PAL : LSN_PPU_METRICS::LSN_PM_UNKNOWN;
+			}
+		}
+		return LSN_PPU_METRICS::LSN_PM_UNKNOWN;
 	}
 
 	/**

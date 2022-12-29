@@ -65,6 +65,14 @@ namespace lsn {
 		static std::u16string								GetFileExtension( const std::u16string &_s16Path );
 
 		/**
+		 * Removes the extension from a file path.
+		 *
+		 * \param _s16Path The file path whose extension is to be removed.
+		 * \return Returns a string containing the file mname without the extension.
+		 */
+		static std::u16string								NoExtension( const std::u16string &_s16Path );
+
+		/**
 		 * Gets the file name from a file path.
 		 *
 		 * \param _s16Path The file path whose name is to be obtained.

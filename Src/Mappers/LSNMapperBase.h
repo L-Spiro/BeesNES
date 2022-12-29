@@ -52,8 +52,8 @@ namespace lsn {
 			if ( m_prRom->vChrRom.size() == 0 ) {
 				// RAM.
 				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-					_pbPpuBus->SetReadFunc( uint16_t( I ), &ChrRamRead, this, uint16_t( I - 0x0000 ) );
-					_pbPpuBus->SetWriteFunc( uint16_t( I ), &ChrRamWrite, this, uint16_t( I - 0x0000 ) );
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &DefaultChrRamRead, this, uint16_t( I - 0x0000 ) );
+					_pbPpuBus->SetWriteFunc( uint16_t( I ), &DefaultChrRamWrite, this, uint16_t( I - 0x0000 ) );
 				}
 			}
 			else {
@@ -458,7 +458,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ChrRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						DefaultChrRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
 			_ui8Ret = pmThis->m_ui8DefaultChrRam[_ui16Parm1];
 		}
@@ -471,7 +471,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						ChrRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						DefaultChrRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
 			pmThis->m_ui8DefaultChrRam[_ui16Parm1] = _ui8Val;
 		}

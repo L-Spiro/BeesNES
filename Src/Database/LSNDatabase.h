@@ -27,6 +27,7 @@ namespace lsn {
 		struct LSN_ENTRY {
 			uint32_t							ui32Crc = 0;											/**< Game identifier. */
 			LSN_MIRROR_MODE						mmMirrorOverride = LSN_MM_NO_OVERRIDE;					/**< A mirror override, or LSN_MM_NO_OVERRIDE. */
+			LSN_PPU_METRICS						pmRegion = LSN_PM_UNKNOWN;								/**< The game region. */
 		};
 
 

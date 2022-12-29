@@ -369,6 +369,9 @@
     <ClInclude Include="Src\Windows\Input\LSNInputWindowLayout.h">
       <Filter>Header Files\Windows\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper033.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -445,6 +448,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Input\LSNInputWindowLayout.cpp">
       <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System\LSNSystemBase.cpp">
+      <Filter>Source Files\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

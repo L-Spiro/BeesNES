@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Display/LSNDisplayClient.h"
 #include "../Input/LSNInputPoller.h"
 #include "../Mappers/LSNAllMappers.h"
 #include "../Palette/LSNPalette.h"
@@ -57,11 +58,10 @@ namespace lsn {
 		/**
 		 * Loads a ROM image.
 		 *
-		 * \param _vRom The ROM image to load.
-		 * \param _s16Path The ROM file path.
+		 * \param _rRom The ROM data to load, previously populated by a call to LoadRom().
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
-		virtual bool									LoadRom( const std::vector<uint8_t> &/*_vRom*/, const std::u16string &/*_s16Path*/ ) = 0 { return false; }
+		virtual bool									LoadRom( LSN_ROM &/*_rRom*/ ) = 0 { return false; }
 
 		/**
 		 * Sets the input poller.
@@ -191,6 +191,23 @@ namespace lsn {
 		 */
 		virtual LSN_PALETTE *							Palette() { return nullptr; }
 
+		/**
+		 * Gets a pointer to loaded ROM or nullptr if no ROM is loaded.
+		 *
+		 * \return Returns a pointer to the palette.
+		 */
+		virtual const LSN_ROM *							GetRom() const { return IsRomLoaded() ? &m_rRom : nullptr; }
+
+		/**
+		 * Loads a ROM into the given LSN_ROM object.
+		 *
+		 * \param _vRom The in-memory ROM fille.
+		 * \param _rRom The LSN_ROM target object.
+		 * \param _s16Path The ROM file path.
+		 * \return Returns true if the ROM was loaded.
+		 */
+		static bool										LoadRom( const std::vector<uint8_t> &_vRom, LSN_ROM &_rRom, const std::u16string &_s16Path );
+
 
 	protected :
 		// == Members.
@@ -206,6 +223,16 @@ namespace lsn {
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
 		bool											m_bPaused;							/**< Pause flag. */
+
+
+		// == Functions.
+		/**
+		 * Loads a ROM image in .NES format.
+		 *
+		 * \param _vRom The ROM image to load.
+		 * \return Returns true if the image was loaded, false otherwise.
+		 */
+		static bool										LoadNes( const std::vector<uint8_t> &_vRom, LSN_ROM &_rRom );
 	};
 
 }	// namespace lsn

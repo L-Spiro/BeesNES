@@ -1,6 +1,25 @@
-void LSN_FASTCALL								Cycle_1__0x0_0x1_0x2_0x3_0x4_0x5_0x6_0x7_0x8_0x9_X() {
+void LSN_FASTCALL								Cycle_1__0x0_338x0_340x0_0x1_338x1_340x1_0x2_338x2_340x2_0x3_X() {
 
 	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_1__340x311() {
+
+	++m_stCurCycle;
+
+	if constexpr (_bOddFrameShenanigans) {
+		if (m_ui64Frame & 0x1) {
+			m_stCurCycle = 1;
+		}
+		else {
+			m_stCurCycle = 0;
+		}
+	}
+	else {
+		m_stCurCycle = 0;
+	}
+	++m_ui64Frame;
 }
 
 
@@ -437,9 +456,6 @@ void LSN_FASTCALL								Cycle_1__258x0_258x1_258x2_258x3_258x4_258x5_258x6_258x
 
 	Pixel_Fetch_Sprite<0, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -459,9 +475,6 @@ void LSN_FASTCALL								Cycle_1__259x0_259x1_259x2_259x3_259x4_259x5_259x6_259x
 void LSN_FASTCALL								Cycle_1__260x0_260x1_260x2_260x3_260x4_260x5_260x6_260x7_260x8_260x9_X() {
 
 	Pixel_Fetch_Sprite<0, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -523,9 +536,6 @@ void LSN_FASTCALL								Cycle_1__266x0_266x1_266x2_266x3_266x4_266x5_266x6_266x
 
 	Pixel_Fetch_Sprite<1, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -545,9 +555,6 @@ void LSN_FASTCALL								Cycle_1__267x0_267x1_267x2_267x3_267x4_267x5_267x6_267x
 void LSN_FASTCALL								Cycle_1__268x0_268x1_268x2_268x3_268x4_268x5_268x6_268x7_268x8_268x9_X() {
 
 	Pixel_Fetch_Sprite<1, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -609,9 +616,6 @@ void LSN_FASTCALL								Cycle_1__274x0_274x1_274x2_274x3_274x4_274x5_274x6_274x
 
 	Pixel_Fetch_Sprite<2, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -631,9 +635,6 @@ void LSN_FASTCALL								Cycle_1__275x0_275x1_275x2_275x3_275x4_275x5_275x6_275x
 void LSN_FASTCALL								Cycle_1__276x0_276x1_276x2_276x3_276x4_276x5_276x6_276x7_276x8_276x9_X() {
 
 	Pixel_Fetch_Sprite<2, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -695,9 +696,6 @@ void LSN_FASTCALL								Cycle_1__282x0_282x1_282x2_282x3_282x4_282x5_282x6_282x
 
 	Pixel_Fetch_Sprite<3, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -717,9 +715,6 @@ void LSN_FASTCALL								Cycle_1__283x0_283x1_283x2_283x3_283x4_283x5_283x6_283x
 void LSN_FASTCALL								Cycle_1__284x0_284x1_284x2_284x3_284x4_284x5_284x6_284x7_284x8_284x9_X() {
 
 	Pixel_Fetch_Sprite<3, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -781,9 +776,6 @@ void LSN_FASTCALL								Cycle_1__290x0_290x1_290x2_290x3_290x4_290x5_290x6_290x
 
 	Pixel_Fetch_Sprite<4, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -803,9 +795,6 @@ void LSN_FASTCALL								Cycle_1__291x0_291x1_291x2_291x3_291x4_291x5_291x6_291x
 void LSN_FASTCALL								Cycle_1__292x0_292x1_292x2_292x3_292x4_292x5_292x6_292x7_292x8_292x9_X() {
 
 	Pixel_Fetch_Sprite<4, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -867,9 +856,6 @@ void LSN_FASTCALL								Cycle_1__298x0_298x1_298x2_298x3_298x4_298x5_298x6_298x
 
 	Pixel_Fetch_Sprite<5, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -889,9 +875,6 @@ void LSN_FASTCALL								Cycle_1__299x0_299x1_299x2_299x3_299x4_299x5_299x6_299x
 void LSN_FASTCALL								Cycle_1__300x0_300x1_300x2_300x3_300x4_300x5_300x6_300x7_300x8_300x9_X() {
 
 	Pixel_Fetch_Sprite<5, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -953,9 +936,6 @@ void LSN_FASTCALL								Cycle_1__306x0_306x1_306x2_306x3_306x4_306x5_306x6_306x
 
 	Pixel_Fetch_Sprite<6, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -975,9 +955,6 @@ void LSN_FASTCALL								Cycle_1__307x0_307x1_307x2_307x3_307x4_307x5_307x6_307x
 void LSN_FASTCALL								Cycle_1__308x0_308x1_308x2_308x3_308x4_308x5_308x6_308x7_308x8_308x9_X() {
 
 	Pixel_Fetch_Sprite<6, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -1039,9 +1016,6 @@ void LSN_FASTCALL								Cycle_1__314x0_314x1_314x2_314x3_314x4_314x5_314x6_314x
 
 	Pixel_Fetch_Sprite<7, 1>();	// Sprite fetches (257-320).
 
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
 	++m_stCurCycle;
 }
 
@@ -1061,9 +1035,6 @@ void LSN_FASTCALL								Cycle_1__315x0_315x1_315x2_315x3_315x4_315x5_315x6_315x
 void LSN_FASTCALL								Cycle_1__316x0_316x1_316x2_316x3_316x4_316x5_316x6_316x7_316x8_316x9_X() {
 
 	Pixel_Fetch_Sprite<7, 3>();	// Sprite fetches (257-320).
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -1104,6 +1075,18 @@ void LSN_FASTCALL								Cycle_1__320x0_320x1_320x2_320x3_320x4_320x5_320x6_320x
 	Pixel_Fetch_Sprite<7, 7>();	// Sprite fetches (257-320).
 
 	m_ui8OamAddr = 0;
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_1__282x311_284x311_290x311_292x311_298x311_300x311() {
+
+	if (Rendering()) {
+		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
+		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
+		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
+	}
 
 	++m_stCurCycle;
 }
@@ -1366,7 +1349,7 @@ void LSN_FASTCALL								Cycle_1__257x240() {
 									if (ui16Y < _tRender) {
 
 										uint8_t* pui8This = &m_pui8RenderTarget[ui16Y * m_stRenderTargetStride + ui16X * 3];
-										uint8_t ui8Val = ui8Pixel * (256 / 4);
+										uint8_t ui8Val = ui8Pixel * (255 / 4);
 										pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
 									}
 								}
@@ -1517,35 +1500,6 @@ void LSN_FASTCALL								Cycle_1__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 }
 
 
-void LSN_FASTCALL								Cycle_1__338x0_340x0_338x1_340x1_338x2_340x2_338x3_340x3_338x4_340x4_X() {
-
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_1__340x311() {
-
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
-	++m_stCurCycle;
-
-	if constexpr (_bOddFrameShenanigans) {
-		if (m_ui64Frame & 0x1) {
-			m_stCurCycle = 1;
-		}
-		else {
-			m_stCurCycle = 0;
-		}
-	}
-	else {
-		m_stCurCycle = 0;
-	}
-	++m_ui64Frame;
-}
-
-
 void LSN_FASTCALL								Cycle_1__261x311_262x311_263x311_264x311_269x311_270x311_271x311_272x311_277x311_278x311_X() {
 
 	m_ui8OamAddr = 0;
@@ -1603,30 +1557,6 @@ void LSN_FASTCALL								Cycle_1__257x311() {
 	if (Rendering()) {
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
 		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_1__258x311_260x311_266x311_268x311_274x311_276x311_306x311_308x311_314x311_316x311() {
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_1__282x311_284x311_290x311_292x311_298x311_300x311() {
-
-	m_ui8OamAddr = 0;
-	m_ui8NextTileId = m_ui8NtAtBuffer;
-
-	if (Rendering()) {
-		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
-		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
-		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
 	}
 
 	++m_stCurCycle;

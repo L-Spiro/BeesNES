@@ -27,7 +27,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
-		typedef lsn::CNtscSystem
+		typedef lsn::CPalSystem
 												CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -252,6 +252,20 @@ namespace lsn {
 		 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
 		 */
 		void									SetPalette( const std::vector<uint8_t> &_vPalette );
+
+		/**
+		 * Loads a ROM given its in-memory image and its file name.
+		 *
+		 * \param _vRom The in-memory ROM file.
+		 * \param _s16Path The full path to the ROM.
+		 * \return Returns true if loading of the ROM succeeded.
+		 */
+		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path );
+
+		/**
+		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+		 */
+		void									UpdatedConsolePointer();
 
 		/**
 		 * Registers for raw input.

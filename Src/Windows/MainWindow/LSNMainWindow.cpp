@@ -260,11 +260,7 @@ namespace lsn {
 										}
 										else { return LSW_H_CONTINUE; }
 									}
-									StopThread();
-									m_pnsSystem->LoadRom( vExtracted, vFinalFiles[dwIdx] );
-									m_pnsSystem->ResetState( false );
-									m_cClock.SetStartingTick();
-									StartThread();
+									LoadRom( vExtracted, vFinalFiles[dwIdx] );
 									return LSW_H_CONTINUE;
 								}
 							}
@@ -276,11 +272,7 @@ namespace lsn {
 							if ( sfFile.Open( s16File.c_str() ) ) {
 								std::vector<uint8_t> vExtracted;
 								if ( sfFile.LoadToMemory( vExtracted ) ) {
-									StopThread();
-									m_pnsSystem->LoadRom( vExtracted, s16File );
-									m_pnsSystem->ResetState( false );
-									m_cClock.SetStartingTick();
-									StartThread();
+									LoadRom( vExtracted, s16File );
 									return LSW_H_CONTINUE;
 								}
 							}
@@ -384,12 +376,78 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Input( INT _iCode, HRAWINPUT _hRawInput ) {
+		return LSW_H_CONTINUE;
+#if 0
 		if ( _iCode == RIM_INPUT ) {
+			std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
+			// Remove non-game usage pages.
+			for ( auto I = vList.size(); I--; ) {
+				if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD || vList[I].diInfo.hid.usUsagePage != HID_USAGE_PAGE_GENERIC ) {
+					vList.erase( vList.begin() + I );
+				}
+			}
+
 			std::vector<uint8_t> vInputs = CHelpers::GetRawInputData_Input( _hRawInput );
 			if ( vInputs.size() ) {
 				RAWINPUT * rihHeader = reinterpret_cast<RAWINPUT *>(vInputs.data());
-				PHIDP_PREPARSED_DATA pdPreparsed;
-				BOOLEAN bPrep = ::HidD_GetPreparsedData( _hRawInput, &pdPreparsed );
+
+				// Find the device among our list of devices.
+				LSW_RAW_INPUT_DEVICE_LIST * prdilThis = nullptr;
+				for ( auto I = vList.size(); I--; ) {
+					if ( vList[I].hDevice == rihHeader->header.hDevice ) {
+						// Get the stored device's associated preparsed data.
+						prdilThis = &vList[I];
+						break;
+					}
+				}
+				if ( prdilThis ) {
+					HIDP_CAPS cCaps;
+					::HidP_GetCaps( reinterpret_cast<PHIDP_PREPARSED_DATA>(prdilThis->vPreparsedData.data()), &cCaps );
+
+					ULONG ulMaLen = ::HidP_MaxUsageListLength( HidP_Input, HID_USAGE_PAGE_GENERIC, reinterpret_cast<PHIDP_PREPARSED_DATA>(prdilThis->vPreparsedData.data()) );
+					std::vector<CHAR> vReport;
+					vReport.resize( cCaps.OutputReportByteLength );
+
+					ULONG ulLen = 0;
+					NTSTATUS hStatus = ::HidP_GetUsages( HidP_Input, HID_USAGE_PAGE_GENERIC,
+						0, nullptr, &ulLen,
+						reinterpret_cast<PHIDP_PREPARSED_DATA>(prdilThis->vPreparsedData.data()),
+						vReport.data(),
+						ULONG( vReport.size() ) );
+					switch ( hStatus ) {
+						case HIDP_STATUS_SUCCESS : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_INVALID_REPORT_LENGTH : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_INVALID_REPORT_TYPE : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_BUFFER_TOO_SMALL : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_INCOMPATIBLE_REPORT_ID : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_INVALID_PREPARSED_DATA : {
+							ulLen++;
+							break;
+						}
+						case HIDP_STATUS_USAGE_NOT_FOUND : {
+							ulLen++;
+							break;
+						}
+					}
+				}
+
+
+				/*BOOLEAN bPrep = ::HidD_GetPreparsedData( _hRawInput, &pdPreparsed );
 				if ( bPrep ) {
 					HIDP_CAPS cCaps;
 					::HidP_GetCaps( pdPreparsed, &cCaps );
@@ -407,11 +465,12 @@ namespace lsn {
 				}
 				else {
 					//CBase::PrintError( L"Failed to get preparsed data for HID device." );
-				}
+				}*/
 				return LSW_H_CONTINUE;
 			}
 		}
 		return LSW_H_CONTINUE;
+#endif
 	}
 
 	/**
@@ -506,7 +565,7 @@ namespace lsn {
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {
-		if ( m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
+		if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
 			m_pnsSystem->Tick();
 		}
 	}
@@ -713,6 +772,127 @@ namespace lsn {
 			/*ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
 			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
+		}
+	}
+
+	/**
+	 * Loads a ROM given its in-memory image and its file name.
+	 *
+	 * \param _vRom The in-memory ROM file.
+	 * \param _s16Path The full path to the ROM.
+	 * \return Returns true if loading of the ROM succeeded.
+	 */
+	bool CMainWindow::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
+		StopThread();
+		LSN_ROM rTmp;
+		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
+			m_pnsSystem.release();
+			/*m_pnsSystem = std::make_unique<CRegionalSystem>();*/
+			switch ( rTmp.riInfo.pmConsoleRegion ) {
+				case LSN_PPU_METRICS::LSN_PM_NTSC : {
+					m_pnsSystem = std::make_unique<CNtscSystem>();
+					break;
+				}
+				case LSN_PPU_METRICS::LSN_PM_PAL : {
+					m_pnsSystem = std::make_unique<CPalSystem>();
+					break;
+				}
+				case LSN_PPU_METRICS::LSN_PM_DENDY : {
+					m_pnsSystem = std::make_unique<CDendySystem>();
+					break;
+				}
+				default : { m_pnsSystem = std::make_unique<CNtscSystem>(); }
+			}
+			UpdatedConsolePointer();
+			if ( m_pnsSystem->LoadRom( rTmp ) ) {
+				if ( m_pnsSystem->GetRom() ) {
+					std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_pnsSystem->GetRom()->riInfo.s16RomName );
+					SetWindowText( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
+				}
+				m_pnsSystem->ResetState( false );
+				m_cClock.SetStartingTick();
+				StartThread();
+				return true;
+			}
+		}
+		SetWindowText( Wnd(), L"BeesNES" );
+		return false;
+	}
+
+	/**
+	 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+	 */
+	void CMainWindow::UpdatedConsolePointer() {
+		if ( m_pnsSystem.get() ) {
+			m_pdcClient = m_pnsSystem->GetDisplayClient();
+			if ( m_pdcClient ) {
+				m_pdcClient->SetDisplayHost( this );
+			
+				// Set ratios.
+				m_dRatioActual = m_pdcClient->DisplayRatio();
+				// UpdateRatio() called later.
+
+				// Create the basic render target.
+				const size_t stBuffers = 2;
+				const WORD wBitDepth = 24;
+				m_vBasicRenderTarget.resize( stBuffers );
+				for ( auto I = stBuffers; I--; ) {
+					DWORD dwStride = RowStride( RenderTargetWidth(), wBitDepth );
+					m_vBasicRenderTarget[I].resize( sizeof( BITMAPINFOHEADER ) + (dwStride * m_pdcClient->DisplayHeight()) );
+					BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[I].data());
+					pbiHeader->bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+					pbiHeader->bmiHeader.biWidth = RenderTargetWidth();
+					pbiHeader->bmiHeader.biHeight = m_pdcClient->DisplayHeight();
+					pbiHeader->bmiHeader.biPlanes = 1;
+					pbiHeader->bmiHeader.biBitCount = wBitDepth;
+					pbiHeader->bmiHeader.biCompression = BI_RGB;
+					pbiHeader->bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
+					pbiHeader->bmiHeader.biXPelsPerMeter = 0;
+					pbiHeader->bmiHeader.biYPelsPerMeter = 0;
+					pbiHeader->bmiHeader.biClrUsed = 0;
+					pbiHeader->bmiHeader.biClrImportant = 0;
+
+					// For fun.
+					uint8_t * pui8Pixels = m_vBasicRenderTarget[I].data() + pbiHeader->bmiHeader.biSize;
+					for ( auto Y = m_pdcClient->DisplayHeight(); Y--; ) {
+						for ( auto X = RenderTargetWidth(); X--; ) {
+							uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
+							/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
+							pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
+							pui8This[2] = uint8_t( CHelpers::sRGBtoLinear( X / 255.0 ) * 255.0 );
+							pui8This[0] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );
+						}
+					}
+				}
+			}
+			m_pnsSystem->SetInputPoller( this );
+
+			UpdateRatio();
+
+			{
+				std::wstring wsBuffer;
+				const DWORD dwSize = 0xFFFF;
+				wsBuffer.resize( dwSize + 1 ); 
+				::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+				PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+				std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+				//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
+				std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
+				lsn::CStdFile sfFile;
+				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
+					std::vector<uint8_t> vPal;
+					if ( sfFile.LoadToMemory( vPal ) ) {
+						SetPalette( vPal );
+					}
+				}
+			}
+
+
+			{
+				// Update the window (size only).
+				LSW_RECT rFinal = FinalWindowRect();
+				::MoveWindow( Wnd(), rFinal.left, rFinal.top, rFinal.Width(), rFinal.Height(), TRUE );
+			}
 		}
 	}
 

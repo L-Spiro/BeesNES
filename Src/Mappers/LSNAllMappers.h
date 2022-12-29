@@ -20,6 +20,7 @@
 #include "../Mappers/LSNMapper010.h"
 
 #include "../Mappers/LSNMapper032.h"
+#include "../Mappers/LSNMapper033.h"
 
 #include "../Mappers/LSNMapper041.h"
 
