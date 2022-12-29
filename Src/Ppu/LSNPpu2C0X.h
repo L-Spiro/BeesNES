@@ -2095,7 +2095,7 @@ namespace lsn {
 					ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
 					ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
 					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
-#define LSN_SHOW_PIXEL
+//#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
 					ui8Val = ui8BackgroundPalette * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
