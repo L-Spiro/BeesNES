@@ -30,14 +30,29 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			m_ui8PgmBank = uint8_t( m_prRom->vPrgRom.size() / (32 * 1024) - 1 );
-			m_ui8ChrBank = uint8_t( m_prRom->vChrRom.size() / (8 * 1024) - 1 );
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			/*m_ui8PgmBank = uint8_t( m_prRom->vPrgRom.size() / (PgmBankSize()) - 1 );
+			m_ui8ChrBank = uint8_t( m_prRom->vChrRom.size() / (ChrBankSize()) - 1 );*/
 		}
 
 		/**
@@ -47,6 +62,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
+
 			// ================
 			// SWAPPABLE BANKS
 			// ================
@@ -92,9 +109,10 @@ namespace lsn {
 			 *	  ||   ++- Select 8 KB CHR ROM bank for PPU $0000-$1FFF
 			 *	  ++------ Select 32 KB PRG ROM bank for CPU $8000-$FFFF
 			 */
-			pmThis->m_ui8PgmBank = ((_ui8Val & 0b00110000) >> 4) % (pmThis->m_prRom->vPrgRom.size() / (32 * 1024));
-			pmThis->m_ui8ChrBank = (_ui8Val & 0b00000011) % (pmThis->m_prRom->vChrRom.size() / (8 * 1024));
-
+			//pmThis->m_ui8PgmBank = ((_ui8Val & 0b00110000) >> 4) % (pmThis->m_prRom->vPrgRom.size() / (PgmBankSize()));
+			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val & 0b00110000) >> 4 );
+			pmThis->m_ui8ChrBank = (_ui8Val & 0b00000011) % (pmThis->m_prRom->vChrRom.size() / (ChrBankSize()));
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b00000011 );
 		}
 	};
 

@@ -23,6 +23,12 @@ namespace lsn {
 		LSN_ENTRY eEntries[] = {
 			// Deathbots.
 			{ .ui32Crc = 0x8B781D39, .mmMirrorOverride = LSN_MM_VERTICAL },
+			// Doraemon.
+			{ .ui32Crc = 0xB00ABE1C, .mmMirrorOverride = LSN_MM_VERTICAL },
+			// Dragon Warriors III.
+			//{ .ui32Crc = 0xA86A5318, .mmMirrorOverride = LSN_MM_VERTICAL },
+			// Final Fantasy I, II.
+			{ .ui32Crc = 0xC9556B36, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Ms. Pac Man.
 			{ .ui32Crc = 0x4B2DCE64, .mmMirrorOverride = LSN_MM_HORIZONTAL },
 			// Perman Part 2.

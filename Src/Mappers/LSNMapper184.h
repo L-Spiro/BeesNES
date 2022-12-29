@@ -47,6 +47,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
+
 			// Set the reads of the selectable bank.
 			for ( uint32_t I = 0x0000; I < 0x1000; ++I ) {
 				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead_1000, this, uint16_t( I - 0x0000 ) );

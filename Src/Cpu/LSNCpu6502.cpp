@@ -1180,7 +1180,7 @@ namespace lsn {
 		ui16LastPc = pc.PC;
 #endif	// #ifdef LSN_PRINT_CYCLES
 
-		if ( m_bHandleNmi && !m_bDelayInterrupt ) {
+		if ( m_bHandleNmi /*&& !m_bDelayInterrupt*/ ) {
 			BeginInst( LSN_SO_NMI );
 		}
 		else {

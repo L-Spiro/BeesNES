@@ -48,7 +48,18 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		virtual void									ApplyMap( CCpuBus * /*_pbCpuBus*/, CPpuBus * /*_pbPpuBus*/ ) {}
+		virtual void									ApplyMap( CCpuBus * /*_pbCpuBus*/, CPpuBus * _pbPpuBus ) {
+			if ( m_prRom->vChrRom.size() == 0 ) {
+				// RAM.
+				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &ChrRamRead, this, uint16_t( I - 0x0000 ) );
+					_pbPpuBus->SetWriteFunc( uint16_t( I ), &ChrRamWrite, this, uint16_t( I - 0x0000 ) );
+				}
+			}
+			else {
+				ApplyStdChrRom( _pbPpuBus );
+			}
+		}
 
 		/**
 		 * Applies a mirroring mode to a PPU bus.
@@ -81,6 +92,8 @@ namespace lsn {
 		uint8_t											m_ui8PgmBanks[32];
 		/** The CHR ROM banks. */
 		uint8_t											m_ui8ChrBanks[32];
+		/** If the ROM CHR size is 0, it uses CHR RAM instead. */
+		uint8_t											m_ui8DefaultChrRam[8*1024];
 		/** The ROM used to initialize this mapper. */
 		LSN_ROM *										m_prRom;
 		/** The offset of the fixed bank. */
@@ -435,6 +448,32 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						ChrBankRead_0800( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			ChrBankRead<0, 0x0800>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
+		}
+
+		/**
+		 * Reads from the CHR RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ChrRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			_ui8Ret = pmThis->m_ui8DefaultChrRam[_ui16Parm1];
+		}
+
+		/**
+		 * Writes to the CHR RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						ChrRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
+			pmThis->m_ui8DefaultChrRam[_ui16Parm1] = _ui8Val;
 		}
 
 		/**

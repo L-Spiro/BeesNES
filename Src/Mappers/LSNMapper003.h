@@ -46,6 +46,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
+
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &Mapper003CpuWrite, this, 0 );	// Treated as ROM.

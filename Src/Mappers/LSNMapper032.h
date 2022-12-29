@@ -53,6 +53,7 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
 #define LSN_MAJOR_BALL_CRC								0xC0FED437
 			// ================

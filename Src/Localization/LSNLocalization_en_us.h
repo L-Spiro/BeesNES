@@ -19,7 +19,7 @@
 #define LSN__TOOLS															&Tools
 #define LSN__WINDOW															&Window
 #define LSN__HELP															&Help
-#define LSN_OPEN__ROM														Open &ROM
+#define LSN_OPEN__ROM														Open R&OM
 #define LSN_OPEN_REC_ENT													Open Re&cent
 #define LSN_SELECT_ROM														Select ROM
 #define LSN_FILE_LISTING													File Listing

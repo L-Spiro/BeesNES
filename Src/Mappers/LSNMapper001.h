@@ -52,6 +52,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
+
 			// ================
 			// SWAPPABLE BANKS
 			// ================
@@ -298,10 +300,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Read_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Read_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			if ( !pmThis->m_prRom->vChrRom.size() ) {
-				_ui8Ret = _pui8Data[_ui16Parm1];
+				_ui8Ret = pmThis->m_ui8DefaultChrRam[_ui16Parm1];
 			}
 			else {
 				if ( pmThis->m_ui8Control & 0b10000 ) {

@@ -30,13 +30,28 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom ) {
 			CMapperBase::InitWithRom( _rRom );
-			SetPgmBank<0, 32 * 1024>( -1 );
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			m_ui8PgmBank = 0;
 		}
 
 		/**
@@ -46,6 +61,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
+
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_8000, this, uint16_t( I - 0x8000 ) );
 			}
@@ -56,6 +73,7 @@ namespace lsn {
 			}
 
 			ApplyControllableMirrorMap( _pbPpuBus );
+
 		}
 
 
