@@ -318,6 +318,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper032.h" />
     <ClInclude Include="Src\Mappers\LSNMapper033.h" />
     <ClInclude Include="Src\Mappers\LSNMapper034.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper036.h" />
     <ClInclude Include="Src\Mappers\LSNMapper041.h" />
     <ClInclude Include="Src\Mappers\LSNMapper066.h" />
     <ClInclude Include="Src\Mappers\LSNMapper072.h" />

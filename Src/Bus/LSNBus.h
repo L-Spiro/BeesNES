@@ -216,7 +216,7 @@ namespace lsn {
 		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
 		 */
 		void								SetReadFunc( uint16_t _ui16Address, PfReadFunc _pfReadFunc, void * _pvParm0, uint16_t _ui16Parm1 ) {
-			if ( _ui16Parm1 < Size() ) {
+			if ( _ui16Address < Size() ) {
 				m_aaAccessors[_ui16Address].pfReader = _pfReadFunc;
 				m_aaAccessors[_ui16Address].pvReaderParm0 = _pvParm0;
 				m_aaAccessors[_ui16Address].ui16ReaderParm1 = _ui16Parm1;
@@ -232,7 +232,7 @@ namespace lsn {
 		 * \param _ui16Parm1 A 16-bit parameter assigned to the address.
 		 */
 		void								SetWriteFunc( uint16_t _ui16Address, PfWriteFunc _pfWriteFunc, void * _pvParm0, uint16_t _ui16Parm1 ) {
-			if ( _ui16Parm1 < Size() ) {
+			if ( _ui16Address < Size() ) {
 				m_aaAccessors[_ui16Address].pfWriter = _pfWriteFunc;
 				m_aaAccessors[_ui16Address].pvWriterParm0 = _pvParm0;
 				m_aaAccessors[_ui16Address].ui16WriterParm1 = _ui16Parm1;

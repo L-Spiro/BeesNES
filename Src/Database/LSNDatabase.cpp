@@ -86,6 +86,8 @@ namespace lsn {
 			{ .ui32Crc = 0x10B4CE4D, .pmRegion = LSN_PM_PAL },
 			// Chessmaster, The (Europe)
 			{ .ui32Crc = 0x64C97986, .pmRegion = LSN_PM_PAL },
+			// Chevaliers du Zodiaque, Les - La Legende d'Or (France)
+			{ .ui32Crc = 0x98C546E0, .pmRegion = LSN_PM_DENDY },
 			// Chip 'n Dale - Rescue Rangers (Europe)
 			{ .ui32Crc = 0xAC7A54CC, .pmRegion = LSN_PM_PAL },
 			// Chip 'n Dale - Rescue Rangers 2 (Europe)
