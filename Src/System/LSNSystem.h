@@ -385,7 +385,7 @@ namespace lsn {
 			}
 
 			if ( m_pmbMapper ) {
-				m_pmbMapper->InitWithRom( m_rRom );
+				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu );
 			}
 
 			return true;

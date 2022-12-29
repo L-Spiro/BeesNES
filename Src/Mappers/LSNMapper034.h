@@ -47,9 +47,10 @@ namespace lsn {
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
+		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom ) {
-			CMapperBase::InitWithRom( _rRom );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			// For compatibility between both BNROM and NINA-001 boards.
 			m_ui8PgmBanks[0] = 0;

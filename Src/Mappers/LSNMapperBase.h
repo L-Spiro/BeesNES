@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Cpu/LSNCpuBase.h"
 #include "../Roms/LSNRom.h"
 
 namespace lsn {
@@ -25,6 +26,7 @@ namespace lsn {
 	public :
 		CMapperBase() :
 			m_prRom( nullptr ),
+			m_pcbCpu( nullptr ),
 			m_stFixedOffset( 0 ),
 			m_mmMirror( LSN_MM_HORIZONTAL ),
 			m_ui8PgmBank( m_ui8PgmBanks[0] ),
@@ -39,8 +41,12 @@ namespace lsn {
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
+		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom ) { m_prRom = &_rRom; }
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
+			m_prRom = &_rRom;
+			m_pcbCpu = _pcbCpuBase;
+		}
 
 		/**
 		 * Applies mapping to the CPU and PPU busses.
@@ -96,6 +102,8 @@ namespace lsn {
 		uint8_t											m_ui8DefaultChrRam[8*1024];
 		/** The ROM used to initialize this mapper. */
 		LSN_ROM *										m_prRom;
+		/** The CPU, for reading information such as cycle counts and for sending IRQ’s. */
+		CCpuBase *										m_pcbCpu;
 		/** The offset of the fixed bank. */
 		size_t											m_stFixedOffset;
 		/** The PGM bank. */

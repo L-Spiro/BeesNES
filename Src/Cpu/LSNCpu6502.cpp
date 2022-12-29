@@ -1063,8 +1063,7 @@ namespace lsn {
 
 	// == Various constructors.
 	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
-		m_ui64CycleCount( 0 ),
-		m_pbBus( _pbBus ),
+		CCpuBase( _pbBus ),		
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		m_pipPoller( nullptr ),
 		A( 0 ),
