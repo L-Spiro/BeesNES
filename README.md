@@ -5,6 +5,7 @@ A sub-cycle–accurate Nintendo Entertainment System emulator.
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
+![image](https://user-images.githubusercontent.com/7362666/210118486-53aaea46-4609-4e3d-a9e5-15d5e016d5e0.png)
 ![image](https://user-images.githubusercontent.com/7362666/209457943-0ea5581c-2220-44bf-a046-ed2be6bf77d4.png)
 ![image](https://user-images.githubusercontent.com/7362666/209458107-919f63ed-2a4b-4bc0-ae65-46aff1c799b4.png)
 ![image](https://user-images.githubusercontent.com/7362666/209458143-d44796b1-c0cf-40e1-9f89-b71b8be555b1.png)
