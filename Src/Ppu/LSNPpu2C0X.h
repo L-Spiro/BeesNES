@@ -1103,6 +1103,7 @@ namespace lsn {
 				(*pui8Val) = 0x00;
 			}
 			(*pfDecay) = 1.0f;
+			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
 			return (*pui8Val);
 		}
 
