@@ -53,6 +53,7 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			SetPgmBank<0, PgmBankSize()>( 0 );
+			SetChrBank<0, ChrBankSize()>( 0 );
 		}
 
 		/**
@@ -109,12 +110,6 @@ namespace lsn {
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4200, this, 0 );	// Treated as ROM.
 				}
 			}
-
-
-			// ================
-			// MIRRORING
-			// ================
-			//ApplyControllableMirrorMap( _pbPpuBus );
 		}
 
 

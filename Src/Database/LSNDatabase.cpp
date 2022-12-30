@@ -98,6 +98,8 @@ namespace lsn {
 			{ .ui32Crc = 0x07637EE4, .pmRegion = LSN_PM_PAL },
 			// Cosmos Cop (Asia) (Mega Soft) (Unl)
 			{ .ui32Crc = 0x18EC3D59, .pmRegion = LSN_PM_PAL },
+			// Crime Busters (Unknown) (Unl)
+			{ .ui32Crc = 0x1A8B558E, .pmRegion = LSN_PM_PAL },
 			// Darkwing Duck (Europe)
 			{ .ui32Crc = 0x895CBAF8, .pmRegion = LSN_PM_PAL },
 			// David Crane's A Boy and His Blob - Trouble on Blobolonia (Europe) (Rev A)

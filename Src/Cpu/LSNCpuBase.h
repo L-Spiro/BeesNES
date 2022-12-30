@@ -36,6 +36,11 @@ namespace lsn {
 		 */
 		inline uint64_t						GetCycleCount() const { return m_ui64CycleCount; }
 
+		/**
+		 * Signals an IRQ to be handled before the next instruction.
+		 */
+		virtual void						Irq() {}
+
 	protected :
 		// == Enumerations.
 		/** Addressing modes. */

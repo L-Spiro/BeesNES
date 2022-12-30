@@ -1074,7 +1074,7 @@ namespace lsn {
 		m_ui8DmaPos( 0 ),
 		m_ui8DmaValue( 0 ),
 		m_bHandleNmi( false ),
-		m_bDelayInterrupt( false ) {
+		m_bIrqSignalled( false ) {
 		pc.PC = 0xC000;
 		m_ui8Status = 0x04;
 		std::memset( &m_ccCurContext, 0, sizeof( m_ccCurContext ) );
@@ -1110,7 +1110,8 @@ namespace lsn {
 
 		pc.PC = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 
-		m_bHandleNmi = m_bDelayInterrupt = false;
+		m_bHandleNmi = false;
+		m_bIrqSignalled = false;
 	}
 
 	/**
@@ -1160,6 +1161,13 @@ namespace lsn {
 		m_bHandleNmi = true;
 	}
 
+	/**
+	 * Signals an IRQ to be handled before the next instruction.
+	 */
+	void CCpu6502::Irq() {
+		m_bIrqSignalled = true;
+	}
+
 #ifdef _DEBUG
 //#define LSN_PRINT_CYCLES
 #endif	// #ifdef _DEBUG
@@ -1179,12 +1187,11 @@ namespace lsn {
 		ui16LastPc = pc.PC;
 #endif	// #ifdef LSN_PRINT_CYCLES
 
-		if ( m_bHandleNmi /*&& !m_bDelayInterrupt*/ ) {
+		if ( m_bHandleNmi ) {
 			BeginInst( LSN_SO_NMI );
 		}
 		else {
 			FetchOpcodeAndIncPc();
-			m_bDelayInterrupt = false;
 		}
 
 #ifdef LSN_PRINT_CYCLES
@@ -1716,8 +1723,6 @@ namespace lsn {
 			LSN_FINISH_INST;
 			// Fetch next opcode.
 			m_ccCurContext.ui8Operand = m_pbBus->Read( pc.PC++ );
-			// Branch not taken.
-			m_bDelayInterrupt = true;
 		}
 		else {
 			LSN_ADVANCE_CONTEXT_COUNTERS;
@@ -1741,12 +1746,11 @@ namespace lsn {
 			pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
 		}
 		else {
+			// Last cycle in the instruction.
 			LSN_FINISH_INST;
 			// Fetch next opcode.
 			m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
 			// Did not cross a page boundary.
-			// Last cycle in the instruction.
-			m_bDelayInterrupt = true;
 		}
 	}
 

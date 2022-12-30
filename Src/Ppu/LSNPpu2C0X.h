@@ -18,6 +18,9 @@
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 
+#include <cmath>
+#include <intrin.h>
+
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
@@ -27,7 +30,6 @@
 
 #define LSN_TEMPLATE_PPU
 //#define LSN_GEN_PPU
-//#define LSN_PPU_GEN_DEBUG
 
 #ifdef LSN_GEN_PPU
 #include <map>
@@ -55,8 +57,7 @@ namespace lsn {
 			m_pnNmiTarget( _pnNmiTarget ),
 			m_ui64Frame( 0 ),
 			m_ui64Cycle( 0 ),
-			m_ui16Scanline( 0 ),
-			m_ui16RowDot( 0 ),
+			m_stCurCycle( 0 ),
 			m_ui16ShiftPatternLo( 0 ),
 			m_ui16ShiftPatternHi( 0 ),
 			m_ui16ShiftAttribLo( 0 ),
@@ -73,7 +74,13 @@ namespace lsn {
 			m_ui8Oam2ClearIdx( 0 ),
 			m_bAddresLatch( false ) {
 
-#ifdef LSN_TEMPLATE_PPU
+			m_vOamDecay.resize( 256 );
+			for ( auto I = m_vOamDecay.size(); I--; ) {
+				m_vOamDecay[I] = 1.0f;
+			}
+			m_fOamDecayFactor = OamDecayFactor();
+			m_m128OamDecayFactor = _mm_load1_ps( &m_fOamDecayFactor );
+
 #ifdef LSN_GEN_PPU
 			GenerateCycleFuncs();
 #else
@@ -81,79 +88,6 @@ namespace lsn {
 #include "LSNCreateCycleTablePal.inl"
 #include "LSNCreateCycleTableDendy.inl"
 #endif	// #ifdef LSN_GEN_PPU
-#endif	// #ifdef LSN_TEMPLATE_PPU
-
-			for ( auto Y = _tDotHeight; Y--; ) {
-				for ( auto X = _tDotWidth; X--; ) {
-					{
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
-						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Control;
-					}
-					{
-						LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+X];
-						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Work;
-					}
-					{
-						LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+X];
-						cThis.pfFunc = &CPpu2C0X::Pixel_Idle_Sprite;
-					}
-				}
-			}
-			// Add pixel gather/render functions.
-			{
-				// The main rendering area.
-
-				for ( auto Y = 0; Y < (_tPreRender + _tRender); ++Y ) {
-					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
-					ApplySpriteFunctionPointers( uint16_t( Y ) );
-				}
-				// The "-1" scanline.
-				{
-					constexpr size_t Y = _tDotHeight - 1;
-					ApplyStdRenderFunctionPointers( uint16_t( Y ) );
-					//ApplySpriteFunctionPointers( uint16_t( Y ) );
-				}
-
-			}
-
-
-			// Add row ends.
-			for ( auto Y = _tDotHeight; Y--; ) {
-				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+(_tDotWidth-1)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndRow_Control;
-			}
-			// Add frame end.
-			{
-#ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
-				LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Control;
-#else
-				{
-					LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-2)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Control;
-				}
-				{
-					LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+(_tDotWidth-1)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Idle_EndFrame_Even_Control;
-				}
-#endif
-				
-			}
-			// Add v-blank.
-			{
-				LSN_CYCLE & cThis = m_cControlCycles[(_tPreRender+_tRender+_tPostRender)*_tDotWidth+1];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_VBlank_Control;
-			}
-			// Clear v-blank and friends.
-			{
-				LSN_CYCLE & cThis = m_cControlCycles[(_tDotHeight-1)*_tDotWidth+1];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Idle_StartFrame_Control;
-			}
-			// Swap the display buffer.
-			{
-				LSN_CYCLE & cThis = m_cControlCycles[(_tPreRender+_tRender)*_tDotWidth+(1+_tRenderW+2)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Swap_Control;
-			}
 		}
 		~CPpu2C0X() {
 		}
@@ -174,114 +108,16 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
-#ifdef LSN_PPU_GEN_DEBUG
-			LSN_DEBUG_COPY dcAtStart = {
-				m_ui64Frame,
-				m_paPpuAddrT, m_paPpuAddrV, m_psPpuStatus, m_stCurCycle / _tDotWidth, m_stCurCycle % _tDotWidth,
-				m_ui16ShiftPatternLo, m_ui16ShiftPatternHi, m_ui16ShiftAttribLo, m_ui16ShiftAttribHi,
-				m_ui8FineScrollX, m_ui8NtAtBuffer,
-				m_ui8NextTileId, m_ui8NextTileAttribute, m_ui8NextTileLsb, m_ui8NextTileMsb
-			};
-
-			size_t stThisIdx = m_stCurCycle;
-			(this->*m_cCycle[stThisIdx])();
-			LSN_DEBUG_COPY dcAfter = {
-				m_ui64Frame,
-				m_paPpuAddrT, m_paPpuAddrV, m_psPpuStatus, m_stCurCycle / _tDotWidth, m_stCurCycle % _tDotWidth,
-				m_ui16ShiftPatternLo, m_ui16ShiftPatternHi, m_ui16ShiftAttribLo, m_ui16ShiftAttribHi,
-				m_ui8FineScrollX, m_ui8NtAtBuffer,
-				m_ui8NextTileId, m_ui8NextTileAttribute, m_ui8NextTileLsb, m_ui8NextTileMsb
-			};
-
-			m_ui64Frame = dcAtStart.m_ui64Frame;
-
-			m_paPpuAddrT = dcAtStart.m_paPpuAddrT;
-			m_paPpuAddrV = dcAtStart.m_paPpuAddrV;
-			m_psPpuStatus = dcAtStart.m_psPpuStatus;
-
-			m_ui16ShiftPatternLo = dcAtStart.m_ui16ShiftPatternLo;
-			m_ui16ShiftPatternHi = dcAtStart.m_ui16ShiftPatternHi;
-			m_ui16ShiftAttribLo = dcAtStart.m_ui16ShiftAttribLo;
-			m_ui16ShiftAttribHi = dcAtStart.m_ui16ShiftAttribHi;
-
-			m_ui8FineScrollX = dcAtStart.m_ui8FineScrollX;
-			m_ui8NtAtBuffer = dcAtStart.m_ui8NtAtBuffer;
-
-			m_ui8NextTileId = dcAtStart.m_ui8NextTileId;
-			m_ui8NextTileAttribute = dcAtStart.m_ui8NextTileAttribute;
-			m_ui8NextTileLsb = dcAtStart.m_ui8NextTileLsb;
-			m_ui8NextTileMsb = dcAtStart.m_ui8NextTileMsb;
-
-			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
-			/*if ( m_ui16RowDot == 321 ) {
-				int gjhg = 0;
-			}*/
-			//(this->*m_cSpriteCycles[stIdx].pfFunc)();
-			(this->*m_cWorkCycles[stIdx].pfFunc)();
-			(this->*m_cControlCycles[stIdx].pfFunc)();
-
-			if ( m_ui64Frame != dcAfter.m_ui64Frame ) {
-				volatile int gjhg =0;
-			}
-			if ( m_paPpuAddrT.ui16Addr != dcAfter.m_paPpuAddrT.ui16Addr ) {
-				volatile int gjhg =0;
-			}
-			if ( m_paPpuAddrV.ui16Addr != dcAfter.m_paPpuAddrV.ui16Addr ) {
-				volatile int gjhg =0;
-			}
-			if ( m_psPpuStatus.ui8Reg != dcAfter.m_psPpuStatus.ui8Reg ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui16Scanline != dcAfter.m_ui16Scanline ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui16RowDot != dcAfter.m_ui16RowDot ) {
-				volatile int gjhg =0;
-			}
-
-
-			if ( m_ui16ShiftPatternLo != dcAfter.m_ui16ShiftPatternLo ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui16ShiftPatternHi != dcAfter.m_ui16ShiftPatternHi ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui16ShiftAttribLo != dcAfter.m_ui16ShiftAttribLo ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui16ShiftAttribHi != dcAfter.m_ui16ShiftAttribHi ) {
-				volatile int gjhg =0;
-			}
-
-			if ( m_ui8FineScrollX != dcAfter.m_ui8FineScrollX ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui8NtAtBuffer != dcAfter.m_ui8NtAtBuffer ) {
-				volatile int gjhg =0;
-			}
-
-			if ( m_ui8NextTileId != dcAfter.m_ui8NextTileId ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui8NextTileAttribute != dcAfter.m_ui8NextTileAttribute ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui8NextTileLsb != dcAfter.m_ui8NextTileLsb ) {
-				volatile int gjhg =0;
-			}
-			if ( m_ui8NextTileMsb != dcAfter.m_ui8NextTileMsb ) {
-				volatile int gjhg =0;
+#ifdef _DEBUG
+			if ( (m_ui64Cycle & (OamDecayRate() - 1)) == 0 ) {
+				DecayOam();
 			}
 #else
-#ifdef LSN_TEMPLATE_PPU
+			if ( (m_ui64Cycle & (OamDecayRate() - 1)) == 0 ) {
+				DecayOam();
+			}
+#endif	// #ifdef _DEBUG
 			(this->*m_cCycle[m_stCurCycle])();
-#else
-			size_t stIdx = m_ui16Scanline * _tDotWidth + m_ui16RowDot;
-			//(this->*m_cSpriteCycles[stIdx].pfFunc)();
-			(this->*m_cWorkCycles[stIdx].pfFunc)();
-			(this->*m_cControlCycles[stIdx].pfFunc)();
-#endif	// #ifdef LSN_TEMPLATE_PPU
-#endif	// #ifdef LSN_PPU_GEN_DEBUG
 			++m_ui64Cycle;
 		}
 
@@ -292,15 +128,11 @@ namespace lsn {
 			ResetAnalog();
 			m_ui64Frame = 0;
 			m_ui64Cycle = 0;
-			m_ui16Scanline = 0;
-			m_ui16RowDot = 0;
 			m_paPpuAddrT.ui16Addr = 0;
 			m_paPpuAddrV.ui16Addr = 0;
 			m_ui8IoBusLatch = 0;
 
-#ifdef LSN_TEMPLATE_PPU
 			m_stCurCycle = 0;
-#endif	// #ifdef LSN_TEMPLATE_PPU
 		}
 
 		/**
@@ -457,14 +289,14 @@ namespace lsn {
 		 *
 		 * \return Returns the current row position.
 		 */
-		inline uint16_t									GetCurrentRowPos() const { return m_ui16RowDot; }
+		inline uint16_t									GetCurrentRowPos() const { return m_stCurCycle % _tDotWidth; }
 
 		/**
 		 * Gets the current scanline.
 		 *
 		 * \return Returns the current scanline.
 		 */
-		inline uint16_t									GetCurrentScanline() const { return m_ui16Scanline; }
+		inline uint16_t									GetCurrentScanline() const { return m_stCurCycle % _tDotWidth; }
 
 		/**
 		 * Gets the PPU bus.
@@ -523,366 +355,6 @@ namespace lsn {
 		const LSN_PALETTE &								Palette() const { return m_pPalette; }
 
 		/**
-		 * An "idle" pixel handler.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_Control() {
-			LSN_END_CONTROL_CYCLE;
-		}
-
-		/**
-		 * An "idle" work pixel handler.  Does nothing.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_Work() {
-		}
-
-		/**
-		 * An "idle" sprite pixel handler.  Does nothing.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_Sprite() {
-		}
-
-		/**
-		 * An "idle" pixel handler for the end of rows.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_EndRow_Control() {
-			m_ui16RowDot = 0;
-			++m_ui16Scanline;
-		}
-
-		/**
-		 * Starting a frame at [1,_tDotHeight-1] clears some flags.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_StartFrame_Control() {
-			m_psPpuStatus.s.ui8VBlank = 0;
-			m_psPpuStatus.s.ui8SpriteOverflow = 0;
-			m_psPpuStatus.s.ui8Sprite0Hit = 0;
-			LSN_END_CONTROL_CYCLE;
-		}
-
-		/**
-		 * An "idle" pixel handler for the end of the frame.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_EndFrame_Control() {
-#ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
-			m_ui16Scanline = 0;
-			
-			if constexpr ( _bOddFrameShenanigans ) {
-				if ( m_ui64Frame & 0x1 ) {
-					m_ui16RowDot = 1;
-				}
-				else {
-					m_ui16RowDot = 0;
-				}
-			}
-			else {
-				m_ui16RowDot = 0;
-			}
-			++m_ui64Frame;
-#else
-			if constexpr ( _bOddFrameShenanigans ) {
-				if ( (m_ui64Frame & 0x1) && Rendering() ) {
-					// Skips Pixel_Idle_EndFrame_Even_Control().
-					m_ui16Scanline = 0;
-					m_ui16RowDot = 0;
-					++m_ui64Frame;
-				}
-				else {
-					// Goes to Pixel_Idle_EndFrame_Even_Control().
-					LSN_END_CONTROL_CYCLE;
-				}
-			}
-			else {
-				// Goes to Pixel_Idle_EndFrame_Even_Control().
-				LSN_END_CONTROL_CYCLE;
-			}
-#endif	// #ifdef LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
-		}
-
-		/**
-		 * An "idle" pixel handler for the end of even frames.  Skipped on odd frames if rendering is off.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_EndFrame_Even_Control() {
-			m_ui16Scanline = 0;
-			m_ui16RowDot = 0;
-			++m_ui64Frame;
-		}
-
-		/**
-		 * Handling v-blank.
-		 */
-		void LSN_FASTCALL								Pixel_Idle_VBlank_Control() {
-			// [1, 241] on NTSC.
-			// [1, 241] on PAL.
-			// [1, 241] on Dendy.
-			m_psPpuStatus.s.ui8VBlank = 1;
-			if ( m_pcPpuCtrl.s.ui8Nmi ) {
-				m_pnNmiTarget->Nmi();
-			}
-			LSN_END_CONTROL_CYCLE;
-		}
-
-		/**
-		 * Informing the display host that a render is done.
-		 */
-		void LSN_FASTCALL								Pixel_Swap_Control() {
-			if ( m_pdhHost ) {
-				if ( m_pui8RenderTarget ) {
-					
-					if ( DebugSideDisplay() ) {
-						for ( uint16_t I = 0; I < 2; ++I ) {
-							for ( uint16_t ui16TileY = 0; ui16TileY < 16; ++ui16TileY ) {
-								for ( uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX ) {
-									uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;
-									for ( uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row ) {
-										uint8_t ui8TileLsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 0 );
-										uint8_t ui8TileMsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 8 );
-										for ( uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col ) {
-											uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);
-											ui8TileLsb >>= 1;
-											ui8TileMsb >>= 1;
-											uint16_t ui16X = ui16TileX * 8 + (7 - ui16Col);
-											ui16X += _tRenderW;
-
-											uint16_t ui16Y = I * (16 * 8) + ui16TileY * 8 + ui16Row;
-											ui16Y = (_tRender - 1) - ui16Y;
-											if ( ui16Y < _tRender ) {
-
-												uint8_t * pui8This = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
-												uint8_t ui8Val = ui8Pixel * (255 / 4);
-												pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-#if 0
-					// For fun.
-					for ( auto Y = DisplayHeight(); Y--; ) {
-						for ( auto X = DisplayWidth(); X--; ) {
-							uint8_t * pui8This = &m_pui8RenderTarget[Y*m_stRenderTargetStride+X*3];
-							uint16_t ui16Addr = uint16_t( (Y + m_ui64Frame) * 256 + X * 1 );
-							
-							uint8_t ui8Val = m_pbBus->DBG_Inspect( ui16Addr + 0 );
-							pui8This[0] = pui8This[1] = pui8This[2] = ui8Val;
-							/*pui8This[2] = m_pbBus->DBG_Inspect( ui16Addr + 1 );
-							pui8This[0] = m_pbBus->DBG_Inspect( ui16Addr + 0 );*/
-						}
-					}
-#endif
-				}
-				m_pdhHost->Swap();
-			}
-#if !defined( LSN_TEMPLATE_PPU ) || defined( LSN_PPU_GEN_DEBUG )
-			LSN_END_CONTROL_CYCLE;
-#endif	// #ifndef LSN_TEMPLATE_PPU
-		}
-
-		/**
-		 * The first of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadNtNoShift_0_Work() {
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-		}
-
-		/**
-		 * The second of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadNtNoShift_1_Work() {
-			m_ui8NextTileId = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadNt_0_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			LoadLatchedBackgroundIntoShiftRegisters();
-			RenderPixel();
-			// LSN_PPU_NAMETABLES = 0x2000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-		}
-
-		/**
-		 * The second of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadNt_1_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			m_ui8NextTileId = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 AT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadAt_0_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			// LSN_PPU_NAMETABLES = 0x2000.
-			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
-				(m_paPpuAddrV.s.ui16NametableX << 10) |
-				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-				(m_paPpuAddrV.s.ui16CourseX >> 2) );
-			if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NtAtBuffer >>= 4; }
-			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NtAtBuffer >>= 2; }
-			m_ui8NtAtBuffer &= 0x3;
-		}
-
-		/**
-		 * The second of the 2 AT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadAt_1_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-			/*if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NextTileAttribute >>= 4; }
-			if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NextTileAttribute >>= 2; }
-			m_ui8NextTileAttribute &= 0x3;*/
-		}
-
-		/**
-		 * The first of the 2 LSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadLsb_0_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			// LSN_PPU_PATTERN_TABLES = 0x0000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-				(m_paPpuAddrV.s.ui16FineY) +
-				0) );
-		}
-
-		/**
-		 * The second of the 2 LSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadLsb_1_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			m_ui8NextTileLsb = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 MSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadMsb_0_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			// LSN_PPU_PATTERN_TABLES = 0x0000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-				(m_paPpuAddrV.s.ui16FineY) +
-				8) );
-		}
-
-		/**
-		 * The second of the 2 MSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_LoadMsb_1_Work() {
-			ShiftBackgroundAndSpriteRegisters();
-			RenderPixel();
-			m_ui8NextTileMsb = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadNt_0_Work() {
-			m_ui8OamAddr = 0;
-			// LSN_PPU_NAMETABLES = 0x2000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-		}
-
-		/**
-		 * The second of the 2 NT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadNt_1_Work() {
-			m_ui8OamAddr = 0;
-			m_ui8NextTileId = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 AT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadAt_0_Work() {
-			m_ui8OamAddr = 0;
-			/*// LSN_PPU_NAMETABLES = 0x2000.
-			// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-			m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
-				(m_paPpuAddrV.s.ui16NametableX << 10) |
-				((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-				(m_paPpuAddrV.s.ui16CourseX >> 2) );*/
-			// LSN_PPU_NAMETABLES = 0x2000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-		}
-
-		/**
-		 * The second of the 2 AT read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadAt_1_Work() {
-			m_ui8OamAddr = 0;
-			//m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-			m_ui8NextTileId = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 LSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadLsb_0_Work() {
-			m_ui8OamAddr = 0;
-			// LSN_PPU_PATTERN_TABLES = 0x0000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-				(m_paPpuAddrV.s.ui16FineY) +
-				0) );
-		}
-
-		/**
-		 * The second of the 2 LSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadLsb_1_Work() {
-			m_ui8OamAddr = 0;
-			m_ui8NextTileLsb = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first of the 2 MSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadMsb_0_Work() {
-			m_ui8OamAddr = 0;
-			// LSN_PPU_PATTERN_TABLES = 0x0000.
-			m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-				(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-				(m_paPpuAddrV.s.ui16FineY) +
-				8) );
-		}
-
-		/**
-		 * The second of the 2 MSB read cycles.
-		 */
-		void LSN_FASTCALL								Pixel_GarbageLoadMsb_1_Work() {
-			m_ui8OamAddr = 0;
-			m_ui8NextTileMsb = m_ui8NtAtBuffer;
-		}
-
-		/**
-		 * The first cycle in clearing secondary OAM.  Reads from the main OAM (which returns 0xFF during this period) and latches the value.
-		 */
-		void LSN_FASTCALL								Pixel_ClearOam2_0_Sprite() {
-			m_ui8OamLatch = m_pbBus->Read( LSN_PR_OAMDATA );
-		}
-
-		/**
-		 * The second cycle in clearing secondary OAM.  Copies the latched value read from OAM (0x2004) to the current index in the secondary OAM buffer.
-		 */
-		void LSN_FASTCALL								Pixel_ClearOam2_1_Sprite() {
-			m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch;
-			m_ui8Oam2ClearIdx %= sizeof( m_soSecondaryOam.ui8Bytes );
-		}
-
-		/**
 		 * Handles populating the secondary OAM buffer during cycles 65-256.
 		 */
 		template <bool _bIsFirst, bool _bIsOdd>
@@ -914,25 +386,16 @@ namespace lsn {
 				// Odd cycles allow reading.
 				switch ( m_sesStage ) {
 					case LSN_SES_FINISHED_OAM_LIST : {}
-					case LSN_SES_CHECK_NEXT : {
-						/** On odd cycles, data is read from (primary) OAM **/
-						m_ui8OamLatch = m_oOam.ui8Bytes[m_ui8OamAddr];	// Sprite's Y.
-						//LSN_INC_ADDR( 4 );
-						break;
-					}
+					case LSN_SES_CHECK_NEXT : {}
 					case LSN_SES_OF_SEARCH_ADD_SPRITE : {}
 					case LSN_SES_ADD_SPRITE : {
-						m_ui8OamLatch = m_oOam.ui8Bytes[m_ui8OamAddr];	// Sprite's Y.
+						m_ui8OamLatch = ReadOam( m_ui8OamAddr );	// Sprite's Y.
 						break;
 					}
 				}
 			}
 			else {
-#ifdef LSN_TEMPLATE_PPU
 				int16_t i16ScanLine = int16_t( m_stCurCycle / _tDotWidth );
-#else
-				int16_t i16ScanLine = int16_t( m_ui16Scanline );
-#endif	// LSN_TEMPLATE_PPU
 				// Even cycles allow writing.
 				uint8_t ui8M = (m_ui8OamAddr - m_ui8SpriteM) & 0x3;
 				switch ( m_sesStage ) {
@@ -1057,11 +520,7 @@ namespace lsn {
 			if constexpr ( _uStage == 4 ) {
 				m_ui16SpritePatternTmp = 0;
 
-#ifdef LSN_TEMPLATE_PPU
 				uint16_t ui16ScanLine = uint16_t( m_stCurCycle / _tDotWidth );
-#else
-				uint16_t ui16ScanLine = m_ui16Scanline;
-#endif	// LSN_TEMPLATE_PPU
 				
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
 					// Calculate m_ui16SpritePatternTmp.
@@ -1147,78 +606,6 @@ namespace lsn {
 			if constexpr ( _uStage == 7 ) {
 				m_asActiveSprites.ui8X[_uSpriteIdx] = m_ui8SpriteX;
 			}
-		}
-
-		/**
-		 * Incrementing the X scroll register.
-		 */
-		void LSN_FASTCALL								Pixel_IncScrollX_Control() {
-			if ( Rendering() ) {
-				// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-				if ( m_paPpuAddrV.s.ui16CourseX == 31 ) {
-					// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-					m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-				}
-				++m_paPpuAddrV.s.ui16CourseX;
-			}
-			LSN_END_CONTROL_CYCLE;
-		}
-
-		/**
-		 * Incrementing the Y scroll register.  Also increments the X.
-		 */
-		void LSN_FASTCALL								Pixel_IncScrollY_Control() {
-			if ( Rendering() ) {
-				if ( m_paPpuAddrV.s.ui16FineY < 7 ) {
-					++m_paPpuAddrV.s.ui16FineY;
-				}
-				else {
-					m_paPpuAddrV.s.ui16FineY = 0;
-					// Wrap and increment the course.
-					// Do we need to swap vertical nametable targets?
-					switch ( m_paPpuAddrV.s.ui16CourseY ) {
-						case 29 : {
-							// Wrap the course offset and flip the nametable bit.
-							m_paPpuAddrV.s.ui16CourseY = 0;
-							m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;
-							break;
-						}
-						case 31 : {
-							// We are in attribute memory.  Reset but without flipping the nametable.
-							m_paPpuAddrV.s.ui16CourseY = 0;
-							break;
-						}
-						default : {
-							// Somewhere between.  Just increment.
-							++m_paPpuAddrV.s.ui16CourseY;
-						}
-					}
-				}
-			}
-			Pixel_IncScrollX_Control();
-		}
-
-		/**
-		 * Transfer the X values from the T pointer to the V pointer.
-		 */
-		void LSN_FASTCALL								Pixel_TransferX_Control() {
-			if ( Rendering() ) {
-				m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
-				m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
-			}
-			LSN_END_CONTROL_CYCLE;
-		}
-
-		/**
-		 * Transfer the Y values from the T pointer to the V pointer.
-		 */
-		void LSN_FASTCALL								Pixel_TransferY_Control() {
-			if ( Rendering() ) {
-				m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
-				m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
-				m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
-			}
-			LSN_END_CONTROL_CYCLE;
 		}
 
 		/**
@@ -1312,13 +699,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-#ifdef LSN_TEMPLATE_PPU
 			uint16_t ui16Scan = uint16_t( ppPpu->m_stCurCycle / _tDotWidth );
 			uint16_t ui16Dot = ppPpu->m_stCurCycle % _tDotWidth;
-#else
-			uint16_t ui16Scan = ppPpu->m_ui16Scanline;
-			uint16_t ui16Dot = ppPpu->m_ui16RowDot;
-#endif
 			//m_stCurCycle
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
 				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
@@ -1327,8 +709,8 @@ namespace lsn {
 				} 
 			}
 			/*_ui8Ret = ppPpu->m_ui8IoBusLatch;
-			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];*/
-			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr];
+			ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );*/
+			ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 		}
 
@@ -1342,7 +724,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = ppPpu->m_oOam.ui8Bytes[ppPpu->m_ui8OamAddr++] = _ui8Val;
+			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val );
 		}
 
 		/**
@@ -1599,19 +982,16 @@ namespace lsn {
 
 
 		// == Members.
-		LSN_PALETTE										m_pPalette;
+		std::vector<float>								m_vOamDecay;									/**< Decaying OAM values. */
+		__m128											m_m128OamDecayFactor;							/**< The OAM decay factor in an MMX rgister. */
+		LSN_PALETTE										m_pPalette;										/**< The 9-bit palette. */
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
-#ifdef LSN_TEMPLATE_PPU
 		PfCycles										m_cCycle[_tDotWidth*_tDotHeight];				/**< The cycle function. */
 		size_t											m_stCurCycle;									/**< The current cycle function. */
-#endif	// #ifdef LSN_TEMPLATE_PPU
-		LSN_CYCLE										m_cControlCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle control work.  Control work relates to setting flags and maintaining the register state, etc. */
-		LSN_CYCLE										m_cWorkCycles[_tDotWidth*_tDotHeight];			/**< The per-pixel array of function pointers to do per-cycle rendering work.  Standard work cycles are used to fetch data and render the results. */
-		LSN_CYCLE										m_cSpriteCycles[_tDotWidth*_tDotHeight];		/**< The per-pixel array of function pointers to do per-cycle sprite-handing work.  Sprite work cycles are used to fetch sprite data for rendering. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
 		LSN_OAM											m_oOam;											/**< OAM memory. */
 		LSN_SECONDARY_OAM								m_soSecondaryOam;								/**< Secondary OAM used for rendering during a scanline. */
@@ -1621,8 +1001,7 @@ namespace lsn {
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		uint16_t										m_ui16Scanline;									/**< The scanline counter. */
-		uint16_t										m_ui16RowDot;									/**< The horizontal counter. */
+		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
 		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
 		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
 		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
@@ -1652,338 +1031,90 @@ namespace lsn {
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
 		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
-		// TMP.
-		struct LSN_DEBUG_COPY {
-			uint64_t									m_ui64Frame;									/**< The frame counter. */
-			LSN_PPUADDR									m_paPpuAddrT;									/**< The "t" PPUADDR register. */
-			LSN_PPUADDR									m_paPpuAddrV;									/**< The "v" PPUADDR register. */
-			LSN_PPUSTATUS								m_psPpuStatus;									/**< The PPUSTATUS register. */
-			uint16_t									m_ui16Scanline;									/**< The scanline counter. */
-			uint16_t									m_ui16RowDot;									/**< The horizontal counter. */
-
-			uint16_t									m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
-			uint16_t									m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
-			uint16_t									m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
-			uint16_t									m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
-
-			uint8_t										m_ui8FineScrollX;								/**< The fine X scroll position. */
-			uint8_t										m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
-
-			uint8_t										m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
-			uint8_t										m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
-			uint8_t										m_ui8NextTileLsb;								/**< The queued background tile LSB. */
-			uint8_t										m_ui8NextTileMsb;								/**< The queued background tile MSB. */
-		};
-
-
+		
 		// == Functions.
 		/**
-		 * Assigns the gather/render functions at a given X/Y pixel location.
+		 * Decays OAM.
+		 */
+		inline void										DecayOam() {
+			/*float fScale = m_fOamDecayFactor;
+			__m128 mScale = _mm_load1_ps( &fScale );*/
+			float * pfThis = m_vOamDecay.data();
+			float * pfEnd = pfThis + m_vOamDecay.size();
+			for ( ; pfThis < pfEnd; pfThis += 4 ) {
+				__m128 mMultMe = _mm_load_ps( pfThis );
+				mMultMe = _mm_mul_ps( mMultMe, m_m128OamDecayFactor );
+				_mm_store_ps( pfThis, mMultMe );
+				pfThis += 4;
+				mMultMe = _mm_load_ps( pfThis );
+				mMultMe = _mm_mul_ps( mMultMe, m_m128OamDecayFactor );
+				_mm_store_ps( pfThis, mMultMe );
+				pfThis += 4;
+				mMultMe = _mm_load_ps( pfThis );
+				mMultMe = _mm_mul_ps( mMultMe, m_m128OamDecayFactor );
+				_mm_store_ps( pfThis, mMultMe );
+				pfThis += 4;
+				mMultMe = _mm_load_ps( pfThis );
+				mMultMe = _mm_mul_ps( mMultMe, m_m128OamDecayFactor );
+				_mm_store_ps( pfThis, mMultMe );
+			}
+		}
+
+		/**
+		 * Gets the OAM decay factor.
 		 *
-		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
-		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
-		 * \param _bIncludeControls If true, control functions such as incrementing the horizontal and vertical addresses are added.
-		 * \param _bDummy If true, functions to use the latched values are not added.
+		 * \return Returns the decay multiplier needed to make OAM decay values reach 0.1f after 1 NTSC frame.
 		 */
-		void											AssignGatherRenderFuncs( size_t _stX, size_t _stY, bool _bIncludeControls, bool /*_bDummy*/ ) {
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_0_Work;
+		float constexpr									OamDecayFactor() const {
+			constexpr double dStart = 1.0;
+			constexpr double dEnd = 0.1;
+			constexpr uint64_t ui64DotsPerFrame = (_tDotWidth * _tDotHeight) / 1;
+			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / (ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadNt_1_Work;
+			else if constexpr ( _tRegCode == LSN_PM_PAL ) {
+				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / ((60.098813897440515529533511098629 / 50.006978908188585607940446650124) * ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadAt_0_Work;
+			else if constexpr ( _tRegCode == LSN_PM_DENDY ) {
+				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / ((60.098813897440515529533511098629 / 50.006978908188585607940446650124) * ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadAt_1_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadLsb_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadLsb_1_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadMsb_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_LoadMsb_1_Work;
-			}
-			if ( _bIncludeControls ) {
-				_stX -= 8;
-				{
-					LSN_CYCLE & cThis = m_cControlCycles[_stY*_tDotWidth+(_stX+7)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollX_Control;
-				}
+			else {
+				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / ((60.098813897440515529533511098629 / 60.098477556112263192919547153838) * ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
 		}
 
 		/**
-		 * Assigns the garbage gather/render functions at a given X/Y pixel location.
+		 * Gets the power-of-time cycles between OAM decays.
 		 *
-		 * \param _stX The X pixel location from which to begin assiging the gather/render functions.
-		 * \param _stY The Y pixel location from which to begin assiging the gather/render functions.
+		 * \return Returns the number of cycles between OAM decays.  Must be a power of 2.
 		 */
-		void											AssignGarbageGatherRenderFuncs( size_t _stX, size_t _stY ) {
-			//AssignGatherRenderFuncs( _stX, _stY, false, false );
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadNt_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadNt_1_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadAt_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadAt_1_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadLsb_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadLsb_1_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadMsb_0_Work;
-			}
-			{
-				LSN_CYCLE & cThis = m_cWorkCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_GarbageLoadMsb_1_Work;
-			}
-		}
+		uint16_t constexpr								OamDecayRate() const { return 4096 * 2; }
 
 		/**
-		 * Assigns the sprite-fetch functions (for a given sprite index) at a given X/Y pixel location.
+		 * Reads an OAM value by index, accounting for decay.
 		 *
-		 * \param _stX The X pixel location from which to begin assiging the fetch functions.
-		 * \param _stY The Y pixel location from which to begin assiging the fetch functions.
+		 * \param _stIdx The index of the value to read.
+		 * \return Returns the fetched value, which will be 0x00 after decay.
 		 */
-		template <unsigned _uSpriteIdx>
-		inline void										AssignSpriteFetchFuncs_BySpriteIdx( size_t _stX, size_t _stY ) {
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 0>;
+		inline uint8_t									ReadOam( size_t _stIdx ) {
+			float * pfDecay = &m_vOamDecay.data()[_stIdx];
+			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
+			if ( (*pfDecay) <= 0.1f ) {
+				(*pui8Val) = 0x00;
 			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 1>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 2>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 3>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 4>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 5>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX++];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 6>;
-			}
-			{
-				LSN_CYCLE & cThis = m_cSpriteCycles[_stY*_tDotWidth+_stX];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Fetch_Sprite<_uSpriteIdx, 7>;
-			}
+			(*pfDecay) = 1.0f;
+			return (*pui8Val);
 		}
 
 		/**
-		 * Assigns the sprite-fetch functions at a given X/Y pixel location.
+		 * Writes a value to OAM, resetting its decay.
 		 *
-		 * \param _stX The X pixel location from which to begin assiging the fetch functions.
-		 * \param _stY The Y pixel location from which to begin assiging the fetch functions.
+		 * \param _stIdx The index to write.
+		 * \param _ui8Val The value to write.
 		 */
-		void											AssignSpriteFetchFuncs( size_t _stX, size_t _stY ) {
-			AssignSpriteFetchFuncs_BySpriteIdx<0>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<1>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<2>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<3>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<4>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<5>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<6>( _stX, _stY );
-			_stX += 8;
-			AssignSpriteFetchFuncs_BySpriteIdx<7>( _stX, _stY );
-		}
-
-		/**
-		 * Applies the function pointers for a given render scanline.
-		 *
-		 * \param _ui16Scanline The scanline whose function pointers for standard rendering are to be set.
-		 */
-		void											ApplyStdRenderFunctionPointers( uint16_t _ui16Scanline ) {
-#define LSN_LEFT				1
-#define LSN_RIGHT				(_tRenderW + LSN_LEFT)
-#define LSN_SPR_RIGHT			(LSN_RIGHT + 8 * 8)
-			const auto Y = _ui16Scanline;
-			for ( auto X = LSN_LEFT; X < LSN_RIGHT; X += 8 ) {
-				AssignGatherRenderFuncs( X, Y, true, false );
-			}
-			// Garbage reads.
-			for ( auto X = LSN_RIGHT; X < LSN_SPR_RIGHT; X += 8 ) {
-				AssignGarbageGatherRenderFuncs( X, Y );
-			}
-			// Dummy reads.
-			for ( auto X = LSN_SPR_RIGHT; X < (_tDotWidth - 4); X += 8 ) {
-				AssignGatherRenderFuncs( X, Y, false, true );
-			}
-			{	// Unused NT fetches.
-				{
-					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-4)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-				}
-				{
-					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-3)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-				}
-				{
-					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-2)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_0_Work;
-				}
-				{
-					LSN_CYCLE & cThis = m_cWorkCycles[Y*_tDotWidth+(_tDotWidth-1)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_LoadNtNoShift_1_Work;
-				}
-			}
-			{	// Increase vertical.
-				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+256];
-				cThis.pfFunc = &CPpu2C0X::Pixel_IncScrollY_Control;
-			}
-			{	// Transfer horizontal.
-				LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+257];
-				cThis.pfFunc = &CPpu2C0X::Pixel_TransferX_Control;
-			}
-			AssignGatherRenderFuncs( LSN_SPR_RIGHT, Y, true, false );
-			AssignGatherRenderFuncs( LSN_SPR_RIGHT + 8, Y, true, false );
-
-			if ( _tDotHeight - 1 == Y ) {
-				for ( auto X = 280; X <= 304; ++X ) {
-					{	// Transfer vertical.
-						LSN_CYCLE & cThis = m_cControlCycles[Y*_tDotWidth+X];
-						cThis.pfFunc = &CPpu2C0X::Pixel_TransferY_Control;
-					}
-				}
-			}
-
-#undef LSN_SPR_RIGHT
-#undef LSN_RIGHT
-#undef LSN_LEFT
-		}
-
-		/**
-		 * Applies the sprite-shepherding function pointers for a given render scanline.
-		 *
-		 * \param _ui16Scanline The scanline whose function pointers for sprite-handling are to be set.
-		 */
-		void											ApplySpriteFunctionPointers( uint16_t _ui16Scanline ) {
-#define LSN_LEFT				1
-#define LSN_EVAL_START			(LSN_LEFT + 8 * 8)
-#define LSN_FETCH_START			(LSN_EVAL_START + 8 * 24)
-			const auto Y = _ui16Scanline;
-			// Clear secondary OAM.
-			for ( auto X = LSN_LEFT; X < LSN_EVAL_START; X += 2 ) {
-				{	// Latch data.
-					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(X+0)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_0_Sprite;
-				}
-				{	// Write data.
-					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(X+1)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_ClearOam2_1_Sprite;
-				}
-			}
-			size_t stX = LSN_EVAL_START;
-			{	// Start evaluation process.
-				LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+LSN_EVAL_START];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<true, true>;
-			}
-			{	// Start evaluation process.
-				LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(stX+1)];
-				cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, false>;
-			}
-			stX += 2;
-			// Finish the evaluation process.
-			for ( ; stX < LSN_FETCH_START; stX += 2 ) {
-				{	// Start evaluation process.
-					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+stX];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, true>;
-				}
-				{	// Start evaluation process.
-					LSN_CYCLE & cThis = m_cSpriteCycles[Y*_tDotWidth+(stX+1)];
-					cThis.pfFunc = &CPpu2C0X::Pixel_Evaluation_Sprite<false, false>;
-				}
-			}
-			AssignSpriteFetchFuncs( LSN_FETCH_START, Y );
-
-#undef LSN_FETCH_START
-#undef LSN_EVAL_START
-#undef LSN_LEFT
-		}
-
-		/**
-		 * Shifts the background registers left one.
-		 */
-		inline void										ShiftBackgroundAndSpriteRegisters() {
-			if ( Rendering() ) {
-				m_ui16ShiftPatternLo <<= 1;
-				m_ui16ShiftPatternHi <<= 1;
-				m_ui16ShiftAttribLo <<= 1;
-				m_ui16ShiftAttribHi <<= 1;
-				if ( m_ui16RowDot >= 2 && m_ui16RowDot <= 256 ) {
-					for ( uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
-						if ( m_asActiveSprites.ui8X[I] ) {
-							--m_asActiveSprites.ui8X[I];
-						}
-						else {
-							m_asActiveSprites.ui8ShiftLo[I] <<= 1;
-							m_asActiveSprites.ui8ShiftHi[I] <<= 1;
-						}
-					}
-				}
-			}
-		}
-
-		/**
-		 * Loads the latched tile data into the shift registers.
-		 */
-		inline void										LoadLatchedBackgroundIntoShiftRegisters() {
-			//if ( m_ui16RowDot >= 9 && m_ui16RowDot <= 257 ) {
-			if ( Rendering() ) {
-				m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-				m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-				m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-				m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-			}
-			//}
+		inline void										WriteOam( size_t _stIdx, uint8_t _ui8Val ) {
+			m_vOamDecay.data()[_stIdx] = 1.0f;
+			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
 		}
 
 		/**
@@ -2010,11 +1141,7 @@ namespace lsn {
 		 * Renders a pixel based on the current state of the PPU.
 		 */
 		inline void										RenderPixel() {
-#ifdef LSN_TEMPLATE_PPU
 			uint16_t ui16ThisX = uint16_t( m_stCurCycle % _tDotWidth ), ui16ThisY = uint16_t( m_stCurCycle / _tDotWidth );
-#else
-			uint16_t ui16ThisX = m_ui16RowDot, ui16ThisY = m_ui16Scanline;
-#endif	// #ifdef LSN_TEMPLATE_PPU
 			uint16_t ui16X, ui16Y;
 			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
@@ -2092,8 +1219,14 @@ namespace lsn {
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
-					ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
-					ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
+					if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+						ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
+						ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
+					}
+					else {
+						ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 7);
+						ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 6);
+					}
 					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
 //#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
@@ -2124,8 +1257,6 @@ namespace lsn {
 			}
 		}
 
-
-#ifdef LSN_TEMPLATE_PPU
 		/**
 		 * Returns the scanline converted to a render-target Y.
 		 *
@@ -2628,7 +1759,6 @@ namespace lsn {
 #include "LSNGenFuncsNtsc.inl"
 #include "LSNGenFuncsPal.inl"
 #include "LSNGenFuncsDendy.inl"
-#endif	// #ifdef LSN_TEMPLATE_PPU
 	};
 	
 
