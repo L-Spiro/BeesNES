@@ -68,6 +68,8 @@ namespace lsn {
 			{ .ui32Crc = 0xA97567A4, .pmRegion = LSN_PM_PAL },
 			// Battletoads (Europe)
 			{ .ui32Crc = 0x524A5A32, .pmRegion = LSN_PM_PAL },
+			// Battletoads-Double Dragon (Europe)
+			{ .ui32Crc = 0x23D7D48F, .pmRegion = LSN_PM_PAL },
 			// Bigfoot (Europe)
 			{ .ui32Crc = 0x629E060B, .pmRegion = LSN_PM_PAL },
 			// Bionic Commando (Europe)
@@ -98,18 +100,40 @@ namespace lsn {
 			{ .ui32Crc = 0x07637EE4, .pmRegion = LSN_PM_PAL },
 			// Cosmos Cop (Asia) (Mega Soft) (Unl)
 			{ .ui32Crc = 0x18EC3D59, .pmRegion = LSN_PM_PAL },
+			// Creatom (Spain) (Gluk Video) (Unl)
+			{ .ui32Crc = 0xA435A17F, .pmRegion = LSN_PM_PAL },
 			// Crime Busters (Unknown) (Unl)
 			{ .ui32Crc = 0x1A8B558E, .pmRegion = LSN_PM_PAL },
+			// Darkman (Europe)
+			{ .ui32Crc = 0x6D84EEE3, .pmRegion = LSN_PM_PAL },
 			// Darkwing Duck (Europe)
 			{ .ui32Crc = 0x895CBAF8, .pmRegion = LSN_PM_PAL },
 			// David Crane's A Boy and His Blob - Trouble on Blobolonia (Europe) (Rev A)
-			{ .ui32Crc = 0xAD50E497, .pmRegion = LSN_PM_PAL },
+			//{ .ui32Crc = 0xAD50E497, .pmRegion = LSN_PM_PAL },	// Is also the USA version.
+			// Defender of the Crown (France)
+			{ .ui32Crc = 0x2FD2E632, .pmRegion = LSN_PM_DENDY },
+			// Defender of the Crown (Europe)
+			{ .ui32Crc = 0x68F9B5F5, .pmRegion = LSN_PM_PAL },
+			// Die Hard (Europe)
+			{ .ui32Crc = 0xE45EC669, .pmRegion = LSN_PM_PAL },
 			// Double Dragon (Europe)
-			{ .ui32Crc = 0x144CA9E5, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x144CA9E5, .pmRegion = LSN_PM_PAL },			
+			// Double Dragon II - The Revenge (Europe)
+			{ .ui32Crc = 0x9ED831E7, .pmRegion = LSN_PM_PAL },
+			// Double Dragon III - The Sacred Stones (Europe)
+			{ .ui32Crc = 0xC7198F2D, .pmRegion = LSN_PM_PAL },
 			// Dynablaster (Europe)
 			{ .ui32Crc = 0x34BB757B, .pmRegion = LSN_PM_PAL },
+			// Eliminator Boat Duel (Europe)
+			{ .ui32Crc = 0x5202FD30, .pmRegion = LSN_PM_PAL },
+			// Elite (Europe) (En,Fr,De)
+			{ .ui32Crc = 0xA4BDCC1D, .pmRegion = LSN_PM_PAL },
 			// Faxanadu (Europe)
 			{ .ui32Crc = 0x76C161E3, .pmRegion = LSN_PM_PAL },
+			// Ferrari Grand Prix Challenge (Europe)
+			{ .ui32Crc = 0x8B73FB1B, .pmRegion = LSN_PM_PAL },
+			// Four Players' Tennis (Europe)
+			{ .ui32Crc = 0xE16F25CC, .pmRegion = LSN_PM_PAL },
 			// Guerrilla War (Europe)
 			{ .ui32Crc = 0xAECDBE24, .pmRegion = LSN_PM_PAL },
 			// Huang Di (Asia) (Unl)
@@ -124,10 +148,14 @@ namespace lsn {
 			{ .ui32Crc = 0xED7F5555, .pmRegion = LSN_PM_PAL },
 			// Lion King, The (Europe)
 			{ .ui32Crc = 0x89984244, .pmRegion = LSN_PM_PAL },
+			// Little Red Hood - Xiao Hong Mao (Asia) (Unl)
+			{ .ui32Crc = 0x166D036B, .pmRegion = LSN_PM_PAL },
 			// Maniac Mansion (Europe)
 			{ .ui32Crc = 0xF59CFC3D, .pmRegion = LSN_PM_PAL },
 			// Mega Man (Europe)
 			{ .ui32Crc = 0x94476A70, .pmRegion = LSN_PM_PAL },
+			// Metal Fighter (Asia) (Sachen) (Unl)
+			{ .ui32Crc = 0x51062125, .pmRegion = LSN_PM_PAL },
 			// Metal Gear (Europe)
 			{ .ui32Crc = 0x84C4A12E, .pmRegion = LSN_PM_PAL },
 			// Metroid (Europe)
@@ -138,8 +166,12 @@ namespace lsn {
 			{ .ui32Crc = 0x54C34223, .pmRegion = LSN_PM_PAL },
 			// Parasol Stars - The Story of Bubble Bobble III (Europe) (Beta)
 			{ .ui32Crc = 0x381AAEF6, .pmRegion = LSN_PM_PAL },
+			// Policeman (Spain) (Gluk Video) (Unl)
+			{ .ui32Crc = 0x65FE1590, .pmRegion = LSN_PM_PAL },
 			// Probotector (Europe)
 			{ .ui32Crc = 0xB13F00D4, .pmRegion = LSN_PM_PAL },
+			// Qi Wang - Chinese Chess (Asia) (Unl)
+			{ .ui32Crc = 0x0744648C, .pmRegion = LSN_PM_PAL },
 			// San Guo Zhi - Qun Xiong Zheng Ba (Asia) (Unl)
 			{ .ui32Crc = 0x81E8992C, .pmRegion = LSN_PM_PAL },
 			// Solomon's Key (Europe)
@@ -150,6 +182,12 @@ namespace lsn {
 			{ .ui32Crc = 0xE8F8F7A5, .pmRegion = LSN_PM_PAL },
 			// Total Funpak (Australia) (Unl)
 			{ .ui32Crc = 0x853C368D, .pmRegion = LSN_PM_PAL },
+			// Venice Beach Volleyball (Asia) (Unl)
+			{ .ui32Crc = 0x271FB5A4, .pmRegion = LSN_PM_PAL },
+			// Wei Lai Xiao Zi (Asia) (Unl)
+			{ .ui32Crc = 0xB242E6B6, .pmRegion = LSN_PM_PAL },
+			// Zhi Li Xiao Zhuang Yuan (China) (Unl)
+			{ .ui32Crc = 0x346709B4, .pmRegion = LSN_PM_PAL },
 
 
 			// ========

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 036 implementation.
+ * Description: Mapper 132 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper036
-	 * \brief Mapper 036 implementation.
+	 * Class CMapper132
+	 * \brief Mapper 132 implementation.
 	 *
-	 * Description: Mapper 036 implementation.
+	 * Description: Mapper 132 implementation.
 	 */
-	class CMapper036 : public CMapperBase {
+	class CMapper132 : public CMapperBase {
 	public :
-		CMapper036() {
+		CMapper132() {
 		}
-		virtual ~CMapper036() {
+		virtual ~CMapper132() {
 		}
 
 
@@ -54,7 +54,7 @@ namespace lsn {
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			SetPgmBank<0, PgmBankSize()>( 0 );
 			SetChrBank<0, ChrBankSize()>( 0 );
-			m_ui8Rr = m_ui8Pp = 0;
+			m_ui8S = m_ui8Rrr = m_ui8Ppp = 0;
 			m_bIncrMode = m_bInvMode = false;
 		}
 
@@ -88,28 +88,22 @@ namespace lsn {
 			// PGM bank-select.
 			for ( uint32_t I = 0x4000; I < 0x6000; ++I ) {
 				if ( (I & 0xE100) == 0x4100 ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper036::CopyRr4100, this, 0 );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper132::CopyRr4100, this, 0 );
 				}
 				if ( (I & 0xE103) == 0x4100 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4100, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper132::SelectBank4100, this, 0 );	// Treated as ROM.
 				}
 				if ( (I & 0xE103) == 0x4101 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4101, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper132::SelectBank4101, this, 0 );	// Treated as ROM.
 				}
 				if ( (I & 0xE103) == 0x4102 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4102, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper132::SelectBank4102, this, 0 );	// Treated as ROM.
 				}
 				if ( (I & 0xE103) == 0x4103 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4103, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper132::SelectBank4103, this, 0 );	// Treated as ROM.
 				}
 				if ( (I & 0x8000) == 0x8000 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank8000, this, 0 );	// Treated as ROM.
-				}
-			}
-			// CHR bank-select.
-			for ( uint32_t I = 0x4000; I < 0x6000; ++I ) {
-				if ( (I & 0xE200) == 0x4200 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper036::SelectBank4200, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper132::SelectBank8000, this, 0 );	// Treated as ROM.
 				}
 			}
 		}
@@ -118,13 +112,15 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** Internal RR register. */
-		uint8_t											m_ui8Rr;
+		uint8_t											m_ui8Rrr;
 		/** Internal PP register. */
-		uint8_t											m_ui8Pp;
+		uint8_t											m_ui8Ppp;
+		/** Internal S register. */
+		uint8_t											m_ui8S;
 		/** Increment Mode. */
-		uint8_t											m_bIncrMode;
+		bool											m_bIncrMode;
 		/** Invert Mode. */
-		uint8_t											m_bInvMode;
+		bool											m_bInvMode;
 
 
 		// == Functions.
@@ -137,15 +133,17 @@ namespace lsn {
 		 * \param _ui8Ret The read value.
 		 */
 		static void LSN_FASTCALL						CopyRr4100( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
 			/**
 			 *	Mask: $E100
-			 *	 read $4100: [xxRR xxxx]
+			 *	 read $4100: [xxxx SRRR]
 			 *				  |||| ||||
-			 *				  ||++------ Copy internal register 'RR' to data bus.
-			 *				  ++---++++- open bus
+			 *				  |||| ++++- Copy internal registers 'RRR' and 'S' XOR 'V' to data bus.
+			 *				  ++++------ open bus
 			 */
-			_ui8Ret = (_ui8Ret & ~0b110000) | ((pmThis->m_ui8Rr << 4) & 0b110000);
+			_ui8Ret = (_ui8Ret & ~0b00001111) |
+				(pmThis->m_ui8Rrr & 0b00000111) |
+				(((pmThis->m_ui8S ^ uint8_t( pmThis->m_bIncrMode) ) & 0b1) << 3);
 		}
 
 		/**
@@ -157,15 +155,21 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank4100( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
+			/*
+			 *	 write $4100: If Increment is set, internal register 'RRR' <- 'RRR'+1
+			 *				  Otherwise, if Invert is clear, copy internal register 'PPP' to 'RRR'
+			 *							 if Invert is set, copy '~PPP' to 'RRR'
+			 *				  'S' is not changed at all.
+			 */
 			if ( pmThis->m_bIncrMode ) {
-				pmThis->m_ui8Rr++;
+				pmThis->m_ui8Rrr++;
 			}
 			else if ( pmThis->m_bInvMode ) {
-				pmThis->m_ui8Rr = ~pmThis->m_ui8Pp;
+				pmThis->m_ui8Rrr = ~pmThis->m_ui8Ppp;
 			}
 			else {
-				pmThis->m_ui8Rr = pmThis->m_ui8Pp;
+				pmThis->m_ui8Rrr = pmThis->m_ui8Ppp;
 			}
 		}
 
@@ -178,13 +182,13 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank4101( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
-			/** write $4101: [...V ....] - Invert Mode */
-			pmThis->m_bInvMode = (_ui8Val >> 4) & 1;
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
+			/** write $4101: [.... ...V] - Invert Mode */
+			pmThis->m_bInvMode = _ui8Val & 1;
 		}
 
 		/**
-		 * Copy PP.
+		 * Copy S and PPP.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -192,9 +196,12 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank4102( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
-			/** write $4102: [..PP ....] - Copy data bus to internal register 'PP'. Value is not yet exposed anywhere. */
-			pmThis->m_ui8Pp = (_ui8Val >> 4) & 0b11;
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
+			/** write $4102: [.... SPPP] - Copy data bus to internal registers 'S' and 'PPP'.
+			 *                             'S' can be read back immediately; 'PPP' must be copied using $4100 first.
+			 */
+			pmThis->m_ui8Ppp = _ui8Val & 0b111;
+			pmThis->m_ui8S = (_ui8Val >> 3) & 1;
 		}
 
 		/**
@@ -206,9 +213,9 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank4103( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
-			/** write $4103: [...C ....] - Increment Mode */
-			pmThis->m_bIncrMode = (_ui8Val >> 4) & 1;
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
+			/** write $4103: [.... ...C] - Increment Mode */
+			pmThis->m_bIncrMode = _ui8Val & 1;
 		}
 
 		/**
@@ -220,23 +227,10 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank8000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
-			/** write $8000: copy internal register 'RR' to PRG banking pins */
-			pmThis->SetPgmBank<0, PgmBankSize()>( pmThis->m_ui8Rr & 0b11 );
-		}
-
-		/**
-		 * Selects a CHR bank.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
-		 */
-		static void LSN_FASTCALL						SelectBank4200( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
-			/** write $4200: [.... CCCC] - Select 8 KiB CHR bank */
-			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b1111 );
+			CMapper132 * pmThis = reinterpret_cast<CMapper132 *>(_pvParm0);
+			/** write $8000: copy internal register 'RRR' to PRG A15, CHR A14, and CHR A13 banking pins, in order */
+			// TODO.
+			pmThis->SetPgmBank<0, PgmBankSize()>( pmThis->m_ui8Rrr & 0b111 );
 		}
 	};
 

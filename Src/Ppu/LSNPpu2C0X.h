@@ -28,7 +28,7 @@
 
 #define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
 
-#define LSN_TEMPLATE_PPU
+#define LSN_INT_OAM_DECAY
 //#define LSN_GEN_PPU
 
 #ifdef LSN_GEN_PPU
@@ -74,12 +74,19 @@ namespace lsn {
 			m_ui8Oam2ClearIdx( 0 ),
 			m_bAddresLatch( false ) {
 
+#ifdef LSN_INT_OAM_DECAY
+			for ( auto I = LSN_ELEMENTS( m_ui64OamDecay ); I--; ) {
+				m_ui64OamDecay[I] = 0ULL;
+			}
+			m_ui64OamDecayTime = OamDecayRate();
+#else
 			m_vOamDecay.resize( 256 );
 			for ( auto I = m_vOamDecay.size(); I--; ) {
 				m_vOamDecay[I] = 1.0f;
 			}
 			m_fOamDecayFactor = OamDecayFactor();
 			m_m128OamDecayFactor = _mm_load1_ps( &m_fOamDecayFactor );
+#endif	// #ifdef LSN_INT_OAM_DECAY
 
 #ifdef LSN_GEN_PPU
 			GenerateCycleFuncs();
@@ -108,6 +115,8 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+#ifdef LSN_INT_OAM_DECAY
+#else
 #ifdef _DEBUG
 			if ( (m_ui64Cycle & (OamDecayRate() - 1)) == 0 ) {
 				DecayOam();
@@ -117,6 +126,7 @@ namespace lsn {
 				DecayOam();
 			}
 #endif	// #ifdef _DEBUG
+#endif	// #ifdef LSN_INT_OAM_DECAY
 			(this->*m_cCycle[m_stCurCycle])();
 			++m_ui64Cycle;
 		}
@@ -982,8 +992,13 @@ namespace lsn {
 
 
 		// == Members.
+#ifdef LSN_INT_OAM_DECAY
+		uint64_t										m_ui64OamDecay[256];							/**< The OAM decay timers. */
+		uint64_t										m_ui64OamDecayTime;								/**< The number of PPU cycles it takes for OAM to decay. */
+#else
 		std::vector<float>								m_vOamDecay;									/**< Decaying OAM values. */
 		__m128											m_m128OamDecayFactor;							/**< The OAM decay factor in an MMX rgister. */
+#endif	// #ifdef LSN_INT_OAM_DECAY
 		LSN_PALETTE										m_pPalette;										/**< The 9-bit palette. */
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
@@ -1033,6 +1048,7 @@ namespace lsn {
 
 		
 		// == Functions.
+#ifndef LSN_INT_OAM_DECAY
 		/**
 		 * Decays OAM.
 		 */
@@ -1082,13 +1098,39 @@ namespace lsn {
 				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / ((60.098813897440515529533511098629 / 60.098477556112263192919547153838) * ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
 		}
+#endif	// #ifdef LSN_INT_OAM_DECAY
 
+#ifdef LSN_INT_OAM_DECAY
+		/**
+		 * Gets the total number of PPU cycles before OAM decays, normalized to an NTSC clock.
+		 *
+		 * \return Returns the number of cycles between OAM decays.  Must be a power of 2.
+		 */
+		uint64_t constexpr								OamDecayRate() const {
+			double dFps;
+			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+				dFps = 60.098813897440515529533511098629;
+			}
+			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
+				dFps = 50.006978908188585607940446650124;
+			}
+			else {
+				dFps = 60.098477556112263192919547153838;
+			}
+			// 1.2018085317207474194134420031332410871982574462890625 = Duration in NTSF frames of a single PAL frame.
+			const double dNtscFramesToDecay = 1.2018085317207474194134420031332410871982574462890625;		// Total frames, in NTSC time, to decay.
+			return uint64_t(
+				dFps * (_tDotWidth * _tDotHeight) /															// How many cycles in 1 second.
+				(60.098813897440515529533511098629 / dNtscFramesToDecay) );									// Normalized to NTSC.
+		}
+#else
 		/**
 		 * Gets the power-of-time cycles between OAM decays.
 		 *
 		 * \return Returns the number of cycles between OAM decays.  Must be a power of 2.
 		 */
 		uint16_t constexpr								OamDecayRate() const { return 4096 * 2; }
+#endif	// #ifdef LSN_INT_OAM_DECAY
 
 		/**
 		 * Reads an OAM value by index, accounting for decay.
@@ -1097,6 +1139,16 @@ namespace lsn {
 		 * \return Returns the fetched value, which will be 0x00 after decay.
 		 */
 		inline uint8_t									ReadOam( size_t _stIdx ) {
+#ifdef LSN_INT_OAM_DECAY
+			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
+			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
+			if ( m_ui64Cycle >= (*pui64Decay) ) {
+				(*pui8Val) = 0x00;
+			}
+			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
+			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
+			return (*pui8Val);
+#else
 			float * pfDecay = &m_vOamDecay.data()[_stIdx];
 			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
 			if ( (*pfDecay) <= 0.1f ) {
@@ -1105,6 +1157,7 @@ namespace lsn {
 			(*pfDecay) = 1.0f;
 			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
 			return (*pui8Val);
+#endif	// #ifdef LSN_INT_OAM_DECAY
 		}
 
 		/**
@@ -1114,8 +1167,13 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void										WriteOam( size_t _stIdx, uint8_t _ui8Val ) {
+#ifdef LSN_INT_OAM_DECAY
+			m_ui64OamDecay[_stIdx] = m_ui64Cycle + m_ui64OamDecayTime;
+			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
+#else
 			m_vOamDecay.data()[_stIdx] = 1.0f;
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
+#endif	// #ifdef LSN_INT_OAM_DECAY
 		}
 
 		/**

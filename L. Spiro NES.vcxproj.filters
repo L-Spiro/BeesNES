@@ -160,6 +160,12 @@
     <Filter Include="Source Files\Windows\Input">
       <UniqueIdentifier>{d8a39256-479d-4169-8c56-2773034b5bbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Audio">
+      <UniqueIdentifier>{307d8748-cc04-4e2d-8868-b86a271f7fda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio">
+      <UniqueIdentifier>{941a09b5-aa50-4d3a-b8e6-838003208b2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -384,6 +390,15 @@
     <ClInclude Include="Src\Mappers\LSNMapper038.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNOpenAl.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper132.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNOpenAlDevice.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -463,6 +478,12 @@
     </ClCompile>
     <ClCompile Include="Src\System\LSNSystemBase.cpp">
       <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\LSNOpenAl.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\LSNOpenAlDevice.cpp">
+      <Filter>Source Files\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

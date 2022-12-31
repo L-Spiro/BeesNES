@@ -1073,8 +1073,10 @@ namespace lsn {
 		m_ui16DmaAddress( 0 ),
 		m_ui8DmaPos( 0 ),
 		m_ui8DmaValue( 0 ),
+		m_bNmiStatusLine( false ),
 		m_bHandleNmi( false ),
-		m_bIrqSignalled( false ) {
+		m_bIrqStatusLine( false ),
+		m_bHandleIrq( false ) {
 		pc.PC = 0xC000;
 		m_ui8Status = 0x04;
 		std::memset( &m_ccCurContext, 0, sizeof( m_ccCurContext ) );
@@ -1110,8 +1112,8 @@ namespace lsn {
 
 		pc.PC = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 
-		m_bHandleNmi = false;
-		m_bIrqSignalled = false;
+		m_bHandleNmi = m_bNmiStatusLine = false;
+		m_bHandleIrq = m_bIrqStatusLine = false;
 	}
 
 	/**
@@ -1119,6 +1121,15 @@ namespace lsn {
 	 */
 	void CCpu6502::Tick() {
 		(this->*m_pfTickFunc)();
+
+		if ( m_bNmiStatusLine ) {
+			m_bHandleNmi = true;
+			m_bNmiStatusLine = false;
+		}
+		if ( m_bIrqStatusLine ) {
+			m_bHandleIrq = true;
+		}
+
 		++m_ui64CycleCount;
 	}
 
@@ -1158,14 +1169,14 @@ namespace lsn {
 	 * Notifies the class that an NMI has occurred.
 	 */
 	void CCpu6502::Nmi() {
-		m_bHandleNmi = true;
+		m_bNmiStatusLine = true;
 	}
 
 	/**
 	 * Signals an IRQ to be handled before the next instruction.
 	 */
 	void CCpu6502::Irq() {
-		m_bIrqSignalled = true;
+		m_bIrqStatusLine = true;
 	}
 
 #ifdef _DEBUG
@@ -1189,6 +1200,9 @@ namespace lsn {
 
 		if ( m_bHandleNmi ) {
 			BeginInst( LSN_SO_NMI );
+		}
+		else if ( m_bHandleIrq ) {
+			BeginInst( LSN_SO_IRQ );
 		}
 		else {
 			FetchOpcodeAndIncPc();

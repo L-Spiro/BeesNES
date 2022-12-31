@@ -186,9 +186,10 @@ namespace lsn {
 		uint8_t								m_ui8Status;									/**< The status flags. */
 		uint8_t								m_ui8DmaPos;									/**< The DMA transfer offset.*/
 		uint8_t								m_ui8DmaValue;									/**< The DMA transfer value.*/
+		bool								m_bNmiStatusLine;								/**< The status line for NMI. */
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
-		//bool								m_bDelayInterrupt;								/**< If set, interrupts are delayed by a cycle. */
-		bool								m_bIrqSignalled;								/**< Signals that an IRQ should be handled on the next instruction. */
+		bool								m_bIrqStatusLine;								/**< The status line for IRQ. */
+		bool								m_bHandleIrq;									/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 
 
 		// Temporary input.
