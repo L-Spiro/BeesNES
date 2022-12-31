@@ -304,6 +304,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlDevice.h" />
+    <ClInclude Include="Src\Audio\LSNOpenAlGetError.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\Cpu\LSNCpuBase.h" />
@@ -383,6 +384,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAl.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlDevice.cpp" />
+    <ClCompile Include="Src\Audio\LSNOpenAlGetError.cpp" />
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\Crc\LSNCrc.cpp" />

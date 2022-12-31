@@ -26,3 +26,19 @@
 #define LSN_SEARCH_															Search:
 #define LSN_OK																OK
 #define LSN_CANCEL															Cancel
+
+#define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
+#define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.
+#define LSN_OPENAL_AL_INVALID_ENUM_DESC										An invalid enum value was passed to an OpenAL function.
+#define LSN_OPENAL_AL_INVALID_VALUE_DESC									An invalid value was passed to an OpenAL function.
+#define LSN_OPENAL_AL_INVALID_OPERATION_DESC								The requested operation is not valid.
+#define LSN_OPENAL_AL_OUT_OF_MEMORY_DESC									The requested operation resulted in OpenAL running out of memory.
+
+#define LSN_OPENAL_ALC_NO_ERROR_DESC										There is not currently an error.
+#define LSN_OPENAL_ALC_INVALID_DEVICE_DESC									A bad device was passed to an OpenAL function.
+#define LSN_OPENAL_ALC_INVALID_CONTEXT_DESC									A bad context was passed to an OpenAL function.
+#define LSN_OPENAL_ALC_INVALID_ENUM_DESC									An unknown enum value was passed to an OpenAL function.
+#define LSN_OPENAL_ALC_INVALID_VALUE_DESC									An invalid value was passed to an OpenAL function.
+#define LSN_OPENAL_ALC_OUT_OF_MEMORY_DESC									The requested operation resulted in OpenAL running out of memory.
+
+#define LSN_OPENAL_ERROR_UNKNOWN											Unknown OpenAL error.
