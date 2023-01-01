@@ -19,6 +19,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Input/LSNInputPoller.h"
+#include "../Mappers/LSNMapperBase.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
 #include "LSNCpuBase.h"
@@ -101,6 +102,15 @@ namespace lsn {
 		void								BeginDma( uint8_t _ui8Val );
 
 		/**
+		 * Sets the mapper.
+		 *
+		 * \param _pmbMapper A pointer to the mapper to be ticked with each CPU cycle.
+		 */
+		void								SetMapper( CMapperBase * _pmbMapper ) {
+			m_pmbMapper = _pmbMapper;
+		}
+
+		/**
 		 * Notifies the class that an NMI has occurred.
 		 */
 		virtual void						Nmi();
@@ -172,6 +182,8 @@ namespace lsn {
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		CInputPoller *						m_pipPoller;									/**< The input poller. */
+		CMapperBase *						m_pmbMapper;										/**< The mapper, which gets ticked on each CPU cycle. */
+
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {
 			uint16_t						PC;												/**< Program counter. */

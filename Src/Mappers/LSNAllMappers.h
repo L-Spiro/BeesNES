@@ -18,6 +18,7 @@
 
 #include "../Mappers/LSNMapper009.h"
 #include "../Mappers/LSNMapper010.h"
+#include "../Mappers/LSNMapper011.h"
 
 #include "../Mappers/LSNMapper032.h"
 #include "../Mappers/LSNMapper033.h"
@@ -58,3 +59,5 @@
 #include "../Mappers/LSNMapper132.h"
 
 #include "../Mappers/LSNMapper184.h"
+
+#include "../Mappers/LSNMapper232.h"

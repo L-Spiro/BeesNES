@@ -68,6 +68,11 @@ namespace lsn {
 		}
 
 		/**
+		 * Ticks with the CPU.
+		 */
+		virtual void									Tick() {}
+
+		/**
 		 * Applies a mirroring mode to a PPU bus.
 		 *
 		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).

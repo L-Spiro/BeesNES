@@ -278,6 +278,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper010>();
 					break;
 				}
+				case 11 : {
+					m_pmbMapper = std::make_unique<CMapper011>();
+					break;
+				}
 				case 32 : {
 					m_pmbMapper = std::make_unique<CMapper032>();
 					break;
@@ -374,11 +378,17 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper184>();
 					break;
 				}
+				case 232 : {
+					m_pmbMapper = std::make_unique<CMapper232>();
+					break;
+				}
 				default : {
+					m_pmbMapper = std::make_unique<CMapperBase>();
 					std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
 					::OutputDebugStringA( sText.c_str() );
 				}
 			}
+			
 			{
 				char szBuffer[128];
 				std::sprintf( szBuffer, "****** CRC: 0x%.8X\r\n", m_rRom.riInfo.ui32Crc );
@@ -391,7 +401,7 @@ namespace lsn {
 				sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
 				::OutputDebugStringA( sText.c_str() );
 			}
-
+			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
 				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu );
 			}

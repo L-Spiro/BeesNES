@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper XXX implementation.
+ * Description: Mapper 011 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapperXXX
-	 * \brief Mapper XXX implementation.
+	 * Class CMapper011
+	 * \brief Mapper 011 implementation.
 	 *
-	 * Description: Mapper XXX implementation.
+	 * Description: Mapper 011 implementation.
 	 */
-	class CMapperXXX : public CMapperBase {
+	class CMapper011 : public CMapperBase {
 	public :
-		CMapperXXX() {
+		CMapper011() {
 		}
-		virtual ~CMapperXXX() {
+		virtual ~CMapper011() {
 		}
 
 
@@ -41,7 +41,7 @@ namespace lsn {
 		 *
 		 * \return Returns the size of the CHR banks.
 		 */
-		static constexpr uint16_t						ChrBankSize() { return 2 * 1024; }
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
 
 		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
@@ -64,20 +64,10 @@ namespace lsn {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
 			// ================
-			// FIXED BANKS
-			// ================
-			// Set the reads of the fixed bank at the end.		
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
-			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xC000 ) );
-			}
-			
-
-			// ================
 			// SWAPPABLE BANKS
 			// ================
 			// CPU.
-			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
+			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
 			// PPU.
@@ -91,14 +81,8 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapperXXX::SelectBankY000_YFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper011::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
 			}
-
-
-			// ================
-			// MIRRORING
-			// ================
-			ApplyControllableMirrorMap( _pbPpuBus );
 		}
 
 
@@ -115,9 +99,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBankY000_YFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapperXXX * pmThis = reinterpret_cast<CMapperXXX *>(_pvParm0);
-			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
+		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper011 * pmThis = reinterpret_cast<CMapper011 *>(_pvParm0);
+			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b00000011 );
+			pmThis->SetChrBank<0, ChrBankSize()>( (_ui8Val >> 4) & 0b00001111 );
 		}
 	};
 

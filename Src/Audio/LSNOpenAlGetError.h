@@ -9,7 +9,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "LSNOpenAl.h"
+#include "LSNOpenAlInclude.h"
+#include <iomanip>
 #include <iostream>
 
 
@@ -17,9 +18,9 @@ namespace lsn {
 
 	/**
 	 * Class CCpu6502
-	 * \brief Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
+	 * \brief Wrapper for error-handling in OpenAL.
 	 *
-	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
+	 * Description: Wrapper for error-handling in OpenAL.
 	 */
 	class COpenAlGetError {
 	public :
@@ -76,10 +77,9 @@ namespace lsn {
 	inline bool COpenAlGetError::CheckError_AL( const char * _pcFile, uint32_t _ui32Line ) {
 		ALenum aError = ::alGetError();
 		if ( aError != AL_NO_ERROR ) {
-			std::cerr << _pcFile << "::" << _ui32Line << ": " << ErrorCodeToString_AL( aError ) << " (" << aError << ")" << std::endl;
+			std::cerr << _pcFile << "::" << _ui32Line << ": " << ErrorCodeToString_AL( aError ) << " (" << std::setiosflags( std::ios_base::hex | std::ios_base::uppercase ) << aError << ")" << std::endl;
 			return false;
 		}
-		//::alcGetError()
 		return true;
 	}
 
@@ -94,7 +94,7 @@ namespace lsn {
 	inline bool COpenAlGetError::CheckError_ALC( const char * _pcFile, uint32_t _ui32Line, ALCdevice * _pdDevice ) {
 		ALCenum aError = ::alcGetError( _pdDevice );
 		if ( aError != ALC_NO_ERROR ) {
-			std::cerr << _pcFile << "::" << _ui32Line << ": " << ErrorCodeToString_ALC( aError ) << " (" << aError << ")" << std::endl;
+			std::cerr << _pcFile << "::" << _ui32Line << ": " << ErrorCodeToString_ALC( aError ) << " (" << std::setiosflags( std::ios_base::hex | std::ios_base::uppercase ) << aError << ")" << std::endl;
 			return false;
 		}
 		return true;

@@ -305,6 +305,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlDevice.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlGetError.h" />
+    <ClInclude Include="Src\Audio\LSNOpenAlInclude.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\Cpu\LSNCpuBase.h" />
@@ -330,6 +331,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper007.h" />
     <ClInclude Include="Src\Mappers\LSNMapper009.h" />
     <ClInclude Include="Src\Mappers\LSNMapper010.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper011.h" />
     <ClInclude Include="Src\Mappers\LSNMapper032.h" />
     <ClInclude Include="Src\Mappers\LSNMapper033.h" />
     <ClInclude Include="Src\Mappers\LSNMapper034.h" />
@@ -355,6 +357,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper113.h" />
     <ClInclude Include="Src\Mappers\LSNMapper132.h" />
     <ClInclude Include="Src\Mappers\LSNMapper184.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper232.h" />
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
     <ClInclude Include="Src\Mappers\LSNMapperXXX.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />

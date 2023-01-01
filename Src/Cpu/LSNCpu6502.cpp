@@ -1063,7 +1063,8 @@ namespace lsn {
 
 	// == Various constructors.
 	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
-		CCpuBase( _pbBus ),		
+		CCpuBase( _pbBus ),
+		m_pmbMapper( nullptr ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		m_pipPoller( nullptr ),
 		A( 0 ),
@@ -1120,15 +1121,11 @@ namespace lsn {
 	 * Performs a single cycle update.
 	 */
 	void CCpu6502::Tick() {
+		m_pmbMapper->Tick();
 		(this->*m_pfTickFunc)();
 
-		if ( m_bNmiStatusLine ) {
-			m_bHandleNmi = true;
-			m_bNmiStatusLine = false;
-		}
-		if ( m_bIrqStatusLine ) {
-			m_bHandleIrq = true;
-		}
+		m_bHandleNmi |= m_bNmiStatusLine;
+		m_bHandleIrq |= m_bIrqStatusLine;
 
 		++m_ui64CycleCount;
 	}
@@ -1199,9 +1196,11 @@ namespace lsn {
 #endif	// #ifdef LSN_PRINT_CYCLES
 
 		if ( m_bHandleNmi ) {
+			m_bNmiStatusLine = false;
 			BeginInst( LSN_SO_NMI );
 		}
 		else if ( m_bHandleIrq ) {
+			m_bIrqStatusLine = false;
 			BeginInst( LSN_SO_IRQ );
 		}
 		else {
