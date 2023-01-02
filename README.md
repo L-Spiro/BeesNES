@@ -7,7 +7,7 @@ A Nintendo Entertainment System emulator with the goal of being “sub-cycle–a
 
 ![image](https://user-images.githubusercontent.com/7362666/210118486-53aaea46-4609-4e3d-a9e5-15d5e016d5e0.png)
 ![image](https://user-images.githubusercontent.com/7362666/209457943-0ea5581c-2220-44bf-a046-ed2be6bf77d4.png)
-![image](https://user-images.githubusercontent.com/7362666/209458107-919f63ed-2a4b-4bc0-ae65-46aff1c799b4.png)
+![image](https://user-images.githubusercontent.com/7362666/210247475-8b31c929-adbb-4b26-856a-9dd24b5c57df.png)
 ![image](https://user-images.githubusercontent.com/7362666/209458143-d44796b1-c0cf-40e1-9f89-b71b8be555b1.png)
 ![image](https://user-images.githubusercontent.com/7362666/209458158-a01a7a05-bcee-494e-a0cc-8ee3e759cae8.png)
 ![image](https://user-images.githubusercontent.com/7362666/209458173-abb73203-21b0-4f74-8b76-e0113ed76cf7.png)
