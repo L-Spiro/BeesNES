@@ -64,17 +64,27 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_8000, this, uint16_t( I - 0x8000 ) );
 			}
 
-			// Writes to the whole area are used to select a bank.
+
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper007::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
 			}
 
+			// ================
+			// MIRRORING
+			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
-
 		}
 
 

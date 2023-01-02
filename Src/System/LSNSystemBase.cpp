@@ -57,6 +57,9 @@ namespace lsn {
 					if ( aEntry->second.pmRegion != LSN_PM_UNKNOWN ) {
 						_rRom.riInfo.pmConsoleRegion = aEntry->second.pmRegion;
 					}
+					if ( aEntry->second.ui16Mapper != 0xFFFF ) {
+						_rRom.riInfo.ui16Mapper = aEntry->second.ui16Mapper;
+					}
 				}
 			}
 

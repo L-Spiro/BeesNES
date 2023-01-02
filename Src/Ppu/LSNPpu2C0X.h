@@ -115,6 +115,9 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+			uint16_t ui16X = GetCurrentRowPos();
+			uint16_t ui16Y = GetCurrentScanline();
+			
 #ifdef LSN_INT_OAM_DECAY
 #else
 #ifdef _DEBUG
@@ -128,6 +131,34 @@ namespace lsn {
 #endif	// #ifdef _DEBUG
 #endif	// #ifdef LSN_INT_OAM_DECAY
 			(this->*m_cCycle[m_stCurCycle])();
+
+			if ( m_bVAddrPending ) {
+
+				/*m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+				m_bVAddrPending = false;*/
+
+				if ( m_ui8VAddrUpdateCounter-- == 0 ) {
+					m_bVAddrPending = false;
+					if ( Rendering() && ui16Y < (_tPreRender + _tRender) ) {
+						if ( ui16X == 257 ) {
+							m_paPpuAddrV.ui16Addr &= m_ui16VAddrCopy;
+						}
+						else if ( ui16X > 1 && (ui16X & 0x7) == 0 && (ui16X <= 256 || ui16X >= 321) ) {
+							m_paPpuAddrV.ui16Addr = (m_ui16VAddrCopy & ~0b0000010000011111) | (m_paPpuAddrV.ui16Addr & m_ui16VAddrCopy & 0b0000010000011111);
+							//m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+						}
+						else {
+							m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+						}
+					}
+					else {
+						m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+					}
+
+					m_paPpuAddrT.ui16Addr = m_paPpuAddrV.ui16Addr;
+				}
+			}
+
 			++m_ui64Cycle;
 		}
 
@@ -163,6 +194,10 @@ namespace lsn {
 			m_ui8OamAddr = 0;
 			m_ui8OamLatch = 0;
 			m_ui8Oam2ClearIdx = 0;
+
+			m_ui16VAddrCopy = 0;
+			m_ui8VAddrUpdateCounter = 0;
+			m_bVAddrPending = false;
 		}
 
 		/**
@@ -306,7 +341,7 @@ namespace lsn {
 		 *
 		 * \return Returns the current scanline.
 		 */
-		inline uint16_t									GetCurrentScanline() const { return m_stCurCycle % _tDotWidth; }
+		inline uint16_t									GetCurrentScanline() const { return uint16_t( m_stCurCycle / _tDotWidth ); }
 
 		/**
 		 * Gets the PPU bus.
@@ -777,7 +812,11 @@ namespace lsn {
 			ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
 			if ( !ppPpu->m_bAddresLatch ) {
 				// ppPpu->m_bAddresLatch was 1 when we came here, flipped at the start.  This is the 2nd write.
-				ppPpu->m_paPpuAddrV.ui16Addr = ppPpu->m_paPpuAddrT.ui16Addr;
+				//ppPpu->m_paPpuAddrV.ui16Addr = ppPpu->m_paPpuAddrT.ui16Addr;
+
+				ppPpu->m_ui16VAddrCopy = ppPpu->m_paPpuAddrT.ui16Addr;
+				ppPpu->m_ui8VAddrUpdateCounter = 3;
+				ppPpu->m_bVAddrPending = true;
 			}
 		}
 
@@ -1016,12 +1055,15 @@ namespace lsn {
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
+#ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
+#endif	// #ifndef LSN_INT_OAM_DECAY
 		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
 		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
 		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
 		uint16_t										m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
 		uint16_t										m_ui16SpritePatternTmp;							/**< A temporary used during sprite fetches. */
+		uint16_t										m_ui16VAddrCopy;								/**< The copy of T that will get written to V after 3 cycles. */
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
@@ -1041,6 +1083,9 @@ namespace lsn {
 		uint8_t											m_ui8NextTileLsb;								/**< The queued background tile LSB. */
 		uint8_t											m_ui8NextTileMsb;								/**< The queued background tile MSB. */
 		uint8_t											m_ui8ThisLineSpriteCount;						/**< The number of sprites in the current scanline. */
+
+		uint8_t											m_ui8VAddrUpdateCounter;						/**< The T -> V copy counter. */
+		bool											m_bVAddrPending;								/**< There is a copy from T to V pending a 3-cycle delay. */
 
 		bool											m_bAddresLatch;									/**< The address latch. */
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */

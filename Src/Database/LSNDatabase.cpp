@@ -207,6 +207,13 @@ namespace lsn {
 			//{ .ui32Crc = 0xDBA3A02E, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Zippy Race.
 			{ .ui32Crc = 0xE16BB5FE, .mmMirrorOverride = LSN_MM_HORIZONTAL },
+
+
+			// ========
+			// MAPPERS
+			// ========
+			// Wrecking Crew (JUE)
+			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
 		};
 		for ( auto I = LSN_ELEMENTS( eEntries ); I--; ) {
 			m_mDatabase.insert( std::pair<uint32_t, LSN_ENTRY>( eEntries[I].ui32Crc, eEntries[I] ) );
