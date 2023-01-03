@@ -266,6 +266,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper003>();
 					break;
 				}
+				case 4 : {
+					m_pmbMapper = std::make_unique<CMapper004>();
+					break;
+				}
 				case 7 : {
 					m_pmbMapper = std::make_unique<CMapper007>();
 					break;

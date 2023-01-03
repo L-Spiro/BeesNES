@@ -147,7 +147,7 @@ namespace lsn {
 		 * \return Returns the requested value.
 		 */
 		inline uint8_t						Read( uint16_t _ui16Addr ) {
-			if constexpr ( _uSize == 0xFFFF ) {
+			if constexpr ( _uSize == 0x10000 ) {
 				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,

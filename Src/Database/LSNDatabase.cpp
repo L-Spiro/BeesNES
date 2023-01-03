@@ -74,6 +74,8 @@ namespace lsn {
 			{ .ui32Crc = 0x629E060B, .pmRegion = LSN_PM_PAL },
 			// Bionic Commando (Europe)
 			{ .ui32Crc = 0xFA7EE642, .pmRegion = LSN_PM_PAL },
+			// Blades of Steel (E)
+			{ .ui32Crc = 0xC0EDEDD0, .pmRegion = LSN_PM_PAL },
 			// Blaster Master (Europe)
 			{ .ui32Crc = 0xB40870A2, .pmRegion = LSN_PM_PAL },
 			// Boulder Dash (Europe)

@@ -13,6 +13,7 @@
 #include "../Mappers/LSNMapper001.h"
 #include "../Mappers/LSNMapper002.h"
 #include "../Mappers/LSNMapper003.h"
+#include "../Mappers/LSNMapper004.h"	// Needs IRQ support.
 
 #include "../Mappers/LSNMapper007.h"
 

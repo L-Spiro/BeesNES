@@ -52,7 +52,7 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			SanitizeRegs<PgmBankSize() * 2, ChrBankSize() * 2>();
-			SetPgmBank2x<0, PgmBankSize()>( 3 );
+			SetPgmBank2x<2, PgmBankSize()>( 3 );
 			SetChrBank2x<0, ChrBankSize()>( 0 );
 			m_ui8Control = 0x1C;
 			m_ui8Load = 0;
@@ -250,7 +250,7 @@ namespace lsn {
 						 */
 						// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 						if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
-							pmThis->SetChrBank<0, 0x2000>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+							pmThis->SetChrBank<0, ChrBankSize() * 2>( (pmThis->m_ui8Load & 0b11110) >> 1 );
 						}
 						else {
 							pmThis->SetChrBank<1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );

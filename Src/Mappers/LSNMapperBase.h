@@ -345,8 +345,8 @@ namespace lsn {
 		 */
 		template <unsigned _uReg, unsigned _uSize>
 		void											SetChrBank2x( int16_t _i16Bank ) {
-			SetPgmBank<_uReg, _uSize>( _i16Bank );
-			SetPgmBank<_uReg+1, _uSize>( _i16Bank + 1 );
+			SetChrBank<_uReg, _uSize>( _i16Bank );
+			SetChrBank<_uReg+1, _uSize>( _i16Bank + 1 );
 		}
 
 		/**
