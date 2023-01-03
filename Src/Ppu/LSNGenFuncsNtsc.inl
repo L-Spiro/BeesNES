@@ -50,7 +50,7 @@ void LSN_FASTCALL								Cycle_0__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 
 	Pixel_Evaluation_Sprite<false, false>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -62,7 +62,7 @@ void LSN_FASTCALL								Cycle_0__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -81,7 +81,7 @@ void LSN_FASTCALL								Cycle_0__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 
 	Pixel_Evaluation_Sprite<false, false>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -93,7 +93,7 @@ void LSN_FASTCALL								Cycle_0__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -112,7 +112,7 @@ void LSN_FASTCALL								Cycle_0__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 
 	Pixel_Evaluation_Sprite<false, false>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -124,7 +124,7 @@ void LSN_FASTCALL								Cycle_0__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -143,7 +143,7 @@ void LSN_FASTCALL								Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 
 	Pixel_Evaluation_Sprite<false, false>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -155,7 +155,7 @@ void LSN_FASTCALL								Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -167,13 +167,8 @@ void LSN_FASTCALL								Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 	m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 	// Increase v.H.
-	if (Rendering()) {
-		// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-		if (m_paPpuAddrV.s.ui16CourseX == 31) {
-			// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-			m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-		}
-		++m_paPpuAddrV.s.ui16CourseX;
+	if (m_bRendering) {
+		IncHorizontal();
 	}
 
 	++m_stCurCycle;
@@ -184,7 +179,7 @@ void LSN_FASTCALL								Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 
 	Pixel_Evaluation_Sprite<false, false>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -196,7 +191,7 @@ void LSN_FASTCALL								Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -208,42 +203,13 @@ void LSN_FASTCALL								Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 	m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 	// Increase v.H.
-	if (Rendering()) {
-		// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-		if (m_paPpuAddrV.s.ui16CourseX == 31) {
-			// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-			m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-		}
-		++m_paPpuAddrV.s.ui16CourseX;
+	if (m_bRendering) {
+		IncHorizontal();
 	}
 
 	// Increase v.V.
-	if (Rendering()) {
-		if (m_paPpuAddrV.s.ui16FineY < 7) {
-			++m_paPpuAddrV.s.ui16FineY;
-		}
-		else {
-			m_paPpuAddrV.s.ui16FineY = 0;
-			// Wrap and increment the course.
-			// Do we need to swap vertical nametable targets?
-			switch (m_paPpuAddrV.s.ui16CourseY) {
-			case 29: {
-				// Wrap the course offset and flip the nametable bit.
-				m_paPpuAddrV.s.ui16CourseY = 0;
-				m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;
-				break;
-			}
-			case 31: {
-				// We are in attribute memory.  Reset but without flipping the nametable.
-				m_paPpuAddrV.s.ui16CourseY = 0;
-				break;
-			}
-			default: {
-				// Somewhere between.  Just increment.
-				++m_paPpuAddrV.s.ui16CourseY;
-			}
-			}
-		}
+	if (m_bRendering) {
+		IncVertical();
 	}
 
 	++m_stCurCycle;
@@ -254,7 +220,7 @@ void LSN_FASTCALL								Cycle_0__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_13
 
 	Pixel_Evaluation_Sprite<false, true>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -266,7 +232,7 @@ void LSN_FASTCALL								Cycle_0__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -292,7 +258,7 @@ void LSN_FASTCALL								Cycle_0__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 
 	Pixel_Evaluation_Sprite<false, true>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -304,7 +270,7 @@ void LSN_FASTCALL								Cycle_0__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -331,7 +297,7 @@ void LSN_FASTCALL								Cycle_0__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 
 	Pixel_Evaluation_Sprite<false, true>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -343,7 +309,7 @@ void LSN_FASTCALL								Cycle_0__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -366,7 +332,7 @@ void LSN_FASTCALL								Cycle_0__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 
 	Pixel_Evaluation_Sprite<false, true>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -378,7 +344,7 @@ void LSN_FASTCALL								Cycle_0__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -401,7 +367,7 @@ void LSN_FASTCALL								Cycle_0__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 
 	Pixel_Evaluation_Sprite<true, true>();
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -413,7 +379,7 @@ void LSN_FASTCALL								Cycle_0__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -443,7 +409,7 @@ void LSN_FASTCALL								Cycle_0__257x0_257x1_257x2_257x3_257x4_257x5_257x6_257x
 	// LSN_PPU_NAMETABLES = 0x2000.
 	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
 		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
 	}
@@ -1082,7 +1048,7 @@ void LSN_FASTCALL								Cycle_0__320x0_320x1_320x2_320x3_320x4_320x5_320x6_320x
 
 void LSN_FASTCALL								Cycle_0__282x261_284x261_290x261_292x261_298x261_300x261() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
 		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
 		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
@@ -1094,7 +1060,7 @@ void LSN_FASTCALL								Cycle_0__282x261_284x261_290x261_292x261_298x261_300x26
 
 void LSN_FASTCALL								Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x3_321x4_329x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1116,7 +1082,7 @@ void LSN_FASTCALL								Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 
 void LSN_FASTCALL								Cycle_0__1x261() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1142,7 +1108,7 @@ void LSN_FASTCALL								Cycle_0__1x261() {
 
 void LSN_FASTCALL								Cycle_0__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x3_323x4_331x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1165,7 +1131,7 @@ void LSN_FASTCALL								Cycle_0__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x
 
 void LSN_FASTCALL								Cycle_0__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x3_325x4_333x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1184,7 +1150,7 @@ void LSN_FASTCALL								Cycle_0__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x
 
 void LSN_FASTCALL								Cycle_0__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x3_327x4_335x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1203,7 +1169,7 @@ void LSN_FASTCALL								Cycle_0__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x
 
 void LSN_FASTCALL								Cycle_0__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x3_324x4_332x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1218,7 +1184,7 @@ void LSN_FASTCALL								Cycle_0__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x
 
 void LSN_FASTCALL								Cycle_0__322x0_330x0_322x1_330x1_322x2_330x2_322x3_330x3_322x4_330x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1233,7 +1199,7 @@ void LSN_FASTCALL								Cycle_0__322x0_330x0_322x1_330x1_322x2_330x2_322x3_330x
 
 void LSN_FASTCALL								Cycle_0__326x0_334x0_326x1_334x1_326x2_334x2_326x3_334x3_326x4_334x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1248,7 +1214,7 @@ void LSN_FASTCALL								Cycle_0__326x0_334x0_326x1_334x1_326x2_334x2_326x3_334x
 
 void LSN_FASTCALL								Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x3_328x4_336x4_X() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1258,13 +1224,8 @@ void LSN_FASTCALL								Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x
 	m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 	// Increase v.H.
-	if (Rendering()) {
-		// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-		if (m_paPpuAddrV.s.ui16CourseX == 31) {
-			// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-			m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-		}
-		++m_paPpuAddrV.s.ui16CourseX;
+	if (m_bRendering) {
+		IncHorizontal();
 	}
 
 	++m_stCurCycle;
@@ -1273,7 +1234,7 @@ void LSN_FASTCALL								Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x
 
 void LSN_FASTCALL								Cycle_0__256x261() {
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1283,42 +1244,13 @@ void LSN_FASTCALL								Cycle_0__256x261() {
 	m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 	// Increase v.H.
-	if (Rendering()) {
-		// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-		if (m_paPpuAddrV.s.ui16CourseX == 31) {
-			// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-			m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-		}
-		++m_paPpuAddrV.s.ui16CourseX;
+	if (m_bRendering) {
+		IncHorizontal();
 	}
 
 	// Increase v.V.
-	if (Rendering()) {
-		if (m_paPpuAddrV.s.ui16FineY < 7) {
-			++m_paPpuAddrV.s.ui16FineY;
-		}
-		else {
-			m_paPpuAddrV.s.ui16FineY = 0;
-			// Wrap and increment the course.
-			// Do we need to swap vertical nametable targets?
-			switch (m_paPpuAddrV.s.ui16CourseY) {
-			case 29: {
-				// Wrap the course offset and flip the nametable bit.
-				m_paPpuAddrV.s.ui16CourseY = 0;
-				m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;
-				break;
-			}
-			case 31: {
-				// We are in attribute memory.  Reset but without flipping the nametable.
-				m_paPpuAddrV.s.ui16CourseY = 0;
-				break;
-			}
-			default: {
-				// Somewhere between.  Just increment.
-				++m_paPpuAddrV.s.ui16CourseY;
-			}
-			}
-		}
+	if (m_bRendering) {
+		IncVertical();
 	}
 
 	++m_stCurCycle;
@@ -1370,7 +1302,7 @@ void LSN_FASTCALL								Cycle_0__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 
 	m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch; m_ui8Oam2ClearIdx %= sizeof(m_soSecondaryOam.ui8Bytes);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1382,7 +1314,7 @@ void LSN_FASTCALL								Cycle_0__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1401,7 +1333,7 @@ void LSN_FASTCALL								Cycle_0__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x
 
 	m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch; m_ui8Oam2ClearIdx %= sizeof(m_soSecondaryOam.ui8Bytes);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1413,7 +1345,7 @@ void LSN_FASTCALL								Cycle_0__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1432,7 +1364,7 @@ void LSN_FASTCALL								Cycle_0__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 
 	m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch; m_ui8Oam2ClearIdx %= sizeof(m_soSecondaryOam.ui8Bytes);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1444,7 +1376,7 @@ void LSN_FASTCALL								Cycle_0__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1463,7 +1395,7 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 
 	m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch; m_ui8Oam2ClearIdx %= sizeof(m_soSecondaryOam.ui8Bytes);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1475,7 +1407,7 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1487,13 +1419,8 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 	m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 	// Increase v.H.
-	if (Rendering()) {
-		// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
-		if (m_paPpuAddrV.s.ui16CourseX == 31) {
-			// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
-			m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
-		}
-		++m_paPpuAddrV.s.ui16CourseX;
+	if (m_bRendering) {
+		IncHorizontal();
 	}
 
 	++m_stCurCycle;
@@ -1512,7 +1439,7 @@ void LSN_FASTCALL								Cycle_0__280x261_285x261_286x261_287x261_288x261_293x26
 
 	m_ui8OamAddr = 0;
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
 		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
 		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
@@ -1538,7 +1465,7 @@ void LSN_FASTCALL								Cycle_0__281x261_283x261_289x261_291x261_297x261_299x26
 	// LSN_PPU_NAMETABLES = 0x2000.
 	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
 		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
 		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
@@ -1554,7 +1481,7 @@ void LSN_FASTCALL								Cycle_0__257x261() {
 	// LSN_PPU_NAMETABLES = 0x2000.
 	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
 		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
 	}
@@ -1567,7 +1494,7 @@ void LSN_FASTCALL								Cycle_0__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1579,7 +1506,7 @@ void LSN_FASTCALL								Cycle_0__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1605,7 +1532,7 @@ void LSN_FASTCALL								Cycle_0__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1617,7 +1544,7 @@ void LSN_FASTCALL								Cycle_0__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1644,7 +1571,7 @@ void LSN_FASTCALL								Cycle_0__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1656,7 +1583,7 @@ void LSN_FASTCALL								Cycle_0__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1679,7 +1606,7 @@ void LSN_FASTCALL								Cycle_0__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
 			if (m_asActiveSprites.ui8X[I]) {
 				--m_asActiveSprites.ui8X[I];
@@ -1691,7 +1618,7 @@ void LSN_FASTCALL								Cycle_0__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 		}
 	}
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1714,7 +1641,7 @@ void LSN_FASTCALL								Cycle_0__1x0_1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_X() {
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
-	if (Rendering()) {
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;

@@ -24,10 +24,6 @@
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
-#define LSN_USE_PPU_DIAGRAM_CYCLE_SKIP
-
-#define LSN_END_CONTROL_CYCLE							++m_ui16RowDot;
-
 #define LSN_INT_OAM_DECAY
 //#define LSN_GEN_PPU
 
@@ -115,8 +111,8 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
-			uint16_t ui16X = GetCurrentRowPos();
-			uint16_t ui16Y = GetCurrentScanline();
+			m_ui16CurX = GetCurrentRowPos();
+			m_ui16CurY = GetCurrentScanline();
 			
 #ifdef LSN_INT_OAM_DECAY
 #else
@@ -139,11 +135,11 @@ namespace lsn {
 
 				if ( m_ui8VAddrUpdateCounter-- == 0 ) {
 					m_bVAddrPending = false;
-					if ( Rendering() && ui16Y < (_tPreRender + _tRender) ) {
-						if ( ui16X == 257 ) {
+					if ( m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
+						if ( m_ui16CurX == 257 ) {
 							m_paPpuAddrV.ui16Addr &= m_ui16VAddrCopy;
 						}
-						else if ( ui16X > 1 && (ui16X & 0x7) == 0 && (ui16X <= 256 || ui16X >= 321) ) {
+						else if ( m_ui16CurX > 1 && (m_ui16CurX & 0x7) == 0 && (m_ui16CurX <= 256 || m_ui16CurX >= 321) ) {
 							m_paPpuAddrV.ui16Addr = (m_ui16VAddrCopy & ~0b0000010000011111) | (m_paPpuAddrV.ui16Addr & m_ui16VAddrCopy & 0b0000010000011111);
 							//m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
 						}
@@ -159,6 +155,9 @@ namespace lsn {
 				}
 			}
 
+			m_bRendering = Rendering();
+			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
+			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
 			++m_ui64Cycle;
 		}
 
@@ -174,6 +173,7 @@ namespace lsn {
 			m_ui8IoBusLatch = 0;
 
 			m_stCurCycle = 0;
+			m_ui16CurX = m_ui16CurY = 0;
 		}
 
 		/**
@@ -198,6 +198,10 @@ namespace lsn {
 			m_ui16VAddrCopy = 0;
 			m_ui8VAddrUpdateCounter = 0;
 			m_bVAddrPending = false;
+
+			m_bRendering = Rendering();
+			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
+			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
 		}
 
 		/**
@@ -415,7 +419,7 @@ namespace lsn {
 				}
 				*/
 			}
-			if ( !Rendering() ) { return; }
+			if ( !m_bRendering ) { return; }
 
 			uint8_t ui8PrevOamAddr = m_ui8OamAddr;
 
@@ -440,7 +444,7 @@ namespace lsn {
 				}
 			}
 			else {
-				int16_t i16ScanLine = int16_t( m_stCurCycle / _tDotWidth );
+				int16_t i16ScanLine = int16_t( m_ui16CurY );
 				// Even cycles allow writing.
 				uint8_t ui8M = (m_ui8OamAddr - m_ui8SpriteM) & 0x3;
 				switch ( m_sesStage ) {
@@ -565,7 +569,7 @@ namespace lsn {
 			if constexpr ( _uStage == 4 ) {
 				m_ui16SpritePatternTmp = 0;
 
-				uint16_t ui16ScanLine = uint16_t( m_stCurCycle / _tDotWidth );
+				uint16_t ui16ScanLine = uint16_t( m_ui16CurY );
 				
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
 					// Calculate m_ui16SpritePatternTmp.
@@ -686,6 +690,9 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_pmPpuMask.ui8Reg = _ui8Val;
+			/*char szBuffer[256];
+			std::sprintf( szBuffer, "Write2001: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
+			::OutputDebugStringA( szBuffer );*/
 		}
 
 		/**
@@ -706,6 +713,10 @@ namespace lsn {
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 			// The address latch also gets reset.
 			ppPpu->m_bAddresLatch = false;
+
+			/*char szBuffer[256];
+			std::sprintf( szBuffer, "Read2002: %.2X Frame: %u [%u,%u]\r\n", _ui8Ret, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
+			::OutputDebugStringA( szBuffer );*/
 		}
 
 		/**
@@ -744,9 +755,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Scan = uint16_t( ppPpu->m_stCurCycle / _tDotWidth );
-			uint16_t ui16Dot = ppPpu->m_stCurCycle % _tDotWidth;
-			//m_stCurCycle
+			uint16_t ui16Scan = uint16_t( ppPpu->m_ui16CurY );
+			uint16_t ui16Dot = ppPpu->m_ui16CurX;
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
 				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
 					_ui8Ret = 0xFF;
@@ -833,7 +843,7 @@ namespace lsn {
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_bBus.Read( ui16Addr );
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_bBus.Read( ui16Addr ) | (ppPpu->m_ui8IoBusLatch & ~0x3F));
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
 				//ppPpu->m_ui8DataBuffer = _pui8Data[(ui16Addr & 0x7FF) | 0x2000];
 			}
@@ -843,7 +853,7 @@ namespace lsn {
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
 			}
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->UpdateVramAddr();
 		}
 
 		/**
@@ -859,7 +869,12 @@ namespace lsn {
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
-			ppPpu->m_paPpuAddrV.ui16Addr = (ui16Addr + (ppPpu->m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->UpdateVramAddr();
+
+
+			/*char szBuffer[256];
+			std::sprintf( szBuffer, "Write2007: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
+			::OutputDebugStringA( szBuffer );*/
 		}
 
 		/**
@@ -1058,6 +1073,8 @@ namespace lsn {
 #ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
 #endif	// #ifndef LSN_INT_OAM_DECAY
+		uint16_t										m_ui16CurX;										/**< The current dot.  Value updated at the start of every PPU tick. */
+		uint16_t										m_ui16CurY;										/**< The current scanline.  Value updated at the start of every PPU tick. */
 		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
 		uint16_t										m_ui16ShiftPatternHi;							/**< The 16-bit shifter for the pattern high bits. */
 		uint16_t										m_ui16ShiftAttribLo;							/**< The 16-bit shifter for the attribute low bits. */
@@ -1087,12 +1104,72 @@ namespace lsn {
 		uint8_t											m_ui8VAddrUpdateCounter;						/**< The T -> V copy counter. */
 		bool											m_bVAddrPending;								/**< There is a copy from T to V pending a 3-cycle delay. */
 
+		bool											m_bRendering;									/**< Rendering on/off toggles (writes to $2001) are delayed by 1 PPU cycle. */
+		bool											m_bShowBg;										/**< Rendering on/off toggles (writes to $2001) are delayed by 1 PPU cycle. */
+		bool											m_bShowSprites;									/**< Rendering on/off toggles (writes to $2001) are delayed by 1 PPU cycle. */
+
 		bool											m_bAddresLatch;									/**< The address latch. */
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
 		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
 		
 		// == Functions.
+		/**
+		 * Updates the VRAM address after a read or write of $2007.
+		 */
+		inline void										UpdateVramAddr() {
+			if ( (m_ui16CurY >= (_tPreRender + _tRender) && m_ui16CurY != (_tDotHeight - 1) ) || !m_bRendering ) {
+				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr + (m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (0x7FFF);
+			}
+			else {
+				IncHorizontal();
+				IncVertical();
+			}
+		}
+
+		/**
+		 * Increases V.horizontal.
+		 */
+		inline void										IncHorizontal() {
+			// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.
+			if ( m_paPpuAddrV.s.ui16CourseX == 31 ) {
+				// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.
+				m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;
+			}
+			++m_paPpuAddrV.s.ui16CourseX;
+		}
+
+		/**
+		 * Increases V.vertical.
+		 */
+		inline void										IncVertical() {
+			if ( m_paPpuAddrV.s.ui16FineY < 7 ) {
+				++m_paPpuAddrV.s.ui16FineY;
+			}
+			else {
+				m_paPpuAddrV.s.ui16FineY = 0;
+				// Wrap and increment the course.
+				// Do we need to swap vertical nametable targets?
+				switch ( m_paPpuAddrV.s.ui16CourseY ) {
+					case 29 : {
+						// Wrap the course offset and flip the nametable bit.
+						m_paPpuAddrV.s.ui16CourseY = 0;
+						m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;
+						break;
+					}
+					case 31 : {
+						// We are in attribute memory.  Reset but without flipping the nametable.
+						m_paPpuAddrV.s.ui16CourseY = 0;
+						break;
+					}
+					default : {
+						// Somewhere between.  Just increment.
+						++m_paPpuAddrV.s.ui16CourseY;
+					}
+				}
+			}
+		}
+
 #ifndef LSN_INT_OAM_DECAY
 		/**
 		 * Decays OAM.
@@ -1245,7 +1322,7 @@ namespace lsn {
 		 * Renders a pixel based on the current state of the PPU.
 		 */
 		inline void										RenderPixel() {
-			uint16_t ui16ThisX = uint16_t( m_stCurCycle % _tDotWidth ), ui16ThisY = uint16_t( m_stCurCycle / _tDotWidth );
+			uint16_t ui16ThisX = uint16_t( m_ui16CurX ), ui16ThisY = uint16_t( m_ui16CurY );
 			uint16_t ui16X, ui16Y;
 			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
@@ -1254,7 +1331,7 @@ namespace lsn {
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;
-					if ( m_pmPpuMask.s.ui8ShowBackground && (m_pmPpuMask.s.ui8LeftBackground || ui16X >= 8) ) {
+					if ( m_bShowBg && (m_pmPpuMask.s.ui8LeftBackground || ui16X >= 8) ) {
 						const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
 						ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
 							((m_ui16ShiftPatternLo & ui16Bit) > 0);
@@ -1266,7 +1343,7 @@ namespace lsn {
 					uint8_t ui8ForegroundPalette = 0;
 					uint8_t ui8ForegroundPriority = 0;
 					bool bIsRenderingSprite0 = false;
-					if ( m_pmPpuMask.s.ui8ShowSprites && (m_pmPpuMask.s.ui8LeftSprites || ui16X >= 8) ) {
+					if ( m_bShowSprites && (m_pmPpuMask.s.ui8LeftSprites || ui16X >= 8) ) {
 						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
 							if ( m_asActiveSprites.ui8X[I] == 0 ) {
 								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
@@ -1463,7 +1540,7 @@ namespace lsn {
 
 				if ( (_uX >= (LSN_LEFT + 1) && _uX < LSN_RIGHT) ) {
 					sRet += "\r\n"
-					"if ( Rendering() ) {\r\n"
+					"if ( m_bRendering ) {\r\n"
 					"	for ( uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {\r\n"
 					"		if ( m_asActiveSprites.ui8X[I] ) {\r\n"
 					"			--m_asActiveSprites.ui8X[I];\r\n"
@@ -1486,7 +1563,7 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				sRet += "\r\n"
-				"if ( Rendering() ) {\r\n"
+				"if ( m_bRendering ) {\r\n"
 				"	m_ui16ShiftPatternLo <<= 1;\r\n"
 				"	m_ui16ShiftPatternHi <<= 1;\r\n"
 				"	m_ui16ShiftAttribLo <<= 1;\r\n"
@@ -1628,44 +1705,15 @@ namespace lsn {
 				if ( (_uX - LSN_LEFT) % 8 == 7 ) {
 					sRet += "\r\n"
 					"// Increase v.H.\r\n"
-					"if ( Rendering() ) {\r\n"
-					"	// m_paPpuAddrV.s.ui16CourseX is only 5 bits so wrapping is automatic with the increment.  Check if the nametable needs to be swapped before the increment.\r\n"
-					"	if ( m_paPpuAddrV.s.ui16CourseX == 31 ) {\r\n"
-					"		// m_paPpuAddrV.s.ui16NametableX is 1 bit, so just toggle.\r\n"
-					"		m_paPpuAddrV.s.ui16NametableX = !m_paPpuAddrV.s.ui16NametableX;\r\n"
-					"	}\r\n"
-					"	++m_paPpuAddrV.s.ui16CourseX;\r\n"
+					"if ( m_bRendering ) {\r\n"
+					"	IncHorizontal();\r\n"
 					"}\r\n";
 				}
 				if ( _uX == LSN_RIGHT - 1 ) {
 					sRet += "\r\n"
 					"// Increase v.V.\r\n"
-					"if ( Rendering() ) {\r\n"
-					"	if ( m_paPpuAddrV.s.ui16FineY < 7 ) {\r\n"
-					"		++m_paPpuAddrV.s.ui16FineY;\r\n"
-					"	}\r\n"
-					"	else {\r\n"
-					"		m_paPpuAddrV.s.ui16FineY = 0;\r\n"
-					"		// Wrap and increment the course.\r\n"
-					"		// Do we need to swap vertical nametable targets?\r\n"
-					"		switch ( m_paPpuAddrV.s.ui16CourseY ) {\r\n"
-					"			case 29 : {\r\n"
-					"				// Wrap the course offset and flip the nametable bit.\r\n"
-					"				m_paPpuAddrV.s.ui16CourseY = 0;\r\n"
-					"				m_paPpuAddrV.s.ui16NametableY = ~m_paPpuAddrV.s.ui16NametableY;\r\n"
-					"				break;\r\n"
-					"			}\r\n"
-					"			case 31 : {\r\n"
-					"				// We are in attribute memory.  Reset but without flipping the nametable.\r\n"
-					"				m_paPpuAddrV.s.ui16CourseY = 0;\r\n"
-					"				break;\r\n"
-					"			}\r\n"
-					"			default : {\r\n"
-					"				// Somewhere between.  Just increment.\r\n"
-					"				++m_paPpuAddrV.s.ui16CourseY;\r\n"
-					"			}\r\n"
-					"		}\r\n"
-					"	}\r\n"
+					"if ( m_bRendering ) {\r\n"
+					"	IncVertical();\r\n"
 					"}\r\n";
 				}
 			}
@@ -1674,7 +1722,7 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX == LSN_RIGHT) ) {
 				sRet += "\r\n"
-				"if ( Rendering() ) {\r\n"
+				"if ( m_bRendering ) {\r\n"
 				"	m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;\r\n"
 				"	m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;\r\n"
 				"}\r\n";
@@ -1683,7 +1731,7 @@ namespace lsn {
 			// Copy vertical T into V.
 			if ( (_uY == _tDotHeight - 1) && (_uX >= 280 && _uX < 305) ) {
 				sRet += "\r\n"
-				"if ( Rendering() ) {\r\n"
+				"if ( m_bRendering ) {\r\n"
 				"	m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;\r\n"
 				"	m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;\r\n"
 				"	m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;\r\n"
