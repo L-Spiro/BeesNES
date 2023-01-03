@@ -622,6 +622,9 @@ namespace lsn {
 							}
 						}
 					}
+					if ( m_ui16SpritePatternTmp > 0x2FFF ) {
+						volatile int gjhg = 0;
+					}
 					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
@@ -902,7 +905,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] /*= _pui8Data[LSN_PPU_PALETTE_MEMORY]*/ = _ui8Val;
+			_pui8Data[_ui16Parm1] = _pui8Data[_ui16Parm1^4] = _ui8Val;
 		}
 
 		/**
@@ -1398,6 +1401,9 @@ namespace lsn {
 					}
 
 					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					if ( m_pmPpuMask.s.ui8Greyscale ) {
+						ui8Val &= 0x30;
+					}
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
 					if constexpr ( _tRegCode == LSN_PM_NTSC ) {

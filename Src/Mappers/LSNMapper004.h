@@ -94,29 +94,31 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<3, PgmBankSize()>, this, uint16_t( I - 0xE000 ) );
 			}*/
 			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x0400; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0000_03FF, this, uint16_t( I - 0x0000 ) );
-			}
-			for ( uint32_t I = 0x0400; I < 0x0800; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0400_07FF, this, uint16_t( I - 0x0400 ) );
-			}
-			for ( uint32_t I = 0x0800; I < 0x0C00; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0800_0BFF, this, uint16_t( I - 0x0800 ) );
-			}
-			for ( uint32_t I = 0x0C00; I < 0x1000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0C00_0FFF, this, uint16_t( I - 0x0C00 ) );
-			}
-			for ( uint32_t I = 0x1000; I < 0x1400; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1000_13FF, this, uint16_t( I - 0x1000 ) );
-			}
-			for ( uint32_t I = 0x1400; I < 0x1800; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1400_17FF, this, uint16_t( I - 0x1400 ) );
-			}
-			for ( uint32_t I = 0x1800; I < 0x1C00; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1800_1BFF, this, uint16_t( I - 0x1800 ) );
-			}
-			for ( uint32_t I = 0x1C00; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1C00_1FFF, this, uint16_t( I - 0x1C00 ) );
+			if ( m_prRom->vChrRom.size() ) {
+				for ( uint32_t I = 0x0000; I < 0x0400; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0000_03FF, this, uint16_t( I - 0x0000 ) );
+				}
+				for ( uint32_t I = 0x0400; I < 0x0800; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0400_07FF, this, uint16_t( I - 0x0400 ) );
+				}
+				for ( uint32_t I = 0x0800; I < 0x0C00; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0800_0BFF, this, uint16_t( I - 0x0800 ) );
+				}
+				for ( uint32_t I = 0x0C00; I < 0x1000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_0C00_0FFF, this, uint16_t( I - 0x0C00 ) );
+				}
+				for ( uint32_t I = 0x1000; I < 0x1400; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1000_13FF, this, uint16_t( I - 0x1000 ) );
+				}
+				for ( uint32_t I = 0x1400; I < 0x1800; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1400_17FF, this, uint16_t( I - 0x1400 ) );
+				}
+				for ( uint32_t I = 0x1800; I < 0x1C00; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1800_1BFF, this, uint16_t( I - 0x1800 ) );
+				}
+				for ( uint32_t I = 0x1C00; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &Read_CHR_1C00_1FFF, this, uint16_t( I - 0x1C00 ) );
+				}
 			}
 			// RAM.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {

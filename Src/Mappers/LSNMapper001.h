@@ -78,8 +78,10 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_PGM_8000_FFFF, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+			if ( m_prRom->vChrRom.size() ) {
+				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+				}
 			}
 			// RAM.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
