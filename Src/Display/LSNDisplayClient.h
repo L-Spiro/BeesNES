@@ -27,9 +27,19 @@ namespace lsn {
 		CDisplayClient() :
 			m_pdhHost( nullptr ),
 			m_pui8RenderTarget( nullptr ),
+			m_pofOutFormat( LSN_POF_RGB ),
 			m_stRenderTargetStride( 0 ) {
 		}
 		virtual ~CDisplayClient();
+
+
+		// == Enumerations.
+		/** The output format. */
+		enum LSN_PPU_OUT_FORMAT {
+			LSN_POF_RGB,						/**< Output 24-bit RGB pixels. */
+			LSN_POF_9BIT_PALETTE,				/**< Output 9-bit pallete entries. */
+			LSN_POF_6BIT_PALETTE,				/**< Output 6-bit palette entries (0-63, 0x00-0x3F). */
+		};
 
 
 		// == Functions.
@@ -95,8 +105,11 @@ namespace lsn {
 		CDisplayHost *							m_pdhHost;
 		/** The render target. */
 		uint8_t *								m_pui8RenderTarget;
+		/** The output format. */
+		LSN_PPU_OUT_FORMAT						m_pofOutFormat;
 		/** The render target row stride. */
 		size_t									m_stRenderTargetStride;
+		
 	};
 
 }	// namespace lsn

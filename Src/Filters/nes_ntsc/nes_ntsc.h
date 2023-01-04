@@ -5,6 +5,11 @@
  *	Removed following compiler warnings:
  *		warning C4244: '=': conversion from 'unsigned long' to 'nes_ntsc_out_t', possible loss of data
  *			via "(nes_ntsc_out_t)(...)"
+ * 
+ * Modified by L. Spiro					03/01/2023
+ *	Removed following compiler warnings:
+ *		warning C5054: operator '/': deprecated between enumerations of different types
+ *			via (int) cast.
  */
 
 /* nes_ntsc 0.2.2 */
@@ -118,7 +123,7 @@ typedef unsigned long nes_ntsc_rgb_t;
 struct nes_ntsc_t {
 	nes_ntsc_rgb_t table [nes_ntsc_palette_size] [nes_ntsc_entry_size];
 };
-enum { nes_ntsc_burst_size = nes_ntsc_entry_size / nes_ntsc_burst_count };
+enum { nes_ntsc_burst_size = nes_ntsc_entry_size / (int)nes_ntsc_burst_count };
 
 #define NES_NTSC_ENTRY_( ktable, n ) \
 	(nes_ntsc_rgb_t const*) (ktable + (n) * (nes_ntsc_entry_size * sizeof (nes_ntsc_rgb_t)))

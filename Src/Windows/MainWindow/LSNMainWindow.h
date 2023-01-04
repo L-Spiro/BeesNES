@@ -11,8 +11,10 @@
 #pragma once
 
 #include "../../Display/LSNDisplayHost.h"
+#include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
 #include "../../System/LSNSystem.h"
+#include <CriticalSection/LSWCriticalSection.h>
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
@@ -199,6 +201,13 @@ namespace lsn {
 		// == Types.
 		typedef lsw::CMainWindow				Parent;
 
+		/** The current render target/filter. */
+		struct LSN_CUR_FILTER_AND_RENDER_TARGET {
+			CFilterBase *						pfbCurFilter;								/**< The current filter. */
+			CFilterBase *						pfbNextFilter;								/**< The next filter. */
+			uint8_t *							pui8CurRenderTarget;						/**< The current render target. */
+		};
+
 
 		// == Members.
 		/** The output scale. */
@@ -209,6 +218,11 @@ namespace lsn {
 		double									m_dRatioActual;
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
+		/** The current/next filter/render target. */
+		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
+		//CFilterBase *							m_pfbCurFilter;
+		/** The standard RGB filter. */
+		CRgb24Filter							m_r24fRgb24Filter;
 		/** A clock. */
 		lsn::CClock								m_cClock;
 		/** The console pointer. */
@@ -219,10 +233,10 @@ namespace lsn {
 		lsw::CBitmap							m_bBitmaps[LSN_I_TOTAL];
 		/** Image mapping. */
 		INT										m_iImageMap[LSN_I_TOTAL];
-		/** The BITMAP reender target buffer cast to a BITMAPINFO object. */
-		size_t									m_stBufferIdx;
-		/** The BITMAP render target for very basic software rendering.  N-buffered. */
-		std::vector<std::vector<uint8_t>>		m_vBasicRenderTarget;
+		/** The BITMAPINFO header for blitting to the screen in software mode. */
+		BITMAPINFO								m_biBlitInfo;
+		/** The critical section for synchronizing Swap() and Paint(). */
+		lsw::CCriticalSection					m_csRenderCrit;
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
@@ -264,8 +278,10 @@ namespace lsn {
 
 		/**
 		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+		 * 
+		 * \param _bMoveWindow If true, te window is resized.
 		 */
-		void									UpdatedConsolePointer();
+		void									UpdatedConsolePointer( bool _bMoveWindow = true );
 
 		/**
 		 * Registers for raw input.

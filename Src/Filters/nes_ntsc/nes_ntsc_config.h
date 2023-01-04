@@ -15,7 +15,7 @@ handle things however it wants. */
 
 /* Type of input pixel values. You'll probably use unsigned short
 if you enable emphasis above. */
-#define NES_NTSC_IN_T unsigned char
+#define NES_NTSC_IN_T unsigned short
 
 /* Each raw pixel input value is passed through this. You might want to mask
 the pixel index if you use the high bits as flags, etc. */

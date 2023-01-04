@@ -227,7 +227,7 @@ namespace lsn {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
 				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
 			for ( uint32_t I = LSN_PPU_START; I < LSN_APU_START; I += LSN_PPU ) {
@@ -597,7 +597,7 @@ namespace lsn {
 								// Top half.
 								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
 									((m_ui8SpriteM & 0xFE) << 4) |
-									ui8PatternLine;
+									(ui8PatternLine & 0x7);
 							}
 							else {
 								// Bottom half.
@@ -612,7 +612,7 @@ namespace lsn {
 								// Top half (using bottom tile).
 								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
 									(((m_ui8SpriteM & 0xFE) + 1) << 4) |
-									(7 - ui8PatternLine);
+									((7 - ui8PatternLine) & 0x7);
 							}
 							else {
 								// Bottom half (using top tile).
@@ -621,9 +621,6 @@ namespace lsn {
 									((7 - ui8PatternLine) & 0x7);
 							}
 						}
-					}
-					if ( m_ui16SpritePatternTmp > 0x2FFF ) {
-						volatile int gjhg = 0;
 					}
 					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
@@ -905,7 +902,7 @@ namespace lsn {
 		 * \param _ui8Ret The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] = _pui8Data[_ui16Parm1^4] = _ui8Val;
+			_pui8Data[_ui16Parm1] = _pui8Data[_ui16Parm1^0x10] = _ui8Val;
 		}
 
 		/**
@@ -1329,7 +1326,7 @@ namespace lsn {
 			uint16_t ui16X, ui16Y;
 			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
-				uint8_t ui8Val = 0x0F;
+				uint16_t ui16Val = 0x0F;
 				if ( ui16Y >= _tRender ) {}													// Black pre-render scanline on PAL.
 				else {
 					uint8_t ui8BackgroundPixel = 0;
@@ -1400,43 +1397,62 @@ namespace lsn {
 						}
 					}
 
-					ui8Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					ui16Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
 					if ( m_pmPpuMask.s.ui8Greyscale ) {
-						ui8Val &= 0x30;
+						ui16Val &= 0x30;
 					}
+					
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
 					if constexpr ( _tRegCode == LSN_PM_NTSC ) {
-						ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
-						ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
+						ui16Val |= (m_pmPpuMask.s.ui8RedEmph << 6);
+						ui16Val |= (m_pmPpuMask.s.ui8GreenEmph << 7);
 					}
 					else {
-						ui8Val |= (m_pmPpuMask.s.ui8RedEmph << 7);
-						ui8Val |= (m_pmPpuMask.s.ui8GreenEmph << 6);
+						ui16Val |= (m_pmPpuMask.s.ui8RedEmph << 7);
+						ui16Val |= (m_pmPpuMask.s.ui8GreenEmph << 6);
 					}
-					ui8Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
+					ui16Val |= (m_pmPpuMask.s.ui8BlueEmph << 8);
+
 //#define LSN_SHOW_PIXEL
 #ifdef LSN_SHOW_PIXEL
-					ui8Val = ui8BackgroundPalette * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
+					ui16Val = ui8BackgroundPalette * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
 				}
 					
 #ifdef LSN_SHOW_PIXEL
-				pui8RenderPixel[0] = ui8Val;
-				pui8RenderPixel[1] = ui8Val;
-				pui8RenderPixel[2] = ui8Val;
+				pui8RenderPixel[0] = ui16Val;
+				pui8RenderPixel[1] = ui16Val;
+				pui8RenderPixel[2] = ui16Val;
 #else
 
+				
 				if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {				// Horizontal black border on PAL.
-					// Above pixel processing done because Sprite 0 can be hit even inside these borders.
-					pui8RenderPixel[0] = 0;
-					pui8RenderPixel[1] = 0;
-					pui8RenderPixel[2] = 0;
+					if ( m_pofOutFormat == LSN_POF_6BIT_PALETTE ) {
+						pui8RenderPixel[0] = 0x0F;
+					}
+					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
+						pui8RenderPixel[0] = 0x0F;
+					}
+					else {
+						// Above pixel processing done because Sprite 0 can be hit even inside these borders.
+						pui8RenderPixel[0] = 0;
+						pui8RenderPixel[1] = 0;
+						pui8RenderPixel[2] = 0;
+					}
 				}
 				else {
-					pui8RenderPixel[0] = m_pPalette.uVals[ui8Val].ui8Rgb[0];
-					pui8RenderPixel[1] = m_pPalette.uVals[ui8Val].ui8Rgb[1];
-					pui8RenderPixel[2] = m_pPalette.uVals[ui8Val].ui8Rgb[2];
+					if ( m_pofOutFormat == LSN_POF_6BIT_PALETTE ) {
+						pui8RenderPixel[0] = uint8_t( ui16Val ) & 0b111111;
+					}
+					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
+						(*reinterpret_cast<uint16_t *>(pui8RenderPixel)) = ui16Val;
+					}
+					else {
+						pui8RenderPixel[0] = m_pPalette.uVals[ui16Val].ui8Rgb[0];
+						pui8RenderPixel[1] = m_pPalette.uVals[ui16Val].ui8Rgb[1];
+						pui8RenderPixel[2] = m_pPalette.uVals[ui16Val].ui8Rgb[2];
+					}
 				}
 #endif	// #ifdef LSN_SHOW_PIXEL
 				

@@ -37,10 +37,11 @@ namespace lsn {
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_dScale( 3.0 ),
 		m_dRatioActual( 256.0 / 240.0 ),
-		m_stBufferIdx( 0 ),
+		//m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
+		
 		
 
 		static const struct {
@@ -68,51 +69,11 @@ namespace lsn {
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
 		}
 
+
 		m_pnsSystem = std::make_unique<CRegionalSystem>();
-		m_pdcClient = m_pnsSystem->GetDisplayClient();
-		if ( m_pdcClient ) {
-			m_pdcClient->SetDisplayHost( this );
-			
-			// Set ratios.
-			m_dRatioActual = m_pdcClient->DisplayRatio();
-			// UpdateRatio() called later.
+		UpdatedConsolePointer( false );
 
-			// Create the basic render target.
-			const size_t stBuffers = 2;
-			const WORD wBitDepth = 24;
-			m_vBasicRenderTarget.resize( stBuffers );
-			for ( auto I = stBuffers; I--; ) {
-				DWORD dwStride = RowStride( RenderTargetWidth(), wBitDepth );
-				m_vBasicRenderTarget[I].resize( sizeof( BITMAPINFOHEADER ) + (dwStride * m_pdcClient->DisplayHeight()) );
-				BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[I].data());
-				pbiHeader->bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
-				pbiHeader->bmiHeader.biWidth = RenderTargetWidth();
-				pbiHeader->bmiHeader.biHeight = m_pdcClient->DisplayHeight();
-				pbiHeader->bmiHeader.biPlanes = 1;
-				pbiHeader->bmiHeader.biBitCount = wBitDepth;
-				pbiHeader->bmiHeader.biCompression = BI_RGB;
-				pbiHeader->bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
-				pbiHeader->bmiHeader.biXPelsPerMeter = 0;
-				pbiHeader->bmiHeader.biYPelsPerMeter = 0;
-				pbiHeader->bmiHeader.biClrUsed = 0;
-				pbiHeader->bmiHeader.biClrImportant = 0;
 
-				// For fun.
-				uint8_t * pui8Pixels = m_vBasicRenderTarget[I].data() + pbiHeader->bmiHeader.biSize;
-				for ( auto Y = m_pdcClient->DisplayHeight(); Y--; ) {
-					for ( auto X = RenderTargetWidth(); X--; ) {
-						uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
-						/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
-						pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
-						pui8This[2] = uint8_t( CHelpers::sRGBtoLinear( X / 255.0 ) * 255.0 );
-						pui8This[0] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );
-					}
-				}
-			}
-		}
-		m_pnsSystem->SetInputPoller( this );
-
-		UpdateRatio();
 		{
 			// Center it in the screen.
 			LSW_RECT rFinal = FinalWindowRect();
@@ -122,18 +83,6 @@ namespace lsn {
 				rDesktop.left = (rDesktop.Width() - rFinal.Width()) / 2;
 				rDesktop.top = (rDesktop.Height() - rFinal.Height()) / 2;
 				::MoveWindow( Wnd(), rDesktop.left, rDesktop.top, rFinal.Width(), rFinal.Height(), TRUE );
-			}
-		}
-
-		{
-			//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
-			std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
-			lsn::CStdFile sfFile;
-			if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
-				std::vector<uint8_t> vPal;
-				if ( sfFile.LoadToMemory( vPal ) ) {
-					SetPalette( vPal );
-				}
 			}
 		}
 
@@ -322,8 +271,11 @@ namespace lsn {
 			double dScaleW = double( rDesktop.Width() - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( rDesktop.Height() - rWindowArea.Height() ) / FinalHeight( 1.0 );
 			LSW_RECT rRect = FinalWindowRect( std::min( dScaleW, dScaleH ) );
-			_pmmiInfo->ptMaxTrackSize.x = rRect.Width();
-			_pmmiInfo->ptMaxTrackSize.y = rRect.Height();
+			_pmmiInfo->ptMaxSize.x = rRect.Width();
+			_pmmiInfo->ptMaxSize.y = rRect.Height();
+
+			_pmmiInfo->ptMaxTrackSize.x = rRect.Width() + 5;
+			_pmmiInfo->ptMaxTrackSize.y = rRect.Height() + 5;
 		}
 		return LSW_H_HANDLED;
 	}
@@ -331,9 +283,12 @@ namespace lsn {
 	// WM_PAINT.
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
+
+		lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+
 		LSW_BEGINPAINT bpPaint( Wnd() );
 
-		BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
+		//BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
 		DWORD dwFinalW = FinalWidth();
 		DWORD dwFinalH = FinalHeight();
 		if ( dwFinalW != DWORD( RenderTargetWidth() ) || dwFinalH != m_pdcClient->DisplayHeight() ) {
@@ -342,8 +297,8 @@ namespace lsn {
 			::StretchDIBits( bpPaint.hDc,
 				0, 0, int( dwFinalW ), int( dwFinalH ),
 				0, 0, RenderTargetWidth(), m_pdcClient->DisplayHeight(),
-				&pbiHeader->bmiColors,
-				pbiHeader,
+				m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+				&m_biBlitInfo,
 				DIB_RGB_COLORS,
 				SRCCOPY );
 		}
@@ -353,8 +308,8 @@ namespace lsn {
 				RenderTargetWidth(), m_pdcClient->DisplayHeight(),
 				0, 0,
 				0, m_pdcClient->DisplayHeight(),
-				&pbiHeader->bmiColors,
-				pbiHeader,
+				m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+				&m_biBlitInfo,
 				DIB_RGB_COLORS );
 		}
 
@@ -505,10 +460,9 @@ namespace lsn {
 
 		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
-			//double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
+			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
-			//m_dScale = std::min( dScaleW, dScaleH );
-			m_dScale = dScaleH;
+			m_dScale = std::min( dScaleW, dScaleH );
 		}
 
 		return LSW_H_HANDLED;
@@ -575,17 +529,19 @@ namespace lsn {
 	 */
 	void CMainWindow::Swap() {
 		if ( m_pdcClient ) {
-			BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
-			m_stBufferIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
-			//size_t stNextIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size();
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 
+			m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget();
 			
-			m_pdcClient->SetRenderTarget( reinterpret_cast<uint8_t *>(&pbiHeader->bmiColors), RowStride( RenderTargetWidth(), 24 ) );
+			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->NextTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->Stride() );
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
 				/*RDW_UPDATENOW |*/
 				RDW_NOCHILDREN );
+
+			m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
+			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
 		}
 	}
 
@@ -807,7 +763,10 @@ namespace lsn {
 			if ( m_pnsSystem->LoadRom( rTmp ) ) {
 				if ( m_pnsSystem->GetRom() ) {
 					std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_pnsSystem->GetRom()->riInfo.s16RomName );
-					SetWindowText( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
+					if ( m_pnsSystem->GetRom()->riInfo.ui16Mapper == 4 ) {
+						u16Name += u" (Partial Support)";
+					}
+					::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
 				}
 				m_pnsSystem->ResetState( false );
 				m_cClock.SetStartingTick();
@@ -815,14 +774,16 @@ namespace lsn {
 				return true;
 			}
 		}
-		SetWindowText( Wnd(), L"BeesNES" );
+		::SetWindowTextW( Wnd(), L"BeesNES" );
 		return false;
 	}
 
 	/**
 	 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+	 * 
+	 * \param _bMoveWindow If true, te window is resized.
 	 */
-	void CMainWindow::UpdatedConsolePointer() {
+	void CMainWindow::UpdatedConsolePointer( bool _bMoveWindow ) {
 		if ( m_pnsSystem.get() ) {
 			m_pdcClient = m_pnsSystem->GetDisplayClient();
 			if ( m_pdcClient ) {
@@ -832,38 +793,35 @@ namespace lsn {
 				m_dRatioActual = m_pdcClient->DisplayRatio();
 				// UpdateRatio() called later.
 
-				// Create the basic render target.
-				const size_t stBuffers = 2;
-				const WORD wBitDepth = 24;
-				m_vBasicRenderTarget.resize( stBuffers );
-				for ( auto I = stBuffers; I--; ) {
-					DWORD dwStride = RowStride( RenderTargetWidth(), wBitDepth );
-					m_vBasicRenderTarget[I].resize( sizeof( BITMAPINFOHEADER ) + (dwStride * m_pdcClient->DisplayHeight()) );
-					BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[I].data());
-					pbiHeader->bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
-					pbiHeader->bmiHeader.biWidth = RenderTargetWidth();
-					pbiHeader->bmiHeader.biHeight = m_pdcClient->DisplayHeight();
-					pbiHeader->bmiHeader.biPlanes = 1;
-					pbiHeader->bmiHeader.biBitCount = wBitDepth;
-					pbiHeader->bmiHeader.biCompression = BI_RGB;
-					pbiHeader->bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
-					pbiHeader->bmiHeader.biXPelsPerMeter = 0;
-					pbiHeader->bmiHeader.biYPelsPerMeter = 0;
-					pbiHeader->bmiHeader.biClrUsed = 0;
-					pbiHeader->bmiHeader.biClrImportant = 0;
+				// Prepare the filters.
+				m_r24fRgb24Filter.Init( 2, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
+				{
+					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+					m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
+					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget();
 
-					// For fun.
-					uint8_t * pui8Pixels = m_vBasicRenderTarget[I].data() + pbiHeader->bmiHeader.biSize;
-					for ( auto Y = m_pdcClient->DisplayHeight(); Y--; ) {
-						for ( auto X = RenderTargetWidth(); X--; ) {
-							uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
-							/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
-							pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
-							pui8This[2] = uint8_t( CHelpers::sRGBtoLinear( X / 255.0 ) * 255.0 );
-							pui8This[0] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );
-						}
-					}
+					m_cfartCurFilterAndTargets.pfbNextFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
+					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->NextTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->Stride() );
 				}
+				//m_pfbCurFilter->Swap();
+
+				// Create the basic render target.
+				//const size_t stBuffers = 2;
+				const WORD wBitDepth = WORD( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+				const DWORD dwStride = CFilterBase::RowStride( RenderTargetWidth(), wBitDepth );
+				//m_vBasicRenderTarget.resize( stBuffers );
+
+				m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+				m_biBlitInfo.bmiHeader.biWidth = RenderTargetWidth();
+				m_biBlitInfo.bmiHeader.biHeight = m_pdcClient->DisplayHeight();
+				m_biBlitInfo.bmiHeader.biPlanes = 1;
+				m_biBlitInfo.bmiHeader.biBitCount = wBitDepth;
+				m_biBlitInfo.bmiHeader.biCompression = BI_RGB;
+				m_biBlitInfo.bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
+				m_biBlitInfo.bmiHeader.biXPelsPerMeter = 0;
+				m_biBlitInfo.bmiHeader.biYPelsPerMeter = 0;
+				m_biBlitInfo.bmiHeader.biClrUsed = 0;
+				m_biBlitInfo.bmiHeader.biClrImportant = 0;
 			}
 			m_pnsSystem->SetInputPoller( this );
 
@@ -888,7 +846,7 @@ namespace lsn {
 			}
 
 
-			{
+			if ( _bMoveWindow ) {
 				// Update the window (size only).
 				LSW_RECT rFinal = FinalWindowRect();
 				::MoveWindow( Wnd(), rFinal.left, rFinal.top, rFinal.Width(), rFinal.Height(), TRUE );
