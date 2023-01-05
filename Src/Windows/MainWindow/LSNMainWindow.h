@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../Display/LSNDisplayHost.h"
+#include "../../Filters/LSNNtscBlarggFilter.h"
 #include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
 #include "../../System/LSNSystem.h"
@@ -203,9 +204,18 @@ namespace lsn {
 
 		/** The current render target/filter. */
 		struct LSN_CUR_FILTER_AND_RENDER_TARGET {
+			uint64_t							ui64Frame;
 			CFilterBase *						pfbCurFilter;								/**< The current filter. */
 			CFilterBase *						pfbNextFilter;								/**< The next filter. */
+			CFilterBase *						pfbPrevFilter;								/**< The previous filter. */
 			uint8_t *							pui8CurRenderTarget;						/**< The current render target. */
+			uint8_t *							pui8LastFilteredResult;						/**< The last filtered result. */
+			//size_t								stStride;									/**< The render target’s stride. */
+			uint32_t							ui32Width;									/**< The current render target's width in pixels. */
+			uint32_t							ui32Height;									/**< The current render target's height in pixels. */
+			uint32_t							ui32Stride;									/**< The current render target's stride in bytes. */
+			uint16_t							ui16Bits;									/**< The current render target's bit depth. */
+			bool								bDirty;										/**< The dirty flag. */
 		};
 
 
@@ -223,6 +233,8 @@ namespace lsn {
 		//CFilterBase *							m_pfbCurFilter;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
+		/** Blargg’s NTSC filter. */
+		CNtscBlarggFilter						m_nbfBlargNtscFilter;
 		/** A clock. */
 		lsn::CClock								m_cClock;
 		/** The console pointer. */

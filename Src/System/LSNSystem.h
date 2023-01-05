@@ -245,9 +245,6 @@ namespace lsn {
 			}
 			size_t stOffset = m_rRom.vPrgRom.size() - ui16Size;
 			m_bBus.CopyToMemory( m_rRom.vPrgRom.data() + stOffset, ui16Size, ui16Addr );
-			/*if ( m_rRom.vChrRom.size() ) {
-				m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::min<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
-			}*/
 
 			switch ( m_rRom.riInfo.ui16Mapper ) {
 				case 0 : {
@@ -404,6 +401,10 @@ namespace lsn {
 				::OutputDebugStringA( sText.c_str() );
 				sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
 				::OutputDebugStringA( sText.c_str() );
+				sText = "****** PGM Size: " + std::to_string( m_rRom.vPrgRom.size() ) + ".\r\n";
+				::OutputDebugStringA( sText.c_str() );
+				sText = "****** CHR Size: " + std::to_string( m_rRom.vChrRom.size() ) + ".\r\n";
+				::OutputDebugStringA( sText.c_str() );
 			}
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
@@ -411,190 +412,6 @@ namespace lsn {
 			}
 
 			return true;
-#if 0
-			m_pmbMapper.release();
-			m_rRom = LSN_ROM();
-			m_rRom.riInfo.s16File = _s16Path;
-			m_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
-			
-
-			if ( _vRom.size() >= 4 ) {
-				const uint8_t ui8NesHeader[] = {
-					0x4E, 0x45, 0x53, 0x1A
-				};
-				if ( std::memcmp( _vRom.data(), ui8NesHeader, sizeof( ui8NesHeader ) ) == 0 ) {
-					// .NES.
-					if ( !LoadNes( _vRom ) ) { return false; }
-					//return true;
-				}
-				else {
-					return false;
-				}
-
-				// ROM loaded.
-				m_rRom.riInfo.ui32Crc = CCrc::GetCrc( m_rRom.vPrgRom.data(), m_rRom.vPrgRom.size() );
-				{
-					char szBuffer[128];
-					std::sprintf( szBuffer, "****** CRC: %.8X\r\n", m_rRom.riInfo.ui32Crc );
-					::OutputDebugStringA( szBuffer );
-				}
-
-				// Apply overrides from the database.
-				{
-					auto aEntry = CDatabase::m_mDatabase.find( m_rRom.riInfo.ui32Crc );
-					if ( aEntry != CDatabase::m_mDatabase.end() ) {
-						if ( aEntry->second.mmMirrorOverride != LSN_MM_NO_OVERRIDE ) {
-							m_rRom.riInfo.mmMirroring = aEntry->second.mmMirrorOverride;
-						}
-					}
-				}
-
-				m_pPpu.GetPpuBus().DGB_FillMemory( 0xFF );
-
-				uint16_t ui16Addr = 0x8000;
-				uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );
-				
-				if ( m_rRom.vPrgRom.size() < ui16Size ) {
-					ui16Addr = uint16_t( 0x10000 - m_rRom.vPrgRom.size() );
-					ui16Size = uint16_t( m_rRom.vPrgRom.size() );
-				}
-				size_t stOffset = m_rRom.vPrgRom.size() - ui16Size;
-				m_bBus.CopyToMemory( m_rRom.vPrgRom.data() + stOffset, ui16Size, ui16Addr );
-				/*if ( m_rRom.vChrRom.size() ) {
-					m_pPpu.GetPpuBus().CopyToMemory( m_rRom.vChrRom.data(), std::min<uint32_t>( uint32_t( m_rRom.vChrRom.size() ), 0x2000 ), 0 );
-				}*/
-
-				switch ( m_rRom.riInfo.ui16Mapper ) {
-					case 0 : {
-						m_pmbMapper = std::make_unique<CMapper000>();
-						break;
-					}
-					case 1 : {
-						m_pmbMapper = std::make_unique<CMapper001>();
-						break;
-					}
-					case 2 : {
-						m_pmbMapper = std::make_unique<CMapper002>();
-						break;
-					}
-					case 3 : {
-						m_pmbMapper = std::make_unique<CMapper003>();
-						break;
-					}
-					case 7 : {
-						m_pmbMapper = std::make_unique<CMapper007>();
-						break;
-					}
-					case 9 : {
-						m_pmbMapper = std::make_unique<CMapper009>();
-						break;
-					}
-					case 10 : {
-						m_pmbMapper = std::make_unique<CMapper010>();
-						break;
-					}
-					case 41 : {
-						m_pmbMapper = std::make_unique<CMapper041>();
-						break;
-					}
-					case 32 : {
-						m_pmbMapper = std::make_unique<CMapper032>();
-						break;
-					}
-					case 66 : {
-						m_pmbMapper = std::make_unique<CMapper066>();
-						break;
-					}
-					case 72 : {
-						m_pmbMapper = std::make_unique<CMapper072>();
-						break;
-					}
-					case 75 : {
-						m_pmbMapper = std::make_unique<CMapper075>();
-						break;
-					}
-					case 77 : {
-						m_pmbMapper = std::make_unique<CMapper077>();
-						break;
-					}
-					case 78 : {
-						m_pmbMapper = std::make_unique<CMapper078>();
-						break;
-					}
-					case 79 : {
-						m_pmbMapper = std::make_unique<CMapper079>();
-						break;
-					}
-					case 80 : {
-						m_pmbMapper = std::make_unique<CMapper080>();
-						break;
-					}
-					case 81 : {
-						m_pmbMapper = std::make_unique<CMapper081>();
-						break;
-					}
-					case 87 : {
-						m_pmbMapper = std::make_unique<CMapper087>();
-						break;
-					}
-					case 89 : {
-						m_pmbMapper = std::make_unique<CMapper089>();
-						break;
-					}
-					case 92 : {
-						m_pmbMapper = std::make_unique<CMapper092>();
-						break;
-					}
-					case 93 : {
-						m_pmbMapper = std::make_unique<CMapper093>();
-						break;
-					}
-					case 94 : {
-						m_pmbMapper = std::make_unique<CMapper094>();
-						break;
-					}
-					case 95 : {
-						m_pmbMapper = std::make_unique<CMapper095>();
-						break;
-					}
-					case 97 : {
-						m_pmbMapper = std::make_unique<CMapper097>();
-						break;
-					}
-					case 112 : {
-						m_pmbMapper = std::make_unique<CMapper112>();
-						break;
-					}
-					case 113 : {
-						m_pmbMapper = std::make_unique<CMapper113>();
-						break;
-					}
-					case 184 : {
-						m_pmbMapper = std::make_unique<CMapper184>();
-						break;
-					}
-					default : {
-						std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
-						::OutputDebugStringA( sText.c_str() );
-					}
-				}
-				{
-					std::string sText = "****** Mapper: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
-					::OutputDebugStringA( sText.c_str() );
-					sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
-					::OutputDebugStringA( sText.c_str() );
-				}
-
-				if ( m_pmbMapper ) {
-					m_pmbMapper->InitWithRom( m_rRom );
-				}
-
-				return true;
-			}
-
-			m_rRom = LSN_ROM();
-			return false;
-#endif	// 
 		}
 
 		/**

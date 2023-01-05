@@ -85,11 +85,20 @@ namespace lsn {
 		 *
 		 * \param _pui8Target Pointer to the pixel buffer to be used as a render target.  This is filled in during frame rendering.
 		 * \param _stStride The stride of each row in the render target.
+		 * \param _pofFormat The output format from the PPU.
 		 */
-		virtual void							SetRenderTarget( uint8_t * _pui8Target, size_t _stStride ) {
+		virtual void							SetRenderTarget( uint8_t * _pui8Target, size_t _stStride, LSN_PPU_OUT_FORMAT _pofFormat ) {
 			m_pui8RenderTarget = _pui8Target;
 			m_stRenderTargetStride = _stStride;
+			m_pofOutFormat = _pofFormat;
 		}
+
+		/**
+		 * Gets the frame count.
+		 *
+		 * \return Returns the frame count.
+		 */
+		virtual uint64_t						FrameCount() const = 0 { return 0; }
 
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.

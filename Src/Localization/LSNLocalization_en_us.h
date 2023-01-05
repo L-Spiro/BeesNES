@@ -16,11 +16,26 @@
 #define LSN_ZIP_FILES____ZIP____ZIP_										ZIP Files (*.zip)\0*.zip\0
 #define LSN_ALL_FILES___________											All Files (*.*)\0*.*\0
 #define LSN__FILE															&File
+#define LSN__OPTIONS														&Options
 #define LSN__TOOLS															&Tools
 #define LSN__WINDOW															&Window
 #define LSN__HELP															&Help
+// File menu.
 #define LSN_OPEN__ROM														Open R&OM
 #define LSN_OPEN_REC_ENT													Open Re&cent
+// Options menu.
+#define LSN_VIDEO_SIZE														Video Si&ze
+#define LSN_VIDEO_FILTER													Video &Filter
+#define LSN_VIDEO															&Video
+// Video sizes.
+#define LSN_VIDEO_SIZE_1X													1×
+#define LSN_VIDEO_SIZE_2X													2×
+#define LSN_VIDEO_SIZE_3X													3×
+#define LSN_VIDEO_SIZE_4X													4×
+#define LSN_VIDEO_SIZE_5X													5×
+#define LSN_VIDEO_SIZE_6X													6×
+// Tools menu.
+
 #define LSN_SELECT_ROM														Select ROM
 #define LSN_FILE_LISTING													File Listing
 #define LSN_SEARCH_															Search:

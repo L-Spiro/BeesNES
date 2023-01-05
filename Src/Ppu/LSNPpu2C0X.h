@@ -129,11 +129,7 @@ namespace lsn {
 			(this->*m_cCycle[m_stCurCycle])();
 
 			if ( m_bVAddrPending ) {
-
-				/*m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
-				m_bVAddrPending = false;*/
-
-				if ( m_ui8VAddrUpdateCounter-- == 0 ) {
+				if ( --m_ui8VAddrUpdateCounter == 0 ) {
 					m_bVAddrPending = false;
 					if ( m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
 						if ( m_ui16CurX == 257 ) {
@@ -141,7 +137,6 @@ namespace lsn {
 						}
 						else if ( m_ui16CurX > 1 && (m_ui16CurX & 0x7) == 0 && (m_ui16CurX <= 256 || m_ui16CurX >= 321) ) {
 							m_paPpuAddrV.ui16Addr = (m_ui16VAddrCopy & ~0b0000010000011111) | (m_paPpuAddrV.ui16Addr & m_ui16VAddrCopy & 0b0000010000011111);
-							//m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
 						}
 						else {
 							m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
@@ -196,7 +191,7 @@ namespace lsn {
 			m_ui8Oam2ClearIdx = 0;
 
 			m_ui16VAddrCopy = 0;
-			m_ui8VAddrUpdateCounter = 0;
+			m_ui8VAddrUpdateCounter = 0xFF;
 			m_bVAddrPending = false;
 
 			m_bRendering = Rendering();
@@ -325,6 +320,13 @@ namespace lsn {
 		 * \return Returns the frame count.
 		 */
 		inline uint64_t									GetFrameCount() const { return m_ui64Frame; }
+
+		/**
+		 * Gets the frame count.
+		 *
+		 * \return Returns the frame count.
+		 */
+		virtual uint64_t								FrameCount() const { return m_ui64Frame; }
 
 		/**
 		 * Gets the cycle count.
@@ -755,9 +757,11 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Scan = uint16_t( ppPpu->m_ui16CurY );
-			uint16_t ui16Dot = ppPpu->m_ui16CurX;
+			uint16_t ui16Scan = ppPpu->m_ui16CurY;
+			// If the scanline is >= 0 and < 240, or -1.
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+				uint16_t ui16Dot = ppPpu->m_ui16CurX;
+				// During the OAM-clear phase.
 				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
 					_ui8Ret = 0xFF;
 					return;
@@ -779,8 +783,13 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
-			ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val );
+			uint16_t ui16Scan = ppPpu->m_ui16CurY;
+			// If the scanline is >= 0 and < 240, or -1.
+			if ( ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+				ppPpu->m_ui8OamAddr += 4;
+				return;
+			}
+			ppPpu->m_ui8IoBusLatch = ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val );
 		}
 
 		/**
@@ -1268,7 +1277,6 @@ namespace lsn {
 				(*pui8Val) = 0x00;
 			}
 			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
-			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
 			return (*pui8Val);
 #else
 			float * pfDecay = &m_vOamDecay.data()[_stIdx];
@@ -1287,8 +1295,10 @@ namespace lsn {
 		 *
 		 * \param _stIdx The index to write.
 		 * \param _ui8Val The value to write.
+		 * \return Returns the written value, which might have been masked with 0b11100011 (0xE3).
 		 */
-		inline void										WriteOam( size_t _stIdx, uint8_t _ui8Val ) {
+		inline uint8_t									WriteOam( size_t _stIdx, uint8_t _ui8Val ) {
+			if ( (_stIdx & 0b11) == 2 ) { _ui8Val &= 0b11100011; }
 #ifdef LSN_INT_OAM_DECAY
 			m_ui64OamDecay[_stIdx] = m_ui64Cycle + m_ui64OamDecayTime;
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
@@ -1296,6 +1306,7 @@ namespace lsn {
 			m_vOamDecay.data()[_stIdx] = 1.0f;
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
 #endif	// #ifdef LSN_INT_OAM_DECAY
+			return _ui8Val;
 		}
 
 		/**
@@ -1325,7 +1336,7 @@ namespace lsn {
 			uint16_t ui16ThisX = uint16_t( m_ui16CurX ), ui16ThisY = uint16_t( m_ui16CurY );
 			uint16_t ui16X, ui16Y;
 			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
-				uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
+				
 				uint16_t ui16Val = 0x0F;
 				if ( ui16Y >= _tRender ) {}													// Black pre-render scanline on PAL.
 				else {
@@ -1421,20 +1432,26 @@ namespace lsn {
 				}
 					
 #ifdef LSN_SHOW_PIXEL
-				pui8RenderPixel[0] = ui16Val;
-				pui8RenderPixel[1] = ui16Val;
-				pui8RenderPixel[2] = ui16Val;
+				{
+					uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
+					pui8RenderPixel[0] = ui16Val;
+					pui8RenderPixel[1] = ui16Val;
+					pui8RenderPixel[2] = ui16Val;
+				}
 #else
 
 				
 				if ( ui16X < _tBorderW || ui16X >= (_tRenderW - _tBorderW) ) {				// Horizontal black border on PAL.
 					if ( m_pofOutFormat == LSN_POF_6BIT_PALETTE ) {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X];
 						pui8RenderPixel[0] = 0x0F;
 					}
 					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
-						pui8RenderPixel[0] = 0x0F;
+						uint16_t * pui16RenderPixel = reinterpret_cast<uint16_t *>(&m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*sizeof(uint16_t)]);
+						pui16RenderPixel[0] = 0x0F;
 					}
 					else {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 						// Above pixel processing done because Sprite 0 can be hit even inside these borders.
 						pui8RenderPixel[0] = 0;
 						pui8RenderPixel[1] = 0;
@@ -1443,12 +1460,15 @@ namespace lsn {
 				}
 				else {
 					if ( m_pofOutFormat == LSN_POF_6BIT_PALETTE ) {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 						pui8RenderPixel[0] = uint8_t( ui16Val ) & 0b111111;
 					}
 					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
-						(*reinterpret_cast<uint16_t *>(pui8RenderPixel)) = ui16Val;
+						uint16_t * pui16RenderPixel = reinterpret_cast<uint16_t *>(&m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*sizeof(uint16_t)]);
+						pui16RenderPixel[0] = ui16Val;
 					}
 					else {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
 						pui8RenderPixel[0] = m_pPalette.uVals[ui16Val].ui8Rgb[0];
 						pui8RenderPixel[1] = m_pPalette.uVals[ui16Val].ui8Rgb[1];
 						pui8RenderPixel[2] = m_pPalette.uVals[ui16Val].ui8Rgb[2];

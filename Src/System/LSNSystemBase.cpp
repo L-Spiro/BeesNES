@@ -28,7 +28,7 @@ namespace lsn {
 		_rRom = LSN_ROM();
 		_rRom.riInfo.s16File = _s16Path;
 		_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
-			
+		_rRom.riInfo.ui16Chip = static_cast<uint16_t>(CDatabase::LSN_C_UNKNOWN);
 
 		if ( _vRom.size() >= 4 ) {
 			const uint8_t ui8NesHeader[] = {
@@ -59,6 +59,9 @@ namespace lsn {
 					}
 					if ( aEntry->second.ui16Mapper != 0xFFFF ) {
 						_rRom.riInfo.ui16Mapper = aEntry->second.ui16Mapper;
+					}
+					if ( aEntry->second.cChip != CDatabase::LSN_C_UNKNOWN ) {
+						_rRom.riInfo.ui16Chip = static_cast<uint16_t>(aEntry->second.cChip);
 					}
 				}
 			}

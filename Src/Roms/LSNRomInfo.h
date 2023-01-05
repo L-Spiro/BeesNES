@@ -28,6 +28,7 @@ namespace lsn {
 		LSN_PPU_METRICS						pmConsoleRegion;								/**< NTSC, PAL, or Dendy. */
 		uint16_t							ui16Mapper;										/**< The mapper. */
 		uint16_t							ui16SubMapper;									/**< The sub-mapper. */
+		uint16_t							ui16Chip;										/**< The mapper chip. */
 	};
 
 }	// namespace lsn

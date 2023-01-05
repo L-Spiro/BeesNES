@@ -231,6 +231,42 @@ namespace lsn {
 #undef LSN_FILE_OPEN_FORMAT
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_1X : {
+				m_dScale = 1.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_2X : {
+				m_dScale = 2.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_3X : {
+				m_dScale = 3.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_4X : {
+				m_dScale = 4.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_5X : {
+				m_dScale = 5.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_6X : {
+				m_dScale = 6.0;
+				LSW_RECT rScreen = FinalWindowRect();
+				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -283,21 +319,31 @@ namespace lsn {
 	// WM_PAINT.
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
-
-		lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-
 		LSW_BEGINPAINT bpPaint( Wnd() );
 
-		//BITMAPINFO * pbiHeader = reinterpret_cast<BITMAPINFO *>(m_vBasicRenderTarget[m_stBufferIdx].data());
 		DWORD dwFinalW = FinalWidth();
 		DWORD dwFinalH = FinalHeight();
-		if ( dwFinalW != DWORD( RenderTargetWidth() ) || dwFinalH != m_pdcClient->DisplayHeight() ) {
+		{
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			if ( m_cfartCurFilterAndTargets.bDirty ) {
+				m_cfartCurFilterAndTargets.bDirty = false;
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame );
+				m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.ui32Width;
+				m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.ui32Height;
+				m_biBlitInfo.bmiHeader.biBitCount = m_cfartCurFilterAndTargets.ui16Bits;
+				m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+			}
+		}
+
+		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) ) {
 			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
 				0, 0, int( dwFinalW ), int( dwFinalH ),
-				0, 0, RenderTargetWidth(), m_pdcClient->DisplayHeight(),
-				m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+				0, 0, m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
 				&m_biBlitInfo,
 				DIB_RGB_COLORS,
 				SRCCOPY );
@@ -305,10 +351,10 @@ namespace lsn {
 		else {
 			::SetDIBitsToDevice( bpPaint.hDc,
 				0, 0,
-				RenderTargetWidth(), m_pdcClient->DisplayHeight(),
+				m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				0, 0,
-				0, m_pdcClient->DisplayHeight(),
-				m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+				0, m_biBlitInfo.bmiHeader.biHeight,
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
 				&m_biBlitInfo,
 				DIB_RGB_COLORS );
 		}
@@ -330,7 +376,7 @@ namespace lsn {
 	 * \param _hRawInput A HRAWINPUT handle to the RAWINPUT structure that contains the raw input from the device. To get the raw data, use this handle in the call to GetRawInputData.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CMainWindow::Input( INT _iCode, HRAWINPUT _hRawInput ) {
+	CWidget::LSW_HANDLED CMainWindow::Input( INT /*_iCode*/, HRAWINPUT /*_hRawInput*/ ) {
 		return LSW_H_CONTINUE;
 #if 0
 		if ( _iCode == RIM_INPUT ) {
@@ -435,7 +481,7 @@ namespace lsn {
 	 * \param _hDevice The HANDLE to the raw input device.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CMainWindow::InputDeviceChanged( INT _iNotifCode, HANDLE _hDevice ) {
+	CWidget::LSW_HANDLED CMainWindow::InputDeviceChanged( INT _iNotifCode, HANDLE /*_hDevice*/ ) {
 		switch ( _iNotifCode ) {
 			case GIDC_ARRIVAL : {
 				break;
@@ -519,9 +565,9 @@ namespace lsn {
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {
-		if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
+		/*if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
 			m_pnsSystem->Tick();
-		}
+		}*/
 	}
 
 	/**
@@ -529,19 +575,31 @@ namespace lsn {
 	 */
 	void CMainWindow::Swap() {
 		if ( m_pdcClient ) {
-			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			{
+				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+				m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
+				m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
+				m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+				m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
+				m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
+				m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
+				m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
+				m_cfartCurFilterAndTargets.bDirty = true;
 
-			m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget();
-			
-			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->NextTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->Stride() );
+				//if ( m_cfartCurFilterAndTargets.pfbNextFilter != m_cfartCurFilterAndTargets.pfbCurFilter ) {
+					m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
+					//m_cfartCurFilterAndTargets.stStride = CFilterBase::RowStride( m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+				//}
+				
+			}
+			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
+			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat() );
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
 				/*RDW_UPDATENOW |*/
 				RDW_NOCHILDREN );
 
-			m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
-			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
 		}
 	}
 
@@ -794,34 +852,41 @@ namespace lsn {
 				// UpdateRatio() called later.
 
 				// Prepare the filters.
-				m_r24fRgb24Filter.Init( 2, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
+				const size_t stBuffers = 2;
+				m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
+				m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				{
 					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-					m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
-					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget();
+					//m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
+					m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
+					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
+					m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+					m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
+					m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
+					m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
+					m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
+					m_cfartCurFilterAndTargets.bDirty = true;
+					m_cfartCurFilterAndTargets.pui8LastFilteredResult = nullptr;
 
 					m_cfartCurFilterAndTargets.pfbNextFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
-					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->NextTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->Stride() );
+					m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
+
+					m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
+					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat() );
+
+					// Create the basic render target.
+					m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+					m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
+					m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
+					m_biBlitInfo.bmiHeader.biPlanes = 1;
+					m_biBlitInfo.bmiHeader.biBitCount = WORD( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+					m_biBlitInfo.bmiHeader.biCompression = BI_RGB;
+					m_biBlitInfo.bmiHeader.biSizeImage = DWORD( m_cfartCurFilterAndTargets.ui32Stride * m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight() );
+					m_biBlitInfo.bmiHeader.biXPelsPerMeter = 0;
+					m_biBlitInfo.bmiHeader.biYPelsPerMeter = 0;
+					m_biBlitInfo.bmiHeader.biClrUsed = 0;
+					m_biBlitInfo.bmiHeader.biClrImportant = 0;
 				}
-				//m_pfbCurFilter->Swap();
-
-				// Create the basic render target.
-				//const size_t stBuffers = 2;
-				const WORD wBitDepth = WORD( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
-				const DWORD dwStride = CFilterBase::RowStride( RenderTargetWidth(), wBitDepth );
-				//m_vBasicRenderTarget.resize( stBuffers );
-
-				m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
-				m_biBlitInfo.bmiHeader.biWidth = RenderTargetWidth();
-				m_biBlitInfo.bmiHeader.biHeight = m_pdcClient->DisplayHeight();
-				m_biBlitInfo.bmiHeader.biPlanes = 1;
-				m_biBlitInfo.bmiHeader.biBitCount = wBitDepth;
-				m_biBlitInfo.bmiHeader.biCompression = BI_RGB;
-				m_biBlitInfo.bmiHeader.biSizeImage = dwStride * m_pdcClient->DisplayHeight();
-				m_biBlitInfo.bmiHeader.biXPelsPerMeter = 0;
-				m_biBlitInfo.bmiHeader.biYPelsPerMeter = 0;
-				m_biBlitInfo.bmiHeader.biClrUsed = 0;
-				m_biBlitInfo.bmiHeader.biClrImportant = 0;
 			}
 			m_pnsSystem->SetInputPoller( this );
 

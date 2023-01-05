@@ -8,6 +8,7 @@
 
 
 #include "LSNDatabase.h"
+#include <string>
 
 namespace lsn {
 
@@ -195,18 +196,10 @@ namespace lsn {
 			// ========
 			// MIRROR
 			// ========
-			// Deathbots.
-			//{ .ui32Crc = 0x8B781D39, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Doraemon.
 			{ .ui32Crc = 0xB00ABE1C, .mmMirrorOverride = LSN_MM_VERTICAL },
-			// Dragon Warriors III.
-			//{ .ui32Crc = 0xA86A5318, .mmMirrorOverride = LSN_MM_VERTICAL },
-			// Final Fantasy I, II.
-			//{ .ui32Crc = 0xC9556B36, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Ms. Pac Man.
 			{ .ui32Crc = 0x4B2DCE64, .mmMirrorOverride = LSN_MM_HORIZONTAL },
-			// Perman Part 2.
-			//{ .ui32Crc = 0xDBA3A02E, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Zippy Race.
 			{ .ui32Crc = 0xE16BB5FE, .mmMirrorOverride = LSN_MM_HORIZONTAL },
 
@@ -214,10 +207,24 @@ namespace lsn {
 			// ========
 			// MAPPERS
 			// ========
+			// Krazy Kreatures (USA) (Unl)
+			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Wrecking Crew (JUE)
 			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
+
+
+			// ========
+			// CHIPS
+			// ========
+			// Mutant Virus, The (U)
+			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
 		};
 		for ( auto I = LSN_ELEMENTS( eEntries ); I--; ) {
+			if ( m_mDatabase.end() != m_mDatabase.find( eEntries[I].ui32Crc ) ) {
+				char szBuffer[128];
+				std::sprintf( szBuffer, "************ Duplicate Entry in Database: 0x%.8X.\r\n", eEntries[I].ui32Crc );
+				::OutputDebugStringA( szBuffer );
+			}
 			m_mDatabase.insert( std::pair<uint32_t, LSN_ENTRY>( eEntries[I].ui32Crc, eEntries[I] ) );
 		}
 	}

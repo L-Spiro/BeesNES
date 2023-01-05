@@ -38,13 +38,14 @@ namespace lsn {
 		enum LSN_MAINWINDOW_MENU_IDS {
 			LSN_MWMI_MENU_BAR					= 300,
 			LSN_MWMI_MENU_FILE,
-			LSN_MWMI_MENU_SEARCH,
+			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_MENU_TOOLS,
 			LSN_MWMI_MENU_WINDOW,
 			LSN_MWMI_MENU_HELP,
 
 			LSN_MWMI_FILE						= 100,
 			LSN_MWMI_SEARCH,
+			LSN_MWMI_OPTIONS,
 			LSN_MWMI_TOOLS,
 			LSN_MWMI_WINDOW,
 			LSN_MWMI_HELP,
@@ -62,21 +63,17 @@ namespace lsn {
 			LSN_MWMI_UNLOCK,
 			LSN_MWMI_EDIT,
 
-			LSN_MWMI_DATATYPE,
-			LSN_MWMI_POINTER,
-			LSN_MWMI_STRING,
-			LSN_MWMI_GROUP,
-			LSN_MWMI_EXPRESSION,
-			LSN_MWMI_SUB,
-			LSN_MWMI_INSERT,
-			LSN_MWMI_SEARCHOPTIONS,
+			LSN_MWMI_VIDEO_SIZE,
+			LSN_MWMI_VIDEO_FILTER,
+			LSN_MWMI_VIDEO,
 
-			LSN_MWMI_DATATYPESEARCH,
-
-			LSN_MWMI_OPTIONS,
-			LSN_MWMI_PEWORKS,
-			LSN_MWMI_STRINGTHEORY,
-			LSN_MWMI_FLOATINGPOINTSTUDIO,
+			LSN_MWMI_VIDEO_SIZES,
+			LSN_MWMI_VIDEO_SIZE_1X,
+			LSN_MWMI_VIDEO_SIZE_2X,
+			LSN_MWMI_VIDEO_SIZE_3X,
+			LSN_MWMI_VIDEO_SIZE_4X,
+			LSN_MWMI_VIDEO_SIZE_5X,
+			LSN_MWMI_VIDEO_SIZE_6X,
 
 			LSN_MWMI_SHOWFOUNDADDR,
 			LSN_MWMI_SHOW_EXPEVAL,
@@ -124,8 +121,14 @@ namespace lsn {
 		/** Options menu. */
 		static LSW_MENU_ITEM					m_miOptionsMenu[];
 
+		/** Tools menu. */
+		static LSW_MENU_ITEM					m_miToolsMenu[];
+
 		/** Windows menu. */
 		static LSW_MENU_ITEM					m_miWindowsMenu[];
+
+		/** Video-size sub-menu. */
+		static LSW_MENU_ITEM					m_miVideoSizeMenu[];
 
 		/** Menus. */
 		static LSW_MENU_LAYOUT					m_miMenus[];

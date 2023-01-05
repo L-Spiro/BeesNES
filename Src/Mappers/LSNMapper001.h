@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Database/LSNDatabase.h"
 #include "LSNMapperBase.h"
 
 namespace lsn {
@@ -59,6 +60,8 @@ namespace lsn {
 			m_ui8LoadCnt = 0;
 			SetPgmBank<2, PgmBankSize()>( 0 );
 			SetPgmBank<3, PgmBankSize()>( -1 );
+
+			m_bRamEnabled = _rRom.riInfo.ui16Chip != CDatabase::LSN_C_MMC1C;
 		}
 
 		/**
@@ -116,6 +119,8 @@ namespace lsn {
 		uint8_t											m_ui8Load;
 		/** The load count. */
 		uint8_t											m_ui8LoadCnt;
+		/** PGM RAM enabled. */
+		bool											m_bRamEnabled;
 
 
 		// == Functions.
@@ -129,7 +134,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Mapper001PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
-			_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+			if ( pmThis->m_bRamEnabled ) {
+				_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+			}
 		}
 
 		/**
@@ -142,7 +149,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Mapper001PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
-			pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+			if ( pmThis->m_bRamEnabled ) {
+				pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+			}
 		}
 
 		/**
@@ -282,6 +291,10 @@ namespace lsn {
 						 *	+----- MMC1B and later: PRG RAM chip enable (0: enabled; 1: disabled; ignored on MMC1A)
 						 *		   MMC1A: Bit 3 bypasses fixed bank logic in 16K mode (0: affected; 1: bypassed)
 						 */
+						if ( pmThis->m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && pmThis->m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END ) {
+							pmThis->m_bRamEnabled = (pmThis->m_ui8Load & 0b10000) != 0;
+						}
+
 						uint8_t ui8PgmMode = (pmThis->m_ui8Control >> 2) & 0b11;
 						switch ( ui8PgmMode ) {
 							// 0, 1: switch 32 KB at $8000, ignoring low bit of bank number;

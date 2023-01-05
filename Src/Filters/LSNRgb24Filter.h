@@ -47,28 +47,28 @@ namespace lsn {
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_RGB; }
 
 		/**
-		 * Gets a pointer to the current render target.
+		 * Gets a pointer to the output buffer.
 		 *
-		 * \return Returns a pointer to the current render target.
+		 * \return Returns a pointer to the output buffer.
 		 */
-		virtual uint8_t *									CurTarget() { return m_vBasicRenderTarget[m_stBufferIdx].data(); }
+		virtual uint8_t *									OutputBuffer() { return CurTarget(); }
 
 		/**
-		 * Gets a pointer to the next render target.
+		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
+		 *	its width, height, bit-depth, and stride, are returned.
 		 *
-		 * \return Returns a pointer to the next render target.
+		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
+		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
+		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
+		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
+		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
+		 * \param _ui64PpuFrame The PPU frame associated with the input data.
+		 * \return Returns a pointer to the filtered output buffer.
 		 */
-		virtual uint8_t *									NextTarget() { return m_vBasicRenderTarget[(m_stBufferIdx+1)%m_vBasicRenderTarget.size()].data(); }
-
-		/**
-		 * Swaps to the next render target.
-		 */
-		virtual void										Swap();
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &/*_ui32Width*/, uint32_t &/*_ui32Height*/, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/ );
 
 	protected :
 		// == Members.
-		/** The render target for very basic software rendering.  N-buffered. */
-		std::vector<std::vector<uint8_t>>					m_vBasicRenderTarget;
 		
 	};
 

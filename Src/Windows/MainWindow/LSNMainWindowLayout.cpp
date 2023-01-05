@@ -109,6 +109,7 @@ namespace lsn {
 	LSW_MENU_ITEM CMainWindowLayout::m_miMenuBar[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_FILE,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__FILE ) },
+		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__OPTIONS ) },
 		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
 		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
 		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
@@ -128,10 +129,19 @@ namespace lsn {
 	/** Options menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miOptionsMenu[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		L"Dummy &0" },
-		{ FALSE,		LSN_MWMI_PEWORKS,			FALSE,		FALSE,		TRUE,		L"Dummy &1" },
-		{ FALSE,		LSN_MWMI_STRINGTHEORY,		FALSE,		FALSE,		TRUE,		L"Dummy &2" },
-		{ FALSE,		LSN_MWMI_FLOATINGPOINTSTUDIO,FALSE,		FALSE,		TRUE,		L"Dummy &3" },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE ) },
+		{ FALSE,		LSN_MWMI_VIDEO_FILTER,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_FILTER ) },
+		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
+		{ FALSE,		LSN_MWMI_VIDEO,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO ) },
+	};
+
+	/** Tools menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miToolsMenu[] = {
+		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+		{ FALSE,		LSN_MWMI_DELETE,			FALSE,		FALSE,		TRUE,		L"Dummy &0" },
+		{ FALSE,		LSN_MWMI_DELETEALL,			FALSE,		FALSE,		TRUE,		L"Dummy &1" },
+		{ FALSE,		LSN_MWMI_LOCK,				FALSE,		FALSE,		TRUE,		L"Dummy &2" },
+		{ FALSE,		LSN_MWMI_UNLOCK,			FALSE,		FALSE,		TRUE,		L"Dummy &3" },
 	};
 
 	/** Windows menu. */
@@ -142,6 +152,17 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_SHOW_CONVERTER,	TRUE,		FALSE,		TRUE,		L"Dummy &2" },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_SHOW_ALL,			TRUE,		FALSE,		TRUE,		L"Dummy &3" },
+	};
+
+	/** Video-size sub-menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miVideoSizeMenu[] = {
+		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_1X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_1X ) },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_2X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_2X ) },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_3X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_3X ) },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_4X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_4X ) },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_5X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_5X ) },
+		{ FALSE,		LSN_MWMI_VIDEO_SIZE_6X,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE_6X ) },
 	};
 
 	/** Menus. */
@@ -161,11 +182,18 @@ namespace lsn {
 			m_miFileMenu
 		},
 		{
+			LSN_MWMI_MENU_OPTIONS,
+			LSN_MWMI_MENU_BAR,
+			LSN_MWMI_OPTIONS,
+			LSN_ELEMENTS( m_miOptionsMenu ),
+			m_miOptionsMenu
+		},
+		{
 			LSN_MWMI_MENU_TOOLS,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_TOOLS,
-			LSN_ELEMENTS( m_miOptionsMenu ),
-			m_miOptionsMenu
+			LSN_ELEMENTS( m_miToolsMenu ),
+			m_miToolsMenu
 		},
 		{
 			LSN_MWMI_MENU_WINDOW,
@@ -173,6 +201,15 @@ namespace lsn {
 			LSN_MWMI_WINDOW,
 			LSN_ELEMENTS( m_miWindowsMenu ),
 			m_miWindowsMenu
+		},
+
+		// Video Sizes.
+		{
+			LSN_MWMI_VIDEO_SIZES,
+			LSN_MWMI_MENU_OPTIONS,
+			LSN_MWMI_VIDEO_SIZE,
+			LSN_ELEMENTS( m_miVideoSizeMenu ),
+			m_miVideoSizeMenu
 		},
 	};
 

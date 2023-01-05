@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Display/LSNDisplayClient.h"
+#include <vector>
 
 
 namespace lsn {
@@ -50,26 +51,54 @@ namespace lsn {
 		 *
 		 * \return Returns a pointer to the current render target.
 		 */
-		virtual uint8_t *									CurTarget() { return nullptr; }
+		virtual uint8_t *									CurTarget() { return m_vBasicRenderTarget[m_stBufferIdx].data(); }
 
 		/**
 		 * Gets a pointer to the next render target.
 		 *
 		 * \return Returns a pointer to the next render target.
 		 */
-		virtual uint8_t *									NextTarget() { return nullptr; }
+		virtual uint8_t *									NextTarget() { return m_vBasicRenderTarget[(m_stBufferIdx+1)%m_vBasicRenderTarget.size()].data(); }
 
 		/**
 		 * Swaps to the next render target.
 		 */
-		virtual void										Swap() {}
+		virtual void										Swap() { m_stBufferIdx = (m_stBufferIdx + 1) % m_vBasicRenderTarget.size(); }
+
+		/**
+		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
+		 *	its width, height, bit-depth, and stride, are returned.
+		 *
+		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
+		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
+		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
+		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
+		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
+		 * \param _ui64PpuFrame The PPU frame associated with the input data.
+		 * \return Returns a pointer to the filtered output buffer.
+		 */
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &/*_ui32Width*/, uint32_t &/*_ui32Height*/, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/ ) { return _pui8Input; }
 
 		/**
 		 * Gets the render-target stride.
 		 *
 		 * \return Returns the render-target stride.
 		 */
-		inline size_t										Stride() const { return m_stStride; }
+		inline size_t										OutputStride() const { return m_stStride; }
+
+		/**
+		 * Gets the output buffer’s width in pixels.
+		 *
+		 * \return Returns the output buffer’s width in pixels.
+		 */
+		inline uint32_t										OutputWidth() const { return m_ui32OutputWidth; }
+
+		/**
+		 * Gets the output buffer’s height in pixels.
+		 *
+		 * \return Returns the output buffer’s height in pixels.
+		 */
+		inline uint32_t										OutputHeight() const { return m_ui32OutputHeight; }
 
 		/**
 		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.
@@ -77,6 +106,13 @@ namespace lsn {
 		 * \return Returns the bits-per-pixel of the final output.
 		 */
 		virtual uint32_t									OutputBits() const { return 24; }
+
+		/**
+		 * Gets a pointer to the output buffer.
+		 *
+		 * \return Returns a pointer to the output buffer.
+		 */
+		virtual uint8_t *									OutputBuffer() { return nullptr; }
 
 		/**
 		 * Gets a BITMAP stride given its row width in bytes.
@@ -92,10 +128,16 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The render target for very basic software rendering.  N-buffered. */
+		std::vector<std::vector<uint8_t>>					m_vBasicRenderTarget;
 		/** The current buffer index. */
 		size_t												m_stBufferIdx;
 		/** The render-target stride. */
 		size_t												m_stStride;
+		/** The render-target width in pixels. */
+		uint32_t											m_ui32OutputWidth;
+		/** The render-target height in pixels. */
+		uint32_t											m_ui32OutputHeight;
 	};
 
 }	// namespace lsn
