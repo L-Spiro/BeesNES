@@ -5,21 +5,15 @@ A sub-cycle–accurate Nintendo Entertainment System emulator.
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
-![image](https://user-images.githubusercontent.com/7362666/210118486-53aaea46-4609-4e3d-a9e5-15d5e016d5e0.png)
-![image](https://user-images.githubusercontent.com/7362666/209457943-0ea5581c-2220-44bf-a046-ed2be6bf77d4.png)
-![image](https://user-images.githubusercontent.com/7362666/210247475-8b31c929-adbb-4b26-856a-9dd24b5c57df.png)
-![image](https://user-images.githubusercontent.com/7362666/209458143-d44796b1-c0cf-40e1-9f89-b71b8be555b1.png)
-![image](https://user-images.githubusercontent.com/7362666/209458158-a01a7a05-bcee-494e-a0cc-8ee3e759cae8.png)
-![image](https://user-images.githubusercontent.com/7362666/209458173-abb73203-21b0-4f74-8b76-e0113ed76cf7.png)
-![image](https://user-images.githubusercontent.com/7362666/209458188-0fb8a5c5-3d25-4583-b618-e7ea92e3c75d.png)
-![image](https://user-images.githubusercontent.com/7362666/209458230-92ef54ae-ce4e-4ceb-9a0d-e7e235c57feb.png)
-![image](https://user-images.githubusercontent.com/7362666/209458242-87f07e69-22bf-44de-b3ba-ad15ddc157e0.png)
-![image](https://user-images.githubusercontent.com/7362666/209458269-7ffe82aa-63fd-4327-b56a-fbbd392cbd38.png)
-![image](https://user-images.githubusercontent.com/7362666/209458418-5e562f83-043b-4e38-aefc-cc8fb6eb568f.png)
-![image](https://user-images.githubusercontent.com/7362666/209458490-10276135-25ad-40c0-930d-b0b273b6ef1d.png)
-![image](https://user-images.githubusercontent.com/7362666/209808558-ccfb45c0-1988-464f-b511-7cb27173f32c.png)
-![image](https://user-images.githubusercontent.com/7362666/210033260-031b12fa-dcc0-4405-b189-50f482c08947.png)
-
+![image](https://user-images.githubusercontent.com/7362666/210867292-14fe69c3-ccbf-4f9a-a9a9-161b98947d2e.png)
+![image](https://user-images.githubusercontent.com/7362666/210867692-b56efc04-a1b5-4991-aa58-74a0410e216a.png)
+![image](https://user-images.githubusercontent.com/7362666/210867955-f828cee6-f929-4465-9a71-4e77fc48ef46.png)
+![image](https://user-images.githubusercontent.com/7362666/210869007-d9a0877c-3418-4e89-abce-ac2e22406f21.png)
+![image](https://user-images.githubusercontent.com/7362666/210869149-3df2c007-eae2-4fd1-914a-c257545c0a37.png)
+![image](https://user-images.githubusercontent.com/7362666/210869808-d18c50c6-4131-4df5-b8a6-7ff0c5776b9e.png)
+![image](https://user-images.githubusercontent.com/7362666/210870155-07366ab7-28b2-4de1-92ae-35fd42bf9830.png)
+![image](https://user-images.githubusercontent.com/7362666/210870353-f5da5c2b-9dbb-489b-b4b9-d1ff52163baa.png)
+![image](https://user-images.githubusercontent.com/7362666/210870556-ee040e4f-3314-4074-9cd3-4be998f462e6.png)
 
 
 ## Accuracy
