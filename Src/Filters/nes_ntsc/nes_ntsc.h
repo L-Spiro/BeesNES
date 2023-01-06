@@ -5,11 +5,14 @@
  *	Removed following compiler warnings:
  *		warning C4244: '=': conversion from 'unsigned long' to 'nes_ntsc_out_t', possible loss of data
  *			via "(nes_ntsc_out_t)(...)"
- * 
+ *
  * Modified by L. Spiro					03/01/2023
  *	Removed following compiler warnings:
  *		warning C5054: operator '/': deprecated between enumerations of different types
  *			via (int) cast.
+ *
+ * Modified by L. Spiro					06/01/2023
+ *	Created way to pass burst-phase count in order to ad-hoc emulate PAL (should be a temporary approach).
  */
 
 /* nes_ntsc 0.2.2 */
@@ -72,8 +75,9 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup );
 In_row_width is the number of pixels to get to the next input row. Out_pitch
 is the number of *bytes* to get to the next output row. Output pixel format
 is set by NES_NTSC_OUT_DEPTH (defaults to 16-bit RGB). */
+/** Modified by L. Spiro					06/01/2023 */
 void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* nes_in,
-		long in_row_width, int burst_phase, int in_width, int in_height,
+		long in_row_width, int burst_phase, int total_burst_phases, int in_width, int in_height,
 		void* rgb_out, long out_pitch );
 
 /* Number of output pixels written by blitter for given input width. Width might

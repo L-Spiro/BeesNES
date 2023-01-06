@@ -18,6 +18,10 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
  *	Removed following compiler warnings:
  *		warning C4127: conditional expression is constant
  *			via #pragma warning( disable : 4127 )
+ * 
+ * Modified by L. Spiro					06/01/2023
+ *		warning C4456: declaration of 'sat' hides previous local declaration
+ *			via changing the name of 'sat'.
  */
 
 // L. Spiro					27/12/2022
@@ -175,16 +179,16 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 					{
 						static unsigned char const tints [8] = { 0, 6, 10, 8, 2, 4, 0, 0 };
 						int const tint_color = tints [tint];
-						float sat = hi * (0.5f - atten_mul * 0.5f) + atten_sub * 0.5f;
-						y -= sat * 0.5f;
+						float sat2 = hi * (0.5f - atten_mul * 0.5f) + atten_sub * 0.5f;
+						y -= sat2 * 0.5f;
 						if ( tint >= 3 && tint != 4 )
 						{
 							/* combined tint bits */
-							sat *= 0.6f;
-							y -= sat;
+							sat2 *= 0.6f;
+							y -= sat2;
 						}
-						i += TO_ANGLE_SIN( tint_color ) * sat;
-						q += TO_ANGLE_COS( tint_color ) * sat;
+						i += TO_ANGLE_SIN( tint_color ) * sat2;
+						q += TO_ANGLE_COS( tint_color ) * sat2;
 					}
 				}
 			}
@@ -245,9 +249,9 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 }
 
 #ifndef NES_NTSC_NO_BLITTERS
-
+/** Modified by L. Spiro					06/01/2023 */
 void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, long in_row_width,
-		int burst_phase, int in_width, int in_height, void* rgb_out, long out_pitch )
+		int burst_phase, int total_burst_phases, int in_width, int in_height, void* rgb_out, long out_pitch )
 {
 	int chunk_count = (in_width - 1) / nes_ntsc_in_chunk;
 	for ( ; in_height; --in_height )
@@ -293,7 +297,8 @@ void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, long in_
 		NES_NTSC_RGB_OUT( 5, line_out [5], NES_NTSC_OUT_DEPTH );
 		NES_NTSC_RGB_OUT( 6, line_out [6], NES_NTSC_OUT_DEPTH );
 		
-		burst_phase = (burst_phase + 1) % nes_ntsc_burst_count;
+		/** Modified by L. Spiro					06/01/2023 */
+		burst_phase = (burst_phase + 1) % total_burst_phases;
 		input += in_row_width;
 		rgb_out = (char*) rgb_out + out_pitch;
 	}
