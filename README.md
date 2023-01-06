@@ -5,16 +5,15 @@ A sub-cycle–accurate Nintendo Entertainment System emulator.
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
-![image](https://user-images.githubusercontent.com/7362666/210867292-14fe69c3-ccbf-4f9a-a9a9-161b98947d2e.png)
-![image](https://user-images.githubusercontent.com/7362666/210867692-b56efc04-a1b5-4991-aa58-74a0410e216a.png)
-![image](https://user-images.githubusercontent.com/7362666/210867955-f828cee6-f929-4465-9a71-4e77fc48ef46.png)
-![image](https://user-images.githubusercontent.com/7362666/210869007-d9a0877c-3418-4e89-abce-ac2e22406f21.png)
-![image](https://user-images.githubusercontent.com/7362666/210869149-3df2c007-eae2-4fd1-914a-c257545c0a37.png)
-![image](https://user-images.githubusercontent.com/7362666/210869808-d18c50c6-4131-4df5-b8a6-7ff0c5776b9e.png)
-![image](https://user-images.githubusercontent.com/7362666/210870155-07366ab7-28b2-4de1-92ae-35fd42bf9830.png)
-![image](https://user-images.githubusercontent.com/7362666/210870353-f5da5c2b-9dbb-489b-b4b9-d1ff52163baa.png)
-![image](https://user-images.githubusercontent.com/7362666/210870556-ee040e4f-3314-4074-9cd3-4be998f462e6.png)
-
+![image](https://user-images.githubusercontent.com/7362666/211026948-68194729-b835-40c5-892f-72eb54905a73.png)
+![image](https://user-images.githubusercontent.com/7362666/211027329-47ca3326-269e-47dd-a557-719a4b62cd2f.png)
+![image](https://user-images.githubusercontent.com/7362666/211027660-ac956e3c-1059-4137-9cd0-ee2505ff76a0.png)
+![BeesNES_CPLlY70HG2](https://user-images.githubusercontent.com/7362666/211028518-5c59b5f3-4526-4c74-acce-8449618db1c5.png)
+![image](https://user-images.githubusercontent.com/7362666/211028697-30f99250-1117-4bc4-a697-485b61a620e3.png)
+![image](https://user-images.githubusercontent.com/7362666/211028992-31f8bad2-8a69-414d-99ef-a4237fb4de28.png)
+![image](https://user-images.githubusercontent.com/7362666/211029287-d75e41d7-b7d1-4bb2-959d-ac1ebe7531ce.png)
+![image](https://user-images.githubusercontent.com/7362666/211029387-4f8383a6-016d-44b8-b184-d4a9de47e546.png)
+![image](https://user-images.githubusercontent.com/7362666/211029444-5807bb93-72f6-4735-bcc7-e024e6c18eac.png)
 
 ## Accuracy
 Most emulators have thus far have aimed for “Cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Cycle_accuracy  
