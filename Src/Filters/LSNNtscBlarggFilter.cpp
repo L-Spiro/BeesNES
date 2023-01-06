@@ -17,7 +17,7 @@ namespace lsn {
 		nsTmp.artifacts = 0.5;
 		nsTmp.bleed = 0.8;
 		nsTmp.fringing = 0.75;
-		nsTmp.sharpness = -0.1;
+		nsTmp.sharpness = -0.15;
 		nsTmp.merge_fields = 1;
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 	}

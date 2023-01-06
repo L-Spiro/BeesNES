@@ -31,6 +31,9 @@
 #include <hidpi.h>
 
 
+#define LSN_SCALE_RESOLUTION					30.0
+
+
 namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
@@ -508,7 +511,10 @@ namespace lsn {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
-			m_dScale = std::min( dScaleW, dScaleH );
+			m_dScale = std::round( std::min( dScaleW, dScaleH ) * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
+			LSW_RECT rCur = WindowRect();
+			LSW_RECT rNew = FinalWindowRect();
+			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );
 		}
 
 		return LSW_H_HANDLED;
@@ -528,7 +534,7 @@ namespace lsn {
 			if ( _iEdge == WMSZ_BOTTOM || _iEdge == WMSZ_BOTTOMRIGHT || _iEdge == WMSZ_BOTTOMLEFT ||
 				_iEdge == WMSZ_TOP || _iEdge == WMSZ_TOPRIGHT || _iEdge == WMSZ_TOPLEFT ) {
 				double dScale = double( _prRect->Height() - rBorders.Height() ) / FinalHeight( 1.0 );
-
+				dScale = std::round( dScale * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
 
 				LSW_RECT rNew = FinalWindowRect( dScale );
 				// If the drag was on the top, move the rectangle to maintain the TOP coordinate.
@@ -545,7 +551,7 @@ namespace lsn {
 			// dragging verticals expands the height.
 			else if ( _iEdge == WMSZ_LEFT || _iEdge == WMSZ_RIGHT ) {
 				double dScale = double( _prRect->Width() - rBorders.Width() ) / FinalWidth( 1.0 );
-
+				dScale = std::round( dScale * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
 
 				LSW_RECT rNew = FinalWindowRect( dScale );
 				// If the drag was on the left, move the rectangle to maintain the RIGHT coordinate.
@@ -763,7 +769,8 @@ namespace lsn {
 	 */
 	void CMainWindow::UpdateRatio() {
 		if ( m_pdcClient ) {
-			m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
+			//m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
+			m_dRatio = m_dRatioActual;
 		}
 	}
 
