@@ -329,6 +329,13 @@ namespace lsn {
 		virtual uint64_t								FrameCount() const { return m_ui64Frame; }
 
 		/**
+		 * Gets the PPU region.
+		 *
+		 * \return Returns the PPU region.
+		 */
+		virtual LSN_PPU_METRICS							PpuRegion() const { return static_cast<LSN_PPU_METRICS>(_tRegCode); }
+
+		/**
 		 * Gets the cycle count.
 		 *
 		 * \return Returns the cycle count.

@@ -20,6 +20,7 @@
 #include "LSNMainWindow.h"
 #include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
+#include "../../Input/LSNDirectInput8.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
@@ -89,8 +90,9 @@ namespace lsn {
 			}
 		}
 
-		RegisterRawInput();
+		//RegisterRawInput();
 		ScanInputDevices();
+		
 
 		(*m_pabIsAlive) = true;
 	}
@@ -862,10 +864,21 @@ namespace lsn {
 				const size_t stBuffers = 2;
 				m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
+				m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				{
 					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 					//m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
-					m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
+					switch ( m_pdcClient->PpuRegion() ) {
+						case LSN_PM_PAL : {}
+						case LSN_PM_DENDY : {
+							m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargPalFilter;
+							break;
+						}
+						default : {
+							m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
+						}
+					}
+					
 					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 					m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
 					m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
@@ -955,13 +968,14 @@ namespace lsn {
 	 * Scans for USB controllers.
 	 */
 	void CMainWindow::ScanInputDevices() {
-		std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
+		std::vector<DIDEVICEINSTANCE> vDevices = CDirectInput8::GatherDevices( DI8DEVCLASS_GAMECTRL );
+		/*std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
 		// Remove non-game usage pages.
 		for ( auto I = vList.size(); I--; ) {
 			if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD || vList[I].diInfo.hid.usUsagePage != HID_USAGE_PAGE_GENERIC ) {
 				vList.erase( vList.begin() + I );
 			}
-		}
+		}*/
 		return;
 	}
 

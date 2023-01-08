@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A base claass for all mappers.
+ * Description: A base class for all mappers.
  */
 
 
@@ -18,9 +18,9 @@ namespace lsn {
 
 	/**
 	 * Class CMapperBase
-	 * \brief A base claass for all mappers.
+	 * \brief A base class for all mappers.
 	 *
-	 * Description: A base claass for all mappers.
+	 * Description: A base class for all mappers.
 	 */
 	class CMapperBase {
 	public :

@@ -18,7 +18,12 @@ using namespace lsw;
 
 namespace lsn {
 	
-	// Layout for the main MHS window.
+	/**
+	 * Class CInputWindowLayout
+	 * \brief Layout for the main MHS window.
+	 *
+	 * Description: Layout for the main MHS window.
+	 */
 	class CInputWindowLayout {
 	public :
 		// == Enumerations.

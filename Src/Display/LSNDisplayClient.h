@@ -101,6 +101,13 @@ namespace lsn {
 		virtual uint64_t						FrameCount() const = 0 { return 0; }
 
 		/**
+		 * Gets the PPU region.
+		 *
+		 * \return Returns the PPU region.
+		 */
+		virtual LSN_PPU_METRICS					PpuRegion() const = 0 { return LSN_PM_NTSC; }
+
+		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
 		 *
 		 * \return Returns true in order to add an extra 128 pixels horizontally for debug display, otherwise false.  Defaults to false.

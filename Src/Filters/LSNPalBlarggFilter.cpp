@@ -3,27 +3,28 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s NTSC filter.
+ * Description: Blargg’s NTSC filter for PAL (ad-hoc).
  */
 
-#include "LSNNtscBlarggFilter.h"
+#include "LSNPalBlarggFilter.h"
 #include <Helpers/LSWHelpers.h>
 
 
 namespace lsn {
 
-	CNtscBlarggFilter::CNtscBlarggFilter() :
+	CPalBlarggFilter::CPalBlarggFilter() :
 		m_ui32FinalStride( 0 ) {
 		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
-		nsTmp.artifacts = 0.5;
+		nsTmp.artifacts = 0.64;
 		nsTmp.bleed = 0.8;
-		nsTmp.fringing = 0.75;
-		nsTmp.sharpness = -0.15;
+		nsTmp.fringing = 0.65;
+		nsTmp.sharpness = -0.1;
 		nsTmp.merge_fields = 1;
-		
+
+		nsTmp.hue = 0.08333333333333333333333333333333;	// 15.0 / 360.0 * 2.0.
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 	}
-	CNtscBlarggFilter::~CNtscBlarggFilter() {
+	CPalBlarggFilter::~CPalBlarggFilter() {
 	}
 
 
@@ -36,7 +37,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CNtscBlarggFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CPalBlarggFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
 		m_ui32OutputWidth = _ui16Width;
@@ -68,28 +69,9 @@ namespace lsn {
 	 * \param _ui64PpuFrame The PPU frame associated with the input data.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CNtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t _ui64PpuFrame ) {
-		/*uint16_t * pui16In = reinterpret_cast<uint16_t *>(_pui8Input);
-		bool bPrint = false;
-		if ( bPrint ) {
-			::OutputDebugStringA( "uint16_t ui16Palette[256*240] = {\r\n" );
-			for ( int Y = 0; Y < 240; ++Y ) {
-				std::string sLine;
-				for ( int X = 0; X < 256; ++X ) {
-					char szBuffer[32];
-					std::sprintf( szBuffer, "0x%.4X, ", pui16In[Y*256+X] );
-					sLine += szBuffer;
-				}
-				::OutputDebugStringA( sLine.c_str() );
-				::OutputDebugStringA( "\r\n" );
-				sLine.clear();
-			}
-			
-
-			::OutputDebugStringA( "};\r\n" );
-		}*/
+	uint8_t * CPalBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t _ui64PpuFrame ) {
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
-			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, (_ui64PpuFrame + 0) & 0b11, 3,
+			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, (_ui64PpuFrame + 1) & 0b01, 2,
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );

@@ -12,6 +12,7 @@
 
 #include "../../Display/LSNDisplayHost.h"
 #include "../../Filters/LSNNtscBlarggFilter.h"
+#include "../../Filters/LSNPalBlarggFilter.h"
 #include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
 #include "../../System/LSNSystem.h"
@@ -235,6 +236,8 @@ namespace lsn {
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** Blargg’s NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlargNtscFilter;
+		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
+		CPalBlarggFilter						m_nbfBlargPalFilter;
 		/** A clock. */
 		lsn::CClock								m_cClock;
 		/** The console pointer. */

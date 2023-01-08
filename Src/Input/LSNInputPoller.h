@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A base claass for an object that can provide input feedback to the CPU.
+ * Description: A base class for an object that can provide input feedback to the CPU.
  */
 
 
@@ -27,9 +27,9 @@ namespace lsn {
 
 	/**
 	 * Class CInputPoller
-	 * \brief A base claass for an object that can provide input feedback to the CPU.
+	 * \brief A base class for an object that can provide input feedback to the CPU.
 	 *
-	 * Description: A base claass for an object that can provide input feedback to the CPU.
+	 * Description: A base class for an object that can provide input feedback to the CPU.
 	 */
 	class CInputPoller {
 	public :
