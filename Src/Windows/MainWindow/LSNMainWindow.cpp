@@ -40,7 +40,7 @@ namespace lsn {
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_dScale( 3.0 ),
-		m_dRatioActual( 256.0 / 240.0 ),
+		m_dRatioActual( 8.0 / 7.0 ),
 		//m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
@@ -772,8 +772,7 @@ namespace lsn {
 	 */
 	void CMainWindow::UpdateRatio() {
 		if ( m_pdcClient ) {
-			//m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
-			m_dRatio = m_dRatioActual;
+			m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
 		}
 	}
 

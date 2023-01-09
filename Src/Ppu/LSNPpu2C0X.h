@@ -1945,17 +1945,17 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 1.143>													CNtscPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 4.0 / 3.0>													CNtscPpu;
 
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 1.386>													CPalPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 4.0 / 3.0/*7375000.0 / 5320342.5*/>						CPalPpu;
 
 	/**
 	 * A Dendy PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 1.143>												CDendyPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 4.0 / 3.0>												CDendyPpu;
 
 #undef LSN_PPU_TYPE
 
