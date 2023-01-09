@@ -1637,7 +1637,7 @@ void LSN_FASTCALL								Cycle_1__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 }
 
 
-void LSN_FASTCALL								Cycle_1__1x0_1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_X() {
+void LSN_FASTCALL								Cycle_1__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 
 	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
 
@@ -1658,6 +1658,34 @@ void LSN_FASTCALL								Cycle_1__1x0_1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_X() {
 
 	// LSN_PPU_NAMETABLES = 0x2000.
 	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_1__1x0() {
+
+	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+	RenderPixel();
+
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+
+	m_ui64RenderStartCycle = m_ui64Cycle;
 
 	++m_stCurCycle;
 }

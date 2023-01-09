@@ -1329,7 +1329,7 @@ namespace lsn {
 			if ( _ui16X >= 1 && _ui16X < (_tRenderW + 1) ) {
 				if ( _ui16Y < (_tPreRender + _tRender) ) {
 					_ui16RtX = _ui16X - 1;
-					_ui16RtY = (_tPreRender + _tRender - 1) - _ui16Y;
+					_ui16RtY = m_bFlipOutput ? ((_tPreRender + _tRender - 1) - _ui16Y) : _ui16Y;
 					return true;
 				}
 			}
@@ -1485,41 +1485,6 @@ namespace lsn {
 				
 				//ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
 			}
-		}
-
-		/**
-		 * Returns the scanline converted to a render-target Y.
-		 *
-		 * \param _uScanline The scanline.
-		 * \return Returns the scanline converted to a render-target Y. 
-		 */
-		template <unsigned _uScanline>
-		static constexpr int16_t						ScanlineToRenderTarget() {
-			return int16_t( _tPreRender + _tRender - 1 ) - int16_t( _uScanline );
-		}
-
-		/**
-		 * Returns the row dot converted to a render-target X.
-		 *
-		 * \param _uDot The row dot.
-		 * \return Returns the row dot converted to a render-target X.
-		 */
-		template <unsigned _uDot>
-		static constexpr int16_t						DotToRenderTarget() {
-			return int16_t( _uDot ) - 1;
-		}
-
-		/**
-		 * Returns true if the given scanline and dot are within the render target.
-		 *
-		 * \param _uDot The row dot.
-		 * \param _uScanline The scanline.
-		 * \return Returns true if the [dot,scanline] conversion gives a result that is inside the render target.
-		 */
-		template <unsigned _uX, unsigned _uY>
-		static constexpr bool							InRenderTargetView() {
-			return (uint16_t( ScanlineToRenderTarget<_uY>() ) < (_tPreRender + _tRender)) &&
-				(uint16_t( DotToRenderTarget<_uX>() ) < _tRenderW);
 		}
 
 #ifdef LSN_GEN_PPU
@@ -1847,6 +1812,11 @@ namespace lsn {
 				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n";
 			}
 
+			// Log the first rendered pixel's cycle.
+			if ( _uX == LSN_LEFT && _uY == 0 ) {
+				sRet += "\r\n"
+				"m_ui64RenderStartCycle = m_ui64Cycle;\r\n";
+			}
 
 			// End cycle.
 			sRet += "\r\n"

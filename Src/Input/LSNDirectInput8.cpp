@@ -82,16 +82,11 @@ namespace lsn {
 	 * \param _dwType Device type filter.
 	 *	To restrict the enumeration to a particular type of device, set this parameter to a DI8DEVTYPE_* value. See DIDEVICEINSTANCEW.
 	 *	To enumerate a class of devices, use one of the following values.
-	 *	DI8DEVCLASS_ALL
-	 *	All devices.
-	 *	DI8DEVCLASS_DEVICE
-	 *	All devices that do not fall into another class.
-	 *	DI8DEVCLASS_GAMECTRL
-	 *	All game controllers.
-	 *	DI8DEVCLASS_KEYBOARD
-	 *	All keyboards. Equivalent to DI8DEVTYPE_KEYBOARD.
-	 *	DI8DEVCLASS_POINTER
-	 *	All devices of type DI8DEVTYPE_MOUSE and DI8DEVTYPE_SCREENPOINTER.
+	 *	DI8DEVCLASS_ALL: All devices.
+	 *	DI8DEVCLASS_DEVICE: All devices that do not fall into another class.
+	 *	DI8DEVCLASS_GAMECTRL: All game controllers.
+	 *	DI8DEVCLASS_KEYBOARD: All keyboards. Equivalent to DI8DEVTYPE_KEYBOARD.
+	 *	DI8DEVCLASS_POINTER: All devices of type DI8DEVTYPE_MOUSE and DI8DEVTYPE_SCREENPOINTER.
 	 * \return Returns an array fo gatherede devices.
 	 */
 	std::vector<DIDEVICEINSTANCEW> CDirectInput8::GatherDevices( DWORD _dwType ) {

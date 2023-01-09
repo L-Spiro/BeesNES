@@ -31,7 +31,7 @@ namespace lsw {
 namespace lsn {
 	
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
-		typedef lsn::CNtscSystem
+		typedef lsn::CDendySystem
 												CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -205,7 +205,8 @@ namespace lsn {
 
 		/** The current render target/filter. */
 		struct LSN_CUR_FILTER_AND_RENDER_TARGET {
-			uint64_t							ui64Frame;
+			uint64_t							ui64Frame;									/**< The PPU frame count associated with the render target. */
+			uint64_t							ui64RenderStartCycle;						/**< The cycle at which rendering began. */
 			CFilterBase *						pfbCurFilter;								/**< The current filter. */
 			CFilterBase *						pfbNextFilter;								/**< The next filter. */
 			CFilterBase *						pfbPrevFilter;								/**< The previous filter. */

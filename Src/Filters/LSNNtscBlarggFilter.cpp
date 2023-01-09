@@ -15,11 +15,12 @@ namespace lsn {
 	CNtscBlarggFilter::CNtscBlarggFilter() :
 		m_ui32FinalStride( 0 ) {
 		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
-		nsTmp.artifacts = 0.5;
-		nsTmp.bleed = 0.8;
+		nsTmp.artifacts = 0.75;
+		nsTmp.bleed = 0.85;
 		nsTmp.fringing = 0.75;
 		nsTmp.sharpness = -0.15;
 		nsTmp.merge_fields = 1;
+		nsTmp.saturation = -0.21;
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 	}
@@ -66,33 +67,23 @@ namespace lsn {
 	 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
 	 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
 	 * \param _ui64PpuFrame The PPU frame associated with the input data.
+	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CNtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t _ui64PpuFrame ) {
-		/*uint16_t * pui16In = reinterpret_cast<uint16_t *>(_pui8Input);
-		bool bPrint = false;
-		if ( bPrint ) {
-			::OutputDebugStringA( "uint16_t ui16Palette[256*240] = {\r\n" );
-			for ( int Y = 0; Y < 240; ++Y ) {
-				std::string sLine;
-				for ( int X = 0; X < 256; ++X ) {
-					char szBuffer[32];
-					std::sprintf( szBuffer, "0x%.4X, ", pui16In[Y*256+X] );
-					sLine += szBuffer;
-				}
-				::OutputDebugStringA( sLine.c_str() );
-				::OutputDebugStringA( "\r\n" );
-				sLine.clear();
-			}
-			
-
-			::OutputDebugStringA( "};\r\n" );
-		}*/
+	uint8_t * CNtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
-			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, (_ui64PpuFrame + 0) & 0b11, 3,
+			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle % 3, 3,
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );
+		for ( uint32_t Y = _ui32Height >> 1; Y--; ) {
+			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
+			uint32_t * pui32Src0 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];
+			uint32_t * pui32Src1 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[ui32SwapWidthMe*_ui32Width];
+			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
+				std::swap( pui32Src0[X], pui32Src1[X] );
+			}
+		}
 		return m_vFilteredOutput.data();
 	}
 

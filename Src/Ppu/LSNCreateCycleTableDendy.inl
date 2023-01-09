@@ -106459,8 +106459,7 @@ if constexpr ( _tRegCode == 2 ) {
 		m_cCycle[81903] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_2__1x0_1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_X;
-		m_cCycle[1] = pfTmp;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_2__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X;
 		m_cCycle[342] = pfTmp;
 		m_cCycle[683] = pfTmp;
 		m_cCycle[1024] = pfTmp;
@@ -106701,6 +106700,10 @@ if constexpr ( _tRegCode == 2 ) {
 		m_cCycle[81159] = pfTmp;
 		m_cCycle[81500] = pfTmp;
 		m_cCycle[81841] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_2__1x0;
+		m_cCycle[1] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_2__0x241;

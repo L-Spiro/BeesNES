@@ -334,7 +334,7 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.bDirty = false;
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
 					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-					m_cfartCurFilterAndTargets.ui64Frame );
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 				m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.ui32Width;
 				m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.ui32Height;
 				m_biBlitInfo.bmiHeader.biBitCount = m_cfartCurFilterAndTargets.ui16Bits;
@@ -592,6 +592,7 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
 				m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
 				m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
+				m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
 				m_cfartCurFilterAndTargets.bDirty = true;
 
 				//if ( m_cfartCurFilterAndTargets.pfbNextFilter != m_cfartCurFilterAndTargets.pfbCurFilter ) {
@@ -601,7 +602,7 @@ namespace lsn {
 				
 			}
 			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
-			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat() );
+			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
@@ -885,6 +886,7 @@ namespace lsn {
 					m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
 					m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
 					m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
+					m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
 					m_cfartCurFilterAndTargets.bDirty = true;
 					m_cfartCurFilterAndTargets.pui8LastFilteredResult = nullptr;
 
@@ -892,7 +894,7 @@ namespace lsn {
 					m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
 
 					m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
-					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat() );
+					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
 
 					// Create the basic render target.
 					m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );

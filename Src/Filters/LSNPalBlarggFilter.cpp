@@ -20,6 +20,7 @@ namespace lsn {
 		nsTmp.fringing = 0.65;
 		nsTmp.sharpness = -0.1;
 		nsTmp.merge_fields = 1;
+		nsTmp.saturation = -0.25;
 
 		nsTmp.hue = 0.08333333333333333333333333333333;	// 15.0 / 360.0 * 2.0.
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
@@ -67,14 +68,23 @@ namespace lsn {
 	 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
 	 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
 	 * \param _ui64PpuFrame The PPU frame associated with the input data.
+	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CPalBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t _ui64PpuFrame ) {
+	uint8_t * CPalBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
-			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, (_ui64PpuFrame + 1) & 0b01, 2,
+			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle & 0b01, 2,
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );
+		for ( uint32_t Y = _ui32Height >> 1; Y--; ) {
+			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
+			uint32_t * pui32Src0 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];
+			uint32_t * pui32Src1 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[ui32SwapWidthMe*_ui32Width];
+			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
+				std::swap( pui32Src0[X], pui32Src1[X] );
+			}
+		}
 		return m_vFilteredOutput.data();
 	}
 

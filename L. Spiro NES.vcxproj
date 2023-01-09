@@ -330,7 +330,11 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
+    <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
+    <ClInclude Include="Src\Input\LSNDirectInputDevice8.h" />
     <ClInclude Include="Src\Input\LSNInputPoller.h" />
+    <ClInclude Include="Src\Input\LSNUsbControllerBase.h" />
+    <ClInclude Include="Src\Input\LSNWindowsKeyboard.h" />
     <ClInclude Include="Src\Localization\LSNLocalization.h" />
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
@@ -416,6 +420,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp" />
+    <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp" />
+    <ClCompile Include="Src\Input\LSNUsbControllerBase.cpp" />
+    <ClCompile Include="Src\Input\LSNWindowsKeyboard.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp" />

@@ -49,9 +49,10 @@ namespace lsn {
 		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
 		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
 		 * \param _ui64PpuFrame The PPU frame associated with the input data.
+		 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 		 * \return Returns a pointer to the filtered output buffer.
 		 */
-		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t _ui64PpuFrame );
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t _ui64PpuFrame, uint64_t _ui64RenderStartCycle );
 
 		/**
 		 * Gets the PPU output format.
@@ -59,6 +60,13 @@ namespace lsn {
 		 * \return Returns the output format from the PPU/input format for this filter.
 		 */
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
+
+		/**
+		 * If true, the PPU is requested to provide a frame that has been flipped vertically.
+		 *
+		 * \return Returns true to receive a vertically flipped image from the PPU, false to receive an unflipped image.
+		 */
+		virtual bool										FlipInput() const { return false; }
 
 		/**
 		 * Gets a pointer to the output buffer.
@@ -81,6 +89,7 @@ namespace lsn {
 		nes_ntsc_t											m_nnBlarggNtsc;
 		/** The filtered output buffer. */
 		std::vector<uint8_t>								m_vFilteredOutput;
+		/** The image-flip thread. */
 		/** The final stride. */
 		uint32_t											m_ui32FinalStride;
 	};

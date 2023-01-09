@@ -432,6 +432,18 @@
     <ClInclude Include="Src\Input\LSNDirectInput8.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Input\LSNDirectInputDevice8.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Input\LSNUsbControllerBase.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Input\LSNDirectInput8Controller.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Input\LSNWindowsKeyboard.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -534,6 +546,15 @@
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Input\LSNUsbControllerBase.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Input\LSNWindowsKeyboard.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>

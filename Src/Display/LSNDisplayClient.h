@@ -25,10 +25,12 @@ namespace lsn {
 	public :
 		// == Various constructors.
 		CDisplayClient() :
+			m_ui64RenderStartCycle( 0 ),
 			m_pdhHost( nullptr ),
 			m_pui8RenderTarget( nullptr ),
 			m_pofOutFormat( LSN_POF_RGB ),
-			m_stRenderTargetStride( 0 ) {
+			m_stRenderTargetStride( 0 ),
+			m_bFlipOutput( false ) {
 		}
 		virtual ~CDisplayClient();
 
@@ -87,10 +89,11 @@ namespace lsn {
 		 * \param _stStride The stride of each row in the render target.
 		 * \param _pofFormat The output format from the PPU.
 		 */
-		virtual void							SetRenderTarget( uint8_t * _pui8Target, size_t _stStride, LSN_PPU_OUT_FORMAT _pofFormat ) {
+		virtual void							SetRenderTarget( uint8_t * _pui8Target, size_t _stStride, LSN_PPU_OUT_FORMAT _pofFormat, bool _bFlip ) {
 			m_pui8RenderTarget = _pui8Target;
 			m_stRenderTargetStride = _stStride;
 			m_pofOutFormat = _pofFormat;
+			m_bFlipOutput = _bFlip;
 		}
 
 		/**
@@ -114,9 +117,18 @@ namespace lsn {
 		 */
 		virtual bool							DebugSideDisplay() const { return false; }
 
+		/**
+		 * Gets the cycle at which the rendered output began.
+		 *
+		 * \return Returns the cycle at the rendered output’s first pixel.
+		 */
+		inline uint64_t							GetRenderStartCycle() const { return m_ui64RenderStartCycle; }
+
 
 	protected :
 		// == Members.
+		/** The cycle at the first pixel of the 256×240 output image ([0,0]). */
+		uint64_t								m_ui64RenderStartCycle;
 		/** The host pointr. */
 		CDisplayHost *							m_pdhHost;
 		/** The render target. */
@@ -125,6 +137,8 @@ namespace lsn {
 		LSN_PPU_OUT_FORMAT						m_pofOutFormat;
 		/** The render target row stride. */
 		size_t									m_stRenderTargetStride;
+		/** If true, the output frame is flipped vertically. */
+		bool									m_bFlipOutput;
 		
 	};
 
