@@ -12,6 +12,7 @@
 
 #include "../../Display/LSNDisplayHost.h"
 #include "../../Filters/LSNNtscBlarggFilter.h"
+#include "../../Filters/LSNNtscCrtFilter.h"
 #include "../../Filters/LSNPalBlarggFilter.h"
 #include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
@@ -237,6 +238,8 @@ namespace lsn {
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** Blargg’s NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlargNtscFilter;
+		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
+		CNtscCrtFilter							m_ncfEmmirNtscFilter;
 		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
 		CPalBlarggFilter						m_nbfBlargPalFilter;
 		/** A clock. */

@@ -865,6 +865,7 @@ namespace lsn {
 				m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
+				m_ncfEmmirNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
 				{
 					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 					//m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
@@ -875,7 +876,8 @@ namespace lsn {
 							break;
 						}
 						default : {
-							m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
+							//m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
+							m_cfartCurFilterAndTargets.pfbCurFilter = &m_ncfEmmirNtscFilter;
 						}
 					}
 					
