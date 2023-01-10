@@ -151,7 +151,7 @@ namespace lsn {
 						phsSlot = &hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter <= ui64Low ) {
+					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
 						//	as well as the pointer-access ("phsSlot").

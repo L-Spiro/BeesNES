@@ -13,7 +13,9 @@
 namespace lsn {
 
 	CNtscCrtFilter::CNtscCrtFilter() :
-		m_ui32FinalStride( 0 ) {
+		m_ui32FinalStride( 0 ),
+		m_ui32FinalWidth( 700 * 2 ),
+		m_ui32FinalHeight( 0 ) {
 		int iPhases[4] = { 0, 1, 0, -1 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 	}
@@ -44,12 +46,14 @@ namespace lsn {
 			}
 		}
 
-		_ui16Width = 700;
-		m_ui32FinalStride = RowStride( _ui16Width, OutputBits() );
-		m_vFilteredOutput.resize( m_ui32FinalStride * _ui16Height );
-		m_vFinalOutput.resize( m_ui32FinalStride * _ui16Height );
+		constexpr uint32_t ui32Scale = 1;
+		m_ui32FinalWidth = 700 * ui32Scale;
+		m_ui32FinalHeight = _ui16Height * ui32Scale;
+		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
+		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
+		m_vFinalOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
-		::crt_init( &m_nnCrtNtsc, _ui16Width, _ui16Height, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
+		::crt_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
 
 		return InputFormat();
 	}
@@ -84,7 +88,7 @@ namespace lsn {
 		// Fade the phosphers.
 		{
 			uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
-			for ( uint32_t I = 700 * _ui32Height; I--; ) {
+			for ( uint32_t I = m_ui32FinalWidth * m_ui32FinalHeight; I--; ) {
 				//pui32Src[I] = 0;
 				uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
 				pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
@@ -95,7 +99,8 @@ namespace lsn {
 		}
 
 		::crt_draw( &m_nnCrtNtsc, 12 );
-		_ui32Width = 700;
+		_ui32Width = m_ui32FinalWidth;
+		_ui32Height = m_ui32FinalHeight;
 		return m_vFilteredOutput.data();
 		/*for ( uint32_t Y = _ui32Height; Y--; ) {
 			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;

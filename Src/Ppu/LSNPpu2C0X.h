@@ -813,6 +813,7 @@ namespace lsn {
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
 				ppPpu->m_paPpuAddrT.s.ui16CourseX = _ui8Val >> 3;
+				ppPpu->GlitchyVUpdate( ppPpu->m_ui8IoBusLatch >> 3, 0x001F );
 			}
 			else {
 				ppPpu->m_paPpuAddrT.s.ui16FineY = _ui8Val & 0x7;
@@ -1314,6 +1315,18 @@ namespace lsn {
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
 #endif	// #ifdef LSN_INT_OAM_DECAY
 			return _ui8Val;
+		}
+
+		/**
+		 * Glitchy update to T during rendering on cycle 257 causes glitches (an update to V using the open bus).
+		 *
+		 * \param _ui16Value The value to use to update V.
+		 * \param _ui16Mask The mask indicating which bits to update.
+		 */
+		inline void										GlitchyVUpdate( uint16_t _ui16Value, uint16_t _ui16Mask ) {
+			if ( m_ui16CurX == 257 && m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
+				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr & ~_ui16Mask) | (_ui16Value & _ui16Mask);
+			}
 		}
 
 		/**

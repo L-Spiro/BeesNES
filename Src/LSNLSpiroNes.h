@@ -123,9 +123,9 @@ namespace lsn {
 		LSN_CS_PAL_PPU_DIVISOR				= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
 		LSN_CS_DENDY_PPU_DIVISOR			= LSN_CS_PAL_PPU_DIVISOR,			/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
 
-		LSN_CS_NTSC_APU_DIVISOR				= LSN_CS_NTSC_CPU_DIVISOR * 2ULL,	/**< 236.25 MHz / 11 / (12 * 2) = 894886.36363636363636363636363636. */
-		LSN_CS_PAL_APU_DIVISOR				= LSN_CS_PAL_CPU_DIVISOR * 2ULL,	/**< 53.203425 MHz / 2 / (16 * 2) = 831303.515625. */
-		LSN_CS_DENDY_APU_DIVISOR			= LSN_CS_DENDY_CPU_DIVISOR * 2ULL,	/**< 53.203425 MHz / 2 / (15 * 2) = 886723.75. */
+		LSN_CS_NTSC_APU_DIVISOR				= LSN_CS_NTSC_CPU_DIVISOR * 1ULL,	/**< 236.25 MHz / 11 / (12 * 1) = 1789772.7272727272727272727272727. */				// /**< 236.25 MHz / 11 / (12 * 2) = 894886.36363636363636363636363636. */
+		LSN_CS_PAL_APU_DIVISOR				= LSN_CS_PAL_CPU_DIVISOR * 1ULL,	/**< 53.203425 MHz / 2 / (16 * 1) = 1662607.03125. */								// /**< 53.203425 MHz / 2 / (16 * 2) = 831303.515625. */
+		LSN_CS_DENDY_APU_DIVISOR			= LSN_CS_DENDY_CPU_DIVISOR * 1ULL,	/**< 53.203425 MHz / 2 / (15 * 1) = 1773447.5. */									// /**< 53.203425 MHz / 2 / (15 * 2) = 886723.75. */
 
 		/*
 		 * To run clocks precisely, floating-point math must be avoided.  All inputs must be accumulated in integers.
