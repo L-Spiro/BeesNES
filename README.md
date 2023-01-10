@@ -15,12 +15,17 @@ A Nintendo Entertainment System emulator with the goal of being “sub-cycle–a
 ![image](https://user-images.githubusercontent.com/7362666/211446153-0b54ab3d-5476-468f-bcf8-97ec62ba4dd1.png)
 ![image](https://user-images.githubusercontent.com/7362666/211446221-22992f29-9d23-4c7e-9f85-6380c9f03259.png)
 
-YouTube Video: Castlevania Demo Play (Low Noise)
-https://www.youtube.com/watch?v=HyLtecKOjLM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=7
-YouTube Video: Battletoads Opening (Extreme Noise)
-https://www.youtube.com/watch?v=K3sVkZFxkvs&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=6
-YouTube Video: Akira Opening (Extreme Noise)
-https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4
+
+YouTube Video: Castlevania Demo Play (Low Noise)<br>
+[![Watch the video](https://img.youtube.com/vi/HyLtecKOjLM/hqdefault.jpg)](https://www.youtube.com/watch?v=HyLtecKOjLM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=7) <br>
+
+
+YouTube Video: Battletoads Opening (Extreme Noise)<br>
+[![Watch the video](https://img.youtube.com/vi/K3sVkZFxkvs/hqdefault.jpg)](https://www.youtube.com/watch?v=K3sVkZFxkvs&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=6)
+
+
+YouTube Video: Akira Opening (Extreme Noise)<br>
+[![Watch the video](https://img.youtube.com/vi/mSZlMw0cPEY/maxresdefault.jpg)](https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4)
 
 ## Accuracy
 Most emulators have thus far have aimed for “Cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Cycle_accuracy  
