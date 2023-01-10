@@ -43,9 +43,21 @@ namespace lsn {
 		m_dRatioActual( 8.0 / 7.0 ),
 		//m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
+		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
 		
+		//m_pfbFilterTable
+		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
+			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY
+			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter },			// LSN_F_RGB24
+			{ &m_nbfBlargNtscFilter,		&m_nbfBlargNtscFilter,			&m_nbfBlargNtscFilter },		// LSN_F_NTSC_BLARGG
+			{ &m_nbfBlargPalFilter,			&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_PAL_BLARGG
+			{ &m_ncfEmmirNtscFilter,		&m_ncfEmmirNtscFilter,			&m_ncfEmmirNtscFilter },		// LSN_F_NTSC_CRT
+			{ &m_nbfBlargNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_BLARGG
+			{ &m_ncfEmmirNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_CRT
+		};
+		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 		
 
 		static const struct {
@@ -270,6 +282,36 @@ namespace lsn {
 				m_dScale = 6.0;
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
+				m_fFilter = CFilterBase::LSN_F_RGB24;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
+				m_fFilter = CFilterBase::LSN_F_NTSC_BLARGG;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
+				m_fFilter = CFilterBase::LSN_F_PAL_BLARGG;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
+				m_fFilter = CFilterBase::LSN_F_AUTO_BLARGG;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
+				m_fFilter = CFilterBase::LSN_F_NTSC_CRT;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
+				m_fFilter = CFilterBase::LSN_F_AUTO_CRT;
+				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
 				break;
 			}
 		}
@@ -871,7 +913,8 @@ namespace lsn {
 				{
 					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 					//m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
-					switch ( m_pdcClient->PpuRegion() ) {
+					m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+					/*switch ( m_pdcClient->PpuRegion() ) {
 						case LSN_PM_PAL : {}
 						case LSN_PM_DENDY : {
 							m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargPalFilter;
@@ -881,7 +924,7 @@ namespace lsn {
 							//m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
 							m_cfartCurFilterAndTargets.pfbCurFilter = &m_ncfEmmirNtscFilter;
 						}
-					}
+					}*/
 					
 					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 					m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );

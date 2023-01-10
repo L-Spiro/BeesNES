@@ -33,9 +33,6 @@ namespace lsn {
 	CDisplayClient::LSN_PPU_OUT_FORMAT CNtscCrtFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
-		/*_ui16Width *= 2;
-		_ui16Height *= 2;*/
-
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
 		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
@@ -73,8 +70,8 @@ namespace lsn {
 	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 
 		m_nsSettings.data = reinterpret_cast<unsigned short *>(_pui8Input);
-		m_nsSettings.w = 256;
-		m_nsSettings.h = 240;
+		m_nsSettings.w = int( m_ui32OutputWidth );
+		m_nsSettings.h = int( m_ui32OutputHeight );
 		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
 		m_nsSettings.as_color = 1;
 		constexpr int iPhaseOffset = 2;
@@ -83,7 +80,21 @@ namespace lsn {
 		m_nsSettings.cc[2] = m_iPhaseRef[(iPhaseOffset + 2) & 3];
 		m_nsSettings.cc[3] = m_iPhaseRef[(iPhaseOffset + 3) & 3];
 		::crt_nes2ntsc( &m_nnCrtNtsc, &m_nsSettings );
-		::crt_draw( &m_nnCrtNtsc, 6 );
+
+		// Fade the phosphers.
+		{
+			uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
+			for ( uint32_t I = 700 * _ui32Height; I--; ) {
+				//pui32Src[I] = 0;
+				uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
+				pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
+					((ui32Tmp >> 2) & 0x3F3F3F) + 
+					((ui32Tmp >> 3) & 0x1F1F1F) + 
+					((ui32Tmp >> 4) & 0x0F0F0F);
+			}
+		}
+
+		::crt_draw( &m_nnCrtNtsc, 12 );
 		_ui32Width = 700;
 		return m_vFilteredOutput.data();
 		/*for ( uint32_t Y = _ui32Height; Y--; ) {

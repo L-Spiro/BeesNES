@@ -1345,7 +1345,7 @@ namespace lsn {
 			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
 				
 				uint16_t ui16Val = 0x0F;
-				if ( ui16Y >= _tRender ) {}													// Black pre-render scanline on PAL.
+				if ( (m_bFlipOutput && ui16Y >= _tRender) || (!m_bFlipOutput && ui16Y < _tPreRender) ) {}													// Black pre-render scanline on PAL.
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;

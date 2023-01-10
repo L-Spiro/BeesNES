@@ -34,6 +34,13 @@
 #define LSN_VIDEO_SIZE_4X													4×
 #define LSN_VIDEO_SIZE_5X													5×
 #define LSN_VIDEO_SIZE_6X													6×
+// Video filters.
+#define LSN_VIDEO_FILTER_NONE												&None
+#define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)
+#define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
+#define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
+#define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
+#define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
 // Tools menu.
 
 #define LSN_SELECT_ROM														Select ROM

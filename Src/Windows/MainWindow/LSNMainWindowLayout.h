@@ -75,6 +75,14 @@ namespace lsn {
 			LSN_MWMI_VIDEO_SIZE_5X,
 			LSN_MWMI_VIDEO_SIZE_6X,
 
+			LSN_MWMI_VIDEO_FILTERS,
+			LSN_MWMI_VIDEO_FILTER_NONE,
+			LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG,
+			LSN_MWMI_VIDEO_FILTER_PAL_BLARGG,
+			LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG,
+			LSN_MWMI_VIDEO_FILTER_NTSC_CRT,
+			LSN_MWMI_VIDEO_FILTER_AUTO_CRT,
+
 			LSN_MWMI_SHOWFOUNDADDR,
 			LSN_MWMI_SHOW_EXPEVAL,
 			LSN_MWMI_SHOW_CONVERTER,
@@ -129,6 +137,9 @@ namespace lsn {
 
 		/** Video-size sub-menu. */
 		static LSW_MENU_ITEM					m_miVideoSizeMenu[];
+
+		/** Video-filter sub-menu. */
+		static LSW_MENU_ITEM					m_miVideoFilterMenu[];
 
 		/** Menus. */
 		static LSW_MENU_LAYOUT					m_miMenus[];

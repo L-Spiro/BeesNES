@@ -28,6 +28,20 @@ namespace lsn {
 		virtual ~CFilterBase();
 
 
+		// == Enumerations.
+		/** The types of filters. */
+		enum LSN_FILTERS {
+			LSN_F_RGB24,									/**< Standard RGB24. No filter. */
+			LSN_F_NTSC_BLARGG,								/**< Blargg's NTSC filter. */
+			LSN_F_PAL_BLARGG,								/**< Blargg's NTSC filter adjusted for PAL. */
+			LSN_F_NTSC_CRT,									/**< EMMIR (LMP88959)'s NTSC-CRT filter. */
+			LSN_F_AUTO_BLARGG,								/**< Either NTSC or PAL Blargg. */
+			LSN_F_AUTO_CRT,									/**< NTSC-CRT for NTSC, Blargg PAL for PAL and Dendy. */
+
+			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */
+		};
+
+
 		// == Functions.
 		/**
 		 * Sets the basic parameters for the filter.

@@ -182,6 +182,8 @@ namespace lsn {
 
 
 		LSN_PM_UNKNOWN						= 0xFFE2,							/**< Unknown code. */
+
+		LSN_PM_CONSOLE_TOTAL				= 3,								/**< NTSC, PAL, and Dendy. */
 	};
 
 	/** PPU registers. */

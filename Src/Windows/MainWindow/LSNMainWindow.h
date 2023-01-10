@@ -243,6 +243,8 @@ namespace lsn {
 		CNtscCrtFilter							m_ncfEmmirNtscFilter;
 		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
 		CPalBlarggFilter						m_nbfBlargPalFilter;
+		/** A filter table. */
+		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** A clock. */
 		lsn::CClock								m_cClock;
 		/** The console pointer. */
@@ -257,6 +259,8 @@ namespace lsn {
 		BITMAPINFO								m_biBlitInfo;
 		/** The critical section for synchronizing Swap() and Paint(). */
 		lsw::CCriticalSection					m_csRenderCrit;
+		/** The current filter ID. */
+		CFilterBase::LSN_FILTERS				m_fFilter;
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */

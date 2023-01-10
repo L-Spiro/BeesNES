@@ -55,7 +55,7 @@ extern "C" {
 #if CRT_NES_HIRES
 #define CRT_CB_FREQ     6 /* carrier frequency relative to sample rate */
 #else
-#define CRT_CB_FREQ     3 /* carrier frequency relative to sample rate */
+#define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
 #endif
 #else
 #define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
