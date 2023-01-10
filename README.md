@@ -5,17 +5,22 @@ A sub-cycle–accurate Nintendo Entertainment System emulator.
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators claim to be “cycle-accurate” but are optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
-![image](https://user-images.githubusercontent.com/7362666/211026948-68194729-b835-40c5-892f-72eb54905a73.png)
-![image](https://user-images.githubusercontent.com/7362666/211027329-47ca3326-269e-47dd-a557-719a4b62cd2f.png)
-![image](https://user-images.githubusercontent.com/7362666/211027660-ac956e3c-1059-4137-9cd0-ee2505ff76a0.png)
-![BeesNES_CPLlY70HG2](https://user-images.githubusercontent.com/7362666/211028518-5c59b5f3-4526-4c74-acce-8449618db1c5.png)
-![image](https://user-images.githubusercontent.com/7362666/211028697-30f99250-1117-4bc4-a697-485b61a620e3.png)
-![image](https://user-images.githubusercontent.com/7362666/211028992-31f8bad2-8a69-414d-99ef-a4237fb4de28.png)
-![image](https://user-images.githubusercontent.com/7362666/211029287-d75e41d7-b7d1-4bb2-959d-ac1ebe7531ce.png)
-![image](https://user-images.githubusercontent.com/7362666/211029387-4f8383a6-016d-44b8-b184-d4a9de47e546.png)
-![image](https://user-images.githubusercontent.com/7362666/211029444-5807bb93-72f6-4735-bcc7-e024e6c18eac.png)
-![image](https://user-images.githubusercontent.com/7362666/211127303-54596a2d-375f-4f0e-a00e-3bff1a7a2c2a.png)
-![image](https://user-images.githubusercontent.com/7362666/211127385-83c95239-b6a3-4a8f-8c01-6b459030b221.png)
+![image](https://user-images.githubusercontent.com/7362666/211444553-cb95e2d5-1ac4-43cf-8146-55e155d7cbd6.png)
+![image](https://user-images.githubusercontent.com/7362666/211444733-ee658c92-427e-407d-8524-d493a1dd520f.png)
+![image](https://user-images.githubusercontent.com/7362666/211444928-6071119a-6c90-4086-a232-4c427bfa89a2.png)
+![image](https://user-images.githubusercontent.com/7362666/211445283-ed68fc99-f856-4ca1-8762-598a801f8997.png)
+![image](https://user-images.githubusercontent.com/7362666/211445534-eb06f929-0457-4a18-8f62-5788fe7a6d60.png)
+![image](https://user-images.githubusercontent.com/7362666/211445739-855bc0b7-558b-42a3-99ce-f0a680368962.png)
+![image](https://user-images.githubusercontent.com/7362666/211446083-e5ff2703-3bc2-401d-b472-68c8036c2fb9.png)
+![image](https://user-images.githubusercontent.com/7362666/211446153-0b54ab3d-5476-468f-bcf8-97ec62ba4dd1.png)
+![image](https://user-images.githubusercontent.com/7362666/211446221-22992f29-9d23-4c7e-9f85-6380c9f03259.png)
+
+YouTube Video: Castlevania Demo Play (Low Noise)
+https://www.youtube.com/watch?v=HyLtecKOjLM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=7
+YouTube Video: Battletoads Opening (Extreme Noise)
+https://www.youtube.com/watch?v=K3sVkZFxkvs&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=6
+YouTube Video: Akira Opening (Extreme Noise)
+https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4
 
 ## Accuracy
 Most emulators have thus far have aimed for “Cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Cycle_accuracy  
