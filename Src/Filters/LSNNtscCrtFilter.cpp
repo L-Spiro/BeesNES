@@ -33,9 +33,12 @@ namespace lsn {
 	CDisplayClient::LSN_PPU_OUT_FORMAT CNtscCrtFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
+		/*_ui16Width *= 2;
+		_ui16Height *= 2;*/
+
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
-		m_stStride = size_t( _ui16Width * sizeof( uint16_t ) );
+		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
 
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
 			m_vBasicRenderTarget[I].resize( m_stStride * _ui16Height );
@@ -44,6 +47,7 @@ namespace lsn {
 			}
 		}
 
+		_ui16Width = 700;
 		m_ui32FinalStride = RowStride( _ui16Width, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * _ui16Height );
 		m_vFinalOutput.resize( m_ui32FinalStride * _ui16Height );
@@ -73,28 +77,26 @@ namespace lsn {
 		m_nsSettings.h = 240;
 		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
 		m_nsSettings.as_color = 1;
-		constexpr int phase_offset = 2;
-		m_nsSettings.cc[0] = m_iPhaseRef[(phase_offset + 0) & 3];
-		m_nsSettings.cc[1] = m_iPhaseRef[(phase_offset + 1) & 3];
-		m_nsSettings.cc[2] = m_iPhaseRef[(phase_offset + 2) & 3];
-		m_nsSettings.cc[3] = m_iPhaseRef[(phase_offset + 3) & 3];
+		constexpr int iPhaseOffset = 2;
+		m_nsSettings.cc[0] = m_iPhaseRef[(iPhaseOffset + 0) & 3];
+		m_nsSettings.cc[1] = m_iPhaseRef[(iPhaseOffset + 1) & 3];
+		m_nsSettings.cc[2] = m_iPhaseRef[(iPhaseOffset + 2) & 3];
+		m_nsSettings.cc[3] = m_iPhaseRef[(iPhaseOffset + 3) & 3];
 		::crt_nes2ntsc( &m_nnCrtNtsc, &m_nsSettings );
-		::crt_draw( &m_nnCrtNtsc, 5 );
-		for ( uint32_t Y = _ui32Height; Y--; ) {
+		::crt_draw( &m_nnCrtNtsc, 6 );
+		_ui32Width = 700;
+		return m_vFilteredOutput.data();
+		/*for ( uint32_t Y = _ui32Height; Y--; ) {
 			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
 			uint32_t * pui32Src = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];
 
 			uint32_t * pui32Dst = &reinterpret_cast<uint32_t *>(m_vFinalOutput.data())[ui32SwapWidthMe*_ui32Width];
 			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
 				uint32_t ui32Src = pui32Src[X];
-				//ui32Src = (ui32Src & 0xFF000000) | ((ui32Src & 0x00FF0000) >> 8) | ((ui32Src & 0x000000FF) << 16) | ((ui32Src & 0x0000FF00) >> 8);
-				//ui32Src = (ui32Src & 0xFF000000) | ((255 - ((ui32Src & 0x00FF0000) >> 16)) << 16) | ((255 - ((ui32Src & 0x0000FF00) >> 8)) << 8) | ((255 - ((ui32Src & 0x000000FF) >> 0)) << 0);
-				//ui32Src = (ui32Src & 0xFFFFFF00) | ((255 - ((ui32Src & 0x000000FF))));
 				pui32Dst[X] = ui32Src;
-				//std::swap( pui32Src0[X], pui32Src1[X] );
 			}
 		}
-		return m_vFinalOutput.data();
+		return m_vFinalOutput.data();*/
 	}
 
 }	// namespace lsn

@@ -219,6 +219,7 @@ namespace lsn {
 			uint32_t							ui32Stride;									/**< The current render target's stride in bytes. */
 			uint16_t							ui16Bits;									/**< The current render target's bit depth. */
 			bool								bDirty;										/**< The dirty flag. */
+			bool								bMirrored;									/**< If true, the image was rendered up-side down and does not need to be flipped by ::StretchDIBits() or ::SetDIBitsToDevice() to render properly. */
 		};
 
 

@@ -342,11 +342,12 @@ namespace lsn {
 			}
 		}
 
-		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) ) {
+		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) || !m_cfartCurFilterAndTargets.bMirrored ) {
 			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
-				0, 0, int( dwFinalW ), int( dwFinalH ),
+				0, m_cfartCurFilterAndTargets.bMirrored ? 0 : int( dwFinalH - 1 ),
+				int( dwFinalW ), m_cfartCurFilterAndTargets.bMirrored ? int( dwFinalH ) : -int( dwFinalH ),
 				0, 0, m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
 				&m_biBlitInfo,
@@ -594,6 +595,7 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
 				m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
 				m_cfartCurFilterAndTargets.bDirty = true;
+				m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
 
 				//if ( m_cfartCurFilterAndTargets.pfbNextFilter != m_cfartCurFilterAndTargets.pfbCurFilter ) {
 					m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
@@ -889,6 +891,7 @@ namespace lsn {
 					m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
 					m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
 					m_cfartCurFilterAndTargets.bDirty = true;
+					m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
 					m_cfartCurFilterAndTargets.pui8LastFilteredResult = nullptr;
 
 					m_cfartCurFilterAndTargets.pfbNextFilter = m_cfartCurFilterAndTargets.pfbCurFilter;

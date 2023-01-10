@@ -17,7 +17,7 @@
 #include "ppm_rw.h"
 
 #ifndef CMD_LINE_VERSION
-#define CMD_LINE_VERSION 0
+#define CMD_LINE_VERSION 1
 #endif
 
 #if CMD_LINE_VERSION

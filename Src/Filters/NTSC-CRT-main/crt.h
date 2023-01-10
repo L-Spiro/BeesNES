@@ -25,6 +25,7 @@ extern "C" {
  */
 
 #define CRT_NES_MODE 1
+#define CRT_NES_HIRES 0
 
 /* do bloom emulation (side effect: makes screen have black borders) */
 #define CRT_DO_BLOOM    0
@@ -33,7 +34,7 @@ extern "C" {
 /* 0 = vertical  chroma (228 chroma clocks per line) */
 /* 1 = checkered chroma (227.5 chroma clocks per line) */
 /* 2 = sawtooth  chroma (227.3 chroma clocks per line) */
-#define CRT_CHROMA_PATTERN 2
+#define CRT_CHROMA_PATTERN 1
 
 #if CRT_NES_MODE
 #undef CRT_CHROMA_PATTERN
@@ -51,7 +52,11 @@ extern "C" {
 #endif
 
 #if CRT_NES_MODE
+#if CRT_NES_HIRES
+#define CRT_CB_FREQ     6 /* carrier frequency relative to sample rate */
+#else
 #define CRT_CB_FREQ     3 /* carrier frequency relative to sample rate */
+#endif
 #else
 #define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
 #endif

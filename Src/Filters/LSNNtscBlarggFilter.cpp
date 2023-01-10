@@ -76,14 +76,14 @@ namespace lsn {
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );
-		for ( uint32_t Y = _ui32Height >> 1; Y--; ) {
+		/*for ( uint32_t Y = _ui32Height >> 1; Y--; ) {
 			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
 			uint32_t * pui32Src0 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];
 			uint32_t * pui32Src1 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[ui32SwapWidthMe*_ui32Width];
 			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
 				std::swap( pui32Src0[X], pui32Src1[X] );
 			}
-		}
+		}*/
 		return m_vFilteredOutput.data();
 	}
 
