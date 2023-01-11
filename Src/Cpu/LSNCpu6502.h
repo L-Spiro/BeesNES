@@ -116,6 +116,11 @@ namespace lsn {
 		virtual void						Nmi();
 
 		/**
+		 * Clears the NMI flag.
+		 */
+		virtual void						ClearNmi();
+
+		/**
 		 * Signals an IRQ to be handled before the next instruction.
 		 */
 		virtual void						Irq();

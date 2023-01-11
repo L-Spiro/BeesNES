@@ -743,6 +743,16 @@ namespace lsw {
 		// WM_CONTEXTMENU.
 		virtual LSW_HANDLED					ContextMenu( CWidget * /*_pwControl*/, INT /*_iX*/, INT /*_iY*/ ) { return LSW_H_CONTINUE; }
 
+		/**
+		 * The WM_INITMENUPOPUP handler.
+		 *
+		 * \param _hMenu A handle to the drop-down menu or submenu.
+		 * \param _wPos The zero-based relative position of the menu item that opens the drop-down menu or submenu.
+		 * \param _bIsWindowMenu Indicates whether the drop-down menu is the window menu. If the menu is the window menu, this parameter is TRUE; otherwise, it is FALSE.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					InitMenuPopup( HMENU /*_hMenu*/, WORD /*_wPos*/, BOOL /*_bIsWindowMenu*/ ) { return LSW_H_CONTINUE; }
+
 		// WM_USER/custom messages.
 		virtual LSW_HANDLED					CustomPrivateMsg( UINT /*_uMsg*/, WPARAM /*_wParam*/, LPARAM /*_lParam*/ ) { return LSW_H_CONTINUE; }
 

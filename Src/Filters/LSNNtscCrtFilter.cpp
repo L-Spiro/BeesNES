@@ -15,11 +15,14 @@ namespace lsn {
 	CNtscCrtFilter::CNtscCrtFilter() :
 		m_ui32FinalStride( 0 ),
 		m_ui32FinalWidth( 700 * 2 ),
-		m_ui32FinalHeight( 0 ) {
+		m_ui32FinalHeight( 0 ),
+		m_bRunThreads( true ) {
 		int iPhases[4] = { 0, 1, 0, -1 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
+
 	}
 	CNtscCrtFilter::~CNtscCrtFilter() {
+		StopPhospherDecayThread();
 	}
 
 
@@ -51,9 +54,14 @@ namespace lsn {
 		m_ui32FinalHeight = _ui16Height * ui32Scale;
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
-		m_vFinalOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
+		//m_vFinalOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::crt_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
+
+		StopPhospherDecayThread();
+#if defined( LSN_USE_WINDOWS )
+		m_ptPhospherThread = std::make_unique<std::thread>( PhospherDecayThread, this );
+#endif	// #if defined( LSN_USE_WINDOWS )
 
 		return InputFormat();
 	}
@@ -73,6 +81,24 @@ namespace lsn {
 	 */
 	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 
+		// Fade the phosphers.
+		{
+			if ( m_ptPhospherThread.get() ) {
+				m_ePhospherGo.Signal();
+			}
+			else {
+				uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
+				for ( uint32_t I = m_ui32FinalWidth * m_ui32FinalHeight; I--; ) {
+					//pui32Src[I] = 0;
+					uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
+					pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
+						((ui32Tmp >> 2) & 0x3F3F3F) + 
+						((ui32Tmp >> 3) & 0x1F1F1F) + 
+						((ui32Tmp >> 4) & 0x0F0F0F);
+				}
+			}
+		}
+
 		m_nsSettings.data = reinterpret_cast<unsigned short *>(_pui8Input);
 		m_nsSettings.w = int( m_ui32OutputWidth );
 		m_nsSettings.h = int( m_ui32OutputHeight );
@@ -85,16 +111,9 @@ namespace lsn {
 		m_nsSettings.cc[3] = m_iPhaseRef[(iPhaseOffset + 3) & 3];
 		::crt_nes2ntsc( &m_nnCrtNtsc, &m_nsSettings );
 
-		// Fade the phosphers.
 		{
-			uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
-			for ( uint32_t I = m_ui32FinalWidth * m_ui32FinalHeight; I--; ) {
-				//pui32Src[I] = 0;
-				uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-				pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-					((ui32Tmp >> 2) & 0x3F3F3F) + 
-					((ui32Tmp >> 3) & 0x1F1F1F) + 
-					((ui32Tmp >> 4) & 0x0F0F0F);
+			if ( m_ptPhospherThread.get() ) {
+				m_ePhospherDone.WaitForSignal();
 			}
 		}
 
@@ -113,6 +132,43 @@ namespace lsn {
 			}
 		}
 		return m_vFinalOutput.data();*/
+	}
+
+	/**
+	 * Stops the phospher-decay thread.
+	 */
+	void CNtscCrtFilter::StopPhospherDecayThread() {
+		m_bRunThreads = false;
+		if ( m_ptPhospherThread.get() ) {
+			m_ePhospherGo.Signal();
+			m_ePhospherDone.WaitForSignal();
+			m_ptPhospherThread->join();
+			m_ptPhospherThread.reset();
+		}
+		m_bRunThreads = true;
+	}
+
+	/**
+	 * The phospher-decay thread.
+	 *
+	 * \param _pncfFilter Pointer to this object.
+	 */
+	void CNtscCrtFilter::PhospherDecayThread( CNtscCrtFilter * _pncfFilter ) {
+		while ( _pncfFilter->m_bRunThreads ) {
+			_pncfFilter->m_ePhospherGo.WaitForSignal();
+			if ( _pncfFilter->m_bRunThreads ) {
+				uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data());
+				for ( uint32_t I = _pncfFilter->m_ui32FinalWidth * _pncfFilter->m_ui32FinalHeight; I--; ) {
+					//pui32Src[I] = 0;
+					uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
+					pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
+						((ui32Tmp >> 2) & 0x3F3F3F) + 
+						((ui32Tmp >> 3) & 0x1F1F1F) + 
+						((ui32Tmp >> 4) & 0x0F0F0F);
+				}
+			}
+			_pncfFilter->m_ePhospherDone.Signal();
+		}
 	}
 
 }	// namespace lsn

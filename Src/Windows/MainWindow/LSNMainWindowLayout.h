@@ -17,10 +17,13 @@
 using namespace lsw;
 
 namespace lsn {
-
-	class CMemHack;
 	
-	// Layout for the main MHS window.
+	/**
+	 * Class CMainWindowLayout
+	 * \brief Layout for the main MHS window.
+	 *
+	 * Description: Layout for the main MHS window.
+	 */
 	class CMainWindowLayout {
 	public :
 		// == Enumerations.

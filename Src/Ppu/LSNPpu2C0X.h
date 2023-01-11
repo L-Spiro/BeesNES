@@ -182,6 +182,7 @@ namespace lsn {
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			m_psPpuStatus.s.ui8VBlank = 0;
+			m_pnNmiTarget->ClearNmi();
 
 			m_bAddresLatch = false;
 			m_ui8FineScrollX = 0;
@@ -686,6 +687,13 @@ namespace lsn {
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
 			ppPpu->m_paPpuAddrT.s.ui16NametableX = LSN_CTRL_NAMETABLE_X( ppPpu->m_pcPpuCtrl );
 			ppPpu->m_paPpuAddrT.s.ui16NametableY = LSN_CTRL_NAMETABLE_Y( ppPpu->m_pcPpuCtrl );
+			ppPpu->GlitchyVUpdate( ppPpu->m_ui8IoBusLatch << 10, 0x0400 );
+			if ( !ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
+				ppPpu->m_pnNmiTarget->ClearNmi();
+			}
+			else if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
+				//ppPpu->m_pnNmiTarget->Nmi();
+			}
 		}
 
 		/**
@@ -720,6 +728,7 @@ namespace lsn {
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 			// Reads cause the v-blank flag to reset.
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+			ppPpu->m_pnNmiTarget->ClearNmi();
 			// The address latch also gets reset.
 			ppPpu->m_bAddresLatch = false;
 
@@ -844,6 +853,9 @@ namespace lsn {
 				ppPpu->m_ui16VAddrCopy = ppPpu->m_paPpuAddrT.ui16Addr;
 				ppPpu->m_ui8VAddrUpdateCounter = 3;
 				ppPpu->m_bVAddrPending = true;
+			}
+			else {
+				ppPpu->GlitchyVUpdate( ppPpu->m_ui8IoBusLatch << 8, 0x0C00 );
 			}
 		}
 
@@ -1822,7 +1834,8 @@ namespace lsn {
 				sRet += "\r\n"
 				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
 				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
-				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n";
+				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
+				"m_pnNmiTarget->ClearNmi();\r\n";
 			}
 
 			// Log the first rendered pixel's cycle.

@@ -172,6 +172,12 @@
     <Filter Include="Header Files\Filters\NTSC-CRT-main">
       <UniqueIdentifier>{7f6ac191-c9ae-4460-b542-fed129f3c5da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Event">
+      <UniqueIdentifier>{d239a0c2-6775-4b25-88ba-31a0cefcca6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Event">
+      <UniqueIdentifier>{0254f3f7-6c22-45af-990b-61a306b757a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -456,6 +462,9 @@
     <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Event\LSNEvent.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -574,6 +583,9 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNNtscCrtFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Event\LSNEvent.cpp">
+      <Filter>Source Files\Event</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

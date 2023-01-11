@@ -1170,6 +1170,13 @@ namespace lsn {
 	}
 
 	/**
+	 * Clears the NMI flag.
+	 */
+	void CCpu6502::ClearNmi() {
+		m_bNmiStatusLine = false;
+	}
+
+	/**
 	 * Signals an IRQ to be handled before the next instruction.
 	 */
 	void CCpu6502::Irq() {
@@ -1875,9 +1882,9 @@ namespace lsn {
 		//  2    PC     R  fetch value, increment PC
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
-		const uint8_t ui8Tmp = m_pbBus->Read( m_ccCurContext.a.ui16Address );
+		const uint8_t ui8Tmp = m_pbBus->Read( pc.PC++ );
 		A &= ui8Tmp;
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (A & 0x80) != 0 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 	}
@@ -1966,13 +1973,13 @@ namespace lsn {
 		const uint8_t ui8Tmp = m_pbBus->Read( pc.PC++ );
 		A &= ui8Tmp;
 		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
-		// It carries if the last bit gets shifted off.
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (A & 0x01) != 0 );
+		// It carries if the last bit gets shifted in.
+		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (A & 0x80) != 0 );
 		A = (A >> 1) | ui8HiBit;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status,
-			((m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) & ((A >> 5) & 0x1)) != 0 );
+			((m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) ^ ((A >> 5) & 0x1)) != 0 );
 	}
 
 	/** Performs OP <<= 1.  Sets flags C, N, and Z. */
@@ -3105,7 +3112,8 @@ namespace lsn {
 
 		Y AND (H+1) -> M
 		*/
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X );
+		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X;
+		m_pbBus->Write( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
 	}
 
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
@@ -3123,7 +3131,8 @@ namespace lsn {
 
 		Y AND (H+1) -> M
 		*/
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y );
+		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y;
+		m_pbBus->Write( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
 	}
 
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */

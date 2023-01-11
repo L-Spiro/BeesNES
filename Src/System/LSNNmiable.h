@@ -26,6 +26,11 @@ namespace lsn {
 		 * Notifies the class that an NMI has occurred.
 		 */
 		virtual void						Nmi() {}
+
+		/**
+		 * Clears the NMI flag.
+		 */
+		virtual void						ClearNmi() {}
 	};
 
 }	// namespace lsn

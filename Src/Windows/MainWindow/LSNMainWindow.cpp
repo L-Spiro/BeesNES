@@ -613,6 +613,69 @@ namespace lsn {
 	}
 
 	/**
+	 * The WM_INITMENUPOPUP handler.
+	 *
+	 * \param _hMenu A handle to the drop-down menu or submenu.
+	 * \param _wPos The zero-based relative position of the menu item that opens the drop-down menu or submenu.
+	 * \param _bIsWindowMenu Indicates whether the drop-down menu is the window menu. If the menu is the window menu, this parameter is TRUE; otherwise, it is FALSE.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::InitMenuPopup( HMENU _hMenu, WORD /*_wPos*/, BOOL _bIsWindowMenu ) {
+		if ( _bIsWindowMenu ) { return LSW_H_CONTINUE; }
+		for ( int I = ::GetMenuItemCount( _hMenu ); --I >= 0; ) {
+			
+			UINT uiId = ::GetMenuItemID( _hMenu, I );
+			switch ( uiId ) {
+#define LSN_CHECK_SCALE( SCALE )																																			\
+	case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_ ## SCALE ## X : {																											\
+		MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_dScale == double( SCALE ) ? MFS_CHECKED : MFS_UNCHECKED ) };	\
+		::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );																												\
+		break;																																								\
+	}
+				LSN_CHECK_SCALE( 1 );
+				LSN_CHECK_SCALE( 2 );
+				LSN_CHECK_SCALE( 3 );
+				LSN_CHECK_SCALE( 4 );
+				LSN_CHECK_SCALE( 5 );
+				LSN_CHECK_SCALE( 6 );
+#undef LSN_CHECK_SCALE
+
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_RGB24 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_PAL_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_NTSC_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_AUTO_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_AUTO_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {

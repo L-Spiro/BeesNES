@@ -9,8 +9,10 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
 #include "LSNFilterBase.h"
 #include "NTSC-CRT-main/crt.h"
+#include <thread>
 #include <vector>
 
 
@@ -92,8 +94,13 @@ namespace lsn {
 		/** The filtered output buffer. */
 		std::vector<uint8_t>								m_vFilteredOutput;
 		/** The final flipped and R<->B buffer. */
-		std::vector<uint8_t>								m_vFinalOutput;
-		/** The image-flip thread. */
+		//std::vector<uint8_t>								m_vFinalOutput;
+		/** The phospher-decay thread. */
+		std::unique_ptr<std::thread>						m_ptPhospherThread;
+		/** The signal for the phospher-decay thread to go. */
+		CEvent												m_ePhospherGo;
+		/** The signal that the phospher-decay thread has finished. */
+		CEvent												m_ePhospherDone;
 		/** The final stride. */
 		uint32_t											m_ui32FinalStride;
 		/** The phase table. */
@@ -102,6 +109,22 @@ namespace lsn {
 		uint32_t											m_ui32FinalWidth;
 		/** The final height. */
 		uint32_t											m_ui32FinalHeight;
+		/** Boolean to stop all threads. */
+		std::atomic<bool>									m_bRunThreads;
+
+
+		// == Functions.
+		/**
+		 * Stops the phospher-decay thread.
+		 */
+		void												StopPhospherDecayThread();
+
+		/**
+		 * The phospher-decay thread.
+		 *
+		 * \param _pncfFilter Pointer to this object.
+		 */
+		static void											PhospherDecayThread( CNtscCrtFilter * _pncfFilter );
 	};
 
 }	// namespace lsn

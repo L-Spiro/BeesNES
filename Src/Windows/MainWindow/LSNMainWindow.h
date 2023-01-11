@@ -31,8 +31,14 @@ namespace lsw {
 
 namespace lsn {
 	
+	/**
+	 * Class CMainWindow
+	 * \brief The main window of the emulator.
+	 *
+	 * Description: The main window of the emulator.
+	 */
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
-		typedef lsn::CDendySystem
+		typedef lsn::CNtscSystem
 												CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -107,6 +113,16 @@ namespace lsn {
 		 * \return Returns a LSW_HANDLED enumeration.
 		 */
 		virtual LSW_HANDLED						Sizing( INT _iEdge, LSW_RECT * _prRect );
+
+		/**
+		 * The WM_INITMENUPOPUP handler.
+		 *
+		 * \param _hMenu A handle to the drop-down menu or submenu.
+		 * \param _wPos The zero-based relative position of the menu item that opens the drop-down menu or submenu.
+		 * \param _bIsWindowMenu Indicates whether the drop-down menu is the window menu. If the menu is the window menu, this parameter is TRUE; otherwise, it is FALSE.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						InitMenuPopup( HMENU /*_hMenu*/, WORD /*_wPos*/, BOOL /*_bIsWindowMenu*/ );
 
 		/**
 		 * Advances the emulation state by the amount of time that has passed since the last advancement.
@@ -325,18 +341,7 @@ namespace lsn {
 		 * \param PARM The ID string of the device to open.
 		 * \return Returns if the device was opened.  It handle will be stored in YYY.
 		 */
-		bool									OpenHidDevice();
-
-		/**
-		 * Gets a BITMAP stride given its row width in bytes.
-		 *
-		 * \param _ui32RowWidth The row width in RGB(A) pixels.
-		 * \param _ui32BitDepth The total bits for a single RGB(A) pixel.
-		 * \return Returns the byte width rounded up to the nearest DWORD.
-		 */
-		static inline DWORD						RowStride( uint32_t _ui32RowWidth, uint32_t _ui32BitDepth ) {
-			return ((((_ui32RowWidth * _ui32BitDepth) + 31) & ~31) >> 3);
-		}
+		//bool									OpenHidDevice();
 
 		/**
 		 * The emulator thread.
