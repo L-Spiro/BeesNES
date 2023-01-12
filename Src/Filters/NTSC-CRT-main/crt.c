@@ -337,10 +337,13 @@ crt_reset(struct CRT *v)
     v->hsync = 0;
     v->vsync = 0;    
 }
-
+#define CRT_NES_PULSE_EQ_FIELD_REFACTOR
 extern void
 crt_init(struct CRT *v, int w, int h, int *out)
 {
+#ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
+    int n;
+#endif  // #ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
     memset(v, 0, sizeof(struct CRT));
     crt_resize(v, w, h, out);
     crt_reset(v);
@@ -359,6 +362,39 @@ crt_init(struct CRT *v, int w, int h, int *out)
     init_iir(&iirY, L_FREQ, Y_FREQ);
     init_iir(&iirI, L_FREQ, I_FREQ);
     init_iir(&iirQ, L_FREQ, Q_FREQ);
+
+#ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
+    for (n = 0; n < CRT_VRES; n++) {
+        int t; /* time */
+        signed char *line = &v->analog[n * CRT_HRES];
+        
+        t = LINE_BEG;
+
+        if (n <= 3 || (n >= 7 && n <= 9)) {
+            /* equalizing pulses - small blips of sync, mostly blank */
+            while (t < (4   * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (50  * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+            while (t < (54  * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (100 * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+        } else if (n >= 4 && n <= 6) {
+            int even[4] = { 46, 50, 96, 100 };
+            int *offs = even; /* always progressive */
+            /* vertical sync pulse - small blips of blank, mostly sync */
+            while (t < (offs[0] * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (offs[1] * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+            while (t < (offs[2] * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (offs[3] * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+        } else {
+            /* video line */
+            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
+            while (t < BW_BEG)   line[t++] = SYNC_LEVEL;  /* SYNC */
+            while (t < AV_BEG)   line[t++] = BLANK_LEVEL; /* BW + CB + BP */
+            if (n < CRT_TOP) {
+                while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
+            }
+        }
+    }
+#endif  // #ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
 }
 
 extern void
@@ -611,6 +647,26 @@ crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s)
         lo = 3;
     }
 #endif
+
+#ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
+    for (n = 0; n < CRT_VRES; n++) {
+        int t; /* time */
+        signed char *line = &v->analog[n * CRT_HRES];
+        
+        t = LINE_BEG;
+
+        if (n <= 3 || (n >= 7 && n <= 9)) {
+        } else if (n >= 4 && n <= 6) {
+        } else {
+            if (s->as_color) {
+                /* CB_CYCLES of color burst at 3.579545 Mhz */
+                for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
+                    line[t] = BLANK_LEVEL + (s->cc[(t + po) & 3] * BURST_LEVEL);
+                }
+            }
+        }
+    }
+#else
     for (n = 0; n < CRT_VRES; n++) {
         int t; /* time */
         signed char *line = &v->analog[n * CRT_HRES];
@@ -646,7 +702,9 @@ crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s)
                 }
             }
         }
-    }   
+    }
+#endif  // #ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
+
     
     phase = 0;
 
