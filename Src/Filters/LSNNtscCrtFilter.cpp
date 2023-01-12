@@ -20,9 +20,18 @@ namespace lsn {
 		int iPhases[4] = { 0, 1, 0, -1 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 
+#ifdef LSN_CRT_PERF
+		m_ui32Calls = 0;
+		m_ui64AccumTime = 0;
+#endif	// #ifdef LSN_CRT_PERF
 	}
 	CNtscCrtFilter::~CNtscCrtFilter() {
 		StopPhospherDecayThread();
+#ifdef LSN_CRT_PERF
+		char szBuffer[128];
+		std::sprintf( szBuffer, "CRT Time: %.17f\r\n", m_ui64AccumTime / double( m_ui32Calls ) / m_cPerfClock.GetResolution() );
+		::OutputDebugStringA( szBuffer );
+#endif	// #ifdef LSN_CRT_PERF
 	}
 
 
@@ -54,7 +63,6 @@ namespace lsn {
 		m_ui32FinalHeight = _ui16Height * ui32Scale;
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
-		//m_vFinalOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::crt_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
 
@@ -80,7 +88,9 @@ namespace lsn {
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
 	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
-
+#ifdef LSN_CRT_PERF
+		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
+#endif	// #ifdef LSN_CRT_PERF
 		// Fade the phosphers.
 		{
 			if ( m_ptPhospherThread.get() ) {
@@ -120,6 +130,11 @@ namespace lsn {
 		::crt_draw( &m_nnCrtNtsc, 12 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
+
+#ifdef LSN_CRT_PERF
+		m_ui32Calls++;
+		m_ui64AccumTime += m_cPerfClock.GetRealTick() - ui64TimeNow;
+#endif	// #ifdef LSN_CRT_PERF
 		return m_vFilteredOutput.data();
 		/*for ( uint32_t Y = _ui32Height; Y--; ) {
 			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;

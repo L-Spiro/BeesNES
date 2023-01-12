@@ -405,6 +405,9 @@ namespace lsn {
 				::OutputDebugStringA( sText.c_str() );
 				sText = "****** CHR Size: " + std::to_string( m_rRom.vChrRom.size() ) + ".\r\n";
 				::OutputDebugStringA( sText.c_str() );
+
+				sText = "****** PGM RAM Size: " + std::to_string( m_rRom.i32WorkRamSize ) + ".\r\n";
+				::OutputDebugStringA( sText.c_str() );
 			}
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {

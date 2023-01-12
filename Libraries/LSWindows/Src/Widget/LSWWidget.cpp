@@ -1649,8 +1649,10 @@ namespace lsw {
 #endif	// #ifdef WM_NCMOUSEHOVER
 #ifdef WM_NCMOUSELEAVE
 				case WM_NCMOUSELEAVE : {
-					LSW_HANDLED hHandled = pmwThis->NcMouseLeave();
-					if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+					if ( pmwThis ) {
+						LSW_HANDLED hHandled = pmwThis->NcMouseLeave();
+						if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+					}
 					break;
 				}
 #endif	// #ifdef WM_NCMOUSELEAVE

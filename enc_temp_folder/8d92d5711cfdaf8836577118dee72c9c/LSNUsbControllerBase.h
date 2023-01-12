@@ -31,7 +31,7 @@ namespace lsn {
 			LSN_B_A,											/**< The A button. */
 			LSN_B_B,											/**< The B button. */
 			LSN_B_START,										/**< The Start button. */
-			LSN_B_SELECT,										/**< The Select button. */
+			LSN_B_SELECT,										/**< The select button. */
 			LSN_B_UP,											/**< The Up button. */
 			LSN_B_DOWN,											/**< The Down button. */
 			LSN_B_LEFT,											/**< The Left button. */

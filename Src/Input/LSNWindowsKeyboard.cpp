@@ -13,6 +13,25 @@
 namespace lsn {
 
 	CWindowsKeyboard::CWindowsKeyboard() {
+		// Temporary default.
+		m_bmButtonMap.ui16Map[LSN_B_A] = VK_OEM_1;
+		m_bmButtonMap.ui16Map[LSN_B_B] = 'L';
+		m_bmButtonMap.ui16Map[LSN_B_START] = 'P';
+		m_bmButtonMap.ui16Map[LSN_B_SELECT] = 'O';
+		m_bmButtonMap.ui16Map[LSN_B_UP] = 'W';
+		m_bmButtonMap.ui16Map[LSN_B_DOWN] = 'S';
+		m_bmButtonMap.ui16Map[LSN_B_LEFT] = 'A';
+		m_bmButtonMap.ui16Map[LSN_B_RIGHT] = 'D';
+
+		m_bmRapidMap.ui16Map[LSN_B_A] = VK_OEM_2;
+		m_bmRapidMap.ui16Map[LSN_B_B] = VK_OEM_PERIOD;
+		m_bmRapidMap.ui16Map[LSN_B_START] = '0';
+		m_bmRapidMap.ui16Map[LSN_B_SELECT] = '9';
+		m_bmRapidMap.ui16Map[LSN_B_UP] = '2';
+		m_bmRapidMap.ui16Map[LSN_B_DOWN] = 'X';
+		m_bmRapidMap.ui16Map[LSN_B_LEFT] = 'Q';
+		m_bmRapidMap.ui16Map[LSN_B_RIGHT] = 'E';
+		
 	}
 	CWindowsKeyboard::~CWindowsKeyboard() {
 	}
@@ -34,7 +53,7 @@ namespace lsn {
 	 * \return Returns true if the A button is pressed.
 	 */
 	bool CWindowsKeyboard::IsAPressed() {
-		return (::GetAsyncKeyState( VK_OEM_1 ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_A] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -43,7 +62,7 @@ namespace lsn {
 	 * \return Returns true if the B button is pressed.
 	 */
 	bool CWindowsKeyboard::IsBPressed() {
-		return (::GetAsyncKeyState( 'L' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_B] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -52,7 +71,7 @@ namespace lsn {
 	 * \return Returns true if the Select button is pressed.
 	 */
 	bool CWindowsKeyboard::IsSelectPressed() {
-		return (::GetAsyncKeyState( 'O' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_SELECT] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -61,7 +80,7 @@ namespace lsn {
 	 * \return Returns true if the Start button is pressed.
 	 */
 	bool CWindowsKeyboard::IsStartPressed() {
-		return (::GetAsyncKeyState( 'P' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_START] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -70,7 +89,7 @@ namespace lsn {
 	 * \return Returns true if the Up button is pressed.
 	 */
 	bool CWindowsKeyboard::IsUpPressed() {
-		return (::GetAsyncKeyState( 'W' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_UP] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -79,7 +98,7 @@ namespace lsn {
 	 * \return Returns true if the Down button is pressed.
 	 */
 	bool CWindowsKeyboard::IsDownPressed() {
-		return (::GetAsyncKeyState( 'S' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_DOWN] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -88,7 +107,7 @@ namespace lsn {
 	 * \return Returns true if the Left button is pressed.
 	 */
 	bool CWindowsKeyboard::IsLeftPressed() {
-		return (::GetAsyncKeyState( 'A' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_LEFT] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -97,7 +116,7 @@ namespace lsn {
 	 * \return Returns true if the Right button is pressed.
 	 */
 	bool CWindowsKeyboard::IsRightPressed() {
-		return (::GetAsyncKeyState( 'D' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmButtonMap.ui16Map[LSN_B_RIGHT] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -106,7 +125,7 @@ namespace lsn {
 	 * \return Returns true if the A button is pressed.
 	 */
 	bool CWindowsKeyboard::IsATurboPressed() {
-		return (::GetAsyncKeyState( VK_OEM_2 ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_A] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -115,7 +134,7 @@ namespace lsn {
 	 * \return Returns true if the B button is pressed.
 	 */
 	bool CWindowsKeyboard::IsBTurboPressed() {
-		return (::GetAsyncKeyState( VK_OEM_PERIOD ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_B] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -124,7 +143,7 @@ namespace lsn {
 	 * \return Returns true if the Select button is pressed.
 	 */
 	bool CWindowsKeyboard::IsSelectTurboPressed() {
-		return (::GetAsyncKeyState( '9' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_SELECT] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -133,7 +152,7 @@ namespace lsn {
 	 * \return Returns true if the Start button is pressed.
 	 */
 	bool CWindowsKeyboard::IsStartTurboPressed() {
-		return (::GetAsyncKeyState( '0' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_START] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -142,7 +161,7 @@ namespace lsn {
 	 * \return Returns true if the Up button is pressed.
 	 */
 	bool CWindowsKeyboard::IsUpTurboPressed() {
-		return (::GetAsyncKeyState( '2' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_UP] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -151,7 +170,7 @@ namespace lsn {
 	 * \return Returns true if the Down button is pressed.
 	 */
 	bool CWindowsKeyboard::IsDownTurboPressed() {
-		return (::GetAsyncKeyState( 'X' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_DOWN] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -160,7 +179,7 @@ namespace lsn {
 	 * \return Returns true if the Left button is pressed.
 	 */
 	bool CWindowsKeyboard::IsLeftTurboPressed() {
-		return (::GetAsyncKeyState( 'Q' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_LEFT] ) & 0x8000) != 0;
 	}
 
 	/**
@@ -169,7 +188,7 @@ namespace lsn {
 	 * \return Returns true if the Right button is pressed.
 	 */
 	bool CWindowsKeyboard::IsRightTurboPressed() {
-		return (::GetAsyncKeyState( 'E' ) & 0x8000) != 0;
+		return (::GetAsyncKeyState( m_bmRapidMap.ui16Map[LSN_B_RIGHT] ) & 0x8000) != 0;
 	}
 
 }	// namespace lsn

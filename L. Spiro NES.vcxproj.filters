@@ -465,6 +465,9 @@
     <ClInclude Include="Src\Event\LSNEvent.h">
       <Filter>Header Files\Event</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -586,6 +589,9 @@
     </ClCompile>
     <ClCompile Include="Src\Event\LSNEvent.cpp">
       <Filter>Source Files\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

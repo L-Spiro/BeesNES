@@ -335,7 +335,7 @@ crt_reset(struct CRT *v)
     v->black_point = 0;
     v->white_point = 100;
     v->hsync = 0;
-    v->vsync = 0;
+    v->vsync = 0;    
 }
 
 extern void
@@ -344,6 +344,7 @@ crt_init(struct CRT *v, int w, int h, int *out)
     memset(v, 0, sizeof(struct CRT));
     crt_resize(v, w, h, out);
     crt_reset(v);
+    v->rn = 194;
             
     /* kilohertz to line sample conversion */
 #define kHz2L(kHz) (CRT_HRES * (kHz * 100) / L_FREQ)
@@ -698,8 +699,9 @@ crt_draw(struct CRT *v, int noise)
    
     memset(ccref, 0, sizeof(ccref));
     
+    int rn = v->rn;
     for (i = 0; i < CRT_INPUT_SIZE; i++) {
-        static int rn = 194; /* 'random' noise */
+        //static int rn = 194; /* 'random' noise */
 
         rn = (214019 * rn + 140327895);
 
@@ -709,6 +711,7 @@ crt_draw(struct CRT *v, int noise)
         if (s < -127) { s = -127; }
         v->inp[i] = s;
     }
+    v->rn = rn;
 
     /* Look for vertical sync.
      * 
