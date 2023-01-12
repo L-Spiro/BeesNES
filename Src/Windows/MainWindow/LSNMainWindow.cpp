@@ -582,9 +582,9 @@ namespace lsn {
 				dScale = std::round( dScale * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
 
 				LSW_RECT rNew = FinalWindowRect( dScale );
-				// If the drag was on the top, move the rectangle to maintain the TOP coordinate.
+				// If the drag was on the top, move the rectangle to maintain the BOTTOM coordinate.
 				if ( _iEdge == WMSZ_TOP || _iEdge == WMSZ_TOPRIGHT || _iEdge == WMSZ_TOPLEFT ) {
-					rNew.MoveBy( 0, (*_prRect).top - rNew.top );
+					rNew.MoveBy( 0, (*_prRect).bottom - rNew.bottom );
 				}
 				// If the drag was on the left, move the rectangle to maintain the RIGHT coordinate.
 				if ( _iEdge == WMSZ_BOTTOMLEFT || _iEdge == WMSZ_TOPLEFT ) {
