@@ -397,6 +397,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />
+    <ClInclude Include="Src\Windows\Input\LSNInputWindow.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindowLayout.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutMacros.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
@@ -441,6 +443,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />

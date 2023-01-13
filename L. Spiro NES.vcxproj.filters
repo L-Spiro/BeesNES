@@ -471,6 +471,12 @@
     <ClInclude Include="Src\Mappers\LSNMapper136.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNInputWindow.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNInputPage.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -595,6 +601,12 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

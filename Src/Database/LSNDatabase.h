@@ -43,6 +43,7 @@ namespace lsn {
 		/** A database entry. */
 		struct LSN_ENTRY {
 			uint32_t							ui32Crc = 0;											/**< Game identifier. */
+			uint32_t							ui32PgmRomSize = 0;										/**< The actual ROM size (in the case of over-dumps). */
 			LSN_MIRROR_MODE						mmMirrorOverride = LSN_MM_NO_OVERRIDE;					/**< A mirror override, or LSN_MM_NO_OVERRIDE. */
 			LSN_PPU_METRICS						pmRegion = LSN_PM_UNKNOWN;								/**< The game region. */
 			LSN_CHIP							cChip = LSN_C_UNKNOWN;									/**< The mapper chip. */

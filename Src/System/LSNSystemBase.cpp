@@ -63,6 +63,9 @@ namespace lsn {
 					if ( aEntry->second.cChip != CDatabase::LSN_C_UNKNOWN ) {
 						_rRom.riInfo.ui16Chip = static_cast<uint16_t>(aEntry->second.cChip);
 					}
+					if ( aEntry->second.ui32PgmRomSize != 0 ) {
+						_rRom.vPrgRom.resize( aEntry->second.ui32PgmRomSize );
+					}
 				}
 			}
 

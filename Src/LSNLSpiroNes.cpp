@@ -18,7 +18,8 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		L"LSNSPLITTER",
 		L"LSNMULTISPLITTER",
 		L"LSNTREEVIEW",
-		L"LSNTREELISTVIEW" );
+		L"LSNTREELISTVIEW",
+		L"LSNCHILDWINDOW" );
 	lsn::CDatabase::Init();
 	lsn::CDirectInput8::CreateDirectInput8();
 

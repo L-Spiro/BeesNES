@@ -9,7 +9,9 @@
 
 #pragma once
 
-#define LSN_OPEN_PROCESS													Open Process
+#define LSN_NES																Nintendo Entertainment System®
+#define LSN_FAMICOM															Famicom®
+
 #define LSN_OPTIONS															Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
 #define LSN_NES_FILES____NES____NES_										NES Files (*.nes)\0*.nes\0
@@ -26,6 +28,7 @@
 // Options menu.
 #define LSN_VIDEO_SIZE														Video Si&ze
 #define LSN_VIDEO_FILTER													Video &Filter
+#define LSN_INPUT															&Input
 #define LSN_VIDEO															&Video
 // Video sizes.
 #define LSN_VIDEO_SIZE_1X													1×
@@ -43,11 +46,24 @@
 #define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
 // Tools menu.
 
+// Main menu.
 #define LSN_SELECT_ROM														Select ROM
 #define LSN_FILE_LISTING													File Listing
 #define LSN_SEARCH_															Search:
 #define LSN_OK																OK
 #define LSN_CANCEL															Cancel
+
+// Input dialog.
+#define LSN_INPUT_DIALOG													Configure Input
+#define LSN_INPUT_GENERAL													General
+#define LSN_INPUT_CONSOLE_TYPE_												Console Type:
+#define LSN_INPUT_USE_GLOBAL												Use Global
+#define LSN_INPUT_SETTINGS													Settings
+#define LSN_INPUT_PLAYER_1_													Player 1:
+#define LSN_INPUT_PLAYER_2_													Player 2:
+#define LSN_INPUT_PLAYER_3_													Player 3:
+#define LSN_INPUT_PLAYER_4_													Player 4:
+#define LSN_INPUT_CONFIGURATION												Configuration
 
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.

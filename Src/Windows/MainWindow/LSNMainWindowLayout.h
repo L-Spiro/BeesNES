@@ -20,9 +20,9 @@ namespace lsn {
 	
 	/**
 	 * Class CMainWindowLayout
-	 * \brief Layout for the main MHS window.
+	 * \brief The main window layout.
 	 *
-	 * Description: Layout for the main MHS window.
+	 * Description: The main window layout.
 	 */
 	class CMainWindowLayout {
 	public :
@@ -68,6 +68,7 @@ namespace lsn {
 
 			LSN_MWMI_VIDEO_SIZE,
 			LSN_MWMI_VIDEO_FILTER,
+			LSN_MWMI_INPUT,
 			LSN_MWMI_VIDEO,
 
 			LSN_MWMI_VIDEO_SIZES,

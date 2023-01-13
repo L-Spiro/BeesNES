@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../../LSNLSpiroNes.h"
 #include <Layout/LSWMenuLayout.h>
 #include <Layout/LSWWidgetLayout.h>
 #include <Widget/LSWWidget.h>
@@ -20,111 +21,93 @@ namespace lsn {
 	
 	/**
 	 * Class CInputWindowLayout
-	 * \brief Layout for the main MHS window.
+	 * \brief The input window layout.
 	 *
-	 * Description: Layout for the main MHS window.
+	 * Description: The input window layout.
 	 */
 	class CInputWindowLayout {
 	public :
 		// == Enumerations.
 		// Control ID's.
-		enum LSN_INPUT_WINDOW_IDS {
+		enum LSN_INPUT_WINDOW_IDS : WORD {
 			LSN_IWI_NONE,
 			LSN_IWI_MAINWINDOW,
-			LSN_IWI_REBAR0,
-			LSN_IWI_TOOLBAR0,
-			LSN_IWI_STATUSBAR,
+			LSN_IWI_TAB,
+			LSN_IWI_OK,
+			LSN_IWI_CANCEL,
 
-		};
+			LSN_IWI_GENERAL_GROUP,
+			LSN_IWI_GENERAL_CONSOLE_TYPE_LABEL,
+			LSN_IWI_GENERAL_CONSOLE_TYPE_COMBO,
+			LSN_IWI_GENERAL_USE_GLOBAL_CHECK,
 
-		// Menu items
-		enum LSN_INPUT_WINDOW_MENU_IDS {
-			LSN_IWMI_MENU_BAR					= 300,
-			LSN_IWMI_MENU_FILE,
-			LSN_IWMI_MENU_SEARCH,
-			LSN_IWMI_MENU_TOOLS,
-			LSN_IWMI_MENU_WINDOW,
-			LSN_IWMI_MENU_HELP,
+#define LSN_IWI_PER_GAME( NAME )				LSN_IWI_PER_GAME_SETTINGS_ ## NAME
+#define LSN_IWI_GLOBAL( NAME )					LSN_IWI_GLOBAL_SETTINGS_ ## NAME
+#define LSN_BOTH( NAME )						LSN_IWI_PER_GAME( NAME ), LSN_IWI_GLOBAL( NAME )
+			LSN_BOTH( PANEL ),
+			LSN_BOTH( GROUP ),
+			LSN_BOTH( PLAYER_1_LABEL ),
+			LSN_BOTH( PLAYER_1_COMBO ),
+			LSN_BOTH( PLAYER_1_BUTTON ),
+			LSN_BOTH( PLAYER_2_LABEL ),
+			LSN_BOTH( PLAYER_2_COMBO ),
+			LSN_BOTH( PLAYER_2_BUTTON ),
 
-			LSN_IWMI_FILE						= 100,
-			LSN_IWMI_SEARCH,
-			LSN_IWMI_TOOLS,
-			LSN_IWMI_WINDOW,
-			LSN_IWMI_HELP,
+			LSN_BOTH( USE_FOUR_SCORE_CHECK ),
+			LSN_BOTH( EXPAND_LABEL ),
+			LSN_BOTH( EXPAND_COMBO ),
+			LSN_BOTH( EXPAND_BUTTON ),
 
-			LSN_IWMI_OPENROM,
-			LSN_IWMI_OPENRECENT,
-			LSN_IWMI_OPENFORDEBUG,
-			LSN_IWMI_ADDENTRY,
-			LSN_IWMI_OPENSAVEFILE,
-			LSN_IWMI_SAVE,
-			LSN_IWMI_SAVEAS,
-			LSN_IWMI_DELETE,
-			LSN_IWMI_DELETEALL,
-			LSN_IWMI_LOCK,
-			LSN_IWMI_UNLOCK,
-			LSN_IWMI_EDIT,
+			LSN_BOTH( PLAYER_3_LABEL ),
+			LSN_BOTH( PLAYER_3_COMBO ),
+			LSN_BOTH( PLAYER_3_BUTTON ),
 
-			LSN_IWMI_DATATYPE,
-			LSN_IWMI_POINTER,
-			LSN_IWMI_STRING,
-			LSN_IWMI_GROUP,
-			LSN_IWMI_EXPRESSION,
-			LSN_IWMI_SUB,
-			LSN_IWMI_INSERT,
-			LSN_IWMI_SEARCHOPTIONS,
-
-			LSN_IWMI_DATATYPESEARCH,
-
-			LSN_IWMI_OPTIONS,
-			LSN_IWMI_PEWORKS,
-			LSN_IWMI_STRINGTHEORY,
-			LSN_IWMI_FLOATINGPOINTSTUDIO,
-
-			LSN_IWMI_SHOWFOUNDADDR,
-			LSN_IWMI_SHOW_EXPEVAL,
-			LSN_IWMI_SHOW_CONVERTER,
-			LSN_IWMI_SHOW_ALL,
+			LSN_BOTH( PLAYER_4_LABEL ),
+			LSN_BOTH( PLAYER_4_COMBO ),
+			LSN_BOTH( PLAYER_4_BUTTON ),
+#undef LSN_BOTH
 		};
 
 
 		// == Functions.
-		// Creates the main window.  Makes an in-memory copy of the LSW_WIDGET_LAYOUT's so it can decode strings etc., and registers the main window class.
-		static CWidget *						CreateInputWindow( std::atomic_bool * _pabIsAlive );
+		/**
+		 * Creates the input-configuration window.
+		 *
+		 * \param _pwParent The parent of the dialog.
+		 * \return Returns TRUE if the dialog was created successfully.
+		 */
+		static BOOL								CreateInputDialog( CWidget * _pwParent );
 
-		// Creates the main menu and adds it to the window.
-		static BOOL								CreateMenu( CWidget * _pwInputWindow );
-
-		// Gets the main window widget.
-		static CWidget *						InputWindow() { return m_pwInputWindow; }
+		/**
+		 * Creates the global-settings page.
+		 *
+		 * \param _pwParent the parent of the page.
+		 * \return Returns the created widget.
+		 */
+		static CWidget *						CreateGlobalPage( CWidget * _pwParent );
 
 
 	protected :
 		// == Members.
-		// The layout for the main window.
+		/** The layout for the main window. */
 		static LSW_WIDGET_LAYOUT				m_wlInputWindow[];
-
-		// Menu bar items for the main window.
-		static LSW_MENU_ITEM					m_miMenuBar[];
-
-		// File menu.
-		static LSW_MENU_ITEM					m_miFileMenu[];
-
-		// Options menu.
-		static LSW_MENU_ITEM					m_miOptionsMenu[];
-
-		// Windows menu.
-		static LSW_MENU_ITEM					m_miWindowsMenu[];
-
-		// Menus.
-		static LSW_MENU_LAYOUT					m_miMenus[];
-
-		// The class for the main window.
+		/** The layout for the global-setup panel. */
+		static LSW_WIDGET_LAYOUT				m_wlGlobalPanel[];
+		/** The class for the main window. */
 		static ATOM								m_aInputClass;
 
-		// The main window.
-		static CWidget *						m_pwInputWindow;
 
+		// == Functions.
+		/**
+		 * Creates the tab pages.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \param _pwlLayout The page layout.
+		 * \param _sTotal The number of items to which _pwlLayout points.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal );
+		
 	};
 
 }	// namespace lsn

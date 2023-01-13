@@ -23,6 +23,7 @@
 #include "../../Input/LSNDirectInput8.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Input/LSNInputWindowLayout.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
@@ -127,7 +128,7 @@ namespace lsn {
 #define LSN_TOOL_STR( TXT )						0
 			const TBBUTTON bButtons[] = {
 				// iBitmap							idCommand									fsState				fsStyle			bReserved	dwData	iString
-				{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENROM,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_OPEN_PROCESS ) ) },
+				{ m_iImageMap[LSN_I_OPENROM],		CMainWindowLayout::LSN_MWMI_OPENROM,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_OPEN__ROM ) ) },
 				{ -1,								0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 				{ m_iImageMap[LSN_I_OPTIONS],		CMainWindowLayout::LSN_MWMI_OPTIONS,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_OPTIONS ) ) },
 			};
@@ -312,6 +313,11 @@ namespace lsn {
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
 				m_fFilter = CFilterBase::LSN_F_AUTO_CRT;
 				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				break;
+			}
+
+			case CMainWindowLayout::LSN_MWMI_INPUT : {
+				CInputWindowLayout::CreateInputDialog( this );
 				break;
 			}
 		}

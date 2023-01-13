@@ -528,6 +528,13 @@ namespace lsn {
 			// ========
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
+
+
+			// ========
+			// OVERSIZE
+			// ========
+			// Galaxian (Japan).
+			{ .ui32Crc = 0x084F61CD, .ui32PgmRomSize = 8 * 1024 },
 		};
 		for ( auto I = LSN_ELEMENTS( eEntries ); I--; ) {
 			if ( m_mDatabase.end() != m_mDatabase.find( eEntries[I].ui32Crc ) ) {

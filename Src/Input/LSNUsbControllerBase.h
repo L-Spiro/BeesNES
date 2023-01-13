@@ -15,9 +15,9 @@ namespace lsn {
 
 	/**
 	 * Class CUsbControllerBase
-	 * \brief A wrapper around the global IDirectInput8W * object.
+	 * \brief A base class for a USB controller.
 	 *
-	 * Description: A wrapper around the global IDirectInput8W * object.
+	 * Description: A base class for a USB controller.
 	 */
 	class CUsbControllerBase {
 	public :

@@ -20,9 +20,9 @@ namespace lsn {
 
 	/**
 	 * Class CDirectInput8Controller
-	 * \brief A wrapper around the global IDirectInput8W * object.
+	 * \brief A standard USB controller using DirectInput8.
 	 *
-	 * Description: A wrapper around the global IDirectInput8W * object.
+	 * Description: A standard USB controller using DirectInput8.
 	 */
 	class CDirectInput8Controller : public CUsbControllerBase {
 	public :
