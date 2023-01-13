@@ -51,11 +51,12 @@ extern "C" {
 #define CRT_CC_LINE 2280
 #endif
 
+/* NOTE, in general, increasing CRT_CB_FREQ reduces blur and bleed */
 #if CRT_NES_MODE
 #if CRT_NES_HIRES
 #define CRT_CB_FREQ     6 /* carrier frequency relative to sample rate */
 #else
-#define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
+#define CRT_CB_FREQ     4 /* or make it 3 for an even blurrier image */
 #endif
 #else
 #define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
@@ -72,7 +73,7 @@ struct CRT {
     signed char analog[CRT_INPUT_SIZE];
     signed char inp[CRT_INPUT_SIZE]; /* CRT input, can be noisy */
     int hsync, vsync; /* used internally to keep track of sync over frames */
-    int brightness, contrast, saturation; /* common monitor settings */
+    int hue, brightness, contrast, saturation; /* common monitor settings */
     int black_point, white_point; /* user-adjustable */
     int outw, outh; /* output width/height */
     int *out; /* output image */
@@ -106,13 +107,28 @@ struct NTSC_SETTINGS {
      * ex: { 0, 1, 0, -1 }
      * ex: { 1, 0, -1, 0 }
      */
-    int cc[4];      
+    int cc[4];
+    /* scale value for values in cc
+     * for example, if using { 0, 1, 0, -1 }, ccs should be 1.
+     * however, if using { 0, 16, 0, -16 }, ccs should be 16.
+     * For best results, don't scale the cc values more than 16.
+     */
+    int ccs;
 };
 
 /* Convert RGB image to analog NTSC signal
  *   s - struct containing settings to apply to this field
  */
 extern void crt_2ntsc(struct CRT *v, struct NTSC_SETTINGS *s);
+    
+/* Convert RGB image to analog NTSC signal and stretch it to fill
+ * the entire active video portion of the NTSC signal.
+ * Does not perform the slight horizontal blending which gets done in crt_2ntsc.
+ * Good for seeing test patterns.
+ *   s - struct containing settings to apply to this field
+ *       NOTE: raw is ignored in this 'FS' (fill screen) version of the 2ntsc function
+ */
+extern void crt_2ntscFS(struct CRT *v, struct NTSC_SETTINGS *s);
 
 struct NES_NTSC_SETTINGS {
     const unsigned short *data; /* 6 or 9-bit NES 'pixels' */
@@ -126,6 +142,12 @@ struct NES_NTSC_SETTINGS {
      * ex: { 1, 0, -1, 0 }
      */
     int cc[4];      
+    /* scale value for values in cc
+     * for example, if using { 0, 1, 0, -1 }, ccs should be 1.
+     * however, if using { 0, 16, 0, -16 }, ccs should be 16.
+     * For best results, don't scale the cc values more than 16.
+     */
+    int ccs;
 };
 
 /* Convert NES pixel data (generally 256x240) to analog NTSC signal
@@ -137,6 +159,9 @@ extern void crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s);
  *   noise - the amount of noise added to the signal (0 - inf)
  */
 extern void crt_draw(struct CRT *v, int noise);
+
+/* Exposed utility function */
+extern void crt_sincos14(int *s, int *c, int n);
 
 #ifdef __cplusplus
 }

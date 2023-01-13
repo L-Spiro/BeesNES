@@ -17,7 +17,7 @@ namespace lsn {
 		m_ui32FinalWidth( 700 * 2 ),
 		m_ui32FinalHeight( 0 ),
 		m_bRunThreads( true ) {
-		int iPhases[4] = { 0, 1, 0, -1 };
+		int iPhases[4] = { 0, 16, 0, -16 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 
 #ifdef LSN_CRT_PERF
@@ -66,6 +66,16 @@ namespace lsn {
 
 		::crt_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
 
+
+		
+		m_nsSettings.as_color = 1;
+		constexpr int iPhaseOffset = 2;
+		m_nsSettings.cc[0] = m_iPhaseRef[(iPhaseOffset + 0) & 3];
+		m_nsSettings.cc[1] = m_iPhaseRef[(iPhaseOffset + 1) & 3];
+		m_nsSettings.cc[2] = m_iPhaseRef[(iPhaseOffset + 2) & 3];
+		m_nsSettings.cc[3] = m_iPhaseRef[(iPhaseOffset + 3) & 3];
+		m_nsSettings.ccs = 16;
+
 		StopPhospherDecayThread();
 #if defined( LSN_USE_WINDOWS )
 		m_ptPhospherThread = std::make_unique<std::thread>( PhospherDecayThread, this );
@@ -97,14 +107,28 @@ namespace lsn {
 				m_ePhospherGo.Signal();
 			}
 			else {
-				uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
-				for ( uint32_t I = m_ui32FinalWidth * m_ui32FinalHeight; I--; ) {
-					//pui32Src[I] = 0;
-					uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-					pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-						((ui32Tmp >> 2) & 0x3F3F3F) + 
-						((ui32Tmp >> 3) & 0x1F1F1F) + 
-						((ui32Tmp >> 4) & 0x0F0F0F);
+				uint32_t ui32Total = m_ui32FinalWidth * m_ui32FinalHeight;
+				if ( (ui32Total & 1) == 0 ) {
+					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(m_vFilteredOutput.data());
+					for ( uint32_t I = ui32Total >> 1; I--; ) {
+						//pui32Src[I] = 0;
+						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
+						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +  
+							((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
+							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + 
+							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
+					}
+				}
+				else {
+					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
+					for ( uint32_t I = ui32Total; I--; ) {
+						//pui32Src[I] = 0;
+						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
+						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
+							((ui32Tmp >> 2) & 0x3F3F3F) + 
+							((ui32Tmp >> 3) & 0x1F1F1F) + 
+							((ui32Tmp >> 4) & 0x0F0F0F);
+					}
 				}
 			}
 		}
@@ -113,12 +137,7 @@ namespace lsn {
 		m_nsSettings.w = int( m_ui32OutputWidth );
 		m_nsSettings.h = int( m_ui32OutputHeight );
 		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
-		m_nsSettings.as_color = 1;
-		constexpr int iPhaseOffset = 2;
-		m_nsSettings.cc[0] = m_iPhaseRef[(iPhaseOffset + 0) & 3];
-		m_nsSettings.cc[1] = m_iPhaseRef[(iPhaseOffset + 1) & 3];
-		m_nsSettings.cc[2] = m_iPhaseRef[(iPhaseOffset + 2) & 3];
-		m_nsSettings.cc[3] = m_iPhaseRef[(iPhaseOffset + 3) & 3];
+
 		::crt_nes2ntsc( &m_nnCrtNtsc, &m_nsSettings );
 
 		{

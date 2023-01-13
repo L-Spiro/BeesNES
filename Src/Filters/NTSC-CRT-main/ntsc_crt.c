@@ -15,6 +15,13 @@
 #include <string.h>
 #include <errno.h>
 #include "ppm_rw.h"
+#include "bmp_rw.h"
+
+static int
+cmpsuf(char *s, char *suf, int nc)
+{
+    return strcmp(s + strlen(s) - nc, suf);
+}
 
 #ifndef CMD_LINE_VERSION
 #define CMD_LINE_VERSION 1
@@ -59,7 +66,7 @@ usage(char *p)
     printf(DRV_HEADER);
     printf("usage: %s -m|o|f|p|r|h outwidth outheight noise phase_offset infile outfile\n", p);
     printf("sample usage: %s -op 640 480 24 3 in.ppm out.ppm\n", p);
-    printf("sample usage: %s - 832 624 0 2 in.ppm out.ppm\n", p);
+    printf("sample usage: %s - 832 624 0 2 in.bmp out.bmp\n", p);
     printf("-- NOTE: the - after the program name is required\n");
     printf("\tphase_offset is [0, 1, 2, or 3] +1 means a color phase change of 90 degrees\n");
     printf("------------------------------------------------------------\n");
@@ -187,9 +194,16 @@ main(int argc, char **argv)
     input_file = argv[6];
     output_file = argv[7];
 
-    if (!ppm_read24(input_file, &img, &imgw, &imgh, calloc)) {
-        printf("unable to read image\n");
-        return EXIT_FAILURE;
+    if (cmpsuf(input_file, ".ppm", 4) == 0) {
+        if (!ppm_read24(input_file, &img, &imgw, &imgh, calloc)) {
+            printf("unable to read image\n");
+            return EXIT_FAILURE;
+        }
+    } else {
+        if (!bmp_read24(input_file, &img, &imgw, &imgh, calloc)) {
+            printf("unable to read image\n");
+            return EXIT_FAILURE;
+        }
     }
     printf("loaded %d %d\n", imgw, imgh);
 
@@ -209,6 +223,7 @@ main(int argc, char **argv)
     ntsc.cc[1] = phase_ref[(phase_offset + 1) & 3];
     ntsc.cc[2] = phase_ref[(phase_offset + 2) & 3];
     ntsc.cc[3] = phase_ref[(phase_offset + 3) & 3];
+    ntsc.ccs = 1;
 
     printf("converting to %dx%d...\n", outw, outh);
     err = 0;
@@ -223,9 +238,17 @@ main(int argc, char **argv)
         }
         err++;
     }
-    if (!ppm_write24(output_file, output, outw, outh)) {
-        printf("unable to write image\n");
-        return EXIT_FAILURE;
+    
+    if (cmpsuf(output_file, ".ppm", 4) == 0) {
+        if (!ppm_write24(output_file, output, outw, outh)) {
+            printf("unable to write image\n");
+            return EXIT_FAILURE;
+        }
+    } else {
+        if (!bmp_write24(output_file, output, outw, outh)) {
+            printf("unable to write image\n");
+            return EXIT_FAILURE;
+        }
     }
     printf("done\n");
     return EXIT_SUCCESS;
@@ -255,6 +278,7 @@ static int progressive = 0;
 static int raw = 0;
 static int phase_offset = 0;
 static int unlocked_phase = 0; /* color phase changes every field */
+static int hue = 0;
 
 static void
 updatecb(void)
@@ -316,6 +340,29 @@ updatecb(void)
         noise += 1;
         printf("%d\n", noise);
     }
+    if (pkb_key_held('5')) {
+        hue--;
+        if (hue < 0) {
+            hue = 359;
+        }
+        printf("%d\n", hue);
+    }
+    if (pkb_key_held('6')) {
+        hue++;
+        if (hue > 359) {
+            hue = 0;
+        }
+        printf("%d\n", hue);
+    }
+    if (pkb_key_held('7')) {
+        crt.hue -= 1;
+        printf("%d\n", crt.hue);
+    }
+    if (pkb_key_held('8')) {
+        crt.hue += 1;
+        printf("%d\n", crt.hue);
+    }
+  
     if (pkb_key_pressed(FW_KEY_SPACE)) {
         color ^= 1;
     }
@@ -331,6 +378,12 @@ updatecb(void)
         printf("progressive: %d\n", progressive);
     }
     if (pkb_key_pressed('t')) {
+        /* Analog array must be cleared since it normally doesn't get zeroed each frame
+         * so active video portions that were written to in non-raw mode will not lose
+         * their values resulting in the previous image being
+         * displayed where the new, smaller image is not
+         */
+        memset(crt.analog, 0, sizeof(crt.analog));
         raw ^= 1;
         printf("raw: %d\n", raw);
     }
@@ -374,9 +427,17 @@ displaycb(void)
     static struct NES_NTSC_SETTINGS nes;
     static int fno = 0;
     int phase_ref[4] = { 0, 1, 0, -1 };
-
+    int sn, cs;
+    int i;
+    
+    for (i = 0; i < 4; i++) {
+        crt_sincos14(&sn, &cs, (hue + i * 90) * 8192 / 180);
+        phase_ref[i] = sn >> 11;
+    }
+    
     fade_phosphors();
-
+    /* not necessary to clear if you're rendering on a constant region of the display */
+    /* memset(crt.analog, 0, sizeof(crt.analog)); */
 #if CRT_NES_MODE
     nes.data = ppu_output_256x240;
     nes.w = 256;
@@ -387,6 +448,7 @@ displaycb(void)
     nes.cc[1] = phase_ref[(phase_offset + 1) & 3];
     nes.cc[2] = phase_ref[(phase_offset + 2) & 3];
     nes.cc[3] = phase_ref[(phase_offset + 3) & 3];
+    nes.ccs = 16;
     crt_nes2ntsc(&crt, &nes);
 #else
     ntsc.rgb = img;
@@ -399,6 +461,7 @@ displaycb(void)
     ntsc.cc[1] = phase_ref[(phase_offset + 1) & 3];
     ntsc.cc[2] = phase_ref[(phase_offset + 2) & 3];
     ntsc.cc[3] = phase_ref[(phase_offset + 3) & 3];
+    ntsc.ccs = 16;
     crt_2ntsc(&crt, &ntsc);
 #endif
     
@@ -437,14 +500,23 @@ main(int argc, char **argv)
 
     char *input_file;
     if (argc == 1) {
-        fprintf(stderr, "Please specify PPM image input file.\n");
+        fprintf(stderr, "Please specify PPM or BMP image input file.\n");
         return EXIT_FAILURE;
     }
     input_file = argv[1];
-    if (!ppm_read24(input_file, &img, &imgw, &imgh, calloc)) {
-        fprintf(stderr, "unable to read image\n");
-        return EXIT_FAILURE;
+    
+    if (cmpsuf(input_file, ".ppm", 4) == 0) {
+        if (!ppm_read24(input_file, &img, &imgw, &imgh, calloc)) {
+            fprintf(stderr, "unable to read image\n");
+            return EXIT_FAILURE;
+        }
+    } else {
+        if (!bmp_read24(input_file, &img, &imgw, &imgh, calloc)) {
+            fprintf(stderr, "unable to read image\n");
+            return EXIT_FAILURE;
+        }
     }
+
     printf("loaded %d %d\n", imgw, imgh);
 
     sys_start();

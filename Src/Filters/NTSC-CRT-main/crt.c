@@ -106,8 +106,8 @@ sintabil8(int n)
 }
 
 /* 14-bit interpolated sine/cosine */
-static void
-sincos14(int *s, int *c, int n)
+extern void
+crt_sincos14(int *s, int *c, int n)
 {
     int h;
     
@@ -224,13 +224,13 @@ init_eq(struct EQF *f,
     f->g[1] = g_mid;
     f->g[2] = g_hi;
     
-    sincos14(&sn, &cs, T14_PI * f_lo / rate);
+    crt_sincos14(&sn, &cs, T14_PI * f_lo / rate);
     if (EQ_P >= 15) {
         f->lf = 2 * (sn << (EQ_P - 15));
     } else {
         f->lf = 2 * (sn >> (15 - EQ_P));
     }
-    sincos14(&sn, &cs, T14_PI * f_hi / rate);
+    crt_sincos14(&sn, &cs, T14_PI * f_hi / rate);
     if (EQ_P >= 15) {
         f->hf = 2 * (sn << (EQ_P - 15));
     } else {
@@ -329,13 +329,14 @@ crt_resize(struct CRT *v, int w, int h, int *out)
 extern void
 crt_reset(struct CRT *v)
 {
+    v->hue = 0;
     v->saturation = 18;
     v->brightness = 0;
     v->contrast = 179;
     v->black_point = 0;
     v->white_point = 100;
     v->hsync = 0;
-    v->vsync = 0;    
+    v->vsync = 0;
 }
 #define CRT_NES_PULSE_EQ_FIELD_REFACTOR
 extern void
@@ -472,9 +473,11 @@ crt_2ntsc(struct CRT *v, struct NTSC_SETTINGS *s)
                 while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
             }
             if (s->as_color) {
+                int cb;
                 /* CB_CYCLES of color burst at 3.579545 Mhz */
                 for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-                    line[t] = BLANK_LEVEL + (s->cc[(t + 0) & 3] * BURST_LEVEL);
+                    cb = s->cc[(t + 0) & 3];
+                    line[t] = BLANK_LEVEL + (cb * BURST_LEVEL) / s->ccs;
                 }
             }
         }
@@ -530,8 +533,115 @@ crt_2ntsc(struct CRT *v, struct NTSC_SETTINGS *s)
             ire = BLACK_LEVEL + v->black_point;
             /* bandlimit Y,I,Q */
             fy = iirf(&iirY, fy);
-            fi = iirf(&iirI, fi) * ph * s->cc[(x + 0) & 3];
-            fq = iirf(&iirQ, fq) * ph * s->cc[(x + 3) & 3];
+            fi = iirf(&iirI, fi) * ph * s->cc[(x + 0) & 3] / s->ccs;
+            fq = iirf(&iirQ, fq) * ph * s->cc[(x + 3) & 3] / s->ccs;
+            ire += (fy + fi + fq) * (WHITE_LEVEL * v->white_point / 100) >> 10;
+            if (ire < 0)   ire = 0;
+            if (ire > 110) ire = 110;
+
+            v->analog[(x + xo) + (y + yo) * CRT_HRES] = ire;
+        }
+    }
+}
+
+extern void
+crt_2ntscFS(struct CRT *v, struct NTSC_SETTINGS *s)
+{
+    int x, y, xo, yo;
+    int destw = AV_LEN;
+    int desth = CRT_LINES;
+    int n;
+
+    xo = AV_BEG;
+    yo = CRT_TOP;
+    
+    s->field &= 1;
+    
+    /* align signal */
+    xo = (xo & ~3);
+    
+    for (n = 0; n < CRT_VRES; n++) {
+        int t; /* time */
+        signed char *line = &v->analog[n * CRT_HRES];
+        
+        t = LINE_BEG;
+
+        if (n <= 3 || (n >= 7 && n <= 9)) {
+            /* equalizing pulses - small blips of sync, mostly blank */
+            while (t < (4   * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (50  * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+            while (t < (54  * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (100 * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+        } else if (n >= 4 && n <= 6) {
+            int even[4] = { 46, 50, 96, 100 };
+            int odd[4] =  { 4, 50, 96, 100 };
+            int *offs = even;
+            if (s->field == 1) {
+                offs = odd;
+            }
+            /* vertical sync pulse - small blips of blank, mostly sync */
+            while (t < (offs[0] * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (offs[1] * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+            while (t < (offs[2] * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
+            while (t < (offs[3] * CRT_HRES / 100)) line[t++] = BLANK_LEVEL;
+        } else {
+            /* video line */
+            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
+            while (t < BW_BEG)   line[t++] = SYNC_LEVEL;  /* SYNC */
+            while (t < AV_BEG)   line[t++] = BLANK_LEVEL; /* BW + CB + BP */
+            if (n < CRT_TOP) {
+                while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
+            }
+            if (s->as_color) {
+                int cb;
+                                
+                /* CB_CYCLES of color burst at 3.579545 Mhz */
+                for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
+                    cb = s->cc[(t + 0) & 3];
+                    line[t] = BLANK_LEVEL + (cb * BURST_LEVEL) / s->ccs;
+                }
+            }
+        }
+    }
+
+    for (y = 0; y < desth; y++) {
+        int field_offset;
+        int sy;
+        
+        field_offset = (s->field * s->h + desth) / desth / 2;
+        sy = (y * s->h) / desth;
+    
+        sy += field_offset;
+
+        if (sy >= s->h) sy = s->h;
+        
+        sy *= s->w;
+        
+        reset_iir(&iirY);
+        reset_iir(&iirI);
+        reset_iir(&iirQ);
+        
+        for (x = 0; x < destw; x++) {
+            int fy, fi, fq;
+            int pA, rA, gA, bA;
+            int sx, ph;
+            int ire; /* composite signal */
+
+            sx = (x * s->w) / destw;
+            pA = s->rgb[sx + sy];
+            rA = (pA >> 16) & 0xff;
+            gA = (pA >>  8) & 0xff;
+            bA = (pA >>  0) & 0xff;
+
+            fy = (19595 * rA + 38470 * gA +  7471 * bA) >> 14;
+            fi = (39059 * rA - 18022 * gA - 21103 * bA) >> 14;
+            fq = (13894 * rA - 34275 * gA + 20382 * bA) >> 14;
+            ph = CC_PHASE(y + yo);
+            ire = BLACK_LEVEL + v->black_point;
+            /* bandlimit Y,I,Q */
+            fy = iirf(&iirY, fy);
+            fi = iirf(&iirI, fi) * ph * s->cc[(x + 0) & 3] / s->ccs;
+            fq = iirf(&iirQ, fq) * ph * s->cc[(x + 3) & 3] / s->ccs;
             ire += (fy + fi + fq) * (WHITE_LEVEL * v->white_point / 100) >> 10;
             if (ire < 0)   ire = 0;
             if (ire > 110) ire = 110;
@@ -647,32 +757,27 @@ crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s)
         lo = 3;
     }
 #endif
-
-#ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
     for (n = 0; n < CRT_VRES; n++) {
         int t; /* time */
         signed char *line = &v->analog[n * CRT_HRES];
         
         t = LINE_BEG;
 
+#ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
         if (n <= 3 || (n >= 7 && n <= 9)) {
         } else if (n >= 4 && n <= 6) {
         } else {
+            /* video line */
             if (s->as_color) {
+                int cb;
                 /* CB_CYCLES of color burst at 3.579545 Mhz */
                 for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-                    line[t] = BLANK_LEVEL + (s->cc[(t + po) & 3] * BURST_LEVEL);
+                    cb = s->cc[(t + po) & 3];
+                    line[t] = BLANK_LEVEL + (cb * BURST_LEVEL) / s->ccs;
                 }
             }
         }
-    }
 #else
-    for (n = 0; n < CRT_VRES; n++) {
-        int t; /* time */
-        signed char *line = &v->analog[n * CRT_HRES];
-        
-        t = LINE_BEG;
-
         if (n <= 3 || (n >= 7 && n <= 9)) {
             /* equalizing pulses - small blips of sync, mostly blank */
             while (t < (4   * CRT_HRES / 100)) line[t++] = SYNC_LEVEL;
@@ -696,18 +801,21 @@ crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s)
                 while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
             }
             if (s->as_color) {
+                int cb;
                 /* CB_CYCLES of color burst at 3.579545 Mhz */
                 for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-                    line[t] = BLANK_LEVEL + (s->cc[(t + po) & 3] * BURST_LEVEL);
+                    cb = s->cc[(t + po) & 3];
+                    line[t] = BLANK_LEVEL + (cb * BURST_LEVEL) / s->ccs;
                 }
             }
         }
-    }
 #endif  // #ifdef CRT_NES_PULSE_EQ_FIELD_REFACTOR
-
+    }   
     
     phase = 0;
 
+    int ire_start = BLACK_LEVEL + v->black_point;
+    int ire_white_mul = (WHITE_LEVEL * v->white_point / 100);
     for (y = lo; y < desth; y++) {
         int sy = (y * s->h) / desth;
         if (sy >= s->h) sy = s->h;
@@ -718,12 +826,12 @@ crt_nes2ntsc(struct CRT *v, struct NES_NTSC_SETTINGS *s)
             int ire, p;
             
             p = s->data[((x * s->w) / destw) + sy];
-            ire = BLACK_LEVEL + v->black_point;
+            ire = ire_start;
             ire += square_sample(p, phase + 0);
             ire += square_sample(p, phase + 1);
             ire += square_sample(p, phase + 2);
             ire += square_sample(p, phase + 3);
-            ire = (ire * (WHITE_LEVEL * v->white_point / 100)) >> 12;
+            ire = (ire * ire_white_mul) >> 12;
             if (ire < 0)   ire = 0;
             if (ire > 110) ire = 110;
             v->analog[(x + xo) + (y + yo) * CRT_HRES] = ire;
@@ -754,7 +862,12 @@ crt_draw(struct CRT *v, int noise)
     int s = 0;
     int field, ratio;
     int ccref[4]; /* color carrier signal */
-   
+    int huesn, huecs;
+    
+    crt_sincos14(&huesn, &huecs, ((v->hue % 360) + 90) * 8192 / 180);
+    huesn >>= 11; /* make 4-bit */
+    huecs >>= 11;
+
     memset(ccref, 0, sizeof(ccref));
     
     int rn = v->rn;
@@ -872,11 +985,12 @@ vsync_found:
         dci = ccref[(phasealign + 1) & 3] - ccref[(phasealign + 3) & 3];
         dcq = ccref[(phasealign + 2) & 3] - ccref[(phasealign + 0) & 3];
 
-        wave[0] = -dcq * v->saturation;
-        wave[1] =  dci * v->saturation;
-        wave[2] =  dcq * v->saturation;
-        wave[3] = -dci * v->saturation;
-
+        /* rotate them by the hue adjustment angle */
+        wave[0] = ((dci * huecs - dcq * huesn) >> 4) * v->saturation;
+        wave[1] = ((dcq * huecs + dci * huesn) >> 4) * v->saturation;
+        wave[2] = -wave[0];
+        wave[3] = -wave[1];
+        
         sig = v->inp + pos;
 #if CRT_DO_BLOOM
         s = 0;

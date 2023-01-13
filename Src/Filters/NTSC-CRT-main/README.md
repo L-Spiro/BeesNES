@@ -8,7 +8,14 @@ NTSC video signal encoding / decoding emulation by EMMIR 2018-2023
 [![alt text](/kc.png?raw=true)](https://www.youtube.com/watch?v=ucfPRtV6--c)
 ### Example of artifact colors being used purposely by specially designed art (not my own)
 ![alt text](/artifactcolor.png?raw=true)
+### Example of artifact colors creating a rainbow by specially designed art (not my own)
+![alt text](/rainbow.png?raw=true)
 
+### NES mode  
+YouTube video of the filter running in an NES emulator:
+https://www.youtube.com/watch?v=giML77yy7To
+
+### Description
 The result of going down a very deep rabbit hole.
 I learned a lot about analog signal processing, television, and the NTSC standard in the process.
 Written to be compatible with C89.
@@ -46,7 +53,7 @@ In the ntsc_crt.c file, there are two main()'s.
 One is for a command line program and the other uses my FW library (found here https://github.com/LMP88959/PL3D-KC)
 to provide real-time NTSC emulation with adjustable parameters.
 
-The famous waterfall 'rainbow' effect created as a result of dithering will show if it is compiled with `CRT_DO_CHK_C` set to 0.
+The famous waterfall 'rainbow' effect created as a result of dithering will show if it is compiled with `CRT_CHROMA_PATTERN` set to 0.
 Specially patterned black and white images can be encoded/decoded with color just like a real composite NTSC display.
 
 ## Compiling
@@ -65,12 +72,12 @@ cmake --build build
 build/ntsc
 ```
 
-The default command line takes a single PPM image file and outputs a processed PPM file:
+The default command line takes a single PPM or BMP image file and outputs a processed PPM or BMP file:
 
 ```
 usage: ./ntsc -m|o|f|p|r|h outwidth outheight noise phase_offset infile outfile
 sample usage: ./ntsc -op 640 480 24 3 in.ppm out.ppm
-sample usage: ./ntsc - 832 624 0 2 in.ppm out.ppm
+sample usage: ./ntsc - 832 624 0 2 in.bmp out.bmp
 -- NOTE: the - after the program name is required
 	phase_offset is [0, 1, 2, or 3] +1 means a color phase change of 90 degrees
 ------------------------------------------------------------
@@ -91,6 +98,10 @@ cmake -B build -Dlive=on
 cmake --build build
 build/ntsc my.ppm
 ```
+
+Web version by @binji (might not be up to date):  
+https://binji.github.io/NTSC-CRT/  
+To use the web version, drag a PPM image into the web browser.
 
 If you have any questions feel free to leave a comment on YouTube OR
 join the King's Crook Discord server :)

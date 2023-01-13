@@ -526,6 +526,8 @@ namespace lsn {
 			// ========
 			// CHIPS
 			// ========
+			// American Dream (Japan)
+			{ .ui32Crc = 0xFAF802D1, .cChip = LSN_C_MMC1B2 },
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
 
