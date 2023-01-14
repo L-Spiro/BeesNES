@@ -29,7 +29,7 @@ namespace lsn {
 		StopPhospherDecayThread();
 #ifdef LSN_CRT_PERF
 		char szBuffer[128];
-		std::sprintf( szBuffer, "CRT Time: %.17f\r\n", m_ui64AccumTime / double( m_ui32Calls ) / m_cPerfClock.GetResolution() );
+		std::sprintf( szBuffer, "CRT Time: %.17f\r\n", m_ui64AccumTime / double( m_ui32Calls ) / m_cPerfClock.GetResolution() * 1000.0 );
 		::OutputDebugStringA( szBuffer );
 #endif	// #ifdef LSN_CRT_PERF
 	}

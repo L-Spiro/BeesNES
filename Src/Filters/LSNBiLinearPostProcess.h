@@ -52,7 +52,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** Black row. */
-		std::vector<uint8_t>								m_vEndRow;
+		//std::vector<uint8_t>								m_vEndRow;
 		/** The X factors. */
 		std::vector<uint32_t>								m_vFactorsX;
 		/** The Y factors. */

@@ -45,9 +45,11 @@ namespace lsn {
 		if ( m_vFinalBuffer.size() != ui32Size ) {
 			m_vFinalBuffer.resize( ui32Size );
 		}
-		if ( ui32Stride != m_vEndRow.size() ) {
+		// A blank bottom row isn't needed because CUtilities::LinearInterpCombineRows_Int() checks for (m_vFactorsY[Y] & 0xFF) being 0 and if so it just copies the
+		//	first input row, making no accesses into the second input row.
+		/*if ( ui32Stride != m_vEndRow.size() ) {
 			m_vEndRow.resize( ui32Stride );
-		}
+		}*/
 		if ( _ui32ScreenWidth != m_vFactorsX.size() || m_ui32SourceFactorX != _ui32Width ) {
 			m_vFactorsX.resize( _ui32ScreenWidth );
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
@@ -84,10 +86,10 @@ namespace lsn {
 		for ( uint32_t Y = 0; Y < _ui32ScreenHeight; ++Y ) {
 			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
-			//uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
-			uint32_t * pui32SrcNextRow = (ui32SrcRow == _ui32Height - 1) ?
+			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
+			/*uint32_t * pui32SrcNextRow = (ui32SrcRow == _ui32Height - 1) ?
 				reinterpret_cast<uint32_t *>(m_vEndRow.data()) :
-				reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
+				reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));*/
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
 			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
 		}
