@@ -39,6 +39,7 @@ namespace lsn {
 		/** The output format. */
 		enum LSN_PPU_OUT_FORMAT {
 			LSN_POF_RGB,						/**< Output 24-bit RGB pixels. */
+			LSN_POF_RGB32,						/**< Output 32-bit RGB pixels. */
 			LSN_POF_9BIT_PALETTE,				/**< Output 9-bit pallete entries. */
 			LSN_POF_6BIT_PALETTE,				/**< Output 6-bit palette entries (0-63, 0x00-0x3F). */
 		};

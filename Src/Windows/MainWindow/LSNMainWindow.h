@@ -14,6 +14,7 @@
 #include "../../Filters/LSNNtscBlarggFilter.h"
 #include "../../Filters/LSNNtscCrtFilter.h"
 #include "../../Filters/LSNPalBlarggFilter.h"
+#include "../../Filters/LSNBiLinearPostProcess.h"
 #include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
 #include "../../System/LSNSystem.h"
@@ -38,7 +39,7 @@ namespace lsn {
 	 * Description: The main window of the emulator.
 	 */
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
-		typedef lsn::CNtscSystem
+		typedef lsn::CDendySystem
 												CRegionalSystem;
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
@@ -261,6 +262,12 @@ namespace lsn {
 		CPalBlarggFilter						m_nbfBlargPalFilter;
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
+		/** "NONE" post-processing. */
+		CPostProcessBase						m_ppbNoPostProcessing;
+		/** A bi-linear post-process filter. */
+		CBiLinearPostProcess					m_blppBiLinearPost;
+		/** A post-processing table. */
+		CPostProcessBase *						m_pppbPostTable[CPostProcessBase::LSN_PP_TOTAL];
 		/** A clock. */
 		lsn::CClock								m_cClock;
 		/** The console pointer. */
@@ -277,6 +284,8 @@ namespace lsn {
 		lsw::CCriticalSection					m_csRenderCrit;
 		/** The current filter ID. */
 		CFilterBase::LSN_FILTERS				m_fFilter;
+		/** The current post-processing filter. */
+		CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */

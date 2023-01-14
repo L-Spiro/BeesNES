@@ -477,6 +477,12 @@
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h">
       <Filter>Header Files\Windows\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNPostProcessBase.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -607,6 +613,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp">
       <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp">
+      <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -64,6 +64,9 @@
 #define LSN_INPUT_PLAYER_3_													Player 3:
 #define LSN_INPUT_PLAYER_4_													Player 4:
 #define LSN_INPUT_CONFIGURATION												Configuration
+#define LSN_INPUT_USE_4_SCORE												Use Four Score
+#define LSN_INPUT_NONE														None
+#define LSN_INPUT_STANDARD_CONTROLLER										Standard Controller
 
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.

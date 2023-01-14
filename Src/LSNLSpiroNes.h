@@ -173,7 +173,7 @@ namespace lsn {
 		LSN_PM_DENDY_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_DENDY_SCANLINES				= LSN_PM_PAL_SCANLINES,				/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_DENDY_PRERENDER				= LSN_PM_PAL_PRERENDER,				/**< The number of pre-render scanlines. */
-		LSN_PM_DENDY_RENDER_LINES			= LSN_PM_NTSC_RENDER_LINES,			/**< The number of render scanlines. */
+		LSN_PM_DENDY_RENDER_LINES			= LSN_PM_PAL_RENDER_LINES,			/**< The number of render scanlines. */
 		LSN_PM_DENDY_POSTRENDER_LINES		= 51,								/**< The number of post-render scanlines. */
 		LSN_PM_DENDY_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
 		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */

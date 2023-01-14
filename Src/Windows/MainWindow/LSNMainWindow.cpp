@@ -45,6 +45,7 @@ namespace lsn {
 		//m_stBufferIdx( 0 ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
+		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
 		
@@ -59,6 +60,9 @@ namespace lsn {
 			{ &m_ncfEmmirNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_CRT
 		};
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
+
+		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
+		m_pppbPostTable[CPostProcessBase::LSN_PP_BILINEAR] = &m_blppBiLinearPost;
 		
 
 		static const struct {
@@ -383,6 +387,12 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
 					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_ppPostProcess]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+					dwFinalW, dwFinalH, m_cfartCurFilterAndTargets.bMirrored,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+
 				m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.ui32Width;
 				m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.ui32Height;
 				m_biBlitInfo.bmiHeader.biBitCount = m_cfartCurFilterAndTargets.ui16Bits;
@@ -1108,9 +1118,11 @@ namespace lsn {
 			return;
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
+		::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
 			_pmwWindow->m_pnsSystem->Tick();
+			//::Sleep( 1 );
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;
 	}

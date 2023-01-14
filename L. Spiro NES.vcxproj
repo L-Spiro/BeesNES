@@ -323,11 +323,13 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
+    <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
     <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalBlarggFilter.h" />
+    <ClInclude Include="Src\Filters\LSNPostProcessBase.h" />
     <ClInclude Include="Src\Filters\LSNRgb24Filter.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
@@ -422,6 +424,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNFileBase.cpp" />
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
+    <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />

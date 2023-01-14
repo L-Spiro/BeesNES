@@ -1478,9 +1478,17 @@ namespace lsn {
 						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X];
 						pui8RenderPixel[0] = 0x0F;
 					}
-					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
+					else if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
 						uint16_t * pui16RenderPixel = reinterpret_cast<uint16_t *>(&m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*sizeof(uint16_t)]);
 						pui16RenderPixel[0] = 0x0F;
+					}
+					else if ( m_pofOutFormat == LSN_POF_RGB32 ) {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*4];
+						// Above pixel processing done because Sprite 0 can be hit even inside these borders.
+						pui8RenderPixel[0] = 0;
+						pui8RenderPixel[1] = 0;
+						pui8RenderPixel[2] = 0;
+						pui8RenderPixel[3] = 0xFF;
 					}
 					else {
 						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
@@ -1492,12 +1500,19 @@ namespace lsn {
 				}
 				else {
 					if ( m_pofOutFormat == LSN_POF_6BIT_PALETTE ) {
-						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X];
 						pui8RenderPixel[0] = uint8_t( ui16Val ) & 0b111111;
 					}
-					if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
+					else if ( m_pofOutFormat == LSN_POF_9BIT_PALETTE ) {
 						uint16_t * pui16RenderPixel = reinterpret_cast<uint16_t *>(&m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*sizeof(uint16_t)]);
 						pui16RenderPixel[0] = ui16Val;
+					}
+					else if ( m_pofOutFormat == LSN_POF_RGB32 ) {
+						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*4];
+						pui8RenderPixel[0] = m_pPalette.uVals[ui16Val].ui8Rgb[0];
+						pui8RenderPixel[1] = m_pPalette.uVals[ui16Val].ui8Rgb[1];
+						pui8RenderPixel[2] = m_pPalette.uVals[ui16Val].ui8Rgb[2];
+						pui8RenderPixel[3] = 0xFF;
 					}
 					else {
 						uint8_t * pui8RenderPixel = &m_pui8RenderTarget[ui16Y*m_stRenderTargetStride+ui16X*3];

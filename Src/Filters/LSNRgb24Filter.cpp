@@ -33,7 +33,7 @@ namespace lsn {
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
 
-		const WORD wBitDepth = 24;
+		const WORD wBitDepth = WORD( OutputBits() );
 		const DWORD dwStride = DWORD( m_stStride = RowStride( _ui16Width, wBitDepth ) );
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
 			size_t szPrevSize = m_vBasicRenderTarget[I].size();

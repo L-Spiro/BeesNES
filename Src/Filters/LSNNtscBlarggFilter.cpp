@@ -70,12 +70,13 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CNtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
+	uint8_t * CNtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
 			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle % 3, 3,
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );
+		_ui32Stride = m_ui32FinalStride;
 		/*for ( uint32_t Y = _ui32Height >> 1; Y--; ) {
 			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
 			uint32_t * pui32Src0 = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];

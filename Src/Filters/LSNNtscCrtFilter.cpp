@@ -97,7 +97,7 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
+	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 #ifdef LSN_CRT_PERF
 		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
 #endif	// #ifdef LSN_CRT_PERF
@@ -149,6 +149,7 @@ namespace lsn {
 		::crt_draw( &m_nnCrtNtsc, 5 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
+		_ui32Stride = m_ui32FinalStride;
 
 #ifdef LSN_CRT_PERF
 		m_ui32Calls++;

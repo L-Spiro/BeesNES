@@ -32,7 +32,7 @@ void LSN_FASTCALL								Cycle_2__337x0_339x0_337x1_339x1_337x2_339x2_337x3_339x
 }
 
 
-void LSN_FASTCALL								Cycle_2__1x292() {
+void LSN_FASTCALL								Cycle_2__1x291() {
 
 	// [1, 241] on NTSC.
 	// [1, 241] on PAL.
@@ -1258,7 +1258,7 @@ void LSN_FASTCALL								Cycle_2__256x311() {
 }
 
 
-void LSN_FASTCALL								Cycle_2__257x241() {
+void LSN_FASTCALL								Cycle_2__257x240() {
 
 	if (m_pdhHost) {
 		if (m_pui8RenderTarget) {
@@ -1692,7 +1692,7 @@ void LSN_FASTCALL								Cycle_2__1x0() {
 }
 
 
-void LSN_FASTCALL								Cycle_2__0x241() {
+void LSN_FASTCALL								Cycle_2__0x240() {
 
 	m_ui8ThisLineSpriteCount = 0;
 
