@@ -14,7 +14,7 @@ namespace lsn {
 
 	CNtscCrtFilter::CNtscCrtFilter() :
 		m_ui32FinalStride( 0 ),
-		m_ui32FinalWidth( 700 * 2 ),
+		m_ui32FinalWidth( CRT_HRES ),
 		m_ui32FinalHeight( 0 ),
 		m_bRunThreads( true ) {
 		int iPhases[4] = { 0, 16, 0, -16 };
@@ -59,7 +59,7 @@ namespace lsn {
 		}
 
 		constexpr uint32_t ui32Scale = 1;
-		m_ui32FinalWidth = 700 * ui32Scale;
+		m_ui32FinalWidth = CRT_HRES * ui32Scale;
 		m_ui32FinalHeight = _ui16Height * ui32Scale;
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );

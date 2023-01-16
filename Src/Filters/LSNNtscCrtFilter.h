@@ -107,7 +107,7 @@ namespace lsn {
 		uint32_t											m_ui32FinalStride;
 		/** The phase table. */
 		int													m_iPhaseRef[4];
-		/** The final width. NTSC is 700 piels wide. */
+		/** The final width. NTSC is CRT_HRES piels wide. */
 		uint32_t											m_ui32FinalWidth;
 		/** The final height. */
 		uint32_t											m_ui32FinalHeight;
