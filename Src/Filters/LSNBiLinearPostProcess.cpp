@@ -43,6 +43,7 @@ namespace lsn {
 		uint32_t ui32Stride = CFilterBase::RowStride( _ui32ScreenWidth, 32 );
 		uint32_t ui32Size = ui32Stride * _ui32ScreenHeight;
 		if ( m_vFinalBuffer.size() != ui32Size ) {
+			m_vFinalBuffer = std::vector<uint8_t>();
 			m_vFinalBuffer.resize( ui32Size );
 		}
 		// A blank bottom row isn't needed because CUtilities::LinearInterpCombineRows_Int() checks for (m_vFactorsY[Y] & 0xFF) being 0 and if so it just copies the
@@ -51,6 +52,7 @@ namespace lsn {
 			m_vEndRow.resize( ui32Stride );
 		}*/
 		if ( _ui32ScreenWidth != m_vFactorsX.size() || m_ui32SourceFactorX != _ui32Width ) {
+			m_vFactorsX = std::vector<uint32_t>();
 			m_vFactorsX.resize( _ui32ScreenWidth );
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
 				m_vFactorsX[X] = (((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
@@ -62,6 +64,7 @@ namespace lsn {
 		}
 
 		if ( _ui32ScreenHeight != m_vFactorsY.size() || m_ui32SourceFactorY != _ui32Height ) {
+			m_vFactorsY = std::vector<uint32_t>();
 			m_vFactorsY.resize( _ui32ScreenHeight );
 			for ( uint32_t Y = _ui32ScreenHeight; Y--; ) {
 				m_vFactorsY[Y] = (((_ui32Height - 1) * Y) << 8) / (_ui32ScreenHeight - 1);
@@ -73,6 +76,7 @@ namespace lsn {
 		}
 
 		if ( ui32Stride * _ui32Height != m_vRowTmp.size() ) {
+			m_vRowTmp = std::vector<uint8_t>();
 			m_vRowTmp.resize( ui32Stride * _ui32Height );
 		}
 
