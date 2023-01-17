@@ -9,6 +9,8 @@
 #include "LSNBiLinearPostProcess.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
+/*#include "SinCos/EESinCos.h"
+#include <cmath>*/
 
 
 namespace lsn {
@@ -61,7 +63,15 @@ namespace lsn {
 			m_vFactorsX = std::vector<uint32_t>();
 			m_vFactorsX.resize( _ui32ScreenWidth );
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
+				
 				m_vFactorsX[X] = (((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
+
+				/*double dSin, dCos;
+				uint32_t ui32Idx = m_vFactorsX[X] >> 8;
+				::SinCos( (m_vFactorsX[X] & 0xFF) / 256.0 * 1.57079632679489661923, &dSin, &dCos );
+				uint32_t ui32Frac = uint32_t( std::round( dSin / (dSin + dCos) * 256.0 ) );
+				m_vFactorsX[X] = (ui32Idx << 8) | ui32Frac;*/
+
 				/*uint32_t ui32Idx = m_vFactorsX[X] >> 8;
 				uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((m_vFactorsX[X] & 0xFF) << 1) - 0xFF ) ) );
 				m_vFactorsX[X] = (ui32Idx << 8) | ui32Frac;*/

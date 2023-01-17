@@ -292,6 +292,8 @@ namespace lsn {
 		volatile std::atomic_int				m_aiThreadState;
 		/** Rapid-fire buttons. */
 		uint8_t									m_ui8RpidFires[8];
+		/** Is the window maximized? */
+		bool									m_bMaximized;
 		
 
 

@@ -46,7 +46,8 @@ namespace lsn {
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
 		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
-		m_pabIsAlive( reinterpret_cast< std::atomic_bool *>(_ui64Data) ) {
+		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
+		m_bMaximized( false ) {
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
 		
 		//m_pfbFilterTable
@@ -357,7 +358,7 @@ namespace lsn {
 			_pmmiInfo->ptMinTrackSize.x = rRect.Width();
 			_pmmiInfo->ptMinTrackSize.y = rRect.Height();
 		}
-		{
+		/*{
 			// Maximum.
 			LSW_RECT rDesktop = CHelpers::UsableDesktopRect();
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
@@ -369,7 +370,7 @@ namespace lsn {
 
 			_pmmiInfo->ptMaxTrackSize.x = rRect.Width() + 5;
 			_pmmiInfo->ptMaxTrackSize.y = rRect.Height() + 5;
-		}
+		}*/
 		return LSW_H_HANDLED;
 	}
 
@@ -567,15 +568,15 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
-
+		m_bMaximized = _wParam == SIZE_MAXIMIZED;
 		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
 			m_dScale = std::round( std::min( dScaleW, dScaleH ) * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
-			LSW_RECT rCur = WindowRect();
+			/*LSW_RECT rCur = WindowRect();
 			LSW_RECT rNew = FinalWindowRect();
-			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );
+			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );*/
 		}
 
 		return LSW_H_HANDLED;
@@ -589,7 +590,7 @@ namespace lsn {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Sizing( INT _iEdge, LSW_RECT * _prRect ) {
-		if ( m_pdcClient ) {
+		if ( m_pdcClient && !m_bMaximized ) {
 			LSW_RECT rBorders = FinalWindowRect( 0.0 );
 			// Dragging horizontal bars means "expand the width to match."
 			if ( _iEdge == WMSZ_BOTTOM || _iEdge == WMSZ_BOTTOMRIGHT || _iEdge == WMSZ_BOTTOMLEFT ||
@@ -1059,7 +1060,7 @@ namespace lsn {
 			}
 
 
-			if ( _bMoveWindow ) {
+			if ( _bMoveWindow && !m_bMaximized ) {
 				// Update the window (size only).
 				LSW_RECT rFinal = FinalWindowRect();
 				::MoveWindow( Wnd(), rFinal.left, rFinal.top, rFinal.Width(), rFinal.Height(), TRUE );
