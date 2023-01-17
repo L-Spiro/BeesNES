@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Gen">
+      <UniqueIdentifier>{a483fb8b-27a1-4a03-a67e-a4a27966c1a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gen">
+      <UniqueIdentifier>{e331e150-3dac-4a4f-a500-02d04b094dd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{7450c4f0-d3c1-46a9-a2a0-6ebc8c89dba8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LSon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gen\LSONJsonLexBase.cpp">
+      <Filter>Source Files\Gen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Gen\LSONJsonParser.cpp">
+      <Filter>Source Files\Gen</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LSONJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LSONJsonContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Gen\LSONJsonLexBase.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\LSONJsonParser.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\LSONJsonParserLocation.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\LSONJsonParserPosition.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gen\LSONJsonParserStack.h">
+      <Filter>Header Files\Gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LSONJson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LSONJsonContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LSONJsonLexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LSONJsonSyntaxNodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Tree\LSONTree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

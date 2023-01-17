@@ -933,7 +933,7 @@ namespace lsn {
 		StopThread();
 		LSN_ROM rTmp;
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
-			m_pnsSystem.release();
+			m_pnsSystem.reset();
 			/*m_pnsSystem = std::make_unique<CRegionalSystem>();*/
 			switch ( rTmp.riInfo.pmConsoleRegion ) {
 				case LSN_PPU_METRICS::LSN_PM_NTSC : {

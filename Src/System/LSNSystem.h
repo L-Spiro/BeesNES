@@ -231,7 +231,7 @@ namespace lsn {
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
 		bool											LoadRom( LSN_ROM &_rRom ) {
-			m_pmbMapper.release();
+			m_pmbMapper.reset();
 			m_rRom = std::move( _rRom );
 
 			m_pPpu.GetPpuBus().DGB_FillMemory( 0xFF );

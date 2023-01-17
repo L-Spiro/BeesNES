@@ -16,9 +16,10 @@ Debug/*
 Release/*
 Research/*
 Libraries/ExpressionEvaluator/.vs/*
-Libraries/LSWindows/x64/Release/*
+Libraries/LSWindows/x64/
 Libraries/LSWindows/.vs/*
-Libraries/ExpressionEvaluator/x64/Release/*
+Libraries/ExpressionEvaluator/x64/
+Libraries/LSon/.vs/*
 *.sdf
 *.user
 *.lib
@@ -29,5 +30,7 @@ x64/Debug/*
 x64/Release/*
 Libraries/ExpressionEvaluator/x64/*
 Libraries/LSWindows/x64/*
+Libraries/LSon/x64/*
 x64/Final/*
 Licenses.txt
+Libraries/LSon/x64/Debug/LSon.vcxproj.FileListAbsolute.txt
