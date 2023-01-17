@@ -483,6 +483,9 @@
     <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -650,5 +653,18 @@
     <Text Include="Src\Localization\LSNLanguageCodes.txt">
       <Filter>Header Files\Localization</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-bee-64.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="L. Spiro NES.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

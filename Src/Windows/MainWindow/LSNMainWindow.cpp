@@ -32,6 +32,8 @@
 #include <commdlg.h>
 #include <hidpi.h>
 
+#include "../../../resource.h"
+
 
 #define LSN_SCALE_RESOLUTION					30.0
 
@@ -48,6 +50,10 @@ namespace lsn {
 		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ) {
+
+		
+		
+
 		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
 		
 		//m_pfbFilterTable
@@ -91,6 +97,9 @@ namespace lsn {
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
 		}
 
+		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
+		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDB_PNG1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
+		
 
 		m_pnsSystem = std::make_unique<CRegionalSystem>();
 		UpdatedConsolePointer( false );

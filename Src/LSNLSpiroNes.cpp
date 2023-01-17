@@ -12,6 +12,7 @@ int main() {
 }
 
 #ifdef LSN_USE_WINDOWS
+#if !defined( LSN_CPU_VERIFY )
 int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
 	lsw::CBase::Initialize( _hInstance, new lsn::CLayoutManager(),
 		L"LSNDOCK",
@@ -56,6 +57,14 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	lsn::CDirectInput8::Release();
 	return static_cast<int>(mMsg.wParam);
 }
+#else	// #if !defined( LSN_CPU_VERIFY )
+int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
+	std::unique_ptr<lsn::CCpuBus> pbBus = std::make_unique<lsn::CCpuBus>();
+	pbBus->ApplyMap();
+	std::unique_ptr<lsn::CCpu6502> pcCpu = std::make_unique<lsn::CCpu6502>( pbBus.get() );
+	return 0;
+}
+#endif	// #if !defined( LSN_CPU_VERIFY )
 #else
 int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
 #define LSN_PATH				u"J:\\My Projects\\L. Spiro NES\\Tests\\nestest.nes"
