@@ -27,6 +27,8 @@ YouTube Video: Battletoads Opening (Extreme Noise)<br>
 YouTube Video: Akira Opening (Extreme Noise)<br>
 [![Watch the video](https://img.youtube.com/vi/mSZlMw0cPEY/maxresdefault.jpg)](https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4)
 
+NTSC-CRT library: https://github.com/LMP88959/NTSC-CRT
+
 ## Accuracy
 Most emulators have thus far have aimed for “Cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Cycle_accuracy  
 We are aiming for “Sub-cycle Accuracy”: https://emulation.gametechwiki.com/index.php/Emulation_accuracy#Subcycle_accuracy  
