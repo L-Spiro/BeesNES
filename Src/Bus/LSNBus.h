@@ -40,6 +40,10 @@
 
 #include "../LSNLSpiroNes.h"
 
+#ifdef LSN_CPU_VERIFY
+#include <vector>
+#endif	// #ifdef LSN_CPU_VERIFY
+
 namespace lsn {
 
 	/**
@@ -138,6 +142,9 @@ namespace lsn {
 				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
 				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
 			}
+#ifdef LSN_CPU_VERIFY
+			m_vReadWriteLog.clear();
+#endif	// #ifdef LSN_CPU_VERIFY
 		}
 
 		/**
@@ -159,6 +166,9 @@ namespace lsn {
 					aaAcc.ui16ReaderParm1,
 					m_ui8Ram, m_ui8LastRead );
 			}
+#ifdef LSN_CPU_VERIFY
+			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = m_ui8LastRead, .bRead = true } );
+#endif	// #ifdef LSN_CPU_VERIFY
 			return m_ui8LastRead;
 		}
 
@@ -181,6 +191,9 @@ namespace lsn {
 					aaAcc.ui16WriterParm1,
 					m_ui8Ram, _ui8Val );
 			}
+#ifdef LSN_CPU_VERIFY
+			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = _ui8Val, .bRead = false } );
+#endif	// #ifdef LSN_CPU_VERIFY
 		}
 
 		/**
@@ -364,12 +377,38 @@ namespace lsn {
 		}
 
 
+#ifdef LSN_CPU_VERIFY
+		// == Types.
+		struct LSN_READ_WRITE_LOG {
+			uint16_t						ui16Address;
+			uint8_t							ui8Value;
+			bool							bRead;
+		};
+
+
+		// == Functions.
+		/**
+		 * Gets the read/write log.
+		 *
+		 * \return Returns a constant reference to the read/write log.
+		 */
+		const std::vector<LSN_READ_WRITE_LOG> &
+											ReadWriteLog() const { return m_vReadWriteLog; }
+#endif	// #ifdef LSN_CPU_VERIFY
+
+
 
 	protected :
 		// == Members.
 		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
+
+
+#ifdef LSN_CPU_VERIFY
+		// == Members.
+		std::vector<LSN_READ_WRITE_LOG>		m_vReadWriteLog;
+#endif	// #ifdef LSN_CPU_VERIFY
 	};
 
 

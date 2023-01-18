@@ -6,6 +6,10 @@
 #include "Windows/MainWindow/LSNMainWindowLayout.h"
 #endif	// #ifdef LSN_USE_WINDOWS
 
+#ifdef LSN_CPU_VERIFY
+#include "File/LSNStdFile.h"
+#endif	// #ifdef LSN_CPU_VERIFY
+
 
 int main() {
 	return 0;
@@ -58,10 +62,53 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	return static_cast<int>(mMsg.wParam);
 }
 #else	// #if !defined( LSN_CPU_VERIFY )
-int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
+#include "LSONJson.h"
+int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
 	std::unique_ptr<lsn::CCpuBus> pbBus = std::make_unique<lsn::CCpuBus>();
 	pbBus->ApplyMap();
 	std::unique_ptr<lsn::CCpu6502> pcCpu = std::make_unique<lsn::CCpu6502>( pbBus.get() );
+
+	std::wstring wsBuffer;
+	const DWORD dwSize = 0xFFFF;
+	wsBuffer.resize( dwSize + 1 ); 
+	::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+	{
+		for ( uint32_t I = 0x10; I < 256; ++I ) {
+			std::wstring wsFile;
+			lson::CJson jSon;
+			std::vector<uint8_t> vBytes;
+			lsn::CStdFile sfFile;
+			wchar_t wcFile[64];
+			std::swprintf( wcFile, L"..\\..\\Research\\nes6502\\v1\\%.2X.json", I );
+			if ( sfFile.Open( reinterpret_cast<const char16_t *>((wsRoot + wcFile).c_str()) ) ) {
+				//lsn::CStdFile::LoadToMemory( L"J:\\My Projects\\L. Spiro NES\\Research\\nes6502\\v1\\02.json", vBytes );
+				sfFile.LoadToMemory( vBytes );
+				vBytes.push_back( 0 );
+
+				if ( !jSon.SetJson( reinterpret_cast<const char *>(vBytes.data()) ) ) {
+					::OutputDebugStringA( "JSON FAIL\r\n" );
+				}
+				else {
+					pcCpu->ResetToKnown();
+					pbBus->ApplyMap();
+
+					const lson::CJsonContainer::LSON_JSON_VALUE & jvRoot = jSon.GetContainer()->GetValue( jSon.GetContainer()->GetRoot() );
+					for ( size_t J = 0; J < jvRoot.vArray.size(); ++J ) {
+						const lson::CJsonContainer::LSON_JSON_VALUE & jvThis = jSon.GetContainer()->GetValue( jvRoot.vArray[J] );
+						if ( !pcCpu->RunJsonTest( jSon, jvThis ) ) {
+							volatile int hkhj = 0;
+						}
+					}
+
+					::OutputDebugStringA( "JSON NOT FAIL\r\n" );
+					::OutputDebugStringW( wcFile );
+					::OutputDebugStringA( "\r\n" );
+				}
+			}
+		}
+	}
 	return 0;
 }
 #endif	// #if !defined( LSN_CPU_VERIFY )

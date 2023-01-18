@@ -31,6 +31,10 @@
 #include <intrin.h>
 #endif	// #ifdef LSN_USE_INTRINS
 
+#ifdef LSN_CPU_VERIFY
+#include "LSONJson.h"
+#endif	// #ifdef LSN_CPU_VERIFY
+
 namespace lsn {
 
 	/**
@@ -133,6 +137,17 @@ namespace lsn {
 		void								SetInputPoller( CInputPoller * _pipPoller ) {
 			m_pipPoller = _pipPoller;
 		}
+
+#ifdef LSN_CPU_VERIFY
+		/**
+		 * Runs a test given a JSON's value representing the test to run.
+		 *
+		 * \param _jJson The JSON file.
+		 * \param _jvTest The test to run.
+		 * \return Returns true if te test succeeds, false otherwise.
+		 */
+		bool								RunJsonTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest );
+#endif	// #ifdef LSN_CPU_VERIFY
 
 
 	protected :
@@ -515,6 +530,8 @@ namespace lsn {
 		void								INY();
 		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
 		void								ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Jams the machine. */
+		void								JAM_Cycle2();
 		/** Jams the machine, putting 0xFF on the bus repeatedly. */
 		void								JAM();
 		/** Copies the read value into the low byte of PC after fetching the high byte. */
@@ -640,6 +657,64 @@ namespace lsn {
 		/** Copies Y into A.  Sets flags N, and Z. */
 		void								TYA();
 		
+
+#ifdef LSN_CPU_VERIFY
+		// == Types.
+		struct LSN_CPU_VERIFY_REGISTERS {
+			uint16_t						ui16Pc;
+			uint8_t							ui8S;
+			uint8_t							ui8A;
+			uint8_t							ui8X;
+			uint8_t							ui8Y;
+			uint8_t							ui8P;
+		};
+
+		struct LSN_CPU_VERIFY_RAM {
+			uint16_t						ui16Addr;
+			uint8_t							ui8Value;
+		};
+
+		struct LSN_CPU_VERIFY_STATE {
+			LSN_CPU_VERIFY_REGISTERS		cvrRegisters;
+			std::vector<LSN_CPU_VERIFY_RAM>	vRam;
+		};
+
+		struct LSN_CPU_VERIFY_CYCLE {
+			uint16_t						ui16Addr;
+			uint8_t							ui8Value;
+			bool							bRead;
+		};
+
+		struct LSN_CPU_VERIFY_OBJ {
+			std::string						sName;
+			LSN_CPU_VERIFY_STATE			cvsStart;
+			LSN_CPU_VERIFY_STATE			cvsEnd;
+			std::vector<LSN_CPU_VERIFY_CYCLE>
+											vCycles;
+		};
+
+
+		// == Functions.
+		/**
+		 * Given a JSON object and the value for the test to run, this loads the test and fills a LSN_CPU_VERIFY structure.
+		 *
+		 * \param _jJson The JSON file.
+		 * \param _jvTest The test to run.
+		 * \param _cvoTest The test structure to fill out.
+		 * \return Returns true if the JSON data was successfully extracted and the test created.
+		 */
+		bool								GetTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest, LSN_CPU_VERIFY_OBJ &_cvoTest );
+
+		/**
+		 * Fills out a LSN_CPU_VERIFY_STATE structure given a JSON "initial" or "final" member.
+		 *
+		 * \param _jJson The JSON file.
+		 * \param _jvState The bject member representing the state to load.
+		 * \param _cvsState The state structure to fill.
+		 * \return Returns true if the state was loaded.
+		 */
+		bool								LoadState( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvState, LSN_CPU_VERIFY_STATE &_cvsState );
+#endif	// #ifdef LSN_CPU_VERIFY
 	};
 
 
