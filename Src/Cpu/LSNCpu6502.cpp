@@ -2078,6 +2078,15 @@ namespace lsn {
 		A = (A | 0xEE) & X & ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		/*
+		 * In real 6510/8502 the internal parameter #$11
+         * may occasionally be #$10, #$01 or even #$00.
+         * This occurs when the video chip starts DMA
+         * between the opcode fetch and the parameter fetch
+         * of the instruction.  The value probably depends
+         * on the data that was left on the bus by the VIC-II.
+		 */
 	}
 
 	/** Fetches from PC and performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
@@ -2801,6 +2810,15 @@ namespace lsn {
 		A = X = (A | 0xEE) & ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		/*
+		 * In real 6510/8502 the internal parameter #$11
+         * may occasionally be #$10, #$01 or even #$00.
+         * This occurs when the video chip starts DMA
+         * between the opcode fetch and the parameter fetch
+         * of the instruction.  The value probably depends
+         * on the data that was left on the bus by the VIC-II.
+		 */
 	}
 
 	/** Reads the next instruction byte and throws it away. */
