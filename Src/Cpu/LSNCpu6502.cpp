@@ -1138,6 +1138,7 @@ namespace lsn {
 #endif	// #ifndef LSN_CPU_VERIFY
 		(this->*m_pfTickFunc)();
 
+		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
 		m_bHandleNmi |= m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 
@@ -1181,6 +1182,7 @@ namespace lsn {
 	 */
 	void CCpu6502::Nmi() {
 		m_bNmiStatusLine = true;
+		//m_ui8NmiCounter = 7;
 	}
 
 	/**

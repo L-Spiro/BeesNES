@@ -244,8 +244,7 @@ namespace lsn {
 			ui32AgOver = ui32AgOver | (ui32AgOver >> 2);
 			ui32AgOver = ui32AgOver | (ui32AgOver >> 4);
 
-			uint32_t ui32RbOver = ui32Rb1 & 0x01000100;			
-			//ui32AgOver >>= 1;
+			uint32_t ui32RbOver = ui32Rb1 & 0x01000100;
 			ui32RbOver = ui32RbOver | (ui32RbOver >> 1);
 			ui32RbOver = ui32RbOver | (ui32RbOver >> 2);
 			ui32RbOver = ui32RbOver | (ui32RbOver >> 4);

@@ -228,6 +228,8 @@ namespace lsn {
 		uint8_t								m_ui8Inputs[8];
 		uint8_t								m_ui8InputsState[8];
 		uint8_t								m_ui8InputsPoll[8];
+		// Temp NMI test.
+		//uint8_t								m_ui8NmiCounter;
 		
 		static LSN_INSTR					m_iInstructionSet[256+2];						/**< The instruction set. */
 		static const LSN_INSTR_META_DATA	m_smdInstMetaData[LSN_I_TOTAL];					/**< Metadata for the instructions (for assembly and disassembly etc.) */

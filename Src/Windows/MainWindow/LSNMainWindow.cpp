@@ -100,6 +100,18 @@ namespace lsn {
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDB_PNG1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
 		
+		m_biBarInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+		m_biBarInfo.bmiHeader.biWidth = 16;
+		m_biBarInfo.bmiHeader.biHeight = 16;
+		m_biBarInfo.bmiHeader.biPlanes = 1;
+		m_biBarInfo.bmiHeader.biBitCount = 24;
+		m_biBarInfo.bmiHeader.biCompression = BI_RGB;
+		m_biBarInfo.bmiHeader.biSizeImage = DWORD( CFilterBase::RowStride( m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biBitCount ) * m_biBarInfo.bmiHeader.biHeight );
+		m_biBarInfo.bmiHeader.biXPelsPerMeter = 0;
+		m_biBarInfo.bmiHeader.biYPelsPerMeter = 0;
+		m_biBarInfo.bmiHeader.biClrUsed = 0;
+		m_biBarInfo.bmiHeader.biClrImportant = 0;
+		m_vBars.resize( m_biBarInfo.bmiHeader.biSizeImage );
 
 		m_pnsSystem = std::make_unique<CRegionalSystem>();
 		UpdatedConsolePointer( false );
@@ -410,11 +422,39 @@ namespace lsn {
 			}
 		}
 
+		LONG lWidth = m_rMaxRect.Width();
+		//int iDestX = m_bMaximized ? ((lWidth - dwFinalW) >> 1) : 0;
+		int iDestX = (lWidth - dwFinalW) >> 1;
+		if ( iDestX ) {
+			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+			::StretchDIBits( bpPaint.hDc,
+				0, 0,
+				iDestX, int( dwFinalH ),
+				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
+				m_vBars.data(),
+				&m_biBarInfo,
+				DIB_RGB_COLORS,
+				SRCCOPY );
+		}
+		int iBarDestX = int( iDestX + dwFinalW );
+		int iBarWidth = int( lWidth - iDestX );
+		if ( iBarWidth ) {
+			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+			::StretchDIBits( bpPaint.hDc,
+				iBarDestX, 0,
+				iBarWidth, int( dwFinalH ),
+				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
+				m_vBars.data(),
+				&m_biBarInfo,
+				DIB_RGB_COLORS,
+				SRCCOPY );
+		}
+
 		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) || !m_cfartCurFilterAndTargets.bMirrored ) {
 			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
-				0, m_cfartCurFilterAndTargets.bMirrored ? 0 : int( dwFinalH - 1 ),
+				iDestX, m_cfartCurFilterAndTargets.bMirrored ? 0 : int( dwFinalH - 1 ),
 				int( dwFinalW ), m_cfartCurFilterAndTargets.bMirrored ? int( dwFinalH ) : -int( dwFinalH ),
 				0, 0, m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
@@ -424,7 +464,7 @@ namespace lsn {
 		}
 		else {
 			::SetDIBitsToDevice( bpPaint.hDc,
-				0, 0,
+				iDestX, 0,
 				m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				0, 0,
 				0, m_biBlitInfo.bmiHeader.biHeight,
@@ -578,6 +618,9 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
 		m_bMaximized = _wParam == SIZE_MAXIMIZED;
+		//if ( m_bMaximized ) {
+			m_rMaxRect = ClientRect();
+		//}
 		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
@@ -1128,7 +1171,7 @@ namespace lsn {
 			return;
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
-		::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
+		//::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
 			_pmwWindow->m_pnsSystem->Tick();

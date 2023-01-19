@@ -272,6 +272,8 @@ namespace lsn {
 		lsn::CClock								m_cClock;
 		/** The console pointer. */
 		std::unique_ptr<CSystemBase>			m_pnsSystem;
+		/** Maximized resolution. */
+		LSW_RECT								m_rMaxRect;
 		/** Image list. */
 		lsw::CImageList							m_iImages;
 		/** Images. */
@@ -280,6 +282,10 @@ namespace lsn {
 		INT										m_iImageMap[LSN_I_TOTAL];
 		/** The BITMAPINFO header for blitting to the screen in software mode. */
 		BITMAPINFO								m_biBlitInfo;
+		/** The BITMAPINFO header for blitting the black bars around the screen when maximized. */
+		BITMAPINFO								m_biBarInfo;
+		/** The bar pixels. */
+		std::vector<uint8_t>					m_vBars;
 		/** The critical section for synchronizing Swap() and Paint(). */
 		lsw::CCriticalSection					m_csRenderCrit;
 		/** The current filter ID. */

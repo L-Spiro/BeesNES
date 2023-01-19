@@ -15,7 +15,7 @@
 #include <thread>
 #include <vector>
 
-#define LSN_CRT_PERF
+//#define LSN_CRT_PERF
 #ifdef LSN_CRT_PERF
 #include "../Time/LSNClock.h"
 #endif	// #ifdef LSN_CRT_PERF
