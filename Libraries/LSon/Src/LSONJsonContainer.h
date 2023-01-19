@@ -1,12 +1,9 @@
 #pragma once
 
-//#include "LSONJson.h"
 #include "LSONJsonSyntaxNodes.h"
 #include "Gen/LSONJsonParser.h"
-#include "Tree/LSONTree.h"
 
-#include <map>
-#include <set>
+#include <vector>
 
 
 namespace lson {
