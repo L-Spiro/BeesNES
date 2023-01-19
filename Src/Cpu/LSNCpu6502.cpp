@@ -2807,7 +2807,7 @@ namespace lsn {
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
 		// Weird like ANE().
 		const uint8_t ui8Tmp = m_pbBus->Read( pc.PC++ );
-		A = X = (A | 0xEE) & ui8Tmp;
+		A = X = (A | 0xFF) & ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 

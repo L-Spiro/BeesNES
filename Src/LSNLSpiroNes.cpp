@@ -44,6 +44,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		// Use ::PeekMessage() so we can use idle time to render the scene.
 		while ( (::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_REMOVE ) != 0) ) {
 			// Translate and dispatch the message.
+			if ( !abIsAlive ) { break; }
 			if ( ::TranslateAcceleratorW( pwMainWindow->Wnd(), NULL, &mMsg ) == 0 ) {
 				::TranslateMessage( &mMsg );
 				::DispatchMessageW( &mMsg );

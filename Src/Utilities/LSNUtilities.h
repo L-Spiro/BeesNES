@@ -225,6 +225,34 @@ namespace lsn {
 				}
 			}
 		}
+
+		/**
+		 * Adds 2 32-bit RGBA colors together using integer operations.
+		 *
+		 * \param _ui32Color0 The left operand.
+		 * \param _ui32Color1 The right operand.
+		 * \return Returns the clamped result of adding the colors together.  Each value is clamped between 0x00 and 0xFF inclusively.
+		 */
+		static __forceinline uint32_t						AddArgb( uint32_t _ui32Color0, uint32_t _ui32Color1 ) {
+			uint32_t ui32Ag0 = _ui32Color0 & 0xFF00FF00;
+			uint32_t ui32Rb0 = _ui32Color0 & 0x00FF00FF;
+			uint64_t ui64Ag1 = (_ui32Color1 & 0xFF00FF00ULL) + ui32Ag0;
+			uint32_t ui32Rb1 = (_ui32Color1 & 0x00FF00FF) + ui32Rb0;
+
+			uint32_t ui32AgOver = uint32_t( (ui64Ag1 & 0x100010000ULL) >> 1 );
+			ui32AgOver = ui32AgOver | (ui32AgOver >> 1);
+			ui32AgOver = ui32AgOver | (ui32AgOver >> 2);
+			ui32AgOver = ui32AgOver | (ui32AgOver >> 4);
+
+			uint32_t ui32RbOver = ui32Rb1 & 0x01000100;			
+			//ui32AgOver >>= 1;
+			ui32RbOver = ui32RbOver | (ui32RbOver >> 1);
+			ui32RbOver = ui32RbOver | (ui32RbOver >> 2);
+			ui32RbOver = ui32RbOver | (ui32RbOver >> 4);
+			ui32RbOver = ui32RbOver >> 1;
+
+			return (uint32_t( ui64Ag1 | ui32AgOver ) & 0xFF00FF00) | ((ui32Rb1 | ui32RbOver) & 0x00FF00FF);
+		}
 	};
 
 }	// namespace lsn

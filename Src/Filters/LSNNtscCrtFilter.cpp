@@ -7,6 +7,7 @@
  */
 
 #include "LSNNtscCrtFilter.h"
+#include "../Utilities/LSNUtilities.h"
 #include <Helpers/LSWHelpers.h>
 
 
@@ -215,6 +216,24 @@ namespace lsn {
 							((ui32Tmp >> 4) & 0x0F0F0F);
 					}
 				}
+
+				// Apply smear.
+#if 1
+				for ( auto Y = _pncfFilter->m_ui32FinalHeight; Y--; ) {
+					uint32_t ui32Val = 0;
+					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data() + Y * _pncfFilter->m_ui32FinalStride);
+					for ( uint32_t X = 0; X < _pncfFilter->m_ui32FinalWidth; ++X ) {
+						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
+							/*((ui32Val >> 2) & 0x3F3F3F3F) +*/
+							/*((ui32Val >> 3) & 0x1F1F1F1F) +*/
+							((ui32Val >> 4) & 0x0F0F0F0F) +
+							((ui32Val >> 5) & 0x07070707) +
+							((ui32Val >> 6) & 0x03030303) +
+							((ui32Val >> 7) & 0x01010101);
+						ui32Val = pui32Src[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+					}
+				}
+#endif
 			}
 			_pncfFilter->m_ePhospherDone.Signal();
 		}
