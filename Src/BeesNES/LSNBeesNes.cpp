@@ -57,8 +57,10 @@ namespace lsn {
 	 * \param _fFilter The new filter to be applied after the next Swap().
 	 */
 	void CBeesNes::SetCurFilter( CFilterBase::LSN_FILTERS _fFilter ) {
-		m_fFilter = _fFilter;
-		m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
+		if ( m_fFilter != _fFilter ) {
+			m_fFilter = _fFilter;
+			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
+		}
 	}
 
 	/**

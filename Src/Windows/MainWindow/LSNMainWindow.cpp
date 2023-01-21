@@ -406,10 +406,13 @@ namespace lsn {
 		}
 
 		LONG lWidth = m_rMaxRect.Width();
+		LONG lHeight = m_rMaxRect.Height();
 		//int iDestX = m_bMaximized ? ((lWidth - dwFinalW) >> 1) : 0;
-		int iDestX = (lWidth - dwFinalW) >> 1;
+		int iDestX = (lWidth - int( dwFinalW )) >> 1;
+		int iDestY = (lHeight - int( dwFinalH )) >> 1;
+		int iBarDestX = int( iDestX + int( dwFinalW ) );
+		int iBarDestY = int( iDestY + int( dwFinalH ) );
 		if ( iDestX ) {
-			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 			::StretchDIBits( bpPaint.hDc,
 				0, 0,
 				iDestX, int( dwFinalH ),
@@ -419,12 +422,34 @@ namespace lsn {
 				DIB_RGB_COLORS,
 				SRCCOPY );
 		}
-		int iBarDestX = int( iDestX + dwFinalW );
-		int iBarWidth = int( lWidth - iBarDestX );
-		if ( iBarWidth ) {
+		if ( iDestY ) {
+			::StretchDIBits( bpPaint.hDc,
+				iDestX, 0,
+				int( dwFinalW ), iDestY,
+				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
+				m_vBars.data(),
+				&m_biBarInfo,
+				DIB_RGB_COLORS,
+				SRCCOPY );
+		}
+
+		
+		int iBarWidth = int( lWidth ) - iBarDestX;
+		if ( iBarWidth > 0 ) {
 			::StretchDIBits( bpPaint.hDc,
 				iBarDestX, 0,
 				iBarWidth, int( dwFinalH ),
+				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
+				m_vBars.data(),
+				&m_biBarInfo,
+				DIB_RGB_COLORS,
+				SRCCOPY );
+		}
+		int iBarHeight = int( lHeight ) - iBarDestY;
+		if ( iBarHeight > 0 ) {
+			::StretchDIBits( bpPaint.hDc,
+				iDestX, iBarDestY,
+				int( dwFinalW ), iBarHeight,
 				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
 				m_vBars.data(),
 				&m_biBarInfo,
@@ -435,7 +460,7 @@ namespace lsn {
 		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) || !bMirrored ) {
 			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
-				iDestX, bMirrored ? 0 : int( dwFinalH - 1 ),
+				iDestX, (bMirrored ? 0 : int( dwFinalH - 1 )) + iDestY,
 				int( dwFinalW ), bMirrored ? int( dwFinalH ) : -int( dwFinalH ),
 				0, 0, m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				puiBuffer,
@@ -445,7 +470,7 @@ namespace lsn {
 		}
 		else {
 			::SetDIBitsToDevice( bpPaint.hDc,
-				iDestX, 0,
+				iDestX, iDestY,
 				m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				0, 0,
 				0, m_biBlitInfo.bmiHeader.biHeight,
