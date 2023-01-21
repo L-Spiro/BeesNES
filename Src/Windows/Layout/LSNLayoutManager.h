@@ -20,6 +20,8 @@ namespace lsn {
 		LSN_LT_MAIN_WINDOW					= LSW_LT_CUSTOM,
 		LSN_LT_SELECT_ROM_DIALOG,
 		LSN_LT_INPUT_DIALOG,
+		LSN_LT_GLOBAL_INPUT_PAGE,
+		LSN_LT_PER_GAME_INPUT_PAGE,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

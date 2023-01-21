@@ -154,6 +154,8 @@ namespace lsn {
 			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
 			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
 			++m_ui64Cycle;
+			/*m_ui16CurX = GetCurrentRowPos();
+			m_ui16CurY = GetCurrentScanline();*/
 		}
 
 		/**

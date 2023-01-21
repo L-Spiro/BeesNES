@@ -18,10 +18,17 @@
 namespace lsn {
 
 #define LSN_FIRST_SECTION_W							(80 * 60 / 100)
-#define LSN_CONBO_W									(190 * 60 / 100)
+#define LSN_FIRST_SECTION_L							(LSN_LEFT_JUST + LSN_GROUP_LEFT)
+#define LSN_COMBO_W									(190 * 60 / 100)
+#define LSN_COMBO_L									(LSN_FIRST_SECTION_L + LSN_FIRST_SECTION_W + LSN_LEFT_JUST)
 #define LSN_THIRD_SECTION_W							(82 * 60 / 100)
+#define LSN_THIRD_SECTION_L							(LSN_COMBO_L + LSN_COMBO_W + LSN_LEFT_JUST)
+#define LSN_GENERAL_GROUP_H							(LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_GROUP_BOTTOM)
+#define LSN_SETTINGS_GROUP_H						(LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT * 5) + (LSN_TOP_JUST * 4) + LSN_GROUP_BOTTOM)
 
-#define LSN_INPUT_W									(LSN_LEFT_JUST + LSN_GROUP_LEFT + LSN_FIRST_SECTION_W + LSN_LEFT_JUST + LSN_CONBO_W + LSN_LEFT_JUST + LSN_THIRD_SECTION_W + LSN_GROUP_RIGHT + LSN_LEFT_JUST)
+#define LSN_INPUT_GROUP_W							(LSN_GROUP_LEFT + LSN_FIRST_SECTION_W + LSN_LEFT_JUST + LSN_COMBO_W + LSN_LEFT_JUST + LSN_THIRD_SECTION_W + LSN_GROUP_RIGHT)
+#define LSN_INPUT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST + LSN_LEFT_JUST)
+#define LSN_INPUT_H									(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H + 20)
 
 	// == Members.
 	/** The layout for the main window. */
@@ -35,7 +42,7 @@ namespace lsn {
 			0,										// iLeft
 			0,										// iTop
 			LSN_INPUT_W,							// dwWidth
-			150,							// dwHeight
+			LSN_INPUT_H,							// dwHeight
 			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
 			LSN_LSTR( LSN_INPUT_DIALOG ),			// pwcText
@@ -52,7 +59,7 @@ namespace lsn {
 			0,										// iLeft
 			0,										// iTop
 			255,									// dwWidth
-			110,									// dwHeight
+			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H) + 22,						// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
 			WS_EX_ACCEPTFILES,														// dwStyleEx
 			nullptr,								// pwcText
@@ -76,12 +83,14 @@ namespace lsn {
 	/** The layout for the global-setup panel. */
 	LSW_WIDGET_LAYOUT CInputWindowLayout::m_wlGlobalPanel[] = {
 		{
-			LSW_LT_CHILDWINDOW,						// ltType
+			LSN_LT_GLOBAL_INPUT_PAGE,				// ltType
 			LSN_IWI_GLOBAL( PANEL ),				// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
-			50, 50, 300, 300,
+			0, 0,									// iLeft, iTop
+			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
+			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
 			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
 			nullptr,								// pwcText
@@ -89,19 +98,687 @@ namespace lsn {
 			LSN_IWI_NONE,							// dwParentId
 
 			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			LSN_PARENT_VCRIGHT,						// pcRightSizeExp
+			nullptr, 0,								// pcRightSizeExp
 			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			LSN_PARENT_VCBOTTOM,					// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			nullptr, 0,								// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
+
+
+		// General.
+		{
+			LSW_LT_GROUPBOX,						// ltType
+			LSN_IWI_GLOBAL( GENERAL_GROUP ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST,							// iLeft
+			0,										// iTop
+			LSN_INPUT_GROUP_W,						// dwWidth
+			LSN_GENERAL_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,																											// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
+			LSN_LSTR( LSN_INPUT_GENERAL ),			// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( CONSOLE_TYPE_LABEL ),	// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_FIRST_SECTION_L,					// iLeft
+			LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONSOLE_TYPE_ ),	// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ),	// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GROUP_TOP,							// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+
+		// Settings.
+		{
+			LSW_LT_GROUPBOX,						// ltType
+			LSN_IWI_GLOBAL( SETTINGS_GROUP ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST,							// iLeft
+			LSN_GENERAL_GROUP_H,					// iTop
+			LSN_INPUT_GROUP_W,						// dwWidth
+			LSN_SETTINGS_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,																											// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
+			LSN_LSTR( LSN_INPUT_SETTINGS ),			// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_1_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_1_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( PLAYER_1_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_1_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_2_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_2_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( PLAYER_2_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_2_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+		// Expension Port.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( EXPAND_LABEL ),			// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_EXPANSION_PORT ),	// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( EXPAND_COMBO ),			// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_GLOBAL( EXPAND_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+		// Player 3.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_3_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_3_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( PLAYER_3_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_3_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+
+		// Player 4.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_4_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_4_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_GLOBAL( PLAYER_4_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_GLOBAL( PLAYER_4_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR /*| WS_EX_NOPARENTNOTIFY*/,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
 		},
 	};
 
+	/** The layout for the per-game-setup panel. */
+	LSW_WIDGET_LAYOUT CInputWindowLayout::m_wlPerGamePanel[] = {
+		{
+			LSN_LT_PER_GAME_INPUT_PAGE,				// ltType
+			LSN_IWI_PER_GAME( PANEL ),				// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			0, 0,									// iLeft, iTop
+			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
+			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_NONE,							// dwParentId
 
+			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
+			nullptr, 0,								// pcRightSizeExp
+			LSN_PARENT_VCTOP,						// pcTopSizeExp
+			nullptr, 0,								// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+		},
+
+
+		// General.
+		{
+			LSW_LT_GROUPBOX,						// ltType
+			LSN_IWI_PER_GAME( GENERAL_GROUP ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST,							// iLeft
+			0,										// iTop
+			LSN_INPUT_GROUP_W,						// dwWidth
+			LSN_GENERAL_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,																											// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
+			LSN_LSTR( LSN_INPUT_GENERAL ),			// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( CONSOLE_TYPE_LABEL ),	// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_FIRST_SECTION_L,					// iLeft
+			LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONSOLE_TYPE_ ),	// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( CONSOLE_TYPE_COMBO ),	// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GROUP_TOP,							// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+
+		// Settings.
+		{
+			LSW_LT_GROUPBOX,						// ltType
+			LSN_IWI_PER_GAME( SETTINGS_GROUP ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST,							// iLeft
+			LSN_GENERAL_GROUP_H,					// iTop
+			LSN_INPUT_GROUP_W,						// dwWidth
+			LSN_SETTINGS_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,																											// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
+			LSN_LSTR( LSN_INPUT_SETTINGS ),			// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_1_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_1_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( PLAYER_1_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_1_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_2_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_2_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( PLAYER_2_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_2_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 1,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+		// Expension Port.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( EXPAND_LABEL ),			// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_EXPANSION_PORT ),	// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( EXPAND_COMBO ),			// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_PER_GAME( EXPAND_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+		// Player 3.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_3_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_3_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( PLAYER_3_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_3_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 3,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+
+		// Player 4.
+		{
+			LSW_LT_LABEL,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_4_LABEL ),		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,							// iTop
+			LSN_FIRST_SECTION_W,					// dwWidth
+			LSN_DEF_STATIC_HEIGHT,					// dwHeight
+			LSN_STATICSTYLE,						// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_PLAYER_4_ ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,						// ltType
+			LSN_IWI_PER_GAME( PLAYER_4_COMBO ),		// wId
+			WC_COMBOBOXW,							// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_COMBO_L,							// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,	// iTop
+			LSN_COMBO_W,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,					// dwHeight
+			LSN_COMBOSTYLE_LIST,					// dwStyle
+			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_PER_GAME( PLAYER_4_BUTTON ),		// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4,	// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR /*| WS_EX_NOPARENTNOTIFY*/,																								// dwStyleEx
+			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+		},
+	};
+
+#undef LSN_INPUT_H
 #undef LSN_INPUT_W
+#undef LSN_INPUT_GROUP_W
+#undef LSN_SETTINGS_GROUP_H
+#undef LSN_GENERAL_GROUP_H
 
+#undef LSN_THIRD_SECTION_L
 #undef LSN_THIRD_SECTION_W
-#undef LSN_CONBO_W
+#undef LSN_COMBO_L
+#undef LSN_COMBO_W
+#undef LSN_FIRST_SECTION_L
 #undef LSN_FIRST_SECTION_W
 
 
@@ -130,6 +807,16 @@ namespace lsn {
 	 */
 	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent ) {
 		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ) );
+	}
+
+	/**
+	 * Creates the per-game-settings page.
+	 *
+	 * \param _pwParent the parent of the page.
+	 * \return Returns the created widget.
+	 */
+	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent ) {
+		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ) );
 	}
 
 	/**

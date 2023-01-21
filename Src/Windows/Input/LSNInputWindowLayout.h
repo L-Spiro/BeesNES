@@ -45,7 +45,10 @@ namespace lsn {
 #define LSN_IWI_GLOBAL( NAME )					LSN_IWI_GLOBAL_SETTINGS_ ## NAME
 #define LSN_BOTH( NAME )						LSN_IWI_PER_GAME( NAME ), LSN_IWI_GLOBAL( NAME )
 			LSN_BOTH( PANEL ),
-			LSN_BOTH( GROUP ),
+			LSN_BOTH( GENERAL_GROUP ),
+			LSN_BOTH( CONSOLE_TYPE_LABEL ),
+			LSN_BOTH( CONSOLE_TYPE_COMBO ),
+			LSN_BOTH( SETTINGS_GROUP ),
 			LSN_BOTH( PLAYER_1_LABEL ),
 			LSN_BOTH( PLAYER_1_COMBO ),
 			LSN_BOTH( PLAYER_1_BUTTON ),
@@ -86,6 +89,14 @@ namespace lsn {
 		 */
 		static CWidget *						CreateGlobalPage( CWidget * _pwParent );
 
+		/**
+		 * Creates the per-game-settings page.
+		 *
+		 * \param _pwParent the parent of the page.
+		 * \return Returns the created widget.
+		 */
+		static CWidget *						CreatePerGamePage( CWidget * _pwParent );
+
 
 	protected :
 		// == Members.
@@ -93,6 +104,8 @@ namespace lsn {
 		static LSW_WIDGET_LAYOUT				m_wlInputWindow[];
 		/** The layout for the global-setup panel. */
 		static LSW_WIDGET_LAYOUT				m_wlGlobalPanel[];
+		/** The layout for the per-game-setup panel. */
+		static LSW_WIDGET_LAYOUT				m_wlPerGamePanel[];
 		/** The class for the main window. */
 		static ATOM								m_aInputClass;
 

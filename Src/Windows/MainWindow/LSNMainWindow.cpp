@@ -42,36 +42,12 @@ namespace lsn {
 
 	CMainWindow::CMainWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_dScale( 3.0 ),
-		m_dRatioActual( 8.0 / 7.0 ),
-		//m_stBufferIdx( 0 ),
+		m_bnEmulator( this, this ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
-		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
-		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ) {
 
 		
-		
-
-		std::memset( m_ui8RpidFires, 0, sizeof( m_ui8RpidFires ) );
-		
-		//m_pfbFilterTable
-		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
-			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY
-			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter },			// LSN_F_RGB24
-			{ &m_nbfBlargNtscFilter,		&m_nbfBlargNtscFilter,			&m_nbfBlargNtscFilter },		// LSN_F_NTSC_BLARGG
-			{ &m_nbfBlargPalFilter,			&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_PAL_BLARGG
-			{ &m_ncfEmmirNtscFilter,		&m_ncfEmmirNtscFilter,			&m_ncfEmmirNtscFilter },		// LSN_F_NTSC_CRT
-			{ &m_nbfBlargNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_BLARGG
-			{ &m_ncfEmmirNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_CRT
-		};
-		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
-
-		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
-		m_pppbPostTable[CPostProcessBase::LSN_PP_BILINEAR] = &m_blppBiLinearPost;
-		
-
 		static const struct {
 			LPCWSTR				lpwsImageName;
 			DWORD				dwConst;
@@ -99,6 +75,19 @@ namespace lsn {
 
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDB_PNG1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
+
+		// Create the basic render target.
+		m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
+		m_biBlitInfo.bmiHeader.biWidth = 0;
+		m_biBlitInfo.bmiHeader.biHeight = 0;
+		m_biBlitInfo.bmiHeader.biPlanes = 1;
+		m_biBlitInfo.bmiHeader.biBitCount = 32;
+		m_biBlitInfo.bmiHeader.biCompression = BI_RGB;
+		m_biBlitInfo.bmiHeader.biSizeImage = DWORD( CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight );
+		m_biBlitInfo.bmiHeader.biXPelsPerMeter = 0;
+		m_biBlitInfo.bmiHeader.biYPelsPerMeter = 0;
+		m_biBlitInfo.bmiHeader.biClrUsed = 0;
+		m_biBlitInfo.bmiHeader.biClrImportant = 0;
 		
 		m_biBarInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
 		m_biBarInfo.bmiHeader.biWidth = 16;
@@ -113,7 +102,6 @@ namespace lsn {
 		m_biBarInfo.bmiHeader.biClrImportant = 0;
 		m_vBars.resize( m_biBarInfo.bmiHeader.biSizeImage );
 
-		m_pnsSystem = std::make_unique<CRegionalSystem>();
 		UpdatedConsolePointer( false );
 
 
@@ -208,7 +196,14 @@ namespace lsn {
 		return LSW_H_CONTINUE;
 	}
 
-	// WM_COMMAND from control.
+	/**
+	 * Handles the WM_COMMAND message.
+	 *
+	 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+	 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+	 * \return Returns an LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::Command( WORD /*_wCtrlCode*/, WORD _Id, CWidget * /*_pwSrc*/ ) {
 		switch ( _Id ) {
 			case CMainWindowLayout::LSN_MWMI_OPENROM : {
@@ -276,69 +271,63 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_1X : {
-				m_dScale = 1.0;
+				m_bnEmulator.SetScale( 1.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_2X : {
-				m_dScale = 2.0;
+				m_bnEmulator.SetScale( 2.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_3X : {
-				m_dScale = 3.0;
+				m_bnEmulator.SetScale( 3.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_4X : {
-				m_dScale = 4.0;
+				m_bnEmulator.SetScale( 4.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_5X : {
-				m_dScale = 5.0;
+				m_bnEmulator.SetScale( 5.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_6X : {
-				m_dScale = 6.0;
+				m_bnEmulator.SetScale( 6.0 );
 				LSW_RECT rScreen = FinalWindowRect();
 				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
-				m_fFilter = CFilterBase::LSN_F_RGB24;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_RGB24 );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
-				m_fFilter = CFilterBase::LSN_F_NTSC_BLARGG;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
-				m_fFilter = CFilterBase::LSN_F_PAL_BLARGG;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_BLARGG );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
-				m_fFilter = CFilterBase::LSN_F_AUTO_BLARGG;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_BLARGG );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
-				m_fFilter = CFilterBase::LSN_F_NTSC_CRT;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
-				m_fFilter = CFilterBase::LSN_F_AUTO_CRT;
-				m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT );
 				break;
 			}
 
@@ -353,17 +342,17 @@ namespace lsn {
 	// WM_NCDESTROY.
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
 		uint64_t ui64Time = m_cClock.GetRealTick() - m_cClock.GetStartTick();
-		if ( m_pnsSystem->IsRomLoaded() ) {
+		if ( m_bnEmulator.GetSystem()->IsRomLoaded() ) {
 			double dTime = ui64Time / double( m_cClock.GetResolution() );
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f (%.8f hours).\r\n"
 				"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
 				"%.8f cycles per Tick().\r\n"
 				"%.8f FPS.\r\n",
-				m_pnsSystem->GetTickCount(), dTime, dTime / 60.0 / 60.0,
-				m_pnsSystem->GetMasterCounter(), m_pnsSystem->GetMasterCounter() / dTime, double( m_pnsSystem->GetMasterHz() ) / m_pnsSystem->GetMasterDiv(),
-				m_pnsSystem->GetMasterCounter() / double( m_pnsSystem->GetTickCount() ),
-				m_pnsSystem->GetPpuFrameCount() / dTime
+				m_bnEmulator.GetSystem()->GetTickCount(), dTime, dTime / 60.0 / 60.0,
+				m_bnEmulator.GetSystem()->GetMasterCounter(), m_bnEmulator.GetSystem()->GetMasterCounter() / dTime, double( m_bnEmulator.GetSystem()->GetMasterHz() ) / m_bnEmulator.GetSystem()->GetMasterDiv(),
+				m_bnEmulator.GetSystem()->GetMasterCounter() / double( m_bnEmulator.GetSystem()->GetTickCount() ),
+				m_bnEmulator.GetSystem()->GetPpuFrameCount() / dTime
 				);
 			::OutputDebugStringA( szBuffer );
 		}
@@ -399,27 +388,21 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
 		LSW_BEGINPAINT bpPaint( Wnd() );
+		::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 
 		DWORD dwFinalW = FinalWidth();
 		DWORD dwFinalH = FinalHeight();
+		bool bMirrored = false;
+		const uint8_t * puiBuffer = nullptr;
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-			if ( m_cfartCurFilterAndTargets.bDirty ) {
-				m_cfartCurFilterAndTargets.bDirty = false;
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
-					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
-
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_ppPostProcess]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
-					dwFinalW, dwFinalH, m_cfartCurFilterAndTargets.bMirrored,
-					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
-
-				m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.ui32Width;
-				m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.ui32Height;
-				m_biBlitInfo.bmiHeader.biBitCount = m_cfartCurFilterAndTargets.ui16Bits;
-				m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-			}
+			m_bnEmulator.Render( dwFinalW, dwFinalH );
+			m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+			m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+			m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+			m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+			bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+			puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 		}
 
 		LONG lWidth = m_rMaxRect.Width();
@@ -437,9 +420,8 @@ namespace lsn {
 				SRCCOPY );
 		}
 		int iBarDestX = int( iDestX + dwFinalW );
-		int iBarWidth = int( lWidth - iDestX );
+		int iBarWidth = int( lWidth - iBarDestX );
 		if ( iBarWidth ) {
-			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 			::StretchDIBits( bpPaint.hDc,
 				iBarDestX, 0,
 				iBarWidth, int( dwFinalH ),
@@ -450,14 +432,13 @@ namespace lsn {
 				SRCCOPY );
 		}
 
-		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) || !m_cfartCurFilterAndTargets.bMirrored ) {
-			::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+		if ( dwFinalW != DWORD( m_biBlitInfo.bmiHeader.biWidth ) || dwFinalH != DWORD( m_biBlitInfo.bmiHeader.biHeight ) || !bMirrored ) {
 			//::SetStretchBltMode( bpPaint.hDc, HALFTONE );
 			::StretchDIBits( bpPaint.hDc,
-				iDestX, m_cfartCurFilterAndTargets.bMirrored ? 0 : int( dwFinalH - 1 ),
-				int( dwFinalW ), m_cfartCurFilterAndTargets.bMirrored ? int( dwFinalH ) : -int( dwFinalH ),
+				iDestX, bMirrored ? 0 : int( dwFinalH - 1 ),
+				int( dwFinalW ), bMirrored ? int( dwFinalH ) : -int( dwFinalH ),
 				0, 0, m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+				puiBuffer,
 				&m_biBlitInfo,
 				DIB_RGB_COLORS,
 				SRCCOPY );
@@ -468,7 +449,7 @@ namespace lsn {
 				m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biHeight,
 				0, 0,
 				0, m_biBlitInfo.bmiHeader.biHeight,
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+				puiBuffer,
 				&m_biBlitInfo,
 				DIB_RGB_COLORS );
 		}
@@ -625,7 +606,7 @@ namespace lsn {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
-			m_dScale = std::round( std::min( dScaleW, dScaleH ) * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION;
+			m_bnEmulator.SetScale( std::round( std::min( dScaleW, dScaleH ) * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION );
 			/*LSW_RECT rCur = WindowRect();
 			LSW_RECT rNew = FinalWindowRect();
 			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );*/
@@ -660,7 +641,7 @@ namespace lsn {
 					rNew.MoveBy( (*_prRect).right - rNew.right, 0 );
 				}
 				(*_prRect) = rNew;
-				m_dScale = dScale;
+				m_bnEmulator.SetScale( dScale );
 			}
 			// dragging verticals expands the height.
 			else if ( _iEdge == WMSZ_LEFT || _iEdge == WMSZ_RIGHT ) {
@@ -673,7 +654,7 @@ namespace lsn {
 					rNew.MoveBy( (*_prRect).right - rNew.right, 0 );
 				}
 				(*_prRect) = rNew;
-				m_dScale = dScale;
+				m_bnEmulator.SetScale( dScale );
 			}
 			return LSW_H_HANDLED;
 		}
@@ -695,11 +676,11 @@ namespace lsn {
 			
 			UINT uiId = ::GetMenuItemID( _hMenu, I );
 			switch ( uiId ) {
-#define LSN_CHECK_SCALE( SCALE )																																			\
-	case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_ ## SCALE ## X : {																											\
-		MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_dScale == double( SCALE ) ? MFS_CHECKED : MFS_UNCHECKED ) };	\
-		::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );																												\
-		break;																																								\
+#define LSN_CHECK_SCALE( SCALE )																																						\
+	case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_ ## SCALE ## X : {																														\
+		MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetScale() == double( SCALE ) ? MFS_CHECKED : MFS_UNCHECKED ) };	\
+		::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );																															\
+		break;																																											\
 	}
 				LSN_CHECK_SCALE( 1 );
 				LSN_CHECK_SCALE( 2 );
@@ -710,32 +691,32 @@ namespace lsn {
 #undef LSN_CHECK_SCALE
 
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_RGB24 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_RGB24 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_PAL_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_NTSC_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_AUTO_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_fFilter == CFilterBase::LSN_F_AUTO_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -757,35 +738,15 @@ namespace lsn {
 	 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
 	 */
 	void CMainWindow::Swap() {
-		if ( m_pdcClient ) {
-			{
-				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-				m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
-				m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
-				m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
-				m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
-				m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
-				m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
-				m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
-				m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
-				m_cfartCurFilterAndTargets.bDirty = true;
-				m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
-
-				//if ( m_cfartCurFilterAndTargets.pfbNextFilter != m_cfartCurFilterAndTargets.pfbCurFilter ) {
-					m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
-					//m_cfartCurFilterAndTargets.stStride = CFilterBase::RowStride( m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
-				//}
-				
-			}
-			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
-			m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
-			::RedrawWindow( Wnd(), NULL, NULL,
-				RDW_INVALIDATE |
-				RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
-				/*RDW_UPDATENOW |*/
-				RDW_NOCHILDREN );
-
+		{
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			m_bnEmulator.Swap();
 		}
+		::RedrawWindow( Wnd(), NULL, NULL,
+			RDW_INVALIDATE |
+			RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
+			/*RDW_UPDATENOW |*/
+			RDW_NOCHILDREN );
 	}
 
 	/**
@@ -793,7 +754,7 @@ namespace lsn {
 	 */
 	void CMainWindow::StartThread() {
 		StopThread();
-		if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() ) {
+		if ( m_bnEmulator.GetSystem() && m_bnEmulator.GetSystem()->IsRomLoaded() ) {
 			m_ptThread = std::make_unique<std::thread>( EmuThread, this );
 		}
 	}
@@ -826,18 +787,18 @@ namespace lsn {
 			uint8_t ui8Ret = 0;
 			if ( m_ptThread.get() ) {
 				SHORT sState;
-#define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )						\
-	sState = ::GetAsyncKeyState( RAPID_KEY );									\
-	if ( sState & 0x8000 ) {													\
-		if ( m_ui8RpidFires[RAPID_IDX] & 0b10000000 ) {							\
-			ui8Ret |= BUTTON;													\
-		}																		\
-		m_ui8RpidFires[RAPID_IDX] = _rotl8( m_ui8RpidFires[RAPID_IDX], 1 );		\
-	}																			\
-	else {																		\
-		m_ui8RpidFires[RAPID_IDX] = 0b11110000;									\
-		sState = ::GetAsyncKeyState( MAIN_KEY );								\
-		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; }							\
+#define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )										\
+	sState = ::GetAsyncKeyState( RAPID_KEY );													\
+	if ( sState & 0x8000 ) {																	\
+		if ( m_bnEmulator.RapidFire()[RAPID_IDX] & 0b10000000 ) {								\
+			ui8Ret |= BUTTON;																	\
+		}																						\
+		m_bnEmulator.RapidFire()[RAPID_IDX] = _rotl8( m_bnEmulator.RapidFire()[RAPID_IDX], 1 );	\
+	}																							\
+	else {																						\
+		m_bnEmulator.RapidFire()[RAPID_IDX] = 0b11110000;										\
+		sState = ::GetAsyncKeyState( MAIN_KEY );												\
+		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; }											\
 	}
 				LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
 				LSN_CKECK( VK_OEM_1, VK_OEM_2, 1, LSN_IB_A );
@@ -948,7 +909,7 @@ namespace lsn {
 	 */
 	void CMainWindow::UpdateRatio() {
 		if ( m_pdcClient ) {
-			m_dRatio = (m_dRatioActual * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth();
+			m_bnEmulator.SetRatio( (m_bnEmulator.GetRatioActual() * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth() );
 		}
 	}
 
@@ -959,8 +920,8 @@ namespace lsn {
 	 */
 	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette ) {
 		if ( _vPalette.size() != 0x40 * 3 && _vPalette.size() != (1 << 9) * 3 ) { return; }
-		if ( !m_pnsSystem.get() ) { return; }
-		lsn::LSN_PALETTE * ppPal = m_pnsSystem->Palette();
+		if ( !m_bnEmulator.GetSystem() ) { return; }
+		lsn::LSN_PALETTE * ppPal = m_bnEmulator.GetSystem()->Palette();
 		if ( !ppPal ) { return; }
 		for ( size_t I = 0; I < _vPalette.size(); I += 3 ) {
 			size_t stIdx = (I / 3);
@@ -983,6 +944,21 @@ namespace lsn {
 	 */
 	bool CMainWindow::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
 		StopThread();
+		if ( m_bnEmulator.LoadROM( _vRom, _s16Path ) ) {
+			UpdatedConsolePointer();
+			if ( m_bnEmulator.GetSystem()->GetRom() ) {
+				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName );
+				if ( m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper == 4 ) {
+					u16Name += u" (Partial Support)";
+				}
+				::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
+			}
+			m_bnEmulator.GetSystem()->ResetState( false );
+			m_cClock.SetStartingTick();
+			StartThread();
+			return true;
+		}
+#if 0
 		LSN_ROM rTmp;
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
 			m_pnsSystem.reset();
@@ -1017,6 +993,7 @@ namespace lsn {
 				return true;
 			}
 		}
+#endif
 		::SetWindowTextW( Wnd(), L"BeesNES" );
 		return false;
 	}
@@ -1027,69 +1004,8 @@ namespace lsn {
 	 * \param _bMoveWindow If true, te window is resized.
 	 */
 	void CMainWindow::UpdatedConsolePointer( bool _bMoveWindow ) {
-		if ( m_pnsSystem.get() ) {
-			m_pdcClient = m_pnsSystem->GetDisplayClient();
-			if ( m_pdcClient ) {
-				m_pdcClient->SetDisplayHost( this );
-			
-				// Set ratios.
-				m_dRatioActual = m_pdcClient->DisplayRatio();
-				// UpdateRatio() called later.
-
-				// Prepare the filters.
-				const size_t stBuffers = 2;
-				m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
-				m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
-				m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
-				m_ncfEmmirNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( m_pdcClient->DisplayHeight() ) );
-				{
-					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-					//m_cfartCurFilterAndTargets.pfbCurFilter = &m_r24fRgb24Filter;
-					m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_fFilter][m_pdcClient->PpuRegion()];
-					/*switch ( m_pdcClient->PpuRegion() ) {
-						case LSN_PM_PAL : {}
-						case LSN_PM_DENDY : {
-							m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargPalFilter;
-							break;
-						}
-						default : {
-							//m_cfartCurFilterAndTargets.pfbCurFilter = &m_nbfBlargNtscFilter;
-							m_cfartCurFilterAndTargets.pfbCurFilter = &m_ncfEmmirNtscFilter;
-						}
-					}*/
-					
-					m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
-					m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
-					m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
-					m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
-					m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
-					m_cfartCurFilterAndTargets.ui64Frame = m_pdcClient->FrameCount();
-					m_cfartCurFilterAndTargets.ui64RenderStartCycle = m_pdcClient->GetRenderStartCycle();
-					m_cfartCurFilterAndTargets.bDirty = true;
-					m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
-					m_cfartCurFilterAndTargets.pui8LastFilteredResult = nullptr;
-
-					m_cfartCurFilterAndTargets.pfbNextFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
-					m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
-
-					m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
-					m_pdcClient->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
-
-					// Create the basic render target.
-					m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
-					m_biBlitInfo.bmiHeader.biWidth = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
-					m_biBlitInfo.bmiHeader.biHeight = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
-					m_biBlitInfo.bmiHeader.biPlanes = 1;
-					m_biBlitInfo.bmiHeader.biBitCount = WORD( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
-					m_biBlitInfo.bmiHeader.biCompression = BI_RGB;
-					m_biBlitInfo.bmiHeader.biSizeImage = DWORD( m_cfartCurFilterAndTargets.ui32Stride * m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight() );
-					m_biBlitInfo.bmiHeader.biXPelsPerMeter = 0;
-					m_biBlitInfo.bmiHeader.biYPelsPerMeter = 0;
-					m_biBlitInfo.bmiHeader.biClrUsed = 0;
-					m_biBlitInfo.bmiHeader.biClrImportant = 0;
-				}
-			}
-			m_pnsSystem->SetInputPoller( this );
+		if ( m_bnEmulator.GetSystem() ) {
+			m_pdcClient = m_bnEmulator.GetDisplayClient();
 
 			UpdateRatio();
 
@@ -1166,7 +1082,7 @@ namespace lsn {
 	 * \param _pmwWindow Pointer to this object.
 	 */
 	void CMainWindow::EmuThread( lsn::CMainWindow * _pmwWindow ) {
-		if ( !_pmwWindow->m_pnsSystem.get() || !_pmwWindow->m_pnsSystem->IsRomLoaded() ) {
+		if ( !_pmwWindow->m_bnEmulator.GetSystem() || !_pmwWindow->m_bnEmulator.GetSystem()->IsRomLoaded() ) {
 			_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;
 			return;
 		}
@@ -1174,7 +1090,7 @@ namespace lsn {
 		//::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
-			_pmwWindow->m_pnsSystem->Tick();
+			_pmwWindow->m_bnEmulator.GetSystem()->Tick();
 			//::Sleep( 1 );
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;

@@ -178,6 +178,18 @@
     <Filter Include="Source Files\Event">
       <UniqueIdentifier>{0254f3f7-6c22-45af-990b-61a306b757a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\Templates">
+      <UniqueIdentifier>{cd779f3d-bb26-481d-b675-02a958aea002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Templates">
+      <UniqueIdentifier>{4633becc-342a-4372-84c0-c9f2e3092487}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\BeesNES">
+      <UniqueIdentifier>{c44814a3-6183-4aec-ba51-4d1dbc6e9ecc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\BeesNES">
+      <UniqueIdentifier>{29d0ece8-e484-4b32-b0c8-cd5c493fe17a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -486,6 +498,18 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h">
+      <Filter>Header Files\Windows\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNGlobalInputPage.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNPerGameInputPage.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BeesNES\LSNBeesNes.h">
+      <Filter>Header Files\BeesNES</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -619,6 +643,18 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp">
+      <Filter>Source Files\Windows\Templates</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNGlobalInputPage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNPerGameInputPage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp">
+      <Filter>Source Files\BeesNES</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

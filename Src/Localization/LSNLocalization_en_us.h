@@ -54,6 +54,8 @@
 #define LSN_CANCEL															Cancel
 
 // Input dialog.
+#define LSN_INPUT_GLOBAL_SETTINGS											Global Settings
+#define LSN_INPUT_PER_GAME_SETTINGS											Per-Game Settings
 #define LSN_INPUT_DIALOG													Configure Input
 #define LSN_INPUT_GENERAL													General
 #define LSN_INPUT_CONSOLE_TYPE_												Console Type:
@@ -64,6 +66,8 @@
 #define LSN_INPUT_PLAYER_3_													Player 3:
 #define LSN_INPUT_PLAYER_4_													Player 4:
 #define LSN_INPUT_CONFIGURATION												Configuration
+#define LSN_INPUT_CONFIGURE													Configure
+#define LSN_INPUT_EXPANSION_PORT											Expansion Port:
 #define LSN_INPUT_USE_4_SCORE												Use Four Score
 #define LSN_INPUT_NONE														None
 #define LSN_INPUT_STANDARD_CONTROLLER										Standard Controller

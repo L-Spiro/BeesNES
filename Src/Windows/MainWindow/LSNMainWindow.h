@@ -10,14 +10,9 @@
 
 #pragma once
 
+#include "../../BeesNES/LSNBeesNes.h"
 #include "../../Display/LSNDisplayHost.h"
-#include "../../Filters/LSNNtscBlarggFilter.h"
-#include "../../Filters/LSNNtscCrtFilter.h"
-#include "../../Filters/LSNPalBlarggFilter.h"
-#include "../../Filters/LSNBiLinearPostProcess.h"
-#include "../../Filters/LSNRgb24Filter.h"
 #include "../../Input/LSNInputPoller.h"
-#include "../../System/LSNSystem.h"
 #include <CriticalSection/LSWCriticalSection.h>
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
@@ -39,8 +34,7 @@ namespace lsn {
 	 * Description: The main window of the emulator.
 	 */
 	class CMainWindow : public lsw::CMainWindow, public lsn::CDisplayHost, public lsn::CInputPoller {
-		typedef lsn::CDendySystem
-												CRegionalSystem;
+		
 	public :
 		CMainWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CMainWindow();
@@ -60,11 +54,18 @@ namespace lsn {
 		// WM_INITDIALOG.
 		virtual LSW_HANDLED						InitDialog();
 
-		// WM_COMMAND from control.
-		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _Id, CWidget * _pwSrc );
+		/**
+		 * Handles the WM_COMMAND message.
+		 *
+		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+		 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+		 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		// WM_COMMAND from menu.
-		virtual LSW_HANDLED						MenuCommand( WORD _Id ) { return Command( 0, _Id, nullptr ); }
+		virtual LSW_HANDLED						MenuCommand( WORD _wId ) { return Command( 0, _wId, nullptr ); }
 
 		// WM_NCDESTROY.
 		virtual LSW_HANDLED						NcDestroy();
@@ -178,8 +179,8 @@ namespace lsn {
 		 * \return Returns the final display width (native width * scale * ratio).
 		 */
 		LONG									FinalWidth( double _dScale = -1.0 ) const {
-			if ( _dScale == -1.0 ) { _dScale = m_dScale; }
-			return LONG( std::round( RenderTargetWidth() * _dScale * m_dRatio ) );
+			if ( _dScale == -1.0 ) { _dScale = m_bnEmulator.GetScale(); }
+			return LONG( std::round( RenderTargetWidth() * _dScale * m_bnEmulator.GetRatio() ) );
 		}
 
 		/**
@@ -189,7 +190,7 @@ namespace lsn {
 		 * \return Returns the final display height (native height * scale).
 		 */
 		LONG									FinalHeight( double _dScale = -1.0 ) const {
-			if ( _dScale == -1.0 ) { _dScale = m_dScale; }
+			if ( _dScale == -1.0 ) { _dScale = m_bnEmulator.GetScale(); }
 			return m_pdcClient ? LONG( std::round( m_pdcClient->DisplayHeight() * _dScale ) ) : 0;
 		}
 
@@ -221,57 +222,13 @@ namespace lsn {
 		// == Types.
 		typedef lsw::CMainWindow				Parent;
 
-		/** The current render target/filter. */
-		struct LSN_CUR_FILTER_AND_RENDER_TARGET {
-			uint64_t							ui64Frame;									/**< The PPU frame count associated with the render target. */
-			uint64_t							ui64RenderStartCycle;						/**< The cycle at which rendering began. */
-			CFilterBase *						pfbCurFilter;								/**< The current filter. */
-			CFilterBase *						pfbNextFilter;								/**< The next filter. */
-			CFilterBase *						pfbPrevFilter;								/**< The previous filter. */
-			uint8_t *							pui8CurRenderTarget;						/**< The current render target. */
-			uint8_t *							pui8LastFilteredResult;						/**< The last filtered result. */
-			//size_t								stStride;									/**< The render target’s stride. */
-			uint32_t							ui32Width;									/**< The current render target's width in pixels. */
-			uint32_t							ui32Height;									/**< The current render target's height in pixels. */
-			uint32_t							ui32Stride;									/**< The current render target's stride in bytes. */
-			uint16_t							ui16Bits;									/**< The current render target's bit depth. */
-			bool								bDirty;										/**< The dirty flag. */
-			bool								bMirrored;									/**< If true, the image was rendered up-side down and does not need to be flipped by ::StretchDIBits() or ::SetDIBitsToDevice() to render properly. */
-		};
-
 
 		// == Members.
-		/** The output scale. */
-		double									m_dScale;
-		/** The output ratio. */
-		double									m_dRatio;
-		/** Used to derive m_dRatio. */
-		double									m_dRatioActual;
+		CBeesNes								m_bnEmulator;
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
-		/** The current/next filter/render target. */
-		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
-		//CFilterBase *							m_pfbCurFilter;
-		/** The standard RGB filter. */
-		CRgb24Filter							m_r24fRgb24Filter;
-		/** Blargg’s NTSC filter. */
-		CNtscBlarggFilter						m_nbfBlargNtscFilter;
-		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
-		CNtscCrtFilter							m_ncfEmmirNtscFilter;
-		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
-		CPalBlarggFilter						m_nbfBlargPalFilter;
-		/** A filter table. */
-		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
-		/** "NONE" post-processing. */
-		CPostProcessBase						m_ppbNoPostProcessing;
-		/** A bi-linear post-process filter. */
-		CBiLinearPostProcess					m_blppBiLinearPost;
-		/** A post-processing table. */
-		CPostProcessBase *						m_pppbPostTable[CPostProcessBase::LSN_PP_TOTAL];
 		/** A clock. */
 		lsn::CClock								m_cClock;
-		/** The console pointer. */
-		std::unique_ptr<CSystemBase>			m_pnsSystem;
 		/** Maximized resolution. */
 		LSW_RECT								m_rMaxRect;
 		/** Image list. */
@@ -288,16 +245,10 @@ namespace lsn {
 		std::vector<uint8_t>					m_vBars;
 		/** The critical section for synchronizing Swap() and Paint(). */
 		lsw::CCriticalSection					m_csRenderCrit;
-		/** The current filter ID. */
-		CFilterBase::LSN_FILTERS				m_fFilter;
-		/** The current post-processing filter. */
-		CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
 		volatile std::atomic_int				m_aiThreadState;
-		/** Rapid-fire buttons. */
-		uint8_t									m_ui8RpidFires[8];
 		/** Is the window maximized? */
 		bool									m_bMaximized;
 		

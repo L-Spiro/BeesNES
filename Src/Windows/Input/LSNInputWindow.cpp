@@ -9,6 +9,7 @@
  */
 
 #include "LSNInputWindow.h"
+#include "../../Localization/LSNLocalization.h"
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
 
@@ -31,11 +32,32 @@ namespace lsn {
 		CTab * ptTab = static_cast<CTab *>(FindChild( Layout::LSN_IWI_TAB ));
 		// Order of pushing them here determines the order in the window/list.
 		CWidget * pwGlobal = Layout::CreateGlobalPage( ptTab );
+		CWidget * pwPerGame = Layout::CreatePerGamePage( ptTab );
 		m_vPages.push_back( static_cast<CInputPage *>(pwGlobal) );
+		m_vPages.push_back( static_cast<CInputPage *>(pwPerGame) );
 
 		if ( ptTab ) {
-			
+			ptTab->SetShowCloseBoxes( false );
+			TCITEMW tciItem = { 0 };
+			tciItem.mask = TCIF_TEXT;
+			for ( size_t I = 0; I < m_vPages.size(); ++I ) {
+				std::wstring wsTitle = m_vPages[I]->GetName();
+				tciItem.pszText = const_cast<LPWSTR>(wsTitle.c_str());
+				ptTab->InsertItem( int( I ), &tciItem, pwGlobal );
+			}
+
+			LSW_RECT rPanelClient = pwGlobal->WindowRect();
+			ptTab->AdjustRect( TRUE, &rPanelClient );
+			LSW_RECT rWindow = ptTab->WindowRect();
+			::MoveWindow( ptTab->Wnd(), rWindow.left, rWindow.top, rPanelClient.Width(), rPanelClient.Height(), FALSE );
+		
+
+			LSW_RECT rTab = ptTab->WindowRect();
+			::AdjustWindowRectEx( &rTab, GetStyle(), FALSE, GetStyleEx() );
+			rWindow = WindowRect();
+			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height(), FALSE );
 		}
+		
 		ForceSizeUpdate();
 		return CMainWindow::InitDialog();
 	}
@@ -48,6 +70,18 @@ namespace lsn {
 	CWidget::LSW_HANDLED CInputWindow::Close() {
 		::EndDialog( Wnd(), -1 );
 		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * Handles the WM_COMMAND message.
+	 *
+	 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+	 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CInputWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
+		return LSW_H_CONTINUE;
 	}
 
 }	// namespace lsn
