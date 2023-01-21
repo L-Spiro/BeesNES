@@ -969,7 +969,7 @@ namespace lsn {
 	 */
 	bool CMainWindow::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
 		StopThread();
-		if ( m_bnEmulator.LoadROM( _vRom, _s16Path ) ) {
+		if ( m_bnEmulator.LoadRom( _vRom, _s16Path ) ) {
 			UpdatedConsolePointer();
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
 				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName );

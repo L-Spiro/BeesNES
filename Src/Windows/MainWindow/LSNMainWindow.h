@@ -168,8 +168,7 @@ namespace lsn {
 		 * \return Returns the width of the console screen plsu any side debug information.
 		 */
 		LONG									RenderTargetWidth() const {
-			return m_pdcClient ? LONG( m_pdcClient->DisplayWidth() + (m_pdcClient->DebugSideDisplay() ? 128 : 0) ) :
-				0;
+			return m_bnEmulator.RenderTargetWidth();
 		}
 
 		/**

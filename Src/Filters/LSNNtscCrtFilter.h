@@ -88,6 +88,11 @@ namespace lsn {
 		 */
 		virtual uint32_t									OutputBits() const { return 32; }
 
+		/**
+		 * Called when the filter is about to become active.
+		 */
+		virtual void										Activate();
+
 
 	protected :
 		// == Members.

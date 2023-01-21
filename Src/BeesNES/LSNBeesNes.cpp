@@ -16,6 +16,7 @@ namespace lsn {
 		m_dRatioActual( 4.0 / 3.0 ),
 		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
 		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
+		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ) {
 
@@ -36,7 +37,12 @@ namespace lsn {
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
 		m_pppbPostTable[CPostProcessBase::LSN_PP_BILINEAR] = &m_blppBiLinearPost;
 
-		m_pnsSystem = std::make_unique<CRegionalSystem>();
+		m_psbSystems[LSN_PM_NTSC] = &m_nsNtscSystem;
+		m_psbSystems[LSN_PM_PAL] = &m_nsPalSystem;
+		m_psbSystems[LSN_PM_DENDY] = &m_nsDendySystem;
+
+
+		m_pnsSystem = m_psbSystems[m_pmSystem];
 
 
 		const size_t stBuffers = 2;
@@ -58,8 +64,12 @@ namespace lsn {
 	 */
 	void CBeesNes::SetCurFilter( CFilterBase::LSN_FILTERS _fFilter ) {
 		if ( m_fFilter != _fFilter ) {
+			CFilterBase * pfbPrev = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
 			m_fFilter = _fFilter;
 			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
+			if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
+				m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
+			}
 		}
 	}
 
@@ -69,7 +79,6 @@ namespace lsn {
 	 * \return Returns the current region.
 	 */
 	LSN_PPU_METRICS CBeesNes::GetCurPpuRegion() const {
-		if ( nullptr == m_pnsSystem.get() ) { return LSN_PM_NTSC; }
 		return m_pnsSystem->GetDisplayClient()->PpuRegion();
 	}
 
@@ -124,29 +133,19 @@ namespace lsn {
 	 * \param _pmRegion The region to use when loading the ROM.  If LSN_PM_UNKNOWN, the ROM data is used to determine the region.
 	 * \return Returns true if the ROM was loaded successfully.
 	 */
-	bool CBeesNes::LoadROM( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion ) {
+	bool CBeesNes::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion ) {
 		LSN_ROM rTmp;
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
-			m_pnsSystem.reset();
+			//m_pnsSystem.reset();
 			LSN_PPU_METRICS pmReg = _pmRegion;
-			if ( pmReg == LSN_PM_UNKNOWN ) {
-				pmReg = rTmp.riInfo.pmConsoleRegion;
+			m_pmSystem = pmReg;
+			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
+				m_pmSystem = rTmp.riInfo.pmConsoleRegion;
 			}
-			switch ( pmReg ) {
-				case LSN_PPU_METRICS::LSN_PM_NTSC : {
-					m_pnsSystem = std::make_unique<CNtscSystem>();
-					break;
-				}
-				case LSN_PPU_METRICS::LSN_PM_PAL : {
-					m_pnsSystem = std::make_unique<CPalSystem>();
-					break;
-				}
-				case LSN_PPU_METRICS::LSN_PM_DENDY : {
-					m_pnsSystem = std::make_unique<CDendySystem>();
-					break;
-				}
-				default : { m_pnsSystem = std::make_unique<CNtscSystem>(); }
+			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
+				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
 			}
+			m_pnsSystem = m_psbSystems[m_pmSystem];
 			UpdateCurrentSystem();
 			if ( m_pnsSystem->LoadRom( rTmp ) ) {
 				m_pnsSystem->ResetState( false );

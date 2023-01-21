@@ -120,14 +120,14 @@ namespace lsn {
 		 *
 		 * \return Returns the display client or nullptr.
 		 */
-		inline CDisplayClient *					GetDisplayClient() { return m_pnsSystem.get() ? m_pnsSystem->GetDisplayClient() : nullptr; }
+		inline CDisplayClient *					GetDisplayClient() { return m_pnsSystem->GetDisplayClient(); }
 
 		/**
 		 * Gets the current display client.
 		 *
 		 * \return Returns the display client or nullptr.
 		 */
-		inline const CDisplayClient *			GetDisplayClient() const { return m_pnsSystem.get() ? m_pnsSystem->GetDisplayClient() : nullptr; }
+		inline const CDisplayClient *			GetDisplayClient() const { return m_pnsSystem->GetDisplayClient(); }
 
 		/**
 		 * Gets the render target width, accounting for any extra debug information to be displayed on the side.
@@ -154,14 +154,14 @@ namespace lsn {
 		 *
 		 * \return Returns a pointer to the current console system.
 		 */
-		CSystemBase *							GetSystem() { return m_pnsSystem.get(); }
+		CSystemBase *							GetSystem() { return m_pnsSystem; }
 
 		/**
 		 * Gets the current system.
 		 *
 		 * \return Returns a constant pointer to the current console system.
 		 */
-		const CSystemBase *						GetSystem() const { return m_pnsSystem.get(); }
+		const CSystemBase *						GetSystem() const { return m_pnsSystem; }
 
 		/**
 		 * Gets the current render information.
@@ -193,7 +193,7 @@ namespace lsn {
 		 * \param _pmRegion The region to use when loading the ROM.  If LSN_PM_UNKNOWN, the ROM data is used to determine the region.
 		 * \return Returns true if the ROM was loaded successfully.
 		 */
-		bool									LoadROM( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion = LSN_PM_UNKNOWN );
+		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion = LSN_PM_UNKNOWN );
 
 		/**
 		 * Gets the rapid-fire patterns.
@@ -233,8 +233,18 @@ namespace lsn {
 		CDisplayHost *							m_pdhDisplayHost;
 		/** The input poller. */
 		CInputPoller *							m_pipPoller;
+		/** The NTSC console. */
+		CNtscSystem								m_nsNtscSystem;
+		/** The PAL console. */
+		CPalSystem								m_nsPalSystem;
+		/** The Dendy console. */
+		CDendySystem							m_nsDendySystem;
+		/** The array of console pointers. */
+		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL];
 		/** The console pointer. */
-		std::unique_ptr<CSystemBase>			m_pnsSystem;
+		CSystemBase *							m_pnsSystem;
+		/** The current system. */
+		LSN_PPU_METRICS							m_pmSystem;
 		/** The current filter ID. */
 		CFilterBase::LSN_FILTERS				m_fFilter;
 		/** The current post-processing filter. */

@@ -171,6 +171,13 @@ namespace lsn {
 	}
 
 	/**
+	 * Called when the filter is about to become active.
+	 */
+	void CNtscCrtFilter::Activate() {
+		std::memset( m_vFilteredOutput.data(), 0, m_vFilteredOutput.size() );
+	}
+
+	/**
 	 * Stops the phospher-decay thread.
 	 */
 	void CNtscCrtFilter::StopPhospherDecayThread() {
