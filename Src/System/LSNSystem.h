@@ -42,7 +42,8 @@ namespace lsn {
 	public :
 		CSystem() :
 			m_cCpu( &m_bBus ),
-			m_pPpu( &m_bBus, &m_cCpu ) {
+			m_pPpu( &m_bBus, &m_cCpu ),
+			m_pApu( &m_bBus ) {
 			ResetState( false );
 		}
 
@@ -56,6 +57,7 @@ namespace lsn {
 		void											ResetState( bool _bAnalog ) {
 			m_bBus.ApplyMap();
 			
+			m_pApu.ApplyMemoryMap();
 			m_cCpu.ApplyMemoryMap();
 			m_pPpu.ApplyMemoryMap();
 
@@ -142,7 +144,7 @@ namespace lsn {
 				do {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
-					// Looping over the 3 slots hax a small amount of overhead.  Unrolling the loop is easy.
+					// Looping over the 3 slots adds a small amount of overhead.  Unrolling the loop is easy.
 					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low ) {
 						phsSlot = &hsSlots[LSN_CPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;

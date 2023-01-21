@@ -9,7 +9,7 @@ void LSN_FASTCALL								Cycle_2__340x311() {
 	++m_stCurCycle;
 
 	if constexpr (_bOddFrameShenanigans) {
-		if (m_ui64Frame & 0x1) {
+		if ((m_ui64Frame & 0x1) && m_bRendering) {
 			m_stCurCycle = 1;
 		}
 		else {
@@ -36,11 +36,8 @@ void LSN_FASTCALL								Cycle_2__1x291() {
 
 	// [1, 241] on NTSC.
 	// [1, 241] on PAL.
-	// [1, 241] on Dendy.
-	m_psPpuStatus.s.ui8VBlank = 1;
-	if (m_pcPpuCtrl.s.ui8Nmi) {
-		m_pnNmiTarget->Nmi();
-	}
+	// [1, 291] on Dendy.
+	TriggerNmi();
 
 	++m_stCurCycle;
 }
@@ -1101,6 +1098,7 @@ void LSN_FASTCALL								Cycle_2__1x311() {
 	m_psPpuStatus.s.ui8VBlank = 0;
 	m_psPpuStatus.s.ui8SpriteOverflow = 0;
 	m_psPpuStatus.s.ui8Sprite0Hit = 0;
+	m_bSuppressNmi = false;
 	m_pnNmiTarget->ClearNmi();
 
 	++m_stCurCycle;

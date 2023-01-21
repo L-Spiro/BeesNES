@@ -226,6 +226,9 @@ namespace lsn {
 						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
 							/*((ui32Val >> 2) & 0x3F3F3F3F) +*/
 							/*((ui32Val >> 3) & 0x1F1F1F1F) +*/
+							((ui32Val >> 6) & 0x03030303) +
+							((ui32Val >> 7) & 0x01010101) +
+
 							((ui32Val >> 4) & 0x0F0F0F0F) +
 							((ui32Val >> 5) & 0x07070707) +
 							((ui32Val >> 6) & 0x03030303) +

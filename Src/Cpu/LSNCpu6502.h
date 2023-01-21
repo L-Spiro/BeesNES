@@ -202,7 +202,7 @@ namespace lsn {
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		CInputPoller *						m_pipPoller;									/**< The input poller. */
-		CMapperBase *						m_pmbMapper;										/**< The mapper, which gets ticked on each CPU cycle. */
+		CMapperBase *						m_pmbMapper;									/**< The mapper, which gets ticked on each CPU cycle. */
 
 		LSN_CPU_CONTEXT 					m_ccCurContext;									/**< Always points to the top of the stack but it is set as sparsely as possible so as to avoid recalculatig it each cycle. */
 		union {

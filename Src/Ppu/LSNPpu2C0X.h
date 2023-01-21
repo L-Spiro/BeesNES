@@ -198,6 +198,8 @@ namespace lsn {
 			m_bRendering = Rendering();
 			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
 			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
+
+			m_bSuppressNmi = false;
 		}
 
 		/**
@@ -684,6 +686,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			bool bPrevNmi = ppPpu->m_pcPpuCtrl.s.ui8Nmi != 0;
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
 			ppPpu->m_paPpuAddrT.s.ui16NametableX = LSN_CTRL_NAMETABLE_X( ppPpu->m_pcPpuCtrl );
 			ppPpu->m_paPpuAddrT.s.ui16NametableY = LSN_CTRL_NAMETABLE_Y( ppPpu->m_pcPpuCtrl );
@@ -691,8 +694,8 @@ namespace lsn {
 			if ( !ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
 				ppPpu->m_pnNmiTarget->ClearNmi();
 			}
-			else if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
-				//ppPpu->m_pnNmiTarget->Nmi();
+			else if ( (ppPpu->m_pcPpuCtrl.s.ui8Nmi && !bPrevNmi) && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
+				ppPpu->TriggerNmi();
 			}
 		}
 
@@ -722,8 +725,21 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Most registers return the I/O float and then update the I/O float with the read value.
-			// 0x2002 immediately updates the floating bus.
+			// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
+			if ( ppPpu->m_ui16CurY == (_tPreRender + _tRender + _tPostRender) ) {
+				// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
+				if ( ppPpu->m_ui16CurX == (1 - 1) ) {
+					ppPpu->m_bSuppressNmi = true;
+					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+				}
+				else if ( ppPpu->m_ui16CurX == (1 - 0) || ppPpu->m_ui16CurX == (1 + 1) ) {
+					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
+					ppPpu->m_bSuppressNmi = true;
+					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
+				}
+			}
+
+
 			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 			// Reads cause the v-blank flag to reset.
@@ -1141,8 +1157,25 @@ namespace lsn {
 		bool											m_bSprite0IsInSecondary;						/**< Set during sprite evaluation, this indicates that the first sprite in secondary OAM is sprite 0. */
 		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
+		bool											m_bSuppressNmi;									/**< If true, NMI can't be generated. */
+
 		
 		// == Functions.
+		/**
+		 * Unless NMI is suppressed, this sets the VBL flag and triggers NMI.
+		 */
+		inline void										TriggerNmi() {
+			if ( !m_bSuppressNmi ) {
+				m_psPpuStatus.s.ui8VBlank = 1;
+				if ( m_pcPpuCtrl.s.ui8Nmi ) {
+					m_pnNmiTarget->Nmi();
+				}
+			}
+			/*else {
+				::OutputDebugStringA( "NMI SUPPRESSION ENGAGED.\r\n" );
+			}*/
+		}
+
 		/**
 		 * Updates the VRAM address after a read or write of $2007.
 		 */
@@ -1837,11 +1870,8 @@ namespace lsn {
 				sRet += "\r\n"
 				"// [1, 241] on NTSC.\r\n"
 				"// [1, 241] on PAL.\r\n"
-				"// [1, 241] on Dendy.\r\n"
-				"m_psPpuStatus.s.ui8VBlank = 1;\r\n"
-				"if ( m_pcPpuCtrl.s.ui8Nmi ) {\r\n"
-				"	m_pnNmiTarget->Nmi();\r\n"
-				"}\r\n";
+				"// [1, 291] on Dendy.\r\n"
+				"TriggerNmi();\r\n";
 			}
 
 			// Clear V-blank and friends.
@@ -1850,6 +1880,7 @@ namespace lsn {
 				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
 				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
 				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
+				"m_bSuppressNmi = false;\r\n"
 				"m_pnNmiTarget->ClearNmi();\r\n";
 			}
 
@@ -1868,7 +1899,7 @@ namespace lsn {
 				if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
 					sRet += "\r\n"
 					"if constexpr ( _bOddFrameShenanigans ) {\r\n"
-					"	if ( m_ui64Frame & 0x1 ) {\r\n"
+					"	if ( (m_ui64Frame & 0x1) && m_bRendering ) {\r\n"
 					"		m_stCurCycle = 1;\r\n"
 					"	}\r\n"
 					"	else {\r\n"

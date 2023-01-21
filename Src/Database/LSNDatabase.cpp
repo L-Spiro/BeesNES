@@ -153,6 +153,8 @@ namespace lsn {
 			{ .ui32Crc = 0x2FD2E632, .pmRegion = LSN_PM_DENDY },
 			// Defender of the Crown (Europe)
 			{ .ui32Crc = 0x68F9B5F5, .pmRegion = LSN_PM_PAL },
+			// demo_pal
+			{ .ui32Crc = 0x2747EE68, .pmRegion = LSN_PM_PAL },
 			// Devil World (E) [!]
 			{ .ui32Crc = 0x60CB6FF6, .pmRegion = LSN_PM_PAL },
 			// Die Hard (Europe)
@@ -199,6 +201,8 @@ namespace lsn {
 			{ .ui32Crc = 0x3B997543, .pmRegion = LSN_PM_PAL },
 			// Ghosts'n Goblins (E)
 			{ .ui32Crc = 0x9369A2F8, .pmRegion = LSN_PM_PAL },
+			// Gilligan's Island (U)
+			{ .ui32Crc = 0x55773880, .pmRegion = LSN_PM_NTSC },
 			// Goal! (E)
 			{ .ui32Crc = 0xAB547071, .pmRegion = LSN_PM_PAL },
 			// GoalGoal! Two (E)

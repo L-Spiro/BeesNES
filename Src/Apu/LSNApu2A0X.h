@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Bus/LSNBus.h"
 #include "../System/LSNTickable.h"
 
 namespace lsn {
@@ -22,7 +23,7 @@ namespace lsn {
 	 */
 	class CApu2A0X : public CTickable {
 	public :
-		CApu2A0X();
+		CApu2A0X( CCpuBus * _pbBus );
 		~CApu2A0X();
 
 
@@ -30,11 +31,18 @@ namespace lsn {
 		/**
 		 * Performs a single cycle update.
 		 */
-		virtual void						Tick() {}
+		virtual void						Tick();
+
+		/**
+		 * Applies the APU's memory mapping t the bus.
+		 */
+		void								ApplyMemoryMap();
 
 
 	protected :
 		// == Members.
+		/** The main bus. */
+		CCpuBus *							m_pbBus;
 	};
 
 }	// namespace lsn
