@@ -166,12 +166,6 @@
     <Filter Include="Source Files\Audio">
       <UniqueIdentifier>{941a09b5-aa50-4d3a-b8e6-838003208b2e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Filters\NTSC-CRT-main">
-      <UniqueIdentifier>{5a43ce01-25eb-4c97-a42a-28b71352a2c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Filters\NTSC-CRT-main">
-      <UniqueIdentifier>{7f6ac191-c9ae-4460-b542-fed129f3c5da}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Event">
       <UniqueIdentifier>{d239a0c2-6775-4b25-88ba-31a0cefcca6b}</UniqueIdentifier>
     </Filter>
@@ -189,6 +183,12 @@
     </Filter>
     <Filter Include="Source Files\BeesNES">
       <UniqueIdentifier>{29d0ece8-e484-4b32-b0c8-cd5c493fe17a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Filters\NTSC-CRT-Fast">
+      <UniqueIdentifier>{7f6ac191-c9ae-4460-b542-fed129f3c5da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Filters\NTSC-CRT-Fast">
+      <UniqueIdentifier>{5a43ce01-25eb-4c97-a42a-28b71352a2c7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -468,9 +468,6 @@
     <ClInclude Include="Src\Input\LSNWindowsKeyboard.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Filters\NTSC-CRT-main\crt.h">
-      <Filter>Header Files\Filters\NTSC-CRT-main</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
@@ -509,6 +506,9 @@
     </ClInclude>
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h">
       <Filter>Header Files\BeesNES</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\NTSC-CRT-Fast\crt.h">
+      <Filter>Header Files\Filters\NTSC-CRT-Fast</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -623,9 +623,6 @@
     <ClCompile Include="Src\Input\LSNWindowsKeyboard.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Filters\NTSC-CRT-main\crt.c">
-      <Filter>Source Files\Filters\NTSC-CRT-main</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Filters\LSNNtscCrtFilter.cpp">
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
@@ -655,6 +652,9 @@
     </ClCompile>
     <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp">
       <Filter>Source Files\BeesNES</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\NTSC-CRT-Fast\crt.c">
+      <Filter>Source Files\Filters\NTSC-CRT-Fast</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

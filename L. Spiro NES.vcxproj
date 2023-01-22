@@ -526,7 +526,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h" />
-    <ClInclude Include="Src\Filters\NTSC-CRT-main\crt.h" />
+    <ClInclude Include="Src\Filters\NTSC-CRT-Fast\crt.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
     <ClInclude Include="Src\Input\LSNDirectInputDevice8.h" />
@@ -628,7 +628,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
-    <ClCompile Include="Src\Filters\NTSC-CRT-main\crt.c" />
+    <ClCompile Include="Src\Filters\NTSC-CRT-Fast\crt.c" />
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp" />
     <ClCompile Include="Src\Input\LSNUsbControllerBase.cpp" />

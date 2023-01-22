@@ -8,8 +8,11 @@
 
 #include "LSNNtscCrtFilter.h"
 #include "../Utilities/LSNUtilities.h"
+#include "NTSC-CRT-Fast/crt.h"
 #include <Helpers/LSWHelpers.h>
 
+#define m_nsSettings				(*reinterpret_cast<NES_NTSC_SETTINGS *>(m_vSettings.data()))
+#define m_nnCrtNtsc					(*reinterpret_cast<CRT *>(m_vCrtNtsc.data()))
 
 namespace lsn {
 
@@ -20,6 +23,9 @@ namespace lsn {
 		m_bRunThreads( true ) {
 		int iPhases[4] = { 0, 16, 0, -16 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
+
+		m_vSettings.resize( sizeof( NES_NTSC_SETTINGS ) );
+		m_vCrtNtsc.resize( sizeof( CRT ) );
 
 #ifdef LSN_CRT_PERF
 		m_ui32Calls = 0;
@@ -207,8 +213,8 @@ namespace lsn {
 						//pui32Src[I] = 0;
 						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
 						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +  
-							((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
-							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + 
+							/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
+							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + */
 							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
 					}
 				}
@@ -218,8 +224,8 @@ namespace lsn {
 						//pui32Src[I] = 0;
 						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
 						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-							((ui32Tmp >> 2) & 0x3F3F3F) + 
-							((ui32Tmp >> 3) & 0x1F1F1F) + 
+							/*((ui32Tmp >> 2) & 0x3F3F3F) + 
+							((ui32Tmp >> 3) & 0x1F1F1F) + */
 							((ui32Tmp >> 4) & 0x0F0F0F);
 					}
 				}
@@ -250,3 +256,6 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#undef m_nnCrtNtsc
+#undef m_nsSettings

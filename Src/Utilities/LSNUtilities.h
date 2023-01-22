@@ -238,7 +238,7 @@ namespace lsn {
 			uint32_t ui32Rb0 = _ui32Color0 & 0x00FF00FF;
 			uint64_t ui64Ag1 = (_ui32Color1 & 0xFF00FF00ULL) + ui32Ag0;
 			uint32_t ui32Rb1 = (_ui32Color1 & 0x00FF00FF) + ui32Rb0;
-
+#if 0
 			uint32_t ui32AgOver = uint32_t( (ui64Ag1 & 0x100010000ULL) >> 1 );
 			ui32AgOver = ui32AgOver | (ui32AgOver >> 1);
 			ui32AgOver = ui32AgOver | (ui32AgOver >> 2);
@@ -249,6 +249,10 @@ namespace lsn {
 			ui32RbOver = ui32RbOver | (ui32RbOver >> 2);
 			ui32RbOver = ui32RbOver | (ui32RbOver >> 4);
 			ui32RbOver = ui32RbOver >> 1;
+#else
+			uint32_t ui32AgOver = uint32_t( ((ui64Ag1 & 0x100010000ULL) * 0xFF) >> 8 );
+			uint32_t ui32RbOver = ((ui32Rb1 & 0x01000100) * 0xFF) >> 8;
+#endif
 
 			return (uint32_t( ui64Ag1 | ui32AgOver ) & 0xFF00FF00) | ((ui32Rb1 | ui32RbOver) & 0x00FF00FF);
 		}
