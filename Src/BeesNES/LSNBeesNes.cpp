@@ -14,7 +14,7 @@ namespace lsn {
 		m_dScale( 3.0 ),
 		m_dRatio( 4.0 / 3.0 ),
 		m_dRatioActual( 4.0 / 3.0 ),
-		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
+		m_fFilter( CFilterBase::LSN_F_NTSC_CRT ),
 		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
@@ -29,6 +29,7 @@ namespace lsn {
 			{ &m_nbfBlargNtscFilter,		&m_nbfBlargNtscFilter,			&m_nbfBlargNtscFilter },		// LSN_F_NTSC_BLARGG
 			{ &m_nbfBlargPalFilter,			&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_PAL_BLARGG
 			{ &m_ncfEmmirNtscFilter,		&m_ncfEmmirNtscFilter,			&m_ncfEmmirNtscFilter },		// LSN_F_NTSC_CRT
+			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },	// LSN_F_NTSC_CRT_FULL
 			{ &m_nbfBlargNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_BLARGG
 			{ &m_ncfEmmirNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_CRT
 		};
@@ -50,6 +51,7 @@ namespace lsn {
 		m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_ncfEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		UpdateCurrentSystem();
 	}

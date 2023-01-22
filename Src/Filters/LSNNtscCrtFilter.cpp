@@ -72,7 +72,10 @@ namespace lsn {
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::crt_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
-
+		/*m_nnCrtNtsc.brightness = 7;
+		m_nnCrtNtsc.contrast = 172;
+		m_nnCrtNtsc.black_point = 20;
+		m_nnCrtNtsc.white_point = 120;*/
 
 		
 		m_nsSettings.as_color = 1;
@@ -163,17 +166,6 @@ namespace lsn {
 		m_ui64AccumTime += m_cPerfClock.GetRealTick() - ui64TimeNow;
 #endif	// #ifdef LSN_CRT_PERF
 		return m_vFilteredOutput.data();
-		/*for ( uint32_t Y = _ui32Height; Y--; ) {
-			uint32_t ui32SwapWidthMe = (_ui32Height - 1) - Y;
-			uint32_t * pui32Src = &reinterpret_cast<uint32_t *>(m_vFilteredOutput.data())[Y*_ui32Width];
-
-			uint32_t * pui32Dst = &reinterpret_cast<uint32_t *>(m_vFinalOutput.data())[ui32SwapWidthMe*_ui32Width];
-			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
-				uint32_t ui32Src = pui32Src[X];
-				pui32Dst[X] = ui32Src;
-			}
-		}
-		return m_vFinalOutput.data();*/
 	}
 
 	/**
@@ -212,9 +204,9 @@ namespace lsn {
 					for ( uint32_t I = ui32Total >> 1; I--; ) {
 						//pui32Src[I] = 0;
 						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
-						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +  
-							/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
-							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + */
+						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +
+							/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +*/
+							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +
 							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
 					}
 				}
@@ -223,9 +215,9 @@ namespace lsn {
 					for ( uint32_t I = ui32Total; I--; ) {
 						//pui32Src[I] = 0;
 						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-							/*((ui32Tmp >> 2) & 0x3F3F3F) + 
-							((ui32Tmp >> 3) & 0x1F1F1F) + */
+						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +
+							/*((ui32Tmp >> 2) & 0x3F3F3F) +*/
+							((ui32Tmp >> 3) & 0x1F1F1F) +
 							((ui32Tmp >> 4) & 0x0F0F0F);
 					}
 				}
@@ -238,7 +230,7 @@ namespace lsn {
 					for ( uint32_t X = 0; X < _pncfFilter->m_ui32FinalWidth; ++X ) {
 						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
 							/*((ui32Val >> 2) & 0x3F3F3F3F) +*/
-							/*((ui32Val >> 3) & 0x1F1F1F1F) +*/
+							((ui32Val >> 3) & 0x1F1F1F1F) +
 							((ui32Val >> 6) & 0x03030303) +
 							((ui32Val >> 7) & 0x01010101) +
 

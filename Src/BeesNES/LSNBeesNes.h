@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Filters/LSNNtscBlarggFilter.h"
 #include "../Filters/LSNNtscCrtFilter.h"
+#include "../Filters/LSNNtscCrtFullFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNRgb24Filter.h"
@@ -219,6 +220,8 @@ namespace lsn {
 		CNtscBlarggFilter						m_nbfBlargNtscFilter;
 		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
 		CNtscCrtFilter							m_ncfEmmirNtscFilter;
+		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
+		CNtscCrtFullFilter						m_ncfEmmirNtscFullFilter;
 		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
 		CPalBlarggFilter						m_nbfBlargPalFilter;
 		/** A filter table. */
