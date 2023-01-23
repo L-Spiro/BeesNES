@@ -14,7 +14,7 @@ namespace lsn {
 		m_dScale( 3.0 ),
 		m_dRatio( 4.0 / 3.0 ),
 		m_dRatioActual( 4.0 / 3.0 ),
-		m_fFilter( CFilterBase::LSN_F_NTSC_CRT ),
+		m_fFilter( CFilterBase::LSN_F_AUTO_CRT ),
 		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
@@ -46,7 +46,7 @@ namespace lsn {
 		m_pnsSystem = m_psbSystems[m_pmSystem];
 
 
-		const size_t stBuffers = 2;
+		const size_t stBuffers = 3;
 		m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );

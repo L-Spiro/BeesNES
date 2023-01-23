@@ -51,7 +51,11 @@ namespace lsn {
 
 
 		// == Functions.
-		// WM_INITDIALOG.
+		/**
+		 * The WM_INITDIALOG handler.
+		 *
+		 * \return Returns an LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED						InitDialog();
 
 		/**

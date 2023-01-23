@@ -196,6 +196,12 @@
     <Filter Include="Source Files\Filters\NTSC-CRT-Full">
       <UniqueIdentifier>{268c0513-491b-4162-a17a-5b8b906bdd52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\WinUtilities">
+      <UniqueIdentifier>{f20f2d42-65af-4c60-8ebd-10cd4001ca45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\WinUtilities">
+      <UniqueIdentifier>{3e8cc7f7-0c59-48f9-a253-4c52fbce9559}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -504,12 +510,6 @@
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h">
       <Filter>Header Files\Windows\Templates</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Windows\Input\LSNGlobalInputPage.h">
-      <Filter>Header Files\Windows\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Windows\Input\LSNPerGameInputPage.h">
-      <Filter>Header Files\Windows\Input</Filter>
-    </ClInclude>
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h">
       <Filter>Header Files\BeesNES</Filter>
     </ClInclude>
@@ -527,6 +527,12 @@
     </ClInclude>
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h">
       <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h">
+      <Filter>Header Files\Windows\WinUtilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h">
+      <Filter>Header Files\Windows\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -662,12 +668,6 @@
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp">
       <Filter>Source Files\Windows\Templates</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Windows\Input\LSNGlobalInputPage.cpp">
-      <Filter>Source Files\Windows\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Windows\Input\LSNPerGameInputPage.cpp">
-      <Filter>Source Files\Windows\Input</Filter>
-    </ClCompile>
     <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp">
       <Filter>Source Files\BeesNES</Filter>
     </ClCompile>
@@ -685,6 +685,12 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WinUtilities\LSNWinUtilities.cpp">
+      <Filter>Source Files\Windows\WinUtilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNInputConfigurePage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

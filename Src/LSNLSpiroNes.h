@@ -186,6 +186,39 @@ namespace lsn {
 		LSN_PM_CONSOLE_TOTAL				= 3,								/**< NTSC, PAL, and Dendy. */
 	};
 
+	/** Console types. */
+	enum LSN_CONSOLE_TYPES {
+		LSN_CT_NES,																/**< Nintendo Entertainment System®. */
+		LSN_CT_FAMICOM,															/**< Famicom®. */
+	};
+
+	/** Controller types. */
+	enum LSN_CONTROLLER_TYPES {
+		LSN_CT_NONE,															/**< No controller attached. */
+		LSN_CT_STANDARD,														/**< A standard controller. */
+		LSN_CT_ARKANOID,														/**< An Arkanoid controller. */
+		LSN_CT_POWER_PAD,														/**< A Power Pad. */
+		LSN_CT_SNES,															/**< A Super Nintendo Entertainment System controller. */
+		LSN_CT_SNES_MOUSE,														/**< A Super Nintendo Entertainment System mouse. */
+		LSN_CT_SUBOR_MOUSE,														/**< A Subor mouse. */
+		LSN_CT_ZAPPER,															/**< A Zapper lightgun. */
+		LSN_CT_BANDAI_HYPERSHOT,												/**< A Bandai Hypershot. */
+		LSN_CT_BARCODE_BATTLER,													/**< A Barcode Battler. */
+		LSN_CT_BATTLE_BOX,														/**< A Battle Box. */
+		LSN_CT_EXCITING_BOXING_PUNCHING_BAG,									/**< An Exciting Boxing Punching Bag. */
+		LSN_CT_FAMILY_BASIC_KEYBOARD,											/**< A Family Basic keyboard. */
+		LSN_CT_FAMILY_TRAINER,													/**< A Family Trainer. */
+		LSN_CT_FOUR_PLAYER_ADAPTER,												/**< A Four Player adapter. */
+		LSN_CT_HORI_TRACK,														/**< A Hori Track. */
+		LSN_CT_JISSEN_MAHJONG_CONTROLLER,										/**< A Jissen Mahjng controller. */
+		LSN_CT_KONAMI_HYPER_SHOT,												/**< A Konami Hyper Shot controller. */
+		LSN_CT_OEKA_KIDS_TABLET,												/**< An Oeka Kids Tablet. */
+		LSN_CT_PACHINKO_CONTROLLER,												/**< A Pachinko controller. */
+		LSN_CT_PARTYTAP,														/**< A Partytap. */
+		LSN_CT_SUBOR_KEYBOARD,													/**< A Subor keyboard. */
+		LSN_CT_TURBO_FILE,														/**< A Turbo File. */
+	};
+
 	/** PPU registers. */
 	enum LSN_PPU_REGISTERS : uint16_t {
 		LSN_PR_PPUCTRL						= 0x2000,							/**< The PPUCTRL register. */

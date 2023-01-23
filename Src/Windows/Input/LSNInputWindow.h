@@ -54,6 +54,11 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
+		// Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+		// pwChild can be nullptr.  If not nullptr, it is assumed to be a child of the widget, and this widget might create a specific rectangle for
+		//	the pwChild, such as for splitter controls.
+		virtual const LSW_RECT					VirtualClientRect( const CWidget * pwChild ) const;
+
 
 
 

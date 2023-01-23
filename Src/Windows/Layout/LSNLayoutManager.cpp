@@ -9,10 +9,8 @@
  */
 
 #include "LSNLayoutManager.h"
-//#include "../Input/LSNInputPage.h"
-#include "../Input/LSNGlobalInputPage.h"
+#include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
-#include "../Input/LSNPerGameInputPage.h"
 #include "../MainWindow/LSNMainWindow.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
 
@@ -33,10 +31,10 @@ namespace lsn {
 				return new CInputWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 			case LSN_LT_GLOBAL_INPUT_PAGE : {
-				return new CGlobalInputPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+				return new CInputConfigurePage<true>( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 			case LSN_LT_PER_GAME_INPUT_PAGE : {
-				return new CPerGameInputPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+				return new CInputConfigurePage<false>( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

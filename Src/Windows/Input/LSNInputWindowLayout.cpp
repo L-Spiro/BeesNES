@@ -19,7 +19,7 @@ namespace lsn {
 
 #define LSN_FIRST_SECTION_W							(80 * 60 / 100)
 #define LSN_FIRST_SECTION_L							(LSN_LEFT_JUST + LSN_GROUP_LEFT)
-#define LSN_COMBO_W									(190 * 60 / 100)
+#define LSN_COMBO_W									(195 * 60 / 100)
 #define LSN_COMBO_L									(LSN_FIRST_SECTION_L + LSN_FIRST_SECTION_W + LSN_LEFT_JUST)
 #define LSN_THIRD_SECTION_W							(82 * 60 / 100)
 #define LSN_THIRD_SECTION_L							(LSN_COMBO_L + LSN_COMBO_W + LSN_LEFT_JUST)
@@ -84,7 +84,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CInputWindowLayout::m_wlGlobalPanel[] = {
 		{
 			LSN_LT_GLOBAL_INPUT_PAGE,				// ltType
-			LSN_IWI_GLOBAL( PANEL ),				// wId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -121,7 +121,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_INPUT_GENERAL ),			// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -137,7 +137,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONSOLE_TYPE_ ),	// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -153,7 +153,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 
@@ -172,7 +172,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_INPUT_SETTINGS ),			// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 		{
@@ -189,7 +189,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_1_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -205,7 +205,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -221,7 +221,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 		{
@@ -238,7 +238,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_2_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -254,7 +254,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -267,10 +267,28 @@ namespace lsn {
 			LSN_THIRD_SECTION_W,					// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
 			LSN_BUTTONSTYLE,						// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																					// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
+		},
+
+		// Use Four Score.
+		{
+			LSW_LT_CHECK,							// ltType
+			LSN_IWI_PER_GAME( USE_FOUR_SCORE_CHECK ),																														// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,							// iTop
+			LSN_INPUT_GROUP_W - LSN_GROUP_LEFT * 2,	// dwWidth
+			LSN_DEF_CHECK_HEIGHT,					// dwHeight
+			LSN_CHECKSTYLE,							// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_USE_4_SCORE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 		// Expension Port.
@@ -288,7 +306,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_EXPANSION_PORT ),	// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -304,7 +322,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -320,7 +338,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 		// Player 3.
@@ -338,7 +356,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_3_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -354,7 +372,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -370,7 +388,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 
 		// Player 4.
@@ -388,7 +406,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_4_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -404,7 +422,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -420,7 +438,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR /*| WS_EX_NOPARENTNOTIFY*/,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_GLOBAL( PANEL ),				// dwParentId
+			LSN_IWI_GLOBAL_SETTINGS_PANEL,			// dwParentId
 		},
 	};
 
@@ -428,7 +446,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CInputWindowLayout::m_wlPerGamePanel[] = {
 		{
 			LSN_LT_PER_GAME_INPUT_PAGE,				// ltType
-			LSN_IWI_PER_GAME( PANEL ),				// wId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -465,7 +483,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_INPUT_GENERAL ),			// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -481,7 +499,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONSOLE_TYPE_ ),	// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -497,7 +515,23 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
+		},
+		{
+			LSW_LT_CHECK,							// ltType
+			LSN_IWI_PER_GAME( USE_GLOBAL_CHECK ),	// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_THIRD_SECTION_L,					// iLeft
+			LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),							// iTop
+			LSN_THIRD_SECTION_W,					// dwWidth
+			LSN_DEF_CHECK_HEIGHT,					// dwHeight
+			LSN_CHECKSTYLE,							// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_USE_GLOBAL ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 
@@ -516,7 +550,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_INPUT_SETTINGS ),			// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 		{
@@ -533,7 +567,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_1_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -549,7 +583,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -565,7 +599,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 		{
@@ -582,7 +616,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_2_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -598,7 +632,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -614,25 +648,43 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
+		},
+
+		// Use Four Score.
+		{
+			LSW_LT_CHECK,							// ltType
+			LSN_IWI_PER_GAME( USE_FOUR_SCORE_CHECK ),																														// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,							// iTop
+			LSN_INPUT_GROUP_W - LSN_GROUP_LEFT * 2,	// dwWidth
+			LSN_DEF_CHECK_HEIGHT,					// dwHeight
+			LSN_CHECKSTYLE,							// dwStyle
+			0,										// dwStyleEx
+			LSN_LSTR( LSN_INPUT_USE_4_SCORE ),		// pwcText
+			0,										// sTextLen
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 		// Expension Port.
 		{
 			LSW_LT_LABEL,							// ltType
-			LSN_IWI_PER_GAME( EXPAND_LABEL ),			// wId
+			LSN_IWI_PER_GAME( EXPAND_LABEL ),		// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,			// iLeft
-			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,							// iTop
+			LSN_GENERAL_GROUP_H + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1) + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2,						// iTop
 			LSN_FIRST_SECTION_W,					// dwWidth
 			LSN_DEF_STATIC_HEIGHT,					// dwHeight
 			LSN_STATICSTYLE,						// dwStyle
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_EXPANSION_PORT ),	// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -648,7 +700,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -664,7 +716,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 		// Player 3.
@@ -682,7 +734,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_3_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -698,7 +750,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
@@ -714,7 +766,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 
 		// Player 4.
@@ -732,7 +784,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_INPUT_PLAYER_4_ ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,						// ltType
@@ -748,11 +800,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,					// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
-			LSN_IWI_PER_GAME( PLAYER_4_BUTTON ),		// wId
+			LSN_IWI_PER_GAME( PLAYER_4_BUTTON ),	// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -764,7 +816,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR /*| WS_EX_NOPARENTNOTIFY*/,																								// dwStyleEx
 			LSN_LSTR( LSN_INPUT_CONFIGURE ),		// pwcText
 			0,										// sTextLen
-			LSN_IWI_PER_GAME( PANEL ),				// dwParentId
+			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
 	};
 

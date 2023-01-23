@@ -129,7 +129,11 @@ namespace lsn {
 	}
 
 	// == Functions.
-	// WM_INITDIALOG.
+	/**
+	 * The WM_INITDIALOG handler.
+	 *
+	 * \return Returns an LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::InitDialog() {
 		lsw::CToolBar * plvToolBar = static_cast<lsw::CToolBar *>(FindChild( CMainWindowLayout::LSN_MWI_TOOLBAR0 ));
 		lsw::CRebar * plvRebar = static_cast<lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
@@ -780,7 +784,7 @@ namespace lsn {
 			RDW_INVALIDATE |
 			RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
 			/*RDW_UPDATENOW |*/
-			RDW_NOCHILDREN );
+			/*RDW_NOCHILDREN*/RDW_ALLCHILDREN );
 	}
 
 	/**

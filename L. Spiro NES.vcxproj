@@ -595,11 +595,10 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
-    <ClInclude Include="Src\Windows\Input\LSNGlobalInputPage.h" />
+    <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindow.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindowLayout.h" />
-    <ClInclude Include="Src\Windows\Input\LSNPerGameInputPage.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutMacros.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h" />
@@ -607,6 +606,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialog.h" />
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h" />
+    <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
@@ -650,17 +650,17 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
-    <ClCompile Include="Src\Windows\Input\LSNGlobalInputPage.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNInputConfigurePage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindowLayout.cpp" />
-    <ClCompile Include="Src\Windows\Input\LSNPerGameInputPage.cpp" />
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialog.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp" />
+    <ClCompile Include="Src\Windows\WinUtilities\LSNWinUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
