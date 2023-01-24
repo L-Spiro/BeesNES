@@ -24,7 +24,7 @@ namespace lsw {
 
 	// == Functions.
 	// Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
-	const LSW_RECT CTab::VirtualClientRect( const CWidget * pwChild ) const {
+	const LSW_RECT CTab::VirtualClientRect( const CWidget * /*pwChild*/ ) const {
 		LSW_RECT rRect = ClientRect();
 		AdjustRect( FALSE, &rRect );
 
@@ -131,7 +131,7 @@ namespace lsw {
 	LSW_RECT CTab::GetItemRect( INT _iTab ) const {
 		LSW_RECT rTemp = LSW_RECT().Zero();
 		if ( !Wnd() ) { return rTemp; }
-		BOOL bRet = static_cast<BOOL>(::SendMessageW( Wnd(), TCM_GETITEMRECT, static_cast<WPARAM>(_iTab), reinterpret_cast<LPARAM>(&rTemp) ));
+		/*BOOL bRet = */static_cast<BOOL>(::SendMessageW( Wnd(), TCM_GETITEMRECT, static_cast<WPARAM>(_iTab), reinterpret_cast<LPARAM>(&rTemp) ));
 		return rTemp;
 	}
 
@@ -290,7 +290,7 @@ namespace lsw {
 					tTest.pt.x = pPos.x;
 					tTest.pt.y = pPos.y;
 					::ScreenToClient( pmwThis->Wnd(), &tTest.pt );
-					hCloser.hdr.code		= LSW_TAB_NM_CLOSE;
+					hCloser.hdr.code		= static_cast<UINT>(LSW_TAB_NM_CLOSE);
 					hCloser.hdr.hwndFrom	= pmwThis->Wnd();
 					hCloser.hdr.idFrom		= iID;
 					hCloser.iTab			= pmwThis->HitTest( &tTest );
@@ -303,7 +303,7 @@ namespace lsw {
 			}
 			case WM_PAINT : {
 				if ( pmwThis->m_bShowClose ) {
-					LONG_PTR hObj = ::GetWindowLongPtrW( _hWnd, 0 );
+					/*LONG_PTR hObj = */::GetWindowLongPtrW( _hWnd, 0 );
 					LSW_BEGINPAINT bpPaint( _hWnd );
 
 					{
@@ -332,7 +332,6 @@ namespace lsw {
 				break;
 			}
 			case WM_ACTIVATE : {
-				volatile int gjhg = 0;
 				break;
 			}
 			/*case WM_MOUSEWHEEL : {
