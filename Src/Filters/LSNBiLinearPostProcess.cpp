@@ -16,10 +16,20 @@
 namespace lsn {
 
 	CBiLinearPostProcess::CBiLinearPostProcess() :
+#ifdef LSN_BILINEAR_POST_PERF
+		m_pMonitor( "CBiLinearPostProcess" ),
+#endif	// #ifdef LSN_BILINEAR_POST_PERF
 		m_ui32SourceFactorX( 0 ),
-		m_ui32SourceFactorY( 0 ) {
+		m_ui32SourceFactorY( 0 ),
+		m_bRunThreads( true ) {
+
+#if defined( LSN_USE_WINDOWS )
+		m_tThreadData.pblppThis = this;
+		m_ptResizeThread = std::make_unique<std::thread>( ResizeThread, &m_tThreadData );
+#endif	// #if defined( LSN_USE_WINDOWS )
 	}
 	CBiLinearPostProcess::~CBiLinearPostProcess() {
+		StopResizeThread();
 	}
 
 
@@ -96,56 +106,95 @@ namespace lsn {
 			m_vRowTmp.resize( ui32Stride * _ui32Height );
 		}
 
+#ifdef LSN_BILINEAR_POST_PERF
+		m_pMonitor.Begin();
+#endif	// #ifdef LSN_BILINEAR_POST_PERF
 
-#if 1
+
 		for ( uint32_t Y = 0; Y < _ui32Height; ++Y ) {
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_pui8Input + (Y * _ui32Stride));
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + (Y * ui32Stride));
+			//_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((Y + 1) * ui32Stride)), _MM_HINT_T0 );
 			CUtilities::LinearInterpolateRow_Int( pui32SrcRow, pui32DstRow, m_vFactorsX.data(), _ui32Width, _ui32ScreenWidth );
 		}
+#if 1
+		m_tThreadData.ui32ScreenHeight = _ui32ScreenHeight;
+		m_tThreadData.ui32ScreenWidth = _ui32ScreenWidth;
+		m_tThreadData.ui32Stride = ui32Stride;
+		if ( m_ptResizeThread.get() ) {
+			m_eResizeGo.Signal();
+		}
+
+		uint32_t ui32FinalH = _ui32ScreenHeight >> 1;
+		for ( uint32_t Y = 0; Y < ui32FinalH; ++Y ) {
+			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
+			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
+			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
+			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
+			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
+			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
+		}
+
+		if ( m_ptResizeThread.get() ) {
+			m_eResizeDone.WaitForSignal();
+		}
+#else
 		for ( uint32_t Y = 0; Y < _ui32ScreenHeight; ++Y ) {
 			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
 			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
+			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
 			/*uint32_t * pui32SrcNextRow = (ui32SrcRow == _ui32Height - 1) ?
 				reinterpret_cast<uint32_t *>(m_vEndRow.data()) :
 				reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));*/
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
 			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
 		}
-#else
-		for ( uint32_t Y = 0; Y < _ui32ScreenHeight; ++Y ) {
-			uint32_t ui32FactorY = ((_ui32Height * Y) << 8) / _ui32ScreenHeight;
-			uint32_t ui32SrcY = ui32FactorY >> 8;
-			//ui32FactorY &= 0xFF;
-			ui32FactorY = 0;
-
-			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_pui8Input + (ui32SrcY * _ui32Stride));
-			/*uint32_t * pui32SrcNextRow = (ui32SrcY == _ui32Height - 1) ?
-				reinterpret_cast<uint32_t *>(m_vEndRow.data()) :
-				reinterpret_cast<uint32_t *>(_pui8Input + ((ui32SrcY + 1) * _ui32Stride));*/
-
-			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
-			CUtilities::LinearInterpolateRow_Int( pui32SrcRow, pui32DstRow, m_vFactorsX.data(), _ui32Width, _ui32ScreenWidth );
-			/*for ( uint32_t X = _ui32ScreenWidth; X--; ) {
-				uint32_t ui32FactorX = ((_ui32Width * X) << 8) / _ui32ScreenWidth;
-				uint32_t ui32SrcX = ui32FactorX >> 8;
-				ui32FactorX &= 0xFF;
-
-				uint32_t ui32A = pui32SrcRow[ui32SrcX];
-				uint32_t ui32B = (ui32SrcX == _ui32Width - 1) ? 0x00000000 : pui32SrcRow[ui32SrcX+1];
-
-				uint32_t ui32C = pui32SrcNextRow[ui32SrcX];
-				uint32_t ui32D = (ui32SrcX == _ui32Width - 1) ? 0x00000000 : pui32SrcNextRow[ui32SrcX+1];
-
-				pui32DstRow[X] = CUtilities::BiLinearSample_Int( ui32A, ui32B, ui32C, ui32D, ui32FactorX, ui32FactorY );
-			}*/
-		}
 #endif
+
+#ifdef LSN_BILINEAR_POST_PERF
+		m_pMonitor.Stop();
+#endif	// #ifdef LSN_BILINEAR_POST_PERF
 		_ui32Width = _ui32ScreenWidth;
 		_ui32Height = _ui32ScreenHeight;
 		_ui32Stride = ui32Stride;
 		return m_vFinalBuffer.data();
+	}
+
+	/**
+	 * Stops the resizing thread.
+	 */
+	void CBiLinearPostProcess::StopResizeThread() {
+		m_bRunThreads = false;
+		if ( m_ptResizeThread.get() ) {
+			m_eResizeGo.Signal();
+			m_eResizeDone.WaitForSignal();
+			m_ptResizeThread->join();
+			m_ptResizeThread.reset();
+		}
+		m_bRunThreads = true;
+	}
+
+	/**
+	 * The resizing thread.
+	 *
+	 * \param _pblppFilter Pointer to this object.
+	 */
+	void CBiLinearPostProcess::ResizeThread( LSN_THREAD * _ptThread ) {
+		while ( _ptThread->pblppThis->m_bRunThreads ) {
+			_ptThread->pblppThis->m_eResizeGo.WaitForSignal();
+			if ( _ptThread->pblppThis->m_bRunThreads ) {
+				for ( uint32_t Y = _ptThread->ui32ScreenHeight >> 1; Y < _ptThread->ui32ScreenHeight; ++Y ) {
+					uint32_t ui32SrcRow = _ptThread->pblppThis->m_vFactorsY[Y] >> 8;
+					uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow) * _ptThread->ui32Stride));
+					uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 1) * _ptThread->ui32Stride));
+					_mm_prefetch( reinterpret_cast<const char *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 2) * _ptThread->ui32Stride)), _MM_HINT_T0 );
+					uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vFinalBuffer.data() + (Y * _ptThread->ui32Stride));
+					CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ptThread->ui32ScreenWidth, _ptThread->pblppThis->m_vFactorsY[Y] & 0xFF );
+				}
+			}
+			_ptThread->pblppThis->m_eResizeDone.Signal();
+		}
 	}
 
 }	// namespace lsn

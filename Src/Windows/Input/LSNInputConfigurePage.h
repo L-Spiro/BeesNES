@@ -184,12 +184,6 @@ namespace lsn {
 
 				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, LSN_CT_NONE, LSN_CT_NONE );
-
-				/*pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
-				CWinUtilities::FillComboWithControllerType_NES( pcbBox, LSN_CT_NONE );
-
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
-				CWinUtilities::FillComboWithControllerType_NES( pcbBox, LSN_CT_NONE );*/
 			}
 
 			UpdateDialog();

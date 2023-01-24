@@ -202,6 +202,12 @@
     <Filter Include="Source Files\Windows\WinUtilities">
       <UniqueIdentifier>{3e8cc7f7-0c59-48f9-a253-4c52fbce9559}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Options">
+      <UniqueIdentifier>{73fc5b59-dc14-4a92-af0d-7176501b4c16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Options">
+      <UniqueIdentifier>{24bcd07a-b288-45a0-ad04-32aca4bd6927}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -533,6 +539,15 @@
     </ClInclude>
     <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h">
       <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNPerformance.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Options\LSNOptions.h">
+      <Filter>Header Files\Options</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Options\LSNInputOptions.h">
+      <Filter>Header Files\Options</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

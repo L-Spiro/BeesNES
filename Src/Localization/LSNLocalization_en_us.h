@@ -13,7 +13,7 @@
 #define LSN_FAMICOM															Famicom®
 #define LSN_SNES															Super Nintendo Entertainment System®
 
-#define LSN_OPTIONS															Options
+#define LSN_OPTIONS_TXT														Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
 #define LSN_NES_FILES____NES____NES_										NES Files (*.nes)\0*.nes\0
 #define LSN_ZIP_FILES____ZIP____ZIP_										ZIP Files (*.zip)\0*.zip\0

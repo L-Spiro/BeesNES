@@ -17,7 +17,8 @@
 namespace lsn {
 
 	CInputWindow::CInputWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
@@ -33,8 +34,8 @@ namespace lsn {
 		// Order of pushing them here determines the order in the window/list.
 		/*CWidget * pwGlobal = Layout::CreateGlobalPage( this );
 		CWidget * pwPerGame = Layout::CreatePerGamePage( this );*/
-		CWidget * pwGlobal = Layout::CreateGlobalPage( ptTab );
-		CWidget * pwPerGame = Layout::CreatePerGamePage( ptTab );
+		CWidget * pwGlobal = Layout::CreateGlobalPage( ptTab, (*m_poOptions) );
+		CWidget * pwPerGame = Layout::CreatePerGamePage( ptTab, (*m_poOptions) );
 		m_vPages.push_back( static_cast<CInputPage *>(pwGlobal) );
 		m_vPages.push_back( static_cast<CInputPage *>(pwPerGame) );
 
@@ -82,7 +83,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CInputWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
+	CWidget::LSW_HANDLED CInputWindow::Command( WORD /*_wCtrlCode*/, WORD /*_wId*/, CWidget * /*_pwSrc*/ ) {
 		return LSW_H_CONTINUE;
 	}
 

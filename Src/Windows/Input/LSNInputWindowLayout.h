@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../Options/LSNOptions.h"
 #include <Layout/LSWMenuLayout.h>
 #include <Layout/LSWWidgetLayout.h>
 #include <Widget/LSWWidget.h>
@@ -84,25 +85,28 @@ namespace lsn {
 		 * Creates the input-configuration window.
 		 *
 		 * \param _pwParent The parent of the dialog.
+		 * \param _oOptions A reference to the options object.
 		 * \return Returns TRUE if the dialog was created successfully.
 		 */
-		static BOOL								CreateInputDialog( CWidget * _pwParent );
+		static BOOL								CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
 		/**
 		 * Creates the global-settings page.
 		 *
 		 * \param _pwParent the parent of the page.
+		 * \param _oOptions A reference to the options object.
 		 * \return Returns the created widget.
 		 */
-		static CWidget *						CreateGlobalPage( CWidget * _pwParent );
+		static CWidget *						CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
 		/**
 		 * Creates the per-game-settings page.
 		 *
 		 * \param _pwParent the parent of the page.
+		 * \param _oOptions A reference to the options object.
 		 * \return Returns the created widget.
 		 */
-		static CWidget *						CreatePerGamePage( CWidget * _pwParent );
+		static CWidget *						CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
 
 	protected :
@@ -124,10 +128,11 @@ namespace lsn {
 		 * \param _pwParent The parent widget.
 		 * \param _pwlLayout The page layout.
 		 * \param _sTotal The number of items to which _pwlLayout points.
+		 * \param _oOptions A reference to the options object.
 		 * \return Returns the created page.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal );
-		
+		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions );
+ 		
 	};
 
 }	// namespace lsn

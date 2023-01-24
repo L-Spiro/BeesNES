@@ -839,11 +839,12 @@ namespace lsn {
 	 * Creates the input-configuration window.
 	 *
 	 * \param _pwParent The parent of the dialog.
+	 * \param _oOptions A reference to the options object.
 	 * \return Returns TRUE if the dialog was created successfully.
 	 */
-	BOOL CInputWindowLayout::CreateInputDialog( CWidget * _pwParent ) {
+	BOOL CInputWindowLayout::CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, /*reinterpret_cast<uint64_t>(0)*/0 );
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;
@@ -855,20 +856,22 @@ namespace lsn {
 	 * Creates the global-settings page.
 	 *
 	 * \param _pwParent the parent of the page.
+	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */
-	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent ) {
-		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ) );
+	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ), _oOptions );
 	}
 
 	/**
 	 * Creates the per-game-settings page.
 	 *
 	 * \param _pwParent the parent of the page.
+	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */
-	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent ) {
-		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ) );
+	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ), _oOptions );
 	}
 
 	/**
@@ -877,11 +880,12 @@ namespace lsn {
 	 * \param _pwParent The parent widget.
 	 * \param _pwlLayout The page layout.
 	 * \param _sTotal The number of items to which _pwlLayout points.
+	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created page.
 	 */
-	CWidget * CInputWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal ) {
+	CWidget * CInputWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, 0 );
+		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

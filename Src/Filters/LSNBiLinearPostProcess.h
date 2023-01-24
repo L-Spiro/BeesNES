@@ -10,8 +10,15 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
 #include "LSNPostProcessBase.h"
+#include <thread>
 #include <vector>
+
+//#define LSN_BILINEAR_POST_PERF
+#ifdef LSN_BILINEAR_POST_PERF
+#include "../Utilities/LSNPerformance.h"
+#endif	// #ifdef LSN_BILINEAR_POST_PERF
 
 
 namespace lsn {
@@ -50,6 +57,15 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** Thread parameters */
+		struct LSN_THREAD {
+			CBiLinearPostProcess *							pblppThis;
+			uint32_t										ui32ScreenWidth;
+			uint32_t										ui32ScreenHeight;
+			uint32_t										ui32Stride;
+		};
+
 		// == Members.
 		/** Black row. */
 		//std::vector<uint8_t>								m_vEndRow;
@@ -63,6 +79,36 @@ namespace lsn {
 		uint32_t											m_ui32SourceFactorX;
 		/** The Y factors' source height. */
 		uint32_t											m_ui32SourceFactorY;
+
+		/** The resizing thread. */
+		std::unique_ptr<std::thread>						m_ptResizeThread;
+		/** The signal for the phospher-decay thread to go. */
+		CEvent												m_eResizeGo;
+		/** The signal that the phospher-decay thread has finished. */
+		CEvent												m_eResizeDone;
+		/** Boolean to stop all threads. */
+		std::atomic<bool>									m_bRunThreads;
+		/** Thread data. */
+		LSN_THREAD											m_tThreadData;
+
+#ifdef LSN_BILINEAR_POST_PERF
+		/** The performance monitor. */
+		CPerformance										m_pMonitor;
+#endif	// #ifdef LSN_BILINEAR_POST_PERF
+
+
+		// == Functions.
+		/**
+		 * Stops the resizing thread.
+		 */
+		void												StopResizeThread();
+
+		/**
+		 * The resizing thread.
+		 *
+		 * \param _pblppFilter Pointer to this object.
+		 */
+		static void											ResizeThread( LSN_THREAD * _ptThread );
 	};
 
 }	// namespace lsn

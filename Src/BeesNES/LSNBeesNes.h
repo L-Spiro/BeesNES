@@ -15,6 +15,7 @@
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNRgb24Filter.h"
+#include "../Options/LSNOptions.h"
 #include "../System/LSNSystem.h"
 
 namespace lsn {
@@ -203,6 +204,20 @@ namespace lsn {
 		 */
 		uint8_t *								RapidFire() { return m_ui8RapidFires; }
 
+		/**
+		 * Gets the program options.
+		 *
+		 * \return Returns a constant reference to the program options.
+		 */
+		const LSN_OPTIONS &						Options() const { return m_oOptions; }
+
+		/**
+		 * Gets the program options.
+		 *
+		 * \return Returns a reference to the program options.
+		 */
+		LSN_OPTIONS &							Options() { return m_oOptions; }
+
 
 	protected :
 		// == Members.
@@ -254,6 +269,8 @@ namespace lsn {
 		CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		/** Rapid-fire buttons. */
 		uint8_t									m_ui8RapidFires[8];
+		/** The emulation options. */
+		LSN_OPTIONS								m_oOptions;
 
 
 		// == Functions.

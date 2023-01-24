@@ -11,6 +11,7 @@
 #pragma once
 
 #include "LSNInputWindowLayout.h"
+#include "../../Options/LSNOptions.h"
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -26,7 +27,8 @@ namespace lsn {
 	class CInputPage : public lsw::CWidget {
 	public :
 		CInputPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
-			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+			m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
 		}
 
 
@@ -37,6 +39,12 @@ namespace lsn {
 		 * \return Returns the name of the page.
 		 */
 		virtual std::wstring					GetName() const { return std::wstring(); }
+
+
+	protected :
+		// == Members.
+		/** The options object. */
+		LSN_OPTIONS *							m_poOptions;
 	};
 
 }	// namespace lsn

@@ -16,7 +16,7 @@
 
 //#define LSN_CRT_PERF
 #ifdef LSN_CRT_PERF
-#include "../Time/LSNClock.h"
+#include "../Utilities/LSNPerformance.h"
 #endif	// #ifdef LSN_CRT_PERF
 
 namespace lsn {
@@ -121,10 +121,10 @@ namespace lsn {
 		std::atomic<bool>									m_bRunThreads;
 
 #ifdef LSN_CRT_PERF
-		CClock												m_cPerfClock;
-		uint64_t											m_ui64AccumTime;
-		uint32_t											m_ui32Calls;
+		/** The performance monitor. */
+		CPerformance										m_pMonitor;
 #endif	// #ifdef LSN_CRT_PERF
+
 
 		// == Functions.
 		/**

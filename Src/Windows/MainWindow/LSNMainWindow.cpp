@@ -340,7 +340,7 @@ namespace lsn {
 			}
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
-				CInputWindowLayout::CreateInputDialog( this );
+				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options() );
 				break;
 			}
 		}

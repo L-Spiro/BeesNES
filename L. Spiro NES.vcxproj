@@ -581,6 +581,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
     <ClInclude Include="Src\Mappers\LSNMapperXXX.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
+    <ClInclude Include="Src\Options\LSNInputOptions.h" />
+    <ClInclude Include="Src\Options\LSNOptions.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Palette\LSNPalette.h" />
@@ -594,6 +596,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNSystemBase.h" />
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
+    <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />

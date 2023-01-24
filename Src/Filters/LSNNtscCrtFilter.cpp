@@ -17,6 +17,9 @@
 namespace lsn {
 
 	CNtscCrtFilter::CNtscCrtFilter() :
+#ifdef LSN_CRT_PERF
+		m_pMonitor( "CNtscCrtFilter" ),
+#endif	// #ifdef LSN_CRT_PERF
 		m_ui32FinalStride( 0 ),
 		m_ui32FinalWidth( CRT_HRES ),
 		m_ui32FinalHeight( 0 ),
@@ -26,19 +29,9 @@ namespace lsn {
 
 		m_vSettings.resize( sizeof( NES_NTSC_SETTINGS ) );
 		m_vCrtNtsc.resize( sizeof( CRT ) );
-
-#ifdef LSN_CRT_PERF
-		m_ui32Calls = 0;
-		m_ui64AccumTime = 0;
-#endif	// #ifdef LSN_CRT_PERF
 	}
 	CNtscCrtFilter::~CNtscCrtFilter() {
 		StopPhospherDecayThread();
-#ifdef LSN_CRT_PERF
-		char szBuffer[128];
-		std::sprintf( szBuffer, "CRT Time: %.17f\r\n", m_ui64AccumTime / double( m_ui32Calls ) / m_cPerfClock.GetResolution() * 1000.0 );
-		::OutputDebugStringA( szBuffer );
-#endif	// #ifdef LSN_CRT_PERF
 	}
 
 
@@ -109,7 +102,7 @@ namespace lsn {
 	 */
 	uint8_t * CNtscCrtFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 #ifdef LSN_CRT_PERF
-		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
+		m_pMonitor.Begin();
 #endif	// #ifdef LSN_CRT_PERF
 		// Fade the phosphers.
 		{
@@ -162,8 +155,7 @@ namespace lsn {
 		_ui32Stride = m_ui32FinalStride;
 
 #ifdef LSN_CRT_PERF
-		m_ui32Calls++;
-		m_ui64AccumTime += m_cPerfClock.GetRealTick() - ui64TimeNow;
+		m_pMonitor.Stop();
 #endif	// #ifdef LSN_CRT_PERF
 		return m_vFilteredOutput.data();
 	}
@@ -198,6 +190,29 @@ namespace lsn {
 		while ( _pncfFilter->m_bRunThreads ) {
 			_pncfFilter->m_ePhospherGo.WaitForSignal();
 			if ( _pncfFilter->m_bRunThreads ) {
+
+				// Apply smear.
+#if 1
+				for ( auto Y = _pncfFilter->m_ui32FinalHeight; Y--; ) {
+					uint32_t ui32Val = 0;
+					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data() + Y * _pncfFilter->m_ui32FinalStride);
+					for ( uint32_t X = 0; X < _pncfFilter->m_ui32FinalWidth; ++X ) {
+						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
+							/*((ui32Val >> 2) & 0x3F3F3F3F) +*/
+							((ui32Val >> 3) & 0x1F1F1F1F) +
+							((ui32Val >> 6) & 0x03030303) +
+							((ui32Val >> 7) & 0x01010101) +
+
+							((ui32Val >> 4) & 0x0F0F0F0F) +
+							((ui32Val >> 5) & 0x07070707) +
+							((ui32Val >> 6) & 0x03030303) +
+							((ui32Val >> 7) & 0x01010101);
+						ui32Val = pui32Src[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+					}
+				}
+#endif
+
+
 				uint32_t ui32Total = _pncfFilter->m_ui32FinalWidth * _pncfFilter->m_ui32FinalHeight;
 				if ( (ui32Total & 1) == 0 ) {
 					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(_pncfFilter->m_vFilteredOutput.data());
@@ -221,27 +236,6 @@ namespace lsn {
 							((ui32Tmp >> 4) & 0x0F0F0F);
 					}
 				}
-
-				// Apply smear.
-#if 1
-				for ( auto Y = _pncfFilter->m_ui32FinalHeight; Y--; ) {
-					uint32_t ui32Val = 0;
-					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data() + Y * _pncfFilter->m_ui32FinalStride);
-					for ( uint32_t X = 0; X < _pncfFilter->m_ui32FinalWidth; ++X ) {
-						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
-							/*((ui32Val >> 2) & 0x3F3F3F3F) +*/
-							((ui32Val >> 3) & 0x1F1F1F1F) +
-							((ui32Val >> 6) & 0x03030303) +
-							((ui32Val >> 7) & 0x01010101) +
-
-							((ui32Val >> 4) & 0x0F0F0F0F) +
-							((ui32Val >> 5) & 0x07070707) +
-							((ui32Val >> 6) & 0x03030303) +
-							((ui32Val >> 7) & 0x01010101);
-						ui32Val = pui32Src[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
-					}
-				}
-#endif
 			}
 			_pncfFilter->m_ePhospherDone.Signal();
 		}

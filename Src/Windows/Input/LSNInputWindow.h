@@ -66,6 +66,8 @@ namespace lsn {
 		// == Members.
 		/** The input-settings pages. */
 		std::vector<CInputPage *>				m_vPages;
+		/** The options object. */
+		LSN_OPTIONS *							m_poOptions;
 
 	private :
 		typedef CInputWindowLayout				Layout;
