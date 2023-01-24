@@ -28,7 +28,8 @@ namespace lsn {
 	public :
 		CInputPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
 			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-			m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
+			m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ),
+			m_pioInputOptions( nullptr ) {
 		}
 
 
@@ -45,6 +46,10 @@ namespace lsn {
 		// == Members.
 		/** The options object. */
 		LSN_OPTIONS *							m_poOptions;
+		/** The input options that apply to this page. */
+		LSN_INPUT_OPTIONS *						m_pioInputOptions;
+		/** The temporary copy of the options. */
+		LSN_INPUT_OPTIONS						m_ioTmpOptions;
 	};
 
 }	// namespace lsn

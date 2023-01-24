@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include <intrin.h>
 #include <string>
 
 
@@ -215,8 +216,11 @@ namespace lsn {
 				const uint64_t * pui64Row0 = reinterpret_cast<const uint64_t *>(_pui32SrcRow0);
 				const uint64_t * pui64Row1 = reinterpret_cast<const uint64_t *>(_pui32SrcRow1);
 				uint64_t * pui64Dst = reinterpret_cast<uint64_t *>(_pui32DstRow);
+				uint32_t ui32Total;
 
-				for ( uint32_t I = _ui32Width >> 1; I--; ) {
+
+				ui32Total = _ui32Width >> 1;
+				for ( uint32_t I = 0; I < ui32Total; ++I ) {
 					pui64Dst[I] = LinearSample_Int64( pui64Row0[I], pui64Row1[I], _ui32Factor );
 				}
 				if ( _ui32Width & 1 ) {
