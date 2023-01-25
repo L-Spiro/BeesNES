@@ -549,6 +549,9 @@
     <ClInclude Include="Src\Options\LSNInputOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNStream.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

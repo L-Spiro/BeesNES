@@ -43,6 +43,32 @@ namespace lsn {
 	}
 
 	/**
+	 * Creates a file.  The path is given in UTF-8.
+	 *
+	 * \param _pcPath Path to the file to create.
+	 * \return Returns true if the file was created, false otherwise.
+	 */
+	bool CFileBase::Create( const char8_t * _pcFile ) {
+		bool bErrored;
+		std::u16string swTmp = CUtilities::Utf8ToUtf16( _pcFile, &bErrored );
+		if ( bErrored ) { return false; }
+		return Create( swTmp.c_str() );
+	}
+
+	/**
+	 * Creates a file.  The path is given in UTF-16.
+	 *
+	 * \param _pcPath Path to the file to create.
+	 * \return Returns true if the file was created, false otherwise.
+	 */
+	bool CFileBase::Create( const char16_t * _pcFile ) {
+		bool bErrored;
+		std::string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
+		if ( bErrored ) { return false; }
+		return Create( reinterpret_cast<const char8_t *>(sTmp.c_str()) );
+	}
+
+	/**
 	 * Closes the opened file.
 	 */
 	void CFileBase::Close() {}

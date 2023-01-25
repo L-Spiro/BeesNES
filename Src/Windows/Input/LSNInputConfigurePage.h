@@ -167,6 +167,14 @@ namespace lsn {
 			if ( pcbBox ) {
 				CWinUtilities::FillComboWithControllerType_Famicom( pcbBox );
 			}
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+			if ( pcbBox ) {
+				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[2], LSN_CT_NONE );
+			}
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+			if ( pcbBox ) {
+				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[3], LSN_CT_NONE );
+			}
 
 			UpdateDialog();
 		}
@@ -202,6 +210,12 @@ namespace lsn {
 
 				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[1], LSN_CT_NONE );
+
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[2], LSN_CT_NONE );
+
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[3], LSN_CT_NONE );
 			}
 
 			UpdateDialog();

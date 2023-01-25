@@ -42,6 +42,26 @@ namespace lsn {
 		PostLoad();
 		return true;
 	}
+
+	/**
+	 * Creates a file.  The path is given in UTF-16.
+	 *
+	 * \param _pcPath Path to the file to create.
+	 * \return Returns true if the file was created, false otherwise.
+	 */
+	bool CStdFile::Create( const char16_t * _pcFile ) {
+		Close();
+
+		FILE * pfFile = nullptr;
+		errno_t enOpenResult = ::_wfopen_s( &pfFile, reinterpret_cast<const wchar_t *>(_pcFile), L"wb" );
+		if ( nullptr == pfFile || enOpenResult != 0 ) { return false; }
+
+		m_ui64Size = 0;
+
+		m_pfFile = pfFile;
+		PostLoad();
+		return true;
+	}
 #else
 	/**
 	 * Opens a file.  The path is given in UTF-8.
@@ -56,6 +76,23 @@ namespace lsn {
 		std::fseek( pfFile, 0, SEEK_END );
 		m_ui64Size = std::ftell( pfFile );
 		std::rewind( pfFile );
+
+		m_pfFile = pfFile;
+		PostLoad();
+		return true;
+	}
+
+	/**
+	 * Creates a file.  The path is given in UTF-8.
+	 *
+	 * \param _pcPath Path to the file to create.
+	 * \return Returns true if the file was created, false otherwise.
+	 */
+	bool CStdFile::Create( const char8_t * _pcFile ) {
+		FILE * pfFile = std::fopen( reinterpret_cast<const char *>(_pcFile), "wb" );
+		if ( nullptr == pfFile ) { return false; }
+
+		m_ui64Size = 0;
 
 		m_pfFile = pfFile;
 		PostLoad();
@@ -126,6 +163,19 @@ namespace lsn {
 			std::fseek( m_pfFile, lPos, SEEK_SET );
 #endif	// #ifdef LSN_WINDOWS
 			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Writes the given data to the created file.  File must have been cerated with Create().
+	 *
+	 * \param _vData The data to write to the file.
+	 * \return Returns true if the data was successfully written to the file.
+	 */
+	bool CStdFile::WriteToFile( const std::vector<uint8_t> &_vData ) {
+		if ( m_pfFile != nullptr ) {
+			return std::fwrite( _vData.data(), _vData.size(), 1, m_pfFile ) == 1;
 		}
 		return false;
 	}

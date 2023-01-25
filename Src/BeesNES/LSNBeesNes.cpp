@@ -7,6 +7,8 @@
  */
 
 #include "LSNBeesNes.h"
+#include "../File/LSNStdFile.h"
+
 
 namespace lsn {
 
@@ -59,6 +61,40 @@ namespace lsn {
 	}
 
 	// == Functions.
+	/**
+	 * Loads the settings file.
+	 *
+	 * \return Returns true if the settings file was loaded.
+	 */
+	bool CBeesNes::LoadSettings() {
+		std::wstring wsPath = m_wsFolder + L"Settings.lsn";
+		CStdFile sfFile;
+		if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsPath.c_str()) ) ) {
+			std::vector<uint8_t> vFile;
+			if ( sfFile.LoadToMemory( vFile ) ) {
+				sfFile.Close();
+				CStream sStream( vFile );
+				return LoadSettings( sStream );
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Saves the settings file.
+	 *
+	 * \return Returns true if the settings file was created.
+	 */
+	bool CBeesNes::SaveSettings() {
+		std::vector<uint8_t> vFile;
+		CStream sStream( vFile );
+		if ( !SaveSettings( sStream ) ) { return false; }
+		std::wstring wsPath = m_wsFolder + L"Settings.lsn";
+		CStdFile sfFile;
+		if ( !sfFile.Create( reinterpret_cast<const char16_t *>(wsPath.c_str()) ) ) { return false; }
+		return sfFile.WriteToFile( vFile );
+	}
+
 	/**
 	 * Sets the current filter.  Changes are not applied to rendering output until Swap() is called.
 	 *
@@ -189,6 +225,70 @@ namespace lsn {
 
 		// Set up input.
 		m_pnsSystem->SetInputPoller( m_pipPoller );
+	}
+
+	/**
+	 * Loads the settings file.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \return Returns true if the settings file was loaded.
+	 */
+	bool CBeesNes::LoadSettings( CStream &_sFile ) {
+		// Get the file version.
+		uint32_t ui32Version;
+		if ( !_sFile.ReadUi32( ui32Version ) ) { return false; }
+
+		if ( !LoadInputSettings( ui32Version, _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings file.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \return Returns true if the settings file was saved.
+	 */
+	bool CBeesNes::SaveSettings( CStream &_sFile ) {
+		if ( !_sFile.WriteUi32( LSN_BEESNES_SETTINGS_VERSION ) ) { return false; }
+		if ( !SaveInputSettings( _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads input settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _ioInputOptions The input options into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadInputSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8ConsoleType ) ) { return false; }
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Expansion ) ) { return false; }
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[0] ) ) { return false; }
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[1] ) ) { return false; }
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[2] ) ) { return false; }
+		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[3] ) ) { return false; }
+		if ( !_sFile.ReadBool( _ioInputOptions.bUseFourScore ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves input settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _ioInputOptions The input options to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8ConsoleType ) ) { return false; }
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Expansion ) ) { return false; }
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[0] ) ) { return false; }
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[1] ) ) { return false; }
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[2] ) ) { return false; }
+		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[3] ) ) { return false; }
+		if ( !_sFile.WriteBool( _ioInputOptions.bUseFourScore ) ) { return false; }
+		return true;
 	}
 
 }	// namespace lsn

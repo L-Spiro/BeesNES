@@ -597,6 +597,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
+    <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />

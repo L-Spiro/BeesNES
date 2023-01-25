@@ -64,6 +64,10 @@ namespace lsn {
 		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
 		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+
+		m_bnEmulator.SetFolder( wsRoot.c_str() );
+		m_bnEmulator.LoadSettings();
+
 		for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
 			std::wstring wsTemp = wsRoot + L"Resources\\";
 			wsTemp += sImages[I].lpwsImageName;
@@ -125,6 +129,7 @@ namespace lsn {
 	}
 	CMainWindow::~CMainWindow() {
 		StopThread();
+		m_bnEmulator.SaveSettings();
 		(*m_pabIsAlive) = false;
 	}
 

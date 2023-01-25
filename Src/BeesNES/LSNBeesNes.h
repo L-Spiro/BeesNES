@@ -17,6 +17,9 @@
 #include "../Filters/LSNRgb24Filter.h"
 #include "../Options/LSNOptions.h"
 #include "../System/LSNSystem.h"
+#include "../Utilities/LSNStream.h"
+
+#define LSN_BEESNES_SETTINGS_VERSION			0
 
 namespace lsn {
 
@@ -54,6 +57,27 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Sets the current folder.
+		 *
+		 * \param _pwcFolder The current folder.
+		 */
+		void									SetFolder( const wchar_t * _pwcFolder ) { m_wsFolder = _pwcFolder; }
+
+		/**
+		 * Loads the settings file.
+		 *
+		 * \return Returns true if the settings file was loaded.
+		 */
+		bool									LoadSettings();
+
+		/**
+		 * Saves the settings file.
+		 *
+		 * \return Returns true if the settings file was created.
+		 */
+		bool									SaveSettings();
+
 		/**
 		 * Gets the screen scale.
 		 *
@@ -261,7 +285,9 @@ namespace lsn {
 		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL];
 		/** The console pointer. */
 		CSystemBase *							m_pnsSystem;
-		/** The current system. */
+		/** The path to the executable folder. */
+		std::wstring							m_wsFolder;
+		/** The current system type. */
 		LSN_PPU_METRICS							m_pmSystem;
 		/** The current filter ID. */
 		CFilterBase::LSN_FILTERS				m_fFilter;
@@ -278,6 +304,41 @@ namespace lsn {
 		 * Updates the current system with render information, display hosts, etc.
 		 */
 		void									UpdateCurrentSystem();
+
+		/**
+		 * Loads the settings file.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \return Returns true if the settings file was loaded.
+		 */
+		bool									LoadSettings( CStream &_sFile );
+
+		/**
+		 * Saves the settings file.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \return Returns true if the settings file was saved.
+		 */
+		bool									SaveSettings( CStream &_sFile );
+
+		/**
+		 * Loads input settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _ioInputOptions The input options into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadInputSettings( uint32_t _ui32Version, CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions );
+
+		/**
+		 * Saves input settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _ioInputOptions The input options to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions );
 	};
 
 }	// namespace lsn

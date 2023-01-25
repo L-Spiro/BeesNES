@@ -44,6 +44,22 @@ namespace lsn {
 		 * \return Returns true if the file was opened, false otherwise.
 		 */
 		virtual bool										Open( const char16_t * _pcFile );
+
+		/**
+		 * Creates a file.  The path is given in UTF-8.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char8_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
+
+		/**
+		 * Creates a file.  The path is given in UTF-16.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char16_t * _pcFile );
 #else
 		/**
 		 * Opens a file.  The path is given in UTF-8.
@@ -60,6 +76,22 @@ namespace lsn {
 		 * \return Returns true if the file was opened, false otherwise.
 		 */
 		virtual bool										Open( const char16_t * _pcFile ) { return CFileBase::Open( _pcFile ); }
+
+		/**
+		 * Creates a file.  The path is given in UTF-8.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char8_t * _pcFile );
+
+		/**
+		 * Creates a file.  The path is given in UTF-16.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char16_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
 #endif	// #ifdef LSN_WINDOWS
 
 		/**
@@ -74,6 +106,14 @@ namespace lsn {
 		 * \return Returns true if the file was successfully loaded into memory.
 		 */
 		virtual bool										LoadToMemory( std::vector<uint8_t> &_vResult ) const;
+
+		/**
+		 * Writes the given data to the created file.  File must have been cerated with Create().
+		 *
+		 * \param _vData The data to write to the file.
+		 * \return Returns true if the data was successfully written to the file.
+		 */
+		virtual bool										WriteToFile( const std::vector<uint8_t> &_vData );
 
 
 	protected :

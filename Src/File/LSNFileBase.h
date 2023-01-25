@@ -44,6 +44,22 @@ namespace lsn {
 		virtual bool										Open( const char16_t * _pcFile );
 
 		/**
+		 * Creates a file.  The path is given in UTF-8.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char8_t * _pcFile );
+
+		/**
+		 * Creates a file.  The path is given in UTF-16.
+		 *
+		 * \param _pcPath Path to the file to create.
+		 * \return Returns true if the file was created, false otherwise.
+		 */
+		virtual bool										Create( const char16_t * _pcFile );
+
+		/**
 		 * Closes the opened file.
 		 */
 		virtual void										Close();
