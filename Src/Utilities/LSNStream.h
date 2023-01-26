@@ -232,6 +232,7 @@ namespace lsn {
 			if ( (m_vStream.size() - m_stPos) >= sizeof( _tType ) ) {
 				_tValue = (*reinterpret_cast<_tType *>(&m_vStream.data()[m_stPos]));
 				m_stPos += sizeof( _tType );
+				return true;
 			}
 			return false;
 		}

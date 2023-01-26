@@ -41,6 +41,11 @@ namespace lsn {
 		 */
 		virtual std::wstring					GetName() const { return std::wstring(); }
 
+		/**
+		 * Saves the current input configuration.
+		 */
+		virtual void							Save() {}
+
 
 	protected :
 		// == Members.

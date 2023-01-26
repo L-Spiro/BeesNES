@@ -130,6 +130,15 @@ namespace lsn {
 			return LSW_H_CONTINUE;
 		}
 
+		/**
+		 * Saves the current input configuration.
+		 */
+		virtual void							Save() {
+			if ( m_pioInputOptions ) {
+				(*m_pioInputOptions) = m_ioTmpOptions;
+			}
+		}
+
 
 	protected :
 		// == Members.
@@ -391,29 +400,53 @@ namespace lsn {
 
 			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8ConsoleType );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8ConsoleType );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8ConsoleType = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 
 			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Expansion );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Expansion );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8Expansion = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 
 			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[0] );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[0] );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8Player[0] = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[1] );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[1] );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8Player[1] = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[2] );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[2] );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8Player[2] = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
 			if ( pcbBox ) {
-				pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[3] );
+				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[3] );
+				if ( CB_ERR == iSel ) {
+					pcbBox->SetCurSel( 0 );
+					m_ioTmpOptions.ui8Player[3] = uint8_t( pcbBox->GetCurSelItemData() );
+				}
 			}
 		}
 
@@ -442,6 +475,36 @@ namespace lsn {
 				_bData = pcbCheck->IsChecked() != FALSE;
 			}
 		}
+
+#if 0
+		/**
+		 * The WM_CTLCOLORSTATIC handler.
+		 *
+		 * \param _hDc Handle to the device context for the static control window
+		 * \param _pwControl Handle to the static control.
+		 * \param _hBrush If an application processes this message, the return value is a handle to a brush that the system uses to paint the background of the static control.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED						CtlColorStatic( HDC /*_hDc*/, CWidget * /*_pwControl*/, HBRUSH &_hBrush ) {
+			_hBrush = ::GetSysColorBrush( COLOR_3DFACE );
+			return LSW_H_HANDLED;
+		}
+#endif	// #if 0
+
+#if 0
+		/**
+		 * The WM_CTLCOLORDLG handler.
+		 *
+		 * \param _hDc Handle to the device context for the dialog box
+		 * \param _pwControl Handle to the dialog box.
+		 * \param _hBrush If an application processes this message, the return value is a handle to a brush that the system uses to paint the background of the dialog box.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED						CtlColorDlg( HDC /*_hDc*/, CWidget * /*_pwControl*/, HBRUSH &_hBrush ) {
+			_hBrush = ::GetSysColorBrush( COLOR_3DFACE );
+			return LSW_H_HANDLED;
+		}
+#endif	// #if 0
 	};
 
 }	// namespace lsn

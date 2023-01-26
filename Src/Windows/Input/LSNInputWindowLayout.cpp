@@ -75,9 +75,38 @@ namespace lsn {
 		},
 
 
-
-		// Per-Game Page.
-
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_OK,								// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			TRUE,									// bActive
+			LSN_LEFT_JUST,							// iLeft
+			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,		// iTop
+			LSN_DEF_BUTTON_WIDTH,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_DEFBUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_OK ),						// pwcText
+			0,										// sTextLen
+			LSN_IWI_MAINWINDOW,						// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,							// ltType
+			LSN_IWI_CANCEL,							// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_INPUT_W - LSN_DEF_BUTTON_WIDTH * 1 - LSN_LEFT_JUST,	// iLeft
+			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,		// iTop
+			LSN_DEF_BUTTON_WIDTH,					// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
+			LSN_BUTTONSTYLE,						// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_CANCEL ),					// pwcText
+			0,										// sTextLen
+			LSN_IWI_MAINWINDOW,						// dwParentId
+		},
 	};
 
 	/** The layout for the global-setup panel. */
