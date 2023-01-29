@@ -27,13 +27,13 @@ namespace lsn {
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
 			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY
-			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter },			// LSN_F_RGB24
-			{ &m_nbfBlargNtscFilter,		&m_nbfBlargNtscFilter,			&m_nbfBlargNtscFilter },		// LSN_F_NTSC_BLARGG
-			{ &m_nbfBlargPalFilter,			&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_PAL_BLARGG
-			{ &m_ncfEmmirNtscFilter,		&m_ncfEmmirNtscFilter,			&m_ncfEmmirNtscFilter },		// LSN_F_NTSC_CRT
-			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },	// LSN_F_NTSC_CRT_FULL
-			{ &m_nbfBlargNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_BLARGG
-			{ &m_ncfEmmirNtscFilter,		&m_nbfBlargPalFilter,			&m_nbfBlargPalFilter },			// LSN_F_AUTO_CRT
+			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter },				// LSN_F_RGB24
+			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG
+			{ &m_nbfBlarggPalFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_PAL_BLARGG
+			{ &m_ncfEmmirNtscFilter,		&m_ncfEmmirNtscFilter,			&m_ncfEmmirNtscFilter },			// LSN_F_NTSC_CRT
+			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL
+			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_AUTO_BLARGG
+			{ &m_ncfEmmirNtscFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_AUTO_CRT
 		};
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 
@@ -50,8 +50,9 @@ namespace lsn {
 
 		const size_t stBuffers = 3;
 		m_r24fRgb24Filter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_nbfBlargNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_nbfBlargPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_nbfBisqwitNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_nbfBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_nbfBlarggPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 

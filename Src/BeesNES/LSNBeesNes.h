@@ -12,6 +12,7 @@
 #include "../Filters/LSNNtscBlarggFilter.h"
 #include "../Filters/LSNNtscCrtFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
+#include "../Filters/LSNNtscBisqwitFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNRgb24Filter.h"
@@ -255,14 +256,16 @@ namespace lsn {
 		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
+		/** Bisqwit’s NTSC filter. */
+		CNtscBisqwitFilter						m_nbfBisqwitNtscFilter;
 		/** Blargg’s NTSC filter. */
-		CNtscBlarggFilter						m_nbfBlargNtscFilter;
+		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
 		CNtscCrtFilter							m_ncfEmmirNtscFilter;
 		/** EMMIR (LMP88959)’s NTSC-CRT filter. */
 		CNtscCrtFullFilter						m_ncfEmmirNtscFullFilter;
 		/** Blargg’s NTSC filter (ad-hoc PAL-inated). */
-		CPalBlarggFilter						m_nbfBlargPalFilter;
+		CPalBlarggFilter						m_nbfBlarggPalFilter;
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** "NONE" post-processing. */

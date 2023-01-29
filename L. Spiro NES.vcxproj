@@ -599,6 +599,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Windows\Input\LSNControllerSetupWindow.h" />
+    <ClInclude Include="Src\Windows\Input\LSNControllerSetupWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputConfigurePage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindow.h" />
@@ -654,6 +656,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNControllerSetupWindow.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNControllerSetupWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputConfigurePage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp" />
@@ -683,6 +687,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
+    <Image Include="Resources\icons8-bee-16.ico" />
+    <Image Include="Resources\icons8-bee-32.ico" />
     <Image Include="Resources\icons8-bee-64.png" />
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,7 @@ namespace lsn {
 		LSN_LT_INPUT_DIALOG,
 		LSN_LT_GLOBAL_INPUT_PAGE,
 		LSN_LT_PER_GAME_INPUT_PAGE,
+		LSN_LT_CONTROLLER_SETUP_DIALOG,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

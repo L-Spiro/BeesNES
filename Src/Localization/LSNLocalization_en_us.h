@@ -93,6 +93,8 @@
 #define LSN_INPUT_TURBO_FILE												Turbo File
 #define LSN_INPUT_ZAPPER													Zapper
 
+#define LSN_LISTENING_														Listening…
+
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.
 #define LSN_OPENAL_AL_INVALID_ENUM_DESC										An invalid enum value was passed to an OpenAL function.

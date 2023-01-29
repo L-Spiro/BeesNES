@@ -9,6 +9,7 @@
  */
 
 #include "LSNLayoutManager.h"
+#include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
 #include "../MainWindow/LSNMainWindow.h"
@@ -35,6 +36,9 @@ namespace lsn {
 			}
 			case LSN_LT_PER_GAME_INPUT_PAGE : {
 				return new CInputConfigurePage<false>( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_CONTROLLER_SETUP_DIALOG : {
+				return new CControllerSetupWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

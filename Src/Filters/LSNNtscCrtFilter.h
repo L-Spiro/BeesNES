@@ -96,10 +96,8 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The EMMIR (LMP88959) NTSC emulation. */
-		//NES_NTSC_SETTINGS									m_nsSettings;
 		std::vector<uint8_t>								m_vSettings;
 		/** The CRT structure. */
-		//CRT													m_nnCrtNtsc;
 		std::vector<uint8_t>								m_vCrtNtsc;
 		/** The filtered output buffer. */
 		std::vector<uint8_t>								m_vFilteredOutput;

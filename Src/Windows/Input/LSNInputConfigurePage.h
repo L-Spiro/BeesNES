@@ -13,6 +13,7 @@
 #include "LSNInputPage.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../WinUtilities/LSNWinUtilities.h"
+#include "LSNControllerSetupWindowLayout.h"
 #include <CheckButton/LSWCheckButton.h>
 
 
@@ -124,6 +125,10 @@ namespace lsn {
 							break;
 						}
 					}
+					break;
+				}
+				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_BUTTON ) : {
+					CControllerSetupWindowLayout::CreateInputDialog( this, (*m_poOptions) );
 					break;
 				}
 			}

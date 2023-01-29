@@ -18,6 +18,10 @@
 #define LSN_ELEMENTS( x )									((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof(0[x])))))
 #endif	// #ifndef LSN_ELEMENTS
 
+#ifndef LSN_PI
+#define LSN_PI												3.1415926535897932384626433832795
+#endif	// #ifndef LSN_PI
+
 namespace lsn {
 
 	/**
