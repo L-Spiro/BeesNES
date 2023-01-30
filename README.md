@@ -5,15 +5,16 @@ A sub-cycle–accurate Nintendo Entertainment System emulator.
 ## Description
 A Nintendo Entertainment System emulator with the goal of being “sub-cycle–accurate.” Many emulators are “cycle-accurate”, usually optimized to wait X cycles and then pump out all the work or otherwise do not actually divide all the work across all the cycles. In contrast, in this emulator, the work is correctly divided across the individual cycles for each instruction.
 
-![image](https://user-images.githubusercontent.com/7362666/211444553-cb95e2d5-1ac4-43cf-8146-55e155d7cbd6.png)
-![image](https://user-images.githubusercontent.com/7362666/211444733-ee658c92-427e-407d-8524-d493a1dd520f.png)
-![image](https://user-images.githubusercontent.com/7362666/211444928-6071119a-6c90-4086-a232-4c427bfa89a2.png)
-![image](https://user-images.githubusercontent.com/7362666/211445283-ed68fc99-f856-4ca1-8762-598a801f8997.png)
-![image](https://user-images.githubusercontent.com/7362666/211445534-eb06f929-0457-4a18-8f62-5788fe7a6d60.png)
-![image](https://user-images.githubusercontent.com/7362666/211445739-855bc0b7-558b-42a3-99ce-f0a680368962.png)
-![image](https://user-images.githubusercontent.com/7362666/211446083-e5ff2703-3bc2-401d-b472-68c8036c2fb9.png)
-![image](https://user-images.githubusercontent.com/7362666/211446153-0b54ab3d-5476-468f-bcf8-97ec62ba4dd1.png)
-![image](https://user-images.githubusercontent.com/7362666/211446221-22992f29-9d23-4c7e-9f85-6380c9f03259.png)
+![image](https://user-images.githubusercontent.com/7362666/215368977-2cec6ea5-c09e-4824-99e5-0afe3b76409f.png)
+![image](https://user-images.githubusercontent.com/7362666/215370930-471d4fe0-feed-4d27-9fde-bba0da1d8e9b.png)
+![image](https://user-images.githubusercontent.com/7362666/215369800-608a6db6-fddc-4a46-9b5f-77c501adab5a.png)
+![image](https://user-images.githubusercontent.com/7362666/215370725-3092a546-b8f7-488b-ae4e-8d7c7f108cad.png)
+![image](https://user-images.githubusercontent.com/7362666/215370366-33903c20-0e75-489a-bb4d-571b08f33bee.png)
+![image](https://user-images.githubusercontent.com/7362666/215371089-3480dc0a-a80c-4cc3-8ca4-4a957b25fd0e.png)
+![image](https://user-images.githubusercontent.com/7362666/215371867-63a951cb-303a-4222-8094-6a20b5b9999b.png)
+![image](https://user-images.githubusercontent.com/7362666/215371958-b742960a-ec5f-47f8-8b8a-7dc55162ffb5.png)
+![image](https://user-images.githubusercontent.com/7362666/215371987-9e984c97-1d95-4b41-8a8c-bcbefe6b182d.png)
+![image](https://user-images.githubusercontent.com/7362666/215372065-13ba8c84-fdb4-4afd-9cfb-bdd30a118f4b.png)
 
 
 YouTube Video: Castlevania Demo Play (Low Noise)<br>
