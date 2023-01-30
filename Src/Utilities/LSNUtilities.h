@@ -264,6 +264,64 @@ namespace lsn {
 
 			return (uint32_t( ui64Ag1 | ui32AgOver ) & 0xFF00FF00) | ((ui32Rb1 | ui32RbOver) & 0x00FF00FF);
 		}
+
+		/**
+		 * Applies a quik phospher decay to the given 32-bit pixels.
+		 *
+		 * \param _pui32Src The pixels to decay.
+		 * \param _ui32Width The row stride, in pixels, of the input/output buffer.
+		 * \param _ui32Height The number of rows in the input/output buffer.
+		 */
+		static __forceinline void							DecayArgb( uint32_t * _pui32Src, uint32_t _ui32Width, uint32_t _ui32Height ) {
+			uint32_t ui32Total = _ui32Width * _ui32Height;
+			uint64_t * pui64Pixels = reinterpret_cast<uint64_t *>(_pui32Src);
+			uint32_t ui32Total2 = ui32Total >> 1;
+			for ( uint32_t I = 0; I < ui32Total2; ++I ) {
+				uint64_t ui64Tmp = pui64Pixels[I] & 0x00FFFFFF00FFFFFFULL;
+				pui64Pixels[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +
+					/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +
+					((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +*/
+					((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
+			}
+			for ( uint32_t I = ui32Total2 << 1; I < ui32Total; ++I ) {
+				uint32_t ui32Tmp = _pui32Src[I] & 0x00FFFFFF;
+				_pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +
+					/*((ui32Tmp >> 2) & 0x3F3F3F) +
+					((ui32Tmp >> 3) & 0x1F1F1F) +*/
+					((ui32Tmp >> 4) & 0x0F0F0F);
+			}
+		}
+
+		/**
+		 * Produces a sampling factor for bi-linear filtering.  Bottom 8 bits are the fraction between samples, and the rest of the upper bits are the index (X) of the
+		 *	first sample to be used in the interpolation between sample[X] and sample[X+1].
+		 *
+		 * \param _ui32SrcLen The width/height of the source image.
+		 * \param _ui32DstLen The width/height of the destination image.
+		 * \param _ui32Idx The index of the destination sample for which to generate sampler factors.  In the range [0..(_ui32DstLen-1)].
+		 * \return Returns the 8-bit fixed-point sampling factor where the bottom 8 bits are a fraction between sample[X] and sample[X+1] and the remaining upper bits
+		 *	are the X index of the samples between which to interpolate.
+		 */
+		static __forceinline uint32_t						SamplingFactor_BiLinear( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
+			return (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+		}
+
+		/**
+		 * Produces a sampling factor for bi-linear filtering.  Bottom 8 bits are the fraction between samples, and the rest of the upper bits are the index (X) of the
+		 *	first sample to be used in the interpolation between sample[X] and sample[X+1].
+		 *
+		 * \param _ui32SrcLen The width/height of the source image.
+		 * \param _ui32DstLen The width/height of the destination image.
+		 * \param _ui32Idx The index of the destination sample for which to generate sampler factors.  In the range [0..(_ui32DstLen-1)].
+		 * \return Returns the 8-bit fixed-point sampling factor where the bottom 8 bits are a fraction between sample[X] and sample[X+1] and the remaining upper bits
+		 *	are the X index of the samples between which to interpolate.
+		 */
+		static __forceinline uint32_t						SamplingFactor_Scanline( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
+			uint32_t ui32Factor = (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+			uint32_t ui32Idx = ui32Factor >> 8;
+			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 1) - 0xFF ) ) );
+			return (ui32Idx << 8) | ui32Frac;
+		}
 	};
 
 }	// namespace lsn

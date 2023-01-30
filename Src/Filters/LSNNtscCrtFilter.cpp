@@ -110,29 +110,7 @@ namespace lsn {
 				m_ePhospherGo.Signal();
 			}
 			else {
-				uint32_t ui32Total = m_ui32FinalWidth * m_ui32FinalHeight;
-				if ( (ui32Total & 1) == 0 ) {
-					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total >> 1; I--; ) {
-						//pui32Src[I] = 0;
-						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
-						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +  
-							((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
-							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + 
-							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
-					}
-				}
-				else {
-					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total; I--; ) {
-						//pui32Src[I] = 0;
-						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-							((ui32Tmp >> 2) & 0x3F3F3F) + 
-							((ui32Tmp >> 3) & 0x1F1F1F) + 
-							((ui32Tmp >> 4) & 0x0F0F0F);
-					}
-				}
+				CUtilities::DecayArgb( reinterpret_cast<uint32_t *>(m_vFilteredOutput.data()), m_ui32FinalWidth, m_ui32FinalHeight );
 			}
 		}
 
@@ -149,7 +127,7 @@ namespace lsn {
 			}
 		}
 
-		::crt_draw( &m_nnCrtNtsc, 5 );
+		::crt_draw( &m_nnCrtNtsc, 3 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;
@@ -213,29 +191,7 @@ namespace lsn {
 #endif
 
 
-				uint32_t ui32Total = _pncfFilter->m_ui32FinalWidth * _pncfFilter->m_ui32FinalHeight;
-				if ( (ui32Total & 1) == 0 ) {
-					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(_pncfFilter->m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total >> 1; I--; ) {
-						//pui32Src[I] = 0;
-						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
-						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +
-							/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +*/
-							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +
-							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
-					}
-				}
-				else {
-					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total; I--; ) {
-						//pui32Src[I] = 0;
-						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +
-							/*((ui32Tmp >> 2) & 0x3F3F3F) +*/
-							((ui32Tmp >> 3) & 0x1F1F1F) +
-							((ui32Tmp >> 4) & 0x0F0F0F);
-					}
-				}
+				CUtilities::DecayArgb( reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data()), _pncfFilter->m_ui32FinalWidth, _pncfFilter->m_ui32FinalHeight );
 			}
 			_pncfFilter->m_ePhospherDone.Signal();
 		}

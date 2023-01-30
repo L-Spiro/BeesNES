@@ -164,7 +164,7 @@ init_eq(struct EQF *f,
     } else {
         f->lf = 2 * (sn >> (15 - EQ_P));
     }
-    crt_sincos14(&sn, &cs, T14_PI * f_hi / rate);
+    crt_sincos14_full(&sn, &cs, T14_PI * f_hi / rate);
     if (EQ_P >= 15) {
         f->hf = 2 * (sn << (EQ_P - 15));
     } else {
@@ -278,7 +278,7 @@ crt_demodulate_full(struct CRT *v, int noise)
     int max_e; /* approx maximum energy in a scan line */
 #endif
     
-    crt_sincos14(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
+    crt_sincos14_full(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
     huesn >>= 11; /* make 4-bit */
     huecs >>= 11;
 
@@ -377,7 +377,7 @@ vsync_found:
         ypos = POSMOD(line + v->vsync + ynudge, CRT_VRES);
         pos = xpos + ypos * CRT_HRES;
         
-        ccr = v->ccf[ypos & 3];
+        ccr = v->ccf[ypos % v->cc_period];
         sig = v->inp + ln + (v->hsync & ~3); /* burst @ 1/CB_FREQ sample rate */
         for (i = CB_BEG; i < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); i++) {
             int p, n;

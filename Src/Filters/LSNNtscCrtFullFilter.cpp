@@ -72,12 +72,25 @@ namespace lsn {
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
-		/*m_nnCrtNtsc.brightness = -14;
-		m_nnCrtNtsc.contrast = 172;*/
+		//m_nnCrtNtsc.brightness = -14;
+		//m_nnCrtNtsc.contrast = 125;
+		m_nnCrtNtsc.saturation = 10;
 		m_nnCrtNtsc.blend = 1;
-		m_nnCrtNtsc.scanlines = 1;
+		//m_nnCrtNtsc.scanlines = 1;
+		m_nnCrtNtsc.white_point = 84;
 
 		m_nsSettings.border_color = 0x22;
+
+		/** 
+		* 		hue	0	int
+				brightness	0	int
+				contrast	180	int
+				saturation	10	int
+				black_point	0	int
+				white_point	100	int
+				scanlines	0	int
+				blend	1	int
+		*/
 
 		StopPhospherDecayThread();
 #if defined( LSN_USE_WINDOWS )
@@ -105,34 +118,9 @@ namespace lsn {
 		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
 #endif	// #ifdef LSN_CRT_PERF
 		// Fade the phosphers.
-		{
+		if ( m_nnCrtNtsc.blend ) {
 			if ( m_ptPhospherThread.get() ) {
 				m_ePhospherGo.Signal();
-			}
-			else {
-				uint32_t ui32Total = m_ui32FinalWidth * m_ui32FinalHeight;
-				if ( (ui32Total & 1) == 0 ) {
-					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total >> 1; I--; ) {
-						//pui32Src[I] = 0;
-						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
-						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +  
-							((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) + 
-							((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) + 
-							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
-					}
-				}
-				else {
-					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total; I--; ) {
-						//pui32Src[I] = 0;
-						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +  
-							((ui32Tmp >> 2) & 0x3F3F3F) + 
-							((ui32Tmp >> 3) & 0x1F1F1F) + 
-							((ui32Tmp >> 4) & 0x0F0F0F);
-					}
-				}
 			}
 		}
 
@@ -143,7 +131,7 @@ namespace lsn {
 
 		::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
 
-		{
+		if ( m_nnCrtNtsc.blend ) {
 			if ( m_ptPhospherThread.get() ) {
 				m_ePhospherDone.WaitForSignal();
 			}
@@ -197,8 +185,8 @@ namespace lsn {
 					uint32_t ui32Val = 0;
 					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data() + Y * _pncfFilter->m_ui32FinalStride);
 					for ( uint32_t X = 0; X < _pncfFilter->m_ui32FinalWidth; ++X ) {
-						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +
-							((ui32Val >> 2) & 0x3F3F3F3F) +*/
+						ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/
+							((ui32Val >> 2) & 0x3F3F3F3F) +
 							((ui32Val >> 3) & 0x1F1F1F1F) +
 							((ui32Val >> 6) & 0x03030303) +
 							((ui32Val >> 7) & 0x01010101) +
@@ -211,32 +199,7 @@ namespace lsn {
 					}
 				}
 #endif
-
-				uint32_t ui32Total = _pncfFilter->m_ui32FinalWidth * _pncfFilter->m_ui32FinalHeight;
-				if ( (ui32Total & 1) == 0 ) {
-					uint64_t * pui64Src = reinterpret_cast<uint64_t *>(_pncfFilter->m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total >> 1; I--; ) {
-						//pui64Src[I] = 0;
-#if 1
-						uint64_t ui64Tmp = pui64Src[I] & 0x00FFFFFF00FFFFFFULL;
-						pui64Src[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +
-							/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +*/
-							/*((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +*/
-							((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
-#endif
-					}
-				}
-				else {
-					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data());
-					for ( uint32_t I = ui32Total; I--; ) {
-						//pui32Src[I] = 0;
-						uint32_t ui32Tmp = pui32Src[I] & 0x00FFFFFF;
-						pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +
-							/*((ui32Tmp >> 2) & 0x3F3F3F) +
-							((ui32Tmp >> 3) & 0x1F1F1F) +*/
-							((ui32Tmp >> 4) & 0x0F0F0F);
-					}
-				}
+				CUtilities::DecayArgb( reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data()), _pncfFilter->m_ui32FinalWidth, _pncfFilter->m_ui32FinalHeight );
 			}
 			_pncfFilter->m_ePhospherDone.Signal();
 		}

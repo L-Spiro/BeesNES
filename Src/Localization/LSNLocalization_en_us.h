@@ -46,6 +46,7 @@
 #define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-&CRT Full (LMP88959)
 #define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
+#define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC-CRT Full/PAL &Auto (LMP88959/Blargg)
 // Tools menu.
 
 // Main menu.

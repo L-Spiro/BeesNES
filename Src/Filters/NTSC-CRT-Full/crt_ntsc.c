@@ -172,9 +172,9 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     if (s->as_color) {
         for (x = 0; x < 4; x++) {
             n = s->hue + x * 90;
-            crt_sincos14(&sn, &cs, (n + 33) * 8192 / 180);
+            crt_sincos14_full(&sn, &cs, (n + 33) * 8192 / 180);
             ccburst[x] = sn >> 10;
-            crt_sincos14(&sn, &cs, n * 8192 / 180);
+            crt_sincos14_full(&sn, &cs, n * 8192 / 180);
             ccmod[x] = sn >> 10;
         }
     } else {
@@ -288,5 +288,6 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             v->ccf[n][x] = iccf[x] << 7;
         }
     }
+    v->cc_period = 4;
 }
 #endif

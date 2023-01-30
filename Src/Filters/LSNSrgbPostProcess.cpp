@@ -6,7 +6,7 @@
  * Description: The bilinear post-processing filter.
  */
 
-#include "LSNBiLinearPostProcess.h"
+#include "LSNSrgbPostProcess.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 /*#include "SinCos/EESinCos.h"
@@ -15,12 +15,10 @@
 
 namespace lsn {
 
-	CBiLinearPostProcess::CBiLinearPostProcess() :
-#ifdef LSN_BILINEAR_POST_PERF
-		m_pMonitor( "CBiLinearPostProcess" ),
-#endif	// #ifdef LSN_BILINEAR_POST_PERF
-		m_ui32SourceFactorX( 0 ),
-		m_ui32SourceFactorY( 0 ),
+	CSrgbPostProcess::CSrgbPostProcess() :
+#ifdef LSN_SRGB_POST_PERF
+		m_pMonitor( "CSrgbPostProcess" ),
+#endif	// #ifdef LSN_SRGB_POST_PERF
 		m_bRunThreads( true ) {
 
 #if defined( LSN_USE_WINDOWS )
@@ -28,7 +26,7 @@ namespace lsn {
 		m_ptResizeThread = std::make_unique<std::thread>( ResizeThread, &m_tThreadData );
 #endif	// #if defined( LSN_USE_WINDOWS )
 	}
-	CBiLinearPostProcess::~CBiLinearPostProcess() {
+	CSrgbPostProcess::~CSrgbPostProcess() {
 		StopResizeThread();
 	}
 
@@ -48,7 +46,7 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CBiLinearPostProcess::ApplyFilter( uint8_t * _pui8Input,
+	uint8_t * CSrgbPostProcess::ApplyFilter( uint8_t * _pui8Input,
 		uint32_t _ui32ScreenWidth, uint32_t _ui32ScreenHeight, bool &/*_bFlipped*/,
 		uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/,
 		uint64_t /*_ui64RenderStartCycle*/ ) {
@@ -64,6 +62,7 @@ namespace lsn {
 			m_vFinalBuffer = std::vector<uint8_t>();
 			m_vFinalBuffer.resize( ui32Size );
 		}
+#if 0
 		// A blank bottom row isn't needed because CUtilities::LinearInterpCombineRows_Int() checks for (m_vFactorsY[Y] & 0xFF) being 0 and if so it just copies the
 		//	first input row, making no accesses into the second input row.
 		/*if ( ui32Stride != m_vEndRow.size() ) {
@@ -74,8 +73,7 @@ namespace lsn {
 			m_vFactorsX.resize( _ui32ScreenWidth );
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
 				
-				m_vFactorsX[X] = CUtilities::SamplingFactor_BiLinear( _ui32Width, _ui32ScreenWidth, X );
-					//(((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
+				m_vFactorsX[X] = (((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
 
 				/*double dSin, dCos;
 				uint32_t ui32Idx = m_vFactorsX[X] >> 8;
@@ -94,11 +92,10 @@ namespace lsn {
 			m_vFactorsY = std::vector<uint32_t>();
 			m_vFactorsY.resize( _ui32ScreenHeight );
 			for ( uint32_t Y = _ui32ScreenHeight; Y--; ) {
-				m_vFactorsY[Y] = CUtilities::SamplingFactor_Scanline( _ui32Height, _ui32ScreenHeight, Y );
-					/*(((_ui32Height - 1) * Y) << 8) / (_ui32ScreenHeight - 1);
+				m_vFactorsY[Y] = (((_ui32Height - 1) * Y) << 8) / (_ui32ScreenHeight - 1);
 				uint32_t ui32Idx = m_vFactorsY[Y] >> 8;
 				uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((m_vFactorsY[Y] & 0xFF) << 1) - 0xFF ) ) );
-				m_vFactorsY[Y] = (ui32Idx << 8) | ui32Frac;*/
+				m_vFactorsY[Y] = (ui32Idx << 8) | ui32Frac;
 			}
 			m_ui32SourceFactorY = _ui32Height;
 		}
@@ -107,18 +104,13 @@ namespace lsn {
 			m_vRowTmp = std::vector<uint8_t>();
 			m_vRowTmp.resize( ui32Stride * _ui32Height );
 		}
+#endif	
 
-#ifdef LSN_BILINEAR_POST_PERF
+#ifdef LSN_SRGB_POST_PERF
 		m_pMonitor.Begin();
-#endif	// #ifdef LSN_BILINEAR_POST_PERF
+#endif	// #ifdef LSN_SRGB_POST_PERF
 
 
-		for ( uint32_t Y = 0; Y < _ui32Height; ++Y ) {
-			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_pui8Input + (Y * _ui32Stride));
-			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + (Y * ui32Stride));
-			//_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((Y + 1) * ui32Stride)), _MM_HINT_T0 );
-			CUtilities::LinearInterpolateRow_Int( pui32SrcRow, pui32DstRow, m_vFactorsX.data(), _ui32Width, _ui32ScreenWidth );
-		}
 #if 1
 		m_tThreadData.ui32ScreenHeight = _ui32ScreenHeight;
 		m_tThreadData.ui32ScreenWidth = _ui32ScreenWidth;
@@ -127,6 +119,7 @@ namespace lsn {
 			m_eResizeGo.Signal();
 		}
 
+#if 0
 		uint32_t ui32FinalH = _ui32ScreenHeight >> 1;
 		for ( uint32_t Y = 0; Y < ui32FinalH; ++Y ) {
 			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
@@ -136,27 +129,16 @@ namespace lsn {
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
 			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
 		}
+#endif	// #if 0
 
 		if ( m_ptResizeThread.get() ) {
 			m_eResizeDone.WaitForSignal();
 		}
-#else
-		for ( uint32_t Y = 0; Y < _ui32ScreenHeight; ++Y ) {
-			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
-			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
-			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
-			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
-			/*uint32_t * pui32SrcNextRow = (ui32SrcRow == _ui32Height - 1) ?
-				reinterpret_cast<uint32_t *>(m_vEndRow.data()) :
-				reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));*/
-			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
-			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
-		}
 #endif
 
-#ifdef LSN_BILINEAR_POST_PERF
+#ifdef LSN_SRGB_POST_PERF
 		m_pMonitor.Stop();
-#endif	// #ifdef LSN_BILINEAR_POST_PERF
+#endif	// #ifdef LSN_SRGB_POST_PERF
 		_ui32Width = _ui32ScreenWidth;
 		_ui32Height = _ui32ScreenHeight;
 		_ui32Stride = ui32Stride;
@@ -166,7 +148,7 @@ namespace lsn {
 	/**
 	 * Stops the resizing thread.
 	 */
-	void CBiLinearPostProcess::StopResizeThread() {
+	void CSrgbPostProcess::StopResizeThread() {
 		m_bRunThreads = false;
 		if ( m_ptResizeThread.get() ) {
 			m_eResizeGo.Signal();
@@ -182,18 +164,10 @@ namespace lsn {
 	 *
 	 * \param _pblppFilter Pointer to this object.
 	 */
-	void CBiLinearPostProcess::ResizeThread( LSN_THREAD * _ptThread ) {
+	void CSrgbPostProcess::ResizeThread( LSN_THREAD * _ptThread ) {
 		while ( _ptThread->pblppThis->m_bRunThreads ) {
 			_ptThread->pblppThis->m_eResizeGo.WaitForSignal();
 			if ( _ptThread->pblppThis->m_bRunThreads ) {
-				for ( uint32_t Y = _ptThread->ui32ScreenHeight >> 1; Y < _ptThread->ui32ScreenHeight; ++Y ) {
-					uint32_t ui32SrcRow = _ptThread->pblppThis->m_vFactorsY[Y] >> 8;
-					uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow) * _ptThread->ui32Stride));
-					uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 1) * _ptThread->ui32Stride));
-					_mm_prefetch( reinterpret_cast<const char *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 2) * _ptThread->ui32Stride)), _MM_HINT_T0 );
-					uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vFinalBuffer.data() + (Y * _ptThread->ui32Stride));
-					CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ptThread->ui32ScreenWidth, _ptThread->pblppThis->m_vFactorsY[Y] & 0xFF );
-				}
 			}
 			_ptThread->pblppThis->m_eResizeDone.Signal();
 		}
