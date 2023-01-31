@@ -9,12 +9,13 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Filters/LSNBiLinearPostProcess.h"
+#include "../Filters/LSNBleedPostProcess.h"
 #include "../Filters/LSNNtscBlarggFilter.h"
 #include "../Filters/LSNNtscCrtFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
 #include "../Filters/LSNNtscBisqwitFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
-#include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNRgb24Filter.h"
 #include "../Filters/LSNSrgbPostProcess.h"
 #include "../Options/LSNOptions.h"
@@ -271,6 +272,8 @@ namespace lsn {
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** "NONE" post-processing. */
 		CPostProcessBase						m_ppbNoPostProcessing;
+		/** Bleed post-processing. */
+		CBleedPostProcess						m_bppBleedPostProcessing;
 		/** A bi-linear post-process filter. */
 		CBiLinearPostProcess					m_blppBiLinearPost;
 		/** Linear -> sRGB conversion. */

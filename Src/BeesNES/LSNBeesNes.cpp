@@ -39,8 +39,10 @@ namespace lsn {
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
+		m_pppbPostTable[CPostProcessBase::LSN_PP_BLEED] = &m_bppBleedPostProcessing;
 		m_pppbPostTable[CPostProcessBase::LSN_PP_BILINEAR] = &m_blppBiLinearPost;
 		m_pppbPostTable[CPostProcessBase::LSN_PP_SRGB] = &m_sppLinearTosRGBPost;
+		m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_BLEED );
 		m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_BILINEAR );
 		//m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_SRGB );
 

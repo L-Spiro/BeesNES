@@ -33,6 +33,7 @@ namespace lsn {
 		/** The types of post-processing filters. */
 		enum LSN_POST_PROCESSES {
 			LSN_PP_NONE,									/**< No post-processing. */
+			LSN_PP_BLEED,									/**< Bleed post-processing. */
 			LSN_PP_BILINEAR,								/**< Bilinear scaling. */
 			LSN_PP_SRGB,									/**< linear -> sRGB. */
 

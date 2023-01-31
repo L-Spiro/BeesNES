@@ -516,6 +516,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\File\LSNStdFile.h" />
     <ClInclude Include="Src\File\LSNZipFile.h" />
     <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h" />
+    <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
     <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
@@ -632,6 +633,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\File\LSNStdFile.cpp" />
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp" />
+    <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />

@@ -52,8 +52,12 @@ namespace lsn {
 		uint32_t _ui32ScreenWidth, uint32_t _ui32ScreenHeight, bool &/*_bFlipped*/,
 		uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/,
 		uint64_t /*_ui64RenderStartCycle*/ ) {
+		/*double dRatio = double( _ui32ScreenWidth ) / _ui32ScreenHeight;
+		_ui32ScreenWidth = std::min<uint32_t>( _ui32ScreenWidth, uint32_t( std::round( 256 * 3 * dRatio ) ) );
+		_ui32ScreenHeight = std::min<uint32_t>( _ui32ScreenHeight, 240 * 3 );*/
+
 		uint32_t ui32Stride = CFilterBase::RowStride( _ui32ScreenWidth, 32 );
-		
+
 		if ( _ui32ScreenWidth == _ui32Width && _ui32ScreenHeight == _ui32Height && ui32Stride == _ui32Stride ) {
 			// Pass-through.
 			return _pui8Input;

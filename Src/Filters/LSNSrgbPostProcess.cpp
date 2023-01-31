@@ -3,14 +3,12 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The bilinear post-processing filter.
+ * Description: The linear -> sRGB post-processing filter.
  */
 
 #include "LSNSrgbPostProcess.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
-/*#include "SinCos/EESinCos.h"
-#include <cmath>*/
 
 
 namespace lsn {
