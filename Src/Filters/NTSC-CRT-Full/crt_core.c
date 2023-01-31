@@ -455,20 +455,46 @@ vsync_found:
             r = (((y + 3879 * i + 2556 * q) >> 12) * v->contrast) >> 8;
             g = (((y - 1126 * i - 2605 * q) >> 12) * v->contrast) >> 8;
             b = (((y - 4530 * i + 7021 * q) >> 12) * v->contrast) >> 8;
-          
+
+#define LSN_DECAY_HACK
+
             if (r < 0) r = 0;
             if (g < 0) g = 0;
             if (b < 0) b = 0;
+#ifndef LSN_DECAY_HACK
             if (r > 255) r = 255;
             if (g > 255) g = 255;
             if (b > 255) b = 255;
+#endif
             
             if (v->blend) {
+#ifndef LSN_DECAY_HACK
                 aa = (r << 16 | g << 8 | b);
                 bb = *cL;
                 /* blend with previous color there */
                 *cL++ = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
+#else
+                int sr, sg, sb;
+                
+                bb = *cL;
+
+                sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
+                sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
+                sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);
+                
+                if (sr > 255) sr = 255;
+                if (sg > 255) sg = 255;
+                if (sb > 255) sb = 255;
+                
+                *cL++ = (sr << 16 | sg << 8 | sb);
+
+#endif
             } else {
+#ifdef LSN_DECAY_HACK
+                if (r > 255) r = 255;
+                if (g > 255) g = 255;
+                if (b > 255) b = 255;
+#endif  // #ifdef LSN_DECAY_HACK
                 *cL++ = (r << 16 | g << 8 | b);
             }
         }

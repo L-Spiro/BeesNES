@@ -21,13 +21,26 @@ namespace lsn {
 #endif	// #ifdef LSN_SRGB_POST_PERF
 		m_bRunThreads( true ) {
 
+
+		auto LinearTosRGB = [&]( double _dVal ) {
+			return _dVal <= 0.0031308 ?
+				_dVal * 12.92 :
+				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
+		};
+		for ( auto I = LSN_ELEMENTS( m_ui8Table ); I--; ) {
+			double dFract = LinearTosRGB( double( I ) / (LSN_ELEMENTS( m_ui8Table ) - 1) );
+			m_ui8Table[I] = uint8_t( std::round( dFract * 255.0 ) );
+		}
+
 #if defined( LSN_USE_WINDOWS )
 		m_tThreadData.pblppThis = this;
-		m_ptResizeThread = std::make_unique<std::thread>( ResizeThread, &m_tThreadData );
+		m_tThreadData.pui8Table = m_ui8Table;
+		m_ptResizeThread[0] = std::make_unique<std::thread>( Thread<0>, &m_tThreadData );
+		m_ptResizeThread[1] = std::make_unique<std::thread>( Thread<1>, &m_tThreadData );
 #endif	// #if defined( LSN_USE_WINDOWS )
 	}
 	CSrgbPostProcess::~CSrgbPostProcess() {
-		StopResizeThread();
+		StopThreads();
 	}
 
 
@@ -47,130 +60,95 @@ namespace lsn {
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
 	uint8_t * CSrgbPostProcess::ApplyFilter( uint8_t * _pui8Input,
-		uint32_t _ui32ScreenWidth, uint32_t _ui32ScreenHeight, bool &/*_bFlipped*/,
+		uint32_t /*_ui32ScreenWidth*/, uint32_t /*_ui32ScreenHeight*/, bool &/*_bFlipped*/,
 		uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/,
 		uint64_t /*_ui64RenderStartCycle*/ ) {
-		uint32_t ui32Stride = CFilterBase::RowStride( _ui32ScreenWidth, 32 );
+		uint32_t ui32Stride = CFilterBase::RowStride( _ui32Width, 32 );
 		
-		if ( _ui32ScreenWidth == _ui32Width && _ui32ScreenHeight == _ui32Height && ui32Stride == _ui32Stride ) {
-			// Pass-through.
-			return _pui8Input;
-		}
-
-		uint32_t ui32Size = ui32Stride * _ui32ScreenHeight;
+		uint32_t ui32Size = ui32Stride * _ui32Height;
 		if ( m_vFinalBuffer.size() != ui32Size ) {
 			m_vFinalBuffer = std::vector<uint8_t>();
 			m_vFinalBuffer.resize( ui32Size );
 		}
-#if 0
-		// A blank bottom row isn't needed because CUtilities::LinearInterpCombineRows_Int() checks for (m_vFactorsY[Y] & 0xFF) being 0 and if so it just copies the
-		//	first input row, making no accesses into the second input row.
-		/*if ( ui32Stride != m_vEndRow.size() ) {
-			m_vEndRow.resize( ui32Stride );
-		}*/
-		if ( _ui32ScreenWidth != m_vFactorsX.size() || m_ui32SourceFactorX != _ui32Width ) {
-			m_vFactorsX = std::vector<uint32_t>();
-			m_vFactorsX.resize( _ui32ScreenWidth );
-			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
-				
-				m_vFactorsX[X] = (((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
-
-				/*double dSin, dCos;
-				uint32_t ui32Idx = m_vFactorsX[X] >> 8;
-				::SinCos( (m_vFactorsX[X] & 0xFF) / 256.0 * 1.57079632679489661923, &dSin, &dCos );
-				uint32_t ui32Frac = uint32_t( std::round( dSin / (dSin + dCos) * 256.0 ) );
-				m_vFactorsX[X] = (ui32Idx << 8) | ui32Frac;*/
-
-				/*uint32_t ui32Idx = m_vFactorsX[X] >> 8;
-				uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((m_vFactorsX[X] & 0xFF) << 1) - 0xFF ) ) );
-				m_vFactorsX[X] = (ui32Idx << 8) | ui32Frac;*/
-			}
-			m_ui32SourceFactorX = _ui32Width;
-		}
-
-		if ( _ui32ScreenHeight != m_vFactorsY.size() || m_ui32SourceFactorY != _ui32Height ) {
-			m_vFactorsY = std::vector<uint32_t>();
-			m_vFactorsY.resize( _ui32ScreenHeight );
-			for ( uint32_t Y = _ui32ScreenHeight; Y--; ) {
-				m_vFactorsY[Y] = (((_ui32Height - 1) * Y) << 8) / (_ui32ScreenHeight - 1);
-				uint32_t ui32Idx = m_vFactorsY[Y] >> 8;
-				uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((m_vFactorsY[Y] & 0xFF) << 1) - 0xFF ) ) );
-				m_vFactorsY[Y] = (ui32Idx << 8) | ui32Frac;
-			}
-			m_ui32SourceFactorY = _ui32Height;
-		}
-
-		if ( ui32Stride * _ui32Height != m_vRowTmp.size() ) {
-			m_vRowTmp = std::vector<uint8_t>();
-			m_vRowTmp.resize( ui32Stride * _ui32Height );
-		}
-#endif	
 
 #ifdef LSN_SRGB_POST_PERF
 		m_pMonitor.Begin();
 #endif	// #ifdef LSN_SRGB_POST_PERF
 
 
+		
+
 #if 1
-		m_tThreadData.ui32ScreenHeight = _ui32ScreenHeight;
-		m_tThreadData.ui32ScreenWidth = _ui32ScreenWidth;
+		m_tThreadData.ui32ScreenHeight = _ui32Height;
+		m_tThreadData.ui32ScreenWidth = _ui32Width;
 		m_tThreadData.ui32Stride = ui32Stride;
-		if ( m_ptResizeThread.get() ) {
-			m_eResizeGo.Signal();
+		m_tThreadData.pui8Input = _pui8Input;
+		for ( size_t I = 0; I < 2; ++I ) {
+			if ( m_ptResizeThread[I].get() ) {
+				m_eResizeGo[I].Signal();
+			}
 		}
 
-#if 0
-		uint32_t ui32FinalH = _ui32ScreenHeight >> 1;
-		for ( uint32_t Y = 0; Y < ui32FinalH; ++Y ) {
-			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
-			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
-			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
-			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
-			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
-			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
-		}
-#endif	// #if 0
+		for ( uint32_t Y = 0; Y < _ui32Height; ++Y ) {
+			uint8_t * pui8Src = _pui8Input + Y * ui32Stride;
+			uint8_t * pui8Dst = m_vFinalBuffer.data() + Y * ui32Stride;
+			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
+				pui8Dst[3] = pui8Src[3];
+				/*pui8Dst[0] = m_ui8Table[pui8Src[0]];
+				pui8Dst[1] = m_ui8Table[pui8Src[1]];*/
+				pui8Dst[2] = m_ui8Table[pui8Src[2]];
 
-		if ( m_ptResizeThread.get() ) {
-			m_eResizeDone.WaitForSignal();
+				pui8Src += 4;
+				pui8Dst += 4;
+			}
+		}
+
+
+		for ( size_t I = 0; I < 2; ++I ) {
+			if ( m_ptResizeThread[I].get() ) {
+				m_eResizeDone[I].WaitForSignal();
+			}
+		}
+#else
+		for ( uint32_t Y = 0; Y < _ui32Height; ++Y ) {
+			uint8_t * pui8Src = _pui8Input + Y * ui32Stride;
+			uint8_t * pui8Dst = m_vFinalBuffer.data() + Y * ui32Stride;
+			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
+				pui8Dst[3] = pui8Src[3];
+				pui8Dst[0] = m_ui8Table[pui8Src[0]];
+				pui8Dst[1] = m_ui8Table[pui8Src[1]];
+				pui8Dst[2] = m_ui8Table[pui8Src[2]];
+
+				pui8Src += 4;
+				pui8Dst += 4;
+			}
 		}
 #endif
 
 #ifdef LSN_SRGB_POST_PERF
 		m_pMonitor.Stop();
 #endif	// #ifdef LSN_SRGB_POST_PERF
-		_ui32Width = _ui32ScreenWidth;
-		_ui32Height = _ui32ScreenHeight;
+		/*_ui32Width = _ui32ScreenWidth;
+		_ui32Height = _ui32ScreenHeight;*/
 		_ui32Stride = ui32Stride;
 		return m_vFinalBuffer.data();
 	}
 
 	/**
-	 * Stops the resizing thread.
+	 * Stops the threads.
 	 */
-	void CSrgbPostProcess::StopResizeThread() {
+	void CSrgbPostProcess::StopThreads() {
 		m_bRunThreads = false;
-		if ( m_ptResizeThread.get() ) {
-			m_eResizeGo.Signal();
-			m_eResizeDone.WaitForSignal();
-			m_ptResizeThread->join();
-			m_ptResizeThread.reset();
+		for ( size_t I = 0; I < 2; ++I ) {
+			if ( m_ptResizeThread[I].get() ) {
+				m_eResizeGo[I].Signal();
+				m_eResizeDone[I].WaitForSignal();
+				m_ptResizeThread[I]->join();
+				m_ptResizeThread[I].reset();
+			}
 		}
 		m_bRunThreads = true;
 	}
 
-	/**
-	 * The resizing thread.
-	 *
-	 * \param _pblppFilter Pointer to this object.
-	 */
-	void CSrgbPostProcess::ResizeThread( LSN_THREAD * _ptThread ) {
-		while ( _ptThread->pblppThis->m_bRunThreads ) {
-			_ptThread->pblppThis->m_eResizeGo.WaitForSignal();
-			if ( _ptThread->pblppThis->m_bRunThreads ) {
-			}
-			_ptThread->pblppThis->m_eResizeDone.Signal();
-		}
-	}
 
 }	// namespace lsn

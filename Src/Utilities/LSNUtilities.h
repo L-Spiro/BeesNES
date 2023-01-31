@@ -278,16 +278,16 @@ namespace lsn {
 			uint32_t ui32Total2 = ui32Total >> 1;
 			for ( uint32_t I = 0; I < ui32Total2; ++I ) {
 				uint64_t ui64Tmp = pui64Pixels[I] & 0x00FFFFFF00FFFFFFULL;
-				pui64Pixels[I] = ((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +
-					/*((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +
-					((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +*/
+				pui64Pixels[I] = /*((ui64Tmp >> 1) & 0x007F7F7F007F7F7FULL) +*/
+					((ui64Tmp >> 2) & 0x003F3F3F003F3F3FULL) +
+					((ui64Tmp >> 3) & 0x001F1F1F001F1F1FULL) +
 					((ui64Tmp >> 4) & 0x000F0F0F000F0F0FULL);
 			}
 			for ( uint32_t I = ui32Total2 << 1; I < ui32Total; ++I ) {
 				uint32_t ui32Tmp = _pui32Src[I] & 0x00FFFFFF;
-				_pui32Src[I] = ((ui32Tmp >> 1) & 0x7F7F7F) +
-					/*((ui32Tmp >> 2) & 0x3F3F3F) +
-					((ui32Tmp >> 3) & 0x1F1F1F) +*/
+				_pui32Src[I] = /*((ui32Tmp >> 1) & 0x7F7F7F) +*/
+					((ui32Tmp >> 2) & 0x3F3F3F) +
+					/*((ui32Tmp >> 3) & 0x1F1F1F) +*/
 					((ui32Tmp >> 4) & 0x0F0F0F);
 			}
 		}

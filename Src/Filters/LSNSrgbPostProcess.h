@@ -15,7 +15,7 @@
 #include <thread>
 #include <vector>
 
-//#define LSN_SRGB_POST_PERF
+#define LSN_SRGB_POST_PERF
 #ifdef LSN_SRGB_POST_PERF
 #include "../Utilities/LSNPerformance.h"
 #endif	// #ifdef LSN_SRGB_POST_PERF
@@ -51,7 +51,7 @@ namespace lsn {
 		 * \return Returns a pointer to the filtered output buffer.
 		 */
 		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input,
-			uint32_t _ui32ScreenWidth, uint32_t _ui32ScreenHeight, bool &/*_bFlipped*/,
+			uint32_t /*_ui32ScreenWidth*/, uint32_t /*_ui32ScreenHeight*/, bool &/*_bFlipped*/,
 			uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/,
 			uint64_t /*_ui64RenderStartCycle*/ );
 
@@ -61,6 +61,8 @@ namespace lsn {
 		/** Thread parameters */
 		struct LSN_THREAD {
 			CSrgbPostProcess *								pblppThis;
+			uint8_t *										pui8Table;
+			uint8_t *										pui8Input;
 			uint32_t										ui32ScreenWidth;
 			uint32_t										ui32ScreenHeight;
 			uint32_t										ui32Stride;
@@ -68,15 +70,17 @@ namespace lsn {
 
 		// == Members.
 		/** The resizing thread. */
-		std::unique_ptr<std::thread>						m_ptResizeThread;
+		std::unique_ptr<std::thread>						m_ptResizeThread[2];
 		/** The signal for the phospher-decay thread to go. */
-		CEvent												m_eResizeGo;
+		CEvent												m_eResizeGo[2];
 		/** The signal that the phospher-decay thread has finished. */
-		CEvent												m_eResizeDone;
+		CEvent												m_eResizeDone[2];
 		/** Boolean to stop all threads. */
 		std::atomic<bool>									m_bRunThreads;
 		/** Thread data. */
 		LSN_THREAD											m_tThreadData;
+		/** The sRGB table. */
+		uint8_t												m_ui8Table[256];
 
 #ifdef LSN_SRGB_POST_PERF
 		/** The performance monitor. */
@@ -86,16 +90,40 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Stops the resizing thread.
+		 * Stops the threads.
 		 */
-		void												StopResizeThread();
+		void												StopThreads();
 
 		/**
-		 * The resizing thread.
+		 * The R thread.
 		 *
 		 * \param _pblppFilter Pointer to this object.
 		 */
-		static void											ResizeThread( LSN_THREAD * _ptThread );
+		template<unsigned _uIdx>
+		static void											Thread( LSN_THREAD * _ptThread ) {
+			while ( _ptThread->pblppThis->m_bRunThreads ) {
+				_ptThread->pblppThis->m_eResizeGo[_uIdx].WaitForSignal();
+				if ( _ptThread->pblppThis->m_bRunThreads ) {
+					uint32_t ui32Stride = _ptThread->ui32Stride;
+					uint32_t ui32Height = _ptThread->ui32ScreenHeight;
+					uint32_t ui32Width = _ptThread->ui32ScreenWidth;
+					uint8_t * pui8Data = _ptThread->pblppThis->m_vFinalBuffer.data();
+					uint8_t * pui8Input = _ptThread->pui8Input;
+					uint8_t * pui8Table = _ptThread->pui8Table;
+					for ( uint32_t Y = 0; Y < ui32Height; ++Y ) {
+						uint8_t * pui8Src = pui8Input + Y * ui32Stride;
+						uint8_t * pui8Dst = pui8Data + Y * ui32Stride;
+						for ( uint32_t X = 0; X < ui32Width; ++X ) {
+							pui8Dst[_uIdx] = pui8Table[pui8Src[_uIdx]];
+
+							pui8Src += 4;
+							pui8Dst += 4;
+						}
+					}
+				}
+				_ptThread->pblppThis->m_eResizeDone[_uIdx].Signal();
+			}
+		}
 	};
 
 }	// namespace lsn

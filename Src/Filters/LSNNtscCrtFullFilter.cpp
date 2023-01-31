@@ -72,12 +72,17 @@ namespace lsn {
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
-		//m_nnCrtNtsc.brightness = -14;
-		//m_nnCrtNtsc.contrast = 125;
-		m_nnCrtNtsc.saturation = 10;
+		/*m_nnCrtNtsc.brightness = -14;
+		m_nnCrtNtsc.contrast = 125;
+		m_nnCrtNtsc.saturation = 9;
 		m_nnCrtNtsc.blend = 1;
 		//m_nnCrtNtsc.scanlines = 1;
-		m_nnCrtNtsc.white_point = 84;
+		m_nnCrtNtsc.white_point = 80;*/
+		m_nnCrtNtsc.brightness = 0;
+		m_nnCrtNtsc.contrast = 150;
+		m_nnCrtNtsc.saturation = 12;
+		m_nnCrtNtsc.white_point = 80;
+		m_nnCrtNtsc.blend = 1;
 
 		m_nsSettings.border_color = 0x22;
 
@@ -137,7 +142,7 @@ namespace lsn {
 			}
 		}
 
-		::crt_demodulate_full( &m_nnCrtNtsc, 3 );
+		::crt_demodulate_full( &m_nnCrtNtsc, 4 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;
@@ -180,7 +185,7 @@ namespace lsn {
 			_pncfFilter->m_ePhospherGo.WaitForSignal();
 			if ( _pncfFilter->m_bRunThreads ) {
 				// Apply smear.
-#if 1
+#if 0
 				for ( auto Y = _pncfFilter->m_ui32FinalHeight; Y--; ) {
 					uint32_t ui32Val = 0;
 					uint32_t * pui32Src = reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data() + Y * _pncfFilter->m_ui32FinalStride);
@@ -199,7 +204,9 @@ namespace lsn {
 					}
 				}
 #endif
+#if 0
 				CUtilities::DecayArgb( reinterpret_cast<uint32_t *>(_pncfFilter->m_vFilteredOutput.data()), _pncfFilter->m_ui32FinalWidth, _pncfFilter->m_ui32FinalHeight );
+#endif
 			}
 			_pncfFilter->m_ePhospherDone.Signal();
 		}

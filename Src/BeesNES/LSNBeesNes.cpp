@@ -17,7 +17,7 @@ namespace lsn {
 		m_dRatio( 4.0 / 3.0 ),
 		m_dRatioActual( 4.0 / 3.0 ),
 		m_fFilter( CFilterBase::LSN_F_AUTO_CRT_FULL ),
-		m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
+		//m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ) {
@@ -40,6 +40,10 @@ namespace lsn {
 
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
 		m_pppbPostTable[CPostProcessBase::LSN_PP_BILINEAR] = &m_blppBiLinearPost;
+		m_pppbPostTable[CPostProcessBase::LSN_PP_SRGB] = &m_sppLinearTosRGBPost;
+		m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_BILINEAR );
+		//m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_SRGB );
+
 
 		m_psbSystems[LSN_PM_NTSC] = &m_nsNtscSystem;
 		m_psbSystems[LSN_PM_PAL] = &m_nsPalSystem;
@@ -136,10 +140,12 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 				m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 
-			m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_ppPostProcess]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
-				_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
-				m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-				m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+			for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+					_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+			}
 		}
 	}
 

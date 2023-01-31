@@ -16,6 +16,7 @@
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNRgb24Filter.h"
+#include "../Filters/LSNSrgbPostProcess.h"
 #include "../Options/LSNOptions.h"
 #include "../System/LSNSystem.h"
 #include "../Utilities/LSNStream.h"
@@ -272,6 +273,8 @@ namespace lsn {
 		CPostProcessBase						m_ppbNoPostProcessing;
 		/** A bi-linear post-process filter. */
 		CBiLinearPostProcess					m_blppBiLinearPost;
+		/** Linear -> sRGB conversion. */
+		CSrgbPostProcess						m_sppLinearTosRGBPost;
 		/** A post-processing table. */
 		CPostProcessBase *						m_pppbPostTable[CPostProcessBase::LSN_PP_TOTAL];
 		/** The display host. */
@@ -295,7 +298,9 @@ namespace lsn {
 		/** The current filter ID. */
 		CFilterBase::LSN_FILTERS				m_fFilter;
 		/** The current post-processing filter. */
-		CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
+		//CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
+		std::vector<CPostProcessBase::LSN_POST_PROCESSES>
+												m_vPostProcesses;
 		/** Rapid-fire buttons. */
 		uint8_t									m_ui8RapidFires[8];
 		/** The emulation options. */
