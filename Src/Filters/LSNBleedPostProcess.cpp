@@ -62,16 +62,20 @@ namespace lsn {
 
 
 #define LSN_BLEED	ui32Val = /*((ui32Val >> 1) & 0x7F7F7F7F) +*/			\
-						/*((ui32Val >> 2) & 0x3F3F3F3F) +*/					\
-						((ui32Val >> 3) & 0x1F1F1F1F) +						\
-						((ui32Val >> 6) & 0x03030303) +						\
-						((ui32Val >> 6) & 0x03030303) +						\
-						((ui32Val >> 7) & 0x01010101) +						\
+						((ui32Val >> 2) & 0x3F3F3F3F) /*+*/						\
+						/*((ui32Val >> 3) & 0x1F1F1F1F) +*/						\
+						/*((ui32Val >> 6) & 0x03030303) +*/						\
+						/*((ui32Val >> 6) & 0x03030303) +*/						\
+						/*((ui32Val >> 7) & 0x01010101) +*/						\
+						/*((ui32Val >> 7) & 0x01010101) +*/						\
+						/*((ui32Val >> 4) & 0x0F0F0F0F) +*/						\
+						/*((ui32Val >> 4) & 0x0F0F0F0F) +*/						\
+						/*((ui32Val >> 5) & 0x07070707) +*/						\
 																			\
-						((ui32Val >> 4) & 0x0F0F0F0F) +						\
-						((ui32Val >> 5) & 0x07070707) +						\
-						((ui32Val >> 6) & 0x03030303) +						\
-						((ui32Val >> 7) & 0x01010101)
+						/*((ui32Val >> 4) & 0x0F0F0F0F) +*/						\
+						/*((ui32Val >> 5) & 0x07070707) +*/						\
+						/*((ui32Val >> 6) & 0x03030303) +*/						\
+						/*((ui32Val >> 7) & 0x01010101)*/
 
 #if 1
 		m_tThreadData.ui32ScreenHeight = _ui32Height;
@@ -83,7 +87,6 @@ namespace lsn {
 				m_eResizeGo.Signal();
 			}
 		}
-
 		uint32_t ui32H = _ui32Height >> 1;
 		for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
 			uint32_t ui32Val = 0;
@@ -91,7 +94,9 @@ namespace lsn {
 			uint32_t * pui32Dst = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + Y * ui32Stride);
 			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
 				LSN_BLEED;
-				ui32Val = pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+				pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+				ui32Val = CUtilities::AddArgb( CUtilities::ShiftArgbRight_Int<1>( pui32Src[X] ), ui32Val );
+				//pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
 			}
 		}
 
@@ -108,7 +113,9 @@ namespace lsn {
 			uint32_t * pui32Dst = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + Y * ui32Stride);
 			for ( uint32_t X = 0; X < _ui32Width; ++X ) {
 				LSN_BLEED;
-				ui32Val = pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+				pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+				ui32Val = CUtilities::AddArgb( CUtilities::ShiftArgbRight_Int<1>( pui32Src[X] ), ui32Val );
+				//pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
 			}
 		}
 #endif
@@ -116,8 +123,6 @@ namespace lsn {
 #ifdef LSN_SRGB_POST_PERF
 		m_pMonitor.Stop();
 #endif	// #ifdef LSN_SRGB_POST_PERF
-		/*_ui32Width = _ui32ScreenWidth;
-		_ui32Height = _ui32ScreenHeight;*/
 		_ui32Stride = ui32Stride;
 		return m_vFinalBuffer.data();
 	}
@@ -156,7 +161,9 @@ namespace lsn {
 					uint32_t * pui32Dst = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vFinalBuffer.data() + Y * ui32Stride);
 					for ( uint32_t X = 0; X < ui32W; ++X ) {
 						LSN_BLEED;
-						ui32Val = pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+						pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
+						ui32Val = CUtilities::AddArgb( CUtilities::ShiftArgbRight_Int<1>( pui32Src[X] ), ui32Val );
+						//pui32Dst[X] = CUtilities::AddArgb( pui32Src[X], ui32Val );
 					}
 				}
 			}
@@ -164,5 +171,6 @@ namespace lsn {
 		}
 	}
 
+#undef LSN_BLEED
 
 }	// namespace lsn

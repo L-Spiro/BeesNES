@@ -564,6 +564,9 @@
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNDelayedValue.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

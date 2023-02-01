@@ -246,23 +246,62 @@ namespace lsn {
 			uint32_t ui32Rb0 = _ui32Color0 & 0x00FF00FF;
 			uint64_t ui64Ag1 = (_ui32Color1 & 0xFF00FF00ULL) + ui32Ag0;
 			uint32_t ui32Rb1 = (_ui32Color1 & 0x00FF00FF) + ui32Rb0;
-#if 0
-			uint32_t ui32AgOver = uint32_t( (ui64Ag1 & 0x100010000ULL) >> 1 );
-			ui32AgOver = ui32AgOver | (ui32AgOver >> 1);
-			ui32AgOver = ui32AgOver | (ui32AgOver >> 2);
-			ui32AgOver = ui32AgOver | (ui32AgOver >> 4);
-
-			uint32_t ui32RbOver = ui32Rb1 & 0x01000100;
-			ui32RbOver = ui32RbOver | (ui32RbOver >> 1);
-			ui32RbOver = ui32RbOver | (ui32RbOver >> 2);
-			ui32RbOver = ui32RbOver | (ui32RbOver >> 4);
-			ui32RbOver = ui32RbOver >> 1;
-#else
 			uint32_t ui32AgOver = uint32_t( ((ui64Ag1 & 0x100010000ULL) * 0xFF) >> 8 );
 			uint32_t ui32RbOver = ((ui32Rb1 & 0x01000100) * 0xFF) >> 8;
-#endif
-
 			return (uint32_t( ui64Ag1 | ui32AgOver ) & 0xFF00FF00) | ((ui32Rb1 | ui32RbOver) & 0x00FF00FF);
+		}
+
+		/**
+		 * Gets a mask for shifting a 32-bit RGBA value right by a given number of bits.
+		 *
+		 * \return Returns a mask for shifting a 32-bit RGBA value right by a given number of bits.
+		 */
+		template <size_t _stShift>
+		static constexpr uint32_t							ArgbShiftMask_Int() {
+			return 0xFFFFFFFF & ~(((0x01010101 << _stShift) - 0x01010101));
+		}
+
+		/**
+		 * Gets a mask for shifting a 64-bit RGBARGBA value right by a given number of bits.
+		 *
+		 * \return Returns a mask for shifting a 64-bit RGBARGBA value right by a given number of bits.
+		 */
+		template <size_t _stShift>
+		static constexpr uint64_t							ArgbShiftMask_Int64() {
+			return 0xFFFFFFFFFFFFFFFFULL & ~((0x0101010101010101ULL << _stShift) - 0x0101010101010101ULL);
+		}
+
+		/**
+		 * Shifts a 32-bit RGBA value right a given number of places.
+		 *
+		 * \param _ui32Val The value to shift.
+		 * \return Returns the shifted RGBA value such that each component is clamped to 0 after the shift.
+		 */
+		template <size_t _stShift>
+		static __forceinline uint32_t						ShiftArgbRight_Int( uint32_t _ui32Val ) {
+			return (_ui32Val & ArgbShiftMask_Int<_stShift>()) >> _stShift;
+		}
+
+		/**
+		 * Shifts a 64-bit RGBA value right a given number of places.
+		 *
+		 * \param _ui64Val The value to shift.
+		 * \return Returns the shifted RGBA value such that each component is clamped to 0 after the shift.
+		 */
+		template <size_t _stShift>
+		static __forceinline uint64_t						ShiftArgbRight_Int64( uint64_t _ui64Val ) {
+			return (_ui64Val & ArgbShiftMask_Int64<_stShift>()) >> _stShift;
+		}
+
+		/**
+		 * Divides a 32-bit RGBA value by a constant
+		 *
+		 * \param _ui32Color The value to divide.
+		 * \return Returns the RGBA value with each component divided by the given value.
+		 */
+		template <uint8_t _ui8Div>
+		static __forceinline uint32_t						DivArgb_Int( uint32_t _ui32Color ) {
+			return 0;
 		}
 
 		/**
