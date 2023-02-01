@@ -9,6 +9,7 @@
 #include "LSNSrgbPostProcess.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
+#include <cmath>
 
 
 namespace lsn {
