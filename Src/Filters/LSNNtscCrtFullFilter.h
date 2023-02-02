@@ -19,6 +19,15 @@
 #include "../Time/LSNClock.h"
 #endif	// #ifdef LSN_CRT_PERF
 
+/*line 117
+crt_nes
+then line 125 
+        xo = (y + s->dot_crawl_offset) * 180;
+(change from * 120 to * 180)
+then everywhere you see % 3, change it to % 2
+and change the cc_period to 2
+*/
+
 namespace lsn {
 
 	/**

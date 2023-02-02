@@ -42,6 +42,7 @@
 #define LSN_VIDEO_FILTER_NONE												&None
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)
 #define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
+#define LSN_VIDEO_FILTER_NTSC_BISQWIT										NTSC (Bis&qwit)
 #define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
 #define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-&CRT Full (LMP88959)

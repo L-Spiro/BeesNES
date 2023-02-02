@@ -336,6 +336,10 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_BLARGG );
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BISQWIT : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BISQWIT );
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT );
 				break;
@@ -749,6 +753,11 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BISQWIT : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BISQWIT ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
