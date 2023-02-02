@@ -8,6 +8,8 @@
 
 #include "LSNNtscBisqwitFilter.h"
 #include "../Utilities/LSNUtilities.h"
+#include <algorithm>
+#include <cmath>
 
 
 namespace lsn {
