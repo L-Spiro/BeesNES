@@ -17,6 +17,7 @@
 #include "../Palette/LSNPalette.h"
 #include "../System/LSNNmiable.h"
 #include "../System/LSNTickable.h"
+#include "../Utilities/LSNDelayedValue.h"
 
 #include <cmath>
 #include <intrin.h>
@@ -68,6 +69,7 @@ namespace lsn {
 			m_ui8OamAddr( 0 ),
 			m_ui8OamLatch( 0 ),
 			m_ui8Oam2ClearIdx( 0 ),
+			//m_dvPpuMaskDelay( m_pcMaskDelay ),
 			m_bAddresLatch( false ) {
 
 #ifdef LSN_INT_OAM_DECAY
@@ -153,6 +155,10 @@ namespace lsn {
 			m_bRendering = Rendering();
 			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
 			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
+			/*m_dvPpuMaskDelay.Tick();
+			if ( m_bShowBg != !!m_pcMaskDelay.s.ui8ShowBackground || m_bShowSprites != !!m_pcMaskDelay.s.ui8ShowSprites ) {
+				::OutputDebugStringA( "DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!!\r\n" );
+			}*/
 			++m_ui64Cycle;
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
@@ -178,12 +184,14 @@ namespace lsn {
 		 */
 		void											ResetAnalog() {
 			m_pcPpuCtrl.ui8Reg = 0;
+			
 
 			m_pmPpuMask.ui8Reg = 0;
 
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			m_psPpuStatus.s.ui8VBlank = 0;
+			
 			m_pnNmiTarget->ClearNmi();
 
 			m_bAddresLatch = false;
@@ -200,6 +208,7 @@ namespace lsn {
 			m_bRendering = Rendering();
 			m_bShowBg = !!m_pmPpuMask.s.ui8ShowBackground;
 			m_bShowSprites = !!m_pmPpuMask.s.ui8ShowSprites;
+			//m_dvPpuMaskDelay.SetValue( m_pmPpuMask );
 
 			m_bSuppressNmi = false;
 		}
@@ -712,6 +721,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			ppPpu->m_ui8IoBusLatch = ppPpu->m_pmPpuMask.ui8Reg = _ui8Val;
+			//ppPpu->m_dvPpuMaskDelay.WriteWithDelay( ppPpu->m_pmPpuMask );
 			/*char szBuffer[256];
 			std::sprintf( szBuffer, "Write2001: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
 			::OutputDebugStringA( szBuffer );*/
@@ -1117,6 +1127,8 @@ namespace lsn {
 		LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
+		/*CDelayedValue<LSN_PPUMASK, 1>					m_dvPpuMaskDelay;
+		LSN_PPUMASK										m_pcMaskDelay;*/
 #ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
 #endif	// #ifndef LSN_INT_OAM_DECAY

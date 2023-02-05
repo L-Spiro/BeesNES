@@ -605,9 +605,6 @@
     <ClCompile Include="Src\System\LSNSystem.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Ppu\LSNPpu2C0X.cpp">
-      <Filter>Source Files\Ppu</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Apu\LSNApu2A0X.cpp">
       <Filter>Source Files\Apu</Filter>
     </ClCompile>
