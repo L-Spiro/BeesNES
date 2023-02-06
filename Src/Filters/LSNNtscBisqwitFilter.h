@@ -152,6 +152,15 @@ namespace lsn {
 		int8_t												m_i8SigLow[0x40];
 		int8_t												m_i8SigHi[0x40];
 
+		/* PAL:
+		 *	const  float   phasex  = (float) 5/18*2;
+		 *	const  float   phasey  = (float) 1/ 6*2;
+		 *	const  float   pi      = 3.14f;
+		 *
+		 *	float alpha = (x*phasex + y*phasey)*pi;          // 2*pi*freq*t
+		 *	if (y%2 == 0) alpha = -alpha;                    // phase alternating line!
+		 *	moire[x+y*18] = Y + U*sin(alpha) + V*cos(alpha); // modulated composite signal */
+
 
 #ifdef LSN_BISQWIT_PERF
 		/** The performance monitor. */
