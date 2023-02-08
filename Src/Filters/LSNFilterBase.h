@@ -37,6 +37,7 @@ namespace lsn {
 			LSN_F_NTSC_BISQWIT,								/**< Bisqwit's NTSC filter. */
 			LSN_F_NTSC_CRT,									/**< EMMIR (LMP88959)'s NTSC-CRT filter. */
 			LSN_F_NTSC_CRT_FULL,							/**< EMMIR (LMP88959)'s NTSC-CRT (full) filter. */
+			LSN_F_PAL_CRT_FULL,								/**< EMMIR (LMP88959)'s PAL-CRT (full) filter. */
 			LSN_F_AUTO_BLARGG,								/**< Either NTSC or PAL Blargg. */
 			LSN_F_AUTO_CRT,									/**< NTSC-CRT for NTSC, Blargg PAL for PAL and Dendy. */
 			LSN_F_AUTO_CRT_FULL,							/**< NTSC-CRT (full) for NTSC, Blargg PAL for PAL and Dendy. */

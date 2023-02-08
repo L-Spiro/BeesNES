@@ -523,6 +523,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalBlarggFilter.h" />
+    <ClInclude Include="Src\Filters\LSNPalCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNPostProcessBase.h" />
     <ClInclude Include="Src\Filters\LSNRgb24Filter.h" />
     <ClInclude Include="Src\Filters\LSNSrgbPostProcess.h" />
@@ -641,6 +642,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNNtscCrtFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNPalCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\LSNSrgbPostProcess.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
