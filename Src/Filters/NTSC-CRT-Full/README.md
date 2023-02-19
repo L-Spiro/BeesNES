@@ -133,7 +133,7 @@ static int hue = 0;
 In your initialization function:
 ```c
 /* pass it the buffer to be drawn on screen */
-crt_init(&crt, screen_width, screen_height, screen_buffer);
+crt_init(&crt, screen_width, screen_height, CRT_PIX_FORMAT_RGBA, screen_buffer);
 /* specify some settings */
 crt.blend = 1;
 crt.scanlines = 1;
@@ -142,7 +142,8 @@ crt.scanlines = 1;
 
 In your drawing loop:
 ```c
-ntsc.rgb = video_buffer; /* buffer from your rendering */
+ntsc.data = video_buffer; /* buffer from your rendering */
+ntsc.format = CRT_PIX_FORMAT_RGBA;
 ntsc.w = video_width;
 ntsc.h = video_height;
 ntsc.as_color = color;
@@ -156,12 +157,15 @@ crt_modulate(&crt, &ntsc);
 crt_demodulate(&crt, noise);
 field ^= 1;
 ```
-
+------
 ### Other Information
 Web version by @binji (might not be up to date):  
 https://binji.github.io/NTSC-CRT/  
 To use the web version, drag a PPM image into the web browser.
+#### Related projects (by other developers)
+https://github.com/svofski/CRT - PAL/SECAM modem in Python/GLSL by @svofski
 
+------
 If you have any questions feel free to leave a comment on YouTube OR
 join the King's Crook Discord server :)
 

@@ -71,7 +71,7 @@ namespace lsn {
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
-		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, reinterpret_cast<int *>(m_vFilteredOutput.data()) );
+		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, CRT_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
 		/*m_nnCrtNtsc.brightness = -14;
 		m_nnCrtNtsc.contrast = 125;
 		m_nnCrtNtsc.saturation = 9;

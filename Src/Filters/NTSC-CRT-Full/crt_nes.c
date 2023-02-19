@@ -61,6 +61,12 @@ square_sample(int p, int phase)
 }
 
 #define NES_OPTIMIZED 1
+/* toggle drawing of NES border
+ * (normally not in visible region, but it depends on your emulator)
+ * highly recommended to keep disabled for better performance if the border
+ * is not visible in your emulator.
+ */
+#define NES_BORDER    0
 
 /* the optimized version is NOT the most optimized version, it just performs
  * some simple refactoring to prevent a few redundant computations
@@ -100,7 +106,6 @@ setup_field(struct CRT *v)
 extern void
 crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
 {
-    static int init = 0;
     int x, y, xo, yo;
     int destw = AV_LEN;
     int desth = CRT_LINES;
@@ -109,10 +114,10 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     int ccburst[3][4]; /* color phase for burst */
     int sn, cs;
     static int phasetab[4] = { 0, 4, 8 };
-    
-    if (!init) {
+        
+    if (!s->field_initialized) {
         setup_field(v);
-        init = 1;
+        s->field_initialized = 1;
     }
 
     for (y = 0; y < 3; y++) {
@@ -129,6 +134,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     /* align signal */
     xo = (xo & ~3);
     
+#if NES_BORDER
     for (n = CRT_TOP; n <= (CRT_BOT + 2); n++) {
         int t; /* time */
         signed char *line = &v->analog[n * CRT_HRES];
@@ -137,7 +143,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
  
         phase = phasetab[(n + s->dot_crawl_offset) % 3] + 6;
         t = LAV_BEG;
-        /*while (t < CRT_HRES) {
+        while (t < CRT_HRES) {
             int ire, p;
             p = s->border_color;
             if (t == LAV_BEG) p = 0xf0;
@@ -149,9 +155,9 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             ire = (ire * v->white_point / 100) >> 12;
             line[t++] = ire;
             phase += 3;
-        }*/
+        }
     }
-
+#endif
     for (y = 0; y < desth; y++) {
         signed char *line;  
         int t, cb;
@@ -187,7 +193,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     }
     
     for (x = 0; x < 4; x++) {
-        for (n = 0; n < 4; n++) {
+        for (n = 0; n < 3; n++) {
             v->ccf[n][x] = iccf[n][x & 3] << 7;
         }
     }
@@ -245,6 +251,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
                 iccf[n % 3][t & 3] = line[t];
             }
             while (t < LAV_BEG) line[t++] = BLANK_LEVEL;
+#if NES_BORDER
             if (n >= CRT_TOP && n <= (CRT_BOT + 2)) {
                 phase = phasetab[(n + s->dot_crawl_offset) % 3] + 6;
                 while (t < CRT_HRES) {
@@ -261,8 +268,11 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
                     phase += 3;
                 }
             } else {
+#endif
                 while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
+#if NES_BORDER
             }
+#endif
         }
     }
 

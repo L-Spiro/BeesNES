@@ -102,13 +102,18 @@ extern "C" {
 #endif
 
 struct NTSC_SETTINGS {
-    const int *rgb; /* 32-bit RGB image data (packed as 0xXXRRGGBB) */
+    const unsigned char *data; /* image data */
+    int format;     /* pix format (one of the CRT_PIX_FORMATs in crt_core.h) */
     int w, h;       /* width and height of image */
     int raw;        /* 0 = scale image to fit monitor, 1 = don't scale */
     int as_color;   /* 0 = monochrome, 1 = full color */
     int field;      /* 0 = even, 1 = odd */
     int frame;      /* 0 = even, 1 = odd */
     int hue;        /* 0-359 */
+    int xoffset;    /* x offset in sample space. 0 is minimum value */
+    int yoffset;    /* y offset in # of lines. 0 is minimum value */
+    /* make sure your NTSC_SETTINGS struct is zeroed out before you do anything */
+    int iirs_initialized; /* internal state */
 };
 
 #ifdef __cplusplus
