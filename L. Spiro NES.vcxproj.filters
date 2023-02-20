@@ -208,6 +208,12 @@
     <Filter Include="Source Files\Options">
       <UniqueIdentifier>{24bcd07a-b288-45a0-ad04-32aca4bd6927}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Filters\PAL-CRT-Full">
+      <UniqueIdentifier>{6809e454-d23d-4ec1-9886-906f8eb412b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Filters\PAL-CRT-Full">
+      <UniqueIdentifier>{52e65cb8-c92c-4c20-af57-4f20bac8da9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -570,6 +576,15 @@
     <ClInclude Include="Src\Filters\LSNPalCrtFullFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_nes.h">
+      <Filter>Header Files\Filters\PAL-CRT-Full</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\PAL-CRT-Full\pal.h">
+      <Filter>Header Files\Filters\PAL-CRT-Full</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_core.h">
+      <Filter>Header Files\Filters\PAL-CRT-Full</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -739,6 +754,15 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNPalCrtFullFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal.c">
+      <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.c">
+      <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c">
+      <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

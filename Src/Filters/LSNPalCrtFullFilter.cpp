@@ -8,24 +8,22 @@
 
 #include "LSNPalCrtFullFilter.h"
 #include "../Utilities/LSNUtilities.h"
-#include "NTSC-CRT-Full/crt_core.h"
+#include "PAL-CRT-Full/pal_core.h"
 #include <Helpers/LSWHelpers.h>
 
-#define m_nsSettings				(*reinterpret_cast<NTSC_SETTINGS *>(m_vSettings.data()))
-#define m_nnCrtNtsc					(*reinterpret_cast<CRT *>(m_vCrtNtsc.data()))
+#define m_nsSettings				(*reinterpret_cast<PAL_SETTINGS *>(m_vSettings.data()))
+#define m_nnCrtNtsc					(*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()))
 
 namespace lsn {
 
 	CPalCrtFullFilter::CPalCrtFullFilter() :
 		m_ui32FinalStride( 0 ),
-		m_ui32FinalWidth( CRT_HRES ),
+		m_ui32FinalWidth( PAL_HRES ),
 		m_ui32FinalHeight( 0 ),
 		m_bRunThreads( true ) {
-		int iPhases[4] = { 0, 16, 0, -16 };
-		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 
-		m_vSettings.resize( sizeof( NTSC_SETTINGS ) );
-		m_vCrtNtsc.resize( sizeof( CRT ) );
+		m_vSettings.resize( sizeof( PAL_SETTINGS ) );
+		m_vCrtNtsc.resize( sizeof( PAL_CRT ) );
 
 #ifdef LSN_CRT_PERF
 		m_ui32Calls = 0;
@@ -66,25 +64,31 @@ namespace lsn {
 		}
 
 		constexpr uint32_t ui32Scale = 1;
-		m_ui32FinalWidth = CRT_HRES * ui32Scale;
+		m_ui32FinalWidth = PAL_HRES * ui32Scale;
 		m_ui32FinalHeight = _ui16Height * ui32Scale;
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
-		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, CRT_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
+		::pal_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, PAL_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
+		PAL_CRT psSetts = (*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()));
 		/*m_nnCrtNtsc.brightness = -14;
 		m_nnCrtNtsc.contrast = 125;
 		m_nnCrtNtsc.saturation = 9;
 		m_nnCrtNtsc.blend = 1;
 		//m_nnCrtNtsc.scanlines = 1;
 		m_nnCrtNtsc.white_point = 80;*/
-		m_nnCrtNtsc.brightness = 0;
-		m_nnCrtNtsc.contrast = 150;
 		m_nnCrtNtsc.saturation = 12;
 		m_nnCrtNtsc.white_point = 80;
+		/*m_nnCrtNtsc.brightness = 0;
+		m_nnCrtNtsc.contrast = 150;
+		m_nnCrtNtsc.saturation = 12;
+		m_nnCrtNtsc.white_point = 80;*/
 		m_nnCrtNtsc.blend = 1;
 
-		m_nsSettings.border_color = 0x22;
+		m_nnCrtNtsc.chroma_correction = 1;
+		m_nsSettings.yoffset = 7;
+		//m_nsSettings.hue = 15;
+		
 
 		/** 
 		* 		hue	0	int
@@ -118,7 +122,7 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CPalCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
+	uint8_t * CPalCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/ ) {
 #ifdef LSN_CRT_PERF
 		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
 #endif	// #ifdef LSN_CRT_PERF
@@ -132,9 +136,9 @@ namespace lsn {
 		m_nsSettings.data = reinterpret_cast<unsigned short *>(_pui8Input);
 		m_nsSettings.w = int( m_ui32OutputWidth );
 		m_nsSettings.h = int( m_ui32OutputHeight );
-		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
+		
 
-		::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
+		::pal_modulate( &m_nnCrtNtsc, &m_nsSettings );
 
 		if ( m_nnCrtNtsc.blend ) {
 			if ( m_ptPhospherThread.get() ) {
@@ -142,7 +146,7 @@ namespace lsn {
 			}
 		}
 
-		::crt_demodulate_full( &m_nnCrtNtsc, 4 );
+		::pal_demodulate( &m_nnCrtNtsc, 4 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;
