@@ -25,6 +25,12 @@ namespace lsn {
 			// ========
 			// REGIONS
 			// ========
+			// 240pee
+			{ .ui32Crc = 0x6599113A, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },
+
+
 			// 3 in 1 Supergun (Asia) (Unl)
 			{ .ui32Crc = 0x789270E0, .pmRegion = LSN_PM_PAL },
 			// 3-in-1 (E) [!]

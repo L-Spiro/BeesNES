@@ -87,7 +87,7 @@ namespace lsn {
 
 		m_nnCrtNtsc.chroma_correction = 1;
 		m_nsSettings.yoffset = 7;
-		//m_nsSettings.hue = 15;
+		//m_nsSettings.hue = 180;
 		
 
 		/** 

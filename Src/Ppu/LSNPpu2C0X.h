@@ -2036,12 +2036,14 @@ namespace lsn {
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 4.0 / 3.0/*7375000.0 / 5320342.5*/>						CPalPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)/*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+																											CPalPpu;
 
 	/**
 	 * A Dendy PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 4.0 / 3.0>												CDendyPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)/*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+																											CDendyPpu;
 
 #undef LSN_PPU_TYPE
 
