@@ -35,6 +35,11 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
+#define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; RESULT = m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
+#define LSN_INSTR_READ_DISCARD( ADDR )														m_bIsReadCycle = true; m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
+#define LSN_PUSH( VAL )																		m_pbBus->Write( 0x100 + uint8_t( S-- ), (VAL) )
+#define LSN_POP( RESULT )																	LSN_INSTR_READ( 0x100 + uint8_t( S + 1 ), RESULT ); ++S//m_pbBus->Read( 0x100 + ++S )
+
 namespace lsn {
 
 	/**
@@ -222,6 +227,8 @@ namespace lsn {
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
 		bool								m_bIrqStatusLine;								/**< The status line for IRQ. */
 		bool								m_bHandleIrq;									/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
+		bool								m_bIsReadCycle;									/**< Is this CPU cycle a read cycle? */
+		bool								m_bRdyLow;										/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
 
 
 		// Temporary input.
@@ -728,7 +735,10 @@ namespace lsn {
 	 * Fetches the next opcode and increments the program counter.
 	 */
 	inline void CCpu6502::FetchOpcodeAndIncPc() {
-		BeginInst( m_pbBus->Read( pc.PC++ ) );
+		uint8_t ui8Tmp;
+		LSN_INSTR_READ( pc.PC, ui8Tmp );
+		++pc.PC;
+		BeginInst( ui8Tmp );
 	}
 
 	/**
