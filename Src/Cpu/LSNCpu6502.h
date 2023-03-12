@@ -37,7 +37,8 @@
 
 #define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; RESULT = m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
 #define LSN_INSTR_READ_DISCARD( ADDR )														m_bIsReadCycle = true; m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
-#define LSN_PUSH( VAL )																		m_pbBus->Write( 0x100 + uint8_t( S-- ), (VAL) )
+#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( ADDR, VALUE )
+#define LSN_PUSH( VAL )																		LSN_INSTR_WRITE( 0x100 + uint8_t( S-- ), (VAL) )
 #define LSN_POP( RESULT )																	LSN_INSTR_READ( 0x100 + uint8_t( S + 1 ), RESULT ); ++S//m_pbBus->Read( 0x100 + ++S )
 
 namespace lsn {
@@ -251,6 +252,9 @@ namespace lsn {
 
 		/** DMA start. Moves on to the DMA read/write cycle when the current CPU cycle is even (IE odd cycles take 1 extra cycle). */
 		void								Tick_DmaStart();
+
+		/** An idle OAM DMA cycle tick the current CPU cycle and checks for it being a read cycle before moving to the first read cycle of the transfer. */
+		void								Tick_DmaIdle();
 
 		/** DMA read cycle. */
 		void								Tick_DmaRead();

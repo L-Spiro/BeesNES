@@ -1175,7 +1175,7 @@ namespace lsn {
 	 * \param _ui8Val The value written to 0x4014.
 	 */
 	void CCpu6502::BeginDma( uint8_t _ui8Val ) {
-		m_pfTickFunc = &CCpu6502::Tick_DmaStart;
+		m_pfTickFunc = &CCpu6502::Tick_DmaIdle;
 		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
 		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
@@ -1359,21 +1359,44 @@ namespace lsn {
 		}
 	}
 
+	/** An idle OAM DMA cycle tick the current CPU cycle and checks for it being a read cycle before moving to the first read cycle of the transfer. */
+	void CCpu6502::Tick_DmaIdle() {
+		m_bRdyLow = true;
+		(this->*m_pfTickFuncCopy)();
+		if ( m_bIsReadCycle ) {
+			// The CPU is now stalled.  Begin the transfer.
+			m_ui16DmaCounter = 256;
+			m_ui8DmaPos = 0;
+			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+		}
+		else {
+			m_pfTickFunc = &CCpu6502::Tick_DmaIdle;
+		}
+	}
+
 	/** DMA read cycle. */
 	void CCpu6502::Tick_DmaRead() {
-		m_ui8DmaValue = m_pbBus->Read( m_ui16DmaAddress + m_ui8DmaPos );
-		m_pfTickFunc = &CCpu6502::Tick_DmaWrite;
+		if ( (m_ui64CycleCount & 0x1) == 0 ) {
+			m_ui8DmaValue = m_pbBus->Read( m_ui16DmaAddress + m_ui8DmaPos );
+			m_pfTickFunc = &CCpu6502::Tick_DmaWrite;
+		}
+		else {
+			//m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+		}
 	}
 
 	/** DMA write cycle. */
 	void CCpu6502::Tick_DmaWrite() {
-		m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
-		if ( --m_ui16DmaCounter == 0 ) {
-			m_pfTickFunc = m_pfTickFuncCopy;
-		}
-		else {
-			m_pfTickFunc = &CCpu6502::Tick_DmaRead;
-			++m_ui8DmaPos;
+		if ( (m_ui64CycleCount & 0x1) == 1 ) {
+			m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
+			if ( --m_ui16DmaCounter == 0 ) {
+				m_pfTickFunc = m_pfTickFuncCopy;
+				m_bRdyLow = false;
+			}
+			else {
+				m_pfTickFunc = &CCpu6502::Tick_DmaRead;
+				++m_ui8DmaPos;
+			}
 		}
 	}
 
@@ -1388,7 +1411,6 @@ namespace lsn {
 
 	/** Reads the next instruction byte and throws it away. */
 	void CCpu6502::ReadNextInstByteAndDiscardAndIncPc() {
-		LSN_ADVANCE_CONTEXT_COUNTERS;
 		//  #  address R/W description
 		// --- ------- --- -----------------------------------------------
 		//  2    PC     R  read next instruction byte (and throw it away),
@@ -1927,13 +1949,13 @@ namespace lsn {
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::WriteValueBackToEffectiveAddress() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 	}
 
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address&0xFF. */
 	void CCpu6502::WriteValueBackToEffectiveAddress_Zp() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-		m_pbBus->Write( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -2051,7 +2073,7 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  6  address  W  write the new value to effective address
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		
 	}
 
@@ -2268,7 +2290,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand <<= 1;
@@ -2514,7 +2536,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		--m_ccCurContext.ui8Operand;
 		Cmp( A, m_ccCurContext.ui8Operand );
@@ -2527,7 +2549,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		--m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -2643,7 +2665,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		++m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -2688,7 +2710,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		++m_ccCurContext.ui8Operand;
 		Sbc( A, m_ccCurContext.ui8Operand );
@@ -3052,7 +3074,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
 		m_ccCurContext.ui8Operand >>= 1;
@@ -3294,7 +3316,7 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -3311,7 +3333,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -3342,7 +3364,7 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
@@ -3375,7 +3397,7 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );		// This affects whether the carry bit gets added below.
@@ -3411,7 +3433,7 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, A & X );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A & X );
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -3547,7 +3569,7 @@ namespace lsn {
 
 		A AND X AND (H+1) -> M
 		*/
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
 	}
 
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
@@ -3566,7 +3588,7 @@ namespace lsn {
 		A AND X -> SP, A AND X AND (H+1) -> M
 		*/
 		S = X & A;
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
 	}
 
 	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
@@ -3585,7 +3607,7 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X;
-		m_pbBus->Write( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
 	}
 
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
@@ -3604,7 +3626,7 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y;
-		m_pbBus->Write( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
 	}
 
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
@@ -3615,7 +3637,7 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand <<= 1;
@@ -3632,7 +3654,7 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand >> 1);
@@ -3646,7 +3668,7 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, A );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A );
 	}
 
 	/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3654,7 +3676,7 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, X );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, X );
 	}
 
 	/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3662,7 +3684,7 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		m_pbBus->Write( m_ccCurContext.a.ui16Address, Y );
+		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, Y );
 	}
 
 	/** Copies A into X.  Sets flags N, and Z. */
@@ -3889,6 +3911,7 @@ namespace lsn {
 #undef LSN_FINISH_INST
 #undef LSN_POP
 #undef LSN_PUSH
+#undef LSN_INSTR_WRITE
 #undef LSN_INSTR_READ_DISCARD
 #undef LSN_INSTR_READ
 #undef LSN_ADVANCE_CONTEXT_COUNTERS
