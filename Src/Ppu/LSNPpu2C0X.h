@@ -159,6 +159,11 @@ namespace lsn {
 			if ( m_bShowBg != !!m_pcMaskDelay.s.ui8ShowBackground || m_bShowSprites != !!m_pcMaskDelay.s.ui8ShowSprites ) {
 				::OutputDebugStringA( "DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!!\r\n" );
 			}*/
+
+			/*if ( m_psPpuStatus.s.ui8VBlank ) {
+				::OutputDebugStringA( ("VBlank Set: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
+			}*/
+
 			++m_ui64Cycle;
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
@@ -708,6 +713,12 @@ namespace lsn {
 			else if ( (ppPpu->m_pcPpuCtrl.s.ui8Nmi && !bPrevNmi) && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
 				ppPpu->TriggerNmi();
 			}
+			/*if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
+				::OutputDebugStringA( ("Write $2000 NMI ON: " + std::to_string( ppPpu->m_ui16CurY ) + ", " + std::to_string( ppPpu->m_ui16CurX ) + ".  Frame: " + std::to_string( ppPpu->m_ui64Frame ) + "\r\n").c_str() );
+			}
+			else {
+				::OutputDebugStringA( ("Write $2000 NMI OFF: " + std::to_string( ppPpu->m_ui16CurY ) + ", " + std::to_string( ppPpu->m_ui16CurX ) + ".  Frame: " + std::to_string( ppPpu->m_ui64Frame ) + "\r\n").c_str() );
+			}*/
 		}
 
 		/**
@@ -743,13 +754,17 @@ namespace lsn {
 				if ( ppPpu->m_ui16CurX == (1 - 1) ) {
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
 				}
 				else if ( ppPpu->m_ui16CurX == (1 - 0) || ppPpu->m_ui16CurX == (1 + 1) ) {
 					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
+					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
 				}
 			}
+
+			//::OutputDebugStringA( ("REad $2002: " + std::to_string( ppPpu->m_ui16CurY ) + ", " + std::to_string( ppPpu->m_ui16CurX ) + ".  Frame: " + std::to_string( ppPpu->m_ui64Frame ) + "\r\n").c_str() );
 
 
 			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
@@ -1183,11 +1198,15 @@ namespace lsn {
 				m_psPpuStatus.s.ui8VBlank = 1;
 				if ( m_pcPpuCtrl.s.ui8Nmi ) {
 					m_pnNmiTarget->Nmi();
+					//::OutputDebugStringA( ("NMI TRIGGINATED: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
+				}
+				else {
+					//::OutputDebugStringA( ("NMI NOT TRIGGINATED DUE TO FLAG: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
 				}
 			}
-			/*else {
-				::OutputDebugStringA( "NMI SUPPRESSION ENGAGED.\r\n" );
-			}*/
+			else {
+				//::OutputDebugStringA( ("NMI NOT TRIGGINATED DUE TO SUPPRESSION: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
+			}
 		}
 
 		/**

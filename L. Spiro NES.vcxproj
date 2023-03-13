@@ -622,7 +622,6 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Apu\LSNApu2A0X.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAl.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlDevice.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlGetError.cpp" />

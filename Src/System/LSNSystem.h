@@ -554,41 +554,41 @@ namespace lsn {
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CNtscPpu, CApu2A0X>														CNtscSystem;
+		CCpu6502, CNtscPpu, CNtscApu>														CNtscSystem;
 
 	/**
 	 * A PAL system.
 	 */
 	typedef CSystem<LSN_CS_PAL_MASTER, LSN_CS_PAL_MASTER_DIVISOR,
 		LSN_CS_PAL_CPU_DIVISOR, LSN_CS_PAL_PPU_DIVISOR, LSN_CS_PAL_APU_DIVISOR,
-		CCpu6502, CPalPpu, CApu2A0X>														CPalSystem;
+		CCpu6502, CPalPpu, CPalApu>															CPalSystem;
 
 	/**
 	 * A Dendy system.
 	 */
 	typedef CSystem<LSN_CS_DENDY_MASTER, LSN_CS_DENDY_MASTER_DIVISOR,
 		LSN_CS_DENDY_CPU_DIVISOR, LSN_CS_DENDY_PPU_DIVISOR, LSN_CS_DENDY_APU_DIVISOR,
-		CCpu6502, CDendyPpu, CApu2A0X>														CDendySystem;
+		CCpu6502, CDendyPpu, CNtscApu>														CDendySystem;
 
 	/**
 	 * An RGB (2C03) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C03System;
+		CCpu6502, CNtscPpu, CNtscApu>														CRgb2C03System;
 
 	/**
 	 * An RGB (2C04) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C04System;
+		CCpu6502, CNtscPpu, CNtscApu>														CRgb2C04System;
 
 	/**
 	 * An RGB (2C05) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
 		LSN_CS_NTSC_CPU_DIVISOR, LSN_CS_NTSC_PPU_DIVISOR, LSN_CS_NTSC_APU_DIVISOR,
-		CCpu6502, CNtscPpu, CApu2A0X>														CRgb2C05System;
+		CCpu6502, CNtscPpu, CNtscApu>														CRgb2C05System;
 
 }	// namespace lsn
