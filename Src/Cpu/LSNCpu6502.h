@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright L. Spiro 2021
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -225,7 +225,9 @@ namespace lsn {
 		uint8_t								m_ui8DmaPos;									/**< The DMA transfer offset.*/
 		uint8_t								m_ui8DmaValue;									/**< The DMA transfer value.*/
 		bool								m_bNmiStatusLine;								/**< The status line for NMI. */
-		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled. */
+		bool								m_bLastNmiStatusLine;							/**< THe last status line for NMI. */
+		bool								m_bDetectedNmi;									/**< The edge detector for the φ2 part of the cycle. */
+		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the φ1 of the next cycle. */
 		bool								m_bIrqStatusLine;								/**< The status line for IRQ. */
 		bool								m_bHandleIrq;									/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 		bool								m_bIsReadCycle;									/**< Is this CPU cycle a read cycle? */
@@ -754,9 +756,9 @@ namespace lsn {
 	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
 		// If the value in the accumulator is equal or greater than the compared value, the Carry will be set.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, _ui8RegVal >= _ui8OpVal );
-		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof�
+		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof…
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == _ui8OpVal );
-		// �and the sign (IE A>=$80) of the accumulator.
+		// …and the sign (IE A>=$80) of the accumulator.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 

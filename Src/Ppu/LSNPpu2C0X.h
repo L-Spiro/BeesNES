@@ -748,19 +748,22 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
-			if ( ppPpu->m_ui16CurY == (_tPreRender + _tRender + _tPostRender) ) {
-				// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
-				if ( ppPpu->m_ui16CurX == (1 - 1) ) {
-					ppPpu->m_bSuppressNmi = true;
-					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
-					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
-				}
-				else if ( ppPpu->m_ui16CurX == (1 - 0) || ppPpu->m_ui16CurX == (1 + 1) ) {
-					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
-					ppPpu->m_bSuppressNmi = true;
-					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
-					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
+			if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
+				// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
+				if ( ppPpu->m_ui16CurY == (_tPreRender + _tRender + _tPostRender) ) {
+					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
+					if ( ppPpu->m_ui16CurX == (1 - 1) ) {
+						ppPpu->m_bSuppressNmi = true;
+						ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+						//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
+					}
+					else if ( ppPpu->m_ui16CurX == (1 - 0) || ppPpu->m_ui16CurX == (1 + 1) ) {
+						// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
+						ppPpu->m_bSuppressNmi = true;
+						ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
+						//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
+					}
+					//ppPpu->m_bSuppressNmi = false;	// This line changes nothing whether present or absent.
 				}
 			}
 

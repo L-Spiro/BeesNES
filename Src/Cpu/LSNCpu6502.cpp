@@ -1085,7 +1085,9 @@ namespace lsn {
 		m_ui8DmaPos( 0 ),
 		m_ui8DmaValue( 0 ),
 		m_bNmiStatusLine( false ),
+		m_bLastNmiStatusLine( false ),
 		m_bHandleNmi( false ),
+		m_bDetectedNmi( false ),
 		m_bIrqStatusLine( false ),
 		m_bHandleIrq( false ),
 		m_bIsReadCycle( true ),
@@ -1128,7 +1130,7 @@ namespace lsn {
 
 		pc.PC = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 
-		m_bHandleNmi = m_bNmiStatusLine = false;
+		m_bHandleNmi = m_bDetectedNmi = m_bLastNmiStatusLine = m_bNmiStatusLine = false;
 		m_bHandleIrq = m_bIrqStatusLine = false;
 	}
 
@@ -1142,7 +1144,9 @@ namespace lsn {
 		(this->*m_pfTickFunc)();
 
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
-		m_bHandleNmi |= m_bNmiStatusLine;
+		m_bHandleNmi = m_bDetectedNmi;
+		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
+		m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 
 		++m_ui64CycleCount;
@@ -1709,7 +1713,7 @@ namespace lsn {
 		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
-		if ( m_bHandleNmi ) { m_bHandleNmi = false; }
+		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
 	}
 
 	/** Pushes status without B. */
@@ -1721,7 +1725,7 @@ namespace lsn {
 		LSN_PUSH( ui8Status );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
-		if ( m_bHandleNmi ) { m_bHandleNmi = false; }
+		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
 	}
 
 	/** Pushes status an decrements S. */
