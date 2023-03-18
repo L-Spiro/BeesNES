@@ -17,34 +17,34 @@ namespace lsn {
 
 	/** APU timings. */
 	enum LSN_APU_TIMINGS {
-		LSN_AT_NTSC_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_0_STEP_1						= uint32_t( 7456.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_0_STEP_2						= uint32_t( 11185.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_0_STEP_3_0						= uint32_t( 14914 * 2.0 ),
-		LSN_AT_NTSC_MODE_0_STEP_3_1						= uint32_t( 14914.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_0_STEP_3_2						= uint32_t( 14915 * 2.0 ),
+		LSN_AT_NTSC_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
+		LSN_AT_NTSC_MODE_0_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
+		LSN_AT_NTSC_MODE_0_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
+		LSN_AT_NTSC_MODE_0_STEP_3_0						= uint32_t( 14914 * 2.0 ),			/**< 29828. */
+		LSN_AT_NTSC_MODE_0_STEP_3_1						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
+		LSN_AT_NTSC_MODE_0_STEP_3_2						= uint32_t( 14915 * 2.0 ),			/**< 29830. */
 
-		LSN_AT_PAL_MODE_0_STEP_0						= uint32_t( 4156.5 * 2.0 ),
-		LSN_AT_PAL_MODE_0_STEP_1						= uint32_t( 8313.5 * 2.0 ),
-		LSN_AT_PAL_MODE_0_STEP_2						= uint32_t( 12469.5 * 2.0 ),
-		LSN_AT_PAL_MODE_0_STEP_3_0						= uint32_t( 16626 * 2.0 ),
-		LSN_AT_PAL_MODE_0_STEP_3_1						= uint32_t( 16626.5 * 2.0 ),
-		LSN_AT_PAL_MODE_0_STEP_3_2						= uint32_t( 16627 * 2.0 ),
+		LSN_AT_PAL_MODE_0_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
+		LSN_AT_PAL_MODE_0_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
+		LSN_AT_PAL_MODE_0_STEP_2						= uint32_t( 12469.5 * 2.0 ),		/**< 24939. */
+		LSN_AT_PAL_MODE_0_STEP_3_0						= uint32_t( 16626 * 2.0 ),			/**< 33252. */
+		LSN_AT_PAL_MODE_0_STEP_3_1						= uint32_t( 16626.5 * 2.0 ),		/**< 33253. */
+		LSN_AT_PAL_MODE_0_STEP_3_2						= uint32_t( 16627 * 2.0 ),			/**< 33254. */
 
 
-		LSN_AT_NTSC_MODE_1_STEP_0						= uint32_t( 3728.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_1_STEP_1						= uint32_t( 7456.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_1_STEP_2						= uint32_t( 11185.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_1_STEP_3						= uint32_t( 14914.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_1_STEP_4_0						= uint32_t( 18640.5 * 2.0 ),
-		LSN_AT_NTSC_MODE_1_STEP_4_1						= uint32_t( 18641 * 2.0 ),
+		LSN_AT_NTSC_MODE_1_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
+		LSN_AT_NTSC_MODE_1_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
+		LSN_AT_NTSC_MODE_1_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
+		LSN_AT_NTSC_MODE_1_STEP_3						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
+		LSN_AT_NTSC_MODE_1_STEP_4_0						= uint32_t( 18640.5 * 2.0 ),		/**< 37281. */
+		LSN_AT_NTSC_MODE_1_STEP_4_1						= uint32_t( 18641 * 2.0 ),			/**< 37282. */
 
-		LSN_AT_PAL_MODE_1_STEP_0						= uint32_t( 4156.5 * 2.0 ),
-		LSN_AT_PAL_MODE_1_STEP_1						= uint32_t( 8313.5 * 2.0 ),
-		LSN_AT_PAL_MODE_1_STEP_2						= uint32_t( 12469.5 * 2.0 ),
-		LSN_AT_PAL_MODE_1_STEP_3						= uint32_t( 16626.5 * 2.0 ),
-		LSN_AT_PAL_MODE_1_STEP_4_0						= uint32_t( 20782.5 * 2.0 ),
-		LSN_AT_PAL_MODE_1_STEP_4_1						= uint32_t( 20783 * 2.0 ),
+		LSN_AT_PAL_MODE_1_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
+		LSN_AT_PAL_MODE_1_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
+		LSN_AT_PAL_MODE_1_STEP_2						= uint32_t( 12469.5 * 2.0 ),		/**< 24939. */
+		LSN_AT_PAL_MODE_1_STEP_3						= uint32_t( 16626.5 * 2.0 ),		/**< 33253. */
+		LSN_AT_PAL_MODE_1_STEP_4_0						= uint32_t( 20782.5 * 2.0 ),		/**< 41565. */
+		LSN_AT_PAL_MODE_1_STEP_4_1						= uint32_t( 20783 * 2.0 ),			/**< 41566. */
 	};
 
 	/**
@@ -53,12 +53,14 @@ namespace lsn {
 	 *
 	 * Description: The 2A0X series of APU's.
 	 */
-	template <unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S4_0, unsigned _tM0S4_1, unsigned _tM0S4_2,
-		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S4, unsigned _tM1S5_0, unsigned _tM1S5_1>
+	template <unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S3_0, unsigned _tM0S3_1, unsigned _tM0S3_2,
+		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1>
 	class CApu2A0X : public CTickable {
 	public :
 		CApu2A0X( CCpuBus * _pbBus ) :
-			m_pbBus( _pbBus ) {
+			m_pbBus( _pbBus ),
+			m_ui64Cycles( 0 ),
+			m_ui64StepCycles( 0 ) {
 		}
 		~CApu2A0X() {
 		}
@@ -69,6 +71,24 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+			(this->*m_pftTick)();
+			++m_ui64Cycles;
+		}
+
+		/**
+		 * Performs an "analog" reset, allowing previous data to remain.
+		 */
+		void											ResetAnalog() {
+			m_ui64Cycles = 0;
+			m_ui64StepCycles = 0;
+			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<true>;
+		}
+
+		/**
+		 * Resets the APU to a known state.
+		 */
+		void											ResetToKnown() {
+			ResetAnalog();
 		}
 
 		/**
@@ -95,6 +115,8 @@ namespace lsn {
 		}
 
 
+
+
 	protected :
 		// == Types.
 		/** A function pointer for the tick handlers. */
@@ -102,6 +124,10 @@ namespace lsn {
 
 
 		// == Members.
+		/** The cycle counter. */
+		uint64_t										m_ui64Cycles;
+		/** The step cycle counter. */
+		uint64_t										m_ui64StepCycles;
 		/** The main bus. */
 		CCpuBus *										m_pbBus;
 		/** The current cycle function. */
@@ -110,8 +136,107 @@ namespace lsn {
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */
-		void											Tick_Mode0_Step0_Even() {
+		template <bool _bEven>
+		void											Tick_Mode0_Step0() {
+			if ( ++m_ui64StepCycles == _tM0S0 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
+			}
 		}
+
+		/** Mode-0 step-1 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode0_Step1() {
+			if ( ++m_ui64StepCycles == _tM0S1 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
+			}
+		}
+
+		/** Mode-0 step-2 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode0_Step2() {
+			if ( ++m_ui64StepCycles == _tM0S2 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
+			}
+		}
+
+		/** Mode-0 step-3 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode0_Step3() {
+			if ( ++m_ui64StepCycles == _tM0S3_2 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
+				m_ui64StepCycles = 0;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
+			}
+		}
+
+
+		/** Mode-1 step-0 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode1_Step0() {
+			if ( ++m_ui64StepCycles == _tM1S0 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;
+			}
+		}
+
+		/** Mode-1 step-1 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode1_Step1() {
+			if ( ++m_ui64StepCycles == _tM1S1 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
+			}
+		}
+
+		/** Mode-1 step-2 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode1_Step2() {
+			if ( ++m_ui64StepCycles == _tM1S2 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
+			}
+		}
+
+		/** Mode-1 step-3 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode1_Step3() {
+			if ( ++m_ui64StepCycles == _tM1S3 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
+			}
+		}
+
+		/** Mode-1 step-4 tick function. */
+		template <bool _bEven>
+		void											Tick_Mode1_Step4() {
+			if ( ++m_ui64StepCycles == _tM1S4_1 ) {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;
+				m_ui64StepCycles = 0;
+			}
+			else {
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
+			}
+		}
+
 	};
 	
 

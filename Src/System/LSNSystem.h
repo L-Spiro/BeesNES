@@ -43,7 +43,7 @@ namespace lsn {
 		CSystem() :
 			m_cCpu( &m_bBus ),
 			m_pPpu( &m_bBus, &m_cCpu ),
-			m_pApu( &m_bBus ) {
+			m_aApu( &m_bBus ) {
 			ResetState( false );
 		}
 
@@ -57,7 +57,7 @@ namespace lsn {
 		void											ResetState( bool _bAnalog ) {
 			m_bBus.ApplyMap();
 			
-			m_pApu.ApplyMemoryMap();
+			m_aApu.ApplyMemoryMap();
 			m_cCpu.ApplyMemoryMap();
 			m_pPpu.ApplyMemoryMap();
 
@@ -92,10 +92,12 @@ namespace lsn {
 
 			if ( _bAnalog ) {
 				m_cCpu.ResetAnalog();
+				m_aApu.ResetAnalog();
 				m_pPpu.ResetAnalog();
 			}
 			else {
 				m_cCpu.ResetToKnown();
+				m_aApu.ResetToKnown();
 				m_pPpu.ResetToKnown();
 			}
 
@@ -138,7 +140,7 @@ namespace lsn {
 				} hsSlots[3] = {
 					{ &m_cCpu, m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
 					{ &m_pPpu, m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },
-					{ &m_pApu, m_ui64ApuCounter + _tApuDiv, _tApuDiv },
+					{ &m_aApu, m_ui64ApuCounter + _tApuDiv, _tApuDiv },
 				};
 				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
@@ -463,7 +465,7 @@ namespace lsn {
 		// == Members.
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
-		_cApu											m_pApu;								/**< The APU. */
+		_cApu											m_aApu;								/**< The APU. */
 
 
 		// == Functions.

@@ -170,7 +170,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Resets the CPU to a known state.
+		 * Resets the PPU to a known state.
 		 */
 		void											ResetToKnown() {
 			ResetAnalog();
@@ -748,7 +748,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
+			if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi || true ) {
 				// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
 				if ( ppPpu->m_ui16CurY == (_tPreRender + _tRender + _tPostRender) ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
