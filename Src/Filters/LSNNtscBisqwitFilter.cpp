@@ -89,10 +89,16 @@ namespace lsn {
 		}
 
 		m_i32WidthY = 12;
-		/*m_i32WidthI = 22;
-		m_i32WidthQ = 26;*/
+#if 0
+		m_i32WidthI = 22;
+		m_i32WidthQ = 26;
+#elif 1
 		m_i32WidthI = 24;
 		m_i32WidthQ = 24;
+#elif 1
+		m_i32WidthI = 36;
+		m_i32WidthQ = 36;
+#endif
 
 		m_i32Y = i32Contrast / m_i32WidthY;
 

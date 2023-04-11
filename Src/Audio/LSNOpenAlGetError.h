@@ -31,7 +31,7 @@ namespace lsn {
 		 * \param _eError The error code to turn into a string.
 		 * \return Returns a pointer to a constant string containing the string form of the error code and its descripton.
 		 */
-		const char *									ErrorCodeToString_AL( ALenum _eError );
+		static const char *								ErrorCodeToString_AL( ALenum _eError );
 
 		/**
 		 * Gets an OpenAL context error string given the error code.
@@ -39,7 +39,7 @@ namespace lsn {
 		 * \param _eError The error code to turn into a string.
 		 * \return Returns a pointer to a constant string containing the string form of the error code and its descripton.
 		 */
-		const char *									ErrorCodeToString_ALC( ALCenum _eError );
+		static const char *								ErrorCodeToString_ALC( ALCenum _eError );
 
 		/**
 		 * Calls ::alGetError().  If there is an error, it is printed and false is returned, otherwise true is returned.
@@ -48,7 +48,7 @@ namespace lsn {
 		 * \param _ui32Line The line number for error-reporting.
 		 * \return Return true if ::alGetError() returns AL_NO_ERROR.
 		 */
-		inline bool										CheckError_AL( const char * _pcFile, uint32_t _ui32Line );
+		static inline bool								CheckError_AL( const char * _pcFile, uint32_t _ui32Line );
 
 		/**
 		 * Calls ::alcGetError().  If there is an error, it is printed and false is returned, otherwise true is returned.
@@ -58,7 +58,7 @@ namespace lsn {
 		 * \param _pdDevice The device whose error status is to be checked.
 		 * \return Return true if ::alcGetError() returns ALC_NO_ERROR.
 		 */
-		inline bool										CheckError_ALC( const char * _pcFile, uint32_t _ui32Line, ALCdevice * _pdDevice );
+		static inline bool								CheckError_ALC( const char * _pcFile, uint32_t _ui32Line, ALCdevice * _pdDevice );
 
 	};
 

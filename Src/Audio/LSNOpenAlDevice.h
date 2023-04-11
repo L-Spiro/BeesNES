@@ -9,6 +9,11 @@
 
 #pragma once
 
+#include "LSNOpenAlInclude.h"
+
+#include <string>
+#include <vector>
+
 
 namespace lsn {
 
@@ -22,6 +27,46 @@ namespace lsn {
 	public :
 		COpenAlDevice();
 		~COpenAlDevice();
+
+
+		// == Functions.
+		/**
+		 * Gets the raw device pointer we wrap.
+		 * 
+		 * \return Returns the raw device pointer we wrap.
+		 **/
+		ALCdevice *							Device() { return m_pdDevice; }
+
+		/**
+		 * Creates a device given a device name.
+		 * 
+		 * \param _pcName The device name or nullptr to create a device using the default sound device.
+		 * \return Returns true if the device was created.
+		 **/
+		bool								CreateDevice( const char * _pcDevice );
+
+		/**
+		 * Destroys the device.
+		 * 
+		 * \return Returns true if the device was destroyed.
+		 **/
+		bool								Reset();
+
+		/**
+		 * Gathers the sound devices into a vector with the default sound device in index 0.
+		 * 
+		 * \param _vRet Holds the returned vector of audio devices by name.
+		 * \param _oadDevice The device.
+		 * \return Returns true if the sound devices were successfully gathered into a vector.
+		 **/
+		static bool							GetAudioDevices( std::vector<std::string> &_vRet, COpenAlDevice &_oadDevice );
+
+
+
+	protected :
+		// == Members.
+		/** The OpenAL device we wrap. */
+		ALCdevice *							m_pdDevice;
 	};
 
 }	// namespace lsn

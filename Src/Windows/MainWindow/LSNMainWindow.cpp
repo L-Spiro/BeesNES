@@ -1162,7 +1162,9 @@ namespace lsn {
 			return;
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
-		//::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
+#ifdef LSN_WINDOWS
+		::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
+#endif	// #ifdef LSN_WINDOWS
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
 			_pmwWindow->m_bnEmulator.GetSystem()->Tick();

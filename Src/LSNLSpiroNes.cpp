@@ -1,6 +1,7 @@
 ﻿#ifdef LSN_USE_WINDOWS
 #include "LSNLSpiroNes.h"
 #include "Input/LSNDirectInput8.h"
+#include "Audio/LSNOpenAl.h"
 #include "Windows/Layout/LSNLayoutManager.h"
 #include "Windows/MainWindow/LSNMainWindow.h"
 #include "Windows/MainWindow/LSNMainWindowLayout.h"
@@ -27,6 +28,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		L"LSNCHILDWINDOW" );
 	lsn::CDatabase::Init();
 	lsn::CDirectInput8::CreateDirectInput8();
+	lsn::COpenAl::InitializeOpenAl();
 
 	std::atomic_bool abIsAlive = false;
 	lsn::CMainWindow * pwMainWindow = static_cast<lsn::CMainWindow *>(lsn::CMainWindowLayout::CreateMainWindow( &abIsAlive ));
@@ -56,7 +58,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 		}
 	}
 
-
+	lsn::COpenAl::ShutdownOpenAl();
 	lsw::CBase::ShutDown();
 	lsn::CDatabase::Reset();
 	lsn::CDirectInput8::Release();
