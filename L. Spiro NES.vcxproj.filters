@@ -594,6 +594,9 @@
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNAudio.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -777,6 +780,9 @@
       <Filter>Source Files\Audio</Filter>
     </ClCompile>
     <ClCompile Include="Src\Audio\LSNOpenAlSource.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\LSNAudio.cpp">
       <Filter>Source Files\Audio</Filter>
     </ClCompile>
   </ItemGroup>

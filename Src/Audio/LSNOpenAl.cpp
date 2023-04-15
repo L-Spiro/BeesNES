@@ -12,41 +12,25 @@
 
 namespace lsn {
 
-	/** The primary OpenAL device. */
-	COpenAlDevice COpenAl::m_oadDevice;
-
-	/** The context. */
-	COpenAlContext COpenAl::m_oalContext;
-
-	// == Functions.
+	// == Functions
 	/**
-	 * Initializes OpenAL functionality.
+	 * Sets the distance model.  Values are:
+	 *	AL_INVERSE_DISTANCE
+	 *	AL_INVERSE_DISTANCE_CLAMPED
+	 *	AL_LINEAR_DISTANCE
+ 	 *	AL_LINEAR_DISTANCE_CLAMPED
+ 	 *	AL_EXPONENT_DISTANCE
+ 	 *	AL_EXPONENT_DISTANCE_CLAMPED
+ 	 *	AL_NONE
 	 * 
-	 * \return Returns true if initialization was successful.
+	 * \param _eModel The model being set.
+	 * \return Returns true if the distance model was set successfully.
 	 **/
-	bool COpenAl::InitializeOpenAl() {
-		std::vector<std::string> vDevices;
-		// We need a dummy device to enumerate the audio devices.
-		COpenAlDevice oadDummy;
-		if ( !COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) ) {
-			return false;
+	bool COpenAl::DistanceModel( ALenum _eModel ) {
+		if ( COpenAl::alCall( ::alDistanceModel, _eModel ) ) {
+			return true;
 		}
-		if ( !vDevices.size() ) { return false; }
-		if ( !m_oadDevice.CreateDevice( vDevices[0].c_str() ) ) { return false; }
-		if ( !m_oalContext.CreateContext( m_oadDevice, nullptr ) ) { return false; }
-		if ( !m_oalContext.MakeCurrent() ) { return false; }
-
-		return true;
-	}
-
-	/**
-	 * Shuts down OpenAL.
-	 * 
-	 * \return Returns true if shutdown was successful.
-	 **/
-	bool COpenAl::ShutdownOpenAl() {
-		m_oalContext.Reset();
-		return m_oadDevice.Reset();
+		return false;
 	}
 
 }	// namespace lsn

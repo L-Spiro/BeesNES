@@ -34,27 +34,6 @@ namespace lsn {
 	public :
 		// == Functions.
 		/**
-		 * Initializes OpenAL functionality.
-		 * 
-		 * \return Returns true if initialization was successful.
-		 **/
-		static bool											InitializeOpenAl();
-
-		/**
-		 * Shuts down OpenAL.
-		 * 
-		 * \return Returns true if shutdown was successful.
-		 **/
-		static bool											ShutdownOpenAl();
-
-		/**
-		 * Gets the global OpenAL device.
-		 * 
-		 * \return Returns the global OpenAL device.
-		 **/
-		static COpenAlDevice &								Device() { return m_oadDevice; }
-
-		/**
 		 * Handler for ALenum-returning functions that can error.
 		 *
 		 * \param _pcFile The file calling the given function.
@@ -126,13 +105,20 @@ namespace lsn {
 			return COpenAlGetError::CheckError_ALC( _pcFile, _ui32Line, _pdDevice );
 		}
 
-
-	protected :
-		// == Members.
-		/** The primary OpenAL device. */
-		static COpenAlDevice								m_oadDevice;
-		/** The context. */
-		static COpenAlContext								m_oalContext;
+		/**
+		 * Sets the distance model.  Values are:
+		 *	AL_INVERSE_DISTANCE
+		 *	AL_INVERSE_DISTANCE_CLAMPED
+		 *	AL_LINEAR_DISTANCE
+ 		 *	AL_LINEAR_DISTANCE_CLAMPED
+ 		 *	AL_EXPONENT_DISTANCE
+ 		 *	AL_EXPONENT_DISTANCE_CLAMPED
+ 		 *	AL_NONE
+		 * 
+		 * \param _eModel The model being set.
+		 * \return Returns true if the distance model was set successfully.
+		 **/
+		static bool											DistanceModel( ALenum _eModel );
 	};
 
 }	// namespace lsn
