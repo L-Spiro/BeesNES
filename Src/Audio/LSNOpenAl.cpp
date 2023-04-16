@@ -12,7 +12,27 @@
 
 namespace lsn {
 
-	// == Functions
+	// == Members.
+	/** The MONO24 format value. */
+	//ALenum COpenAl::m_eMono24 = NULL;
+
+	/** The MONO32 format value. */
+	//ALenum COpenAl::m_eMono32 = NULL;
+
+	// == Functions.
+	/**
+	 * Initializes OpenAL.  Retrieves enumeration values, function pointers, etc.
+	 * 
+	 * \param _oadDevice The OpenAL device created by the client.
+	 * \return Returns true if initialization succeeded.
+	 **/
+	bool COpenAl::InitializeOpenAl( ALCdevice * /*_oadDevice*/ ) {
+		//bool bVal = ::alIsExtensionPresent( "AL_EXT_float32" );
+		/*m_eMono24 = ::alGetEnumValue( "AL_FORMAT_MONO24" );
+		m_eMono32 = ::alGetEnumValue( "AL_FORMAT_MONO32" );*/
+		return true;
+	}
+
 	/**
 	 * Sets the distance model.  Values are:
 	 *	AL_INVERSE_DISTANCE
