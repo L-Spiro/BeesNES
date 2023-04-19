@@ -270,7 +270,7 @@ namespace lsn {
 		 * \param _uiId The buffer ID to unqueue.
 		 * \return Returns true if the buffer is unqueued.
 		 **/
-		bool								UnqueueBuffers( ALuint _uiId );
+		bool								UnqueueBuffer( ALuint _uiId );
 
 		/**
 		 * Gets the number of buffers queued.  If the source is invalid, uint32_t( -1 ) is returned.

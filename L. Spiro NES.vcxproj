@@ -499,6 +499,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
+    <ClInclude Include="Src\Apu\LSNApuUnit.h" />
+    <ClInclude Include="Src\Apu\LSNPulse.h" />
+    <ClInclude Include="Src\Apu\LSNSequencer.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h" />
@@ -626,6 +629,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Apu\LSNPulse.cpp" />
+    <ClCompile Include="Src\Apu\LSNSequencer.cpp" />
     <ClCompile Include="Src\Audio\LSNAudio.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAl.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlBuffer.cpp" />

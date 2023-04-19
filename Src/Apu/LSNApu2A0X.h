@@ -10,8 +10,15 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "LSNPulse.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNTickable.h"
+
+
+#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {				\
+											m_pPulse1.Tick( true );				\
+											m_pPulse2.Tick( true );				\
+										}
 
 namespace lsn {
 
@@ -132,12 +139,18 @@ namespace lsn {
 		CCpuBus *										m_pbBus;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
+		/** Pulse 1. */
+		CPulse											m_pPulse1;
+		/** Pulse 2. */
+		CPulse											m_pPulse2;
 
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode0_Step0() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM0S0 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
 			}
@@ -149,6 +162,8 @@ namespace lsn {
 		/** Mode-0 step-1 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode0_Step1() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
 			}
@@ -160,6 +175,8 @@ namespace lsn {
 		/** Mode-0 step-2 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode0_Step2() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM0S2 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
 			}
@@ -171,6 +188,8 @@ namespace lsn {
 		/** Mode-0 step-3 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode0_Step3() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM0S3_2 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
 				m_ui64StepCycles = 0;
@@ -184,6 +203,8 @@ namespace lsn {
 		/** Mode-1 step-0 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode1_Step0() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM1S0 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
 			}
@@ -195,6 +216,8 @@ namespace lsn {
 		/** Mode-1 step-1 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode1_Step1() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
 			}
@@ -206,6 +229,8 @@ namespace lsn {
 		/** Mode-1 step-2 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode1_Step2() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM1S2 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
 			}
@@ -217,6 +242,8 @@ namespace lsn {
 		/** Mode-1 step-3 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode1_Step3() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM1S3 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
 			}
@@ -228,6 +255,8 @@ namespace lsn {
 		/** Mode-1 step-4 tick function. */
 		template <bool _bEven>
 		void											Tick_Mode1_Step4() {
+			LSN_APU_UPDATE;
+
 			if ( ++m_ui64StepCycles == _tM1S4_1 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;
 				m_ui64StepCycles = 0;

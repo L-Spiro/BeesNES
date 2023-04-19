@@ -13,6 +13,12 @@
 namespace lsn {
 
 	// == Members.
+	/** The total number of buffers uploaded during the lifetime of the source. */
+	uint64_t CAudio::m_ui64TotalLifetimeQueues = 0;
+
+	/** The total number of buffers unloaded during the lifetime of the source. */
+	uint64_t CAudio::m_ui64TotalLifetimeUnqueueds = 0;
+
 	/** The current buffer. */
 	std::vector<uint8_t> CAudio::m_vLocalBuffer;
 
@@ -110,6 +116,21 @@ namespace lsn {
 		if ( m_sCurBufferSize == 0 ) { return true; }		// Nothing to flush, no action to take.
 
 		bool bRet = m_oabBuffers[m_sBufferIdx].BufferData( m_eFormat, m_vLocalBuffer.data(), m_sCurBufferSize, m_sFrequency );
+		if ( bRet ) {
+			// Unqueue buffers before queuing the next.
+			uint32_t ui32Processed = m_oasSource.BuffersProcessed();
+			for ( uint32_t I = 0; I < ui32Processed; ++I ) {
+				if ( m_oasSource.UnqueueBuffer( m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Id() ) ) {
+					++m_ui64TotalLifetimeUnqueueds;
+				}
+			}
+
+			if ( m_oasSource.QueueBuffer( m_oabBuffers[m_sBufferIdx].Id() ) ) {
+				++m_ui64TotalLifetimeQueues;
+			}
+			bRet = m_oasSource.Play();
+			
+		}
 
 		m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;
 		m_sCurBufferSize = 0;
@@ -249,7 +270,7 @@ namespace lsn {
 	 *
 	 * \param _pvParm Unused.
 	 */
-	void CAudio::AudioThread( void * _pvParm ) {
+	void CAudio::AudioThread( void * /*_pvParm*/ ) {
 		while ( m_bRunThread ) {
 		}
 		m_eThreadClosed.Signal();

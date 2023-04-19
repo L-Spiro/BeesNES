@@ -18,7 +18,7 @@
 #include "../Event/LSNEvent.h"
 #include <thread>
 
-#define LSN_AUDIO_BUFFERS									3
+#define LSN_AUDIO_BUFFERS									4
 
 namespace lsn {
 
@@ -81,6 +81,10 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The total number of buffers uploaded during the lifetime of the source. */
+		static uint64_t										m_ui64TotalLifetimeQueues;
+		/** The total number of buffers unloaded during the lifetime of the source. */
+		static uint64_t										m_ui64TotalLifetimeUnqueueds;
 		/** The current buffer. */
 		static std::vector<uint8_t>							m_vLocalBuffer;
 		/** The current buffer being filled. */

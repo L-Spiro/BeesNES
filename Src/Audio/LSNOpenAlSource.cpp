@@ -400,7 +400,7 @@
 	 * \param _uiId The buffer ID to unqueue.
 	 * \return Returns true if the buffer is unqueued.
 	 **/
-	bool COpenAlSource::UnqueueBuffers( ALuint _uiId ) {
+	bool COpenAlSource::UnqueueBuffer( ALuint _uiId ) {
 		if ( m_uiId != 0 && COpenAl::alCall( ::alSourceUnqueueBuffers, m_uiId, 1, &_uiId ) ) {
 			return true;
 		}
