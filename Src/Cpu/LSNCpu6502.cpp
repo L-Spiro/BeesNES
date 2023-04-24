@@ -1145,7 +1145,7 @@ namespace lsn {
 
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
 		m_bHandleNmi = m_bDetectedNmi;
-		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
+		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
 		m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 
@@ -1411,6 +1411,8 @@ namespace lsn {
 		//m_pbBus->Read( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
 		LSN_INSTR_READ_DISCARD( pc.PC );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the next instruction byte and throws it away. */
@@ -1424,6 +1426,8 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD( pc.PC );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the next instruction byte and throws it away, increasing PC. */
@@ -1435,6 +1439,8 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD( pc.PC );
 		++pc.PC;
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/**
@@ -1446,6 +1452,8 @@ namespace lsn {
 		LSN_INSTR_READ( pc.PC, m_ccCurContext.ui8Operand );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches a pointer and increments PC .*/
@@ -1459,6 +1467,8 @@ namespace lsn {
 		LSN_INSTR_READ( pc.PC, m_ccCurContext.ui8Pointer );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches an 8-bit address for Zero-Page dereferencing and increments PC. Stores the address in LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1472,6 +1482,8 @@ namespace lsn {
 		LSN_INSTR_READ( pc.PC, m_ccCurContext.a.ui16Address );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the low address and writes the value to the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1486,6 +1498,8 @@ namespace lsn {
 		LSN_INSTR_READ( pc.PC, m_ccCurContext.a.ui8Bytes[0] );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the low address value for absolute addressing but does not write the value to LSN_CPU_CONTEXT::a.ui16Address yet.  Pair with FetchHighAddrByteAndIncPc(). */
@@ -1499,6 +1513,8 @@ namespace lsn {
 		LSN_INSTR_READ( pc.PC, m_ccCurContext.j.ui8Bytes[0] );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the high address value for absolute/indirect addressing. */
@@ -1514,6 +1530,8 @@ namespace lsn {
 		++pc.PC;
 		m_ccCurContext.a.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the high address value for absolute/indirect addressing.  Adds Y to the low byte of the resulting address. */
@@ -1533,6 +1551,8 @@ namespace lsn {
 		m_ccCurContext.a.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the high address value for absolute/indirect addressing.  Adds X to the low byte of the resulting address. */
@@ -1552,6 +1572,8 @@ namespace lsn {
 		m_ccCurContext.a.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
@@ -1563,6 +1585,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from the effective address.  The address is in LSN_CPU_CONTEXT::a.ui16Address.  The result is stored in LSN_CPU_CONTEXT::ui8Operand. */
@@ -1576,6 +1600,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores the result into LSN_CPU_CONTEXT::ui8Pointer.  Preceded by FetchPointerAndIncPc(). */
@@ -1586,6 +1612,8 @@ namespace lsn {
 		m_ccCurContext.ui8Pointer = ui8P;
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+X)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
@@ -1603,6 +1631,8 @@ namespace lsn {
 		m_ccCurContext.a.ui16Address = uint8_t( m_ccCurContext.a.ui16Address + X );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, stores (LSN_CPU_CONTEXT::ui8Pointer+Y)&0xFF into LSN_CPU_CONTEXT::a.ui16Address.  Preceded by FetchPointerAndIncPc(). */
@@ -1620,6 +1650,8 @@ namespace lsn {
 		m_ccCurContext.a.ui16Address = uint8_t( m_ccCurContext.a.ui16Address + Y );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from LSN_CPU_CONTEXT::a.ui16Address+Y, stores the result into LSN_CPU_CONTEXT::ui8Operand. */
@@ -1631,6 +1663,8 @@ namespace lsn {
 		LSN_INSTR_READ( (m_ccCurContext.a.ui16Address & 0xFF00) | ((m_ccCurContext.a.ui16Address + Y) & 0xFF), m_ccCurContext.ui8Operand );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 4th cycle of JMP (indorect). */
@@ -1642,6 +1676,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.a.ui16Address, m_ccCurContext.j.ui8Bytes[0] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 3rd cycle of JSR. */
@@ -1654,6 +1690,8 @@ namespace lsn {
 
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 4th cycle of JSR. */
@@ -1663,6 +1701,8 @@ namespace lsn {
 		// --- ------- --- -------------------------------------------------
 		//  4  $0100,S  W  push PCH on stack, decrement S
 		LSN_PUSH( pc.ui8Bytes[1] );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 5th cycle of JSR. */
@@ -1672,6 +1712,8 @@ namespace lsn {
 		// --- ------- --- -------------------------------------------------
 		//  5  $0100,S  W  push PCL on stack, decrement S
 		LSN_PUSH( pc.ui8Bytes[0] );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 3rd cycle of PLA/PLP/RTI/RTS. */
@@ -1689,12 +1731,16 @@ namespace lsn {
 
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes PCH. */
 	void CCpu6502::PushPch() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		LSN_PUSH( pc.ui8Bytes[1] );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes PCL, decrements S. */
@@ -1704,6 +1750,8 @@ namespace lsn {
 		// --- ------- --- -------------------------------------------------
 		//  4  $0100,S  W  push PCL on stack, decrement S
 		LSN_PUSH( pc.ui8Bytes[0] );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes status with B. */
@@ -1714,6 +1762,8 @@ namespace lsn {
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes status without B. */
@@ -1726,6 +1776,8 @@ namespace lsn {
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes status an decrements S. */
@@ -1735,6 +1787,8 @@ namespace lsn {
 		// --- ------- --- -------------------------------------------------
 		//  5  $0100,S  W  push P on stack, decrement S
 		LSN_PUSH( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls status, ignoring B. */
@@ -1745,6 +1799,8 @@ namespace lsn {
 		m_ui8Status = (ui8Tmp & ~ui8Mask) | (m_ui8Status & ui8Mask);
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls status. */
@@ -1755,6 +1811,8 @@ namespace lsn {
 		LSN_POP( ui8Tmp );
 		m_ui8Status = ui8Tmp;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls PCL. */
@@ -1766,6 +1824,8 @@ namespace lsn {
 		pc.ui8Bytes[0] = ui8Tmp;
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls PCH. */
@@ -1778,6 +1838,8 @@ namespace lsn {
 		pc.ui8Bytes[1] = ui8Tmp;
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from LSN_CPU_CONTEXT::ui8Pointer, adds X to it, stores the result in LSN_CPU_CONTEXT::ui8Pointer. */
@@ -1793,6 +1855,8 @@ namespace lsn {
 		m_ccCurContext.ui8Pointer = static_cast<uint8_t>(m_ccCurContext.ui8Pointer + X);
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1809,6 +1873,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.ui8Pointer, m_ccCurContext.a.ui8Bytes[0] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+X+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1826,6 +1892,8 @@ namespace lsn {
 		LSN_INSTR_READ( static_cast<uint8_t>(m_ccCurContext.ui8Pointer + 1), m_ccCurContext.a.ui8Bytes[1] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the low byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer, store in the low byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1844,6 +1912,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.ui8Pointer, m_ccCurContext.a.ui8Bytes[0] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
@@ -1868,6 +1938,8 @@ namespace lsn {
 		// Check here if we are going to need to skip a cycle (if a page boundary is NOT crossed).
 		m_ccCurContext.j.ui16JmpTarget = static_cast<uint16_t>(m_ccCurContext.a.ui16Address + Y);
 		m_ccCurContext.a.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
@@ -1912,6 +1984,8 @@ namespace lsn {
 
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
@@ -1921,6 +1995,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0] );
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
@@ -1929,6 +2005,8 @@ namespace lsn {
 		LSN_INSTR_READ( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1] );
 
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the low byte of PC from $FFFE. */
@@ -1940,6 +2018,8 @@ namespace lsn {
 		LSN_INSTR_READ( 0xFFFE, pc.ui8Bytes[0] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches the high byte of PC from $FFFF. */
@@ -1948,18 +2028,24 @@ namespace lsn {
 		LSN_INSTR_READ( 0xFFFF, pc.ui8Bytes[1] );
 
 		LSN_ADVANCE_CONTEXT_COUNTERS;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::WriteValueBackToEffectiveAddress() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address&0xFF. */
 	void CCpu6502::WriteValueBackToEffectiveAddress_Zp() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -1995,6 +2081,9 @@ namespace lsn {
 			// Set PCL.
 			//pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
 		}
+
+		// Branches don't check NMI on cycle 2.
+		LSN_CHECK_NMI;
 	}
 
 	/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
@@ -2011,6 +2100,9 @@ namespace lsn {
 			//pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
 			// Set PCL.
 			pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
+
+			// NMI not polled here.
+			LSN_CHECK_NMI;
 		}
 		else {
 			// Fetch next opcode.
@@ -2023,6 +2115,8 @@ namespace lsn {
 
 			// Set PCL.
 			pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
+
+			LSN_CHECK_NMI;
 		}
 	}
 
@@ -2068,6 +2162,9 @@ namespace lsn {
 		// JSON testing reveals this.
 		// Crossed a page boundary.
 		pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
+
+		// NMI not polled here.
+		//LSN_CHECK_NMI;
 	}
 
 	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
@@ -2078,7 +2175,8 @@ namespace lsn {
 		// --- ------- --- -------------------------------------------------
 		//  6  address  W  write the new value to effective address
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
-		
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -2089,6 +2187,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -2124,6 +2224,8 @@ namespace lsn {
 			// We are done.
 			Adc( A, ui8Tmp );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -2138,6 +2240,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
@@ -2159,6 +2263,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (A & 0x80) != 0 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
@@ -2176,6 +2282,8 @@ namespace lsn {
 		A &= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A & OP.  Sets flags N and Z. */
@@ -2213,6 +2321,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = A & OP.  Sets flags N and Z. */
@@ -2232,6 +2342,8 @@ namespace lsn {
 		A &= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
@@ -2260,6 +2372,8 @@ namespace lsn {
          * of the instruction.  The value probably depends
          * on the data that was left on the bus by the VIC-II.
 		 */
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
@@ -2285,6 +2399,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status,
 			((m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) ^ ((A >> 5) & 0x1)) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP <<= 1.  Sets flags C, N, and Z. */
@@ -2300,6 +2416,8 @@ namespace lsn {
 		m_ccCurContext.ui8Operand <<= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A <<= 1.  Sets flags C, N, and Z. */
@@ -2315,6 +2433,8 @@ namespace lsn {
 		A <<= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
@@ -2337,6 +2457,8 @@ namespace lsn {
 		A >>= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Sets flags N, V and Z according to a bit test. */
@@ -2350,6 +2472,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, (ui8Op & A) == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (ui8Op & (1 << 7)) != 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW )>( m_ui8Status, (ui8Op & (1 << 6)) != 0x00 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pops the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
@@ -2362,6 +2486,8 @@ namespace lsn {
 		LSN_INSTR_READ( 0xFFFF, pc.ui8Bytes[1] );
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Clears the carry flag. */
@@ -2375,6 +2501,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Clears the decimal flag. */
@@ -2388,6 +2516,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_DECIMAL ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Clears the IRQ flag. */
@@ -2401,6 +2531,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Clears the overflow flag. */
@@ -2414,6 +2546,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares A with OP. */
@@ -2424,6 +2558,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		Cmp( A, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares A with OP. */
@@ -2458,6 +2594,8 @@ namespace lsn {
 			// We are done.
 			Cmp( A, ui8Tmp );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares A with OP. */
@@ -2475,6 +2613,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		Cmp( A, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares X with OP. */
@@ -2486,6 +2626,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		Cmp( X, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares X with OP. */
@@ -2503,6 +2645,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		Cmp( X, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares Y with OP. */
@@ -2514,6 +2658,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		Cmp( Y, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Compares Y with OP. */
@@ -2531,6 +2677,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		Cmp( Y, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z. */
@@ -2544,6 +2692,8 @@ namespace lsn {
 		// It carries if the last bit gets shifted off.
 		--m_ccCurContext.ui8Operand;
 		Cmp( A, m_ccCurContext.ui8Operand );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs [ADDR]--.  Sets flags N and Z. */
@@ -2557,6 +2707,8 @@ namespace lsn {
 		--m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs X--.  Sets flags N and Z. */
@@ -2573,6 +2725,8 @@ namespace lsn {
 		--X;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs Y--.  Sets flags N and Z. */
@@ -2589,6 +2743,8 @@ namespace lsn {
 		--Y;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -2603,6 +2759,8 @@ namespace lsn {
 		A ^= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -2640,6 +2798,7 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = A ^ OP.  Sets flags N and Z. */
@@ -2660,6 +2819,8 @@ namespace lsn {
 		A ^= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs [ADDR]++.  Sets flags N and Z. */
@@ -2673,6 +2834,8 @@ namespace lsn {
 		++m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs X++.  Sets flags N and Z. */
@@ -2689,6 +2852,8 @@ namespace lsn {
 		++X;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs Y++.  Sets flags N and Z. */
@@ -2705,6 +2870,8 @@ namespace lsn {
 		++Y;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
@@ -2719,6 +2886,8 @@ namespace lsn {
 		++m_ccCurContext.ui8Operand;
 		Sbc( A, m_ccCurContext.ui8Operand );
 		//Cmp( A, m_ccCurContext.ui8Operand & 0xFF );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Jams the machine. */
@@ -2750,6 +2919,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		pc.PC = m_ccCurContext.j.ui16JmpTarget;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies the read value into the low byte of PC after fetching the high byte. */
@@ -2765,6 +2936,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		pc.PC = m_ccCurContext.j.ui16JmpTarget;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** JSR (Jump to Sub-Routine). */
@@ -2778,6 +2951,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		pc.PC = m_ccCurContext.j.ui16JmpTarget;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
@@ -2792,6 +2967,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
@@ -2828,6 +3005,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = X = OP.  Sets flags N and Z. */
@@ -2842,6 +3021,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = X = OP.  Sets flags N and Z. */
@@ -2878,6 +3059,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = OP.  Sets flags N and Z. */
@@ -2894,6 +3077,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = OP.  Sets flags N and Z. */
@@ -2906,6 +3091,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = OP.  Sets flags N and Z. */
@@ -2942,6 +3129,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs X = OP.  Sets flags N and Z. */
@@ -2954,6 +3143,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs X = OP.  Sets flags N and Z. */
@@ -2990,6 +3181,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs X = OP.  Sets flags N and Z. */
@@ -3006,6 +3199,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs Y = OP.  Sets flags N and Z. */
@@ -3018,6 +3213,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs Y = OP.  Sets flags N and Z. */
@@ -3054,6 +3251,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs Y = OP.  Sets flags N and Z. */
@@ -3069,6 +3268,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP >>= 1.  Sets flags C, N, and Z. */
@@ -3084,6 +3285,8 @@ namespace lsn {
 		m_ccCurContext.ui8Operand >>= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A >>= 1.  Sets flags C, N, and Z. */
@@ -3100,6 +3303,8 @@ namespace lsn {
 		A >>= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
@@ -3128,6 +3333,8 @@ namespace lsn {
          * of the instruction.  The value probably depends
          * on the data that was left on the bus by the VIC-II.
 		 */
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the next instruction byte and throws it away. */
@@ -3140,6 +3347,7 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads the next instruction byte and throws it away, increments PC. */
@@ -3153,6 +3361,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads LSN_CPU_CONTEXT::a.ui16Address and throws it away. */
@@ -3162,6 +3372,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** No operation. */
@@ -3192,6 +3404,8 @@ namespace lsn {
 			LSN_FINISH_INST;
 			// We are done.
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs A = A | OP.  Sets flags N and Z. */
@@ -3210,6 +3424,8 @@ namespace lsn {
 		A |= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
@@ -3223,6 +3439,8 @@ namespace lsn {
 		A |= ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A | OP.  Sets flags N and Z. */
@@ -3259,6 +3477,8 @@ namespace lsn {
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes the accumulator. */
@@ -3266,6 +3486,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		LSN_PUSH( A );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pushes the status byte. */
@@ -3288,6 +3510,8 @@ namespace lsn {
 		// Reserved flag known to be set from JSON testing.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( m_ui8Status );
 		LSN_PUSH( ui8Copy );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls the accumulator. */
@@ -3299,6 +3523,8 @@ namespace lsn {
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pulls the status byte. */
@@ -3310,6 +3536,8 @@ namespace lsn {
 		const uint8_t ui8Mask = (uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ));
 		m_ui8Status = (ui8Tmp & ~ui8Mask);// | (m_ui8Status & ui8Mask);
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
@@ -3328,6 +3556,8 @@ namespace lsn {
 		A &= m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
@@ -3344,6 +3574,8 @@ namespace lsn {
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand << 1) | ui8LowBit;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
@@ -3359,6 +3591,8 @@ namespace lsn {
 		A = (A << 1) | ui8LowBit;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
@@ -3375,6 +3609,8 @@ namespace lsn {
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand >> 1) | ui8HiBit;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
@@ -3390,6 +3626,8 @@ namespace lsn {
 		A = (A >> 1) | ui8HiBit;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
@@ -3409,6 +3647,8 @@ namespace lsn {
 
 		//const uint8_t ui8Tmp = m_ccCurContext.ui8Operand;
 		Adc( A, m_ccCurContext.ui8Operand );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Pops into PCH. */
@@ -3420,6 +3660,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Reads PC and increments it. */
@@ -3430,6 +3672,8 @@ namespace lsn {
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3438,6 +3682,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A & X );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -3447,6 +3693,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		Sbc( A, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -3481,6 +3729,8 @@ namespace lsn {
 			// We are done.
 			Sbc( A, ui8Tmp );
 		}
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -3496,6 +3746,8 @@ namespace lsn {
 
 		// Uses the 8-bit operand itself as the value for the operation, rather than fetching a value from a memory address.
 		Sbc( A, ui8Tmp );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Fetches from PC and performs X = (A & X) - OP.  Sets flags C, N and Z. */
@@ -3517,6 +3769,8 @@ namespace lsn {
 		X = ui8AnX - ui8Tmp;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Sets the carry flag. */
@@ -3530,6 +3784,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY ), true>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Sets the decimal flag. */
@@ -3543,6 +3799,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_DECIMAL ), true>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Sets the IRQ flag. */
@@ -3556,6 +3814,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
@@ -3574,6 +3834,8 @@ namespace lsn {
 		A AND X AND (H+1) -> M
 		*/
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
@@ -3593,6 +3855,8 @@ namespace lsn {
 		*/
 		S = X & A;
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
@@ -3612,6 +3876,8 @@ namespace lsn {
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X;
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
@@ -3631,6 +3897,8 @@ namespace lsn {
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y;
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
@@ -3648,6 +3916,8 @@ namespace lsn {
 		A |= m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
@@ -3665,6 +3935,8 @@ namespace lsn {
 		A ^= m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3673,6 +3945,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3681,6 +3955,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, X );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3689,6 +3965,8 @@ namespace lsn {
 		LSN_FINISH_INST;
 
 		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, Y );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies A into X.  Sets flags N, and Z. */
@@ -3700,6 +3978,8 @@ namespace lsn {
 		X = A;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies A into Y.  Sets flags N, and Z. */
@@ -3711,6 +3991,8 @@ namespace lsn {
 		Y = A;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, Y == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (Y & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies S into X. */
@@ -3722,6 +4004,8 @@ namespace lsn {
 		X = S;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, X == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (X & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies X into A.  Sets flags N, and Z. */
@@ -3733,6 +4017,8 @@ namespace lsn {
 		A = X;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies X into S. */
@@ -3742,6 +4028,8 @@ namespace lsn {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
 		S = X;
+
+		LSN_CHECK_NMI;
 	}
 
 	/** Copies Y into A.  Sets flags N, and Z. */
@@ -3753,6 +4041,8 @@ namespace lsn {
 		A = Y;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
+
+		LSN_CHECK_NMI;
 	}
 
 #ifdef LSN_CPU_VERIFY
@@ -3913,6 +4203,8 @@ namespace lsn {
 #undef LSN_INDIRECT_X_R
 
 #undef LSN_FINISH_INST
+
+#undef LSN_CHECK_NMI
 #undef LSN_POP
 #undef LSN_PUSH
 #undef LSN_INSTR_WRITE

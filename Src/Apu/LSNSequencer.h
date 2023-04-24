@@ -35,6 +35,13 @@ namespace lsn {
 		 **/
 		inline uint8_t							Tick( bool _bEnabled );
 
+		/**
+		 * Sets the sequence value.
+		 * 
+		 * \param _ui8Val The 8-bit sequence value to set.
+		 **/
+		inline void								SetSeq( uint8_t _ui8Val );
+
 
 	protected :
 		// == Members.
@@ -78,6 +85,15 @@ namespace lsn {
 			}
 		}
 		return m_ui8Out;
+	}
+
+	/**
+	 * Sets the sequence value.
+	 * 
+	 * \param _ui8Val The 8-bit sequence value to set.
+	 **/
+	inline void CSequencer::SetSeq( uint8_t _ui8Val ) {
+		m_ui32Sequence = _ui8Val;
 	}
 
 }	// namespace lsn

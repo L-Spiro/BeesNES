@@ -40,6 +40,7 @@
 #define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( ADDR, VALUE )
 #define LSN_PUSH( VAL )																		LSN_INSTR_WRITE( 0x100 + uint8_t( S-- ), (VAL) )
 #define LSN_POP( RESULT )																	LSN_INSTR_READ( 0x100 + uint8_t( S + 1 ), RESULT ); ++S//m_pbBus->Read( 0x100 + ++S )
+#define LSN_CHECK_NMI																		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine)
 
 namespace lsn {
 
@@ -815,6 +816,7 @@ namespace lsn {
 		m_ccCurContext.ui8FuncIdx = 0;
 		m_ccCurContext.ui16OpCode = _ui16Op;
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
+		LSN_CHECK_NMI;
 	}
 
 }	// namespace lsn
