@@ -32,15 +32,11 @@ namespace lsn {
 		typedef std::function<void ( void *, Type, Type )>	Callback;
 
 
-		CDelayedValue( _tnType &_tVal, Callback _cCallback = nullptr, void * _pvCallbackParm = nullptr ) :
-			m_tVal( _tVal ),
+		CDelayedValue( Callback _cCallback = nullptr, void * _pvCallbackParm = nullptr ) :
 			m_stDirty( 0 ),
 			m_cCallback( _cCallback ),
 			m_pvCallbackParm( _pvCallbackParm ) {
 			std::memset( m_bIsWrite, 0, sizeof( m_bIsWrite ) );
-			for ( size_t I = ArraySize<_uDelayCycles>(); I--; ) {
-				m_tBuffer[I] = _tVal;
-			}
 		}
 
 
@@ -48,10 +44,10 @@ namespace lsn {
 		/**
 		 * Returns the length of the internal array, which must be larger than 0.
 		 *
-		 * \return Returns max( 1, _tnType ).
+		 * \return Returns _uDelayCycles + 1.
 		 */
 		template <size_t _uDelayCycles>
-		static constexpr size_t								ArraySize() { return _uDelayCycles > 0 ? _uDelayCycles : 1; }
+		static constexpr size_t								ArraySize() { return _uDelayCycles + 1; }
 
 		/**
 		 * Gets the actual delay.
@@ -64,22 +60,21 @@ namespace lsn {
 		 * Sets a value to be delay-copied into the final value passed in the constructor.
 		 *
 		 * \param _tnValue The new value to write with a delay.
+		 * \param _stManualDelay Allows overriding the position within the delay chain where the value is inserted.
 		 * \return Returns the input value.
 		 */
-		_tnType												WriteWithDelay( _tnType _tnValue ) {
+		_tnType												WriteWithDelay( _tnType _tnValue, size_t _stManualDelay = _uDelayCycles ) {
 			if constexpr ( _uDelayCycles == 0 ) {
 				// No delay.  Bypass the delay functionality entirely.
 				if ( m_cCallback ) {
-					m_cCallback( m_pvCallbackParm, _tnValue, m_tVal );
+					m_cCallback( m_pvCallbackParm, _tnValue, Value() );
 				}
-				m_tVal = _tnValue;
 			}
-			else {
-				// Shove the new vlue into the bottom of the stack.
-				m_tBuffer[0] = _tnValue;
-				m_bIsWrite[0] = true;
-				m_stDirty = _uDelayCycles;
-			}
+			// Shove the new vlue into the bottom of the stack.
+			m_tBuffer[0] = _tnValue;
+			m_bIsWrite[0] = true;
+			m_stDirty = _uDelayCycles;
+
 			return _tnValue;
 		}
 
@@ -91,10 +86,9 @@ namespace lsn {
 				if ( m_stDirty ) {
 					--m_stDirty;
 					if ( m_cCallback && m_bIsWrite[ArraySize<_uDelayCycles>()-1] ) {
-						m_cCallback( m_pvCallbackParm, m_tBuffer[ArraySize<_uDelayCycles>()-1], m_tVal );
+						m_cCallback( m_pvCallbackParm, m_tBuffer[ArraySize<_uDelayCycles>()-1], Value() );
 					}
-					m_tVal = m_tBuffer[ArraySize<_uDelayCycles>()-1];
-					if constexpr ( _uDelayCycles >= 2 ) {
+					if constexpr ( _uDelayCycles >= 1 ) {
 						for ( size_t I = ArraySize<_uDelayCycles>() - 1; I--; ) {
 							m_tBuffer[I+1] = m_tBuffer[I];
 							m_bIsWrite[I+1] = m_bIsWrite[I];
@@ -113,15 +107,17 @@ namespace lsn {
 		 */
 		void												SetValue( _tnType _tnValue, bool _bTriggerCallback = true ) {
 			if ( _bTriggerCallback && m_cCallback ) {
-				m_cCallback( m_pvCallbackParm, _tnValue, m_tVal );
+				m_cCallback( m_pvCallbackParm, _tnValue, Value() );
 			}
-			m_tVal = _tnValue;
 			if constexpr ( _uDelayCycles != 0 ) {
 				m_stDirty = 0;
 				for ( size_t I = ArraySize<_uDelayCycles>(); I--; ) {
 					m_tBuffer[I] = _tnValue;
 					m_bIsWrite[I] = false;
 				}
+			}
+			else {
+				m_tBuffer[0] = _tnValue;
 			}
 		}
 
@@ -131,7 +127,7 @@ namespace lsn {
 		 * \return Returns the current value by constant reference.
 		 */
 		const _tnType &										Value() const {
-			return m_tVal;
+			return m_tBuffer[ArraySize<_uDelayCycles>()-1];
 		}
 
 		/**
@@ -140,12 +136,7 @@ namespace lsn {
 		 * \return Returns the most recent value assigned by constant reference.
 		 */
 		const _tnType &										MostRecentValue() const {
-			if constexpr ( _uDelayCycles == 0 ) {
-				return m_tVal;
-			}
-			else {
-				return m_tBuffer[0];
-			}
+			return m_tBuffer[0];
 		}
 
 	protected :
@@ -158,8 +149,6 @@ namespace lsn {
 		_tnType												m_tBuffer[ArraySize<_uDelayCycles>()];
 		/** A companion array that allows us to track values through the delay to know when to trigger the callback.  The callback must only be triggered on actual writes to the target value. */
 		bool												m_bIsWrite[ArraySize<_uDelayCycles>()];
-		/** The value to change at the end of the period. */
-		_tnType &											m_tVal;
 		/** If non-zero, there is a value in the pipeline and the object should be updated each cycle until it reaches the top. */
 		size_t												m_stDirty;
 	};

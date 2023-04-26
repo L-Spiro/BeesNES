@@ -2080,6 +2080,11 @@ namespace lsn {
 			// JSON testing shows PCL is not updated yet.
 			// Set PCL.
 			//pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
+
+			/*bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != pc.ui8Bytes[1];
+			if ( !bCrossed ) {
+				LSN_CHECK_NMI;
+			}*/
 		}
 
 		// Branches don't check NMI on cycle 2.
@@ -2164,7 +2169,7 @@ namespace lsn {
 		pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
 
 		// NMI not polled here.
-		//LSN_CHECK_NMI;
+		LSN_CHECK_NMI;
 	}
 
 	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */

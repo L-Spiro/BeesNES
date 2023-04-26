@@ -69,7 +69,7 @@ namespace lsn {
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
-#define LSN_INIT( IDX )					m_dvRegisters3_40 ## IDX ( m_ui8Registers[0x##IDX] )
+#define LSN_INIT( IDX )					m_dvRegisters3_40 ## IDX ()
 			LSN_INIT( 00 ),
 			LSN_INIT( 01 ),
 			LSN_INIT( 02 ),
@@ -220,7 +220,7 @@ namespace lsn {
 		/** Delayed writes. */
 		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4017;
 		/** Registers from $4000 to $4017. */
-		uint8_t											m_ui8Registers[0x4017-0x4000+1];
+		//uint8_t											m_ui8Registers[0x4017-0x4000+1];
 
 
 		// == Functions.
