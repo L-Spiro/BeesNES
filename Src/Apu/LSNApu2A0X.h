@@ -16,10 +16,17 @@
 #include "../Utilities/LSNDelayedValue.h"
 
 
-#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {				\
-											m_pPulse1.Tick( true );				\
-											m_pPulse2.Tick( true );				\
+#define LSN_APU_UPDATE					if constexpr ( _bEven ) {				\
+											if ( m_bModeSwitch ) {				\
+												m_bModeSwitch = false;			\
+											}									\
+											else {								\
+												m_pPulse1.Tick( true );			\
+												m_pPulse2.Tick( true );			\
+											}									\
 										}
+
+#define LSN_4017_DELAY					3										/**< 1 higher than expected because the delayed register is ticked BEFORE the standard tick function is called. */
 
 namespace lsn {
 
@@ -69,33 +76,15 @@ namespace lsn {
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
-#define LSN_INIT( IDX )					m_dvRegisters3_40 ## IDX ()
-			LSN_INIT( 00 ),
-			LSN_INIT( 01 ),
-			LSN_INIT( 02 ),
-			LSN_INIT( 03 ),
-			LSN_INIT( 04 ),
-			LSN_INIT( 05 ),
-			LSN_INIT( 06 ),
-			LSN_INIT( 07 ),
-			LSN_INIT( 08 ),
-			LSN_INIT( 09 ),
-			LSN_INIT( 0A ),
-			LSN_INIT( 0B ),
-			LSN_INIT( 0C ),
-			LSN_INIT( 0D ),
-			LSN_INIT( 0E ),
-			LSN_INIT( 0F ),
-			LSN_INIT( 10 ),
-			LSN_INIT( 11 ),
-			LSN_INIT( 12 ),
-			LSN_INIT( 13 ),
-			LSN_INIT( 15 ),
-			LSN_INIT( 17 ) {
-#undef LSN_INIT
+			m_dvRegisters3_4017( Set4017, this ) {
+
 		}
 		~CApu2A0X() {
 		}
+
+
+		// == Types.
+		typedef CDelayedValue<uint8_t, LSN_4017_DELAY>	DelayedVal;
 
 
 		// == Functions.
@@ -103,7 +92,10 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+			m_dvRegisters3_4017.Tick();
 			(this->*m_pftTick)();
+
+			
 			++m_ui64Cycles;
 		}
 
@@ -114,6 +106,7 @@ namespace lsn {
 			m_ui64Cycles = 0;
 			m_ui64StepCycles = 0;
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false>;
+			m_bModeSwitch = false;
 		}
 
 		/**
@@ -144,6 +137,9 @@ namespace lsn {
 			for ( uint32_t I = (LSN_APU_IO_START + LSN_APU_IO); I <= (LSN_APU_START + 0xFF); ++I ) {
 				m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::NoRead, this, uint16_t( I ) );
 			}
+
+
+			m_pbBus->SetWriteFunc( 0x4017, Write4017, this, 0 );
 		}
 
 		/**
@@ -176,51 +172,9 @@ namespace lsn {
 		/** Pulse 2. */
 		CPulse											m_pPulse2;
 		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4000;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4001;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4002;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4003;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4004;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4005;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4006;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4007;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4008;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4009;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400A;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400B;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400C;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400D;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400E;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_400F;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4010;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4011;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4012;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4013;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4015;
-		/** Delayed writes. */
-		CDelayedValue<uint8_t, 3>						m_dvRegisters3_4017;
-		/** Registers from $4000 to $4017. */
-		//uint8_t											m_ui8Registers[0x4017-0x4000+1];
+		DelayedVal										m_dvRegisters3_4017;
+		/** Set to true upon a write to $4017. */
+		bool											m_bModeSwitch;
 
 
 		// == Functions.
@@ -342,6 +296,33 @@ namespace lsn {
 			else {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
 			}
+		}
+
+		/**
+		 * The callback function for when $4017 gets set.
+		 * 
+		 * \param _pvParm A pointer to this APU object.
+		 * \param _tNewVal The new value being set.
+		 * \param _tOldVal The old value.
+		 **/
+		static void										Set4017( void * _pvParm, DelayedVal::Type /*_tNewVal*/, DelayedVal::Type /*_tOldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm);
+			paApu->m_bModeSwitch = true;
+		}
+
+		/**
+		 * Writing to 0x4017 (Frame counter: 5-frame sequence, disable frame interrupt).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			// * If the write occurs during an APU cycle, the effects occur 3 CPU cycles after the $4017 write cycle, and if the write occurs between APU cycles, the effects occurs 4 CPU cycles after the write cycle.
+			// "During" an APU cycle means every even CPU cycle.  "Between" APU cycles means every odd CPU cycle.
+			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val, paApu->IsEvenCycle() ? LSN_4017_DELAY : (LSN_4017_DELAY - 1) );
 		}
 
 	};

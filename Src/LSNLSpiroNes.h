@@ -266,7 +266,7 @@ namespace lsn {
 	 * Sets a bit in a flag to 1 or 0.
 	 *
 	 * \param _uBit Bit mask.
-	 * \param _bVal The bit valu to write (0 or 1).
+	 * \param _bVal The bit value to write (0 or 1).
 	 * \param _ui8Val The value to modify in-place.
 	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */

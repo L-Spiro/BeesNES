@@ -70,9 +70,9 @@ namespace lsn {
 					m_cCallback( m_pvCallbackParm, _tnValue, Value() );
 				}
 			}
-			// Shove the new vlue into the bottom of the stack.
-			m_tBuffer[0] = _tnValue;
-			m_bIsWrite[0] = true;
+			// Shove the new value into the bottom of the stack.
+			m_tBuffer[_uDelayCycles-_stManualDelay] = _tnValue;
+			m_bIsWrite[_uDelayCycles-_stManualDelay] = true;
 			m_stDirty = _uDelayCycles;
 
 			return _tnValue;
@@ -85,8 +85,8 @@ namespace lsn {
 			if constexpr ( _uDelayCycles != 0 ) {
 				if ( m_stDirty ) {
 					--m_stDirty;
-					if ( m_cCallback && m_bIsWrite[ArraySize<_uDelayCycles>()-1] ) {
-						m_cCallback( m_pvCallbackParm, m_tBuffer[ArraySize<_uDelayCycles>()-1], Value() );
+					if ( m_cCallback && m_bIsWrite[ArraySize<_uDelayCycles>()-2] ) {
+						m_cCallback( m_pvCallbackParm, m_tBuffer[ArraySize<_uDelayCycles>()-2], Value() );
 					}
 					if constexpr ( _uDelayCycles >= 1 ) {
 						for ( size_t I = ArraySize<_uDelayCycles>() - 1; I--; ) {
