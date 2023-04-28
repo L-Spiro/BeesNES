@@ -16,14 +16,11 @@
 #include "../Utilities/LSNDelayedValue.h"
 
 
-#define LSN_APU_UPDATE					if constexpr ( _bEven ) {				\
-											if ( m_bModeSwitch ) {				\
-												m_bModeSwitch = false;			\
-											}									\
-											else {								\
-												m_pPulse1.Tick( true );			\
-												m_pPulse2.Tick( true );			\
-											}									\
+#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {										\
+											{															\
+												m_pPulse1.Tick( m_ui8Registers[0x15] & 0b01 );			\
+												m_pPulse2.Tick( m_ui8Registers[0x15] & 0b10 );			\
+											}															\
 										}
 
 #define LSN_4017_DELAY					3										/**< 1 higher than expected because the delayed register is ticked BEFORE the standard tick function is called. */
@@ -107,6 +104,8 @@ namespace lsn {
 			m_ui64StepCycles = 0;
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false>;
 			m_bModeSwitch = false;
+			m_pPulse1.SetSeq( GetDuty( 0 ) );
+			m_pPulse2.SetSeq( GetDuty( 0 ) );
 		}
 
 		/**
@@ -138,7 +137,15 @@ namespace lsn {
 				m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::NoRead, this, uint16_t( I ) );
 			}
 
+			m_pbBus->SetWriteFunc( 0x4000, Write4000, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4002, Write4002, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4003, Write4003, this, 0 );
 
+			m_pbBus->SetWriteFunc( 0x4004, Write4004, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4006, Write4006, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4007, Write4007, this, 0 );
+
+			m_pbBus->SetWriteFunc( 0x4015, Write4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4017, Write4017, this, 0 );
 		}
 
@@ -173,6 +180,8 @@ namespace lsn {
 		CPulse											m_pPulse2;
 		/** Delayed writes. */
 		DelayedVal										m_dvRegisters3_4017;
+		/** Non-delayed registers. */
+		uint8_t											m_ui8Registers[0x15+1];
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
 
@@ -311,6 +320,103 @@ namespace lsn {
 		}
 
 		/**
+		 * Writing to 0x4000 (Duty, loop envelope/disable length counter, constant volume, envelope period/volume).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x00] = _ui8Val;
+			paApu->m_pPulse1.SetSeq( GetDuty( _ui8Val >> 6 ) );
+		}
+
+		/**
+		 * Writing to 0x4002 (Timer low).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x02] = _ui8Val;
+			paApu->m_pPulse1.SetTimerLow( _ui8Val );
+		}
+
+		/**
+		 * Writing to 0x4003 (Length counter load, timer high (also resets duty and starts envelope)).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x03] = _ui8Val;
+			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
+		}
+
+		/**
+		 * Writing to 0x4004 (Duty, loop envelope/disable length counter, constant volume, envelope period/volume).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x04] = _ui8Val;
+			paApu->m_pPulse2.SetSeq( GetDuty( _ui8Val >> 6 ) );
+		}
+
+		/**
+		 * Writing to 0x4006 (Timer low).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x06] = _ui8Val;
+			paApu->m_pPulse2.SetTimerLow( _ui8Val );
+		}
+
+		/**
+		 * Writing to 0x4007 (Length counter load, timer high (also resets duty and starts envelope)).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x07] = _ui8Val;
+			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
+		}
+
+		/**
+		 * Writing to 0x4015 (Status: DMC interrupt, frame interrupt, length counter status: noise, triangle, pulse 2, pulse 1 (read)).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x15] = _ui8Val;
+		}
+
+		/**
 		 * Writing to 0x4017 (Frame counter: 5-frame sequence, disable frame interrupt).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -322,7 +428,24 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			// * If the write occurs during an APU cycle, the effects occur 3 CPU cycles after the $4017 write cycle, and if the write occurs between APU cycles, the effects occurs 4 CPU cycles after the write cycle.
 			// "During" an APU cycle means every even CPU cycle.  "Between" APU cycles means every odd CPU cycle.
-			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val, paApu->IsEvenCycle() ? LSN_4017_DELAY : (LSN_4017_DELAY - 1) );
+			// This is handled by having Set4017() set m_bModeSwitch, which will then be seen only on even ticks.
+			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
+		}
+
+		/**
+		 * Gets a duty sequence bit mask.
+		 * 
+		 * \param _ui8Duty The duty cycle index.
+		 * \return Returns the bit sequence for the given pulse duty cycle.
+		 **/
+		static inline uint8_t							GetDuty( uint8_t _ui8Duty ) {
+			static const uint8_t ui8Seqs[] = {
+				0b00000001,
+				0b00000011,
+				0b00001111,
+				0b11111100,
+			};
+			return ui8Seqs[_ui8Duty];
 		}
 
 	};

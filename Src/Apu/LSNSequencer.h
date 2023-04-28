@@ -42,6 +42,22 @@ namespace lsn {
 		 **/
 		inline void								SetSeq( uint8_t _ui8Val );
 
+		/**
+		 * Sets the timer low value.
+		 * 
+		 * \param _ui8Val The timer low value.
+		 * \return Returns the timer value.
+		 **/
+		inline uint16_t							SetTimerLow( uint8_t _ui8Val );
+
+		/**
+		 * Sets the timer high value.  Only the bottom 3 bits are used.
+		 * 
+		 * \param _ui8Val The timer high value.
+		 * \return Returns the timer value.
+		 **/
+		inline uint16_t							SetTimerHigh( uint8_t _ui8Val );
+
 
 	protected :
 		// == Members.
@@ -61,7 +77,7 @@ namespace lsn {
 		 * 
 		 * \param _ui32S The current sequence bits.
 		 **/
-		virtual void							WeDoBeTicknTho( uint32_t &/*_ui32S*/ ) {}
+		virtual uint8_t							WeDoBeTicknTho( uint32_t &/*_ui32S*/ ) { return 0; }
 	};
 	
 
@@ -80,8 +96,8 @@ namespace lsn {
 		if ( _bEnabled ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload + 1;
-				WeDoBeTicknTho( m_ui32Sequence );
-				m_ui8Out = uint8_t( m_ui32Sequence & 1 );
+				uint8_t ui8Seq = WeDoBeTicknTho( m_ui32Sequence );
+				m_ui8Out = uint8_t( ui8Seq & 1 );
 			}
 		}
 		return m_ui8Out;
@@ -94,6 +110,29 @@ namespace lsn {
 	 **/
 	inline void CSequencer::SetSeq( uint8_t _ui8Val ) {
 		m_ui32Sequence = _ui8Val;
+	}
+
+	/**
+	 * Sets the timer low value.
+	 * 
+	 * \param _ui8Val The timer low value.
+	 * \return Returns the timer value.
+	 **/
+	inline uint16_t CSequencer::SetTimerLow( uint8_t _ui8Val ) {
+		m_ui16Reload = (m_ui16Reload & 0xFF00) | _ui8Val;
+		return m_ui16Reload;
+	}
+
+	/**
+	 * Sets the timer high value.  Only the bottom 3 bits are used.
+	 * 
+	 * \param _ui8Val The timer high value.
+	 * \return Returns the timer value.
+	 **/
+	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val ) {
+		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
+		m_ui16Timer = m_ui16Reload + 1;
+		return m_ui16Reload;
 	}
 
 }	// namespace lsn
