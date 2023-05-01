@@ -33,7 +33,7 @@ namespace lsn {
 		 * \param _bEnabled Determines if work should actually be done.
 		 * \return Returns m_ui8Out.
 		 **/
-		inline uint8_t							Tick( bool _bEnabled );
+		inline uint8_t							TickSequencer( bool _bEnabled );
 
 		/**
 		 * Sets the sequence value.
@@ -61,6 +61,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The sequence offset. */
+		uint64_t								m_ui64SeqOff;
 		/** The sequence of bits that determines when to trigger actions. */
 		uint32_t								m_ui32Sequence = 0;
 		/** The current timer value. */
@@ -92,10 +94,10 @@ namespace lsn {
 	 * \param _bEnabled Determines if work should actually be done.
 	 * \return Returns m_ui8Out.
 	 **/
-	inline uint8_t CSequencer::Tick( bool _bEnabled ) {
+	inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
 		if ( _bEnabled ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
-				m_ui16Timer = m_ui16Reload + 1;
+				m_ui16Timer = m_ui16Reload;
 				uint8_t ui8Seq = WeDoBeTicknTho( m_ui32Sequence );
 				m_ui8Out = uint8_t( ui8Seq & 1 );
 			}
@@ -131,7 +133,8 @@ namespace lsn {
 	 **/
 	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val ) {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
-		m_ui16Timer = m_ui16Reload + 1;
+		m_ui16Timer = m_ui16Reload;
+		m_ui64SeqOff = 0;
 		return m_ui16Reload;
 	}
 

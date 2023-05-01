@@ -629,6 +629,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Apu\LSNApuUnit.cpp" />
     <ClCompile Include="Src\Apu\LSNPulse.cpp" />
     <ClCompile Include="Src\Apu\LSNSequencer.cpp" />
     <ClCompile Include="Src\Audio\LSNAudio.cpp" />

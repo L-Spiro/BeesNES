@@ -11,8 +11,7 @@
 
 namespace lsn {
 
-	CPulse::CPulse() :
-		m_ui64SeqOff( 0 ) {
+	CPulse::CPulse() {
 	}
 	CPulse::~CPulse() {
 	}

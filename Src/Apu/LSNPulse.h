@@ -30,8 +30,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The sequence offset. */
-		uint64_t								m_ui64SeqOff;
+		
 
 
 		// == Functions.
