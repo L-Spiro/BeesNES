@@ -61,8 +61,6 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The sequence offset. */
-		uint64_t								m_ui64SeqOff;
 		/** The sequence of bits that determines when to trigger actions. */
 		uint32_t								m_ui32Sequence = 0;
 		/** The current timer value. */
@@ -71,6 +69,8 @@ namespace lsn {
 		uint16_t								m_ui16Reload = 0;
 		/** The output value. */
 		uint8_t									m_ui8Out = 0;
+		/** The sequence offset. */
+		uint8_t									m_ui8SeqOff = 0;
 
 
 		// == Functions.
@@ -98,7 +98,9 @@ namespace lsn {
 		if ( _bEnabled ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
-				uint8_t ui8Seq = WeDoBeTicknTho( m_ui32Sequence );
+
+				uint8_t ui8Seq = uint8_t( m_ui32Sequence >> m_ui8SeqOff-- );//WeDoBeTicknTho( m_ui32Sequence );
+				if ( m_ui8SeqOff == 0xFF ) { m_ui8SeqOff = 0x7; }
 				m_ui8Out = uint8_t( ui8Seq & 1 );
 			}
 		}
@@ -134,7 +136,7 @@ namespace lsn {
 	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val ) {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		m_ui16Timer = m_ui16Reload;
-		m_ui64SeqOff = 0;
+		m_ui8SeqOff = 0;
 		return m_ui16Reload;
 	}
 

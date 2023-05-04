@@ -12,8 +12,7 @@
 
 namespace lsn {
 
-	CSequencer::CSequencer() :
-		m_ui64SeqOff( 0 ) {
+	CSequencer::CSequencer() {
 	}
 	CSequencer::~CSequencer() {
 	}

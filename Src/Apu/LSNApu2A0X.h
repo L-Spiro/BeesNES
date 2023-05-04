@@ -494,10 +494,10 @@ namespace lsn {
 		 **/
 		static inline uint8_t							GetDuty( uint8_t _ui8Duty ) {
 			static const uint8_t ui8Seqs[] = {
-				0b01000000,
-				0b01100000,
-				0b01111000,
-				0b10011111,
+				0b10000000,
+				0b11000000,
+				0b11110000,
+				0b00111111,
 			};
 			return ui8Seqs[_ui8Duty];
 		}
