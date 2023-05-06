@@ -113,7 +113,7 @@ namespace lsn {
 
 		protected :
 			/** The IDirectInput8W * object. */
-			IDirectInput8W *							lpdi8Object;
+			IDirectInput8W *						lpdi8Object;
 		};
 
 
@@ -130,7 +130,7 @@ namespace lsn {
 		 * \param _pvRef The application-defined value passed to IDirectInput8::EnumDevices or IDirectInput8::EnumDevicesBySemantics as the pvRef parameter.
 		 * \return Returns DIENUM_CONTINUE.
 		 */
-		static BOOL									DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCE _lpdDi, LPVOID _pvRef );
+		static BOOL PASCAL							DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCEW _lpdDi, LPVOID _pvRef );
 	};
 
 }	// namespace lsn

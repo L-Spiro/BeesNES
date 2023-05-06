@@ -107,7 +107,7 @@ namespace lsn {
 	 * \param _pvRef The application-defined value passed to IDirectInput8::EnumDevices or IDirectInput8::EnumDevicesBySemantics as the pvRef parameter.
 	 * \return Returns DIENUM_CONTINUE.
 	 */
-	BOOL CDirectInput8::DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCE _lpdDi, LPVOID _pvRef ) {
+	BOOL PASCAL CDirectInput8::DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCEW _lpdDi, LPVOID _pvRef ) {
 		std::vector<DIDEVICEINSTANCEW> * pvVector = reinterpret_cast<std::vector<DIDEVICEINSTANCEW> *>(_pvRef);
 		pvVector->push_back( (*_lpdDi) );
 		return DIENUM_CONTINUE;

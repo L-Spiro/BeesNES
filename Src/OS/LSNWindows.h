@@ -87,6 +87,50 @@ inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64M
     return ui64ProductLo;
 #endif  // 1
 }
+
+inline uint64_t LSN_FASTCALL _udiv128(uint64_t high, uint64_t low, uint64_t divisor, uint64_t* remainder) {
+    /*if (high >= divisor) {
+        return 0;
+        //throw std::overflow_error("The division would overflow the 64-bit quotient.");
+    }*/
+
+    uint64_t q = 0;
+    uint64_t r = 0;
+    uint64_t mask;
+
+    for (int i = 63; i >= 0; --i) {
+        mask = static_cast<uint64_t>(1) << i;
+
+        r <<= 1;
+        if (high & mask) {
+            r |= 1;
+        }
+
+        if (r >= divisor) {
+            r -= divisor;
+            q |= mask;
+        }
+
+        if (i == 0) {
+            break;
+        }
+
+        r <<= 1;
+        if (low & mask) {
+            r |= 1;
+        }
+
+        if (r >= divisor) {
+            r -= divisor;
+            q |= mask;
+        }
+    }
+
+    if ( remainder ) {  *remainder = r; }
+    return q;
+}
+
+
 #endif  // #ifndef LSN_WIN64
 
 #endif	// #ifdef LSN_WINDOWS
