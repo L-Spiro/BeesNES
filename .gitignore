@@ -34,5 +34,6 @@ Libraries/ExpressionEvaluator/x64/*
 Libraries/LSWindows/x64/*
 Libraries/LSon/x64/*
 x64/Final/*
+Win32/Final/*
 Licenses.txt
 Libraries/LSon/x64/Debug/LSon.vcxproj.FileListAbsolute.txt

@@ -59,6 +59,7 @@
 // Still need to find somewhere from which to mercilessly rip a _udiv128() implementation.  MERCILESSLY.
 #include <cstdint>
 #include <intrin.h>
+#include <stdexcept>
 //#include <winnt.h>
 inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64Multiplicand, 
     uint64_t *_pui64ProductHi ) {
@@ -88,46 +89,34 @@ inline uint64_t LSN_FASTCALL _umul128( uint64_t _ui64Multiplier, uint64_t _ui64M
 #endif  // 1
 }
 
-inline uint64_t LSN_FASTCALL _udiv128(uint64_t high, uint64_t low, uint64_t divisor, uint64_t* remainder) {
-    /*if (high >= divisor) {
-        return 0;
-        //throw std::overflow_error("The division would overflow the 64-bit quotient.");
-    }*/
+inline uint64_t LSN_FASTCALL _udiv128( uint64_t _ui64High, uint64_t _ui64Low, uint64_t _ui64Divisor, uint64_t * _pui64Remainder ) {
+	if ( _ui64Divisor == 0 ) {
+		throw std::overflow_error( "Division by zero is not allowed." );
+	}
 
-    uint64_t q = 0;
-    uint64_t r = 0;
-    uint64_t mask;
+	if ( _ui64High >= _ui64Divisor ) {
+		throw std::overflow_error( "The division would overflow the 64-bit quotient." );
+	}
 
-    for (int i = 63; i >= 0; --i) {
-        mask = static_cast<uint64_t>(1) << i;
+	if ( _ui64High == 0 ) {
+		if ( _pui64Remainder ) { (*_pui64Remainder) = _ui64Low % _ui64Divisor; }
+		return _ui64Low / _ui64Divisor;
+	}
 
-        r <<= 1;
-        if (high & mask) {
-            r |= 1;
-        }
+	uint64_t ui64Q = 0;
+	uint64_t ui64R = _ui64High;
 
-        if (r >= divisor) {
-            r -= divisor;
-            q |= mask;
-        }
+	for ( int I = 63; I >= 0; --I ) {
+		ui64R = (ui64R << 1) | ((_ui64Low >> I) & 1);
 
-        if (i == 0) {
-            break;
-        }
+		if ( ui64R >= _ui64Divisor ) {
+			ui64R -= _ui64Divisor;
+			ui64Q |= 1ULL << I;
+		}
+	}
 
-        r <<= 1;
-        if (low & mask) {
-            r |= 1;
-        }
-
-        if (r >= divisor) {
-            r -= divisor;
-            q |= mask;
-        }
-    }
-
-    if ( remainder ) {  *remainder = r; }
-    return q;
+	if ( _pui64Remainder ) { (*_pui64Remainder) = ui64R; }
+	return ui64Q;
 }
 
 
