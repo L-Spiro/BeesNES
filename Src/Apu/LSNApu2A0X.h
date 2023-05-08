@@ -66,7 +66,8 @@ namespace lsn {
 	 * Description: The 2A0X series of APU's.
 	 */
 	template <unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S3_0, unsigned _tM0S3_1, unsigned _tM0S3_2,
-		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1>
+		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1,
+		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv>
 	class CApu2A0X : public CTickable {
 	public :
 		CApu2A0X( CCpuBus * _pbBus ) :
@@ -309,6 +310,46 @@ namespace lsn {
 			}
 		}
 
+
+		/**
+		 * Determines the next CPU cycle that corresponds to a new WAV sample and returns the CPU cycle index that corresponds to
+		 *	that sample as well as the fraction between that sample and the next to interpolate when sampling.
+		 * 
+		 * \param _ui64ApuCycle The current APU cycle.
+		 * \param _ui64Hz The audio Hz.
+		 * \param _fInterp Holds the returned interpolation fraction.
+		 * \return Returns the CPU cycle index that corresponds with the next WAV sample to output, as well as the interpolation
+		 *	fraction between that WAV sample and the next.
+		 **/
+		uint64_t										ApuCycleOfNextSample( uint64_t _ui64ApuCycle, uint64_t _ui64Hz, float &_fInterp ) {
+			/*
+			 * This is the same as:
+			constexpr double dApuHz = (double)_tMasterClock / _tMasterDiv / _tApuDiv;
+			double dTime = m_ui64Cycles / dApuHz;
+			double dSample = m_ui64Hz * dTime;
+			double dFinalSample = (floor( dSample ) + 1) / m_ui64Hz * dApuHz;
+			uint64_t ui64ApuTimeAtSample = (uint64_t)floor( dFinalSample );
+			_fInterp = (float)mod( floor( dFinalSample ) / dApuHz * m_ui64Hz, 1 );
+
+			 * Done using integers to avoid loss of precision over long durations, because nothing is more annoying than
+			 *	pausing your game for 18 years only to come back to it to find that the audio is a jumbled mess.
+			 */
+			constexpr uint64_t ui64Multiplier = _tMasterDiv * _tApuDiv;
+
+			uint64_t ui64RealTime = _ui64ApuCycle * ui64Multiplier;											// ui64RealTime / (double)_tMasterClock = actual time in seconds of the given APU cycle.
+			uint64_t ui64SampleIdx = ui64RealTime * _ui64Hz / _tMasterClock + 1;							// For example, after 1 second (ui64RealTime == _tMasterClock), ui64SampleIdx will equal the Hz (_ui64Hz).
+																											//	(+ 1) because we want the time of the next sample.
+			uint64_t ui64ApuTimeAtSample = ui64SampleIdx * _tMasterClock / (_ui64Hz * ui64Multiplier);		// The APU cycle index that corresponds with that WAV sample.  This is the return value.
+
+			// To determine the interpolation fraction we need to convert the new APU time back to a WAV sample.
+			uint64_t ui64ApuTimeOfWav = ui64ApuTimeAtSample * ui64Multiplier * _ui64Hz;						// (* ui64Multiplier) means something is normalized via (/ (double)_tMasterClock).  We want to use this
+																											//	to calculate the remainder, but it first needs to be tied to the Hz (* _ui64Hz).
+			_fInterp = (ui64ApuTimeOfWav % _tMasterClock) / static_cast<float>(_tMasterClock);				// Use % to keep the values sanitized so that the conversion to float never loses precision over time.
+																											//	This is the whole reason for doing everything in integer form.
+
+			return ui64ApuTimeAtSample;
+		}
+
 		/**
 		 * The callback function for when $4017 gets set.
 		 * 
@@ -518,13 +559,13 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CApu2A0X<LSN_APU_TYPE( NTSC )>				CNtscApu;
+	//typedef CApu2A0X<LSN_APU_TYPE( NTSC )>				CNtscApu;
 
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CApu2A0X<LSN_APU_TYPE( PAL )>				CPalApu;
+	//typedef CApu2A0X<LSN_APU_TYPE( PAL )>				CPalApu;
 
-#undef LSN_APU_TYPE
+//#undef LSN_APU_TYPE
 
 }	// namespace lsn
