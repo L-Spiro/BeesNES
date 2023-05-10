@@ -58,6 +58,13 @@ namespace lsn {
 		 **/
 		inline uint16_t							SetTimerHigh( uint8_t _ui8Val );
 
+		/**
+		 * Gets the output value (1 or 0).
+		 * 
+		 * \return Returns the current output value.
+		 **/
+		inline uint8_t							Output() const;
+
 
 	protected :
 		// == Members.
@@ -138,6 +145,15 @@ namespace lsn {
 		m_ui16Timer = m_ui16Reload;
 		m_ui8SeqOff = 0;
 		return m_ui16Reload;
+	}
+
+	/**
+	 * Gets the output value (1 or 0).
+	 * 
+	 * \return Returns the current output value.
+	 **/
+	inline uint8_t CSequencer::Output() const {
+		return m_ui8Out;
 	}
 
 }	// namespace lsn

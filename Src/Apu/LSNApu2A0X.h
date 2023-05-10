@@ -10,10 +10,12 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "LSNPulse.h"
+#include "../Audio/LSNAudio.h"
+#include "../Audio/LSNSampleBucket.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
+#include "LSNPulse.h"
 
 
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
@@ -74,6 +76,7 @@ namespace lsn {
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
+			m_ui64LastBucketCycle( 0 ),
 			m_dvRegisters3_4017( Set4017, this ) {
 
 		}
@@ -94,7 +97,23 @@ namespace lsn {
 
 			m_dvRegisters3_4017.Tick();
 			
+			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
+				// Determine the next APU cycle that corresponds with an output sample.
+				float fInterp;
+				uint64_t ui64ApuOutputCycle = ApuCycleOfNextSample( m_ui64LastBucketCycle + 1, CAudio::GetOutputFrequency(), fInterp );
+				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
+				m_ui64LastBucketCycle = ui64ApuOutputCycle;
+			}
+			/*{
+				double dApuHz = (double)_tMasterClock / _tMasterDiv / _tApuDiv;
+				double dTime = m_ui64Cycles / dApuHz;
+
+				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
+			}*/
+			//CAudio::AddSample( m_ui64Cycles, m_pPulse1.Output() );
+
 			++m_ui64Cycles;
+			
 		}
 
 		/**
@@ -103,6 +122,8 @@ namespace lsn {
 		void											ResetAnalog() {
 			m_ui64Cycles = 0;
 			m_ui64StepCycles = 0;
+			m_ui64LastBucketCycle = 0;
+			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false>;
 			m_bModeSwitch = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
@@ -173,6 +194,8 @@ namespace lsn {
 		uint64_t										m_ui64Cycles;
 		/** The step cycle counter. */
 		uint64_t										m_ui64StepCycles;
+		/** The cycle of the last-registered sample bucket.  When the APU cycle reachs this value, a new bucket should be registered. */
+		uint64_t										m_ui64LastBucketCycle;
 		/** The main bus. */
 		CCpuBus *										m_pbBus;
 		/** The current cycle function. */

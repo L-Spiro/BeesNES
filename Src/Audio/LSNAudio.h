@@ -11,14 +11,16 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
 #include "LSNOpenAlBuffer.h"
 #include "LSNOpenAlContext.h"
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlSource.h"
-#include "../Event/LSNEvent.h"
+#include "LSNSampleBucket.h"
 #include <thread>
 
 #define LSN_AUDIO_BUFFERS									4
+#define LSN_BUCKETS											(LSN_SAMPLER_BUCKET_SIZE * 3)
 
 namespace lsn {
 
@@ -61,6 +63,13 @@ namespace lsn {
 		static COpenAlSource &								Source() { return m_oasSource; }
 
 		/**
+		 * Gets the output frequency.
+		 * 
+		 * \return Returns the output frequency.
+		 **/
+		static inline uint32_t								GetOutputFrequency() { return uint32_t( m_sFrequency ); }
+
+		/**
 		 * Sets the output frequency in Hz.
 		 * 
 		 * \param _ui32Hz The new output frequency.
@@ -78,8 +87,51 @@ namespace lsn {
 			m_eNextFormat = _eFormat;
 		}
 
+		/**
+		 *  6-point, 5th-order Hermite Z-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _dFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _dFrac );
+
+		/**
+		 * Called when emulation begins.  Resets the ring buffer of buckets.
+		 **/
+		static void											BeginEmulation();
+
+		/**
+		 * Adds a bucket to the ring buffer to be filled in during later APU cycles.
+		 * 
+		 * \param _ui64Cycle The APU cycle of the sample to be surrounded by the bucket.
+		 * \param _fInterp The interpolation factor to be used during sampling.
+		 **/
+		static void											RegisterBucket( uint64_t _ui64Cycle, float _fInterp );
+
+		/**
+		 * Adds a sample to all buckets that need it.
+		 * 
+		 * \param _ui64Cycle The APU cycle of the sample.
+		 * \param _fSample The audio sample to be added.
+		 **/
+		static void											AddSample( uint64_t _ui64Cycle, float _fSample );
+
 
 	protected :
+		// == Types.
+		/** The linked list of sample buckets. */
+		struct LSN_SAMPLE_BUCKET_LIST {
+			/** The current low index inside the ring buffer. */
+			uint64_t										ui64Idx;
+			/** The current high index inside the ring buffer. */
+			uint64_t										ui64HiIdx;
+			/** The ring buffer of buckets. */
+			LSN_SAMPLE_BUCKET								sbBuckets[LSN_BUCKETS];
+		};
+
+
+
 		// == Members.
 		/** The total number of buffers uploaded during the lifetime of the source. */
 		static uint64_t										m_ui64TotalLifetimeQueues;
@@ -115,10 +167,28 @@ namespace lsn {
 		static std::atomic<bool>							m_bRunThread;
 		/** The signal that the thread has finished. */
 		static CEvent										m_eThreadClosed;
+		/** The ring buffer of buckets. */
+		static LSN_SAMPLE_BUCKET_LIST						m_sblBuckets;
+		/** Temporary float-format storage of samples. */
+		static std::vector<float>							m_vTmpBuffer;
+		/** The position within the temporary buffer of the current sample. */
+		static size_t										m_sTmpBufferIdx;
 		
 
 		
 		// == Functions.
+		/**
+		 * Starts the audio thread.
+		 * 
+		 * \return Returns true if the audio thread is started.
+		 **/
+		static bool											StartThread();
+
+		/**
+		 * Stops the audio thread.
+		 **/
+		static void											StopThread();
+
 		/**
 		 * Flushes any audio currently buffered locally to the OpenAL API.
 		 * 
@@ -154,6 +224,13 @@ namespace lsn {
 		static bool											BufferMonoF32( const float * _pfSamples, size_t _sTotal );
 
 		/**
+		 * Copies from m_vTmpBuffer into the local buffer passed to OpenAL, performing the format conversion as necessary.
+		 * 
+		 * \return Returns true if the transfer succeeded.
+		 **/
+		static bool											TransferTmpToLocal();
+
+		/**
 		 * The audio thread.
 		 *
 		 * \param _pvParm Unused.
@@ -161,5 +238,33 @@ namespace lsn {
 		static void											AudioThread( void * _pvParm );
 
 	};
+	
+
+
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// DEFINITIONS
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// == Functions.
+	/**
+	 *  6-point, 5th-order Hermite Z-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _dFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _dFrac ) {
+		//  6-point, 5th-order Hermite (Z-form).
+		float fZ = _dFrac - 1.0f / 2.0f;
+		float fEven1 = _pfsSamples[-2+2] + _pfsSamples[3+2], fOdd1 = _pfsSamples[-2+2] - _pfsSamples[3+2];
+		float fEven2 = _pfsSamples[-1+2] + _pfsSamples[2+2], fOdd2 = _pfsSamples[-1+2] - _pfsSamples[2+2];
+		float fEven3 = _pfsSamples[0+2] + _pfsSamples[1+2], fOdd3 = _pfsSamples[0+2] - _pfsSamples[1+2];
+		float fC0 = 3.0f / 256.0f * fEven1 - 25.0f / 256.0f * fEven2 + 75.0f / 128.0f * fEven3;
+		float fC1 = -3.0f / 128.0f * fOdd1 + 61.0f / 384.0f * fOdd2 - 87.0f / 64.0f * fOdd3;
+		float fC2 = -5.0f / 96.0f * fEven1 + 13.0f / 32.0f * fEven2 - 17.0f / 48.0f * fEven3;
+		float fC3 = 5.0f / 48.0f * fOdd1 - 11.0f / 16.0f * fOdd2 + 37.0f / 24.0f * fOdd3;
+		float fC4 = 1.0f / 48.0f * fEven1 - 1.0f / 16.0f * fEven2 + 1.0f / 24.0f * fEven3;
+		float fC5 = -1.0f / 24.0f * fOdd1 + 5.0f / 24.0f * fOdd2 - 5.0f / 12.0f * fOdd3;
+		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
+	}
 
 }	// namespace lsn

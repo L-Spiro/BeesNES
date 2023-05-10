@@ -38,7 +38,7 @@ namespace lsn {
 	COpenAlBuffer CAudio::m_oabBuffers[LSN_AUDIO_BUFFERS];
 
 	/** The size of each buffer in samples. */
-	ALsizei CAudio::m_sBufferSizeInSamples = 16;
+	ALsizei CAudio::m_sBufferSizeInSamples = 1600;
 
 	/** The current buffer position. */
 	ALsizei CAudio::m_sCurBufferSize = 0;
@@ -64,6 +64,15 @@ namespace lsn {
 	/** The signal that the thread has finished. */
 	CEvent CAudio::m_eThreadClosed;
 
+	/** The ring buffer of buckets. */
+	CAudio::LSN_SAMPLE_BUCKET_LIST CAudio::m_sblBuckets;
+
+	/** Temporary float-format storage of samples. */
+	std::vector<float> CAudio::m_vTmpBuffer;
+
+	/** The position within the temporary buffer of the current sample. */
+	size_t CAudio::m_sTmpBufferIdx = 0;
+
 	// == Functions.
 	/**
 	 * Initializes audio.
@@ -86,8 +95,13 @@ namespace lsn {
 
 		if ( !m_oasSource.CreateSource() ) { return false; }
 
+		/*for ( auto I = LSN_AUDIO_BUFFERS; I--; ) {
+			if ( !m_oabBuffers[I].CreateBuffer() ) { return false; }
+		}*/
 
-		m_ptAudioThread = std::make_unique<std::thread>( AudioThread, nullptr );
+		m_vTmpBuffer.resize( m_sBufferSizeInSamples );
+		m_vLocalBuffer.resize( m_sBufferSizeInSamples * 4 );
+		if ( !StartThread() ) { return false; }
 		return true;
 	}
 
@@ -97,14 +111,94 @@ namespace lsn {
 	 * \return Returns true if shutdown was successful.
 	 **/
 	bool CAudio::ShutdownAudio() {
+		StopThread();
+
+		m_oasSource.Reset();
+		for ( auto I = LSN_AUDIO_BUFFERS; I--; ) {
+			m_oabBuffers[I].Reset();
+		}
+		m_oacContext.Reset();
+		return m_oadDevice.Reset();
+	}
+
+	/**
+	 * Called when emulation begins.  Resets the ring buffer of buckets.
+	 **/
+	void CAudio::BeginEmulation() {
+		StopThread();
+		m_sblBuckets.ui64Idx = m_sblBuckets.ui64HiIdx = 0;
+		for ( size_t I = LSN_BUCKETS; I--; ) {
+			m_sblBuckets.sbBuckets[I].ui64ApuStartCycle = uint64_t( -LSN_SAMPLER_BUCKET_SIZE );
+			m_sblBuckets.sbBuckets[I].fInterp = 0.0f;
+			std::memset( m_sblBuckets.sbBuckets[I].fBucket, 0, sizeof( m_sblBuckets.sbBuckets[I].fBucket ) );
+		}
+		m_sblBuckets.sbBuckets[0].ui64ApuStartCycle = uint64_t( -2 );
+		m_sblBuckets.ui64HiIdx = 1;
+		StartThread();
+	}
+
+	/**
+	 * Adds a bucket to the ring buffer to be filled in during later APU cycles.
+	 * 
+	 * \param _ui64Cycle The APU cycle of the sample to be surrounded by the bucket.
+	 * \param _fInterp The interpolation factor to be used during sampling.
+	 **/
+	void CAudio::RegisterBucket( uint64_t _ui64Cycle, float _fInterp ) {
+		uint64_t ui64Idx = m_sblBuckets.ui64HiIdx % LSN_BUCKETS;
+		LSN_SAMPLE_BUCKET & sbBucket = m_sblBuckets.sbBuckets[ui64Idx];
+		sbBucket.ui64ApuStartCycle = _ui64Cycle - (LSN_SAMPLER_BUCKET_SIZE / 2) + 1;
+		sbBucket.fInterp = _fInterp;
+		++m_sblBuckets.ui64HiIdx;
+	}
+
+	/**
+	 * Adds a sample to all buckets that need it.
+	 * 
+	 * \param _ui64Cycle The APU cycle of the sample.
+	 * \param _fSample The audio sample to be added.
+	 **/
+	void CAudio::AddSample( uint64_t _ui64Cycle, float _fSample ) {
+		uint64_t ui64Hi = m_sblBuckets.ui64HiIdx;
+		for ( uint64_t I = m_sblBuckets.ui64Idx; I < ui64Hi; ++I ) {
+			uint64_t ui64Idx = I % LSN_BUCKETS;
+			LSN_SAMPLE_BUCKET & sbBucket = m_sblBuckets.sbBuckets[ui64Idx];
+			if ( int64_t( sbBucket.ui64ApuStartCycle ) > int64_t( _ui64Cycle ) ) { break; }
+			uint32_t ui32BucketIdx = uint32_t( _ui64Cycle - sbBucket.ui64ApuStartCycle );
+			if ( ui32BucketIdx >= LSN_SAMPLER_BUCKET_SIZE ) {
+				// Bucket filled.
+				++m_sblBuckets.ui64Idx;
+				float fSample = Sample_6Point_5thOrder_Hermite_Z( sbBucket.fBucket, sbBucket.fInterp );
+				m_vTmpBuffer[m_sTmpBufferIdx++] = fSample;
+				if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
+					TransferTmpToLocal();
+				}
+				continue;
+			}
+			sbBucket.fBucket[ui32BucketIdx] = _fSample;
+		}
+	}
+
+	/**
+	 * Starts the audio thread.
+	 * 
+	 * \return Returns true if the audio thread is started.
+	 **/
+	bool CAudio::StartThread() {
+		StopThread();
+		m_bRunThread = true;
+		m_ptAudioThread = std::make_unique<std::thread>( AudioThread, nullptr );
+		return m_ptAudioThread.get() != nullptr;
+	}
+
+	/**
+	 * Stops the audio thread.
+	 **/
+	void CAudio::StopThread() {
+		if ( nullptr == m_ptAudioThread.get() ) { return; }
 		m_bRunThread = false;
 		m_eThreadClosed.WaitForSignal();
 		m_ptAudioThread->join();
 		m_ptAudioThread.reset();
-
-		m_oasSource.Reset();
-		m_oacContext.Reset();
-		return m_oadDevice.Reset();
 	}
 
 	/**
@@ -113,18 +207,22 @@ namespace lsn {
 	 * \return Returns true if the audio was buffered into OpenAL.
 	 **/
 	bool CAudio::Flush() {
-		if ( m_sCurBufferSize == 0 ) { return true; }		// Nothing to flush, no action to take.
-
-		bool bRet = m_oabBuffers[m_sBufferIdx].BufferData( m_eFormat, m_vLocalBuffer.data(), m_sCurBufferSize, m_sFrequency );
-		if ( bRet ) {
+		{
 			// Unqueue buffers before queuing the next.
 			uint32_t ui32Processed = m_oasSource.BuffersProcessed();
 			for ( uint32_t I = 0; I < ui32Processed; ++I ) {
 				if ( m_oasSource.UnqueueBuffer( m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Id() ) ) {
+					m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Reset();
 					++m_ui64TotalLifetimeUnqueueds;
 				}
 			}
+		}
+		if ( m_sCurBufferSize == 0 ) { return true; }		// Nothing to flush, no action to take.
 
+
+		if ( !m_oabBuffers[m_sBufferIdx].CreateBuffer() ) { return false; }
+		bool bRet = m_oabBuffers[m_sBufferIdx].BufferData( m_eFormat, m_vLocalBuffer.data(), m_sCurBufferSize, m_sFrequency );
+		if ( bRet ) {
 			if ( m_oasSource.QueueBuffer( m_oabBuffers[m_sBufferIdx].Id() ) ) {
 				++m_ui64TotalLifetimeQueues;
 			}
@@ -155,6 +253,7 @@ namespace lsn {
 			uint8_t * pui8Dst = reinterpret_cast<uint8_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 			for ( size_t I = 0; I < stMax; ++I ) {
 				(*pui8Dst++) = COpenAl::SampleToUi8( (*_pfSamples++) );
+				++m_sCurBufferSize;
 			}
 
 
@@ -176,8 +275,8 @@ namespace lsn {
 		uint8_t * pui8Dst = reinterpret_cast<uint8_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 		for ( size_t I = 0; I < _sTotal; ++I ) {
 			(*pui8Dst++) = COpenAl::SampleToUi8( (*_pfSamples++) );
+			++m_sCurBufferSize;
 		}
-		m_sCurBufferSize += static_cast<ALsizei>(_sTotal * sizeof( uint8_t ));
 		return true;
 	}
 
@@ -196,6 +295,7 @@ namespace lsn {
 			int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 			for ( size_t I = 0; I < stMax; ++I ) {
 				(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+				m_sCurBufferSize += sizeof( int16_t );
 			}
 
 
@@ -217,8 +317,8 @@ namespace lsn {
 		int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 		for ( size_t I = 0; I < _sTotal; ++I ) {
 			(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+			m_sCurBufferSize += sizeof( int16_t );
 		}
-		m_sCurBufferSize += static_cast<ALsizei>(_sTotal * sizeof( int16_t ));
 		return true;
 	}
 
@@ -237,6 +337,7 @@ namespace lsn {
 			float * pfDst = reinterpret_cast<float *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 			for ( size_t I = 0; I < stMax; ++I ) {
 				(*pfDst++) = (*_pfSamples++);
+				m_sCurBufferSize += sizeof( float );
 			}
 
 
@@ -260,8 +361,34 @@ namespace lsn {
 		float * pfDst = reinterpret_cast<float *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 		for ( size_t I = 0; I < _sTotal; ++I ) {
 			(*pfDst++) = (*_pfSamples++);
+			m_sCurBufferSize += sizeof( float );
 		}
-		m_sCurBufferSize += static_cast<ALsizei>(_sTotal * sizeof( float ));
+		return true;
+	}
+
+	/**
+	 * Copies from m_vTmpBuffer into the local buffer passed to OpenAL, performing the format conversion as necessary.
+	 * 
+	 * \return Returns true if the transfer succeeded.
+	 **/
+	bool CAudio::TransferTmpToLocal() {
+		auto aSize = m_sTmpBufferIdx;
+		m_sTmpBufferIdx = 0;
+		switch ( m_eFormat ) {
+			case AL_FORMAT_MONO8 : {
+				if ( !BufferMono8( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			case AL_FORMAT_MONO16 : {
+				if ( !BufferMono16( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			case AL_FORMAT_MONO_FLOAT32 : {
+				if ( !BufferMonoF32( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			default : { return false; }
+		}
 		return true;
 	}
 

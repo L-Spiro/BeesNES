@@ -155,65 +155,70 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>BeesNES</TargetName>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -510,6 +515,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAlGetError.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlInclude.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h" />
+    <ClInclude Include="Src\Audio\LSNSampleBucket.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
