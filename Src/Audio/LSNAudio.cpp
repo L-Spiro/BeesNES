@@ -38,7 +38,7 @@ namespace lsn {
 	COpenAlBuffer CAudio::m_oabBuffers[LSN_AUDIO_BUFFERS];
 
 	/** The size of each buffer in samples. */
-	ALsizei CAudio::m_sBufferSizeInSamples = 1600;
+	ALsizei CAudio::m_sBufferSizeInSamples = 16;
 
 	/** The current buffer position. */
 	ALsizei CAudio::m_sCurBufferSize = 0;
@@ -94,7 +94,7 @@ namespace lsn {
 		if ( !COpenAl::DistanceModel( AL_NONE ) ) { return false; }
 
 		if ( !m_oasSource.CreateSource() ) { return false; }
-
+		if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
 		/*for ( auto I = LSN_AUDIO_BUFFERS; I--; ) {
 			if ( !m_oabBuffers[I].CreateBuffer() ) { return false; }
 		}*/
@@ -208,26 +208,37 @@ namespace lsn {
 	 **/
 	bool CAudio::Flush() {
 		{
-			// Unqueue buffers before queuing the next.
-			uint32_t ui32Processed = m_oasSource.BuffersProcessed();
-			for ( uint32_t I = 0; I < ui32Processed; ++I ) {
-				if ( m_oasSource.UnqueueBuffer( m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Id() ) ) {
-					m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Reset();
-					++m_ui64TotalLifetimeUnqueueds;
+			//do {
+				// Unqueue buffers before queuing the next.
+				uint32_t ui32Processed = m_oasSource.BuffersProcessed();
+			
+				for ( uint32_t I = 0; I < ui32Processed; ++I ) {
+					if ( m_oasSource.UnqueueBuffer( m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Id() ) ) {
+						//m_oabBuffers[(m_ui64TotalLifetimeUnqueueds)%LSN_AUDIO_BUFFERS].Reset();
+						++m_ui64TotalLifetimeUnqueueds;
+					}
 				}
-			}
+			//} while ( m_ui64TotalLifetimeQueues - m_ui64TotalLifetimeUnqueueds >= LSN_AUDIO_BUFFERS );
 		}
+		
 		if ( m_sCurBufferSize == 0 ) { return true; }		// Nothing to flush, no action to take.
 
+		if ( m_ui64TotalLifetimeQueues - m_ui64TotalLifetimeUnqueueds >= LSN_AUDIO_BUFFERS ) {
+			m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;
+			m_sCurBufferSize = 0;
+			m_sFrequency = m_sNextFrequency;
+			m_eFormat = m_eNextFormat;
+			return false;
+		}
 
-		if ( !m_oabBuffers[m_sBufferIdx].CreateBuffer() ) { return false; }
+		//if ( !m_oabBuffers[m_sBufferIdx].CreateBuffer() ) { return false; }
 		bool bRet = m_oabBuffers[m_sBufferIdx].BufferData( m_eFormat, m_vLocalBuffer.data(), m_sCurBufferSize, m_sFrequency );
 		if ( bRet ) {
 			if ( m_oasSource.QueueBuffer( m_oabBuffers[m_sBufferIdx].Id() ) ) {
 				++m_ui64TotalLifetimeQueues;
 			}
 			bRet = m_oasSource.Play();
-			
+			//if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
 		}
 
 		m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;

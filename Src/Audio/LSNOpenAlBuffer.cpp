@@ -69,6 +69,9 @@ namespace lsn {
 		const ALvoid * _pvData,
 		ALsizei _sSize,
 		ALsizei _sFreq ) {
+		if ( m_uiId == 0 ) {
+			if ( !CreateBuffer() ) { return false; }
+		}
 		if ( m_uiId != 0 ) {
 			if ( COpenAl::alCall( ::alBufferData, m_uiId, _eFormat, _pvData, _sSize, _sFreq ) ) {
 				return true;

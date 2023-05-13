@@ -104,12 +104,12 @@ namespace lsn {
 				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
 				m_ui64LastBucketCycle = ui64ApuOutputCycle;
 			}
-			/*{
+			{
 				double dApuHz = (double)_tMasterClock / _tMasterDiv / _tApuDiv;
 				double dTime = m_ui64Cycles / dApuHz;
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
-			}*/
+			}
 			//CAudio::AddSample( m_ui64Cycles, m_pPulse1.Output() );
 
 			++m_ui64Cycles;
