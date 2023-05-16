@@ -131,15 +131,17 @@ namespace lsn {
 			
 			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse ) ) );
 
-			m_pfOutputPole.CreateLpf( (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
-			fFinal = m_pfOutputPole.Process( fFinal );
+			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
+			m_pfOutputPole.CreateLpf( fLpf );
+			m_pfOutputPole1.CreateLpf( fLpf );
+			fFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( fFinal ) );
 			m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			m_fMinSample = std::min( m_fMinSample, fFinal );
-			float fRange = m_fMaxSample - m_fMinSample;
-			if ( fRange == 0.0f ) { fRange = 1.0f; }
-			float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
+			//float fRange = m_fMaxSample - m_fMinSample;
+			//if ( fRange == 0.0f ) { fRange = 1.0f; }
+			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( m_ui64Cycles, fFinal * 10.0f );
+			CAudio::AddSample( m_ui64Cycles, fFinal * 8.0f );
 
 			++m_ui64Cycles;
 			
@@ -241,6 +243,8 @@ namespace lsn {
 		CPoleFilter										m_pfPole14;
 		/** The output Hz filter. */
 		CPoleFilter										m_pfOutputPole;
+		/** The output Hz filter. */
+		CPoleFilter										m_pfOutputPole1;
 		/** Max output sample. */
 		float											m_fMaxSample;
 		/** Min output sample. */
@@ -341,6 +345,9 @@ namespace lsn {
 		void											Tick_Mode1_Step1() {
 			LSN_APU_UPDATE;
 
+			m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
+			m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
 			}
@@ -379,6 +386,11 @@ namespace lsn {
 		template <bool _bEven>
 		void											Tick_Mode1_Step4() {
 			LSN_APU_UPDATE;
+
+			if ( m_ui64StepCycles == (_tM1S4_1 - 1) ) {
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+			}
 
 			if ( ++m_ui64StepCycles == _tM1S4_1 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;

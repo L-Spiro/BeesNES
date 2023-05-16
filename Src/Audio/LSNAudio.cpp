@@ -248,7 +248,7 @@ namespace lsn {
 				++m_ui64TotalLifetimeQueues;
 				m_sBufferIdx = size_t( m_ui64TotalLifetimeQueues % LSN_AUDIO_BUFFERS );
 				m_sCurBufferSize = 0;
-				if ( m_oasSource.GetState() != AL_PLAYING /*&& m_ui64TotalLifetimeQueues >= 2*/ ) {
+				if ( m_oasSource.GetState() != AL_PLAYING && m_ui64TotalLifetimeQueues >= 2 ) {
 					bRet = m_oasSource.Play();
 				}
 			}
