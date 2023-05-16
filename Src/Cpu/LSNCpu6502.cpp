@@ -1206,6 +1206,13 @@ namespace lsn {
 		m_bIrqStatusLine = true;
 	}
 
+	/**
+	 * Clears the IRQ flag.
+	 */
+	void CCpu6502::ClearIrq() {
+		m_bIrqStatusLine = false;
+	}
+
 #ifdef LSN_CPU_VERIFY
 	/**
 	 * Runs a test given a JSON's value representing the test to run.
@@ -1762,6 +1769,9 @@ namespace lsn {
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
+		else if ( m_bHandleIrq ) {
+			m_bHandleIrq = m_bIrqStatusLine = false;
+		}
 
 		LSN_CHECK_NMI;
 	}
@@ -1776,6 +1786,9 @@ namespace lsn {
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
+		else if ( m_bHandleIrq ) {
+			m_bHandleIrq = m_bIrqStatusLine = false;
+		}
 
 		LSN_CHECK_NMI;
 	}

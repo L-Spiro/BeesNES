@@ -19,7 +19,7 @@
 #include "LSNSampleBucket.h"
 #include <thread>
 
-#define LSN_AUDIO_BUFFERS									40
+#define LSN_AUDIO_BUFFERS									4
 #define LSN_BUCKETS											(LSN_SAMPLER_BUCKET_SIZE * 3)
 
 namespace lsn {

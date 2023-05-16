@@ -11,7 +11,6 @@
 
 #include "../LSNLSpiroNes.h"
 
-
 namespace lsn {
 
 	/**
@@ -23,7 +22,7 @@ namespace lsn {
 	class CSequencer {
 	public :
 		CSequencer();
-		virtual ~CSequencer();
+		~CSequencer();
 
 
 		// == Functions.
@@ -59,6 +58,13 @@ namespace lsn {
 		inline uint16_t							SetTimerHigh( uint8_t _ui8Val );
 
 		/**
+		 * Gets the timer value.
+		 * 
+		 * \return Returns the timer value.
+		 **/
+		inline uint16_t							GetTimer() const;
+
+		/**
 		 * Gets the output value (1 or 0).
 		 * 
 		 * \return Returns the current output value.
@@ -78,15 +84,6 @@ namespace lsn {
 		uint8_t									m_ui8Out = 0;
 		/** The sequence offset. */
 		uint8_t									m_ui8SeqOff = 0;
-
-
-		// == Functions.
-		/**
-		 * Handles the tick work.
-		 * 
-		 * \param _ui32S The current sequence bits.
-		 **/
-		virtual uint8_t							WeDoBeTicknTho( uint32_t &/*_ui32S*/ ) { return 0; }
 	};
 	
 
@@ -145,6 +142,15 @@ namespace lsn {
 		m_ui16Timer = m_ui16Reload;
 		m_ui8SeqOff = 0;
 		return m_ui16Reload;
+	}
+
+	/**
+	 * Gets the timer value.
+	 * 
+	 * \return Returns the timer value.
+	 **/
+	inline uint16_t CSequencer::GetTimer() const {
+		return m_ui16Timer;
 	}
 
 	/**

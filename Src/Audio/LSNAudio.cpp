@@ -38,16 +38,22 @@ namespace lsn {
 	COpenAlBuffer CAudio::m_oabBuffers[LSN_AUDIO_BUFFERS];
 
 	/** The size of each buffer in samples. */
-	ALsizei CAudio::m_sBufferSizeInSamples = 16;
+	ALsizei CAudio::m_sBufferSizeInSamples = 
+#ifdef LSN_WIN64
+		768
+#else
+		1024
+#endif
+		;
 
 	/** The current buffer position. */
 	ALsizei CAudio::m_sCurBufferSize = 0;
 
 	/** The frequency of the current buffer.  Flush to set (flushing copies from the “Next” value into this one). */
-	ALsizei CAudio::m_sFrequency = 44100;
+	ALsizei CAudio::m_sFrequency = 48000;
 
 	/** The frequency to set after the next flush. */
-	ALsizei CAudio::m_sNextFrequency = 44100;
+	ALsizei CAudio::m_sNextFrequency = 48000;
 
 	/** The current output format. Flush to set (flushing copies from the “Next” value into this one). */
 	ALenum CAudio::m_eFormat = AL_FORMAT_MONO16;
@@ -221,10 +227,14 @@ namespace lsn {
 			//} while ( m_ui64TotalLifetimeQueues - m_ui64TotalLifetimeUnqueueds >= LSN_AUDIO_BUFFERS );
 		}
 		
-		if ( m_sCurBufferSize == 0 ) { return true; }		// Nothing to flush, no action to take.
+		if ( m_sCurBufferSize == 0 ) {		// Nothing to flush, no action to take.
+			m_sFrequency = m_sNextFrequency;
+			m_eFormat = m_eNextFormat;
+			return true;
+		}
 
 		if ( m_ui64TotalLifetimeQueues - m_ui64TotalLifetimeUnqueueds >= LSN_AUDIO_BUFFERS ) {
-			m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;
+			//m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;
 			m_sCurBufferSize = 0;
 			m_sFrequency = m_sNextFrequency;
 			m_eFormat = m_eNextFormat;
@@ -236,13 +246,18 @@ namespace lsn {
 		if ( bRet ) {
 			if ( m_oasSource.QueueBuffer( m_oabBuffers[m_sBufferIdx].Id() ) ) {
 				++m_ui64TotalLifetimeQueues;
+				m_sBufferIdx = size_t( m_ui64TotalLifetimeQueues % LSN_AUDIO_BUFFERS );
+				m_sCurBufferSize = 0;
+				if ( m_oasSource.GetState() != AL_PLAYING /*&& m_ui64TotalLifetimeQueues >= 2*/ ) {
+					bRet = m_oasSource.Play();
+				}
 			}
-			bRet = m_oasSource.Play();
+			else {
+				bRet = false;
+			}
 			//if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
 		}
-
-		m_sBufferIdx = (m_sBufferIdx + 1) % LSN_AUDIO_BUFFERS;
-		m_sCurBufferSize = 0;
+		
 		m_sFrequency = m_sNextFrequency;
 		m_eFormat = m_eNextFormat;
 

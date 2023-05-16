@@ -505,6 +505,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="resource.h" />
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
     <ClInclude Include="Src\Apu\LSNApuUnit.h" />
+    <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
     <ClInclude Include="Src\Apu\LSNPulse.h" />
     <ClInclude Include="Src\Apu\LSNSequencer.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
@@ -515,6 +516,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAlGetError.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlInclude.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h" />
+    <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
     <ClInclude Include="Src\Audio\LSNSampleBucket.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
@@ -610,7 +612,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />
-    <ClInclude Include="Src\System\LSNNmiable.h" />
+    <ClInclude Include="Src\System\LSNInterruptable.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
     <ClInclude Include="Src\System\LSNSystemBase.h" />
     <ClInclude Include="Src\System\LSNTickable.h" />

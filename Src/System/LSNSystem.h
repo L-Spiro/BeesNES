@@ -43,7 +43,7 @@ namespace lsn {
 		CSystem() :
 			m_cCpu( &m_bBus ),
 			m_pPpu( &m_bBus, &m_cCpu ),
-			m_aApu( &m_bBus ) {
+			m_aApu( &m_bBus, &m_cCpu ) {
 			ResetState( false );
 		}
 

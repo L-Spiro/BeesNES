@@ -11,21 +11,30 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
+#include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNSampleBucket.h"
 #include "../Bus/LSNBus.h"
+#include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
 #include "LSNPulse.h"
 
 
+#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b01) != 0)
+#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b10) != 0)
+
+#define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
+#define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
+
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											{																	\
-												m_pPulse1.TickSequencer( m_ui8Registers[0x15] & 0b01 );			\
-												m_pPulse2.TickSequencer( m_ui8Registers[0x15] & 0b10 );			\
+												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED );					\
+												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED );					\
 											}																	\
 										}
 
 #define LSN_4017_DELAY					3
+
 
 namespace lsn {
 
@@ -72,13 +81,16 @@ namespace lsn {
 		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv>
 	class CApu2A0X : public CTickable {
 	public :
-		CApu2A0X( CCpuBus * _pbBus ) :
+		CApu2A0X( CCpuBus * _pbBus, CInterruptable * _piIrqTarget ) :
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
 			m_ui64LastBucketCycle( 0 ),
+			m_piIrqTarget( _piIrqTarget ),
 			m_dvRegisters3_4017( Set4017, this ) {
-
+			m_pfPole90.CreateHpf( 90.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+			m_pfPole440.CreateHpf( 440.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+			m_pfPole14.CreateLpf( 14000.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
 		}
 		~CApu2A0X() {
 		}
@@ -104,13 +116,30 @@ namespace lsn {
 				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
 				m_ui64LastBucketCycle = ui64ApuOutputCycle;
 			}
-			{
+			/*{
 				double dApuHz = (double)_tMasterClock / _tMasterDiv / _tApuDiv;
 				double dTime = m_ui64Cycles / dApuHz;
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
+			}*/
+			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8) ? m_pPulse1.Output() : 0.0f);
+			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8) ? m_pPulse2.Output() : 0.0f);
+			float fFinalPulse = fPulse1 + fPulse2;
+			if ( fFinalPulse ) {
+				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
-			//CAudio::AddSample( m_ui64Cycles, m_pPulse1.Output() );
+			
+			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse ) ) );
+
+			m_pfOutputPole.CreateLpf( (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+			fFinal = m_pfOutputPole.Process( fFinal );
+			m_fMaxSample = std::max( m_fMaxSample, fFinal );
+			m_fMinSample = std::min( m_fMinSample, fFinal );
+			float fRange = m_fMaxSample - m_fMinSample;
+			if ( fRange == 0.0f ) { fRange = 1.0f; }
+			float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
+			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
+			CAudio::AddSample( m_ui64Cycles, fFinal * 10.0f );
 
 			++m_ui64Cycles;
 			
@@ -128,6 +157,8 @@ namespace lsn {
 			m_bModeSwitch = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
+			m_fMaxSample = -INFINITY;
+			m_fMinSample = INFINITY;
 		}
 
 		/**
@@ -198,8 +229,22 @@ namespace lsn {
 		uint64_t										m_ui64LastBucketCycle;
 		/** The main bus. */
 		CCpuBus *										m_pbBus;
+		/** The IRQ target. */
+		CInterruptable *								m_piIrqTarget;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
+		/** The 90-Hz pole filter. */
+		CPoleFilter										m_pfPole90;
+		/** The 440-Hz pole filter. */
+		CPoleFilter										m_pfPole440;
+		/** The 14-Hz pole filter. */
+		CPoleFilter										m_pfPole14;
+		/** The output Hz filter. */
+		CPoleFilter										m_pfOutputPole;
+		/** Max output sample. */
+		float											m_fMaxSample;
+		/** Min output sample. */
+		float											m_fMinSample;
 		/** Pulse 1. */
 		CPulse											m_pPulse1;
 		/** Pulse 2. */
@@ -210,6 +255,7 @@ namespace lsn {
 		uint8_t											m_ui8Registers[0x15+1];
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
+		
 
 
 		// == Functions.
@@ -232,6 +278,8 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
 			}
 			else {
@@ -256,6 +304,14 @@ namespace lsn {
 		template <bool _bEven>
 		void											Tick_Mode0_Step3() {
 			LSN_APU_UPDATE;
+			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
+				//m_piIrqTarget->Irq();
+			}
+
+			if ( m_ui64StepCycles == (_tM0S3_2 - 1) ) {
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+			}
 
 			if ( ++m_ui64StepCycles == _tM0S3_2 ) {
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
@@ -438,6 +494,7 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
+			paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 		}
 
 		/**
@@ -493,6 +550,7 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
+			paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 		}
 
 		/**
@@ -579,16 +637,10 @@ namespace lsn {
 														LSN_AT_ ## REGION ## _MODE_1_STEP_0, LSN_AT_ ## REGION ## _MODE_1_STEP_1, LSN_AT_ ## REGION ## _MODE_1_STEP_2, LSN_AT_ ## REGION ## _MODE_1_STEP_3,											\
 														LSN_AT_ ## REGION ## _MODE_1_STEP_4_0, LSN_AT_ ## REGION ## _MODE_1_STEP_4_1
 
-	/**
-	 * An NTSC PPU.
-	 */
-	//typedef CApu2A0X<LSN_APU_TYPE( NTSC )>				CNtscApu;
+#undef LSN_PULSE2_HALT
+#undef LSN_PULSE1_HALT
 
-	/**
-	 * A PAL PPU.
-	 */
-	//typedef CApu2A0X<LSN_APU_TYPE( PAL )>				CPalApu;
-
-//#undef LSN_APU_TYPE
+#undef LSN_PULSE2_ENABLED
+#undef LSN_PULSE1_ENABLED
 
 }	// namespace lsn

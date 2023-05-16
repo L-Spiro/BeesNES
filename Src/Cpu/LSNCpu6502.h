@@ -20,7 +20,7 @@
 #include "../Bus/LSNBus.h"
 #include "../Input/LSNInputPoller.h"
 #include "../Mappers/LSNMapperBase.h"
-#include "../System/LSNNmiable.h"
+#include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "LSNCpuBase.h"
 #include <vector>
@@ -50,7 +50,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 : public CTickable, public CNmiable, public CCpuBase {
+	class CCpu6502 : public CTickable, public CInterruptable, public CCpuBase {
 	public :
 		// == Various constructors.
 		CCpu6502( CCpuBus * _pbBus );
@@ -135,6 +135,11 @@ namespace lsn {
 		 * Signals an IRQ to be handled before the next instruction.
 		 */
 		virtual void						Irq();
+
+		/**
+		 * Clears the IRQ flag.
+		 */
+		virtual void						ClearIrq();
 
 		/**
 		 * Sets the input poller.

@@ -15,7 +15,7 @@
 #include "../Display/LSNDisplayHost.h"
 #include "../Mappers/LSNMapperBase.h"
 #include "../Palette/LSNPalette.h"
-#include "../System/LSNNmiable.h"
+#include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
 
@@ -49,7 +49,7 @@ namespace lsn {
 		bool _bOddFrameShenanigans, double _dPerferredRatio>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
-		CPpu2C0X( CCpuBus * _pbBus, CNmiable * _pnNmiTarget ) :
+		CPpu2C0X( CCpuBus * _pbBus, CInterruptable * _pnNmiTarget ) :
 			m_pbBus( _pbBus ),
 			m_pnNmiTarget( _pnNmiTarget ),
 			m_ui64Frame( 0 ),
@@ -1139,7 +1139,7 @@ namespace lsn {
 		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
-		CNmiable *										m_pnNmiTarget;									/**< The target object of NMI notifications. */
+		CInterruptable *								m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		PfCycles										m_cCycle[_tDotWidth*_tDotHeight];				/**< The cycle function. */
 		size_t											m_stCurCycle;									/**< The current cycle function. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
