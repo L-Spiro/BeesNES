@@ -118,7 +118,9 @@ namespace lsn {
 	 **/
 	bool CAudio::ShutdownAudio() {
 		StopThread();
-
+		if ( m_oasSource.GetState() == AL_PLAYING || m_oasSource.GetState() == AL_PAUSED ) {
+			m_oasSource.Stop();
+		}
 		m_oasSource.Reset();
 		for ( auto I = LSN_AUDIO_BUFFERS; I--; ) {
 			m_oabBuffers[I].Reset();
@@ -132,6 +134,23 @@ namespace lsn {
 	 **/
 	void CAudio::BeginEmulation() {
 		StopThread();
+		/*if ( m_oasSource.GetState() == AL_PLAYING || m_oasSource.GetState() == AL_PAUSED ) {
+			m_oasSource.Stop();
+		}
+		m_oasSource.Reset();
+		m_oasSource.CreateSource();
+		m_oasSource.SetLooping( AL_FALSE );
+		m_ui64TotalLifetimeUnqueueds = m_ui64TotalLifetimeQueues = 0;*/
+		//if ( !m_oasSource.CreateSource() ) { return false; }
+		//if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
+		if ( m_ui64TotalLifetimeUnqueueds == m_ui64TotalLifetimeQueues ) {
+			m_ui64TotalLifetimeUnqueueds = m_ui64TotalLifetimeQueues = 0;
+			m_sBufferIdx = 0;
+			m_sCurBufferSize = 0;
+			m_sFrequency = m_sNextFrequency;
+			m_eFormat = m_eNextFormat;
+		}
+
 		m_sblBuckets.ui64Idx = m_sblBuckets.ui64HiIdx = 0;
 		for ( size_t I = LSN_BUCKETS; I--; ) {
 			m_sblBuckets.sbBuckets[I].ui64ApuStartCycle = uint64_t( -LSN_SAMPLER_BUCKET_SIZE );

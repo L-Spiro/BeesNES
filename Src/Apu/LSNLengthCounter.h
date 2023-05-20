@@ -15,9 +15,9 @@ namespace lsn {
 
 	/**
 	 * Class CLengthCounter
-	 * \brief An APU sequencer.
+	 * \brief An APU length counter.
 	 *
-	 * Description: An APU sequencer.  Counts a timer down to determine the timing of an event
+	 * Description: An APU length counter.  Counts a timer down to determine the timing of an event
 	 */
 	class CLengthCounter {
 	public :

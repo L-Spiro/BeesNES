@@ -31,9 +31,12 @@ x64/Release/*
 x64/CPU Verify/*
 x64/CPU Verify Release/*
 Libraries/ExpressionEvaluator/x64/*
+Libraries/ExpressionEvaluator/Win32/*
 Libraries/LSWindows/x64/*
+Libraries/LSWindows/Win32/*
 Libraries/LSon/x64/*
+Libraries/LSon/Win32/*
 x64/Final/*
 Win32/Final/*
 Licenses.txt
-Libraries/LSon/x64/Debug/LSon.vcxproj.FileListAbsolute.txt
+

@@ -26,6 +26,12 @@
 #define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
 #define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
 
+#define LSN_PULSE1_USE_VOLUME			((m_ui8Registers[0x00] & 0b00010000) != 0)
+#define LSN_PULSE2_USE_VOLUME			((m_ui8Registers[0x04] & 0b00010000) != 0)
+
+#define LSN_PULSE1_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x00] & 0b00001111)
+#define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
+
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED );					\
@@ -122,8 +128,8 @@ namespace lsn {
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
 			}*/
-			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8) ? m_pPulse1.Output() : 0.0f);
-			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8) ? m_pPulse2.Output() : 0.0f);
+			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
@@ -144,7 +150,6 @@ namespace lsn {
 			CAudio::AddSample( m_ui64Cycles, fFinal * 8.0f );
 
 			++m_ui64Cycles;
-			
 		}
 
 		/**
@@ -159,6 +164,8 @@ namespace lsn {
 			m_bModeSwitch = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
+			m_pPulse1.SetEnvelopeVolume( m_ui8Registers[0x00] & 0b1111 );
+			m_pPulse2.SetEnvelopeVolume( m_ui8Registers[0x04] & 0b1111 );
 			m_fMaxSample = -INFINITY;
 			m_fMinSample = INFINITY;
 		}
@@ -269,6 +276,9 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S0 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
 			}
 			else {
@@ -282,8 +292,12 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
 			}
 			else {
@@ -297,6 +311,9 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S2 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
 			}
 			else {
@@ -313,6 +330,9 @@ namespace lsn {
 			}
 
 			if ( m_ui64StepCycles == (_tM0S3_2 - 1) ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
 			}
@@ -333,6 +353,9 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S0 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
 			}
 			else {
@@ -345,10 +368,13 @@ namespace lsn {
 		void											Tick_Mode1_Step1() {
 			LSN_APU_UPDATE;
 
-			m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
-			m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
-
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
 			}
 			else {
@@ -362,6 +388,9 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S2 ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
 			}
 			else {
@@ -388,6 +417,9 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( m_ui64StepCycles == (_tM1S4_1 - 1) ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
 			}
@@ -465,6 +497,7 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x00] = _ui8Val;
 			paApu->m_pPulse1.SetSeq( GetDuty( _ui8Val >> 6 ) );
+			paApu->m_pPulse1.SetEnvelopeVolume( _ui8Val & 0b1111 );
 		}
 
 		/**
@@ -507,6 +540,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
 			paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			paApu->m_pPulse1.RestartEnvelope();
 		}
 
 		/**
@@ -521,6 +555,7 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x04] = _ui8Val;
 			paApu->m_pPulse2.SetSeq( GetDuty( _ui8Val >> 6 ) );
+			paApu->m_pPulse2.SetEnvelopeVolume( _ui8Val & 0b1111 );
 		}
 
 		/**
@@ -563,6 +598,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
 			paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			paApu->m_pPulse2.RestartEnvelope();
 		}
 
 		/**
@@ -648,6 +684,12 @@ namespace lsn {
 														LSN_AT_ ## REGION ## _MODE_0_STEP_3_0, LSN_AT_ ## REGION ## _MODE_0_STEP_3_1, LSN_AT_ ## REGION ## _MODE_0_STEP_3_2,																		\
 														LSN_AT_ ## REGION ## _MODE_1_STEP_0, LSN_AT_ ## REGION ## _MODE_1_STEP_1, LSN_AT_ ## REGION ## _MODE_1_STEP_2, LSN_AT_ ## REGION ## _MODE_1_STEP_3,											\
 														LSN_AT_ ## REGION ## _MODE_1_STEP_4_0, LSN_AT_ ## REGION ## _MODE_1_STEP_4_1
+
+#undef LSN_PULSE2_ENV_DIVIDER
+#undef LSN_PULSE1_ENV_DIVIDER
+
+#undef LSN_PULSE2_USE_VOLUME
+#undef LSN_PULSE1_USE_VOLUME
 
 #undef LSN_PULSE2_HALT
 #undef LSN_PULSE1_HALT

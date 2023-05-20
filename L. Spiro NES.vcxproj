@@ -505,6 +505,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="resource.h" />
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
     <ClInclude Include="Src\Apu\LSNApuUnit.h" />
+    <ClInclude Include="Src\Apu\LSNEnvelope.h" />
     <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
     <ClInclude Include="Src\Apu\LSNPulse.h" />
     <ClInclude Include="Src\Apu\LSNSequencer.h" />

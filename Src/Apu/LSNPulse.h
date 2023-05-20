@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNApuUnit.h"
+#include "LSNEnvelope.h"
 #include "LSNLengthCounter.h"
 #include "LSNSequencer.h"
 
@@ -23,7 +24,7 @@ namespace lsn {
 	 *
 	 * Description: An APU pulse.  Generates square waves.
 	 */
-	class CPulse : public CLengthCounter, public CSequencer, public CApuUnit {
+	class CPulse : public CApuUnit, public CLengthCounter, public CEnvelope, public CSequencer {
 	public :
 		CPulse();
 		virtual ~CPulse();
