@@ -138,9 +138,11 @@ namespace lsn {
 			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse ) ) );
 
 			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
-			m_pfOutputPole.CreateLpf( fLpf );
-			m_pfOutputPole1.CreateLpf( fLpf );
-			fFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( fFinal ) );
+			if ( fLpf < 0.5f ) {
+				m_pfOutputPole.CreateLpf( fLpf );
+				m_pfOutputPole1.CreateLpf( fLpf );
+				fFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( fFinal ) );
+			}
 			m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			m_fMinSample = std::min( m_fMinSample, fFinal );
 			//float fRange = m_fMaxSample - m_fMinSample;
