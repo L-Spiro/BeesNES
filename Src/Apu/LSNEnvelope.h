@@ -54,6 +54,11 @@ namespace lsn {
 		 **/
 		inline uint8_t								GetEnvelopeOutput() const;
 
+		/**
+		 * Resets the unit to a known state.
+		 **/
+		inline void									ResetToKnown();
+
 
 	protected :
 		// == Members.
@@ -130,5 +135,16 @@ namespace lsn {
 	 * \return Returns the envelope output value.
 	 **/
 	inline uint8_t CEnvelope::GetEnvelopeOutput() const { return m_ui8Output; }
+
+	/**
+	 * Resets the unit to a known state.
+	 **/
+	inline void CEnvelope::ResetToKnown() {
+		m_ui8Output					= 0;
+		m_ui8DecayCounter			= 0;
+		m_ui8DividerCounter			= 0;
+		m_ui8Volume					= 0;
+		m_bRestart					= true;
+	}
 
 }	// namespace lsn

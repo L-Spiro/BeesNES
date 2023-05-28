@@ -11,9 +11,21 @@
 
 namespace lsn {
 
-	CPulse::CPulse() {
+	CPulse::CPulse() :
+		CSweeper( m_ui16Reload ) {
 	}
 	CPulse::~CPulse() {
+	}
+
+	// == Functions.
+	/**
+	 * Resets the unit to a known state.
+	 **/
+	void CPulse::ResetToKnown() {
+		CLengthCounter::ResetToKnown();
+		CEnvelope::ResetToKnown();
+		CSequencer::ResetToKnown();
+		CSweeper::ResetToKnown();
 	}
 
 }	// namespace lsn

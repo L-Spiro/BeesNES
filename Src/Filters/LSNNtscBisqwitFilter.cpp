@@ -262,7 +262,16 @@ namespace lsn {
 		int32_t i32Offset = ui32ResDiv + 4;
 		int32_t i32LeftOverscan = ui32OverscanLeft * 8 + i32Offset;
 		int32_t i32RightOverscan = _i32Width - ui32OverscanRight * 8 + i32Offset;
+#ifdef LSN_SRGB_BISQWIT
+		auto LinearTosRGB = [&]( double _dVal ) {
+			return _dVal <= 0.0031308 ?
+				_dVal * 12.92 :
+				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
+		};
 
+		int32_t i32LastR = 0, i32LastG = 0, i32LastB = 0;
+		int32_t i32LastRs = 0, i32LastGs = 0, i32LastBs = 0;
+#endif	// LSN_SRGB_BISQWIT
 		for ( int32_t I = 0; I < i32RightOverscan; I++ ) {
 			int32_t i32ReadI = Read( I );
 			i32SumY += i32ReadI - Read( I - m_i32WidthY );
@@ -273,6 +282,35 @@ namespace lsn {
 				int32_t i32R = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ir + i32SumQ * m_i32Qr) / 65536, 0, 255 );
 				int32_t i32G = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ig + i32SumQ * m_i32Qg) / 65536, 0, 255 );
 				int32_t i32B = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ib + i32SumQ * m_i32Qb) / 65536, 0, 255 );
+#ifdef LSN_SRGB_BISQWIT
+				if ( i32R != i32LastR ) {
+					i32LastR = i32R;
+					double dFract = LinearTosRGB( i32R / 255.0 );
+					i32R = i32LastRs = uint8_t( std::round( dFract * 255.0 ) );
+				}
+				else {
+					i32R = i32LastRs;
+				}
+
+				if ( i32G != i32LastR ) {
+					i32LastR = i32G;
+					double dFract = LinearTosRGB( i32G / 255.0 );
+					i32G = i32LastRs = uint8_t( std::round( dFract * 255.0 ) );
+				}
+				else {
+					i32G = i32LastRs;
+				}
+
+				if ( i32B != i32LastR ) {
+					i32LastR = i32B;
+					double dFract = LinearTosRGB( i32B / 255.0 );
+					i32B = i32LastRs = uint8_t( std::round( dFract * 255.0 ) );
+				}
+				else {
+					i32B = i32LastRs;
+				}
+#endif	// LSN_SRGB_BISQWIT
+
 
 				(*_pui32Output) = 0xFF000000 | (i32R << 16) | (i32G << 8) | i32B;
 				_pui32Output++;

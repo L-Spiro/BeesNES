@@ -618,6 +618,9 @@
     <ClInclude Include="Src\Apu\LSNEnvelope.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Apu\LSNSweeper.h">
+      <Filter>Header Files\Apu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

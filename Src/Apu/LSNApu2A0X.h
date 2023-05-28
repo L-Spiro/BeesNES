@@ -114,6 +114,9 @@ namespace lsn {
 			(this->*m_pftTick)();
 
 			m_dvRegisters3_4017.Tick();
+
+			m_pPulse1.UpdateSweeperState();
+			m_pPulse2.UpdateSweeperState();
 			
 			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
 				// Determine the next APU cycle that corresponds with an output sample.
@@ -128,8 +131,8 @@ namespace lsn {
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
 			}*/
-			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
-			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output() && !m_pPulse1.SweeperMuted()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output() && !m_pPulse2.SweeperMuted()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
@@ -143,8 +146,8 @@ namespace lsn {
 				m_pfOutputPole1.CreateLpf( fLpf );
 				fFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( fFinal ) );
 			}
-			m_fMaxSample = std::max( m_fMaxSample, fFinal );
-			m_fMinSample = std::min( m_fMinSample, fFinal );
+			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
+			//m_fMinSample = std::min( m_fMinSample, fFinal );
 			//float fRange = m_fMaxSample - m_fMinSample;
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
@@ -158,6 +161,7 @@ namespace lsn {
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
 		void											ResetAnalog() {
+			m_ui8Registers[0x15] = 0x00;
 			m_ui64Cycles = 0;
 			m_ui64StepCycles = 0;
 			m_ui64LastBucketCycle = 0;
@@ -176,6 +180,16 @@ namespace lsn {
 		 * Resets the APU to a known state.
 		 */
 		void											ResetToKnown() {
+			for ( auto I = 0x00; I <= 0x0F; ++I ) {
+				m_ui8Registers[I] = 0x00;
+			}
+			for ( auto I = 0x10; I <= 0x13; ++I ) {
+				m_ui8Registers[I] = 0x00;
+			}
+			m_ui8Registers[0x15] = 0x00;
+			m_dvRegisters3_4017.SetValue( 0x00 );
+			m_pPulse1.ResetToKnown();
+			m_pPulse2.ResetToKnown();
 			ResetAnalog();
 		}
 
@@ -300,6 +314,9 @@ namespace lsn {
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
 
+				m_pPulse1.TickSweeper<1>();
+				m_pPulse2.TickSweeper<0>();
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
 			}
 			else {
@@ -337,6 +354,9 @@ namespace lsn {
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
+				m_pPulse1.TickSweeper<1>();
+				m_pPulse2.TickSweeper<0>();
 			}
 
 			if ( ++m_ui64StepCycles == _tM0S3_2 ) {
@@ -376,6 +396,9 @@ namespace lsn {
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
+				m_pPulse1.TickSweeper<1>();
+				m_pPulse2.TickSweeper<0>();
 
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
 			}
@@ -424,6 +447,9 @@ namespace lsn {
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+
+				m_pPulse1.TickSweeper<1>();
+				m_pPulse2.TickSweeper<0>();
 			}
 
 			if ( ++m_ui64StepCycles == _tM1S4_1 ) {
@@ -462,7 +488,10 @@ namespace lsn {
 			constexpr uint64_t ui64Multiplier = _tMasterDiv * _tApuDiv;
 
 			uint64_t ui64RealTime = _ui64ApuCycle * ui64Multiplier;											// ui64RealTime / (double)_tMasterClock = actual time in seconds of the given APU cycle.
-			uint64_t ui64SampleIdx = ui64RealTime * _ui64Hz / _tMasterClock + 1;							// For example, after 1 second (ui64RealTime == _tMasterClock), ui64SampleIdx will equal the Hz (_ui64Hz).
+			//uint64_t ui64SampleIdx = ui64RealTime * _ui64Hz / _tMasterClock + 1;							// For example, after 1 second (ui64RealTime == _tMasterClock), ui64SampleIdx will equal the Hz (_ui64Hz).
+			uint64_t ui64Hi;
+			uint64_t ui64Low = _umul128( ui64RealTime, _ui64Hz, &ui64Hi );
+			uint64_t ui64SampleIdx = _udiv128( ui64Hi, ui64Low, _tMasterClock, nullptr ) + 1;
 																											//	(+ 1) because we want the time of the next sample.
 			uint64_t ui64ApuTimeAtSample = ui64SampleIdx * _tMasterClock / (_ui64Hz * ui64Multiplier);		// The APU cycle index that corresponds with that WAV sample.  This is the return value.
 
@@ -513,6 +542,11 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x01] = _ui8Val;
+			paApu->m_pPulse1.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
+			paApu->m_pPulse1.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
+			paApu->m_pPulse1.SetSweepNegate( ((_ui8Val & 0b1000) != 0) );
+			paApu->m_pPulse1.SetSweepShift( _ui8Val & 0b111 );
+			paApu->m_pPulse1.DirtySweeper();
 		}
 
 		/**
@@ -571,6 +605,11 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x05] = _ui8Val;
+			paApu->m_pPulse2.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
+			paApu->m_pPulse2.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
+			paApu->m_pPulse2.SetSweepNegate( ((_ui8Val & 0b1000) != 0) );
+			paApu->m_pPulse2.SetSweepShift( _ui8Val & 0b111 );
+			paApu->m_pPulse2.DirtySweeper();
 		}
 
 		/**

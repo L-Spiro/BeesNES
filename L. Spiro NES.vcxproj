@@ -509,6 +509,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
     <ClInclude Include="Src\Apu\LSNPulse.h" />
     <ClInclude Include="Src\Apu\LSNSequencer.h" />
+    <ClInclude Include="Src\Apu\LSNSweeper.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h" />

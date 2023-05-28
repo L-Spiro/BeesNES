@@ -17,7 +17,7 @@ namespace lsn {
 	 * Class CLengthCounter
 	 * \brief An APU length counter.
 	 *
-	 * Description: An APU length counter.  Counts a timer down to determine the timing of an event
+	 * Description: An APU length counter.  Counts a timer down to determine the timing of an event.
 	 */
 	class CLengthCounter {
 	public :
@@ -48,6 +48,11 @@ namespace lsn {
 		 * \return Returns the length counter.
 		 **/
 		inline uint8_t								GetLengthCounter() const;
+
+		/**
+		 * Resets the unit to a known state.
+		 **/
+		inline void									ResetToKnown();
 
 
 	protected :
@@ -102,6 +107,13 @@ namespace lsn {
 	 **/
 	inline uint8_t CLengthCounter::GetLengthCounter() const {
 		return m_ui8Counter;
+	}
+
+	/**
+	 * Resets the unit to a known state.
+	 **/
+	inline void CLengthCounter::ResetToKnown() {
+		m_ui8Counter = 0;
 	}
 
 }	// namespace lsn

@@ -71,19 +71,24 @@ namespace lsn {
 		 **/
 		inline uint8_t							Output() const;
 
+		/**
+		 * Resets the unit to a known state.
+		 **/
+		inline void								ResetToKnown();
+
 
 	protected :
 		// == Members.
 		/** The sequence of bits that determines when to trigger actions. */
-		uint32_t								m_ui32Sequence = 0;
+		uint32_t								m_ui32Sequence		= 0;
 		/** The current timer value. */
-		uint16_t								m_ui16Timer = 0;
+		uint16_t								m_ui16Timer			= 0;
 		/** The timer-reload value. */
-		uint16_t								m_ui16Reload = 0;
+		uint16_t								m_ui16Reload		= 0;
 		/** The output value. */
-		uint8_t									m_ui8Out = 0;
+		uint8_t									m_ui8Out			= 0;
 		/** The sequence offset. */
-		uint8_t									m_ui8SeqOff = 0;
+		uint8_t									m_ui8SeqOff			= 0;
 	};
 	
 
@@ -160,6 +165,17 @@ namespace lsn {
 	 **/
 	inline uint8_t CSequencer::Output() const {
 		return m_ui8Out;
+	}
+
+	/**
+	 * Resets the unit to a known state.
+	 **/
+	inline void CSequencer::ResetToKnown() {
+		m_ui32Sequence		= 0;
+		m_ui16Timer			= 0;
+		m_ui16Reload		= 0;
+		m_ui8Out			= 0;
+		m_ui8SeqOff			= 0;
 	}
 
 }	// namespace lsn
