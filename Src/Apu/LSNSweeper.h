@@ -38,12 +38,13 @@ namespace lsn {
 		template <unsigned _uOnesCompliment>
 		inline void									TickSweeper() {
 			if ( m_ui8Timer == 0 && m_bEnabled && m_ui8Shift > 0 && !m_bMuted ) {
-				if ( m_ui16ReloadRef >= 8 && m_ui16Change < 0x07FF ) {
+				uint16_t ui16Change = m_ui16ReloadRef >> m_ui8Shift;
+				if ( m_ui16ReloadRef >= 8 && ui16Change < 0x07FF ) {
 					if ( m_bNegated ) {
-						m_ui16ReloadRef += -m_ui16Change - _uOnesCompliment;
+						m_ui16ReloadRef += -ui16Change - _uOnesCompliment;
 					}
 					else {
-						m_ui16ReloadRef += m_ui16Change;
+						m_ui16ReloadRef += ui16Change;
 					}
 				}
 			}
@@ -56,7 +57,7 @@ namespace lsn {
 				m_ui8Timer--;
 			}
 
-			m_bMuted = (m_ui16ReloadRef < 8) || (m_ui16ReloadRef > 0x7FF);
+			m_bMuted = (m_ui16ReloadRef < 8) || (m_bNegated && m_ui16ReloadRef > 0x7FF);
 		}
 
 		/**
@@ -64,8 +65,8 @@ namespace lsn {
 		 **/
 		inline void									UpdateSweeperState() {
 			if ( m_bEnabled ) {
-				m_ui16Change = m_ui16ReloadRef >> m_ui8Shift;
-				m_bMuted = (m_ui16ReloadRef < 8) || (m_ui16ReloadRef > 0x7FF);
+				//m_ui16Change = m_ui16ReloadRef >> m_ui8Shift;
+				m_bMuted = (m_ui16ReloadRef < 8) || (m_bNegated && m_ui16ReloadRef > 0x7FF);
 			}
 
 		}
@@ -127,7 +128,7 @@ namespace lsn {
 		 * Resets the unit to a known state.
 		 **/
 		inline void									ResetToKnown() {
-			m_ui16Change	= 0;
+			//m_ui16Change	= 0;
 			m_ui8Shift		= 0x00;
 			m_ui8Timer		= 0x00;
 			m_ui8Period		= 0x00;
@@ -143,7 +144,7 @@ namespace lsn {
 		/** A reference to the reload flag on which to operate and to track. */
 		uint16_t &									m_ui16ReloadRef;
 		/** The change amount, determined by the shift and the current value. */
-		uint16_t									m_ui16Change	= 0;
+		//uint16_t									m_ui16Change	= 0;
 		/** The shift value set by a register. */
 		uint8_t										m_ui8Shift		= 0x00;
 		/** The current time within our period. */
