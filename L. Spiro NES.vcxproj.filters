@@ -621,6 +621,9 @@
     <ClInclude Include="Src\Apu\LSNSweeper.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Apu\LSNNoise.h">
+      <Filter>Header Files\Apu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -816,6 +819,9 @@
       <Filter>Source Files\Apu</Filter>
     </ClCompile>
     <ClCompile Include="Src\Apu\LSNApuUnit.cpp">
+      <Filter>Source Files\Apu</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Apu\LSNNoise.cpp">
       <Filter>Source Files\Apu</Filter>
     </ClCompile>
   </ItemGroup>

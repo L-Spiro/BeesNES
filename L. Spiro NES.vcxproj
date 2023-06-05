@@ -507,6 +507,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNApuUnit.h" />
     <ClInclude Include="Src\Apu\LSNEnvelope.h" />
     <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
+    <ClInclude Include="Src\Apu\LSNNoise.h" />
     <ClInclude Include="Src\Apu\LSNPulse.h" />
     <ClInclude Include="Src\Apu\LSNSequencer.h" />
     <ClInclude Include="Src\Apu\LSNSweeper.h" />
@@ -640,6 +641,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Apu\LSNApuUnit.cpp" />
+    <ClCompile Include="Src\Apu\LSNNoise.cpp" />
     <ClCompile Include="Src\Apu\LSNPulse.cpp" />
     <ClCompile Include="Src\Apu\LSNSequencer.cpp" />
     <ClCompile Include="Src\Audio\LSNAudio.cpp" />

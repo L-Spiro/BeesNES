@@ -57,7 +57,7 @@ namespace lsn {
 				m_ui8Timer--;
 			}
 
-			m_bMuted = (m_ui16ReloadRef < 8) || (m_bNegated && m_ui16ReloadRef > 0x7FF);
+			m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
 		}
 
 		/**
@@ -66,7 +66,7 @@ namespace lsn {
 		inline void									UpdateSweeperState() {
 			if ( m_bEnabled ) {
 				//m_ui16Change = m_ui16ReloadRef >> m_ui8Shift;
-				m_bMuted = (m_ui16ReloadRef < 8) || (m_bNegated && m_ui16ReloadRef > 0x7FF);
+				m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
 			}
 
 		}

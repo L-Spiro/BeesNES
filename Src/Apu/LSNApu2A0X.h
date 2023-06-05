@@ -17,25 +17,32 @@
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
+#include "LSNApuUnit.h"
+#include "LSNNoise.h"
 #include "LSNPulse.h"
 
 
-#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b01) != 0)
-#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b10) != 0)
+#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b001) != 0)
+#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b010) != 0)
+#define LSN_NOISE_ENABLED				((m_ui8Registers[0x15] & 0b100) != 0)
 
 #define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
 #define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
+#define LSN_NOISE_HALT					((m_ui8Registers[0x0C] & 0b00100000) != 0)
 
 #define LSN_PULSE1_USE_VOLUME			((m_ui8Registers[0x00] & 0b00010000) != 0)
 #define LSN_PULSE2_USE_VOLUME			((m_ui8Registers[0x04] & 0b00010000) != 0)
+#define LSN_NOISE_USE_VOLUME			((m_ui8Registers[0x0C] & 0b00010000) != 0)
 
 #define LSN_PULSE1_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x00] & 0b00001111)
 #define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
+#define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED );					\
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED );					\
+												m_nNoise.TickSequencer( LSN_NOISE_ENABLED );					\
 											}																	\
 										}
 
@@ -44,6 +51,7 @@
 
 namespace lsn {
 
+	// == Enumerations.
 	/** APU timings. */
 	enum LSN_APU_TIMINGS {
 		LSN_AT_NTSC_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
@@ -82,7 +90,7 @@ namespace lsn {
 	 *
 	 * Description: The 2A0X series of APU's.
 	 */
-	template <unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S3_0, unsigned _tM0S3_1, unsigned _tM0S3_2,
+	template <unsigned _tType, unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S3_0, unsigned _tM0S3_1, unsigned _tM0S3_2,
 		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1,
 		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv>
 	class CApu2A0X : public CTickable {
@@ -137,8 +145,18 @@ namespace lsn {
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
+			float fNoise = (LSN_NOISE_ENABLED && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 15.0f : 0.0f;
+			float fTriangle = 0.0;
+			float fDmc = 0.0;
+			fNoise /= 12241.0f;
+			fTriangle /= 8227.0f;
+			fDmc /= 22638.0f;
+			float fFinalTnd = 0.0f;
+			if ( fNoise != 0.0f || fTriangle != 0.0f || fDmc != 0.0f ) {
+				fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
+			}
 			
-			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse ) ) );
+			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) );
 
 			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
 			if ( fLpf < 0.5f ) {
@@ -170,8 +188,9 @@ namespace lsn {
 			m_bModeSwitch = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
-			m_pPulse1.SetEnvelopeVolume( m_ui8Registers[0x00] & 0b1111 );
-			m_pPulse2.SetEnvelopeVolume( m_ui8Registers[0x04] & 0b1111 );
+			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
+			m_pPulse2.SetEnvelopeVolume( LSN_PULSE2_ENV_DIVIDER( this ) );
+			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
 			m_fMaxSample = -INFINITY;
 			m_fMinSample = INFINITY;
 		}
@@ -190,6 +209,7 @@ namespace lsn {
 			m_dvRegisters3_4017.SetValue( 0x00 );
 			m_pPulse1.ResetToKnown();
 			m_pPulse2.ResetToKnown();
+			m_nNoise.ResetToKnown();
 			ResetAnalog();
 		}
 
@@ -224,6 +244,10 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x4005, Write4005, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4006, Write4006, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4007, Write4007, this, 0 );
+
+			m_pbBus->SetWriteFunc( 0x400C, Write400C, this, 0 );
+			m_pbBus->SetWriteFunc( 0x400E, Write400E, this, 0 );
+			m_pbBus->SetWriteFunc( 0x400F, Write400F, this, 0 );
 
 			m_pbBus->SetWriteFunc( 0x4015, Write4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4017, Write4017, this, 0 );
@@ -276,6 +300,8 @@ namespace lsn {
 		CPulse											m_pPulse1;
 		/** Pulse 2. */
 		CPulse											m_pPulse2;
+		/** Noise. */
+		CNoise											m_nNoise;
 		/** Delayed writes. */
 		DelayedVal										m_dvRegisters3_4017;
 		/** Non-delayed registers. */
@@ -294,6 +320,7 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM0S0 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
 			}
@@ -310,9 +337,11 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -332,6 +361,7 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM0S2 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
 			}
@@ -351,9 +381,11 @@ namespace lsn {
 			if ( m_ui64StepCycles == (_tM0S3_2 - 1) ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -377,6 +409,7 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM1S0 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
 			}
@@ -393,9 +426,11 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -415,6 +450,7 @@ namespace lsn {
 			if ( ++m_ui64StepCycles == _tM1S2 ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
 			}
@@ -444,9 +480,11 @@ namespace lsn {
 			if ( m_ui64StepCycles == (_tM1S4_1 - 1) ) {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -669,6 +707,50 @@ namespace lsn {
 		}
 
 		/**
+		 * Writing to 0x400C (Loop envelope/disable length counter, constant volume, envelope period/volume).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write400C( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x0C] = _ui8Val;
+			paApu->m_nNoise.SetEnvelopeVolume( _ui8Val & 0b1111 );
+		}
+
+		/**
+		 * Writing to 0x400E (Loop noise, noise period).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x0E] = _ui8Val;
+			paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
+			paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
+		}
+
+		/**
+		 * Writing to 0x400F (Length counter load (also starts envelope)).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write400F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x0F] = _ui8Val;
+			paApu->m_nNoise.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			paApu->m_nNoise.RestartEnvelope();
+		}
+
+		/**
 		 * Writing to 0x4015 (Status: DMC interrupt, frame interrupt, length counter status: noise, triangle, pulse 2, pulse 1 (read)).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -721,20 +803,25 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Types.
-#define LSN_APU_TYPE( REGION )							LSN_AT_ ## REGION ## _MODE_0_STEP_0, LSN_AT_ ## REGION ## _MODE_0_STEP_1, LSN_AT_ ## REGION ## _MODE_0_STEP_2,																				\
+#define LSN_APU_TYPE( REGION )							LSN_AT_ ## REGION,																																											\
+														LSN_AT_ ## REGION ## _MODE_0_STEP_0, LSN_AT_ ## REGION ## _MODE_0_STEP_1, LSN_AT_ ## REGION ## _MODE_0_STEP_2,																				\
 														LSN_AT_ ## REGION ## _MODE_0_STEP_3_0, LSN_AT_ ## REGION ## _MODE_0_STEP_3_1, LSN_AT_ ## REGION ## _MODE_0_STEP_3_2,																		\
 														LSN_AT_ ## REGION ## _MODE_1_STEP_0, LSN_AT_ ## REGION ## _MODE_1_STEP_1, LSN_AT_ ## REGION ## _MODE_1_STEP_2, LSN_AT_ ## REGION ## _MODE_1_STEP_3,											\
 														LSN_AT_ ## REGION ## _MODE_1_STEP_4_0, LSN_AT_ ## REGION ## _MODE_1_STEP_4_1
 
+#undef LSN_NOISE_ENV_DIVIDER
 #undef LSN_PULSE2_ENV_DIVIDER
 #undef LSN_PULSE1_ENV_DIVIDER
 
+#undef LSN_NOISE_USE_VOLUME
 #undef LSN_PULSE2_USE_VOLUME
 #undef LSN_PULSE1_USE_VOLUME
 
+#undef LSN_NOISE_HALT
 #undef LSN_PULSE2_HALT
 #undef LSN_PULSE1_HALT
 
+#undef LSN_NOISE_ENABLED
 #undef LSN_PULSE2_ENABLED
 #undef LSN_PULSE1_ENABLED
 

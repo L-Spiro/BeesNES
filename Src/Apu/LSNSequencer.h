@@ -58,6 +58,14 @@ namespace lsn {
 		inline uint16_t							SetTimerHigh( uint8_t _ui8Val );
 
 		/**
+		 * Sets the timer (reload) value directly.  Use for noise.
+		 * 
+		 * \param _ui16Val The value to set.
+		 * \return Returns the timer value.
+		 **/
+		inline uint16_t							SetTimer( uint16_t _ui16Val );
+
+		/**
 		 * Gets the timer value.
 		 * 
 		 * \return Returns the timer value.
@@ -89,6 +97,15 @@ namespace lsn {
 		uint8_t									m_ui8Out			= 0;
 		/** The sequence offset. */
 		uint8_t									m_ui8SeqOff			= 0;
+
+
+		// == Functions.
+		/**
+		 * Handles the tick work.
+		 * 
+		 * \return Returns a value such that if the lowest bit (0) is set, noise is expected.
+		 **/
+		virtual uint8_t							WeDoBeTicknTho() { return 0; }
 	};
 	
 
@@ -108,8 +125,7 @@ namespace lsn {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
 
-				uint8_t ui8Seq = uint8_t( m_ui32Sequence >> m_ui8SeqOff-- );//WeDoBeTicknTho( m_ui32Sequence );
-				if ( m_ui8SeqOff == 0xFF ) { m_ui8SeqOff = 0x7; }
+				uint8_t ui8Seq = WeDoBeTicknTho();
 				m_ui8Out = uint8_t( ui8Seq & 1 );
 			}
 		}
@@ -146,6 +162,17 @@ namespace lsn {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		m_ui16Timer = m_ui16Reload;
 		m_ui8SeqOff = 0;
+		return m_ui16Reload;
+	}
+
+	/**
+	 * Sets the timer (reload) value directly.  Use for noise.
+	 * 
+	 * \param _ui16Val The value to set.
+	 * \return Returns the timer value.
+	 **/
+	inline uint16_t CSequencer::SetTimer( uint16_t _ui16Val ) {
+		m_ui16Reload = _ui16Val;
 		return m_ui16Reload;
 	}
 
