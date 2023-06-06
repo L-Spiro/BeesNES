@@ -31,7 +31,7 @@ namespace lsn {
 	/**
 	 * Handles the tick work.
 	 * 
-	 * \return Returns a value such that if the lowest bit (0) is set, noise is expected.
+	 * \return Returns an output value.
 	 **/
 	uint8_t CNoise::WeDoBeTicknTho() {
 		m_ui32Sequence = ((

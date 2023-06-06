@@ -103,7 +103,7 @@ namespace lsn {
 		/**
 		 * Handles the tick work.
 		 * 
-		 * \return Returns a value such that if the lowest bit (0) is set, noise is expected.
+		 * \return Returns an output value.
 		 **/
 		virtual uint8_t							WeDoBeTicknTho() { return 0; }
 	};
@@ -125,8 +125,7 @@ namespace lsn {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
 
-				uint8_t ui8Seq = WeDoBeTicknTho();
-				m_ui8Out = uint8_t( ui8Seq & 1 );
+				m_ui8Out = WeDoBeTicknTho();
 			}
 		}
 		return m_ui8Out;

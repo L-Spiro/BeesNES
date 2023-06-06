@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: An APU noise unit.  Generates noise.
+ * Description: An APU triangle unit.  Generates a triangle often used for bass.
  */
 
 
@@ -11,7 +11,6 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNApuUnit.h"
-#include "LSNEnvelope.h"
 #include "LSNLengthCounter.h"
 #include "LSNSequencer.h"
 
@@ -19,15 +18,15 @@
 namespace lsn {
 
 	/**
-	 * Class CNoise
-	 * \brief An APU noise unit.  Generates noise.
+	 * Class CTriangle
+	 * \brief An APU triangle unit.  Generates a triangle often used for bass.
 	 *
-	 * Description: An APU noise unit.  Generates noise.
+	 * Description: An APU triangle unit.  Generates a triangle often used for bass.
 	 */
-	class CNoise : public CApuUnit, public CLengthCounter, public CEnvelope, public CSequencer {
+	class CTriangle : public CApuUnit, public CLengthCounter, public CSequencer {
 	public :
-		CNoise();
-		virtual ~CNoise();
+		CTriangle();
+		virtual ~CTriangle();
 
 
 		// == Functions.
@@ -36,19 +35,9 @@ namespace lsn {
 		 **/
 		void									ResetToKnown();
 
-		/**
-		 * Sets the mode flag.
-		 * 
-		 * \param _bFlag Whether the mode flag is set or not.
-		 **/
-		inline void								SetModeFlag( bool _bFlag );
-
 	protected :
 		// == Members.
-		/** The mode flag. */
-		bool									m_bMode				= false;
 		
-
 
 		// == Functions.
 		/**
@@ -57,7 +46,6 @@ namespace lsn {
 		 * \return Returns an output value.
 		 **/
 		virtual uint8_t							WeDoBeTicknTho();
-
 	};
 	
 
@@ -66,13 +54,5 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
-	/**
-	 * Sets the mode flag.
-	 * 
-	 * \param _bFlag Whether the mode flag is set or not.
-	 **/
-	inline void CNoise::SetModeFlag( bool _bFlag ) {
-		m_bMode = _bFlag != false;
-	}
 
 }	// namespace lsn

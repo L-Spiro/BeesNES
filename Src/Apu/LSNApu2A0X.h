@@ -20,11 +20,13 @@
 #include "LSNApuUnit.h"
 #include "LSNNoise.h"
 #include "LSNPulse.h"
+#include "LSNTriangle.h"
 
 
-#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b001) != 0)
-#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b010) != 0)
-#define LSN_NOISE_ENABLED				((m_ui8Registers[0x15] & 0b100) != 0)
+#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b0001) != 0)
+#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b0010) != 0)
+#define LSN_TRIANGLE_ENABLED			((m_ui8Registers[0x15] & 0b0100) != 0)
+#define LSN_NOISE_ENABLED				((m_ui8Registers[0x15] & 0b1000) != 0)
 
 #define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
 #define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
@@ -44,7 +46,8 @@
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED );					\
 												m_nNoise.TickSequencer( LSN_NOISE_ENABLED );					\
 											}																	\
-										}
+										}																		\
+										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED );
 
 #define LSN_4017_DELAY					3
 
@@ -245,6 +248,10 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x4006, Write4006, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4007, Write4007, this, 0 );
 
+			m_pbBus->SetWriteFunc( 0x4008, Write4008, this, 0 );
+			m_pbBus->SetWriteFunc( 0x400A, Write400A, this, 0 );
+			m_pbBus->SetWriteFunc( 0x400B, Write400B, this, 0 );
+
 			m_pbBus->SetWriteFunc( 0x400C, Write400C, this, 0 );
 			m_pbBus->SetWriteFunc( 0x400E, Write400E, this, 0 );
 			m_pbBus->SetWriteFunc( 0x400F, Write400F, this, 0 );
@@ -302,6 +309,8 @@ namespace lsn {
 		CPulse											m_pPulse2;
 		/** Noise. */
 		CNoise											m_nNoise;
+		/** Triangle. */
+		CTriangle										m_tTriangle;
 		/** Delayed writes. */
 		DelayedVal										m_dvRegisters3_4017;
 		/** Non-delayed registers. */
@@ -707,6 +716,19 @@ namespace lsn {
 		}
 
 		/**
+		 * Writing to 0x400B (Length counter load, timer high (also reloads linear counter)).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						Write400B( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x0B] = _ui8Val;
+		}
+
+		/**
 		 * Writing to 0x400C (Loop envelope/disable length counter, constant volume, envelope period/volume).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -810,6 +832,7 @@ namespace lsn {
 														LSN_AT_ ## REGION ## _MODE_1_STEP_4_0, LSN_AT_ ## REGION ## _MODE_1_STEP_4_1
 
 #undef LSN_NOISE_ENV_DIVIDER
+#undef LSN_TRIANGLE_ENABLED
 #undef LSN_PULSE2_ENV_DIVIDER
 #undef LSN_PULSE1_ENV_DIVIDER
 
