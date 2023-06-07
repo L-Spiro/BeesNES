@@ -53,9 +53,10 @@ namespace lsn {
 		 * Sets the timer high value.  Only the bottom 3 bits are used.
 		 * 
 		 * \param _ui8Val The timer high value.
+		 * \param _bReset If true, the duty cycle is reset.
 		 * \return Returns the timer value.
 		 **/
-		inline uint16_t							SetTimerHigh( uint8_t _ui8Val );
+		inline uint16_t							SetTimerHigh( uint8_t _ui8Val, bool _bReset = true );
 
 		/**
 		 * Sets the timer (reload) value directly.  Use for noise.
@@ -106,6 +107,14 @@ namespace lsn {
 		 * \return Returns an output value.
 		 **/
 		virtual uint8_t							WeDoBeTicknTho() { return 0; }
+
+		/**
+		 * Returns the condition for ticking the sequencer.
+		 * 
+		 * \param _bEnabled Whether the unit is enabled for not.
+		 * \return Return true to perform a sequencer tick, or false to skip sequencer work.
+		 **/
+		virtual bool							ShouldBeTicknTho( bool _bEnabled ) { return _bEnabled; }
 	};
 	
 
@@ -121,7 +130,7 @@ namespace lsn {
 	 * \return Returns m_ui8Out.
 	 **/
 	inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
-		if ( _bEnabled ) {
+		if ( ShouldBeTicknTho( _bEnabled ) ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
 
@@ -157,10 +166,12 @@ namespace lsn {
 	 * \param _ui8Val The timer high value.
 	 * \return Returns the timer value.
 	 **/
-	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val ) {
+	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val, bool _bReset ) {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
-		m_ui16Timer = m_ui16Reload;
-		m_ui8SeqOff = 0;
+		if ( _bReset ) {
+			m_ui16Timer = m_ui16Reload;
+			m_ui8SeqOff = 0;
+		}
 		return m_ui16Reload;
 	}
 

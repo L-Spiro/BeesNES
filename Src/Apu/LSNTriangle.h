@@ -37,6 +37,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The triangle shape. */
+		static uint8_t							m_ui8Triangle[32];
 		
 
 		// == Functions.
@@ -46,6 +48,14 @@ namespace lsn {
 		 * \return Returns an output value.
 		 **/
 		virtual uint8_t							WeDoBeTicknTho();
+
+		/**
+		 * Returns the condition for ticking the sequencer.
+		 * 
+		 * \param _bEnabled Whether the unit is enabled for not.
+		 * \return Return true to perform a sequencer tick, or false to skip sequencer work.
+		 **/
+		virtual bool							ShouldBeTicknTho( bool _bEnabled );
 	};
 	
 
