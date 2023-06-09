@@ -23,10 +23,10 @@
 #include "LSNTriangle.h"
 
 
-#define LSN_PULSE1_ENABLED				((m_ui8Registers[0x15] & 0b0001) != 0)
-#define LSN_PULSE2_ENABLED				((m_ui8Registers[0x15] & 0b0010) != 0)
-#define LSN_TRIANGLE_ENABLED			((m_ui8Registers[0x15] & 0b0100) != 0)
-#define LSN_NOISE_ENABLED				((m_ui8Registers[0x15] & 0b1000) != 0)
+#define LSN_PULSE1_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0001) != 0)
+#define LSN_PULSE2_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0010) != 0)
+#define LSN_TRIANGLE_ENABLED( THIS )	(((THIS)->m_ui8Registers[0x15] & 0b0100) != 0)
+#define LSN_NOISE_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b1000) != 0)
 
 #define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
 #define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
@@ -43,12 +43,12 @@
 
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											{																	\
-												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED );					\
-												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED );					\
-												m_nNoise.TickSequencer( LSN_NOISE_ENABLED );					\
+												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
+												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
+												m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
 											}																	\
 										}																		\
-										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED );
+										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
 
 #define LSN_4017_DELAY					3
 
@@ -143,13 +143,13 @@ namespace lsn {
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
 			}*/
-			float fPulse1 = ((LSN_PULSE1_ENABLED && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output() && !m_pPulse1.SweeperMuted()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
-			float fPulse2 = ((LSN_PULSE2_ENABLED && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output() && !m_pPulse2.SweeperMuted()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse1 = ((LSN_PULSE1_ENABLED( this ) && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output() && !m_pPulse1.SweeperMuted()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse2 = ((LSN_PULSE2_ENABLED( this ) && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output() && !m_pPulse2.SweeperMuted()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
-			float fNoise = (LSN_NOISE_ENABLED && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 15.0f : 0.0f;
+			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 15.0f : 0.0f;
 			float fTriangle = 0.0;
 			float fDmc = 0.0;
 			fNoise /= 12241.0f;
@@ -270,7 +270,6 @@ namespace lsn {
 
 
 
-
 	protected :
 		// == Types.
 		/** A function pointer for the tick handlers. */
@@ -349,10 +348,10 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
-				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
-				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
-				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
-				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED, LSN_TRIANGLE_HALT );
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -394,10 +393,10 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
-				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
-				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
-				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
-				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED, LSN_TRIANGLE_HALT );
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -440,10 +439,10 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
-				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
-				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
-				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
-				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED, LSN_TRIANGLE_HALT );
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -495,10 +494,10 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
-				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED, LSN_PULSE1_HALT );
-				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED, LSN_PULSE2_HALT );
-				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED, LSN_NOISE_HALT );
-				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED, LSN_TRIANGLE_HALT );
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
@@ -791,6 +790,19 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x15] = _ui8Val;
+
+			if ( !LSN_PULSE1_ENABLED( paApu ) ) {
+				paApu->m_pPulse1.SetLengthCounter( 0 );
+			}
+			if ( !LSN_PULSE2_ENABLED( paApu ) ) {
+				paApu->m_pPulse2.SetLengthCounter( 0 );
+			}
+			if ( !LSN_NOISE_ENABLED( paApu ) ) {
+				paApu->m_nNoise.SetLengthCounter( 0 );
+			}
+			if ( !LSN_TRIANGLE_ENABLED( paApu ) ) {
+				paApu->m_tTriangle.SetLengthCounter( 0 );
+			}
 		}
 
 		/**

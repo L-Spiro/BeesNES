@@ -40,9 +40,11 @@ namespace lsn {
 	/** The size of each buffer in samples. */
 	ALsizei CAudio::m_sBufferSizeInSamples = 
 #ifdef LSN_WIN64
-		768
+		//768
+		16
 #else
-		1024
+		//1024 
+		16
 #endif
 		;
 
