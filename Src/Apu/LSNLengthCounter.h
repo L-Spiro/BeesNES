@@ -58,7 +58,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The counter. */
-		uint8_t										m_ui8Counter;
+		uint8_t										m_ui8Counter			= 0;
 
 	};
 	
@@ -67,8 +67,7 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	inline CLengthCounter::CLengthCounter() :
-		m_ui8Counter( 0 ) {
+	inline CLengthCounter::CLengthCounter() {
 	}
 	inline CLengthCounter::~CLengthCounter() {
 	}

@@ -29,6 +29,7 @@ namespace lsn {
 	 **/
 	void CTriangle::ResetToKnown() {
 		CLengthCounter::ResetToKnown();
+		CLinearCounter::ResetToKnown();
 		CSequencer::ResetToKnown();
 	}
 
@@ -50,7 +51,7 @@ namespace lsn {
 	 * \return Return true to perform a sequencer tick, or false to skip sequencer work.
 	 **/
 	bool CTriangle::ShouldBeTicknTho( bool /*_bEnabled*/ ) {
-		return m_ui8Counter != 0 /** && LINEAR_COUNTER != 0*/;
+		return m_ui8Counter != 0 && m_ui8LinearCounter != 0;
 	}
 
 }	// namespace lsn

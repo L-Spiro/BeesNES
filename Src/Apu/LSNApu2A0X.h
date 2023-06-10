@@ -41,7 +41,7 @@
 #define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
 #define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
-#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
+#define LSN_APU_UPDATE					if constexpr ( _bEven ) {												\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
@@ -126,9 +126,9 @@ namespace lsn {
 			(this->*m_pftTick)();
 
 			m_dvRegisters3_4017.Tick();
-
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
+
 			
 			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
 				// Determine the next APU cycle that corresponds with an output sample.
@@ -150,7 +150,7 @@ namespace lsn {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
 			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 15.0f : 0.0f;
-			float fTriangle = 0.0;
+			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0 && m_tTriangle.Output()) ? m_tTriangle.Output() / 15.0f : 0.0f;
 			float fDmc = 0.0;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
@@ -257,6 +257,7 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x400E, Write400E, this, 0 );
 			m_pbBus->SetWriteFunc( 0x400F, Write400F, this, 0 );
 
+			m_pbBus->SetReadFunc( 0x4015, Read4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4015, Write4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4017, Write4017, this, 0 );
 		}
@@ -331,6 +332,8 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
 			}
 			else {
@@ -347,6 +350,8 @@ namespace lsn {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
@@ -373,6 +378,8 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
 			}
 			else {
@@ -392,6 +399,8 @@ namespace lsn {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
@@ -422,6 +431,8 @@ namespace lsn {
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
+
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
 			}
 			else {
@@ -438,6 +449,8 @@ namespace lsn {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
@@ -463,6 +476,8 @@ namespace lsn {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
 			}
@@ -493,6 +508,8 @@ namespace lsn {
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
 				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
@@ -626,7 +643,9 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
-			paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			if ( LSN_PULSE1_ENABLED( paApu ) ) {
+				paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			}
 			paApu->m_pPulse1.RestartEnvelope();
 		}
 
@@ -689,7 +708,9 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
-			paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			if ( LSN_PULSE2_ENABLED( paApu ) ) {
+				paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			}
 			paApu->m_pPulse2.RestartEnvelope();
 		}
 
@@ -704,6 +725,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4008( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x08] = _ui8Val;
+			paApu->m_tTriangle.SetLinearCounter( _ui8Val & 0b01111111 );
 		}
 
 		/**
@@ -732,7 +754,10 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x0B] = _ui8Val;
 			paApu->m_tTriangle.SetTimerHigh( _ui8Val, false );
-			paApu->m_tTriangle.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			if ( LSN_TRIANGLE_ENABLED( paApu ) ) {
+				paApu->m_tTriangle.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			}
+			paApu->m_tTriangle.SetLinearReload();
 		}
 
 		/**
@@ -775,8 +800,36 @@ namespace lsn {
 		static void LSN_FASTCALL						Write400F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x0F] = _ui8Val;
-			paApu->m_nNoise.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			if ( LSN_NOISE_ENABLED( paApu ) ) {
+				paApu->m_nNoise.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+			}
 			paApu->m_nNoise.RestartEnvelope();
+		}
+
+		/**
+		 * A function usable for addresses that can't be read.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Read4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			// TODO: This register is internal to the CPU and so the external CPU data bus is disconnected when reading it. Therefore the returned value cannot be seen by external devices and the value does not affect open bus.
+			_ui8Ret = _ui8Ret & 0b00100000;
+			if ( paApu->m_pPulse1.GetLengthCounter() != 0 ) {
+				_ui8Ret |= 0b0001;
+			}
+			if ( paApu->m_pPulse2.GetLengthCounter() != 0 ) {
+				_ui8Ret |= 0b0010;
+			}
+			if ( paApu->m_tTriangle.GetLengthCounter() != 0 ) {
+				_ui8Ret |= 0b0100;
+			}
+			if ( paApu->m_nNoise.GetLengthCounter() != 0 ) {
+				_ui8Ret |= 0b1000;
+			}
 		}
 
 		/**
@@ -797,11 +850,11 @@ namespace lsn {
 			if ( !LSN_PULSE2_ENABLED( paApu ) ) {
 				paApu->m_pPulse2.SetLengthCounter( 0 );
 			}
-			if ( !LSN_NOISE_ENABLED( paApu ) ) {
-				paApu->m_nNoise.SetLengthCounter( 0 );
-			}
 			if ( !LSN_TRIANGLE_ENABLED( paApu ) ) {
 				paApu->m_tTriangle.SetLengthCounter( 0 );
+			}
+			if ( !LSN_NOISE_ENABLED( paApu ) ) {
+				paApu->m_nNoise.SetLengthCounter( 0 );
 			}
 		}
 

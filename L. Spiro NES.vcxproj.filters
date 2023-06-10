@@ -627,6 +627,9 @@
     <ClInclude Include="Src\Apu\LSNTriangle.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Apu\LSNLinearCounter.h">
+      <Filter>Header Files\Apu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

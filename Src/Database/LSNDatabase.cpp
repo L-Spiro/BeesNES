@@ -159,6 +159,8 @@ namespace lsn {
 			{ .ui32Crc = 0x2FD2E632, .pmRegion = LSN_PM_DENDY },
 			// Defender of the Crown (Europe)
 			{ .ui32Crc = 0x68F9B5F5, .pmRegion = LSN_PM_PAL },
+			// Deja Vu (SW)
+			{ .ui32Crc = 0x07259BA7, .pmRegion = LSN_PM_PAL },
 			// demo_pal
 			{ .ui32Crc = 0x2747EE68, .pmRegion = LSN_PM_PAL },
 			// Devil World (E) [!]
@@ -299,6 +301,8 @@ namespace lsn {
 			{ .ui32Crc = 0x8BBE9BEC, .pmRegion = LSN_PM_PAL },
 			// Maniac Mansion (Europe)
 			{ .ui32Crc = 0xF59CFC3D, .pmRegion = LSN_PM_PAL },
+			// Maniac Mansion (SW)
+			{ .ui32Crc = 0x3F2BDA65, .pmRegion = LSN_PM_PAL },
 			// Marble Madness (E)
 			{ .ui32Crc = 0x51BF28AF, .pmRegion = LSN_PM_PAL },
 			// Mario & Yoshi (E) [!]
@@ -397,6 +401,8 @@ namespace lsn {
 			{ .ui32Crc = 0x687E25D6, .pmRegion = LSN_PM_PAL },
 			// Shadowgate (E) [!]
 			{ .ui32Crc = 0x0ADB2C4C, .pmRegion = LSN_PM_PAL },
+			// Shadowgate (SW)
+			{ .ui32Crc = 0x04D6B4F6, .pmRegion = LSN_PM_PAL },
 			// Shatterhand (E) [!]
 			{ .ui32Crc = 0x97E2B312, .pmRegion = LSN_PM_PAL },
 			// Silent Service (E)

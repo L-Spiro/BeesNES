@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "LSNApuUnit.h"
 #include "LSNLengthCounter.h"
+#include "LSNLinearCounter.h"
 #include "LSNSequencer.h"
 
 
@@ -23,7 +24,7 @@ namespace lsn {
 	 *
 	 * Description: An APU triangle unit.  Generates a triangle often used for bass.
 	 */
-	class CTriangle : public CApuUnit, public CLengthCounter, public CSequencer {
+	class CTriangle : public CApuUnit, public CLengthCounter, public CLinearCounter, public CSequencer {
 	public :
 		CTriangle();
 		virtual ~CTriangle();
