@@ -41,7 +41,7 @@
 #define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
 #define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
-#define LSN_APU_UPDATE					if constexpr ( _bEven ) {												\
+#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
@@ -143,14 +143,14 @@ namespace lsn {
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
 			}*/
-			float fPulse1 = ((LSN_PULSE1_ENABLED( this ) && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output() && !m_pPulse1.SweeperMuted()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
-			float fPulse2 = ((LSN_PULSE2_ENABLED( this ) && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output() && !m_pPulse2.SweeperMuted()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 15.0f : 0.0f);
+			float fPulse1 = ((LSN_PULSE1_ENABLED( this ) && m_pPulse1.GetLengthCounter() > 0 && m_pPulse1.GetTimer() >= 8 && m_pPulse1.Output() && !m_pPulse1.SweeperMuted()) ? (m_pPulse1.GetEnvelopeOutput() + 0.0f) / 1.0f : 0.0f);
+			float fPulse2 = ((LSN_PULSE2_ENABLED( this ) && m_pPulse2.GetLengthCounter() > 0 && m_pPulse2.GetTimer() >= 8 && m_pPulse2.Output() && !m_pPulse2.SweeperMuted()) ? (m_pPulse2.GetEnvelopeOutput() + 0.0f) / 1.0f : 0.0f);
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
-			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 15.0f : 0.0f;
-			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0 && m_tTriangle.Output()) ? m_tTriangle.Output() / 15.0f : 0.0f;
+			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 1.0f : 0.0f;
+			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0 && m_tTriangle.Output()) ? m_tTriangle.Output() / 1.0f : 0.0f;
 			float fDmc = 0.0;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
@@ -174,7 +174,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( m_ui64Cycles, fFinal * 8.0f );
+			CAudio::AddSample( m_ui64Cycles, fFinal * 0.5f );
 
 			++m_ui64Cycles;
 		}
@@ -214,6 +214,7 @@ namespace lsn {
 			m_pPulse1.ResetToKnown();
 			m_pPulse2.ResetToKnown();
 			m_nNoise.ResetToKnown();
+			m_tTriangle.ResetToKnown();
 			ResetAnalog();
 		}
 
