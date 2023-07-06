@@ -150,7 +150,7 @@ namespace lsn {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
 			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 1.0f : 0.0f;
-			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0 && m_tTriangle.Output()) ? m_tTriangle.Output() / 1.0f : 0.0f;
+			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0) ? m_tTriangle.Output() / 1.0f : 0.0f;
 			float fDmc = 0.0;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
