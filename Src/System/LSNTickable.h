@@ -31,9 +31,14 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Performs a single cycle update.
+		 * Performs a single cycle (or PHI1) update.
 		 */
 		virtual void						Tick() {}
+
+		/**
+		 * Performs a PHI2 update.
+		 **/
+		virtual void						TickPhi2() {}
 	};
 
 }	// namespace lsn

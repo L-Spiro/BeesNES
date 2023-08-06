@@ -29,12 +29,14 @@ namespace lsn {
 	class CSystemBase {
 	public :
 		CSystemBase() :
+			m_ui64TickCount( 0 ),
 			m_ui64AccumTime( 0 ),
 			m_ui64LastRealTime( 0 ),
 			m_ui64MasterCounter( 0 ),
 			m_ui64CpuCounter( 0 ),
 			m_ui64PpuCounter( 0 ),
 			m_ui64ApuCounter( 0 ),
+			m_ui64CpuCounterPhi2( 0 ),
 			m_bPaused( false ) {
 		}
 		virtual ~CSystemBase() {
@@ -219,6 +221,7 @@ namespace lsn {
 		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
 		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
+		uint64_t										m_ui64CpuCounterPhi2;				/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		CCpuBus											m_bBus;								/**< The bus. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */

@@ -160,13 +160,13 @@ namespace lsn {
 				fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
 			}
 			
-			float fFinal = m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) );
+			double dFinal = static_cast<float>(m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) ));
 
 			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
 			if ( fLpf < 0.5f ) {
 				m_pfOutputPole.CreateLpf( fLpf );
 				m_pfOutputPole1.CreateLpf( fLpf );
-				fFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( fFinal ) );
+				dFinal = static_cast<float>(m_pfOutputPole.Process( m_pfOutputPole1.Process( dFinal ) ));
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			//m_fMinSample = std::min( m_fMinSample, fFinal );
@@ -174,7 +174,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( m_ui64Cycles, fFinal * 0.5f );
+			CAudio::AddSample( m_ui64Cycles, static_cast<float>(dFinal * 0.5) );
 
 			++m_ui64Cycles;
 		}

@@ -1135,7 +1135,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Performs a single cycle update.
+	 * Performs a single PHI1 update.
 	 */
 	void CCpu6502::Tick() {
 #ifndef LSN_CPU_VERIFY
@@ -1149,6 +1149,17 @@ namespace lsn {
 		m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 
+		//++m_ui64CycleCount;
+#ifdef LSN_CPU_VERIFY
+		TickPhi2();
+#endif	// #ifdef LSN_CPU_VERIFY
+
+	}
+
+	/**
+	 * Performs a PHI2 update.
+	 **/
+	void CCpu6502::TickPhi2() {
 		++m_ui64CycleCount;
 	}
 

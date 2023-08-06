@@ -44,22 +44,22 @@ namespace lsn {
 		/**
 		 * Processes a single sample.
 		 * 
-		 * \param _fSample The sample to process.
+		 * \param _dSample The sample to process.
 		 * \return Returns the filtered sample.
 		 **/
-		inline float				Process( float _fSample );
+		inline double				Process( double _dSample );
 
 
 	protected :
 		// == Members.
 		/** The last sample. */
-		float						m_fLastSample;
+		double						m_dLastSample;
 		/** The gain control (a0). */
-		float						m_fGain;
+		double						m_dGain;
 		/** The corner frequency (b1). */
-		float						m_fCornerFreq;
+		double						m_dCornerFreq;
 		/** The last cut-off frquency. */
-		float						m_fLastCutoff;
+		double						m_dLastCutoff;
 	};
 	
 
@@ -68,10 +68,10 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	inline CPoleFilter::CPoleFilter() :
-		m_fLastSample( 0.0f ),
-		m_fGain( 0.0f ),
-		m_fCornerFreq( 0.0f ),
-		m_fLastCutoff( 0.0f ) {
+		m_dLastSample( 0.0 ),
+		m_dGain( 0.0 ),
+		m_dCornerFreq( 0.0 ),
+		m_dLastCutoff( 0.0 ) {
 	}
 	inline CPoleFilter::~CPoleFilter() {
 	}
@@ -83,11 +83,11 @@ namespace lsn {
 	 * \param _fFc The normalized cut-off frequency.
 	 **/
 	inline void CPoleFilter::CreateLpf( float _fFc ) {
-		if ( m_fLastCutoff != _fFc ) {
-			m_fCornerFreq = std::exp( -2.0f * 3.1415926535897932384626433832795f * _fFc );
-			m_fGain = 1.0f - m_fCornerFreq;
+		if ( m_dLastCutoff != _fFc ) {
+			m_dCornerFreq = std::exp( -2.0 * 3.1415926535897932384626433832795 * _fFc );
+			m_dGain = 1.0f - m_dCornerFreq;
 
-			m_fLastCutoff = _fFc;
+			m_dLastCutoff = _fFc;
 		}
 	}
 
@@ -97,22 +97,22 @@ namespace lsn {
 	 * \param _fFc The normalized cut-off frequency.
 	 **/
 	inline void CPoleFilter::CreateHpf( float _fFc ) {
-		if ( m_fLastCutoff != _fFc ) {
-			m_fCornerFreq = -std::exp( -2.0f * 3.1415926535897932384626433832795f * (0.5f - _fFc) );
-			m_fGain = 1.0f + m_fCornerFreq;
+		if ( m_dLastCutoff != _fFc ) {
+			m_dCornerFreq = -std::exp( -2.0 * 3.1415926535897932384626433832795 * (0.5 - _fFc) );
+			m_dGain = 1.0f + m_dCornerFreq;
 
-			m_fLastCutoff = _fFc;
+			m_dLastCutoff = _fFc;
 		}
 	}
 
 	/**
 	 * Processes a single sample.
 	 * 
-	 * \param _fSample The sample to process.
+	 * \param _dSample The sample to process.
 	 * \return Returns the filtered sample.
 	 **/
-	inline float CPoleFilter::Process( float _fSample ) {
-		return m_fLastSample = _fSample * m_fGain + m_fLastSample * m_fCornerFreq;
+	inline double CPoleFilter::Process( double _dSample ) {
+		return m_dLastSample = _dSample * m_dGain + m_dLastSample * m_dCornerFreq;
 	}
 
 }	// namespace lsn

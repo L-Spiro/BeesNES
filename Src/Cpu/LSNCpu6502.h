@@ -96,9 +96,14 @@ namespace lsn {
 		void								ResetAnalog();
 
 		/**
-		 * Performs a single cycle update.
+		 * Performs a single PHI1 update.
 		 */
 		virtual void						Tick();
+
+		/**
+		 * Performs a PHI2 update.
+		 **/
+		virtual void						TickPhi2();
 
 		/**
 		 * Applies the CPU's memory mapping t the bus.
