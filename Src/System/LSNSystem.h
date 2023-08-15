@@ -23,6 +23,12 @@
 #include <algorithm>
 #include <immintrin.h>
 
+#define LSN_CPU_SLOT											0
+#define LSN_PPU_SLOT											1
+#define LSN_APU_SLOT											2
+#define LSN_CPU_PHI2_SLOT										3
+#define LSN_SLOTS												4
+
 namespace lsn {
 
 	/**
@@ -44,6 +50,19 @@ namespace lsn {
 			m_cCpu( &m_bBus ),
 			m_pPpu( &m_bBus, &m_cCpu ),
 			m_aApu( &m_bBus, &m_cCpu ) {
+			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
+				// PHI1.
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv },
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv },
+				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv },
+
+				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv },
+			};
+			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
+
+
+
 			ResetState( false );
 		}
 
@@ -104,10 +123,10 @@ namespace lsn {
 			m_ui64TickCount = 0;
 			m_ui64AccumTime = 0;
 			m_ui64MasterCounter = 0;
-			m_ui64CpuCounter = 0;
-			m_ui64PpuCounter = 0;
-			m_ui64ApuCounter = 0;
-			m_ui64CpuCounterPhi2= 0;
+			m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
+			m_hsSlots[LSN_PPU_SLOT].ui64Counter = 0 + _tPpuDiv;
+			m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
+			m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter = m_hsSlots[LSN_CPU_SLOT].ui64Counter + (_tCpuDiv / 2);
 			m_ui64LastRealTime = m_cClock.GetRealTick();
 		}
 
@@ -130,42 +149,24 @@ namespace lsn {
 				}
 
 
-#define LSN_CPU_SLOT											0
-#define LSN_PPU_SLOT											1
-#define LSN_APU_SLOT											2
-#define LSN_CPU_PHI2_SLOT										3
-				struct LSN_HW_SLOTS {
-					CTickable *									ptHw;
-					CTickable::PfTickFunc						pfTick;
-					uint64_t 									ui64Counter;
-					const uint64_t								ui64Inc;
-				} hsSlots[4] = {
-					// PHI1.
-					{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), m_ui64CpuCounter + _tCpuDiv, _tCpuDiv },
-					{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), m_ui64PpuCounter + _tPpuDiv, _tPpuDiv },
-					{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), m_ui64ApuCounter + _tApuDiv, _tApuDiv },
-
-					// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
-					{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), m_ui64CpuCounterPhi2 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv },
-				};
 				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
-					if ( hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low ) {
-						phsSlot = &hsSlots[LSN_CPU_SLOT];
+					if ( m_hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low ) {
+						phsSlot = &m_hsSlots[LSN_CPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= ui64Low ) {
-						phsSlot = &hsSlots[LSN_CPU_PHI2_SLOT];
+					if ( m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= ui64Low ) {
+						phsSlot = &m_hsSlots[LSN_CPU_PHI2_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_PPU_SLOT].ui64Counter <= ui64Low ) {
-						phsSlot = &hsSlots[LSN_PPU_SLOT];
+					if ( m_hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_SLOT].ui64Counter <= ui64Low ) {
+						phsSlot = &m_hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
+					if ( m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
 						//	as well as the pointer-access ("phsSlot").
@@ -173,10 +174,10 @@ namespace lsn {
 						//	0.68499566 cycles-per-tick.
 						// Switching to function pointers inside the CPU Tick() function brought it
 						//	down to 0.63103939.
-						hsSlots[LSN_APU_SLOT].ui64Counter += hsSlots[LSN_APU_SLOT].ui64Inc;
-						(hsSlots[LSN_APU_SLOT].ptHw->*hsSlots[LSN_APU_SLOT].pfTick)();
-						//hsSlots[LSN_APU_SLOT].ptHw->Tick();
-						//(*hsSlots[LSN_APU_SLOT].pfTick)();
+						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
+						(m_hsSlots[LSN_APU_SLOT].ptHw->*m_hsSlots[LSN_APU_SLOT].pfTick)();
+						//m_hsSlots[LSN_APU_SLOT].ptHw->Tick();
+						//(*m_hsSlots[LSN_APU_SLOT].pfTick)();
 					}
 					else if ( phsSlot != nullptr ) {
 						phsSlot->ui64Counter += phsSlot->ui64Inc;
@@ -185,15 +186,7 @@ namespace lsn {
 					}
 					else { break; }
 				} while ( true );
-				m_ui64CpuCounter = hsSlots[LSN_CPU_SLOT].ui64Counter - _tCpuDiv;
-				m_ui64PpuCounter = hsSlots[LSN_PPU_SLOT].ui64Counter - _tPpuDiv;
-				m_ui64ApuCounter = hsSlots[LSN_APU_SLOT].ui64Counter - _tApuDiv;
-				m_ui64CpuCounterPhi2 = hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter - (_tCpuDiv + (_tCpuDiv / 2));
 
-#undef LSN_CPU_PHI2_SLOT
-#undef LSN_APU_SLOT
-#undef LSN_PPU_SLOT
-#undef LSN_CPU_SLOT
 			}
 			m_ui64LastRealTime = ui64CurRealTime;
 		}
@@ -475,10 +468,21 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** The sorted tickable cycles. */
+		struct LSN_HW_SLOTS {
+			CTickable *									ptHw;
+			CTickable::PfTickFunc						pfTick;
+			uint64_t 									ui64Counter;
+			uint64_t									ui64Inc;
+		};
+
+
 		// == Members.
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
 		_cApu											m_aApu;								/**< The APU. */
+		LSN_HW_SLOTS									m_hsSlots[LSN_SLOTS];				/**< Run-time tick states for each component. */
 
 
 		// == Functions.
@@ -613,3 +617,9 @@ namespace lsn {
 																							CRgb2C05System;
 
 }	// namespace lsn
+
+#undef LSN_SLOTS
+#undef LSN_CPU_PHI2_SLOT
+#undef LSN_APU_SLOT
+#undef LSN_PPU_SLOT
+#undef LSN_CPU_SLOT

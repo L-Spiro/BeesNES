@@ -33,10 +33,6 @@ namespace lsn {
 			m_ui64AccumTime( 0 ),
 			m_ui64LastRealTime( 0 ),
 			m_ui64MasterCounter( 0 ),
-			m_ui64CpuCounter( 0 ),
-			m_ui64PpuCounter( 0 ),
-			m_ui64ApuCounter( 0 ),
-			m_ui64CpuCounterPhi2( 0 ),
 			m_bPaused( false ) {
 		}
 		virtual ~CSystemBase() {
@@ -92,27 +88,6 @@ namespace lsn {
 		 * \return Returns the master counter.
 		 */
 		inline uint64_t									GetMasterCounter() const { return m_ui64MasterCounter; }
-
-		/**
-		 * Gets the CPU counter.
-		 *
-		 * \return Returns the CPU counter.
-		 */
-		inline uint64_t									GetCpuCounter() const { return m_ui64CpuCounter; }
-
-		/**
-		 * Gets the PPU counter.
-		 *
-		 * \return Returns the PPU counter.
-		 */
-		inline uint64_t									GetPpuCounter() const { return m_ui64PpuCounter; }
-
-		/**
-		 * Gets the APU counter.
-		 *
-		 * \return Returns the APU counter.
-		 */
-		inline uint64_t									GetApuCounter() const { return m_ui64ApuCounter; }
 
 		/**
 		 * Gets the clock resolution.
@@ -218,10 +193,6 @@ namespace lsn {
 		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
 		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
-		uint64_t										m_ui64CpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
-		uint64_t										m_ui64PpuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the PPU.  Used for sorting. */
-		uint64_t										m_ui64ApuCounter;					/**< Keeps track of how many virtual cycles have accumulated on the APU.  Used for sorting. */
-		uint64_t										m_ui64CpuCounterPhi2;				/**< Keeps track of how many virtual cycles have accumulated on the CPU.  Used for sorting. */
 		CCpuBus											m_bBus;								/**< The bus. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
