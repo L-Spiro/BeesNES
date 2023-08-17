@@ -9,9 +9,9 @@
 
 #pragma once
 
-#define LSN_NES																Nintendo Entertainment System®
-#define LSN_FAMICOM															Famicom®
-#define LSN_SNES															Super Nintendo Entertainment System®
+#define LSN_NES																Nintendo Entertainment System\u00AE						// Nintendo Entertainment System(R)
+#define LSN_FAMICOM															Famicom\u00AE											// Famicom(R)
+#define LSN_SNES															Super Nintendo Entertainment System\u00AE				// Super Nintendo Entertainment System(R)
 
 #define LSN_OPTIONS_TXT														Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
@@ -73,13 +73,13 @@
 #define LSN_INPUT_CONFIGURATION												Configuration
 #define LSN_INPUT_CONFIGURE													Configure
 #define LSN_INPUT_EXPANSION_PORT											Expansion Port:
-#define LSN_INPUT_USE_4_SCORE												Use Four Score™
+#define LSN_INPUT_USE_4_SCORE												Use Four Score\u2122									// Use Four Score(TM)
 #define LSN_INPUT_NONE														None
 #define LSN_INPUT_STANDARD_CONTROLLER										Standard Controller
 #define LSN_INPUT_SNES_MOUSE												LSN_SNES Mouse
-#define LSN_INPUT_SUBOR_MOUSE												Subor® Mouse
+#define LSN_INPUT_SUBOR_MOUSE												Subor\u00AE Mouse										// Subor(R) Mouse
 #define LSN_INPUT_ARKANOID_CONTROLLER										Arkanoid Controller
-#define LSN_INPUT_BANDAI_HYPER_SHOT											Bandai® Hyper Shot
+#define LSN_INPUT_BANDAI_HYPER_SHOT											Bandai\u00AE Hyper Shot									// Bandai(R) Hyper Shot
 #define LSN_INPUT_BARCODE_BATTLER											Barcode Battler
 #define LSN_INPUT_BATTLE_BOX												Battle Box
 #define LSN_INPUT_EXCITING_BOXING_PUNCHING_BAG								Exciting Boxing Punching Bag
@@ -88,15 +88,15 @@
 #define LSN_INPUT_4_PLAYER_ADAPTOR											4 Players Adaptor
 #define LSN_INPUT_HORI_TRACK												Hori Track
 #define LSN_INPUT_JISSEN_MAHJONG_CONTROLLER									Jissen Mahjong Controller
-#define LSN_INPUT_KONAMI_HYPER_SHOT											Konami® Hyper Shot
+#define LSN_INPUT_KONAMI_HYPER_SHOT											Konami\u00AE Hyper Shot									// Konami(R) Hyper Shot
 #define LSN_INPUT_OEKA_KIDS_TABLET											Oeka Kids Tablet
 #define LSN_INPUT_PACHINKO_CONTROLLER										Pachinko Controller
 #define LSN_INPUT_PARTYTAP													Partytap
-#define LSN_INPUT_SUBOR_KEYBOARD											Subor® Keyboard
+#define LSN_INPUT_SUBOR_KEYBOARD											Subor\u00AE Keyboard									// Subor(R) Keyboard
 #define LSN_INPUT_TURBO_FILE												Turbo File
 #define LSN_INPUT_ZAPPER													Zapper
 
-#define LSN_LISTENING_														Listening…
+#define LSN_LISTENING_														Listening\u2026											// Listening...
 
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.

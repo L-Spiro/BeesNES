@@ -14,7 +14,7 @@
 namespace lsn {
 
 	/**
-	 * Fills a combo box with console types (Nintendo Entertainment System® and Famicom®).
+	 * Fills a combo box with console types (Nintendo Entertainment System(R) and Famicom(R)).
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.
@@ -30,7 +30,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills a combo box with Famicom® controller types (Standard Controller only).
+	 * Fills a combo box with Famicom(R) controller types (Standard Controller only).
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
@@ -38,13 +38,13 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithControllerType_Famicom( CWidget * _pwComboBox ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_INPUT_STANDARD_CONTROLLER ),				LSN_CT_STANDARD,				},
+			{ LSN_LSTR( LSN_INPUT_STANDARD_CONTROLLER ),				LSN_CT_STANDARD,			},
 		};
 		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), LSN_CT_STANDARD );
 	}
 
 	/**
-	 * Fills a combo box with Nintendo Entertainment System® controller types.
+	 * Fills a combo box with Nintendo Entertainment System(R) controller types.
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.
@@ -61,7 +61,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills a combo box with Nintendo Entertainment System® Four Score expansion types.
+	 * Fills a combo box with Nintendo Entertainment System(R) Four Score expansion types.
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.
@@ -80,7 +80,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills a combo box with Famicom® expansion types.
+	 * Fills a combo box with Famicom(R) expansion types.
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.

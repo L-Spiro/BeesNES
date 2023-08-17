@@ -459,7 +459,7 @@ namespace lsn {
 		 * Gets the current selection from the given combo box (by ID) and writes it to the given byte.
 		 *
 		 * \param _wId The combo box ID.
-		 * \param _ui8Data The byte to which to write the combo box’s selected data.
+		 * \param _ui8Data The byte to which to write the combo box's selected data.
 		 */
 		void									ApplyDialogComboToOption( WORD _wId, uint8_t &_ui8Data ) {
 			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( _wId ));
@@ -472,7 +472,7 @@ namespace lsn {
 		 * Gets the current check status from the given check box (by ID) and writes it to the given byte.
 		 *
 		 * \param _wId The check box ID.
-		 * \param _bData The bool to which to write the check box’s selected data.
+		 * \param _bData The bool to which to write the check box's selected data.
 		 */
 		void									ApplyDialogCheckToOption( WORD _wId, bool &_bData ) {
 			lsw::CCheckButton * pcbCheck = static_cast<lsw::CCheckButton *>(FindChild( _wId ));

@@ -51,13 +51,13 @@ namespace lsn {
 	/** The current buffer position. */
 	ALsizei CAudio::m_sCurBufferSize = 0;
 
-	/** The frequency of the current buffer.  Flush to set (flushing copies from the “Next” value into this one). */
+	/** The frequency of the current buffer.  Flush to set (flushing copies from the "Next" value into this one). */
 	ALsizei CAudio::m_sFrequency = 48000;
 
 	/** The frequency to set after the next flush. */
 	ALsizei CAudio::m_sNextFrequency = 48000;
 
-	/** The current output format. Flush to set (flushing copies from the “Next” value into this one). */
+	/** The current output format. Flush to set (flushing copies from the "Next" value into this one). */
 	ALenum CAudio::m_eFormat = AL_FORMAT_MONO16;
 
 	/** The output format to apply on the next flush. */

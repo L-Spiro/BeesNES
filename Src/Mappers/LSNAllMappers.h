@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Includes all of the mapper headers so that other files don’t have to.
+ * Description: Includes all of the mapper headers so that other files don't have to.
  */
 
 

@@ -114,16 +114,16 @@ namespace lsn {
 		inline size_t										OutputStride() const { return m_stStride; }
 
 		/**
-		 * Gets the output buffer’s width in pixels.
+		 * Gets the output buffer's width in pixels.
 		 *
-		 * \return Returns the output buffer’s width in pixels.
+		 * \return Returns the output buffer's width in pixels.
 		 */
 		inline uint32_t										OutputWidth() const { return m_ui32OutputWidth; }
 
 		/**
-		 * Gets the output buffer’s height in pixels.
+		 * Gets the output buffer's height in pixels.
 		 *
-		 * \return Returns the output buffer’s height in pixels.
+		 * \return Returns the output buffer's height in pixels.
 		 */
 		inline uint32_t										OutputHeight() const { return m_ui32OutputHeight; }
 

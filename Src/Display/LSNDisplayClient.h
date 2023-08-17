@@ -121,7 +121,7 @@ namespace lsn {
 		/**
 		 * Gets the cycle at which the rendered output began.
 		 *
-		 * \return Returns the cycle at the rendered output’s first pixel.
+		 * \return Returns the cycle at the rendered output's first pixel.
 		 */
 		inline uint64_t							GetRenderStartCycle() const { return m_ui64RenderStartCycle; }
 

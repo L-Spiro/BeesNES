@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: EMMIR (LMP88959)’s NTSC filter.
+ * Description: EMMIR (LMP88959)'s NTSC filter.
  */
 
 #include "LSNPalCrtFullFilter.h"

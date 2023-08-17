@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Bisqwit’s NTSC filter.
+ * Description: Bisqwit's NTSC filter.
  */
 
 #include "LSNNtscBisqwitFilter.h"

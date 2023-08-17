@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s NTSC filter.
+ * Description: Blargg's NTSC filter.
  */
 
 #include "LSNNtscBlarggFilter.h"

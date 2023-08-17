@@ -107,7 +107,7 @@ namespace lsn {
 		uint8_t											m_ui8DefaultChrRam[8*1024];
 		/** The ROM used to initialize this mapper. */
 		LSN_ROM *										m_prRom;
-		/** The CPU, for reading information such as cycle counts and for sending IRQ’s. */
+		/** The CPU, for reading information such as cycle counts and for sending IRQ's. */
 		CCpuBase *										m_pcbCpu;
 		/** The offset of the fixed bank. */
 		size_t											m_stFixedOffset;

@@ -24,7 +24,7 @@ namespace lsn {
 	struct LSN_OPTIONS {
 		/** Global input options. */
 		LSN_INPUT_OPTIONS					ioGlobalInputOptions;
-		/** This game’s input options. */
+		/** This game's input options. */
 		LSN_INPUT_OPTIONS					ioThisGameInputOptions;
 	};
 

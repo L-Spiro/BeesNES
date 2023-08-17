@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Bisqwit’s NTSC filter.
+ * Description: Bisqwit's NTSC filter.
  */
 
 #pragma once
@@ -24,9 +24,9 @@ namespace lsn {
 
 	/**
 	 * Class CNtscBisqwitFilter
-	 * \brief Bisqwit’s NTSC filter.
+	 * \brief Bisqwit's NTSC filter.
 	 *
-	 * Description: Bisqwit’s NTSC filter.
+	 * Description: Bisqwit's NTSC filter.
 	 */
 	class CNtscBisqwitFilter : public CFilterBase {
 	public :

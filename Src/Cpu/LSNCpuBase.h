@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The base class for all CPU’s.
+ * Description: The base class for all CPU's.
  */
 
 
@@ -16,9 +16,9 @@ namespace lsn {
 
 	/**
 	 * Class CCpuBase
-	 * \brief The base class for all CPU’s.
+	 * \brief The base class for all CPU's.
 	 *
-	 * Description: The base class for all CPU’s.
+	 * Description: The base class for all CPU's.
 	 */
 	class CCpuBase {
 	public :

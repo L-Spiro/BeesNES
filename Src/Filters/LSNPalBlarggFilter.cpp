@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s NTSC filter for PAL (ad-hoc).
+ * Description: Blargg's NTSC filter for PAL (ad-hoc).
  */
 
 #include "LSNPalBlarggFilter.h"

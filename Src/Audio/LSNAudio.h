@@ -153,11 +153,11 @@ namespace lsn {
 		static ALsizei										m_sBufferSizeInSamples;
 		/** The current buffer position. */
 		static ALsizei										m_sCurBufferSize;
-		/** The frequency of the current buffer.  Flush to set (flushing copies from the “Next” value into this one). */
+		/** The frequency of the current buffer.  Flush to set (flushing copies from the "Next" value into this one). */
 		static ALsizei										m_sFrequency;
 		/** The frequency to set after the next flush. */
 		static ALsizei										m_sNextFrequency;
-		/** The current output format. Flush to set (flushing copies from the “Next” value into this one). */
+		/** The current output format. Flush to set (flushing copies from the "Next" value into this one). */
 		static ALenum										m_eFormat;
 		/** The output format to apply on the next flush. */
 		static ALenum										m_eNextFormat;

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: EMMIR (LMP88959)’s NTSC filter.
+ * Description: EMMIR (LMP88959)'s NTSC filter.
  */
 
 #pragma once
@@ -23,9 +23,9 @@ namespace lsn {
 
 	/**
 	 * Class CNtscCrtFilter
-	 * \brief EMMIR (LMP88959)’s NTSC filter.
+	 * \brief EMMIR (LMP88959)'s NTSC filter.
 	 *
-	 * Description: EMMIR (LMP88959)’s NTSC filter.
+	 * Description: EMMIR (LMP88959)'s NTSC filter.
 	 */
 	class CNtscCrtFilter : public CFilterBase {
 	public :

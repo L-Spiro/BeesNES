@@ -36,7 +36,7 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Fills a combo box with console types (Nintendo Entertainment System® and Famicom®).
+		 * Fills a combo box with console types (Nintendo Entertainment System(R) and Famicom(R)).
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.
@@ -45,7 +45,7 @@ namespace lsn {
 		static bool												FillComboWithConsoleTypes( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
 
 		/**
-		 * Fills a combo box with Famicom® controller types (Standard Controller only).
+		 * Fills a combo box with Famicom(R) controller types (Standard Controller only).
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
@@ -53,7 +53,7 @@ namespace lsn {
 		static bool												FillComboWithControllerType_Famicom( CWidget * _pwComboBox );
 
 		/**
-		 * Fills a combo box with Nintendo Entertainment System® controller types.
+		 * Fills a combo box with Nintendo Entertainment System(R) controller types.
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.
@@ -63,7 +63,7 @@ namespace lsn {
 		static bool												FillComboWithControllerType_NES( CWidget * _pwComboBox, LPARAM _lpDefaultSelect, LPARAM _lpSelectBackup );
 
 		/**
-		 * Fills a combo box with Nintendo Entertainment System® Four Score expansion types.
+		 * Fills a combo box with Nintendo Entertainment System(R) Four Score expansion types.
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.
@@ -73,7 +73,7 @@ namespace lsn {
 		static bool												FillComboWithControllerType_FourScore( CWidget * _pwComboBox, LPARAM _lpDefaultSelect, LPARAM _lpSelectBackup );
 
 		/**
-		 * Fills a combo box with Famicom® expansion types.
+		 * Fills a combo box with Famicom(R) expansion types.
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.

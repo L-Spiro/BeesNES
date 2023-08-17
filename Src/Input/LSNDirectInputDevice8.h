@@ -70,7 +70,7 @@ namespace lsn {
 		/**
 		 * Gets the GUID of the device.
 		 *
-		 * \return Returns a constant reference to the device’s GUID.
+		 * \return Returns a constant reference to the device's GUID.
 		 */
 		const GUID &				Guid() const { return m_guId; }
 

@@ -188,8 +188,8 @@ namespace lsn {
 
 	/** Console types. */
 	enum LSN_CONSOLE_TYPES {
-		LSN_CT_NES,																/**< Nintendo Entertainment System®. */
-		LSN_CT_FAMICOM,															/**< Famicom®. */
+		LSN_CT_NES,																/**< Nintendo Entertainment System. */
+		LSN_CT_FAMICOM,															/**< Famicom. */
 	};
 
 	/** Controller types. */

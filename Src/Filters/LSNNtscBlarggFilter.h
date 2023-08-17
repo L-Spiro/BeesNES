@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s NTSC filter.
+ * Description: Blargg's NTSC filter.
  */
 
 #pragma once
@@ -18,9 +18,9 @@ namespace lsn {
 
 	/**
 	 * Class CNtscBlarggFilter
-	 * \brief Blargg’s NTSC filter.
+	 * \brief Blargg's NTSC filter.
 	 *
-	 * Description: Blargg’s NTSC filter.
+	 * Description: Blargg's NTSC filter.
 	 */
 	class CNtscBlarggFilter : public CFilterBase {
 	public :

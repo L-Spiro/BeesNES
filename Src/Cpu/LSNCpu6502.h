@@ -767,9 +767,9 @@ namespace lsn {
 	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
 		// If the value in the accumulator is equal or greater than the compared value, the Carry will be set.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, _ui8RegVal >= _ui8OpVal );
-		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof…
+		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof...
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, _ui8RegVal == _ui8OpVal );
-		// …and the sign (IE A>=$80) of the accumulator.
+		// ...and the sign (IE A>=$80) of the accumulator.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 

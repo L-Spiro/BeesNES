@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s NTSC filter for PAL (ad-hoc).
+ * Description: Blargg's NTSC filter for PAL (ad-hoc).
  */
 
 #pragma once
@@ -18,9 +18,9 @@ namespace lsn {
 
 	/**
 	 * Class CPalBlarggFilter
-	 * \brief Blargg’s NTSC filter for PAL (ad-hoc).
+	 * \brief Blargg's NTSC filter for PAL (ad-hoc).
 	 *
-	 * Description: Blargg’s NTSC filter for PAL (ad-hoc).
+	 * Description: Blargg's NTSC filter for PAL (ad-hoc).
 	 */
 	class CPalBlarggFilter : public CFilterBase {
 	public :

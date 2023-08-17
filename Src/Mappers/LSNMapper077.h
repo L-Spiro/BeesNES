@@ -83,7 +83,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The RAM. Mapper has 8 kilobytes, but we consume some of the PPU’s VRAM for implementation convenience. */
+		/** The RAM. Mapper has 8 kilobytes, but we consume some of the PPU's VRAM for implementation convenience. */
 		uint8_t											m_ui8ChrRam[10*1024];
 
 
