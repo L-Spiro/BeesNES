@@ -35,13 +35,22 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
+#define LSN_OLD_NMI_CHECK
+
 #define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; RESULT = m_pbBus->Read( uint16_t( ADDR ) ); if ( m_bRdyLow ) { return; }
 #define LSN_INSTR_READ_DISCARD( ADDR )														m_bIsReadCycle = true; m_pbBus->Read( uint16_t( ADDR ) ); if ( m_bRdyLow ) { return; }
-#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( uint16_t( ADDR ), VALUE )
+//#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( uint16_t( ADDR ), VALUE )
+#define LSN_INSTR_WRITE_PHI1( ADDR, VALUE, PHI2_FUNC )										m_bIsReadCycle = false; m_ui16Phi2Address = uint16_t( ADDR ); m_ui8Phi2Value = uint8_t( VALUE ); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC
+#define LSN_INSTR_WRITE_PHI2( ADDR, VALUE )													m_pbBus->Write( uint16_t( ADDR ), VALUE )
 #define LSN_INSTR_READ_PHI1( PHI2_FUNC )													m_bIsReadCycle = true; m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC; if ( m_bRdyLow ) { return; }
+#ifdef LSN_OLD_NMI_CHECK
 #define LSN_INSTR_END_PHI1( CHECK_NMI )														if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
-#define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. */; /*if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
-#define LSN_PUSH( VAL )																		LSN_INSTR_WRITE( 0x100 + uint8_t( S-- ), (VAL) )
+#define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. *//*; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
+#else
+#define LSN_INSTR_END_PHI1( CHECK_NMI )														/*if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
+#define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. */; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
+#endif	// LSN_OLD_NMI_CHECK
+#define LSN_PUSH( VAL, PHI2_FUNC )															LSN_INSTR_WRITE_PHI1( 0x100 + uint8_t( S-- ), (VAL), PHI2_FUNC )
 #define LSN_POP( RESULT )																	LSN_INSTR_READ( 0x100 + uint8_t( S + 1 ), RESULT ); ++S//m_pbBus->Read( 0x100 + ++S )
 #define LSN_CHECK_NMI																		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine)
 
@@ -232,6 +241,8 @@ namespace lsn {
 		}									pc;
 		uint16_t							m_ui16DmaCounter;								/**< DMA counter. */
 		uint16_t							m_ui16DmaAddress;								/**< The DMA address from which to start copying. */
+		uint16_t							m_ui16Phi2Address;								/**< The address for PHI2 read or write. */
+		uint8_t								m_ui8Phi2Value;									/**< The value to write during PHI2 or the value read during the last PHI2. */
 		uint8_t								A;												/**< Accumulator. */
 		uint8_t								X;												/**< Index register X. */
 		uint8_t								Y;												/**< Index register Y. */
@@ -372,6 +383,8 @@ namespace lsn {
 		void								ReadNextInstByteAndDiscard();					// Cycle 2.
 		/** Reads the next instruction byte and throws it away. */
 		void								ReadNextInstByteAndDiscardAndIncPc();			// Cycle 2.
+		/** Reads the next instruction byte and throws it away. */
+		void								ReadNextInstByteAndDiscardAndIncPc_PHI2();		// Cycle 2.
 		/** Reads the next instruction byte and throws it away, increasing PC. */
 		void								NopAndIncPcAndFinish();
 		/** Fetches a value using immediate addressing. */
@@ -706,7 +719,13 @@ namespace lsn {
 		// == PHI2 functions.
 		/** A do-nothing tick used only for development. */
 		void								Phi2_DoNothing();
-		
+
+		/** Writes m_ui8Phi2Value to m_ui16Phi2Address and optionally polls for NMI. */
+		template <bool _bPollNmi>
+		void								Phi2_Write() {
+			LSN_INSTR_WRITE_PHI2( m_ui16Phi2Address, m_ui8Phi2Value );
+			LSN_INSTR_END_PHI2( _bPollNmi );
+		}
 
 #ifdef LSN_CPU_VERIFY
 		// == Types.

@@ -1077,6 +1077,8 @@ namespace lsn {
 		m_pmbMapper( nullptr ),
 		m_pfTickFunc( &CCpu6502::Tick_NextInstructionStd ),
 		m_pipPoller( nullptr ),
+		m_ui16Phi2Address( 0x0000 ),
+		m_ui8Phi2Value( 0 ),
 		A( 0 ),
 		S( 0xFD ),
 		X( 0 ),
@@ -1144,6 +1146,7 @@ namespace lsn {
 #endif	// #ifndef LSN_CPU_VERIFY
 		(this->*m_pfTickFunc)();
 
+#if defined( LSN_OLD_NMI_CHECK ) || defined( LSN_CPU_VERIFY )
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
 		m_bHandleNmi = m_bDetectedNmi;
 		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
@@ -1151,6 +1154,8 @@ namespace lsn {
 		m_bHandleIrq |= m_bIrqStatusLine;
 
 		//++m_ui64CycleCount;
+#endif	// #if defined( LSN_OLD_NMI_CHECK ) || defined( LSN_CPU_VERIFY )
+
 #ifdef LSN_CPU_VERIFY
 		TickPhi2();
 #endif	// #ifdef LSN_CPU_VERIFY
@@ -1162,6 +1167,14 @@ namespace lsn {
 	 **/
 	void CCpu6502::TickPhi2() {
 		(this->*m_pfTickPhi2Func)();
+
+#ifndef LSN_OLD_NMI_CHECK
+		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
+		m_bHandleNmi = m_bDetectedNmi;
+		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
+		m_bLastNmiStatusLine = m_bNmiStatusLine;
+		m_bHandleIrq |= m_bIrqStatusLine;
+#endif	// #ifndef LSN_OLD_NMI_CHECK
 		++m_ui64CycleCount;
 	}
 
@@ -1442,11 +1455,18 @@ namespace lsn {
 		//                 increment PC
 
 		//m_pbBus->Read( pc.PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
-		LSN_INSTR_READ_DISCARD( pc.PC );
+		LSN_INSTR_READ_PHI1( ReadNextInstByteAndDiscardAndIncPc_PHI2 );
 		++pc.PC;
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 
-		LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
+	}
+
+	/** Reads the next instruction byte and throws it away. */
+	void CCpu6502::ReadNextInstByteAndDiscardAndIncPc_PHI2() {
+		LSN_INSTR_READ_DISCARD( pc.PC - 1 );
+
+		LSN_INSTR_END_PHI2( true );
 	}
 
 	/** Reads the next instruction byte and throws it away, increasing PC. */
@@ -1719,9 +1739,10 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  4  $0100,S  W  push PCH on stack, decrement S
-		LSN_PUSH( pc.ui8Bytes[1] );
+		LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** 5th cycle of JSR. */
@@ -1730,9 +1751,10 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  $0100,S  W  push PCL on stack, decrement S
-		LSN_PUSH( pc.ui8Bytes[0] );
+		LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** 3rd cycle of PLA/PLP/RTI/RTS. */
@@ -1757,9 +1779,10 @@ namespace lsn {
 	/** Pushes PCH. */
 	void CCpu6502::PushPch() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-		LSN_PUSH( pc.ui8Bytes[1] );
+		LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pushes PCL, decrements S. */
@@ -1768,16 +1791,17 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  4  $0100,S  W  push PCL on stack, decrement S
-		LSN_PUSH( pc.ui8Bytes[0] );
+		LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pushes status with B. */
 	void CCpu6502::PushStatusAndBAndSetAddressByIrq() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		// NMI overrides IRQ and BRK.
-		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) );
+		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), Phi2_Write<true> );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
@@ -1785,7 +1809,8 @@ namespace lsn {
 			m_bHandleIrq = m_bIrqStatusLine = false;
 		}
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pushes status without B. */
@@ -1794,7 +1819,7 @@ namespace lsn {
 		// NMI overrides IRQ and BRK.
 		uint8_t ui8Status = m_ui8Status;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), false>( ui8Status );
-		LSN_PUSH( ui8Status );
+		LSN_PUSH( ui8Status, Phi2_Write<true> );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
@@ -1802,7 +1827,8 @@ namespace lsn {
 			m_bHandleIrq = m_bIrqStatusLine = false;
 		}
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pushes status an decrements S. */
@@ -1811,9 +1837,10 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  5  $0100,S  W  push P on stack, decrement S
-		LSN_PUSH( m_ui8Status );
+		LSN_PUSH( m_ui8Status, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pulls status, ignoring B. */
@@ -2060,17 +2087,21 @@ namespace lsn {
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::WriteValueBackToEffectiveAddress() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Writes the operand value back to the effective address stored in LSN_CPU_CONTEXT::a.ui16Address&0xFF. */
 	void CCpu6502::WriteValueBackToEffectiveAddress_Zp() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address & 0xFF, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -2204,9 +2235,11 @@ namespace lsn {
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
 		//  6  address  W  write the new value to effective address
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -2440,14 +2473,17 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
+
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand <<= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A <<= 1.  Sets flags C, N, and Z. */
@@ -2718,12 +2754,14 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		// It carries if the last bit gets shifted off.
 		--m_ccCurContext.ui8Operand;
 		Cmp( A, m_ccCurContext.ui8Operand );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs [ADDR]--.  Sets flags N and Z. */
@@ -2733,12 +2771,14 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		--m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs X--.  Sets flags N and Z. */
@@ -2860,12 +2900,14 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		++m_ccCurContext.ui8Operand;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs X++.  Sets flags N and Z. */
@@ -2911,13 +2953,15 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		// It carries if the last bit gets shifted off.
 		++m_ccCurContext.ui8Operand;
 		Sbc( A, m_ccCurContext.ui8Operand );
 		//Cmp( A, m_ccCurContext.ui8Operand & 0xFF );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Jams the machine. */
@@ -3309,14 +3353,16 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
 		m_ccCurContext.ui8Operand >>= 1;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE ), false>( m_ui8Status );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A >>= 1.  Sets flags C, N, and Z. */
@@ -3515,9 +3561,10 @@ namespace lsn {
 	void CCpu6502::PHA() {
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
-		LSN_PUSH( A );
+		LSN_PUSH( A, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pushes the status byte. */
@@ -3539,9 +3586,10 @@ namespace lsn {
 		
 		// Reserved flag known to be set from JSON testing.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( m_ui8Status );
-		LSN_PUSH( ui8Copy );
+		LSN_PUSH( ui8Copy, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pulls the accumulator. */
@@ -3578,7 +3626,8 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -3587,7 +3636,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
@@ -3597,7 +3647,8 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		uint8_t ui8LowBit = m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
@@ -3605,7 +3656,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
@@ -3632,7 +3684,8 @@ namespace lsn {
 		// --- --------- --- ------------------------------------------
 		//  6  address+X  W  write the value back to effective address,
 		//                   and do the operation on it
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
@@ -3640,7 +3693,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, m_ccCurContext.ui8Operand == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
@@ -3669,7 +3723,8 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		uint8_t ui8HiBit = (m_ui8Status & uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )) << 7;
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );		// This affects whether the carry bit gets added below.
@@ -3678,7 +3733,8 @@ namespace lsn {
 		//const uint8_t ui8Tmp = m_ccCurContext.ui8Operand;
 		Adc( A, m_ccCurContext.ui8Operand );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Pops into PCH. */
@@ -3711,9 +3767,11 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A & X );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A & X );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, A & X, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
@@ -3863,9 +3921,11 @@ namespace lsn {
 
 		A AND X AND (H+1) -> M
 		*/
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & A & X, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
@@ -3884,9 +3944,11 @@ namespace lsn {
 		A AND X -> SP, A AND X AND (H+1) -> M
 		*/
 		S = X & A;
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & S, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
@@ -3905,9 +3967,11 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & X;
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
@@ -3926,9 +3990,11 @@ namespace lsn {
 		Y AND (H+1) -> M
 		*/
 		uint8_t ui8Value = uint8_t( m_ccCurContext.a.ui8Bytes[1] + 1 ) & Y;
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui8Bytes[0] | (uint16_t( ui8Value ) << 8), ui8Value, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
@@ -3939,7 +4005,8 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x80) != 0 );
 		m_ccCurContext.ui8Operand <<= 1;
@@ -3947,7 +4014,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
@@ -3958,7 +4026,8 @@ namespace lsn {
 		//  5  address  W  write the value back to effective address,
 		//                 and do the operation on it
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand, Phi2_Write<true> );
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (m_ccCurContext.ui8Operand & 0x01) != 0 );
 		m_ccCurContext.ui8Operand = (m_ccCurContext.ui8Operand >> 1);
@@ -3966,7 +4035,8 @@ namespace lsn {
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_ZERO )>( m_ui8Status, A == 0x00 );
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_NEGATIVE )>( m_ui8Status, (A & 0x80) != 0 );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3974,9 +4044,11 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, A );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, A, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3984,9 +4056,11 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, X );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, X );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, X, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -3994,9 +4068,11 @@ namespace lsn {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
 		LSN_FINISH_INST;
 
-		LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, Y );
+		//LSN_INSTR_WRITE( m_ccCurContext.a.ui16Address, Y );
+		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, Y, Phi2_Write<true> );
 
-		LSN_CHECK_NMI;
+		//LSN_CHECK_NMI;
+		LSN_INSTR_END_PHI1( true );
 	}
 
 	/** Copies A into X.  Sets flags N, and Z. */
@@ -4240,13 +4316,19 @@ namespace lsn {
 
 #undef LSN_FINISH_INST
 
+#ifdef LSN_OLD_NMI_CHECK
+#undef LSN_OLD_NMI_CHECK
+#endif	// #ifdef LSN_OLD_NMI_CHECK
+
 #undef LSN_CHECK_NMI
 #undef LSN_POP
 #undef LSN_PUSH
 #undef LSN_INSTR_END_PHI2
 #undef LSN_INSTR_END_PHI1
 #undef LSN_INSTR_READ_PHI1
-#undef LSN_INSTR_WRITE
+#undef LSN_INSTR_WRITE_PHI2
+#undef LSN_INSTR_WRITE_PHI1
+//#undef LSN_INSTR_WRITE
 #undef LSN_INSTR_READ_DISCARD
 #undef LSN_INSTR_READ
 #undef LSN_ADVANCE_CONTEXT_COUNTERS
