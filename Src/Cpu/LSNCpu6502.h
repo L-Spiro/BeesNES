@@ -35,9 +35,12 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
-#define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; RESULT = m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
-#define LSN_INSTR_READ_DISCARD( ADDR )														m_bIsReadCycle = true; m_pbBus->Read( ADDR ); if ( m_bRdyLow ) { return; }
-#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( ADDR, VALUE )
+#define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; RESULT = m_pbBus->Read( uint16_t( ADDR ) ); if ( m_bRdyLow ) { return; }
+#define LSN_INSTR_READ_DISCARD( ADDR )														m_bIsReadCycle = true; m_pbBus->Read( uint16_t( ADDR ) ); if ( m_bRdyLow ) { return; }
+#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( uint16_t( ADDR ), VALUE )
+#define LSN_INSTR_READ_PHI1( PHI2_FUNC )													m_bIsReadCycle = true; m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC; if ( m_bRdyLow ) { return; }
+#define LSN_INSTR_END_PHI1( CHECK_NMI )														if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
+#define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. */; /*if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
 #define LSN_PUSH( VAL )																		LSN_INSTR_WRITE( 0x100 + uint8_t( S-- ), (VAL) )
 #define LSN_POP( RESULT )																	LSN_INSTR_READ( 0x100 + uint8_t( S + 1 ), RESULT ); ++S//m_pbBus->Read( 0x100 + ++S )
 #define LSN_CHECK_NMI																		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine)
@@ -218,6 +221,7 @@ namespace lsn {
 		// == Members.
 		PfTicks								m_pfTickFunc;									/**< The current tick function (called by Tick()). */
 		PfTicks								m_pfTickFuncCopy;								/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
+		PfTicks								m_pfTickPhi2Func;								/**< The PHI2 tick function. */
 		CInputPoller *						m_pipPoller;									/**< The input poller. */
 		CMapperBase *						m_pmbMapper;									/**< The mapper, which gets ticked on each CPU cycle. */
 
@@ -353,7 +357,17 @@ namespace lsn {
 
 		// == Cycle functions.
 		/** Fetches the next opcode and increments the program counter. */
-		inline void							FetchOpcodeAndIncPc();							// Cycle 1 (always).
+		inline void							FetchOpcodeAndIncPc();							// Cycle 1.
+		/** Fetches the next opcode and increments the program counter. */
+		inline void							FetchOpcodeAndIncPc_PHI2();						// Cycle 1.
+		/** Begins an NMI "instruction". */
+		inline void							Nmi_PHI1();										// Cycle 1.
+		/** Begins an NMI "instruction". */
+		inline void							Nmi_PHI2();										// Cycle 1.
+		/** Begins an IRQ "instruction". */
+		inline void							Irq_PHI1();										// Cycle 1.
+		/** Begins an IRQ "instruction". */
+		inline void							Irq_PHI2();										// Cycle 1.
 		/** Reads the next instruction byte and throws it away. */
 		void								ReadNextInstByteAndDiscard();					// Cycle 2.
 		/** Reads the next instruction byte and throws it away. */
@@ -478,10 +492,15 @@ namespace lsn {
 
 		/**
 		 * Prepares to enter a new instruction.
+		 */
+		inline void							BeginInst();
+
+		/**
+		 * Prepares to enter a new instruction.
 		 *
 		 * \param _ui16Op The instruction to begin executing.
 		 */
-		inline void							BeginInst( uint16_t _ui16Op );
+		inline void							BeginInst_PHI2( uint16_t _ui16Op );
 
 		// == Work functions.
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -682,6 +701,11 @@ namespace lsn {
 		void								TXS();
 		/** Copies Y into A.  Sets flags N, and Z. */
 		void								TYA();
+
+
+		// == PHI2 functions.
+		/** A do-nothing tick used only for development. */
+		void								Phi2_DoNothing();
 		
 
 #ifdef LSN_CPU_VERIFY
@@ -752,10 +776,44 @@ namespace lsn {
 	 * Fetches the next opcode and increments the program counter.
 	 */
 	inline void CCpu6502::FetchOpcodeAndIncPc() {
-		uint8_t ui8Tmp;
-		LSN_INSTR_READ( pc.PC, ui8Tmp );
+		LSN_INSTR_READ_PHI1( FetchOpcodeAndIncPc_PHI2 );
 		++pc.PC;
-		BeginInst( ui8Tmp );
+		BeginInst();
+	}
+
+	/** Fetches the next opcode and increments the program counter. */
+	inline void CCpu6502::FetchOpcodeAndIncPc_PHI2() {
+		uint8_t ui8Tmp;
+		LSN_INSTR_READ( pc.PC - 1, ui8Tmp );
+		BeginInst_PHI2( ui8Tmp );
+	}
+
+	/** Begins an NMI "instruction". */
+	inline void CCpu6502::Nmi_PHI1() {
+		m_bNmiStatusLine = false;
+		//m_ccCurContext.ui16OpCode = LSN_SO_NMI;
+		LSN_INSTR_READ_PHI1( Nmi_PHI2 );
+		BeginInst();
+	}
+
+	/** Begins an NMI "instruction". */
+	inline void CCpu6502::Nmi_PHI2() {
+		LSN_INSTR_READ_DISCARD( pc.PC );
+		BeginInst_PHI2( LSN_SO_NMI );
+	}
+
+	/** Begins an IRQ "instruction". */
+	inline void CCpu6502::Irq_PHI1() {
+		m_bIrqStatusLine = false;
+		//m_ccCurContext.ui16OpCode = LSN_SO_IRQ;
+		LSN_INSTR_READ_PHI1( Irq_PHI2 );
+		BeginInst();
+	}
+	
+	/** Begins an IRQ "instruction". */
+	inline void CCpu6502::Irq_PHI2() {
+		LSN_INSTR_READ_DISCARD( pc.PC );
+		BeginInst_PHI2( LSN_SO_IRQ );
 	}
 
 	/**
@@ -819,14 +877,25 @@ namespace lsn {
 	 *
 	 * \param _ui16Op The instruction to begin executing.
 	 */
-	inline void CCpu6502::BeginInst( uint16_t _ui16Op ) {
+	inline void CCpu6502::BeginInst() {
 		// Enter normal instruction context.
-		//m_ccCurContext.bActive = true;
 		m_ccCurContext.ui8Cycle = 1;
 		m_ccCurContext.ui8FuncIdx = 0;
-		m_ccCurContext.ui16OpCode = _ui16Op;
+		//m_ccCurContext.ui16OpCode = _ui16Op;
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
-		LSN_CHECK_NMI;
+		
+		LSN_INSTR_END_PHI1( true );
+	}
+
+	/**
+	 * Prepares to enter a new instruction.
+	 *
+	 * \param _ui16Op The instruction to begin executing.
+	 */
+	inline void CCpu6502::BeginInst_PHI2( uint16_t _ui16Op ) {
+		m_ccCurContext.ui16OpCode = _ui16Op;
+		
+		LSN_INSTR_END_PHI2( true );
 	}
 
 }	// namespace lsn

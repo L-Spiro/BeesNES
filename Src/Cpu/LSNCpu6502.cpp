@@ -1122,6 +1122,7 @@ namespace lsn {
 	void CCpu6502::ResetAnalog() {
 		//m_ccCurContext.bActive = false;
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd;
+		m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing;
 		S -= 3;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
 
@@ -1160,6 +1161,7 @@ namespace lsn {
 	 * Performs a PHI2 update.
 	 **/
 	void CCpu6502::TickPhi2() {
+		(this->*m_pfTickPhi2Func)();
 		++m_ui64CycleCount;
 	}
 
@@ -1338,12 +1340,11 @@ namespace lsn {
 #endif	// #ifdef LSN_PRINT_CYCLES
 
 		if ( m_bHandleNmi ) {
-			m_bNmiStatusLine = false;
-			BeginInst( LSN_SO_NMI );
+			//m_bNmiStatusLine = false;
+			Nmi_PHI1();
 		}
 		else if ( m_bHandleIrq ) {
-			m_bIrqStatusLine = false;
-			BeginInst( LSN_SO_IRQ );
+			Irq_PHI1();
 		}
 		else {
 			FetchOpcodeAndIncPc();
@@ -4074,6 +4075,12 @@ namespace lsn {
 		LSN_CHECK_NMI;
 	}
 
+	/** A do-nothing tick used only for development. */
+	void CCpu6502::Phi2_DoNothing() {
+
+		//LSN_CHECK_NMI;
+	}
+
 #ifdef LSN_CPU_VERIFY
 	/**
 	 * Given a JSON object and the value for the test to run, this loads the test and fills a LSN_CPU_VERIFY structure.
@@ -4236,6 +4243,9 @@ namespace lsn {
 #undef LSN_CHECK_NMI
 #undef LSN_POP
 #undef LSN_PUSH
+#undef LSN_INSTR_END_PHI2
+#undef LSN_INSTR_END_PHI1
+#undef LSN_INSTR_READ_PHI1
 #undef LSN_INSTR_WRITE
 #undef LSN_INSTR_READ_DISCARD
 #undef LSN_INSTR_READ
