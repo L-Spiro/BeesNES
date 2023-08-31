@@ -1413,7 +1413,8 @@ namespace lsn {
 	/** DMA read cycle. */
 	void CCpu6502::Tick_DmaRead() {
 		if ( (m_ui64CycleCount & 0x1) == 0 ) {
-			m_ui8DmaValue = m_pbBus->Read( m_ui16DmaAddress + m_ui8DmaPos );
+			//m_ui8DmaValue = m_pbBus->Read( m_ui16DmaAddress + m_ui8DmaPos );
+			LSN_INSTR_READ_NO_RDY_CHECK_PHI1( m_ui16DmaAddress + m_ui8DmaPos, m_ui8DmaValue, Phi2_Read<false> );
 			m_pfTickFunc = &CCpu6502::Tick_DmaWrite;
 		}
 		else {
@@ -1424,7 +1425,8 @@ namespace lsn {
 	/** DMA write cycle. */
 	void CCpu6502::Tick_DmaWrite() {
 		if ( (m_ui64CycleCount & 0x1) == 1 ) {
-			m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
+			//m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
+			LSN_INSTR_WRITE_PHI1( LSN_PR_OAMDATA, m_ui8DmaValue, Phi2_Write<false> );
 			if ( --m_ui16DmaCounter == 0 ) {
 				m_pfTickFunc = m_pfTickFuncCopy;
 				m_bRdyLow = false;

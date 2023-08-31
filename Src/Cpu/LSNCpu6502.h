@@ -42,7 +42,8 @@
 //#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( uint16_t( ADDR ), VALUE )
 #define LSN_INSTR_WRITE_PHI1( ADDR, VALUE, PHI2_FUNC )										m_bIsReadCycle = false; m_ui16Phi2Address = uint16_t( ADDR ); m_ui8Phi2Value = uint8_t( VALUE ); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC
 #define LSN_INSTR_WRITE_PHI2( ADDR, VALUE )													m_pbBus->Write( uint16_t( ADDR ), VALUE )
-#define LSN_INSTR_READ_PHI1( ADDR, RESULT, PHI2_FUNC )										m_bIsReadCycle = true; m_ui16Phi2Address = uint16_t( ADDR ); m_pui8Phi2Value = reinterpret_cast<uint8_t *>(&RESULT); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC; if ( m_bRdyLow ) { return; }
+#define LSN_INSTR_READ_NO_RDY_CHECK_PHI1( ADDR, RESULT, PHI2_FUNC )							m_bIsReadCycle = true; m_ui16Phi2Address = uint16_t( ADDR ); m_pui8Phi2Value = reinterpret_cast<uint8_t *>(&RESULT); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC
+#define LSN_INSTR_READ_PHI1( ADDR, RESULT, PHI2_FUNC )										LSN_INSTR_READ_NO_RDY_CHECK_PHI1( ADDR, RESULT, PHI2_FUNC ); if ( m_bRdyLow ) { return; }
 #define LSN_INSTR_READ_DISCARD_PHI1( ADDR, PHI2_FUNC )										LSN_INSTR_READ_PHI1( ADDR, m_ui8Phi2Value, PHI2_FUNC )
 #define LSN_INSTR_READ_PHI2																	(*m_pui8Phi2Value) = m_pbBus->Read( m_ui16Phi2Address ); if ( m_bRdyLow ) { return; }
 #ifdef LSN_OLD_NMI_CHECK
