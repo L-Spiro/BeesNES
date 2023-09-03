@@ -1150,7 +1150,7 @@ namespace lsn {
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
 		m_bHandleNmi = m_bDetectedNmi;
 		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
-		m_bLastNmiStatusLine = m_bNmiStatusLine;
+		//m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 
 		//++m_ui64CycleCount;
@@ -1172,7 +1172,7 @@ namespace lsn {
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
 		m_bHandleNmi = m_bDetectedNmi;
 		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
-		m_bLastNmiStatusLine = m_bNmiStatusLine;
+		//m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 #endif	// #ifndef LSN_OLD_NMI_CHECK
 		++m_ui64CycleCount;
@@ -2230,7 +2230,8 @@ namespace lsn {
 
 		// Branches don't check NMI on cycle 2.
 		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
+		//LSN_INSTR_END_PHI1( true );
+		LSN_INSTR_END_PHI1( false );
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -2246,7 +2247,7 @@ namespace lsn {
 		if ( bCrossed ) {
 			// Fetch next opcode.
 			//m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
-			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<false> );
 
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 			// JSON testing shows this happening on the next cycle.
@@ -2257,7 +2258,8 @@ namespace lsn {
 
 			// NMI not polled here.
 			//LSN_CHECK_NMI;
-			LSN_INSTR_END_PHI1( true );
+			//LSN_INSTR_END_PHI1( true );
+			LSN_INSTR_END_PHI1( false );
 		}
 		else {
 			// Fetch next opcode.
@@ -2321,7 +2323,8 @@ namespace lsn {
 
 		// NMI not polled here.
 		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
+		//LSN_INSTR_END_PHI1( true );
+		LSN_INSTR_END_PHI1( false );
 	}
 
 	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */

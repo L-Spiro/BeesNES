@@ -92,11 +92,20 @@ namespace lsn {
 	std::vector<DIDEVICEINSTANCEW> CDirectInput8::GatherDevices( DWORD _dwType ) {
 		std::vector<DIDEVICEINSTANCEW> vRet;
 		if ( !m_di8DirectInput.Obj() ) { return vRet; }
-		HRESULT hRet = m_di8DirectInput.Obj()->EnumDevices( _dwType, DIEnumDevicesCallback_GatherDevices, &vRet, DIEDFL_ATTACHEDONLY );
+		// The compiler doesn't seem to be able to handle passing &vRet.  Somehow storing &vRet to a pointer results
+		//	in that pointer pointing to some other vector somewhere else.  Maybe a return-value optimization bug?
+		//	So I have to new a vector here, as wonky as that is.
+		std::vector<DIDEVICEINSTANCEW> * pvNew = new std::vector<DIDEVICEINSTANCEW>();
+		LPVOID lpvVec = static_cast<LPVOID>(pvNew);
+		
+		HRESULT hRet = m_di8DirectInput.Obj()->EnumDevices( _dwType, DIEnumDevicesCallback_GatherDevices, lpvVec, DIEDFL_ATTACHEDONLY );
 		if ( hRet != DI_OK ) {
 			lsw::CBase::MessageBoxError( NULL, ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8::GatherDevices" );
+			delete pvNew;
 			return vRet;
 		}
+		vRet = (*pvNew);
+		delete pvNew;
 		return vRet;
 	}
 
@@ -108,7 +117,7 @@ namespace lsn {
 	 * \return Returns DIENUM_CONTINUE.
 	 */
 	BOOL PASCAL CDirectInput8::DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCEW _lpdDi, LPVOID _pvRef ) {
-		std::vector<DIDEVICEINSTANCEW> * pvVector = reinterpret_cast<std::vector<DIDEVICEINSTANCEW> *>(_pvRef);
+		std::vector<DIDEVICEINSTANCEW> * pvVector = static_cast<std::vector<DIDEVICEINSTANCEW> *>(_pvRef);
 		pvVector->push_back( (*_lpdDi) );
 		return DIENUM_CONTINUE;
 	}
