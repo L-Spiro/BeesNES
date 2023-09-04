@@ -165,8 +165,10 @@ namespace lsn {
 		// == Members.
 		/** The DirectInputDevice8 object. */
 		CDirectInputDevice8										m_did8Device;
-		/** THe current state of the device, updated in Poll(). */
+		/** The current state of the device, updated in Poll(). */
 		DIJOYSTATE												m_jsState;
+		/** The device capabilities. */
+		DIDEVCAPS												m_dcCaps;
 	};
 
 }	// namespace lsn

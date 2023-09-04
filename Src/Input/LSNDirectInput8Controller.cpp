@@ -32,16 +32,24 @@ namespace lsn {
 		if ( m_did8Device.Obj() ) {
 			HRESULT hRet = m_did8Device.Obj()->SetDataFormat( &c_dfDIJoystick );
 			if ( hRet != DI_OK ) {
-				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController" );
+				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController::SetDataFormat" );
 				return false;
 			}
 			// _pvData is an HWND.
 			HWND hWnd = reinterpret_cast<HWND>(_pvData);
 			hRet = m_did8Device.Obj()->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE );
 			if ( hRet != DI_OK ) {
-				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController" );
+				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController::SetCooperativeLevel" );
 				return false;
 			}
+
+			m_dcCaps.dwSize = sizeof( m_dcCaps );
+			hRet = m_did8Device.Obj()->GetCapabilities( &m_dcCaps );
+			if ( hRet != DI_OK ) {
+				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController::GetCapabilities" );
+				return false;
+			}
+
 		}
 	}
 
