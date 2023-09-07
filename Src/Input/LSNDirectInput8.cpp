@@ -104,7 +104,8 @@ namespace lsn {
 			delete pvNew;
 			return vRet;
 		}
-		vRet = (*pvNew);
+		//vRet = (*pvNew);
+		vRet = std::move( (*pvNew) );
 		delete pvNew;
 		return vRet;
 	}

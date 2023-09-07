@@ -134,6 +134,7 @@ namespace lsn {
 	}
 	CMainWindow::~CMainWindow() {
 		StopThread();
+		DestroyControllers();
 		m_bnEmulator.SaveSettings();
 		(*m_pabIsAlive) = false;
 	}
@@ -863,30 +864,100 @@ namespace lsn {
 			uint8_t ui8Ret = 0;
 			if ( m_ptThread.get() ) {
 				SHORT sState;
-#define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )										\
-	sState = ::GetAsyncKeyState( RAPID_KEY );													\
-	if ( sState & 0x8000 ) {																	\
+#define LSN_TICK_RAPID( RAPID_IDX, BUTTON )														\
 		if ( m_bnEmulator.RapidFire()[RAPID_IDX] & 0b10000000 ) {								\
 			ui8Ret |= BUTTON;																	\
 		}																						\
-		m_bnEmulator.RapidFire()[RAPID_IDX] = _rotl8( m_bnEmulator.RapidFire()[RAPID_IDX], 1 );	\
+		m_bnEmulator.RapidFire()[RAPID_IDX] = _rotl8( m_bnEmulator.RapidFire()[RAPID_IDX], 1 );
+#define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )										\
+	sState = ::GetAsyncKeyState( RAPID_KEY );													\
+	if ( sState & 0x8000 ) {																	\
+		LSN_TICK_RAPID( RAPID_IDX, BUTTON );													\
 	}																							\
 	else {																						\
 		m_bnEmulator.RapidFire()[RAPID_IDX] = 0b11110000;										\
 		sState = ::GetAsyncKeyState( MAIN_KEY );												\
 		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; }											\
 	}
-				LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
-				LSN_CKECK( VK_OEM_1, VK_OEM_2, 1, LSN_IB_A );
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					m_pdi8cControllers[0]->Poll();
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[3] ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
+					else {
+						m_bnEmulator.RapidFire()[0] = 0b11110000;
+						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[2] ) { ui8Ret |= LSN_IB_B; }
+					}
+				}
+				else {
+					LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[1] ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
+					else {
+						m_bnEmulator.RapidFire()[1] = 0b11110000;
+						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[0] ) { ui8Ret |= LSN_IB_A; }
+					}
+				}
+				else {
+					LSN_CKECK( VK_OEM_1, VK_OEM_2, 1, LSN_IB_A );
+				}
 
-				LSN_CKECK( 'O', '9', 2, LSN_IB_SELECT );
-				LSN_CKECK( 'P', '0', 3, LSN_IB_START );
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[8] ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
+					else {
+						m_bnEmulator.RapidFire()[2] = 0b11110000;
+						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[6] ) { ui8Ret |= LSN_IB_SELECT; }
+					}
+				}
+				else {
+					LSN_CKECK( 'O', '9', 2, LSN_IB_SELECT );
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[9] ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
+					else {
+						m_bnEmulator.RapidFire()[3] = 0b11110000;
+						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[7] ) { ui8Ret |= LSN_IB_START; }
+					}
+				}
+				else {
+					LSN_CKECK( 'P', '0', 3, LSN_IB_START );
+				}
 
-				LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
-				LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
-				LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
-				LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lY) < -250 ||
+						((static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 0 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 4500) ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 36000)) ) { ui8Ret |= LSN_IB_UP; }
+				}
+				else {
+					LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lY) > 250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 13500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 22500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; }
+				}
+				else {
+					LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lX) < -250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 22500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 31500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; }
+				}
+				else {
+					LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
+				}
+				if ( m_pdi8cControllers.size() >= 1 ) {
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lX) > 250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 4500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 13500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; }
+				}
+				else {
+					LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
+				}
 #undef LSN_CKECK
+#undef LSN_TICK_RAPID
 			}
 			else {
 				BYTE bPoll[256];
@@ -1141,7 +1212,18 @@ namespace lsn {
 	 * Scans for USB controllers.
 	 */
 	void CMainWindow::ScanInputDevices() {
+		DestroyControllers();
 		std::vector<DIDEVICEINSTANCE> vDevices = CDirectInput8::GatherDevices( DI8DEVCLASS_GAMECTRL );
+		for ( size_t I = 0; I < vDevices.size(); ++I ) {
+			CDirectInput8Controller * pdi8cController = new CDirectInput8Controller();
+			if ( !pdi8cController->CreateController( vDevices[I].guidInstance, m_hWnd /*::GetModuleHandleW( NULL )*/ /*NULL*/ ) ) {
+				delete pdi8cController;
+			}
+			else {
+				m_pdi8cControllers.push_back( pdi8cController );
+			}
+		}
+
 		/*std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
 		// Remove non-game usage pages.
 		for ( auto I = vList.size(); I--; ) {
@@ -1150,6 +1232,16 @@ namespace lsn {
 			}
 		}*/
 		return;
+	}
+
+	/**
+	 * Destroys all controller inputs.
+	 **/
+	void CMainWindow::DestroyControllers() {
+		for ( auto I = m_pdi8cControllers.size(); I--; ) {
+			delete m_pdi8cControllers[I];
+		}
+		m_pdi8cControllers.clear();
 	}
 
 	/**

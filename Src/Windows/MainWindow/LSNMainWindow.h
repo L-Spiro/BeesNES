@@ -12,6 +12,7 @@
 
 #include "../../BeesNES/LSNBeesNes.h"
 #include "../../Display/LSNDisplayHost.h"
+#include "../../Input/LSNDirectInput8Controller.h"
 #include "../../Input/LSNInputPoller.h"
 #include <CriticalSection/LSWCriticalSection.h>
 #include <ImageList/LSWImageList.h>
@@ -227,7 +228,10 @@ namespace lsn {
 
 
 		// == Members.
+		/** The emulator object. */
 		CBeesNes								m_bnEmulator;
+		/** DirectInput 8 controller inputs. */
+		std::vector<CDirectInput8Controller *>	m_pdi8cControllers;
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
 		/** A clock. */
@@ -305,6 +309,11 @@ namespace lsn {
 		 * Scans for USB controllers.
 		 */
 		void									ScanInputDevices();
+
+		/**
+		 * Destroys all controller inputs.
+		 **/
+		void									DestroyControllers();
 
 		/**
 		 * Opens an HID device by its ID string.

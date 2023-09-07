@@ -23,9 +23,18 @@ namespace lsn {
 	/**
 	 * Waits for the event/signal.
 	 */
-	void CEvent::WaitForSignal() {
+	uint32_t CEvent::WaitForSignal() {
+		return WaitForSignal( INFINITE );
+	}
+
+	/**
+	 * Waits for the event/signal for a given number of milliseconds.
+	 * 
+	 * \param _ui32Milliseconds The time-out time in milliseconds.
+	 **/
+	uint32_t CEvent::WaitForSignal( uint32_t _ui32Milliseconds ) {
 #ifdef LSN_USE_WINDOWS
-		::WaitForSingleObject( m_hHandle, INFINITE );
+		return ::WaitForSingleObject( m_hHandle, _ui32Milliseconds );
 #else
 #endif	// #ifdef LSN_USE_WINDOWS
 	}

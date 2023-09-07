@@ -227,6 +227,8 @@ namespace lsn {
 			{ .ui32Crc = 0x0E2FCB2E, .pmRegion = LSN_PM_PAL },
 			// Guerrilla War (Europe)
 			{ .ui32Crc = 0xAECDBE24, .pmRegion = LSN_PM_PAL },
+			// Guerrilla War (U)
+			{ .ui32Crc = 0x1554FD9D, .pmRegion = LSN_PM_NTSC },
 			// Gun Smoke (E)
 			{ .ui32Crc = 0xB79C320D, .pmRegion = LSN_PM_PAL },
 			// Hammerin' Harry (E) [!]

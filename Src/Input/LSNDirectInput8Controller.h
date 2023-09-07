@@ -12,8 +12,10 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
 #include "LSNDirectInputDevice8.h"
 #include "LSNUsbControllerBase.h"
+#include <thread>
 
 
 namespace lsn {
@@ -160,8 +162,22 @@ namespace lsn {
 		 */
 		virtual bool											IsRightTurboPressed();
 
+		/**
+		 * Gets the state of the controller.
+		 * 
+		 * \return Gets a constant reference to the controller state.
+		 **/
+		inline const DIJOYSTATE &								JoyState() const { return m_jsState; }
+
 
 	protected :
+		// == Types.
+		/** The thread data. */
+		struct LSN_THREAD {
+			CDirectInput8Controller *							m_pci8cThis;
+		};
+
+
 		// == Members.
 		/** The DirectInputDevice8 object. */
 		CDirectInputDevice8										m_did8Device;
@@ -169,6 +185,45 @@ namespace lsn {
 		DIJOYSTATE												m_jsState;
 		/** The device capabilities. */
 		DIDEVCAPS												m_dcCaps;
+		/** The even-listening thread. */
+		std::unique_ptr<std::thread>							m_ptThread;
+		/** The thread event. */
+		CEvent													m_eThreadClose;
+		/** The event marking the closing of the thread. */
+		CEvent													m_eThreadClosed;
+		/** Thread data. */
+		LSN_THREAD												m_tThreadData;
+		/** Tells the thread to stop. */
+		std::atomic<bool>										m_bStopThread;
+
+
+		// == Functions.
+		/**
+		 * Starts the thread.
+		 **/
+		void													BeginThread();
+
+		/**
+		 * Stops the thread.
+		 **/
+		void													StopThread();
+
+		/**
+		 * The resizing thread.
+		 *
+		 * \param _pblppFilter Pointer to this object.
+		 */
+		static void												Thread( LSN_THREAD * _ptThread );
+
+		/**
+		 * Application-defined callback function that receives DirectInputDevice objects as a result of a call to the IDirectInputDevice8::EnumObjects method.
+		 * 
+		 * \param _lpddoiInstance DIDEVICEOBJECTINSTANCE structure that describes the object being enumerated.
+		 * \param _pvRef The application-defined value passed to IDirectInputDevice8::EnumObjects as the _pvRef parameter.
+		 * \return Returns DIENUM_CONTINUE to continue the enumeration or DIENUM_STOP to stop the enumeration.
+		 **/
+		static BOOL												EnumDeviceObjectsCallback( LPCDIDEVICEOBJECTINSTANCE _lpddoiInstance,  LPVOID _pvRef );
+
 	};
 
 }	// namespace lsn

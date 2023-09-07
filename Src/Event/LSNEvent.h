@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../OS/LSNOs.h"
+#include <cstdint>
 
 
 namespace lsn {
@@ -29,12 +30,29 @@ namespace lsn {
 		/**
 		 * Waits for the event/signal.
 		 */
-		void									WaitForSignal();
+		uint32_t								WaitForSignal();
+
+		/**
+		 * Waits for the event/signal for a given number of milliseconds.
+		 * 
+		 * \param _ui32Milliseconds The time-out time in milliseconds.
+		 **/
+		uint32_t								WaitForSignal( uint32_t _ui32Milliseconds );
 
 		/**
 		 * Signals the event.
 		 */
 		void									Signal();
+
+		/**
+		 * Gets the platform-specific handle to the event.
+		 * 
+		 * \return Returns the platform-specific handle to the event.
+		 **/
+#ifdef LSN_USE_WINDOWS
+		HANDLE									Handle() const { return m_hHandle; }
+#else
+#endif// #ifdef LSN_USE_WINDOWS
 
 
 	protected :
