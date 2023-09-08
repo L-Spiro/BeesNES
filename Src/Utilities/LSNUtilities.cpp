@@ -136,6 +136,13 @@ namespace lsn {
 	 * \return Returns a string containing the file name.
 	 */
 	std::u16string CUtilities::GetFileName( const std::u16string &_s16Path ) {
+		// If the last character is } then it is a file inside a ZIP.
+		if ( _s16Path.size() && _s16Path[_s16Path.size()-1] == u'}' ) {
+			std::string::size_type stFound = _s16Path.rfind( u'{' );
+			std::u16string s16File = _s16Path.substr( stFound + 1 );
+			s16File.pop_back();
+			return s16File;
+		}
 		std::u16string s16Normalized = Replace( _s16Path, u'/', u'\\' );
 		std::string::size_type stFound = s16Normalized.rfind( u'\\' );
 		std::u16string s16File = s16Normalized.substr( stFound + 1 );

@@ -1098,7 +1098,7 @@ namespace lsn {
 		if ( m_bnEmulator.LoadRom( _vRom, _s16Path ) ) {
 			UpdatedConsolePointer();
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
-				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName );
+				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
 				if ( m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper == 4 ) {
 					u16Name += u" (Partial Support)";
 				}

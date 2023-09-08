@@ -246,6 +246,13 @@ namespace lsn {
 		 */
 		LSN_OPTIONS &							Options() { return m_oOptions; }
 
+		/**
+		 * Gets the vector of recent ROM files loaded.
+		 * 
+		 * \return Returns a constant vector to the most recently loaded ROM files.
+		 **/
+		const std::vector<std::u16string> &		RecentFiles() const { return m_vRecentFiles; }
+
 
 	protected :
 		// == Members.
