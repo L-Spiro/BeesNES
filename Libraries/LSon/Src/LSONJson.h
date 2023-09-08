@@ -40,7 +40,7 @@ namespace lson {
 		struct LSON_ELEMENT {
 			LSON_NODE_TYPE								ntType;								/**< The element type. */
 			std::string									sName;								/**< The name of the element. */
-			std::unique_ptr<LSON_ELEMENT>				upObject;							/**< If ntType is LSON_OBJECT. */
+			std::vector<LSON_ELEMENT>					vObjectMembers;						/**< If ntType is LSON_OBJECT. */
 			std::vector<LSON_ELEMENT>					vArray;								/**< If ntType is LSON_ARRAY. */
 			std::string									sString;							/**< If ntType is LSON_STRING. */
 			double										dNumber;							/**< If ntType is LSON_NUMBER. */

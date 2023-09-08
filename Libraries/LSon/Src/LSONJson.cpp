@@ -70,7 +70,7 @@ namespace lson {
 	void CJson::CreateObjectElement( const std::string &_sName, LSON_ELEMENT &_eElement ) {
 		_eElement.ntType = LSON_OBJECT;
 		_eElement.sName = _sName;
-		_eElement.upObject = std::make_unique<LSON_ELEMENT>();
+		_eElement.vObjectMembers.clear();
 	}
 
 	/**

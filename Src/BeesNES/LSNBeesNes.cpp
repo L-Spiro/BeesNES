@@ -200,6 +200,7 @@ namespace lsn {
 			UpdateCurrentSystem();
 			if ( m_pnsSystem->LoadRom( rTmp ) ) {
 				m_pnsSystem->ResetState( false );
+				AddPath( _s16Path );
 				return true;
 			}
 		}
@@ -302,6 +303,19 @@ namespace lsn {
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[3] ) ) { return false; }
 		if ( !_sFile.WriteBool( _ioInputOptions.bUseFourScore ) ) { return false; }
 		return true;
+	}
+
+	/**
+	 * Adds or move to the top a given file path.
+	 * 
+	 * \param _s16Path The file path to add or move to the top.
+	 **/
+	void CBeesNes::AddPath( const std::u16string &_s16Path ) {
+		auto I = std::find( m_vRecentFiles.begin(), m_vRecentFiles.end(), _s16Path );
+		if ( m_vRecentFiles.end() != I ) {
+			m_vRecentFiles.erase( I );
+		}
+		m_vRecentFiles.insert( m_vRecentFiles.begin(), _s16Path );
 	}
 
 }	// namespace lsn

@@ -312,6 +312,9 @@ namespace lsn {
 		/** The emulation options. */
 		LSN_OPTIONS								m_oOptions;
 
+		/** The list of recently opened ROM's. */
+		std::vector<std::u16string>				m_vRecentFiles;
+
 
 		// == Functions.
 		/**
@@ -353,6 +356,13 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions );
+
+		/**
+		 * Adds or move to the top a given file path.
+		 * 
+		 * \param _s16Path The file path to add or move to the top.
+		 **/
+		void									AddPath( const std::u16string &_s16Path );
 	};
 
 }	// namespace lsn

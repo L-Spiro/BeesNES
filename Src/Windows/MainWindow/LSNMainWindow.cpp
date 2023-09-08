@@ -263,7 +263,11 @@ namespace lsn {
 										}
 										else { return LSW_H_CONTINUE; }
 									}
-									LoadRom( vExtracted, vFinalFiles[dwIdx] );
+									std::u16string u16sPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+									u16sPath += u"{";
+									u16sPath.append( vFinalFiles[dwIdx].c_str() );
+									u16sPath += u"}";
+									LoadRom( vExtracted, u16sPath );
 									return LSW_H_CONTINUE;
 								}
 							}
