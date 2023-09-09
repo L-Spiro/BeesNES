@@ -129,6 +129,7 @@ namespace lsn {
 		//RegisterRawInput();
 		ScanInputDevices();
 		
+		
 
 		(*m_pabIsAlive) = true;
 	}
@@ -202,7 +203,7 @@ namespace lsn {
 			rStatusBar = psbStatus->WindowRect();
 		}
 		
-
+		UpdateOpenRecent();
 		ForceSizeUpdate();
 		
 		LSW_RECT rScreen = FinalWindowRect();
@@ -1103,6 +1104,7 @@ namespace lsn {
 					u16Name += u" (Partial Support)";
 				}
 				::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
+				UpdateOpenRecent();
 			}
 			m_bnEmulator.GetSystem()->ResetState( false );
 			m_cClock.SetStartingTick();
@@ -1184,6 +1186,48 @@ namespace lsn {
 				LSW_RECT rFinal = FinalWindowRect();
 				::MoveWindow( Wnd(), rFinal.left, rFinal.top, rFinal.Width(), rFinal.Height(), TRUE );
 			}
+		}
+	}
+
+	/**
+	 * Updates the "Open Recent" menu.
+	 **/
+	void CMainWindow::UpdateOpenRecent() {
+		HMENU hMenu = ::GetSubMenu( ::GetMenu( Wnd() ), 0 );
+
+		// Store a local copy so that the main list is able to change while we work (should never happen in practice but let's just code safely).
+		std::vector<std::u16string> vList = m_bnEmulator.RecentFiles();
+		// Normalize and remove doubles.
+		for ( size_t I = 0; I < vList.size(); ++I ) {
+			vList[I] = CUtilities::Replace( vList[I], u'/', u'\\' );
+		}
+		for ( size_t I = 0; I < vList.size(); ++I ) {
+			for ( size_t J = I + 1; J < vList.size(); ++J ) {
+				if ( vList[J] == vList[I] ) {
+					vList.erase( vList.begin() + J );
+				}
+			}
+		}
+		if ( vList.size() ) {
+			std::vector<CUtilities::LSN_FILE_PATHS> vPaths = CUtilities::DeconstructFilePaths( vList );
+			std::vector<LSW_MENU_ITEM> vMenu;
+			LSW_MENU_ITEM miItem = { FALSE, 0, FALSE, FALSE, TRUE };
+			for ( size_t I = 0; I < vList.size(); ++I ) {
+				miItem.dwId = DWORD( CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE + I );
+				miItem.lpwcText = reinterpret_cast<LPCWSTR>(vPaths[I].u16sFile.c_str());
+				vMenu.push_back( miItem );
+			}
+		
+			// //bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+			// { FALSE,			MX_MWMI_SHOW_EXPEVAL,		TRUE,		FALSE,		TRUE,		MW_MENU_TXT( _T_7B97062A__Expression_Evaluator, _LEN_7B97062A ) },
+			/*LSW_MENU_LAYOUT CMainWindowLayout::m_miMenus[] = {
+			{
+				MX_MWMI_MENU_BAR,
+				0,
+				0,
+				MX_ELEMENTS( m_miMenuBar ),
+				m_miMenuBar
+			},*/
 		}
 	}
 

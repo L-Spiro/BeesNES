@@ -150,4 +150,62 @@ namespace lsn {
 		return s16File;
 	}
 
+	/**
+	 * Gets the file path without the file name
+	 *
+	 * \param _s16Path The file path whose path is to be obtained.
+	 * \return Returns a string containing the file path.
+	 */
+	std::u16string CUtilities::GetFilePath( const std::u16string &_s16Path ) {
+		if ( _s16Path.size() ) {
+			std::u16string s16Normalized = Replace( _s16Path, u'/', u'\\' );
+			std::string::size_type stFound = s16Normalized.rfind( u'\\' );
+			if ( stFound >= s16Normalized.size() ) { return std::u16string(); }
+			std::u16string s16File = s16Normalized.substr( 0, stFound + 1 );
+			return s16File;
+		}
+		return std::u16string();
+	}
+
+	/**
+	 * Deconstructs a ZIP file name formatted as zipfile{name}.  If not a ZIP file, the file name is extracted.
+	 * 
+	 * \param _s16Path The input file path to be deconstructed.
+	 * \param _fpPaths The deconstructed file paths.
+	 **/
+	void CUtilities::DeconstructFilePath( const std::u16string &_s16Path, LSN_FILE_PATHS &_fpPaths ) {
+		_fpPaths.u16sFullPath = _s16Path;
+		if ( _s16Path.size() ) {
+			if ( _s16Path[_s16Path.size()-1] == u'}' ) {
+				std::string::size_type stFound = _s16Path.rfind( u'{' );
+				if ( stFound < _s16Path.size() ) {
+					std::u16string s16Normalized = Replace( _s16Path, u'/', u'\\' );
+					_fpPaths.u16sPath = s16Normalized.substr( 0, stFound + 1 );
+					_fpPaths.u16sPath += u'\\';
+					_fpPaths.u16sFile = _s16Path.substr( stFound, _s16Path.size() - stFound );
+					return;
+				}
+			}
+			_fpPaths.u16sPath = GetFilePath( _s16Path );
+			_fpPaths.u16sFile = GetFileName( _s16Path );
+		}
+	}
+
+	/**
+	 * Creates an array of deconstructed file paths.
+	 * 
+	 * \param _s16Paths The input array of paths to be deconstructed.
+	 * \return Returns an array of deconstructed file paths.
+	 **/
+	std::vector<CUtilities::LSN_FILE_PATHS> CUtilities::DeconstructFilePaths( const std::vector<std::u16string> &_s16Paths ) {
+		std::vector<CUtilities::LSN_FILE_PATHS> vPaths;
+		if ( _s16Paths.size() ) {
+			vPaths.resize( _s16Paths.size() );
+			for ( size_t I = 0; I < _s16Paths.size(); ++I ) {
+				DeconstructFilePath( _s16Paths[I], vPaths[I] );
+			}
+		}
+		return vPaths;
+	}
+
 }	// namespace lsn

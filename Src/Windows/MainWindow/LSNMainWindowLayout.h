@@ -95,6 +95,8 @@ namespace lsn {
 			LSN_MWMI_SHOW_EXPEVAL,
 			LSN_MWMI_SHOW_CONVERTER,
 			LSN_MWMI_SHOW_ALL,
+
+			LSN_MWMI_SHOW_RECENT_BASE			= 600,
 		};
 
 

@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include <intrin.h>
 #include <string>
+#include <vector>
 
 
 #ifndef LSN_ELEMENTS
@@ -32,6 +33,14 @@ namespace lsn {
 	 */
 	class CUtilities {
 	public :
+		// == Types.
+		struct LSN_FILE_PATHS {
+			std::u16string u16sFullPath;					/**< The full file path. */
+			std::u16string u16sPath;						/**< Path to the file without the file name. */
+			std::u16string u16sFile;						/**< THe file name. */
+		};
+
+
 		// == Functions.
 		/**
 		 * Converts a UTF-8 string to a UTF-16 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.
@@ -84,6 +93,14 @@ namespace lsn {
 		 * \return Returns a string containing the file name.
 		 */
 		static std::u16string								GetFileName( const std::u16string &_s16Path );
+
+		/**
+		 * Gets the file path without the file name
+		 *
+		 * \param _s16Path The file path whose path is to be obtained.
+		 * \return Returns a string containing the file path.
+		 */
+		static std::u16string								GetFilePath( const std::u16string &_s16Path );
 
 		/**
 		 * Integer-based bilinear sampling.
@@ -361,6 +378,22 @@ namespace lsn {
 			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 1) - 0xFF ) ) );
 			return (ui32Idx << 8) | ui32Frac;
 		}
+
+		/**
+		 * Deconstructs a ZIP file name formatted as zipfile{name}.  If not a ZIP file, the file name is extracted.
+		 * 
+		 * \param _s16Path The input file path to be deconstructed.
+		 * \param _fpPaths The deconstructed file paths.
+		 **/
+		static void											DeconstructFilePath( const std::u16string &_s16Path, LSN_FILE_PATHS &_fpPaths );
+
+		/**
+		 * Creates an array of deconstructed file paths.
+		 * 
+		 * \param _s16Paths The input array of paths to be deconstructed.
+		 * \return Returns an array of deconstructed file paths.
+		 **/
+		static std::vector<LSN_FILE_PATHS>					DeconstructFilePaths( const std::vector<std::u16string> &_s16Paths );
 	};
 
 }	// namespace lsn

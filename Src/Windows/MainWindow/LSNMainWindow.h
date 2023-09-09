@@ -299,6 +299,11 @@ namespace lsn {
 		void									UpdatedConsolePointer( bool _bMoveWindow = true );
 
 		/**
+		 * Updates the "Open Recent" menu.
+		 **/
+		void									UpdateOpenRecent();
+
+		/**
 		 * Registers for raw input.
 		 * 
 		 * \return Returns true if registration for raw input succeeded.
