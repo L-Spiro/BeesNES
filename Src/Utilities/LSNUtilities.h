@@ -71,6 +71,14 @@ namespace lsn {
 		static std::u16string								Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe );
 
 		/**
+		 * Lower-cases a Unicode string.
+		 * 
+		 * \param _u16Input THe string to lower-case.
+		 * \return Returns a copy of the given string in lower-case.
+		 **/
+		static std::u16string								ToLower( const std::u16string &_u16Input );
+
+		/**
 		 * Gets the extension from a file path.
 		 *
 		 * \param _s16Path The file path whose extension is to be obtained.
@@ -394,6 +402,23 @@ namespace lsn {
 		 * \return Returns an array of deconstructed file paths.
 		 **/
 		static std::vector<LSN_FILE_PATHS>					DeconstructFilePaths( const std::vector<std::u16string> &_s16Paths );
+
+		/**
+		 * Finds the first duplicated name in the list and then returns an array of indices of each file name that is a duplucate of the first-found duplicate name.
+		 * 
+		 * \param _s16Paths The input array of paths.
+		 * \param _vIndices Returned indices of paths that match.
+		 * \return Returns true if any file names are duplicates of each other when compared with case-insensitivity.
+		 **/
+		static bool											DuplicateFiles( const std::vector<CUtilities::LSN_FILE_PATHS> &_s16Paths, std::vector<size_t> &_vIndices );
+
+		/**
+		 * Copies the last folder in the path given in the first string to the start of the 2nd string.
+		 * 
+		 * \param _u16Folders The folder path.
+		 * \param _u16Path The file name.
+		 **/
+		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 	};
 
 }	// namespace lsn

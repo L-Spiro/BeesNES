@@ -24,12 +24,14 @@
 #include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Input/LSNInputWindowLayout.h"
+#include "../Layout/LSNLayoutManager.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 #include <commdlg.h>
+#include <filesystem>
 #include <hidpi.h>
 
 #include "../../../resource.h"
@@ -112,8 +114,7 @@ namespace lsn {
 		m_vBars.resize( m_biBarInfo.bmiHeader.biSizeImage );
 
 		UpdatedConsolePointer( false );
-
-
+		
 		{
 			// Center it in the screen.
 			LSW_RECT rFinal = FinalWindowRect();
@@ -1194,22 +1195,26 @@ namespace lsn {
 	 **/
 	void CMainWindow::UpdateOpenRecent() {
 		HMENU hMenu = ::GetSubMenu( ::GetMenu( Wnd() ), 0 );
+		HMENU hListMenu = ::GetSubMenu( hMenu, 1 );
+		if ( hListMenu != NULL ) {
+			if ( ::DestroyMenu( hListMenu ) ) {
+				hListMenu = NULL;
+			}
+		}
 
 		// Store a local copy so that the main list is able to change while we work (should never happen in practice but let's just code safely).
 		std::vector<std::u16string> vList = m_bnEmulator.RecentFiles();
-		// Normalize and remove doubles.
-		for ( size_t I = 0; I < vList.size(); ++I ) {
-			vList[I] = CUtilities::Replace( vList[I], u'/', u'\\' );
-		}
-		for ( size_t I = 0; I < vList.size(); ++I ) {
-			for ( size_t J = I + 1; J < vList.size(); ++J ) {
-				if ( vList[J] == vList[I] ) {
-					vList.erase( vList.begin() + J );
+		
+		if ( vList.size() ) {
+			::DeleteMenu( hMenu, 1, MF_BYPOSITION );
+			std::vector<CUtilities::LSN_FILE_PATHS> vPaths = CUtilities::DeconstructFilePaths( vList );
+			std::vector<size_t> vIndices;
+			while ( CUtilities::DuplicateFiles( vPaths, vIndices ) ) {
+				for ( auto I = vIndices.size(); I--; ) {
+					CUtilities::CopyLastFolderToFileName( vPaths[vIndices[I]].u16sPath, vPaths[vIndices[I]].u16sFile );
 				}
 			}
-		}
-		if ( vList.size() ) {
-			std::vector<CUtilities::LSN_FILE_PATHS> vPaths = CUtilities::DeconstructFilePaths( vList );
+
 			std::vector<LSW_MENU_ITEM> vMenu;
 			LSW_MENU_ITEM miItem = { FALSE, 0, FALSE, FALSE, TRUE };
 			for ( size_t I = 0; I < vList.size(); ++I ) {
@@ -1217,17 +1222,20 @@ namespace lsn {
 				miItem.lpwcText = reinterpret_cast<LPCWSTR>(vPaths[I].u16sFile.c_str());
 				vMenu.push_back( miItem );
 			}
-		
-			// //bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-			// { FALSE,			MX_MWMI_SHOW_EXPEVAL,		TRUE,		FALSE,		TRUE,		MW_MENU_TXT( _T_7B97062A__Expression_Evaluator, _LEN_7B97062A ) },
-			/*LSW_MENU_LAYOUT CMainWindowLayout::m_miMenus[] = {
-			{
-				MX_MWMI_MENU_BAR,
+			LSW_MENU_LAYOUT miMenus = {
+				CMainWindowLayout::LSN_MWMI_OPENRECENT_MENU,
 				0,
 				0,
-				MX_ELEMENTS( m_miMenuBar ),
-				m_miMenuBar
-			},*/
+				vMenu.size(),
+				vMenu.data()
+			};
+			HMENU hThis = lsw::CBase::LayoutManager()->CreateMenu( &miMenus, 1 );
+			//if ( !::ModifyMenuW( hMenu, CMainWindowLayout::LSN_MWMI_OPENRECENT, MF_BYCOMMAND | MF_POPUP | MF_STRING,
+			//	reinterpret_cast<UINT_PTR>(hThis), LSN_LSTR( LSN_OPEN_REC_ENT ) ) ) {
+			if ( ::InsertMenuW( hMenu, 1, MF_BYPOSITION | MF_POPUP | MF_STRING,
+				reinterpret_cast<UINT_PTR>(hThis), LSN_LSTR( LSN_OPEN_REC_ENT ) ) ) {
+				::DestroyMenu( hThis );
+			}
 		}
 	}
 

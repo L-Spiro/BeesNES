@@ -8,6 +8,7 @@
 
 #include "LSNBeesNes.h"
 #include "../File/LSNStdFile.h"
+#include <filesystem>
 
 
 namespace lsn {
@@ -311,11 +312,31 @@ namespace lsn {
 	 * \param _s16Path The file path to add or move to the top.
 	 **/
 	void CBeesNes::AddPath( const std::u16string &_s16Path ) {
-		auto I = std::find( m_vRecentFiles.begin(), m_vRecentFiles.end(), _s16Path );
+		std::u16string vNormalized = CUtilities::Replace( _s16Path, u'/', u'\\' );
+		// 2 types of culling owing to the use of ZIP files.
+#ifdef LSN_USE_WINDOWS
+		for ( auto I = m_vRecentFiles.size(); I--; ) {
+			if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE, reinterpret_cast<LPCWCH>(vNormalized.c_str()), -1, reinterpret_cast<LPCWCH>(m_vRecentFiles[I].c_str()), -1, NULL, NULL, NULL ) ) {
+				m_vRecentFiles.erase( m_vRecentFiles.begin() + I );
+			}
+		}
+#else
+		auto I = std::find( m_vRecentFiles.begin(), m_vRecentFiles.end(), vNormalized );
 		if ( m_vRecentFiles.end() != I ) {
 			m_vRecentFiles.erase( I );
 		}
-		m_vRecentFiles.insert( m_vRecentFiles.begin(), _s16Path );
+#endif	// #ifdef LSN_USE_WINDOWS
+		std::filesystem::path pPathI( vNormalized );
+		for ( size_t I = 0; I < m_vRecentFiles.size(); ++I ) {
+			std::filesystem::path pPathJ( m_vRecentFiles[I] );
+			try {
+				if ( std::filesystem::equivalent( pPathI, pPathJ ) ) {
+					m_vRecentFiles.erase( m_vRecentFiles.begin() + I-- );
+				}
+			}
+			catch ( ... ) {}
+		}
+		m_vRecentFiles.insert( m_vRecentFiles.begin(), vNormalized );
 	}
 
 }	// namespace lsn

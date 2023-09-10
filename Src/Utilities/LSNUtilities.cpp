@@ -9,6 +9,8 @@
 
 #include "LSNUtilities.h"
 #include "../OS/LSNOs.h"
+#include <cwctype>
+#include <EEExpEval.h>
 
 #ifndef LSN_WINDOWS
 #include <codecvt>
@@ -104,6 +106,30 @@ namespace lsn {
 	}
 
 	/**
+	 * Lower-cases a Unicode string.
+	 * 
+	 * \param _u16Input THe string to lower-case.
+	 * \return Returns a copy of the given string in lower-case.
+	 **/
+	std::u16string CUtilities::ToLower( const std::u16string &_u16Input ) {
+		std::u16string swsRet;
+		size_t sLen = 0;
+		for ( size_t I = 0; I < _u16Input.size(); I += sLen ) {
+			uint32_t uiConverted = ee::CExpEval::NextUtf16Char( reinterpret_cast<const wchar_t *>(&_u16Input[I]), _u16Input.size() - I, &sLen );
+			uint32_t uiTempLen;
+			uiConverted = ee::CExpEval::Utf32ToUtf16( uiConverted, uiTempLen );
+			if ( uiTempLen == 1 ) {
+				uiConverted = std::towlower( static_cast<wint_t>(ee::CExpEval::Utf32ToUtf16( uiConverted, uiTempLen )) );
+			}
+			for ( size_t J = 0; J < uiTempLen; ++J ) {
+				swsRet.push_back( static_cast<char16_t>(uiConverted) );
+				uiConverted >>= 16;
+			}
+		}
+		return swsRet;
+	}
+
+	/**
 	 * Gets the extension from a file path.
 	 *
 	 * \param _s16Path The file path whose extension is to be obtained.
@@ -180,9 +206,9 @@ namespace lsn {
 				std::string::size_type stFound = _s16Path.rfind( u'{' );
 				if ( stFound < _s16Path.size() ) {
 					std::u16string s16Normalized = Replace( _s16Path, u'/', u'\\' );
-					_fpPaths.u16sPath = s16Normalized.substr( 0, stFound + 1 );
+					_fpPaths.u16sPath = s16Normalized.substr( 0, stFound );
 					_fpPaths.u16sPath += u'\\';
-					_fpPaths.u16sFile = _s16Path.substr( stFound, _s16Path.size() - stFound );
+					_fpPaths.u16sFile = _s16Path.substr( stFound + 1, _s16Path.size() - stFound - 2 );
 					return;
 				}
 			}
@@ -206,6 +232,72 @@ namespace lsn {
 			}
 		}
 		return vPaths;
+	}
+
+	/**
+	 * Finds the first duplicated name in the list and then returns an array of indices of each file name that is a duplucate of the first-found duplicate name.
+	 * 
+	 * \param _s16Paths The input array of paths.
+	 * \param _vIndices Returned indices of paths that match.
+	 * \return Returns true if any file names are duplicates of each other when compared with case-insensitivity.
+	 **/
+	bool CUtilities::DuplicateFiles( const std::vector<CUtilities::LSN_FILE_PATHS> &_s16Paths, std::vector<size_t> &_vIndices ) {
+		_vIndices.clear();
+		for ( size_t I = 0; I < _s16Paths.size(); ++I ) {
+			bool bFound = false;
+			for ( size_t J = I + 1; J < _s16Paths.size(); ++J ) {
+#ifdef LSN_USE_WINDOWS
+				if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE,
+					reinterpret_cast<LPCWCH>(_s16Paths[I].u16sFile.c_str()), -1, reinterpret_cast<LPCWCH>(_s16Paths[J].u16sFile.c_str()), -1,
+					NULL, NULL, NULL ) ) {
+					bFound = true;
+					_vIndices.push_back( J );
+				}
+#else
+				if ( _s16Paths[I] == _s16Paths[J] ) {
+					bFound = true;
+					_vIndices.push_back( J );
+				}
+#endif	// #ifdef LSN_USE_WINDOWS
+			}
+			if ( bFound ) {
+				_vIndices.push_back( I );
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Copies the last folder in the path given in the first string to the start of the 2nd string.
+	 * 
+	 * \param _u16Folders The folder path.
+	 * \param _u16Path The file name.
+	 **/
+	void CUtilities::CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path ) {
+		if ( _u16Path.size() && _u16Path.rfind( u'\\' ) < _u16Path.size() ) {
+			if ( _u16Path[0] == u'\u2026' ) {
+				_u16Path.erase( _u16Path.begin() );
+			}
+		}
+		if ( _u16Folders.size() == 0 ) { return; }
+		// Remove the trailing \.
+		_u16Folders.erase( _u16Folders.begin() + _u16Folders.size() - 1 );
+		std::string::size_type stFound = _u16Folders.rfind( u'\\' );
+		if ( stFound >= _u16Folders.size() ) {
+			// Only the root remains. Copy it all.
+			_u16Path = _u16Folders + u'\\' + _u16Path;
+			_u16Folders.clear();
+			return;
+		}
+		// There is a folder.
+		_u16Path.insert( _u16Path.begin(), u'\\' );
+		while ( _u16Folders.size() > stFound + 1 ) {
+			_u16Path.insert( _u16Path.begin(), _u16Folders[_u16Folders.size()-1] );
+			_u16Folders.pop_back();
+		}
+		_u16Path.insert( _u16Path.begin(), u'\\' );
+		_u16Path.insert( _u16Path.begin(), u'\u2026' );
 	}
 
 }	// namespace lsn
