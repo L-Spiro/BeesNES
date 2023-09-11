@@ -221,8 +221,14 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CMainWindow::Command( WORD /*_wCtrlCode*/, WORD _Id, CWidget * /*_pwSrc*/ ) {
-		switch ( _Id ) {
+	CWidget::LSW_HANDLED CMainWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+		if ( _wId >= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE ) {
+			_wId -= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE;
+			if ( _wId < m_bnEmulator.RecentFiles().size() ) {
+			}
+			return LSW_H_CONTINUE;
+		}
+		switch ( _wId ) {
 			case CMainWindowLayout::LSN_MWMI_OPENROM : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::wstring szFileName;
@@ -1204,9 +1210,8 @@ namespace lsn {
 
 		// Store a local copy so that the main list is able to change while we work (should never happen in practice but let's just code safely).
 		std::vector<std::u16string> vList = m_bnEmulator.RecentFiles();
-		
+		::DeleteMenu( hMenu, 1, MF_BYPOSITION );
 		if ( vList.size() ) {
-			::DeleteMenu( hMenu, 1, MF_BYPOSITION );
 			std::vector<CUtilities::LSN_FILE_PATHS> vPaths = CUtilities::DeconstructFilePaths( vList );
 			std::vector<size_t> vIndices;
 			while ( CUtilities::DuplicateFiles( vPaths, vIndices ) ) {
@@ -1236,7 +1241,10 @@ namespace lsn {
 				reinterpret_cast<UINT_PTR>(hThis), LSN_LSTR( LSN_OPEN_REC_ENT ) ) ) {
 				::DestroyMenu( hThis );
 			}
+			return;
 		}
+		::InsertMenuW( hMenu, 1, MF_BYPOSITION | MF_GRAYED | MF_STRING,
+			static_cast<UINT_PTR>(CMainWindowLayout::LSN_MWMI_OPENRECENT), LSN_LSTR( LSN_OPEN_REC_ENT ) );
 	}
 
 	/**

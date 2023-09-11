@@ -21,7 +21,8 @@ namespace lsn {
 		//m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
-		m_pipPoller( _pipPoller ) {
+		m_pipPoller( _pipPoller ),
+		m_ui32RecentLimit( 13 ) {
 
 		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
 		
@@ -254,6 +255,7 @@ namespace lsn {
 		if ( !_sFile.ReadUi32( ui32Version ) ) { return false; }
 
 		if ( !LoadInputSettings( ui32Version, _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
+		if ( !LoadRecentFiles( ui32Version, _sFile ) ) { return false; }
 		return true;
 	}
 
@@ -266,6 +268,7 @@ namespace lsn {
 	bool CBeesNes::SaveSettings( CStream &_sFile ) {
 		if ( !_sFile.WriteUi32( LSN_BEESNES_SETTINGS_VERSION ) ) { return false; }
 		if ( !SaveInputSettings( _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
+		if ( !SaveRecentFiles( _sFile ) ) { return false; }
 		return true;
 	}
 
@@ -307,6 +310,45 @@ namespace lsn {
 	}
 
 	/**
+	 * Loads the recent-files list.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadRecentFiles( uint32_t /*_ui32Version*/, CStream &_sFile ) {
+		m_vRecentFiles.clear();
+		uint8_t ui8Total = 0;
+		if ( !_sFile.ReadUi8( ui8Total ) ) { return false; }
+		m_ui32RecentLimit = ui8Total;
+		if ( !_sFile.ReadUi8( ui8Total ) ) { return false; }
+		std::u16string u16Tmp;
+		for ( uint8_t I = 0; I < ui8Total; ++I ) {
+			if ( !_sFile.ReadStringU16( u16Tmp ) ) { return false; }
+			AddPath( u16Tmp );
+		}
+		return true;
+	}
+
+	/**
+	 * Saves the recent-files list.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveRecentFiles( CStream &_sFile ) {
+		uint8_t ui8Total = uint8_t( std::min( m_ui32RecentLimit, uint32_t( 100 ) ) );
+		if ( !_sFile.WriteUi8( ui8Total ) ) { return false; }
+
+		ui8Total = uint8_t( std::min( m_vRecentFiles.size(), size_t( ui8Total ) ) );
+		if ( !_sFile.WriteUi8( ui8Total ) ) { return false; }
+		for ( uint8_t I = ui8Total; I--; ) {
+			if ( !_sFile.WriteStringU16( m_vRecentFiles[I] ) ) { return false; }
+		}
+		return true;
+	}
+
+	/**
 	 * Adds or move to the top a given file path.
 	 * 
 	 * \param _s16Path The file path to add or move to the top.
@@ -337,6 +379,7 @@ namespace lsn {
 			catch ( ... ) {}
 		}
 		m_vRecentFiles.insert( m_vRecentFiles.begin(), vNormalized );
+		while ( m_vRecentFiles.size() > m_ui32RecentLimit ) { m_vRecentFiles.pop_back(); }
 	}
 
 }	// namespace lsn

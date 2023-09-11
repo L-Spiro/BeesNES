@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Utilities/LSNUtilities.h"
 #include <vector>
 
 
@@ -123,6 +124,43 @@ namespace lsn {
 			return Read<bool>( _bValue );
 		}
 
+		/**
+		 * Reads a char string from the stream.
+		 * 
+		 * \param _sString Holds the return string.
+		 * \return Returns true if there was enough space left in the stream to read the string.
+		 **/
+		inline bool									ReadString( std::string &_sString ) {
+			_sString.clear();
+			uint32_t ui32Len;
+			if ( !ReadUi32( ui32Len ) ) { return false; }
+			try {
+				for ( size_t I = 0; I < ui32Len; ++I ) {
+					uint8_t ui8Tmp;
+					if ( !ReadUi8( ui8Tmp ) ) { return false; }
+					_sString.push_back( char( ui8Tmp ) );
+				}
+			}
+			catch( ... ) {
+				return false;
+			}
+			return true;
+		}
+
+		/**
+		 * REads a u16char_t string from the stream.
+		 * 
+		 * \param _u16String Holds the return string.
+		 * \return Returns true if there was enough space left in the stream to write the string.
+		 **/
+		inline bool									ReadStringU16( std::u16string &_u16String ) {
+			std::string sTmp;
+			if ( !ReadString( sTmp ) ) { return false; }
+
+			_u16String = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(sTmp.c_str()) );
+			return true;
+		}
+
 
 		// ========
 		// WRITING
@@ -215,6 +253,41 @@ namespace lsn {
 		 */
 		inline bool									WriteBool( bool _bValue ) {
 			return Write<bool>( _bValue );
+		}
+
+		/**
+		 * Writes a char string to the stream.
+		 * 
+		 * \param _sString The string to write.
+		 * \return Returns true if there was enough space left in the stream to write the string.
+		 **/
+		inline bool									WriteString( const std::string &_sString ) {
+			if constexpr ( sizeof( _sString.size() ) > sizeof( uint32_t ) ) {
+				if ( _sString.size() & (~size_t( INT_MAX ) << 1) ) {
+					if ( !WriteUi32( 0 ) ) { return false; }
+					return true;
+				}
+			}
+			if ( !WriteUi32( uint32_t( _sString.size() ) ) ) { return false; }
+			for ( size_t I = 0; I < _sString.size(); ++I ) {
+				if ( !WriteUi8( _sString[I] ) ) { return false; }
+			}
+			return true;
+		}
+
+		/**
+		 * Writes a u16char_t string to the stream.
+		 * 
+		 * \param _u16String The string to write.
+		 * \return Returns true if there was enough space left in the stream to write the string.
+		 **/
+		inline bool									WriteStringU16( const std::u16string &_u16String ) {
+			bool bErrored = false;
+			std::string sTmp = CUtilities::Utf16ToUtf8( _u16String.c_str(), &bErrored );
+			if ( bErrored ) {
+				return WriteString( std::string() );
+			}
+			return WriteString( sTmp );
 		}
 
 

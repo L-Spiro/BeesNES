@@ -321,6 +321,8 @@ namespace lsn {
 
 		/** The list of recently opened ROM's. */
 		std::vector<std::u16string>				m_vRecentFiles;
+		/** The total number of recently opened to allow. */
+		uint32_t								m_ui32RecentLimit;
 
 
 		// == Functions.
@@ -363,6 +365,23 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions );
+
+		/**
+		 * Loads the recent-files list.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadRecentFiles( uint32_t _ui32Version, CStream &_sFile );
+
+		/**
+		 * Saves the recent-files list.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveRecentFiles( CStream &_sFile );
 
 		/**
 		 * Adds or move to the top a given file path.
