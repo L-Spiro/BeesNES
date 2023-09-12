@@ -161,6 +161,7 @@ namespace lsn {
 		/** The main window. */
 		static CWidget *						m_pwMainWindow;
 
+
 	};
 
 }	// namespace lsn

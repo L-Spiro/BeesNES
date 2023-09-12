@@ -225,6 +225,24 @@ namespace lsn {
 		if ( _wId >= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE ) {
 			_wId -= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE;
 			if ( _wId < m_bnEmulator.RecentFiles().size() ) {
+				if ( m_bnEmulator.RecentFiles()[_wId].size() ) {
+					if ( m_bnEmulator.RecentFiles()[_wId][m_bnEmulator.RecentFiles()[_wId].size()-1] == u'}' ) {
+						CUtilities::LSN_FILE_PATHS fpPath;
+						CUtilities::DeconstructFilePath( m_bnEmulator.RecentFiles()[_wId], fpPath );
+						fpPath.u16sPath.pop_back();	// Pops the trailing u'\\'.
+						LoadZipRom( fpPath.u16sPath, fpPath.u16sFile );
+					}
+					else {
+						lsn::CStdFile sfFile;
+						std::u16string s16File = m_bnEmulator.RecentFiles()[_wId];
+						if ( sfFile.Open( s16File.c_str() ) ) {
+							std::vector<uint8_t> vExtracted;
+							if ( sfFile.LoadToMemory( vExtracted ) ) {
+								LoadRom( vExtracted, s16File );
+							}
+						}
+					}
+				}
 			}
 			return LSW_H_CONTINUE;
 		}
@@ -1155,6 +1173,34 @@ namespace lsn {
 		}
 #endif
 		::SetWindowTextW( Wnd(), L"BeesNES" );
+		return false;
+	}
+
+	/**
+	 * Loads a ROM file given a path to a ZIP and a file name inside the ZIP.
+	 * 
+	 * \param _s16ZipPath The path to the ZIP file.
+	 * \param _s16File The file name inside the ZIP path to load.
+	 * \return Returns true if the file was loaded.
+	 **/
+	bool CMainWindow::LoadZipRom( const std::u16string &_s16ZipPath, const std::u16string &_s16File ) {
+		lsn::CZipFile zfFile;
+		if ( zfFile.Open( _s16ZipPath.c_str() ) ) {
+			std::vector<std::u16string> vFiles;
+			if ( zfFile.GatherArchiveFiles( vFiles ) ) {
+				for ( size_t I = 0; I < vFiles.size(); ++I ) {
+					if ( vFiles[I] == _s16File ) {
+						std::vector<uint8_t> vExtracted;
+						zfFile.ExtractToMemory( vFiles[I], vExtracted );
+						std::u16string u16sPath = _s16ZipPath;
+						u16sPath += u"{";
+						u16sPath.append( vFiles[I].c_str() );
+						u16sPath += u"}";
+						return LoadRom( vExtracted, u16sPath );
+					}
+				}
+			}
+		}
 		return false;
 	}
 

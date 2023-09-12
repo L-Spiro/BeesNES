@@ -292,6 +292,15 @@ namespace lsn {
 		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path );
 
 		/**
+		 * Loads a ROM file given a path to a ZIP and a file name inside the ZIP.
+		 * 
+		 * \param _s16ZipPath The path to the ZIP file.
+		 * \param _s16File The file name inside the ZIP path to load.
+		 * \return Returns true if the file was loaded.
+		 **/
+		bool									LoadZipRom( const std::u16string &_s16ZipPath, const std::u16string &_s16File );
+
+		/**
 		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
 		 * 
 		 * \param _bMoveWindow If true, te window is resized.
