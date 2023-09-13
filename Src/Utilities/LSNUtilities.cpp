@@ -74,6 +74,7 @@ namespace lsn {
 			return sOutput;
 		}
 		if ( _pbErrored != nullptr ) { (*_pbErrored) = false; }
+		while ( sOutput.size() && !sOutput[sOutput.size()-1] ) { sOutput.pop_back(); }
 		return sOutput;
 #else
 		// Visual Studio reports these as deprecated since C++17.
