@@ -83,7 +83,7 @@ namespace lsw {
 				RIDI_DEVICENAME, _wsIdentString.data(), &uiSize );
 
 			LSW_HID_HANLE hHandle( _wsIdentString.c_str() );
-			if ( hHandle.m_bOpened ) {
+			if ( hHandle.bOpened ) {
 				wchar_t wcName[128] = { 0 };
 				BOOLEAN bResult = ::HidD_GetProductString( hHandle.hHandle, wcName, sizeof( wchar_t ) * 126 );
 				if ( bResult ) {

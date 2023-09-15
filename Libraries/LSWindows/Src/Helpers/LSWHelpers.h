@@ -474,7 +474,7 @@ namespace lsw {
 				NULL,
 				OPEN_EXISTING, 0,
 				NULL );
-			m_bOpened = hHandle != NULL;
+			bOpened = hHandle != NULL;
 		}
 		~LSW_HID_HANLE() {
 			if ( hHandle ) {
@@ -483,7 +483,34 @@ namespace lsw {
 		}
 
 		HANDLE								hHandle;
-		BOOL								m_bOpened;
+		BOOL								bOpened;
+	};
+
+	struct LSW_HDEVNOTIFY {
+		LSW_HDEVNOTIFY() :
+			hNotify( NULL ) {
+		};
+		~LSW_HDEVNOTIFY() {
+			Reset();
+		}
+
+
+		// == Functions.
+		/**
+		 * Resets the handle.
+		 **/
+		void								Reset() {
+			if ( NULL != hNotify ) {
+				if ( ::UnregisterDeviceNotification( hNotify ) ) {
+					hNotify = NULL;
+				}
+			}
+		}
+
+
+	protected :
+		// == Members.
+		HDEVNOTIFY							hNotify;
 	};
 
 	class CHelpers {
