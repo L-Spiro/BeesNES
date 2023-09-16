@@ -497,6 +497,19 @@ namespace lsw {
 
 		// == Functions.
 		/**
+		 * DESC
+		 * 
+		 * \param _hRecipient A handle to the window or service that will receive device events for the devices specified in the NotificationFilter parameter. The same window handle can be used in multiple calls to RegisterDeviceNotification.  Services can specify either a window handle or service status handle.
+		 * \param _lpvNotificationFilter A pointer to a block of data that specifies the type of device for which notifications should be sent. This block always begins with the DEV_BROADCAST_HDR structure. The data following this header is dependent on the value of the dbch_devicetype member, which can be DBT_DEVTYP_DEVICEINTERFACE or DBT_DEVTYP_HANDLE.
+		 * \param _dwFlags This parameter can be DEVICE_NOTIFY_WINDOW_HANDLE or DEVICE_NOTIFY_SERVICE_HANDLE, and DEVICE_NOTIFY_ALL_INTERFACE_CLASSES.
+		 * \return Returns TRUE if the call to ::RegisterDeviceNotificationW() does not return NULL.
+		 **/
+		BOOL								RegisterDeviceNot( HANDLE _hRecipient, LPVOID _lpvNotificationFilter, DWORD _dwFlags ) {
+			Reset();
+			hNotify = ::RegisterDeviceNotificationW( _hRecipient, _lpvNotificationFilter, _dwFlags );
+		}
+
+		/**
 		 * Resets the handle.
 		 **/
 		void								Reset() {
