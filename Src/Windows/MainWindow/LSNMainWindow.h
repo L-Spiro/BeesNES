@@ -252,6 +252,8 @@ namespace lsn {
 		std::vector<uint8_t>					m_vBars;
 		/** The critical section for synchronizing Swap() and Paint(). */
 		lsw::CCriticalSection					m_csRenderCrit;
+		/** The critical section for reading controllers. */
+		lsw::CCriticalSection					m_csControllerCrit;
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
@@ -328,6 +330,15 @@ namespace lsn {
 		 * Destroys all controller inputs.
 		 **/
 		void									DestroyControllers();
+
+		/**
+		 * The WM_DEVICECHANGE handler.
+		 * 
+		 * \param _wDbtEvent The event that has occurred.  One of the DBT_* values from the Dbt.h header file.
+		 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED						DeviceChange( WORD _wDbtEvent, LPARAM _lParam );
 
 		/**
 		 * Opens an HID device by its ID string.

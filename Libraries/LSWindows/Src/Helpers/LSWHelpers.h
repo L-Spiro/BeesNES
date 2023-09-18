@@ -504,9 +504,10 @@ namespace lsw {
 		 * \param _dwFlags This parameter can be DEVICE_NOTIFY_WINDOW_HANDLE or DEVICE_NOTIFY_SERVICE_HANDLE, and DEVICE_NOTIFY_ALL_INTERFACE_CLASSES.
 		 * \return Returns TRUE if the call to ::RegisterDeviceNotificationW() does not return NULL.
 		 **/
-		BOOL								RegisterDeviceNot( HANDLE _hRecipient, LPVOID _lpvNotificationFilter, DWORD _dwFlags ) {
+		BOOL								RegisterDeviceNot( HANDLE _hRecipient, LPVOID _lpvNotificationFilter, DWORD _dwFlags = DEVICE_NOTIFY_WINDOW_HANDLE ) {
 			Reset();
 			hNotify = ::RegisterDeviceNotificationW( _hRecipient, _lpvNotificationFilter, _dwFlags );
+			return hNotify == NULL ? FALSE : TRUE;
 		}
 
 		/**
@@ -519,6 +520,11 @@ namespace lsw {
 				}
 			}
 		}
+
+
+		// == Members.
+		/** GUID for all USB serial host PnP drivers. */
+		static const GUID					s_gUsbPnPDevices;
 
 
 	protected :

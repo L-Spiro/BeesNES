@@ -31,6 +31,7 @@
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 #include <commdlg.h>
+#include <dbt.h>
 #include <filesystem>
 #include <hidpi.h>
 
@@ -204,6 +205,10 @@ namespace lsn {
 			rStatusBar = psbStatus->WindowRect();
 		}
 		
+
+
+		// ==== FINAL ==== //
+		RegisterDeviceInterfaceToHwnd();
 		UpdateOpenRecent();
 		ForceSizeUpdate();
 		
@@ -893,6 +898,9 @@ namespace lsn {
 		if ( GetFocus() ) {
 			uint8_t ui8Ret = 0;
 			if ( m_ptThread.get() ) {
+				// We only need to use critical sections on threaded implementations.
+				lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
+
 				SHORT sState;
 #define LSN_TICK_RAPID( RAPID_IDX, BUTTON )														\
 		if ( m_bnEmulator.RapidFire()[RAPID_IDX] & 0b10000000 ) {								\
@@ -1324,6 +1332,7 @@ namespace lsn {
 	void CMainWindow::ScanInputDevices() {
 		DestroyControllers();
 		std::vector<DIDEVICEINSTANCE> vDevices = CDirectInput8::GatherDevices( DI8DEVCLASS_GAMECTRL );
+		lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
 		for ( size_t I = 0; I < vDevices.size(); ++I ) {
 			CDirectInput8Controller * pdi8cController = new CDirectInput8Controller();
 			if ( !pdi8cController->CreateController( vDevices[I].guidInstance, m_hWnd /*::GetModuleHandleW( NULL )*/ /*NULL*/ ) ) {
@@ -1348,10 +1357,28 @@ namespace lsn {
 	 * Destroys all controller inputs.
 	 **/
 	void CMainWindow::DestroyControllers() {
+		lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
 		for ( auto I = m_pdi8cControllers.size(); I--; ) {
 			delete m_pdi8cControllers[I];
 		}
 		m_pdi8cControllers.clear();
+	}
+
+	/**
+	 * The WM_DEVICECHANGE handler.
+	 * 
+	 * \param _wDbtEvent The event that has occurred.  One of the DBT_* values from the Dbt.h header file.
+	 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CMainWindow::DeviceChange( WORD _wDbtEvent, LPARAM _lParam ) {
+		switch ( _wDbtEvent ) {
+			case DBT_DEVNODES_CHANGED : {
+				ScanInputDevices();
+				break;
+			}
+		}
+		return LSW_H_CONTINUE;
 	}
 
 	/**

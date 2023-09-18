@@ -1873,6 +1873,16 @@ namespace lsw {
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
 				break;
 			}
+
+			// =======================================
+			// Devices.
+			// =======================================
+			case WM_DEVICECHANGE : {
+				LSW_HANDLED hHandled = pmwThis->DeviceChange( static_cast<WORD>(_wParam), _lParam );
+				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( BROADCAST_QUERY_DENY, BROADCAST_QUERY_DENY ); }
+				else { LSW_RET( TRUE, TRUE ); }
+				break;
+			}
 		}
 
 		if ( _uMsg >= WM_USER && _uMsg <= 0x7FFF ) {
