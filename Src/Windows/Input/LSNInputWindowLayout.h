@@ -117,8 +117,6 @@ namespace lsn {
 		static LSW_WIDGET_LAYOUT				m_wlGlobalPanel[];
 		/** The layout for the per-game-setup panel. */
 		static LSW_WIDGET_LAYOUT				m_wlPerGamePanel[];
-		/** The class for the main window. */
-		static ATOM								m_aInputClass;
 
 
 		// == Functions.

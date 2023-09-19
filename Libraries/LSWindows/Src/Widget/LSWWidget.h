@@ -716,7 +716,7 @@ namespace lsw {
 		 * 
 		 * \param _wDbtEvent The event that has occurred.  One of the DBT_* values from the Dbt.h header file.
 		 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
-		 * \return Returns an LSW_HANDLED code.
+		 * \return Returns an LSW_HANDLED code.  Returning LSW_H_HANDLED is the same as returning BROADCAST_QUERY_DENY.
 		 **/
 		virtual LSW_HANDLED					DeviceChange( WORD /*_wDbtEvent*/, LPARAM /*_lParam*/ ) { return LSW_H_CONTINUE; }
 

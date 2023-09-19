@@ -630,6 +630,15 @@
     <ClInclude Include="Src\Apu\LSNLinearCounter.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNControllerConfigurePage.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Templates\LSNTemplatePageLayout.h">
+      <Filter>Header Files\Windows\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNStdControllerPageLayout.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -832,6 +841,15 @@
     </ClCompile>
     <ClCompile Include="Src\Apu\LSNTriangle.cpp">
       <Filter>Source Files\Apu</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNControllerConfigurePage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Templates\LSNTemplatePageLayout.cpp">
+      <Filter>Source Files\Windows\Templates</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNStdControllerPageLayout.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
