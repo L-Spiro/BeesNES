@@ -33,11 +33,18 @@ namespace lsn {
 			0,										// iTop
 			LSN_TEMPLATE_W,							// dwWidth
 			LSN_TEMPLATE_H,							// dwHeight
-			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
-			LSN_LSTR( LSN_INPUT_DIALOG ),			// pwcText
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
+			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_TWI_NONE,							// dwParentId
+
+			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
+			nullptr, 0,								// pcRightSizeExp
+			LSN_PARENT_VCTOP,						// pcTopSizeExp
+			nullptr, 0,								// pcBottomSizeExp
+			LSN_FIXED_WIDTH,						// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 	};
 

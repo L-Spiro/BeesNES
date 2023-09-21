@@ -98,6 +98,7 @@
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
+// OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.
 #define LSN_OPENAL_AL_INVALID_ENUM_DESC										An invalid enum value was passed to an OpenAL function.
@@ -113,3 +114,13 @@
 #define LSN_OPENAL_ALC_OUT_OF_MEMORY_DESC									The requested operation resulted in OpenAL running out of memory.
 
 #define LSN_OPENAL_ERROR_UNKNOWN											Unknown OpenAL error.
+
+// Buttons.
+#define LSN_BUTTON_LEFT														Left
+#define LSN_BUTTON_RIGHT													Right
+#define LSN_BUTTON_UP														Up
+#define LSN_BUTTON_DOWN														Down
+#define LSN_BUTTON_SELECT													Select
+#define LSN_BUTTON_START													Start
+#define LSN_BUTTON_B														B
+#define LSN_BUTTON_A														A

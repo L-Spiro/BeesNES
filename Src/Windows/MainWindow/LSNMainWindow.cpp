@@ -1371,7 +1371,7 @@ namespace lsn {
 	 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
 	 * \return Returns an LSW_HANDLED code.
 	 **/
-	CWidget::LSW_HANDLED CMainWindow::DeviceChange( WORD _wDbtEvent, LPARAM _lParam ) {
+	CWidget::LSW_HANDLED CMainWindow::DeviceChange( WORD _wDbtEvent, LPARAM /*_lParam*/ ) {
 		switch ( _wDbtEvent ) {
 			case DBT_DEVNODES_CHANGED : {
 				ScanInputDevices();

@@ -78,6 +78,11 @@ namespace lsn {
 		virtual bool								StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess );
 
 
+	protected :
+		// == Members.
+		// Controller configuration pages.
+		//std::vector<COptionsPage *>					m_vPages;
+
 	};
 
 }	// namespace lsn
