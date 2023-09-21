@@ -17,22 +17,22 @@
 
 namespace lsn {
 
-#define LSN_STD_CONT__W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 200 + LSN_LEFT_JUST + LSN_LEFT_JUST)
-#define LSN_STD_CONT__H									(50 + 150 + 20)
+#define LSN_STD_CONT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 200 + LSN_LEFT_JUST + LSN_LEFT_JUST)
+#define LSN_STD_CONT_H									(50 + 150 + 20)
 
 	// == Members.
 	/** The layout for the template window. */
 	LSW_WIDGET_LAYOUT CStdControllerPageLayout::m_wlPage[] = {
 		{
-			LSN_LT_INPUT_DIALOG,					// ltType
+			LSN_LT_STD_CONTROLLER_PAGE,				// ltType
 			LSN_SCPI_MAINWINDOW,					// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			0,										// iLeft
 			0,										// iTop
-			LSN_STD_CONT__W,						// dwWidth
-			LSN_STD_CONT__H,						// dwHeight
+			LSN_STD_CONT_W,							// dwWidth
+			LSN_STD_CONT_H,							// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
 			nullptr,								// pwcText
@@ -66,8 +66,8 @@ namespace lsn {
 		},
 	};
 
-#undef LSN_STD_CONT__H
-#undef LSN_STD_CONT__W
+#undef LSN_STD_CONT_H
+#undef LSN_STD_CONT_W
 
 
 	// == Functions.

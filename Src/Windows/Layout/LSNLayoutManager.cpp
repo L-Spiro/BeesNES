@@ -12,6 +12,7 @@
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
+#include "../Input/LSNStdControllerPage.h"
 #include "../MainWindow/LSNMainWindow.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
 
@@ -39,6 +40,9 @@ namespace lsn {
 			}
 			case LSN_LT_CONTROLLER_SETUP_DIALOG : {
 				return new CControllerSetupWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_STD_CONTROLLER_PAGE : {
+				return new CStdControllerPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

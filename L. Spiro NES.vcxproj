@@ -633,6 +633,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\Input\LSNInputPage.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindow.h" />
     <ClInclude Include="Src\Windows\Input\LSNInputWindowLayout.h" />
+    <ClInclude Include="Src\Windows\Input\LSNStdControllerPage.h" />
     <ClInclude Include="Src\Windows\Input\LSNStdControllerPageLayout.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutMacros.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
@@ -706,6 +707,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Windows\Input\LSNInputPage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNInputWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNStdControllerPage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNStdControllerPageLayout.cpp" />
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
