@@ -19,6 +19,9 @@
 using namespace lsw;
 
 namespace lsn {
+
+#define LSN_STD_CONT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 600 + LSN_LEFT_JUST + LSN_LEFT_JUST)
+#define LSN_STD_CONT_H									(50 + 150 + 20)
 	
 	/**
 	 * Class CStdControllerPageLayout
@@ -32,7 +35,7 @@ namespace lsn {
 		// Control ID's.
 		enum LSN_STD_CONTROLLER_PAGE_IDS : WORD {
 			LSN_SCPI_NONE,
-			LSN_SCPI_MAINWINDOW,
+			LSN_SCPI_MAINWINDOW							= 0x4690,
 			LSN_SCPI_BUTTON_LEFT,
 			LSN_SCPI_BUTTON_RIGHT,
 			LSN_SCPI_BUTTON_UP,

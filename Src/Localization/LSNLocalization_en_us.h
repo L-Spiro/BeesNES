@@ -96,6 +96,11 @@
 #define LSN_INPUT_TURBO_FILE												Turbo File
 #define LSN_INPUT_ZAPPER													Zapper
 
+// Standard input configuration.
+#define LSN_STD_INPUT_BUTTONS												Buttons
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS									Alternative Buttons
+#define LSN_STD_INPUT_RAPID													Rapid
+
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
 // OpenAL.

@@ -17,9 +17,6 @@
 
 namespace lsn {
 
-#define LSN_STD_CONT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 200 + LSN_LEFT_JUST + LSN_LEFT_JUST)
-#define LSN_STD_CONT_H									(50 + 150 + 20)
-
 	// == Members.
 	/** The layout for the template window. */
 	LSW_WIDGET_LAYOUT CStdControllerPageLayout::m_wlPage[] = {
@@ -39,12 +36,12 @@ namespace lsn {
 			0,										// sTextLen
 			LSN_SCPI_NONE,							// dwParentId
 
-			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
+			/*LSN_PARENT_VCLEFT,						// pcLeftSizeExp
 			nullptr, 0,								// pcRightSizeExp
 			LSN_PARENT_VCTOP,						// pcTopSizeExp
 			nullptr, 0,								// pcBottomSizeExp
 			LSN_FIXED_WIDTH,						// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,*/						// pcHeightSizeExp
 		},
 
 		// Buttons.
@@ -62,7 +59,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_BUTTON_LEFT ),			// pwcText
 			0,										// sTextLen
-			LSN_SCPI_MAINWINDOW,						// dwParentId
+			LSN_SCPI_MAINWINDOW,					// dwParentId
 		},
 	};
 

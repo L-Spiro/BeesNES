@@ -335,6 +335,8 @@ namespace lsn {
 			{ .ui32Crc = 0xC1CD15DD, .pmRegion = LSN_PM_PAL },
 			// Mr. Gimmick (E) [!]
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
+			// NFL Football (U)
+			{ .ui32Crc = 0x35B6FEBF, .pmRegion = LSN_PM_NTSC },
 			// New Ghostbusters 2 (E) [!]
 			{ .ui32Crc = 0x480B35D1, .pmRegion = LSN_PM_PAL },
 			// New Zealand Story (E)
@@ -435,6 +437,8 @@ namespace lsn {
 			{ .ui32Crc = 0xDC719391, .pmRegion = LSN_PM_PAL },
 			// Star Wars (E)
 			{ .ui32Crc = 0x70F4DADB, .pmRegion = LSN_PM_PAL },
+			// Startropics (U)
+			{ .ui32Crc = 0xBEB88304, .pmRegion = LSN_PM_NTSC },
 			// Stealth ATF (E)
 			{ .ui32Crc = 0x632EDF4E, .pmRegion = LSN_PM_PAL },
 			// Street Gangs (E)

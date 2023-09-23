@@ -12,23 +12,15 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "LSNStdControllerPageLayout.h"
 
 
 
 namespace lsn {
 
-#define LSN_FIRST_SECTION_W							(80 * 60 / 100)
-#define LSN_FIRST_SECTION_L							(LSN_LEFT_JUST + LSN_GROUP_LEFT)
-#define LSN_COMBO_W									(195 * 60 / 100)
-#define LSN_COMBO_L									(LSN_FIRST_SECTION_L + LSN_FIRST_SECTION_W + LSN_LEFT_JUST)
-#define LSN_THIRD_SECTION_W							(82 * 60 / 100)
-#define LSN_THIRD_SECTION_L							(LSN_COMBO_L + LSN_COMBO_W + LSN_LEFT_JUST)
-#define LSN_GENERAL_GROUP_H							(LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_GROUP_BOTTOM)
-#define LSN_SETTINGS_GROUP_H						(LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT * 5) + (LSN_TOP_JUST * 4) + LSN_GROUP_BOTTOM)
-
-#define LSN_INPUT_GROUP_W							(LSN_GROUP_LEFT + LSN_FIRST_SECTION_W + LSN_LEFT_JUST + LSN_COMBO_W + LSN_LEFT_JUST + LSN_THIRD_SECTION_W + LSN_GROUP_RIGHT)
-#define LSN_INPUT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST + LSN_LEFT_JUST)
-#define LSN_INPUT_H									(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H + 20)
+#define LSN_INPUT_GROUP_W							(LSN_STD_CONT_W)
+#define LSN_INPUT_W									(LSN_INPUT_GROUP_W)
+#define LSN_INPUT_H									(LSN_STD_CONT_H + LSN_DEF_BUTTON_HEIGHT + LSN_TOP_JUST * 2)
 
 	// == Members.
 	/** The layout for the main window. */
@@ -58,20 +50,13 @@ namespace lsn {
 			FALSE,									// bActive
 			0,										// iLeft
 			0,										// iTop
-			255,									// dwWidth
-			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H) + 22,						// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
-			WS_EX_ACCEPTFILES,														// dwStyleEx
+			LSN_INPUT_GROUP_W,						// dwWidth
+			LSN_STD_CONT_H,							// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,																					// dwStyle
+			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_CSW_MAINWINDOW,						// dwParentId
-
-			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			LSN_PARENT_VCRIGHT,						// pcRightSizeExp
-			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 
 
@@ -109,70 +94,10 @@ namespace lsn {
 		},
 	};
 
-	/** The layout for the global-setup panel. */
-	LSW_WIDGET_LAYOUT CControllerSetupWindowLayout::m_wlGlobalPanel[] = {
-		{
-			LSN_LT_GLOBAL_INPUT_PAGE,				// ltType
-			LSN_CSW_MAIN_PANEL,						// wId
-			nullptr,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0, 0,									// iLeft, iTop
-			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
-			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_CSW_NONE,							// dwParentId
-
-			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			nullptr, 0,								// pcRightSizeExp
-			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			LSN_FIXED_WIDTH,						// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
-		},
-	};
-
-	/** The layout for the per-game-setup panel. */
-	LSW_WIDGET_LAYOUT CControllerSetupWindowLayout::m_wlPerGamePanel[] = {
-		{
-			LSN_LT_PER_GAME_INPUT_PAGE,				// ltType
-			LSN_CSW_RAPID_PANEL,					// wId
-			nullptr,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0, 0,									// iLeft, iTop
-			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
-			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_CSW_NONE,							// dwParentId
-
-			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			nullptr, 0,								// pcRightSizeExp
-			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			LSN_FIXED_WIDTH,						// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
-		},
-	};
 
 #undef LSN_INPUT_H
 #undef LSN_INPUT_W
 #undef LSN_INPUT_GROUP_W
-#undef LSN_SETTINGS_GROUP_H
-#undef LSN_GENERAL_GROUP_H
-
-#undef LSN_THIRD_SECTION_L
-#undef LSN_THIRD_SECTION_W
-#undef LSN_COMBO_L
-#undef LSN_COMBO_W
-#undef LSN_FIRST_SECTION_L
-#undef LSN_FIRST_SECTION_W
 
 
 	// == Functions.
@@ -191,28 +116,6 @@ namespace lsn {
 			return TRUE;
 		}
 		return FALSE;
-	}
-
-	/**
-	 * Creates the global-settings page.
-	 *
-	 * \param _pwParent the parent of the page.
-	 * \param _oOptions A reference to the options object.
-	 * \return Returns the created widget.
-	 */
-	CWidget * CControllerSetupWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ), _oOptions );
-	}
-
-	/**
-	 * Creates the per-game-settings page.
-	 *
-	 * \param _pwParent the parent of the page.
-	 * \param _oOptions A reference to the options object.
-	 * \return Returns the created widget.
-	 */
-	CWidget * CControllerSetupWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ), _oOptions );
 	}
 
 	/**

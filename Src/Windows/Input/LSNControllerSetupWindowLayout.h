@@ -52,33 +52,11 @@ namespace lsn {
 		 */
 		static BOOL								CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
-		/**
-		 * Creates the global-settings page.
-		 *
-		 * \param _pwParent the parent of the page.
-		 * \param _oOptions A reference to the options object.
-		 * \return Returns the created widget.
-		 */
-		static CWidget *						CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
-
-		/**
-		 * Creates the per-game-settings page.
-		 *
-		 * \param _pwParent the parent of the page.
-		 * \param _oOptions A reference to the options object.
-		 * \return Returns the created widget.
-		 */
-		static CWidget *						CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
-
 
 	protected :
 		// == Members.
 		/** The layout for the main window. */
 		static LSW_WIDGET_LAYOUT				m_wlInputWindow[];
-		/** The layout for the global-setup panel. */
-		static LSW_WIDGET_LAYOUT				m_wlGlobalPanel[];
-		/** The layout for the per-game-setup panel. */
-		static LSW_WIDGET_LAYOUT				m_wlPerGamePanel[];
 
 
 		// == Functions.
