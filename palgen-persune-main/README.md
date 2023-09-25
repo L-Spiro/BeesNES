@@ -10,6 +10,8 @@ something to note: there _is_ no one true NES palette, but this generator can pr
 
 ## Requirements
 
+See `requirements.txt` for more details.
+
 This script requires `numpy` for arrays and matrix math.
 
 This script requires the `colour-science` library for linear light functions, color adaptation, and CIE 1931 colorimetry diagrams.
@@ -23,7 +25,7 @@ usage: palgen-persune.py [-h] [--html-hex] [--wiki-table] [--c-table] [-d] [-r R
                          [-cbr COLORBURST_REFERENCE] [-bri BRIGHTNESS] [-con CONTRAST] [-hue HUE] [-sat SATURATION]
                          [-blp BLACK_POINT] [-whp WHITE_POINT] [-phs PHASE_SKEW] [-aps ANTIEMPHASIS_PHASE_SKEW]
                          [-ela EMPHASIS_LUMA_ATTENUATION] [-rfc REFERENCE_COLORSPACE] [-dsc DISPLAY_COLORSPACE]
-                         [-cat CHROMATIC_ADAPTATION_TRANSFORM] [-ict]
+                         [-cat CHROMATIC_ADAPTATION_TRANSFORM] [-ict] [-oetf OPTO_ELECTRONIC] [--linear-light]
                          [-rpr REFERENCE_PRIMARIES_R REFERENCE_PRIMARIES_R]
                          [-rpg REFERENCE_PRIMARIES_G REFERENCE_PRIMARIES_G]
                          [-rpb REFERENCE_PRIMARIES_B REFERENCE_PRIMARIES_B]
@@ -47,7 +49,7 @@ options:
   -o OUTPUT, --output OUTPUT
                         .pal file output
   --float-pal FLOAT_PAL
-                        .pal file but with 32-bit single precision floating point numbers
+                        .pal file but with 64-bit double precision floating point numbers
   -e, --emphasis        include emphasis entries
   -t TEST_IMAGE, --test-image TEST_IMAGE
                         use 256x240 uint16 raw binary PPU frame buffer for palette proofreading
@@ -86,6 +88,9 @@ options:
                         chromatic adaptation transform method, default = None
   -ict, --inverse-chromatic-transform
                         invert direction of chromatic adaptation transform method (from display to reference)
+  -oetf OPTO_ELECTRONIC, --opto-electronic OPTO_ELECTRONIC
+                        applies an opto-electronic transfer function to the palette, default = "ITU-R BT.709"
+  --linear-light        skip converting linear light to linear signal
   -rpr REFERENCE_PRIMARIES_R REFERENCE_PRIMARIES_R, --reference-primaries-r REFERENCE_PRIMARIES_R REFERENCE_PRIMARIES_R
                         set custom reference color primary R, in CIE xy chromaticity coordinates
   -rpg REFERENCE_PRIMARIES_G REFERENCE_PRIMARIES_G, --reference-primaries-g REFERENCE_PRIMARIES_G REFERENCE_PRIMARIES_G
@@ -103,7 +108,7 @@ options:
   -dpw DISPLAY_PRIMARIES_W DISPLAY_PRIMARIES_W, --display-primaries-w DISPLAY_PRIMARIES_W DISPLAY_PRIMARIES_W
                         set custom display whitepoint, in CIE xy chromaticity coordinates
 
-version 0.7.3
+version 0.8.0
 ```
 
 ## License

@@ -23,7 +23,7 @@ import numpy as np
 
 parser=argparse.ArgumentParser(
     description="yet another NES palette generator",
-    epilog="version 0.7.3")
+    epilog="version 0.8.0")
 # print output options
 parser.add_argument(
     "--html-hex",
@@ -73,7 +73,7 @@ parser.add_argument(
 parser.add_argument(
     "--float-pal",
     type=str,
-    help=".pal file but with 32-bit single precision floating point numbers")
+    help=".pal file but with 64-bit double precision floating point numbers")
 parser.add_argument(
     "-e",
     "--emphasis",
@@ -182,13 +182,25 @@ parser.add_argument(
     "-cat",
     "--chromatic-adaptation-transform",
     type = str,
-    help = "chromatic adaptation transform method, default = None")
+    help = "chromatic adaptation transform method, default = None",
+    default = None)
 parser.add_argument(
     "-ict",
     "--inverse-chromatic-transform",
     action="store_true",
     help = "invert direction of chromatic adaptation transform method (from display to reference)")
+parser.add_argument(
+    "-oetf",
+    "--opto-electronic",
+    type=str,
+    help="applies an opto-electronic transfer function to the palette, default = \"ITU-R BT.709\"",
+    default = "ITU-R BT.709")
+parser.add_argument(
+    "--linear-light",
+    action="store_true",
+    help="skip converting linear light to linear signal")
 
+# colorimetry reference RGB and whitepoint primaries
 parser.add_argument(
     "-rpr",
     "--reference-primaries-r",
@@ -214,6 +226,7 @@ parser.add_argument(
     nargs=2,
     help = "set custom reference whitepoint, in CIE xy chromaticity coordinates")
 
+# colorimetry display RGB and whitepoint primaries
 parser.add_argument(
     "-dpr",
     "--display-primaries-r",
@@ -570,6 +583,29 @@ def NES_waveform_plot(voltage_buffer, emphasis, luma, hue, sequence_counter):
         plt.show()
     plt.close()
 
+def normalize_RGB(RGB_buffer):
+    # clip takes priority over normalize
+    if (args.normalize != -1):
+        match args.normalize:
+            case 0:
+                RGB_buffer -= np.amin(RGB_buffer)
+                RGB_buffer /= np.amax(RGB_buffer)
+            case 1:
+                RGB_buffer /= np.amax(RGB_buffer)
+            case _:
+                print("normalize option not recognized, using default")
+                RGB_buffer -= np.amin(RGB_buffer)
+                RGB_buffer /= (np.amax(RGB_buffer) - np.amin(RGB_buffer))
+    else:
+        match args.clip:
+            case 1:
+                RGB_buffer = color_clip_darken(RGB_buffer)
+            case 2:
+                RGB_buffer = color_clip_desaturate(RGB_buffer)
+
+    # clip to 0.0-1.0 to ensure everything is within range
+    np.clip(RGB_buffer, 0, 1, out=RGB_buffer)
+
 
 for emphasis in range(8):
     # emphasis bitmask, travelling from lsb to msb
@@ -676,13 +712,18 @@ RGB_buffer /= (signal_white_point - signal_black_point)
 RGB_buffer += args.brightness
 RGB_buffer *= (args.contrast + 1)
 
+# fit RGB within range of 0.0-1.0
+normalize_RGB(RGB_buffer)
+
 # preserve uncorrected RGB for color plotting
 RGB_uncorrected = RGB_buffer
 # convert RGB to display output
-# convert signal to linear light
-RGB_buffer = colour.models.oetf_inverse_BT709(RGB_buffer)
 
-# transform linear light
+# convert linear signal to linear light
+RGB_buffer = colour.oetf_inverse(RGB_buffer, function=args.opto_electronic)
+RGB_uncorrected = colour.oetf_inverse(RGB_uncorrected, function=args.opto_electronic)
+
+# transform color primaries
 if (args.inverse_chromatic_transform):
     RGB_buffer = colour.RGB_to_RGB(
         RGB_buffer,
@@ -696,39 +737,14 @@ else:
         t_colorspace,
         chromatic_adaptation_transform=args.chromatic_adaptation_transform)
 
-# convert linear light to signal
-RGB_buffer = colour.models.oetf_BT709(RGB_buffer)
+# convert linear light to linear signal, if permitted
+if (not args.linear_light):
+    RGB_buffer = colour.oetf(RGB_buffer, function=args.opto_electronic)
+    RGB_uncorrected = colour.oetf(RGB_uncorrected, function=args.opto_electronic)
 
-# fit RGB within range of 0.0-1.0
-# clip takes priority over normalize
-if (args.normalize != -1):
-    match args.normalize:
-        case 0:
-            RGB_buffer -= np.amin(RGB_buffer)
-            RGB_buffer /= np.amax(RGB_buffer)
-            RGB_uncorrected -= np.amin(RGB_uncorrected)
-            RGB_uncorrected /= np.amax(RGB_uncorrected)
-        case 1:
-            RGB_buffer /= np.amax(RGB_buffer)
-            RGB_uncorrected /= np.amax(RGB_uncorrected)
-        case _:
-            print("normalize option not recognized, using default")
-            RGB_buffer -= np.amin(RGB_buffer)
-            RGB_buffer /= (np.amax(RGB_buffer) - np.amin(RGB_buffer))
-            RGB_uncorrected -= np.amin(RGB_uncorrected)
-            RGB_uncorrected /= (np.amax(RGB_uncorrected) - np.amin(RGB_uncorrected))
-else:
-    match args.clip:
-        case 1:
-            RGB_buffer = color_clip_darken(RGB_buffer)
-            RGB_uncorrected = color_clip_darken(RGB_uncorrected)
-        case 2:
-            RGB_buffer = color_clip_desaturate(RGB_buffer)
-            RGB_uncorrected = color_clip_desaturate(RGB_uncorrected)
-
-# clip to 0.0-1.0 to ensure everything is within range
-np.clip(RGB_buffer, 0, 1, out=RGB_buffer)
-np.clip(RGB_uncorrected, 0, 1, out=RGB_uncorrected)
+# clip again, the transform may produce values beyond 0-1
+normalize_RGB(RGB_buffer)
+normalize_RGB(RGB_uncorrected)
 
 # display data about the palette, and optionally write a .pal file
 if (args.emphasis):

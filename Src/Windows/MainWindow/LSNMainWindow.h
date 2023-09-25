@@ -14,6 +14,7 @@
 #include "../../Display/LSNDisplayHost.h"
 #include "../../Input/LSNDirectInput8Controller.h"
 #include "../../Input/LSNInputPoller.h"
+#include "../../Options/LSNWindowOptions.h"
 #include <CriticalSection/LSWCriticalSection.h>
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
@@ -83,6 +84,15 @@ namespace lsn {
 
 		// WM_MOVE.
 		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
+
+		/**
+		 * The WM_KEYDOWN handler.
+		 *
+		 * \param _uiKeyCode The virtual-key code of the nonsystem key.
+		 * \param _uiFlags The repeat count, scan code, extended-key flag, context code, previous key-state flag, and transition-state flag.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						KeyDown( UINT _uiKeyCode, UINT _uiFlags );
 
 		/**
 		 * The WM_INPUT handler.
@@ -225,6 +235,7 @@ namespace lsn {
 
 		// == Types.
 		typedef lsw::CMainWindow				Parent;
+		typedef struct { double x[3]; }			Double3;
 
 
 		// == Members.
@@ -248,6 +259,8 @@ namespace lsn {
 		BITMAPINFO								m_biBlitInfo;
 		/** The BITMAPINFO header for blitting the black bars around the screen when maximized. */
 		BITMAPINFO								m_biBarInfo;
+		/** Full-screen information. */
+		LSW_WINDOW_PLACEMENT					m_wpPlacement;
 		/** The bar pixels. */
 		std::vector<uint8_t>					m_vBars;
 		/** The critical section for synchronizing Swap() and Paint(). */
@@ -260,6 +273,9 @@ namespace lsn {
 		volatile std::atomic_int				m_aiThreadState;
 		/** Is the window maximized? */
 		bool									m_bMaximized;
+		/** Window/UI options/settings. */
+		/** The window/UI settings/options. */
+		LSN_WINDOW_OPTIONS						m_woWindowOptions;
 		
 
 
@@ -280,9 +296,11 @@ namespace lsn {
 		/**
 		 * Sends a given palette to the console.
 		 *
-		 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
+		 * \param _vPalette The loaded palette file.
+		 * \param _bIsProbablyFloat When the size alone is not enough to determine the palette type, this is used to make the decision.
+		 * \param _bApplySrgb If true, an sRGB curve is applied to the loaded palette.
 		 */
-		void									SetPalette( const std::vector<uint8_t> &_vPalette );
+		void									SetPalette( const std::vector<uint8_t> &_vPalette, bool _bIsProbablyFloat, bool _bApplySrgb );
 
 		/**
 		 * Loads a ROM given its in-memory image and its file name.
@@ -301,6 +319,63 @@ namespace lsn {
 		 * \return Returns true if the file was loaded.
 		 **/
 		bool									LoadZipRom( const std::u16string &_s16ZipPath, const std::u16string &_s16File );
+
+		/**
+		 * Loads a 64- or 512- entry 8-bit palette into a 512-entry floating-point palette.
+		 * 
+		 * \param _vPalFile The loaded palette file raw bytes.
+		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+		 **/
+		std::vector<Double3>					Load8bitPalette_64_512( const std::vector<uint8_t> &_vPalFile );
+
+		/**
+		 * Loads a 64- or 512- entry 32-bit float palette into a 512-entry floating-point palette.
+		 * 
+		 * \param _vPalFile The loaded palette file raw bytes.
+		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+		 **/
+		template <typename _tSrcType>
+		std::vector<Double3>					Load32_64bitPalette_64_512( const std::vector<uint8_t> &_vPalFile ) {
+			std::vector<Double3> vRet;
+			try {
+				vRet.resize( 512 );
+				if ( !_vPalFile.size() ) { return vRet; }
+				for ( size_t I = 0; I < 512; ++I ) {
+					const _tSrcType * ptThisSrc = reinterpret_cast<const _tSrcType *>(&_vPalFile[(I*sizeof(_tSrcType)*3)%_vPalFile.size()]);
+					vRet[I].x[0] = static_cast<double>(ptThisSrc[0]);
+					vRet[I].x[1] = static_cast<double>(ptThisSrc[1]);
+					vRet[I].x[2] = static_cast<double>(ptThisSrc[2]);
+				}
+			}
+			catch ( ... ) {
+				return std::vector<Double3>();
+			}
+			return vRet;
+		}
+
+		/**
+		 * Loads a 512-entry 32-bit float palette into a 512-entry floating-point palette.
+		 * 
+		 * \param _vPalFile The loaded palette file raw bytes.
+		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+		 **/
+		std::vector<Double3>					Load32bitPalette_512( const std::vector<uint8_t> &_vPalFile );
+
+		/**
+		 * Loads a 64-entry 32-bit float palette into a 512-entry floating-point palette.
+		 * 
+		 * \param _vPalFile The loaded palette file raw bytes.
+		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+		 **/
+		std::vector<Double3>					Load64bitPalette_64( const std::vector<uint8_t> &_vPalFile );
+
+		/**
+		 * Loads a 512-entry 32-bit float palette into a 512-entry floating-point palette.
+		 * 
+		 * \param _vPalFile The loaded palette file raw bytes.
+		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+		 **/
+		std::vector<Double3>					Load64bitPalette_512( const std::vector<uint8_t> &_vPalFile );
 
 		/**
 		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.

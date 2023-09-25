@@ -532,6 +532,98 @@ namespace lsw {
 		HDEVNOTIFY							hNotify;
 	};
 
+	struct LSW_WINDOW_PLACEMENT {
+		~LSW_WINDOW_PLACEMENT() {
+			if ( NULL != hMenu ) {
+				// Window was destroyed before the menu was restored, leaving the menu without an owner to destroy it.
+				::DestroyMenu( hMenu );
+				hMenu = NULL;
+			}
+		}
+
+
+		// == Members.
+		/** The menu, if menu-hiding is used. */
+		HMENU								hMenu = NULL;
+		/** The window style before going into full-screen mode. */
+		LONG								lWindowStyle = 0;
+		/** The window placement. */
+		WINDOWPLACEMENT						wpPlacement;
+		/** If true, we are in borderless mode. */
+		bool								bInBorderless = false;
+		/** If true, this object is performing a size operation on the given window. */
+		bool								bIsSizing = false;
+
+
+		// == Functions.
+		/**
+		 * Enters borderless mode.  The restoration information is saved to the structure.
+		 * 
+		 * \param _hWnd The window to affect.
+		 * \return Returns true if full-screening the given window succeeds.
+		 **/
+		bool								EnterBorderless( HWND _hWnd, bool _bHideMenu ) {
+			bInBorderless = false;
+			LONG lStyle = ::GetWindowLongW( _hWnd, GWL_STYLE );
+			if ( !lStyle ) { return false; }
+
+			HMONITOR hMon = ::MonitorFromWindow( _hWnd, MONITOR_DEFAULTTOPRIMARY );
+			if ( NULL == hMon ) { return false; }
+			MONITORINFO miMonInfo = { sizeof( miMonInfo ) };
+			if ( ::GetMonitorInfoW( hMon, &miMonInfo ) && ::GetWindowPlacement( _hWnd, &wpPlacement ) ) {
+				bIsSizing = true;
+				if ( _bHideMenu && hMenu == NULL ) {
+					hMenu = ::GetMenu( _hWnd );
+					::SetMenu( _hWnd, NULL );
+				}
+				::SetWindowLongW( _hWnd, GWL_STYLE,
+					(lStyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP );
+				::SetWindowPos( _hWnd, HWND_TOP,
+					miMonInfo.rcMonitor.left, miMonInfo.rcMonitor.top,
+					miMonInfo.rcMonitor.right - miMonInfo.rcMonitor.left,
+					miMonInfo.rcMonitor.bottom - miMonInfo.rcMonitor.top,
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED );
+				bIsSizing = false;
+				lWindowStyle = lStyle;
+				bInBorderless = true;
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Leaves borderless and returns to normal.
+		 * 
+		 * \param _hWnd The window to affect.
+		 * \return Returns true if the window was returned to normal.
+		 **/
+		bool								LeaveBorderless( HWND _hWnd ) {
+			if ( !bInBorderless ) { return true; }
+			if ( hMenu != NULL ) {
+				::SetMenu( _hWnd, hMenu );
+				hMenu = NULL;
+			}
+			if ( !::SetWindowLongW( _hWnd, GWL_STYLE,
+                  lWindowStyle | WS_OVERLAPPEDWINDOW ) ) {
+				return false;
+			}
+			if ( !::SetWindowPlacement( _hWnd, &wpPlacement ) ) { return false; }
+			bIsSizing = true;
+			if ( !::SetWindowPos( _hWnd, NULL,
+				wpPlacement.rcNormalPosition.left, wpPlacement.rcNormalPosition.top,
+				wpPlacement.rcNormalPosition.right - wpPlacement.rcNormalPosition.left,
+				wpPlacement.rcNormalPosition.bottom - wpPlacement.rcNormalPosition.top,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED ) ) {
+				bIsSizing = false;
+				return false; }
+			::ShowWindow( _hWnd, SW_NORMAL );
+			bIsSizing = false;
+			bInBorderless = false;
+			return true;
+		}
+	};
+
 	class CHelpers {
 	public :
 		/**

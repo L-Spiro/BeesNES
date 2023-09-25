@@ -113,6 +113,7 @@ namespace lsn {
 		m_biBarInfo.bmiHeader.biClrUsed = 0;
 		m_biBarInfo.bmiHeader.biClrImportant = 0;
 		m_vBars.resize( m_biBarInfo.bmiHeader.biSizeImage );
+		//::memset( m_vBars.data(), 0x7F, m_vBars.size() );
 
 		UpdatedConsolePointer( false );
 		
@@ -482,7 +483,7 @@ namespace lsn {
 		if ( iDestX ) {
 			::StretchDIBits( bpPaint.hDc,
 				0, 0,
-				iDestX, int( dwFinalH ),
+				iDestX, int( lHeight ),
 				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
 				m_vBars.data(),
 				&m_biBarInfo,
@@ -505,7 +506,7 @@ namespace lsn {
 		if ( iBarWidth > 0 ) {
 			::StretchDIBits( bpPaint.hDc,
 				iBarDestX, 0,
-				iBarWidth, int( dwFinalH ),
+				iBarWidth, int( lHeight ),
 				0, 0, m_biBarInfo.bmiHeader.biWidth, m_biBarInfo.bmiHeader.biHeight,
 				m_vBars.data(),
 				&m_biBarInfo,
@@ -553,6 +554,37 @@ namespace lsn {
 	// WM_MOVE.
 	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
 		Tick();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_KEYDOWN handler.
+	 *
+	 * \param _uiKeyCode The virtual-key code of the nonsystem key.
+	 * \param _uiFlags The repeat count, scan code, extended-key flag, context code, previous key-state flag, and transition-state flag.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::KeyDown( UINT _uiKeyCode, UINT _uiFlags ) {
+		if ( m_bMaximized ) {
+			if ( m_wpPlacement.bInBorderless ) {
+				WORD wVkCode = LOWORD( _uiKeyCode );	// VK_*
+				WORD wKeyFlags = HIWORD( _uiFlags );
+				WORD wScanCode = LOBYTE( wKeyFlags );
+
+				switch ( wVkCode ) {
+					case VK_SHIFT : {}
+					case VK_CONTROL : {}
+					case VK_MENU : {
+						wVkCode = LOWORD( ::MapVirtualKeyW( wScanCode, MAPVK_VSC_TO_VK_EX ) );
+						break;
+					}
+				}
+				if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
+					m_wpPlacement.LeaveBorderless( Wnd() );
+				}
+
+			}
+		}
 		return LSW_H_CONTINUE;
 	}
 
@@ -691,9 +723,17 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
 		m_bMaximized = _wParam == SIZE_MAXIMIZED;
+		if ( m_bMaximized && m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
+			m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu );
+		}
+		else if ( !m_bMaximized && m_wpPlacement.bInBorderless && !m_wpPlacement.bIsSizing ) {
+			m_wpPlacement.LeaveBorderless( Wnd() );
+		}
 		//if ( m_bMaximized ) {
 			m_rMaxRect = ClientRect();
 		//}
+		
+
 		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
@@ -1101,9 +1141,53 @@ namespace lsn {
 	/**
 	 * Sends a given palette to the console.
 	 *
-	 * \param _vPalette The loaded palette file.  Must be (0x40 * 3) bytes.
+	 * \param _vPalette The loaded palette file.
+	 * \param _bIsProbablyFloat When the size alone is not enough to determine the palette type, this is used to make the decision.
+	 * \param _bApplySrgb If true, an sRGB curve is applied to the loaded palette.
 	 */
-	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette ) {
+	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette, bool _bIsProbablyFloat, bool _bApplySrgb ) {
+#if 1
+		if ( !m_bnEmulator.GetSystem() ) { return; }
+		lsn::LSN_PALETTE * ppPal = m_bnEmulator.GetSystem()->Palette();
+		if ( !ppPal ) { return; }
+
+		std::vector<Double3> vTmp;
+		if ( _bIsProbablyFloat && (1 << 6) * 3 * sizeof( double ) == _vPalette.size() ) {
+			vTmp = Load32_64bitPalette_64_512<double>( _vPalette );
+		}
+		else {
+			switch ( _vPalette.size() ) {
+				case (1 << 6) * 3 * sizeof( uint8_t ) : { /* Drop through! */ }
+				case (1 << 9) * 3 * sizeof( uint8_t ) : {
+					vTmp = Load8bitPalette_64_512( _vPalette );
+					break;
+				}
+				case (1 << 6) * 3 * sizeof( float ) : { /* Drop through! */ }
+				case (1 << 9) * 3 * sizeof( float ) : {
+					vTmp = Load32_64bitPalette_64_512<float>( _vPalette );
+					break;
+				}
+				case (1 << 9) * 3 * sizeof( double ) : {
+					vTmp = Load32_64bitPalette_64_512<double>( _vPalette );
+					break;
+				}
+			}
+		}
+		if ( !vTmp.size() ) { return; }
+		for ( size_t I = 0; I < 512; ++I ) {
+			if ( _bApplySrgb ) {
+				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CHelpers::LinearTosRGB( vTmp[I].x[2] ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CHelpers::LinearTosRGB( vTmp[I].x[1] ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB( vTmp[I].x[0] ) * 255.0 ) );
+			}
+			else {
+				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( vTmp[I].x[2] * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( vTmp[I].x[1] * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( vTmp[I].x[0] * 255.0 ) );
+			}
+		}
+
+#else
 		if ( _vPalette.size() != 0x40 * 3 && _vPalette.size() != (1 << 9) * 3 ) { return; }
 		if ( !m_bnEmulator.GetSystem() ) { return; }
 		lsn::LSN_PALETTE * ppPal = m_bnEmulator.GetSystem()->Palette();
@@ -1118,6 +1202,7 @@ namespace lsn {
 			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
 			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
 		}
+#endif	// 1
 	}
 
 	/**
@@ -1213,6 +1298,30 @@ namespace lsn {
 	}
 
 	/**
+	 * Loads a 64- or 512- entry 8-bit palette into a 512-entry floating-point palette.
+	 * 
+	 * \param _vPalFile The loaded palette file raw bytes.
+	 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
+	 **/
+	std::vector<CMainWindow::Double3> CMainWindow::Load8bitPalette_64_512( const std::vector<uint8_t> &_vPalFile ) {
+		std::vector<Double3> vRet;
+		try {
+			vRet.resize( 512 );
+			if ( !_vPalFile.size() ) { return vRet; }
+			for ( size_t I = 0; I < 512; ++I ) {
+				const uint8_t * pui8ThisSrc = reinterpret_cast<const uint8_t *>(&_vPalFile[(I*sizeof(uint8_t)*3)%_vPalFile.size()]);
+				vRet[I].x[0] = pui8ThisSrc[0] / 255.0;
+				vRet[I].x[1] = pui8ThisSrc[1] / 255.0;
+				vRet[I].x[2] = pui8ThisSrc[2] / 255.0;
+			}
+		}
+		catch ( ... ) {
+			return std::vector<Double3>();
+		}
+		return vRet;
+	}
+
+	/**
 	 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
 	 * 
 	 * \param _bMoveWindow If true, te window is resized.
@@ -1231,12 +1340,26 @@ namespace lsn {
 				PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 				std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 				//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
-				std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
+				//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
+				std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
+					wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
+					wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral.fpal";
 				lsn::CStdFile sfFile;
 				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
+					bool bTheyMightBeGiantFloats = false;
+					bool bTheyMightNeedBeSrgb = false;
+					std::u16string s16Tmp = CUtilities::ToLower( CUtilities::GetFileName( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) );
+
+					if ( CUtilities::ToLower( CUtilities::GetFileExtension( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) == u"fpal" || s16Tmp.find( u"float", 0 ) < s16Tmp.size() ) {
+						bTheyMightBeGiantFloats = true;
+					}
+
+					if ( s16Tmp.find( u"applysrgb", 0 ) < s16Tmp.size() ) {
+						bTheyMightNeedBeSrgb = true;
+					}
 					std::vector<uint8_t> vPal;
 					if ( sfFile.LoadToMemory( vPal ) ) {
-						SetPalette( vPal );
+						SetPalette( vPal, bTheyMightBeGiantFloats, bTheyMightNeedBeSrgb );
 					}
 				}
 			}

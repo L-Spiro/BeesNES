@@ -642,6 +642,9 @@
     <ClInclude Include="Src\Windows\Input\LSNStdControllerPage.h">
       <Filter>Header Files\Windows\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Options\LSNWindowOptions.h">
+      <Filter>Header Files\Options</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

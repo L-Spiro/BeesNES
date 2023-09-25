@@ -11,7 +11,9 @@
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../Utilities/LSNStream.h"
 #include <ComboBox/LSWComboBox.h>
+#include <Helpers/LSWInputListenerBase.h>
 #include <Widget/LSWWidget.h>
 
 using namespace lsw;
@@ -93,6 +95,25 @@ namespace lsn {
 		 * \return Returns true if _pwComboBox is not nullptr, it is of type CComboBox, and all entries were added.
 		 */
 		static bool												FillComboBox( CWidget * _pwComboBox, const LSN_COMBO_ENTRY * _pceEntries, size_t _stTotal, LPARAM _lpDefaultSelect, LPARAM _lpSelectBackup = 0 );
+
+		/**
+		 * Writes a UI key to a stream.
+		 * 
+		 * \param _krKey The key values to write.
+		 * \param _sStream The stream to which to write the key values.
+		 * \return Returns true if writing of the key information to the stream succeeded.
+		 **/
+		static bool												WriteUiKey( const lsw::CInputListenerBase::LSW_KEYBOARD_RESULT &_krKey, lsn::CStream &_sStream );
+
+		/**
+		 * Reads a UI key from a stream.
+		 * 
+		 * \param _krKey The key values to be filled by reading from the givens tream.
+		 * \param _sStream The stream from which to read the key values.
+		 * \return Returns true if reading of the key information from the stream succeeded.
+		 **/
+		static bool												ReadUiKey( lsw::CInputListenerBase::LSW_KEYBOARD_RESULT &_krKey, lsn::CStream &_sStream );
+
 
 	protected :
 	};

@@ -609,6 +609,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\MiniZ\miniz.h" />
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
+    <ClInclude Include="Src\Options\LSNWindowOptions.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Palette\LSNPalette.h" />

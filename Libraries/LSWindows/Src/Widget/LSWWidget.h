@@ -585,7 +585,13 @@ namespace lsw {
 		 */
 		virtual LSW_HANDLED					InputDeviceChanged( INT /*_iNotifCode*/, HANDLE /*_hDevice*/ ) { return LSW_H_CONTINUE; }
 
-		// WM_KEYDOWN
+		/**
+		 * The WM_KEYDOWN handler.
+		 *
+		 * \param _uiKeyCode The virtual-key code of the nonsystem key.
+		 * \param _uiFlags The repeat count, scan code, extended-key flag, context code, previous key-state flag, and transition-state flag.
+		 * \return Returns an LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED					KeyDown( UINT /*_uiKeyCode*/, UINT /*_uiFlags*/ ) { return LSW_H_CONTINUE; }
 
 		// WM_KEYUP
