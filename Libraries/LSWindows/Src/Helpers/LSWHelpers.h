@@ -563,7 +563,7 @@ namespace lsw {
 		 * \return Returns true if full-screening the given window succeeds.
 		 **/
 		bool								EnterBorderless( HWND _hWnd, bool _bHideMenu ) {
-			bInBorderless = false;
+			if ( bInBorderless ) { return true; }
 			LONG lStyle = ::GetWindowLongW( _hWnd, GWL_STYLE );
 			if ( !lStyle ) { return false; }
 
