@@ -256,6 +256,7 @@ namespace lsn {
 			size_t stOffset = m_rRom.vPrgRom.size() - ui16Size;
 			m_bBus.CopyToMemory( m_rRom.vPrgRom.data() + stOffset, ui16Size, ui16Addr );
 
+			m_rRom.riInfo.bMapperSupported = true;
 			switch ( m_rRom.riInfo.ui16Mapper ) {
 				case 0 : {
 					m_pmbMapper = std::make_unique<CMapper000>();
@@ -395,6 +396,7 @@ namespace lsn {
 				}
 				default : {
 					m_pmbMapper = std::make_unique<CMapperBase>();
+					m_rRom.riInfo.bMapperSupported = false;
 					std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
 					::OutputDebugStringA( sText.c_str() );
 				}

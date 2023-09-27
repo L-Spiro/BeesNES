@@ -29,6 +29,7 @@ namespace lsn {
 		uint16_t							ui16Mapper;										/**< The mapper. */
 		uint16_t							ui16SubMapper;									/**< The sub-mapper. */
 		uint16_t							ui16Chip;										/**< The mapper chip. */
+		bool								bMapperSupported;								/**< If true, the necessary mapper is supported. */
 	};
 
 }	// namespace lsn

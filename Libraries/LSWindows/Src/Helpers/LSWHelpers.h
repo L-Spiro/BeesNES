@@ -599,15 +599,17 @@ namespace lsw {
 		 **/
 		bool								LeaveBorderless( HWND _hWnd ) {
 			if ( !bInBorderless ) { return true; }
+			bInBorderless = false;
 			if ( hMenu != NULL ) {
 				::SetMenu( _hWnd, hMenu );
 				hMenu = NULL;
 			}
 			if ( !::SetWindowLongW( _hWnd, GWL_STYLE,
                   lWindowStyle | WS_OVERLAPPEDWINDOW ) ) {
+				bInBorderless = true;
 				return false;
 			}
-			if ( !::SetWindowPlacement( _hWnd, &wpPlacement ) ) { return false; }
+			if ( !::SetWindowPlacement( _hWnd, &wpPlacement ) ) { bInBorderless = true; return false; }
 			bIsSizing = true;
 			if ( !::SetWindowPos( _hWnd, NULL,
 				wpPlacement.rcNormalPosition.left, wpPlacement.rcNormalPosition.top,
@@ -616,6 +618,7 @@ namespace lsw {
 				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
 				SWP_NOOWNERZORDER | SWP_FRAMECHANGED ) ) {
 				bIsSizing = false;
+				bInBorderless = true;
 				return false; }
 			::ShowWindow( _hWnd, SW_NORMAL );
 			bIsSizing = false;

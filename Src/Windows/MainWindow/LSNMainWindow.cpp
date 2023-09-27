@@ -565,24 +565,33 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::KeyDown( UINT _uiKeyCode, UINT _uiFlags ) {
-		if ( m_bMaximized ) {
-			if ( m_wpPlacement.bInBorderless ) {
-				WORD wVkCode = LOWORD( _uiKeyCode );	// VK_*
-				WORD wKeyFlags = HIWORD( _uiFlags );
-				WORD wScanCode = LOBYTE( wKeyFlags );
+		WORD wVkCode = LOWORD( _uiKeyCode );	// VK_*
+		WORD wKeyFlags = HIWORD( _uiFlags );
+		WORD wScanCode = LOBYTE( wKeyFlags );
 
-				switch ( wVkCode ) {
-					case VK_SHIFT : {}
-					case VK_CONTROL : {}
-					case VK_MENU : {
-						wVkCode = LOWORD( ::MapVirtualKeyW( wScanCode, MAPVK_VSC_TO_VK_EX ) );
-						break;
+		switch ( wVkCode ) {
+			case VK_SHIFT : {}
+			case VK_CONTROL : {}
+			case VK_MENU : {
+				wVkCode = LOWORD( ::MapVirtualKeyW( wScanCode, MAPVK_VSC_TO_VK_EX ) );
+				break;
+			}
+		}
+		if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
+			if ( m_bMaximized ) {
+				if ( m_wpPlacement.bInBorderless ) {
+					if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
+						m_rMaxRect = ClientRect();
 					}
 				}
-				if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
-					m_wpPlacement.LeaveBorderless( Wnd() );
+			}
+			else {
+				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
+					if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
+						m_bMaximized = true;
+						m_rMaxRect = ClientRect();
+					}
 				}
-
 			}
 		}
 		return LSW_H_CONTINUE;
@@ -1218,8 +1227,12 @@ namespace lsn {
 			UpdatedConsolePointer();
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
 				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
-				if ( m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper == 4 ) {
+				uint16_t ui16Mapper = m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper;
+				if ( ui16Mapper == 4 ) {
 					u16Name += u" (Partial Support)";
+				}
+				else if ( !m_bnEmulator.GetSystem()->GetRom()->riInfo.bMapperSupported ) {
+					u16Name += u" (Bad Support)";
 				}
 				::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
 				UpdateOpenRecent();

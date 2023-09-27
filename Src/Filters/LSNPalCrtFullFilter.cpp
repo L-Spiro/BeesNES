@@ -12,7 +12,7 @@
 #include <Helpers/LSWHelpers.h>
 
 #define m_nsSettings				(*reinterpret_cast<PAL_SETTINGS *>(m_vSettings.data()))
-#define m_nnCrtNtsc					(*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()))
+#define m_nnCrtPal					(*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()))
 
 namespace lsn {
 
@@ -69,23 +69,29 @@ namespace lsn {
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
-		::pal_init( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, PAL_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
+		::pal_init( &m_nnCrtPal, m_ui32FinalWidth, m_ui32FinalHeight, PAL_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
 		PAL_CRT psSetts = (*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()));
-		/*m_nnCrtNtsc.brightness = -14;
-		m_nnCrtNtsc.contrast = 125;
-		m_nnCrtNtsc.saturation = 9;
-		m_nnCrtNtsc.blend = 1;
-		//m_nnCrtNtsc.scanlines = 1;
-		m_nnCrtNtsc.white_point = 80;*/
-		m_nnCrtNtsc.saturation = 12;
-		m_nnCrtNtsc.white_point = 80;
-		/*m_nnCrtNtsc.brightness = 0;
-		m_nnCrtNtsc.contrast = 150;
-		m_nnCrtNtsc.saturation = 12;
-		m_nnCrtNtsc.white_point = 80;*/
-		m_nnCrtNtsc.blend = 1;
+		/*m_nnCrtPal.brightness = -14;
+		m_nnCrtPal.contrast = 125;
+		m_nnCrtPal.saturation = 9;
+		m_nnCrtPal.blend = 1;
+		//m_nnCrtPal.scanlines = 1;
+		m_nnCrtPal.white_point = 80;*/
+		//m_nnCrtPal.saturation = 12;
+		//m_nnCrtPal.white_point = 80;
+		/*m_nnCrtPal.brightness = 0;
+		m_nnCrtPal.contrast = 150;
+		m_nnCrtPal.saturation = 12;
+		m_nnCrtPal.white_point = 80;*/
+		//m_nnCrtPal.blend = 1;
+		m_nnCrtPal.brightness = 0;
+		m_nnCrtPal.contrast = 165;
+		m_nnCrtPal.saturation = 16;
+		m_nnCrtPal.black_point = 2;
+		m_nnCrtPal.white_point = 85;
+		m_nnCrtPal.blend = 1;
 
-		m_nnCrtNtsc.chroma_correction = 1;
+		m_nnCrtPal.chroma_correction = 1;
 		m_nsSettings.yoffset = 7;
 		//m_nsSettings.hue = 180;
 		
@@ -127,7 +133,7 @@ namespace lsn {
 		uint64_t ui64TimeNow = m_cPerfClock.GetRealTick();
 #endif	// #ifdef LSN_CRT_PERF
 		// Fade the phosphers.
-		if ( m_nnCrtNtsc.blend ) {
+		if ( m_nnCrtPal.blend ) {
 			if ( m_ptPhospherThread.get() ) {
 				m_ePhospherGo.Signal();
 			}
@@ -138,15 +144,15 @@ namespace lsn {
 		m_nsSettings.h = int( m_ui32OutputHeight );
 		
 
-		::pal_modulate( &m_nnCrtNtsc, &m_nsSettings );
+		::pal_modulate( &m_nnCrtPal, &m_nsSettings );
 
-		if ( m_nnCrtNtsc.blend ) {
+		if ( m_nnCrtPal.blend ) {
 			if ( m_ptPhospherThread.get() ) {
 				m_ePhospherDone.WaitForSignal();
 			}
 		}
 
-		::pal_demodulate( &m_nnCrtNtsc, 4 );
+		::pal_demodulate( &m_nnCrtPal, 4 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;
@@ -218,5 +224,5 @@ namespace lsn {
 
 }	// namespace lsn
 
-#undef m_nnCrtNtsc
+#undef m_nnCrtPal
 #undef m_nsSettings
