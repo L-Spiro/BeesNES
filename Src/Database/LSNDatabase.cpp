@@ -207,6 +207,8 @@ namespace lsn {
 			{ .ui32Crc = 0x09E4C3E0, .pmRegion = LSN_PM_PAL },
 			// Gauntlet 2 (E)
 			{ .ui32Crc = 0x3B997543, .pmRegion = LSN_PM_PAL },
+			// Ghostbusters (Japan)
+			{ .ui32Crc = 0x6E4C0641, .pmRegion = LSN_PM_NTSC },
 			// Ghosts'n Goblins (E)
 			{ .ui32Crc = 0x9369A2F8, .pmRegion = LSN_PM_PAL },
 			// Gilligan's Island (U)

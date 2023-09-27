@@ -1196,7 +1196,7 @@ namespace lsn {
 		m_pbBus->SetReadFunc( 0x4016, CCpu6502::Read4016, this, 0 );
 		m_pbBus->SetWriteFunc( 0x4016, CCpu6502::Write4016, this, 0 );
 		m_pbBus->SetReadFunc( 0x4017, CCpu6502::Read4017, this, 0 );
-		m_pbBus->SetWriteFunc( 0x4017, CCpu6502::Write4017, this, 0 );
+		//m_pbBus->SetWriteFunc( 0x4017, CCpu6502::Write4017, this, 0 );
 	}
 
 	/**

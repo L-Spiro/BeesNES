@@ -42,15 +42,28 @@
 #define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
+											if ( m_bModeSwitch ) {												\
+												m_bModeSwitch = false;											\
+												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
+													 m_ui64StepCycles = _tM1S4_1 - 1;							\
+													Tick_Mode1_Step4<!_bEven, true>();							\
+													return;														\
+												}																\
+												else {															\
+													m_ui64StepCycles = 0;										\
+													Tick_Mode0_Step0<!_bEven, false>();							\
+													return;														\
+												}																\
+											}																	\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
-												m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
 											}																	\
 										}																		\
-										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
+										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );				\
+										m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );
 
-#define LSN_4017_DELAY					3
+#define LSN_4017_DELAY					4
 
 
 namespace lsn {
@@ -123,9 +136,8 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
-			(this->*m_pftTick)();
-
 			m_dvRegisters3_4017.Tick();
+			(this->*m_pftTick)();
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
 
@@ -188,7 +200,7 @@ namespace lsn {
 			m_ui64StepCycles = 0;
 			m_ui64LastBucketCycle = 0;
 			CAudio::BeginEmulation();
-			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false>;
+			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
@@ -324,7 +336,7 @@ namespace lsn {
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step0() {
 			LSN_APU_UPDATE;
 
@@ -335,15 +347,15 @@ namespace lsn {
 
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-0 step-1 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step1() {
 			LSN_APU_UPDATE;
 
@@ -362,15 +374,15 @@ namespace lsn {
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
 
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step1<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-0 step-2 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step2() {
 			LSN_APU_UPDATE;
 
@@ -381,15 +393,15 @@ namespace lsn {
 
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step2<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-0 step-3 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step3() {
 			LSN_APU_UPDATE;
 			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
@@ -413,17 +425,17 @@ namespace lsn {
 			}
 
 			if ( ++m_ui64StepCycles == _tM0S3_2 ) {
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step0<!_bEven, _bMode>;
 				m_ui64StepCycles = 0;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode0_Step3<!_bEven, _bMode>;
 			}
 		}
 
 
 		/** Mode-1 step-0 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step0() {
 			LSN_APU_UPDATE;
 
@@ -434,15 +446,15 @@ namespace lsn {
 
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-1 step-1 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step1() {
 			LSN_APU_UPDATE;
 
@@ -461,15 +473,15 @@ namespace lsn {
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
 
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step1<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-1 step-2 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step2() {
 			LSN_APU_UPDATE;
 
@@ -480,28 +492,28 @@ namespace lsn {
 
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step2<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-1 step-3 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step3() {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S3 ) {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven, _bMode>;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step3<!_bEven, _bMode>;
 			}
 		}
 
 		/** Mode-1 step-4 tick function. */
-		template <bool _bEven>
+		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step4() {
 			LSN_APU_UPDATE;
 
@@ -522,11 +534,11 @@ namespace lsn {
 			}
 
 			if ( ++m_ui64StepCycles == _tM1S4_1 ) {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, _bMode>;
 				m_ui64StepCycles = 0;
 			}
 			else {
-				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven>;
+				m_pftTick = &CApu2A0X::Tick_Mode1_Step4<!_bEven, _bMode>;
 			}
 		}
 

@@ -339,6 +339,9 @@ namespace lsn {
 				pcThis->m_ui8InputsPoll[0] = 0;
 			}
 			pcThis->m_ui8InputsState[0] = pcThis->m_ui8InputsPoll[0];
+
+			pcThis->m_ui8Inputs[1] = (pcThis->m_ui8Inputs[1] & 0b11111000) | (_ui8Val & 0b00000111);
+			pcThis->m_ui8InputsState[1] = pcThis->m_ui8InputsPoll[1];
 		}
 
 		/**
