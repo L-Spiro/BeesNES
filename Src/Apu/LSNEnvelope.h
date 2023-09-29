@@ -94,24 +94,36 @@ namespace lsn {
 	 * \return Returns the envelope value after any updating that needs to be done.
 	 **/
 	inline uint8_t CEnvelope::TickEnvelope( bool _bUseVolume, bool _bLoop ) {
+		/**
+		 * When clocked by the frame counter, one of two actions occurs: if the start flag is clear, the divider is clocked, otherwise the start flag is cleared, the decay level counter is loaded with 15, and the divider's period is immediately reloaded.
+		 * When the divider is clocked while at 0, it is loaded with V and clocks the decay level counter. Then one of two actions occurs: If the counter is non-zero, it is decremented, otherwise if the loop flag is set, the decay level counter is loaded with 15.
+		 * The envelope unit's volume output depends on the constant volume flag: if set, the envelope parameter directly sets the volume, otherwise the decay level is the current volume. The constant volume flag has no effect besides selecting the volume source; the decay level will still be updated when constant volume is selected.
+		 */
 		if ( m_bRestart ) {
+			// otherwise the start flag is cleared, the decay level counter is loaded with 15, and the divider's period is immediately reloaded.
 			m_bRestart = false;
 			m_ui8DividerCounter = 15;
 			m_ui8DecayCounter = m_ui8Volume;
 		}
 		else {
+			// if the start flag is clear, the divider is clocked
 			if ( m_ui8DividerCounter == 0 ) {
+				// When the divider is clocked while at 0, it is loaded with V
 				m_ui8DividerCounter = m_ui8Volume;
 
+				// and clocks the decay level counter. Then one of two actions occurs:
 				if ( m_ui8DecayCounter == 0 ) {
+					// otherwise if the loop flag is set, the decay level counter is loaded with 15.
 					if ( _bLoop ) { m_ui8DecayCounter = 15; }
 
 				}
+				// If the counter is non-zero, it is decremented
 				else { m_ui8DecayCounter--; }
 			}
 			else { m_ui8DividerCounter--; }
 		}
 
+		// The envelope unit's volume output depends on the constant volume flag: if set, the envelope parameter directly sets the volume, otherwise the decay level is the current volume. The constant volume flag has no effect besides selecting the volume source; the decay level will still be updated when constant volume is selected.
 		m_ui8Output = _bUseVolume ? m_ui8Volume : m_ui8DecayCounter;
 
 		return m_ui8Output;

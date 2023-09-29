@@ -45,25 +45,27 @@
 											if ( m_bModeSwitch ) {												\
 												m_bModeSwitch = false;											\
 												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
-													 m_ui64StepCycles = _tM1S4_1 - 1;							\
-													Tick_Mode1_Step4<!_bEven, true>();							\
+													 m_ui64StepCycles = _tM1S4_1 - 2;							\
+													Tick_Mode1_Step4<_bEven, true>();							\
+													m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;		\
+													m_ui64StepCycles = 0;										\
 													return;														\
 												}																\
 												else {															\
 													m_ui64StepCycles = 0;										\
-													Tick_Mode0_Step0<!_bEven, false>();							\
+													Tick_Mode0_Step0<_bEven, false>();							\
 													return;														\
 												}																\
 											}																	\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
 												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
+												m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
 											}																	\
 										}																		\
-										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );				\
-										m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );
+										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
 
-#define LSN_4017_DELAY					4
+#define LSN_4017_DELAY					(3+1)
 
 
 namespace lsn {
@@ -163,7 +165,7 @@ namespace lsn {
 			}
 			float fNoise = (LSN_NOISE_ENABLED( this ) && m_nNoise.GetLengthCounter() > 0 && m_nNoise.Output()) ? m_nNoise.GetEnvelopeOutput() / 1.0f : 0.0f;
 			float fTriangle = (LSN_TRIANGLE_ENABLED( this ) && m_tTriangle.GetLengthCounter() > 0 && m_tTriangle.GetLinearCounter() > 0) ? m_tTriangle.Output() / 1.0f : 0.0f;
-			float fDmc = 0.0;
+			float fDmc = 0.0f;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
 			fDmc /= 22638.0f;
