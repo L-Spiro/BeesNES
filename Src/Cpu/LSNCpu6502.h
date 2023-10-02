@@ -57,6 +57,16 @@
 #define LSN_POP( PHI2_FUNC )																LSN_INSTR_READ_DISCARD_PHI1( 0x100 + uint8_t( S + 1 ), PHI2_FUNC ); ++S//m_pbBus->Read( 0x100 + ++S )
 #define LSN_CHECK_NMI																		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine
 
+
+#define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )												/*m_ccCurContext.ui8Cycle += AMT;*/	\
+																							m_ccCurContext.ui8FuncIdx += AMT;
+																							/*++m_ccCurContext.ui8Cycle*/
+#define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
+#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
+
+#define LSN_BRK_NMI																			true
+#define LSN_BRANCH_NMI																		false
+
 namespace lsn {
 
 	/**
@@ -387,9 +397,30 @@ namespace lsn {
 		/** Begins an IRQ "instruction". */
 		inline void							Irq_PHI2();										// Cycle 1.
 		/** Reads the next instruction byte and throws it away. */
-		void								ReadNextInstByteAndDiscard();					// Cycle 2.
+		template <bool _bPollNmi>
+		void								ReadNextInstByteAndDiscard() {					// Cycle 2.
+			//m_pbBus->Read( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<_bPollNmi> );
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+
+			//LSN_CHECK_NMI;
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Reads the next instruction byte and throws it away. */
-		void								ReadNextInstByteAndDiscardAndIncPc();			// Cycle 2.
+		template <bool _bPollNmi>
+		void								ReadNextInstByteAndDiscardAndIncPc() {			// Cycle 2.
+			//  #  address R/W description
+			// --- ------- --- -----------------------------------------------
+			//  2    PC     R  read next instruction byte (and throw it away),
+			//                 increment PC
+
+			//m_pbBus->Read( pc.PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<_bPollNmi> );
+			++pc.PC;
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Reads the next instruction byte and throws it away, increasing PC. */
 		void								NopAndIncPcAndFinish();
 		/** Fetches a value using immediate addressing. */
@@ -435,9 +466,26 @@ namespace lsn {
 		/** 3rd cycle of PLA/PLP/RTI/RTS. */
 		void								PLA_PLP_RTI_RTS_Cycle3();						// Cycle 3.
 		/** Pushes PCH. */
-		void								PushPch();										// Cycle 3.
+		template <bool _bPollNmi>
+		void								PushPch() {										// Cycle 3.
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<_bPollNmi> );
+
+			//LSN_CHECK_NMI;
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Pushes PCL, decrements S. */
-		void								PushPcl();										// Cycle 4.
+		template <bool _bPollNmi>
+		void								PushPcl() {										// Cycle 4.
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			//  #  address R/W description
+			// --- ------- --- -------------------------------------------------
+			//  4  $0100,S  W  push PCL on stack, decrement S
+			LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<_bPollNmi> );
+
+			//LSN_CHECK_NMI;
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Pushes status with B. */
 		void								PushStatusAndBAndSetAddressByIrq();				// Cycle 5.
 		/** Pushes status without B. */
@@ -476,11 +524,30 @@ namespace lsn {
 		void								FetchEffectiveAddressHigh_IzY_Phi2();
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 		template <bool _bHandleCrossing>
-		void								ReadEffectiveAddressFixHighByte_IzY_AbX_AbY();		// Cycle 5.
+		void								ReadEffectiveAddressFixHighByte_IzY_AbX_AbY();	// Cycle 5.
 		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
-		void								CopyVectorPcl();								// Cycle 6.
+		template <bool _bPollNmi>
+		void								CopyVectorPcl() {								// Cycle 6.
+			/*LSN_ADVANCE_CONTEXT_COUNTERS;
+			pc.ui8Bytes[0] = m_pbBus->Read( m_ccCurContext.a.ui16Address );*/
+			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], Phi2_Read<_bPollNmi> );
+			LSN_ADVANCE_CONTEXT_COUNTERS;
+			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
+
+			//LSN_CHECK_NMI;
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
-		void								CopyVectorPch();								// Cycle 7.
+		template <bool _bPollNmi>
+		void								CopyVectorPch() {								// Cycle 7.
+			//pc.ui8Bytes[1] = m_pbBus->Read( m_ccCurContext.a.ui16Address + 1 );
+			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1], Phi2_Read<_bPollNmi> );
+
+			LSN_FINISH_INST;
+
+			//LSN_CHECK_NMI;
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
 		/** Fetches the low byte of PC from $FFFE. */
 		void								FetchPclFromFFFE();								// Cycle 6.
 		/** Fetches the high byte of PC from $FFFF. */

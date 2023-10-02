@@ -17,12 +17,6 @@
 #include "LSNCpu6502.h"
 #include "../Bus/LSNBus.h"
 
-#define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )											/*m_ccCurContext.ui8Cycle += AMT;*/	\
-																						m_ccCurContext.ui8FuncIdx += AMT;
-																						/*++m_ccCurContext.ui8Cycle*/
-#define LSN_ADVANCE_CONTEXT_COUNTERS													LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
-#define LSN_FINISH_INST																	m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
-
 #define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::ReadFromEffectiveAddress_IzX_IzY_ZpX_AbX_AbY_Abs, &CCpu6502::FUNC, &CCpu6502::FinalWriteCycle, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_W( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
@@ -79,12 +73,12 @@ namespace lsn {
 		/** 00-07 */
 		{	// 00
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
-				&CCpu6502::PushPch,
-				&CCpu6502::PushPcl,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<LSN_BRK_NMI>,
+				&CCpu6502::PushPch<LSN_BRK_NMI>,
+				&CCpu6502::PushPcl<LSN_BRK_NMI>,
 				&CCpu6502::PushStatusAndBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl,
-				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl<false>,
+				&CCpu6502::CopyVectorPch<false>, },										// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_BRK,
 		},
 		{	// 01
@@ -115,7 +109,7 @@ namespace lsn {
 		/** 08-0F */
 		{	// 08
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard<true>,
 				&CCpu6502::PHP, },
 				3, LSN_AM_IMPLIED, 1, LSN_I_PHP,
 		},
@@ -240,7 +234,7 @@ namespace lsn {
 		/** 28-2F */
 		{	// 28
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard<true>,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PLP, },
 				4, LSN_AM_IMPLIED, 1, LSN_I_PLP,
@@ -331,11 +325,11 @@ namespace lsn {
 		/** 40-47 */
 		{	// 40
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<true>,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PullStatusWithoutB,
 				&CCpu6502::PullPcl,
-				&CCpu6502::RTI, },									// Pops PCH.
+				&CCpu6502::RTI, },														// Pops PCH.
 				6, LSN_AM_IMPLIED, 1, LSN_I_RTI,
 		},
 		{	// 41
@@ -366,7 +360,7 @@ namespace lsn {
 		/** 48-4F */
 		{	// 48
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard<true>,
 				&CCpu6502::PHA, },
 				3, LSN_AM_IMPLIED, 1, LSN_I_PHA,
 		},
@@ -459,7 +453,7 @@ namespace lsn {
 		/** 60-67 */
 		{	// 60
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<true>,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PullPcl,
 				&CCpu6502::PullPch,
@@ -494,7 +488,7 @@ namespace lsn {
 		/** 68-6F */
 		{	// 68
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::ReadNextInstByteAndDiscard<true>,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PLA, },
 				4, LSN_AM_IMPLIED, 1, LSN_I_PLA,
@@ -645,7 +639,7 @@ namespace lsn {
 
 		/** 90-97 */
 		{	// 90
-			LSN_BRANCH( BCC, LSN_SF_CARRY, 0 )										// Branch if C == 0.
+			LSN_BRANCH( BCC, LSN_SF_CARRY, 0 )											// Branch if C == 0.
 		},
 		{	// 91
 			LSN_INDIRECT_Y_W( STA, STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -760,7 +754,7 @@ namespace lsn {
 
 		/** B0-B7 */
 		{	// B0
-			LSN_BRANCH( BCS, LSN_SF_CARRY, 1 )										// Branch if C == 1.
+			LSN_BRANCH( BCS, LSN_SF_CARRY, 1 )											// Branch if C == 1.
 		},
 		{	// B1
 			LSN_INDIRECT_Y_R( LDA, LDA_IzY_AbX_AbY_1, LDA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -875,7 +869,7 @@ namespace lsn {
 		
 		/** D0-D7 */
 		{	// D0
-			LSN_BRANCH( BNE, LSN_SF_ZERO, 0 )										// Branch if Z == 0.
+			LSN_BRANCH( BNE, LSN_SF_ZERO, 0 )											// Branch if Z == 0.
 		},
 		{	// D1
 			LSN_INDIRECT_Y_R( CMP, CMP_IzY_AbX_AbY_1, CMP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -990,7 +984,7 @@ namespace lsn {
 
 		/** F0-F7 */
 		{	// F0
-			LSN_BRANCH( BEQ, LSN_SF_ZERO, 1 )										// Branch if Z == 0.
+			LSN_BRANCH( BEQ, LSN_SF_ZERO, 1 )											// Branch if Z == 0.
 		},
 		{	// F1
 			LSN_INDIRECT_Y_R( SBC, SBC_IzY_AbX_AbY_1, SBC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs )
@@ -1049,22 +1043,22 @@ namespace lsn {
 
 		{	// 100
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
-				&CCpu6502::PushPch,
-				&CCpu6502::PushPcl,
+				&CCpu6502::ReadNextInstByteAndDiscard<LSN_BRK_NMI>,
+				&CCpu6502::PushPch<LSN_BRK_NMI>,
+				&CCpu6502::PushPcl<LSN_BRK_NMI>,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl,
-				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl<false>,
+				&CCpu6502::CopyVectorPch<false>, },									// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_NMI,
 		},
 		{	// 101
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard,
-				&CCpu6502::PushPch,
-				&CCpu6502::PushPcl,
+				&CCpu6502::ReadNextInstByteAndDiscard<LSN_BRK_NMI>,
+				&CCpu6502::PushPch<LSN_BRK_NMI>,
+				&CCpu6502::PushPcl<LSN_BRK_NMI>,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl,
-				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl<false>,
+				&CCpu6502::CopyVectorPch<false>, },									// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_IRQ,
 		},
 	};
@@ -1438,33 +1432,6 @@ namespace lsn {
 		}
 	}
 
-	/**
-	 * Reads the next instruction byte and throws it away.
-	 */
-	void CCpu6502::ReadNextInstByteAndDiscard() {
-		//m_pbBus->Read( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
-		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-
-		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
-	}
-
-	/** Reads the next instruction byte and throws it away. */
-	void CCpu6502::ReadNextInstByteAndDiscardAndIncPc() {
-		//  #  address R/W description
-		// --- ------- --- -----------------------------------------------
-		//  2    PC     R  read next instruction byte (and throw it away),
-		//                 increment PC
-
-		//m_pbBus->Read( pc.PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
-		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
-		++pc.PC;
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-
-		LSN_INSTR_END_PHI1( true );
-	}
-
 	/** Reads the next instruction byte and throws it away, increasing PC. */
 	void CCpu6502::NopAndIncPcAndFinish() {
 		// Last cycle in the instruction.
@@ -1807,32 +1774,11 @@ namespace lsn {
 		LSN_INSTR_END_PHI1( true );
 	}
 
-	/** Pushes PCH. */
-	void CCpu6502::PushPch() {
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-		LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<true> );
-
-		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
-	}
-
-	/** Pushes PCL, decrements S. */
-	void CCpu6502::PushPcl() {
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-		//  #  address R/W description
-		// --- ------- --- -------------------------------------------------
-		//  4  $0100,S  W  push PCL on stack, decrement S
-		LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<true> );
-
-		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
-	}
-
 	/** Pushes status with B. */
 	void CCpu6502::PushStatusAndBAndSetAddressByIrq() {
 		LSN_ADVANCE_CONTEXT_COUNTERS;
 		// NMI overrides IRQ and BRK.
-		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), Phi2_Write<true> );
+		LSN_PUSH( m_ui8Status | uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), Phi2_Write<false> );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
@@ -1841,7 +1787,7 @@ namespace lsn {
 		}
 
 		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
+		LSN_INSTR_END_PHI1( false );
 	}
 
 	/** Pushes status without B. */
@@ -1850,7 +1796,7 @@ namespace lsn {
 		// NMI overrides IRQ and BRK.
 		uint8_t ui8Status = m_ui8Status;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ), false>( ui8Status );
-		LSN_PUSH( ui8Status, Phi2_Write<true> );
+		LSN_PUSH( ui8Status, Phi2_Write<LSN_BRK_NMI> );
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
 		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
 		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
@@ -1859,7 +1805,7 @@ namespace lsn {
 		}
 
 		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
+		LSN_INSTR_END_PHI1( LSN_BRK_NMI );
 	}
 
 	/** Pushes status an decrements S. */
@@ -2120,29 +2066,6 @@ namespace lsn {
 		LSN_INSTR_END_PHI1( true );
 	}
 
-	/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
-	void CCpu6502::CopyVectorPcl() {
-		/*LSN_ADVANCE_CONTEXT_COUNTERS;
-		pc.ui8Bytes[0] = m_pbBus->Read( m_ccCurContext.a.ui16Address );*/
-		LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], Phi2_Read<true> );
-		LSN_ADVANCE_CONTEXT_COUNTERS;
-		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
-
-		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
-	}
-
-	/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
-	void CCpu6502::CopyVectorPch() {
-		//pc.ui8Bytes[1] = m_pbBus->Read( m_ccCurContext.a.ui16Address + 1 );
-		LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1], Phi2_Read<true> );
-
-		LSN_FINISH_INST;
-
-		//LSN_CHECK_NMI;
-		LSN_INSTR_END_PHI1( true );
-	}
-
 	/** Fetches the low byte of PC from $FFFE. */
 	void CCpu6502::FetchPclFromFFFE() {
 		//  #  address R/W description
@@ -2231,14 +2154,14 @@ namespace lsn {
 		// Branches don't check NMI on cycle 2.
 		//LSN_CHECK_NMI;
 		//LSN_INSTR_END_PHI1( true );
-		LSN_INSTR_END_PHI1( false );
+		LSN_INSTR_END_PHI1( LSN_BRANCH_NMI );
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2_Phi2() {
 		LSN_INSTR_READ_PHI2;
 		m_ccCurContext.j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_ccCurContext.ui8Operand)) + pc.PC;
-		LSN_INSTR_END_PHI2( true );
+		LSN_INSTR_END_PHI2( LSN_BRANCH_NMI );
 	}
 
 	/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
@@ -2247,7 +2170,7 @@ namespace lsn {
 		if ( bCrossed ) {
 			// Fetch next opcode.
 			//m_pbBus->Read( pc.PC );	// Read and discard.  Affects emulation of the floating bus.
-			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<false> );
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<LSN_BRANCH_NMI> );
 
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 			// JSON testing shows this happening on the next cycle.
@@ -2259,7 +2182,7 @@ namespace lsn {
 			// NMI not polled here.
 			//LSN_CHECK_NMI;
 			//LSN_INSTR_END_PHI1( true );
-			LSN_INSTR_END_PHI1( false );
+			LSN_INSTR_END_PHI1( LSN_BRANCH_NMI );
 		}
 		else {
 			// Fetch next opcode.
@@ -2313,7 +2236,7 @@ namespace lsn {
 		//	system eat the next opcode on the next cycle, but they could be pre-fetching the opcode as an
 		//	optimization.
 		//m_pbBus->Read( pc.PC );
-		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
+		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<LSN_BRANCH_NMI> );
 
 		// Last cycle in the instruction.
 		LSN_FINISH_INST;
@@ -2324,7 +2247,7 @@ namespace lsn {
 		// NMI not polled here.
 		//LSN_CHECK_NMI;
 		//LSN_INSTR_END_PHI1( true );
-		LSN_INSTR_END_PHI1( false );
+		LSN_INSTR_END_PHI1( LSN_BRANCH_NMI );
 	}
 
 	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */

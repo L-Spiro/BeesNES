@@ -41,21 +41,21 @@
 #define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
 #define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
+// _bEven is false on 0 2 4 6 8, etc.  It goes by cycle count rather than cycle index.
 #define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
 											if ( m_bModeSwitch ) {												\
 												m_bModeSwitch = false;											\
-												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
+												if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {		\
 													 m_ui64StepCycles = _tM1S4_1 - 2;							\
 													Tick_Mode1_Step4<_bEven, true>();							\
 													m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;		\
-													m_ui64StepCycles = 0;										\
-													return;														\
+													m_ui64StepCycles = 1;										\
 												}																\
 												else {															\
 													m_ui64StepCycles = 0;										\
 													Tick_Mode0_Step0<_bEven, false>();							\
-													return;														\
 												}																\
+												return;															\
 											}																	\
 											{																	\
 												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
