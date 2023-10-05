@@ -337,6 +337,8 @@ namespace lsn {
 			{ .ui32Crc = 0xC1CD15DD, .pmRegion = LSN_PM_PAL },
 			// Mr. Gimmick (E) [!]
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
+			// Muppet Adventure - Chaos at the Carnival (U)
+			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC },
 			// NFL Football (U)
 			{ .ui32Crc = 0x35B6FEBF, .pmRegion = LSN_PM_NTSC },
 			// New Ghostbusters 2 (E) [!]

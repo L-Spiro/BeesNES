@@ -933,7 +933,11 @@ namespace lsn {
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_bBus.Read( ui16Addr ) | (ppPpu->m_ui8IoBusLatch & ~0x3F));
+				uint16_t ui16Mirrored = uint16_t( ((ui16Addr - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY );
+				if ( (ui16Mirrored & 0x03) == 0x00 ) {
+					ui16Mirrored = ui16Mirrored & ~0x0010;
+				}
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_bBus.BypassRead( ui16Mirrored ) | (ppPpu->m_ui8IoBusLatch & ~0x3F));
 				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
 				//ppPpu->m_ui8DataBuffer = _pui8Data[(ui16Addr & 0x7FF) | 0x2000];
 			}
