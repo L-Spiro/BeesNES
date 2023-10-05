@@ -754,16 +754,25 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi || true ) {
+			{
+				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+				//	consider this read as happening on the last PPU cycle and adjust accordingly.
+				int16_t i16AdjustedX = ppPpu->m_ui16CurX - 1;
+				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
+				if ( i16AdjustedX < 0 ) {
+					i16AdjustedX += _tDotWidth;
+					--i16AdjustedY;
+				}
+
 				// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
-				if ( ppPpu->m_ui16CurY == (_tPreRender + _tRender + _tPostRender) ) {
+				if ( i16AdjustedY == (_tPreRender + _tRender + _tPostRender) ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
-					if ( ppPpu->m_ui16CurX == (1 - 1) ) {
+					if ( i16AdjustedX == (1 - 1) ) {
 						ppPpu->m_bSuppressNmi = true;
 						ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 						//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
 					}
-					else if ( ppPpu->m_ui16CurX == (1 - 0) || ppPpu->m_ui16CurX == (1 + 1) ) {
+					else if ( i16AdjustedX == (1 - 0) || i16AdjustedX == (1 + 1) ) {
 						// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
 						ppPpu->m_bSuppressNmi = true;
 						ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
@@ -1221,6 +1230,7 @@ namespace lsn {
 		 * Updates the VRAM address after a read or write of $2007.
 		 */
 		inline void										UpdateVramAddr() {
+			// When called on the CPU, likely should use adjusted X and Y values as with read-2002.
 			if ( (m_ui16CurY >= (_tPreRender + _tRender) && m_ui16CurY != (_tDotHeight - 1) ) || !m_bRendering ) {
 				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr + (m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (0x7FFF);
 			}
@@ -1631,6 +1641,17 @@ namespace lsn {
 			std::string sRet;
 
 			const uint16_t ui61RenderHeight = _tPreRender + _tRender;
+
+			// Clear V-blank and friends.  Moved to the start of the next tick following the normal tick where it should happen.
+			//	This keeps the flags alive until the CPU can read them if that happens on the same PPU tick as they should be cleared.
+			if ( _uY == _tDotHeight - 1 && _uX == 1 + 1 ) {
+				sRet += "\r\n"
+				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
+				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
+				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
+				"m_bSuppressNmi = false;\r\n"
+				"m_pnNmiTarget->ClearNmi();\r\n";
+			}
 			
 
 			// Unused reads at the end of a line.
@@ -1931,14 +1952,14 @@ namespace lsn {
 			}
 
 			// Clear V-blank and friends.
-			if ( _uY == _tDotHeight - 1 && _uX == 1 ) {
+			/*if ( _uY == _tDotHeight - 1 && _uX == 1 ) {
 				sRet += "\r\n"
 				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
 				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
 				"m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
 				"m_bSuppressNmi = false;\r\n"
 				"m_pnNmiTarget->ClearNmi();\r\n";
-			}
+			}*/
 
 			// Log the first rendered pixel's cycle.
 			if ( _uX == LSN_LEFT && _uY == 0 ) {

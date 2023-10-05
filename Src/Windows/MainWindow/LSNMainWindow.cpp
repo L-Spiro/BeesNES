@@ -1295,7 +1295,7 @@ namespace lsn {
 			std::vector<std::u16string> vFiles;
 			if ( zfFile.GatherArchiveFiles( vFiles ) ) {
 				for ( size_t I = 0; I < vFiles.size(); ++I ) {
-					if ( vFiles[I] == _s16File ) {
+					if ( CUtilities::Replace( vFiles[I], u'/', u'\\' ) == _s16File ) {
 						std::vector<uint8_t> vExtracted;
 						zfFile.ExtractToMemory( vFiles[I], vExtracted );
 						std::u16string u16sPath = _s16ZipPath;

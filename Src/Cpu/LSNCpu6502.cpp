@@ -2130,6 +2130,8 @@ namespace lsn {
 			++pc.PC;
 
 			LSN_FINISH_INST;
+			LSN_INSTR_END_PHI1( true );
+			return;
 		}
 		else {
 			// Fetch next opcode.

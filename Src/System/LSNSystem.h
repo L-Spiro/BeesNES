@@ -154,7 +154,7 @@ namespace lsn {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
 					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
-					if ( m_hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low ) {
+					if ( m_hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter /*&& m_hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low*/ ) {
 						phsSlot = &m_hsSlots[LSN_CPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
@@ -162,7 +162,7 @@ namespace lsn {
 						phsSlot = &m_hsSlots[LSN_CPU_PHI2_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
-					if ( m_hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_SLOT].ui64Counter <= ui64Low ) {
+					if ( m_hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
 						phsSlot = &m_hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}

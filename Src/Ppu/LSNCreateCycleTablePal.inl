@@ -1,4 +1,4 @@
-if constexpr ( _tRegCode == 1 ) {
+if constexpr (_tRegCode == 1) {
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_1__0x0_338x0_340x0_0x1_338x1_340x1_0x2_338x2_340x2_0x3_X;
 		m_cCycle[0] = pfTmp;
@@ -87588,6 +87588,7 @@ if constexpr ( _tRegCode == 1 ) {
 		m_cCycle[81487] = pfTmp;
 		m_cCycle[81820] = pfTmp;
 		m_cCycle[81828] = pfTmp;
+		m_cCycle[106052] = pfTmp;
 		m_cCycle[106060] = pfTmp;
 		m_cCycle[106068] = pfTmp;
 		m_cCycle[106076] = pfTmp;
@@ -87621,10 +87622,6 @@ if constexpr ( _tRegCode == 1 ) {
 		m_cCycle[106300] = pfTmp;
 		m_cCycle[106372] = pfTmp;
 		m_cCycle[106380] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_1__1x311;
-		m_cCycle[106052] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_1__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x3_323x4_331x4_X;
@@ -90176,7 +90173,6 @@ if constexpr ( _tRegCode == 1 ) {
 		m_cCycle[81488] = pfTmp;
 		m_cCycle[81821] = pfTmp;
 		m_cCycle[81829] = pfTmp;
-		m_cCycle[106053] = pfTmp;
 		m_cCycle[106061] = pfTmp;
 		m_cCycle[106069] = pfTmp;
 		m_cCycle[106077] = pfTmp;
@@ -91251,6 +91247,10 @@ if constexpr ( _tRegCode == 1 ) {
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_1__257x240;
 		m_cCycle[82097] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_1__2x311;
+		m_cCycle[106053] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_1__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x1_X;

@@ -1077,34 +1077,6 @@ void LSN_FASTCALL								Cycle_2__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 }
 
 
-void LSN_FASTCALL								Cycle_2__1x311() {
-
-	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
-
-	m_psPpuStatus.s.ui8VBlank = 0;
-	m_psPpuStatus.s.ui8SpriteOverflow = 0;
-	m_psPpuStatus.s.ui8Sprite0Hit = 0;
-	m_bSuppressNmi = false;
-	m_pnNmiTarget->ClearNmi();
-
-	++m_stCurCycle;
-}
-
-
 void LSN_FASTCALL								Cycle_2__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x3_323x4_331x4_X() {
 
 	if (m_bRendering) {
@@ -1292,6 +1264,27 @@ void LSN_FASTCALL								Cycle_2__257x240() {
 		}
 		m_pdhHost->Swap();
 	}
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_2__2x311() {
+
+	m_psPpuStatus.s.ui8VBlank = 0;
+	m_psPpuStatus.s.ui8SpriteOverflow = 0;
+	m_psPpuStatus.s.ui8Sprite0Hit = 0;
+	m_bSuppressNmi = false;
+	m_pnNmiTarget->ClearNmi();
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+	}
+
+	m_ui8NextTileId = m_ui8NtAtBuffer;
 
 	++m_stCurCycle;
 }
@@ -1696,5 +1689,3 @@ void LSN_FASTCALL								Cycle_2__0x240() {
 
 	++m_stCurCycle;
 }
-
-
