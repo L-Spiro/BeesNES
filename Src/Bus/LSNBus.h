@@ -310,16 +310,6 @@ namespace lsn {
 		}
 
 		/**
-		 * Do a bypass read of a memory address  This should be used in extremely rare and controlled situations.
-		 *
-		 * \param _ui16Address The address to read.
-		 * \return Returns the value at the given address, bypassing normal bus access routines.
-		 */
-		inline uint8_t						BypassRead( uint16_t _ui16Address ) {
-			return m_ui8Ram[_ui16Address];
-		}
-
-		/**
 		 * Inspect a RAM location for debug purposes.
 		 *
 		 * \param _ui16Address The address to read.

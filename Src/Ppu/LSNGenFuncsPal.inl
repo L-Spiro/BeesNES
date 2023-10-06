@@ -26,7 +26,7 @@ void LSN_FASTCALL								Cycle_1__340x311() {
 void LSN_FASTCALL								Cycle_1__337x0_339x0_337x1_339x1_337x2_339x2_337x3_339x3_337x4_339x4_X() {
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -245,7 +245,7 @@ void LSN_FASTCALL								Cycle_1__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_13
 	RenderPixel();
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -278,7 +278,7 @@ void LSN_FASTCALL								Cycle_1__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 
 	// LSN_PPU_NAMETABLES = 0x2000.
 	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = m_bBus.Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 		(m_paPpuAddrV.s.ui16NametableX << 10) |
 		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
 		(m_paPpuAddrV.s.ui16CourseX >> 2));
@@ -316,7 +316,7 @@ void LSN_FASTCALL								Cycle_1__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 	RenderPixel();
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		0));
@@ -351,7 +351,7 @@ void LSN_FASTCALL								Cycle_1__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 	RenderPixel();
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		8));
@@ -392,7 +392,7 @@ void LSN_FASTCALL								Cycle_1__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 	RenderPixel();
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -404,7 +404,7 @@ void LSN_FASTCALL								Cycle_1__257x0_257x1_257x2_257x3_257x4_257x5_257x6_257x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
@@ -429,7 +429,7 @@ void LSN_FASTCALL								Cycle_1__259x0_259x1_259x2_259x3_259x4_259x5_259x6_259x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -489,7 +489,7 @@ void LSN_FASTCALL								Cycle_1__265x0_265x1_265x2_265x3_265x4_265x5_265x6_265x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -509,7 +509,7 @@ void LSN_FASTCALL								Cycle_1__267x0_267x1_267x2_267x3_267x4_267x5_267x6_267x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -569,7 +569,7 @@ void LSN_FASTCALL								Cycle_1__273x0_273x1_273x2_273x3_273x4_273x5_273x6_273x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -589,7 +589,7 @@ void LSN_FASTCALL								Cycle_1__275x0_275x1_275x2_275x3_275x4_275x5_275x6_275x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -649,7 +649,7 @@ void LSN_FASTCALL								Cycle_1__281x0_281x1_281x2_281x3_281x4_281x5_281x6_281x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -669,7 +669,7 @@ void LSN_FASTCALL								Cycle_1__283x0_283x1_283x2_283x3_283x4_283x5_283x6_283x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -729,7 +729,7 @@ void LSN_FASTCALL								Cycle_1__289x0_289x1_289x2_289x3_289x4_289x5_289x6_289x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -749,7 +749,7 @@ void LSN_FASTCALL								Cycle_1__291x0_291x1_291x2_291x3_291x4_291x5_291x6_291x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -809,7 +809,7 @@ void LSN_FASTCALL								Cycle_1__297x0_297x1_297x2_297x3_297x4_297x5_297x6_297x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -829,7 +829,7 @@ void LSN_FASTCALL								Cycle_1__299x0_299x1_299x2_299x3_299x4_299x5_299x6_299x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -889,7 +889,7 @@ void LSN_FASTCALL								Cycle_1__305x0_305x1_305x2_305x3_305x4_305x5_305x6_305x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -909,7 +909,7 @@ void LSN_FASTCALL								Cycle_1__307x0_307x1_307x2_307x3_307x4_307x5_307x6_307x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -969,7 +969,7 @@ void LSN_FASTCALL								Cycle_1__313x0_313x1_313x2_313x3_313x4_313x5_313x6_313x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -989,7 +989,7 @@ void LSN_FASTCALL								Cycle_1__315x0_315x1_315x2_315x3_315x4_315x5_315x6_315x
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -1071,7 +1071,7 @@ void LSN_FASTCALL								Cycle_1__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 	}
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -1088,7 +1088,7 @@ void LSN_FASTCALL								Cycle_1__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x
 
 	// LSN_PPU_NAMETABLES = 0x2000.
 	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = m_bBus.Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 		(m_paPpuAddrV.s.ui16NametableX << 10) |
 		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
 		(m_paPpuAddrV.s.ui16CourseX >> 2));
@@ -1110,7 +1110,7 @@ void LSN_FASTCALL								Cycle_1__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x
 	}
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		0));
@@ -1129,7 +1129,7 @@ void LSN_FASTCALL								Cycle_1__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x
 	}
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		8));
@@ -1238,8 +1238,8 @@ void LSN_FASTCALL								Cycle_1__257x240() {
 						for (uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX) {
 							uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;
 							for (uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row) {
-								uint8_t ui8TileLsb = m_bBus.Read(0x1000 * I + ui16Offset + ui16Row + 0);
-								uint8_t ui8TileMsb = m_bBus.Read(0x1000 * I + ui16Offset + ui16Row + 8);
+								uint8_t ui8TileLsb = Read(0x1000 * I + ui16Offset + ui16Row + 0);
+								uint8_t ui8TileMsb = Read(0x1000 * I + ui16Offset + ui16Row + 8);
 								for (uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col) {
 									uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);
 									ui8TileLsb >>= 1;
@@ -1445,7 +1445,7 @@ void LSN_FASTCALL								Cycle_1__259x311_265x311_267x311_273x311_275x311_305x31
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	++m_stCurCycle;
 }
@@ -1455,7 +1455,7 @@ void LSN_FASTCALL								Cycle_1__281x311_283x311_289x311_291x311_297x311_299x31
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
@@ -1471,7 +1471,7 @@ void LSN_FASTCALL								Cycle_1__257x311() {
 
 	m_ui8OamAddr = 0;
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
 	if (m_bRendering) {
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
@@ -1514,7 +1514,7 @@ void LSN_FASTCALL								Cycle_1__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 	RenderPixel();
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -1547,7 +1547,7 @@ void LSN_FASTCALL								Cycle_1__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 
 	// LSN_PPU_NAMETABLES = 0x2000.
 	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = m_bBus.Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
 		(m_paPpuAddrV.s.ui16NametableX << 10) |
 		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
 		(m_paPpuAddrV.s.ui16CourseX >> 2));
@@ -1585,7 +1585,7 @@ void LSN_FASTCALL								Cycle_1__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 	RenderPixel();
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		0));
@@ -1620,7 +1620,7 @@ void LSN_FASTCALL								Cycle_1__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 	RenderPixel();
 
 	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
 		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
 		(m_paPpuAddrV.s.ui16FineY) +
 		8));
@@ -1649,7 +1649,7 @@ void LSN_FASTCALL								Cycle_1__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 	RenderPixel();
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	++m_stCurCycle;
 }
@@ -1675,7 +1675,7 @@ void LSN_FASTCALL								Cycle_1__1x0() {
 	RenderPixel();
 
 	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = m_bBus.Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 
 	m_ui64RenderStartCycle = m_ui64Cycle;
 

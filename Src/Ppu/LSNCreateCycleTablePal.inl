@@ -1,4 +1,4 @@
-if constexpr (_tRegCode == 1) {
+if constexpr ( _tRegCode == 1 ) {
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_1__0x0_338x0_340x0_0x1_338x1_340x1_0x2_338x2_340x2_0x3_X;
 		m_cCycle[0] = pfTmp;

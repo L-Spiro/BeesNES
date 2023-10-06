@@ -239,13 +239,14 @@ namespace lsn {
 			// == Palettes
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
 				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), CPpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetWriteFunc( uint16_t( I ), PaletteWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
 			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
 				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
-				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				//m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+				m_bBus.SetReadFunc( uint16_t( I ), ReadPaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
 				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
 			}
 
@@ -655,7 +656,7 @@ namespace lsn {
 							}
 						}
 					}
-					uint8_t ui8Bits = m_bBus.Read( m_ui16SpritePatternTmp );
+					uint8_t ui8Bits = Read( m_ui16SpritePatternTmp );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -675,7 +676,7 @@ namespace lsn {
 			// ========================
 			if constexpr ( _uStage == 6 ) {
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
-					uint8_t ui8Bits = m_bBus.Read( (m_ui16SpritePatternTmp + 8) );
+					uint8_t ui8Bits = Read( (m_ui16SpritePatternTmp + 8) );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -906,7 +907,6 @@ namespace lsn {
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->m_bAddresLatch ^= 1;
 			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
-			ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
 			if ( !ppPpu->m_bAddresLatch ) {
 				// ppPpu->m_bAddresLatch was 1 when we came here, flipped at the start.  This is the 2nd write.
 				//ppPpu->m_paPpuAddrV.ui16Addr = ppPpu->m_paPpuAddrT.ui16Addr;
@@ -916,6 +916,7 @@ namespace lsn {
 				ppPpu->m_bVAddrPending = true;
 			}
 			else {
+				ppPpu->m_paPpuAddrT.ui16Addr &= (ppPpu->m_bBus.Size() - 1);
 				ppPpu->GlitchyVUpdate( ppPpu->m_ui8IoBusLatch << 8, 0x0C00 );
 			}
 		}
@@ -931,21 +932,33 @@ namespace lsn {
 		static void LSN_FASTCALL						Read2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
+			// TODO: Pre-G PPUs don't let you read palette RAM at all. Reading from $3F00-3FFF are normal PPU bus reads like any other.
+			// The $3F00 palette RAM interface only exists:
+			//	The $3F00-3FFF palette RAM interface only exists:
+			//	To the CPU when writing to $2007 (all PPUs)
+			//	To the CPU when reading $2007 (G, H, PAL)
+			//	To the PPU when drawing the screen with rendering disabled
+
+			/*ppPpu->g_bDoDebugPrint = true;
+			char szBuffer[256];
+			std::sprintf( szBuffer, "Read2007: Frame: %u [%u,%u]  V.addr = %.4X\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr );
+			::OutputDebugStringA( szBuffer );*/
+
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				uint16_t ui16Mirrored = uint16_t( ((ui16Addr - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY );
+				uint16_t ui16Mirrored = uint16_t( ((ui16Addr - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) );
 				if ( (ui16Mirrored & 0x03) == 0x00 ) {
 					ui16Mirrored = ui16Mirrored & ~0x0010;
 				}
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_bBus.BypassRead( ui16Mirrored ) | (ppPpu->m_ui8IoBusLatch & ~0x3F));
-				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
-				//ppPpu->m_ui8DataBuffer = _pui8Data[(ui16Addr & 0x7FF) | 0x2000];
+				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8PaletteRam[ui16Mirrored] | (ppPpu->m_ui8IoBusLatch & ~0x3F));
+				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );//ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
+				
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
-				ppPpu->m_ui8DataBuffer = ppPpu->m_bBus.Read( ui16Addr );
+				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 			}
 			ppPpu->UpdateVramAddr();
 		}
@@ -960,31 +973,72 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			// g_bDoDebugPrint
+			/*char szBuffer[256];
+			std::sprintf( szBuffer, "Write2007: %.2X Frame: %u [%u,%u]  V.addr = %.4X\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr );
+			::OutputDebugStringA( szBuffer );*/
+
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->UpdateVramAddr();
-
-
-			/*char szBuffer[256];
-			std::sprintf( szBuffer, "Write2007: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
-			::OutputDebugStringA( szBuffer );*/
 		}
 
 		/**
-		 * Reading from the palette
+		 * Reading from the palette.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						PaletteRead( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
-			//CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			//_ui8Ret = ppPpu->m_ui8IoBusLatch;
+		static void LSN_FASTCALL						PaletteRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			_ui8Ret = ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY];
+			/*if ( _ui16Parm1 & 3 ) {
+				volatile int ghg  = 0;
+			}*/
 
-			//ppPpu->m_ui8IoBusLatch = _pui8Data[_ui16Parm1];
-			_ui8Ret = /*ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer =*/ _pui8Data[_ui16Parm1];
+			/*ppPpu->g_bDoDebugPrint = false;
+			char szBuffer[256];
+			std::sprintf( szBuffer, "PaletteRead: Frame: %u [%u,%u]  V.addr = %.4X [%.2X]\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr, _ui8Ret );
+			::OutputDebugStringA( szBuffer );*/
+		}
+
+		/**
+		 * Writing to the palette.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Ret The value to write.
+		 */
+		static void LSN_FASTCALL						PaletteWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY] = _ui8Val;
+		}
+
+		/**
+		 * Reading from the background index of the palettes ($3F04/$3F08/$3F0C/$3F10/$3F14/$3F18/$3F1C).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ReadPaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			if ( ppPpu->m_bRendering ) {
+				_ui8Ret = ppPpu->m_ui8PaletteRam[0];
+			}
+			else {
+				_ui8Ret = ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY];
+			}
+
+			/*ppPpu->g_bDoDebugPrint = false;
+			char szBuffer[256];
+			std::sprintf( szBuffer, "ReadPaletteIdx4: Frame: %u [%u,%u]  V.addr = %.4X [%.2X]\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr, _ui8Ret );
+			::OutputDebugStringA( szBuffer );*/
 		}
 
 		/**
@@ -995,8 +1049,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Ret The value to write.
 		 */
-		static void LSN_FASTCALL						WritePaletteIdx4( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
-			_pui8Data[_ui16Parm1] = _pui8Data[_ui16Parm1^0x10] = _ui8Val;
+		static void LSN_FASTCALL						WritePaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			_ui16Parm1 -= LSN_PPU_PALETTE_MEMORY;
+			ppPpu->m_ui8PaletteRam[_ui16Parm1] = ppPpu->m_ui8PaletteRam[_ui16Parm1^0x10] = _ui8Val;
 		}
 
 		/**
@@ -1153,6 +1209,7 @@ namespace lsn {
 		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
 		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
 		CInterruptable *								m_pnNmiTarget;									/**< The target object of NMI notifications. */
+		uint8_t											m_ui8PaletteRam[LSN_PPU_PALETTE_MEMORY_SIZE];	/**< Dedicated palette RAM. */
 		PfCycles										m_cCycle[_tDotWidth*_tDotHeight];				/**< The cycle function. */
 		size_t											m_stCurCycle;									/**< The current cycle function. */
 		CPpuBus											m_bBus;											/**< The PPU's internal RAM. */
@@ -1209,7 +1266,9 @@ namespace lsn {
 
 		bool											m_bSuppressNmi;									/**< If true, NMI can't be generated. */
 
-		
+		//bool g_bDoDebugPrint									= false;
+
+
 		// == Functions.
 		/**
 		 * Unless NMI is suppressed, this sets the VBL flag and triggers NMI.
@@ -1283,6 +1342,45 @@ namespace lsn {
 						// Somewhere between.  Just increment.
 						++m_paPpuAddrV.s.ui16CourseY;
 					}
+				}
+			}
+		}
+
+		/**
+		 * Reads from a given address if rendering is enabled and the scanline is [-1..239].  Otherwise the read uses V.addr.
+		 * 
+		 * \param _bFromCpu When reading from the CPU we need to account for the fact that the last PPU cycle to run has finished
+		 *	its update and adjusted some values for the next cycle.  We need to adjust them back 1 cycle if this is a CPU read.
+		 * \param _ui16Addr The address from which to read.  Reading may not happen from this address under certain conditions.
+		 * \return Returns the value at the given address or the value at V.addr.
+		 **/
+		template <bool _bFromCpu = false>
+		inline uint8_t									Read( uint16_t _ui16Addr ) {
+			int16_t i16AdjustedX = m_ui16CurX;
+			int16_t i16AdjustedY = m_ui16CurY;
+			if constexpr ( _bFromCpu ) {
+				AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+			}
+			if ( m_bRendering &&
+				((i16AdjustedY >= 0 && i16AdjustedY < (_tPreRender + _tRender)) || (i16AdjustedY == _tDotHeight - 1)) ) {
+				return m_bBus.Read( _ui16Addr );
+			}
+			return m_bBus.Read( m_paPpuAddrV.ui16Addr );	// Will do & 0x3FFF inside Read().
+		}
+
+		/**
+		 * Adjusts the given scanline and dot back one cycle.
+		 * 
+		 * \param _i16AdjustedX The input dot and output adjusted dot.
+		 * \param _i16AdjustedY The input scanline and output adjusted scanline.
+		 **/
+		inline void										AdjustScanlineBack( int16_t &_i16AdjustedX, int16_t &_i16AdjustedY ) {
+			_i16AdjustedX = _i16AdjustedX - 1;
+			if ( _i16AdjustedX < 0 ) {
+				_i16AdjustedX += _tDotWidth;
+				--_i16AdjustedY;
+				if ( _i16AdjustedY < 0 ) {
+					_i16AdjustedY += _tPreRender + _tRender + _tPostRender;
 				}
 			}
 		}
@@ -1424,7 +1522,16 @@ namespace lsn {
 		 * \param _ui16Mask The mask indicating which bits to update.
 		 */
 		inline void										GlitchyVUpdate( uint16_t _ui16Value, uint16_t _ui16Mask ) {
-			if ( m_ui16CurX == 257 && m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
+			// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+			//	consider this read as happening on the last PPU cycle and adjust accordingly.
+			int16_t i16AdjustedX = m_ui16CurX - 1;
+			int16_t i16AdjustedY = m_ui16CurY;
+			if ( i16AdjustedX < 0 ) {
+				i16AdjustedX += _tDotWidth;
+				--i16AdjustedY;
+			}
+
+			if ( i16AdjustedX == 257 && m_bRendering && i16AdjustedY < (_tPreRender + _tRender) ) {
 				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr & ~_ui16Mask) | (_ui16Value & _ui16Mask);
 			}
 		}
@@ -1543,7 +1650,7 @@ namespace lsn {
 						}
 					}
 
-					ui16Val = m_bBus.Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					ui16Val = Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
 					if ( m_dvPpuMaskDelay.Value().s.ui8Greyscale ) {
 						ui16Val &= 0x30;
 					}
@@ -1665,7 +1772,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 #if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
@@ -1766,7 +1873,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
 						sRet += "\r\n"
@@ -1776,7 +1883,7 @@ namespace lsn {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
 						"// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |\r\n"
+						"m_ui8NtAtBuffer = Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |\r\n"
 						"	(m_paPpuAddrV.s.ui16NametableX << 10) |\r\n"
 						"	((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |\r\n"
 						"	(m_paPpuAddrV.s.ui16CourseX >> 2) );\r\n"
@@ -1791,7 +1898,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
 						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
 						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
 						"	0) );\r\n";
@@ -1803,7 +1910,7 @@ namespace lsn {
 					if ( (_uX - LSN_LEFT) % 8 == 6 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+						"m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
 						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
 						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
 						"	8) );\r\n";
@@ -1825,7 +1932,7 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
+						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
 #if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
@@ -1838,7 +1945,7 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = m_bBus.Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
+						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
 #if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
@@ -1917,8 +2024,8 @@ namespace lsn {
 				"					for ( uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX ) {\r\n"
 				"						uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;\r\n"
 				"						for ( uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row ) {\r\n"
-				"							uint8_t ui8TileLsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 0 );\r\n"
-				"							uint8_t ui8TileMsb = m_bBus.Read( 0x1000 * I + ui16Offset + ui16Row + 8 );\r\n"
+				"							uint8_t ui8TileLsb = Read( 0x1000 * I + ui16Offset + ui16Row + 0 );\r\n"
+				"							uint8_t ui8TileMsb = Read( 0x1000 * I + ui16Offset + ui16Row + 8 );\r\n"
 				"							for ( uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col ) {\r\n"
 				"								uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);\r\n"
 				"								ui8TileLsb >>= 1;\r\n"
