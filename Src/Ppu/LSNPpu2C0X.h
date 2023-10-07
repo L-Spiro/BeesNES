@@ -237,18 +237,18 @@ namespace lsn {
 			ApplyVerticalMirroring();
 
 			// == Palettes
-			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
-				m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), PaletteWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-			}
-			// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
-			for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
-				/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
-				//m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetReadFunc( uint16_t( I ), ReadPaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
-				m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
-			}
+			//for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
+			//	m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+			//	m_bBus.SetWriteFunc( uint16_t( I ), PaletteWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
+			//}
+			//// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
+			//for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
+			//	/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
+			//	m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
+			//	//m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
+			//	m_bBus.SetReadFunc( uint16_t( I ), ReadPaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
+			//	m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
+			//}
 
 			for ( uint32_t I = LSN_PPU_START; I < LSN_APU_START; I += LSN_PPU ) {
 				// 0x2000: PPUCTRL.
@@ -758,12 +758,9 @@ namespace lsn {
 			{
 				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
 				//	consider this read as happening on the last PPU cycle and adjust accordingly.
-				int16_t i16AdjustedX = ppPpu->m_ui16CurX - 1;
+				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
-				if ( i16AdjustedX < 0 ) {
-					i16AdjustedX += _tDotWidth;
-					--i16AdjustedY;
-				}
+				ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
 				// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
 				if ( i16AdjustedY == (_tPreRender + _tRender + _tPostRender) ) {
@@ -946,12 +943,12 @@ namespace lsn {
 
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				// Palette memory is placed on the bus and returned immediately.
-				uint16_t ui16Mirrored = uint16_t( ((ui16Addr - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) );
+				uint16_t ui16Mirrored = uint16_t( ((ui16Addr - LSN_PPU_PALETTE_MEMORY) & (LSN_PPU_PALETTE_MEMORY_SIZE - 1)) );
 				if ( (ui16Mirrored & 0x03) == 0x00 ) {
 					ui16Mirrored = ui16Mirrored & ~0x0010;
 				}
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8PaletteRam[ui16Mirrored] | (ppPpu->m_ui8IoBusLatch & ~0x3F));
-				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );//ppPpu->m_bBus.Read( (ui16Addr & 0x7FF) | 0x2000 );
+				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 				
 			}
 			else {
@@ -979,7 +976,12 @@ namespace lsn {
 			::OutputDebugStringA( szBuffer );*/
 
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
-			ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
+			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
+				ppPpu->WritePalette( ui16Addr, _ui8Val );
+			}
+			else {
+				ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
+			}
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
 			ppPpu->UpdateVramAddr();
 		}
@@ -1293,8 +1295,13 @@ namespace lsn {
 		 * Updates the VRAM address after a read or write of $2007.
 		 */
 		inline void										UpdateVramAddr() {
-			// When called on the CPU, likely should use adjusted X and Y values as with read-2002.
-			if ( (m_ui16CurY >= (_tPreRender + _tRender) && m_ui16CurY != (_tDotHeight - 1) ) || !m_bRendering ) {
+			// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+			//	consider this read as happening on the last PPU cycle and adjust accordingly.
+			int16_t i16AdjustedX = m_ui16CurX;
+			int16_t i16AdjustedY = m_ui16CurY;
+			AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+
+			if ( (i16AdjustedY >= (_tPreRender + _tRender) && i16AdjustedY != (_tDotHeight - 1) ) || !m_bRendering ) {
 				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr + (m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (0x7FFF);
 			}
 			else {
@@ -1359,13 +1366,59 @@ namespace lsn {
 			int16_t i16AdjustedX = m_ui16CurX;
 			int16_t i16AdjustedY = m_ui16CurY;
 			if constexpr ( _bFromCpu ) {
+				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+				//	consider this read as happening on the last PPU cycle and adjust accordingly.
 				AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 			}
 			if ( m_bRendering &&
 				((i16AdjustedY >= 0 && i16AdjustedY < (_tPreRender + _tRender)) || (i16AdjustedY == _tDotHeight - 1)) ) {
+				if ( _ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
+					return ReadPalette( _ui16Addr );
+				}
 				return m_bBus.Read( _ui16Addr );
 			}
+			if constexpr ( !_bFromCpu ) {
+				if ( m_paPpuAddrV.ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
+					return ReadPalette( m_paPpuAddrV.ui16Addr );
+				}
+			}
 			return m_bBus.Read( m_paPpuAddrV.ui16Addr );	// Will do & 0x3FFF inside Read().
+		}
+
+		/**
+		 * Reads from the palette.  Input address should be relative to 0x3F00.
+		 * 
+		 * \param _ui16Addr The palette read address, with 0x3F00 pre-subtracted from it.  IE, to read $3F01, pass 0x01.  Or pass 0x3F01; it doesn't matter because unused bits are masked off.
+		 * \return Returns the mirrored palette value.
+		 **/
+		inline uint8_t									ReadPalette( uint16_t _ui16Addr ) {
+			_ui16Addr &= (LSN_PPU_PALETTE_MEMORY_SIZE - 1);		// Mirror $3F20-$3FFF into $3F00-$3F1F.
+			if ( (_ui16Addr & 0x03) != 0 ) {					// XX01 XX02 XX03 XX05...
+				return m_ui8PaletteRam[_ui16Addr];
+			}
+			// We are reading a divisible-by-4 entry.
+			if ( m_bRendering ) {
+				return m_ui8PaletteRam[0];
+			}
+			else {
+				return m_ui8PaletteRam[_ui16Addr];
+			}
+		}
+
+		/**
+		 * Writes to the palette.  Input address should be relative to 0x3F00.
+		 * 
+		 * \param _ui16Addr The palette write address, with 0x3F00 pre-subtracted from it.  IE, to read $3F01, pass 0x01.  Or pass 0x3F01; it doesn't matter because unused bits are masked off.
+		 * \param _ui8Val The value to write.
+		 **/
+		inline void										WritePalette( uint16_t _ui16Addr, uint8_t _ui8Val ) {
+			_ui16Addr &= (LSN_PPU_PALETTE_MEMORY_SIZE - 1);		// Mirror $3F20-$3FFF into $3F00-$3F1F.
+			if ( (_ui16Addr & 0x03) != 0 ) {					// XX01 XX02 XX03 XX05...
+				m_ui8PaletteRam[_ui16Addr] = _ui8Val;
+			}
+			else {
+				m_ui8PaletteRam[_ui16Addr] = m_ui8PaletteRam[_ui16Addr^0x10] = _ui8Val;
+			}
 		}
 
 		/**
@@ -1524,12 +1577,9 @@ namespace lsn {
 		inline void										GlitchyVUpdate( uint16_t _ui16Value, uint16_t _ui16Mask ) {
 			// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
 			//	consider this read as happening on the last PPU cycle and adjust accordingly.
-			int16_t i16AdjustedX = m_ui16CurX - 1;
+			int16_t i16AdjustedX = m_ui16CurX;
 			int16_t i16AdjustedY = m_ui16CurY;
-			if ( i16AdjustedX < 0 ) {
-				i16AdjustedX += _tDotWidth;
-				--i16AdjustedY;
-			}
+			AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
 			if ( i16AdjustedX == 257 && m_bRendering && i16AdjustedY < (_tPreRender + _tRender) ) {
 				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr & ~_ui16Mask) | (_ui16Value & _ui16Mask);
@@ -1639,18 +1689,31 @@ namespace lsn {
 						// If sprite 0 was in the secondary OAM last scanline, m_bSprite0IsInSecondaryThisLine is set for this scanline.
 						if ( m_bSprite0IsInSecondaryThisLine && bIsRenderingSprite0 ) {
 							// bIsRenderingSprite0 automatically means that sprites are enabled and that this pixel was not 0.
-							if ( !(m_dvPpuMaskDelay.Value().s.ui8LeftBackground | m_dvPpuMaskDelay.Value().s.ui8LeftSprites) && !m_psPpuStatus.s.ui8Sprite0Hit && ui16X != 255 ) {
-								if ( ui16X >= 8 ) {
-									m_psPpuStatus.s.ui8Sprite0Hit = 1;
-								}
-							}
-							else {
+
+							/* Sprite 0 hit does not happen:
+							 *	If background or sprite rendering is disabled in PPUMASK ($2001)
+							 *	At x=0 to x=7 if the left-side clipping window is enabled (if bit 2 or bit 1 of PPUMASK is 0).
+							 *	At x=255, for an obscure reason related to the pixel pipeline.
+							 *	At any pixel where the background or sprite pixel is transparent (2-bit color index from the CHR pattern is %00).
+							 *	If sprite 0 hit has already occurred this frame. Bit 6 of PPUSTATUS ($2002) is cleared to 0 at dot 1 of the pre-render line. This means only the first sprite 0 hit in a frame can be detected. */
+
+							//	If background or sprite rendering is disabled in PPUMASK ($2001)
+							//	At any pixel where the background or sprite pixel is transparent (2-bit color index from the CHR pattern is %00).
+							// These are handled by `else if ( ui8BackgroundPixel && ui8ForegroundPixel ) {` above.
+							//	If sprite 0 hit has already occurred this frame. Bit 6 of PPUSTATUS ($2002) is cleared to 0 at dot 1 of the pre-render line. This means only the first sprite 0 hit in a frame can be detected.
+							// This is handled elsewhere.  I think.  TODO: Check it.
+
+							// At x=0 to x=7 if the left-side clipping window is enabled (if bit 2 or bit 1 of PPUMASK is 0).
+							if ( ((ui16X >= 8) || (m_dvPpuMaskDelay.Value().s.ui8LeftBackground | m_dvPpuMaskDelay.Value().s.ui8LeftSprites)) &&
+								// At x=255, for an obscure reason related to the pixel pipeline.
+								ui16X != 255 ) {
 								m_psPpuStatus.s.ui8Sprite0Hit = 1;
 							}
 						}
 					}
 
 					ui16Val = Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					//ui16Val = ReadPalette( (ui8FinalPalette << 2) | ui8FinalPixel );
 					if ( m_dvPpuMaskDelay.Value().s.ui8Greyscale ) {
 						ui16Val &= 0x30;
 					}

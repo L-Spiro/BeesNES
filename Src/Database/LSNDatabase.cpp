@@ -26,11 +26,31 @@ namespace lsn {
 			// REGIONS
 			// ========
 			// 240pee
-			{ .ui32Crc = 0x6599113A, .pmRegion = LSN_PM_PAL },
+			/*{ .ui32Crc = 0x6599113A, .pmRegion = LSN_PM_PAL },
 			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
-			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },*/
 
 
+			// 01.len_ctr
+			{ .ui32Crc = 0xD1837AD3, .pmRegion = LSN_PM_PAL },
+			// 02.len_table
+			{ .ui32Crc = 0x87483778, .pmRegion = LSN_PM_PAL },
+			// 03.irq_flag
+			{ .ui32Crc = 0x47086DB9, .pmRegion = LSN_PM_PAL },
+			// 04.clock_jitter
+			{ .ui32Crc = 0x42D39BDC, .pmRegion = LSN_PM_PAL },
+			// 05.len_timing_mode0
+			{ .ui32Crc = 0x9464BB7A, .pmRegion = LSN_PM_PAL },
+			// 06.len_timing_mode1
+			{ .ui32Crc = 0x966EA9A4, .pmRegion = LSN_PM_PAL },
+			// 07.irq_flag_timing
+			{ .ui32Crc = 0xE4E03A3D, .pmRegion = LSN_PM_PAL },
+			// 08.irq_timing
+			{ .ui32Crc = 0xABF7617D, .pmRegion = LSN_PM_PAL },
+			// 10.len_halt_timing
+			{ .ui32Crc = 0xED21658A, .pmRegion = LSN_PM_PAL },
+			// 11.len_reload_timing
+			{ .ui32Crc = 0xA487CD04, .pmRegion = LSN_PM_PAL },
 			// 3 in 1 Supergun (Asia) (Unl)
 			{ .ui32Crc = 0x789270E0, .pmRegion = LSN_PM_PAL },
 			// 3-in-1 (E) [!]
@@ -341,6 +361,8 @@ namespace lsn {
 			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC },
 			// NFL Football (U)
 			{ .ui32Crc = 0x35B6FEBF, .pmRegion = LSN_PM_NTSC },
+			// nes15-PAL
+			{ .ui32Crc = 0x925A2BED, .pmRegion = LSN_PM_PAL },
 			// New Ghostbusters 2 (E) [!]
 			{ .ui32Crc = 0x480B35D1, .pmRegion = LSN_PM_PAL },
 			// New Zealand Story (E)
@@ -543,6 +565,8 @@ namespace lsn {
 			// ========
 			// MAPPERS
 			// ========
+			// Deathbots (USA) (Unl)
+			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Wrecking Crew (JUE)

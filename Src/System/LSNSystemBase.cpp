@@ -64,6 +64,14 @@ namespace lsn {
 						_rRom.riInfo.ui16Chip = static_cast<uint16_t>(aEntry->second.cChip);
 					}
 					if ( aEntry->second.ui32PgmRomSize != 0 ) {
+						if ( !_rRom.vChrRom.size() ) {
+							if ( _rRom.vPrgRom.size() > aEntry->second.ui32PgmRomSize ) {
+								// Assume the extra data we are about to clip off is actually CHR ROM.
+								size_t stChrSize = _rRom.vPrgRom.size() - aEntry->second.ui32PgmRomSize;
+								_rRom.vChrRom.resize( stChrSize );
+								std::memcpy( _rRom.vChrRom.data(), &_rRom.vPrgRom[_rRom.vPrgRom.size()-stChrSize], stChrSize );
+							}
+						}
 						_rRom.vPrgRom.resize( aEntry->second.ui32PgmRomSize );
 					}
 				}

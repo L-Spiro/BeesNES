@@ -83,7 +83,7 @@ namespace lsn {
 		 */
 		static void										ApplyMirroring( uint16_t _ui16Mirror, CPpuBus * _pbPpuBus, void * _pvParm0,
 			uint16_t _ui16NametableStart = LSN_PPU_NAMETABLES,
-			uint16_t _ui16NametableEnd = LSN_PPU_PALETTE_MEMORY ) {
+			uint16_t _ui16NametableEnd = LSN_PPU_MEM_FULL_SIZE ) {
 			for ( uint32_t I = _ui16NametableStart; I < _ui16NametableEnd; ++I ) {
 				uint16_t ui16Root = ((I - _ui16NametableStart) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				uint16_t ui16Final = MirrorAddress( ui16Root, static_cast<LSN_MIRROR_MODE>(_ui16Mirror) );
@@ -126,7 +126,7 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		void											ApplyControllableMirrorMap( CPpuBus * _pbPpuBus ) {
-			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_PALETTE_MEMORY; ++I ) {
+			for ( uint32_t I = LSN_PPU_NAMETABLES; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
 				uint16_t ui16Root = ((I - LSN_PPU_NAMETABLES) % LSN_PPU_NAMETABLES_SIZE);	// Mirror The $3000-$3EFF range down to $2000-$2FFF.
 				//ui16Root += LSN_PPU_NAMETABLES;
 				_pbPpuBus->SetReadFunc( uint16_t( I ), CMapperBase::Read_ControllableMirror, this, ui16Root );
