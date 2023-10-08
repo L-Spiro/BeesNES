@@ -13,6 +13,9 @@
 #include "../Database/LSNDatabase.h"
 #include "LSNMapperBase.h"
 
+#define LSN_CHR_BNK_SMALL						2
+#define LSN_PGM_BNK_SMALL						4
+
 namespace lsn {
 
 	/**
@@ -53,13 +56,15 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			SanitizeRegs<PgmBankSize() * 2, ChrBankSize() * 2>();
-			SetPgmBank2x<2, PgmBankSize()>( 3 );
 			SetChrBank2x<0, ChrBankSize()>( 0 );
+			SetChrBank2x<LSN_CHR_BNK_SMALL, ChrBankSize()>( 0 );
 			m_ui8Control = 0x1C;
 			m_ui8Load = 0;
 			m_ui8LoadCnt = 0;
-			SetPgmBank<2, PgmBankSize()>( 0 );
-			SetPgmBank<3, PgmBankSize()>( -1 );
+			SetPgmBank<0, PgmBankSize()>( 0 );
+			SetPgmBank<1, PgmBankSize()>( -1 );
+			SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( 0 );
+			SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( -1 );
 
 			m_bRamEnabled = _rRom.riInfo.ui16Chip != CDatabase::LSN_C_MMC1C;
 		}
@@ -168,11 +173,11 @@ namespace lsn {
 				// 8-kilobyte chunks.
 				if ( _ui16Parm1 >= 0xC000 - 0x8000 ) {
 					// Hi chunk.
-					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[3]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
+					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[LSN_PGM_BNK_SMALL+1]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
 				}
 				else {
 					// Lo chunk.
-					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[2]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
+					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[LSN_PGM_BNK_SMALL+0]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
 				}
 			}
 			else {
@@ -261,10 +266,14 @@ namespace lsn {
 						 */
 						// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 						if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
-							pmThis->SetChrBank<0, ChrBankSize() * 2>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+
+							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
 						}
 						else {
-							pmThis->SetChrBank<1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank<0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
 					}
 					else if ( _ui16Parm1 >= 0xC000 && _ui16Parm1 < 0xE000 ) {
@@ -277,7 +286,8 @@ namespace lsn {
 						 *	+++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
 						 */
 						if ( pmThis->m_ui8Control & 0b10000 ) {
-							pmThis->SetChrBank<2, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank<1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
 					}
 					else if ( _ui16Parm1 >= 0xE000 && _ui16Parm1 < 0x10000 ) {
@@ -300,19 +310,28 @@ namespace lsn {
 							// 0, 1: switch 32 KB at $8000, ignoring low bit of bank number;
 							case 1 : {}
 							case 0 : {
-								pmThis->SetPgmBank2x<0, 32 * 1024>( (pmThis->m_ui8Load & 0b1110) >> 1 );
+								pmThis->SetPgmBank2x<0, PgmBankSize()>( (pmThis->m_ui8Load & 0b1110) >> 1 );
+
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( (pmThis->m_ui8Load & 0b1111) + 1 );
 								break;
 							}
 							// 2: fix first bank at $8000 and switch 16 KB bank at $C000;
 							case 2 : {
-								pmThis->SetPgmBank<2, PgmBankSize()>( 0 );
-								pmThis->SetPgmBank<3, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+								pmThis->SetPgmBank<0, PgmBankSize()>( 0 );
+								pmThis->SetPgmBank<1, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( 0 );
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
 								break;
 							}
 							// 3: fix last bank at $C000 and switch 16 KB bank at $8000)
 							case 3 : {
-								pmThis->SetPgmBank<2, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
-								pmThis->SetPgmBank<3, PgmBankSize()>( -1 );
+								pmThis->SetPgmBank<0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+								pmThis->SetPgmBank<1, PgmBankSize()>( -1 );
+
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( -1 );
 								break;
 							}
 						}
@@ -341,11 +360,11 @@ namespace lsn {
 					// 4-kilobyte chunks.
 					if ( _ui16Parm1 >= ChrBankSize() ) {
 						// Hi chunk.
-						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[2]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
+						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
 					}
 					else {
 						// Lo chunk.
-						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[1]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
+						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
 					}
 				}
 				else {
