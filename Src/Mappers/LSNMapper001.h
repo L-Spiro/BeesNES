@@ -376,3 +376,6 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#undef LSN_PGM_BNK_SMALL
+#undef LSN_CHR_BNK_SMALL
