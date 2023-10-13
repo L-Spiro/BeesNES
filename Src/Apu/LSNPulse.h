@@ -37,6 +37,15 @@ namespace lsn {
 		 **/
 		void									ResetToKnown();
 
+		/**
+		 * Determines if the pulse channel should produce sound.
+		 * 
+		 * \param _bEnabled The status of the pulse channel.
+		 * \return Returns true if the channel should produce audio.
+		 **/
+		inline bool								ProducingSound( bool _bEnabled ) const;
+
+
 	protected :
 		// == Members.
 		
@@ -51,5 +60,24 @@ namespace lsn {
 		virtual uint8_t							WeDoBeTicknTho();
 
 	};
+	
+
+
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// DEFINITIONS
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	/**
+	 * Determines if the pulse channel should produce sound.
+	 * 
+	 * \param _bEnabled The status of the pulse channel.
+	 * \return Returns true if the channel should produce audio.
+	 **/
+	inline bool CPulse::ProducingSound( bool _bEnabled ) const {
+		return _bEnabled &&
+			GetLengthCounter() > 0 &&
+			GetTimer() >= 8 &&
+			Output() &&
+			!SweeperMuted();
+	}
 
 }	// namespace lsn

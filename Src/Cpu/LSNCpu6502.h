@@ -64,7 +64,7 @@
 #define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
 #define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
-#define LSN_BRK_NMI																			true
+#define LSN_BRK_NMI																			false
 #define LSN_BRANCH_NMI																		false
 
 namespace lsn {
@@ -1054,7 +1054,7 @@ namespace lsn {
 		//m_ccCurContext.ui16OpCode = _ui16Op;
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 		
-		LSN_INSTR_END_PHI1( true );
+		LSN_INSTR_END_PHI1( false );
 	}
 
 	/**
@@ -1065,7 +1065,7 @@ namespace lsn {
 	inline void CCpu6502::BeginInst_PHI2( uint16_t _ui16Op ) {
 		m_ccCurContext.ui16OpCode = _ui16Op;
 		
-		LSN_INSTR_END_PHI2( true );
+		LSN_INSTR_END_PHI2( false );
 	}
 
 }	// namespace lsn

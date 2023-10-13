@@ -43,6 +43,14 @@ namespace lsn {
 		 **/
 		inline void								SetModeFlag( bool _bFlag );
 
+		/**
+		 * Determines if the noise channel should produce sound.
+		 * 
+		 * \param _bEnabled The status of the noise channel.
+		 * \return Returns true if the channel should produce audio.
+		 **/
+		inline bool								ProducingSound( bool _bEnabled ) const;
+
 	protected :
 		// == Members.
 		/** The mode flag. */
@@ -73,6 +81,18 @@ namespace lsn {
 	 **/
 	inline void CNoise::SetModeFlag( bool _bFlag ) {
 		m_bMode = _bFlag != false;
+	}
+
+	/**
+	 * Determines if the noise channel should produce sound.
+	 * 
+	 * \param _bEnabled The status of the noise channel.
+	 * \return Returns true if the channel should produce audio.
+	 **/
+	inline bool CNoise::ProducingSound( bool _bEnabled ) const {
+		return _bEnabled &&
+			GetLengthCounter() > 0 &&
+			Output();
 	}
 
 }	// namespace lsn

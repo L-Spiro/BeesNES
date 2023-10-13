@@ -36,6 +36,14 @@ namespace lsn {
 		 **/
 		void									ResetToKnown();
 
+		/**
+		 * Determines if the triangle channel should produce sound.
+		 * 
+		 * \param _bEnabled The status of the triangle channel.
+		 * \return Returns true if the channel should produce audio.
+		 **/
+		inline bool								ProducingSound( bool _bEnabled ) const;
+
 	protected :
 		// == Members.
 		/** The triangle shape. */
@@ -65,5 +73,16 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
+	/**
+	 * Determines if the triangle channel should produce sound.
+	 * 
+	 * \param _bEnabled The status of the triangle channel.
+	 * \return Returns true if the channel should produce audio.
+	 **/
+	inline bool CTriangle::ProducingSound( bool _bEnabled ) const {
+		return _bEnabled &&
+			GetLengthCounter() > 0 &&
+			GetLinearCounter() > 0;
+	}
 
 }	// namespace lsn
