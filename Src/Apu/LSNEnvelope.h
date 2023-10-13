@@ -102,8 +102,8 @@ namespace lsn {
 		if ( m_bRestart ) {
 			// otherwise the start flag is cleared, the decay level counter is loaded with 15, and the divider's period is immediately reloaded.
 			m_bRestart = false;
-			m_ui8DividerCounter = 15;
-			m_ui8DecayCounter = m_ui8Volume;
+			m_ui8DividerCounter = m_ui8Volume;
+			m_ui8DecayCounter = 15;
 		}
 		else {
 			// if the start flag is clear, the divider is clocked
