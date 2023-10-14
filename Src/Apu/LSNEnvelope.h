@@ -50,9 +50,10 @@ namespace lsn {
 		/**
 		 * Gets the envelope output value.
 		 * 
+		 * \param _bUseVolume Determines if envelopes are used or just a solid volume.
 		 * \return Returns the envelope output value.
 		 **/
-		inline uint8_t								GetEnvelopeOutput() const;
+		inline uint8_t								GetEnvelopeOutput( bool _bUseVolume ) const;
 
 		/**
 		 * Resets the unit to a known state.
@@ -93,7 +94,7 @@ namespace lsn {
 	 * \param _bLoop The loop flag.
 	 * \return Returns the envelope value after any updating that needs to be done.
 	 **/
-	inline uint8_t CEnvelope::TickEnvelope( bool _bUseVolume, bool _bLoop ) {
+	inline uint8_t CEnvelope::TickEnvelope( bool /*_bUseVolume*/, bool _bLoop ) {
 		/**
 		 * When clocked by the frame counter, one of two actions occurs: if the start flag is clear, the divider is clocked, otherwise the start flag is cleared, the decay level counter is loaded with 15, and the divider's period is immediately reloaded.
 		 * When the divider is clocked while at 0, it is loaded with V and clocks the decay level counter. Then one of two actions occurs: If the counter is non-zero, it is decremented, otherwise if the loop flag is set, the decay level counter is loaded with 15.
@@ -124,7 +125,8 @@ namespace lsn {
 		}
 
 		// The envelope unit's volume output depends on the constant volume flag: if set, the envelope parameter directly sets the volume, otherwise the decay level is the current volume. The constant volume flag has no effect besides selecting the volume source; the decay level will still be updated when constant volume is selected.
-		m_ui8Output = _bUseVolume ? m_ui8Volume : m_ui8DecayCounter;
+		//m_ui8Output = _bUseVolume ? m_ui8Volume : m_ui8DecayCounter;
+		m_ui8Output = m_ui8DecayCounter;
 
 		return m_ui8Output;
 	}
@@ -144,9 +146,10 @@ namespace lsn {
 	/**
 	 * Gets the envelope output value.
 	 * 
+	 * \param _bUseVolume Determines if envelopes are used or just a solid volume.
 	 * \return Returns the envelope output value.
 	 **/
-	inline uint8_t CEnvelope::GetEnvelopeOutput() const { return m_ui8Output; }
+	inline uint8_t CEnvelope::GetEnvelopeOutput( bool _bUseVolume ) const { return _bUseVolume ? m_ui8Volume : m_ui8Output; }
 
 	/**
 	 * Resets the unit to a known state.

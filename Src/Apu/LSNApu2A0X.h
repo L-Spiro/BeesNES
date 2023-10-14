@@ -157,15 +157,17 @@ namespace lsn {
 
 				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
 			}*/
-			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput() : 0.0f;
-			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput() : 0.0f;
+			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
+			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
-			float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput() : 0.0f;
+			float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f;
 			float fTriangle = (m_tTriangle.ProducingSound( LSN_TRIANGLE_ENABLED( this ) )) ? m_tTriangle.Output() : 0.0f;
 			float fDmc = 0.0f;
+
+			//fFinalPulse = fTriangle = 0.0f;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
 			fDmc /= 22638.0f;
