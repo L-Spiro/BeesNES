@@ -887,6 +887,24 @@ namespace lsn {
 	}
 
 	/**
+	 * The WM_SYSCOMMAND handler.
+	 * 
+	 * \param _wCommand The type of system command requested.  One of the SC_* values.
+	 * \param _iMouseX Specifies the horizontal position of the cursor, in screen coordinates, if a window menu command is chosen with the mouse. Otherwise, this parameter is not used.
+	 * \param _iMouseY Specifies the vertical position of the cursor, in screen coordinates, if a window menu command is chosen with the mouse. This parameter is 1 if the command is chosen using a system accelerator, or zero if using a mnemonic.
+	 * \return Returns an LSW_HANDLED code.  Return LSW_H_HANDLED to prevent the command from being sent to the default procedure.
+	 **/
+	CWidget::LSW_HANDLED CMainWindow::SysCommand( WORD _wCommand, int /*_iMouseX*/, int /*_iMouseY*/ ) {
+		switch ( _wCommand & 0xFFF0 ) {
+			case SC_MONITORPOWER : {}	// Drop through.
+			case SC_SCREENSAVE : {
+				return LSW_H_HANDLED;
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {

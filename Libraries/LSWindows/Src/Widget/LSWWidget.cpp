@@ -1880,7 +1880,11 @@ namespace lsw {
 			case WM_DEVICECHANGE : {
 				LSW_HANDLED hHandled = pmwThis->DeviceChange( static_cast<WORD>(_wParam), _lParam );
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( BROADCAST_QUERY_DENY, BROADCAST_QUERY_DENY ); }
-				else { LSW_RET( TRUE, TRUE ); }
+				break;
+			}
+			case WM_SYSCOMMAND : {
+				LSW_HANDLED hHandled = pmwThis->SysCommand( static_cast<WORD>(_wParam), GET_X_LPARAM( _lParam ), GET_Y_LPARAM( _lParam ) );
+				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
 				break;
 			}
 		}

@@ -727,6 +727,16 @@ namespace lsw {
 		virtual LSW_HANDLED					DeviceChange( WORD /*_wDbtEvent*/, LPARAM /*_lParam*/ ) { return LSW_H_CONTINUE; }
 
 		/**
+		 * The WM_SYSCOMMAND handler.
+		 * 
+		 * \param _wCommand The type of system command requested.  One of the SC_* values.
+		 * \param _iMouseX Specifies the horizontal position of the cursor, in screen coordinates, if a window menu command is chosen with the mouse. Otherwise, this parameter is not used.
+		 * \param _iMouseY Specifies the vertical position of the cursor, in screen coordinates, if a window menu command is chosen with the mouse. This parameter is 1 if the command is chosen using a system accelerator, or zero if using a mnemonic.
+		 * \return Returns an LSW_HANDLED code.  Return LSW_H_HANDLED to prevent the command from being sent to the default procedure.
+		 **/
+		virtual LSW_HANDLED					SysCommand( WORD /*_wCommand*/, int /*_iMouseX*/, int /*_iMouseY*/ ) { return LSW_H_CONTINUE; }
+
+		/**
 		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
 		 *
 		 * \param _lplvParm The notifacation structure.
