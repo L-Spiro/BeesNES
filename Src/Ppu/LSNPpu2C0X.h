@@ -1712,7 +1712,12 @@ namespace lsn {
 						}
 					}
 
-					ui16Val = Read( 0x3F00 + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					if ( !m_bRendering && (m_paPpuAddrV.ui16Addr & 0x3FFF) < LSN_PPU_PALETTE_MEMORY ) {
+						ui16Val = ReadPalette( LSN_PPU_PALETTE_MEMORY );
+					}
+					else {
+						ui16Val = Read( LSN_PPU_PALETTE_MEMORY + (ui8FinalPalette << 2) | ui8FinalPixel ) & 0x3F;
+					}
 					//ui16Val = ReadPalette( (ui8FinalPalette << 2) | ui8FinalPixel );
 					if ( m_dvPpuMaskDelay.Value().s.ui8Greyscale ) {
 						ui16Val &= 0x30;
