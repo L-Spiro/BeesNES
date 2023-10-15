@@ -181,6 +181,8 @@ namespace lsn {
 			{ .ui32Crc = 0x68F9B5F5, .pmRegion = LSN_PM_PAL },
 			// Deja Vu (SW)
 			{ .ui32Crc = 0x07259BA7, .pmRegion = LSN_PM_PAL },
+			// Demon Sword (U)
+			{ .ui32Crc = 0x9DF89BE5, .pmRegion = LSN_PM_NTSC },
 			// demo_pal
 			{ .ui32Crc = 0x2747EE68, .pmRegion = LSN_PM_PAL },
 			// Devil World (E) [!]

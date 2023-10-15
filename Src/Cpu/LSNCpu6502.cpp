@@ -1181,6 +1181,14 @@ namespace lsn {
 			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_CPU_START) % LSN_INTERNAL_RAM) + LSN_CPU_START ) );
 		}
+		for ( uint32_t I = 0x4000; I < 0x4015; ++I ) {
+			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::NoRead, this, uint16_t( I ) );
+			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::NoWrite, this, uint16_t( I ) );
+		}
+		for ( uint32_t I = 0x4018; I < (LSN_MEM_FULL_SIZE); ++I ) {
+			m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::NoRead, this, uint16_t( I ) );
+			m_pbBus->SetWriteFunc( uint16_t( I ), CCpuBus::NoWrite, this, uint16_t( I ) );
+		}
 
 		// DMA transfer.
 		m_pbBus->SetReadFunc( 0x4014, CCpuBus::NoRead, this, 0x4014 );
@@ -1190,7 +1198,7 @@ namespace lsn {
 		m_pbBus->SetReadFunc( 0x4016, CCpu6502::Read4016, this, 0 );
 		m_pbBus->SetWriteFunc( 0x4016, CCpu6502::Write4016, this, 0 );
 		m_pbBus->SetReadFunc( 0x4017, CCpu6502::Read4017, this, 0 );
-		//m_pbBus->SetWriteFunc( 0x4017, CCpu6502::Write4017, this, 0 );
+		m_pbBus->SetFloatMask( 0x4015, 0x00 );
 	}
 
 	/**

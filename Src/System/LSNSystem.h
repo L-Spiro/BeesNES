@@ -76,8 +76,9 @@ namespace lsn {
 		void											ResetState( bool _bAnalog ) {
 			m_bBus.ApplyMap();
 			
-			m_aApu.ApplyMemoryMap();
+			
 			m_cCpu.ApplyMemoryMap();
+			m_aApu.ApplyMemoryMap();
 			m_pPpu.ApplyMemoryMap();
 
 			if ( IsRomLoaded() ) {

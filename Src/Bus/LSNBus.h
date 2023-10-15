@@ -125,6 +125,7 @@ namespace lsn {
 		void								ResetToKnown() {
 			ResetAnalog();
 			std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
+			std::memset( m_ui8OpenBusMask, 0xFF, sizeof( m_ui8OpenBusMask ) );
 			m_ui8LastRead = 0;
 		}
 
@@ -142,6 +143,7 @@ namespace lsn {
 				SetReadFunc( uint16_t( I ), StdRead, nullptr, uint16_t( I ) );
 				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
 			}
+			std::memset( m_ui8OpenBusMask, 0xFF, sizeof( m_ui8OpenBusMask ) );
 #ifdef LSN_CPU_VERIFY
 			m_vReadWriteLog.clear();
 #endif	// #ifdef LSN_CPU_VERIFY
@@ -154,22 +156,29 @@ namespace lsn {
 		 * \return Returns the requested value.
 		 */
 		inline uint8_t						Read( uint16_t _ui16Addr ) {
+			uint8_t ui8Ret = m_ui8LastRead;
+			uint8_t ui8Mask;
 			if constexpr ( _uSize == 0x10000 ) {
 				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,
-					m_ui8Ram, m_ui8LastRead );
+					m_ui8Ram, ui8Ret );
+				ui8Mask = m_ui8OpenBusMask[_ui16Addr];
 			}
 			else {
-				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr&(_uSize-1)];
+				uint16_t ui16Addr = _ui16Addr & (_uSize - 1);
+				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[ui16Addr];
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,
-					m_ui8Ram, m_ui8LastRead );
+					m_ui8Ram, ui8Ret );
+				ui8Mask = m_ui8OpenBusMask[ui16Addr];
 			}
+			m_ui8LastRead = (m_ui8LastRead & ~ui8Mask) | (ui8Ret & ui8Mask);
+
 #ifdef LSN_CPU_VERIFY
-			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = m_ui8LastRead, .bRead = true } );
+			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = ui8Ret, .bRead = true } );
 #endif	// #ifdef LSN_CPU_VERIFY
-			return m_ui8LastRead;
+			return ui8Ret;
 		}
 
 		/**
@@ -212,6 +221,17 @@ namespace lsn {
 		 * \return Returns the floating value on the bus.
 		 */
 		inline uint8_t						GetFloat() const { return m_ui8LastRead; }
+
+		/**
+		 * Sets the floating-bus mask for an address.
+		 * 
+		 * \param _ui16Addr The address whose floating-bus mnask is to be updated.
+		 * \param _ui8Mask The new floating-bus mask for the given address.
+		 **/
+		inline void							SetFloatMask( uint16_t _ui16Addr, uint8_t _ui8Mask ) {
+			uint16_t ui16Addr = _ui16Addr & (_uSize - 1);
+			m_ui8OpenBusMask[ui16Addr] = _ui8Mask;
+		}
 
 		/**
 		 * Gets the size of the bus in bytes.
@@ -400,8 +420,9 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
+		uint8_t								m_ui8OpenBusMask[_uSize];		/**< The open-bus update mask.  Usually 0xFF to update all bits, but $4015 is set to 0x00 to update no floating-bus bits. */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
+		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
 
 

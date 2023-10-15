@@ -242,7 +242,7 @@ namespace lsn {
 
 			// None of the registers are readable except 0x4015.
 			for ( uint32_t I = LSN_APU_START; I < LSN_APU_IO_START; ++I ) {
-				if ( I != 0x4014 /*&& I != 0x4016*/	// Not registers.
+				if ( I != 0x4014 && I != 0x4016 && I != 0x4017	// Not registers.
 					&& I != 0x4015 ) {			// Readable.
 					m_pbBus->SetReadFunc( uint16_t( I ), CCpuBus::NoRead, this, uint16_t( I ) );
 				}
