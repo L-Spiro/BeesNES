@@ -164,10 +164,10 @@ namespace lsn {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 			}
 			float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f;
-			float fTriangle = (m_tTriangle.ProducingSound( LSN_TRIANGLE_ENABLED( this ) )) ? m_tTriangle.Output() : 0.0f;
+			float fTriangle = m_tTriangle.Output();
 			float fDmc = 0.0f;
 
-			//fFinalPulse = fTriangle = 0.0f;
+			//fFinalPulse = fNoise = 0.0f;
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
 			fDmc /= 22638.0f;
