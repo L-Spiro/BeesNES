@@ -78,12 +78,21 @@ namespace lsn {
 		m_nnCrtNtsc.blend = 1;
 		//m_nnCrtNtsc.scanlines = 1;
 		m_nnCrtNtsc.white_point = 80;*/
-		m_nnCrtNtsc.hue = 8;
+		
+		/*m_nnCrtNtsc.hue = 8;
 		m_nnCrtNtsc.brightness = 0;
 		m_nnCrtNtsc.contrast = 165;
 		m_nnCrtNtsc.saturation = 14;
 		m_nnCrtNtsc.black_point = 2;
 		m_nnCrtNtsc.white_point = 85;
+		m_nnCrtNtsc.blend = 1;*/
+
+		m_nnCrtNtsc.hue = 22;
+		m_nnCrtNtsc.brightness = 0;
+		m_nnCrtNtsc.contrast = 165;
+		m_nnCrtNtsc.saturation = 13;
+		m_nnCrtNtsc.black_point = 2;
+		m_nnCrtNtsc.white_point = 80;
 		m_nnCrtNtsc.blend = 1;
 
 		m_nsSettings.border_color = 0x22;

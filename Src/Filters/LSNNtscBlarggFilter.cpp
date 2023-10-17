@@ -15,12 +15,14 @@ namespace lsn {
 	CNtscBlarggFilter::CNtscBlarggFilter() :
 		m_ui32FinalStride( 0 ) {
 		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
-		nsTmp.artifacts = 0.75;
-		nsTmp.bleed = 0.85;
-		nsTmp.fringing = 0.75;
-		nsTmp.sharpness = -0.15;
-		nsTmp.merge_fields = 1;
-		nsTmp.saturation = -0.21;
+		nsTmp.artifacts = 0.0;
+		nsTmp.bleed = 0.05;
+		nsTmp.fringing = 0.05;
+		nsTmp.sharpness = 0.95;
+		nsTmp.merge_fields = 0;
+		nsTmp.saturation = -0.25;
+		nsTmp.brightness = -0.13;
+		nsTmp.hue = 0.049;
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 	}

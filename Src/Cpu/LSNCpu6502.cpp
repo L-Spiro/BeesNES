@@ -1160,15 +1160,19 @@ namespace lsn {
 	 * Performs a PHI2 update.
 	 **/
 	void CCpu6502::TickPhi2() {
+		
 #ifndef LSN_OLD_NMI_CHECK
 		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
-		m_bHandleNmi = m_bDetectedNmi;
+		//m_bHandleNmi = m_bDetectedNmi;
 		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
 		//m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
 #endif	// #ifndef LSN_OLD_NMI_CHECK
 
+
 		(this->*m_pfTickPhi2Func)();
+
+		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
 		++m_ui64CycleCount;
 	}
 

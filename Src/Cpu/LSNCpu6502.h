@@ -51,18 +51,18 @@
 #define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. *//*; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
 #else
 #define LSN_INSTR_END_PHI1( CHECK_NMI )														/*if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
-#define LSN_INSTR_END_PHI2( CHECK_NMI )														/*m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing*/ /* Just for development. */; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
+#define LSN_INSTR_END_PHI2( CHECK_NMI )														/*m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing*/ /* Just for development. *///; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
 #endif	// LSN_OLD_NMI_CHECK
 #define LSN_PUSH( VAL, PHI2_FUNC )															LSN_INSTR_WRITE_PHI1( 0x100 + uint8_t( S-- ), (VAL), PHI2_FUNC )
 #define LSN_POP( PHI2_FUNC )																LSN_INSTR_READ_DISCARD_PHI1( 0x100 + uint8_t( S + 1 ), PHI2_FUNC ); ++S//m_pbBus->Read( 0x100 + ++S )
-#define LSN_CHECK_NMI																		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine
+#define LSN_CHECK_NMI																		m_bHandleNmi |= m_bDetectedNmi //m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine
 
 
 #define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )												/*m_ccCurContext.ui8Cycle += AMT;*/	\
 																							m_ccCurContext.ui8FuncIdx += AMT;
 																							/*++m_ccCurContext.ui8Cycle*/
 #define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
-#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
+#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd; LSN_CHECK_NMI
 
 #define LSN_BRK_NMI																			false
 #define LSN_BRANCH_NMI																		false
