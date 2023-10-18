@@ -84,7 +84,8 @@ namespace lsn {
 		m_nnCrtPal.saturation = 12;
 		m_nnCrtPal.white_point = 80;*/
 		//m_nnCrtPal.blend = 1;
-		m_nnCrtPal.brightness = 0;
+
+		/*m_nnCrtPal.brightness = 0;
 		m_nnCrtPal.contrast = 165;
 		m_nnCrtPal.saturation = 16;
 		m_nnCrtPal.black_point = 2;
@@ -92,8 +93,18 @@ namespace lsn {
 		m_nnCrtPal.blend = 1;
 
 		m_nnCrtPal.chroma_correction = 1;
+		m_nsSettings.yoffset = 7;*/
+		
+		m_nnCrtPal.brightness = -9;
+		m_nnCrtPal.contrast = 205;
+		m_nnCrtPal.saturation = 20;
+		m_nnCrtPal.black_point = -1;
+		m_nnCrtPal.white_point = 65;
+		m_nnCrtPal.blend = 1;
+		//m_nnCrtPal.hu
+
+		m_nnCrtPal.chroma_correction = 1;
 		m_nsSettings.yoffset = 7;
-		//m_nsSettings.hue = 180;
 		
 
 		/** 
