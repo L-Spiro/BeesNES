@@ -523,6 +523,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
     <ClInclude Include="Src\Audio\LSNSampleBucket.h" />
+    <ClInclude Include="Src\Audio\LSNSincFilter.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />

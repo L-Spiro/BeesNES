@@ -101,7 +101,6 @@ namespace lsn {
 		m_nnCrtPal.black_point = -1;
 		m_nnCrtPal.white_point = 65;
 		m_nnCrtPal.blend = 1;
-		//m_nnCrtPal.hu
 
 		m_nnCrtPal.chroma_correction = 1;
 		m_nsSettings.yoffset = 7;
