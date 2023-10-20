@@ -91,10 +91,20 @@ namespace lsn {
 		 *  6-point, 5th-order Hermite Z-form sampling.
 		 *
 		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
-		 * \param _dFrac The interpolation amount.
+		 * \param _fFrac The interpolation amount.
 		 * \return Returns the interpolated point.
 		 */
-		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _dFrac );
+		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _fFrac );
+
+		/**
+		 * 6-point, 5th-order optimal 32x z-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \param _dPreEmphHzInRadians The pre-emphasis x value.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_6Point_5thOrder_32X_Z( const float * _pfsSamples, float _fFrac );
 
 		/**
 		 * Called when emulation begins.  Resets the ring buffer of buckets.
@@ -249,12 +259,12 @@ namespace lsn {
 	 *  6-point, 5th-order Hermite Z-form sampling.
 	 *
 	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
-	 * \param _dFrac The interpolation amount.
+	 * \param _fFrac The interpolation amount.
 	 * \return Returns the interpolated point.
 	 */
-	inline float CAudio::Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _dFrac ) {
+	inline float CAudio::Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _fFrac ) {
 		//  6-point, 5th-order Hermite (Z-form).
-		float fZ = _dFrac - 1.0f / 2.0f;
+		float fZ = _fFrac - 1.0f / 2.0f;
 		float fEven1 = _pfsSamples[-2+2] + _pfsSamples[3+2], fOdd1 = _pfsSamples[-2+2] - _pfsSamples[3+2];
 		float fEven2 = _pfsSamples[-1+2] + _pfsSamples[2+2], fOdd2 = _pfsSamples[-1+2] - _pfsSamples[2+2];
 		float fEven3 = _pfsSamples[0+2] + _pfsSamples[1+2], fOdd3 = _pfsSamples[0+2] - _pfsSamples[1+2];
@@ -264,6 +274,35 @@ namespace lsn {
 		float fC3 = 5.0f / 48.0f * fOdd1 - 11.0f / 16.0f * fOdd2 + 37.0f / 24.0f * fOdd3;
 		float fC4 = 1.0f / 48.0f * fEven1 - 1.0f / 16.0f * fEven2 + 1.0f / 24.0f * fEven3;
 		float fC5 = -1.0f / 24.0f * fOdd1 + 5.0f / 24.0f * fOdd2 - 5.0f / 12.0f * fOdd3;
+		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
+	}
+
+	/**
+	 * 6-point, 5th-order optimal 32x z-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _fFrac The interpolation amount.
+	 * \param _dPreEmphHzInRadians The pre-emphasis x value.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_6Point_5thOrder_32X_Z( const float * _pfsSamples, float _fFrac ) {
+		// Optimal 32x (6-point, 5th-order) (Z-form).
+		float fZ = _fFrac - 1.0f / 2.0f;
+		float fEven1 = _pfsSamples[1+2] + _pfsSamples[0+2], fOdd1 = _pfsSamples[1+2] - _pfsSamples[0+2];
+		float fEven2 = _pfsSamples[2+2] + _pfsSamples[-1+2], fOdd2 = _pfsSamples[2+2] - _pfsSamples[-1+2];
+		float fEven3 = _pfsSamples[3+2] + _pfsSamples[-2+2], fOdd3 = _pfsSamples[3+2] - _pfsSamples[-2+2];
+		float fC0 = fEven1 * 0.42685983409379380f + fEven2 * 0.07238123511170030f
+			+ fEven3 * 0.00075893079450573f;
+		float fC1 = fOdd1 * 0.35831772348893259f + fOdd2 * 0.20451644554758297f
+			+ fOdd3 * 0.00562658797241955f;
+		float fC2 = fEven1 * -0.217009177221292431f + fEven2 * 0.20051376594086157f
+			+ fEven3 * 0.01649541128040211f;
+		float fC3 = fOdd1 * -0.25112715343740988f + fOdd2 * 0.04223025992200458f
+			+ fOdd3 * 0.02488727472995134f;
+		float fC4 = fEven1 * 0.04166946673533273f + fEven2 * -0.06250420114356986f
+			+ fEven3 * 0.02083473440841799f;
+		float fC5 = fOdd1 * 0.08349799235675044f + fOdd2 * -0.04174912841630993f
+			+ fOdd3 * 0.00834987866042734f;
 		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
 	}
 

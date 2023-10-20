@@ -195,6 +195,7 @@ namespace lsn {
 				// Bucket filled.
 				++m_sblBuckets.ui64Idx;
 				float fSample = Sample_6Point_5thOrder_Hermite_Z( sbBucket.fBucket, sbBucket.fInterp );
+				//float fSample = Sample_6Point_5thOrder_32X_Z( sbBucket.fBucket, sbBucket.fInterp );
 				m_vTmpBuffer[m_sTmpBufferIdx++] = fSample;
 				if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
 					TransferTmpToLocal();
