@@ -12,8 +12,13 @@ py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_phs_aps
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_phs_aps_ela_applysrgb_NTSC.fpal -aps 5 -ela 0.01429 -phs -5.0 -blp 0.053571429 -e --linear-light
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_applysrgb_NTSC_persune_tink.fpal -aps 5 -ela 0.01429 -e -hue -2.5 -sat -0.1 --linear-light
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_applysrgb_NTSC_persune_GVUSB2_NTSC_MJ.fpal -aps 5 -ela 0.01429 -e -hue 5 -sat -0.4 -bri 0.02 -con 0.075 --linear-light
-py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_applysrgb_NTSC_persune_GVUSB2_NTSC_M.fpal -aps 5 -ela 0.01429 -e -hue 0 -sat -0.4 -blp 0.053571429 --linear-light
+py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_applysrgb_NTSC_persune_GVUSB2_NTSC_M.fpal -aps 5 -ela 0.01429 -e -hue -7.89 -sat -0.4 -blp 0.053571429 -whp 1.0 --linear-light
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02-2C07_aps_ela_applysrgb_persune_neutral.fpal -aps 5 -ela 0.01429 -e -hue 7.5 -sat -0.4 -bri -0.02 -blp 0.053571429 -whp 0.8786115525589069941148 --linear-light
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02-2C07_aps_ela_persune_neutral.fpal -aps 5 -ela 0.01429 -e -hue 7.5 -sat -0.4 -blp 0.053571429 -bri -0.02
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C07_aps_ela_applysrgb_PAL.fpal -pal -cbr 7 -aps 5 -ela 0.01429 -blp 0.053571429 -e -hue 1.25 -sat -0.33333333 -bri -0.015 -whp 0.8928571428571429 --linear-light
 py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C07_aps_ela_PAL.fpal -pal -cbr 7 -aps 5 -ela 0.01429 -blp 0.053571429 -e -hue 1.25 -sat -0.33333333 -bri -0.015 -whp 0.8928571428571429
+
+py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_phs_aps_ela_NTSC.fpal -aps 5 -ela 0.01429 -phs -5.0 -blp 0.053571429 -e --linear-light
+py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_NTSC_persune_tink.fpal -aps 5 -ela 0.01429 -e -hue -2.5 -sat -0.1 --linear-light
+py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_NTSC_persune_GVUSB2_NTSC_MJ.fpal -aps 5 -ela 0.01429 -e -hue 5 -sat -0.4 -bri 0.02 -con 0.075 --linear-light
+py palgen-persune.py --skip-plot --float-pal docs/example_palettes/2C02G_aps_ela_NTSC_persune_GVUSB2_NTSC_M.fpal -aps 5 -ela 0.01429 -e -hue 0 -sat -0.4 -blp 0.053571429 --linear-light

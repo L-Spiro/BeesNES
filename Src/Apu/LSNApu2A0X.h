@@ -13,6 +13,7 @@
 #include "../Audio/LSNAudio.h"
 #include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNSampleBucket.h"
+#include "../Audio/LSNSincFilter.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
@@ -180,9 +181,15 @@ namespace lsn {
 
 			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
 			if ( fLpf < 0.5f ) {
-				m_pfOutputPole.CreateLpf( fLpf );
-				m_pfOutputPole1.CreateLpf( fLpf );
-				dFinal = static_cast<float>(m_pfOutputPole.Process( m_pfOutputPole1.Process( dFinal ) ));
+				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+					m_pfOutputPole[I].CreateLpf( fLpf );
+				}
+				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+					dFinal = m_pfOutputPole[I].Process( dFinal );
+				}
+				//m_sfSincFilter.CreateLpf( double( _tMasterClock ) / _tMasterDiv / _tApuDiv, CAudio::GetOutputFrequency() / 2.0, size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
+				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
+				//dFinal = m_sfSincFilter.FilterSample( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			//m_fMinSample = std::min( m_fMinSample, fFinal );
@@ -314,9 +321,9 @@ namespace lsn {
 		/** The 14-Hz pole filter. */
 		CPoleFilter										m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilter										m_pfOutputPole;
-		/** The output Hz filter. */
-		CPoleFilter										m_pfOutputPole1;
+		CPoleFilter										m_pfOutputPole[4];
+		/** The output (down-sampling) filter. */
+		CSincFilter										m_sfSincFilter;
 		/** Max output sample. */
 		float											m_fMaxSample;
 		/** Min output sample. */
