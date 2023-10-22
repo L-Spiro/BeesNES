@@ -24,28 +24,45 @@ namespace lsn {
 		m_i32WidthY( 12 ),
 		m_i32WidthI( 22 ),
 		m_i32WidthQ( 26 ),
-		m_fBrightness( 0.0f ),
-		m_fContrast( -0.125f ),
-		m_fSaturation( -0.125f ),
-		m_fHue( 0.0f ),
+		m_fBrightness( -0.03125f ),
+		m_fContrast( 0.0625f ),
+		m_fSaturation( -0.015625f ),
+		m_fHue( 7.68f / 180.0f ),
 		m_bRunThreads( true ) {
 
-		const int8_t i8SignalLumaLow[4] = { -29, -15, 22, 71 };
-		const int8_t i8SignalLumaHigh[4] = { 32, 66, 105, 105 };
+		// from https ://forums.nesdev.org/viewtopic.php?p=159266#p159266
+		const double signalLumaLow[2][4] = {
+			{ 0.228, 0.312, 0.552, 0.880 },
+			{ 0.192, 0.256, 0.448, 0.712 }
+		};
+		const double signalLumaHigh[2][4] = {
+			{ 0.616, 0.840, 1.100, 1.100 },
+			{ 0.500, 0.676, 0.896, 0.896 }
+		};
+		double signal_blank = signalLumaLow[0][1];
+		double signal_white = signalLumaHigh[0][3];
 
-		for ( int32_t I = 0; I < 0x40; I++ ) {
-			int32_t i32R = (I & 0x0F) >= 0x0E ? 0x1D : I;
+		//Precalculate the low and high signal chosen for each 64 base colors
+		//with their respective attenuated values
+		for(int h = 0; h <= 1; h++) {
+			for(int i = 0; i <= 0x3F; i++) {
 
-			int32_t i32M = i8SignalLumaLow[i32R / 0x10];
-			int32_t i32Q = i8SignalLumaHigh[i32R / 0x10];
-			if ( (i32R & 0x0F) == 0x0D ) {
-				i32Q = i32M;
+				double m = signalLumaLow[h][i / 0x10];
+				double q = signalLumaHigh[h][i / 0x10];
+
+				if((i & 0x0F) == 0x0D) {
+					q = m;
+				} else if((i & 0x0F) == 0) {
+					m = q;
+				} else if((i & 0x0F) >= 0x0E) {
+					// colors $xE and $xF are not affected by emphasis
+					// https://forums.nesdev.org/viewtopic.php?p=160669#p160669
+					m = signalLumaLow[0][1];
+					q = signalLumaLow[0][1];
+				}
+				m_i8SigLow[(h ? 0x40 : 0) | i] = int8_t(std::floor(((m - signal_blank) / (signal_white - signal_blank)) * 100));
+				m_i8SigHi[(h ? 0x40 : 0) | i] = int8_t(std::floor(((q - signal_blank) / (signal_white - signal_blank)) * 100));
 			}
-			else if ( (i32R & 0x0F) == 0x00 ) { 
-				i32M = i32Q;
-			}
-			m_i8SigLow[I] = int8_t( i32M );
-			m_i8SigHi[I] = int8_t( i32Q );
 		}
 
 		m_tThreadData.pblppThis = this;
@@ -228,15 +245,13 @@ namespace lsn {
 	 *        For a 256 pixels wide screen, this would be 256*8. 283*8 if you include borders.
 	 *
 	 * Signal: An array of Width samples.
-	 *         The following sample values are recognized:
-	 *          -29 = Luma 0 low   32 = Luma 0 high (-38 and  6 when attenuated)
-	 *          -15 = Luma 1 low   66 = Luma 1 high (-28 and 31 when attenuated)
-	 *           22 = Luma 2 low  105 = Luma 2 high ( -1 and 58 when attenuated)
-	 *           71 = Luma 3 low  105 = Luma 3 high ( 34 and 58 when attenuated)
-	 *         In this scale, sync signal would be -59 and colorburst would be -40 and 19,
-	 *         but these are not interpreted specially in this function.
-	 *         The value is calculated from the relative voltage with:
-	 *                   floor((voltage-0.518)*1000/12)-15
+	 *         Sample values are scaled such that black = 0 and white = 100.
+	 *         The values are calculated from the set of terminated voltage measurements by lidnariq
+	 *         with the following formula:
+	 *                   floor(((voltage - signal_blank) / (signal_white - signal_blank)) * 100)
+	 *         Where:
+	 *                   signal_blank = unemphasized $0D = 0.312
+	 *                   signal_white = unemphasized $20 = 1.100
 	 *
 	 * Target: Pointer to a storage for Width RGB32 samples (00rrggbb).
 	 *         Note that the function will produce a RGB32 value for _every_ half-clock-cycle.

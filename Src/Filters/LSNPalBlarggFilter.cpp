@@ -73,7 +73,7 @@ namespace lsn {
 	 */
 	uint8_t * CPalBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
-			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle & 0b01, 2,
+			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle & 0b00, 6,
 			_ui32Width, _ui32Height,
 			m_vFilteredOutput.data(), m_ui32FinalStride );
 		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );

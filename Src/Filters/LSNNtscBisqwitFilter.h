@@ -149,8 +149,8 @@ namespace lsn {
 		int32_t												m_i32Qr, m_i32Qg, m_i32Qb;
 
 		int8_t												m_i8SinTable[27];		// sin( X * 2pi / 12 ) * 8
-		int8_t												m_i8SigLow[0x40];
-		int8_t												m_i8SigHi[0x40];
+		int8_t												m_i8SigLow[0x40<<1];
+		int8_t												m_i8SigHi[0x40<<1];
 
 		/* PAL:
 		 *	const  float   phasex  = (float) 5/18*2;
