@@ -16,7 +16,7 @@ namespace lsn {
 		m_ui32FinalStride( 0 ) {
 		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
 		nsTmp.artifacts = 0.62;
-		nsTmp.bleed = 0.03;
+		nsTmp.bleed = 0.0;
 		nsTmp.fringing = 0.05;
 		nsTmp.sharpness = 0.78;
 		nsTmp.merge_fields = 0;

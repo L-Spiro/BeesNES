@@ -249,12 +249,13 @@ namespace lsn {
 
 
 				ui32Total = _ui32Width >> 1;
-				for ( uint32_t I = 0; I < ui32Total; ++I ) {
+				uint32_t I;
+				uint32_t ui32ThisTotal = ui32Total - 1;
+				for ( I = 0; I < ui32ThisTotal; ++I ) {
 					pui64Dst[I] = LinearSample_Int64( pui64Row0[I], pui64Row1[I], _ui32Factor );
 				}
-				if ( _ui32Width & 1 ) {
-					--_ui32Width;
-					_pui32DstRow[_ui32Width] = LinearSample_Int( _pui32SrcRow0[_ui32Width], _pui32SrcRow1[_ui32Width], _ui32Factor );
+				for ( I = ui32ThisTotal * 2; I < _ui32Width; ++I ) {
+					_pui32DstRow[I] = LinearSample_Int( _pui32SrcRow0[I], _pui32SrcRow1[I], _ui32Factor );
 				}
 			}
 		}
@@ -367,7 +368,7 @@ namespace lsn {
 		 *	are the X index of the samples between which to interpolate.
 		 */
 		static __forceinline uint32_t						SamplingFactor_BiLinear( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
-			return (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+			return (((_ui32SrcLen - 0) * _ui32Idx) << 8) / (_ui32DstLen - 1);
 		}
 
 		/**
@@ -381,7 +382,7 @@ namespace lsn {
 		 *	are the X index of the samples between which to interpolate.
 		 */
 		static __forceinline uint32_t						SamplingFactor_Scanline( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
-			uint32_t ui32Factor = (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+			uint32_t ui32Factor = (((_ui32SrcLen - 0) * _ui32Idx) << 8) / (_ui32DstLen - 1);
 			uint32_t ui32Idx = ui32Factor >> 8;
 			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 1) - 0xFF ) ) );
 			return (ui32Idx << 8) | ui32Frac;

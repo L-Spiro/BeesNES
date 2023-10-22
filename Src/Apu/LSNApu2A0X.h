@@ -178,14 +178,13 @@ namespace lsn {
 			}
 			
 			double dFinal = static_cast<float>(m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) ));
-
-			float fLpf = (CAudio::GetOutputFrequency() / 2.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
-			if ( fLpf < 0.5f ) {
+			{
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-					m_pfOutputPole[I].CreateLpf( fLpf );
-				}
-				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-					dFinal = m_pfOutputPole[I].Process( dFinal );
+					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 1000.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
+					if ( fLpf < 0.5f ) {
+						m_pfOutputPole[I].CreateLpf( fLpf );
+						dFinal = m_pfOutputPole[I].Process( dFinal );
+					}
 				}
 				//m_sfSincFilter.CreateLpf( double( _tMasterClock ) / _tMasterDiv / _tApuDiv, CAudio::GetOutputFrequency() / 2.0, size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
 				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
@@ -321,7 +320,7 @@ namespace lsn {
 		/** The 14-Hz pole filter. */
 		CPoleFilter										m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilter										m_pfOutputPole[4];
+		CPoleFilter										m_pfOutputPole[2];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** Max output sample. */

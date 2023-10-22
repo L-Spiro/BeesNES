@@ -79,6 +79,7 @@ namespace lsn {
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
 				
 				m_vFactorsX[X] = CUtilities::SamplingFactor_BiLinear( _ui32Width, _ui32ScreenWidth, X );
+				//m_vFactorsX[X] = CUtilities::SamplingFactor_Scanline( _ui32Width, _ui32ScreenWidth, X );
 					//(((_ui32Width - 1) * X) << 8) / (_ui32ScreenWidth - 1);
 
 				/*double dSin, dCos;
@@ -107,9 +108,9 @@ namespace lsn {
 			m_ui32SourceFactorY = _ui32Height;
 		}
 
-		if ( ui32Stride * _ui32Height != m_vRowTmp.size() ) {
+		if ( ui32Stride * (_ui32Height + 1) != m_vRowTmp.size() ) {
 			m_vRowTmp = std::vector<uint8_t>();
-			m_vRowTmp.resize( ui32Stride * _ui32Height );
+			m_vRowTmp.resize( ui32Stride * (_ui32Height + 1) );
 		}
 
 #ifdef LSN_BILINEAR_POST_PERF
