@@ -24,10 +24,10 @@ namespace lsn {
 		m_i32WidthY( 12 ),
 		m_i32WidthI( 22 ),
 		m_i32WidthQ( 26 ),
-		m_fBrightness( -0.03125f ),
-		m_fContrast( 0.0625f ),
-		m_fSaturation( -0.015625f ),
-		m_fHue( 7.68f / 180.0f ),
+		m_fBrightness( -0.106f ),
+		m_fContrast( 0.0f ),
+		m_fSaturation( -0.125f ),
+		m_fHue( 18.0f / 180.0f ),
 		m_bRunThreads( true ) {
 
 		// from https ://forums.nesdev.org/viewtopic.php?p=159266#p159266
@@ -294,9 +294,13 @@ namespace lsn {
 			i32SumQ += i32ReadI * Sin( I ) - Read( I - m_i32WidthQ ) * Sin( I - m_i32WidthQ );
 
 			if ( !(I % ui32ResDiv) && I >= i32LeftOverscan ) {
-				int32_t i32R = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ir + i32SumQ * m_i32Qr) / 65536, 0, 255 );
+				int32_t i32R = std::min(255, std::max(0, (i32SumY * m_i32Y + i32SumI*m_i32Ir + i32SumQ*m_i32Qr) / 65536));
+				int32_t i32G = std::min(255, std::max(0, (i32SumY * m_i32Y + i32SumI*m_i32Ig + i32SumQ*m_i32Qg) / 65536));
+				int32_t i32B = std::min(255, std::max(0, (i32SumY * m_i32Y + i32SumI*m_i32Ib + i32SumQ*m_i32Qb) / 65536));
+
+				/*int32_t i32R = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ir + i32SumQ * m_i32Qr) / 65536, 0, 255 );
 				int32_t i32G = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ig + i32SumQ * m_i32Qg) / 65536, 0, 255 );
-				int32_t i32B = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ib + i32SumQ * m_i32Qb) / 65536, 0, 255 );
+				int32_t i32B = std::clamp( (i32SumY * m_i32Y + i32SumI * m_i32Ib + i32SumQ * m_i32Qb) / 65536, 0, 255 );*/
 #ifdef LSN_SRGB_BISQWIT
 				if ( i32R != i32LastR ) {
 					i32LastR = i32R;
@@ -345,7 +349,7 @@ namespace lsn {
 			int32_t i32StartCycle = i32Phase % 12;
 		
 			GenerateNtscSignal( i8RowSig, i32Phase, Y, reinterpret_cast<const uint16_t *>(_pui8Input) );
-			NtscDecodeLine( i32LineW * m_i32SignalsPerPixel, i8RowSig, pui32Out, (i32StartCycle + 7) % 12 );
+			NtscDecodeLine( i32LineW * m_i32SignalsPerPixel, i8RowSig, pui32Out, (i32StartCycle + _ui32From * 341 + 7) % 12 );
 
 			pui32Out += ui32RowPixelGap;
 		}
