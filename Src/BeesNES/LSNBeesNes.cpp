@@ -22,7 +22,7 @@ namespace lsn {
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ),
-		m_ui32RecentLimit( 13 ) {
+		m_ui32RecentLimit( 13 * 4 ) {
 
 		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
 		
