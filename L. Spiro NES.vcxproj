@@ -514,6 +514,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNSweeper.h" />
     <ClInclude Include="Src\Apu\LSNTriangle.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
+    <ClInclude Include="Src\Audio\LSNHpfFilter.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlContext.h" />

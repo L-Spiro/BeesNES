@@ -648,6 +648,9 @@
     <ClInclude Include="Src\Audio\LSNSincFilter.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNHpfFilter.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

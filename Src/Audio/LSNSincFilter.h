@@ -80,7 +80,7 @@ namespace lsn {
 		 * \param _dSample The input sample.
 		 * \return Returns the filtered sample.
 		 **/
-		double						FilterSample( double _dSample ) const;
+		double						Process( double _dSample ) const;
 
 		/**
 		 * Returns true if there are coefficients in the buffer, indicating that the filter has already been set up.
@@ -284,7 +284,7 @@ namespace lsn {
 	 * \param _dSample The input sample.
 	 * \return Returns the filtered sample.
 	 **/
-	inline double CSincFilter::FilterSample( double _dSample ) const {
+	inline double CSincFilter::Process( double _dSample ) const {
 		--m_stRing;
 		if ( m_stRing >= m_vRing.size() ) {
 			m_stRing += m_vRing.size();

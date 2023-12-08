@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
+#include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNSampleBucket.h"
 #include "../Audio/LSNSincFilter.h"
@@ -123,7 +124,7 @@ namespace lsn {
 			m_piIrqTarget( _piIrqTarget ),
 			m_dvRegisters3_4017( Set4017, this ) {
 			m_pfPole90.CreateHpf( 90.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
-			m_pfPole440.CreateHpf( 440.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+			m_pfPole440.CreateHpf( 442.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
 			m_pfPole14.CreateLpf( 14000.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
 		}
 		~CApu2A0X() {
@@ -188,7 +189,10 @@ namespace lsn {
 				}
 				//m_sfSincFilter.CreateLpf( double( _tMasterClock ) / _tMasterDiv / _tApuDiv, CAudio::GetOutputFrequency() / 2.0, size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
 				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
-				//dFinal = m_sfSincFilter.FilterSample( dFinal );
+				//dFinal = m_sfSincFilter.Process( dFinal );
+
+				m_hfHpfFilter.CreateHpf( 2.0f, float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+				dFinal = m_hfHpfFilter.Process( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			//m_fMinSample = std::min( m_fMinSample, fFinal );
@@ -323,6 +327,8 @@ namespace lsn {
 		CPoleFilter										m_pfOutputPole[2];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
+		/** A sanitization HPF. */
+		CHpfFilter										m_hfHpfFilter;
 		/** Max output sample. */
 		float											m_fMaxSample;
 		/** Min output sample. */
