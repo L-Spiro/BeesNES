@@ -12,7 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
 #include "../Audio/LSNHpfFilter.h"
-#include "../Audio/LSNPoleFilter.h"
+#include "../Audio/LSNPoleFilterLeaky.h"
 #include "../Audio/LSNSampleBucket.h"
 #include "../Audio/LSNSincFilter.h"
 #include "../Bus/LSNBus.h"
@@ -123,9 +123,9 @@ namespace lsn {
 			m_ui64LastBucketCycle( 0 ),
 			m_piIrqTarget( _piIrqTarget ),
 			m_dvRegisters3_4017( Set4017, this ) {
-			m_pfPole90.CreateHpf( 90.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
-			m_pfPole440.CreateHpf( 442.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
-			m_pfPole14.CreateLpf( 14000.0f / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+			m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
+			m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
+			m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
 		}
 		~CApu2A0X() {
 		}
@@ -153,12 +153,7 @@ namespace lsn {
 				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
 				m_ui64LastBucketCycle = ui64ApuOutputCycle;
 			}
-			/*{
-				double dApuHz = (double)_tMasterClock / _tMasterDiv / _tApuDiv;
-				double dTime = m_ui64Cycles / dApuHz;
 
-				CAudio::AddSample( m_ui64Cycles, (float)std::sin( dTime * 2.0 * 3.1415926535897932384626433832795 * 440.0 ) );
-			}*/
 			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
 			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
 			float fFinalPulse = fPulse1 + fPulse2;
@@ -180,18 +175,19 @@ namespace lsn {
 			
 			double dFinal = static_cast<float>(m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) ));
 			{
+				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 1000.0f) / float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv );
-					if ( fLpf < 0.5f ) {
-						m_pfOutputPole[I].CreateLpf( fLpf );
+					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 1000.0f);
+					if ( fLpf < fMinLpf ) {
+						m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
 						dFinal = m_pfOutputPole[I].Process( dFinal );
 					}
 				}
-				//m_sfSincFilter.CreateLpf( double( _tMasterClock ) / _tMasterDiv / _tApuDiv, CAudio::GetOutputFrequency() / 2.0, size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
+				//m_sfSincFilter.CreateLpf( CAudio::GetOutputFrequency() / 2.0, Hz(), size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
 				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
 				//dFinal = m_sfSincFilter.Process( dFinal );
 
-				m_hfHpfFilter.CreateHpf( 2.0f, float( double( _tMasterClock ) / _tMasterDiv / _tApuDiv ) );
+				m_hfHpfFilter.CreateHpf( 14.0f, HzAsFloat() );
 				dFinal = m_hfHpfFilter.Process( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
@@ -296,6 +292,20 @@ namespace lsn {
 		 **/
 		bool											IsEvenCycle() const { return (m_ui64Cycles & 1) == 1; }
 
+		/**
+		 * Gets the audio frequency expressed as a double.
+		 * 
+		 * \return Returns _tMasterClock / _tMasterDiv / _tApuDiv.
+		 **/
+		inline constexpr double							Hz() const { return double( _tMasterClock ) / _tMasterDiv / _tApuDiv; }
+
+		/**
+		 * Gets the audio frequency expressed as a float.
+		 * 
+		 * \return Returns _tMasterClock / _tMasterDiv / _tApuDiv.
+		 **/
+		inline constexpr float							HzAsFloat() const { return float( Hz() ); }
+
 
 
 	protected :
@@ -318,13 +328,13 @@ namespace lsn {
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
 		/** The 90-Hz pole filter. */
-		CPoleFilter										m_pfPole90;
+		CPoleFilterLeaky								m_pfPole90;
 		/** The 440-Hz pole filter. */
-		CPoleFilter										m_pfPole440;
+		CPoleFilterLeaky								m_pfPole440;
 		/** The 14-Hz pole filter. */
-		CPoleFilter										m_pfPole14;
+		CPoleFilterLeaky								m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilter										m_pfOutputPole[2];
+		CPoleFilterLeaky								m_pfOutputPole[2];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */

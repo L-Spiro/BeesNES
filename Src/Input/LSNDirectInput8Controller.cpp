@@ -302,7 +302,7 @@ namespace lsn {
 	 * \param _pvRef The application-defined value passed to IDirectInputDevice8::EnumObjects as the _pvRef parameter.
 	 * \return Returns DIENUM_CONTINUE to continue the enumeration or DIENUM_STOP to stop the enumeration.
 	 **/
-	BOOL CDirectInput8Controller::EnumDeviceObjectsCallback( LPCDIDEVICEOBJECTINSTANCE _lpddoiInstance,  LPVOID _pvRef ) {
+	BOOL CALLBACK CDirectInput8Controller::EnumDeviceObjectsCallback( LPCDIDEVICEOBJECTINSTANCE _lpddoiInstance,  LPVOID _pvRef ) {
 		CDirectInput8Controller * pdi8cController = reinterpret_cast<CDirectInput8Controller *>(_pvRef);
 		DIPROPRANGE propRange; 
 		propRange.diph.dwSize       = sizeof( DIPROPRANGE );

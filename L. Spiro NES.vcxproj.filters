@@ -609,9 +609,6 @@
     <ClInclude Include="Src\System\LSNInterruptable.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Audio\LSNPoleFilter.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Apu\LSNLengthCounter.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
@@ -649,6 +646,15 @@
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
     <ClInclude Include="Src\Audio\LSNHpfFilter.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNAudioFilterBase.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNPoleFilterLeaky.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNPoleFilter.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
   </ItemGroup>

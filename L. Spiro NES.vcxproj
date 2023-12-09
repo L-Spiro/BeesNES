@@ -514,6 +514,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNSweeper.h" />
     <ClInclude Include="Src\Apu\LSNTriangle.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
+    <ClInclude Include="Src\Audio\LSNAudioFilterBase.h" />
     <ClInclude Include="Src\Audio\LSNHpfFilter.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h" />
@@ -523,6 +524,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAlInclude.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
+    <ClInclude Include="Src\Audio\LSNPoleFilterLeaky.h" />
     <ClInclude Include="Src\Audio\LSNSampleBucket.h" />
     <ClInclude Include="Src\Audio\LSNSincFilter.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />

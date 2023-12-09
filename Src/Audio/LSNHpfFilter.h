@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include <cmath>
+#include "LSNAudioFilterBase.h"
 
 namespace lsn {
 
@@ -20,10 +20,10 @@ namespace lsn {
 	 *
 	 * Description: An HPF filter.
 	 */
-	class CHpfFilter {
+	class CHpfFilter : public CAudioFilterBase {
 	public :
 		inline CHpfFilter();
-		inline ~CHpfFilter();
+		virtual ~CHpfFilter() {}
 
 
 		// == Functions.
@@ -33,7 +33,18 @@ namespace lsn {
 		 * \param _fFc The non-normalized cut-off frequency.
 		 * \param _fSampleRate The input/output sample rate.
 		 **/
-		inline void					CreateHpf( float _fFc, float _fSampleRate );
+		inline bool					CreateHpf( float _fFc, float _fSampleRate ) {
+			if ( Dirty( _fFc, _fSampleRate ) ) {
+				double dDelta = (_fSampleRate != 0.0f) ? (1.0 / _fSampleRate) : 0.0;
+				double dTimeConstant = (_fFc != 0.0f) ? (1.0 / _fFc) : 0.0;
+				m_dAlpha = ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0;
+				m_dOutput = 0.0;
+				m_dPreviousOutput = m_dOutput;
+				m_dPrevInput = 0.0;
+				m_dDelta = 0.0;
+			}
+			return true;
+		}
 
 		/**
 		 * Processes a single sample.
@@ -41,18 +52,23 @@ namespace lsn {
 		 * \param _dSample The sample to process.
 		 * \return Returns the filtered sample.
 		 **/
-		inline double				Process( double _dSample );
+		inline double				Process( double _dSample ) {
+			m_dPreviousOutput = m_dOutput;
+			m_dDelta = _dSample - m_dPrevInput;
+			m_dPrevInput = _dSample;
+
+			m_dOutput = m_dAlpha * m_dPreviousOutput + m_dAlpha * m_dDelta;
+			return m_dOutput;
+		}
 
 
 	protected :
 		// == Members.
-		double						m_dAlpha;
-		double						m_dPreviousOutput;
-		double						m_dPrevInput;
-		double						m_dDelta;
+		double						m_dAlpha;				/**< Alpha. */
+		double						m_dPreviousOutput;		/**< The previous output sample. */
+		double						m_dPrevInput;			/**< The previous input sample. */
+		double						m_dDelta;				/**< Delta. */
 		double						m_dOutput;				/**< The current filtered output sample. */
-		float						m_fFc;					/**< The original cut-off frequency. */
-		float						m_fSampleRate;			/**< The original sample rate. */
 	};
 	
 
@@ -61,52 +77,14 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	inline CHpfFilter::CHpfFilter() :
+		CAudioFilterBase(),
 		m_dAlpha( 0.0 ),
 		m_dPreviousOutput( 0.0 ),
 		m_dPrevInput( 0.0 ),
 		m_dDelta( 0.0 ),
-		m_dOutput( 0.0 ),
-		m_fFc( 0.0f ),
-		m_fSampleRate( 0.0f ) {
-	}
-	inline CHpfFilter::~CHpfFilter() {
+		m_dOutput( 0.0 ) {
 	}
 
 	// == Functions.
-	/**
-	 * Sets the cut-off given a non-normalized cut-off frequency for an HPF and sample rate.
-	 * 
-	 * \param _fFc The non-normalized cut-off frequency.
-	 * \param _fSampleRate The input/output sample rate.
-	 **/
-	inline void CHpfFilter::CreateHpf( float _fFc, float _fSampleRate ) {
-		if ( m_fFc != _fFc || m_fSampleRate != _fSampleRate ) {
-			double dDelta = (_fSampleRate != 0.0f) ? (1.0 / _fSampleRate) : 0.0;
-			double dTimeConstant = (_fFc != 0.0f) ? (1.0 / _fFc) : 0.0;
-			m_dAlpha = ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0;
-			m_dOutput = 0.0;
-			m_dPreviousOutput = m_dOutput;
-			m_dPrevInput = 0.0;
-			m_dDelta = 0.0;
-
-			m_fFc = _fFc;
-			m_fSampleRate = _fSampleRate;
-		}
-	}
-
-	/**
-	 * Processes a single sample.
-	 * 
-	 * \param _dSample The sample to process.
-	 * \return Returns the filtered sample.
-	 **/
-	inline double CHpfFilter::Process( double _dSample ) {
-		m_dPreviousOutput = m_dOutput;
-        m_dDelta = _dSample - m_dPrevInput;
-        m_dPrevInput = _dSample;
-
-		m_dOutput = m_dAlpha * m_dPreviousOutput + m_dAlpha * m_dDelta;
-		return m_dOutput;
-	}
 
 }	// namespace lsn
