@@ -100,7 +100,7 @@ namespace lsn {
 		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
 		m_fSampleRate = _fSampleRate;
 		m_fFc = _fFc;
-		_fFc /= _fSampleRate;										// Cut-off ratio.
+		double dFc = double( _fFc ) / _fSampleRate;			// Cut-off ratio.
 
 		m_vCeof.resize( _stM );
 		m_vRing.resize( _stM );
@@ -117,17 +117,17 @@ namespace lsn {
 
 
 		// Apply sinc function.
-		double dFc2 = 2.0 * _fFc;
+		double dFc2 = 2.0 * dFc;
 		const double dTau = 2.0 * std::numbers::pi;
 		int64_t i64SignedL = int64_t( stL );
 		for ( auto I = m_vCeof.size(); I--; ) {
 			int64_t N = int64_t( I ) - i64SignedL;
 			if ( N ) {
 				//m_vCeof[I] *= Sinc( double( N ), dFc2 );
-				m_vCeof[I] *= std::sin( dTau * _fFc * N ) / (std::numbers::pi * N);
+				m_vCeof[I] *= std::sin( dTau * dFc * N ) / (std::numbers::pi * N);
 			}
 			else {
-				//m_vCeof[I] *= dTau * _fFc;
+				//m_vCeof[I] *= dTau * dFc;
 				m_vCeof[I] *= dFc2;
 			}
 		}
@@ -159,7 +159,7 @@ namespace lsn {
 		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
 		m_fSampleRate = _fSampleRate;
 		m_fFc = _fFc;
-		_fFc /= _fSampleRate;										// Cut-off ratio.
+		double dFc = double( _fFc ) / _fSampleRate;			// Cut-off ratio.
 
 		m_vCeof.resize( _stM );
 		m_vRing.resize( _stM );
@@ -176,17 +176,17 @@ namespace lsn {
 
 
 		// Apply sinc function.
-		double dFc2 = 2.0 * _fFc;
+		double dFc2 = 2.0 * dFc;
 		const double dTau = 2.0 * std::numbers::pi;
 		int64_t i64SignedL = int64_t( stL );
 		for ( auto I = m_vCeof.size(); I--; ) {
 			int64_t N = int64_t( I ) - i64SignedL;
 			if ( N ) {
 				//m_vCeof[I] *= Sinc( double( N ), dFc2 );
-				m_vCeof[I] *= -std::sin( dTau * _fFc * N ) / (std::numbers::pi * N);
+				m_vCeof[I] *= -std::sin( dTau * dFc * N ) / (std::numbers::pi * N);
 			}
 			else {
-				//m_vCeof[I] *= dTau * _fFc;
+				//m_vCeof[I] *= dTau * dFc;
 				m_vCeof[I] *= 1.0 - dFc2;
 			}
 		}
