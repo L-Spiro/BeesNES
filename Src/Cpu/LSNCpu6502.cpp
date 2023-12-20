@@ -1166,7 +1166,9 @@ namespace lsn {
 		//m_bHandleNmi = m_bDetectedNmi;
 		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
 		//m_bLastNmiStatusLine = m_bNmiStatusLine;
-		m_bHandleIrq |= m_bIrqStatusLine;
+		if ( CheckBit( static_cast<uint8_t>(LSN_STATUS_FLAGS::LSN_SF_IRQ), m_ui8Status ) == false ) {
+			m_bHandleIrq |= m_bIrqStatusLine;
+		}
 #endif	// #ifndef LSN_OLD_NMI_CHECK
 
 

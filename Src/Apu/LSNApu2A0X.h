@@ -334,7 +334,7 @@ namespace lsn {
 		/** The 14-Hz pole filter. */
 		CPoleFilterLeaky								m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilterLeaky								m_pfOutputPole[2];
+		CPoleFilterLeaky								m_pfOutputPole[3];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */
@@ -431,7 +431,7 @@ namespace lsn {
 		void											Tick_Mode0_Step3() {
 			LSN_APU_UPDATE;
 			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
-				//m_piIrqTarget->Irq();
+				m_piIrqTarget->Irq();
 			}
 
 			if ( (m_ui64StepCycles + 1) == (_tM0S3_2 - 1) ) {
