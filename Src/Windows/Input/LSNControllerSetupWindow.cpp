@@ -35,9 +35,9 @@ namespace lsn {
 			static LPWSTR const lpwstrTabTitles[] = {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_BUTTONS )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS )),
-				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_RAPID )),
+				//const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_RAPID )),
 			};
-			for ( size_t I = 0; I < 3; ++I ) {
+			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
 				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this ));
 				if ( pscpPage ) {
 					TCITEMW tciItem = { 0 };
