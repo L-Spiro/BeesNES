@@ -20,6 +20,9 @@ using namespace lsw;
 
 namespace lsn {
 
+#define LSN_STD_CONT_BUTTON_LABEL_W						(25)
+#define LSN_STD_CONT_BUTTON_FULL_W						(LSN_STD_CONT_BUTTON_LABEL_W + 50)
+
 #define LSN_STD_CONT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 600 + LSN_LEFT_JUST + LSN_LEFT_JUST)
 #define LSN_STD_CONT_H									(50 + 150 + 20)
 	

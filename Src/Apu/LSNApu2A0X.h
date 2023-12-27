@@ -177,7 +177,7 @@ namespace lsn {
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 1000.0f);
+					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
 					if ( fLpf < fMinLpf ) {
 						m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
 						dFinal = m_pfOutputPole[I].Process( dFinal );
