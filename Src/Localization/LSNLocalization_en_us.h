@@ -98,8 +98,16 @@
 
 // Standard input configuration.
 #define LSN_STD_INPUT_BUTTONS												Buttons
-#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS									Alternative Buttons
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_1								Alternative Buttons 1
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2								Alternative Buttons 2
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3								Alternative Buttons 3
 #define LSN_STD_INPUT_RAPID													Rapid
+#define LSN_DIRECTIONAL_PAD													Directional Pad
+#define LSN_SELECT_START													Select/Start
+#define LSN_BUTTONS															Buttons
+#define LSN_BUTTON_															Button:
+#define LSN_TURBO_															Turbo:
+#define LSN_DEAD_															Dead:
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
@@ -129,3 +137,4 @@
 #define LSN_BUTTON_START													Start
 #define LSN_BUTTON_B														B
 #define LSN_BUTTON_A														A
+

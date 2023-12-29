@@ -34,7 +34,9 @@ namespace lsn {
 			
 			static LPWSTR const lpwstrTabTitles[] = {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_BUTTONS )),
-				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_1 )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2 )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
 				//const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_RAPID )),
 			};
 			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
