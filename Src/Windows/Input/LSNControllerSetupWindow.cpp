@@ -9,7 +9,10 @@
  */
 
 #include "LSNControllerSetupWindow.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNStdControllerPageLayout.h"
+#include <ComboBox/LSWComboBox.h>
+#include <TrackBar/LSWTrackBar.h>
 
 
 namespace lsn {
@@ -18,6 +21,11 @@ namespace lsn {
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
 	}
 	CControllerSetupWindow::~CControllerSetupWindow() {
+		// Unnecessary; if not deleted here they are deleted when the tab closes.
+		for ( auto I = m_vPages.size(); I--; ) {
+			delete m_vPages[I];
+			m_vPages[I] = nullptr;
+		}
 		m_vPages.clear();
 	}
 
@@ -37,7 +45,6 @@ namespace lsn {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_1 )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2 )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
-				//const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_RAPID )),
 			};
 			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
 				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this ));
@@ -55,6 +62,46 @@ namespace lsn {
 						//LSW_RECT rWindow = ptTab->ClientRect();
 						//rWindow = rWindow.MapWindowPoints( pscpPage->Wnd(), Wnd() );
 						::MoveWindow( pscpPage->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
+
+
+						static const WORD wDeads[] = {
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_A_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_B_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_START_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_DEADZONE_TRACKBAR,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_DEADZONE_TRACKBAR,
+						};
+						for ( size_t J = LSN_ELEMENTS( wDeads ); J--; ) {
+							lsw::CTrackBar * ptbBar = static_cast<lsw::CTrackBar *>(pscpPage->FindChild( wDeads[J] ));
+							if ( ptbBar ) {
+								ptbBar->SetTicFreq( 5 );
+								ptbBar->SetPos( TRUE, 20 );
+							}
+						}
+
+						static const WORD wTurbos[] = {
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_COMBO,
+							CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_COMBO,
+						};
+						for ( size_t J = LSN_ELEMENTS( wTurbos ); J--; ) {
+							lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(pscpPage->FindChild( wTurbos[J] ));
+							if ( pcbBox ) {
+								static const CWinUtilities::LSN_COMBO_ENTRY ceEnries[] = {
+									//pwcName																					lpParm
+									{ L"Std: 1010101010101010101010101010101010101010101010101010101010101010",					-1,		},
+								};
+								CWinUtilities::FillComboBox( pcbBox, ceEnries, LSN_ELEMENTS( ceEnries ), -1 );
+							}
+						}
 						pscpPage = nullptr;
 					}
 				}
