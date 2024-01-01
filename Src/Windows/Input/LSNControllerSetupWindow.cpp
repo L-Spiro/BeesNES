@@ -130,6 +130,40 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles the WM_COMMAND message.
+	 *
+	 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+	 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CControllerSetupWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * _pwSrc ) {
+		switch ( _wId ) {
+			/*case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
+				CTab * ptTab = GetTab();
+				if ( ptTab ) {
+					if ( ptTab->GetCurSel() < m_vPages.size() && m_vPages[ptTab->GetCurSel()] ) {
+						m_vPages[ptTab->GetCurSel()]->BeginListening_Keyboard( m_vPages[ptTab->GetCurSel()]->FindChild( _wId ) );
+					}
+				}
+				return LSW_H_HANDLED;
+			}*/
+			/*case Layout::LSN_IWI_OK : {
+				SaveAndClose();
+				return LSW_H_HANDLED;
+			}*/
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * Window rectangle.
 	 * 
 	 * \param _pwChild If not nullptr, this is the child control for which to determine the window rectangle.

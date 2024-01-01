@@ -12,6 +12,8 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../../Localization/LSNLocalization.h"
+#include <Button/LSWButton.h>
+#include <ComboBox/LSWComboBox.h>
 #include <Helpers/LSWInputListenerBase.h>
 #include <MainWindow/LSWMainWindow.h>
 
@@ -74,9 +76,53 @@ namespace lsn {
 		 */
 		virtual bool								StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess );
 
+		/**
+		 * Handles the WM_COMMAND message.
+		 *
+		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+		 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+		 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED							Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+
+		/**
+		 * Fully updates the dialog based on current buttons and settings.
+		 */
+		void										UpdateDialog();
+
+		/**
+		 * Gets an array of the main buttons.  There will be 8 values in the array.
+		 * 
+		 * \return Returns an array containing the 8 primary buttons.
+		 **/
+		std::vector<lsw::CButton *>					MainButtons();
+
+		/**
+		 * Gets an array of the turbo buttons.  There will be 8 values in the array.
+		 * 
+		 * \return Returns an array containing the 8 turbo buttons.
+		 **/
+		std::vector<lsw::CButton *>					TurboButtons();
+
+		/**
+		 * Gets an array of the turbo combos.  There will be 8 values in the array, which will correspond to the 8 turbo buttons returned by TurboButtons().
+		 * 
+		 * \return Returns an array containing the 8 turbo combos.
+		 **/
+		std::vector<lsw::CComboBox *>				TurboCombos();
+
 
 	protected :
 		// == Members.
+		/** The primary buttons. */
+		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krMainButtons[8];
+
+		/** The turbo buttons. */
+		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krTurboButtons[8];
+
+		/** The button to which we are currently listening. */
+		size_t										m_stListeningIdx;
 	};
 
 }	// namespace lsn

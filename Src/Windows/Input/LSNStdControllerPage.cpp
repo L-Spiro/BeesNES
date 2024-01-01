@@ -9,6 +9,7 @@
  */
 
 #include "LSNStdControllerPage.h"
+#include "LSNStdControllerPageLayout.h"
 
 namespace lsn {
 
@@ -19,6 +20,30 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_krMainButtons ); ++I ) {
+			m_krMainButtons[I].bKeyCode = m_krMainButtons[I].bKeyModifier = 0;
+			m_krMainButtons[I].dwScanCode = 0;
+		}
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_krTurboButtons ); ++I ) {
+			m_krTurboButtons[I].bKeyCode = m_krTurboButtons[I].bKeyModifier = 0;
+			m_krTurboButtons[I].dwScanCode = 0;
+		}
+
+		std::vector<lsw::CButton *> vMainButtons = MainButtons();
+		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();
+		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
+		for ( size_t I = 0; I < vMainButtons.size(); ++I ) {
+			vMainButtons[I]->SetUserData( I );
+		}
+		for ( size_t I = 0; I < vTurboButtons.size(); ++I ) {
+			vTurboButtons[I]->SetUserData( I );
+		}
+		for ( size_t I = 0; I < vTurboCombos.size(); ++I ) {
+			vTurboCombos[I]->SetUserData( I );
+		}
+
+
+		UpdateDialog();
 		return LSW_H_CONTINUE;
 	}
 
@@ -32,8 +57,149 @@ namespace lsn {
 	bool CStdControllerPage::StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess ) {
 		if ( !lsw::CInputListenerBase::StopListening_Keyboard( _pwControl, _bSuccess ) ) { return false; }
 
+		if ( m_stListeningIdx < 8 ) {
+			m_krMainButtons[m_stListeningIdx] = m_krResult;
+		}
+		else {
+			m_krTurboButtons[m_stListeningIdx%8] = m_krResult;
+		}
 
+		UpdateDialog();
 		return true;
+	}
+
+	/**
+	 * Handles the WM_COMMAND message.
+	 *
+	 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+	 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CStdControllerPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * _pwSrc ) {
+		switch ( _wId ) {
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
+				m_stListeningIdx = _pwSrc->GetUserData() & 0xFF;
+				BeginListening_Keyboard( _pwSrc );
+				return LSW_H_HANDLED;
+			}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON : {}
+			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON : {
+				m_stListeningIdx = (_pwSrc->GetUserData() & 0xFF) + 8;
+				BeginListening_Keyboard( _pwSrc );
+				return LSW_H_HANDLED;
+			}
+			/*case Layout::LSN_IWI_OK : {
+				SaveAndClose();
+				return LSW_H_HANDLED;
+			}*/
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Fully updates the dialog based on current buttons and settings.
+	 */
+	void CStdControllerPage::UpdateDialog() {
+		/*std::vector<lsw::CButton *> vMainButtons = MainButtons();
+		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();*/
+		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
+
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_krTurboButtons ); ++I ) {
+			vTurboCombos[I]->SetEnabled( m_krTurboButtons[I].bKeyCode || m_krTurboButtons[I].bKeyModifier );
+		}
+	}
+
+	/**
+	 * Gets an array of the main buttons.  There will be 8 values in the array.
+	 * 
+	 * \return Returns an array containing the 8 primary buttons.
+	 **/
+	std::vector<lsw::CButton *> CStdControllerPage::MainButtons() {
+		static const WORD wButtons[] = {
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON,
+		};
+		
+		try {
+			std::vector<lsw::CButton *> vRet;
+			for ( size_t I = 0; I < LSN_ELEMENTS( wButtons ); ++I ) {
+				vRet.push_back( static_cast<lsw::CButton *>(FindChild( wButtons[I] )) );
+			}
+			return vRet;
+		}
+		catch ( ... ) { return std::vector<lsw::CButton *>(); }
+	}
+
+	/**
+	 * Gets an array of the turbo buttons.  There will be 8 values in the array.
+	 * 
+	 * \return Returns an array containing the 8 turbo buttons.
+	 **/
+	std::vector<lsw::CButton *> CStdControllerPage::TurboButtons() {
+		static const WORD wButtons[] = {
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_BUTTON,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_BUTTON,
+		};
+		try {
+			std::vector<lsw::CButton *> vRet;
+			for ( size_t I = 0; I < LSN_ELEMENTS( wButtons ); ++I ) {
+				vRet.push_back( static_cast<lsw::CButton *>(FindChild( wButtons[I] )) );
+			}
+			return vRet;
+		}
+		catch ( ... ) { return std::vector<lsw::CButton *>(); }
+	}
+
+	/**
+	 * Gets an array of the turbo combos.  There will be 8 values in the array, which will correspond to the 8 turbo buttons returned by TurboButtons().
+	 * 
+	 * \return Returns an array containing the 8 turbo combos.
+	 **/
+	std::vector<lsw::CComboBox *> CStdControllerPage::TurboCombos() {
+		static const WORD wCombos[] = {
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_COMBO,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_COMBO,
+		};
+		try {
+			std::vector<lsw::CComboBox *> vRet;
+			for ( size_t I = 0; I < LSN_ELEMENTS( wCombos ); ++I ) {
+				vRet.push_back( static_cast<lsw::CComboBox *>(FindChild( wCombos[I] )) );
+			}
+			return vRet;
+		}
+		catch ( ... ) { return std::vector<lsw::CComboBox *>(); }
 	}
 
 }	// namespace lsn

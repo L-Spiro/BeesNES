@@ -50,6 +50,16 @@ namespace lsn {
 		LSW_HANDLED									Close();
 
 		/**
+		 * Handles the WM_COMMAND message.
+		 *
+		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
+		 * \param _wId The ID of the control if _wCtrlCode is not 0 or 1.
+		 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED							Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+
+		/**
 		 * Gets the tab control.
 		 * 
 		 * \return Returns the main tab control.
@@ -72,7 +82,7 @@ namespace lsn {
 		 * \param _pwChild If not nullptr, this is the child control for which to determine the client rectangle.
 		 * \return Returns the client rectangle for this control or of a given child control.
 		 **/
-		virtual LSW_RECT					ClientRect( const CWidget * /*_pwChild*/ = nullptr ) const;
+		virtual LSW_RECT							ClientRect( const CWidget * /*_pwChild*/ = nullptr ) const;
 
 
 	protected :
