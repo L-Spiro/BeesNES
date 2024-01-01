@@ -15,6 +15,7 @@
 #include <Button/LSWButton.h>
 #include <ComboBox/LSWComboBox.h>
 #include <Helpers/LSWInputListenerBase.h>
+#include <TrackBar/LSWTrackBar.h>
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -111,6 +112,13 @@ namespace lsn {
 		 * \return Returns an array containing the 8 turbo combos.
 		 **/
 		std::vector<lsw::CComboBox *>				TurboCombos();
+
+		/**
+		 * Gets an array of the dead-zone trackbars.  There will be 8 values in the array.
+		 * 
+		 * \return Returns an array containing the 8 dead-zone trackbars.
+		 **/
+		std::vector<lsw::CTrackBar *>				DeadZoneTrackBars();
 
 
 	protected :

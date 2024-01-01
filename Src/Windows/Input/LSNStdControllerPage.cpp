@@ -9,6 +9,7 @@
  */
 
 #include "LSNStdControllerPage.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNStdControllerPageLayout.h"
 
 namespace lsn {
@@ -32,6 +33,7 @@ namespace lsn {
 		std::vector<lsw::CButton *> vMainButtons = MainButtons();
 		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
+		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
 		for ( size_t I = 0; I < vMainButtons.size(); ++I ) {
 			vMainButtons[I]->SetUserData( I );
 		}
@@ -40,6 +42,16 @@ namespace lsn {
 		}
 		for ( size_t I = 0; I < vTurboCombos.size(); ++I ) {
 			vTurboCombos[I]->SetUserData( I );
+
+			static const CWinUtilities::LSN_COMBO_ENTRY ceEnries[] = {
+				//pwcName																					lpParm
+				{ L"Std: 1010101010101010101010101010101010101010101010101010101010101010",					-1,		},
+			};
+			CWinUtilities::FillComboBox( vTurboCombos[I], ceEnries, LSN_ELEMENTS( ceEnries ), -1 );
+		}
+		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
+			vDeadzoneTracks[I]->SetTicFreq( 5 );
+			vDeadzoneTracks[I]->SetPos( TRUE, 20 );
 		}
 
 
@@ -121,6 +133,11 @@ namespace lsn {
 		for ( size_t I = 0; I < LSN_ELEMENTS( m_krTurboButtons ); ++I ) {
 			vTurboCombos[I]->SetEnabled( m_krTurboButtons[I].bKeyCode || m_krTurboButtons[I].bKeyModifier );
 		}
+
+		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
+		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
+			vDeadzoneTracks[I]->SetEnabled( FALSE );
+		}
 	}
 
 	/**
@@ -200,6 +217,32 @@ namespace lsn {
 			return vRet;
 		}
 		catch ( ... ) { return std::vector<lsw::CComboBox *>(); }
+	}
+
+	/**
+	 * Gets an array of the dead-zone trackbars.  There will be 8 values in the array.
+	 * 
+	 * \return Returns an array containing the 8 dead-zone trackbars.
+	 **/
+	std::vector<lsw::CTrackBar *> CStdControllerPage::DeadZoneTrackBars() {
+		static const WORD wTrackBars[] = {
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_DEADZONE_TRACKBAR,
+			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_DEADZONE_TRACKBAR,
+		};
+		try {
+			std::vector<lsw::CTrackBar *> vRet;
+			for ( size_t I = 0; I < LSN_ELEMENTS( wTrackBars ); ++I ) {
+				vRet.push_back( static_cast<lsw::CTrackBar *>(FindChild( wTrackBars[I] )) );
+			}
+			return vRet;
+		}
+		catch ( ... ) { return std::vector<lsw::CTrackBar *>(); }
 	}
 
 }	// namespace lsn
