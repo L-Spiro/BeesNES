@@ -561,6 +561,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal.h" />
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_core.h" />
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_nes.h" />
+    <ClInclude Include="Src\Input\LSNControllerListener.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
     <ClInclude Include="Src\Input\LSNDirectInputDevice8.h" />
@@ -693,6 +694,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c" />
+    <ClCompile Include="Src\Input\LSNControllerListener.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp" />
     <ClCompile Include="Src\Input\LSNUsbControllerBase.cpp" />

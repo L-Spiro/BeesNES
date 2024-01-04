@@ -14,9 +14,10 @@
 namespace lsn {
 
 	CDirectInput8Controller::CDirectInput8Controller() {
+		std::memset( &m_jsState, 0, sizeof( m_jsState ) );
+		std::memset( &m_dcCaps, 0, sizeof( m_dcCaps ) );
 	}
 	CDirectInput8Controller::~CDirectInput8Controller() {
-		StopThread();
 	}
 
 
@@ -24,12 +25,12 @@ namespace lsn {
 	/**
 	 * Creates the device based off a GUID.
 	 *
-	 * \param _guId The GUID to use to create the controller.
+	 * \param _diInstance The device instance containing the GUID to use to create the controller.
 	 * \param _pvData Platform-specific data.
 	 * \return Returns true if the controller was created.
 	 */
-	bool CDirectInput8Controller::CreateController( const GUID &_guId, void * _pvData ) {
-		if ( !m_did8Device.CreateDevice( _guId ) ) { return false; }
+	bool CDirectInput8Controller::CreateController( const DIDEVICEINSTANCEW &_diInstance, void * _pvData ) {
+		if ( !m_did8Device.CreateDevice( _diInstance.guidInstance ) ) { return false; }
 		if ( m_did8Device.Obj() ) {
 			HRESULT hRet = m_did8Device.Obj()->SetDataFormat( &c_dfDIJoystick );
 			if ( hRet != DI_OK ) {
@@ -55,6 +56,7 @@ namespace lsn {
 				lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::CreateController::EnumObjects" );
 				return false;
 			}
+			m_diDeviceInstance = _diInstance;
 			//BeginThread();
 			return true;
 		}
@@ -85,214 +87,99 @@ namespace lsn {
 	}
 
 	/**
-	 * Determines if the A button is pressed.
-	 *
-	 * \return Returns true if the A button is pressed.
-	 */
-	bool CDirectInput8Controller::IsAPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the B button is pressed.
-	 *
-	 * \return Returns true if the B button is pressed.
-	 */
-	bool CDirectInput8Controller::IsBPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Select button is pressed.
-	 *
-	 * \return Returns true if the Select button is pressed.
-	 */
-	bool CDirectInput8Controller::IsSelectPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Start button is pressed.
-	 *
-	 * \return Returns true if the Start button is pressed.
-	 */
-	bool CDirectInput8Controller::IsStartPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Up button is pressed.
-	 *
-	 * \return Returns true if the Up button is pressed.
-	 */
-	bool CDirectInput8Controller::IsUpPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Down button is pressed.
-	 *
-	 * \return Returns true if the Down button is pressed.
-	 */
-	bool CDirectInput8Controller::IsDownPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Left button is pressed.
-	 *
-	 * \return Returns true if the Left button is pressed.
-	 */
-	bool CDirectInput8Controller::IsLeftPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the Right button is pressed.
-	 *
-	 * \return Returns true if the Right button is pressed.
-	 */
-	bool CDirectInput8Controller::IsRightPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo A button is pressed.
-	 *
-	 * \return Returns true if the A button is pressed.
-	 */
-	bool CDirectInput8Controller::IsATurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo B button is pressed.
-	 *
-	 * \return Returns true if the B button is pressed.
-	 */
-	bool CDirectInput8Controller::IsBTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo Select button is pressed.
-	 *
-	 * \return Returns true if the Select button is pressed.
-	 */
-	bool CDirectInput8Controller::IsSelectTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo Start button is pressed.
-	 *
-	 * \return Returns true if the Start button is pressed.
-	 */
-	bool CDirectInput8Controller::IsStartTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo Up button is pressed.
-	 *
-	 * \return Returns true if the Up button is pressed.
-	 */
-	bool CDirectInput8Controller::IsUpTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo Down button is pressed.
-	 *
-	 * \return Returns true if the Down button is pressed.
-	 */
-	bool CDirectInput8Controller::IsDownTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-		
-	/**
-	 * Determines if the turbo Left button is pressed.
-	 *
-	 * \return Returns true if the Left button is pressed.
-	 */
-	bool CDirectInput8Controller::IsLeftTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Determines if the turbo Right button is pressed.
-	 *
-	 * \return Returns true if the Right button is pressed.
-	 */
-	bool CDirectInput8Controller::IsRightTurboPressed() {
-		if ( !m_did8Device.Obj() ) { return false; }
-	}
-
-	/**
-	 * Starts the thread.
+	 * Polls a button by its index.  Return true if the given button is pressed.
+	 * 
+	 * \param _ui8Idx The controller's button index to poll.
+	 * \return Returns true if the button indexed by _ui8Idx is pressed, false otherwise.
 	 **/
-	void CDirectInput8Controller::BeginThread() {
-		m_tThreadData.m_pci8cThis = this;
-		m_bStopThread = false;
-		m_ptThread = std::make_unique<std::thread>( Thread, &m_tThreadData );
+	bool CDirectInput8Controller::PollButton( uint8_t _ui8Idx ) const {
+		if ( !m_did8Device.Obj() || _ui8Idx >= LSN_ELEMENTS( JoyState().rgbButtons ) ) { return false; }
+		return JoyState().rgbButtons[_ui8Idx] != 0;
 	}
 
 	/**
-	 * Stops the thread.
+	 * Gets the X-axis position.
+	 * 
+	 * \return Returns the controller's X axis value.
 	 **/
-	void CDirectInput8Controller::StopThread() {
-		m_bStopThread = true;
-		{
-			if ( m_ptThread.get() ) {
-				m_eThreadClose.Signal();
-				m_eThreadClosed.WaitForSignal();
-				m_ptThread->join();
-				m_ptThread.reset();
-			}
-		}
-		m_bStopThread = false;
+	LONG CDirectInput8Controller::AxisX() const {
+		if ( !m_did8Device.Obj() ) { return false; }
+		return JoyState().lX;
 	}
 
 	/**
-	 * The resizing thread.
-	 *
-	 * \param _pblppFilter Pointer to this object.
-	 */
-	void CDirectInput8Controller::Thread( LSN_THREAD * _ptThread ) {
+	 * Gets the Y-axis position.
+	 * 
+	 * \return Returns the controller's Y axis value.
+	 **/
+	LONG CDirectInput8Controller::AxisY() const {
+		if ( !m_did8Device.Obj() ) { return false; }
+		return JoyState().lY;
+	}
+
+	/**
+	 * Gets the Z-axis position.
+	 * 
+	 * \return Returns the controller's Z axis value.
+	 **/
+	LONG CDirectInput8Controller::AxisZ() const {
+		if ( !m_did8Device.Obj() ) { return false; }
+		return JoyState().lZ;
+	}
+
+	/**
+	 * Gets a POV value given its POV index.
+	 * 
+	 * \param _ui8Idx The controller's POV index to poll.
+	 * \return Returns the POV value given the POV array index.
+	 **/
+	DWORD CDirectInput8Controller::PollPov( uint8_t _ui8Idx ) const {
+		if ( !m_did8Device.Obj() || _ui8Idx >= LSN_ELEMENTS( JoyState().rgdwPOV ) ) { return false; }
+		return JoyState().rgdwPOV[_ui8Idx];
+	}
+
+	/**
+	 * The thread function.
+	 * 
+	 * \param _ptThread A pointer to the thread data.
+	 * \return Return true to keep the thread going, false to stop the thread.
+	 **/
+	bool CDirectInput8Controller::ThreadFunc( LSN_THREAD * /*_ptThread*/ ) {
 		HRESULT hRes;
-		hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Acquire();
-		//hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Poll();
-		hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &_ptThread->m_pci8cThis->m_jsState );
-		hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Unacquire();
-		hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->SetEventNotification( _ptThread->m_pci8cThis->m_eThreadClose.Handle() );
-		while ( !_ptThread->m_pci8cThis->m_bStopThread ) {
-			uint32_t ui32Wait = _ptThread->m_pci8cThis->m_eThreadClose.WaitForSignal( 1000 / 10 );
-			//uint32_t ui32Wait = _ptThread->m_pci8cThis->m_eThreadClose.WaitForSignal();
-			/*hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Acquire();
-			hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Poll();
-			hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &_ptThread->m_pci8cThis->m_jsState );
-			hRes = _ptThread->m_pci8cThis->m_did8Device.Obj()->Unacquire();
-			for ( auto I = LSN_ELEMENTS( _ptThread->m_pci8cThis->m_jsState.rgbButtons ); I--; ) {
-				if ( _ptThread->m_pci8cThis->m_jsState.rgbButtons[I] ) {
+		hRes = m_did8Device.Obj()->Acquire();
+		//hRes = m_did8Device.Obj()->Poll();
+		hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
+		hRes = m_did8Device.Obj()->Unacquire();
+		hRes = m_did8Device.Obj()->SetEventNotification( m_eThreadClose.Handle() );
+		while ( !m_bStopThread ) {
+			uint32_t ui32Wait = m_eThreadClose.WaitForSignal( 1000 / 10 );
+			//uint32_t ui32Wait = m_eThreadClose.WaitForSignal();
+			/*hRes = m_did8Device.Obj()->Acquire();
+			hRes = m_did8Device.Obj()->Poll();
+			hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
+			hRes = m_did8Device.Obj()->Unacquire();
+			for ( auto I = LSN_ELEMENTS( m_jsState.rgbButtons ); I--; ) {
+				if ( m_jsState.rgbButtons[I] ) {
 					//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
 				}
 			}
-			for ( auto I = LSN_ELEMENTS( _ptThread->m_pci8cThis->m_jsState.rgdwPOV ); I--; ) {
-				if ( _ptThread->m_pci8cThis->m_jsState.rgdwPOV[I] != -1 ) {
+			for ( auto I = LSN_ELEMENTS( m_jsState.rgdwPOV ); I--; ) {
+				if ( m_jsState.rgdwPOV[I] != -1 ) {
 					lsw::CBase::MessageBoxError( NULL, L"Pressed", L"D-PAD" );
 				}
 			}*/
 			switch ( ui32Wait ) {
 				case WAIT_TIMEOUT : { break; }
 				case WAIT_OBJECT_0 : {
-					if ( _ptThread->m_pci8cThis->m_bStopThread ) { break; }
+					if ( m_bStopThread ) { break; }
 					//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
 					break;
 				}
 			}
 		}
-		_ptThread->m_pci8cThis->m_did8Device.Obj()->SetEventNotification( NULL );
-		_ptThread->m_pci8cThis->m_eThreadClosed.Signal();
+		m_did8Device.Obj()->SetEventNotification( NULL );
+		//m_eThreadClosed.Signal();
+		return false;
 	}
 
 	/**

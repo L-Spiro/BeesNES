@@ -81,6 +81,14 @@ namespace lsn {
 		 */
 		IDirectInputDevice8W *		Obj() { return m_pdidDevice; }
 
+		/**
+		 * Gets the IDirectInputDevice8W pointer.
+		 *
+		 * \return Returns the IDirectInputDevice8W pointer.
+		 */
+		const IDirectInputDevice8W *Obj() const { return m_pdidDevice; }
+
+
 	protected :
 		// == Members.
 		/** The object we wrap. */

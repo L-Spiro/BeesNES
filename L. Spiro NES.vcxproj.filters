@@ -657,6 +657,9 @@
     <ClInclude Include="Src\Audio\LSNPoleFilter.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Input\LSNControllerListener.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -871,6 +874,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Input\LSNStdControllerPage.cpp">
       <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Input\LSNControllerListener.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

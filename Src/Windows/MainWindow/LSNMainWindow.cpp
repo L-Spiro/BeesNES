@@ -988,20 +988,20 @@ namespace lsn {
 					m_pdi8cControllers[0]->Poll();
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[3] ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
+					if ( m_pdi8cControllers[0]->PollButton( 3 ) ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
 					else {
 						m_bnEmulator.RapidFire()[0] = 0b11110000;
-						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[2] ) { ui8Ret |= LSN_IB_B; }
+						if ( m_pdi8cControllers[0]->PollButton( 2 ) ) { ui8Ret |= LSN_IB_B; }
 					}
 				}
 				else {
 					LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[1] ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
+					if ( m_pdi8cControllers[0]->PollButton( 1 ) ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
 					else {
 						m_bnEmulator.RapidFire()[1] = 0b11110000;
-						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[0] ) { ui8Ret |= LSN_IB_A; }
+						if ( m_pdi8cControllers[0]->PollButton( 0 ) ) { ui8Ret |= LSN_IB_A; }
 					}
 				}
 				else {
@@ -1009,20 +1009,20 @@ namespace lsn {
 				}
 
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[8] ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
+					if ( m_pdi8cControllers[0]->PollButton( 8 ) ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
 					else {
 						m_bnEmulator.RapidFire()[2] = 0b11110000;
-						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[6] ) { ui8Ret |= LSN_IB_SELECT; }
+						if ( m_pdi8cControllers[0]->PollButton( 6 ) ) { ui8Ret |= LSN_IB_SELECT; }
 					}
 				}
 				else {
 					LSN_CKECK( 'O', '9', 2, LSN_IB_SELECT );
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->JoyState().rgbButtons[9] ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
+					if ( m_pdi8cControllers[0]->PollButton( 9 ) ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
 					else {
 						m_bnEmulator.RapidFire()[3] = 0b11110000;
-						if ( m_pdi8cControllers[0]->JoyState().rgbButtons[7] ) { ui8Ret |= LSN_IB_START; }
+						if ( m_pdi8cControllers[0]->PollButton( 7 ) ) { ui8Ret |= LSN_IB_START; }
 					}
 				}
 				else {
@@ -1030,33 +1030,33 @@ namespace lsn {
 				}
 
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lY) < -250 ||
-						((static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 0 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 4500) ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 36000)) ) { ui8Ret |= LSN_IB_UP; }
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) < -250 ||
+						((static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 0 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 4500) ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 36000)) ) { ui8Ret |= LSN_IB_UP; }
 				}
 				else {
 					LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lY) > 250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 13500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 22500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; }
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) > 250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 13500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 22500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; }
 				}
 				else {
 					LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lX) < -250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 22500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 31500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; }
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) < -250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 22500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 31500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; }
 				}
 				else {
 					LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
 				}
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().lX) > 250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) >= 4500 && static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) <= 13500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->JoyState().rgdwPOV[0]) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; }
+					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) > 250 ||
+						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 4500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 13500)
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; }
 				}
 				else {
 					LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
@@ -1485,25 +1485,17 @@ namespace lsn {
 	 */
 	void CMainWindow::ScanInputDevices() {
 		DestroyControllers();
-		std::vector<DIDEVICEINSTANCE> vDevices = CDirectInput8::GatherDevices( DI8DEVCLASS_GAMECTRL );
+		std::vector<DIDEVICEINSTANCEW> vDevices = CDirectInput8::GatherDevices( DI8DEVCLASS_GAMECTRL );
 		lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
 		for ( size_t I = 0; I < vDevices.size(); ++I ) {
 			CDirectInput8Controller * pdi8cController = new CDirectInput8Controller();
-			if ( !pdi8cController->CreateController( vDevices[I].guidInstance, m_hWnd /*::GetModuleHandleW( NULL )*/ /*NULL*/ ) ) {
+			if ( !pdi8cController->CreateController( vDevices[I], m_hWnd /*::GetModuleHandleW( NULL )*/ /*NULL*/ ) ) {
 				delete pdi8cController;
 			}
 			else {
 				m_pdi8cControllers.push_back( pdi8cController );
 			}
 		}
-
-		/*std::vector<LSW_RAW_INPUT_DEVICE_LIST> vList = CHelpers::GatherRawInputDevices( RIM_TYPEHID );
-		// Remove non-game usage pages.
-		for ( auto I = vList.size(); I--; ) {
-			if ( vList[I].diInfo.hid.usUsage != HID_USAGE_GENERIC_GAMEPAD || vList[I].diInfo.hid.usUsagePage != HID_USAGE_PAGE_GENERIC ) {
-				vList.erase( vList.begin() + I );
-			}
-		}*/
 		return;
 	}
 

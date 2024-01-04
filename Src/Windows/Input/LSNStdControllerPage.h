@@ -12,6 +12,7 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Input/LSNControllerListener.h"
 #include <Button/LSWButton.h>
 #include <ComboBox/LSWComboBox.h>
 #include <Helpers/LSWInputListenerBase.h>
@@ -28,7 +29,7 @@ namespace lsn {
 	 *
 	 * Description: A template for dialog pages embedded into other dialogs/windows.
 	 */
-	class CStdControllerPage : public lsw::CWidget, public lsw::CInputListenerBase {
+	class CStdControllerPage : public lsw::CWidget, public lsw::CInputListenerBase, public lsn::CControllerListener {
 	public :
 		CStdControllerPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
 			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {

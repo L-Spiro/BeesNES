@@ -10,6 +10,10 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
+#include "LSNControllerListener.h"
+
+#include <thread>
 
 namespace lsn {
 
@@ -40,13 +44,33 @@ namespace lsn {
 			LSN_B_TOTAL,										/**< The total number of buttons on a controller (8). */
 		};
 
+		/** Input classes. */
+		enum LSN_INPUT_CLASS {
+			LSN_IC_AXIS_X,										/**< The X axis. */
+			LSN_IC_AXIS_Y,										/**< The Y axis. */
+			LSN_IC_AXIS_Z,										/**< The Z axis. */
+			LSN_IC_POV,											/**< A POV button. */
+			LSN_IC_BUTTON,										/**< A standard button. */
+		};
+
 
 		// == Types.
-		/** A button map. */
-		struct LSN_BUTTON_MAP {
-			/** The keyboard/controller button to map to the given input (by button index, LSN_BUTTONS) */
-			uint16_t											ui16Map[LSN_B_TOTAL];
+		/** An input event. */
+		struct LSN_INPUT_EVENT {
+			size_t												stIdx;										/**< The index of the POV or button event (icType is LSN_IC_POV or LSN_IC_BUTTON). */
+			LSN_INPUT_CLASS										icType;										/**< The type of input. */
+			union {
+				LONG											lAxis;										/**< The axis value if icType is LSN_IC_AXIS_X, LSN_IC_AXIS_Y, or LSN_IC_AXIS_Z. */
+				DWORD											dwPov;										/**< The POV value if icType is LSN_IC_POV. */
+				bool											bButton;									/**< The button value if icType is LSN_IC_BUTTON. */
+			}													u;
 		};
+
+		/** A button map. */
+		//struct LSN_BUTTON_MAP {
+		//	/** The keyboard/controller button to map to the given input (by button index, LSN_BUTTONS) */
+		//	uint16_t											ui16Map[LSN_B_TOTAL];
+		//};
 
 
 		// == Functions.
@@ -59,138 +83,93 @@ namespace lsn {
 		virtual bool											Poll() { return false; }
 
 		/**
-		 * Determines if the A button is pressed.
-		 *
-		 * \return Returns true if the A button is pressed.
-		 */
-		virtual bool											IsAPressed();
+		 * Polls a button by its index.  Return true if the given button is pressed.
+		 * 
+		 * \param _ui8Idx The controller's button index to poll.
+		 * \return Returns true if the button indexed by _ui8Idx is pressed, false otherwise.
+		 **/
+		virtual bool											PollButton( uint8_t /*_ui8Idx*/ ) const { return false; }
 
 		/**
-		 * Determines if the B button is pressed.
-		 *
-		 * \return Returns true if the B button is pressed.
-		 */
-		virtual bool											IsBPressed();
+		 * Gets the X-axis position.
+		 * 
+		 * \return Returns the controller's X axis value.
+		 **/
+		virtual LONG											AxisX() const { return 0; }
 
 		/**
-		 * Determines if the Select button is pressed.
-		 *
-		 * \return Returns true if the Select button is pressed.
-		 */
-		virtual bool											IsSelectPressed();
+		 * Gets the Y-axis position.
+		 * 
+		 * \return Returns the controller's Y axis value.
+		 **/
+		virtual LONG											AxisY() const { return 0; }
 
 		/**
-		 * Determines if the Start button is pressed.
-		 *
-		 * \return Returns true if the Start button is pressed.
-		 */
-		virtual bool											IsStartPressed();
+		 * Gets the Z-axis position.
+		 * 
+		 * \return Returns the controller's Z axis value.
+		 **/
+		virtual LONG											AxisZ() const { return 0; }
 
 		/**
-		 * Determines if the Up button is pressed.
-		 *
-		 * \return Returns true if the Up button is pressed.
-		 */
-		virtual bool											IsUpPressed();
+		 * Gets a POV value given its POV index.
+		 * 
+		 * \param _ui8Idx The controller's POV index to poll.
+		 * \return Returns the POV value given the POV array index.
+		 **/
+		virtual DWORD											PollPov( uint8_t /*_ui8Idx*/ ) const { return 0; }
 
 		/**
-		 * Determines if the Down button is pressed.
-		 *
-		 * \return Returns true if the Down button is pressed.
-		 */
-		virtual bool											IsDownPressed();
+		 * Starts the thread.
+		 * 
+		 * \param _pclListener A pointer to an object that provides a listener interface for receiving notifications about controller events.
+		 **/
+		virtual void											BeginThread( CControllerListener * _pclListener = nullptr );
 
 		/**
-		 * Determines if the Left button is pressed.
-		 *
-		 * \return Returns true if the Left button is pressed.
-		 */
-		virtual bool											IsLeftPressed();
-
-		/**
-		 * Determines if the Right button is pressed.
-		 *
-		 * \return Returns true if the Right button is pressed.
-		 */
-		virtual bool											IsRightPressed();
-
-		/**
-		 * Determines if the turbo A button is pressed.
-		 *
-		 * \return Returns true if the A button is pressed.
-		 */
-		virtual bool											IsATurboPressed();
-
-		/**
-		 * Determines if the turbo B button is pressed.
-		 *
-		 * \return Returns true if the B button is pressed.
-		 */
-		virtual bool											IsBTurboPressed();
-
-		/**
-		 * Determines if the turbo Select button is pressed.
-		 *
-		 * \return Returns true if the Select button is pressed.
-		 */
-		virtual bool											IsSelectTurboPressed();
-
-		/**
-		 * Determines if the turbo Start button is pressed.
-		 *
-		 * \return Returns true if the Start button is pressed.
-		 */
-		virtual bool											IsStartTurboPressed();
-
-		/**
-		 * Determines if the turbo Up button is pressed.
-		 *
-		 * \return Returns true if the Up button is pressed.
-		 */
-		virtual bool											IsUpTurboPressed();
-
-		/**
-		 * Determines if the turbo Down button is pressed.
-		 *
-		 * \return Returns true if the Down button is pressed.
-		 */
-		virtual bool											IsDownTurboPressed();
-
-		/**
-		 * Determines if the turbo Left button is pressed.
-		 *
-		 * \return Returns true if the Left button is pressed.
-		 */
-		virtual bool											IsLeftTurboPressed();
-
-		/**
-		 * Determines if the turbo Right button is pressed.
-		 *
-		 * \return Returns true if the Right button is pressed.
-		 */
-		virtual bool											IsRightTurboPressed();
-
-		/**
-		 * Sets the default button map.
-		 *
-		 * \param _bmMap The default button mapping.
-		 */
-		virtual void											SetButtonMap( const LSN_BUTTON_MAP &_bmMap ) { m_bmButtonMap = _bmMap; }
-
-		/**
-		 * Sets the rapid button map.
-		 *
-		 * \param _bmMap The rapid button mapping.
-		 */
-		virtual void											SetRapidButtonMap( const LSN_BUTTON_MAP &_bmMap ) { m_bmRapidMap = _bmMap; }
+		 * Stops the thread.
+		 **/
+		virtual void											StopThread();
 
 	protected :
-		// == Members.
-		/** The normal button map. */
-		LSN_BUTTON_MAP											m_bmButtonMap;
-		/** The rapid button map. */
-		LSN_BUTTON_MAP											m_bmRapidMap;
+		// == Types.
+		/** The thread data. */
+		struct LSN_THREAD {
+			CUsbControllerBase *								m_pucbThis;					/**< A pointer to this class object. */
+			CControllerListener *								m_pclListener;					/**< An optional pointer to an object that will listen for events generated by the thread. */
+		};
 
+
+
+		// == Members.
+		/** The event-listening thread. */
+		std::unique_ptr<std::thread>							m_ptThread;
+		/** The thread event. */
+		CEvent													m_eThreadClose;
+		/** The event marking the closing of the thread. */
+		CEvent													m_eThreadClosed;
+		/** Thread data. */
+		LSN_THREAD												m_tThreadData;
+		/** Tells the thread to stop. */
+		std::atomic<bool>										m_bStopThread;
+
+
+
+		// == Functions.
+		/**
+		 * The thread function.
+		 * 
+		 * \param _ptThread A pointer to the thread data.
+		 * \return Return true to keep the thread going, false to stop the thread.
+		 **/
+		virtual bool											ThreadFunc( LSN_THREAD * /*_ptThread*/ ) { return true; }
+
+		/**
+		 * The thread.
+		 *
+		 * \param _ptThread Pointer to this object.
+		 */
+		static void												Thread( LSN_THREAD * _ptThread );
 	};
 
 }	// namespace lsn

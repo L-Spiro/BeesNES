@@ -12,10 +12,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../Event/LSNEvent.h"
 #include "LSNDirectInputDevice8.h"
 #include "LSNUsbControllerBase.h"
-#include <thread>
 
 
 namespace lsn {
@@ -36,11 +34,11 @@ namespace lsn {
 		/**
 		 * Creates the device based off a GUID.
 		 *
-		 * \param _guId The GUID to use to create the controller.
+		 * \param _diInstance The device instance containing the GUID to use to create the controller.
 		 * \param _pvData Platform-specific data.
 		 * \return Returns true if the controller was created.
 		 */
-		bool													CreateController( const GUID &_guId, void * _pvData );
+		bool													CreateController( const DIDEVICEINSTANCEW &_diInstance, void * _pvData );
 
 		/**
 		 * Tells the controller to poll its device.  The polled data should not be inspected yet to determine which keys are held, it simply
@@ -51,116 +49,42 @@ namespace lsn {
 		virtual bool											Poll();
 
 		/**
-		 * Determines if the A button is pressed.
-		 *
-		 * \return Returns true if the A button is pressed.
-		 */
-		virtual bool											IsAPressed();
+		 * Polls a button by its index.  Return true if the given button is pressed.
+		 * 
+		 * \param _ui8Idx The controller's button index to poll.
+		 * \return Returns true if the button indexed by _ui8Idx is pressed, false otherwise.
+		 **/
+		virtual bool											PollButton( uint8_t _ui8Idx ) const;
 
 		/**
-		 * Determines if the B button is pressed.
-		 *
-		 * \return Returns true if the B button is pressed.
-		 */
-		virtual bool											IsBPressed();
+		 * Gets the X-axis position.
+		 * 
+		 * \return Returns the controller's X axis value.
+		 **/
+		virtual LONG											AxisX() const;
 
 		/**
-		 * Determines if the Select button is pressed.
-		 *
-		 * \return Returns true if the Select button is pressed.
-		 */
-		virtual bool											IsSelectPressed();
+		 * Gets the Y-axis position.
+		 * 
+		 * \return Returns the controller's Y axis value.
+		 **/
+		virtual LONG											AxisY() const;
 
 		/**
-		 * Determines if the Start button is pressed.
-		 *
-		 * \return Returns true if the Start button is pressed.
-		 */
-		virtual bool											IsStartPressed();
+		 * Gets the Z-axis position.
+		 * 
+		 * \return Returns the controller's Z axis value.
+		 **/
+		virtual LONG											AxisZ() const;
 
 		/**
-		 * Determines if the Up button is pressed.
-		 *
-		 * \return Returns true if the Up button is pressed.
-		 */
-		virtual bool											IsUpPressed();
+		 * Gets a POV value given its POV index.
+		 * 
+		 * \param _ui8Idx The controller's POV index to poll.
+		 * \return Returns the POV value given the POV array index.
+		 **/
+		virtual DWORD											PollPov( uint8_t _ui8Idx ) const;
 
-		/**
-		 * Determines if the Down button is pressed.
-		 *
-		 * \return Returns true if the Down button is pressed.
-		 */
-		virtual bool											IsDownPressed();
-
-		/**
-		 * Determines if the Left button is pressed.
-		 *
-		 * \return Returns true if the Left button is pressed.
-		 */
-		virtual bool											IsLeftPressed();
-
-		/**
-		 * Determines if the Right button is pressed.
-		 *
-		 * \return Returns true if the Right button is pressed.
-		 */
-		virtual bool											IsRightPressed();
-
-		/**
-		 * Determines if the turbo A button is pressed.
-		 *
-		 * \return Returns true if the A button is pressed.
-		 */
-		virtual bool											IsATurboPressed();
-
-		/**
-		 * Determines if the turbo B button is pressed.
-		 *
-		 * \return Returns true if the B button is pressed.
-		 */
-		virtual bool											IsBTurboPressed();
-
-		/**
-		 * Determines if the turbo Select button is pressed.
-		 *
-		 * \return Returns true if the Select button is pressed.
-		 */
-		virtual bool											IsSelectTurboPressed();
-
-		/**
-		 * Determines if the turbo Start button is pressed.
-		 *
-		 * \return Returns true if the Start button is pressed.
-		 */
-		virtual bool											IsStartTurboPressed();
-
-		/**
-		 * Determines if the turbo Up button is pressed.
-		 *
-		 * \return Returns true if the Up button is pressed.
-		 */
-		virtual bool											IsUpTurboPressed();
-
-		/**
-		 * Determines if the turbo Down button is pressed.
-		 *
-		 * \return Returns true if the Down button is pressed.
-		 */
-		virtual bool											IsDownTurboPressed();
-
-		/**
-		 * Determines if the turbo Left button is pressed.
-		 *
-		 * \return Returns true if the Left button is pressed.
-		 */
-		virtual bool											IsLeftTurboPressed();
-
-		/**
-		 * Determines if the turbo Right button is pressed.
-		 *
-		 * \return Returns true if the Right button is pressed.
-		 */
-		virtual bool											IsRightTurboPressed();
 
 		/**
 		 * Gets the state of the controller.
@@ -171,49 +95,25 @@ namespace lsn {
 
 
 	protected :
-		// == Types.
-		/** The thread data. */
-		struct LSN_THREAD {
-			CDirectInput8Controller *							m_pci8cThis;
-		};
-
-
 		// == Members.
 		/** The DirectInputDevice8 object. */
 		CDirectInputDevice8										m_did8Device;
+		/** The device instance. */
+		DIDEVICEINSTANCEW										m_diDeviceInstance;
 		/** The current state of the device, updated in Poll(). */
 		DIJOYSTATE												m_jsState;
 		/** The device capabilities. */
 		DIDEVCAPS												m_dcCaps;
-		/** The even-listening thread. */
-		std::unique_ptr<std::thread>							m_ptThread;
-		/** The thread event. */
-		CEvent													m_eThreadClose;
-		/** The event marking the closing of the thread. */
-		CEvent													m_eThreadClosed;
-		/** Thread data. */
-		LSN_THREAD												m_tThreadData;
-		/** Tells the thread to stop. */
-		std::atomic<bool>										m_bStopThread;
 
 
 		// == Functions.
 		/**
-		 * Starts the thread.
+		 * The thread function.
+		 * 
+		 * \param _ptThread A pointer to the thread data.
+		 * \return Return true to keep the thread going, false to stop the thread.
 		 **/
-		void													BeginThread();
-
-		/**
-		 * Stops the thread.
-		 **/
-		void													StopThread();
-
-		/**
-		 * The resizing thread.
-		 *
-		 * \param _pblppFilter Pointer to this object.
-		 */
-		static void												Thread( LSN_THREAD * _ptThread );
+		virtual bool											ThreadFunc( LSN_THREAD * _ptThread );
 
 		/**
 		 * Application-defined callback function that receives DirectInputDevice objects as a result of a call to the IDirectInputDevice8::EnumObjects method.

@@ -180,6 +180,30 @@ namespace lsn {
 		virtual uint8_t							PollPort( uint8_t _ui8Port );
 
 		/**
+		 * Locks the controller array for external access.  Always pair with a call to UnlockControllers().
+		 **/
+		inline void								LockControllers() const {
+			m_csControllerCrit.EnterCriticalSection();
+		}
+
+		/**
+		 * Unlocks the controller array after external access is concluded.  Always pair with a call to LockControllers().
+		 **/
+		inline void								UnlockControllers() const {
+			m_csControllerCrit.LeaveCriticalSection();
+		}
+
+		/**
+		 * Gets the current controller array.  Must have previously called LockControllers().  Call LockControllers() when done with the controller array.
+		 * 
+		 * \return Returns a constant reference to the controller array.
+		 **/
+		inline const std::vector<CUsbControllerBase *> &
+												Controllers() const {
+			return m_pdi8cControllers;
+		}
+
+		/**
 		 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
 		 *
 		 * \param _pwChild Optional child control.
@@ -252,7 +276,7 @@ namespace lsn {
 		/** The emulator object. */
 		CBeesNes								m_bnEmulator;
 		/** DirectInput 8 controller inputs. */
-		std::vector<CDirectInput8Controller *>	m_pdi8cControllers;
+		std::vector<CUsbControllerBase *>		m_pdi8cControllers;
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
 		/** A clock. */
