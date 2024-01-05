@@ -19,7 +19,8 @@ namespace lsn {
 
 	CInputWindow::CInputWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
+		m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
+		m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ) {
 	}
 
 	// == Functions.
@@ -33,8 +34,8 @@ namespace lsn {
 
 		CTab * ptTab = static_cast<CTab *>(FindChild( Layout::LSN_IWI_TAB ));
 		// Order of pushing them here determines the order in the window/list.
-		CWidget * pwGlobal = Layout::CreateGlobalPage( this, (*m_poOptions) );
-		CWidget * pwPerGame = Layout::CreatePerGamePage( this, (*m_poOptions) );
+		CWidget * pwGlobal = Layout::CreateGlobalPage( this, (*m_poOptions), m_pmwMainWindow );
+		CWidget * pwPerGame = Layout::CreatePerGamePage( this, (*m_poOptions), m_pmwMainWindow );
 		/*CWidget * pwGlobal = Layout::CreateGlobalPage( ptTab, (*m_poOptions) );
 		CWidget * pwPerGame = Layout::CreatePerGamePage( ptTab, (*m_poOptions) );*/
 		m_vPages.push_back( static_cast<CInputPage *>(pwGlobal) );

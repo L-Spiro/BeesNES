@@ -13,6 +13,7 @@
 #include "../../LSNLSpiroNes.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../../Input/LSNControllerListener.h"
+#include "../../Options/LSNOptions.h"
 #include <Button/LSWButton.h>
 #include <ComboBox/LSWComboBox.h>
 #include <Helpers/LSWInputListenerBase.h>
@@ -23,6 +24,8 @@ using namespace lsw;
 
 namespace lsn {
 
+	class											CMainWindow;
+
 	/**
 	 * Class CStdControllerPage
 	 * \brief A template for dialog pages embedded into other dialogs/windows.
@@ -32,10 +35,21 @@ namespace lsn {
 	class CStdControllerPage : public lsw::CWidget, public lsw::CInputListenerBase, public lsn::CControllerListener {
 	public :
 		CStdControllerPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
-			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+			m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
+			m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ) {
 		}
 		~CStdControllerPage() {
 		}
+
+
+		/** The structure to pass to _ui64Data when creating this window. */
+		struct LSN_CONTROLLER_SETUP_DATA {
+			/** The options object. */
+			LSN_OPTIONS *							poOptions;
+			/** The main window, which allows us access to the USB controllers. */
+			lsn::CMainWindow *						pmwMainWindow;
+		};
 
 
 		// == Functions.
@@ -124,12 +138,15 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The options object. */
+		LSN_OPTIONS *								m_poOptions;
+		/** The main window. */
+		lsn::CMainWindow *							m_pmwMainWindow;
+
 		/** The primary buttons. */
 		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krMainButtons[8];
-
 		/** The turbo buttons. */
 		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krTurboButtons[8];
-
 		/** The button to which we are currently listening. */
 		size_t										m_stListeningIdx;
 	};

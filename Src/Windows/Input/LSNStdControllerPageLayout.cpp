@@ -10,6 +10,7 @@
 
 #include "LSNStdControllerPageLayout.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Input/LSNStdControllerPage.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
 
@@ -125,11 +126,12 @@ namespace lsn {
 	/**
 	 * Creates the page.
 	 *
-	 * \param _pwParent the parent of the page.
+	 * \param _pwParent The parent of the page.
+	 * \param _pmwMainWindow A pointer to the main window for USB controller access.
 	 * \return Returns the created widget.
 	 */
-	CWidget * CStdControllerPageLayout::CreatePage( CWidget * _pwParent ) {
-		return CreatePage( _pwParent, m_wlPage, LSN_ELEMENTS( m_wlPage ) );
+	CWidget * CStdControllerPageLayout::CreatePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
+		return CreatePage( _pwParent, _oOptions, _pmwMainWindow, m_wlPage, LSN_ELEMENTS( m_wlPage ) );
 	}
 
 	/**
@@ -140,9 +142,13 @@ namespace lsn {
 	 * \param _sTotal The number of items to which _pwlLayout points.
 	 * \return Returns the created page.
 	 */
-	CWidget * CStdControllerPageLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal ) {
+	CWidget * CStdControllerPageLayout::CreatePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, 0 );
+		CStdControllerPage::LSN_CONTROLLER_SETUP_DATA scdData = {
+			.poOptions = &_oOptions,
+			.pmwMainWindow = _pmwMainWindow
+		};
+		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&scdData) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

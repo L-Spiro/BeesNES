@@ -128,7 +128,7 @@ namespace lsn {
 					break;
 				}
 				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_BUTTON ) : {
-					CControllerSetupWindowLayout::CreateInputDialog( this, (*m_poOptions) );
+					CControllerSetupWindowLayout::CreateInputDialog( this, (*m_poOptions), m_pmwMainWindow );
 					break;
 				}
 			}

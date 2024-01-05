@@ -10,6 +10,7 @@
 
 #include "LSNControllerSetupWindowLayout.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Input/LSNControllerSetupWindow.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
 #include "LSNStdControllerPageLayout.h"
@@ -106,11 +107,16 @@ namespace lsn {
 	 *
 	 * \param _pwParent The parent of the dialog.
 	 * \param _oOptions A reference to the options object.
+	 * \param _pmwMainWindow A pointer to the main window.
 	 * \return Returns TRUE if the dialog was created successfully.
 	 */
-	BOOL CControllerSetupWindowLayout::CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+	BOOL CControllerSetupWindowLayout::CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		CControllerSetupWindow::LSN_CONTROLLER_SETUP_DATA csdData = {
+			.poOptions = &_oOptions,
+			.pmwMainWindow = _pmwMainWindow,
+		};
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;

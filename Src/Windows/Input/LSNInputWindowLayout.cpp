@@ -10,6 +10,7 @@
 
 #include "LSNInputWindowLayout.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Input/LSNInputWindow.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
 
@@ -871,9 +872,13 @@ namespace lsn {
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns TRUE if the dialog was created successfully.
 	 */
-	BOOL CInputWindowLayout::CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+	BOOL CInputWindowLayout::CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		CInputWindow::LSN_CONTROLLER_SETUP_DATA csdData = {
+			.poOptions = &_oOptions,
+			.pmwMainWindow = _pmwMainWindow,
+		};
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;
@@ -888,8 +893,8 @@ namespace lsn {
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */
-	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ), _oOptions );
+	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
+		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ), _oOptions, _pmwMainWindow );
 	}
 
 	/**
@@ -899,8 +904,8 @@ namespace lsn {
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */
-	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ), _oOptions );
+	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
+		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ), _oOptions, _pmwMainWindow );
 	}
 
 	/**
@@ -912,9 +917,13 @@ namespace lsn {
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created page.
 	 */
-	CWidget * CInputWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions ) {
+	CWidget * CInputWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		CInputPage::LSN_CONTROLLER_SETUP_DATA csdData = {
+			.poOptions = &_oOptions,
+			.pmwMainWindow = _pmwMainWindow,
+		};
+		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&csdData) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

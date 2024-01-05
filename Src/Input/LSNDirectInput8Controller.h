@@ -57,25 +57,12 @@ namespace lsn {
 		virtual bool											PollButton( uint8_t _ui8Idx ) const;
 
 		/**
-		 * Gets the X-axis position.
+		 * Polls an axis by its index.  Axis 0 = X, 1 = Y, 2 = Z, and further indices are extra axes[IDX-2].
 		 * 
-		 * \return Returns the controller's X axis value.
+		 * \param _ui8Idx The controller's axis index to poll.
+		 * \return Returns the axis value at the given axis index.
 		 **/
-		virtual LONG											AxisX() const;
-
-		/**
-		 * Gets the Y-axis position.
-		 * 
-		 * \return Returns the controller's Y axis value.
-		 **/
-		virtual LONG											AxisY() const;
-
-		/**
-		 * Gets the Z-axis position.
-		 * 
-		 * \return Returns the controller's Z axis value.
-		 **/
-		virtual LONG											AxisZ() const;
+		virtual LONG											PollAxis( uint8_t _ui8Idx ) const;
 
 		/**
 		 * Gets a POV value given its POV index.

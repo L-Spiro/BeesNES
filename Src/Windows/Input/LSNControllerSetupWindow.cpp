@@ -9,6 +9,7 @@
  */
 
 #include "LSNControllerSetupWindow.h"
+#include "../MainWindow/LSNMainWindow.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNStdControllerPageLayout.h"
 #include <ComboBox/LSWComboBox.h>
@@ -17,8 +18,10 @@
 
 namespace lsn {
 
-	CControllerSetupWindow::CControllerSetupWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+	CControllerSetupWindow::CControllerSetupWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, lsw::CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
+		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
+		m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ) {
 	}
 	CControllerSetupWindow::~CControllerSetupWindow() {
 		// Unnecessary; if not deleted here they are deleted when the tab closes.
@@ -47,7 +50,7 @@ namespace lsn {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
 			};
 			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
-				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this ));
+				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this, (*m_poOptions), m_pmwMainWindow ));
 				if ( pscpPage ) {
 					TCITEMW tciItem = { 0 };
 					tciItem.mask = TCIF_TEXT;
@@ -98,7 +101,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CControllerSetupWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * _pwSrc ) {
+	CWidget::LSW_HANDLED CControllerSetupWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			/*case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON : {}
 			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON : {}

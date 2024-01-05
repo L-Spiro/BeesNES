@@ -19,6 +19,8 @@
 using namespace lsw;
 
 namespace lsn {
+
+	class										CMainWindow;
 	
 	/**
 	 * Class CControllerSetupWindowLayout
@@ -48,9 +50,10 @@ namespace lsn {
 		 *
 		 * \param _pwParent The parent of the dialog.
 		 * \param _oOptions A reference to the options object.
+		 * \param _pmwMainWindow A pointer to the main window.
 		 * \return Returns TRUE if the dialog was created successfully.
 		 */
-		static BOOL								CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
+		static BOOL								CreateInputDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow );
 
 
 	protected :

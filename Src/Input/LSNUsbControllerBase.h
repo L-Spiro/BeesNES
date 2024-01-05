@@ -46,9 +46,7 @@ namespace lsn {
 
 		/** Input classes. */
 		enum LSN_INPUT_CLASS {
-			LSN_IC_AXIS_X,										/**< The X axis. */
-			LSN_IC_AXIS_Y,										/**< The Y axis. */
-			LSN_IC_AXIS_Z,										/**< The Z axis. */
+			LSN_IC_AXIS,										/**< An axis. */
 			LSN_IC_POV,											/**< A POV button. */
 			LSN_IC_BUTTON,										/**< A standard button. */
 		};
@@ -57,10 +55,10 @@ namespace lsn {
 		// == Types.
 		/** An input event. */
 		struct LSN_INPUT_EVENT {
-			size_t												stIdx;										/**< The index of the POV or button event (icType is LSN_IC_POV or LSN_IC_BUTTON). */
+			size_t												stIdx;										/**< The index of the POV, button, or axis event. */
 			LSN_INPUT_CLASS										icType;										/**< The type of input. */
 			union {
-				LONG											lAxis;										/**< The axis value if icType is LSN_IC_AXIS_X, LSN_IC_AXIS_Y, or LSN_IC_AXIS_Z. */
+				LONG											lAxis;										/**< The axis value if icType is LSN_IC_AXIS. */
 				DWORD											dwPov;										/**< The POV value if icType is LSN_IC_POV. */
 				bool											bButton;									/**< The button value if icType is LSN_IC_BUTTON. */
 			}													u;
@@ -91,25 +89,33 @@ namespace lsn {
 		virtual bool											PollButton( uint8_t /*_ui8Idx*/ ) const { return false; }
 
 		/**
+		 * Polls an axis by its index.  Axis 0 = X, 1 = Y, 2 = Z, and further indices are extra axes[IDX-2].
+		 * 
+		 * \param _ui8Idx The controller's axis index to poll.
+		 * \return Returns the axis value at the given axis index.
+		 **/
+		virtual LONG											PollAxis( uint8_t /*_ui8Idx*/ ) const { return 0; }
+
+		/**
 		 * Gets the X-axis position.
 		 * 
 		 * \return Returns the controller's X axis value.
 		 **/
-		virtual LONG											AxisX() const { return 0; }
+		virtual LONG											AxisX() const { return PollAxis( 0 ); }
 
 		/**
 		 * Gets the Y-axis position.
 		 * 
 		 * \return Returns the controller's Y axis value.
 		 **/
-		virtual LONG											AxisY() const { return 0; }
+		virtual LONG											AxisY() const { return PollAxis( 1 ); }
 
 		/**
 		 * Gets the Z-axis position.
 		 * 
 		 * \return Returns the controller's Z axis value.
 		 **/
-		virtual LONG											AxisZ() const { return 0; }
+		virtual LONG											AxisZ() const { return PollAxis( 2 ); }
 
 		/**
 		 * Gets a POV value given its POV index.

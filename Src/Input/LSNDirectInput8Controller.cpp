@@ -98,33 +98,19 @@ namespace lsn {
 	}
 
 	/**
-	 * Gets the X-axis position.
+	 * Polls an axis by its index.  Axis 0 = X, 1 = Y, 2 = Z, and further indices are extra axes[IDX-2].
 	 * 
-	 * \return Returns the controller's X axis value.
+	 * \param _ui8Idx The controller's axis index to poll.
+	 * \return Returns the axis value at the given axis index.
 	 **/
-	LONG CDirectInput8Controller::AxisX() const {
-		if ( !m_did8Device.Obj() ) { return false; }
-		return JoyState().lX;
-	}
-
-	/**
-	 * Gets the Y-axis position.
-	 * 
-	 * \return Returns the controller's Y axis value.
-	 **/
-	LONG CDirectInput8Controller::AxisY() const {
-		if ( !m_did8Device.Obj() ) { return false; }
-		return JoyState().lY;
-	}
-
-	/**
-	 * Gets the Z-axis position.
-	 * 
-	 * \return Returns the controller's Z axis value.
-	 **/
-	LONG CDirectInput8Controller::AxisZ() const {
-		if ( !m_did8Device.Obj() ) { return false; }
-		return JoyState().lZ;
+	LONG CDirectInput8Controller::PollAxis( uint8_t _ui8Idx ) const {
+		if ( !m_did8Device.Obj() ) { return 0; }
+		if ( _ui8Idx == 0 ) { return JoyState().lX; }
+		if ( _ui8Idx == 1 ) { return JoyState().lY; }
+		if ( _ui8Idx == 2 ) { return JoyState().lZ; }
+		_ui8Idx -= 2;
+		if ( _ui8Idx >= LSN_ELEMENTS( JoyState().rglSlider ) ) { return 0; }
+		return JoyState().rglSlider[_ui8Idx];
 	}
 
 	/**
@@ -145,6 +131,13 @@ namespace lsn {
 	 * \return Return true to keep the thread going, false to stop the thread.
 	 **/
 	bool CDirectInput8Controller::ThreadFunc( LSN_THREAD * /*_ptThread*/ ) {
+		if ( !Poll() ) {
+			return false;
+		}
+
+
+		return true;
+#if 0
 		HRESULT hRes;
 		hRes = m_did8Device.Obj()->Acquire();
 		//hRes = m_did8Device.Obj()->Poll();
@@ -179,6 +172,7 @@ namespace lsn {
 		}
 		m_did8Device.Obj()->SetEventNotification( NULL );
 		//m_eThreadClosed.Signal();
+#endif	// 0
 		return false;
 	}
 

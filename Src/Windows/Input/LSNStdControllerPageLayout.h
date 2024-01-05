@@ -47,6 +47,8 @@ namespace lsn {
 
 #define LSN_STD_CONT_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + LSN_STD_CONT_BUT_LEFT + LSN_STD_CONT_BUT_GROUP_W + LSN_LEFT_JUST + LSN_LEFT_JUST)
 #define LSN_STD_CONT_H									(LSN_STD_CONT_DPAD_GROUP_H + 20)
+
+	class												CMainWindow;
 	
 	/**
 	 * Class CStdControllerPageLayout
@@ -167,16 +169,17 @@ namespace lsn {
 		/**
 		 * Creates the page.
 		 *
-		 * \param _pwParent the parent of the page.
+		 * \param _pwParent The parent of the page.
+		 * \param _pmwMainWindow A pointer to the main window for USB controller access.
 		 * \return Returns the created widget.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent );
+		static CWidget *								CreatePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow );
 
 
 	protected :
 		// == Members.
 		/** The layout for the per-game-setup panel. */
-		static LSW_WIDGET_LAYOUT				m_wlPage[];
+		static LSW_WIDGET_LAYOUT						m_wlPage[];
 
 
 		// == Functions.
@@ -188,7 +191,7 @@ namespace lsn {
 		 * \param _sTotal The number of items to which _pwlLayout points.
 		 * \return Returns the created page.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal );
+		static CWidget *								CreatePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal );
  		
 	};
 

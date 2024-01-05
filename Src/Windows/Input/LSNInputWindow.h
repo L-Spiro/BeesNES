@@ -18,6 +18,8 @@ using namespace lsw;
 
 namespace lsn {
 
+	class											CMainWindow;
+
 	/**
 	 * Class CInputWindow
 	 * \brief The input window.
@@ -27,6 +29,16 @@ namespace lsn {
 	class CInputWindow : public lsw::CMainWindow {
 	public :
 		CInputWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
+
+
+		// == Types.
+		/** The structure to pass to _ui64Data when creating this window. */
+		struct LSN_CONTROLLER_SETUP_DATA {
+			/** The options object. */
+			LSN_OPTIONS *							poOptions;
+			/** The main window, which allows us access to the USB controllers. */
+			lsn::CMainWindow *						pmwMainWindow;
+		};
 
 
 		// == Functions.
@@ -78,6 +90,8 @@ namespace lsn {
 		std::vector<CInputPage *>				m_vPages;
 		/** The options object. */
 		LSN_OPTIONS *							m_poOptions;
+		/** The main window. */
+		lsn::CMainWindow *						m_pmwMainWindow;
 
 	private :
 		typedef CInputWindowLayout				Layout;
