@@ -99,20 +99,20 @@ namespace lsn {
 		/**
 		 * Writes a UI key to a stream.
 		 * 
-		 * \param _krKey The key values to write.
+		 * \param _kKey The key values to write.
 		 * \param _sStream The stream to which to write the key values.
 		 * \return Returns true if writing of the key information to the stream succeeded.
 		 **/
-		static bool												WriteUiKey( const lsw::CInputListenerBase::LSW_KEYBOARD_RESULT &_krKey, lsn::CStream &_sStream );
+		static bool												WriteUiKey( const lsw::LSW_KEY &_kKey, lsn::CStream &_sStream );
 
 		/**
 		 * Reads a UI key from a stream.
 		 * 
-		 * \param _krKey The key values to be filled by reading from the givens tream.
+		 * \param _kKey The key values to be filled by reading from the givens tream.
 		 * \param _sStream The stream from which to read the key values.
 		 * \return Returns true if reading of the key information from the stream succeeded.
 		 **/
-		static bool												ReadUiKey( lsw::CInputListenerBase::LSW_KEYBOARD_RESULT &_krKey, lsn::CStream &_sStream );
+		static bool												ReadUiKey( lsw::LSW_KEY &_kKey, lsn::CStream &_sStream );
 
 
 	protected :

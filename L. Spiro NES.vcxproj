@@ -565,6 +565,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
     <ClInclude Include="Src\Input\LSNDirectInputDevice8.h" />
+    <ClInclude Include="Src\Input\LSNInputEvent.h" />
     <ClInclude Include="Src\Input\LSNInputPoller.h" />
     <ClInclude Include="Src\Input\LSNUsbControllerBase.h" />
     <ClInclude Include="Src\Input\LSNWindowsKeyboard.h" />

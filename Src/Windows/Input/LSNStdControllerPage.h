@@ -36,8 +36,10 @@ namespace lsn {
 	public :
 		CStdControllerPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
 			lsw::CWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-			m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
-			m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ) {
+			m_pioOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pioOptions ),
+			m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ),
+			m_stPlayerIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stConfigureIdx >> 16 ),
+			m_stConfigIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stConfigureIdx & 0xFFFF ) {
 		}
 		~CStdControllerPage() {
 		}
@@ -46,9 +48,11 @@ namespace lsn {
 		/** The structure to pass to _ui64Data when creating this window. */
 		struct LSN_CONTROLLER_SETUP_DATA {
 			/** The options object. */
-			LSN_OPTIONS *							poOptions;
+			LSN_INPUT_OPTIONS *						pioOptions;
 			/** The main window, which allows us access to the USB controllers. */
 			lsn::CMainWindow *						pmwMainWindow;
+			/** The page index (IE the ieButtonMap configuration index). */
+			size_t									stConfigureIdx;
 		};
 
 
@@ -139,16 +143,21 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The options object. */
-		LSN_OPTIONS *								m_poOptions;
+		LSN_INPUT_OPTIONS *							m_pioOptions;
 		/** The main window. */
 		lsn::CMainWindow *							m_pmwMainWindow;
 
 		/** The primary buttons. */
-		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krMainButtons[8];
+		LSW_KEY										m_kMainButtons[8];
 		/** The turbo buttons. */
-		CInputListenerBase::LSW_KEYBOARD_RESULT		m_krTurboButtons[8];
+		LSW_KEY										m_kTurboButtons[8];
 		/** The button to which we are currently listening. */
 		size_t										m_stListeningIdx;
+
+		/** The play index. */
+		size_t										m_stPlayerIdx;
+		/** The configuration index. */
+		size_t										m_stConfigIdx;
 	};
 
 }	// namespace lsn

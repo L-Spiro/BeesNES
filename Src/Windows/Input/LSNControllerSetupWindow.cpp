@@ -20,8 +20,9 @@ namespace lsn {
 
 	CControllerSetupWindow::CControllerSetupWindow( const lsw::LSW_WIDGET_LAYOUT &_wlLayout, lsw::CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-		m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
-		m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ) {
+		m_pioOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pioOptions ),
+		m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow ),
+		m_stPlayerIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stIdx ) {
 	}
 	CControllerSetupWindow::~CControllerSetupWindow() {
 		// Unnecessary; if not deleted here they are deleted when the tab closes.
@@ -50,7 +51,7 @@ namespace lsn {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
 			};
 			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
-				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this, (*m_poOptions), m_pmwMainWindow ));
+				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this, (*m_pioOptions), m_pmwMainWindow, (m_stPlayerIdx << 16) | (I & 0xFFFF) ));
 				if ( pscpPage ) {
 					TCITEMW tciItem = { 0 };
 					tciItem.mask = TCIF_TEXT;

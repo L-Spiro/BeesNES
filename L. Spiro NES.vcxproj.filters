@@ -660,6 +660,9 @@
     <ClInclude Include="Src\Input\LSNControllerListener.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Input\LSNInputEvent.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

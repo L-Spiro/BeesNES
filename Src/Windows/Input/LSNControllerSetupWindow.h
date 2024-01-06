@@ -40,9 +40,11 @@ namespace lsn {
 		/** The structure to pass to _ui64Data when creating this window. */
 		struct LSN_CONTROLLER_SETUP_DATA {
 			/** The options object. */
-			LSN_OPTIONS *							poOptions;
+			LSN_INPUT_OPTIONS *						pioOptions;
 			/** The main window, which allows us access to the USB controllers. */
 			lsn::CMainWindow *						pmwMainWindow;
+			/** The player index. */
+			size_t									stIdx;
 		};
 
 
@@ -102,9 +104,11 @@ namespace lsn {
 		/**  Controller configuration pages. */
 		std::vector<CStdControllerPage *>			m_vPages;
 		/** The options object. */
-		LSN_OPTIONS *								m_poOptions;
+		LSN_INPUT_OPTIONS *							m_pioOptions;
 		/** The main window, which allows us access to the USB controllers. */
 		lsn::CMainWindow *							m_pmwMainWindow;
+		/** The player index. */
+		size_t										m_stPlayerIdx;
 
 
 	private :

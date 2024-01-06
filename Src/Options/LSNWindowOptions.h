@@ -14,11 +14,11 @@
 
 #ifdef LSN_USE_WINDOWS
 #include <Helpers/LSWInputListenerBase.h>
-typedef lsw::CInputListenerBase::LSW_KEYBOARD_RESULT							CUiKey;
+typedef lsw::LSW_KEY															CUiKey;
 #define LSN_DEFAULT_BEK_KEYMOD													0x00
 #define LSN_DEFAULT_BEK_KEYCODE													VK_ESCAPE
 #define LSN_DEFAULT_BEK_SCANCODE												0x00010001
-#define LSN_KEY_INIT( SCANCODE, KEYCODE, KEYMOD )								{ DWORD( SCANCODE ), BYTE( KEYCODE ), BYTE( KEYMOD ) }
+#define LSN_KEY_INIT( SCANCODE, KEYCODE, KEYMOD )								{ .dwScanCode = DWORD( SCANCODE ), .bKeyCode = BYTE( KEYCODE ), .bKeyModifier = BYTE( KEYMOD ) }
 #else
 #endif	// #ifdef LSN_USE_WINDOWS
 

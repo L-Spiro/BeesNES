@@ -982,7 +982,6 @@ namespace ee {
 						return EE_EC_INVALIDTREE;
 					}
 				}
-				return EE_EC_PROCESSINGERROR;
 			}
 			case CExpEvalParser::token::EE_LOG : {
 				_rExp0 = ConvertResultOrObject( _rExp0, EE_NC_FLOATING );
@@ -1000,7 +999,6 @@ namespace ee {
 		}
 #pragma warning( pop )
 #undef EE_OP
-		return EE_EC_UNRECOGNIZEDINTRINSIC2;
 	}
 
 	// Creates a float using the specific parameters.
@@ -3112,7 +3110,6 @@ namespace ee {
 			EE_OP_BOOL( MEMBER, CExpEvalParser::token::EE_OR, || )			\
 			default : { return false; }										\
 		}																	\
-		return false;														\
 	}
 
 				switch ( _rRes.ncType ) {
@@ -3150,7 +3147,6 @@ namespace ee {
 							}
 							default : { return false; }
 						}
-						return false;
 					}
 				}
 

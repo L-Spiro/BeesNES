@@ -431,6 +431,41 @@ namespace lsw {
 		};
 	};
 
+	struct LSW_KEY {
+		DWORD								dwScanCode;								/**< The key scancode. */
+		BYTE								bKeyCode;								/**< The key virtual key code. */
+		BYTE								bKeyModifier;							/**< The key modifier code. */
+
+
+		// == Functions.
+		/**
+		 * Fills out the structure based on the WPARAM and LPARAM passed to WM_KEYDOWN.
+		 * 
+		 * \param _wpParm The virtual-key code of the nonsystem key.
+		 * \param _lpParm The repeat count, scan code, extended-key flag, context code, previous key-state flag, and transition-state flag, as seen in LSW_KEY_FLAGS.
+		 * \param _bAllowKeyCombos If true, VK_SHIFT, VK_CONTROL, and VK_MENU keys update only bKeyModifier, and subsequent calls are required to set the other values.
+		 **/
+		VOID								MakeFromKeyDown( WPARAM _wpParm, LPARAM _lpParm, bool _bAllowKeyCombos ) {
+			bool bExtended = (_lpParm & (KF_EXTENDED << 16));
+			if ( _bAllowKeyCombos ) {
+				if ( static_cast<BYTE>(_wpParm) == VK_SHIFT ) {
+					bKeyModifier = BYTE( ::MapVirtualKeyW( (_lpParm >> 16) & 0xFF, MAPVK_VSC_TO_VK_EX ) );
+					return;
+				}
+				if ( static_cast<BYTE>(_wpParm) == VK_CONTROL ) {
+					bKeyModifier = bExtended ? VK_RCONTROL : VK_LCONTROL;
+					return;
+				}
+				if ( static_cast<BYTE>(_wpParm) == VK_MENU ) {
+					bKeyModifier = bExtended ? VK_RMENU : VK_LMENU;
+					return;
+				}
+			}
+			bKeyCode = static_cast<BYTE>(_wpParm);
+			dwScanCode = static_cast<DWORD>(_lpParm);
+		}
+	};
+
 	struct LSW_THEME_DATA {
 		LSW_THEME_DATA( HWND _hWnd, LPCWSTR _pszClassList ) :
 			hWnd( _hWnd ),
@@ -522,7 +557,7 @@ namespace lsw {
 
 		// == Functions.
 		/**
-		 * DESC
+		 * Registers the device or type of device for which a window will receive notifications.
 		 * 
 		 * \param _hRecipient A handle to the window or service that will receive device events for the devices specified in the NotificationFilter parameter. The same window handle can be used in multiple calls to RegisterDeviceNotification.  Services can specify either a window handle or service status handle.
 		 * \param _lpvNotificationFilter A pointer to a block of data that specifies the type of device for which notifications should be sent. This block always begins with the DEV_BROADCAST_HDR structure. The data following this header is dependent on the value of the dbch_devicetype member, which can be DBT_DEVTYP_DEVICEINTERFACE or DBT_DEVTYP_HANDLE.
@@ -888,6 +923,23 @@ namespace lsw {
 			}
 			_swsResult += ScanCodeToString( (uiKey | uiExt) << 16 );
 			return true;
+		}
+
+		/**
+		 * Creates a string from the current key configuration.
+		 * 
+		 * \param _kKey The key to print.
+		 * \param _bIgnoreLeftRight If true, left/right variations of VK_MENU and VK_CONTROL are ignored.
+		 * \return Returns a wide-character string containing the key in text.
+		 **/
+		std::wstring						ToString( const LSW_KEY &_kKey, bool _bIgnoreLeftRight ) {
+			std::wstring wTmp;
+			if ( _kKey.bKeyModifier ) {
+				CHelpers::ModifierToString( _kKey.bKeyModifier, wTmp, _bIgnoreLeftRight );
+				wTmp += L"+";
+			}
+			wTmp += CHelpers::ScanCodeToString( UINT( _kKey.dwScanCode ) );
+			return wTmp;
 		}
 
 		/**

@@ -21,13 +21,24 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_krMainButtons ); ++I ) {
-			m_krMainButtons[I].bKeyCode = m_krMainButtons[I].bKeyModifier = 0;
-			m_krMainButtons[I].dwScanCode = 0;
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_kMainButtons ); ++I ) {
+			m_kMainButtons[I].bKeyCode = 0;
+			m_kMainButtons[I].bKeyModifier = 0;
+			m_kMainButtons[I].dwScanCode = 0;
 		}
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_krTurboButtons ); ++I ) {
-			m_krTurboButtons[I].bKeyCode = m_krTurboButtons[I].bKeyModifier = 0;
-			m_krTurboButtons[I].dwScanCode = 0;
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
+			m_kTurboButtons[I].bKeyCode = 0;
+			m_kTurboButtons[I].bKeyModifier = 0;
+			m_kTurboButtons[I].dwScanCode = 0;
+		}
+
+		if ( m_pioOptions ) {
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_kMainButtons ); ++I ) {
+				m_kMainButtons[I] = m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I].u.kb.kKey;
+			}
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
+				m_kTurboButtons[I] = m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I].u.kb.kKey;
+			}
 		}
 
 		std::vector<lsw::CButton *> vMainButtons = MainButtons();
@@ -70,10 +81,10 @@ namespace lsn {
 		if ( !lsw::CInputListenerBase::StopListening_Keyboard( _pwControl, _bSuccess ) ) { return false; }
 
 		if ( m_stListeningIdx < 8 ) {
-			m_krMainButtons[m_stListeningIdx] = m_krResult;
+			m_kMainButtons[m_stListeningIdx] = m_kResult;
 		}
 		else {
-			m_krTurboButtons[m_stListeningIdx%8] = m_krResult;
+			m_kTurboButtons[m_stListeningIdx%8] = m_kResult;
 		}
 
 		UpdateDialog();
@@ -130,8 +141,8 @@ namespace lsn {
 		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();*/
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_krTurboButtons ); ++I ) {
-			vTurboCombos[I]->SetEnabled( m_krTurboButtons[I].bKeyCode || m_krTurboButtons[I].bKeyModifier );
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
+			vTurboCombos[I]->SetEnabled( m_kTurboButtons[I].bKeyCode || m_kTurboButtons[I].bKeyModifier );
 		}
 
 		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
