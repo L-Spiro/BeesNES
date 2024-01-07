@@ -932,7 +932,7 @@ namespace lsw {
 		 * \param _bIgnoreLeftRight If true, left/right variations of VK_MENU and VK_CONTROL are ignored.
 		 * \return Returns a wide-character string containing the key in text.
 		 **/
-		std::wstring						ToString( const LSW_KEY &_kKey, bool _bIgnoreLeftRight ) {
+		static std::wstring					ToString( const LSW_KEY &_kKey, bool _bIgnoreLeftRight ) {
 			std::wstring wTmp;
 			if ( _kKey.bKeyModifier ) {
 				CHelpers::ModifierToString( _kKey.bKeyModifier, wTmp, _bIgnoreLeftRight );

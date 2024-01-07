@@ -11,6 +11,7 @@
 #include "LSNStdControllerPage.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNStdControllerPageLayout.h"
+#include <Helpers/LSWHelpers.h>
 
 namespace lsn {
 
@@ -21,23 +22,15 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_kMainButtons ); ++I ) {
-			m_kMainButtons[I].bKeyCode = 0;
-			m_kMainButtons[I].bKeyModifier = 0;
-			m_kMainButtons[I].dwScanCode = 0;
-		}
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
-			m_kTurboButtons[I].bKeyCode = 0;
-			m_kTurboButtons[I].bKeyModifier = 0;
-			m_kTurboButtons[I].dwScanCode = 0;
-		}
+		std::memset( m_ieMainButtons, 0, sizeof( m_ieMainButtons ) );
+		std::memset( m_ieTurboButtons, 0, sizeof( m_ieTurboButtons ) );
 
 		if ( m_pioOptions ) {
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_kMainButtons ); ++I ) {
-				m_kMainButtons[I] = m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I].u.kb.kKey;
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieMainButtons ); ++I ) {
+				m_ieMainButtons[I] = m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I];
 			}
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
-				m_kTurboButtons[I] = m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I].u.kb.kKey;
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+				m_ieTurboButtons[I] = m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I];
 			}
 		}
 
@@ -47,9 +40,15 @@ namespace lsn {
 		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
 		for ( size_t I = 0; I < vMainButtons.size(); ++I ) {
 			vMainButtons[I]->SetUserData( I );
+			if ( m_ieMainButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieMainButtons[I].u.kb.kKey.bKeyCode != 0 ) {
+				vMainButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieMainButtons[I].u.kb.kKey, false ).c_str() );
+			}
 		}
 		for ( size_t I = 0; I < vTurboButtons.size(); ++I ) {
 			vTurboButtons[I]->SetUserData( I );
+			if ( m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0 ) {
+				vTurboButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieTurboButtons[I].u.kb.kKey, false ).c_str() );
+			}
 		}
 		for ( size_t I = 0; I < vTurboCombos.size(); ++I ) {
 			vTurboCombos[I]->SetUserData( I );
@@ -81,10 +80,12 @@ namespace lsn {
 		if ( !lsw::CInputListenerBase::StopListening_Keyboard( _pwControl, _bSuccess ) ) { return false; }
 
 		if ( m_stListeningIdx < 8 ) {
-			m_kMainButtons[m_stListeningIdx] = m_kResult;
+			m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+			m_ieMainButtons[m_stListeningIdx].u.kb.kKey = m_kResult;
 		}
 		else {
-			m_kTurboButtons[m_stListeningIdx%8] = m_kResult;
+			m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+			m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey = m_kResult;
 		}
 
 		UpdateDialog();
@@ -101,34 +102,30 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
+			case Layout::LSN_SCPI_BUTTON_A_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_B_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_START_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_SELECT_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_UP_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
 				m_stListeningIdx = _pwSrc->GetUserData() & 0xFF;
 				BeginListening_Keyboard( _pwSrc );
 				return LSW_H_HANDLED;
 			}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON : {
+			case Layout::LSN_SCPI_BUTTON_A_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_B_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_START_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON : {}
+			case Layout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON : {
 				m_stListeningIdx = (_pwSrc->GetUserData() & 0xFF) + 8;
 				BeginListening_Keyboard( _pwSrc );
 				return LSW_H_HANDLED;
 			}
-			/*case Layout::LSN_IWI_OK : {
-				SaveAndClose();
-				return LSW_H_HANDLED;
-			}*/
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -141,8 +138,9 @@ namespace lsn {
 		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();*/
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_kTurboButtons ); ++I ) {
-			vTurboCombos[I]->SetEnabled( m_kTurboButtons[I].bKeyCode || m_kTurboButtons[I].bKeyModifier );
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+			bool bKeySet = (m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0);
+			vTurboCombos[I]->SetEnabled( bKeySet );
 		}
 
 		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
@@ -158,14 +156,14 @@ namespace lsn {
 	 **/
 	std::vector<lsw::CButton *> CStdControllerPage::MainButtons() {
 		static const WORD wButtons[] = {
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON,
+			Layout::LSN_SCPI_BUTTON_UP_BUTTON,
+			Layout::LSN_SCPI_BUTTON_LEFT_BUTTON,
+			Layout::LSN_SCPI_BUTTON_RIGHT_BUTTON,
+			Layout::LSN_SCPI_BUTTON_DOWN_BUTTON,
+			Layout::LSN_SCPI_BUTTON_SELECT_BUTTON,
+			Layout::LSN_SCPI_BUTTON_START_BUTTON,
+			Layout::LSN_SCPI_BUTTON_B_BUTTON,
+			Layout::LSN_SCPI_BUTTON_A_BUTTON,
 		};
 		
 		try {
@@ -185,14 +183,14 @@ namespace lsn {
 	 **/
 	std::vector<lsw::CButton *> CStdControllerPage::TurboButtons() {
 		static const WORD wButtons[] = {
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_BUTTON,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_UP_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_SELECT_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_START_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_B_TURBO_BUTTON,
+			Layout::LSN_SCPI_BUTTON_A_TURBO_BUTTON,
 		};
 		try {
 			std::vector<lsw::CButton *> vRet;
@@ -211,14 +209,14 @@ namespace lsn {
 	 **/
 	std::vector<lsw::CComboBox *> CStdControllerPage::TurboCombos() {
 		static const WORD wCombos[] = {
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_TURBO_COMBO,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_UP_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_LEFT_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_RIGHT_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_DOWN_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_SELECT_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_START_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_B_TURBO_COMBO,
+			Layout::LSN_SCPI_BUTTON_A_TURBO_COMBO,
 		};
 		try {
 			std::vector<lsw::CComboBox *> vRet;
@@ -237,14 +235,14 @@ namespace lsn {
 	 **/
 	std::vector<lsw::CTrackBar *> CStdControllerPage::DeadZoneTrackBars() {
 		static const WORD wTrackBars[] = {
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_START_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_B_DEADZONE_TRACKBAR,
-			CStdControllerPageLayout::LSN_SCPI_BUTTON_A_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_UP_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_LEFT_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_RIGHT_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_DOWN_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_SELECT_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_START_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_B_DEADZONE_TRACKBAR,
+			Layout::LSN_SCPI_BUTTON_A_DEADZONE_TRACKBAR,
 		};
 		try {
 			std::vector<lsw::CTrackBar *> vRet;
@@ -254,6 +252,20 @@ namespace lsn {
 			return vRet;
 		}
 		catch ( ... ) { return std::vector<lsw::CTrackBar *>(); }
+	}
+
+	/**
+	 * Saves the current input configuration.
+	 */
+	void CStdControllerPage::Save() {
+		if ( m_pioOptions ) {
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieMainButtons ); ++I ) {
+				m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieMainButtons[I];
+			}
+			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+				m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieTurboButtons[I];
+			}
+		}
 	}
 
 }	// namespace lsn

@@ -98,6 +98,11 @@ namespace lsn {
 		 **/
 		virtual LSW_RECT							ClientRect( const CWidget * /*_pwChild*/ = nullptr ) const;
 
+		/**
+		 * Saves the current input configuration and closes the dialog.
+		 */
+		void										SaveAndClose();
+
 
 	protected :
 		// == Members.
@@ -113,6 +118,7 @@ namespace lsn {
 
 	private :
 		typedef lsw::CMainWindow					Parent;
+		typedef class CControllerSetupWindowLayout	Layout;
 
 	};
 

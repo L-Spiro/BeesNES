@@ -104,26 +104,14 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CControllerSetupWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
-			/*case CStdControllerPageLayout::LSN_SCPI_BUTTON_A_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_B_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_START_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_SELECT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_UP_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
-			case CStdControllerPageLayout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
-				CTab * ptTab = GetTab();
-				if ( ptTab ) {
-					if ( ptTab->GetCurSel() < m_vPages.size() && m_vPages[ptTab->GetCurSel()] ) {
-						m_vPages[ptTab->GetCurSel()]->BeginListening_Keyboard( m_vPages[ptTab->GetCurSel()]->FindChild( _wId ) );
-					}
-				}
-				return LSW_H_HANDLED;
-			}*/
-			/*case Layout::LSN_IWI_OK : {
+			case Layout::LSN_CSW_OK : {
 				SaveAndClose();
 				return LSW_H_HANDLED;
-			}*/
+			}
+			case Layout::LSN_CSW_CANCEL : {
+				Close();
+				return LSW_H_HANDLED;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -161,6 +149,16 @@ namespace lsn {
 			}*/
 		}
 		return Parent::ClientRect();
+	}
+
+	/**
+	 * Saves the current input configuration and closes the dialog.
+	 */
+	void CControllerSetupWindow::SaveAndClose() {
+		for ( auto I = m_vPages.size(); I--; ) {
+			m_vPages[I]->Save();
+		}
+		::EndDialog( Wnd(), 0 );
 	}
 
 }	// namespace lsn

@@ -139,6 +139,11 @@ namespace lsn {
 		 **/
 		std::vector<lsw::CTrackBar *>				DeadZoneTrackBars();
 
+		/**
+		 * Saves the current input configuration.
+		 */
+		void										Save();
+
 
 	protected :
 		// == Members.
@@ -148,9 +153,9 @@ namespace lsn {
 		lsn::CMainWindow *							m_pmwMainWindow;
 
 		/** The primary buttons. */
-		LSW_KEY										m_kMainButtons[8];
+		LSN_INPUT_EVENT								m_ieMainButtons[8];
 		/** The turbo buttons. */
-		LSW_KEY										m_kTurboButtons[8];
+		LSN_INPUT_EVENT								m_ieTurboButtons[8];
 		/** The button to which we are currently listening. */
 		size_t										m_stListeningIdx;
 
@@ -158,6 +163,10 @@ namespace lsn {
 		size_t										m_stPlayerIdx;
 		/** The configuration index. */
 		size_t										m_stConfigIdx;
+
+
+	private :
+		typedef class CStdControllerPageLayout		Layout;
 	};
 
 }	// namespace lsn
