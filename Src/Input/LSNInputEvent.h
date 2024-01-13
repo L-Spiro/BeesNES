@@ -44,6 +44,7 @@ namespace lsn {
 			struct {
 				GUID										guId;							/**< The USB controller's product ID. */
 				CUsbControllerBase::LSN_INPUT_EVENT			ieEvent;						/**< The controller event */
+				float										fDeadzone;						/**< The dead zone if the input is an axis. */
 			}												cont;
 		}													u;
 	};
