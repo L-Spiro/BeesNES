@@ -105,4 +105,59 @@ namespace lsn {
 	 */
 	bool CFileBase::ExtractToMemory( const std::u16string &/*_s16File*/, std::vector<uint8_t> &/*_vResult*/ ) const { return false; }
 
+	/**
+	 * Finds files/folders in a given directory.
+	 * 
+	 * \param _pcFolderPath The path to the directory to search.
+	 * \param _pcSearchString A wildcard search string to find only certain files/folders.
+	 * \param _bIncludeFolders If true, folders are included in the return.
+	 * \param _vResult The return array.  Found files and folders are appended to the array.
+	 * \return Returns _vResult.
+	 **/
+	std::vector<std::u16string> & CFileBase::FindFiles( const char16_t * _pcFolderPath, const char16_t * _pcSearchString, bool _bIncludeFolders, std::vector<std::u16string> &_vResult ) {
+#ifdef LSN_WINDOWS
+		std::u16string sPath = CUtilities::Replace( _pcFolderPath, u'/', u'\\' );
+		while ( sPath.size() && sPath[sPath.size()] == u'/' ) { sPath.pop_back(); }
+		sPath.push_back( u'/' );
+		std::u16string sSearch;
+		if ( _pcSearchString ) {
+			sSearch = CUtilities::Replace( _pcSearchString, u'/', u'\\' );
+			while ( sSearch[0] == u'/' ) {
+				sSearch.erase( sSearch.begin() );
+			}
+		}
+		else {
+			sSearch = u"*";
+		}
+
+
+		std::u16string sSearchPath = sPath + sSearch;
+		/*if ( sSearchPath.FindString( 0, L"\\\\?\\" ).ui32Start != 0 ) {
+			if ( !sSearchPath.Insert( 0, L"\\\\?\\" ) ) { return false; }
+		}*/
+		WIN32_FIND_DATAW wfdData;
+		HANDLE hDir = ::FindFirstFileW( reinterpret_cast<LPCWSTR>(sSearchPath.c_str()), &wfdData );
+		if ( INVALID_HANDLE_VALUE == hDir ) { return _vResult; }
+		
+		do {
+			if ( wfdData.cFileName[0] == u'.' ) { continue; }
+			bool bIsFolder = ((wfdData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
+			if ( !_bIncludeFolders && bIsFolder ) {
+				continue;
+			}
+			try {
+				_vResult.push_back( sPath + reinterpret_cast<const char16_t *>(wfdData.cFileName) );
+			}
+			catch ( ... ) {
+				::FindClose( hDir );
+				return _vResult;
+			}
+		} while ( ::FindNextFileW( hDir, &wfdData ) );
+
+		::FindClose( hDir );
+		return _vResult;
+#else
+#endif	// #ifdef LSN_WINDOWS
+	}
+
 }	// namespace lsn

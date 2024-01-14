@@ -95,6 +95,17 @@ namespace lsn {
 		 * \return Returns true if the file was extracted successfully.
 		 */
 		virtual bool										ExtractToMemory( const std::u16string &_s16File, std::vector<uint8_t> &_vResult ) const;
+
+		/**
+		 * Finds files/folders in a given directory.
+		 * 
+		 * \param _pcFolderPath The path to the directory to search.
+		 * \param _pcSearchString A wildcard search string to find only certain files/folders.
+		 * \param _bIncludeFolders If true, folders are included in the return.
+		 * \param _vResult The return array.  Found files and folders are appended to the array.
+		 * \return Returns _vResult.
+		 **/
+		static std::vector<std::u16string> &				FindFiles( const char16_t * _pcFolderPath, const char16_t * _pcSearchString, bool _bIncludeFolders, std::vector<std::u16string> &_vResult );
 	};
 
 
