@@ -142,9 +142,7 @@ namespace lsn {
 		do {
 			if ( wfdData.cFileName[0] == u'.' ) { continue; }
 			bool bIsFolder = ((wfdData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
-			if ( !_bIncludeFolders && bIsFolder ) {
-				continue;
-			}
+			if ( !_bIncludeFolders && bIsFolder ) { continue; }
 			try {
 				_vResult.push_back( sPath + reinterpret_cast<const char16_t *>(wfdData.cFileName) );
 			}
@@ -157,6 +155,7 @@ namespace lsn {
 		::FindClose( hDir );
 		return _vResult;
 #else
+#error "CFileBase::FindFiles() unimplemented!"
 #endif	// #ifdef LSN_WINDOWS
 	}
 

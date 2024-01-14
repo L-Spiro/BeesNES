@@ -115,6 +115,15 @@ namespace lsn {
 		 */
 		virtual bool										WriteToFile( const std::vector<uint8_t> &_vData );
 
+		/**
+		 * Writes the given data to the created file.  File must have been cerated with Create().
+		 *
+		 * \param _pui8Data The data to write to the file.
+		 * \param _tsSize The size of the buffer to which _pui8Data points.
+		 * \return Returns true if the data was successfully written to the file.
+		 */
+		virtual bool										WriteToFile( const uint8_t * _pui8Data, size_t _tsSize );
+
 
 	protected :
 		// == Members.

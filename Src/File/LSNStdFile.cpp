@@ -174,8 +174,19 @@ namespace lsn {
 	 * \return Returns true if the data was successfully written to the file.
 	 */
 	bool CStdFile::WriteToFile( const std::vector<uint8_t> &_vData ) {
+		return WriteToFile( _vData.data(), _vData.size() );
+	}
+
+	/**
+	 * Writes the given data to the created file.  File must have been cerated with Create().
+	 *
+	 * \param _pui8Data The data to write to the file.
+	 * \param _tsSize The size of the buffer to which _pui8Data points.
+	 * \return Returns true if the data was successfully written to the file.
+	 */
+	bool CStdFile::WriteToFile( const uint8_t * _pui8Data, size_t _tsSize ) {
 		if ( m_pfFile != nullptr ) {
-			return std::fwrite( _vData.data(), _vData.size(), 1, m_pfFile ) == 1;
+			return std::fwrite( _pui8Data, _tsSize, 1, m_pfFile ) == 1;
 		}
 		return false;
 	}
