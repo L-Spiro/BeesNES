@@ -117,12 +117,12 @@ namespace lsn {
 	std::vector<std::u16string> & CFileBase::FindFiles( const char16_t * _pcFolderPath, const char16_t * _pcSearchString, bool _bIncludeFolders, std::vector<std::u16string> &_vResult ) {
 #ifdef LSN_WINDOWS
 		std::u16string sPath = CUtilities::Replace( _pcFolderPath, u'/', u'\\' );
-		while ( sPath.size() && sPath[sPath.size()] == u'/' ) { sPath.pop_back(); }
-		sPath.push_back( u'/' );
+		while ( sPath.size() && sPath[sPath.size()-1] == u'\\' ) { sPath.pop_back(); }
+		sPath.push_back( u'\\' );
 		std::u16string sSearch;
 		if ( _pcSearchString ) {
 			sSearch = CUtilities::Replace( _pcSearchString, u'/', u'\\' );
-			while ( sSearch[0] == u'/' ) {
+			while ( sSearch[0] == u'\\' ) {
 				sSearch.erase( sSearch.begin() );
 			}
 		}
