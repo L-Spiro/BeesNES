@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A 1-pole filter.
+ * Description: A leaky 1-pole filter.
  */
 
 
@@ -16,9 +16,9 @@ namespace lsn {
 
 	/**
 	 * Class CPoleFilterLeaky
-	 * \brief A 1-pole filter.
+	 * \brief A leaky 1-pole filter.
 	 *
-	 * Description: A 1-pole filter.
+	 * Description: A leaky 1-pole filter.
 	 */
 	class CPoleFilterLeaky : public CAudioFilterBase {
 	public :

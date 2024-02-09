@@ -54,7 +54,7 @@ namespace lsn {
 		 **/
 		template <unsigned _tTable>
 		static inline uint16_t				NoiseTable( uint8_t _ui8Idx ) {
-			return m_ui16NoisePeriods[_tTable][_ui8Idx];
+			return m_ui16NoisePeriods[_tTable][_ui8Idx] - 1;
 		}
 
 

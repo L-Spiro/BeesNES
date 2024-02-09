@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
 #include "../Audio/LSNHpfFilter.h"
+#include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNPoleFilterLeaky.h"
 #include "../Audio/LSNSampleBucket.h"
 #include "../Audio/LSNSincFilter.h"
@@ -173,7 +174,9 @@ namespace lsn {
 				fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
 			}
 			
-			double dFinal = static_cast<float>(m_pfPole90.Process( m_pfPole440.Process( m_pfPole14.Process( fFinalPulse + fFinalTnd ) ) ));
+			double dFinal = m_pfPole90.Process( fFinalPulse + fFinalTnd );
+			dFinal = m_pfPole440.Process( dFinal );
+			//dFinal = m_pfPole14.Process( dFinal );
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
@@ -187,7 +190,7 @@ namespace lsn {
 				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
 				//dFinal = m_sfSincFilter.Process( dFinal );
 
-				m_hfHpfFilter.CreateHpf( 14.0f, HzAsFloat() );
+				m_hfHpfFilter.CreateHpf( 90.0f, HzAsFloat() );
 				dFinal = m_hfHpfFilter.Process( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
@@ -196,7 +199,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( m_ui64Cycles, static_cast<float>(dFinal * 0.5) );
+			CAudio::AddSample( m_ui64Cycles, static_cast<float>(dFinal * (-0.5 * 1.25)) );
 
 			++m_ui64Cycles;
 		}
@@ -327,14 +330,17 @@ namespace lsn {
 		CInterruptable *								m_piIrqTarget;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
+		typedef CPoleFilter								CPoleFilterLpf;
+		//typedef CPoleFilterLeaky						CPoleFilterLpf;
+		typedef CPoleFilterLeaky						CPoleFilterHpf;
 		/** The 90-Hz pole filter. */
-		CPoleFilterLeaky								m_pfPole90;
+		CPoleFilterHpf									m_pfPole90;
 		/** The 440-Hz pole filter. */
-		CPoleFilterLeaky								m_pfPole440;
+		CPoleFilterHpf									m_pfPole440;
 		/** The 14-Hz pole filter. */
-		CPoleFilterLeaky								m_pfPole14;
+		CPoleFilterLpf									m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilterLeaky								m_pfOutputPole[3];
+		CPoleFilterLpf									m_pfOutputPole[2];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */
