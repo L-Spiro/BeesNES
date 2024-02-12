@@ -515,6 +515,10 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Apu\LSNTriangle.h" />
     <ClInclude Include="Src\Audio\LSNAudio.h" />
     <ClInclude Include="Src\Audio\LSNAudioFilterBase.h" />
+    <ClInclude Include="Src\Audio\LSNBiQuadFilter.h" />
+    <ClInclude Include="Src\Audio\LSNBiQuadFilterChain.h" />
+    <ClInclude Include="Src\Audio\LSNButterworthFilter.h" />
+    <ClInclude Include="Src\Audio\LSNButterworthFilterImpl.h" />
     <ClInclude Include="Src\Audio\LSNHpfFilter.h" />
     <ClInclude Include="Src\Audio\LSNOpenAl.h" />
     <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h" />
@@ -659,6 +663,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Apu\LSNSequencer.cpp" />
     <ClCompile Include="Src\Apu\LSNTriangle.cpp" />
     <ClCompile Include="Src\Audio\LSNAudio.cpp" />
+    <ClCompile Include="Src\Audio\LSNBiQuadFilterChain.cpp" />
+    <ClCompile Include="Src\Audio\LSNButterworthFilterImpl.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAl.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlBuffer.cpp" />
     <ClCompile Include="Src\Audio\LSNOpenAlContext.cpp" />

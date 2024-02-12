@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
+#include "../Audio/LSNButterworthFilter.h"
 #include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNPoleFilterLeaky.h"
@@ -174,9 +175,10 @@ namespace lsn {
 				fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
 			}
 			
-			double dFinal = m_pfPole90.Process( fFinalPulse + fFinalTnd );
-			dFinal = m_pfPole440.Process( dFinal );
-			//dFinal = m_pfPole14.Process( dFinal );
+			double dFinal = fFinalPulse + fFinalTnd;
+			//dFinal = m_pfPole90.Process( fFinalPulse + fFinalTnd );
+			//dFinal = m_pfPole440.Process( dFinal );
+			dFinal = m_pfPole14.Process( dFinal );
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
@@ -330,6 +332,7 @@ namespace lsn {
 		CInterruptable *								m_piIrqTarget;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
+		//typedef CButterworthFilter<1>					CPoleFilterLpf;
 		typedef CPoleFilter								CPoleFilterLpf;
 		//typedef CPoleFilterLeaky						CPoleFilterLpf;
 		typedef CPoleFilterLeaky						CPoleFilterHpf;

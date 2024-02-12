@@ -33,7 +33,7 @@ namespace lsn {
 		 * \param _fFc The non-normalized cut-off frequency.
 		 * \param _fSampleRate The input/output sample rate.
 		 **/
-		inline bool					CreateHpf( float _fFc, float _fSampleRate ) {
+		virtual bool				CreateHpf( float _fFc, float _fSampleRate ) {
 			if ( Dirty( _fFc, _fSampleRate ) ) {
 				double dDelta = (_fSampleRate != 0.0f) ? (1.0 / _fSampleRate) : 0.0;
 				double dTimeConstant = (_fFc != 0.0f) ? (1.0 / _fFc) : 0.0;
@@ -52,7 +52,7 @@ namespace lsn {
 		 * \param _dSample The sample to process.
 		 * \return Returns the filtered sample.
 		 **/
-		inline double				Process( double _dSample ) {
+		virtual double				Process( double _dSample ) {
 			m_dPreviousOutput = m_dOutput;
 			m_dDelta = _dSample - m_dPrevInput;
 			m_dPrevInput = _dSample;

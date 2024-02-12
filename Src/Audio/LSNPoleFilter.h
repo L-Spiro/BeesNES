@@ -31,6 +31,7 @@ namespace lsn {
 		 * Sets the cut-off given a non-normalized cut-off frequency for an LPF and sample rate.
 		 * 
 		 * \param _fFc The normalized cut-off frequency.
+		 * \param _fSampleRate The input/output sample rate.
 		 **/
 		virtual bool				CreateLpf( float _fFc, float _fSampleRate ) {
 			if ( Dirty( _fFc, _fSampleRate ) ) {
@@ -46,6 +47,7 @@ namespace lsn {
 		 * Sets the cut-off given a non-normalized cut-off frequency for an HPF and sample rate.
 		 * 
 		 * \param _fFc The normalized cut-off frequency.
+		 * \param _fSampleRate The input/output sample rate.
 		 **/
 		virtual bool				CreateHpf( float _fFc, float _fSampleRate ) {
 			if ( Dirty( _fFc, _fSampleRate ) ) {

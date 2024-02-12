@@ -663,6 +663,18 @@
     <ClInclude Include="Src\Input\LSNInputEvent.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNBiQuadFilter.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNBiQuadFilterChain.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNButterworthFilterImpl.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\LSNButterworthFilter.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -880,6 +892,12 @@
     </ClCompile>
     <ClCompile Include="Src\Input\LSNControllerListener.cpp">
       <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\LSNBiQuadFilterChain.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\LSNButterworthFilterImpl.cpp">
+      <Filter>Source Files\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
