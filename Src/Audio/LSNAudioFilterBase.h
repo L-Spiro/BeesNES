@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include <cmath>
 #include <numbers>
+#include <vector>
 
 namespace lsn {
 

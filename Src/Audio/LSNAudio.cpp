@@ -81,6 +81,9 @@ namespace lsn {
 	/** The position within the temporary buffer of the current sample. */
 	size_t CAudio::m_sTmpBufferIdx = 0;
 
+	/** The HPF filter. */
+	CHpfFilter CAudio::m_hfHpf90;
+
 	// == Functions.
 	/**
 	 * Initializes audio.
@@ -109,6 +112,8 @@ namespace lsn {
 
 		m_vTmpBuffer.resize( m_sBufferSizeInSamples );
 		m_vLocalBuffer.resize( m_sBufferSizeInSamples * 4 );
+
+		m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 		if ( !StartThread() ) { return false; }
 		return true;
 	}
@@ -202,7 +207,7 @@ namespace lsn {
 				}
 				continue;
 			}
-			sbBucket.fBucket[ui32BucketIdx] = _fSample;
+			sbBucket.fBucket[ui32BucketIdx] = float( m_hfHpf90.Process( _fSample ) );
 		}
 	}
 

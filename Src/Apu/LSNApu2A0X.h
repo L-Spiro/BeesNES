@@ -192,8 +192,8 @@ namespace lsn {
 				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
 				//dFinal = m_sfSincFilter.Process( dFinal );
 
-				m_hfHpfFilter.CreateHpf( 90.0f, HzAsFloat() );
-				dFinal = m_hfHpfFilter.Process( dFinal );
+				//m_hfHpfFilter.CreateHpf( 90.0f, HzAsFloat() );
+				//dFinal = m_hfHpfFilter.Process( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			//m_fMinSample = std::min( m_fMinSample, fFinal );
@@ -335,7 +335,7 @@ namespace lsn {
 		//typedef CButterworthFilter<1>					CPoleFilterLpf;
 		typedef CPoleFilter								CPoleFilterLpf;
 		//typedef CPoleFilterLeaky						CPoleFilterLpf;
-		typedef CPoleFilterLeaky						CPoleFilterHpf;
+		typedef CHpfFilter								CPoleFilterHpf;
 		/** The 90-Hz pole filter. */
 		CPoleFilterHpf									m_pfPole90;
 		/** The 440-Hz pole filter. */

@@ -12,6 +12,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Event/LSNEvent.h"
+#include "LSNHpfFilter.h"
 #include "LSNOpenAlBuffer.h"
 #include "LSNOpenAlContext.h"
 #include "LSNOpenAlDevice.h"
@@ -76,6 +77,7 @@ namespace lsn {
 		 **/
 		static void											SetOutputFrequency( uint32_t _ui32Hz ) {
 			m_sNextFrequency = _ui32Hz;
+			m_hfHpf90.CreateHpf( 90.0f, float( _ui32Hz ) );
 		}
 
 		/**
@@ -183,6 +185,8 @@ namespace lsn {
 		static std::vector<float>							m_vTmpBuffer;
 		/** The position within the temporary buffer of the current sample. */
 		static size_t										m_sTmpBufferIdx;
+		/** The HPF filter. */
+		static CHpfFilter									m_hfHpf90;
 		
 
 		
