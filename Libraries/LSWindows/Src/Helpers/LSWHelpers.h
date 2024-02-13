@@ -687,6 +687,17 @@ namespace lsw {
 		}
 	};
 
+	struct LSW_FILE_MAP_VIEW {
+		LSW_FILE_MAP_VIEW( HANDLE _hFileMappingObject, uint64_t _ui64FileOffset, size_t _dwNumberOfBytesToMap, DWORD _dwDesiredAccess ) :
+			pvBuffer( ::MapViewOfFile( _hFileMappingObject, _dwDesiredAccess, DWORD( _ui64FileOffset >> 32 ), DWORD( _ui64FileOffset ), _dwNumberOfBytesToMap ) ) {
+		}
+
+
+		// == Members.
+		/** THe mapped address for access to the mapped region. */
+		LPVOID								pvBuffer;
+	};
+
 	class CHelpers {
 	public :
 		/**

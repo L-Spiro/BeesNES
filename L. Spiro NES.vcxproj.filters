@@ -675,6 +675,9 @@
     <ClInclude Include="Src\Audio\LSNButterworthFilter.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\File\LSNFileMap.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -898,6 +901,9 @@
     </ClCompile>
     <ClCompile Include="Src\Audio\LSNButterworthFilterImpl.cpp">
       <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\File\LSNFileMap.cpp">
+      <Filter>Source Files\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

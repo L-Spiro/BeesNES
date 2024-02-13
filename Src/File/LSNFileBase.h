@@ -97,6 +97,30 @@ namespace lsn {
 		virtual bool										ExtractToMemory( const std::u16string &_s16File, std::vector<uint8_t> &_vResult ) const;
 
 		/**
+		 * Gets the size of the file.
+		 * 
+		 * \return Returns the size of the file.
+		 **/
+		virtual uint64_t									Size() const { return 0; }
+
+		/**
+		 * Moves the file pointer from the current position and returns the new position.
+		 * 
+		 * \param _i64Offset Amount by which to move the file pointer.
+		 * \return Returns the new line position.
+		 **/
+		virtual uint64_t									MovePointerBy( int64_t /*_i64Offset*/ ) const { return 0; }
+
+		/**
+		 * Moves the file pointer to the given file position.
+		 * 
+		 * \param _ui64Pos The new file position to set.
+		 * \param _bFromEnd Whether _ui64Pos is from the end of the file or not. 
+		 * \return Returns the new file position.
+		 **/
+		virtual uint64_t									MovePointerTo( uint64_t /*_ui64Pos*/, BOOL /*_bFromEnd*/ = false ) const { return 0; }
+
+		/**
 		 * Finds files/folders in a given directory.
 		 * 
 		 * \param _pcFolderPath The path to the directory to search.
