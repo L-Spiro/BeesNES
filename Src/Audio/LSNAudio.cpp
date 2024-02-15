@@ -199,7 +199,9 @@ namespace lsn {
 			if ( ui32BucketIdx >= LSN_SAMPLER_BUCKET_SIZE ) {
 				// Bucket filled.
 				++m_sblBuckets.ui64Idx;
-				float fSample = Sample_6Point_5thOrder_Hermite_Z( sbBucket.fBucket, sbBucket.fInterp );
+				//float fSample = Sample_6Point_5thOrder_Hermite_Z( sbBucket.fBucket, sbBucket.fInterp );
+				//float fSample = Sample_6Point_4thOrder_2X_Z( sbBucket.fBucket, sbBucket.fInterp );
+				float fSample = Sample_6Point_4thOrder_4X_Z( sbBucket.fBucket, sbBucket.fInterp );
 				//float fSample = Sample_6Point_5thOrder_32X_Z( sbBucket.fBucket, sbBucket.fInterp );
 				m_vTmpBuffer[m_sTmpBufferIdx++] = fSample;
 				if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {

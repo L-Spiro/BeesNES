@@ -99,11 +99,28 @@ namespace lsn {
 		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _fFrac );
 
 		/**
+		 * 6-point, 4th-order optimal 2x z-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_6Point_4thOrder_2X_Z( const float * _pfsSamples, float _fFrac );
+
+		/**
+		 * 6-point, 4th-order optimal 4x z-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_6Point_4thOrder_4X_Z( const float * _pfsSamples, float _fFrac );
+
+		/**
 		 * 6-point, 5th-order optimal 32x z-form sampling.
 		 *
 		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
 		 * \param _fFrac The interpolation amount.
-		 * \param _dPreEmphHzInRadians The pre-emphasis x value.
 		 * \return Returns the interpolated point.
 		 */
 		static inline float									Sample_6Point_5thOrder_32X_Z( const float * _pfsSamples, float _fFrac );
@@ -279,6 +296,58 @@ namespace lsn {
 		float fC4 = 1.0f / 48.0f * fEven1 - 1.0f / 16.0f * fEven2 + 1.0f / 24.0f * fEven3;
 		float fC5 = -1.0f / 24.0f * fOdd1 + 5.0f / 24.0f * fOdd2 - 5.0f / 12.0f * fOdd3;
 		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
+	}
+
+	/**
+	 * 6-point, 4th-order optimal 2x z-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _fFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_6Point_4thOrder_2X_Z( const float * _pfsSamples, float _fFrac ) {
+		//  6-point, 5th-order Hermite (Z-form).
+		float fZ = _fFrac - 1.0f / 2.0f;
+		float fEven1 = _pfsSamples[-2+2] + _pfsSamples[3+2], fOdd1 = _pfsSamples[-2+2] - _pfsSamples[3+2];
+		float fEven2 = _pfsSamples[-1+2] + _pfsSamples[2+2], fOdd2 = _pfsSamples[-1+2] - _pfsSamples[2+2];
+		float fEven3 = _pfsSamples[0+2] + _pfsSamples[1+2], fOdd3 = _pfsSamples[0+2] - _pfsSamples[1+2];
+		float fC0 = fEven1 * 0.37484203669443822f + fEven2 * 0.11970939637439368f
+			+ fEven3 * 0.00544862268096358f;
+		float fC1 = fOdd1 * 0.19253897284651597f + fOdd2 * 0.22555179040018719f
+			+ fOdd3 * 0.02621377625620669f;
+		float fC2 = fEven1 * -0.154026006475653071f + fEven2 * 0.10546111301131367f
+			+ fEven3 * 0.04856757454258609f;
+		float fC3 = fOdd1 * -0.06523685579716083f + fOdd2 * -0.04867197815057284f
+			+ fOdd3 * 0.04200764942718964f;
+		float fC4 = fEven1 * 0.03134095684084392f + fEven2 * -0.04385804833432710f
+			+ fEven3 * 0.01249475765486819f;
+		return (((fC4 * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
+	}
+
+	/**
+	 * 6-point, 4th-order optimal 4x z-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _fFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_6Point_4thOrder_4X_Z( const float * _pfsSamples, float _fFrac ) {
+		//  6-point, 5th-order Hermite (Z-form).
+		float fZ = _fFrac - 1.0f / 2.0f;
+		float fEven1 = _pfsSamples[-2+2] + _pfsSamples[3+2], fOdd1 = _pfsSamples[-2+2] - _pfsSamples[3+2];
+		float fEven2 = _pfsSamples[-1+2] + _pfsSamples[2+2], fOdd2 = _pfsSamples[-1+2] - _pfsSamples[2+2];
+		float fEven3 = _pfsSamples[0+2] + _pfsSamples[1+2], fOdd3 = _pfsSamples[0+2] - _pfsSamples[1+2];
+		float fC0 = fEven1 * 0.26148143200222657f + fEven2 * 0.22484494681472966f
+			+ fEven3 * 0.01367360612950508f;
+		float fC1 = fOdd1 * -0.20245593827436142f + fOdd2 * 0.29354348112881601f
+			+ fOdd3 * 0.06436924057941607f;
+		float fC2 = fEven1 * -0.022982104451679701f + fEven2 * -0.09068617668887535f
+			+ fEven3 * 0.11366875749521399f;
+		float fC3 = fOdd1 * 0.36296419678970931f + fOdd2 * -0.26421064520663945f
+			+ fOdd3 * 0.08591542869416055f;
+		float fC4 = fEven1 * 0.02881527997393852f + fEven2 * -0.04250898918476453f
+			+ fEven3 * 0.01369173779618459f;
+		return (((fC4 * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
 	}
 
 	/**
