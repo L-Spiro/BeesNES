@@ -122,5 +122,32 @@ inline uint64_t LSN_FASTCALL _udiv128( uint64_t _ui64High, uint64_t _ui64Low, ui
 
 #endif  // #ifndef LSN_WIN64
 
+extern "C"
+{
+
+#if defined(_M_AMD64)
+
+extern void sincos( double _dAngle, double * _pdSin, double * _pdCos );
+
+#else
+
+// 32 bit implementation in inline assembly
+inline void sincos( double _dAngle, double * _pdSin, double * _pdCos ) {
+	double dSin, dCos;
+	__asm {
+		fld QWORD PTR[_dAngle]
+		fsincos
+		fstp QWORD PTR[dCos]
+		fstp QWORD PTR[dSin]
+		fwait
+	}
+	(*_pdSin) = dSin;
+	(*_pdCos) = dCos;
+}
+
+#endif
+
+} // extern "C"
+
 #endif	// #ifdef LSN_WINDOWS
 

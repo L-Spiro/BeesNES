@@ -271,7 +271,7 @@ namespace lsn {
 		/** Blargg's NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
-		CNtscCrtFilter							m_ncfEmmirNtscFilter;
+		//CNtscCrtFilter							m_ncfEmmirNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
 		CNtscCrtFullFilter						m_ncfEmmirNtscFullFilter;
 		/** EMMIR (LMP88959)'s PAL-CRT filter. */

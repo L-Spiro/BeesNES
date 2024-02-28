@@ -114,7 +114,7 @@ namespace lsn {
 		CEvent												m_eDone;
 		/** The final stride. */
 		uint32_t											m_ui32FinalStride;
-		/** The final width. NTSC is CRT_HRES piels wide. */
+		/** The final width. */
 		uint32_t											m_ui32FinalWidth;
 		/** The final height. */
 		uint32_t											m_ui32FinalHeight;

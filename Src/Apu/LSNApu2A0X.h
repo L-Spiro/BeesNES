@@ -176,7 +176,7 @@ namespace lsn {
 			}
 			
 			double dFinal = fFinalPulse + fFinalTnd;
-			//dFinal = m_pfPole90.Process( fFinalPulse + fFinalTnd );
+			//dFinal = m_pfPole90.Process( dFinal );
 			//dFinal = m_pfPole440.Process( dFinal );
 			dFinal = m_pfPole14.Process( dFinal );
 			{

@@ -196,8 +196,10 @@ namespace lsn {
     
 		for ( uint32_t I = 0; I < (_uiFilterOrder + 1) / 2; I++ ) {
 			double dTheta = (2 * I + 1.0) * LSN_PI / (2 * _uiFilterOrder);
-			double dReal = -std::sin( dTheta );
-			double dImag = std::cos( dTheta );
+			double dSin, dCos;
+			::sincos( dTheta, &dSin, &dCos );
+			double dReal = -dSin;
+			double dImag = dCos;
 			vPoles.push_back( std::complex<double>( dReal,  dImag ) );
 			vPoles.push_back( std::complex<double>( dReal, -dImag ) ); // Conjugate.
 		}

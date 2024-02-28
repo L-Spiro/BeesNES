@@ -184,12 +184,6 @@
     <Filter Include="Source Files\BeesNES">
       <UniqueIdentifier>{29d0ece8-e484-4b32-b0c8-cd5c493fe17a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Filters\NTSC-CRT-Fast">
-      <UniqueIdentifier>{7f6ac191-c9ae-4460-b542-fed129f3c5da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Filters\NTSC-CRT-Fast">
-      <UniqueIdentifier>{5a43ce01-25eb-4c97-a42a-28b71352a2c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Filters\NTSC-CRT-Full">
       <UniqueIdentifier>{26848e16-470e-4f09-9bd3-a2e1c296c96b}</UniqueIdentifier>
     </Filter>
@@ -489,9 +483,6 @@
     <ClInclude Include="Src\Input\LSNWindowsKeyboard.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Event\LSNEvent.h">
       <Filter>Header Files\Event</Filter>
     </ClInclude>
@@ -521,9 +512,6 @@
     </ClInclude>
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h">
       <Filter>Header Files\BeesNES</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Filters\NTSC-CRT-Fast\crt.h">
-      <Filter>Header Files\Filters\NTSC-CRT-Fast</Filter>
     </ClInclude>
     <ClInclude Include="Src\Filters\NTSC-CRT-Full\crt_core.h">
       <Filter>Header Files\Filters\NTSC-CRT-Full</Filter>
@@ -678,6 +666,9 @@
     <ClInclude Include="Src\File\LSNFileMap.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -785,9 +776,6 @@
     <ClCompile Include="Src\Input\LSNWindowsKeyboard.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Filters\LSNNtscCrtFilter.cpp">
-      <Filter>Source Files\Filters</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Event\LSNEvent.cpp">
       <Filter>Source Files\Event</Filter>
     </ClCompile>
@@ -808,9 +796,6 @@
     </ClCompile>
     <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp">
       <Filter>Source Files\BeesNES</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Filters\NTSC-CRT-Fast\crt.c">
-      <Filter>Source Files\Filters\NTSC-CRT-Fast</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.c">
       <Filter>Source Files\Filters\NTSC-CRT-Full</Filter>
@@ -905,6 +890,9 @@
     <ClCompile Include="Src\File\LSNFileMap.cpp">
       <Filter>Source Files\File</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
@@ -957,5 +945,10 @@
     <ResourceCompile Include="L. Spiro NES.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Src\OS\LSNSinCos.asm">
+      <Filter>Source Files\OS</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

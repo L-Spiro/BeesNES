@@ -117,6 +117,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -548,8 +549,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
     <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h" />
+    <ClInclude Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
-    <ClInclude Include="Src\Filters\LSNNtscCrtFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalCrtFullFilter.h" />
@@ -559,7 +560,6 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h" />
-    <ClInclude Include="Src\Filters\NTSC-CRT-Fast\crt.h" />
     <ClInclude Include="Src\Filters\NTSC-CRT-Full\crt_core.h" />
     <ClInclude Include="Src\Filters\NTSC-CRT-Full\crt_nes.h" />
     <ClInclude Include="Src\Filters\NTSC-CRT-Full\crt_ntsc.h" />
@@ -688,15 +688,14 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />
-    <ClCompile Include="Src\Filters\LSNNtscCrtFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\LSNSrgbPostProcess.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
-    <ClCompile Include="Src\Filters\NTSC-CRT-Fast\crt.c" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.c" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_nes.c" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_ntsc.c" />
@@ -736,6 +735,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
+    <MASM Include="Src\OS\LSNSinCos.asm">
+      <FileType>Document</FileType>
+    </MASM>
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />
@@ -760,5 +762,6 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

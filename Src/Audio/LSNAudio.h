@@ -99,6 +99,15 @@ namespace lsn {
 		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _fFrac );
 
 		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac );
+
+		/**
 		 * 6-point, 4th-order optimal 2x z-form sampling.
 		 *
 		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
@@ -296,6 +305,22 @@ namespace lsn {
 		float fC4 = 1.0f / 48.0f * fEven1 - 1.0f / 16.0f * fEven2 + 1.0f / 24.0f * fEven3;
 		float fC5 = -1.0f / 24.0f * fOdd1 + 5.0f / 24.0f * fOdd2 - 5.0f / 12.0f * fOdd3;
 		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
+	}
+
+	/**
+	 * 4-point, 2nd-order parabolic 2x x-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _fFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
+		// 4-point, 2nd-order parabolic 2x (X-form).
+		float fY1mM1 = _pfsSamples[1+2]-_pfsSamples[-1+2];
+		float fC0 = 1.0f / 2.0f * _pfsSamples[0+2] + 1.0f / 4.0f * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+		float fC1 = 1.0f / 2.0f * fY1mM1;
+		float fC2 = 1.0f / 4.0f * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+		return (fC2 * _fFrac + fC1) * _fFrac + fC0;
 	}
 
 	/**
