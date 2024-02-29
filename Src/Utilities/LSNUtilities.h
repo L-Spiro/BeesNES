@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include <intrin.h>
+#include <numbers>
 #include <string>
 #include <vector>
 
@@ -420,6 +421,205 @@ namespace lsn {
 		 * \param _u16Path The file name.
 		 **/
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
+
+		/**
+		 * A helper function.
+		 *
+		 * \param _dX A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static inline double								SinC( double _dX ) {
+			_dX *= std::numbers::pi;
+			if ( _dX < 0.01 && _dX > -0.01 ) {
+				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+			}
+
+			return ::sin( _dX ) / _dX;
+		}
+
+		/**
+		 * A helper function.
+		 *
+		 * \param _dX A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static inline double								Bessel0( double _dX ) {
+			static const double dEspiRatio = 1.0e-16;
+			double dSum = 1.0, dPow = 1.0, dDs = 1.0, dXh = _dX * 0.5;
+			uint32_t ui32K = 0;
+
+			while ( dDs > dSum * dEspiRatio ) {
+				++ui32K;
+				dPow *= (dXh / ui32K);
+				dDs = dPow * dPow;
+				dSum += dDs;
+			}
+
+			return dSum;
+		}
+
+		/**
+		 * A helper function for the Kaiser filter.
+		 *
+		 * \param _dAlpha A happy parameter.
+		 * \param _dHalfWidth A happy parameter.
+		 * \param _dX A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static inline double								KaiserHelper( double _dAlpha, double _dHalfWidth, double _dX ) {
+			const double dRatio = _dX / _dHalfWidth;
+			return Bessel0( _dAlpha * ::sqrt( 1.0 - dRatio * dRatio ) ) / Bessel0( _dAlpha );
+		}
+
+		/**
+		 * A helper function.
+		 *
+		 * \param _dX A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static float										BlackmanWindow( double _dX ) {
+			return static_cast<float>(42659071 + 0.49656062 * ::cos( std::numbers::pi * _dX ) + 0.07684867 * ::cos( 2.0 * std::numbers::pi * _dX ));
+		}
+
+		/**
+		 * Reject values below a specific epsilon.
+		 *
+		 * \param _dVal The value to test.
+		 * \return Returns the given value if it is above a certain epsilon or 0.
+		 */
+		static inline float									Clean( double _dVal ) {
+			static const double dEps = 0.0000125;
+			return ::fabs( _dVal ) >= dEps ? static_cast<float>(_dVal) : 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with 2 samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Lanczos2FilterFunc( float _fT ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < 2.0 ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 2.0 ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with 3 samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Lanczos3FilterFunc( float _fT ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < 3.0 ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 3.0 ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with 6 samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Lanczos6FilterFunc( float _fT ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < 6.0 ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 6.0 ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with 12 samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Lanczos12FilterFunc( float _fT ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < 12.0 ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 12.0 ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with X samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _ui32Cnt The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									LanczosXFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < double( _ui32Cnt ) ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _ui32Cnt ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Kaiser filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _ui32Cnt The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									KaiserFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < double( _ui32Cnt ) ) {
+				static const float fAtt = 40.0f;
+				static const double dAlpha = ::exp( ::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
+				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _ui32Cnt ), _fT ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Blackman filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _ui32Cnt The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									BlackmanFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < double( _ui32Cnt ) ) {
+				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _ui32Cnt The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									GaussianFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT < double( _ui32Cnt ) ) {
+				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The box filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _ui32Cnt The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									BoxFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+			return (_fT >= -double( _ui32Cnt ) && _fT < double( _ui32Cnt )) ? 1.0f : 0.0f;
+		}
 	};
 
 }	// namespace lsn
