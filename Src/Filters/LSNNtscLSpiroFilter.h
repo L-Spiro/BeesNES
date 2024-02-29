@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Bisqwit's NTSC filter with my own adjustments.
+ * Description: My own implementation of an NTSC filter.
  */
 
 #pragma once
@@ -18,14 +18,14 @@ namespace lsn {
 
 	/**
 	 * Class CNtscBisqwitFilter
-	 * \brief Bisqwit's NTSC filter.
+	 * \brief My own implementation of an NTSC filter.
 	 *
-	 * Description: Bisqwit's NTSC filter.
+	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CNtscBisqwitLSpiroFilter : public CFilterBase {
+	class CNtscLSpiroFilter : public CFilterBase {
 	public :
-		CNtscBisqwitLSpiroFilter();
-		virtual ~CNtscBisqwitLSpiroFilter();
+		CNtscLSpiroFilter();
+		virtual ~CNtscLSpiroFilter();
 
 
 		// == Functions.
@@ -64,6 +64,7 @@ namespace lsn {
 		float												m_fWhite = 1.100f;						/**< White level. */
 		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
+		__declspec(align(32))
 		float												m_fFilter[24];							/**< The filter kernel. */
 		__m128												m_mBlack;								/**< Prepared black level register. */
 		__m128												m_mWhiteMinusBlack;						/**< Prepared (white-black) level register. */
@@ -124,7 +125,7 @@ namespace lsn {
 	 * \param _ui16Phase The phase counter.
 	 * \return Returns the signal produced by the PPU output index.
 	 **/
-	inline float CNtscBisqwitLSpiroFilter::IndexToNtscSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase ) {
+	inline float CNtscLSpiroFilter::IndexToNtscSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase ) {
 		// Decode the NES color.
 		uint16_t ui16Color = (_ui16Pixel & 0x0F);								// 0..15 "cccc".
 		uint16_t ui16Level = (ui16Color >= 0xE) ? 1 : (_ui16Pixel >> 4) & 3;	// 0..3  "ll".  For colors 14..15, level 1 is forced.

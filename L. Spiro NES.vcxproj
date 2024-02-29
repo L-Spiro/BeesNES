@@ -549,9 +549,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
     <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h" />
-    <ClInclude Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h" />
+    <ClInclude Include="Src\Filters\LSNNtscLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNPostProcessBase.h" />
@@ -688,9 +688,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp" />
-    <ClCompile Include="Src\Filters\LSNNtscBisqwitLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNNtscLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
