@@ -79,7 +79,7 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::LanczosXFilterFunc( I / (_ui32Width - 1.0f), _ui32Width );
+			m_fFilter[I] = CUtilities::LanczosXFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2), _ui32Width / 2 );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;
