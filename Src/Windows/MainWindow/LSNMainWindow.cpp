@@ -1208,9 +1208,9 @@ namespace lsn {
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB( vTmp[I].x[0] ) * 255.0 ) );
 			}
 			else {
-				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( vTmp[I].x[2] * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( vTmp[I].x[1] * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( vTmp[I].x[0] * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CHelpers::sRGBtoLinear( std::pow( vTmp[I].x[2], 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CHelpers::sRGBtoLinear( std::pow( vTmp[I].x[1], 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CHelpers::sRGBtoLinear( std::pow( vTmp[I].x[0], 1.0 / 2.2 ) ) * 255.0 ) );
 			}
 		}
 

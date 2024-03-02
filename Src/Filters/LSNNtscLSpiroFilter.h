@@ -59,16 +59,27 @@ namespace lsn {
 
 
 	protected :
+		// == Enumerations.
+		/** Metrics. */
+		enum {
+			LSN_MAX_FILTER_SIZE								= 24,									/**< The maximum size of the gather for generating YIQ values. */
+		};
+
+
 		// == Members.
 		float												m_fBlack = 0.312f;						/**< Black level. */
 		float												m_fWhite = 1.100f;						/**< White level. */
 		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
 		__declspec(align(32))
-		float												m_fFilter[24];							/**< The filter kernel. */
+		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
 		__m128												m_mBlack;								/**< Prepared black level register. */
 		__m128												m_mWhiteMinusBlack;						/**< Prepared (white-black) level register. */
+		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
 		float												m_fHue = 0.0f;							/**< The hue. */
+		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
+		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
+		float *												m_pfSignalStart;						/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
 		__declspec(align(32))
 		static const float									m_fLevels[16];							/**< Output levels. */
 
@@ -90,7 +101,27 @@ namespace lsn {
 		 * \param _ui16Pixel The PPU output index to convert.
 		 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
 		 **/
-		void												PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle );
+		inline void											PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle );
+
+		/**
+		 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
+		 * 
+		 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstI The destination for where to begin storing the YIQ I values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
+		 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
+		 * \param _ui16Width Number of pixels in this scanline.
+		 * \param _ui16Cycle The cycle count at the start of the scanline.
+		 **/
+		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Width, uint16_t _ui16Cycle );
+
+		/**
+		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
+		 * 
+		 * \param PARM DESC
+		 * \param PARM DESC
+		 * \return DESC
+		 **/
 
 		/**
 		 * Generates the phase sin/cos tables.
@@ -147,6 +178,25 @@ namespace lsn {
 
 		return LSN_INCOLORPHASE( ui16Color ) ? fHigh : fLow;
 #undef LSN_INCOLORPHASE
+	}
+
+	/**
+	 * Converts a 9-bit PPU output palette value to 8 signals.
+	 * 
+	 * \param _pfDst The destination for the 8 signals.
+	 * \param _ui16Pixel The PPU output index to convert.
+	 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
+	 **/
+	inline void CNtscLSpiroFilter::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
+		__m128 * pmDst = reinterpret_cast<__m128 *>(_pfDst);		// _pfDst will always be properly aligned.
+		for ( size_t I = 0; I < 8; ++I ) {
+			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
+		}
+		__m128 mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );														// signal - black.
+		_mm_store_ps( reinterpret_cast<float *>(pmDst++), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );			// (signal - black) / (white - black).
+
+		mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );																// signal - black.
+		_mm_store_ps( reinterpret_cast<float *>(pmDst), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );				// (signal - black) / (white - black).
 	}
 
 }	// namespace lsn

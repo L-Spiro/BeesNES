@@ -24,29 +24,64 @@ namespace lsn {
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
 		GenPhaseTables( m_fHue );
 		GenSseNormalizers();
-		GenFilterKernel( 12 );
+		GenFilterKernel( m_ui32FilterKernelSize * 2 );
 	}
 	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
 	}
 
 	// == Functions.
 	/**
-	 * Converts a 9-bit PPU output palette value to 8 signals.
+	 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
 	 * 
-	 * \param _pfDst The destination for the 8 signals.
-	 * \param _ui16Pixel The PPU output index to convert.
-	 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
+	 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
+	 * \param _pfDstI The destination for where to begin storing the YIQ I values.  Must be aligned to a 16-byte boundary.
+	 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
+	 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
+	 * \param _ui16Width Number of pixels in this scanline.
+	 * \param _ui16Cycle The cycle count at the start of the scanline.
 	 **/
-	void CNtscLSpiroFilter::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
-		__m128 * pmDst = reinterpret_cast<__m128 *>(_pfDst);		// _pfDst will always be properly aligned.
-		for ( size_t I = 0; I < 8; ++I ) {
-			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
+	void CNtscLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Width, uint16_t _ui16Cycle ) {
+		float * pfSignals = m_pfSignalStart;
+		for ( uint16_t I = 0; I < _ui16Width; ++I ) {
+			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
+			pfSignals += 8;
 		}
-		__m128 mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );		// signal - black.
-		(*pmDst++) = _mm_div_ps( mNumerator, m_mWhiteMinusBlack );	// (signal - black) / (white - black).
 
-		mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );				// signal - black.
-		(*pmDst) = _mm_div_ps( mNumerator, m_mWhiteMinusBlack );	// (signal - black) / (white - black).
+		for ( uint16_t I = 0; I < _ui16Width; ++I ) {
+			int16_t i16Center = (I * 8) + 4;
+			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
+			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
+			__m128 mYiq = _mm_setzero_ps();
+			for ( int16_t J = i16Start; J < i16End; ++J ) {
+				__m128 mLevel = _mm_set1_ps( m_pfSignalStart[J] * m_fFilter[J+i16Start] );
+				// Negative indexing into m_pfSignalStart is allowed, since it points no fewer than (m_ui32FilterKernelSize/2) floats into the buffer.
+				mYiq = _mm_add_ps(
+					mYiq,
+					_mm_mul_ps( mLevel, m_mCosSinTable[(_ui16Cycle+(12*4)+J)%12] ) );
+				// (_ui16Cycle+J) can result in negative numbers, which you would fix by adding 12 or some other multiple of 12 as long as that value is large enough to always
+				//	bring the final result back into the positive.
+				// We just add that value pre-emptively before adding J so that the value can never go below 0 in the first place.  (12*4) is used because it should always be
+				//	enough to offset J back into the positive regardless of the kernel size.
+				// If LSN_MAX_FILTER_SIZE were to be increased significantly, this might need to be adjusted accordingly, but currently it allows LSN_MAX_FILTER_SIZE to go as
+				//	high as 96, which is ridiculously high.
+				// See GenFilterKernel() for the creation of m_fFilter.
+				// See GenPhaseTables() for the creation of m_mCosSinTable.
+
+				/**
+				 * This is the same as:
+				 * float fLevel = m_pfSignalStart[J] * m_fFilter[J+i16Start];
+				 * fY += fLevel;
+				 * fI += fLevel * m_fPhaseCosTable[(_ui16Cycle+(12*4)+J)%12];
+				 * fQ += fLevel * m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12];
+				 */
+			}
+			__declspec(align(32))
+			float fTmp[4];
+			_mm_store_ps( fTmp, mYiq );
+			(*_pfDstY++) = fTmp[0];
+			(*_pfDstI++) = fTmp[1];
+			(*_pfDstQ++) = fTmp[2];
+		}
 	}
 
 	/**
@@ -58,8 +93,35 @@ namespace lsn {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
 			::sincos( std::numbers::pi * (I - 0.5) / 6.0 + _fHue, &dSin, &dCos );
-			m_fPhaseCosTable[I] = float( dCos * 2.0 );
-			m_fPhaseSinTable[I] = float( dSin * 2.0 );
+			dCos *= 2.0;
+			dSin *= 2.0;
+
+			// Straight version.
+			m_fPhaseCosTable[I] = float( dCos );
+			m_fPhaseSinTable[I] = float( dSin );
+
+			// SIMD version.
+			float fSimd[4] = {
+				1.0f,				// Y
+				float( dCos ),		// cos( M_PI * (phase+p) / 6 )
+				float( dSin ),		// sin( M_PI * (phase+p) / 6 )
+				0.0f,
+			};
+			m_mCosSinTable[I] = _mm_loadu_ps( fSimd );
+
+			/** Using the code on the Wiki as an illustration, the idea is:
+			 *         for(int p = begin; p < end; ++p) // Collect and accumulate samples
+			 *         {
+			 *             float level = signal_levels[p] / 12.f;
+			 *             y  =  y + level;
+			 *             i  =  i + level * cos( M_PI * (phase+p) / 6 );
+			 *             q  =  q + level * sin( M_PI * (phase+p) / 6 );
+			 *         }
+			 * 
+			 * Load level into 1 vector, multiply across with m_mCosSinTable[phase+p%12], and sum across, accumulating into a [y, i, q, 0] vector in the end.
+			 * IE:
+			 * [y, i, q, 0] += [level, level, level, level] * [1, COS, SIN, 0]
+			 **/
 		}
 	}
 

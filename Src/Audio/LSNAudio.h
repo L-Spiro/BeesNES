@@ -317,9 +317,9 @@ namespace lsn {
 	inline float CAudio::Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
 		// 4-point, 2nd-order parabolic 2x (X-form).
 		float fY1mM1 = _pfsSamples[1+2]-_pfsSamples[-1+2];
-		float fC0 = 1.0f / 2.0f * _pfsSamples[0+2] + 1.0f / 4.0f * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
-		float fC1 = 1.0f / 2.0f * fY1mM1;
-		float fC2 = 1.0f / 4.0f * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+		float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+		float fC1 = (1.0f / 2.0f) * fY1mM1;
+		float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
 		return (fC2 * _fFrac + fC1) * _fFrac + fC0;
 	}
 
