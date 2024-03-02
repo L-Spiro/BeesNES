@@ -488,7 +488,7 @@ namespace lsn {
 		 * \return Returns the given value if it is above a certain epsilon or 0.
 		 */
 		static inline float									Clean( double _dVal ) {
-			static const double dEps = 0.0000125;
+			static const double dEps = 0.0;//0.0000125;
 			return ::fabs( _dVal ) >= dEps ? static_cast<float>(_dVal) : 0.0f;
 		}
 
@@ -500,7 +500,7 @@ namespace lsn {
 		 */
 		static inline float									Lanczos2FilterFunc( float _fT ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < 2.0 ) {
+			if ( _fT <= 2.0 ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 2.0 ) ));
 			}
 			return 0.0f;
@@ -514,7 +514,7 @@ namespace lsn {
 		 */
 		static inline float									Lanczos3FilterFunc( float _fT ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < 3.0 ) {
+			if ( _fT <= 3.0 ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 3.0 ) ));
 			}
 			return 0.0f;
@@ -528,7 +528,7 @@ namespace lsn {
 		 */
 		static inline float									Lanczos6FilterFunc( float _fT ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < 6.0 ) {
+			if ( _fT <= 6.0 ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 6.0 ) ));
 			}
 			return 0.0f;
@@ -542,7 +542,7 @@ namespace lsn {
 		 */
 		static inline float									Lanczos12FilterFunc( float _fT ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < 12.0 ) {
+			if ( _fT <= 12.0 ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 12.0 ) ));
 			}
 			return 0.0f;
@@ -557,7 +557,7 @@ namespace lsn {
 		 */
 		static inline float									LanczosXFilterFunc( float _fT, uint32_t _ui32Cnt ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < double( _ui32Cnt ) ) {
+			if ( _fT <= double( _ui32Cnt ) ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _ui32Cnt ) ));
 			}
 			return 0.0f;
@@ -572,7 +572,7 @@ namespace lsn {
 		 */
 		static inline float									KaiserFilterFunc( float _fT, uint32_t _ui32Cnt ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < double( _ui32Cnt ) ) {
+			if ( _fT <= double( _ui32Cnt ) ) {
 				static const float fAtt = 40.0f;
 				static const double dAlpha = ::exp( ::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
 				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _ui32Cnt ), _fT ) ));
@@ -589,7 +589,7 @@ namespace lsn {
 		 */
 		static inline float									BlackmanFilterFunc( float _fT, uint32_t _ui32Cnt ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < double( _ui32Cnt ) ) {
+			if ( _fT <= double( _ui32Cnt ) ) {
 				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
 			}
 			return 0.0f;
@@ -604,7 +604,7 @@ namespace lsn {
 		 */
 		static inline float									GaussianFilterFunc( float _fT, uint32_t _ui32Cnt ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT < double( _ui32Cnt ) ) {
+			if ( _fT <= double( _ui32Cnt ) ) {
 				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
 			}
 			return 0.0f;
@@ -618,7 +618,7 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									BoxFilterFunc( float _fT, uint32_t _ui32Cnt ) {
-			return (_fT >= -double( _ui32Cnt ) && _fT < double( _ui32Cnt )) ? 1.0f : 0.0f;
+			return (_fT >= -double( _ui32Cnt ) && _fT <= double( _ui32Cnt )) ? 1.0f : 0.0f;
 		}
 	};
 

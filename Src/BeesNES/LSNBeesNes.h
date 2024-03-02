@@ -12,9 +12,10 @@
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #include "../Filters/LSNNtscBlarggFilter.h"
-#include "../Filters/LSNNtscCrtFilter.h"
+//#include "../Filters/LSNNtscCrtFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
-#include "../Filters/LSNNtscBisqwitFilter.h"
+//#include "../Filters/LSNNtscBisqwitFilter.h"
+#include "../Filters/LSNNtscLSpiroFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNPalCrtFullFilter.h"
 #include "../Filters/LSNRgb24Filter.h"
@@ -267,7 +268,7 @@ namespace lsn {
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** Bisqwit's NTSC filter. */
-		CNtscBisqwitFilter						m_nbfBisqwitNtscFilter;
+		CNtscLSpiroFilter						m_nbfLSpiroNtscFilter;
 		/** Blargg's NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
