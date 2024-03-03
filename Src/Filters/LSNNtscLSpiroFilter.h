@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Audio/LSNPoleFilter.h"
 #include "LSNFilterBase.h"
 
 #include <immintrin.h>
@@ -201,14 +202,15 @@ namespace lsn {
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
 		uint16_t											m_ui16WidthScale = 2;					/**< Scale factor between input and output width. */
-		
+		CPoleFilter											m_pfLpf;								/**< The LPF applied to the signal. */
+
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
 		// ** SETTINGS ** //
-		float												m_fHueSetting = 0.0f;					/**< The hue. */
-		float												m_fGammaSetting = 2.2;					/**< The CRT gamma curve. */
-		float												m_fBrightnessSetting = 1.0f;			/**< The brightness setting. */
-		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
+		float												m_fHueSetting = 4.25f * std::numbers::pi / 180.0f;					/**< The hue. */
+		float												m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
+		float												m_fBrightnessSetting = 1.0f - 0.18f;	/**< The brightness setting. */
+		float												m_fSaturationSetting = -0.30f + 1.0f;	/**< The saturation setting. */
 		float												m_fBlackSetting = 0.312f;				/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
 

@@ -246,10 +246,15 @@ namespace lsn {
 			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
 			pfSignals += 8;
 		}
+		/*m_pfLpf.CreateLpf( 1.0f / 3.0f, 1.0f );
+		m_pfLpf.ResetState();
+		for ( size_t I = 0; I < 256 * 8; ++I ) {
+			m_pfSignalStart[I] = float( m_pfLpf.Process( m_pfSignalStart[I] ) );
+		}*/
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255.0f));
-			int16_t i16Center = (int16_t( std::round( fIdx ) ) * 8) + 4;
+			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255.0f * 8.0f));
+			int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 			__m128 mYiq = _mm_setzero_ps();

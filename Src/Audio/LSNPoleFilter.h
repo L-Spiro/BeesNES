@@ -72,6 +72,13 @@ namespace lsn {
 			return m_dLastSample;
 		}
 
+		/**
+		 * Resets the sate of the LPF without resetting the parameters.
+		 **/
+		virtual void					ResetState() {
+			m_dLastSample = m_dLastInput = 0.0;
+		}
+
 
 	protected :
 		// == Members.

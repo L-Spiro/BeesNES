@@ -113,6 +113,11 @@ namespace lsn {
 		virtual bool					CreateHpf( float /*_fFc*/, float /*_fSampleRate*/, size_t /*_stM*/, PfWindowFunc /*_pfSynthFunc*/ ) { return false; }
 
 		/**
+		 * Resets the sate of the LPF without resetting the parameters.
+		 **/
+		virtual void					ResetState() {};
+
+		/**
 		 * Synthesizes a Blackman window.
 		 *
 		 * \param _vTaps The array of taps to fill.

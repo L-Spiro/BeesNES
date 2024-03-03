@@ -220,10 +220,11 @@ namespace lsn {
 	 * \return Returns true if the audio thread is started.
 	 **/
 	bool CAudio::StartThread() {
-		StopThread();
+		return true;	// No audio thread yet.
+		/*StopThread();
 		m_bRunThread = true;
 		m_ptAudioThread = std::make_unique<std::thread>( AudioThread, nullptr );
-		return m_ptAudioThread.get() != nullptr;
+		return m_ptAudioThread.get() != nullptr;*/
 	}
 
 	/**
