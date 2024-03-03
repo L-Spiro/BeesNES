@@ -119,6 +119,34 @@ namespace lsn {
 		 **/
 		void												SetHue( float _fHue );
 
+		/**
+		 * Sets the brightness.
+		 * 
+		 * \param _fBrightness The brightness to set.
+		 **/
+		void												SetBrightness( float _fBrightness );
+
+		/**
+		 * Sets the saturation.
+		 * 
+		 * \param _fSat The saturation to set.
+		 **/
+		void												SetSaturation( float _fSat );
+
+		/**
+		 * Sets the black level.
+		 * 
+		 * \param _fBlack The black level to set.
+		 **/
+		void												SetBlackLevel( float _fBlack );
+
+		/**
+		 * Sets the white level.
+		 * 
+		 * \param _fWhite The white level to set.
+		 **/
+		void												SetWhiteLevel( float _fWhite );
+
 
 	protected :
 		// == Enumerations.
@@ -129,8 +157,9 @@ namespace lsn {
 
 
 		// == Members.
-		float												m_fBlack = 0.312f;						/**< Black level. */
-		float												m_fWhite = 1.100f;						/**< White level. */
+		uint16_t											m_ui16Width = 0;						/**< The last input width. */
+		uint16_t											m_ui16Height = 0;						/**< The last input height. */
+		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
 		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
 		__declspec(align(32))
@@ -156,17 +185,17 @@ namespace lsn {
 		std::vector<__m128>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<__m128>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
-		uint16_t											m_ui16Width = 0;						/**< The last input width. */
-		uint16_t											m_ui16Height = 0;						/**< The last input height. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
-		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
+		
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 0.0f;					/**< The hue. */
 		float												m_fGammaSetting = 2.2;					/**< The CRT gamma curve. */
-		float												m_fBrightnessSetting = 0.95f;			/**< The brightness setting. */
-		float												m_fSaturationSetting = 1.2f;			/**< The saturation setting. */
+		float												m_fBrightnessSetting = 1.0f;			/**< The brightness setting. */
+		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
+		float												m_fBlackSetting = 0.312f;				/**< Black level. */
+		float												m_fWhiteSetting = 1.100f;				/**< White level. */
 
 		__declspec(align(32))
 		static const float									m_fLevels[16];							/**< Output levels. */

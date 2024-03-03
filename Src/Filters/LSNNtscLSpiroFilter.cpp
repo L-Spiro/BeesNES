@@ -25,26 +25,36 @@ namespace lsn {
 	};
 
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
-		SetHue( m_fHueSetting );
-		SetGamma( m_fGammaSetting );
+		GenPhaseTables( m_fHueSetting );			// Generate phase table.
+		SetGamma( m_fGammaSetting );				// Generate gamma table.
+		GenSseNormalizers();						// Generate black/white normalization levels.
+		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
+		SetWidth( 256 );							// Allocate buffers.
+		SetHeight( 240 );							// Allocate buffers.
 
-		GenSseNormalizers();
-		SetKernelSize( m_ui32FilterKernelSize + 0 );
-		SetWidth( 256 );
-		SetHeight( 240 );
-
-		m_mSin33 = _mm_set1_ps( float( std::sin( -33.0 * std::numbers::pi / 180.0 ) ) );
-		m_mCos33 = _mm_set1_ps( float( std::cos( -33.0 * std::numbers::pi / 180.0 ) ) );
-		m_mNegSin33 = _mm_set1_ps( float( -std::sin( -33.0 * std::numbers::pi / 180.0 ) ) );
-
-		m_1_14 = _mm_set1_ps( 1.139883025203f );
-		m_2_03 = _mm_set1_ps( 2.032061872219f );
-		m_n0_394642 = _mm_set1_ps( -0.394642233974f );
-		m_n0_580681 = _mm_set1_ps( -0.580621847591f );
-		m_1 = _mm_set1_ps( 1.0f );
-		m_0 = _mm_set1_ps( 0.0f );
-		m_299 = _mm_set1_ps( 299.0f );
-		m_255i = _mm_set1_epi16( 255 );
+		// Other generations that can't be changed once set.
+		{
+			// For conversion from YIQ to YUV.
+			double dSin, dCos;
+			::sincos( std::sin( -33.0 * std::numbers::pi / 180.0 ), &dSin, &dCos );
+			m_mSin33 = _mm_set1_ps( float( dSin ) );
+			m_mCos33 = _mm_set1_ps( float( dCos ) );
+			m_mNegSin33 = _mm_set1_ps( float( -dSin ) );
+		}
+		{
+			// For conversion from YUV to RGB.
+			m_1_14 = _mm_set1_ps( 1.139883025203f );
+			m_2_03 = _mm_set1_ps( 2.032061872219f );
+			m_n0_394642 = _mm_set1_ps( -0.394642233974f );
+			m_n0_580681 = _mm_set1_ps( -0.580621847591f );
+		}
+		{
+			// For conversions from RGB32F to RGB8.
+			m_1 = _mm_set1_ps( 1.0f );
+			m_0 = _mm_set1_ps( 0.0f );
+			m_299 = _mm_set1_ps( 299.0f );
+			m_255i = _mm_set1_epi16( 255 );
+		}
 
 		
 	}
@@ -169,6 +179,46 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the brightness.
+	 * 
+	 * \param _fBrightness The brightness to set.
+	 **/
+	void CNtscLSpiroFilter::SetBrightness( float _fBrightness ) {
+		m_fBrightnessSetting = _fBrightness;
+		GenPhaseTables( m_fHueSetting );
+	}
+
+	/**
+	 * Sets the saturation.
+	 * 
+	 * \param _fSat The saturation to set.
+	 **/
+	void CNtscLSpiroFilter::SetSaturation( float _fSat ) {
+		m_fSaturationSetting = _fSat;
+		GenPhaseTables( m_fHueSetting );
+	}
+
+	/**
+	 * Sets the black level.
+	 * 
+	 * \param _fBlack The black level to set.
+	 **/
+	void CNtscLSpiroFilter::SetBlackLevel( float _fBlack ) {
+		m_fBlackSetting = _fBlack;
+		GenSseNormalizers();
+	}
+	
+	/**
+	 * Sets the white level.
+	 * 
+	 * \param _fWhite The white level to set.
+	 **/
+	void CNtscLSpiroFilter::SetWhiteLevel( float _fWhite ) {
+		m_fWhiteSetting = _fWhite;
+		GenSseNormalizers();
+	}
+
+	/**
 	 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
 	 * 
 	 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
@@ -259,7 +309,7 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
-			::sincos( std::numbers::pi * (I / 6.0 + 0.25) + _fHue, &dSin, &dCos );
+			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.25) + _fHue + (std::numbers::pi * -33.0 / 180.0), &dSin, &dCos );
 			dCos *= m_fBrightnessSetting * m_fSaturationSetting;
 			dSin *= m_fBrightnessSetting * m_fSaturationSetting;
 
@@ -296,8 +346,8 @@ namespace lsn {
 	 * Fills the __m128 registers with the black level and (white-black) level.
 	 **/
 	void CNtscLSpiroFilter::GenSseNormalizers() {
-		m_mBlack = _mm_set1_ps( m_fBlack );
-		m_mWhiteMinusBlack = _mm_set1_ps( m_fWhite - m_fBlack );
+		m_mBlack = _mm_set1_ps( m_fBlackSetting );
+		m_mWhiteMinusBlack = _mm_set1_ps( m_fWhiteSetting - m_fBlackSetting );
 	}
 
 	/**
@@ -324,9 +374,9 @@ namespace lsn {
 	 * \param _ui16H The height of the buffers.
 	 * \return Returns true if the allocations succeeded.
 	 **/
-	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H ) {
+	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t /*_ui16W*/, uint16_t _ui16H ) {
 		try {
-			size_t sSize = _ui16W * _ui16H;
+			size_t sSize = 256 * _ui16H;
 			if ( !sSize ) { return true; }
 			m_vY.resize( sSize );
 			m_vI.resize( sSize );
@@ -361,14 +411,16 @@ namespace lsn {
 			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
 			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
 			// Convert I and Q to U.
-			__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
-				_mm_mul_ps( mQ, m_mCos33 ) );
+			/*__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
+				_mm_mul_ps( mQ, m_mCos33 ) );*/
 
 			__m128 mY = _mm_load_ps( pfY );
 
 			// Convert I and Q to V.
-			__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
-				_mm_mul_ps( mQ, m_mSin33 ) );
+			/*__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
+				_mm_mul_ps( mQ, m_mSin33 ) );*/
+			__m128 mU = mI;
+			__m128 mV = mQ;
 
 			// Convert YUV to RGB.
 			// R = Y + (1.139883025203f * V)

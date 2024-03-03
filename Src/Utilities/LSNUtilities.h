@@ -583,7 +583,7 @@ namespace lsn {
 		 */
 		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= _fWidth ) {
+			if ( _fT <= std::ceil( _fWidth ) ) {
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
 			}
 			return 0.0f;
@@ -598,7 +598,7 @@ namespace lsn {
 		 */
 		static inline float									KaiserFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= _fWidth ) {
+			if ( _fT <= std::ceil( _fWidth ) ) {
 				static const float fAtt = 40.0f;
 				static const double dAlpha = ::exp( ::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
 				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _fWidth ), _fT ) ));
@@ -615,7 +615,7 @@ namespace lsn {
 		 */
 		static inline float									BlackmanFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= _fWidth ) {
+			if ( _fT <= std::ceil( _fWidth ) ) {
 				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
@@ -630,7 +630,7 @@ namespace lsn {
 		 */
 		static inline float									GaussianFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= _fWidth ) {
+			if ( _fT <= std::ceil( _fWidth ) ) {
 				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
@@ -644,7 +644,8 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									BoxFilterFunc( float _fT, float _fWidth ) {
-			return (_fT >= -double( _fWidth ) && _fT <= _fWidth) ? 1.0f : 0.0f;
+			_fT = ::fabsf( _fT );
+			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
 		}
 	};
 
