@@ -48,6 +48,11 @@ namespace lsn {
 			m_2_03 = _mm_set1_ps( 2.032061872219f );
 			m_n0_394642 = _mm_set1_ps( -0.394642233974f );
 			m_n0_580681 = _mm_set1_ps( -0.580621847591f );
+
+			m_1_14_256 = _mm256_set1_ps( 1.139883025203f );
+			m_2_03_256 = _mm256_set1_ps( 2.032061872219f );
+			m_n0_394642_256 = _mm256_set1_ps( -0.394642233974f );
+			m_n0_580681_256 = _mm256_set1_ps( -0.580621847591f );
 		}
 		{
 			// For conversions from RGB32F to RGB8.
@@ -55,6 +60,11 @@ namespace lsn {
 			m_0 = _mm_set1_ps( 0.0f );
 			m_299 = _mm_set1_ps( 299.0f );
 			m_255i = _mm_set1_epi16( 255 );
+
+			m_1_256 = _mm256_set1_ps( 1.0f );
+			m_0_256 = _mm256_set1_ps( 0.0f );
+			m_299_256 = _mm256_set1_ps( 299.0f );
+			m_255i_256 = _mm256_set1_epi16( 255 );
 		}
 
 		
@@ -238,8 +248,8 @@ namespace lsn {
 		}
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255));
-			int16_t i16Center = (int16_t( fIdx ) * 8) + 4;
+			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255.0f));
+			int16_t i16Center = (int16_t( std::round( fIdx ) ) * 8) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 			__m128 mYiq = _mm_setzero_ps();
@@ -285,14 +295,14 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 * \return Returns true if all internal buffers could be allocated.
 	 **/
-	bool CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Width, uint16_t _ui16Height, uint32_t &_ui32Stride, uint64_t _ui64RenderStartCycle ) {
+	bool CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t /*_ui16Width*/, uint16_t _ui16Height, uint32_t &_ui32Stride, uint64_t _ui64RenderStartCycle ) {
 		/*if ( !SetWidth( _ui16Width ) ) { return false; }
 		if ( !SetHeight( _ui16Height ) ) { return false; }*/
 
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
-		size_t sYiqStride = _ui16Width * (sizeof( __m128 ) / sizeof( float ));
+		size_t sYiqStride = m_ui16ScaledWidth * (sizeof( __m128 ) / sizeof( float ));
 		for ( uint16_t H = 0; H < _ui16Height; ++H ) {
 			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + _ui32Stride * H);
 			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + 341 * H) * 8) % 12 ) );
@@ -357,6 +367,9 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenSseNormalizers() {
 		m_mBlack = _mm_set1_ps( m_fBlackSetting );
 		m_mWhiteMinusBlack = _mm_set1_ps( m_fWhiteSetting - m_fBlackSetting );
+
+		m_mBlack256 = _mm256_set1_ps( m_fBlackSetting );
+		m_mWhiteMinusBlack256 = _mm256_set1_ps( m_fWhiteSetting - m_fBlackSetting );
 	}
 
 	/**
@@ -413,15 +426,99 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
+#define LSN_AVX
+#ifdef LSN_AVX
+		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 8 ) {
+			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
+			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
+			// Convert I and Q to U.
 
+			__m256 mY = _mm256_load_ps( pfY );
+			__m256 mU = _mm256_load_ps( pfQ );
+			__m256 mV = _mm256_load_ps( pfI );
+
+			// Convert YUV to RGB.
+			// R = Y + (1.139883025203f * V)
+			// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+			// B = Y + (2.032061872219f * U)
+			__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, m_1_14_256 ) );
+			__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, m_n0_394642_256 ), _mm256_mul_ps( mV, m_n0_580681_256 ) ) );
+			__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, m_2_03_256 ) );
+
+			// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+			mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m_299_256 ), m_0_256), m_299_256 );
+			mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m_299_256 ), m_0_256), m_299_256 );
+			mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m_299_256 ), m_0_256), m_299_256 );
+
+			// Convert to integers.
+			__m256i mRi = _mm256_cvtps_epi32( mR );
+			__m256i mGi = _mm256_cvtps_epi32( mG );
+			__m256i mBi = _mm256_cvtps_epi32( mB );
+
+			// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+			__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
+			__m256i mRai = _mm256_packus_epi32( mRi, m_255i_256 );
+
+			__declspec(align(32))
+			uint16_t ui16Tmp0[16];
+			__declspec(align(32))
+			uint16_t ui16Tmp1[16];
+			_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
+			_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+			(*pui8Bgra++) = 255;							// A0;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+			(*pui8Bgra++) = 255;							// A1;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+			(*pui8Bgra++) = 255;							// A2;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+			(*pui8Bgra++) = 255;							// A3;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];		// B0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];		// G0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];		// R0;
+			(*pui8Bgra++) = 255;							// A0;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];		// B1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];		// G1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];		// R1;
+			(*pui8Bgra++) = 255;							// A1;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];		// B2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];		// G2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];		// R2;
+			(*pui8Bgra++) = 255;							// A2;
+
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];		// B3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];		// G3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];		// R3;
+			(*pui8Bgra++) = 255;							// A3;
+
+			pfY += sizeof( __m256 ) / sizeof( float );
+			pfI += sizeof( __m256 ) / sizeof( float );
+			pfQ += sizeof( __m256 ) / sizeof( float );
+
+		}
+
+#else
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 4 ) {
-			__m128 mI = _mm_load_ps( pfI );
-			__m128 mQ = _mm_load_ps( pfQ );
-
 			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
 			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
 			// Convert I and Q to U.
 #if 0
+			__m128 mI = _mm_load_ps( pfI );
+			__m128 mQ = _mm_load_ps( pfQ );
 			__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
 				_mm_mul_ps( mQ, m_mCos33 ) );
 
@@ -432,8 +529,8 @@ namespace lsn {
 				_mm_mul_ps( mQ, m_mSin33 ) );
 #else
 			__m128 mY = _mm_load_ps( pfY );
-			__m128 mU = mQ;
-			__m128 mV = mI;
+			__m128 mU = _mm_load_ps( pfQ );
+			__m128 mV = _mm_load_ps( pfI );
 #endif	// #if 0
 			
 
@@ -489,5 +586,6 @@ namespace lsn {
 			pfI += sizeof( __m128 ) / sizeof( float );
 			pfQ += sizeof( __m128 ) / sizeof( float );
 		}
+#endif	// #ifdef LSN_AVX
 	}
 }	// namespace lsn

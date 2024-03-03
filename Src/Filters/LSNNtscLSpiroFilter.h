@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "LSNFilterBase.h"
 
+#include <immintrin.h>
 #include <smmintrin.h>
 
 
@@ -166,6 +167,8 @@ namespace lsn {
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
 		__m128												m_mBlack;								/**< Prepared black level register. */
 		__m128												m_mWhiteMinusBlack;						/**< Prepared (white-black) level register. */
+		__m256												m_mBlack256;							/**< m_mBlack but for AVX. */
+		__m256												m_mWhiteMinusBlack256;					/**< m_mWhiteMinusBlack but for AVX. */
 		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
 		__m128												m_mSin33;								/**< sin( -33 degrees ). */
 		__m128												m_mCos33;								/**< cos( -33 degrees ). */
@@ -177,9 +180,19 @@ namespace lsn {
 		__m128												m_1;									/**< 1.0f. */
 		__m128												m_0;									/**< 0.0f. */
 		__m128												m_299;									/**< 299.0f. */
+		
+
+		__m256												m_1_14_256;								/**< 1.14. */
+		__m256												m_2_03_256;								/**< 2.03. */
+		__m256												m_n0_394642_256;						/**< -0.394642. */
+		__m256												m_n0_580681_256;						/**< -0.580681. */
+		__m256												m_1_256;								/**< 1.0f. */
+		__m256												m_0_256;								/**< 0.0f. */
+		__m256												m_299_256;								/**< 299.0f. */
+		__m256i												m_255i_256;								/**< 255. */
 		__m128i												m_255i;									/**< 255. */
 		
-		uint32_t											m_ui32FilterKernelSize = 5;				/**< The kernel size for the gather during YIQ creation. */
+		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		float *												m_pfSignalStart = nullptr;				/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
 		std::vector<__m128>									m_vY;									/**< The YIQ Y buffer. */
@@ -187,7 +200,7 @@ namespace lsn {
 		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
-		uint16_t											m_ui16WidthScale = 8;					/**< Scale factor between input and output width. */
+		uint16_t											m_ui16WidthScale = 2;					/**< Scale factor between input and output width. */
 		
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
@@ -332,11 +345,17 @@ namespace lsn {
 		for ( size_t I = 0; I < 8; ++I ) {
 			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
 		}
+
+#if 1
+		__m256 mNumerator = _mm256_sub_ps( (*reinterpret_cast<__m256 *>(pmDst)), m_mBlack256 );						// signal - black
+		_mm256_store_ps( reinterpret_cast<float *>(pmDst), _mm256_div_ps( mNumerator, m_mWhiteMinusBlack256 ) );	// (signal - black) / (white - black)
+#else
 		__m128 mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );														// signal - black.
 		_mm_store_ps( reinterpret_cast<float *>(pmDst++), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );			// (signal - black) / (white - black).
 
 		mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );																// signal - black.
 		_mm_store_ps( reinterpret_cast<float *>(pmDst), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );				// (signal - black) / (white - black).
+#endif
 	}
 
 }	// namespace lsn
