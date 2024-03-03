@@ -105,6 +105,20 @@ namespace lsn {
 		 **/
 		bool												SetHeight( uint16_t _ui16Height );
 
+		/**
+		 * Sets the CRT gamma.
+		 * 
+		 * \param _fGamma The gamma to set.
+		 **/
+		void												SetGamma( float _fGamma );
+
+		/**
+		 * Sets the hue.
+		 * 
+		 * \param _fHue The hue to set.
+		 **/
+		void												SetHue( float _fHue );
+
 
 	protected :
 		// == Enumerations.
@@ -126,17 +140,16 @@ namespace lsn {
 		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
 		__m128												m_mSin33;								/**< sin( -33 degrees ). */
 		__m128												m_mCos33;								/**< cos( -33 degrees ). */
-		__m128												m_mNegSin33;							/**< sin( 33 degrees ). */
+		__m128												m_mNegSin33;							/**< -sin( -33 degrees ). */
 		__m128												m_1_14;									/**< 1.14. */
 		__m128												m_2_03;									/**< 2.03. */
-		__m128												m_n0_394242;							/**< -0.394242. */
+		__m128												m_n0_394642;							/**< -0.394642. */
 		__m128												m_n0_580681;							/**< -0.580681. */
 		__m128												m_1;									/**< 1.0f. */
 		__m128												m_0;									/**< 0.0f. */
-		__m128												m_255;									/**< 255.0f. */
-		__m128												m_255_5;								/**< 255.5f. */
-		__m128i												m_255i;									/** 255. */
-		float												m_fHue = 0.0f;							/**< The hue. */
+		__m128												m_299;									/**< 299.0f. */
+		__m128i												m_255i;									/**< 255. */
+		
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		float *												m_pfSignalStart = nullptr;				/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
@@ -147,10 +160,17 @@ namespace lsn {
 		uint16_t											m_ui16Height = 0;						/**< The last input height. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
+		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
+
+		// ** SETTINGS ** //
+		float												m_fHueSetting = 0.0f;					/**< The hue. */
+		float												m_fGammaSetting = 2.2;					/**< The CRT gamma curve. */
+		float												m_fBrightnessSetting = 0.95f;			/**< The brightness setting. */
+		float												m_fSaturationSetting = 1.2f;			/**< The saturation setting. */
 
 		__declspec(align(32))
 		static const float									m_fLevels[16];							/**< Output levels. */
-		static uint8_t										m_ui8Gamma[256];						/**< The gamma curve. */
+		
 
 
 		// == Functions.

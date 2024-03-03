@@ -8,7 +8,6 @@
 
 #include "LSNNtscLSpiroFilter.h"
 #include "../Utilities/LSNUtilities.h"
-#include <Helpers/LSWHelpers.h>
 
 #include <cmath>
 #include <emmintrin.h>
@@ -25,33 +24,29 @@ namespace lsn {
 		0.500f, 0.676f, 0.896f, 0.896f  // Signal high, attenuated.
 	};
 
-	uint8_t CNtscLSpiroFilter::m_ui8Gamma[256];						/**< The gamma curve. */
-
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
-		m_fHue = std::sin( 110.0 * std::numbers::pi / 180.0 );
-		GenPhaseTables( m_fHue );
+		SetHue( m_fHueSetting );
+		SetGamma( m_fGammaSetting );
+
 		GenSseNormalizers();
-		SetKernelSize( m_ui32FilterKernelSize );
+		SetKernelSize( m_ui32FilterKernelSize + 0 );
 		SetWidth( 256 );
 		SetHeight( 240 );
 
-		m_mSin33 = _mm_set1_ps( float( std::sin( -33 * std::numbers::pi / 180.0 ) ) );
-		m_mCos33 = _mm_set1_ps( float( std::cos( -33 * std::numbers::pi / 180.0 ) ) );
-		m_mNegSin33 = _mm_set1_ps( float( -std::sin( -33 * std::numbers::pi / 180.0 ) ) );
+		m_mSin33 = _mm_set1_ps( float( std::sin( -33.0 * std::numbers::pi / 180.0 ) ) );
+		m_mCos33 = _mm_set1_ps( float( std::cos( -33.0 * std::numbers::pi / 180.0 ) ) );
+		m_mNegSin33 = _mm_set1_ps( float( -std::sin( -33.0 * std::numbers::pi / 180.0 ) ) );
 
 		m_1_14 = _mm_set1_ps( 1.139883025203f );
 		m_2_03 = _mm_set1_ps( 2.032061872219f );
-		m_n0_394242 = _mm_set1_ps( -0.394642233974f );
+		m_n0_394642 = _mm_set1_ps( -0.394642233974f );
 		m_n0_580681 = _mm_set1_ps( -0.580621847591f );
 		m_1 = _mm_set1_ps( 1.0f );
 		m_0 = _mm_set1_ps( 0.0f );
-		m_255 = _mm_set1_ps( 255.0f );
-		m_255_5 = _mm_set1_ps( 255.5f );
+		m_299 = _mm_set1_ps( 299.0f );
 		m_255i = _mm_set1_epi16( 255 );
 
-		for (size_t I = 0; I < 256; ++I ) {
-			m_ui8Gamma[I] = uint8_t( std::round( lsw::CHelpers::sRGBtoLinear( std::pow( (I / 255.0), 1.0 / 2.2 ) ) * 255.0 ) );
-		}
+		
 	}
 	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
 	}
@@ -152,6 +147,28 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the CRT gamma.
+	 * 
+	 * \param _fGamma The gamma to set.
+	 **/
+	void CNtscLSpiroFilter::SetGamma( float _fGamma ) {
+		m_fGammaSetting = _fGamma;
+		for (size_t I = 0; I < 300; ++I ) {
+			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::sRGBtoLinear( std::pow( (I / 299.0), 1.0 / m_fGammaSetting ) ) * 255.0 ) );
+		}
+	}
+
+	/**
+	 * Sets the hue.
+	 * 
+	 * \param _fHue The hue to set.
+	 **/
+	void CNtscLSpiroFilter::SetHue( float _fHue ) {
+		m_fHueSetting = _fHue;
+		GenPhaseTables( _fHue );
+	}
+
+	/**
 	 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
 	 * 
 	 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
@@ -162,7 +179,7 @@ namespace lsn {
 	 **/
 	void CNtscLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle ) {
 		float * pfSignals = m_pfSignalStart;
-		for ( uint16_t I = 0; I < m_ui16Width; ++I ) {
+		for ( uint16_t I = 0; I < 256; ++I ) {
 			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
 			pfSignals += 8;
 		}
@@ -198,7 +215,7 @@ namespace lsn {
 			__declspec(align(32))
 			float fTmp[4];
 			_mm_store_ps( fTmp, mYiq );
-			(*_pfDstY++) = fTmp[0];
+			(*_pfDstY++) = fTmp[0] * m_fBrightnessSetting;
 			(*_pfDstI++) = fTmp[1];
 			(*_pfDstQ++) = fTmp[2];
 		}
@@ -242,9 +259,9 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
-			::sincos( std::numbers::pi * (I - 0.5) / 6.0 + _fHue, &dSin, &dCos );
-			dCos *= 2.0;
-			dSin *= 2.0;
+			::sincos( std::numbers::pi * (I / 6.0 + 0.25) + _fHue, &dSin, &dCos );
+			dCos *= m_fBrightnessSetting * m_fSaturationSetting;
+			dSin *= m_fBrightnessSetting * m_fSaturationSetting;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
@@ -291,7 +308,7 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::BoxFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2), _ui32Width / 2 );
+			m_fFilter[I] = CUtilities::BoxFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;
@@ -353,20 +370,18 @@ namespace lsn {
 			__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
 				_mm_mul_ps( mQ, m_mSin33 ) );
 
-
-
 			// Convert YUV to RGB.
 			// R = Y + (1.139883025203f * V)
 			// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
 			// B = Y + (2.032061872219f * U)
 			__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, m_1_14 ) );
-			__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394242 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
+			__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394642 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
 			__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, m_2_03 ) );
 
 			// Scale and clamp. clamp( RGB * 255.5, 0, 255 ).
-			mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_255_5 ), m_0), m_255 );
-			mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_255_5 ), m_0), m_255 );
-			mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_255_5 ), m_0), m_255 );
+			mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );
+			mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_299 ), m_0), m_299 );
+			mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_299 ), m_0), m_299 );
 
 			// Convert to integers.
 			__m128i mRi = _mm_cvtps_epi32( mR );
@@ -377,38 +392,35 @@ namespace lsn {
 			__m128i mBgi = _mm_packus_epi32( mBi, mGi );
 			__m128i mRai = _mm_packus_epi32( mRi, m_255i );
 
-			// Pack 16-bit to 8-bit.
-			__m128i mBgra = _mm_packus_epi16( mBgi, mRai );
-
 			__declspec(align(32))
-			uint8_t ui8Tmp[16];
-			//_mm_storeu_si128( reinterpret_cast<__m128i *>(pui8Bgra), mBgra );
-			_mm_store_si128( reinterpret_cast<__m128i *>(ui8Tmp), mBgra );
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[0]];		// B0;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[0+4]];	// G0;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[0+4+4]];	// R0;
-			(*pui8Bgra++) = 255;			// A0;
+			uint16_t ui16Tmp0[8];
+			__declspec(align(32))
+			uint16_t ui16Tmp1[8];
+			_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
+			_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+			(*pui8Bgra++) = 255;							// A0;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[1]];		// B1;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[1+4]];	// G1;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[1+4+4]];	// R1;
-			(*pui8Bgra++) = 255;			// A1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+			(*pui8Bgra++) = 255;							// A1;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[2]];		// B2;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[2+4]];	// G2;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[2+4+4]];	// R2;
-			(*pui8Bgra++) = 255;			// A2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+			(*pui8Bgra++) = 255;							// A2;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[3]];		// B3;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[3+4]];	// G3;
-			(*pui8Bgra++) = m_ui8Gamma[ui8Tmp[3+4+4]];	// R3;
-			(*pui8Bgra++) = 255;			// A3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+			(*pui8Bgra++) = 255;							// A3;
 
 			pfY += sizeof( __m128 ) / sizeof( float );
 			pfI += sizeof( __m128 ) / sizeof( float );
 			pfQ += sizeof( __m128 ) / sizeof( float );
-
-			//pui8Bgra += sizeof( __m128i ) / sizeof( uint8_t );
 		}
 	}
 }	// namespace lsn

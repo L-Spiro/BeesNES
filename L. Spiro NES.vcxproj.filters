@@ -486,9 +486,6 @@
     <ClInclude Include="Src\Event\LSNEvent.h">
       <Filter>Header Files\Event</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Filters\LSNNtscBisqwitFilter.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Mappers\LSNMapper136.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
@@ -778,9 +775,6 @@
     </ClCompile>
     <ClCompile Include="Src\Event\LSNEvent.cpp">
       <Filter>Source Files\Event</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Filters\LSNNtscBisqwitFilter.cpp">
-      <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Input\LSNInputWindow.cpp">
       <Filter>Source Files\Windows\Input</Filter>

@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+
+#include <cmath>
 #include <intrin.h>
 #include <numbers>
 #include <string>
@@ -110,6 +112,30 @@ namespace lsn {
 		 * \return Returns a string containing the file path.
 		 */
 		static std::u16string								GetFilePath( const std::u16string &_s16Path );
+
+		/**
+		 * Converts from sRGB to linear.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 */
+		static double										sRGBtoLinear( double _dVal ) {
+			return _dVal <= 0.04045 ?
+				_dVal * (1.0 / 12.92) :
+				std::pow( (_dVal + 0.055) * (1.0 / 1.055), 2.4 );
+		}
+
+		/**
+		 * Converts from linear to sRGB.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to sRGB space.
+		 */
+		static double										LinearTosRGB( double _dVal ) {
+			return _dVal <= 0.0031308 ?
+				_dVal * 12.92 :
+				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
+		}
 
 		/**
 		 * Integer-based bilinear sampling.
@@ -552,13 +578,13 @@ namespace lsn {
 		 * The Lanczos filter function with X samples.
 		 *
 		 * \param _fT The value to filter.
-		 * \param _ui32Cnt The size of the filter kernel.
+		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									LanczosXFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= double( _ui32Cnt ) ) {
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _ui32Cnt ) ));
+			if ( _fT <= _fWidth ) {
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
 			}
 			return 0.0f;
 		}
@@ -567,15 +593,15 @@ namespace lsn {
 		 * The Kaiser filter function.
 		 *
 		 * \param _fT The value to filter.
-		 * \param _ui32Cnt The size of the filter kernel.
+		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									KaiserFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+		static inline float									KaiserFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= double( _ui32Cnt ) ) {
+			if ( _fT <= _fWidth ) {
 				static const float fAtt = 40.0f;
 				static const double dAlpha = ::exp( ::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
-				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _ui32Cnt ), _fT ) ));
+				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _fWidth ), _fT ) ));
 			}
 			return 0.0f;
 		}
@@ -584,13 +610,13 @@ namespace lsn {
 		 * The Blackman filter function.
 		 *
 		 * \param _fT The value to filter.
-		 * \param _ui32Cnt The size of the filter kernel.
+		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BlackmanFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+		static inline float									BlackmanFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= double( _ui32Cnt ) ) {
-				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
+			if ( _fT <= _fWidth ) {
+				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
 		}
@@ -599,13 +625,13 @@ namespace lsn {
 		 * The Gaussian filter function.
 		 *
 		 * \param _fT The value to filter.
-		 * \param _ui32Cnt The size of the filter kernel.
+		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									GaussianFilterFunc( float _fT, uint32_t _ui32Cnt ) {
+		static inline float									GaussianFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
-			if ( _fT <= double( _ui32Cnt ) ) {
-				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _ui32Cnt ) ) );
+			if ( _fT <= _fWidth ) {
+				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
 		}
@@ -614,11 +640,11 @@ namespace lsn {
 		 * The box filter function.
 		 *
 		 * \param _fT The value to filter.
-		 * \param _ui32Cnt The size of the filter kernel.
+		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BoxFilterFunc( float _fT, uint32_t _ui32Cnt ) {
-			return (_fT >= -double( _ui32Cnt ) && _fT <= double( _ui32Cnt )) ? 1.0f : 0.0f;
+		static inline float									BoxFilterFunc( float _fT, float _fWidth ) {
+			return (_fT >= -double( _fWidth ) && _fT <= _fWidth) ? 1.0f : 0.0f;
 		}
 	};
 
