@@ -25,6 +25,7 @@ namespace lsn {
 	};
 
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
+		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenSseNormalizers();						// Generate black/white normalization levels.
@@ -309,9 +310,13 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
-			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.25) + _fHue + (std::numbers::pi * -33.0 / 180.0), &dSin, &dCos );
-			dCos *= m_fBrightnessSetting * m_fSaturationSetting;
-			dSin *= m_fBrightnessSetting * m_fSaturationSetting;
+			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.25) + _fHue
+#if 0
+				+ (std::numbers::pi * (-33.0 + 270.0) / 180.0)
+#endif	// #if 1
+				, &dSin, &dCos );
+			dCos *= m_fBrightnessSetting * m_fSaturationSetting * 2.0;
+			dSin *= m_fBrightnessSetting * m_fSaturationSetting * 2.0;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
@@ -411,16 +416,21 @@ namespace lsn {
 			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
 			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
 			// Convert I and Q to U.
-			/*__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
-				_mm_mul_ps( mQ, m_mCos33 ) );*/
+#if 1
+			__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
+				_mm_mul_ps( mQ, m_mCos33 ) );
 
 			__m128 mY = _mm_load_ps( pfY );
 
 			// Convert I and Q to V.
-			/*__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
-				_mm_mul_ps( mQ, m_mSin33 ) );*/
+			__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
+				_mm_mul_ps( mQ, m_mSin33 ) );
+#else
+			__m128 mY = _mm_load_ps( pfY );
 			__m128 mU = mI;
 			__m128 mV = mQ;
+#endif	// #if 0
+			
 
 			// Convert YUV to RGB.
 			// R = Y + (1.139883025203f * V)
@@ -430,7 +440,7 @@ namespace lsn {
 			__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394642 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
 			__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, m_2_03 ) );
 
-			// Scale and clamp. clamp( RGB * 255.5, 0, 255 ).
+			// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 			mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );
 			mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_299 ), m_0), m_299 );
 			mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_299 ), m_0), m_299 );
