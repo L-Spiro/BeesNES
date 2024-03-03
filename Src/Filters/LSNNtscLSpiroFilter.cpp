@@ -37,7 +37,7 @@ namespace lsn {
 		{
 			// For conversion from YIQ to YUV.
 			double dSin, dCos;
-			::sincos( std::sin( -33.0 * std::numbers::pi / 180.0 ), &dSin, &dCos );
+			::sincos( std::sin( 33.0 * std::numbers::pi / 180.0 ), &dSin, &dCos );
 			m_mSin33 = _mm_set1_ps( float( dSin ) );
 			m_mCos33 = _mm_set1_ps( float( dCos ) );
 			m_mNegSin33 = _mm_set1_ps( float( -dSin ) );
@@ -74,7 +74,7 @@ namespace lsn {
 	CDisplayClient::LSN_PPU_OUT_FORMAT CNtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
-		m_ui32OutputWidth = _ui16Width;
+		m_ui32OutputWidth = m_ui16ScaledWidth;
 		m_ui32OutputHeight = _ui16Height;
 		m_stStride = size_t( _ui16Width * sizeof( uint16_t ) );
 
@@ -84,7 +84,7 @@ namespace lsn {
 				(*reinterpret_cast<uint16_t *>(&m_vBasicRenderTarget[I][J*sizeof( uint16_t )])) = 0x0F;
 			}
 		}
-		m_ui32FinalStride = RowStride( _ui16Width, OutputBits() );
+		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
 		return InputFormat();
 	}
 
@@ -105,6 +105,7 @@ namespace lsn {
 		if ( !FilterFrame( _pui8Input, uint16_t( _ui32Width ), uint16_t( _ui32Height ), _ui32Stride, _ui64RenderStartCycle ) ) { return nullptr; }
 
 		_ui16BitDepth = uint16_t( OutputBits() );
+		_ui32Width = m_ui16ScaledWidth;
 		_ui32Stride = m_ui32FinalStride;
 		return m_vRgbBuffer.data();
 	}
@@ -131,14 +132,15 @@ namespace lsn {
 			// Buffer size:
 			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
 			try {
-				m_vSignalBuffer.resize( _ui16Width * 8 + m_ui32FilterKernelSize + 8 );
+				m_vSignalBuffer.resize( 256 * 8 + m_ui32FilterKernelSize + 8 );
 			}
 			catch ( ... ) { return false; }
 			uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + m_ui32FilterKernelSize / 2 );
 			uiptrStart = (uiptrStart + 31) / 32 * 32;
 			m_pfSignalStart = reinterpret_cast<float *>(uiptrStart);
-			if ( !AllocYiqBuffers( _ui16Width, m_ui16Height ) ) { return false; }
+			if ( !AllocYiqBuffers( _ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Width = _ui16Width;
+			m_ui16ScaledWidth = m_ui16Width * m_ui16WidthScale;
 		}
 		return true;
 	}
@@ -151,7 +153,7 @@ namespace lsn {
 	 **/
 	bool CNtscLSpiroFilter::SetHeight( uint16_t _ui16Height ) {
 		if ( m_ui16Height != _ui16Height ) {
-			if ( !AllocYiqBuffers( m_ui16Width, _ui16Height ) ) { return false; }
+			if ( !AllocYiqBuffers( m_ui16Width, _ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Height = _ui16Height;
 		}
 		return true;
@@ -235,8 +237,9 @@ namespace lsn {
 			pfSignals += 8;
 		}
 
-		for ( uint16_t I = 0; I < m_ui16Width; ++I ) {
-			int16_t i16Center = (I * 8) + 4;
+		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
+			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255));
+			int16_t i16Center = (int16_t( fIdx ) * 8) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 			__m128 mYiq = _mm_setzero_ps();
@@ -283,8 +286,8 @@ namespace lsn {
 	 * \return Returns true if all internal buffers could be allocated.
 	 **/
 	bool CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Width, uint16_t _ui16Height, uint32_t &_ui32Stride, uint64_t _ui64RenderStartCycle ) {
-		if ( !SetWidth( _ui16Width ) ) { return false; }
-		if ( !SetHeight( _ui16Height ) ) { return false; }
+		/*if ( !SetWidth( _ui16Width ) ) { return false; }
+		if ( !SetHeight( _ui16Height ) ) { return false; }*/
 
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
@@ -310,7 +313,8 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
-			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.25) + _fHue
+			// 0.5 = 90 degrees.
+			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue
 #if 0
 				+ (std::numbers::pi * (-33.0 + 270.0) / 180.0)
 #endif	// #if 1
@@ -377,11 +381,12 @@ namespace lsn {
 	 * 
 	 * \param _ui16W The width of the buffers.
 	 * \param _ui16H The height of the buffers.
+	 * \param _ui16Scale The width scale factor.
 	 * \return Returns true if the allocations succeeded.
 	 **/
-	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t /*_ui16W*/, uint16_t _ui16H ) {
+	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
-			size_t sSize = 256 * _ui16H;
+			size_t sSize = _ui16W * _ui16Scale * _ui16H;
 			if ( !sSize ) { return true; }
 			m_vY.resize( sSize );
 			m_vI.resize( sSize );
@@ -399,7 +404,7 @@ namespace lsn {
 	 * \param _sScanline The scanline to convert
 	 **/
 	void CNtscLSpiroFilter::ConvertYiqToBgra( size_t _sScanline ) {
-		size_t sYiqStride = m_ui16Width * 4 * _sScanline;
+		size_t sYiqStride = m_ui16ScaledWidth * 4 * _sScanline;
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -407,16 +412,16 @@ namespace lsn {
 		pfI += sYiqStride;
 		pfQ += sYiqStride;
 
-		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16Width * 4 * _sScanline;
+		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
 
-		for ( uint16_t I = 0; I < m_ui16Width; I += 4 ) {
+		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 4 ) {
 			__m128 mI = _mm_load_ps( pfI );
 			__m128 mQ = _mm_load_ps( pfQ );
 
 			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
 			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
 			// Convert I and Q to U.
-#if 1
+#if 0
 			__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
 				_mm_mul_ps( mQ, m_mCos33 ) );
 
@@ -427,8 +432,8 @@ namespace lsn {
 				_mm_mul_ps( mQ, m_mSin33 ) );
 #else
 			__m128 mY = _mm_load_ps( pfY );
-			__m128 mU = mI;
-			__m128 mV = mQ;
+			__m128 mU = mQ;
+			__m128 mV = mI;
 #endif	// #if 0
 			
 

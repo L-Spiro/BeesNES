@@ -179,13 +179,15 @@ namespace lsn {
 		__m128												m_299;									/**< 299.0f. */
 		__m128i												m_255i;									/**< 255. */
 		
-		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
+		uint32_t											m_ui32FilterKernelSize = 5;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		float *												m_pfSignalStart = nullptr;				/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
 		std::vector<__m128>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<__m128>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
+		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
+		uint16_t											m_ui16WidthScale = 8;					/**< Scale factor between input and output width. */
 		
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
@@ -268,9 +270,10 @@ namespace lsn {
 		 * 
 		 * \param _ui16W The width of the buffers.
 		 * \param _ui16H The height of the buffers.
+		 * \param _ui16Scale The width scale factor.
 		 * \return Returns true if the allocations succeeded.
 		 **/
-		bool												AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H );
+		bool												AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale );
 
 		/**
 		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
