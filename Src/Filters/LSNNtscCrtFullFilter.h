@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Event/LSNEvent.h"
 #include "LSNFilterBase.h"
+
 #include <thread>
 #include <vector>
 

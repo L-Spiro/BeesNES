@@ -10,10 +10,12 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNPoleFilter.h"
+#include "../Event/LSNEvent.h"
 #include "LSNFilterBase.h"
 
 #include <immintrin.h>
 #include <smmintrin.h>
+#include <thread>
 
 
 namespace lsn {
@@ -158,6 +160,19 @@ namespace lsn {
 		};
 
 
+		// == Types.
+		/** Thread data. */
+		struct LSN_THREAD_DATA {
+			uint64_t										ui64RenderStartCycle;					/**< The render cycle at the start of the frame. */
+			CNtscLSpiroFilter *								pnlsfThis;								/**< Point to this object. */
+			const uint8_t *									pui8Pixels;								/**< The input 9-bit pixel array. */
+			uint16_t										ui16LinesDone;							/**< How many lines the thread has done. */
+			uint16_t										ui16EndLine;							/**< Line on which to end work. */
+			std::atomic<bool>								bEndThread;								/**< If true, the thread is ended. */
+			uint32_t										ui32Stride;								/**< The stride of the input. */
+		};
+
+
 		// == Members.
 		uint16_t											m_ui16Width = 0;						/**< The last input width. */
 		uint16_t											m_ui16Height = 0;						/**< The last input height. */
@@ -195,7 +210,7 @@ namespace lsn {
 		
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
-		float *												m_pfSignalStart = nullptr;				/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
+		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */
 		std::vector<__m128>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<__m128>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
@@ -204,6 +219,10 @@ namespace lsn {
 		uint16_t											m_ui16WidthScale = 2;					/**< Scale factor between input and output width. */
 		CPoleFilter											m_pfLpf;								/**< The LPF applied to the signal. */
 
+		CEvent												m_eGo;									/**< Signal to tell the thread to go. */
+		CEvent												m_eDone;								/**< Thread to tell the main thread that the 2nd thread is done. */
+		std::unique_ptr<std::thread>						m_ptThread;								/**< The 2nd thread. */
+		LSN_THREAD_DATA										m_tdThreadData;							/**< Thread data. */
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
 		// ** SETTINGS ** //
@@ -246,20 +265,30 @@ namespace lsn {
 		 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
 		 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
 		 * \param _ui16Cycle The cycle count at the start of the scanline.
+		 * \param _sRowIdx The scanline index.
 		 **/
-		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle );
+		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx );
 
 		/**
 		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 		 * 
 		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-		 * \param _ui16Width Width of the input in pixels.
 		 * \param _ui16Height Height of the input in pixels.
 		 * \param _ui32Stride Bytes between pixel rows.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
-		 * \return Returns true if all internal buffers could be allocated.
 		 **/
-		bool												FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Width, uint16_t _ui16Height, uint32_t &_ui32Stride, uint64_t _ui64RenderStartCycle );
+		void												FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Height, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle );
+
+		/**
+		 * Renders a range of scanlines.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End INdex of the end scanline.
+		 * \param _ui32Stride Bytes between pixel rows.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 **/
+		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle );
 
 		/**
 		 * Generates the phase sin/cos tables.
@@ -296,6 +325,18 @@ namespace lsn {
 		 * \param _sScanline The scanline to convert
 		 **/
 		void												ConvertYiqToBgra( size_t _sScanline );
+
+		/**
+		 * Stops the worker thread.
+		 **/
+		void												StopThread();
+
+		/**
+		 * The worker thread.
+		 * 
+		 * \param _ptdData Parameters passed to the thread.
+		 **/
+		static void											WorkThread( LSN_THREAD_DATA * _ptdData );
 	};
 	
 

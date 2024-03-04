@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <emmintrin.h>
+#include <memory>
 #include <numbers>
 
 
@@ -70,6 +71,7 @@ namespace lsn {
 		
 	}
 	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
+		StopThread();
 	}
 
 	// == Functions.
@@ -95,6 +97,14 @@ namespace lsn {
 			}
 		}
 		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
+
+
+		StopThread();
+		m_tdThreadData.ui16LinesDone = 0;
+		m_tdThreadData.ui16EndLine = 0;
+		m_tdThreadData.bEndThread = false;
+		m_tdThreadData.pnlsfThis = this;
+		m_ptThread = std::make_unique<std::thread>( WorkThread, &m_tdThreadData );
 		return InputFormat();
 	}
 
@@ -112,7 +122,7 @@ namespace lsn {
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
 	uint8_t * CNtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
-		if ( !FilterFrame( _pui8Input, uint16_t( _ui32Width ), uint16_t( _ui32Height ), _ui32Stride, _ui64RenderStartCycle ) ) { return nullptr; }
+		FilterFrame( _pui8Input, uint16_t( _ui32Height ), _ui32Stride, _ui64RenderStartCycle );
 
 		_ui16BitDepth = uint16_t( OutputBits() );
 		_ui32Width = m_ui16ScaledWidth;
@@ -139,15 +149,6 @@ namespace lsn {
 	 **/
 	bool CNtscLSpiroFilter::SetWidth( uint16_t _ui16Width ) {
 		if ( m_ui16Width != _ui16Width ) {
-			// Buffer size:
-			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
-			try {
-				m_vSignalBuffer.resize( 256 * 8 + m_ui32FilterKernelSize + 8 );
-			}
-			catch ( ... ) { return false; }
-			uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + m_ui32FilterKernelSize / 2 );
-			uiptrStart = (uiptrStart + 31) / 32 * 32;
-			m_pfSignalStart = reinterpret_cast<float *>(uiptrStart);
 			if ( !AllocYiqBuffers( _ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Width = _ui16Width;
 			m_ui16ScaledWidth = m_ui16Width * m_ui16WidthScale;
@@ -239,9 +240,11 @@ namespace lsn {
 	 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
 	 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
 	 * \param _ui16Cycle The cycle count at the start of the scanline.
+	 * \param _sRowIdx The scanline index.
 	 **/
-	void CNtscLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle ) {
-		float * pfSignals = m_pfSignalStart;
+	void CNtscLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+		float * pfSignalStart = m_vSignalStart[_sRowIdx];
+		float * pfSignals = pfSignalStart;
 		for ( uint16_t I = 0; I < 256; ++I ) {
 			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
 			pfSignals += 8;
@@ -253,13 +256,13 @@ namespace lsn {
 		}*/
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (255.0f * 8.0f));
+			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 			__m128 mYiq = _mm_setzero_ps();
 			for ( int16_t J = i16Start; J < i16End; ++J ) {
-				__m128 mLevel = _mm_set1_ps( m_pfSignalStart[J] * m_fFilter[J-i16Start] );
+				__m128 mLevel = _mm_set1_ps( pfSignalStart[J] * m_fFilter[J-i16Start] );
 				// Negative indexing into m_pfSignalStart is allowed, since it points no fewer than (m_ui32FilterKernelSize/2) floats into the buffer.
 				mYiq = _mm_add_ps(
 					mYiq,
@@ -294,30 +297,49 @@ namespace lsn {
 	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 	 * 
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-	 * \param _ui16Width Width of the input in pixels.
 	 * \param _ui16Height Height of the input in pixels.
 	 * \param _ui32Stride Bytes between pixel rows.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
-	 * \return Returns true if all internal buffers could be allocated.
 	 **/
-	bool CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t /*_ui16Width*/, uint16_t _ui16Height, uint32_t &_ui32Stride, uint64_t _ui64RenderStartCycle ) {
-		/*if ( !SetWidth( _ui16Width ) ) { return false; }
-		if ( !SetHeight( _ui16Height ) ) { return false; }*/
+	void CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Height, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle ) {
+		
+		m_tdThreadData.ui16LinesDone = _ui16Height / 2;
+		m_tdThreadData.ui16EndLine = _ui16Height;
+		m_tdThreadData.ui32Stride = _ui32Stride;
+		m_tdThreadData.ui64RenderStartCycle = _ui64RenderStartCycle;
+		m_tdThreadData.pui8Pixels = _pui8Pixels;
+		m_eGo.Signal();
+		RenderScanlineRange( _pui8Pixels, 0, _ui16Height / 2, _ui32Stride, _ui64RenderStartCycle );
 
+		m_eDone.WaitForSignal();
+
+	}
+
+	/**
+	 * Renders a range of scanlines.
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End INdex of the end scanline.
+	 * \param _ui32Stride Bytes between pixel rows.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 **/
+	void CNtscLSpiroFilter::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle ) {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
 		size_t sYiqStride = m_ui16ScaledWidth * (sizeof( __m128 ) / sizeof( float ));
-		for ( uint16_t H = 0; H < _ui16Height; ++H ) {
+		pfY += sYiqStride * _ui16Start;
+		pfI += sYiqStride * _ui16Start;
+		pfQ += sYiqStride * _ui16Start;
+		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
 			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + _ui32Stride * H);
-			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + 341 * H) * 8) % 12 ) );
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + 341 * H) * 8) % 12 ), H );
 			ConvertYiqToBgra( H );
 			pfY += sYiqStride;
 			pfI += sYiqStride;
 			pfQ += sYiqStride;
 		}
-
-		return true;
 	}
 
 	/**
@@ -404,6 +426,18 @@ namespace lsn {
 	 **/
 	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
+			// Buffer size:
+			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
+			size_t sRowSize = 256 * 8 + m_ui32FilterKernelSize + 8;
+			m_vSignalBuffer.resize( sRowSize * _ui16H );
+			m_vSignalStart.resize( _ui16H );
+			for ( uint16_t H = 0; H < _ui16H; ++H ) {
+				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32FilterKernelSize / 2 );
+				uiptrStart = (uiptrStart + 31) / 32 * 32;
+				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
+			}
+
+
 			size_t sSize = _ui16W * _ui16Scale * _ui16H;
 			if ( !sSize ) { return true; }
 			m_vY.resize( sSize );
@@ -592,5 +626,36 @@ namespace lsn {
 			pfQ += sizeof( __m128 ) / sizeof( float );
 		}
 #endif	// #ifdef LSN_AVX
+	}
+
+	/**
+	 * Stops the worker thread.
+	 **/
+	void CNtscLSpiroFilter::StopThread() {
+		m_tdThreadData.bEndThread = true;
+		if ( m_ptThread.get() ) {
+			m_eGo.Signal();
+			m_eDone.WaitForSignal();
+			m_ptThread->join();
+			m_ptThread.reset();
+		}
+		m_tdThreadData.bEndThread = false;
+	}
+
+	/**
+	 * The worker thread.
+	 * 
+	 * \param _ptdData Parameters passed to the thread.
+	 **/
+	void CNtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+		while ( !_ptdData->bEndThread ) {
+			_ptdData->pnlsfThis->m_eDone.Signal();
+			_ptdData->pnlsfThis->m_eGo.WaitForSignal();
+			if ( _ptdData->bEndThread ) { break; }
+
+			_ptdData->pnlsfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui32Stride, _ptdData->ui64RenderStartCycle );
+		}
+
+		_ptdData->pnlsfThis->m_eDone.Signal();
 	}
 }	// namespace lsn
