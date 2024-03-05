@@ -26,6 +26,11 @@ namespace lsn {
 	};
 
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
+		m_fHueSetting = 3.33333333333333330f * std::numbers::pi / 180.0f;					/**< The hue. */
+		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
+		m_fBrightnessSetting = 1.0f - 0.175f;	/**< The brightness setting. */
+		m_fSaturationSetting = -0.32f + 1.0f;	/**< The saturation setting. */
+
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
@@ -35,14 +40,6 @@ namespace lsn {
 		SetHeight( 240 );							// Allocate buffers.
 
 		// Other generations that can't be changed once set.
-		{
-			// For conversion from YIQ to YUV.
-			double dSin, dCos;
-			::sincos( std::sin( 33.0 * std::numbers::pi / 180.0 ), &dSin, &dCos );
-			m_mSin33 = _mm_set1_ps( float( dSin ) );
-			m_mCos33 = _mm_set1_ps( float( dCos ) );
-			m_mNegSin33 = _mm_set1_ps( float( -dSin ) );
-		}
 		{
 			// For conversion from YUV to RGB.
 			m_1_14 = _mm_set1_ps( 1.139883025203f );
@@ -57,15 +54,11 @@ namespace lsn {
 		}
 		{
 			// For conversions from RGB32F to RGB8.
-			m_1 = _mm_set1_ps( 1.0f );
 			m_0 = _mm_set1_ps( 0.0f );
 			m_299 = _mm_set1_ps( 299.0f );
-			m_255i = _mm_set1_epi16( 255 );
 
-			m_1_256 = _mm256_set1_ps( 1.0f );
 			m_0_256 = _mm256_set1_ps( 0.0f );
 			m_299_256 = _mm256_set1_ps( 299.0f );
-			m_255i_256 = _mm256_set1_epi16( 255 );
 		}
 
 		
@@ -122,10 +115,11 @@ namespace lsn {
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
 	uint8_t * CNtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
-		FilterFrame( _pui8Input, uint16_t( _ui32Height ), _ui32Stride, _ui64RenderStartCycle );
+		FilterFrame( _pui8Input, _ui64RenderStartCycle );
 
 		_ui16BitDepth = uint16_t( OutputBits() );
 		_ui32Width = m_ui16ScaledWidth;
+		_ui32Height = m_ui16Height;
 		_ui32Stride = m_ui32FinalStride;
 		return m_vRgbBuffer.data();
 	}
@@ -256,8 +250,9 @@ namespace lsn {
 		}*/
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
-			int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
+			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
+			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
+			int16_t i16Center = int16_t( I * 8 / (m_ui16WidthScale)) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 			__m128 mYiq = _mm_setzero_ps();
@@ -297,22 +292,18 @@ namespace lsn {
 	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 	 * 
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-	 * \param _ui16Height Height of the input in pixels.
-	 * \param _ui32Stride Bytes between pixel rows.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
-	void CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Height, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle ) {
+	void CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
 		
-		m_tdThreadData.ui16LinesDone = _ui16Height / 2;
-		m_tdThreadData.ui16EndLine = _ui16Height;
-		m_tdThreadData.ui32Stride = _ui32Stride;
+		m_tdThreadData.ui16LinesDone = m_ui16Height / 2;
+		m_tdThreadData.ui16EndLine = m_ui16Height;
 		m_tdThreadData.ui64RenderStartCycle = _ui64RenderStartCycle;
 		m_tdThreadData.pui8Pixels = _pui8Pixels;
 		m_eGo.Signal();
-		RenderScanlineRange( _pui8Pixels, 0, _ui16Height / 2, _ui32Stride, _ui64RenderStartCycle );
+		RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 2, _ui64RenderStartCycle );
 
-		m_eDone.WaitForSignal();
-
+		//m_eDone.WaitForSignal();
 	}
 
 	/**
@@ -321,10 +312,9 @@ namespace lsn {
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui16Start Index of the first scanline to render.
 	 * \param _ui16End INdex of the end scanline.
-	 * \param _ui32Stride Bytes between pixel rows.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
 	 **/
-	void CNtscLSpiroFilter::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle ) {
+	void CNtscLSpiroFilter::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle ) {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -333,7 +323,7 @@ namespace lsn {
 		pfI += sYiqStride * _ui16Start;
 		pfQ += sYiqStride * _ui16Start;
 		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
-			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + _ui32Stride * H);
+			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (256 * 2) * H);
 			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + 341 * H) * 8) % 12 ), H );
 			ConvertYiqToBgra( H );
 			pfY += sYiqStride;
@@ -407,7 +397,7 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::BoxFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2), _ui32Width / 2.0f );
+			m_fFilter[I] = CUtilities::GaussianFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;
@@ -468,10 +458,7 @@ namespace lsn {
 #define LSN_AVX
 #ifdef LSN_AVX
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 8 ) {
-			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
-			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
-			// Convert I and Q to U.
-
+			// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 			__m256 mY = _mm256_load_ps( pfY );
 			__m256 mU = _mm256_load_ps( pfQ );
 			__m256 mV = _mm256_load_ps( pfI );
@@ -496,7 +483,7 @@ namespace lsn {
 
 			// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
 			__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
-			__m256i mRai = _mm256_packus_epi32( mRi, m_255i_256 );
+			__m256i mRai = _mm256_packus_epi32( mRi, mGi );
 
 			__declspec(align(32))
 			uint16_t ui16Tmp0[16];
@@ -524,25 +511,25 @@ namespace lsn {
 			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
 			(*pui8Bgra++) = 255;							// A3;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];		// B0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];		// G0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];		// R0;
-			(*pui8Bgra++) = 255;							// A0;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
+			(*pui8Bgra++) = 255;							// A4;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];		// B1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];		// G1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];		// R1;
-			(*pui8Bgra++) = 255;							// A1;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
+			(*pui8Bgra++) = 255;							// A5;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];		// B2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];		// G2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];		// R2;
-			(*pui8Bgra++) = 255;							// A2;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
+			(*pui8Bgra++) = 255;							// A6;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];		// B3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];		// G3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];		// R3;
-			(*pui8Bgra++) = 255;							// A3;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
+			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
+			(*pui8Bgra++) = 255;							// A7;
 
 			pfY += sizeof( __m256 ) / sizeof( float );
 			pfI += sizeof( __m256 ) / sizeof( float );
@@ -552,26 +539,10 @@ namespace lsn {
 
 #else
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 4 ) {
-			// U = -(I * sin(-33 deg)) + (Q * cos(-33 deg))
-			// V =  (I * cos(-33 deg)) + (Q * sin(-33 deg))
-			// Convert I and Q to U.
-#if 0
-			__m128 mI = _mm_load_ps( pfI );
-			__m128 mQ = _mm_load_ps( pfQ );
-			__m128 mU = _mm_add_ps( _mm_mul_ps( mI, m_mNegSin33 ), 
-				_mm_mul_ps( mQ, m_mCos33 ) );
-
-			__m128 mY = _mm_load_ps( pfY );
-
-			// Convert I and Q to V.
-			__m128 mV = _mm_add_ps( _mm_mul_ps( mI, m_mCos33 ), 
-				_mm_mul_ps( mQ, m_mSin33 ) );
-#else
+			// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 			__m128 mY = _mm_load_ps( pfY );
 			__m128 mU = _mm_load_ps( pfQ );
 			__m128 mV = _mm_load_ps( pfI );
-#endif	// #if 0
-			
 
 			// Convert YUV to RGB.
 			// R = Y + (1.139883025203f * V)
@@ -593,7 +564,7 @@ namespace lsn {
 
 			// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
 			__m128i mBgi = _mm_packus_epi32( mBi, mGi );
-			__m128i mRai = _mm_packus_epi32( mRi, m_255i );
+			__m128i mRai = _mm_packus_epi32( mRi, mGi );
 
 			__declspec(align(32))
 			uint16_t ui16Tmp0[8];
@@ -653,7 +624,7 @@ namespace lsn {
 			_ptdData->pnlsfThis->m_eGo.WaitForSignal();
 			if ( _ptdData->bEndThread ) { break; }
 
-			_ptdData->pnlsfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui32Stride, _ptdData->ui64RenderStartCycle );
+			_ptdData->pnlsfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui64RenderStartCycle );
 		}
 
 		_ptdData->pnlsfThis->m_eDone.Signal();

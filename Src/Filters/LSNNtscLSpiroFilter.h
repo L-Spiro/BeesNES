@@ -169,7 +169,6 @@ namespace lsn {
 			uint16_t										ui16LinesDone;							/**< How many lines the thread has done. */
 			uint16_t										ui16EndLine;							/**< Line on which to end work. */
 			std::atomic<bool>								bEndThread;								/**< If true, the thread is ended. */
-			uint32_t										ui32Stride;								/**< The stride of the input. */
 		};
 
 
@@ -186,14 +185,10 @@ namespace lsn {
 		__m256												m_mBlack256;							/**< m_mBlack but for AVX. */
 		__m256												m_mWhiteMinusBlack256;					/**< m_mWhiteMinusBlack but for AVX. */
 		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
-		__m128												m_mSin33;								/**< sin( -33 degrees ). */
-		__m128												m_mCos33;								/**< cos( -33 degrees ). */
-		__m128												m_mNegSin33;							/**< -sin( -33 degrees ). */
 		__m128												m_1_14;									/**< 1.14. */
 		__m128												m_2_03;									/**< 2.03. */
 		__m128												m_n0_394642;							/**< -0.394642. */
 		__m128												m_n0_580681;							/**< -0.580681. */
-		__m128												m_1;									/**< 1.0f. */
 		__m128												m_0;									/**< 0.0f. */
 		__m128												m_299;									/**< 299.0f. */
 		
@@ -202,11 +197,9 @@ namespace lsn {
 		__m256												m_2_03_256;								/**< 2.03. */
 		__m256												m_n0_394642_256;						/**< -0.394642. */
 		__m256												m_n0_580681_256;						/**< -0.580681. */
-		__m256												m_1_256;								/**< 1.0f. */
 		__m256												m_0_256;								/**< 0.0f. */
 		__m256												m_299_256;								/**< 299.0f. */
-		__m256i												m_255i_256;								/**< 255. */
-		__m128i												m_255i;									/**< 255. */
+		
 		
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
@@ -226,10 +219,10 @@ namespace lsn {
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 
 		// ** SETTINGS ** //
-		float												m_fHueSetting = 4.25f * std::numbers::pi / 180.0f;					/**< The hue. */
+		float												m_fHueSetting = 1.0f;					/**< The hue. */
 		float												m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
-		float												m_fBrightnessSetting = 1.0f - 0.18f;	/**< The brightness setting. */
-		float												m_fSaturationSetting = -0.30f + 1.0f;	/**< The saturation setting. */
+		float												m_fBrightnessSetting = 1.0f;			/**< The brightness setting. */
+		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
 		float												m_fBlackSetting = 0.312f;				/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
 
@@ -273,11 +266,9 @@ namespace lsn {
 		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 		 * 
 		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-		 * \param _ui16Height Height of the input in pixels.
-		 * \param _ui32Stride Bytes between pixel rows.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
-		void												FilterFrame( const uint8_t * _pui8Pixels, uint16_t _ui16Height, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle );
+		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
 
 		/**
 		 * Renders a range of scanlines.
@@ -288,7 +279,7 @@ namespace lsn {
 		 * \param _ui32Stride Bytes between pixel rows.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
 		 **/
-		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint32_t _ui32Stride, uint64_t _ui64RenderStartCycle );
+		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle );
 
 		/**
 		 * Generates the phase sin/cos tables.

@@ -24,6 +24,7 @@
 #include "../System/LSNSystem.h"
 #include "../Utilities/LSNStream.h"
 
+
 #define LSN_BEESNES_SETTINGS_VERSION			0
 
 namespace lsn {
@@ -315,6 +316,8 @@ namespace lsn {
 		//CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		std::vector<CPostProcessBase::LSN_POST_PROCESSES>
 												m_vPostProcesses;
+		/** A temporary buffer for thread-safe copying of the PPU output for filtering. */
+		std::vector<uint8_t>					m_vTmpBuffer;
 		/** Rapid-fire buttons. */
 		uint8_t									m_ui8RapidFires[8];
 		/** The emulation options. */

@@ -584,6 +584,7 @@ namespace lsn {
 		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 16.0 ) * _fWidth );
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
 			}
 			return 0.0f;
@@ -631,7 +632,10 @@ namespace lsn {
 		static inline float									GaussianFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 8.0 ) * _fWidth );
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
