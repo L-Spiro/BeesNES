@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNPoleFilter.h"
 #include "../Event/LSNEvent.h"
+#include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 
 #include <immintrin.h>
@@ -176,22 +177,6 @@ namespace lsn {
 		uint16_t											m_ui16Width = 0;						/**< The last input width. */
 		uint16_t											m_ui16Height = 0;						/**< The last input height. */
 		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
-		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
-		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
-		__declspec(align(32))
-		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
-		__m128												m_mBlack;								/**< Prepared black level register. */
-		__m128												m_mWhiteMinusBlack;						/**< Prepared (white-black) level register. */
-		__m256												m_mBlack256;							/**< m_mBlack but for AVX. */
-		__m256												m_mWhiteMinusBlack256;					/**< m_mWhiteMinusBlack but for AVX. */
-		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
-		__m128												m_1_14;									/**< 1.14. */
-		__m128												m_2_03;									/**< 2.03. */
-		__m128												m_n0_394642;							/**< -0.394642. */
-		__m128												m_n0_580681;							/**< -0.580681. */
-		__m128												m_0;									/**< 0.0f. */
-		__m128												m_299;									/**< 299.0f. */
-		
 
 		__m256												m_1_14_256;								/**< 1.14. */
 		__m256												m_2_03_256;								/**< 2.03. */
@@ -199,7 +184,24 @@ namespace lsn {
 		__m256												m_n0_580681_256;						/**< -0.580681. */
 		__m256												m_0_256;								/**< 0.0f. */
 		__m256												m_299_256;								/**< 299.0f. */
+
+		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedCosTable[12];					/**< 8 elements of the cosine table stacked. */
+		__m256												m_mStackedSinTable[12];					/**< 8 elements of the sine table stacked. */
+
+		__declspec(align(32))
+		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
+		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
+		__m128												m_1_14;									/**< 1.14. */
+		__m128												m_2_03;									/**< 2.03. */
+		__m128												m_n0_394642;							/**< -0.394642. */
+		__m128												m_n0_580681;							/**< -0.580681. */
+		__m128												m_0;									/**< 0.0f. */
+		__m128												m_299;									/**< 299.0f. */
+
 		
+		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
+		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
 		
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
@@ -217,6 +219,7 @@ namespace lsn {
 		std::unique_ptr<std::thread>						m_ptThread;								/**< The 2nd thread. */
 		LSN_THREAD_DATA										m_tdThreadData;							/**< Thread data. */
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
+		float												m_NormalizedLevels[16];					/**< Normalized levels. */
 
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 1.0f;					/**< The hue. */
@@ -226,8 +229,7 @@ namespace lsn {
 		float												m_fBlackSetting = 0.312f;				/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
 
-		__declspec(align(32))
-		static const float									m_fLevels[16];							/**< Output levels. */
+		
 		
 
 
@@ -291,7 +293,7 @@ namespace lsn {
 		/**
 		 * Fills the __m128 registers with the black level and (white-black) level.
 		 **/
-		void												GenSseNormalizers();
+		void												GenNormalizedSignals();
 
 		/**
 		 * Generates the filter kernel.
@@ -309,6 +311,30 @@ namespace lsn {
 		 * \return Returns true if the allocations succeeded.
 		 **/
 		bool												AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale );
+
+		/**
+		 * Performs convolution on 8 values at a time.
+		 * 
+		 * \param _pfSignals The source signals to convolve.
+		 * \param _sFilterIdx The filter table index.
+		 * \param _sCosSinIdx The cosine/sine table index.
+		 * \param _fCos The summed result of cosine convolution.
+		 * \param _fSin The summed result of sine convolution.
+		 * \return Returns the sum of the signal convolution.
+		 **/
+		inline float										Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin );
+
+		/**
+		 * Performs convolution on 4 values at a time.
+		 * 
+		 * \param _pfSignals The source signals to convolve.
+		 * \param _sFilterIdx The filter table index.
+		 * \param _sCosSinIdx The cosine/sine table index.
+		 * \param _fCos The summed result of cosine convolution.
+		 * \param _fSin The summed result of sine convolution.
+		 * \return Returns the sum of the signal convolution.
+		 **/
+		inline float										Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin );
 
 		/**
 		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
@@ -358,8 +384,8 @@ namespace lsn {
 			((ui16Emphasis & 4) && LSN_INCOLORPHASE( 0x8 ))) ? 8 : 0;
 
 		// The square wave for this color alternates between these two voltages:
-		float fLow  = m_fLevels[ui16Level+ui16Atten];
-		float fHigh = (&m_fLevels[4])[ui16Level+ui16Atten];
+		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];
+		float fHigh = (&m_NormalizedLevels[4])[ui16Level+ui16Atten];
 		if ( ui16Color == 0 ) { return fHigh; }			// For color 0, only high level is emitted.
 		if ( ui16Color > 12 ) { return fLow; }			// For colors 13..15, only low level is emitted.
 
@@ -375,21 +401,91 @@ namespace lsn {
 	 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
 	 **/
 	inline void CNtscLSpiroFilter::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
-		__m128 * pmDst = reinterpret_cast<__m128 *>(_pfDst);		// _pfDst will always be properly aligned.
 		for ( size_t I = 0; I < 8; ++I ) {
 			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
 		}
+	}
 
-#if 1
-		__m256 mNumerator = _mm256_sub_ps( (*reinterpret_cast<__m256 *>(pmDst)), m_mBlack256 );						// signal - black
-		_mm256_store_ps( reinterpret_cast<float *>(pmDst), _mm256_div_ps( mNumerator, m_mWhiteMinusBlack256 ) );	// (signal - black) / (white - black)
-#else
-		__m128 mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );														// signal - black.
-		_mm_store_ps( reinterpret_cast<float *>(pmDst++), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );			// (signal - black) / (white - black).
+	/**
+	 * Performs convolution on 8 values at a time.
+	 * 
+	 * \param _pfSignals The source signals to convolve.
+	 * \param _sFilterIdx The filter table index.
+	 * \param _sCosSinIdx The cosine/sine table index.
+	 * \param _fCos The summed result of cosine convolution.
+	 * \param _fSin The summed result of sine convolution.
+	 * \return Returns the sum of the signal convolution.
+	 **/
+	inline float CNtscLSpiroFilter::Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin ) {
+		// Load the signals.
+		//uintptr_t uiptrAddrd = (*reinterpret_cast<uintptr_t *>(&_pfSignals));
+		//__m256 mSignals;// = (uiptrAddrd & 31) ? _mm256_loadu_ps( _pfSignals ) : _mm256_load_ps( _pfSignals );
+		//if ( uiptrAddrd & 31 ) {
+		//	mSignals = _mm256_loadu_ps( _pfSignals );
+		//}
+		//else {
+		//	mSignals = _mm256_load_ps( _pfSignals );
+		//}
+		__m256 mSignals = _mm256_loadu_ps( _pfSignals );
+		// Load the filter weights.
+		__m256 mFilter = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		// Load the cosine values.
+		__m256 mCos = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosSinIdx] ) );
 
-		mNumerator = _mm_sub_ps( (*pmDst), m_mBlack );																// signal - black.
-		_mm_store_ps( reinterpret_cast<float *>(pmDst), _mm_div_ps( mNumerator, m_mWhiteMinusBlack ) );				// (signal - black) / (white - black).
-#endif
+		// Multiply Signals and weights.
+		__m256 mLevels = _mm256_mul_ps( mSignals, mFilter );
+		// Load the sine values.
+		__m256 mSin = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sCosSinIdx] ) );
+
+		// Multiply levels and cosines.
+		mCos = _mm256_mul_ps( mLevels, mCos );
+		// Multiply levels and sines.
+		mSin = _mm256_mul_ps( mLevels, mSin );
+		
+		_fCos += CUtilities::HorizontalSum( mCos );
+		_fSin += CUtilities::HorizontalSum( mSin );
+		return CUtilities::HorizontalSum( mLevels );
+	}
+
+	/**
+	 * Performs convolution on 4 values at a time.
+	 * 
+	 * \param _pfSignals The source signals to convolve.
+	 * \param _sFilterIdx The filter table index.
+	 * \param _sCosSinIdx The cosine/sine table index.
+	 * \param _fCos The summed result of cosine convolution.
+	 * \param _fSin The summed result of sine convolution.
+	 * \return Returns the sum of the signal convolution.
+	 **/
+	inline float CNtscLSpiroFilter::Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin ) {
+		// Load the signals.
+		//uintptr_t uiptrAddrd = (*reinterpret_cast<uintptr_t *>(&_pfSignals));
+		//__m128 mSignals;// = (uiptrAddrd & 15) ? _mm_loadu_ps( _pfSignals ) : _mm_load_ps( _pfSignals );
+		//if ( uiptrAddrd & 31 ) {
+		//	mSignals = _mm_loadu_ps( _pfSignals );
+		//}
+		//else {
+		//	mSignals = _mm_load_ps( _pfSignals );
+		//}
+		__m128 mSignals = _mm_loadu_ps( _pfSignals );
+		// Load the filter weights.
+		__m128 mFilter = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		// Load the cosine values.
+		__m128 mCos = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosSinIdx] ) );
+
+		// Multiply Signals and weights.
+		__m128 mLevels = _mm_mul_ps( mSignals, mFilter );
+		// Load the sine values.
+		__m128 mSin = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sCosSinIdx] ) );
+
+		// Multiply levels and cosines.
+		mCos = _mm_mul_ps( mLevels, mCos );
+		// Multiply levels and sines.
+		mSin = _mm_mul_ps( mLevels, mSin );
+		
+		_fCos += CUtilities::HorizontalSum( mCos );
+		_fSin += CUtilities::HorizontalSum( mSin );
+		return CUtilities::HorizontalSum( mLevels );
 	}
 
 }	// namespace lsn

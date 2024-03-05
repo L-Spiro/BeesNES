@@ -449,6 +449,38 @@ namespace lsn {
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 
 		/**
+		 * Horizontally adds all the floats in a given AVX register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( __m256 &_mReg ) {
+			// Step 1 & 2: Shuffle and add the high 128 to the low 128.
+			__m128 mHigh128 = _mm256_extractf128_ps( _mReg, 1 );		// Extract high 128 bits.
+			__m128 mLow128 = _mm256_castps256_ps128( _mReg );			// Directly use low 128 bits.
+			__m128 mSum128 = _mm_add_ps( mHigh128, mLow128 );			// Add them.
+
+			// Step 3: Perform horizontal addition.
+			__m128 mAddH1 = _mm_hadd_ps( mSum128, mSum128 );
+			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+
+			// Step 4: Extract the scalar value.
+			return _mm_cvtss_f32( mAddH2 );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given SSE register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( __m128 &_mReg ) {
+			__m128 mAddH1 = _mm_hadd_ps( _mReg, _mReg );
+			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+			return _mm_cvtss_f32( mAddH2 );
+		}
+
+		/**
 		 * A helper function.
 		 *
 		 * \param _dX A happy parameter.
@@ -651,6 +683,11 @@ namespace lsn {
 			_fT = ::fabsf( _fT );
 			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
 		}
+
+
+		// == Members.
+		__declspec(align(32))
+		static const float									m_fNtscLevels[16];							/**< Output levels. */
 	};
 
 }	// namespace lsn

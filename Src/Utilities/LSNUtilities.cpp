@@ -18,6 +18,14 @@
 
 namespace lsn {
 
+	// == Members.
+	const float CUtilities::m_fNtscLevels[16] = {							/**< Output levels. */
+		0.228f, 0.312f, 0.552f, 0.880f, // Signal low.
+		0.616f, 0.840f, 1.100f, 1.100f, // Signal high.
+		0.192f, 0.256f, 0.448f, 0.712f, // Signal low, attenuated.
+		0.500f, 0.676f, 0.896f, 0.896f  // Signal high, attenuated.
+	};
+
 	// == Functions.
 	/**
 	 * Converts a UTF-8 string to a UTF-16 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.

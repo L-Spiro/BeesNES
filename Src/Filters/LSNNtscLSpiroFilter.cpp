@@ -18,13 +18,6 @@
 namespace lsn {
 
 	// == Members.
-	const float CNtscLSpiroFilter::m_fLevels[16] = {							/**< Output levels. */
-		0.228f, 0.312f, 0.552f, 0.880f, // Signal low.
-		0.616f, 0.840f, 1.100f, 1.100f, // Signal high.
-		0.192f, 0.256f, 0.448f, 0.712f, // Signal low, attenuated.
-		0.500f, 0.676f, 0.896f, 0.896f  // Signal high, attenuated.
-	};
-
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
 		m_fHueSetting = 3.33333333333333330f * std::numbers::pi / 180.0f;					/**< The hue. */
 		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
@@ -34,7 +27,7 @@ namespace lsn {
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
-		GenSseNormalizers();						// Generate black/white normalization levels.
+		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
 		SetWidth( 256 );							// Allocate buffers.
 		SetHeight( 240 );							// Allocate buffers.
@@ -115,7 +108,7 @@ namespace lsn {
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
 	uint8_t * CNtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
-		FilterFrame( _pui8Input, _ui64RenderStartCycle );
+		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
 
 		_ui16BitDepth = uint16_t( OutputBits() );
 		_ui32Width = m_ui16ScaledWidth;
@@ -213,7 +206,7 @@ namespace lsn {
 	 **/
 	void CNtscLSpiroFilter::SetBlackLevel( float _fBlack ) {
 		m_fBlackSetting = _fBlack;
-		GenSseNormalizers();
+		GenNormalizedSignals();
 	}
 	
 	/**
@@ -223,7 +216,7 @@ namespace lsn {
 	 **/
 	void CNtscLSpiroFilter::SetWhiteLevel( float _fWhite ) {
 		m_fWhiteSetting = _fWhite;
-		GenSseNormalizers();
+		GenNormalizedSignals();
 	}
 
 	/**
@@ -248,13 +241,37 @@ namespace lsn {
 		for ( size_t I = 0; I < 256 * 8; ++I ) {
 			m_pfSignalStart[I] = float( m_pfLpf.Process( m_pfSignalStart[I] ) );
 		}*/
+		/*for ( size_t I = 0; I < 256; ++I ) {
+			size_t sIdx = I * 8;
+			float fDif = pfSignalStart[sIdx] - pfSignalStart[sIdx-1];
+			pfSignalStart[sIdx] += fDif * 12.0f;
+			pfSignalStart[sIdx-1] += fDif * -12.0f;
+		}*/
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
-			int16_t i16Center = int16_t( I * 8 / (m_ui16WidthScale)) + 4;
+			int16_t i16Center = int16_t( I * 8 / m_ui16WidthScale ) + 4;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
+#if 1
+			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
+			for ( int16_t J = i16Start; J < i16End; ++J ) {
+				while ( i16End - J >= 8 ) {
+					// Can do 8 at a time.
+					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					J += 8;
+				}
+				while ( i16End - J >= 4 ) {
+					// Can do 4 at a time.
+					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					J += 4;
+				}
+			}
+			++_pfDstY;
+			++_pfDstI;
+			++_pfDstQ;
+#else
 			__m128 mYiq = _mm_setzero_ps();
 			for ( int16_t J = i16Start; J < i16End; ++J ) {
 				__m128 mLevel = _mm_set1_ps( pfSignalStart[J] * m_fFilter[J-i16Start] );
@@ -285,6 +302,7 @@ namespace lsn {
 			(*_pfDstY++) = fTmp[0] * m_fBrightnessSetting;
 			(*_pfDstI++) = fTmp[1];
 			(*_pfDstQ++) = fTmp[2];
+#endif
 		}
 	}
 
@@ -341,11 +359,7 @@ namespace lsn {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
-			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue
-#if 0
-				+ (std::numbers::pi * (-33.0 + 270.0) / 180.0)
-#endif	// #if 1
-				, &dSin, &dCos );
+			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue, &dSin, &dCos );
 			dCos *= m_fBrightnessSetting * m_fSaturationSetting * 2.0;
 			dSin *= m_fBrightnessSetting * m_fSaturationSetting * 2.0;
 
@@ -376,17 +390,24 @@ namespace lsn {
 			 * [y, i, q, 0] += [level, level, level, level] * [1, COS, SIN, 0]
 			 **/
 		}
+		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < 12; ++I ) {
+				float * pfThis = reinterpret_cast<float *>(&m_mStackedCosTable[I]);
+				pfThis[J] = m_fPhaseCosTable[(J+I)%12];
+
+				pfThis = reinterpret_cast<float *>(&m_mStackedSinTable[I]);
+				pfThis[J] = m_fPhaseSinTable[(J+I)%12];
+			}
+		}
 	}
 
 	/**
 	 * Fills the __m128 registers with the black level and (white-black) level.
 	 **/
-	void CNtscLSpiroFilter::GenSseNormalizers() {
-		m_mBlack = _mm_set1_ps( m_fBlackSetting );
-		m_mWhiteMinusBlack = _mm_set1_ps( m_fWhiteSetting - m_fBlackSetting );
-
-		m_mBlack256 = _mm256_set1_ps( m_fBlackSetting );
-		m_mWhiteMinusBlack256 = _mm256_set1_ps( m_fWhiteSetting - m_fBlackSetting );
+	void CNtscLSpiroFilter::GenNormalizedSignals() {
+		for ( size_t I = 0; I < 16; ++I ) {
+			m_NormalizedLevels[I] = (CUtilities::m_fNtscLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
+		}
 	}
 
 	/**
@@ -403,6 +424,13 @@ namespace lsn {
 		double dNorm = 1.0 / dSum;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = float( m_fFilter[I] * dNorm );
+		}
+
+		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable[I]);
+				pfDst[J] = m_fFilter[(J+I)%_ui32Width];
+			}
 		}
 	}
 
