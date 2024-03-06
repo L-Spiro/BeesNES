@@ -236,6 +236,110 @@ namespace lsn {
 		}
 
 		/**
+		 * 128-bit integer-based linear interpolation between 2 sets of 4 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 
+		 * \param _pui32A The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32B The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32Result The destination where the interpolated 8 colors go.
+		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 **/
+		static __forceinline void							LinearSample_SSE4( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+			__m128i mA					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32A) );
+			__m128i mB					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32B) );
+
+			// Early out if both colors are the same.
+			if ( _mm_test_all_zeros( _mm_xor_si128( mA, mB ), _mm_set1_epi32( -1 ) ) ) {
+				_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui32Result), mA );
+				return;
+			}
+			
+			// Define masks.
+			__m128i mMaskRB				= _mm_set1_epi32( 0x00FF00FF );		// Mask for Red and Blue.
+			__m128i mMaskAG				= _mm_set1_epi32( 0xFF00FF00 );		// Mask for Alpha and Green.
+
+			// Factors for interpolation.
+			uint32_t mInverseFactorX	= 256 - _ui32FactorX;
+			__m128i mFactor				= _mm_set1_epi32( _ui32FactorX );
+			__m128i mInverseFactor		= _mm_set1_epi32( mInverseFactorX );
+
+			// Separate channels.
+			__m128i mArb				= _mm_and_si128( mA, mMaskRB );
+			__m128i mBrb				= _mm_and_si128( mB, mMaskRB );
+			__m128i mAag				= _mm_and_si128( mA, mMaskAG );
+			__m128i mBag				= _mm_and_si128( mB, mMaskAG );
+
+			// Scale channels by factor.
+			__m128i mScaledArb			= _mm_mullo_epi32( mArb, mInverseFactor );
+			__m128i mScaledBrb			= _mm_mullo_epi32( mBrb, mFactor );
+			__m128i mScaledAag			= _mm_mullo_epi32( _mm_srli_epi32( mAag, 8 ), mInverseFactor );
+			__m128i mScaledBag			= _mm_mullo_epi32( _mm_srli_epi32( mBag, 8 ), mFactor );
+
+			// Sum and shift back if necessary.
+			__m128i mRbSum				= _mm_add_epi32( mScaledArb, mScaledBrb );
+			__m128i mAgSum				= _mm_add_epi32( mScaledAag, mScaledBag );
+
+			// Reconstruct the final RGBA.
+			__m128i mRbResult			= _mm_and_si128( _mm_srli_epi32( mRbSum, 8 ), mMaskRB );
+			__m128i mAgResult			= _mm_slli_epi32( _mm_and_si128( _mm_srli_epi32( mAgSum, 8 ), mMaskRB ), 8 );
+
+
+			// Combine channels and return.
+			__m128i mResult				= _mm_or_si128( mRbResult, mAgResult );
+
+			_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui32Result), mResult );
+		}
+
+		/**
+		 * 256-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 
+		 * \param _pui32A The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32B The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32Result The destination where the interpolated 8 colors go.
+		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 **/
+		static __forceinline void							LinearSample_AVX2( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+			constexpr uint32_t mMaskRb	= 0x00FF00FF;
+			constexpr uint32_t mMaskAg	= 0xFF00FF00;
+
+			__m256i mMaskRb256			= _mm256_set1_epi32( mMaskRb );
+			__m256i mMaskAg256			= _mm256_set1_epi32( mMaskAg );
+			__m256i mFactorX			= _mm256_set1_epi32( _ui32FactorX );
+			__m256i mFactorXCompliment	= _mm256_set1_epi32( 256 - _ui32FactorX );
+
+			__m256i mA					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32A) );
+			__m256i mB					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32B) );
+
+			// Separate the channels.
+			__m256i mArb				= _mm256_and_si256( mA, mMaskRb256 );
+			__m256i mAag				= _mm256_and_si256( mA, mMaskAg256 );
+			__m256i mBrb				= _mm256_and_si256( mB, mMaskRb256 );
+			__m256i mBag				= _mm256_and_si256( mB, mMaskAg256 );
+
+			// Interpolate R and B channels.
+			__m256i mRbInterp			= _mm256_add_epi32(
+				_mm256_mullo_epi32( mArb, mFactorXCompliment ),
+				_mm256_mullo_epi32( mBrb, mFactorX )
+			);
+			mRbInterp					= _mm256_srli_epi32( mRbInterp, 8 );
+			mRbInterp					= _mm256_and_si256( mRbInterp, mMaskRb256 );
+
+			// Interpolate A and G channels (factor is applied after shifting right by 8 to simulate division by 256).
+			__m256i mAgInterp			= _mm256_add_epi32(
+				_mm256_mullo_epi32(_mm256_srli_epi32( mAag, 8 ), mFactorXCompliment ),
+				_mm256_mullo_epi32(_mm256_srli_epi32( mBag, 8 ), mFactorX )
+			);
+			mAgInterp					= _mm256_and_si256( mAgInterp, mMaskAg256 );
+
+			// Combine interpolated channels.
+			__m256i mResult				= _mm256_or_si256( mRbInterp, mAgInterp );
+
+			// Store the result.
+			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
+
+		}
+
+
+		/**
 		 * Performs integer-based linear interpolation across a row of ARGB pixels.
 		 *
 		 * \param _pui32SrcRow The input row.
@@ -269,20 +373,39 @@ namespace lsn {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
-				const uint64_t * pui64Row0 = reinterpret_cast<const uint64_t *>(_pui32SrcRow0);
-				const uint64_t * pui64Row1 = reinterpret_cast<const uint64_t *>(_pui32SrcRow1);
-				uint64_t * pui64Dst = reinterpret_cast<uint64_t *>(_pui32DstRow);
-				uint32_t ui32Total;
-
-
-				ui32Total = _ui32Width >> 1;
-				uint32_t I;
-				uint32_t ui32ThisTotal = ui32Total - 1;
-				for ( I = 0; I < ui32ThisTotal; ++I ) {
-					pui64Dst[I] = LinearSample_Int64( pui64Row0[I], pui64Row1[I], _ui32Factor );
+				if ( IsAvxSupported() ) {
+					while ( _ui32Width >= 8 ) {
+						LinearSample_AVX2( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
+						_ui32Width -= 8;
+						if ( !_ui32Width ) { return; }
+						_pui32SrcRow0 += 8;
+						_pui32SrcRow1 += 8;
+						_pui32DstRow += 8;
+					}
 				}
-				for ( I = ui32ThisTotal * 2; I < _ui32Width; ++I ) {
-					_pui32DstRow[I] = LinearSample_Int( _pui32SrcRow0[I], _pui32SrcRow1[I], _ui32Factor );
+
+				if ( IsSse4Supported() ) {
+					while ( _ui32Width >= 4 ) {
+						LinearSample_SSE4( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
+						_ui32Width -= 4;
+						if ( !_ui32Width ) { return; }
+						_pui32SrcRow0 += 4;
+						_pui32SrcRow1 += 4;
+						_pui32DstRow += 4;
+					}
+				}
+
+				while ( _ui32Width >= 2 ) {
+					(*reinterpret_cast<uint64_t *>(_pui32DstRow)) = LinearSample_Int64( (*reinterpret_cast<const uint64_t *>(_pui32SrcRow0)), (*reinterpret_cast<const uint64_t *>(_pui32SrcRow1)), _ui32Factor );
+					_ui32Width -= 2;
+					if ( !_ui32Width ) { return; }
+					_pui32SrcRow0 += 2;
+					_pui32SrcRow1 += 2;
+					_pui32DstRow += 2;
+				}
+
+				while ( _ui32Width-- ) {
+					(*_pui32DstRow++) = LinearSample_Int( (*_pui32SrcRow0++), (*_pui32SrcRow1++), _ui32Factor );
 				}
 			}
 		}
@@ -684,10 +807,38 @@ namespace lsn {
 			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
 		}
 
+		/**
+		 * Checks for support for AVX and SSE 4.
+		 **/
+		static void											CheckFeatureSet();
+
+		/**
+		 * Is AVX supported?
+		 *
+		 * \return Returns true if AVX is supported.
+		 **/
+		static bool											IsAvxSupported() {
+			if ( m_bAvxSupport == 2 ) { CheckFeatureSet(); }
+			return m_bAvxSupport != 0;
+		}
+
+		/**
+		 * Is SSE 4 supported?
+		 *
+		 * \return Returns true if SSE 4 is supported.
+		 **/
+		static bool											IsSse4Supported() {
+			if ( m_bSse4Support == 2 ) { CheckFeatureSet(); }
+			return m_bSse4Support != 0;
+		}
+
 
 		// == Members.
 		__declspec(align(32))
 		static const float									m_fNtscLevels[16];							/**< Output levels. */
+		static int											m_iCpuId[4];								/**< Result of __cpuid(). */
+		static uint8_t										m_bAvxSupport;								/**< Is AVX supported? */
+		static uint8_t										m_bSse4Support;								/**< Is SSE 4 supported? */
 	};
 
 }	// namespace lsn

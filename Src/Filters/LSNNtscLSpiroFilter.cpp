@@ -19,10 +19,10 @@ namespace lsn {
 
 	// == Members.
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
-		m_fHueSetting = 3.33333333333333330f * std::numbers::pi / 180.0f;					/**< The hue. */
+		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
 		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
-		m_fBrightnessSetting = 1.0f - 0.175f;	/**< The brightness setting. */
-		m_fSaturationSetting = -0.32f + 1.0f;	/**< The saturation setting. */
+		m_fBrightnessSetting = 1.0f - 0.075f;	/**< The brightness setting. */
+		m_fSaturationSetting = -0.42f + 1.0f;	/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
@@ -40,18 +40,21 @@ namespace lsn {
 			m_n0_394642 = _mm_set1_ps( -0.394642233974f );
 			m_n0_580681 = _mm_set1_ps( -0.580621847591f );
 
-			m_1_14_256 = _mm256_set1_ps( 1.139883025203f );
-			m_2_03_256 = _mm256_set1_ps( 2.032061872219f );
-			m_n0_394642_256 = _mm256_set1_ps( -0.394642233974f );
-			m_n0_580681_256 = _mm256_set1_ps( -0.580621847591f );
+			if ( CUtilities::IsAvxSupported() ) {
+				m_1_14_256 = _mm256_set1_ps( 1.139883025203f );
+				m_2_03_256 = _mm256_set1_ps( 2.032061872219f );
+				m_n0_394642_256 = _mm256_set1_ps( -0.394642233974f );
+				m_n0_580681_256 = _mm256_set1_ps( -0.580621847591f );
+			}
 		}
 		{
 			// For conversions from RGB32F to RGB8.
 			m_0 = _mm_set1_ps( 0.0f );
 			m_299 = _mm_set1_ps( 299.0f );
-
-			m_0_256 = _mm256_set1_ps( 0.0f );
-			m_299_256 = _mm256_set1_ps( 299.0f );
+			if ( CUtilities::IsAvxSupported() ) {
+				m_0_256 = _mm256_set1_ps( 0.0f );
+				m_299_256 = _mm256_set1_ps( 299.0f );
+			}
 		}
 
 		
@@ -236,17 +239,6 @@ namespace lsn {
 			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
 			pfSignals += 8;
 		}
-		/*m_pfLpf.CreateLpf( 1.0f / 3.0f, 1.0f );
-		m_pfLpf.ResetState();
-		for ( size_t I = 0; I < 256 * 8; ++I ) {
-			m_pfSignalStart[I] = float( m_pfLpf.Process( m_pfSignalStart[I] ) );
-		}*/
-		/*for ( size_t I = 0; I < 256; ++I ) {
-			size_t sIdx = I * 8;
-			float fDif = pfSignalStart[sIdx] - pfSignalStart[sIdx-1];
-			pfSignalStart[sIdx] += fDif * 12.0f;
-			pfSignalStart[sIdx-1] += fDif * -12.0f;
-		}*/
 
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
@@ -256,19 +248,22 @@ namespace lsn {
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 #if 1
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
-			for ( int16_t J = i16Start; J < i16End; ++J ) {
+			int16_t J = i16Start;
+			if ( CUtilities::IsAvxSupported() ) {
 				while ( i16End - J >= 8 ) {
 					// Can do 8 at a time.
 					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
 					J += 8;
 				}
+			}
+			if ( CUtilities::IsSse4Supported() ) {
 				while ( i16End - J >= 4 ) {
 					// Can do 4 at a time.
 					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
 					J += 4;
 				}
 			}
-			++_pfDstY;
+			(*_pfDstY++) *= m_fBrightnessSetting;
 			++_pfDstI;
 			++_pfDstQ;
 #else
@@ -483,148 +478,147 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
-#define LSN_AVX
-#ifdef LSN_AVX
-		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 8 ) {
-			// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
-			__m256 mY = _mm256_load_ps( pfY );
-			__m256 mU = _mm256_load_ps( pfQ );
-			__m256 mV = _mm256_load_ps( pfI );
+		if ( CUtilities::IsAvxSupported() ) {
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 8 ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m256 mY = _mm256_load_ps( pfY );
+				__m256 mU = _mm256_load_ps( pfQ );
+				__m256 mV = _mm256_load_ps( pfI );
 
-			// Convert YUV to RGB.
-			// R = Y + (1.139883025203f * V)
-			// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-			// B = Y + (2.032061872219f * U)
-			__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, m_1_14_256 ) );
-			__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, m_n0_394642_256 ), _mm256_mul_ps( mV, m_n0_580681_256 ) ) );
-			__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, m_2_03_256 ) );
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, m_1_14_256 ) );
+				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, m_n0_394642_256 ), _mm256_mul_ps( mV, m_n0_580681_256 ) ) );
+				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, m_2_03_256 ) );
 
-			// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-			mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m_299_256 ), m_0_256), m_299_256 );
-			mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m_299_256 ), m_0_256), m_299_256 );
-			mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m_299_256 ), m_0_256), m_299_256 );
+				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m_299_256 ), m_0_256), m_299_256 );
+				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m_299_256 ), m_0_256), m_299_256 );
+				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m_299_256 ), m_0_256), m_299_256 );
 
-			// Convert to integers.
-			__m256i mRi = _mm256_cvtps_epi32( mR );
-			__m256i mGi = _mm256_cvtps_epi32( mG );
-			__m256i mBi = _mm256_cvtps_epi32( mB );
+				// Convert to integers.
+				__m256i mRi = _mm256_cvtps_epi32( mR );
+				__m256i mGi = _mm256_cvtps_epi32( mG );
+				__m256i mBi = _mm256_cvtps_epi32( mB );
 
-			// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
-			__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
-			__m256i mRai = _mm256_packus_epi32( mRi, mGi );
+				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+				__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
+				__m256i mRai = _mm256_packus_epi32( mRi, mGi );
 
-			__declspec(align(32))
-			uint16_t ui16Tmp0[16];
-			__declspec(align(32))
-			uint16_t ui16Tmp1[16];
-			_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
-			_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
-			(*pui8Bgra++) = 255;							// A0;
+				__declspec(align(32))
+				uint16_t ui16Tmp0[16];
+				__declspec(align(32))
+				uint16_t ui16Tmp1[16];
+				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
+				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+				(*pui8Bgra++) = 255;							// A0;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
-			(*pui8Bgra++) = 255;							// A1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+				(*pui8Bgra++) = 255;							// A1;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
-			(*pui8Bgra++) = 255;							// A2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+				(*pui8Bgra++) = 255;							// A2;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
-			(*pui8Bgra++) = 255;							// A3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+				(*pui8Bgra++) = 255;							// A3;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
-			(*pui8Bgra++) = 255;							// A4;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
+				(*pui8Bgra++) = 255;							// A4;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
-			(*pui8Bgra++) = 255;							// A5;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
+				(*pui8Bgra++) = 255;							// A5;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
-			(*pui8Bgra++) = 255;							// A6;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
+				(*pui8Bgra++) = 255;							// A6;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
-			(*pui8Bgra++) = 255;							// A7;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
+				(*pui8Bgra++) = 255;							// A7;
 
-			pfY += sizeof( __m256 ) / sizeof( float );
-			pfI += sizeof( __m256 ) / sizeof( float );
-			pfQ += sizeof( __m256 ) / sizeof( float );
+				pfY += sizeof( __m256 ) / sizeof( float );
+				pfI += sizeof( __m256 ) / sizeof( float );
+				pfQ += sizeof( __m256 ) / sizeof( float );
 
+			}
 		}
+		else {
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 4 ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m128 mY = _mm_load_ps( pfY );
+				__m128 mU = _mm_load_ps( pfQ );
+				__m128 mV = _mm_load_ps( pfI );
 
-#else
-		for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += 4 ) {
-			// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
-			__m128 mY = _mm_load_ps( pfY );
-			__m128 mU = _mm_load_ps( pfQ );
-			__m128 mV = _mm_load_ps( pfI );
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, m_1_14 ) );
+				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394642 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
+				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, m_2_03 ) );
 
-			// Convert YUV to RGB.
-			// R = Y + (1.139883025203f * V)
-			// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-			// B = Y + (2.032061872219f * U)
-			__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, m_1_14 ) );
-			__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394642 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
-			__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, m_2_03 ) );
+				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );
+				mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_299 ), m_0), m_299 );
+				mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_299 ), m_0), m_299 );
 
-			// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-			mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );
-			mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_299 ), m_0), m_299 );
-			mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_299 ), m_0), m_299 );
+				// Convert to integers.
+				__m128i mRi = _mm_cvtps_epi32( mR );
+				__m128i mGi = _mm_cvtps_epi32( mG );
+				__m128i mBi = _mm_cvtps_epi32( mB );
 
-			// Convert to integers.
-			__m128i mRi = _mm_cvtps_epi32( mR );
-			__m128i mGi = _mm_cvtps_epi32( mG );
-			__m128i mBi = _mm_cvtps_epi32( mB );
+				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+				__m128i mBgi = _mm_packus_epi32( mBi, mGi );
+				__m128i mRai = _mm_packus_epi32( mRi, mGi );
 
-			// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
-			__m128i mBgi = _mm_packus_epi32( mBi, mGi );
-			__m128i mRai = _mm_packus_epi32( mRi, mGi );
+				__declspec(align(32))
+				uint16_t ui16Tmp0[8];
+				__declspec(align(32))
+				uint16_t ui16Tmp1[8];
+				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
+				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+				(*pui8Bgra++) = 255;							// A0;
 
-			__declspec(align(32))
-			uint16_t ui16Tmp0[8];
-			__declspec(align(32))
-			uint16_t ui16Tmp1[8];
-			_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
-			_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
-			(*pui8Bgra++) = 255;							// A0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+				(*pui8Bgra++) = 255;							// A1;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
-			(*pui8Bgra++) = 255;							// A1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+				(*pui8Bgra++) = 255;							// A2;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
-			(*pui8Bgra++) = 255;							// A2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+				(*pui8Bgra++) = 255;							// A3;
 
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
-			(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
-			(*pui8Bgra++) = 255;							// A3;
-
-			pfY += sizeof( __m128 ) / sizeof( float );
-			pfI += sizeof( __m128 ) / sizeof( float );
-			pfQ += sizeof( __m128 ) / sizeof( float );
+				pfY += sizeof( __m128 ) / sizeof( float );
+				pfI += sizeof( __m128 ) / sizeof( float );
+				pfQ += sizeof( __m128 ) / sizeof( float );
+			}
 		}
-#endif	// #ifdef LSN_AVX
 	}
 
 	/**

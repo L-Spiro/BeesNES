@@ -9,7 +9,6 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../Audio/LSNPoleFilter.h"
 #include "../Event/LSNEvent.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
@@ -211,8 +210,7 @@ namespace lsn {
 		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
-		uint16_t											m_ui16WidthScale = 2;					/**< Scale factor between input and output width. */
-		CPoleFilter											m_pfLpf;								/**< The LPF applied to the signal. */
+		uint16_t											m_ui16WidthScale = 8;					/**< Scale factor between input and output width. */
 
 		CEvent												m_eGo;									/**< Signal to tell the thread to go. */
 		CEvent												m_eDone;								/**< Thread to tell the main thread that the 2nd thread is done. */

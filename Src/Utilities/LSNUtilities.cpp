@@ -26,6 +26,13 @@ namespace lsn {
 		0.500f, 0.676f, 0.896f, 0.896f  // Signal high, attenuated.
 	};
 
+	int CUtilities::m_iCpuId[4] = {											/**< Result of __cpuid(). */
+		-1, -1, -1, -1
+	};
+
+	uint8_t CUtilities::m_bAvxSupport = 2;									/**< Is AVX supported? */
+	uint8_t CUtilities::m_bSse4Support = 2;									/**< Is SSE 4 supported? */
+
 	// == Functions.
 	/**
 	 * Converts a UTF-8 string to a UTF-16 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.
@@ -308,6 +315,17 @@ namespace lsn {
 		}
 		_u16Path.insert( _u16Path.begin(), u'\\' );
 		_u16Path.insert( _u16Path.begin(), u'\u2026' );
+	}
+
+	/**
+	 * Checks for support for AVX and SSE 4.
+	 **/
+	void CUtilities::CheckFeatureSet() {
+		__cpuid( m_iCpuId, 1 );
+
+		m_bSse4Support		= m_iCpuId[2] & (1 << 9) || false;
+		m_bAvxSupport		= m_iCpuId[2] & (1 << 28) || false;
+
 	}
 
 }	// namespace lsn
