@@ -34,7 +34,7 @@ namespace lsn {
 			LSN_F_RGB24,									/**< Standard RGB24. No filter. */
 			LSN_F_NTSC_BLARGG,								/**< Blargg's NTSC filter. */
 			LSN_F_PAL_BLARGG,								/**< Blargg's NTSC filter adjusted for PAL. */
-			LSN_F_NTSC_BISQWIT,								/**< Bisqwit's NTSC filter. */
+			LSN_F_NTSC_LSPIRO,								/**< L. Spiro's NTSC filter. */
 			//LSN_F_NTSC_CRT,									/**< EMMIR (LMP88959)'s NTSC-CRT filter. */
 			LSN_F_NTSC_CRT_FULL,							/**< EMMIR (LMP88959)'s NTSC-CRT (full) filter. */
 			LSN_F_PAL_CRT_FULL,								/**< EMMIR (LMP88959)'s PAL-CRT (full) filter. */

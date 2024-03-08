@@ -642,8 +642,12 @@ namespace lsn {
 		void								ARR_Imm_Phi2();
 		/** Performs OP <<= 1.  Sets flags C, N, and Z. */
 		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs OP <<= 1.  Sets flags C, N, and Z. */
+		void								ASL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs A <<= 1.  Sets flags C, N, and Z. */
 		void								ASL_Imp();
+		/** Performs A <<= 1.  Sets flags C, N, and Z. */
+		void								ASL_Imp_Phi2();
 		/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
 		void								ASR_Imm();
 		/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
@@ -656,10 +660,16 @@ namespace lsn {
 		void								BRK();
 		/** Clears the carry flag. */
 		void								CLC();
+		/** Clears the carry flag. */
+		void								CLC_Phi2();
 		/** Clears the decimal flag. */
 		void								CLD();
+		/** Clears the decimal flag. */
+		void								CLD_Phi2();
 		/** Clears the IRQ flag. */
 		void								CLI();
+		/** Clears the IRQ flag. */
+		void								CLI_Phi2();
 		/** Clears the overflow flag. */
 		void								CLV();
 		/** Compares A with OP. */
@@ -794,12 +804,20 @@ namespace lsn {
 		void								PLP_Phi2();
 		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
 		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
+		void								RLA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
 		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
+		void								ROL_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
+		/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
 		void								ROL_Imp();
+		/** Performs A = (A << 1) | (C).  Sets flags C, N, and Z. */
+		void								ROL_Imp_Phi2();
 		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
 		void								ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+		void								ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
 		void								ROR_Imp();
 		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */

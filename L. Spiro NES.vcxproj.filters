@@ -666,6 +666,9 @@
     <ClInclude Include="Src\Filters\LSNNtscLSpiroFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNPalLSpiroFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -885,6 +888,9 @@
       <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNNtscLSpiroFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNPalLSpiroFilter.cpp">
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>

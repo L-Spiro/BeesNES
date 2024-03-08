@@ -18,6 +18,7 @@
 #include "../Filters/LSNNtscLSpiroFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNPalCrtFullFilter.h"
+#include "../Filters/LSNPalLSpiroFilter.h"
 #include "../Filters/LSNRgb24Filter.h"
 #include "../Filters/LSNSrgbPostProcess.h"
 #include "../Options/LSNOptions.h"
@@ -268,8 +269,10 @@ namespace lsn {
 		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
-		/** Bisqwit's NTSC filter. */
+		/** L. Spiro's NTSC filter. */
 		CNtscLSpiroFilter						m_nbfLSpiroNtscFilter;
+		/** L. Spiro's PAL filter. */
+		CPalLSpiroFilter						m_nbfLSpiroPalFilter;
 		/** Blargg's NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */

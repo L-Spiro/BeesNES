@@ -772,6 +772,7 @@ namespace lsn {
 		static inline float									BlackmanFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 16.0 ) * _fWidth );
 				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
@@ -784,11 +785,88 @@ namespace lsn {
 		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									GaussianFilterFunc( float _fT, float _fWidth ) {
+		static inline float									Gaussian1FilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 1.0 ) * _fWidth );
 				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Gaussian2FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 2.0 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Gaussian4FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 4.0 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Gaussian8FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
 				_fT = float( ::pow( _fT / _fWidth, 1.0 / 8.0 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Gaussian16FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 16.0 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
 				float fX = _fT - _fWidth;
 				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
@@ -835,7 +913,9 @@ namespace lsn {
 
 		// == Members.
 		__declspec(align(32))
-		static const float									m_fNtscLevels[16];							/**< Output levels. */
+		static const float									m_fNtscLevels[16];							/**< Output levels for NTSC. */
+		__declspec(align(32))
+		static const float									m_fPalLevels[16];							/**< Output levels for PAL. */
 		static int											m_iCpuId[4];								/**< Result of __cpuid(). */
 		static uint8_t										m_bAvxSupport;								/**< Is AVX supported? */
 		static uint8_t										m_bSse4Support;								/**< Is SSE 4 supported? */

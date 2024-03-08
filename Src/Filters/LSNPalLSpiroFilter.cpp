@@ -3,10 +3,10 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of an NTSC filter.
+ * Description: My own implementation of a PAL filter.
  */
 
-#include "LSNNtscLSpiroFilter.h"
+#include "LSNPalLSpiroFilter.h"
 
 #include <algorithm>
 #include <cmath>
@@ -18,7 +18,7 @@
 namespace lsn {
 
 	// == Members.
-	CNtscLSpiroFilter::CNtscLSpiroFilter() {
+	CPalLSpiroFilter::CPalLSpiroFilter() {
 		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
 		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
 		m_fBrightnessSetting = 1.0f - 0.075f;	/**< The brightness setting. */
@@ -29,7 +29,7 @@ namespace lsn {
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
-		SetWidth( LSN_PM_NTSC_RENDER_WIDTH );		// Allocate buffers.
+		SetWidth( LSN_PM_PAL_RENDER_WIDTH );		// Allocate buffers.
 		SetHeight( 240 );							// Allocate buffers.
 
 		// Other generations that can't be changed once set.
@@ -41,7 +41,6 @@ namespace lsn {
 				m_n0_394642 = _mm_set1_ps( -0.394642233974f );
 				m_n0_580681 = _mm_set1_ps( -0.580621847591f );
 			}
-
 			if ( CUtilities::IsAvxSupported() ) {
 				m_1_14_256 = _mm256_set1_ps( 1.139883025203f );
 				m_2_03_256 = _mm256_set1_ps( 2.032061872219f );
@@ -63,7 +62,7 @@ namespace lsn {
 
 		
 	}
-	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
+	CPalLSpiroFilter::~CPalLSpiroFilter() {
 		StopThread();
 	}
 
@@ -76,7 +75,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CNtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CPalLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
 		m_ui32OutputWidth = m_ui16ScaledWidth;
@@ -114,8 +113,8 @@ namespace lsn {
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CNtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
-		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
+	uint8_t * CPalLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle ) {
+		FilterFrame( _pui8Input, _ui64RenderStartCycle );
 
 		_ui16BitDepth = uint16_t( OutputBits() );
 		_ui32Width = m_ui16ScaledWidth;
@@ -129,7 +128,7 @@ namespace lsn {
 	 * 
 	 * \param _ui32Size The new size of the filter.
 	 **/
-	void CNtscLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
+	void CPalLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
 		GenFilterKernel( m_ui32FilterKernelSize * 2 );
 		SetWidth( m_ui16Width );
@@ -141,7 +140,7 @@ namespace lsn {
 	 * \param _ui16Width The width to set.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CNtscLSpiroFilter::SetWidth( uint16_t _ui16Width ) {
+	bool CPalLSpiroFilter::SetWidth( uint16_t _ui16Width ) {
 		if ( m_ui16Width != _ui16Width ) {
 			if ( !AllocYiqBuffers( _ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Width = _ui16Width;
@@ -156,7 +155,7 @@ namespace lsn {
 	 * \param _ui16Height The height to set.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CNtscLSpiroFilter::SetHeight( uint16_t _ui16Height ) {
+	bool CPalLSpiroFilter::SetHeight( uint16_t _ui16Height ) {
 		if ( m_ui16Height != _ui16Height ) {
 			if ( !AllocYiqBuffers( m_ui16Width, _ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Height = _ui16Height;
@@ -169,7 +168,7 @@ namespace lsn {
 	 * 
 	 * \param _fGamma The gamma to set.
 	 **/
-	void CNtscLSpiroFilter::SetGamma( float _fGamma ) {
+	void CPalLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
 			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::sRGBtoLinear( std::pow( (I / 299.0), 1.0 / m_fGammaSetting ) ) * 255.0 ) );
@@ -181,7 +180,7 @@ namespace lsn {
 	 * 
 	 * \param _fHue The hue to set.
 	 **/
-	void CNtscLSpiroFilter::SetHue( float _fHue ) {
+	void CPalLSpiroFilter::SetHue( float _fHue ) {
 		m_fHueSetting = _fHue;
 		GenPhaseTables( _fHue );
 	}
@@ -191,7 +190,7 @@ namespace lsn {
 	 * 
 	 * \param _fBrightness The brightness to set.
 	 **/
-	void CNtscLSpiroFilter::SetBrightness( float _fBrightness ) {
+	void CPalLSpiroFilter::SetBrightness( float _fBrightness ) {
 		m_fBrightnessSetting = _fBrightness;
 		GenPhaseTables( m_fHueSetting );
 	}
@@ -201,7 +200,7 @@ namespace lsn {
 	 * 
 	 * \param _fSat The saturation to set.
 	 **/
-	void CNtscLSpiroFilter::SetSaturation( float _fSat ) {
+	void CPalLSpiroFilter::SetSaturation( float _fSat ) {
 		m_fSaturationSetting = _fSat;
 		GenPhaseTables( m_fHueSetting );
 	}
@@ -211,7 +210,7 @@ namespace lsn {
 	 * 
 	 * \param _fBlack The black level to set.
 	 **/
-	void CNtscLSpiroFilter::SetBlackLevel( float _fBlack ) {
+	void CPalLSpiroFilter::SetBlackLevel( float _fBlack ) {
 		m_fBlackSetting = _fBlack;
 		GenNormalizedSignals();
 	}
@@ -221,7 +220,7 @@ namespace lsn {
 	 * 
 	 * \param _fWhite The white level to set.
 	 **/
-	void CNtscLSpiroFilter::SetWhiteLevel( float _fWhite ) {
+	void CPalLSpiroFilter::SetWhiteLevel( float _fWhite ) {
 		m_fWhiteSetting = _fWhite;
 		GenNormalizedSignals();
 	}
@@ -236,18 +235,22 @@ namespace lsn {
 	 * \param _ui16Cycle The cycle count at the start of the scanline.
 	 * \param _sRowIdx The scanline index.
 	 **/
-	void CNtscLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+	void CPalLSpiroFilter::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+		/*if ( _sRowIdx & 1 ) {
+			_ui16Cycle += 6;
+		}*/
+
 		float * pfSignalStart = m_vSignalStart[_sRowIdx];
 		float * pfSignals = pfSignalStart;
-		for ( uint16_t I = 0; I < LSN_PM_NTSC_RENDER_WIDTH; ++I ) {
-			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
-			pfSignals += 8;
+		for ( uint16_t I = 0; I < LSN_PM_PAL_RENDER_WIDTH; ++I ) {
+			PixelToPalSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * m_ui16PixelToSignal ), _sRowIdx );
+			
+			pfSignals += m_ui16PixelToSignal;
 		}
 
+		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
-			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
-			int16_t i16Center = int16_t( I * 8 / m_ui16WidthScale ) + 4;
+			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
 #if 1
@@ -255,15 +258,31 @@ namespace lsn {
 			int16_t J = i16Start;
 			if ( CUtilities::IsAvxSupported() ) {
 				while ( i16End - J >= 8 ) {
+					uint16_t ui16SinIdx;
+					if ( _sRowIdx & 1 ) {
+						ui16SinIdx = ((_ui16Cycle + J + 6) + (12 * 4)) % 12;
+						//ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
+					else {
+						ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
 					// Can do 8 at a time.
-					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, ui16SinIdx, (*_pfDstI), (*_pfDstQ) );
 					J += 8;
 				}
 			}
 			if ( CUtilities::IsSse4Supported() ) {
 				while ( i16End - J >= 4 ) {
+					uint16_t ui16SinIdx;
+					if ( _sRowIdx & 1 ) {
+						ui16SinIdx = ((_ui16Cycle + J + 6) + (12 * 4)) % 12;
+						//ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
+					else {
+						ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
 					// Can do 4 at a time.
-					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, ui16SinIdx, (*_pfDstI), (*_pfDstQ) );
 					J += 4;
 				}
 			}
@@ -303,6 +322,7 @@ namespace lsn {
 			(*_pfDstQ++) = fTmp[2];
 #endif
 		}
+
 	}
 
 	/**
@@ -311,7 +331,7 @@ namespace lsn {
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
-	void CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
+	void CPalLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
 		
 		m_tdThreadData.ui16LinesDone = m_ui16Height / 2;
 		m_tdThreadData.ui16EndLine = m_ui16Height;
@@ -331,7 +351,7 @@ namespace lsn {
 	 * \param _ui16End INdex of the end scanline.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
 	 **/
-	void CNtscLSpiroFilter::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle ) {
+	void CPalLSpiroFilter::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle ) {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -340,13 +360,30 @@ namespace lsn {
 		pfI += sYiqStride * _ui16Start;
 		pfQ += sYiqStride * _ui16Start;
 		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
-			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (LSN_PM_NTSC_RENDER_WIDTH * 2) * H);
-			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_DOTS_X * H) * 8) % 12 ), H );
+			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (LSN_PM_PAL_RENDER_WIDTH * 2) * H);
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_PAL_DOTS_X * H) * m_ui16PixelToSignal) % 12 ), H );
 			ConvertYiqToBgra( H );
 			pfY += sYiqStride;
 			pfI += sYiqStride;
 			pfQ += sYiqStride;
 		}
+
+		/*bool bPrint = false;
+		if ( bPrint ) {
+			std::string sPrintMe;
+			for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+				sPrintMe += "Line: " + std::to_string( H ) + " ";
+				float * pfSignalStart = m_vSignalStart[H];
+				for ( uint16_t I = 0; I < LSN_PM_PAL_RENDER_WIDTH * m_ui16PixelToSignal; ++I ) {
+					
+					sPrintMe += std::to_string( (*pfSignalStart++) );
+					sPrintMe += " ";
+				}
+				sPrintMe += "\r\n";
+				::OutputDebugStringA( sPrintMe.c_str() );
+				sPrintMe.clear();
+			}
+		}*/
 	}
 
 	/**
@@ -354,7 +391,7 @@ namespace lsn {
 	 * 
 	 * \param _fHue The hue offset.
 	 **/
-	void CNtscLSpiroFilter::GenPhaseTables( float _fHue ) {
+	void CPalLSpiroFilter::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
@@ -396,6 +433,12 @@ namespace lsn {
 
 				pfThis = reinterpret_cast<float *>(&m_mStackedSinTable[I]);
 				pfThis[J] = m_fPhaseSinTable[(J+I)%12];
+
+				pfThis = reinterpret_cast<float *>(&m_mStackedNegCosTable[I]);
+				pfThis[J] = -m_fPhaseCosTable[(J+I)%12];
+
+				pfThis = reinterpret_cast<float *>(&m_mStackedNegSinTable[I]);
+				pfThis[J] = -m_fPhaseSinTable[(J+I)%12];
 			}
 		}
 	}
@@ -403,9 +446,9 @@ namespace lsn {
 	/**
 	 * Fills the __m128 registers with the black level and (white-black) level.
 	 **/
-	void CNtscLSpiroFilter::GenNormalizedSignals() {
+	void CPalLSpiroFilter::GenNormalizedSignals() {
 		for ( size_t I = 0; I < 16; ++I ) {
-			m_NormalizedLevels[I] = (CUtilities::m_fNtscLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
+			m_NormalizedLevels[I] = (CUtilities::m_fPalLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
 		}
 	}
 
@@ -414,7 +457,7 @@ namespace lsn {
 	 * 
 	 * \param _ui32Width The width of the kernel.
 	 **/
-	void CNtscLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
+	void CPalLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = CUtilities::Gaussian16FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
@@ -441,11 +484,11 @@ namespace lsn {
 	 * \param _ui16Scale The width scale factor.
 	 * \return Returns true if the allocations succeeded.
 	 **/
-	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
+	bool CPalLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
 			// Buffer size:
-			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 8;
+			// [m_ui32FilterKernelSize/2][m_ui16Width*m_ui16PixelToSignal][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
+			size_t sRowSize = LSN_PM_PAL_RENDER_WIDTH * m_ui16PixelToSignal + m_ui32FilterKernelSize + 8;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
@@ -472,7 +515,7 @@ namespace lsn {
 	 * 
 	 * \param _sScanline The scanline to convert
 	 **/
-	void CNtscLSpiroFilter::ConvertYiqToBgra( size_t _sScanline ) {
+	void CPalLSpiroFilter::ConvertYiqToBgra( size_t _sScanline ) {
 		size_t sYiqStride = m_ui16ScaledWidth * 4 * _sScanline;
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
@@ -482,6 +525,23 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
+
+		//float * pfSignalStart = m_vSignalStart[_sScanline];
+		//for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
+		//	
+
+		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// B0;
+		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// G0;
+		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// R0;
+		//	(*pui8Bgra++) = 255;						// A0;
+
+		//	++pfY;
+		//	++pfI;
+		//	++pfQ;
+		//	++pfSignalStart;
+		//}
+		//return;
+
 		if ( CUtilities::IsAvxSupported() ) {
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -658,7 +718,7 @@ namespace lsn {
 	/**
 	 * Stops the worker thread.
 	 **/
-	void CNtscLSpiroFilter::StopThread() {
+	void CPalLSpiroFilter::StopThread() {
 		m_tdThreadData.bEndThread = true;
 		if ( m_ptThread.get() ) {
 			m_eGo.Signal();
@@ -674,7 +734,7 @@ namespace lsn {
 	 * 
 	 * \param _ptdData Parameters passed to the thread.
 	 **/
-	void CNtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+	void CPalLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
 		while ( !_ptdData->bEndThread ) {
 			_ptdData->pnlsfThis->m_eDone.Signal();
 			_ptdData->pnlsfThis->m_eGo.WaitForSignal();
