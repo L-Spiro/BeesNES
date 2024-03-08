@@ -400,21 +400,18 @@ namespace lsn {
 	 **/
 	inline float CPalLSpiroFilter::IndexToPalSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase, size_t _sRowIdx ) {
 		// Decode the NES color.
-		uint16_t ui16Color = (_sRowIdx & 1) ?
-			0x0D - ((_ui16Pixel + 2) & 0xF) :
-
-			(_ui16Pixel & 0x0F);								// 0..15 "cccc".
-		//uint16_t ui16Color = (_ui16Pixel & 0x0F);
+		uint16_t ui16Color = (_ui16Pixel & 0x0F);								// 0..15 "cccc".
 		uint16_t ui16Level = (ui16Color >= 0xE) ? 1 : (_ui16Pixel >> 4) & 3;	// 0..3  "ll".  For colors 14..15, level 1 is forced.
 		uint16_t ui16Emphasis = (_ui16Pixel >> 6);								// 0..7  "eee".
 
 #define LSN_INCOLORPHASE( COLOR )					(((COLOR) + _ui16Phase) % 12 < 6)
+#define LSN_PALCOLOR( COLOR )						((_sRowIdx & 1) == 0) ? (-(COLOR - 5) % 12) : COLOR
 		// When de-emphasis bits are set, some parts of the signal are attenuated:
 		// Colors [14..15] are not affected by de-emphasis.
 		uint16_t ui16Atten = ((ui16Color < 0xE) &&
-			((ui16Emphasis & 1) && LSN_INCOLORPHASE( 0xC )) ||
-			((ui16Emphasis & 2) && LSN_INCOLORPHASE( 0x4 )) ||
-			((ui16Emphasis & 4) && LSN_INCOLORPHASE( 0x8 ))) ? 8 : 0;
+			((ui16Emphasis & 1) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0xC ) )) ||
+			((ui16Emphasis & 2) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0x4 ) )) ||
+			((ui16Emphasis & 4) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0x8 ) ))) ? 8 : 0;
 
 		// The square wave for this color alternates between these two voltages:
 		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];
@@ -422,7 +419,9 @@ namespace lsn {
 		if ( ui16Color == 0 ) { return fHigh; }			// For color 0, only high level is emitted.
 		if ( ui16Color > 12 ) { return fLow; }			// For colors 13..15, only low level is emitted.
 
-		return LSN_INCOLORPHASE( ui16Color ) ? fHigh : fLow;
+		// alter phase on every other scanline
+		return LSN_INCOLORPHASE( LSN_PALCOLOR( ui16Color ) ) ? fHigh : fLow;
+#undef LSN_PALCOLOR
 #undef LSN_INCOLORPHASE
 	}
 

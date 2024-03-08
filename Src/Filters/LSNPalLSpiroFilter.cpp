@@ -258,31 +258,29 @@ namespace lsn {
 			int16_t J = i16Start;
 			if ( CUtilities::IsAvxSupported() ) {
 				while ( i16End - J >= 8 ) {
-					uint16_t ui16SinIdx;
-					if ( _sRowIdx & 1 ) {
-						ui16SinIdx = ((_ui16Cycle + J + 6) + (12 * 4)) % 12;
-						//ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					uint16_t ui16CosIdx;
+					if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
-						ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					}
 					// Can do 8 at a time.
-					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, ui16SinIdx, (*_pfDstI), (*_pfDstQ) );
+					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
 					J += 8;
 				}
 			}
 			if ( CUtilities::IsSse4Supported() ) {
 				while ( i16End - J >= 4 ) {
-					uint16_t ui16SinIdx;
-					if ( _sRowIdx & 1 ) {
-						ui16SinIdx = ((_ui16Cycle + J + 6) + (12 * 4)) % 12;
-						//ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					uint16_t ui16CosIdx;
+					if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
-						ui16SinIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					}
 					// Can do 4 at a time.
-					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, ui16SinIdx, (*_pfDstI), (*_pfDstQ) );
+					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
 					J += 4;
 				}
 			}
@@ -460,7 +458,7 @@ namespace lsn {
 	void CPalLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::Gaussian16FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilter[I] = CUtilities::BoxFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;
