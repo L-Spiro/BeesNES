@@ -804,6 +804,25 @@ namespace lsn {
 		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
+		static inline float									Gaussian1_5FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 1.0 / 1.5 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
 		static inline float									Gaussian2FilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {

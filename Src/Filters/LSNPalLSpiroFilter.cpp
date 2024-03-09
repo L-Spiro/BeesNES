@@ -19,10 +19,10 @@ namespace lsn {
 
 	// == Members.
 	CPalLSpiroFilter::CPalLSpiroFilter() {
-		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
-		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
-		m_fBrightnessSetting = 1.0f - 0.075f;	/**< The brightness setting. */
-		m_fSaturationSetting = -0.42f + 1.0f;	/**< The saturation setting. */
+		m_fHueSetting = (12.0f + 0.0f) * std::numbers::pi / 180.0f;					/**< The hue. */
+		m_fGammaSetting = 2.35f;													/**< The CRT gamma curve. */
+		m_fBrightnessSetting = 1.0f - 0.15f;										/**< The brightness setting. */
+		m_fSaturationSetting = -0.32f + 1.0f;										/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
@@ -458,7 +458,7 @@ namespace lsn {
 	void CPalLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::BoxFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilter[I] = CUtilities::Gaussian4FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;

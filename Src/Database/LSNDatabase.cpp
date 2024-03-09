@@ -381,6 +381,8 @@ namespace lsn {
 			{ .ui32Crc = 0x9D07708D, .pmRegion = LSN_PM_PAL },
 			// Pac-Man (Namco) (E) [!]
 			{ .ui32Crc = 0x6FA1193B, .pmRegion = LSN_PM_PAL },
+			// palphase
+			{ .ui32Crc = 0xCB333C4F, .pmRegion = LSN_PM_PAL },
 			// Parasol Stars - The Story of Bubble Bobble 3 (E) [!]
 			{ .ui32Crc = 0x15382139, .pmRegion = LSN_PM_PAL },
 			// Parasol Stars - The Story of Bubble Bobble III (Europe) (Beta)
