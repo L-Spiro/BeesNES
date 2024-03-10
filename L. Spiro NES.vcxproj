@@ -741,9 +741,11 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />
+    <None Include="Src\Ppu\LSNCreateCycleTablePalM.inl" />
     <None Include="Src\Ppu\LSNGenFuncsDendy.inl" />
     <None Include="Src\Ppu\LSNGenFuncsNtsc.inl" />
     <None Include="Src\Ppu\LSNGenFuncsPal.inl" />
+    <None Include="Src\Ppu\LSNGenFuncsPalM.inl" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest" />

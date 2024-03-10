@@ -115,17 +115,23 @@ namespace lsn {
 		LSN_CS_DENDY_MASTER					= LSN_CS_PAL_MASTER,				/**< The master clock speed (26.6017125 MHz * 2). */
 		LSN_CS_DENDY_MASTER_DIVISOR			= LSN_CS_PAL_MASTER_DIVISOR,		/**< The master clock speed divisor. 53.203425 MHz / 2 = 26601712.5. */
 
+		LSN_CS_PALM_MASTER					= LSN_CS_NTSC_MASTER,				/**< The master clock speed (236.25 MHz) without the 11 divisor. */
+		LSN_CS_PALM_MASTER_DIVISOR			= LSN_CS_NTSC_MASTER_DIVISOR,		/**< The master clock speed divisor. 236.25 MHz / 11 = 21477272.727272727272727272727273. */
+
 		LSN_CS_NTSC_CPU_DIVISOR				= 12ULL,							/**< 236.25 MHz / 11 / 12 = 1789772.7272727272727272727272727. */
 		LSN_CS_PAL_CPU_DIVISOR				= 16ULL,							/**< 53.203425 MHz / 2 / 16 = 1662607.03125. */
 		LSN_CS_DENDY_CPU_DIVISOR			= 15ULL,							/**< 53.203425 MHz / 2 / 15 = 1773447.5. */
+		LSN_CS_PALM_CPU_DIVISOR				= 12ULL,							/**< 236.25 MHz / 11 / 12 = 1789772.7272727272727272727272727. */
 
 		LSN_CS_NTSC_PPU_DIVISOR				= 4ULL,								/**< 236.25 MHz / 11 / 4 = 5369318.1818181818181818181818182. */
 		LSN_CS_PAL_PPU_DIVISOR				= 5ULL,								/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
 		LSN_CS_DENDY_PPU_DIVISOR			= LSN_CS_PAL_PPU_DIVISOR,			/**< 53.203425 MHz / 2 / 5 = 5320342.5. */
+		LSN_CS_PALM_PPU_DIVISOR				= LSN_CS_NTSC_PPU_DIVISOR,			/**< 236.25 MHz / 11 / 4 = 5369318.1818181818181818181818182. */
 
 		LSN_CS_NTSC_APU_DIVISOR				= LSN_CS_NTSC_CPU_DIVISOR * 1ULL,	/**< 236.25 MHz / 11 / (12 * 1) = 1789772.7272727272727272727272727. */				// /**< 236.25 MHz / 11 / (12 * 2) = 894886.36363636363636363636363636. */
 		LSN_CS_PAL_APU_DIVISOR				= LSN_CS_PAL_CPU_DIVISOR * 1ULL,	/**< 53.203425 MHz / 2 / (16 * 1) = 1662607.03125. */								// /**< 53.203425 MHz / 2 / (16 * 2) = 831303.515625. */
 		LSN_CS_DENDY_APU_DIVISOR			= LSN_CS_DENDY_CPU_DIVISOR * 1ULL,	/**< 53.203425 MHz / 2 / (15 * 1) = 1773447.5. */									// /**< 53.203425 MHz / 2 / (15 * 2) = 886723.75. */
+		LSN_CS_PALM_APU_DIVISOR				= LSN_CS_NTSC_APU_DIVISOR,			/**< 236.25 MHz / 11 / (12 * 1) = 1789772.7272727272727272727272727. */
 
 		/*
 		 * To run clocks precisely, floating-point math must be avoided.  All inputs must be accumulated in integers.
@@ -180,10 +186,21 @@ namespace lsn {
 		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_DENDY_H_BORDER				= LSN_PM_PAL_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
 
+		LSN_PM_PALM							= 3,								/**< PAL-M code. */
+		LSN_PM_PALM_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_PALM_SCANLINES				= LSN_PM_NTSC_SCANLINES,			/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
+		LSN_PM_PALM_PRERENDER				= LSN_PM_NTSC_PRERENDER,			/**< The number of pre-render scanlines. */
+		LSN_PM_PALM_RENDER_LINES			= LSN_PM_NTSC_RENDER_LINES,			/**< The number of render scanlines. */
+		LSN_PM_PALM_POSTRENDER_LINES		= LSN_PM_NTSC_POSTRENDER_LINES,		/**< The number of post-render scanlines. */
+		LSN_PM_PALM_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
+		LSN_PM_PALM_POSTBLANK_LINES			= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
+		LSN_PM_PALM_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_PALM_H_BORDER				= LSN_PM_NTSC_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
+
 
 		LSN_PM_UNKNOWN						= 0xFFE2,							/**< Unknown code. */
 
-		LSN_PM_CONSOLE_TOTAL				= 3,								/**< NTSC, PAL, and Dendy. */
+		LSN_PM_CONSOLE_TOTAL				= 4,								/**< NTSC, PAL, Dendy, and PAL-M. */
 	};
 
 	/** Console types. */

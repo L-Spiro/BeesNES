@@ -916,6 +916,12 @@
     <None Include="Src\Ppu\LSNGenFuncsPal.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
+    <None Include="Src\Ppu\LSNCreateCycleTablePalM.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncsPalM.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest">

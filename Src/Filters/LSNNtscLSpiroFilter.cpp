@@ -267,6 +267,16 @@ namespace lsn {
 					J += 4;
 				}
 			}
+			{
+				while ( i16End - J >= 1 ) {
+					size_t sIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
+					(*_pfDstY) += fLevel;
+					(*_pfDstI) += m_fPhaseCosTable[sIdx];
+					(*_pfDstQ) += m_fPhaseSinTable[sIdx];
+					++J;
+				}
+			}
 			(*_pfDstY++) *= m_fBrightnessSetting;
 			++_pfDstI;
 			++_pfDstQ;

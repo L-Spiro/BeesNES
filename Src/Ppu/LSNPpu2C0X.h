@@ -92,6 +92,7 @@ namespace lsn {
 #include "LSNCreateCycleTableNtsc.inl"
 #include "LSNCreateCycleTablePal.inl"
 #include "LSNCreateCycleTableDendy.inl"
+#include "LSNCreateCycleTablePalM.inl"
 #endif	// #ifdef LSN_GEN_PPU
 		}
 		~CPpu2C0X() {
@@ -2258,6 +2259,7 @@ namespace lsn {
 #include "LSNGenFuncsNtsc.inl"
 #include "LSNGenFuncsPal.inl"
 #include "LSNGenFuncsDendy.inl"
+#include "LSNGenFuncsPalM.inl"
 	};
 	
 
@@ -2286,6 +2288,12 @@ namespace lsn {
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)/*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CDendyPpu;
+
+	/**
+	 * A PAL-M PPU.
+	 */
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 4.0 / 3.0>
+																											CPalMPpu;
 
 #undef LSN_PPU_TYPE
 

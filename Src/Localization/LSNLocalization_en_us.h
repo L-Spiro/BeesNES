@@ -43,12 +43,14 @@
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)
 #define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC (&L. Spiro)
+#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL (&L. Spiro)
 #define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
 #define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-&CRT Full (LMP88959)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-&CRT Full (LMP88959)
 #define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL-CRT &Auto (LMP88959)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
 // Tools menu.
 
 // Main menu.

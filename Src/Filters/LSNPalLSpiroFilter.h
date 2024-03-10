@@ -151,6 +151,14 @@ namespace lsn {
 		 **/
 		void												SetWhiteLevel( float _fWhite );
 
+		/**
+		 * Sets the number of signals per pixel.  10 for PAL, 8 for Dendy.
+		 * 
+		 * \param _ui16Value The value to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetPixelToSignal( uint16_t _ui16Value );
+
 
 	protected :
 		// == Enumerations.
@@ -180,8 +188,6 @@ namespace lsn {
 		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
 		__m256												m_mStackedCosTable[12];					/**< 8 elements of the cosine table stacked. */
 		__m256												m_mStackedSinTable[12];					/**< 8 elements of the sine table stacked. */
-		__m256												m_mStackedNegCosTable[12];				/**< 8 elements of the cosine table stacked. */
-		__m256												m_mStackedNegSinTable[12];				/**< 8 elements of the sine table stacked. */
 		__m256												m_1_14_256;								/**< 1.14. */
 		__m256												m_2_03_256;								/**< 2.03. */
 		__m256												m_n0_394642_256;						/**< -0.394642. */
@@ -339,32 +345,6 @@ namespace lsn {
 		inline float										Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin );
 
 		/**
-		 * Performs convolution on 8 values at a time using the inverted cos/sin tables.
-		 * 
-		 * \param _pfSignals The source signals to convolve.
-		 * \param _sFilterIdx The filter table index.
-		 * \param _sCosIdx The cosine table index.
-		 * \param _sSinIdx The sine table index.
-		 * \param _fCos The summed result of cosine convolution.
-		 * \param _fSin The summed result of sine convolution.
-		 * \return Returns the sum of the signal convolution.
-		 **/
-		inline float										Convolution8_Inv( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin );
-
-		/**
-		 * Performs convolution on 4 values at a time using the inverted cos/sin tables.
-		 * 
-		 * \param _pfSignals The source signals to convolve.
-		 * \param _sFilterIdx The filter table index.
-		 * \param _sCosIdx The cosine/sine table index.
-		 * \param _sSinIdx The sine table index.
-		 * \param _fCos The summed result of cosine convolution.
-		 * \param _fSin The summed result of sine convolution.
-		 * \return Returns the sum of the signal convolution.
-		 **/
-		inline float										Convolution4_Inv( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin );
-
-		/**
 		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
 		 * 
 		 * \param _sScanline The scanline to convert
@@ -493,88 +473,6 @@ namespace lsn {
 	 * \return Returns the sum of the signal convolution.
 	 **/
 	inline float CPalLSpiroFilter::Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin ) {
-		// Load the signals.
-		//uintptr_t uiptrAddrd = (*reinterpret_cast<uintptr_t *>(&_pfSignals));
-		//__m128 mSignals;// = (uiptrAddrd & 15) ? _mm_loadu_ps( _pfSignals ) : _mm_load_ps( _pfSignals );
-		//if ( uiptrAddrd & 31 ) {
-		//	mSignals = _mm_loadu_ps( _pfSignals );
-		//}
-		//else {
-		//	mSignals = _mm_load_ps( _pfSignals );
-		//}
-		__m128 mSignals = _mm_loadu_ps( _pfSignals );
-		// Load the filter weights.
-		__m128 mFilter = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
-		// Load the cosine values.
-		__m128 mCos = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
-
-		// Multiply Signals and weights.
-		__m128 mLevels = _mm_mul_ps( mSignals, mFilter );
-		// Load the sine values.
-		__m128 mSin = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
-
-		// Multiply levels and cosines.
-		mCos = _mm_mul_ps( mLevels, mCos );
-		// Multiply levels and sines.
-		mSin = _mm_mul_ps( mLevels, mSin );
-		
-		_fCos += CUtilities::HorizontalSum( mCos );
-		_fSin += CUtilities::HorizontalSum( mSin );
-		return CUtilities::HorizontalSum( mLevels );
-	}
-
-	/**
-	 * Performs convolution on 8 values at a time using the inverted cos/sin tables.
-	 * 
-	 * \param _pfSignals The source signals to convolve.
-	 * \param _sFilterIdx The filter table index.
-	 * \param _sCosIdx The cosine/sine table index.
-	 * \param _fCos The summed result of cosine convolution.
-	 * \param _fSin The summed result of sine convolution.
-	 * \return Returns the sum of the signal convolution.
-	 **/
-	inline float CPalLSpiroFilter::Convolution8_Inv( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin ) {
-		// Load the signals.
-		//uintptr_t uiptrAddrd = (*reinterpret_cast<uintptr_t *>(&_pfSignals));
-		//__m256 mSignals;// = (uiptrAddrd & 31) ? _mm256_loadu_ps( _pfSignals ) : _mm256_load_ps( _pfSignals );
-		//if ( uiptrAddrd & 31 ) {
-		//	mSignals = _mm256_loadu_ps( _pfSignals );
-		//}
-		//else {
-		//	mSignals = _mm256_load_ps( _pfSignals );
-		//}
-		__m256 mSignals = _mm256_loadu_ps( _pfSignals );
-		// Load the filter weights.
-		__m256 mFilter = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
-		// Load the cosine values.
-		__m256 mCos = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
-
-		// Multiply Signals and weights.
-		__m256 mLevels = _mm256_mul_ps( mSignals, mFilter );
-		// Load the sine values.
-		__m256 mSin = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
-
-		// Multiply levels and cosines.
-		mCos = _mm256_mul_ps( mLevels, mCos );
-		// Multiply levels and sines.
-		mSin = _mm256_mul_ps( mLevels, mSin );
-		
-		_fCos += CUtilities::HorizontalSum( mCos );
-		_fSin += CUtilities::HorizontalSum( mSin );
-		return CUtilities::HorizontalSum( mLevels );
-	}
-
-	/**
-	 * Performs convolution on 4 values at a time using the inverted cos/sin tables.
-	 * 
-	 * \param _pfSignals The source signals to convolve.
-	 * \param _sFilterIdx The filter table index.
-	 * \param _sCosIdx The cosine/sine table index.
-	 * \param _fCos The summed result of cosine convolution.
-	 * \param _fSin The summed result of sine convolution.
-	 * \return Returns the sum of the signal convolution.
-	 **/
-	inline float CPalLSpiroFilter::Convolution4_Inv( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, float &_fCos, float &_fSin ) {
 		// Load the signals.
 		//uintptr_t uiptrAddrd = (*reinterpret_cast<uintptr_t *>(&_pfSignals));
 		//__m128 mSignals;// = (uiptrAddrd & 15) ? _mm_loadu_ps( _pfSignals ) : _mm_load_ps( _pfSignals );

@@ -226,6 +226,22 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the number of signals per pixel.  10 for PAL, 8 for Dendy.
+	 * 
+	 * \param _ui16Value The value to set.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CPalLSpiroFilter::SetPixelToSignal( uint16_t _ui16Value ) {
+		uint16_t ui16Backup = m_ui16PixelToSignal;
+		m_ui16PixelToSignal = _ui16Value;
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) {
+			m_ui16PixelToSignal = ui16Backup;
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
 	 * 
 	 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
@@ -282,6 +298,22 @@ namespace lsn {
 					// Can do 4 at a time.
 					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
 					J += 4;
+				}
+			}
+			{
+				while ( i16End - J >= 1 ) {
+					uint16_t ui16CosIdx;
+					if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
+					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
+					(*_pfDstY) += fLevel;
+					(*_pfDstI) += m_fPhaseCosTable[ui16CosIdx];
+					(*_pfDstQ) += m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12];
+					++J;
 				}
 			}
 			(*_pfDstY++) *= m_fBrightnessSetting;
@@ -431,12 +463,6 @@ namespace lsn {
 
 				pfThis = reinterpret_cast<float *>(&m_mStackedSinTable[I]);
 				pfThis[J] = m_fPhaseSinTable[(J+I)%12];
-
-				pfThis = reinterpret_cast<float *>(&m_mStackedNegCosTable[I]);
-				pfThis[J] = -m_fPhaseCosTable[(J+I)%12];
-
-				pfThis = reinterpret_cast<float *>(&m_mStackedNegSinTable[I]);
-				pfThis[J] = -m_fPhaseSinTable[(J+I)%12];
 			}
 		}
 	}
@@ -458,7 +484,7 @@ namespace lsn {
 	void CPalLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::Gaussian4FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilter[I] = CUtilities::Gaussian16FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;

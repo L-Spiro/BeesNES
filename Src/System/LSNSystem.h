@@ -596,6 +596,14 @@ namespace lsn {
 																							CDendySystem;
 
 	/**
+	 * A PAL-M system.
+	 */
+	typedef CSystem<LSN_CS_PALM_MASTER, LSN_CS_PALM_MASTER_DIVISOR,
+		LSN_CS_PALM_CPU_DIVISOR, LSN_CS_PALM_PPU_DIVISOR, LSN_CS_PALM_APU_DIVISOR,
+		CCpu6502, CPalMPpu, CApu2A0X<LSN_APU_TYPE( NTSC ), LSN_CS_PALM_MASTER, LSN_CS_PALM_MASTER_DIVISOR, LSN_CS_PALM_APU_DIVISOR>>
+																							CPalMSystem;
+
+	/**
 	 * An RGB (2C03) system.
 	 */
 	typedef CSystem<LSN_CS_NTSC_MASTER, LSN_CS_NTSC_MASTER_DIVISOR,
