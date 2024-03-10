@@ -922,6 +922,9 @@
     <None Include="Src\Ppu\LSNGenFuncsPalM.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
+    <None Include="Src\OS\LSNSinCos.asm">
+      <Filter>Source Files\OS</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="L. Spiro NES.exe.intermediate.manifest">
@@ -951,10 +954,5 @@
     <ResourceCompile Include="L. Spiro NES.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <MASM Include="Src\OS\LSNSinCos.asm">
-      <Filter>Source Files\OS</Filter>
-    </MASM>
   </ItemGroup>
 </Project>

@@ -18,6 +18,9 @@
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlSource.h"
 #include "LSNSampleBucket.h"
+
+#include <immintrin.h>
+#include <smmintrin.h>
 #include <thread>
 
 #define LSN_AUDIO_BUFFERS									288
@@ -99,6 +102,15 @@ namespace lsn {
 		static inline float									Sample_6Point_5thOrder_Hermite_Z( const float * _pfsSamples, float _fFrac );
 
 		/**
+		 *  6-point, 5th-order Hermite X-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline float									Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac );
+
+		/**
 		 * 4-point, 2nd-order parabolic 2x x-form sampling.
 		 *
 		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
@@ -106,6 +118,42 @@ namespace lsn {
 		 * \return Returns the interpolated point.
 		 */
 		static inline float									Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac );
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
+		 * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
+		 * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
+		 * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
+		 * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
+		 * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( const float * _pfsSamples0, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * _pfsSamples5,
+			const float * _pfFrac,
+			float * _pfOut );
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples0 The 16-byte-aligned pointer to the 4 1st points.
+		 * \param _pfsSamples1 The 16-byte-aligned pointer to the 4 2nd points.
+		 * \param _pfsSamples2 The 16-byte-aligned pointer to the 4 3rd points.
+		 * \param _pfsSamples3 The 16-byte-aligned pointer to the 4 4th points.
+		 * \param _pfsSamples4 The 16-byte-aligned pointer to the 4 5th points.
+		 * \param _pfsSamples5 The 16-byte-aligned pointer to the 4 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( const float * _pfsSamples0, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * _pfsSamples5,
+			const float * _pfFrac,
+			float * _pfOut );
 
 		/**
 		 * 6-point, 4th-order optimal 2x z-form sampling.
@@ -213,6 +261,14 @@ namespace lsn {
 		static size_t										m_sTmpBufferIdx;
 		/** The HPF filter. */
 		static CHpfFilter									m_hfHpf90;
+		/** The SIMD buffers. */
+		__declspec(align(32))
+		static __m256										m_fSimdSamples[6];
+		/** The fraction values for each sample. */
+		__declspec(align(32))
+		static float										m_fFractions[sizeof( __m256 ) / sizeof( float )];
+		/** The SIMD buffer counter. */
+		static uint32_t										m_ui32SimdStackSize;
 		
 
 		
@@ -308,6 +364,31 @@ namespace lsn {
 	}
 
 	/**
+	 *  6-point, 5th-order Hermite X-form sampling.
+	 *
+	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _fFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline float CAudio::Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac ) {
+		// 6-point, 5th-order Hermite (_fFrac-form)
+		float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
+		float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
+		float fTwelvThy3 = 1.0f / 12.0f * _pfsSamples[3+2];
+		float fC0 = _pfsSamples[0+2];
+		float fC1 = 1.0f / 12.0f * (_pfsSamples[-2+2] - _pfsSamples[2+2]) + 2.0f / 3.0f * (_pfsSamples[1+2] - _pfsSamples[-1+2]);
+		float fC2 = 13.0f / 12.0f * _pfsSamples[-1+2] - 25.0f / 12.0f * _pfsSamples[0+2] + 3.0f / 2.0f * _pfsSamples[1+2] -
+			fElevenTwentyFourThy2 + fTwelvThy3 - fEightThym2;
+		float fC3 = 5.0f / 12.0f * _pfsSamples[0+2] - 7.0f / 12.0f * _pfsSamples[1+2] + 7.0f / 24.0f * _pfsSamples[2+2] -
+			1.0f / 24.0f * (_pfsSamples[-2+2] + _pfsSamples[-1+2] + _pfsSamples[3+2]);
+		float fC4 = fEightThym2 - 7.0f / 12.0f * _pfsSamples[-1+2] + 13.0f / 12.0f * _pfsSamples[0+2] - _pfsSamples[1+2] +
+			fElevenTwentyFourThy2 - fTwelvThy3;
+		float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
+			5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
+		return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+	}
+
+	/**
 	 * 4-point, 2nd-order parabolic 2x x-form sampling.
 	 *
 	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
@@ -316,11 +397,119 @@ namespace lsn {
 	 */
 	inline float CAudio::Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
 		// 4-point, 2nd-order parabolic 2x (X-form).
-		float fY1mM1 = _pfsSamples[1+2]-_pfsSamples[-1+2];
+		float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
 		float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
 		float fC1 = (1.0f / 2.0f) * fY1mM1;
 		float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
 		return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+	}
+
+	/**
+	 * 4-point, 2nd-order parabolic 2x x-form sampling.
+	 *
+	 * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
+	 * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
+	 * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
+	 * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
+	 * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
+	 * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+	 * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+	 * \param _pfOut The output pointer.
+	 */
+	inline void CAudio::Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+		const float * _pfsSamples2, const float * _pfsSamples3,
+		const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+		const float * _pfFrac,
+		float * _pfOut ) {
+		// _pfsSamples[1+2] = _pfsSamples3.
+		// _pfsSamples[-1+2] = _pfsSamples1.
+		// _pfsSamples[0+2] = _pfsSamples2.
+		// _pfsSamples[2+2] = _pfsSamples4.
+
+		// Load the inputs/constants.
+		__m256 mS_1p2 = _mm256_load_ps( _pfsSamples3 );
+		__m256 m1o2 = _mm256_set1_ps( 1.0f / 2.0f );
+		__m256 mS_n1p2 = _mm256_load_ps( _pfsSamples1 );
+		__m256 m1o4 = _mm256_set1_ps( 1.0f / 4.0f );
+
+		// float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+		__m256 mY1mM1 = _mm256_sub_ps( mS_1p2, mS_n1p2 );
+
+		// Load the inputs.
+		__m256 mS_0p2 = _mm256_load_ps( _pfsSamples2 );
+
+		// float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+		__m256 mC0 = _mm256_add_ps( _mm256_mul_ps( m1o2, mS_0p2 ), _mm256_mul_ps( m1o4, _mm256_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+		// Load the inputs.
+		__m256 mS_2p2 = _mm256_load_ps( _pfsSamples4 );
+
+		// float fC1 = (1.0f / 2.0f) * fY1mM1;
+		__m256 mC1 = _mm256_mul_ps( m1o2, mY1mM1 );
+
+		// Load the inputs.
+		__m256 mFrac = _mm256_load_ps( _pfFrac );
+
+		// float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+		__m256 mC2 = _mm256_mul_ps( m1o4, _mm256_sub_ps( _mm256_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+		// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+		__m256 mRet = _mm256_add_ps( _mm256_mul_ps( _mm256_add_ps( _mm256_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
+		_mm256_store_ps( _pfOut, mRet );
+	}
+
+	/**
+	 * 4-point, 2nd-order parabolic 2x x-form sampling.
+	 *
+	 * \param _pfsSamples0 The 16-byte-aligned pointer to the 4 1st points.
+	 * \param _pfsSamples1 The 16-byte-aligned pointer to the 4 2nd points.
+	 * \param _pfsSamples2 The 16-byte-aligned pointer to the 4 3rd points.
+	 * \param _pfsSamples3 The 16-byte-aligned pointer to the 4 4th points.
+	 * \param _pfsSamples4 The 16-byte-aligned pointer to the 4 5th points.
+	 * \param _pfsSamples5 The 16-byte-aligned pointer to the 4 6th points.
+	 * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
+	 * \param _pfOut The output pointer.
+	 */
+	inline void CAudio::Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+		const float * _pfsSamples2, const float * _pfsSamples3,
+		const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+		const float * _pfFrac,
+		float * _pfOut ) {
+		// _pfsSamples[1+2] = _pfsSamples3.
+		// _pfsSamples[-1+2] = _pfsSamples1.
+		// _pfsSamples[0+2] = _pfsSamples2.
+		// _pfsSamples[2+2] = _pfsSamples4.
+
+		// Load the inputs/constants.
+		__m128 mS_1p2 = _mm_load_ps( _pfsSamples3 );
+		__m128 m1o2 = _mm_set1_ps( 1.0f / 2.0f );
+		__m128 mS_n1p2 = _mm_load_ps( _pfsSamples1 );
+		__m128 m1o4 = _mm_set1_ps( 1.0f / 4.0f );
+
+		// float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+		__m128 mY1mM1 = _mm_sub_ps( mS_1p2, mS_n1p2 );
+
+		// Load the inputs.
+		__m128 mS_0p2 = _mm_load_ps( _pfsSamples2 );
+
+		// float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+		__m128 mC0 = _mm_add_ps( _mm_mul_ps( m1o2, mS_0p2 ), _mm_mul_ps( m1o4, _mm_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+		// Load the inputs.
+		__m128 mS_2p2 = _mm_load_ps( _pfsSamples4 );
+
+		// float fC1 = (1.0f / 2.0f) * fY1mM1;
+		__m128 mC1 = _mm_mul_ps( m1o2, mY1mM1 );
+
+		// Load the inputs.
+		__m128 mFrac = _mm_load_ps( _pfFrac );
+
+		// float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+		__m128 mC2 = _mm_mul_ps( m1o4, _mm_sub_ps( _mm_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+		// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+		__m128 mRet = _mm_add_ps( _mm_mul_ps( _mm_add_ps( _mm_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
+		_mm_store_ps( _pfOut, mRet );
 	}
 
 	/**

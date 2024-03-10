@@ -735,9 +735,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
-    <MASM Include="Src\OS\LSNSinCos.asm">
+    <None Include="Src\OS\LSNSinCos.asm">
       <FileType>Document</FileType>
-    </MASM>
+    </None>
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />
