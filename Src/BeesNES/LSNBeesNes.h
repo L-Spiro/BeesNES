@@ -277,6 +277,8 @@ namespace lsn {
 		CPalLSpiroFilter						m_nbfLSpiroDendyFilter;
 		/** L. Spiro's PAL-M filter. */
 		CPalLSpiroFilter						m_nbfLSpiroPalMFilter;
+		/** L. Spiro's PAL-N filter. */
+		CPalLSpiroFilter						m_nbfLSpiroPalNFilter;
 		/** Blargg's NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
@@ -311,6 +313,8 @@ namespace lsn {
 		CDendySystem							m_nsDendySystem;
 		/** The PAL-M console. */
 		CPalMSystem								m_nsPalMSystem;
+		/** The PAL-N console. */
+		CPalNSystem								m_nsPalNSystem;
 		/** The array of console pointers. */
 		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL];
 		/** The console pointer. */

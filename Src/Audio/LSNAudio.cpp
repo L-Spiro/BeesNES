@@ -219,6 +219,7 @@ namespace lsn {
 						// It wrapped around, which means the buffer is full.
 						__declspec(align(32))
 						float fTmp[sizeof(__m256)/sizeof(float)];
+						//Sample_6Point_5thOrder_Hermite_X_AVX
 						Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( reinterpret_cast<float *>(&m_fSimdSamples[0]), reinterpret_cast<float *>(&m_fSimdSamples[1]),
 							reinterpret_cast<float *>(&m_fSimdSamples[2]), reinterpret_cast<float *>(&m_fSimdSamples[3]),
 							reinterpret_cast<float *>(&m_fSimdSamples[4]), reinterpret_cast<float *>(&m_fSimdSamples[5]),
