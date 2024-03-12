@@ -49,7 +49,7 @@ namespace lsn {
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ) {
-
+		(*m_pabIsAlive) = true;
 		
 		static const struct {
 			LPCWSTR				lpwsImageName;
@@ -82,11 +82,11 @@ namespace lsn {
 
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-48.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
-		HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
-		::SendMessageW( Wnd(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon );
+		HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(hIcon) );
 
-		hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
-		::SendMessageW( Wnd(), WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon );
+		hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(hIcon) );
 		//::SendMessageW( Wnd(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)m_bBitmaps[0].Handle() );
 		// Create the basic render target.
 		m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
@@ -131,10 +131,6 @@ namespace lsn {
 
 		//RegisterRawInput();
 		ScanInputDevices();
-		
-		
-
-		(*m_pabIsAlive) = true;
 	}
 	CMainWindow::~CMainWindow() {
 		StopThread();
@@ -379,6 +375,14 @@ namespace lsn {
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_LSPIRO : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_LSPIRO );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PALM_LSPIRO : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PALM_LSPIRO );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PALN_LSPIRO : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PALN_LSPIRO );
 				break;
 			}
 			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
@@ -861,6 +865,16 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_LSPIRO : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PALM_LSPIRO : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PALM_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PALN_LSPIRO : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PALN_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}

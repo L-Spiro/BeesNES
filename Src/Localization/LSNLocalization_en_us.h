@@ -39,18 +39,20 @@
 #define LSN_VIDEO_SIZE_5X													5×
 #define LSN_VIDEO_SIZE_6X													6×
 // Video filters.
-#define LSN_VIDEO_FILTER_NONE												&None
+#define LSN_VIDEO_FILTER_NONE												N&one
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)
-#define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
-#define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC (&L. Spiro)
-#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL (&L. Spiro)
-#define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
+//#define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
+#define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC (L. &Spiro)
+#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL (L&. Spiro)
+#define LSN_VIDEO_FILTER_PALM_L_SPIRO										PAL-&M (Brazil Famiclone) (L. Spiro)
+#define LSN_VIDEO_FILTER_PALN_L_SPIRO										PAL-&N (Argentina Famiclone) (L. Spiro)
+//#define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
 #define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-&CRT Full (LMP88959)
-#define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-&CRT Full (LMP88959)
-#define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
+#define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-CRT &Full (LMP88959)
+//#define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL-CRT &Auto (LMP88959)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL Auto (L. S&piro)
 // Tools menu.
 
 // Main menu.

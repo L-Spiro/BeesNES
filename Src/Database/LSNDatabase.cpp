@@ -30,7 +30,7 @@ namespace lsn {
 			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
 			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },*/
 			// Super Mario Bros. (World)
-			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALN },
+			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALM },
 
 			// 01.len_ctr
 			{ .ui32Crc = 0xD1837AD3, .pmRegion = LSN_PM_PAL },

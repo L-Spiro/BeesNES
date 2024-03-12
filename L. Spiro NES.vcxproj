@@ -530,6 +530,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Audio\LSNOpenAlSource.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilterLeaky.h" />
+    <ClInclude Include="Src\Audio\LSNSampleBox.h" />
     <ClInclude Include="Src\Audio\LSNSampleBucket.h" />
     <ClInclude Include="Src\Audio\LSNSincFilter.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
@@ -737,6 +738,16 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
     <MASM Include="Src\OS\LSNSinCos.asm">
       <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </MASM>
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
