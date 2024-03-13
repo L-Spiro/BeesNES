@@ -931,9 +931,9 @@ namespace lsn {
 
 
 		// == Members.
-		__declspec(align(32))
+		LSN_ALIGN( 32 )
 		static const float									m_fNtscLevels[16];							/**< Output levels for NTSC. */
-		__declspec(align(32))
+		LSN_ALIGN( 32 )
 		static const float									m_fPalLevels[16];							/**< Output levels for PAL. */
 		static int											m_iCpuId[4];								/**< Result of __cpuid(). */
 		static uint8_t										m_bAvxSupport;								/**< Is AVX supported? */

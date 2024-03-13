@@ -14,7 +14,19 @@
 
 #pragma once
 
+#include <cmath>
+#include <cstdint>
 #include <vector>
+
+#if defined( _MSC_VER )
+    // Microsoft Visual Studio Compiler
+    #define LSN_ALN		__declspec( align( 32 ) )
+#elif defined( __GNUC__ ) || defined( __clang__ )
+    // GNU Compiler Collection (GCC) or Clang
+    #define LSN_ALN		__attribute__( (aligned( 32 )) )
+#else
+    #error "Unsupported compiler"
+#endif
 
 namespace lsn {
 
@@ -37,21 +49,23 @@ namespace lsn {
 	 *	#3: Down-samples to the final output rate using nearest-neighbor, since the intermediate rate is exactly 3 times the final rate.
 	 *	#4: HPF's at the final Hz.
 	 */
-	template <unsigned _uSimdType>
 	class CSampleBox {
 	public :
-		inline CSampleBox() :
-			m_fLpf( 0.0f ),
-			m_fHpf( 0.0f ),
-			m_fInputHz( 0.0f ),
-			m_ui32OutputHz( 0 ),
-			m_sBufferIdx( 0 ),
-			m_sRing( 0 ),
-			m_fAlpha( 0.0f ),
-			m_fPreviousOutput( 0.0f ),
-			m_fPrevInput( 0.0f ),
-			m_fDelta( 0.0f ),
-			m_fOutput( 0.0f ) {
+		inline CSampleBox() {
+			m_gGen.ui64SrcSampleCnt = 0ULL;
+			m_gGen.ui64SampleCnt = 0ULL;
+			m_gGen.fLpf = 0.0f;
+			m_gGen.fHpf = 0.0f;
+			m_gGen.dInputHz = 0.0;
+			m_gGen.ui32OutputHz = 0;
+
+			m_sSinc.sM = 0;
+
+			m_hHpf.fAlpha = 0.0f;
+			m_hHpf.fPreviousOutput = 0.0f;
+			m_hHpf.fPrevInput = 0.0f;
+			m_hHpf.fDelta = 0.0f;
+			m_hHpf.fOutput = 0.0f;
 		}
 		virtual ~CSampleBox() {
 		}
@@ -69,74 +83,103 @@ namespace lsn {
 		 * \return Returns true if the internal buffers could be allocated.
 		 **/
 		bool												Init( double _dLpf, double _dHpf, size_t _sM, double _dInputRate, uint32_t _ui32OutputRate ) {
-			if ( !(_sM & 1) ) { ++_sM; }						// Must have an odd number of samples for symmetry.
-			if ( m_fInputHz == float( _dInputRate ) &&
-				m_fLpf == float( _dLpf ) &&
-				m_fHpf == float( _dHpf ) &&
-				m_ui32OutputHz == _ui32OutputRate &&
-				m_vCeof.size() == _sM ) { return true; }
+			// Round up to the nearest 8.
+			_sM = (_sM + 7) / 8 * 8;
+			// Subtract 1 to make it odd.
+			--_sM;
+			if ( m_gGen.dInputHz == _dInputRate &&
+				m_gGen.fLpf == float( _dLpf ) &&
+				m_gGen.fHpf == float( _dHpf ) &&
+				m_gGen.ui32OutputHz == _ui32OutputRate &&
+				m_sSinc.vCeof.size() - 1 == _sM ) { return true; }
 			
-			double dFc = _dLpf / _dInputRate;					// Cut-off ratio.
+			double dFc = _dLpf / (_ui32OutputRate * 3.0);	// Cut-off ratio.  The sinc is applied to the buffer that is (_ui32OutputRate * 3).
 
 			try {
-				m_vCeof.resize( _sM );
-				m_vRing.resize( _sM );
+				// + 1 makes it a multiple of 8.
+				m_sSinc.vCeof.resize( _sM + 1 );
+				m_sSinc.vRing.resize( (_sM + 1) * 4 );
+				m_gGen.vBuffer.resize( size_t( ::ceil( _dInputRate / (_ui32OutputRate * 3) ) + 6 ) );
+				m_gGen.vOutputBuffer.clear();
 			}
 			catch ( ... ) { return false; }
-			m_sRing = 0;
-
-			size_t sL = _sM / 2;								// The center sample is the latency.
-			for ( auto I = m_vCeof.size(); I--; ) {
-				m_vCeof[I] = 1.0f;
+			
+			size_t sL = _sM / 2;							// The center sample is the latency.
+			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
+				m_sSinc.vCeof[I] = 1.0f;
 			}
-			for ( auto I = m_vRing.size(); I--; ) {
-				m_vRing[I] = 0.0f;
+			for ( auto I = m_sSinc.vRing.size(); I--; ) {
+				m_sSinc.vRing[I] = 0.0f;
 			}
 
-			SynthesizeBlackmanWindow( m_vCeof );
+			SynthesizeBlackmanWindow( m_sSinc.vCeof );
+			
 
 			// Apply sinc function.
 			double dFc2 = 2.0 * dFc;
 			const double dTau = 2.0 * std::numbers::pi;
 			int64_t i64SignedL = int64_t( sL );
-			for ( auto I = m_vCeof.size(); I--; ) {
+			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
 				int64_t N = int64_t( I ) - i64SignedL;
 				if ( N ) {
-					m_vCeof[I] = float( m_vCeof[I] * std::sin( dTau * dFc * N ) / (std::numbers::pi * N) );
+					m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * std::sin( dTau * dFc * N ) / (std::numbers::pi * N) );
 				}
 				else {
-					m_vCeof[I] = float( m_vCeof[I] * dFc2 );
+					m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * dFc2 );
 				}
 			}
 
 			// Normalize.
 			{
 				double dSum = 0.0;
-				for ( auto I = m_vCeof.size(); I--; ) {
-					dSum += m_vCeof[I];
+				for ( auto I = m_sSinc.vCeof.size(); I--; ) {
+					dSum += m_sSinc.vCeof[I];
 				}
 				double dNorm = 1.0 / dSum;
-				for ( auto I = m_vCeof.size(); I--; ) {
-					m_vCeof[I] = float( m_vCeof[I] * dNorm );
+				for ( auto I = m_sSinc.vCeof.size(); I--; ) {
+					m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * dNorm );
 				}
 			}
 
 
 			// Prepare the HPF.
-			double dDelta = (_ui32OutputRate != 0) ? (1.0 / (_ui32OutputRate * 3)) : 0.0;
-			double dTimeConstant = (_dHpf != 0.0f) ? (1.0 / _dHpf) : 0.0;
-			m_fAlpha = float( ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0 );
-			m_fOutput = 0.0f;
-			m_fPreviousOutput = m_fOutput;
-			m_fPrevInput = 0.0f;
-			m_fDelta = 0.0f;
+			double dDelta = (_ui32OutputRate != 0) ? (1.0 / _ui32OutputRate) : 0.0;
+			double dTimeConstant = (_dHpf != 0.0) ? (1.0 / _dHpf) : 0.0;
+			m_hHpf.fAlpha = float( ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0 );
+			m_hHpf.fOutput = 0.0f;
+			m_hHpf.fPreviousOutput = m_hHpf.fOutput;
+			m_hHpf.fPrevInput = 0.0f;
+			m_hHpf.fDelta = 0.0f;
 
+			m_gGen.ui64SrcSampleCnt = 0ULL;
+			m_gGen.ui64SampleCnt = 0ULL;
+			m_gGen.dInputHz = _dInputRate;
+			m_gGen.fLpf = float( _dLpf );
+			m_gGen.fHpf = float( _dHpf );
+			m_gGen.ui32OutputHz = _ui32OutputRate;
 
-			m_fInputHz = float( _dInputRate );
-			m_fLpf = float( _dLpf );
-			m_fHpf = float( _dHpf );
-			m_ui32OutputHz = _ui32OutputRate;
+			m_sSinc.sM = _sM >> 1;
 			return true;
+		}
+
+		/**
+		 * Adds a sample. Called at the input Hz.
+		 * 
+		 * \param _fSample The sample to add.
+		 **/
+		inline void											AddSample( float _fSample ) {
+			m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = _fSample;
+			if ( m_gGen.ui64SrcSampleCnt >= 4 ) {
+				// How many samples should we have processed until now?
+				uint64_t ui64SamplesUntilNow = uint64_t( (m_gGen.ui64SrcSampleCnt - 4.0) * (m_gGen.ui32OutputHz * 3.0) / m_gGen.dInputHz );
+				// Process as many as needed to catch up to where we should be.
+				while ( m_gGen.ui64SampleCnt <= ui64SamplesUntilNow ) {
+					double dIdx = m_gGen.ui64SampleCnt / (m_gGen.ui32OutputHz * 3.0) * m_gGen.dInputHz;
+					double dFrac = std::fmod( dIdx, 1.0 );
+					size_t sIdx = size_t( dIdx );
+					StoreSample( sIdx, float( dFrac ) );
+				}
+			}
 		}
 
 		/**
@@ -146,12 +189,12 @@ namespace lsn {
 		 * \return Returns the filtered sample.
 		 **/
 		inline float										ProcessHpf( float _fSample ) {
-			m_fPreviousOutput = m_fOutput;
-			m_fDelta = _fSample - m_fPrevInput;
-			m_fPrevInput = _fSample;
+			m_hHpf.fPreviousOutput = m_hHpf.fOutput;
+			m_hHpf.fDelta = _fSample - m_hHpf.fPrevInput;
+			m_hHpf.fPrevInput = _fSample;
 
-			m_fOutput = m_fAlpha * m_fPreviousOutput + m_fAlpha * m_fDelta;
-			return m_fOutput;
+			m_hHpf.fOutput = m_hHpf.fAlpha * m_hHpf.fPreviousOutput + m_hHpf.fAlpha * m_hHpf.fDelta;
+			return m_hHpf.fOutput;
 		}
 
 		/**
@@ -159,20 +202,37 @@ namespace lsn {
 		 * 
 		 * \return Returns true if the coefficient buffer is non-0 in size.
 		 **/
-		inline bool											HasCoefficients() const { return m_vCeof.size() != 0; }
+		inline bool											HasCoefficients() const { return m_sSinc.vCeof.size() != 0; }
+
+		/**
+		 * Gets the output sample buffer, which should be cleared when teh samples are consumed.
+		 * 
+		 * \return Returns a reference to the output samples.
+		 **/
+		inline std::vector<float> &							Output() { return m_gGen.vOutputBuffer; }
 
 		/**
 		 * Calculates the _sM parameter for Init() given a transition bandwidth (the range of frequencies to transition from max volume to silence).
 		 * 
 		 * \param _dBw The frequency range to transition to silence.
-		 * \param _dSourceHz The frequency of the source samples.
+		 * \param _ui32OutputRate The frequency of the output, not the input.
 		 * \return Returns the _sM parameter for use with Init().
 		 **/
-		inline size_t										TransitionRangeToBandwidth( double _dBw, double _dSourceHz ) {
-			_dBw /= _dSourceHz;										// Bandwidth ratio.
+		static inline size_t								TransitionRangeToBandwidth( double _dBw, uint32_t _ui32OutputRate ) {
+			_dBw /= (_ui32OutputRate * 3.0);				// Bandwidth ratio.
 			size_t stM = size_t( std::ceil( 4.0 / _dBw ) );
 			if ( !(stM & 1) ) { return stM + 1; }
 			return stM;
+		}
+
+		/**
+		 * Calculates a recommended transition range to pass to TransitionRangeToBandwidth() to pass to Init().  The calculated range is based off the desired output Hz.
+		 * 
+		 * \param _ui32OutputRate The frequency of the output, not the input.
+		 * \return Returns the recommended transition range to pass to TransitionRangeToBandwidth().
+		 **/
+		static inline double								TransitionRange( uint32_t _ui32OutputRate ) {
+			return (_ui32OutputRate * 3.0) - (_ui32OutputRate / 2.0);
 		}
 
 		/**
@@ -224,24 +284,261 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** General members. */
+		struct LSN_GENERAL {
+			uint64_t										ui64SrcSampleCnt;							/**< Total samples submitted so far. */
+			uint64_t										ui64SampleCnt;								/**< Total samples sent to the (ui32OutputHz * 3) buffer. */
+			double											dInputHz;									/**< The source frequency. */
+			std::vector<float>								vBuffer;									/**< Ring buffer of the last few input samples. */
+			std::vector<float>								vOutputBuffer;								/**< The final bass-banded output sample. */
+			float											fLpf;										/**< The LPF frequency. */
+			float											fHpf;										/**< The HPF frequency. */
+			uint32_t										ui32OutputHz;								/**< The output frequency. */
+		};
+
+		/** Sinc filter (LPF). */
+		struct LSN_SINC {
+			std::vector<float>								vCeof;										/**< The array of coefficients. */
+			std::vector<float>								vRing;										/**< The ring buffer of past samples. */
+			size_t											sM;											/**< The midpoint of vCeof. */
+		};
+
+		/** HPF filter. */
+		struct LSN_HPF {
+			float											fAlpha;										/**< Alpha. */
+			float											fPreviousOutput;							/**< The previous output sample. */
+			float											fPrevInput;									/**< The previous input sample. */
+			float											fDelta;										/**< Delta. */
+			float											fOutput;									/**< The current filtered output sample. */
+		};
+
+		/** An aligned sampling buffer. */
+		LSN_ALN
+		struct LSN_SAMPLE_STACK {
+			float											fStack[8];									/**< Stack of samples, fit for an __m256 register. */
+		};
+
+		/** The temporary buffers for sampling multiple points at a time. */
+		struct LSN_POINTS {
+			LSN_ALN
+			LSN_SAMPLE_STACK								fSimdSamples[6];							/**< The SIMD buffers. */
+			LSN_ALN
+			float											fFractions[sizeof(LSN_SAMPLE_STACK)/sizeof(float)];	/**< The fraction values for each sample. */
+			uint32_t										ui32SimdStackSize;							/**< The SIMD buffer counter. */
+		};
+
+
 		// == Members.
-		// General.
-		float												m_fLpf;										/**< The LPF frequency. */
-		float												m_fHpf;										/**< The HPF frequency. */
-		float												m_fInputHz;									/**< The source frequency. */
-		uint32_t											m_ui32OutputHz;								/**< The output frequency. */
-		size_t												m_sBufferIdx;								/**< Index into m_vBuffer of the next sample. */
-		std::vector<float>									m_vBuffer;									/**< Ring buffer of the last few input samples. */
-		// Sinc filter (LPF).
-		std::vector<float>									m_vCeof;									/**< The array of coefficients. */
-		mutable std::vector<float>							m_vRing;									/**< The ring buffer of past samples. */
-		mutable size_t										m_sRing;									/**< The current index into the ring buffer. */
-		// HPF.
-		float												m_fAlpha;									/**< Alpha. */
-		float												m_fPreviousOutput;							/**< The previous output sample. */
-		float												m_fPrevInput;								/**< The previous input sample. */
-		float												m_fDelta;									/**< Delta. */
-		float												m_fOutput;									/**< The current filtered output sample. */
+		LSN_GENERAL											m_gGen;										/**< General members. */
+		LSN_SINC											m_sSinc;									/**< Sinc members. */
+		LSN_HPF												m_hHpf;										/**< HPF members. */
+		LSN_POINTS											m_pPoints;									/**< Interpolation points. */
+
+
+		// == Functions.
+		/**
+		 * Interpolates and stores a single sample.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
+		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
+		 * 
+		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
+		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
+		 **/
+		void												StoreSample( size_t _sBufferIdx, float _fFrac ) {
+			_sBufferIdx %= m_gGen.vBuffer.size();
+			float fSample;
+			if ( _sBufferIdx >= 2 && _sBufferIdx < (m_gGen.vBuffer.size() - 3) ) {
+				// We can interpolate directly out of the ring buffer.
+				fSample = Sample_4Point_2ndOrder_Parabolic_2X_X( &m_gGen.vBuffer[_sBufferIdx-2], _fFrac );
+			}
+			else {
+				// The 6 samples cross from the end back to the start, so we have to copy them.
+				float fTmp[6];
+				int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
+				for ( int32_t I = 0; I < 6; ++I ) {
+					fTmp[I] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
+				}
+				fSample = Sample_4Point_2ndOrder_Parabolic_2X_X( fTmp, _fFrac );
+			}
+			AddSampleToIntermediateBuffer( fSample );
+		}
+
+		/**
+		 * Interpolates and stores 4 samples.
+		 * 
+		 * \param PARM DESC
+		 * \param PARM DESC
+		 * \return DESC
+		 **/
+
+		/**
+		 * Interpolates and stores 8 samples.
+		 * 
+		 * \param PARM DESC
+		 * \param PARM DESC
+		 * \return DESC
+		 **/
+
+		/**
+		 * Passes an interpolated sample down the pipeline.  Every 3rd sample sent here gets sent to the final output buffer.
+		 * 
+		 * \param _fSample The sample to add to the intermediate buffer.
+		 **/
+		inline void											AddSampleToIntermediateBuffer( float _fSample ) {
+			m_sSinc.vRing[m_gGen.ui64SampleCnt%m_sSinc.vRing.size()] = _fSample;
+			if ( m_gGen.ui64SampleCnt++ % 3 == 0 ) {
+				// Every 3rd sample goes to the output (passing through a sinc filter and HPF).
+				if ( m_gGen.ui64SampleCnt > m_sSinc.sM ) {
+					size_t sIdx = size_t( (m_gGen.ui64SampleCnt - m_sSinc.sM - 1) % m_sSinc.vRing.size() );
+					// Convolutionatizinatify and HPFify this sample.  The next m_sSinc.sM samples following sIdx and the m_sSinc.sM samples before sIdx are valid.
+					float fConvolvinated = ProcessHpf( Convolve( sIdx ) );
+					// Send that bad momma-hamma to the output buffer to be retrieved by the user.
+					m_gGen.vOutputBuffer.push_back( fConvolvinated );
+				}
+			}
+		}
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing);
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float												Convolve( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			float fSum = 0.0f;
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for ( size_t I = 0; I < sTotal; ++I ) {
+				fSum += pfFilter[I] * m_sSinc.vRing[(_sIdx+I)%sMod];
+			}
+			return fSum;
+		}
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _fFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		inline float										Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
+			// 4-point, 2nd-order parabolic 2x (X-form).
+			float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+			float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+			float fC1 = (1.0f / 2.0f) * fY1mM1;
+			float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+			return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+		}
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
+		 * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
+		 * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
+		 * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
+		 * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
+		 * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		inline void											Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+			const float * _pfFrac,
+			float * _pfOut ) {
+			// _pfsSamples[1+2] = _pfsSamples3.
+			// _pfsSamples[-1+2] = _pfsSamples1.
+			// _pfsSamples[0+2] = _pfsSamples2.
+			// _pfsSamples[2+2] = _pfsSamples4.
+
+			// Load the inputs/constants.
+			__m256 mS_1p2 = _mm256_load_ps( _pfsSamples3 );
+			__m256 m1o2 = _mm256_set1_ps( 1.0f / 2.0f );
+			__m256 mS_n1p2 = _mm256_load_ps( _pfsSamples1 );
+			__m256 m1o4 = _mm256_set1_ps( 1.0f / 4.0f );
+
+			// float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+			__m256 mY1mM1 = _mm256_sub_ps( mS_1p2, mS_n1p2 );
+
+			// Load the inputs.
+			__m256 mS_0p2 = _mm256_load_ps( _pfsSamples2 );
+
+			// float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+			__m256 mC0 = _mm256_add_ps( _mm256_mul_ps( m1o2, mS_0p2 ), _mm256_mul_ps( m1o4, _mm256_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+			// Load the inputs.
+			__m256 mS_2p2 = _mm256_load_ps( _pfsSamples4 );
+
+			// float fC1 = (1.0f / 2.0f) * fY1mM1;
+			__m256 mC1 = _mm256_mul_ps( m1o2, mY1mM1 );
+
+			// Load the inputs.
+			__m256 mFrac = _mm256_load_ps( _pfFrac );
+
+			// float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+			__m256 mC2 = _mm256_mul_ps( m1o4, _mm256_sub_ps( _mm256_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+			// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+			__m256 mRet = _mm256_add_ps( _mm256_mul_ps( _mm256_add_ps( _mm256_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
+			_mm256_store_ps( _pfOut, mRet );
+		}
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling.
+		 *
+		 * \param _pfsSamples0 The 16-byte-aligned pointer to the 4 1st points.
+		 * \param _pfsSamples1 The 16-byte-aligned pointer to the 4 2nd points.
+		 * \param _pfsSamples2 The 16-byte-aligned pointer to the 4 3rd points.
+		 * \param _pfsSamples3 The 16-byte-aligned pointer to the 4 4th points.
+		 * \param _pfsSamples4 The 16-byte-aligned pointer to the 4 5th points.
+		 * \param _pfsSamples5 The 16-byte-aligned pointer to the 4 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		inline void											Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+			const float * _pfFrac,
+			float * _pfOut ) {
+			// _pfsSamples[1+2] = _pfsSamples3.
+			// _pfsSamples[-1+2] = _pfsSamples1.
+			// _pfsSamples[0+2] = _pfsSamples2.
+			// _pfsSamples[2+2] = _pfsSamples4.
+
+			// Load the inputs/constants.
+			__m128 mS_1p2 = _mm_load_ps( _pfsSamples3 );
+			__m128 m1o2 = _mm_set1_ps( 1.0f / 2.0f );
+			__m128 mS_n1p2 = _mm_load_ps( _pfsSamples1 );
+			__m128 m1o4 = _mm_set1_ps( 1.0f / 4.0f );
+
+			// float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+			__m128 mY1mM1 = _mm_sub_ps( mS_1p2, mS_n1p2 );
+
+			// Load the inputs.
+			__m128 mS_0p2 = _mm_load_ps( _pfsSamples2 );
+
+			// float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+			__m128 mC0 = _mm_add_ps( _mm_mul_ps( m1o2, mS_0p2 ), _mm_mul_ps( m1o4, _mm_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+			// Load the inputs.
+			__m128 mS_2p2 = _mm_load_ps( _pfsSamples4 );
+
+			// float fC1 = (1.0f / 2.0f) * fY1mM1;
+			__m128 mC1 = _mm_mul_ps( m1o2, mY1mM1 );
+
+			// Load the inputs.
+			__m128 mFrac = _mm_load_ps( _pfFrac );
+
+			// float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+			__m128 mC2 = _mm_mul_ps( m1o4, _mm_sub_ps( _mm_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+			// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+			__m128 mRet = _mm_add_ps( _mm_mul_ps( _mm_add_ps( _mm_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
+			_mm_store_ps( _pfOut, mRet );
+		}
 	};
 
 }	// namespace lsn

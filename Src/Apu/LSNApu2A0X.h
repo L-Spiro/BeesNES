@@ -147,6 +147,10 @@ namespace lsn {
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
 
+#ifdef LSN_USE_SAMPLE_BOX
+			CAudio::InitSampleBox( 20000.0f, 90.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 8, Hz(), CAudio::GetOutputFrequency() );
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
+
 			
 			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
 				// Determine the next APU cycle that corresponds with an output sample.

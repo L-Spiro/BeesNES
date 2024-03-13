@@ -86,15 +86,20 @@ namespace lsn {
 	CHpfFilter CAudio::m_hfHpf90;
 
 	/** The SIMD buffers. */
-	__declspec(align(32))
+	LSN_ALIGN( 32 )
 	__m256 CAudio::m_fSimdSamples[6];
 
 	/** The fraction values for each sample. */
-	__declspec(align(32))
+	LSN_ALIGN( 32 )
 	float CAudio::m_fFractions[sizeof( __m256 ) / sizeof( float )];
 
 	/** The SIMD buffer counter. */
 	uint32_t CAudio::m_ui32SimdStackSize = 0;
+
+#ifdef LSN_USE_SAMPLE_BOX
+	/** The sample box for band-passed output. */
+	CSampleBox CAudio::m_sbSampleBox;
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 
 	// == Functions.
@@ -196,6 +201,17 @@ namespace lsn {
 	 * \param _fSample The audio sample to be added.
 	 **/
 	void CAudio::AddSample( uint64_t _ui64Cycle, float _fSample ) {
+#ifdef LSN_USE_SAMPLE_BOX
+		m_sbSampleBox.AddSample( _fSample );
+		std::vector<float> & vOut = m_sbSampleBox.Output();
+		for ( size_t I = 0; I < vOut.size(); ++I ) {
+			m_vTmpBuffer[m_sTmpBufferIdx++] = vOut[I];
+			if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
+				TransferTmpToLocal();
+			}
+		}
+		vOut.clear();
+#else
 		uint64_t ui64Hi = m_sblBuckets.ui64HiIdx;
 		for ( uint64_t I = m_sblBuckets.ui64Idx; I < ui64Hi; ++I ) {
 			uint64_t ui64Idx = I % LSN_BUCKETS;
@@ -217,7 +233,7 @@ namespace lsn {
 					m_ui32SimdStackSize = (m_ui32SimdStackSize + 1) % (sizeof( __m256 ) / sizeof( float ));
 					if ( m_ui32SimdStackSize == 0 ) {
 						// It wrapped around, which means the buffer is full.
-						__declspec(align(32))
+						LSN_ALIGN( 32 )
 						float fTmp[sizeof(__m256)/sizeof(float)];
 						//Sample_6Point_5thOrder_Hermite_X_AVX
 						Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( reinterpret_cast<float *>(&m_fSimdSamples[0]), reinterpret_cast<float *>(&m_fSimdSamples[1]),
@@ -245,7 +261,7 @@ namespace lsn {
 					m_ui32SimdStackSize = (m_ui32SimdStackSize + 1) % (sizeof( __m128 ) / sizeof( float ));
 					if ( m_ui32SimdStackSize == 0 ) {
 						// It wrapped around, which means the buffer is full.
-						__declspec(align(32))
+						LSN_ALIGN( 32 )
 						float fTmp[sizeof(__m128)/sizeof(float)];
 						Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( reinterpret_cast<float *>(&m_fSimdSamples[0]), reinterpret_cast<float *>(&m_fSimdSamples[1]),
 							reinterpret_cast<float *>(&m_fSimdSamples[2]), reinterpret_cast<float *>(&m_fSimdSamples[3]),
@@ -276,6 +292,7 @@ namespace lsn {
 			}
 			sbBucket.fBucket[ui32BucketIdx] = _fSample;
 		}
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
 	}
 
 	/**

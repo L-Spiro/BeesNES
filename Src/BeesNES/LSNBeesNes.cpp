@@ -44,6 +44,7 @@ namespace lsn {
 		};
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
+		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;

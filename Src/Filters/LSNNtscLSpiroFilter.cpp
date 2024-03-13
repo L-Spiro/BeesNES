@@ -305,7 +305,7 @@ namespace lsn {
 				 * fQ += fLevel * m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12];
 				 */
 			}
-			__declspec(align(32))
+			LSN_ALIGN( 32 )
 			float fTmp[4];
 			_mm_store_ps( fTmp, mYiq );
 			(*_pfDstY++) = fTmp[0] * m_fBrightnessSetting;
@@ -427,7 +427,7 @@ namespace lsn {
 	void CNtscLSpiroFilter::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = CUtilities::Gaussian16FilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilter[I] = m_pfFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			dSum += m_fFilter[I];
 		}
 		double dNorm = 1.0 / dSum;
@@ -521,9 +521,9 @@ namespace lsn {
 				__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
 				__m256i mRai = _mm256_packus_epi32( mRi, mGi );
 
-				__declspec(align(32))
+				LSN_ALIGN( 32 )
 				uint16_t ui16Tmp0[16];
-				__declspec(align(32))
+				LSN_ALIGN( 32 )
 				uint16_t ui16Tmp1[16];
 				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
 				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
@@ -602,9 +602,9 @@ namespace lsn {
 				__m128i mBgi = _mm_packus_epi32( mBi, mGi );
 				__m128i mRai = _mm_packus_epi32( mRi, mGi );
 
-				__declspec(align(32))
+				LSN_ALIGN( 32 )
 				uint16_t ui16Tmp0[8];
-				__declspec(align(32))
+				LSN_ALIGN( 32 )
 				uint16_t ui16Tmp1[8];
 				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
 				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );

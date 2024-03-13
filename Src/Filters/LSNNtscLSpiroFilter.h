@@ -32,6 +32,17 @@ namespace lsn {
 		virtual ~CNtscLSpiroFilter();
 
 
+		// == Types.
+		/**
+		 * A filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		typedef float (*									PfFilterFunc)( float _fT, float _fWidth );
+
+
 		// == Functions.
 		/**
 		 * Sets the basic parameters for the filter.
@@ -151,6 +162,16 @@ namespace lsn {
 		 **/
 		void												SetWhiteLevel( float _fWhite );
 
+		/**
+		 * Sets the filter function.
+		 * 
+		 * \param _pfFunc The filter function.
+		 **/
+		void												SetFilterFunc( PfFilterFunc _pfFunc ) {
+			m_pfFilterFunc = _pfFunc;
+			GenFilterKernel( m_ui32FilterKernelSize * 2 );
+		}
+
 
 	protected :
 		// == Enumerations.
@@ -188,7 +209,7 @@ namespace lsn {
 		__m256												m_mStackedCosTable[12];					/**< 8 elements of the cosine table stacked. */
 		__m256												m_mStackedSinTable[12];					/**< 8 elements of the sine table stacked. */
 
-		__declspec(align(32))
+		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
 		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
 		__m128												m_1_14;									/**< 1.14. */
@@ -202,6 +223,7 @@ namespace lsn {
 		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
 		
+		PfFilterFunc										m_pfFilterFunc = CUtilities::Gaussian16FilterFunc;	/**< The filter function. */
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 32-byte address. */

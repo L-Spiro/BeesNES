@@ -23,8 +23,12 @@
 #include <smmintrin.h>
 #include <thread>
 
+#include "LSNSampleBox.h"
+
 #define LSN_AUDIO_BUFFERS									288
 #define LSN_BUCKETS											(LSN_SAMPLER_BUCKET_SIZE * 3)
+
+#define LSN_USE_SAMPLE_BOX
 
 namespace lsn {
 
@@ -65,6 +69,22 @@ namespace lsn {
 		 * \return Returns the global OpenAL source.
 		 **/
 		static COpenAlSource &								Source() { return m_oasSource; }
+
+#ifdef LSN_USE_SAMPLE_BOX
+		/**
+		 * Initializes the sample box, preparing to deliver nice clean band-limited samples as fast as alien technology can deliver.
+		 * 
+		 * \param _dLpf The LPF frequency.
+		 * \param _dHpf The HPF frequency.
+		 * \param _sM The LPF bandwidth.  Higher numbers result in sharper cut-offs.
+		 * \param _dInputRate The input sample rate.
+		 * \param _ui32OutputRate The output sample rate.
+		 * \return Returns true if the internal buffers could be allocated.
+		 **/
+		static inline bool									InitSampleBox( double _dLpf, double _dHpf, size_t _sM, double _dInputRate, uint32_t _ui32OutputRate ) {
+			return m_sbSampleBox.Init( _dLpf, _dHpf, _sM, _dInputRate, _ui32OutputRate );
+		}
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		/**
 		 * Gets the output frequency.
@@ -253,7 +273,6 @@ namespace lsn {
 		};
 
 
-
 		// == Members.
 		/** The total number of buffers uploaded during the lifetime of the source. */
 		static uint64_t										m_ui64TotalLifetimeQueues;
@@ -298,14 +317,17 @@ namespace lsn {
 		/** The HPF filter. */
 		static CHpfFilter									m_hfHpf90;
 		/** The SIMD buffers. */
-		__declspec(align(32))
+		LSN_ALIGN( 32 )
 		static __m256										m_fSimdSamples[6];
 		/** The fraction values for each sample. */
-		__declspec(align(32))
+		LSN_ALIGN( 32 )
 		static float										m_fFractions[sizeof( __m256 ) / sizeof( float )];
 		/** The SIMD buffer counter. */
 		static uint32_t										m_ui32SimdStackSize;
-		
+#ifdef LSN_USE_SAMPLE_BOX
+		/** The sample box for band-passed output. */
+		static CSampleBox									m_sbSampleBox;
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		
 		// == Functions.
