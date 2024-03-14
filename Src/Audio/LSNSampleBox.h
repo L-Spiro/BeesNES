@@ -16,6 +16,8 @@
 
 #include <cmath>
 #include <cstdint>
+#include <immintrin.h>
+#include <smmintrin.h>
 #include <vector>
 
 #if defined( _MSC_VER )
@@ -29,13 +31,6 @@
 #endif
 
 namespace lsn {
-
-	// == Enumerations.
-	/** SIMD types. */
-	enum LSN_SIMD {
-		LSN_S_SSE4,
-		LSN_S_AVX,
-	};
 
 	/**
 	 * Class CSincFilter
@@ -54,10 +49,13 @@ namespace lsn {
 		inline CSampleBox() {
 			m_gGen.ui64SrcSampleCnt = 0ULL;
 			m_gGen.ui64SampleCnt = 0ULL;
+			m_gGen.ui64SamplesBuffered = 0ULL;
 			m_gGen.fLpf = 0.0f;
 			m_gGen.fHpf = 0.0f;
 			m_gGen.dInputHz = 0.0;
 			m_gGen.ui32OutputHz = 0;
+			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
+			m_gGen.pfConvolve = &CSampleBox::Convolve;
 
 			m_sSinc.sM = 0;
 
@@ -66,9 +64,19 @@ namespace lsn {
 			m_hHpf.fPrevInput = 0.0f;
 			m_hHpf.fDelta = 0.0f;
 			m_hHpf.fOutput = 0.0f;
+
+			m_pPoints.sSimdStackSize = 0;
+
 		}
 		virtual ~CSampleBox() {
 		}
+
+
+		/** A function pointer for the functions that stores a sample from the full-sized buffer to the intermediate buffer. */
+		typedef void (CSampleBox:: *						PfStoreSample)( size_t, float );
+
+		/** A function pointer for the functions that convolves a sample (sinc filter). */
+		typedef float (CSampleBox:: *						PfConvolve)( size_t );
 
 
 		// == Functions.
@@ -83,6 +91,7 @@ namespace lsn {
 		 * \return Returns true if the internal buffers could be allocated.
 		 **/
 		bool												Init( double _dLpf, double _dHpf, size_t _sM, double _dInputRate, uint32_t _ui32OutputRate ) {
+			_dLpf = std::min( _dLpf, _ui32OutputRate / 2.0 - (_ui32OutputRate / 100.0) );
 			// Round up to the nearest 8.
 			_sM = (_sM + 7) / 8 * 8;
 			// Subtract 1 to make it odd.
@@ -98,7 +107,7 @@ namespace lsn {
 			try {
 				// + 1 makes it a multiple of 8.
 				m_sSinc.vCeof.resize( _sM + 1 );
-				m_sSinc.vRing.resize( (_sM + 1) * 4 );
+				m_sSinc.vRing.resize( (_sM + 1) * 10 );
 				m_gGen.vBuffer.resize( size_t( ::ceil( _dInputRate / (_ui32OutputRate * 3) ) + 6 ) );
 				m_gGen.vOutputBuffer.clear();
 			}
@@ -112,7 +121,7 @@ namespace lsn {
 				m_sSinc.vRing[I] = 0.0f;
 			}
 
-			SynthesizeBlackmanWindow( m_sSinc.vCeof );
+			SynthesizeBlackmanWindow( m_sSinc.vCeof, _sM );
 			
 
 			// Apply sinc function.
@@ -153,12 +162,15 @@ namespace lsn {
 
 			m_gGen.ui64SrcSampleCnt = 0ULL;
 			m_gGen.ui64SampleCnt = 0ULL;
+			m_gGen.ui64SamplesBuffered = 0ULL;
 			m_gGen.dInputHz = _dInputRate;
 			m_gGen.fLpf = float( _dLpf );
 			m_gGen.fHpf = float( _dHpf );
 			m_gGen.ui32OutputHz = _ui32OutputRate;
 
 			m_sSinc.sM = _sM >> 1;
+
+			m_pPoints.sSimdStackSize = 0;
 			return true;
 		}
 
@@ -173,11 +185,11 @@ namespace lsn {
 				// How many samples should we have processed until now?
 				uint64_t ui64SamplesUntilNow = uint64_t( (m_gGen.ui64SrcSampleCnt - 4.0) * (m_gGen.ui32OutputHz * 3.0) / m_gGen.dInputHz );
 				// Process as many as needed to catch up to where we should be.
-				while ( m_gGen.ui64SampleCnt <= ui64SamplesUntilNow ) {
-					double dIdx = m_gGen.ui64SampleCnt / (m_gGen.ui32OutputHz * 3.0) * m_gGen.dInputHz;
+				while ( m_gGen.ui64SamplesBuffered <= ui64SamplesUntilNow ) {
+					double dIdx = m_gGen.ui64SamplesBuffered / (m_gGen.ui32OutputHz * 3.0) * m_gGen.dInputHz;
 					double dFrac = std::fmod( dIdx, 1.0 );
 					size_t sIdx = size_t( dIdx );
-					StoreSample( sIdx, float( dFrac ) );
+					(this->*m_gGen.pfStoreSample)( sIdx, float( dFrac ) );
 				}
 			}
 		}
@@ -212,6 +224,27 @@ namespace lsn {
 		inline std::vector<float> &							Output() { return m_gGen.vOutputBuffer; }
 
 		/**
+		 * Sets the AVX/SSE 4 feature set.
+		 * 
+		 * \param _bAvx2 Specifies whether the AVX 2 feature set is available.
+		 * \param _bSse4 Specifies whether the SSE 4 feature set is available.
+		 **/
+		void												SetFeatureSet( bool _bAvx2, bool _bSse4 ) {
+			if ( _bAvx2 ) {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX;
+			}
+			else if ( _bSse4 ) {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SSE;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_SSE;
+			}
+			else {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample;
+				m_gGen.pfConvolve = &CSampleBox::Convolve;
+			}
+		}
+
+		/**
 		 * Calculates the _sM parameter for Init() given a transition bandwidth (the range of frequencies to transition from max volume to silence).
 		 * 
 		 * \param _dBw The frequency range to transition to silence.
@@ -239,15 +272,22 @@ namespace lsn {
 		 * Synthesizes a Blackman window.
 		 *
 		 * \param _vTaps The array of taps to fill.
+		 * \param _sSize The size of the actual window inside the given buffer.  The size normally matches the buffer size, but the buffer could be over-allocated
+		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
-		static inline void									SynthesizeBlackmanWindow( std::vector<float> &_vTaps ) {
+		static inline void									SynthesizeBlackmanWindow( std::vector<float> &_vTaps, size_t _sSize ) {
 			const double dTau = 2.0 * std::numbers::pi;
-			size_t stMax = _vTaps.size() - 1;
+			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
 			double dTauInvMax2 = 2.0 * dTauInvMax;
 			for ( auto I = _vTaps.size(); I--; ) {
-				_vTaps[I] = float( 0.42 - 0.5 * std::cos( dTauInvMax * I ) + 0.08 * std::cos( dTauInvMax2 * I ) );
+				if ( I >= _sSize ) {
+					_vTaps[I] = 0.0f;
+				}
+				else {
+					_vTaps[I] = float( 0.42 - 0.5 * std::cos( dTauInvMax * I ) + 0.08 * std::cos( dTauInvMax2 * I ) );
+				}
 			}
 		}
 
@@ -255,14 +295,21 @@ namespace lsn {
 		 * Synthesizes a Hamming window.
 		 *
 		 * \param _vTaps The array of taps to fill.
+		 * \param _sSize The size of the actual window inside the given buffer.  The size normally matches the buffer size, but the buffer could be over-allocated
+		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
-		static inline void									SynthesizeHammingWindow( std::vector<float> &_vTaps ) {
+		static inline void									SynthesizeHammingWindow( std::vector<float> &_vTaps, size_t _sSize ) {
 			const double dTau = 2.0 * std::numbers::pi;
-			size_t stMax = _vTaps.size() - 1;
+			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
 			for ( auto I = _vTaps.size(); I--; ) {
-				_vTaps[I] = float( 0.54 - 0.46 * std::cos( dTauInvMax * I ) );
+				if ( I >= _sSize ) {
+					_vTaps[I] = 0.0f;
+				}
+				else {
+					_vTaps[I] = float( 0.54 - 0.46 * std::cos( dTauInvMax * I ) );
+				}
 			}
 		}
 
@@ -270,14 +317,21 @@ namespace lsn {
 		 * Synthesizes a Hanning window.
 		 *
 		 * \param _vTaps The array of taps to fill.
+		 * \param _sSize The size of the actual window inside the given buffer.  The size normally matches the buffer size, but the buffer could be over-allocated
+		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
-		static inline void									SynthesizeHanningWindow( std::vector<float> &_vTaps ) {
+		static inline void									SynthesizeHanningWindow( std::vector<float> &_vTaps, size_t _sSize ) {
 			const double dTau = 2.0 * std::numbers::pi;
-			size_t stMax = _vTaps.size() - 1;
+			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
 			for ( auto I = _vTaps.size(); I--; ) {
-				_vTaps[I] = float( 0.50 - 0.50 * std::cos( dTauInvMax * I ) );
+				if ( I >= _sSize ) {
+					_vTaps[I] = 0.0f;
+				}
+				else {
+					_vTaps[I] = float( 0.50 - 0.50 * std::cos( dTauInvMax * I ) );
+				}
 			}
 		}
 
@@ -289,7 +343,10 @@ namespace lsn {
 		struct LSN_GENERAL {
 			uint64_t										ui64SrcSampleCnt;							/**< Total samples submitted so far. */
 			uint64_t										ui64SampleCnt;								/**< Total samples sent to the (ui32OutputHz * 3) buffer. */
+			uint64_t										ui64SamplesBuffered;						/**< Similar to ui64SampleCnt, but it counts how many samples have been interpolated.  Samples sent from the input buffer to the (ui32OutputHz * 3) buffer might temporarily be hold in a buffer in order to perform batch interpolations, so this number is always equal to or higher than ui64SampleCnt. */
 			double											dInputHz;									/**< The source frequency. */
+			PfStoreSample									pfStoreSample;								/**< The function for stoing a sample from the main input buffer to the intermediate buffer. */
+			PfConvolve										pfConvolve;									/**< The function for convolving a sample. */
 			std::vector<float>								vBuffer;									/**< Ring buffer of the last few input samples. */
 			std::vector<float>								vOutputBuffer;								/**< The final bass-banded output sample. */
 			float											fLpf;										/**< The LPF frequency. */
@@ -325,7 +382,7 @@ namespace lsn {
 			LSN_SAMPLE_STACK								fSimdSamples[6];							/**< The SIMD buffers. */
 			LSN_ALN
 			float											fFractions[sizeof(LSN_SAMPLE_STACK)/sizeof(float)];	/**< The fraction values for each sample. */
-			uint32_t										ui32SimdStackSize;							/**< The SIMD buffer counter. */
+			size_t											sSimdStackSize;								/**< The SIMD buffer counter. */
 		};
 
 
@@ -360,24 +417,71 @@ namespace lsn {
 				}
 				fSample = Sample_4Point_2ndOrder_Parabolic_2X_X( fTmp, _fFrac );
 			}
+			++m_gGen.ui64SamplesBuffered;
 			AddSampleToIntermediateBuffer( fSample );
 		}
 
 		/**
-		 * Interpolates and stores 4 samples.
+		 * Interpolates and stores 4 samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
+		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
 		 * 
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return DESC
+		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
+		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
 		 **/
+		void												StoreSample_SSE( size_t _sBufferIdx, float _fFrac ) {
+			
+			// Copy the 6 samples to the next row in the SIMD buffer.
+			int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
+			for ( int32_t I = 0; I < 6; ++I ) {
+				m_pPoints.fSimdSamples[I].fStack[m_pPoints.sSimdStackSize] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
+			}
+			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
+			m_pPoints.sSimdStackSize &= (sizeof( __m128 ) / sizeof( float ) - 1);
+			++m_gGen.ui64SamplesBuffered;
+			if ( 0 == m_pPoints.sSimdStackSize ) {
+				// The counter overflowed, so the stack is full.
+				LSN_ALN
+				float fTmp[8];
+				Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );
+				for ( size_t I = 0; I < (sizeof( __m128 ) / sizeof( float )); ++I ) {
+					AddSampleToIntermediateBuffer( fTmp[I] );
+				}
+			}
+		}
 
 		/**
-		 * Interpolates and stores 8 samples.
+		 * Interpolates and stores 8 samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
+		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
 		 * 
-		 * \param PARM DESC
-		 * \param PARM DESC
-		 * \return DESC
+		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
+		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
 		 **/
+		void												StoreSample_AVX( size_t _sBufferIdx, float _fFrac ) {
+			
+			// Copy the 6 samples to the next row in the SIMD buffer.
+			int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
+			for ( int32_t I = 0; I < 6; ++I ) {
+				m_pPoints.fSimdSamples[I].fStack[m_pPoints.sSimdStackSize] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
+			}
+			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
+			m_pPoints.sSimdStackSize &= (sizeof( __m256 ) / sizeof( float ) - 1);
+			++m_gGen.ui64SamplesBuffered;
+			if ( 0 == m_pPoints.sSimdStackSize ) {
+				// The counter overflowed, so the stack is full.
+				LSN_ALN
+				float fTmp[8];
+				Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );
+				for ( size_t I = 0; I < (sizeof( __m256 ) / sizeof( float )); ++I ) {
+					AddSampleToIntermediateBuffer( fTmp[I] );
+				}
+			}
+		}
 
 		/**
 		 * Passes an interpolated sample down the pipeline.  Every 3rd sample sent here gets sent to the final output buffer.
@@ -391,7 +495,7 @@ namespace lsn {
 				if ( m_gGen.ui64SampleCnt > m_sSinc.sM ) {
 					size_t sIdx = size_t( (m_gGen.ui64SampleCnt - m_sSinc.sM - 1) % m_sSinc.vRing.size() );
 					// Convolutionatizinatify and HPFify this sample.  The next m_sSinc.sM samples following sIdx and the m_sSinc.sM samples before sIdx are valid.
-					float fConvolvinated = ProcessHpf( Convolve( sIdx ) );
+					float fConvolvinated = ProcessHpf( (this->*m_gGen.pfConvolve)( sIdx ) );
 					// Send that bad momma-hamma to the output buffer to be retrieved by the user.
 					m_gGen.vOutputBuffer.push_back( fConvolvinated );
 				}
@@ -399,21 +503,116 @@ namespace lsn {
 		}
 
 		/**
-		 * Performs convolution on the given sample (indexed into m_sSinc.vRing);
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
 		 * 
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
 		float												Convolve( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
 			float fSum = 0.0f;
 			size_t sMod = m_sSinc.vRing.size();
 			_sIdx += sMod * 2 - m_sSinc.sM;
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
 			for ( size_t I = 0; I < sTotal; ++I ) {
-				fSum += pfFilter[I] * m_sSinc.vRing[(_sIdx+I)%sMod];
+				fSum += pfFilter[I] * pfSamples[(_sIdx+I)%sMod];
 			}
 			return fSum;
+		}
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float												Convolve_SSE( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			float fSum = 0.0f;
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for ( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if ( (sMod - sIdx) < (sizeof( __m128 ) / sizeof( float )) ) {
+					// Copy into a temporary.
+					LSN_ALN
+					float fTmp[(sizeof(__m128)/sizeof(float))];
+					for ( size_t J = 0; J < (sizeof( __m128 ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					fSum += Convolve_SSE( &pfFilter[I], fTmp );
+					I += (sizeof( __m128 ) / sizeof( float ));
+				}
+				else {
+					fSum += Convolve_SSE( &pfFilter[I], &pfSamples[sIdx] );
+					I += (sizeof( __m128 ) / sizeof( float ));
+				}
+			}
+			return fSum;
+		}
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float												Convolve_AVX( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			float fSum = 0.0f;
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for ( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if ( (sMod - sIdx) < (sizeof( __m256 ) / sizeof( float )) ) {
+					// Copy into a temporary.
+					LSN_ALN
+					float fTmp[(sizeof(__m256)/sizeof(float))];
+					for ( size_t J = 0; J < (sizeof( __m256 ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					fSum += Convolve_AVX( &pfFilter[I], fTmp );
+					I += (sizeof( __m256 ) / sizeof( float ));
+				}
+				else {
+					fSum += Convolve_AVX( &pfFilter[I], &pfSamples[sIdx] );
+					I += (sizeof( __m256 ) / sizeof( float ));
+				}
+			}
+			return fSum;
+		}
+
+		/**
+		 * Convolves the given weights with the given samples.  The weights (_pfWeights) must be aligned to a 32-byte boundary.
+		 * 
+		 * \param _pfWeights The pointer to the 32-byte-aligned 8 weights .
+		 * \param _pfSamples Pointer to the samples to convolve.
+		 * \return Returns the convolution of the given samples.
+		 **/
+		float												Convolve_SSE( const float * _pfWeights, const float * _pfSamples ) {
+			__m128 mWeights = _mm_load_ps( _pfWeights );
+			__m128 mSamples = _mm_loadu_ps( _pfSamples );
+			__m128 mMul = _mm_mul_ps( mWeights, mSamples );
+			return HorizontalSum( mMul );
+		}
+
+		/**
+		 * Convolves the given weights with the given samples.  The weights (_pfWeights) must be aligned to a 32-byte boundary.
+		 * 
+		 * \param _pfWeights The pointer to the 32-byte-aligned 8 weights .
+		 * \param _pfSamples Pointer to the samples to convolve.
+		 * \return Returns the convolution of the given samples.
+		 **/
+		float												Convolve_AVX( const float * _pfWeights, const float * _pfSamples ) {
+			__m256 mWeights = _mm256_load_ps( _pfWeights );
+			__m256 mSamples = _mm256_loadu_ps( _pfSamples );
+			__m256 mMul = _mm256_mul_ps( mWeights, mSamples );
+			return HorizontalSum( mMul );
 		}
 
 		/**
@@ -498,7 +697,7 @@ namespace lsn {
 		 * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
 		 * \param _pfOut The output pointer.
 		 */
-		inline void											Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+		inline void											Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
 			const float * _pfsSamples2, const float * _pfsSamples3,
 			const float * _pfsSamples4, const float * /*_pfsSamples5*/,
 			const float * _pfFrac,
@@ -538,6 +737,38 @@ namespace lsn {
 			// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
 			__m128 mRet = _mm_add_ps( _mm_mul_ps( _mm_add_ps( _mm_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
 			_mm_store_ps( _pfOut, mRet );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given AVX register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( __m256 &_mReg ) {
+			// Step 1 & 2: Shuffle and add the high 128 to the low 128.
+			__m128 mHigh128 = _mm256_extractf128_ps( _mReg, 1 );		// Extract high 128 bits.
+			__m128 mLow128 = _mm256_castps256_ps128( _mReg );			// Directly use low 128 bits.
+			__m128 mSum128 = _mm_add_ps( mHigh128, mLow128 );			// Add them.
+
+			// Step 3: Perform horizontal addition.
+			__m128 mAddH1 = _mm_hadd_ps( mSum128, mSum128 );
+			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+
+			// Step 4: Extract the scalar value.
+			return _mm_cvtss_f32( mAddH2 );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given SSE register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( __m128 &_mReg ) {
+			__m128 mAddH1 = _mm_hadd_ps( _mReg, _mReg );
+			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+			return _mm_cvtss_f32( mAddH2 );
 		}
 	};
 

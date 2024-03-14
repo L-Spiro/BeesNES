@@ -109,6 +109,10 @@ namespace lsn {
 	 * \return Returns true if initialization was successful.
 	 **/
 	bool CAudio::InitializeAudio() {
+#ifdef LSN_USE_SAMPLE_BOX
+		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
+
 		std::vector<std::string> vDevices;
 		// We need a dummy device to enumerate the audio devices.
 		COpenAlDevice oadDummy;

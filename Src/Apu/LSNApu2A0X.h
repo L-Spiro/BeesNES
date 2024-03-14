@@ -148,10 +148,8 @@ namespace lsn {
 			m_pPulse2.UpdateSweeperState();
 
 #ifdef LSN_USE_SAMPLE_BOX
-			CAudio::InitSampleBox( 20000.0f, 90.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 8, Hz(), CAudio::GetOutputFrequency() );
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
-
-			
+			CAudio::InitSampleBox( 20000.0f, 90.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 16, Hz(), CAudio::GetOutputFrequency() );
+#else
 			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
 				// Determine the next APU cycle that corresponds with an output sample.
 				float fInterp;
@@ -159,6 +157,7 @@ namespace lsn {
 				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
 				m_ui64LastBucketCycle = ui64ApuOutputCycle;
 			}
+#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
 			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
@@ -170,7 +169,11 @@ namespace lsn {
 			float fTriangle = m_tTriangle.Output();
 			float fDmc = 0.0f;
 
-			//fFinalPulse = fNoise = 0.0f;
+
+			// DEBUG.
+			fFinalPulse = fNoise = 0.0f;
+
+
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
 			fDmc /= 22638.0f;
@@ -183,6 +186,7 @@ namespace lsn {
 			//dFinal = m_pfPole90.Process( dFinal );
 			//dFinal = m_pfPole440.Process( dFinal );
 			dFinal = m_pfPole14.Process( dFinal );
+//#ifndef LSN_USE_SAMPLE_BOX
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
@@ -205,6 +209,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
+//#endif	// #ifndef LSN_USE_SAMPLE_BOX
 			CAudio::AddSample( m_ui64Cycles, static_cast<float>(dFinal * (-0.5 * 1.25)) );
 
 			++m_ui64Cycles;
