@@ -88,14 +88,13 @@ namespace lsn {
 	 **/
 	inline uint8_t CLinearCounter::TickLinearCounter( bool _bHalt ) {
 		if ( m_bReloadLinear ) {
-			m_bReloadLinear = false;
 			m_ui8LinearCounter = m_ui8LinearReload;
 		}
 		else if ( m_ui8LinearCounter ) {
 			--m_ui8LinearCounter;
 		}
-		if ( _bHalt ) {
-			m_ui8LinearReload = 0;
+		if ( !_bHalt ) {
+			m_bReloadLinear = false;
 		}
 		return m_ui8LinearCounter;
 	}

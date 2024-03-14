@@ -171,8 +171,7 @@ namespace lsn {
 
 
 			// DEBUG.
-			fFinalPulse = fNoise = 0.0f;
-
+			//fFinalPulse = fNoise = 0.0f;
 
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
