@@ -57,8 +57,8 @@ YouTube Video: Battletoads Opening (Extreme Noise)<br>
 YouTube Video: Akira Opening (Extreme Noise)<br>
 [![Watch the video](https://img.youtube.com/vi/mSZlMw0cPEY/maxresdefault.jpg)](https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4)
 
-NTSC-CRT library: https://github.com/LMP88959/NTSC-CRT
-PAL-CRT library: https://github.com/LMP88959/PAL-CRT
+NTSC-CRT library: https://github.com/LMP88959/NTSC-CRT<br>
+PAL-CRT library: https://github.com/LMP88959/PAL-CRT<br>
 Persune palgen: https://github.com/Gumball2415/palgen-persune
 
 ## Accuracy 
