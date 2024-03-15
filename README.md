@@ -7,7 +7,7 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 
 ## Visual Samples
 ![image](https://user-images.githubusercontent.com/7362666/215368977-2cec6ea5-c09e-4824-99e5-0afe3b76409f.png)
-![image](https://user-images.githubusercontent.com/7362666/215370930-471d4fe0-feed-4d27-9fde-bba0da1d8e9b.png)
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/bab6ad83-b7ee-4835-894b-a905741efda8)
 ![image](https://user-images.githubusercontent.com/7362666/215369800-608a6db6-fddc-4a46-9b5f-77c501adab5a.png)
 ![image](https://user-images.githubusercontent.com/7362666/215370725-3092a546-b8f7-488b-ae4e-8d7c7f108cad.png)
 ![image](https://user-images.githubusercontent.com/7362666/215370366-33903c20-0e75-489a-bb4d-571b08f33bee.png)
@@ -15,8 +15,26 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 ![image](https://user-images.githubusercontent.com/7362666/215371867-63a951cb-303a-4222-8094-6a20b5b9999b.png)
 ![image](https://user-images.githubusercontent.com/7362666/215371958-b742960a-ec5f-47f8-8b8a-7dc55162ffb5.png)
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/0b615d51-0bde-419f-bf91-76e7c91ae991)
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)
 ![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)
+
+RF Cables:<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)<br>
+Composite:<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/01721d1b-fd02-4c93-934c-88e9970bf10c)<br>
+HDMI:<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/8732d426-64cc-4c7c-9238-e9f70cf6bf26)<br>
+HDMI Mod:<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/692e989b-ec8a-4266-913a-ebb921e5e60e)<br>
+
+PAL (Composite:):<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/f7e07a6e-5be8-4d0d-88aa-1aec3ca364ba)<br>
+Dendy (Composite):<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/9a944716-ecec-48e4-8861-44ea5c4d3f8a)<br>
+PAL-M (Brazil) (Composite):<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/94f9db16-68ef-4d41-9e12-d8f0664e5a13)<br>
+PAL-N (Argentina) (Composite):<br>
+![image](https://github.com/L-Spiro/BeesNES/assets/7362666/31e763cf-5d1b-406c-a30f-4660fcbe6c63)<br>
+
 
 ## Audio Samples
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/6ad4194f-3699-4617-8ea9-0e89f457d74a)
