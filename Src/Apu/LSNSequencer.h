@@ -74,6 +74,13 @@ namespace lsn {
 		inline uint16_t							GetTimer() const;
 
 		/**
+		 * Gets the timer reload value.
+		 * 
+		 * \return Returns the timer reload value.
+		 **/
+		inline uint16_t							GetTimerReload() const;
+
+		/**
 		 * Gets the output value (1 or 0).
 		 * 
 		 * \return Returns the current output value.
@@ -193,6 +200,15 @@ namespace lsn {
 	 **/
 	inline uint16_t CSequencer::GetTimer() const {
 		return m_ui16Timer;
+	}
+
+	/**
+	 * Gets the timer reload value.
+	 * 
+	 * \return Returns the timer reload value.
+	 **/
+	inline uint16_t CSequencer::GetTimerReload() const {
+		return m_ui16Reload;
 	}
 
 	/**

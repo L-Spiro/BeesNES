@@ -115,7 +115,8 @@ namespace lsn {
 	 */
 	template <unsigned _tType, unsigned _tM0S0, unsigned _tM0S1, unsigned _tM0S2, unsigned _tM0S3_0, unsigned _tM0S3_1, unsigned _tM0S3_2,
 		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1,
-		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv>
+		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv,
+		bool _bSwapDuty>
 	class CApu2A0X : public CTickable {
 	public :
 		CApu2A0X( CCpuBus * _pbBus, CInterruptable * _piIrqTarget ) :
@@ -148,7 +149,7 @@ namespace lsn {
 			m_pPulse2.UpdateSweeperState();
 
 #ifdef LSN_USE_SAMPLE_BOX
-			CAudio::InitSampleBox( 20000.0f, 90.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 16, Hz(), CAudio::GetOutputFrequency() );
+			CAudio::InitSampleBox( 20000.0f, 296.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 16, Hz(), CAudio::GetOutputFrequency() );
 #else
 			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
 				// Determine the next APU cycle that corresponds with an output sample.
@@ -160,7 +161,10 @@ namespace lsn {
 #endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
+			// DEBUG.
+			//fPulse1 = 0.0f;
 			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
+			//fPulse2 = 0.0f;
 			float fFinalPulse = fPulse1 + fPulse2;
 			if ( fFinalPulse ) {
 				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
@@ -170,8 +174,36 @@ namespace lsn {
 			float fDmc = 0.0f;
 
 
+
 			// DEBUG.
 			//fFinalPulse = fNoise = 0.0f;
+			//fNoise = fTriangle = 0.0f;
+			//fFinalPulse = fTriangle = 0.0f;
+
+			//static uint64_t ui64CycleCnt = 0;
+			//static bool bMadeSound = false;
+			//static bool bWasJustMakingSound = false;
+			//static uint32_t ui32OnOffCnt = 0;
+			//if ( m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) ) ) {
+			//	ui32OnOffCnt += (bWasJustMakingSound == false) ? 1 : 0;
+			//	bMadeSound = true;
+			//	++ui64CycleCnt;
+			//	bWasJustMakingSound = true;
+
+			//	if ( ui32OnOffCnt > 90426 /*&& (ui64CycleCnt % 1000) == 0*/ ) {
+			//		//::OutputDebugStringA( (std::string( "Silence: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + "\r\n").c_str() );
+			//		::OutputDebugStringA( "." );
+			//	}
+			//}
+			//if ( bMadeSound && !m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) ) ) {
+			//	ui32OnOffCnt += (bWasJustMakingSound == true) ? 1 : 0;
+			//	if ( ui32OnOffCnt > 90426 /*&& (ui64CycleCnt % 1000) == 0*/ ) {
+			//		//::OutputDebugStringA( (std::string( "Silence: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + "\r\n").c_str() );
+			//		::OutputDebugStringA( " " );
+			//	}
+			//	bWasJustMakingSound = false;
+			//}
+
 
 			fNoise /= 12241.0f;
 			fTriangle /= 8227.0f;
@@ -937,13 +969,24 @@ namespace lsn {
 		 * \return Returns the bit sequence for the given pulse duty cycle.
 		 **/
 		static inline uint8_t							GetDuty( uint8_t _ui8Duty ) {
-			static const uint8_t ui8Seqs[] = {
-				0b10000000,
-				0b11000000,
-				0b11110000,
-				0b00111111,
-			};
-			return ui8Seqs[_ui8Duty];
+			if constexpr ( _bSwapDuty ) {
+				static const uint8_t ui8Seqs[] = {
+					0b10000000,
+					0b11110000,
+					0b11000000,
+					0b00111111,
+				};
+				return ui8Seqs[_ui8Duty];
+			}
+			else {
+				static const uint8_t ui8Seqs[] = {
+					0b10000000,
+					0b11000000,
+					0b11110000,
+					0b00111111,
+				};
+				return ui8Seqs[_ui8Duty];
+			}
 		}
 
 	};

@@ -272,7 +272,8 @@ namespace lsn {
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
 						}
 						else {
-							pmThis->SetChrBank<0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+							
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
 					}
@@ -286,7 +287,6 @@ namespace lsn {
 						 *	+++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
 						 */
 						if ( pmThis->m_ui8Control & 0b10000 ) {
-							pmThis->SetChrBank<1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
 					}

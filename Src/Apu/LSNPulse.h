@@ -75,7 +75,7 @@ namespace lsn {
 	inline bool CPulse::ProducingSound( bool _bEnabled ) const {
 		return _bEnabled &&
 			GetLengthCounter() > 0 &&
-			GetTimer() >= 8 &&
+			GetTimerReload() >= 8 &&
 			Output() &&
 			!SweeperMuted();
 	}
