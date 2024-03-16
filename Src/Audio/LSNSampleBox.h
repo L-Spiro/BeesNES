@@ -27,7 +27,7 @@
     // GNU Compiler Collection (GCC) or Clang
     #define LSN_ALN		__attribute__( (aligned( 32 )) )
 #else
-    #error "Unsupported compiler"
+    #error "Unsupported compiler."
 #endif
 
 namespace lsn {

@@ -269,9 +269,12 @@ namespace lsn {
 		bool								m_bDetectedNmi;									/**< The edge detector for the φ2 part of the cycle. */
 		bool								m_bHandleNmi;									/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the φ1 of the next cycle. */
 		bool								m_bIrqStatusLine;								/**< The status line for IRQ. */
+		bool								m_bIrqSeenLowPhi2;								/**< Set if m_bIrqStatusLine is low on PHI2. */
+		bool								m_bIrqStatusPhi1Flag;							/**< Set on Phi1 if m_bIrqSeenLowPhi2 was set. */
 		bool								m_bHandleIrq;									/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 		bool								m_bIsReadCycle;									/**< Is this CPU cycle a read cycle? */
 		bool								m_bRdyLow;										/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
+		bool								m_bBoundaryCrossed;								/**< Set to false at the start of each instruction.  Set to true if crossing a page boundary. */
 
 
 		// Temporary input.
@@ -490,6 +493,8 @@ namespace lsn {
 		void								PushStatusAndBAndSetAddressByIrq();				// Cycle 5.
 		/** Pushes status without B. */
 		void								PushStatusAndNoBAndSetAddressByIrq();			// Cycle 5.
+		/** Pushes status Phi2. */
+		void								PushStatusAndSetAddressByIrq_Phi2();			// Cycle 5.
 		/** Pushes status an decrements S. */
 		void								PushStatus();									// Cycle 5.
 		/** Pushes status without B. */
@@ -522,20 +527,28 @@ namespace lsn {
 		void								FetchEffectiveAddressHigh_IzY();				// Cycle 4.
 		/** Reads the high byte of the effective address using LSN_CPU_CONTEXT::ui8Pointer+1, store in the high byte of LSN_CPU_CONTEXT::a.ui16Address, adds Y. */
 		void								FetchEffectiveAddressHigh_IzY_Phi2();
+		/** Handles crossing a page boundary. */
+		void								BoundaryCross_Phi2();
 		/** Reads from the effective address (LSN_CPU_CONTEXT::a.ui16Address), which may be wrong if a page boundary was crossed.  If so, fixes the high byte of LSN_CPU_CONTEXT::a.ui16Address. */
 		template <bool _bHandleCrossing>
 		void								ReadEffectiveAddressFixHighByte_IzY_AbX_AbY();	// Cycle 5.
 		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
 		template <bool _bPollNmi>
 		void								CopyVectorPcl() {								// Cycle 6.
-			/*LSN_ADVANCE_CONTEXT_COUNTERS;
-			pc.ui8Bytes[0] = m_pbBus->Read( m_ccCurContext.a.ui16Address );*/
-			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], Phi2_Read<_bPollNmi> );
+			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], CopyVectorPcl_Phi2<_bPollNmi> );
+
 			LSN_ADVANCE_CONTEXT_COUNTERS;
+
+			LSN_INSTR_END_PHI1( _bPollNmi );
+		}
+		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
+		template <bool _bPollNmi>
+		void								CopyVectorPcl_Phi2() {								// Cycle 6.
+			LSN_INSTR_READ_PHI2;
+
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
 
-			//LSN_CHECK_NMI;
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI2( _bPollNmi );
 		}
 		/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
 		template <bool _bPollNmi>
@@ -545,7 +558,6 @@ namespace lsn {
 
 			LSN_FINISH_INST;
 
-			//LSN_CHECK_NMI;
 			LSN_INSTR_END_PHI1( _bPollNmi );
 		}
 		/** Fetches the low byte of PC from $FFFE. */
@@ -611,9 +623,7 @@ namespace lsn {
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
 		void								ADC_IzY_AbX_AbY_1();
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
-		void								ADC_IzY_AbX_AbY_1_Phi2_0();
-		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
-		void								ADC_IzY_AbX_AbY_1_Phi2_1();
+		void								ADC_IzY_AbX_AbY_1_Phi2();
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
 		void								ADC_Imm();
 		/** Performs A += OP + C.  Sets flags C, V, N and Z. */
@@ -794,6 +804,8 @@ namespace lsn {
 		void								PHA();
 		/** Pushes the status byte. */
 		void								PHP();
+		/** Pushes the status byte. */
+		void								PHP_Phi2();
 		/** Pulls the accumulator. */
 		void								PLA();
 		/** Pulls the accumulator. */
@@ -820,8 +832,12 @@ namespace lsn {
 		void								ROR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
 		void								ROR_Imp();
+		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+		void								ROR_Imp_Phi2();
 		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
 		void								RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
+		void								RRA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Pops into PCH. */
 		void								RTI();
 		/** Pops into PCH. */
@@ -844,10 +860,16 @@ namespace lsn {
 		void								SBX_Phi2();
 		/** Sets the carry flag. */
 		void								SEC();
+		/** Sets the carry flag. */
+		void								SEC_Phi2();
 		/** Sets the decimal flag. */
 		void								SED();
+		/** Sets the decimal flag. */
+		void								SED_Phi2();
 		/** Sets the IRQ flag. */
 		void								SEI();
+		/** Sets the IRQ flag. */
+		void								SEI_Phi2();
 		/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
 		void								SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
@@ -858,8 +880,12 @@ namespace lsn {
 		void								SHY();
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
+		void								SLO_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
 		void								SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
+		void								SRE_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
 		void								STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
@@ -868,16 +894,28 @@ namespace lsn {
 		void								STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Copies A into X.  Sets flags N, and Z. */
 		void								TAX();
+		/** Copies A into X.  Sets flags N, and Z. */
+		void								TAX_Phi2();
 		/** Copies A into Y.  Sets flags N, and Z. */
 		void								TAY();
+		/** Copies A into Y.  Sets flags N, and Z. */
+		void								TAY_Phi2();
 		/** Copies S into X. */
 		void								TSX();
+		/** Copies S into X. */
+		void								TSX_Phi2();
 		/** Copies X into A.  Sets flags N, and Z. */
 		void								TXA();
+		/** Copies X into A.  Sets flags N, and Z. */
+		void								TXA_Phi2();
 		/** Copies X into S. */
 		void								TXS();
+		/** Copies X into S. */
+		void								TXS_Phi2();
 		/** Copies Y into A.  Sets flags N, and Z. */
 		void								TYA();
+		/** Copies Y into A.  Sets flags N, and Z. */
+		void								TYA_Phi2();
 
 
 		// == PHI2 functions.
@@ -1071,6 +1109,7 @@ namespace lsn {
 		m_ccCurContext.ui8FuncIdx = 0;
 		//m_ccCurContext.ui16OpCode = _ui16Op;
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
+		m_bBoundaryCrossed = false;
 		
 		LSN_INSTR_END_PHI1( false );
 	}

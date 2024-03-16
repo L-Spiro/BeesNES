@@ -17,11 +17,8 @@
 #include <smmintrin.h>
 #include <thread>
 
-
-#ifdef _DEBUG
 #pragma warning( push )
-#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CNtscLSpiroFilter': structure was padded due to alignment specifier
-#endif	// #ifdef _DEBUG
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CPalLSpiroFilter': structure was padded due to alignment specifier
 
 namespace lsn {
 
@@ -532,6 +529,4 @@ namespace lsn {
 
 }	// namespace lsn
 
-#ifdef _DEBUG
 #pragma warning( pop )
-#endif	// #ifdef _DEBUG
