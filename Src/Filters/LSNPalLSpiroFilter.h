@@ -115,6 +115,14 @@ namespace lsn {
 		bool												SetWidth( uint16_t _ui16Width );
 
 		/**
+		 * Sets the width scale.
+		 * 
+		 * \param _ui16WidthScale The width scale to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetWidthScale( uint16_t _ui16WidthScale );
+
+		/**
 		 * Sets the height of the input.
 		 * 
 		 * \param _ui16Height The height to set.

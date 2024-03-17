@@ -43,8 +43,24 @@ namespace lsn {
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 		};
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
+		m_nbfLSpiroPalMFilter.SetWidthScale( 8 );
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
+		m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
+		if ( !CUtilities::IsAvxSupported() && !CUtilities::IsSse4Supported() ) {
+			m_nbfLSpiroNtscFilter.SetWidthScale( 2 );
+			m_nbfLSpiroPalFilter.SetWidthScale( 2 );
+			m_nbfLSpiroPalMFilter.SetWidthScale( 2 );
+			m_nbfLSpiroPalNFilter.SetWidthScale( 2 );
+		}
+		else if ( !CUtilities::IsAvxSupported() ) {
+			m_nbfLSpiroNtscFilter.SetWidthScale( 4 );
+			m_nbfLSpiroPalFilter.SetWidthScale( 5 );
+			m_nbfLSpiroPalMFilter.SetWidthScale( 4 );
+			m_nbfLSpiroPalNFilter.SetWidthScale( 4 );
+		}
+
+
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;

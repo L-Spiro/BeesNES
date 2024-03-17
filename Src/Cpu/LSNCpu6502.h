@@ -35,34 +35,28 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
-//#define LSN_OLD_NMI_CHECK
-
-//#define LSN_INSTR_READ( ADDR, RESULT )														m_bIsReadCycle = true; m_pui8Phi2Value = &RESULT; if ( m_bRdyLow ) { return; }
-//#define LSN_INSTR_READ_DISCARD( ADDR )														LSN_INSTR_READ( ADDR, m_ui8Phi2Value )
-//#define LSN_INSTR_WRITE( ADDR, VALUE )														m_bIsReadCycle = false; m_pbBus->Write( uint16_t( ADDR ), VALUE )
 #define LSN_INSTR_WRITE_PHI1( ADDR, VALUE, PHI2_FUNC )										m_bIsReadCycle = false; m_ui16Phi2Address = uint16_t( ADDR ); m_ui8Phi2Value = uint8_t( VALUE ); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC
 #define LSN_INSTR_WRITE_PHI2( ADDR, VALUE )													m_pbBus->Write( uint16_t( ADDR ), VALUE )
 #define LSN_INSTR_READ_NO_RDY_CHECK_PHI1( ADDR, RESULT, PHI2_FUNC )							m_bIsReadCycle = true; m_ui16Phi2Address = uint16_t( ADDR ); m_pui8Phi2Value = reinterpret_cast<uint8_t *>(&RESULT); m_pfTickPhi2Func = &CCpu6502::PHI2_FUNC
 #define LSN_INSTR_READ_PHI1( ADDR, RESULT, PHI2_FUNC )										LSN_INSTR_READ_NO_RDY_CHECK_PHI1( ADDR, RESULT, PHI2_FUNC ); if ( m_bRdyLow ) { return; }
 #define LSN_INSTR_READ_DISCARD_PHI1( ADDR, PHI2_FUNC )										LSN_INSTR_READ_PHI1( ADDR, m_ui8Phi2Value, PHI2_FUNC )
 #define LSN_INSTR_READ_PHI2																	(*m_pui8Phi2Value) = m_pbBus->Read( m_ui16Phi2Address ); if ( m_bRdyLow ) { return; }
-#ifdef LSN_OLD_NMI_CHECK
-#define LSN_INSTR_END_PHI1( CHECK_NMI )														if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
-#define LSN_INSTR_END_PHI2( CHECK_NMI )														m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing /* Just for development. *//*; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
-#else
+
+
 #define LSN_INSTR_END_PHI1( CHECK_NMI )														/*if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }*/
 #define LSN_INSTR_END_PHI2( CHECK_NMI )														/*m_pfTickPhi2Func = &CCpu6502::Phi2_DoNothing*/ /* Just for development. *///; if constexpr ( CHECK_NMI ) { LSN_CHECK_NMI; }
-#endif	// LSN_OLD_NMI_CHECK
+
 #define LSN_PUSH( VAL, PHI2_FUNC )															LSN_INSTR_WRITE_PHI1( 0x100 + uint8_t( S-- ), (VAL), PHI2_FUNC )
 #define LSN_POP( PHI2_FUNC )																LSN_INSTR_READ_DISCARD_PHI1( 0x100 + uint8_t( S + 1 ), PHI2_FUNC ); ++S//m_pbBus->Read( 0x100 + ++S )
-#define LSN_CHECK_NMI																		m_bHandleNmi |= m_bDetectedNmi //m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine
+#define LSN_CHECK_NMI																		//m_bHandleNmi |= m_bDetectedNmi //m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine
+#define LSN_CHECK_INTERRUPTS																if ( CheckBit( static_cast<uint8_t>(LSN_STATUS_FLAGS::LSN_SF_IRQ), m_ui8Status ) == false ) { m_bHandleIrq |= m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
 
 #define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )												/*m_ccCurContext.ui8Cycle += AMT;*/	\
 																							m_ccCurContext.ui8FuncIdx += AMT;
 																							/*++m_ccCurContext.ui8Cycle*/
 #define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
-#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd; LSN_CHECK_NMI
+#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd; LSN_CHECK_INTERRUPTS
 
 #define LSN_BRK_NMI																			false
 #define LSN_BRANCH_NMI																		false
@@ -406,7 +400,6 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<_bPollNmi> );
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 
-			//LSN_CHECK_NMI;
 			LSN_INSTR_END_PHI1( _bPollNmi );
 		}
 		/** Reads the next instruction byte and throws it away. */
@@ -474,7 +467,6 @@ namespace lsn {
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 			LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<_bPollNmi> );
 
-			//LSN_CHECK_NMI;
 			LSN_INSTR_END_PHI1( _bPollNmi );
 		}
 		/** Pushes PCL, decrements S. */
@@ -486,7 +478,6 @@ namespace lsn {
 			//  4  $0100,S  W  push PCL on stack, decrement S
 			LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<_bPollNmi> );
 
-			//LSN_CHECK_NMI;
 			LSN_INSTR_END_PHI1( _bPollNmi );
 		}
 		/** Pushes status with B. */
@@ -704,12 +695,20 @@ namespace lsn {
 		void								CPY_Imm_Phi2();
 		/** Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z. */
 		void								DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z. */
+		void								DCP_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs [ADDR]--.  Sets flags N and Z. */
 		void								DEC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs [ADDR]--.  Sets flags N and Z. */
+		void								DEC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs X--.  Sets flags N and Z. */
 		void								DEX();
+		/** Performs X--.  Sets flags N and Z. */
+		void								DEX_Phi2();
 		/** Performs Y--.  Sets flags N and Z. */
 		void								DEY();
+		/** Performs Y--.  Sets flags N and Z. */
+		void								DEY_Phi2();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
 		void								EOR_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
 		/** Fetches from LSN_CPU_CONTEXT::a.ui16Address and performs A = A ^ OP.  Sets flags N and Z. */
@@ -720,12 +719,20 @@ namespace lsn {
 		void								EOR_Imm_Phi2();
 		/** Performs [ADDR]++.  Sets flags N and Z. */
 		void								INC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs [ADDR]++.  Sets flags N and Z. */
+		void								INC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Performs X++.  Sets flags N and Z. */
 		void								INX();
+		/** Performs X++.  Sets flags N and Z. */
+		void								INX_Phi2();
 		/** Performs Y++.  Sets flags N and Z. */
 		void								INY();
+		/** Performs Y++.  Sets flags N and Z. */
+		void								INY_Phi2();
 		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
 		void								ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs();
+		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
+		void								ISB_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2();
 		/** Jams the machine. */
 		void								JAM_Cycle2();
 		/** Jams the machine, putting 0xFF on the bus repeatedly. */
@@ -1031,7 +1038,6 @@ namespace lsn {
 	/** Begins an IRQ "instruction". */
 	inline void CCpu6502::Irq_PHI1() {
 		m_bIrqStatusLine = false;
-		//m_ccCurContext.ui16OpCode = LSN_SO_IRQ;
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Irq_PHI2 );
 		BeginInst();
 	}

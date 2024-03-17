@@ -151,6 +151,21 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the width scale.
+	 * 
+	 * \param _ui16WidthScale The width scale to set.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CNtscLSpiroFilter::SetWidthScale( uint16_t _ui16WidthScale ) {
+		if ( m_ui16Width != _ui16WidthScale ) {
+			if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, _ui16WidthScale ) ) { return false; }
+			m_ui16WidthScale = _ui16WidthScale;
+			m_ui16ScaledWidth = m_ui16Width * m_ui16WidthScale;
+		}
+		return true;
+	}
+
+	/**
 	 * Sets the height of the input.
 	 * 
 	 * \param _ui16Height The height to set.
