@@ -166,6 +166,13 @@ namespace lsn {
 		virtual void						ClearIrq();
 
 		/**
+		 * Gets the status of the IRQ line.
+		 * 
+		 * \return Returns true if the IRQ status line is low.
+		 **/
+		virtual bool						GetIrqStatus() const;
+
+		/**
 		 * Sets the input poller.
 		 *
 		 * \param _pipPoller The input poller pointer.
@@ -1024,7 +1031,6 @@ namespace lsn {
 
 	/** Begins an NMI "instruction". */
 	inline void CCpu6502::Nmi_PHI1() {
-		m_bNmiStatusLine = false;
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Nmi_PHI2 );
 		BeginInst();
 	}
@@ -1037,7 +1043,6 @@ namespace lsn {
 
 	/** Begins an IRQ "instruction". */
 	inline void CCpu6502::Irq_PHI1() {
-		m_bIrqStatusLine = false;
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Irq_PHI2 );
 		BeginInst();
 	}

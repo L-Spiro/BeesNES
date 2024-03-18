@@ -41,6 +41,13 @@ namespace lsn {
 		 * Clears the IRQ flag.
 		 */
 		virtual void						ClearIrq() {}
+
+		/**
+		 * Gets the status of the IRQ line.
+		 * 
+		 * \return Returns true if the IRQ status line is low.
+		 **/
+		virtual bool						GetIrqStatus() const { return false; }
 	};
 
 }	// namespace lsn

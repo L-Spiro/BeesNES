@@ -1148,40 +1148,21 @@ namespace lsn {
 #endif	// #ifndef LSN_CPU_VERIFY
 		(this->*m_pfTickFunc)();
 
-#if defined( LSN_OLD_NMI_CHECK ) || defined( LSN_CPU_VERIFY )
-		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
+#if defined( LSN_CPU_VERIFY )
 		m_bHandleNmi = m_bDetectedNmi;
-		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
-		//m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bHandleIrq |= m_bIrqStatusLine;
-
-		//++m_ui64CycleCount;
-#endif	// #if defined( LSN_OLD_NMI_CHECK ) || defined( LSN_CPU_VERIFY )
+#endif	// #if defined( LSN_CPU_VERIFY )
 
 #ifdef LSN_CPU_VERIFY
 		TickPhi2();
 #endif	// #ifdef LSN_CPU_VERIFY
-
 	}
 
 	/**
 	 * Performs a PHI2 update.
 	 **/
 	void CCpu6502::TickPhi2() {
-		
-#ifndef LSN_OLD_NMI_CHECK
-		//m_bHandleNmi |= (m_bNmiStatusLine && --m_ui8NmiCounter == 0);
-		//m_bHandleNmi = m_bDetectedNmi;
-		//m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
-		//m_bLastNmiStatusLine = m_bNmiStatusLine;
-		/*if ( CheckBit( static_cast<uint8_t>(LSN_STATUS_FLAGS::LSN_SF_IRQ), m_ui8Status ) == false ) {
-			m_bHandleIrq |= m_bIrqStatusLine;
-		}*/
-#endif	// #ifndef LSN_OLD_NMI_CHECK
-
-
 		(this->*m_pfTickPhi2Func)();
-
 
 		m_bIrqSeenLowPhi2 |= m_bIrqStatusLine;
 
@@ -1249,6 +1230,12 @@ namespace lsn {
 	 */
 	void CCpu6502::Irq() {
 		m_bIrqStatusLine = true;
+
+		/*if ( m_ui64CycleCount < 279340 + 42150 ) {
+			char szBuffer[128];
+			::sprintf_s( szBuffer, "IRQ Requested on Cycle: %u.\r\n", static_cast<uint32_t>(m_ui64CycleCount) );
+			::OutputDebugStringA( szBuffer );
+		}*/
 	}
 
 	/**
@@ -1256,6 +1243,21 @@ namespace lsn {
 	 */
 	void CCpu6502::ClearIrq() {
 		m_bIrqStatusLine = false;
+
+		/*if ( m_ui64CycleCount < 279340 + 42150 ) {
+			char szBuffer[128];
+			::sprintf_s( szBuffer, "IRQ Cleared on Cycle: %u.\r\n", static_cast<uint32_t>(m_ui64CycleCount) );
+			::OutputDebugStringA( szBuffer );
+		}*/
+	}
+
+	/**
+	 * Gets the status of the IRQ line.
+	 * 
+	 * \return Returns true if the IRQ status line is low.
+	 **/
+	bool CCpu6502::GetIrqStatus() const {
+		return m_bIrqStatusLine;
 	}
 
 #ifdef LSN_CPU_VERIFY
@@ -1785,12 +1787,12 @@ namespace lsn {
 		LSN_INSTR_WRITE_PHI2( m_ui16Phi2Address, m_ui8Phi2Value );
 
 		// It is also at this point that the branch vector is determined.  Store it in LSN_CPU_CONTEXT::a.ui16Address.
-		m_ccCurContext.a.ui16Address = m_bHandleNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
-		if ( m_bHandleNmi ) { m_bHandleNmi = m_bDetectedNmi = false; }
-		else if ( m_bHandleIrq ) {
-			m_bHandleIrq = m_bIrqStatusLine = false;
+		m_ccCurContext.a.ui16Address = m_bDetectedNmi ? uint16_t( LSN_VECTORS::LSN_V_NMI ) : uint16_t( LSN_VECTORS::LSN_V_IRQ_BRK );
+		if ( m_bDetectedNmi ) {
+			m_bHandleNmi = m_bDetectedNmi = false;
+			m_bNmiStatusLine = false;
 		}
-		//m_bHandleIrq = false;
+		m_bHandleIrq = false;
 
 		LSN_INSTR_END_PHI2( LSN_BRK_NMI );
 	}
@@ -4527,10 +4529,6 @@ namespace lsn {
 #undef LSN_INDIRECT_X_R
 
 #undef LSN_FINISH_INST
-
-#ifdef LSN_OLD_NMI_CHECK
-#undef LSN_OLD_NMI_CHECK
-#endif	// #ifdef LSN_OLD_NMI_CHECK
 
 #undef LSN_CHECK_NMI
 #undef LSN_POP

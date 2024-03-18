@@ -59,6 +59,9 @@
 													m_ui64StepCycles = 0;										\
 													Tick_Mode0_Step0<_bEven, false>();							\
 												}																\
+												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
+													m_piIrqTarget->ClearIrq();									\
+												}																\
 												return;															\
 											}																	\
 											{																	\
@@ -908,7 +911,6 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
-			// TODO: This register is internal to the CPU and so the external CPU data bus is disconnected when reading it. Therefore the returned value cannot be seen by external devices and the value does not affect open bus.
 			_ui8Ret = _ui8Ret & 0b00100000;
 			if ( paApu->m_pPulse1.GetLengthCounter() != 0 ) {
 				_ui8Ret |= 0b0001;
@@ -922,6 +924,12 @@ namespace lsn {
 			if ( paApu->m_nNoise.GetLengthCounter() != 0 ) {
 				_ui8Ret |= 0b1000;
 			}
+
+			if ( paApu->m_piIrqTarget->GetIrqStatus() ) {
+				_ui8Ret |= 0b01000000;
+				paApu->m_piIrqTarget->ClearIrq();
+			}
+			
 		}
 
 		/**
