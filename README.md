@@ -47,15 +47,31 @@ All 3 images showcase the accuracy of the audio.
 
 ## Videos
 YouTube Video: Castlevania Demo Play (Low Noise)<br>
-[![Watch the video](https://img.youtube.com/vi/HyLtecKOjLM/hqdefault.jpg)](https://www.youtube.com/watch?v=HyLtecKOjLM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=7) <br>
+[![Watch the video](https://img.youtube.com/vi/HyLtecKOjLM/maxresdefault.jpg)](https://www.youtube.com/watch?v=HyLtecKOjLM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=7)<br>
+
+
+YouTube Video: 1943: The Battle of Midway (RF Cables)<br>
+[![Watch the video](https://img.youtube.com/vi/DeiT0dbBs44/maxresdefault.jpg)](https://www.youtube.com/watch?v=DeiT0dbBs44&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=19)<br>
+
+
+YouTube Video: Probotector (PAL, Composite Cables)<br>
+[![Watch the video](https://img.youtube.com/vi/5qk1oU4lAKU/maxresdefault.jpg)](https://www.youtube.com/watch?v=5qk1oU4lAKU&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=20)<br>
 
 
 YouTube Video: Battletoads Opening (Extreme Noise)<br>
-[![Watch the video](https://img.youtube.com/vi/K3sVkZFxkvs/hqdefault.jpg)](https://www.youtube.com/watch?v=K3sVkZFxkvs&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=6)
+[![Watch the video](https://img.youtube.com/vi/K3sVkZFxkvs/maxresdefault.jpg)](https://www.youtube.com/watch?v=K3sVkZFxkvs&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=6)<br>
+
+
+YouTube Video: Double Dragon (Composite Cables)<br>
+[![Watch the video](https://img.youtube.com/vi/C-4q72KqOzM/maxresdefault.jpg)](https://www.youtube.com/watch?v=C-4q72KqOzM&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=21)<br>
 
 
 YouTube Video: Akira Opening (Extreme Noise)<br>
-[![Watch the video](https://img.youtube.com/vi/mSZlMw0cPEY/maxresdefault.jpg)](https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4)
+[![Watch the video](https://img.youtube.com/vi/mSZlMw0cPEY/maxresdefault.jpg)](https://www.youtube.com/watch?v=mSZlMw0cPEY&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=4)<br>
+
+
+YouTube Video: Battletoads (RF Cables)<br>
+[![Watch the video](https://img.youtube.com/vi/A-8DUre9LXA/maxresdefault.jpg)](https://www.youtube.com/watch?v=A-8DUre9LXA&list=PLM2QRzvCtV12TZcpXrUm1LQnyCgHy5Uxa&index=22)<br>
 
 NTSC-CRT library: https://github.com/LMP88959/NTSC-CRT<br>
 PAL-CRT library: https://github.com/LMP88959/PAL-CRT<br>
