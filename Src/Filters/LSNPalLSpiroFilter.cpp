@@ -549,24 +549,7 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
-
-		//float * pfSignalStart = m_vSignalStart[_sScanline];
-		//for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-		//	
-
-		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// B0;
-		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// G0;
-		//	(*pui8Bgra++) = static_cast<uint8_t>(std::clamp( (*pfSignalStart) * 255.0f, 0.0f, 255.0f ));			// R0;
-		//	(*pui8Bgra++) = 255;						// A0;
-
-		//	++pfY;
-		//	++pfI;
-		//	++pfQ;
-		//	++pfSignalStart;
-		//}
-		//return;
-
-		if ( CUtilities::IsAvxSupported() ) {
+		if ( CUtilities::IsAvx2Supported() ) {
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m256 mY = _mm256_load_ps( pfY );

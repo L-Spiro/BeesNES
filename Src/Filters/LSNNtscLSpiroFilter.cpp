@@ -491,7 +491,7 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
-		if ( CUtilities::IsAvxSupported() ) {
+		if ( CUtilities::IsAvx2Supported() ) {
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m256 mY = _mm256_load_ps( pfY );
