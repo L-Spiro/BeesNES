@@ -622,6 +622,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />
+    <ClInclude Include="Src\OS\LSNFeatureSet.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Palette\LSNPalette.h" />
@@ -710,6 +711,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Input\LSNWindowsKeyboard.cpp" />
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
+    <ClCompile Include="Src\OS\LSNFeatureSet.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />
     <ClCompile Include="Src\Roms\LSNRomInfo.cpp" />
     <ClCompile Include="Src\System\LSNSystem.cpp" />

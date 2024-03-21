@@ -56,7 +56,7 @@
 																							m_ccCurContext.ui8FuncIdx += AMT;
 																							/*++m_ccCurContext.ui8Cycle*/
 #define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
-#define LSN_FINISH_INST																		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd; LSN_CHECK_INTERRUPTS
+#define LSN_FINISH_INST( CHECK_INTERRUPTS )													if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
 #define LSN_BRK_NMI																			false
 #define LSN_BRANCH_NMI																		false
@@ -554,7 +554,7 @@ namespace lsn {
 			//pc.ui8Bytes[1] = m_pbBus->Read( m_ccCurContext.a.ui16Address + 1 );
 			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1], Phi2_Read<_bPollNmi> );
 
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 
 			LSN_INSTR_END_PHI1( _bPollNmi );
 		}
@@ -573,11 +573,11 @@ namespace lsn {
 		void								Branch_Cycle2();
 		/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 		void								Branch_Cycle2_Phi2();
-		/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+		/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 		void								Branch_Cycle3();
 		/** 4th cycle of branch instructions. Page boundary was crossed. */
 		void								Branch_Cycle4();
-		/** Performs m_pbBus->Write( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
+		/** Performs m_pbBus->Write( m_pccCurContext->a.ui16Address, m_pccCurContext->ui8Operand ); and LSN_FINISH_INST( true );, which finishes Read-Modify-Write instructions. */
 		void								FinalWriteCycle();
 		/**
 		 * Performs a compare against a register and an operand by setting flags.

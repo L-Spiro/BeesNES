@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../OS/LSNFeatureSet.h"
 
 #include <cmath>
 #include <intrin.h>
@@ -335,7 +336,93 @@ namespace lsn {
 
 			// Store the result.
 			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
+		}
 
+		/**
+		 * 512-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 
+		 * \param _pui32A The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32B The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32Result The destination where the interpolated 8 colors go.
+		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 **/
+		static __forceinline void							LinearSample_AVX512( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
+			constexpr uint32_t mMaskRb	= 0x00FF00FF;
+			constexpr uint32_t mMaskAg	= 0xFF00FF00;
+
+			__m512i mMaskRb512			= _mm512_set1_epi32( mMaskRb );
+			__m512i mMaskAg512			= _mm512_set1_epi32( mMaskAg );
+			__m512i mFactorX			= _mm512_set1_epi32( _ui32FactorX );
+			__m512i mFactorXCompliment	= _mm512_set1_epi32( 512 - _ui32FactorX );
+
+			__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32A) );
+			__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32B) );
+
+			// Separate the channels.
+			__m512i mArb				= _mm512_and_si512( mA, mMaskRb512 );
+			__m512i mAag				= _mm512_and_si512( mA, mMaskAg512 );
+			__m512i mBrb				= _mm512_and_si512( mB, mMaskRb512 );
+			__m512i mBag				= _mm512_and_si512( mB, mMaskAg512 );
+
+			// Interpolate R and B channels.
+			__m512i mRbInterp			= _mm512_add_epi32(
+				_mm512_mullo_epi32( mArb, mFactorXCompliment ),
+				_mm512_mullo_epi32( mBrb, mFactorX )
+			);
+			mRbInterp					= _mm512_srli_epi32( mRbInterp, 8 );
+			mRbInterp					= _mm512_and_si512( mRbInterp, mMaskRb512 );
+
+			// Interpolate A and G channels (factor is applied after shifting right by 8 to simulate division by 256).
+			__m512i mAgInterp			= _mm512_add_epi32(
+				_mm512_mullo_epi32(_mm512_srli_epi32( mAag, 8 ), mFactorXCompliment ),
+				_mm512_mullo_epi32(_mm512_srli_epi32( mBag, 8 ), mFactorX )
+			);
+			mAgInterp					= _mm512_and_si512( mAgInterp, mMaskAg512 );
+
+			// Combine interpolated channels.
+			__m512i mResult				= _mm512_or_si512( mRbInterp, mAgInterp );
+
+			// Store the result.
+			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
+			/*constexpr uint32_t mMaskRb = 0x00FF00FF;
+			constexpr uint32_t mMaskAg = 0xFF00FF00;
+
+			__m512i mMaskRb512			= _mm512_set1_epi32( mMaskRb );
+			__m512i mMaskAg512			= _mm512_set1_epi32( mMaskAg );
+			__m512i mFactorX			= _mm512_set1_epi32( _ui32FactorX );
+			__m512i mFactorXCompliment	= _mm512_set1_epi32( 256 - _ui32FactorX );
+
+			__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32A) );
+			__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32B) );
+
+			__m512i mArb				= _mm512_and_si512( mA, mMaskRb512 );
+			__m512i mAag				= _mm512_and_si512( mA, mMaskAg512 );
+			__m512i mBrb				= _mm512_and_si512( mB, mMaskRb512 );
+			__m512i mBag				= _mm512_and_si512( mB, mMaskAg512 );
+
+			__m512i mRbInterp			= _mm512_srli_epi32(
+				_mm512_add_epi32(
+					_mm512_mullo_epi32( mArb, mFactorXCompliment ),
+					_mm512_mullo_epi32( mBrb, mFactorX )
+				),
+				8
+			);
+
+			mRbInterp					= _mm512_and_si512( mRbInterp, mMaskRb512 );
+
+			__m512i mAgInterp			= _mm512_srli_epi32(
+				_mm512_add_epi32(
+					_mm512_mullo_epi32( _mm512_srli_epi32( mAag, 8 ), mFactorXCompliment ),
+					_mm512_mullo_epi32( _mm512_srli_epi32( mBag, 8 ), mFactorX )
+				),
+				8
+			);
+
+			mAgInterp					= _mm512_and_si512( mAgInterp, mMaskAg512 );
+
+			__m512i mResult				= _mm512_or_si512( mRbInterp, mAgInterp );
+
+			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );*/
 		}
 
 
@@ -373,7 +460,18 @@ namespace lsn {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
-				if ( IsAvxSupported() ) {
+				/*if ( IsAvx512FSupported() ) {
+					while ( _ui32Width >= 16 ) {
+						LinearSample_AVX512( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
+						_ui32Width -= 16;
+						if ( !_ui32Width ) { return; }
+						_pui32SrcRow0 += 16;
+						_pui32SrcRow1 += 16;
+						_pui32DstRow += 16;
+					}
+				}*/
+
+				if ( IsAvx2Supported() ) {
 					while ( _ui32Width >= 8 ) {
 						LinearSample_AVX2( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 8;
@@ -570,6 +668,31 @@ namespace lsn {
 		 * \param _u16Path The file name.
 		 **/
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
+
+		/**
+		 * Horizontally adds all the floats in a given AVX 512 register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( __m512 _mReg ) {
+			// Step 1: Reduce 512 bits to 256 bits by adding high and low 256 bits.
+			__m256 mLow256 = _mm512_castps512_ps256( _mReg );			// Low 256 bits.
+			__m256 mHigh256 = _mm512_extractf32x8_ps( _mReg, 1 );		// High 256 bits.
+			__m256 mSum256 = _mm256_add_ps( mLow256, mHigh256 );
+
+			// Step 2: Reduce 256 bits to 128 bits (similar to AVX version).
+			__m128 mHigh128 = _mm256_extractf128_ps( mSum256, 1 );		// High 128 bits.
+			__m128 mLow128 = _mm256_castps256_ps128( mSum256 );			// Low 128 bits.
+			__m128 mSum128 = _mm_add_ps( mHigh128, mLow128 );			// Add them.
+
+			// Step 3: Perform horizontal addition on 128 bits.
+			__m128 mAddH1 = _mm_hadd_ps( mSum128, mSum128 );
+			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+
+			// Step 4: Extract the scalar value.
+			return _mm_cvtss_f32( mAddH2 );
+		}
 
 		/**
 		 * Horizontally adds all the floats in a given AVX register.
@@ -905,18 +1028,34 @@ namespace lsn {
 		}
 
 		/**
-		 * Checks for support for AVX and SSE 4.
-		 **/
-		static void											CheckFeatureSet();
-
-		/**
 		 * Is AVX supported?
 		 *
 		 * \return Returns true if AVX is supported.
 		 **/
 		static bool											IsAvxSupported() {
-			if ( m_bAvxSupport == 2 ) { CheckFeatureSet(); }
-			return m_bAvxSupport != 0;
+			return CFeatureSet::AVX();
+			/*if ( m_bAvxSupport == 2 ) { CheckFeatureSet(); }
+			return m_bAvxSupport != 0;*/
+		}
+
+		/**
+		 * Is AVX 2 supported?
+		 *
+		 * \return Returns true if AVX is supported.
+		 **/
+		static bool											IsAvx2Supported() {
+			return CFeatureSet::AVX2();
+			/*if ( m_bAvxSupport2 == 2 ) { CheckFeatureSet(); }
+			return m_bAvxSupport2 != 0;*/
+		}
+
+		/**
+		 * Is AVX 512F supported?
+		 *
+		 * \return Returns true if AVX is supported.
+		 **/
+		static bool											IsAvx512FSupported() {
+			return CFeatureSet::AVX512F();
 		}
 
 		/**
@@ -925,8 +1064,9 @@ namespace lsn {
 		 * \return Returns true if SSE 4 is supported.
 		 **/
 		static bool											IsSse4Supported() {
-			if ( m_bSse4Support == 2 ) { CheckFeatureSet(); }
-			return m_bSse4Support != 0;
+			return CFeatureSet::SSE41();
+			/*if ( m_bSse4Support == 2 ) { CheckFeatureSet(); }
+			return m_bSse4Support != 0;*/
 		}
 
 
@@ -935,9 +1075,6 @@ namespace lsn {
 		static const float									m_fNtscLevels[16];							/**< Output levels for NTSC. */
 		LSN_ALIGN( 32 )
 		static const float									m_fPalLevels[16];							/**< Output levels for PAL. */
-		static int											m_iCpuId[4];								/**< Result of __cpuid(). */
-		static uint8_t										m_bAvxSupport;								/**< Is AVX supported? */
-		static uint8_t										m_bSse4Support;								/**< Is SSE 4 supported? */
 	};
 
 }	// namespace lsn

@@ -672,6 +672,9 @@
     <ClInclude Include="Src\Audio\LSNSampleBox.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\OS\LSNFeatureSet.h">
+      <Filter>Header Files\OS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -895,6 +898,9 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNPalLSpiroFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OS\LSNFeatureSet.cpp">
+      <Filter>Source Files\OS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

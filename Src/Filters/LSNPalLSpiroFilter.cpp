@@ -35,21 +35,6 @@ namespace lsn {
 		// Other generations that can't be changed once set.
 		{
 			if ( CUtilities::IsSse4Supported() ) {
-				// For conversion from YUV to RGB.
-				m_1_14 = _mm_set1_ps( 1.139883025203f );
-				m_2_03 = _mm_set1_ps( 2.032061872219f );
-				m_n0_394642 = _mm_set1_ps( -0.394642233974f );
-				m_n0_580681 = _mm_set1_ps( -0.580621847591f );
-			}
-			if ( CUtilities::IsAvxSupported() ) {
-				m_1_14_256 = _mm256_set1_ps( 1.139883025203f );
-				m_2_03_256 = _mm256_set1_ps( 2.032061872219f );
-				m_n0_394642_256 = _mm256_set1_ps( -0.394642233974f );
-				m_n0_580681_256 = _mm256_set1_ps( -0.580621847591f );
-			}
-		}
-		{
-			if ( CUtilities::IsSse4Supported() ) {
 				// For conversions from RGB32F to RGB8.
 				m_0 = _mm_set1_ps( 0.0f );
 				m_299 = _mm_set1_ps( 299.0f );
@@ -592,9 +577,9 @@ namespace lsn {
 				// R = Y + (1.139883025203f * V)
 				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
 				// B = Y + (2.032061872219f * U)
-				__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, m_1_14_256 ) );
-				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, m_n0_394642_256 ), _mm256_mul_ps( mV, m_n0_580681_256 ) ) );
-				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, m_2_03_256 ) );
+				__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, _mm256_set1_ps( 1.139883025203f ) ) );
+				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
+				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m_299_256 ), m_0_256), m_299_256 );
@@ -673,9 +658,9 @@ namespace lsn {
 				// R = Y + (1.139883025203f * V)
 				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
 				// B = Y + (2.032061872219f * U)
-				__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, m_1_14 ) );
-				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, m_n0_394642 ), _mm_mul_ps( mV, m_n0_580681 ) ) );
-				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, m_2_03 ) );
+				__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, _mm_set1_ps( 1.139883025203f ) ) );
+				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, _mm_set1_ps( -0.394642233974f ) ), _mm_mul_ps( mV, _mm_set1_ps( -0.580621847591f ) ) ) );
+				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );

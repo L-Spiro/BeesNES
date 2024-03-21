@@ -1465,7 +1465,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 		++pc.PC;
 
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2089,7 +2089,7 @@ namespace lsn {
 			LSN_INSTR_READ_PHI1( pc.PC, m_ccCurContext.ui8Operand, Phi2_Read<true> );
 			++pc.PC;
 
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			LSN_INSTR_END_PHI1( true );
 			return;
 		}
@@ -2116,7 +2116,7 @@ namespace lsn {
 		LSN_INSTR_END_PHI2( LSN_BRANCH_NMI );
 	}
 
-	/** 3rd cycle of branch instructions. Branch was taken and crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
+	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary, but PC is already up-to-date so read/discard/exit. */
 	void CCpu6502::Branch_Cycle3() {
 		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != pc.ui8Bytes[1];
 		if ( bCrossed ) {
@@ -2138,7 +2138,7 @@ namespace lsn {
 			// Did not cross a page boundary.
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );	// TODO: Why doesn't this work?
 
 			// Set PCL.
 			pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];
@@ -2184,7 +2184,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<LSN_BRANCH_NMI> );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		// JSON testing reveals this.
 		// Crossed a page boundary.
 		pc.ui8Bytes[1] = m_ccCurContext.j.ui8Bytes[1];
@@ -2193,10 +2193,10 @@ namespace lsn {
 		LSN_INSTR_END_PHI1( LSN_BRANCH_NMI );
 	}
 
-	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST;, which finishes Read-Modify-Write instructions. */
+	/** Performs m_pbBus->Write( m_ccCurContext.a.ui16Address, m_ccCurContext.ui8Operand ); and LSN_FINISH_INST( true );, which finishes Read-Modify-Write instructions. */
 	void CCpu6502::FinalWriteCycle() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		//  #  address R/W description
 		// --- ------- --- -------------------------------------------------
@@ -2211,7 +2211,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, ADC_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2248,7 +2248,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, ADC_IzY_AbX_AbY_1_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -2273,7 +2273,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2298,7 +2298,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2322,7 +2322,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, AND_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2361,7 +2361,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, AND_Imm_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -2379,7 +2379,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2406,7 +2406,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		/*
 		 * In real 6510/8502 the internal parameter #$11
@@ -2442,7 +2442,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2496,7 +2496,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, ASL_Imp_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2525,7 +2525,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2549,7 +2549,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, BIT_IzX_IzY_ZpX_AbX_AbY_Zp_Abs_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2573,7 +2573,7 @@ namespace lsn {
 		LSN_INSTR_READ_PHI1( 0xFFFF, pc.ui8Bytes[1], Phi2_Read<true> );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2586,7 +2586,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, CLC_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2608,7 +2608,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, CLD_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2630,7 +2630,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, CLI_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2652,7 +2652,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_OVERFLOW ), false>( m_ui8Status );
 
@@ -2664,7 +2664,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, CMP_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2692,7 +2692,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, CMP_Imm_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -2710,7 +2710,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2729,7 +2729,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, CPX_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2745,7 +2745,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2764,7 +2764,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, CPY_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2780,7 +2780,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2849,7 +2849,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, DEX_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2873,7 +2873,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, DEY_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2894,7 +2894,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, EOR_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2922,7 +2922,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, EOR_Imm_Phi2 );
 			
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 		LSN_INSTR_END_PHI1( true );
@@ -2939,7 +2939,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -2987,7 +2987,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, INX_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3011,7 +3011,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, INY_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3064,7 +3064,7 @@ namespace lsn {
 
 	/** Jams the machine, putting 0xFF on the bus repeatedly. */
 	void CCpu6502::JAM() {
-		// Jam by having neither LSN_ADVANCE_CONTEXT_COUNTERS nor LSN_FINISH_INST.
+		// Jam by having neither LSN_ADVANCE_CONTEXT_COUNTERS nor LSN_FINISH_INST( true ).
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, Phi2_Read<true> );
 	}
 
@@ -3077,7 +3077,7 @@ namespace lsn {
 		LSN_INSTR_READ_PHI1( pc.PC, m_ccCurContext.j.ui8Bytes[1], JMP_Abs_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3102,7 +3102,7 @@ namespace lsn {
 		LSN_INSTR_READ_PHI1( (m_ccCurContext.a.ui16Address & 0xFF00) | uint8_t( m_ccCurContext.a.ui8Bytes[0] + 1 ), m_ccCurContext.j.ui8Bytes[1], JSR_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3116,7 +3116,7 @@ namespace lsn {
 		LSN_INSTR_READ_PHI1( pc.PC, m_ccCurContext.j.ui8Bytes[1], JSR_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3136,7 +3136,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LAS_AbY_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3175,7 +3175,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LAS_AbY_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3187,7 +3187,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LAX_IzX_IzY_ZpY_AbX_AbY_Zp_Abs_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3226,7 +3226,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LAX_IzX_IzY_ZpY_AbX_AbY_Zp_Abs_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3242,7 +3242,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3252,7 +3252,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDA_IzY_AbX_AbY_1_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3280,7 +3280,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDA_IzY_AbX_AbY_1_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3303,7 +3303,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDX_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3331,7 +3331,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDX_Imm_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3347,7 +3347,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3368,7 +3368,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDY_IzY_AbX_AbY_1_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3396,7 +3396,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, LDY_IzY_AbX_AbY_1_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3422,7 +3422,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, LDY_IzY_AbX_AbY_1_Phi2 );
 		++pc.PC;
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3450,7 +3450,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 		
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		// It carries if the last bit gets shifted off.
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_CARRY )>( m_ui8Status, (A & 0x01) != 0 );
@@ -3473,7 +3473,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		/*
 		 * In real 6510/8502 the internal parameter #$11
@@ -3506,7 +3506,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3520,7 +3520,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3530,7 +3530,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, Phi2_Read<true> );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3558,7 +3558,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, Phi2_Read<true> );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3576,7 +3576,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3597,7 +3597,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, ORA_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3625,7 +3625,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, ORA_Imm_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3635,7 +3635,7 @@ namespace lsn {
 	/** Pushes the accumulator. */
 	void CCpu6502::PHA() {
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_PUSH( A, Phi2_Write<true> );
 
@@ -3645,7 +3645,7 @@ namespace lsn {
 	/** Pushes the status byte. */
 	void CCpu6502::PHP() {
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		uint8_t ui8Copy = m_ui8Status;
 		SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_BREAK ) | uint8_t( LSN_STATUS_FLAGS::LSN_SF_RESERVED ), true>( ui8Copy );
@@ -3680,7 +3680,7 @@ namespace lsn {
 		LSN_POP( PLA_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3701,7 +3701,7 @@ namespace lsn {
 		LSN_POP( PLP_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3777,7 +3777,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, ROL_Imp_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3828,7 +3828,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, ROR_Imp_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3883,7 +3883,7 @@ namespace lsn {
 		LSN_POP( RTI_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3903,7 +3903,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3911,7 +3911,7 @@ namespace lsn {
 	/** Writes (A & X) to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::SAX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, A & X, Phi2_Write<true> );
 
@@ -3923,7 +3923,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, SBC_Imm_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -3951,7 +3951,7 @@ namespace lsn {
 			LSN_INSTR_READ_DISCARD_PHI1( m_ccCurContext.a.ui16Address, SBC_Imm_Phi2 );
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST;
+			LSN_FINISH_INST( true );
 			// We are done.
 		}
 
@@ -3964,7 +3964,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		//  #  address R/W description
 		// --- ------- --- ------------------------------------------
 		//  2    PC     R  fetch value, increment PC
@@ -3991,7 +3991,7 @@ namespace lsn {
 		++pc.PC;
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4017,7 +4017,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, SEC_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4039,7 +4039,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, SED_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4061,7 +4061,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, SEI_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4078,7 +4078,7 @@ namespace lsn {
 	/** Illegal. Stores A & X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -4098,7 +4098,7 @@ namespace lsn {
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHS() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -4119,7 +4119,7 @@ namespace lsn {
 	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHX() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -4141,7 +4141,7 @@ namespace lsn {
 	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
 	void CCpu6502::SHY() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		// #    address   R/W description
 		// --- ----------- --- ------------------------------------------
@@ -4215,7 +4215,7 @@ namespace lsn {
 	/** Writes A to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STA_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, A, Phi2_Write<true> );
 
@@ -4225,7 +4225,7 @@ namespace lsn {
 	/** Writes X to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STX_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, X, Phi2_Write<true> );
 
@@ -4235,7 +4235,7 @@ namespace lsn {
 	/** Writes Y to LSN_CPU_CONTEXT::a.ui16Address. */
 	void CCpu6502::STY_IzX_IzY_ZpX_AbX_AbY_Zp_Abs() {
 		// Last cycle in the instruction.  Do this before the write because the write operation might change the next Tick() function pointer.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_WRITE_PHI1( m_ccCurContext.a.ui16Address, Y, Phi2_Write<true> );
 
@@ -4247,7 +4247,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TAX_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4268,7 +4268,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TAY_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4289,7 +4289,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TSX_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4310,7 +4310,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TXA_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI1( true );
 	}
@@ -4331,7 +4331,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TXS_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 
 		LSN_INSTR_END_PHI1( true );
@@ -4351,7 +4351,7 @@ namespace lsn {
 		LSN_INSTR_READ_DISCARD_PHI1( pc.PC, TYA_Phi2 );
 
 		// Last cycle in the instruction.
-		LSN_FINISH_INST;
+		LSN_FINISH_INST( true );
 		
 		LSN_INSTR_END_PHI1( true );
 	}

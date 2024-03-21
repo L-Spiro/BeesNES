@@ -16,6 +16,30 @@
 #include <codecvt>
 #endif
 
+#ifdef __GNUC__
+
+void __cpuid( int* _piCpuInfo, int _iInfo ) {
+	__asm__ __volatile__(
+		"xchg %%ebx, %%edi;"
+		"cpuid;"
+		"xchg %%ebx, %%edi;"
+		:"=a" (_piCpuInfo[0]), "=D" (_piCpuInfo[1]), "=c" (_piCpuInfo[2]), "=d" (_piCpuInfo[3])
+		:"0" (_iInfo)
+	);
+}
+
+unsigned long long _xgetbv( unsigned int _uiIndex ) {
+	unsigned int eax, edx;
+	__asm__ __volatile__(
+		"xgetbv;"
+		: "=a" (eax), "=d"(edx)
+		: "c" (_uiIndex)
+	);
+	return ((unsigned long long)edx << 32) | eax;
+}
+
+#endif
+
 namespace lsn {
 
 	// == Members.
@@ -34,13 +58,6 @@ namespace lsn {
 		0.250443081117927734968731101616867817938327789306640625f,		0.481390593047034798246386344544589519500732421875f,			0.74982958418541245659838523351936601102352142333984375f,	0.74982958418541245659838523351936601102352142333984375f
 
 	};
-
-	int CUtilities::m_iCpuId[4] = {											/**< Result of __cpuid(). */
-		-1, -1, -1, -1
-	};
-
-	uint8_t CUtilities::m_bAvxSupport = 2;									/**< Is AVX supported? */
-	uint8_t CUtilities::m_bSse4Support = 2;									/**< Is SSE 4 supported? */
 
 	// == Functions.
 	/**
@@ -324,17 +341,6 @@ namespace lsn {
 		}
 		_u16Path.insert( _u16Path.begin(), u'\\' );
 		_u16Path.insert( _u16Path.begin(), u'\u2026' );
-	}
-
-	/**
-	 * Checks for support for AVX and SSE 4.
-	 **/
-	void CUtilities::CheckFeatureSet() {
-		__cpuid( m_iCpuId, 1 );
-
-		m_bSse4Support		= m_iCpuId[2] & (1 << 9) || false;
-		m_bAvxSupport		= m_iCpuId[2] & (1 << 28) || false;
-
 	}
 
 }	// namespace lsn

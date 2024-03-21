@@ -208,10 +208,6 @@ namespace lsn {
 		uint16_t											m_ui16Height = 0;						/**< The last input height. */
 		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
 
-		__m256												m_1_14_256;								/**< 1.14. */
-		__m256												m_2_03_256;								/**< 2.03. */
-		__m256												m_n0_394642_256;						/**< -0.394642. */
-		__m256												m_n0_580681_256;						/**< -0.580681. */
 		__m256												m_0_256;								/**< 0.0f. */
 		__m256												m_299_256;								/**< 299.0f. */
 
@@ -222,10 +218,6 @@ namespace lsn {
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
 		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
-		__m128												m_1_14;									/**< 1.14. */
-		__m128												m_2_03;									/**< 2.03. */
-		__m128												m_n0_394642;							/**< -0.394642. */
-		__m128												m_n0_580681;							/**< -0.580681. */
 		__m128												m_0;									/**< 0.0f. */
 		__m128												m_299;									/**< 299.0f. */
 
