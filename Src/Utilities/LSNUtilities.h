@@ -993,10 +993,8 @@ namespace lsn {
 		 *
 		 * \return Returns true if AVX is supported.
 		 **/
-		static bool											IsAvxSupported() {
+		static inline bool									IsAvxSupported() {
 			return CFeatureSet::AVX();
-			/*if ( m_bAvxSupport == 2 ) { CheckFeatureSet(); }
-			return m_bAvxSupport != 0;*/
 		}
 
 		/**
@@ -1004,19 +1002,26 @@ namespace lsn {
 		 *
 		 * \return Returns true if AVX is supported.
 		 **/
-		static bool											IsAvx2Supported() {
+		static inline bool									IsAvx2Supported() {
 			return CFeatureSet::AVX2();
-			/*if ( m_bAvxSupport2 == 2 ) { CheckFeatureSet(); }
-			return m_bAvxSupport2 != 0;*/
 		}
 
 		/**
-		 * Is AVX 512F supported?
+		 * Is AVX-512F supported?
 		 *
-		 * \return Returns true if AVX is supported.
+		 * \return Returns true if AVX-512F is supported.
 		 **/
-		static bool											IsAvx512FSupported() {
+		static inline bool									IsAvx512FSupported() {
 			return CFeatureSet::AVX512F();
+		}
+
+		/**
+		 * Is AVX-512BW supported?
+		 *
+		 * \return Returns true if AVX-512BW is supported.
+		 **/
+		static inline bool									IsAvx512BWSupported() {
+			return CFeatureSet::AVX512BW();
 		}
 
 		/**
@@ -1024,10 +1029,8 @@ namespace lsn {
 		 *
 		 * \return Returns true if SSE 4 is supported.
 		 **/
-		static bool											IsSse4Supported() {
+		static inline bool									IsSse4Supported() {
 			return CFeatureSet::SSE41();
-			/*if ( m_bSse4Support == 2 ) { CheckFeatureSet(); }
-			return m_bSse4Support != 0;*/
 		}
 
 

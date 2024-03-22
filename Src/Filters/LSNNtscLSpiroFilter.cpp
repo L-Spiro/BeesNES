@@ -30,22 +30,7 @@ namespace lsn {
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
 		SetWidth( LSN_PM_NTSC_RENDER_WIDTH );		// Allocate buffers.
-		SetHeight( 240 );							// Allocate buffers.
-
-		// Other generations that can't be changed once set.
-		{
-			if ( CUtilities::IsSse4Supported() ) {
-				// For conversions from RGB32F to RGB8.
-				m_0 = _mm_set1_ps( 0.0f );
-				m_299 = _mm_set1_ps( 299.0f );
-			}
-			if ( CUtilities::IsAvxSupported() ) {
-				m_0_256 = _mm256_set1_ps( 0.0f );
-				m_299_256 = _mm256_set1_ps( 299.0f );
-			}
-		}
-
-		
+		SetHeight( 240 );							// Allocate buffers.		
 	}
 	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
 		StopThread();
@@ -453,13 +438,13 @@ namespace lsn {
 	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
 			// Buffer size:
-			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 32 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 8;
+			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
+			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
 				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32FilterKernelSize / 2 );
-				uiptrStart = (uiptrStart + 31) / 32 * 32;
+				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
 			}
 
@@ -491,7 +476,133 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
-		if ( CUtilities::IsAvx2Supported() ) {
+		if ( CUtilities::IsAvx512BWSupported() ) {
+			__m512 m0 = _mm512_set1_ps( 0.0f );
+			__m512 m299 = _mm512_set1_ps( 299.0f );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m512 ) / sizeof( float ) ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m512 mY = _mm512_load_ps( pfY );
+				__m512 mU = _mm512_load_ps( pfQ );
+				__m512 mV = _mm512_load_ps( pfI );
+
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m512 mR = _mm512_add_ps( mY, _mm512_mul_ps( mV, _mm512_set1_ps( 1.139883025203f ) ) );
+				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
+				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
+
+				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
+				mG = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mG, m299 ), m0 ), m299 );
+				mB = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mB, m299 ), m0 ), m299 );
+
+				// Convert to integers.
+				__m512i mRi = _mm512_cvtps_epi32( mR );
+				__m512i mGi = _mm512_cvtps_epi32( mG );
+				__m512i mBi = _mm512_cvtps_epi32( mB );
+
+				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+				__m512i mBgi = _mm512_packus_epi32( mBi, mGi );
+				__m512i mRai = _mm512_packus_epi32( mRi, mGi );
+
+				LSN_ALIGN( 64 )
+				uint16_t ui16Tmp0[32];
+				LSN_ALIGN( 64 )
+				uint16_t ui16Tmp1[32];
+				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp0), mBgi );
+				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp1), mRai );
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+				(*pui8Bgra++) = 255;							// A0;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+				(*pui8Bgra++) = 255;							// A1;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+				(*pui8Bgra++) = 255;							// A2;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+				(*pui8Bgra++) = 255;							// A3;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
+				(*pui8Bgra++) = 255;							// A4;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
+				(*pui8Bgra++) = 255;							// A5;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
+				(*pui8Bgra++) = 255;							// A6;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
+				(*pui8Bgra++) = 255;							// A7;
+
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4]];	// B8;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4]];	// G8;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4]];	// R8;
+				(*pui8Bgra++) = 255;								// A8;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4]];	// B9;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4]];	// G9;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4]];	// R9;
+				(*pui8Bgra++) = 255;								// A9;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4]];	// B10;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4]];	// G10;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4]];	// R10;
+				(*pui8Bgra++) = 255;								// A10;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4]];	// B11;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4]];	// G11;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4]];	// R11;
+				(*pui8Bgra++) = 255;								// A11;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4+4]];	// B12;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4+4+4]];	// G12;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4+4+4]];	// R12;
+				(*pui8Bgra++) = 255;									// A12;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4+4]];	// B13;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4+4+4]];	// G13;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4+4+4]];	// R13;
+				(*pui8Bgra++) = 255;									// A13;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4+4]];	// B14;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4+4+4]];	// G14;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4+4+4]];	// R14;
+				(*pui8Bgra++) = 255;									// A14;
+
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4+4]];	// B15;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4+4+4]];	// G15;
+				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4+4+4]];	// R15;
+				(*pui8Bgra++) = 255;									// A15;
+
+				pfY += sizeof( __m512 ) / sizeof( float );
+				pfI += sizeof( __m512 ) / sizeof( float );
+				pfQ += sizeof( __m512 ) / sizeof( float );
+
+			}
+		}
+		else if ( CUtilities::IsAvx2Supported() ) {
+			__m256 m0 = _mm256_set1_ps( 0.0f );
+			__m256 m299 = _mm256_set1_ps( 299.0f );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m256 mY = _mm256_load_ps( pfY );
@@ -507,9 +618,9 @@ namespace lsn {
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m_299_256 ), m_0_256), m_299_256 );
-				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m_299_256 ), m_0_256), m_299_256 );
-				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m_299_256 ), m_0_256), m_299_256 );
+				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
+				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
+				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
 
 				// Convert to integers.
 				__m256i mRi = _mm256_cvtps_epi32( mR );
@@ -573,6 +684,8 @@ namespace lsn {
 			}
 		}
 		else if ( CUtilities::IsSse4Supported() ) {
+			__m128 m0 = _mm_set1_ps( 0.0f );
+			__m128 m299 = _mm_set1_ps( 299.0f );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m128 ) / sizeof( float ) ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m128 mY = _mm_load_ps( pfY );
@@ -588,9 +701,9 @@ namespace lsn {
 				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m_299 ), m_0), m_299 );
-				mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m_299 ), m_0), m_299 );
-				mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m_299 ), m_0), m_299 );
+				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m299 ), m0 ), m299 );
+				mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m299 ), m0 ), m299 );
+				mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m299 ), m0 ), m299 );
 
 				// Convert to integers.
 				__m128i mRi = _mm_cvtps_epi32( mR );

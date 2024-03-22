@@ -30,7 +30,10 @@ namespace lsn {
 			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
 			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },*/
 			// Super Mario Bros. (World)
-			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALN },
+			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALM },
+
+			// Super Mario Bros (E)
+			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
 
 			// 01.len_ctr
 			{ .ui32Crc = 0xD1837AD3, .pmRegion = LSN_PM_PAL },
@@ -348,6 +351,8 @@ namespace lsn {
 			{ .ui32Crc = 0x84C4A12E, .pmRegion = LSN_PM_PAL },
 			// Metroid (Europe)
 			{ .ui32Crc = 0x7751588D, .pmRegion = LSN_PM_PAL },
+			// Mickey Mousecapade (USA)
+			{ .ui32Crc = 0xF39FD253, .pmRegion = LSN_PM_NTSC },
 			// Mike Tyson's Punch-Out!! (E) (PRG 0) [!]
 			{ .ui32Crc = 0x4C09E6B8, .pmRegion = LSN_PM_PAL },
 			// Mike Tyson's Punch-Out!! (E) (PRG 1) [!]

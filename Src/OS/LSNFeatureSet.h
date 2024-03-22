@@ -104,6 +104,8 @@ namespace lsn {
         static bool                     AVX512ER() { return m_iiCpuRep.m_bEbx7[27]; }
         static bool                     AVX512CD() { return m_iiCpuRep.m_bEbx7[28]; }
         static bool                     SHA() { return m_iiCpuRep.m_bEbx7[29]; }
+        static bool                     AVX512BW() { return m_iiCpuRep.m_bEbx7[30]; }
+        static bool                     AVX512VL() { return m_iiCpuRep.m_bEbx7[31]; }
 
         static bool                     PREFETCHWT1() { return m_iiCpuRep.m_bEcx7[0]; }
 
