@@ -353,7 +353,7 @@ namespace lsn {
 			__m512i mMaskRb512			= _mm512_set1_epi32( mMaskRb );
 			__m512i mMaskAg512			= _mm512_set1_epi32( mMaskAg );
 			__m512i mFactorX			= _mm512_set1_epi32( _ui32FactorX );
-			__m512i mFactorXCompliment	= _mm512_set1_epi32( 512 - _ui32FactorX );
+			__m512i mFactorXCompliment	= _mm512_set1_epi32( 256 - _ui32FactorX );
 
 			__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32A) );
 			__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32B) );
@@ -384,45 +384,6 @@ namespace lsn {
 
 			// Store the result.
 			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
-			/*constexpr uint32_t mMaskRb = 0x00FF00FF;
-			constexpr uint32_t mMaskAg = 0xFF00FF00;
-
-			__m512i mMaskRb512			= _mm512_set1_epi32( mMaskRb );
-			__m512i mMaskAg512			= _mm512_set1_epi32( mMaskAg );
-			__m512i mFactorX			= _mm512_set1_epi32( _ui32FactorX );
-			__m512i mFactorXCompliment	= _mm512_set1_epi32( 256 - _ui32FactorX );
-
-			__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32A) );
-			__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32B) );
-
-			__m512i mArb				= _mm512_and_si512( mA, mMaskRb512 );
-			__m512i mAag				= _mm512_and_si512( mA, mMaskAg512 );
-			__m512i mBrb				= _mm512_and_si512( mB, mMaskRb512 );
-			__m512i mBag				= _mm512_and_si512( mB, mMaskAg512 );
-
-			__m512i mRbInterp			= _mm512_srli_epi32(
-				_mm512_add_epi32(
-					_mm512_mullo_epi32( mArb, mFactorXCompliment ),
-					_mm512_mullo_epi32( mBrb, mFactorX )
-				),
-				8
-			);
-
-			mRbInterp					= _mm512_and_si512( mRbInterp, mMaskRb512 );
-
-			__m512i mAgInterp			= _mm512_srli_epi32(
-				_mm512_add_epi32(
-					_mm512_mullo_epi32( _mm512_srli_epi32( mAag, 8 ), mFactorXCompliment ),
-					_mm512_mullo_epi32( _mm512_srli_epi32( mBag, 8 ), mFactorX )
-				),
-				8
-			);
-
-			mAgInterp					= _mm512_and_si512( mAgInterp, mMaskAg512 );
-
-			__m512i mResult				= _mm512_or_si512( mRbInterp, mAgInterp );
-
-			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );*/
 		}
 
 
@@ -460,7 +421,7 @@ namespace lsn {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
-				/*if ( IsAvx512FSupported() ) {
+				if ( IsAvx512FSupported() ) {
 					while ( _ui32Width >= 16 ) {
 						LinearSample_AVX512( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 16;
@@ -469,7 +430,7 @@ namespace lsn {
 						_pui32SrcRow1 += 16;
 						_pui32DstRow += 16;
 					}
-				}*/
+				}
 
 				if ( IsAvx2Supported() ) {
 					while ( _ui32Width >= 8 ) {
@@ -670,7 +631,7 @@ namespace lsn {
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 
 		/**
-		 * Horizontally adds all the floats in a given AVX 512 register.
+		 * Horizontally adds all the floats in a given AVX-512 register.
 		 * 
 		 * \param _mReg The register containing all of the values to sum.
 		 * \return Returns the sum of all the floats in the given register.

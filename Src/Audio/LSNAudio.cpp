@@ -110,7 +110,7 @@ namespace lsn {
 	 **/
 	bool CAudio::InitializeAudio() {
 #ifdef LSN_USE_SAMPLE_BOX
-		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
+		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
 #endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		std::vector<std::string> vDevices;

@@ -227,13 +227,18 @@ namespace lsn {
 		inline std::vector<float> &							Output() { return m_gGen.vOutputBuffer; }
 
 		/**
-		 * Sets the AVX/SSE 4 feature set.
+		 * Sets the AVX/SSE feature set.
 		 * 
-		 * \param _bAvx2 Specifies whether the AVX 2 feature set is available.
-		 * \param _bSse4 Specifies whether the SSE 4 feature set is available.
+		 * \param _bAvx512 Specifies whether the AVX-512F feature set is available.
+		 * \param _bAvx Specifies whether the AVX feature set is available.
+		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
 		 **/
-		void												SetFeatureSet( bool _bAvx2, bool _bSse4 ) {
-			if ( _bAvx2 ) {
+		void												SetFeatureSet( bool _bAvx512, bool _bAvx, bool _bSse4 ) {
+			if ( _bAvx512 ) {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX512;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX512;
+			}
+			else if ( _bAvx ) {
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
 				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX;
 			}
@@ -1167,7 +1172,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Horizontally adds all the floats in a given AVX 512 register.
+		 * Horizontally adds all the floats in a given AVX-512 register.
 		 * 
 		 * \param _mReg The register containing all of the values to sum.
 		 * \return Returns the sum of all the floats in the given register.

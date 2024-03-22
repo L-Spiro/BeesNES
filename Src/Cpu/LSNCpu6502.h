@@ -52,9 +52,7 @@
 #define LSN_CHECK_INTERRUPTS																if ( CheckBit( static_cast<uint8_t>(LSN_STATUS_FLAGS::LSN_SF_IRQ), m_ui8Status ) == false ) { m_bHandleIrq |= m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
 
-#define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )												/*m_ccCurContext.ui8Cycle += AMT;*/	\
-																							m_ccCurContext.ui8FuncIdx += AMT;
-																							/*++m_ccCurContext.ui8Cycle*/
+#define LSN_ADVANCE_CONTEXT_COUNTERS_BY( AMT )												m_ccCurContext.ui8FuncIdx += AMT;
 #define LSN_ADVANCE_CONTEXT_COUNTERS														LSN_ADVANCE_CONTEXT_COUNTERS_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )													if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
