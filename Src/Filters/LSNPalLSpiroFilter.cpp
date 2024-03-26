@@ -296,8 +296,8 @@ namespace lsn {
 					}
 					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
 					(*_pfDstY) += fLevel;
-					(*_pfDstI) += m_fPhaseCosTable[ui16CosIdx];
-					(*_pfDstQ) += m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12];
+					(*_pfDstI) += m_fPhaseCosTable[ui16CosIdx] * fLevel;
+					(*_pfDstQ) += m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12] * fLevel;
 					++J;
 				}
 			}
