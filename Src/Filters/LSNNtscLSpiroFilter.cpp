@@ -156,7 +156,8 @@ namespace lsn {
 	void CNtscLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
-			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::sRGBtoLinear( std::pow( (I / 299.0), 1.0 / m_fGammaSetting ) ) * 255.0 ) );
+			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
+			//m_ui8Gamma[I] = uint8_t( std::round( (I / 299.0) * 255.0 ) );
 		}
 	}
 
