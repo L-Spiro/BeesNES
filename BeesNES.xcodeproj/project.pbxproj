@@ -1,0 +1,697 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		12574A022BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
+		12574A032BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
+		12574A042BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
+		12574A062BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
+		12574A072BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
+		12574A082BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
+		12574A0E2BB5BB8700A4A610 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */; };
+		12574A122BB637AC00A4A610 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12574A112BB637AC00A4A610 /* GameViewController.m */; };
+		12574A142BB6B71F00A4A610 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A132BB6B71F00A4A610 /* main.mm */; };
+		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
+		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
+		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
+		12E8B6B42BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B32BB59A6500055316 /* Base */; };
+		12E8B6B62BB59A6500055316 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6B52BB59A6500055316 /* main.m */; };
+		12E8B6BF2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6BE2BB59A6500055316 /* AppDelegate.m */; };
+		12E8B6C22BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6C12BB59A6500055316 /* GameViewController.m */; };
+		12E8B6C52BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6C42BB59A6500055316 /* Base */; };
+		12E8B6C82BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6C72BB59A6500055316 /* Base */; };
+		12E8B6CA2BB59A6500055316 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6C92BB59A6500055316 /* main.m */; };
+		12E8B6D92BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6D82BB59A6500055316 /* Base */; };
+		12E8B6E02BB59A6500055316 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6A02BB59A6400055316 /* Shaders.metal */; };
+		12E8B6E12BB59A6500055316 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6A02BB59A6400055316 /* Shaders.metal */; };
+		12E8B6E22BB59A6500055316 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6A02BB59A6400055316 /* Shaders.metal */; };
+		12E8B6E32BB59A6500055316 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6A12BB59A6500055316 /* Assets.xcassets */; };
+		12E8B6E42BB59A6500055316 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6A12BB59A6500055316 /* Assets.xcassets */; };
+		12E8B6E52BB59A6500055316 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6A12BB59A6500055316 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		12574A012BB5AE7600A4A610 /* Renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
+		12574A052BB5B37A00A4A610 /* Src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Src; sourceTree = SOURCE_ROOT; };
+		12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		12574A112BB637AC00A4A610 /* GameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		12574A132BB6B71F00A4A610 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
+		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		12E8B6A12BB59A6500055316 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		12E8B6A62BB59A6500055316 /* BeesNES.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeesNES.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		12E8B6A92BB59A6500055316 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		12E8B6AA2BB59A6500055316 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		12E8B6AC2BB59A6500055316 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		12E8B6AD2BB59A6500055316 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		12E8B6B02BB59A6500055316 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		12E8B6B32BB59A6500055316 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		12E8B6B52BB59A6500055316 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		12E8B6BB2BB59A6500055316 /* BeesNES.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeesNES.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		12E8B6BD2BB59A6500055316 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		12E8B6BE2BB59A6500055316 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		12E8B6C02BB59A6500055316 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		12E8B6C12BB59A6500055316 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		12E8B6C42BB59A6500055316 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		12E8B6C72BB59A6500055316 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		12E8B6C92BB59A6500055316 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		12E8B6CF2BB59A6500055316 /* BeesNES.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeesNES.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		12E8B6D12BB59A6500055316 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		12E8B6D42BB59A6500055316 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		12E8B6D82BB59A6500055316 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		12E8B6DC2BB59A6500055316 /* BeesNES_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BeesNES_macOS.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		12E8B6A32BB59A6500055316 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6B82BB59A6500055316 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6CC2BB59A6500055316 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		12E8B6972BB59A6300055316 = {
+			isa = PBXGroup;
+			children = (
+				12E8B69C2BB59A6400055316 /* BeesNES Shared */,
+				12E8B6A82BB59A6500055316 /* BeesNES iOS */,
+				12E8B6BC2BB59A6500055316 /* BeesNES tvOS */,
+				12E8B6D02BB59A6500055316 /* BeesNES macOS */,
+				12E8B6A72BB59A6500055316 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		12E8B69C2BB59A6400055316 /* BeesNES Shared */ = {
+			isa = PBXGroup;
+			children = (
+				12574A052BB5B37A00A4A610 /* Src */,
+				12E8B69D2BB59A6400055316 /* Renderer.h */,
+				12574A012BB5AE7600A4A610 /* Renderer.mm */,
+				12E8B69F2BB59A6400055316 /* ShaderTypes.h */,
+				12E8B6A02BB59A6400055316 /* Shaders.metal */,
+				12E8B6A12BB59A6500055316 /* Assets.xcassets */,
+			);
+			path = "BeesNES Shared";
+			sourceTree = "<group>";
+		};
+		12E8B6A72BB59A6500055316 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				12E8B6A62BB59A6500055316 /* BeesNES.app */,
+				12E8B6BB2BB59A6500055316 /* BeesNES.app */,
+				12E8B6CF2BB59A6500055316 /* BeesNES.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		12E8B6A82BB59A6500055316 /* BeesNES iOS */ = {
+			isa = PBXGroup;
+			children = (
+				12E8B6A92BB59A6500055316 /* AppDelegate.h */,
+				12E8B6AA2BB59A6500055316 /* AppDelegate.m */,
+				12E8B6AC2BB59A6500055316 /* GameViewController.h */,
+				12E8B6AD2BB59A6500055316 /* GameViewController.m */,
+				12E8B6AF2BB59A6500055316 /* Main.storyboard */,
+				12E8B6B22BB59A6500055316 /* LaunchScreen.storyboard */,
+				12E8B6B52BB59A6500055316 /* main.m */,
+			);
+			path = "BeesNES iOS";
+			sourceTree = "<group>";
+		};
+		12E8B6BC2BB59A6500055316 /* BeesNES tvOS */ = {
+			isa = PBXGroup;
+			children = (
+				12E8B6BD2BB59A6500055316 /* AppDelegate.h */,
+				12E8B6BE2BB59A6500055316 /* AppDelegate.m */,
+				12E8B6C02BB59A6500055316 /* GameViewController.h */,
+				12E8B6C12BB59A6500055316 /* GameViewController.m */,
+				12E8B6C32BB59A6500055316 /* Main.storyboard */,
+				12E8B6C62BB59A6500055316 /* LaunchScreen.storyboard */,
+				12E8B6C92BB59A6500055316 /* main.m */,
+			);
+			path = "BeesNES tvOS";
+			sourceTree = "<group>";
+		};
+		12E8B6D02BB59A6500055316 /* BeesNES macOS */ = {
+			isa = PBXGroup;
+			children = (
+				12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */,
+				12574A112BB637AC00A4A610 /* GameViewController.m */,
+				12574A132BB6B71F00A4A610 /* main.mm */,
+				12E8B6D12BB59A6500055316 /* AppDelegate.h */,
+				12E8B6D42BB59A6500055316 /* GameViewController.h */,
+				12E8B6D72BB59A6500055316 /* Main.storyboard */,
+				12E8B6DC2BB59A6500055316 /* BeesNES_macOS.entitlements */,
+			);
+			path = "BeesNES macOS";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		12E8B6A52BB59A6500055316 /* BeesNES iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12E8B6E82BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES iOS" */;
+			buildPhases = (
+				12E8B6A22BB59A6500055316 /* Sources */,
+				12E8B6A32BB59A6500055316 /* Frameworks */,
+				12E8B6A42BB59A6500055316 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "BeesNES iOS";
+			productName = "BeesNES iOS";
+			productReference = 12E8B6A62BB59A6500055316 /* BeesNES.app */;
+			productType = "com.apple.product-type.application";
+		};
+		12E8B6BA2BB59A6500055316 /* BeesNES tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12E8B6EB2BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES tvOS" */;
+			buildPhases = (
+				12E8B6B72BB59A6500055316 /* Sources */,
+				12E8B6B82BB59A6500055316 /* Frameworks */,
+				12E8B6B92BB59A6500055316 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "BeesNES tvOS";
+			productName = "BeesNES tvOS";
+			productReference = 12E8B6BB2BB59A6500055316 /* BeesNES.app */;
+			productType = "com.apple.product-type.application";
+		};
+		12E8B6CE2BB59A6500055316 /* BeesNES macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12E8B6EE2BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES macOS" */;
+			buildPhases = (
+				12E8B6CB2BB59A6500055316 /* Sources */,
+				12E8B6CC2BB59A6500055316 /* Frameworks */,
+				12E8B6CD2BB59A6500055316 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "BeesNES macOS";
+			productName = "BeesNES macOS";
+			productReference = 12E8B6CF2BB59A6500055316 /* BeesNES.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		12E8B6982BB59A6300055316 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1530;
+				TargetAttributes = {
+					12E8B6A52BB59A6500055316 = {
+						CreatedOnToolsVersion = 15.3;
+					};
+					12E8B6BA2BB59A6500055316 = {
+						CreatedOnToolsVersion = 15.3;
+					};
+					12E8B6CE2BB59A6500055316 = {
+						CreatedOnToolsVersion = 15.3;
+					};
+				};
+			};
+			buildConfigurationList = 12E8B69B2BB59A6300055316 /* Build configuration list for PBXProject "BeesNES" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 12E8B6972BB59A6300055316;
+			productRefGroup = 12E8B6A72BB59A6500055316 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				12E8B6A52BB59A6500055316 /* BeesNES iOS */,
+				12E8B6BA2BB59A6500055316 /* BeesNES tvOS */,
+				12E8B6CE2BB59A6500055316 /* BeesNES macOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		12E8B6A42BB59A6500055316 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12E8B6B12BB59A6500055316 /* Base in Resources */,
+				12E8B6E32BB59A6500055316 /* Assets.xcassets in Resources */,
+				12E8B6B42BB59A6500055316 /* Base in Resources */,
+				12574A062BB5B37A00A4A610 /* Src in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6B92BB59A6500055316 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12E8B6C52BB59A6500055316 /* Base in Resources */,
+				12E8B6E42BB59A6500055316 /* Assets.xcassets in Resources */,
+				12E8B6C82BB59A6500055316 /* Base in Resources */,
+				12574A072BB5B37A00A4A610 /* Src in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6CD2BB59A6500055316 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12574A082BB5B37A00A4A610 /* Src in Resources */,
+				12E8B6E52BB59A6500055316 /* Assets.xcassets in Resources */,
+				12E8B6D92BB59A6500055316 /* Base in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		12E8B6A22BB59A6500055316 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */,
+				12E8B6B62BB59A6500055316 /* main.m in Sources */,
+				12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */,
+				12574A022BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12E8B6E02BB59A6500055316 /* Shaders.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6B72BB59A6500055316 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12E8B6C22BB59A6500055316 /* GameViewController.m in Sources */,
+				12E8B6CA2BB59A6500055316 /* main.m in Sources */,
+				12E8B6BF2BB59A6500055316 /* AppDelegate.m in Sources */,
+				12574A032BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12E8B6E12BB59A6500055316 /* Shaders.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12E8B6CB2BB59A6500055316 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				12574A142BB6B71F00A4A610 /* main.mm in Sources */,
+				12574A0E2BB5BB8700A4A610 /* AppDelegate.mm in Sources */,
+				12574A042BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12574A122BB637AC00A4A610 /* GameViewController.m in Sources */,
+				12E8B6E22BB59A6500055316 /* Shaders.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		12E8B6AF2BB59A6500055316 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				12E8B6B02BB59A6500055316 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		12E8B6B22BB59A6500055316 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				12E8B6B32BB59A6500055316 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		12E8B6C32BB59A6500055316 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				12E8B6C42BB59A6500055316 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		12E8B6C62BB59A6500055316 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				12E8B6C72BB59A6500055316 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		12E8B6D72BB59A6500055316 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				12E8B6D82BB59A6500055316 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		12E8B6E62BB59A6500055316 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+			};
+			name = Debug;
+		};
+		12E8B6E72BB59A6500055316 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+			};
+			name = Release;
+		};
+		12E8B6E92BB59A6500055316 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		12E8B6EA2BB59A6500055316 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		12E8B6EC2BB59A6500055316 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "tvOS App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.4;
+			};
+			name = Debug;
+		};
+		12E8B6ED2BB59A6500055316 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "tvOS App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.4;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		12E8B6EF2BB59A6500055316 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "BeesNES macOS/BeesNES_macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		12E8B6F02BB59A6500055316 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "BeesNES macOS/BeesNES_macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "L.-Spiro.BeesNES";
+				PRODUCT_NAME = BeesNES;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		12E8B69B2BB59A6300055316 /* Build configuration list for PBXProject "BeesNES" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12E8B6E62BB59A6500055316 /* Debug */,
+				12E8B6E72BB59A6500055316 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		12E8B6E82BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12E8B6E92BB59A6500055316 /* Debug */,
+				12E8B6EA2BB59A6500055316 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		12E8B6EB2BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12E8B6EC2BB59A6500055316 /* Debug */,
+				12E8B6ED2BB59A6500055316 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		12E8B6EE2BB59A6500055316 /* Build configuration list for PBXNativeTarget "BeesNES macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12E8B6EF2BB59A6500055316 /* Debug */,
+				12E8B6F02BB59A6500055316 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 12E8B6982BB59A6300055316 /* Project object */;
+}

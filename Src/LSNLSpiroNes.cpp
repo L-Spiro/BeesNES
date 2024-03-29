@@ -1,5 +1,6 @@
-﻿#ifdef LSN_USE_WINDOWS
 #include "LSNLSpiroNes.h"
+
+#ifdef LSN_USE_WINDOWS
 #include "Input/LSNDirectInput8.h"
 #include "Audio/LSNAudio.h"
 #include "Windows/Layout/LSNLayoutManager.h"

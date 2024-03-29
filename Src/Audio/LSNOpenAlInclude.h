@@ -1,12 +1,12 @@
 #pragma once
 
-#if defined( LSN_IOS ) || defined( LSN_MAC )	// TODO: Fix these macros.
+#if defined( __APPLE__ )
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 #else
 #include "al.h"
 #include "alc.h"
-#endif	// #ifdef LSE_IPHONE
+#endif	// #if defined( __APPLE__ )
 
 #ifndef AL_EXT_float32
 #define AL_EXT_float32 1
