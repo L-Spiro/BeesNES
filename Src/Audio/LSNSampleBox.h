@@ -16,8 +16,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <immintrin.h>
-#include <smmintrin.h>
 #include <vector>
 
 #if defined( _MSC_VER )

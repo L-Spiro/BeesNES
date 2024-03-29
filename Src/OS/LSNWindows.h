@@ -52,6 +52,8 @@
 
 #ifdef LSN_WINDOWS
 
+#include <immintrin.h>
+
 #define LSN_FASTCALL						__fastcall
 
 #ifndef LSN_WIN64
@@ -122,10 +124,9 @@ inline uint64_t LSN_FASTCALL _udiv128( uint64_t _ui64High, uint64_t _ui64Low, ui
 
 #endif  // #ifndef LSN_WIN64
 
-extern "C"
-{
+extern "C" {
 
-#if defined(_M_AMD64)
+#if defined( _M_AMD64 )
 
 extern void sincos( double _dAngle, double * _pdSin, double * _pdCos );
 
@@ -147,7 +148,6 @@ inline void sincos( double _dAngle, double * _pdSin, double * _pdCos ) {
 
 #endif
 
-} // extern "C"
+}	// extern "C"
 
 #endif	// #ifdef LSN_WINDOWS
-

@@ -9,6 +9,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+
+#ifdef LSN_WINDOWS
+
 #include "LSNOpenAlInclude.h"
 #include <iomanip>
 #include <iostream>
@@ -101,3 +104,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

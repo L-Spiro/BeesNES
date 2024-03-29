@@ -309,7 +309,6 @@ namespace lsn {
 	 * \param _uBit Bit mask.
 	 * \param _bVal The bit value to write (0 or 1).
 	 * \param _ui8Val The value to modify in-place.
-	 * \param _bOn If true, the bit is set, otherwise it is unset.
 	 */
 	template <unsigned _uBit, bool _bVal>
 	inline uint8_t							SetBit( uint8_t &_ui8Val ) {

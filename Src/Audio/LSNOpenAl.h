@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+
+#ifdef LSN_WINDOWS
 #include "LSNOpenAlContext.h"
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlGetError.h"
@@ -205,3 +207,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

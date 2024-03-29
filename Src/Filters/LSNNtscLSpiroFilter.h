@@ -13,8 +13,6 @@
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 
-#include <immintrin.h>
-#include <smmintrin.h>
 #include <thread>
 
 #pragma warning( push )

@@ -9,7 +9,10 @@
 
 #pragma once
 
+#include "../LSNLSpiroNes.h"
 #include "LSNOpenAlInclude.h"
+
+#ifdef LSN_WINDOWS
 
 #include <string>
 #include <vector>
@@ -40,7 +43,7 @@ namespace lsn {
 		/**
 		 * Creates a device given a device name.
 		 * 
-		 * \param _pcName The device name or nullptr to create a device using the default sound device.
+		 * \param _pcDevice The device name or nullptr to create a device using the default sound device.
 		 * \return Returns true if the device was created.
 		 **/
 		bool								CreateDevice( const char * _pcDevice );
@@ -70,3 +73,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

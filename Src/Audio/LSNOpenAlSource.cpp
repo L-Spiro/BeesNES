@@ -9,6 +9,8 @@
 #include "LSNOpenAlSource.h"
 #include "LSNOpenAl.h"
 
+#ifdef LSN_WINDOWS
+
  namespace lsn {
 
 	COpenAlSource::COpenAlSource() :
@@ -434,3 +436,5 @@
 	}
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

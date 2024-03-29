@@ -151,21 +151,12 @@ namespace lsn {
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
 
-#ifdef LSN_USE_SAMPLE_BOX
 			// Possible HPF's:
 			// 442.0f
 			// 296.0f
 			// 197.333333333333f
 			CAudio::InitSampleBox( 20000.0f, 197.333333333333f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 16, Hz(), CAudio::GetOutputFrequency() );
-#else
-			while ( (m_ui64LastBucketCycle - m_ui64Cycles) <= (LSN_SAMPLER_BUCKET_SIZE / 2 + 1) ) {
-				// Determine the next APU cycle that corresponds with an output sample.
-				float fInterp;
-				uint64_t ui64ApuOutputCycle = ApuCycleOfNextSample( m_ui64LastBucketCycle + 1, CAudio::GetOutputFrequency(), fInterp );
-				CAudio::RegisterBucket( ui64ApuOutputCycle, fInterp );
-				m_ui64LastBucketCycle = ui64ApuOutputCycle;
-			}
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
+
 
 			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
 			// DEBUG.
@@ -224,7 +215,6 @@ namespace lsn {
 			//dFinal = m_pfPole90.Process( dFinal );
 			//dFinal = m_pfPole440.Process( dFinal );
 			dFinal = m_pfPole14.Process( dFinal );
-//#ifndef LSN_USE_SAMPLE_BOX
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
@@ -234,12 +224,6 @@ namespace lsn {
 						dFinal = m_pfOutputPole[I].Process( dFinal );
 					}
 				}
-				//m_sfSincFilter.CreateLpf( CAudio::GetOutputFrequency() / 2.0, Hz(), size_t( 100 ), CSincFilter::SynthesizeHammingWindow );
-				//dFinal = m_pfOutputPole.Process( m_pfOutputPole1.Process( m_pfOutputPole2.Process( m_pfOutputPole3.Process( dFinal ) ) ) );
-				//dFinal = m_sfSincFilter.Process( dFinal );
-
-				//m_hfHpfFilter.CreateHpf( 90.0f, HzAsFloat() );
-				//dFinal = m_hfHpfFilter.Process( dFinal );
 			}
 			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
 			//m_fMinSample = std::min( m_fMinSample, fFinal );
@@ -247,8 +231,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-//#endif	// #ifndef LSN_USE_SAMPLE_BOX
-			CAudio::AddSample( m_ui64Cycles, static_cast<float>(dFinal * (-0.5 * 1.25)) );
+			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25)) );
 
 			++m_ui64Cycles;
 		}

@@ -19,16 +19,12 @@
 #include "LSNOpenAlSource.h"
 #include "LSNSampleBucket.h"
 
-#include <immintrin.h>
-#include <smmintrin.h>
 #include <thread>
 
 #include "LSNSampleBox.h"
 
 #define LSN_AUDIO_BUFFERS									288
 #define LSN_BUCKETS											(LSN_SAMPLER_BUCKET_SIZE * 3)
-
-#define LSN_USE_SAMPLE_BOX
 
 namespace lsn {
 
@@ -69,8 +65,6 @@ namespace lsn {
 		 * \return Returns the global OpenAL source.
 		 **/
 		static COpenAlSource &								Source() { return m_oasSource; }
-
-#ifdef LSN_USE_SAMPLE_BOX
 		/**
 		 * Initializes the sample box, preparing to deliver nice clean band-limited samples as fast as alien technology can deliver.
 		 * 
@@ -84,7 +78,6 @@ namespace lsn {
 		static inline bool									InitSampleBox( double _dLpf, double _dHpf, size_t _sM, double _dInputRate, uint32_t _ui32OutputRate ) {
 			return m_sbSampleBox.Init( _dLpf, _dHpf, _sM, _dInputRate, _ui32OutputRate );
 		}
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		/**
 		 * Gets the output frequency.
@@ -100,7 +93,6 @@ namespace lsn {
 		 **/
 		static void											SetOutputFrequency( uint32_t _ui32Hz ) {
 			m_sNextFrequency = _ui32Hz;
-			m_hfHpf90.CreateHpf( 90.0f, float( _ui32Hz ) );
 		}
 
 		/**
@@ -244,20 +236,11 @@ namespace lsn {
 		static void											BeginEmulation();
 
 		/**
-		 * Adds a bucket to the ring buffer to be filled in during later APU cycles.
-		 * 
-		 * \param _ui64Cycle The APU cycle of the sample to be surrounded by the bucket.
-		 * \param _fInterp The interpolation factor to be used during sampling.
-		 **/
-		static void											RegisterBucket( uint64_t _ui64Cycle, float _fInterp );
-
-		/**
 		 * Adds a sample to all buckets that need it.
-		 * 
-		 * \param _ui64Cycle The APU cycle of the sample.
+		 *
 		 * \param _fSample The audio sample to be added.
 		 **/
-		static void											AddSample( uint64_t _ui64Cycle, float _fSample );
+		static void											AddSample( float _fSample );
 
 
 	protected :
@@ -308,26 +291,12 @@ namespace lsn {
 		static std::atomic<bool>							m_bRunThread;
 		/** The signal that the thread has finished. */
 		static CEvent										m_eThreadClosed;
-		/** The ring buffer of buckets. */
-		static LSN_SAMPLE_BUCKET_LIST						m_sblBuckets;
 		/** Temporary float-format storage of samples. */
 		static std::vector<float>							m_vTmpBuffer;
 		/** The position within the temporary buffer of the current sample. */
 		static size_t										m_sTmpBufferIdx;
-		/** The HPF filter. */
-		static CHpfFilter									m_hfHpf90;
-		/** The SIMD buffers. */
-		LSN_ALIGN( 32 )
-		static __m256										m_fSimdSamples[6];
-		/** The fraction values for each sample. */
-		LSN_ALIGN( 32 )
-		static float										m_fFractions[sizeof( __m256 ) / sizeof( float )];
-		/** The SIMD buffer counter. */
-		static uint32_t										m_ui32SimdStackSize;
-#ifdef LSN_USE_SAMPLE_BOX
 		/** The sample box for band-passed output. */
 		static CSampleBox									m_sbSampleBox;
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		
 		// == Functions.

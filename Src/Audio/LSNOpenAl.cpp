@@ -9,6 +9,7 @@
 
 #include "LSNOpenAl.h"
 
+#ifdef LSN_WINDOWS
 
 namespace lsn {
 
@@ -54,3 +55,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

@@ -9,6 +9,7 @@
 #include "LSNOpenAlGetError.h"
 #include "../Localization/LSNLocalization.h"
 
+#ifdef LSN_WINDOWS
 
 namespace lsn {
 
@@ -49,3 +50,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS

@@ -73,33 +73,14 @@ namespace lsn {
 	/** The signal that the thread has finished. */
 	CEvent CAudio::m_eThreadClosed;
 
-	/** The ring buffer of buckets. */
-	CAudio::LSN_SAMPLE_BUCKET_LIST CAudio::m_sblBuckets;
-
 	/** Temporary float-format storage of samples. */
 	std::vector<float> CAudio::m_vTmpBuffer;
 
 	/** The position within the temporary buffer of the current sample. */
 	size_t CAudio::m_sTmpBufferIdx = 0;
 
-	/** The HPF filter. */
-	CHpfFilter CAudio::m_hfHpf90;
-
-	/** The SIMD buffers. */
-	LSN_ALIGN( 32 )
-	__m256 CAudio::m_fSimdSamples[6];
-
-	/** The fraction values for each sample. */
-	LSN_ALIGN( 32 )
-	float CAudio::m_fFractions[sizeof( __m256 ) / sizeof( float )];
-
-	/** The SIMD buffer counter. */
-	uint32_t CAudio::m_ui32SimdStackSize = 0;
-
-#ifdef LSN_USE_SAMPLE_BOX
 	/** The sample box for band-passed output. */
 	CSampleBox CAudio::m_sbSampleBox;
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 
 	// == Functions.
@@ -109,9 +90,7 @@ namespace lsn {
 	 * \return Returns true if initialization was successful.
 	 **/
 	bool CAudio::InitializeAudio() {
-#ifdef LSN_USE_SAMPLE_BOX
 		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
 
 		std::vector<std::string> vDevices;
 		// We need a dummy device to enumerate the audio devices.
@@ -135,7 +114,6 @@ namespace lsn {
 		m_vTmpBuffer.resize( m_sBufferSizeInSamples );
 		m_vLocalBuffer.resize( m_sBufferSizeInSamples * 4 );
 
-		m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 		if ( !StartThread() ) { return false; }
 		return true;
 	}
@@ -170,42 +148,16 @@ namespace lsn {
 			m_sCurBufferSize = 0;
 			m_sFrequency = m_sNextFrequency;
 			m_eFormat = m_eNextFormat;
-			m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 		}
-
-		m_sblBuckets.ui64Idx = m_sblBuckets.ui64HiIdx = 0;
-		for ( size_t I = LSN_BUCKETS; I--; ) {
-			m_sblBuckets.sbBuckets[I].ui64ApuStartCycle = uint64_t( -LSN_SAMPLER_BUCKET_SIZE );
-			m_sblBuckets.sbBuckets[I].fInterp = 0.0f;
-			std::memset( m_sblBuckets.sbBuckets[I].fBucket, 0, sizeof( m_sblBuckets.sbBuckets[I].fBucket ) );
-		}
-		m_sblBuckets.sbBuckets[0].ui64ApuStartCycle = uint64_t( -2 );
-		m_sblBuckets.ui64HiIdx = 1;
 		StartThread();
 	}
 
 	/**
-	 * Adds a bucket to the ring buffer to be filled in during later APU cycles.
-	 * 
-	 * \param _ui64Cycle The APU cycle of the sample to be surrounded by the bucket.
-	 * \param _fInterp The interpolation factor to be used during sampling.
-	 **/
-	void CAudio::RegisterBucket( uint64_t _ui64Cycle, float _fInterp ) {
-		uint64_t ui64Idx = m_sblBuckets.ui64HiIdx % LSN_BUCKETS;
-		LSN_SAMPLE_BUCKET & sbBucket = m_sblBuckets.sbBuckets[ui64Idx];
-		sbBucket.ui64ApuStartCycle = _ui64Cycle - (LSN_SAMPLER_BUCKET_SIZE / 2) + 1;
-		sbBucket.fInterp = _fInterp;
-		++m_sblBuckets.ui64HiIdx;
-	}
-
-	/**
 	 * Adds a sample to all buckets that need it.
-	 * 
-	 * \param _ui64Cycle The APU cycle of the sample.
+	 *
 	 * \param _fSample The audio sample to be added.
 	 **/
-	void CAudio::AddSample( uint64_t _ui64Cycle, float _fSample ) {
-#ifdef LSN_USE_SAMPLE_BOX
+	void CAudio::AddSample( float _fSample ) {
 		m_sbSampleBox.AddSample( _fSample );
 		std::vector<float> & vOut = m_sbSampleBox.Output();
 		for ( size_t I = 0; I < vOut.size(); ++I ) {
@@ -215,88 +167,6 @@ namespace lsn {
 			}
 		}
 		vOut.clear();
-#else
-		uint64_t ui64Hi = m_sblBuckets.ui64HiIdx;
-		for ( uint64_t I = m_sblBuckets.ui64Idx; I < ui64Hi; ++I ) {
-			uint64_t ui64Idx = I % LSN_BUCKETS;
-			LSN_SAMPLE_BUCKET & sbBucket = m_sblBuckets.sbBuckets[ui64Idx];
-			if ( int64_t( sbBucket.ui64ApuStartCycle ) > int64_t( _ui64Cycle ) ) { break; }
-			uint32_t ui32BucketIdx = uint32_t( _ui64Cycle - sbBucket.ui64ApuStartCycle );
-			if ( ui32BucketIdx >= LSN_SAMPLER_BUCKET_SIZE ) {
-				// Bucket filled.
-				++m_sblBuckets.ui64Idx;
-				if ( CUtilities::IsAvxSupported() ) {
-					// Copy into the SIMD buffer.
-					reinterpret_cast<float *>(&m_fSimdSamples[0])[m_ui32SimdStackSize] = sbBucket.fBucket[0];
-					reinterpret_cast<float *>(&m_fSimdSamples[1])[m_ui32SimdStackSize] = sbBucket.fBucket[1];
-					reinterpret_cast<float *>(&m_fSimdSamples[2])[m_ui32SimdStackSize] = sbBucket.fBucket[2];
-					reinterpret_cast<float *>(&m_fSimdSamples[3])[m_ui32SimdStackSize] = sbBucket.fBucket[3];
-					reinterpret_cast<float *>(&m_fSimdSamples[4])[m_ui32SimdStackSize] = sbBucket.fBucket[4];
-					reinterpret_cast<float *>(&m_fSimdSamples[5])[m_ui32SimdStackSize] = sbBucket.fBucket[5];
-					m_fFractions[m_ui32SimdStackSize] = sbBucket.fInterp;
-					m_ui32SimdStackSize = (m_ui32SimdStackSize + 1) % (sizeof( __m256 ) / sizeof( float ));
-					if ( m_ui32SimdStackSize == 0 ) {
-						// It wrapped around, which means the buffer is full.
-						LSN_ALIGN( 32 )
-						float fTmp[sizeof(__m256)/sizeof(float)];
-						//Sample_6Point_5thOrder_Hermite_X_AVX
-						Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( reinterpret_cast<float *>(&m_fSimdSamples[0]), reinterpret_cast<float *>(&m_fSimdSamples[1]),
-							reinterpret_cast<float *>(&m_fSimdSamples[2]), reinterpret_cast<float *>(&m_fSimdSamples[3]),
-							reinterpret_cast<float *>(&m_fSimdSamples[4]), reinterpret_cast<float *>(&m_fSimdSamples[5]),
-							m_fFractions,
-							fTmp );
-						for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
-							m_vTmpBuffer[m_sTmpBufferIdx++] = float( m_hfHpf90.Process( fTmp[J] ) );
-							if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
-								TransferTmpToLocal();
-							}
-						}
-					}
-				}
-				else if ( CUtilities::IsSse4Supported() ) {
-					// Copy into the SIMD buffer.
-					reinterpret_cast<float *>(&m_fSimdSamples[0])[m_ui32SimdStackSize] = sbBucket.fBucket[0];
-					reinterpret_cast<float *>(&m_fSimdSamples[1])[m_ui32SimdStackSize] = sbBucket.fBucket[1];
-					reinterpret_cast<float *>(&m_fSimdSamples[2])[m_ui32SimdStackSize] = sbBucket.fBucket[2];
-					reinterpret_cast<float *>(&m_fSimdSamples[3])[m_ui32SimdStackSize] = sbBucket.fBucket[3];
-					reinterpret_cast<float *>(&m_fSimdSamples[4])[m_ui32SimdStackSize] = sbBucket.fBucket[4];
-					reinterpret_cast<float *>(&m_fSimdSamples[5])[m_ui32SimdStackSize] = sbBucket.fBucket[5];
-					m_fFractions[m_ui32SimdStackSize] = sbBucket.fInterp;
-					m_ui32SimdStackSize = (m_ui32SimdStackSize + 1) % (sizeof( __m128 ) / sizeof( float ));
-					if ( m_ui32SimdStackSize == 0 ) {
-						// It wrapped around, which means the buffer is full.
-						LSN_ALIGN( 32 )
-						float fTmp[sizeof(__m128)/sizeof(float)];
-						Sample_4Point_2ndOrder_Parabolic_2X_X_SSE4( reinterpret_cast<float *>(&m_fSimdSamples[0]), reinterpret_cast<float *>(&m_fSimdSamples[1]),
-							reinterpret_cast<float *>(&m_fSimdSamples[2]), reinterpret_cast<float *>(&m_fSimdSamples[3]),
-							reinterpret_cast<float *>(&m_fSimdSamples[4]), reinterpret_cast<float *>(&m_fSimdSamples[5]),
-							m_fFractions,
-							fTmp );
-						for ( size_t J = 0; J < sizeof( __m128 ) / sizeof( float ); ++J ) {
-							m_vTmpBuffer[m_sTmpBufferIdx++] = float( m_hfHpf90.Process( fTmp[J] ) );
-							if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
-								TransferTmpToLocal();
-							}
-						}
-					}
-				}
-				else {
-					//float fSample = Sample_6Point_5thOrder_Hermite_X( sbBucket.fBucket, sbBucket.fInterp );
-					//float fSample = Sample_6Point_5thOrder_Hermite_Z( sbBucket.fBucket, sbBucket.fInterp );
-					//float fSample = Sample_6Point_4thOrder_2X_Z( sbBucket.fBucket, sbBucket.fInterp );
-					//float fSample = Sample_6Point_4thOrder_4X_Z( sbBucket.fBucket, sbBucket.fInterp );
-					float fSample = Sample_4Point_2ndOrder_Parabolic_2X_X( sbBucket.fBucket, sbBucket.fInterp );
-					//float fSample = Sample_6Point_5thOrder_32X_Z( sbBucket.fBucket, sbBucket.fInterp );
-					m_vTmpBuffer[m_sTmpBufferIdx++] = float( m_hfHpf90.Process( fSample ) );
-					if ( m_sTmpBufferIdx == m_vTmpBuffer.size() ) {
-						TransferTmpToLocal();
-					}
-				}
-				continue;
-			}
-			sbBucket.fBucket[ui32BucketIdx] = _fSample;
-		}
-#endif	// #ifdef LSN_USE_SAMPLE_BOX
 	}
 
 	/**
@@ -346,7 +216,6 @@ namespace lsn {
 		if ( m_sCurBufferSize == 0 ) {		// Nothing to flush, no action to take.
 			m_sFrequency = m_sNextFrequency;
 			m_eFormat = m_eNextFormat;
-			m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 			return true;
 		}
 
@@ -355,7 +224,6 @@ namespace lsn {
 			m_sCurBufferSize = 0;
 			m_sFrequency = m_sNextFrequency;
 			m_eFormat = m_eNextFormat;
-			m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 			return false;
 		}
 
@@ -378,7 +246,6 @@ namespace lsn {
 		
 		m_sFrequency = m_sNextFrequency;
 		m_eFormat = m_eNextFormat;
-		m_hfHpf90.CreateHpf( 90.0f, float( m_sFrequency ) );
 		return bRet;
 	}
 

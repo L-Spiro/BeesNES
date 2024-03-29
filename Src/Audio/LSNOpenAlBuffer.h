@@ -10,6 +10,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+
+#ifdef LSN_WINDOWS
+
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlInclude.h"
 
@@ -74,3 +77,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#endif	// #ifdef LSN_WINDOWS
