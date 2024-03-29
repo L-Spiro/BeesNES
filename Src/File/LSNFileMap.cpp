@@ -11,7 +11,7 @@
 
 namespace lsn {
 
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 	CFileMap::CFileMap() :
 		m_hFile( INVALID_HANDLE_VALUE ),
 		m_hMap( INVALID_HANDLE_VALUE ),
@@ -26,10 +26,10 @@ namespace lsn {
 		Close();
 	}
 #else
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 
 	// == Functions.
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 	/**
 	 * Opens a file.  The path is given in UTF-16.
 	 *
@@ -160,7 +160,7 @@ namespace lsn {
 	bool CStdFile::Create( const char8_t * _pcFile ) {
 		return false;
 	}
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 
 	
 

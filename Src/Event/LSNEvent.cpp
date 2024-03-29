@@ -33,20 +33,20 @@ namespace lsn {
 	 * \param _ui32Milliseconds The time-out time in milliseconds.
 	 **/
 	uint32_t CEvent::WaitForSignal( uint32_t _ui32Milliseconds ) {
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		return ::WaitForSingleObject( m_hHandle, _ui32Milliseconds );
 #else
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 	}
 
 	/**
 	 * Signals the event.
 	 */
 	void CEvent::Signal() {
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		::SetEvent( m_hHandle );
 #else
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 	}
 
 }	// namespace lsn

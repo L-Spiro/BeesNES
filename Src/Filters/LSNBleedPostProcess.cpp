@@ -19,10 +19,10 @@ namespace lsn {
 #endif	// #ifdef LSN_SRGB_POST_PERF
 		m_bRunThreads( true ) {
 
-#if defined( LSN_USE_WINDOWS )
+#if defined( LSN_WINDOWS )
 		m_tThreadData.pblppThis = this;
 		m_ptResizeThread = std::make_unique<std::thread>( Thread, &m_tThreadData );
-#endif	// #if defined( LSN_USE_WINDOWS )
+#endif	// #if defined( LSN_WINDOWS )
 	}
 	CBleedPostProcess::~CBleedPostProcess() {
 		StopThreads();

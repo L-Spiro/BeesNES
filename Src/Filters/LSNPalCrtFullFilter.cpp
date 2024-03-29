@@ -118,9 +118,9 @@ namespace lsn {
 		*/
 
 		StopPhospherDecayThread();
-#if defined( LSN_USE_WINDOWS )
+#if defined( LSN_WINDOWS )
 		m_ptPhospherThread = std::make_unique<std::thread>( PhospherDecayThread, this );
-#endif	// #if defined( LSN_USE_WINDOWS )
+#endif	// #if defined( LSN_WINDOWS )
 
 		return InputFormat();
 	}

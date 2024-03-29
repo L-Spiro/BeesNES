@@ -198,13 +198,13 @@ namespace lsn {
 	 * \return Returns the new line position.
 	 **/
 	uint64_t CStdFile::MovePointerBy( int64_t _i64Offset ) const {
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		::_fseeki64( m_pfFile, _i64Offset, SEEK_CUR );
 		return ::_ftelli64( m_pfFile );
 #else
 		std::fseek( m_pfFile, static_cast<long>(_i64Offset), SEEK_CUR );
 		return uint64_t( std::ftell( m_pfFile ) );
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 	}
 
 	/**
@@ -215,13 +215,13 @@ namespace lsn {
 	 * \return Returns the new file position.
 	 **/
 	uint64_t CStdFile::MovePointerTo( uint64_t _ui64Pos, BOOL _bFromEnd ) const {
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		::_fseeki64( m_pfFile, static_cast<long long>(_ui64Pos), _bFromEnd ? SEEK_END : SEEK_SET );
 		return ::_ftelli64( m_pfFile );
 #else
 		std::fseek( m_pfFile, static_cast<long>(_i64Offset), _bFromEnd ? SEEK_END : SEEK_SET );
 		return uint64_t( std::ftell( m_pfFile ) );
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 	}
 
 	/**

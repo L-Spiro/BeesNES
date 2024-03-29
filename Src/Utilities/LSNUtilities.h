@@ -139,6 +139,30 @@ namespace lsn {
 		}
 
 		/**
+		 * Converts from SMPTE 170M-2004 to linear.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static double										SMPTE170MtoLinear( double _dVal ) {
+			return _dVal < 0.0812 ?
+				_dVal / 4.5 :
+				std::pow( (_dVal + 0.099) / 1.099, 1.0 / 0.45 );
+		}
+
+		/**
+		 * Converts from linear to SMPTE 170M-2004.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to SMPTE 170M-2004 space.
+		 */
+		static double										LinearToSMPTE170M( double _dVal ) {
+			return _dVal < 0.018 ?
+				4.5 * _dVal :
+				1.099 * std::pow( _dVal, 0.45 ) - 0.099;
+		}
+
+		/**
 		 * Integer-based bilinear sampling.
 		 *
 		 * \param _ui32A The upper-left color.  0xAARRGGBB, though color order doesn't actually matter.

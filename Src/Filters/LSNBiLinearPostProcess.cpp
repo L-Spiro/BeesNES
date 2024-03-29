@@ -23,10 +23,10 @@ namespace lsn {
 		m_ui32SourceFactorY( 0 ),
 		m_bRunThreads( true ) {
 
-#if defined( LSN_USE_WINDOWS )
+#if defined( LSN_WINDOWS )
 		m_tThreadData.pblppThis = this;
 		m_ptResizeThread = std::make_unique<std::thread>( ResizeThread, &m_tThreadData );
-#endif	// #if defined( LSN_USE_WINDOWS )
+#endif	// #if defined( LSN_WINDOWS )
 	}
 	CBiLinearPostProcess::~CBiLinearPostProcess() {
 		StopResizeThread();

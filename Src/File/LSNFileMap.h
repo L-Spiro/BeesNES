@@ -17,7 +17,7 @@
 
 #ifdef LSN_USE_WINDOWS
 #include <Helpers/LSWHelpers.h>
-#endif
+#endif	// #ifdef LSN_USE_WINDOWS
 
 namespace lsn {
 
@@ -34,7 +34,7 @@ namespace lsn {
 
 
 		// == Functions.
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		/**
 		 * Opens a file.  The path is given in UTF-8.
 		 *
@@ -98,7 +98,7 @@ namespace lsn {
 		 * \return Returns true if the file was created, false otherwise.
 		 */
 		virtual bool										Create( const char16_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 
 		/**
 		 * Closes the opened file.
@@ -115,7 +115,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		lsw::LSW_HANDLE										m_hFile;						/**< The file handle. */
 		lsw::LSW_HANDLE										m_hMap;							/**< The file-mapping handle. */
 		mutable PBYTE										m_pbMapBuffer;					/**< Mapped bytes. */
@@ -125,7 +125,7 @@ namespace lsn {
 		mutable uint64_t									m_ui64MapStart;					/**< Map start. */
 		mutable DWORD										m_dwMapSize;					/**< Mapped size. */
 #else
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 
 
 		// == Functions.

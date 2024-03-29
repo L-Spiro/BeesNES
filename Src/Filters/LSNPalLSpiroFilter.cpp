@@ -814,9 +814,9 @@ namespace lsn {
 				float fB = (*pfY) + (2.032061872219f * (*pfQ));
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-				fR = std::clamp( fR * 300.0f, 0.0f, 300.0f );
-				fG = std::clamp( fG * 300.0f, 0.0f, 300.0f );
-				fB = std::clamp( fB * 300.0f, 0.0f, 300.0f );
+				fR = std::clamp( fR * 299.0f, 0.0f, 299.0f );
+				fG = std::clamp( fG * 299.0f, 0.0f, 299.0f );
+				fB = std::clamp( fB * 299.0f, 0.0f, 299.0f );
 
 				// Convert to integers.
 				uint16_t ui16Ri = static_cast<uint16_t>(std::round( fR ));

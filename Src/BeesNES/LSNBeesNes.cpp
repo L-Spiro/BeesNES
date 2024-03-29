@@ -383,7 +383,7 @@ namespace lsn {
 	void CBeesNes::AddPath( const std::u16string &_s16Path ) {
 		std::u16string vNormalized = CUtilities::Replace( _s16Path, u'/', u'\\' );
 		// 2 types of culling owing to the use of ZIP files.
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		for ( auto I = m_vRecentFiles.size(); I--; ) {
 			if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE, reinterpret_cast<LPCWCH>(vNormalized.c_str()), -1, reinterpret_cast<LPCWCH>(m_vRecentFiles[I].c_str()), -1, NULL, NULL, NULL ) ) {
 				m_vRecentFiles.erase( m_vRecentFiles.begin() + I );
@@ -394,7 +394,7 @@ namespace lsn {
 		if ( m_vRecentFiles.end() != I ) {
 			m_vRecentFiles.erase( I );
 		}
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 		std::filesystem::path pPathI( vNormalized );
 		for ( size_t I = 0; I < m_vRecentFiles.size(); ++I ) {
 			std::filesystem::path pPathJ( m_vRecentFiles[I] );

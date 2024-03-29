@@ -31,12 +31,12 @@ namespace lsn {
 			m_ui8Table[I] = uint8_t( std::round( dFract * 255.0 ) );
 		}
 
-#if defined( LSN_USE_WINDOWS )
+#if defined( LSN_WINDOWS )
 		m_tThreadData.pblppThis = this;
 		m_tThreadData.pui8Table = m_ui8Table;
 		m_ptResizeThread[0] = std::make_unique<std::thread>( Thread<0>, &m_tThreadData );
 		m_ptResizeThread[1] = std::make_unique<std::thread>( Thread<1>, &m_tThreadData );
-#endif	// #if defined( LSN_USE_WINDOWS )
+#endif	// #if defined( LSN_WINDOWS )
 	}
 	CSrgbPostProcess::~CSrgbPostProcess() {
 		StopThreads();

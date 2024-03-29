@@ -289,7 +289,7 @@ namespace lsn {
 		for ( size_t I = 0; I < _s16Paths.size(); ++I ) {
 			bool bFound = false;
 			for ( size_t J = I + 1; J < _s16Paths.size(); ++J ) {
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 				if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE,
 					reinterpret_cast<LPCWCH>(_s16Paths[I].u16sFile.c_str()), -1, reinterpret_cast<LPCWCH>(_s16Paths[J].u16sFile.c_str()), -1,
 					NULL, NULL, NULL ) ) {
@@ -301,7 +301,7 @@ namespace lsn {
 					bFound = true;
 					_vIndices.push_back( J );
 				}
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 			}
 			if ( bFound ) {
 				_vIndices.push_back( I );

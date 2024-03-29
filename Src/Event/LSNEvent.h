@@ -49,19 +49,19 @@ namespace lsn {
 		 * 
 		 * \return Returns the platform-specific handle to the event.
 		 **/
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		HANDLE									Handle() const { return m_hHandle; }
 #else
-#endif// #ifdef LSN_USE_WINDOWS
+#endif// #ifdef LSN_WINDOWS
 
 
 	protected :
 		// == Members.
-#ifdef LSN_USE_WINDOWS
+#ifdef LSN_WINDOWS
 		/** The event handle. */
 		HANDLE									m_hHandle;
 #else
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_WINDOWS
 	};
 
 }	// namespace lsn
