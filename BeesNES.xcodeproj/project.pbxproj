@@ -10,12 +10,81 @@
 		12574A022BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
 		12574A032BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
 		12574A042BB5AE7600A4A610 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A012BB5AE7600A4A610 /* Renderer.mm */; };
-		12574A062BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
-		12574A072BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
-		12574A082BB5B37A00A4A610 /* Src in Resources */ = {isa = PBXBuildFile; fileRef = 12574A052BB5B37A00A4A610 /* Src */; };
 		12574A0E2BB5BB8700A4A610 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */; };
 		12574A122BB637AC00A4A610 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12574A112BB637AC00A4A610 /* GameViewController.m */; };
 		12574A142BB6B71F00A4A610 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A132BB6B71F00A4A610 /* main.mm */; };
+		12574A2F2BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
+		12574A302BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
+		12574A312BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
+		12574A322BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
+		12574A332BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
+		12574A342BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
+		12574A352BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
+		12574A362BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
+		12574A372BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
+		12574A382BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
+		12574A392BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
+		12574A3A2BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
+		12574A3B2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
+		12574A3C2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
+		12574A3D2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
+		12574A3E2BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
+		12574A3F2BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
+		12574A402BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
+		12574A412BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
+		12574A422BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
+		12574A432BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
+		12574A442BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
+		12574A452BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
+		12574A462BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
+		12574A472BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
+		12574A482BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
+		12574A492BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
+		12574A4A2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
+		12574A4B2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
+		12574A4C2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
+		12574A4D2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
+		12574A4E2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
+		12574A4F2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
+		12574A502BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
+		12574A512BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
+		12574A522BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
+		12574A532BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
+		12574A542BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
+		12574A552BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
+		12574A562BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
+		12574A572BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
+		12574A582BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
+		12574A592BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
+		12574A5A2BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
+		12574A5B2BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
+		12574A5C2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
+		12574A5D2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
+		12574A5E2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
+		12574A5F2BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
+		12574A602BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
+		12574A612BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
+		12574A622BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
+		12574A632BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
+		12574A642BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
+		12574A682BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
+		12574A692BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
+		12574A6A2BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
+		12574A6B2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
+		12574A6C2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
+		12574A6D2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
+		12574A6E2BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
+		12574A6F2BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
+		12574A702BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
+		12574A712BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
+		12574A722BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
+		12574A732BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
+		12574A742BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
+		12574A752BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
+		12574A762BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
+		12574A772BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
+		12574A782BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
+		12574A792BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
 		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
 		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
 		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
@@ -37,10 +106,34 @@
 
 /* Begin PBXFileReference section */
 		12574A012BB5AE7600A4A610 /* Renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
-		12574A052BB5B37A00A4A610 /* Src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Src; sourceTree = SOURCE_ROOT; };
 		12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		12574A112BB637AC00A4A610 /* GameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
 		12574A132BB6B71F00A4A610 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		12574A152BB835B800A4A610 /* Options */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Options; path = Src/Options; sourceTree = SOURCE_ROOT; };
+		12574A162BB835B800A4A610 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = Src/Audio; sourceTree = SOURCE_ROOT; };
+		12574A172BB835B800A4A610 /* Database */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Database; path = Src/Database; sourceTree = SOURCE_ROOT; };
+		12574A182BB835B800A4A610 /* Apu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Apu; path = Src/Apu; sourceTree = SOURCE_ROOT; };
+		12574A192BB835B800A4A610 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Localization; path = Src/Localization; sourceTree = SOURCE_ROOT; };
+		12574A1A2BB835B800A4A610 /* Roms */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Roms; path = Src/Roms; sourceTree = SOURCE_ROOT; };
+		12574A1B2BB835B800A4A610 /* MiniZ */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MiniZ; path = Src/MiniZ; sourceTree = SOURCE_ROOT; };
+		12574A1C2BB835B800A4A610 /* File */ = {isa = PBXFileReference; lastKnownFileType = folder; name = File; path = Src/File; sourceTree = SOURCE_ROOT; };
+		12574A1D2BB835B800A4A610 /* Mappers */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Mappers; path = Src/Mappers; sourceTree = SOURCE_ROOT; };
+		12574A1E2BB835B800A4A610 /* System */ = {isa = PBXFileReference; lastKnownFileType = folder; name = System; path = Src/System; sourceTree = SOURCE_ROOT; };
+		12574A1F2BB835B800A4A610 /* Event */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Event; path = Src/Event; sourceTree = SOURCE_ROOT; };
+		12574A202BB835B800A4A610 /* Time */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Time; path = Src/Time; sourceTree = SOURCE_ROOT; };
+		12574A212BB835B900A4A610 /* Windows */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Windows; path = Src/Windows; sourceTree = SOURCE_ROOT; };
+		12574A222BB835B900A4A610 /* Crc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Crc; path = Src/Crc; sourceTree = SOURCE_ROOT; };
+		12574A232BB835B900A4A610 /* Utilities */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Utilities; path = Src/Utilities; sourceTree = SOURCE_ROOT; };
+		12574A242BB835B900A4A610 /* BeesNES */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BeesNES; path = Src/BeesNES; sourceTree = SOURCE_ROOT; };
+		12574A252BB835B900A4A610 /* Ppu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Ppu; path = Src/Ppu; sourceTree = SOURCE_ROOT; };
+		12574A262BB835B900A4A610 /* Display */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Display; path = Src/Display; sourceTree = SOURCE_ROOT; };
+		12574A282BB835B900A4A610 /* Input */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Input; path = Src/Input; sourceTree = SOURCE_ROOT; };
+		12574A292BB835B900A4A610 /* OS */ = {isa = PBXFileReference; lastKnownFileType = folder; name = OS; path = Src/OS; sourceTree = SOURCE_ROOT; };
+		12574A2A2BB835B900A4A610 /* Cpu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Cpu; path = Src/Cpu; sourceTree = SOURCE_ROOT; };
+		12574A2B2BB835B900A4A610 /* Filters */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Filters; path = Src/Filters; sourceTree = SOURCE_ROOT; };
+		12574A2C2BB835B900A4A610 /* LSNLSpiroNes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLSpiroNes.h; path = Src/LSNLSpiroNes.h; sourceTree = SOURCE_ROOT; };
+		12574A2D2BB835B900A4A610 /* Palette */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Palette; path = Src/Palette; sourceTree = SOURCE_ROOT; };
+		12574A2E2BB835B900A4A610 /* Bus */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Bus; path = Src/Bus; sourceTree = SOURCE_ROOT; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -107,7 +200,31 @@
 		12E8B69C2BB59A6400055316 /* BeesNES Shared */ = {
 			isa = PBXGroup;
 			children = (
-				12574A052BB5B37A00A4A610 /* Src */,
+				12574A182BB835B800A4A610 /* Apu */,
+				12574A162BB835B800A4A610 /* Audio */,
+				12574A242BB835B900A4A610 /* BeesNES */,
+				12574A2E2BB835B900A4A610 /* Bus */,
+				12574A2A2BB835B900A4A610 /* Cpu */,
+				12574A222BB835B900A4A610 /* Crc */,
+				12574A172BB835B800A4A610 /* Database */,
+				12574A262BB835B900A4A610 /* Display */,
+				12574A1F2BB835B800A4A610 /* Event */,
+				12574A1C2BB835B800A4A610 /* File */,
+				12574A2B2BB835B900A4A610 /* Filters */,
+				12574A282BB835B900A4A610 /* Input */,
+				12574A192BB835B800A4A610 /* Localization */,
+				12574A2C2BB835B900A4A610 /* LSNLSpiroNes.h */,
+				12574A1D2BB835B800A4A610 /* Mappers */,
+				12574A1B2BB835B800A4A610 /* MiniZ */,
+				12574A152BB835B800A4A610 /* Options */,
+				12574A292BB835B900A4A610 /* OS */,
+				12574A2D2BB835B900A4A610 /* Palette */,
+				12574A252BB835B900A4A610 /* Ppu */,
+				12574A1A2BB835B800A4A610 /* Roms */,
+				12574A1E2BB835B800A4A610 /* System */,
+				12574A202BB835B800A4A610 /* Time */,
+				12574A232BB835B900A4A610 /* Utilities */,
+				12574A212BB835B900A4A610 /* Windows */,
 				12E8B69D2BB59A6400055316 /* Renderer.h */,
 				12574A012BB5AE7600A4A610 /* Renderer.mm */,
 				12E8B69F2BB59A6400055316 /* ShaderTypes.h */,
@@ -268,10 +385,33 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12574A5F2BB835B900A4A610 /* Ppu in Resources */,
+				12574A4A2BB835B900A4A610 /* System in Resources */,
 				12E8B6B12BB59A6500055316 /* Base in Resources */,
+				12574A6E2BB835B900A4A610 /* Cpu in Resources */,
+				12574A742BB835B900A4A610 /* Palette in Resources */,
+				12574A532BB835B900A4A610 /* Windows in Resources */,
+				12574A502BB835B900A4A610 /* Time in Resources */,
+				12574A322BB835B900A4A610 /* Audio in Resources */,
 				12E8B6E32BB59A6500055316 /* Assets.xcassets in Resources */,
+				12574A772BB835B900A4A610 /* Bus in Resources */,
+				12574A472BB835B900A4A610 /* Mappers in Resources */,
 				12E8B6B42BB59A6500055316 /* Base in Resources */,
-				12574A062BB5B37A00A4A610 /* Src in Resources */,
+				12574A5C2BB835B900A4A610 /* BeesNES in Resources */,
+				12574A3E2BB835B900A4A610 /* Roms in Resources */,
+				12574A712BB835B900A4A610 /* Filters in Resources */,
+				12574A682BB835B900A4A610 /* Input in Resources */,
+				12574A2F2BB835B900A4A610 /* Options in Resources */,
+				12574A442BB835B900A4A610 /* File in Resources */,
+				12574A412BB835B900A4A610 /* MiniZ in Resources */,
+				12574A562BB835B900A4A610 /* Crc in Resources */,
+				12574A6B2BB835B900A4A610 /* OS in Resources */,
+				12574A592BB835B900A4A610 /* Utilities in Resources */,
+				12574A3B2BB835B900A4A610 /* Localization in Resources */,
+				12574A352BB835B900A4A610 /* Database in Resources */,
+				12574A622BB835B900A4A610 /* Display in Resources */,
+				12574A382BB835B900A4A610 /* Apu in Resources */,
+				12574A4D2BB835B900A4A610 /* Event in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,10 +419,33 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12574A602BB835B900A4A610 /* Ppu in Resources */,
+				12574A4B2BB835B900A4A610 /* System in Resources */,
 				12E8B6C52BB59A6500055316 /* Base in Resources */,
+				12574A6F2BB835B900A4A610 /* Cpu in Resources */,
+				12574A752BB835B900A4A610 /* Palette in Resources */,
+				12574A542BB835B900A4A610 /* Windows in Resources */,
+				12574A512BB835B900A4A610 /* Time in Resources */,
+				12574A332BB835B900A4A610 /* Audio in Resources */,
 				12E8B6E42BB59A6500055316 /* Assets.xcassets in Resources */,
+				12574A782BB835B900A4A610 /* Bus in Resources */,
+				12574A482BB835B900A4A610 /* Mappers in Resources */,
 				12E8B6C82BB59A6500055316 /* Base in Resources */,
-				12574A072BB5B37A00A4A610 /* Src in Resources */,
+				12574A5D2BB835B900A4A610 /* BeesNES in Resources */,
+				12574A3F2BB835B900A4A610 /* Roms in Resources */,
+				12574A722BB835B900A4A610 /* Filters in Resources */,
+				12574A692BB835B900A4A610 /* Input in Resources */,
+				12574A302BB835B900A4A610 /* Options in Resources */,
+				12574A452BB835B900A4A610 /* File in Resources */,
+				12574A422BB835B900A4A610 /* MiniZ in Resources */,
+				12574A572BB835B900A4A610 /* Crc in Resources */,
+				12574A6C2BB835B900A4A610 /* OS in Resources */,
+				12574A5A2BB835B900A4A610 /* Utilities in Resources */,
+				12574A3C2BB835B900A4A610 /* Localization in Resources */,
+				12574A362BB835B900A4A610 /* Database in Resources */,
+				12574A632BB835B900A4A610 /* Display in Resources */,
+				12574A392BB835B900A4A610 /* Apu in Resources */,
+				12574A4E2BB835B900A4A610 /* Event in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,9 +453,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12574A082BB5B37A00A4A610 /* Src in Resources */,
+				12574A732BB835B900A4A610 /* Filters in Resources */,
+				12574A552BB835B900A4A610 /* Windows in Resources */,
+				12574A372BB835B900A4A610 /* Database in Resources */,
+				12574A3D2BB835B900A4A610 /* Localization in Resources */,
+				12574A582BB835B900A4A610 /* Crc in Resources */,
+				12574A312BB835B900A4A610 /* Options in Resources */,
+				12574A642BB835B900A4A610 /* Display in Resources */,
+				12574A522BB835B900A4A610 /* Time in Resources */,
+				12574A762BB835B900A4A610 /* Palette in Resources */,
 				12E8B6E52BB59A6500055316 /* Assets.xcassets in Resources */,
+				12574A462BB835B900A4A610 /* File in Resources */,
+				12574A3A2BB835B900A4A610 /* Apu in Resources */,
+				12574A6D2BB835B900A4A610 /* OS in Resources */,
+				12574A612BB835B900A4A610 /* Ppu in Resources */,
+				12574A402BB835B900A4A610 /* Roms in Resources */,
+				12574A6A2BB835B900A4A610 /* Input in Resources */,
+				12574A4C2BB835B900A4A610 /* System in Resources */,
+				12574A5B2BB835B900A4A610 /* Utilities in Resources */,
+				12574A702BB835B900A4A610 /* Cpu in Resources */,
+				12574A5E2BB835B900A4A610 /* BeesNES in Resources */,
+				12574A4F2BB835B900A4A610 /* Event in Resources */,
+				12574A432BB835B900A4A610 /* MiniZ in Resources */,
+				12574A492BB835B900A4A610 /* Mappers in Resources */,
+				12574A792BB835B900A4A610 /* Bus in Resources */,
 				12E8B6D92BB59A6500055316 /* Base in Resources */,
+				12574A342BB835B900A4A610 /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

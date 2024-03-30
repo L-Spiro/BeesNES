@@ -15,6 +15,8 @@
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlSource.h"
 
+#include <vector>
+
 #define LSN_AUDIO_BUFFERS									288
 
 namespace lsn {

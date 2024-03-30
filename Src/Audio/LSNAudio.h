@@ -12,6 +12,8 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Event/LSNEvent.h"
+#include "LSNAudioBase.h"
+#include "LSNAudioCoreAudio.h"
 #include "LSNAudioOpenAl.h"
 #include "LSNSampleBox.h"
 
@@ -62,7 +64,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the output frequency.
 		 **/
-		static inline uint32_t								GetOutputFrequency() { return m_aoaOpenAlAudio.GetOutputFrequency(); }
+		static inline uint32_t								GetOutputFrequency() { return m_adAudioDevice.GetOutputFrequency(); }
 
 		/**
 		 * Sets the output frequency in Hz.
@@ -70,7 +72,7 @@ namespace lsn {
 		 * \param _ui32Hz The new output frequency.
 		 **/
 		static void											SetOutputFrequency( uint32_t _ui32Hz ) {
-			m_aoaOpenAlAudio.SetOutputFrequency( _ui32Hz );
+			m_adAudioDevice.SetOutputFrequency( _ui32Hz );
 		}
 
 		/**
@@ -79,7 +81,7 @@ namespace lsn {
 		 * \param _fFormat The new output format.
 		 **/
 		static void											SetOutputFormat( CAudioBase::LSN_FORMAT _fFormat ) {
-			m_aoaOpenAlAudio.SetOutputFormat( _fFormat );
+			m_adAudioDevice.SetOutputFormat( _fFormat );
 		}
 
 		/**
@@ -121,12 +123,12 @@ namespace lsn {
 		/**
 		 * 6-point, 5th-order Hermite X-form sampling.
 		 *
-		 * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
-		 * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
-		 * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
-		 * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
-		 * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
-		 * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+		 * \param _pfsSamples0 The 16-byte-aligned pointer to the 8 1st points.
+		 * \param _pfsSamples1 The 16-byte-aligned pointer to the 8 2nd points.
+		 * \param _pfsSamples2 The 16-byte-aligned pointer to the 8 3rd points.
+		 * \param _pfsSamples3 The 16-byte-aligned pointer to the 8 4th points.
+		 * \param _pfsSamples4 The 16-byte-aligned pointer to the 8 5th points.
+		 * \param _pfsSamples5 The 16-byte-aligned pointer to the 8 6th points.
 		 * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
 		 * \param _pfOut The output pointer.
 		 */
@@ -222,9 +224,16 @@ namespace lsn {
 
 
 	protected :
+        // == Types.
+#ifdef LSN_WINDOWS
+        typedef CAudioOpenAl                                CAudioDevice;
+#elif defined( LSN_APPLE )
+        typedef CAudioCoreAudio                             CAudioDevice;
+#endif  // #ifdef LSN_WINDOWS
+        
 		// == Members.
 		/** The audio interface object. */
-		static CAudioOpenAl									m_aoaOpenAlAudio;
+		static CAudioDevice									m_adAudioDevice;
 		/** The audio thread. */
 		static std::unique_ptr<std::thread>					m_ptAudioThread;
 		/** Boolean to stop the audio thread. */
@@ -310,6 +319,7 @@ namespace lsn {
 		return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
 	}
 
+#ifdef __AVX__
 	/**
 	 * 6-point, 5th-order Hermite X-form sampling.
 	 *
@@ -399,7 +409,9 @@ namespace lsn {
 				mFrac ), mC0 );
 		_mm256_store_ps( _pfOut, mRet );
 	}
+#endif  // #ifdef __AVX__
 
+#ifdef __SSE4_1__
 	/**
 	 * 6-point, 5th-order Hermite X-form sampling.
 	 *
@@ -489,6 +501,7 @@ namespace lsn {
 				mFrac ), mC0 );
 		_mm_store_ps( _pfOut, mRet );
 	}
+#endif  // #ifdef __SSE4_1__
 
 	/**
 	 * 4-point, 2nd-order parabolic 2x x-form sampling.
@@ -506,6 +519,7 @@ namespace lsn {
 		return (fC2 * _fFrac + fC1) * _fFrac + fC0;
 	}
 
+#ifdef __AVX__
 	/**
 	 * 4-point, 2nd-order parabolic 2x x-form sampling.
 	 *
@@ -559,7 +573,9 @@ namespace lsn {
 		__m256 mRet = _mm256_add_ps( _mm256_mul_ps( _mm256_add_ps( _mm256_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
 		_mm256_store_ps( _pfOut, mRet );
 	}
+#endif  // #ifdef __AVX__
 
+#ifdef __SSE4_1__
 	/**
 	 * 4-point, 2nd-order parabolic 2x x-form sampling.
 	 *
@@ -613,6 +629,7 @@ namespace lsn {
 		__m128 mRet = _mm_add_ps( _mm_mul_ps( _mm_add_ps( _mm_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
 		_mm_store_ps( _pfOut, mRet );
 	}
+#endif  // #ifdef __SSE4_1__
 
 	/**
 	 * 6-point, 4th-order optimal 2x z-form sampling.

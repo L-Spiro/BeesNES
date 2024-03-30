@@ -10,6 +10,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+
+#ifdef LSN_WINDOWS
+
 #include "LSNAudioBase.h"
 #include "LSNOpenAlBuffer.h"
 #include "LSNOpenAlContext.h"
@@ -174,3 +177,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#endif  // #ifdef LSN_WINDOWS

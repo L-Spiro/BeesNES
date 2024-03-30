@@ -10,6 +10,8 @@
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include "LSNWindows.h"
+#elif defined( __APPLE__ )
+#include "LSNApple.h"
 #else
 #endif  // #if defined( _WIN32 ) || defined( _WIN64 )
 

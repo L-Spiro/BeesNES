@@ -14,7 +14,7 @@ namespace lsn {
 
 	// == Members.
 	/** The audio interface object. */
-	CAudioOpenAl CAudio::m_aoaOpenAlAudio;
+	CAudioOpenAl CAudio::m_adAudioDevice;
 
 	/** The audio thread. */
 	std::unique_ptr<std::thread> CAudio::m_ptAudioThread;
@@ -38,7 +38,7 @@ namespace lsn {
 	bool CAudio::InitializeAudio() {
 		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
 
-		if ( !m_aoaOpenAlAudio.InitializeAudio() ) { return false; }
+		if ( !m_adAudioDevice.InitializeAudio() ) { return false; }
 
 		if ( !StartThread() ) { return false; }
 		return true;
@@ -52,7 +52,7 @@ namespace lsn {
 	bool CAudio::ShutdownAudio() {
 		StopThread();
 		
-		return m_aoaOpenAlAudio.ShutdownAudio();
+		return m_adAudioDevice.ShutdownAudio();
 	}
 
 	/**
@@ -61,7 +61,7 @@ namespace lsn {
 	void CAudio::BeginEmulation() {
 		StopThread();
 
-		m_aoaOpenAlAudio.BeginEmulation();
+		m_adAudioDevice.BeginEmulation();
 
 		StartThread();
 	}
@@ -75,7 +75,7 @@ namespace lsn {
 		m_sbSampleBox.AddSample( _fSample );
 		std::vector<float> & vOut = m_sbSampleBox.Output();
 		for ( size_t I = 0; I < vOut.size(); ++I ) {
-			m_aoaOpenAlAudio.AddSample( vOut[I] );
+			m_adAudioDevice.AddSample( vOut[I] );
 		}
 		vOut.clear();
 	}

@@ -9,6 +9,9 @@
 
 
 #include "LSNAudioOpenAl.h"
+
+#ifdef LSN_WINDOWS
+
 #include "LSNOpenAl.h"
 
 namespace lsn {
@@ -267,3 +270,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#endif  // #ifdef LSN_WINDOWS
