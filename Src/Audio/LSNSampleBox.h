@@ -16,25 +16,26 @@
 
 #include <cmath>
 #include <cstdint>
+#include <numbers>
 #include <vector>
 
 #if defined( _MSC_VER )
-    // Microsoft Visual Studio Compiler
+    // Microsoft Visual Studio Compiler.
     #define LSN_ALN		__declspec( align( 64 ) )
 #elif defined( __GNUC__ ) || defined( __clang__ )
-    // GNU Compiler Collection (GCC) or Clang
+    // GNU Compiler Collection (GCC) or Clang.
     #define LSN_ALN		__attribute__( (aligned( 64 )) )
 #else
     #error "Unsupported compiler."
 #endif
 
 #pragma warning( push )
-#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CNtscLSpiroFilter': structure was padded due to alignment specifier
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CSampleBox': structure was padded due to alignment specifier
 
 namespace lsn {
 
 	/**
-	 * Class CSincFilter
+	 * Class CSampleBox
 	 * \brief A sample box.  Samples in, band-passed samples out.
 	 *
 	 * Description: A sample box.  Samples in, band-passed samples out.  This class strives to produce a super clean down-sampled result as fast as possible.
@@ -446,7 +447,7 @@ namespace lsn {
 			if ( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
-				float fTmp[8];
+				float fTmp[sizeof(__m128)/sizeof(float)];
 				Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
@@ -476,7 +477,7 @@ namespace lsn {
 			if ( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
-				float fTmp[8];
+				float fTmp[sizeof(__m256)/sizeof(float)];
 				Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
@@ -506,7 +507,7 @@ namespace lsn {
 			if ( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
-				float fTmp[8];
+				float fTmp[sizeof(__m512)/sizeof(float)];
 				Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],

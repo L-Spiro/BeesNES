@@ -399,16 +399,14 @@ namespace lsn {
 		/** Begins an IRQ "instruction". */
 		inline void							Irq_PHI2();										// Cycle 1.
 		/** Reads the next instruction byte and throws it away. */
-		template <bool _bPollNmi>
 		void								ReadNextInstByteAndDiscard() {					// Cycle 2.
 			//m_pbBus->Read( pc.PC );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
-			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<_bPollNmi> );
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Reads the next instruction byte and throws it away. */
-		template <bool _bPollNmi>
 		void								ReadNextInstByteAndDiscardAndIncPc() {			// Cycle 2.
 			//  #  address R/W description
 			// --- ------- --- -----------------------------------------------
@@ -416,11 +414,11 @@ namespace lsn {
 			//                 increment PC
 
 			//m_pbBus->Read( pc.PC++ );	// Affects what floats on the bus for the more-accurate emulation of a floating bus.
-			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<_bPollNmi> );
+			LSN_INSTR_READ_DISCARD_PHI1( pc.PC, Phi2_Read<true> );
 			++pc.PC;
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Reads the next instruction byte and throws it away, increasing PC. */
 		void								NopAndIncPcAndFinish();
@@ -467,23 +465,21 @@ namespace lsn {
 		/** 3rd cycle of PLA/PLP/RTI/RTS. */
 		void								PLA_PLP_RTI_RTS_Cycle3();						// Cycle 3.
 		/** Pushes PCH. */
-		template <bool _bPollNmi>
 		void								PushPch() {										// Cycle 3.
 			LSN_ADVANCE_CONTEXT_COUNTERS;
-			LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<_bPollNmi> );
+			LSN_PUSH( pc.ui8Bytes[1], Phi2_Write<true> );
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Pushes PCL, decrements S. */
-		template <bool _bPollNmi>
 		void								PushPcl() {										// Cycle 4.
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 			//  #  address R/W description
 			// --- ------- --- -------------------------------------------------
 			//  4  $0100,S  W  push PCL on stack, decrement S
-			LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<_bPollNmi> );
+			LSN_PUSH( pc.ui8Bytes[0], Phi2_Write<true> );
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Pushes status with B. */
 		void								PushStatusAndBAndSetAddressByIrq();				// Cycle 5.
@@ -529,32 +525,29 @@ namespace lsn {
 		template <bool _bHandleCrossing>
 		void								ReadEffectiveAddressFixHighByte_IzY_AbX_AbY();	// Cycle 5.
 		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
-		template <bool _bPollNmi>
 		void								CopyVectorPcl() {								// Cycle 6.
-			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], CopyVectorPcl_Phi2<_bPollNmi> );
+			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address, pc.ui8Bytes[0], CopyVectorPcl_Phi2 );
 
 			LSN_ADVANCE_CONTEXT_COUNTERS;
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Fetches the low byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the low byte of PC and sets the I flag. */
-		template <bool _bPollNmi>
 		void								CopyVectorPcl_Phi2() {								// Cycle 6.
 			LSN_INSTR_READ_PHI2;
 
 			SetBit<uint8_t( LSN_STATUS_FLAGS::LSN_SF_IRQ ), true>( m_ui8Status );
 
-			LSN_INSTR_END_PHI2( _bPollNmi );
+			LSN_INSTR_END_PHI2( true );
 		}
 		/** Fetches the high byte of the NMI/IRQ/BRK/reset vector (stored in LSN_CPU_CONTEXT::a.ui16Address) into the high byte of PC. */
-		template <bool _bPollNmi>
 		void								CopyVectorPch() {								// Cycle 7.
 			//pc.ui8Bytes[1] = m_pbBus->Read( m_ccCurContext.a.ui16Address + 1 );
-			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1], Phi2_Read<_bPollNmi> );
+			LSN_INSTR_READ_PHI1( m_ccCurContext.a.ui16Address + 1, pc.ui8Bytes[1], Phi2_Read<true> );
 
 			LSN_FINISH_INST( true );
 
-			LSN_INSTR_END_PHI1( _bPollNmi );
+			LSN_INSTR_END_PHI1( true );
 		}
 		/** Fetches the low byte of PC from $FFFE. */
 		void								FetchPclFromFFFE();								// Cycle 6.

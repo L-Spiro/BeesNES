@@ -133,7 +133,7 @@ namespace lsn {
 		 * \return Returns the value converted to sRGB space.
 		 */
 		static double										LinearTosRGB( double _dVal ) {
-			return _dVal <= 0.0031308 ?
+			return _dVal <= 0.00313080495356037151702786377709 ?	// (1.0 / 12.92) / (1.0 / 0.04045)
 				_dVal * 12.92 :
 				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
 		}
@@ -145,9 +145,9 @@ namespace lsn {
 		 * \return Returns the color value converted to linear space.
 		 **/
 		static double										SMPTE170MtoLinear( double _dVal ) {
-			return _dVal < 0.0812 ?
+			return _dVal < 0.0812428582986315 ?						// 4.5 / (1.0 / 0.018053968510807)
 				_dVal / 4.5 :
-				std::pow( (_dVal + 0.099) / 1.099, 1.0 / 0.45 );
+				std::pow( (_dVal + 0.099) / 1.09929682680944, 1.0 / 0.45 );
 		}
 
 		/**
@@ -157,9 +157,9 @@ namespace lsn {
 		 * \return Returns the value converted to SMPTE 170M-2004 space.
 		 */
 		static double										LinearToSMPTE170M( double _dVal ) {
-			return _dVal < 0.018 ?
+			return _dVal < 0.018053968510807 ?
 				4.5 * _dVal :
-				1.099 * std::pow( _dVal, 0.45 ) - 0.099;
+				1.09929682680944 * std::pow( _dVal, 0.45 ) - 0.099;
 		}
 
 		/**

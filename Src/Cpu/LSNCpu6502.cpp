@@ -73,12 +73,12 @@ namespace lsn {
 		/** 00-07 */
 		{	// 00
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<LSN_BRK_NMI>,
-				&CCpu6502::PushPch<LSN_BRK_NMI>,
-				&CCpu6502::PushPcl<LSN_BRK_NMI>,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
+				&CCpu6502::PushPch,
+				&CCpu6502::PushPcl,
 				&CCpu6502::PushStatusAndBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl<false>,
-				&CCpu6502::CopyVectorPch<false>, },										// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl,
+				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_BRK,
 		},
 		{	// 01
@@ -109,7 +109,7 @@ namespace lsn {
 		/** 08-0F */
 		{	// 08
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<true>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PHP, },
 				3, LSN_AM_IMPLIED, 1, LSN_I_PHP,
 		},
@@ -234,7 +234,7 @@ namespace lsn {
 		/** 28-2F */
 		{	// 28
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<true>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PLP, },
 				4, LSN_AM_IMPLIED, 1, LSN_I_PLP,
@@ -325,7 +325,7 @@ namespace lsn {
 		/** 40-47 */
 		{	// 40
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<true>,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PullStatusWithoutB,
 				&CCpu6502::PullPcl,
@@ -360,7 +360,7 @@ namespace lsn {
 		/** 48-4F */
 		{	// 48
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<true>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PHA, },
 				3, LSN_AM_IMPLIED, 1, LSN_I_PHA,
 		},
@@ -453,7 +453,7 @@ namespace lsn {
 		/** 60-67 */
 		{	// 60
 			{
-				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc<true>,
+				&CCpu6502::ReadNextInstByteAndDiscardAndIncPc,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PullPcl,
 				&CCpu6502::PullPch,
@@ -488,7 +488,7 @@ namespace lsn {
 		/** 68-6F */
 		{	// 68
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<true>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
 				&CCpu6502::PLA_PLP_RTI_RTS_Cycle3,
 				&CCpu6502::PLA, },
 				4, LSN_AM_IMPLIED, 1, LSN_I_PLA,
@@ -1043,22 +1043,22 @@ namespace lsn {
 
 		{	// 100
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<LSN_BRK_NMI>,
-				&CCpu6502::PushPch<LSN_BRK_NMI>,
-				&CCpu6502::PushPcl<LSN_BRK_NMI>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PushPch,
+				&CCpu6502::PushPcl,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl<false>,
-				&CCpu6502::CopyVectorPch<false>, },									// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl,
+				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_NMI,
 		},
 		{	// 101
 			{
-				&CCpu6502::ReadNextInstByteAndDiscard<LSN_BRK_NMI>,
-				&CCpu6502::PushPch<LSN_BRK_NMI>,
-				&CCpu6502::PushPcl<LSN_BRK_NMI>,
+				&CCpu6502::ReadNextInstByteAndDiscard,
+				&CCpu6502::PushPch,
+				&CCpu6502::PushPcl,
 				&CCpu6502::PushStatusAndNoBAndSetAddressByIrq,
-				&CCpu6502::CopyVectorPcl<false>,
-				&CCpu6502::CopyVectorPch<false>, },									// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
+				&CCpu6502::CopyVectorPcl,
+				&CCpu6502::CopyVectorPch, },											// Fetches from m_ccCurContext.a.ui16Address and writes to the high byte of PC.
 				7, LSN_AM_IMPLIED, 1, LSN_I_IRQ,
 		},
 	};

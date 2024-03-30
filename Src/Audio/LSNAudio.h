@@ -12,19 +12,10 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Event/LSNEvent.h"
-#include "LSNHpfFilter.h"
-#include "LSNOpenAlBuffer.h"
-#include "LSNOpenAlContext.h"
-#include "LSNOpenAlDevice.h"
-#include "LSNOpenAlSource.h"
-#include "LSNSampleBucket.h"
-
-#include <thread>
-
+#include "LSNAudioOpenAl.h"
 #include "LSNSampleBox.h"
 
-#define LSN_AUDIO_BUFFERS									288
-#define LSN_BUCKETS											(LSN_SAMPLER_BUCKET_SIZE * 3)
+#include <thread>
 
 namespace lsn {
 
@@ -51,20 +42,7 @@ namespace lsn {
 		 * \return Returns true if shutdown was successful.
 		 **/
 		static bool											ShutdownAudio();
-
-		/**
-		 * Gets the global OpenAL device.
-		 * 
-		 * \return Returns the global OpenAL device.
-		 **/
-		static COpenAlDevice &								Device() { return m_oadDevice; }
-
-		/**
-		 * Gets the global OpenAL source.
-		 * 
-		 * \return Returns the global OpenAL source.
-		 **/
-		static COpenAlSource &								Source() { return m_oasSource; }
+		
 		/**
 		 * Initializes the sample box, preparing to deliver nice clean band-limited samples as fast as alien technology can deliver.
 		 * 
@@ -84,7 +62,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the output frequency.
 		 **/
-		static inline uint32_t								GetOutputFrequency() { return uint32_t( m_sFrequency ); }
+		static inline uint32_t								GetOutputFrequency() { return m_aoaOpenAlAudio.GetOutputFrequency(); }
 
 		/**
 		 * Sets the output frequency in Hz.
@@ -92,16 +70,16 @@ namespace lsn {
 		 * \param _ui32Hz The new output frequency.
 		 **/
 		static void											SetOutputFrequency( uint32_t _ui32Hz ) {
-			m_sNextFrequency = _ui32Hz;
+			m_aoaOpenAlAudio.SetOutputFrequency( _ui32Hz );
 		}
 
 		/**
 		 * Sets the output format.
 		 * 
-		 * \param _eFormat The new output format.
+		 * \param _fFormat The new output format.
 		 **/
-		static void											SetOutputFormat( ALenum _eFormat ) {
-			m_eNextFormat = _eFormat;
+		static void											SetOutputFormat( CAudioBase::LSN_FORMAT _fFormat ) {
+			m_aoaOpenAlAudio.SetOutputFormat( _fFormat );
 		}
 
 		/**
@@ -244,57 +222,15 @@ namespace lsn {
 
 
 	protected :
-		// == Types.
-		/** The linked list of sample buckets. */
-		struct LSN_SAMPLE_BUCKET_LIST {
-			/** The current low index inside the ring buffer. */
-			uint64_t										ui64Idx;
-			/** The current high index inside the ring buffer. */
-			uint64_t										ui64HiIdx;
-			/** The ring buffer of buckets. */
-			LSN_SAMPLE_BUCKET								sbBuckets[LSN_BUCKETS];
-		};
-
-
 		// == Members.
-		/** The total number of buffers uploaded during the lifetime of the source. */
-		static uint64_t										m_ui64TotalLifetimeQueues;
-		/** The total number of buffers unloaded during the lifetime of the source. */
-		static uint64_t										m_ui64TotalLifetimeUnqueueds;
-		/** The current buffer. */
-		static std::vector<uint8_t>							m_vLocalBuffer;
-		/** The current buffer being filled. */
-		static size_t										m_sBufferIdx;
-		/** The primary OpenAL device. */
-		static COpenAlDevice								m_oadDevice;
-		/** The context. */
-		static COpenAlContext								m_oacContext;
-		/** For emulation purposes, we only have 1 source. */
-		static COpenAlSource								m_oasSource;
-		/** The audio buffers. */
-		static COpenAlBuffer								m_oabBuffers[LSN_AUDIO_BUFFERS];
-		/** The size of each buffer in samples. */
-		static ALsizei										m_sBufferSizeInSamples;
-		/** The current buffer position. */
-		static ALsizei										m_sCurBufferSize;
-		/** The frequency of the current buffer.  Flush to set (flushing copies from the "Next" value into this one). */
-		static ALsizei										m_sFrequency;
-		/** The frequency to set after the next flush. */
-		static ALsizei										m_sNextFrequency;
-		/** The current output format. Flush to set (flushing copies from the "Next" value into this one). */
-		static ALenum										m_eFormat;
-		/** The output format to apply on the next flush. */
-		static ALenum										m_eNextFormat;
+		/** The audio interface object. */
+		static CAudioOpenAl									m_aoaOpenAlAudio;
 		/** The audio thread. */
 		static std::unique_ptr<std::thread>					m_ptAudioThread;
 		/** Boolean to stop the audio thread. */
 		static std::atomic<bool>							m_bRunThread;
 		/** The signal that the thread has finished. */
 		static CEvent										m_eThreadClosed;
-		/** Temporary float-format storage of samples. */
-		static std::vector<float>							m_vTmpBuffer;
-		/** The position within the temporary buffer of the current sample. */
-		static size_t										m_sTmpBufferIdx;
 		/** The sample box for band-passed output. */
 		static CSampleBox									m_sbSampleBox;
 
@@ -311,47 +247,6 @@ namespace lsn {
 		 * Stops the audio thread.
 		 **/
 		static void											StopThread();
-
-		/**
-		 * Flushes any audio currently buffered locally to the OpenAL API.
-		 * 
-		 * \return Returns true if the audio was buffered into OpenAL.
-		 **/
-		static bool											Flush();
-
-		/**
-		 * Buffers samples from floating-point to the AL_FORMAT_MONO8 format.
-		 * 
-		 * \param _pfSamples The samples to buffer.
-		 * \param _sTotal The number of samples to which _pfSamples points.
-		 * \return Returns true if the buffer succeeded.
-		 **/
-		static bool											BufferMono8( const float * _pfSamples, size_t _sTotal );
-
-		/**
-		 * Buffers samples from floating-point to the AL_FORMAT_MONO16 format.
-		 * 
-		 * \param _pfSamples The samples to buffer.
-		 * \param _sTotal The number of samples to which _pfSamples points.
-		 * \return Returns true if the buffer succeeded.
-		 **/
-		static bool											BufferMono16( const float * _pfSamples, size_t _sTotal );
-
-		/**
-		 * Buffers samples from floating-point to the AL_FORMAT_MONO_FLOAT32 format.
-		 * 
-		 * \param _pfSamples The samples to buffer.
-		 * \param _sTotal The number of samples to which _pfSamples points.
-		 * \return Returns true if the buffer succeeded.
-		 **/
-		static bool											BufferMonoF32( const float * _pfSamples, size_t _sTotal );
-
-		/**
-		 * Copies from m_vTmpBuffer into the local buffer passed to OpenAL, performing the format conversion as necessary.
-		 * 
-		 * \return Returns true if the transfer succeeded.
-		 **/
-		static bool											TransferTmpToLocal();
 
 		/**
 		 * The audio thread.
