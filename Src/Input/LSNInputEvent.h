@@ -13,7 +13,9 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNUsbControllerBase.h"
+#ifdef LSN_WINDOWS
 #include <Helpers/LSWHelpers.h>
+#endif	// #ifdef LSN_WINDOWS
 
 namespace lsn {
 

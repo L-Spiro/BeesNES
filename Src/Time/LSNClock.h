@@ -12,6 +12,10 @@
 #include "../LSNLSpiroNes.h"
 #include "../OS/LSNOs.h"
 
+#ifdef __GNUC__
+#include <mach/mach_time.h>
+#endif	// #ifdef __GNUC__
+
 namespace lsn {
 
 	/**
@@ -55,8 +59,12 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		uint64_t								m_ui64Resolution;							/**< The resolution of the clock. */
-		uint64_t								m_ui64StartTime;							/**< The starting clock time. */
+		uint64_t								m_ui64Resolution = 0;							/**< The resolution of the clock. */
+		uint64_t								m_ui64StartTime = 0;							/**< The starting clock time. */
+		
+#ifdef __GNUC__
+		static ::mach_timebase_info_data_t		m_mtidInfoData;									/**< Time resoution. */
+#endif	// #ifdef __GNUC__
 	};
 
 

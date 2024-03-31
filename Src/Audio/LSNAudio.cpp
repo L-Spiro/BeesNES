@@ -14,7 +14,7 @@ namespace lsn {
 
 	// == Members.
 	/** The audio interface object. */
-	CAudioOpenAl CAudio::m_adAudioDevice;
+	CAudio::CAudioDevice CAudio::m_adAudioDevice;
 
 	/** The audio thread. */
 	std::unique_ptr<std::thread> CAudio::m_ptAudioThread;

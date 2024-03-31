@@ -44,10 +44,10 @@ namespace lsn {
 		/**
 		 * Returns the length of the internal array, which must be larger than 0.
 		 *
-		 * \return Returns _uDelayCycles + 1.
+		 * \return Returns _uThisDelayCycles + 1.
 		 */
-		template <size_t _uDelayCycles>
-		static constexpr size_t								ArraySize() { return _uDelayCycles + 1; }
+		template <size_t _uThisDelayCycles>
+		static constexpr size_t								ArraySize() { return _uThisDelayCycles + 1; }
 
 		/**
 		 * Gets the actual delay.

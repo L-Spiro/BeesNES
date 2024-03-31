@@ -13,78 +13,222 @@
 		12574A0E2BB5BB8700A4A610 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */; };
 		12574A122BB637AC00A4A610 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12574A112BB637AC00A4A610 /* GameViewController.m */; };
 		12574A142BB6B71F00A4A610 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12574A132BB6B71F00A4A610 /* main.mm */; };
-		12574A2F2BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
-		12574A302BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
-		12574A312BB835B900A4A610 /* Options in Resources */ = {isa = PBXBuildFile; fileRef = 12574A152BB835B800A4A610 /* Options */; };
-		12574A322BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
-		12574A332BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
-		12574A342BB835B900A4A610 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 12574A162BB835B800A4A610 /* Audio */; };
-		12574A352BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
-		12574A362BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
-		12574A372BB835B900A4A610 /* Database in Resources */ = {isa = PBXBuildFile; fileRef = 12574A172BB835B800A4A610 /* Database */; };
-		12574A382BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
-		12574A392BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
-		12574A3A2BB835B900A4A610 /* Apu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A182BB835B800A4A610 /* Apu */; };
-		12574A3B2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
-		12574A3C2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
-		12574A3D2BB835B900A4A610 /* Localization in Resources */ = {isa = PBXBuildFile; fileRef = 12574A192BB835B800A4A610 /* Localization */; };
-		12574A3E2BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
-		12574A3F2BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
-		12574A402BB835B900A4A610 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1A2BB835B800A4A610 /* Roms */; };
-		12574A412BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
-		12574A422BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
-		12574A432BB835B900A4A610 /* MiniZ in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1B2BB835B800A4A610 /* MiniZ */; };
-		12574A442BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
-		12574A452BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
-		12574A462BB835B900A4A610 /* File in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1C2BB835B800A4A610 /* File */; };
-		12574A472BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
-		12574A482BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
-		12574A492BB835B900A4A610 /* Mappers in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1D2BB835B800A4A610 /* Mappers */; };
-		12574A4A2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
-		12574A4B2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
-		12574A4C2BB835B900A4A610 /* System in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1E2BB835B800A4A610 /* System */; };
-		12574A4D2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
-		12574A4E2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
-		12574A4F2BB835B900A4A610 /* Event in Resources */ = {isa = PBXBuildFile; fileRef = 12574A1F2BB835B800A4A610 /* Event */; };
-		12574A502BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
-		12574A512BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
-		12574A522BB835B900A4A610 /* Time in Resources */ = {isa = PBXBuildFile; fileRef = 12574A202BB835B800A4A610 /* Time */; };
-		12574A532BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
-		12574A542BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
-		12574A552BB835B900A4A610 /* Windows in Resources */ = {isa = PBXBuildFile; fileRef = 12574A212BB835B900A4A610 /* Windows */; };
-		12574A562BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
-		12574A572BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
-		12574A582BB835B900A4A610 /* Crc in Resources */ = {isa = PBXBuildFile; fileRef = 12574A222BB835B900A4A610 /* Crc */; };
-		12574A592BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
-		12574A5A2BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
-		12574A5B2BB835B900A4A610 /* Utilities in Resources */ = {isa = PBXBuildFile; fileRef = 12574A232BB835B900A4A610 /* Utilities */; };
-		12574A5C2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
-		12574A5D2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
-		12574A5E2BB835B900A4A610 /* BeesNES in Resources */ = {isa = PBXBuildFile; fileRef = 12574A242BB835B900A4A610 /* BeesNES */; };
-		12574A5F2BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
-		12574A602BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
-		12574A612BB835B900A4A610 /* Ppu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A252BB835B900A4A610 /* Ppu */; };
-		12574A622BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
-		12574A632BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
-		12574A642BB835B900A4A610 /* Display in Resources */ = {isa = PBXBuildFile; fileRef = 12574A262BB835B900A4A610 /* Display */; };
-		12574A682BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
-		12574A692BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
-		12574A6A2BB835B900A4A610 /* Input in Resources */ = {isa = PBXBuildFile; fileRef = 12574A282BB835B900A4A610 /* Input */; };
-		12574A6B2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
-		12574A6C2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
-		12574A6D2BB835B900A4A610 /* OS in Resources */ = {isa = PBXBuildFile; fileRef = 12574A292BB835B900A4A610 /* OS */; };
-		12574A6E2BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
-		12574A6F2BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
-		12574A702BB835B900A4A610 /* Cpu in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2A2BB835B900A4A610 /* Cpu */; };
-		12574A712BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
-		12574A722BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
-		12574A732BB835B900A4A610 /* Filters in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2B2BB835B900A4A610 /* Filters */; };
-		12574A742BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
-		12574A752BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
-		12574A762BB835B900A4A610 /* Palette in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2D2BB835B900A4A610 /* Palette */; };
-		12574A772BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
-		12574A782BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
-		12574A792BB835B900A4A610 /* Bus in Resources */ = {isa = PBXBuildFile; fileRef = 12574A2E2BB835B900A4A610 /* Bus */; };
+		12574A8E2BB884A400A4A610 /* LSNApuUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A802BB884A300A4A610 /* LSNApuUnit.cpp */; };
+		12574A8F2BB884A400A4A610 /* LSNApuUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A802BB884A300A4A610 /* LSNApuUnit.cpp */; };
+		12574A902BB884A400A4A610 /* LSNApuUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A802BB884A300A4A610 /* LSNApuUnit.cpp */; };
+		12574A912BB884A400A4A610 /* LSNSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A832BB884A300A4A610 /* LSNSequencer.cpp */; };
+		12574A922BB884A400A4A610 /* LSNSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A832BB884A300A4A610 /* LSNSequencer.cpp */; };
+		12574A932BB884A400A4A610 /* LSNSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A832BB884A300A4A610 /* LSNSequencer.cpp */; };
+		12574A942BB884A400A4A610 /* LSNNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A872BB884A400A4A610 /* LSNNoise.cpp */; };
+		12574A952BB884A400A4A610 /* LSNNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A872BB884A400A4A610 /* LSNNoise.cpp */; };
+		12574A962BB884A400A4A610 /* LSNNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A872BB884A400A4A610 /* LSNNoise.cpp */; };
+		12574A972BB884A400A4A610 /* LSNPulse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A882BB884A400A4A610 /* LSNPulse.cpp */; };
+		12574A982BB884A400A4A610 /* LSNPulse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A882BB884A400A4A610 /* LSNPulse.cpp */; };
+		12574A992BB884A400A4A610 /* LSNPulse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A882BB884A400A4A610 /* LSNPulse.cpp */; };
+		12574A9A2BB884A400A4A610 /* LSNTriangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */; };
+		12574A9B2BB884A400A4A610 /* LSNTriangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */; };
+		12574A9C2BB884A400A4A610 /* LSNTriangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */; };
+		12574AC02BB884E700A4A610 /* LSNOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A9E2BB884E600A4A610 /* LSNOpenAl.cpp */; };
+		12574AC12BB884E700A4A610 /* LSNOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A9E2BB884E600A4A610 /* LSNOpenAl.cpp */; };
+		12574AC22BB884E700A4A610 /* LSNOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574A9E2BB884E600A4A610 /* LSNOpenAl.cpp */; };
+		12574AC32BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA22BB884E600A4A610 /* LSNOpenAlGetError.cpp */; };
+		12574AC42BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA22BB884E600A4A610 /* LSNOpenAlGetError.cpp */; };
+		12574AC52BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA22BB884E600A4A610 /* LSNOpenAlGetError.cpp */; };
+		12574AC62BB884E700A4A610 /* LSNAudioBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA62BB884E600A4A610 /* LSNAudioBase.cpp */; };
+		12574AC72BB884E700A4A610 /* LSNAudioBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA62BB884E600A4A610 /* LSNAudioBase.cpp */; };
+		12574AC82BB884E700A4A610 /* LSNAudioBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA62BB884E600A4A610 /* LSNAudioBase.cpp */; };
+		12574AC92BB884E700A4A610 /* LSNAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA82BB884E600A4A610 /* LSNAudio.cpp */; };
+		12574ACA2BB884E700A4A610 /* LSNAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA82BB884E600A4A610 /* LSNAudio.cpp */; };
+		12574ACB2BB884E700A4A610 /* LSNAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AA82BB884E600A4A610 /* LSNAudio.cpp */; };
+		12574ACC2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AAD2BB884E600A4A610 /* LSNButterworthFilterImpl.cpp */; };
+		12574ACD2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AAD2BB884E600A4A610 /* LSNButterworthFilterImpl.cpp */; };
+		12574ACE2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AAD2BB884E600A4A610 /* LSNButterworthFilterImpl.cpp */; };
+		12574ACF2BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB02BB884E600A4A610 /* LSNBiQuadFilterChain.cpp */; };
+		12574AD02BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB02BB884E600A4A610 /* LSNBiQuadFilterChain.cpp */; };
+		12574AD12BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB02BB884E600A4A610 /* LSNBiQuadFilterChain.cpp */; };
+		12574AD22BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB12BB884E600A4A610 /* LSNOpenAlSource.cpp */; };
+		12574AD32BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB12BB884E600A4A610 /* LSNOpenAlSource.cpp */; };
+		12574AD42BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB12BB884E600A4A610 /* LSNOpenAlSource.cpp */; };
+		12574AD52BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB72BB884E600A4A610 /* LSNOpenAlContext.cpp */; };
+		12574AD62BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB72BB884E600A4A610 /* LSNOpenAlContext.cpp */; };
+		12574AD72BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB72BB884E600A4A610 /* LSNOpenAlContext.cpp */; };
+		12574AD82BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB82BB884E700A4A610 /* LSNAudioOpenAl.cpp */; };
+		12574AD92BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB82BB884E700A4A610 /* LSNAudioOpenAl.cpp */; };
+		12574ADA2BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB82BB884E700A4A610 /* LSNAudioOpenAl.cpp */; };
+		12574ADB2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB92BB884E700A4A610 /* LSNOpenAlBuffer.cpp */; };
+		12574ADC2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB92BB884E700A4A610 /* LSNOpenAlBuffer.cpp */; };
+		12574ADD2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AB92BB884E700A4A610 /* LSNOpenAlBuffer.cpp */; };
+		12574ADE2BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABC2BB884E700A4A610 /* LSNOpenAlDevice.cpp */; };
+		12574ADF2BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABC2BB884E700A4A610 /* LSNOpenAlDevice.cpp */; };
+		12574AE02BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABC2BB884E700A4A610 /* LSNOpenAlDevice.cpp */; };
+		12574AE12BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABD2BB884E700A4A610 /* LSNAudioCoreAudio.cpp */; };
+		12574AE22BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABD2BB884E700A4A610 /* LSNAudioCoreAudio.cpp */; };
+		12574AE32BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574ABD2BB884E700A4A610 /* LSNAudioCoreAudio.cpp */; };
+		12574AEB2BB8854000A4A610 /* LSNUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AE92BB8854000A4A610 /* LSNUtilities.cpp */; };
+		12574AEC2BB8854000A4A610 /* LSNUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AE92BB8854000A4A610 /* LSNUtilities.cpp */; };
+		12574AED2BB8854000A4A610 /* LSNUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AE92BB8854000A4A610 /* LSNUtilities.cpp */; };
+		12574AF12BB8857100A4A610 /* LSNClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AEF2BB8857100A4A610 /* LSNClock.cpp */; };
+		12574AF22BB8857100A4A610 /* LSNClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AEF2BB8857100A4A610 /* LSNClock.cpp */; };
+		12574AF32BB8857100A4A610 /* LSNClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AEF2BB8857100A4A610 /* LSNClock.cpp */; };
+		12574AFC2BB8858E00A4A610 /* LSNSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AF92BB8858E00A4A610 /* LSNSystem.cpp */; };
+		12574AFD2BB8858E00A4A610 /* LSNSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AF92BB8858E00A4A610 /* LSNSystem.cpp */; };
+		12574AFE2BB8858E00A4A610 /* LSNSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AF92BB8858E00A4A610 /* LSNSystem.cpp */; };
+		12574AFF2BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AFB2BB8858E00A4A610 /* LSNSystemBase.cpp */; };
+		12574B002BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AFB2BB8858E00A4A610 /* LSNSystemBase.cpp */; };
+		12574B012BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574AFB2BB8858E00A4A610 /* LSNSystemBase.cpp */; };
+		12574B092BB885B400A4A610 /* LSNRomInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B042BB885B400A4A610 /* LSNRomInfo.cpp */; };
+		12574B0A2BB885B400A4A610 /* LSNRomInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B042BB885B400A4A610 /* LSNRomInfo.cpp */; };
+		12574B0B2BB885B400A4A610 /* LSNRomInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B042BB885B400A4A610 /* LSNRomInfo.cpp */; };
+		12574B0C2BB885B400A4A610 /* LSNRom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B082BB885B400A4A610 /* LSNRom.cpp */; };
+		12574B0D2BB885B400A4A610 /* LSNRom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B082BB885B400A4A610 /* LSNRom.cpp */; };
+		12574B0E2BB885B400A4A610 /* LSNRom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B082BB885B400A4A610 /* LSNRom.cpp */; };
+		12574B1B2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B102BB885D300A4A610 /* LSNGenFuncsNtsc.inl */; };
+		12574B1C2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B102BB885D300A4A610 /* LSNGenFuncsNtsc.inl */; };
+		12574B1D2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B102BB885D300A4A610 /* LSNGenFuncsNtsc.inl */; };
+		12574B1E2BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B112BB885D300A4A610 /* LSNCreateCycleTablePal.inl */; };
+		12574B1F2BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B112BB885D300A4A610 /* LSNCreateCycleTablePal.inl */; };
+		12574B202BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B112BB885D300A4A610 /* LSNCreateCycleTablePal.inl */; };
+		12574B212BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B122BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl */; };
+		12574B222BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B122BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl */; };
+		12574B232BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B122BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl */; };
+		12574B242BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B132BB885D300A4A610 /* LSNGenFuncsPalM.inl */; };
+		12574B252BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B132BB885D300A4A610 /* LSNGenFuncsPalM.inl */; };
+		12574B262BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B132BB885D300A4A610 /* LSNGenFuncsPalM.inl */; };
+		12574B272BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B142BB885D300A4A610 /* LSNGenFuncsPalN.inl */; };
+		12574B282BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B142BB885D300A4A610 /* LSNGenFuncsPalN.inl */; };
+		12574B292BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B142BB885D300A4A610 /* LSNGenFuncsPalN.inl */; };
+		12574B2A2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B152BB885D300A4A610 /* LSNCreateCycleTablePalN.inl */; };
+		12574B2B2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B152BB885D300A4A610 /* LSNCreateCycleTablePalN.inl */; };
+		12574B2C2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B152BB885D300A4A610 /* LSNCreateCycleTablePalN.inl */; };
+		12574B2D2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B162BB885D300A4A610 /* LSNGenFuncsDendy.inl */; };
+		12574B2E2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B162BB885D300A4A610 /* LSNGenFuncsDendy.inl */; };
+		12574B2F2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B162BB885D300A4A610 /* LSNGenFuncsDendy.inl */; };
+		12574B302BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B182BB885D300A4A610 /* LSNCreateCycleTableDendy.inl */; };
+		12574B312BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B182BB885D300A4A610 /* LSNCreateCycleTableDendy.inl */; };
+		12574B322BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B182BB885D300A4A610 /* LSNCreateCycleTableDendy.inl */; };
+		12574B332BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B192BB885D300A4A610 /* LSNGenFuncsPal.inl */; };
+		12574B342BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B192BB885D300A4A610 /* LSNGenFuncsPal.inl */; };
+		12574B352BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B192BB885D300A4A610 /* LSNGenFuncsPal.inl */; };
+		12574B362BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B1A2BB885D300A4A610 /* LSNCreateCycleTablePalM.inl */; };
+		12574B372BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B1A2BB885D300A4A610 /* LSNCreateCycleTablePalM.inl */; };
+		12574B382BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */ = {isa = PBXBuildFile; fileRef = 12574B1A2BB885D300A4A610 /* LSNCreateCycleTablePalM.inl */; };
+		12574B4F2BB8866A00A4A610 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574B4D2BB8866A00A4A610 /* miniz.c */; };
+		12574B502BB8866A00A4A610 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574B4D2BB8866A00A4A610 /* miniz.c */; };
+		12574B512BB8866A00A4A610 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574B4D2BB8866A00A4A610 /* miniz.c */; };
+		12574B8D2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B812BB886FD00A4A610 /* LSNUsbControllerBase.cpp */; };
+		12574B8E2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B812BB886FD00A4A610 /* LSNUsbControllerBase.cpp */; };
+		12574B8F2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B812BB886FD00A4A610 /* LSNUsbControllerBase.cpp */; };
+		12574B902BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B842BB886FD00A4A610 /* LSNWindowsKeyboard.cpp */; };
+		12574B912BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B842BB886FD00A4A610 /* LSNWindowsKeyboard.cpp */; };
+		12574B922BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B842BB886FD00A4A610 /* LSNWindowsKeyboard.cpp */; };
+		12574B932BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B882BB886FD00A4A610 /* LSNDirectInput8Controller.cpp */; };
+		12574B942BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B882BB886FD00A4A610 /* LSNDirectInput8Controller.cpp */; };
+		12574B952BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B882BB886FD00A4A610 /* LSNDirectInput8Controller.cpp */; };
+		12574B962BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B892BB886FE00A4A610 /* LSNControllerListener.cpp */; };
+		12574B972BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B892BB886FE00A4A610 /* LSNControllerListener.cpp */; };
+		12574B982BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B892BB886FE00A4A610 /* LSNControllerListener.cpp */; };
+		12574B992BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B8C2BB886FE00A4A610 /* LSNDirectInput8.cpp */; };
+		12574B9A2BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B8C2BB886FE00A4A610 /* LSNDirectInput8.cpp */; };
+		12574B9B2BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B8C2BB886FE00A4A610 /* LSNDirectInput8.cpp */; };
+		12574C032BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B9E2BB8872900A4A610 /* LSNPalCrtFullFilter.cpp */; };
+		12574C042BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B9E2BB8872900A4A610 /* LSNPalCrtFullFilter.cpp */; };
+		12574C052BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574B9E2BB8872900A4A610 /* LSNPalCrtFullFilter.cpp */; };
+		12574C1B2BB8872900A4A610 /* nes_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BAA2BB8872900A4A610 /* nes_ntsc.c */; };
+		12574C1C2BB8872900A4A610 /* nes_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BAA2BB8872900A4A610 /* nes_ntsc.c */; };
+		12574C1D2BB8872900A4A610 /* nes_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BAA2BB8872900A4A610 /* nes_ntsc.c */; };
+		12574C272BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB42BB8872900A4A610 /* LSNNtscCrtFilter.cpp */; };
+		12574C282BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB42BB8872900A4A610 /* LSNNtscCrtFilter.cpp */; };
+		12574C292BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB42BB8872900A4A610 /* LSNNtscCrtFilter.cpp */; };
+		12574C2A2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB52BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp */; };
+		12574C2B2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB52BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp */; };
+		12574C2C2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB52BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp */; };
+		12574C2D2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB62BB8872900A4A610 /* LSNSrgbPostProcess.cpp */; };
+		12574C2E2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB62BB8872900A4A610 /* LSNSrgbPostProcess.cpp */; };
+		12574C2F2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BB62BB8872900A4A610 /* LSNSrgbPostProcess.cpp */; };
+		12574C302BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BBA2BB8872900A4A610 /* LSNBiLinearPostProcess.cpp */; };
+		12574C312BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BBA2BB8872900A4A610 /* LSNBiLinearPostProcess.cpp */; };
+		12574C322BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BBA2BB8872900A4A610 /* LSNBiLinearPostProcess.cpp */; };
+		12574C452BB8872900A4A610 /* pal_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC22BB8872900A4A610 /* pal_core.c */; };
+		12574C462BB8872900A4A610 /* pal_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC22BB8872900A4A610 /* pal_core.c */; };
+		12574C472BB8872900A4A610 /* pal_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC22BB8872900A4A610 /* pal_core.c */; };
+		12574C4B2BB8872900A4A610 /* pal_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC52BB8872900A4A610 /* pal_nes.c */; };
+		12574C4C2BB8872900A4A610 /* pal_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC52BB8872900A4A610 /* pal_nes.c */; };
+		12574C4D2BB8872900A4A610 /* pal_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC52BB8872900A4A610 /* pal_nes.c */; };
+		12574C4E2BB8872900A4A610 /* pal.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC72BB8872900A4A610 /* pal.c */; };
+		12574C4F2BB8872900A4A610 /* pal.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC72BB8872900A4A610 /* pal.c */; };
+		12574C502BB8872900A4A610 /* pal.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BC72BB8872900A4A610 /* pal.c */; };
+		12574C5D2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BCF2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp */; };
+		12574C5E2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BCF2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp */; };
+		12574C5F2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BCF2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp */; };
+		12574C6C2BB8872900A4A610 /* crt_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD52BB8872900A4A610 /* crt_core.c */; };
+		12574C6D2BB8872900A4A610 /* crt_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD52BB8872900A4A610 /* crt_core.c */; };
+		12574C6E2BB8872900A4A610 /* crt_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD52BB8872900A4A610 /* crt_core.c */; };
+		12574C722BB8872900A4A610 /* crt_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD82BB8872900A4A610 /* crt_nes.c */; };
+		12574C732BB8872900A4A610 /* crt_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD82BB8872900A4A610 /* crt_nes.c */; };
+		12574C742BB8872900A4A610 /* crt_nes.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BD82BB8872900A4A610 /* crt_nes.c */; };
+		12574C752BB8872900A4A610 /* crt_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BDA2BB8872900A4A610 /* crt_ntsc.c */; };
+		12574C762BB8872900A4A610 /* crt_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BDA2BB8872900A4A610 /* crt_ntsc.c */; };
+		12574C772BB8872900A4A610 /* crt_ntsc.c in Sources */ = {isa = PBXBuildFile; fileRef = 12574BDA2BB8872900A4A610 /* crt_ntsc.c */; };
+		12574C8D2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE52BB8872900A4A610 /* LSNNtscBlarggFilter.cpp */; };
+		12574C8E2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE52BB8872900A4A610 /* LSNNtscBlarggFilter.cpp */; };
+		12574C8F2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE52BB8872900A4A610 /* LSNNtscBlarggFilter.cpp */; };
+		12574C902BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE72BB8872900A4A610 /* LSNPalBlarggFilter.cpp */; };
+		12574C912BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE72BB8872900A4A610 /* LSNPalBlarggFilter.cpp */; };
+		12574C922BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BE72BB8872900A4A610 /* LSNPalBlarggFilter.cpp */; };
+		12574CBA2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp */; };
+		12574CBB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp */; };
+		12574CBC2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp */; };
+		12574CBD2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFD2BB8872900A4A610 /* LSNRgb24Filter.cpp */; };
+		12574CBE2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFD2BB8872900A4A610 /* LSNRgb24Filter.cpp */; };
+		12574CBF2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFD2BB8872900A4A610 /* LSNRgb24Filter.cpp */; };
+		12574CC02BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFF2BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp */; };
+		12574CC12BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFF2BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp */; };
+		12574CC22BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574BFF2BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp */; };
+		12574CC32BB8872900A4A610 /* LSNFilterBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C012BB8872900A4A610 /* LSNFilterBase.cpp */; };
+		12574CC42BB8872900A4A610 /* LSNFilterBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C012BB8872900A4A610 /* LSNFilterBase.cpp */; };
+		12574CC52BB8872900A4A610 /* LSNFilterBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C012BB8872900A4A610 /* LSNFilterBase.cpp */; };
+		12574CC62BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C022BB8872900A4A610 /* LSNBleedPostProcess.cpp */; };
+		12574CC72BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C022BB8872900A4A610 /* LSNBleedPostProcess.cpp */; };
+		12574CC82BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574C022BB8872900A4A610 /* LSNBleedPostProcess.cpp */; };
+		12574CD22BB8874200A4A610 /* LSNStdFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCA2BB8874200A4A610 /* LSNStdFile.cpp */; };
+		12574CD32BB8874200A4A610 /* LSNStdFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCA2BB8874200A4A610 /* LSNStdFile.cpp */; };
+		12574CD42BB8874200A4A610 /* LSNStdFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCA2BB8874200A4A610 /* LSNStdFile.cpp */; };
+		12574CD52BB8874200A4A610 /* LSNFileBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCB2BB8874200A4A610 /* LSNFileBase.cpp */; };
+		12574CD62BB8874200A4A610 /* LSNFileBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCB2BB8874200A4A610 /* LSNFileBase.cpp */; };
+		12574CD72BB8874200A4A610 /* LSNFileBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCB2BB8874200A4A610 /* LSNFileBase.cpp */; };
+		12574CD82BB8874200A4A610 /* LSNZipFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCD2BB8874200A4A610 /* LSNZipFile.cpp */; };
+		12574CD92BB8874200A4A610 /* LSNZipFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCD2BB8874200A4A610 /* LSNZipFile.cpp */; };
+		12574CDA2BB8874200A4A610 /* LSNZipFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCD2BB8874200A4A610 /* LSNZipFile.cpp */; };
+		12574CDB2BB8874200A4A610 /* LSNFileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCE2BB8874200A4A610 /* LSNFileMap.cpp */; };
+		12574CDC2BB8874200A4A610 /* LSNFileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCE2BB8874200A4A610 /* LSNFileMap.cpp */; };
+		12574CDD2BB8874200A4A610 /* LSNFileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574CCE2BB8874200A4A610 /* LSNFileMap.cpp */; };
+		12574FF12BB8876A00A4A610 /* LSNEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF02BB8876A00A4A610 /* LSNEvent.cpp */; };
+		12574FF22BB8876A00A4A610 /* LSNEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF02BB8876A00A4A610 /* LSNEvent.cpp */; };
+		12574FF32BB8876A00A4A610 /* LSNEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF02BB8876A00A4A610 /* LSNEvent.cpp */; };
+		12574FF92BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF52BB8878800A4A610 /* LSNDisplayHost.cpp */; };
+		12574FFA2BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF52BB8878800A4A610 /* LSNDisplayHost.cpp */; };
+		12574FFB2BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF52BB8878800A4A610 /* LSNDisplayHost.cpp */; };
+		12574FFC2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF62BB8878800A4A610 /* LSNDisplayClient.cpp */; };
+		12574FFD2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF62BB8878800A4A610 /* LSNDisplayClient.cpp */; };
+		12574FFE2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12574FF62BB8878800A4A610 /* LSNDisplayClient.cpp */; };
+		125750022BB8879D00A4A610 /* LSNDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750002BB8879D00A4A610 /* LSNDatabase.cpp */; };
+		125750032BB8879D00A4A610 /* LSNDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750002BB8879D00A4A610 /* LSNDatabase.cpp */; };
+		125750042BB8879D00A4A610 /* LSNDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750002BB8879D00A4A610 /* LSNDatabase.cpp */; };
+		125750082BB887B500A4A610 /* LSNCrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750062BB887B500A4A610 /* LSNCrc.cpp */; };
+		125750092BB887B500A4A610 /* LSNCrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750062BB887B500A4A610 /* LSNCrc.cpp */; };
+		1257500A2BB887B500A4A610 /* LSNCrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750062BB887B500A4A610 /* LSNCrc.cpp */; };
+		125750102BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */ = {isa = PBXBuildFile; fileRef = 1257500C2BB887CC00A4A610 /* LSNInstMetaData.inl */; };
+		125750112BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */ = {isa = PBXBuildFile; fileRef = 1257500C2BB887CC00A4A610 /* LSNInstMetaData.inl */; };
+		125750122BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */ = {isa = PBXBuildFile; fileRef = 1257500C2BB887CC00A4A610 /* LSNInstMetaData.inl */; };
+		125750132BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257500F2BB887CC00A4A610 /* LSNCpu6502.cpp */; };
+		125750142BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257500F2BB887CC00A4A610 /* LSNCpu6502.cpp */; };
+		125750152BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257500F2BB887CC00A4A610 /* LSNCpu6502.cpp */; };
+		125750192BB887E500A4A610 /* LSNBus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750182BB887E500A4A610 /* LSNBus.cpp */; };
+		1257501A2BB887E500A4A610 /* LSNBus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750182BB887E500A4A610 /* LSNBus.cpp */; };
+		1257501B2BB887E500A4A610 /* LSNBus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750182BB887E500A4A610 /* LSNBus.cpp */; };
+		1257501F2BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
+		125750202BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
+		125750212BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
 		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
 		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
 		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
@@ -104,36 +248,237 @@
 		12E8B6E52BB59A6500055316 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6A12BB59A6500055316 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1257503A2BB8F3F000A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1257502C2BB8F3F000A4A610;
+			remoteInfo = ExpressionEvaluator;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		12574A012BB5AE7600A4A610 /* Renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
 		12574A0B2BB5BB8700A4A610 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		12574A112BB637AC00A4A610 /* GameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
 		12574A132BB6B71F00A4A610 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
-		12574A152BB835B800A4A610 /* Options */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Options; path = Src/Options; sourceTree = SOURCE_ROOT; };
-		12574A162BB835B800A4A610 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = Src/Audio; sourceTree = SOURCE_ROOT; };
-		12574A172BB835B800A4A610 /* Database */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Database; path = Src/Database; sourceTree = SOURCE_ROOT; };
-		12574A182BB835B800A4A610 /* Apu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Apu; path = Src/Apu; sourceTree = SOURCE_ROOT; };
-		12574A192BB835B800A4A610 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Localization; path = Src/Localization; sourceTree = SOURCE_ROOT; };
-		12574A1A2BB835B800A4A610 /* Roms */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Roms; path = Src/Roms; sourceTree = SOURCE_ROOT; };
-		12574A1B2BB835B800A4A610 /* MiniZ */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MiniZ; path = Src/MiniZ; sourceTree = SOURCE_ROOT; };
-		12574A1C2BB835B800A4A610 /* File */ = {isa = PBXFileReference; lastKnownFileType = folder; name = File; path = Src/File; sourceTree = SOURCE_ROOT; };
-		12574A1D2BB835B800A4A610 /* Mappers */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Mappers; path = Src/Mappers; sourceTree = SOURCE_ROOT; };
-		12574A1E2BB835B800A4A610 /* System */ = {isa = PBXFileReference; lastKnownFileType = folder; name = System; path = Src/System; sourceTree = SOURCE_ROOT; };
-		12574A1F2BB835B800A4A610 /* Event */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Event; path = Src/Event; sourceTree = SOURCE_ROOT; };
-		12574A202BB835B800A4A610 /* Time */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Time; path = Src/Time; sourceTree = SOURCE_ROOT; };
-		12574A212BB835B900A4A610 /* Windows */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Windows; path = Src/Windows; sourceTree = SOURCE_ROOT; };
-		12574A222BB835B900A4A610 /* Crc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Crc; path = Src/Crc; sourceTree = SOURCE_ROOT; };
-		12574A232BB835B900A4A610 /* Utilities */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Utilities; path = Src/Utilities; sourceTree = SOURCE_ROOT; };
-		12574A242BB835B900A4A610 /* BeesNES */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BeesNES; path = Src/BeesNES; sourceTree = SOURCE_ROOT; };
-		12574A252BB835B900A4A610 /* Ppu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Ppu; path = Src/Ppu; sourceTree = SOURCE_ROOT; };
-		12574A262BB835B900A4A610 /* Display */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Display; path = Src/Display; sourceTree = SOURCE_ROOT; };
-		12574A282BB835B900A4A610 /* Input */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Input; path = Src/Input; sourceTree = SOURCE_ROOT; };
-		12574A292BB835B900A4A610 /* OS */ = {isa = PBXFileReference; lastKnownFileType = folder; name = OS; path = Src/OS; sourceTree = SOURCE_ROOT; };
-		12574A2A2BB835B900A4A610 /* Cpu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Cpu; path = Src/Cpu; sourceTree = SOURCE_ROOT; };
-		12574A2B2BB835B900A4A610 /* Filters */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Filters; path = Src/Filters; sourceTree = SOURCE_ROOT; };
-		12574A2C2BB835B900A4A610 /* LSNLSpiroNes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLSpiroNes.h; path = Src/LSNLSpiroNes.h; sourceTree = SOURCE_ROOT; };
-		12574A2D2BB835B900A4A610 /* Palette */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Palette; path = Src/Palette; sourceTree = SOURCE_ROOT; };
-		12574A2E2BB835B900A4A610 /* Bus */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Bus; path = Src/Bus; sourceTree = SOURCE_ROOT; };
+		12574A7F2BB884A300A4A610 /* LSNLinearCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLinearCounter.h; path = Src/Apu/LSNLinearCounter.h; sourceTree = SOURCE_ROOT; };
+		12574A802BB884A300A4A610 /* LSNApuUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNApuUnit.cpp; path = Src/Apu/LSNApuUnit.cpp; sourceTree = SOURCE_ROOT; };
+		12574A812BB884A300A4A610 /* LSNPulse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPulse.h; path = Src/Apu/LSNPulse.h; sourceTree = SOURCE_ROOT; };
+		12574A822BB884A300A4A610 /* LSNLengthCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLengthCounter.h; path = Src/Apu/LSNLengthCounter.h; sourceTree = SOURCE_ROOT; };
+		12574A832BB884A300A4A610 /* LSNSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNSequencer.cpp; path = Src/Apu/LSNSequencer.cpp; sourceTree = SOURCE_ROOT; };
+		12574A842BB884A300A4A610 /* LSNSequencer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSequencer.h; path = Src/Apu/LSNSequencer.h; sourceTree = SOURCE_ROOT; };
+		12574A852BB884A300A4A610 /* LSNEnvelope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNEnvelope.h; path = Src/Apu/LSNEnvelope.h; sourceTree = SOURCE_ROOT; };
+		12574A862BB884A400A4A610 /* LSNApu2A0X.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNApu2A0X.h; path = Src/Apu/LSNApu2A0X.h; sourceTree = SOURCE_ROOT; };
+		12574A872BB884A400A4A610 /* LSNNoise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNoise.cpp; path = Src/Apu/LSNNoise.cpp; sourceTree = SOURCE_ROOT; };
+		12574A882BB884A400A4A610 /* LSNPulse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNPulse.cpp; path = Src/Apu/LSNPulse.cpp; sourceTree = SOURCE_ROOT; };
+		12574A892BB884A400A4A610 /* LSNNoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNoise.h; path = Src/Apu/LSNNoise.h; sourceTree = SOURCE_ROOT; };
+		12574A8A2BB884A400A4A610 /* LSNApuUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNApuUnit.h; path = Src/Apu/LSNApuUnit.h; sourceTree = SOURCE_ROOT; };
+		12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNTriangle.cpp; path = Src/Apu/LSNTriangle.cpp; sourceTree = SOURCE_ROOT; };
+		12574A8C2BB884A400A4A610 /* LSNSweeper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSweeper.h; path = Src/Apu/LSNSweeper.h; sourceTree = SOURCE_ROOT; };
+		12574A8D2BB884A400A4A610 /* LSNTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNTriangle.h; path = Src/Apu/LSNTriangle.h; sourceTree = SOURCE_ROOT; };
+		12574A9E2BB884E600A4A610 /* LSNOpenAl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAl.cpp; path = Src/Audio/LSNOpenAl.cpp; sourceTree = SOURCE_ROOT; };
+		12574A9F2BB884E600A4A610 /* LSNOpenAlGetError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlGetError.h; path = Src/Audio/LSNOpenAlGetError.h; sourceTree = SOURCE_ROOT; };
+		12574AA02BB884E600A4A610 /* LSNBiQuadFilterChain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBiQuadFilterChain.h; path = Src/Audio/LSNBiQuadFilterChain.h; sourceTree = SOURCE_ROOT; };
+		12574AA12BB884E600A4A610 /* LSNAudioFilterBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAudioFilterBase.h; path = Src/Audio/LSNAudioFilterBase.h; sourceTree = SOURCE_ROOT; };
+		12574AA22BB884E600A4A610 /* LSNOpenAlGetError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAlGetError.cpp; path = Src/Audio/LSNOpenAlGetError.cpp; sourceTree = SOURCE_ROOT; };
+		12574AA32BB884E600A4A610 /* LSNOpenAlInclude.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlInclude.h; path = Src/Audio/LSNOpenAlInclude.h; sourceTree = SOURCE_ROOT; };
+		12574AA42BB884E600A4A610 /* LSNBiQuadFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBiQuadFilter.h; path = Src/Audio/LSNBiQuadFilter.h; sourceTree = SOURCE_ROOT; };
+		12574AA52BB884E600A4A610 /* LSNSampleBucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSampleBucket.h; path = Src/Audio/LSNSampleBucket.h; sourceTree = SOURCE_ROOT; };
+		12574AA62BB884E600A4A610 /* LSNAudioBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNAudioBase.cpp; path = Src/Audio/LSNAudioBase.cpp; sourceTree = SOURCE_ROOT; };
+		12574AA72BB884E600A4A610 /* LSNOpenAlSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlSource.h; path = Src/Audio/LSNOpenAlSource.h; sourceTree = SOURCE_ROOT; };
+		12574AA82BB884E600A4A610 /* LSNAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNAudio.cpp; path = Src/Audio/LSNAudio.cpp; sourceTree = SOURCE_ROOT; };
+		12574AA92BB884E600A4A610 /* LSNSampleBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSampleBox.h; path = Src/Audio/LSNSampleBox.h; sourceTree = SOURCE_ROOT; };
+		12574AAA2BB884E600A4A610 /* LSNSincFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSincFilter.h; path = Src/Audio/LSNSincFilter.h; sourceTree = SOURCE_ROOT; };
+		12574AAB2BB884E600A4A610 /* LSNAudioCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAudioCoreAudio.h; path = Src/Audio/LSNAudioCoreAudio.h; sourceTree = SOURCE_ROOT; };
+		12574AAC2BB884E600A4A610 /* LSNAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAudio.h; path = Src/Audio/LSNAudio.h; sourceTree = SOURCE_ROOT; };
+		12574AAD2BB884E600A4A610 /* LSNButterworthFilterImpl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNButterworthFilterImpl.cpp; path = Src/Audio/LSNButterworthFilterImpl.cpp; sourceTree = SOURCE_ROOT; };
+		12574AAE2BB884E600A4A610 /* LSNOpenAl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAl.h; path = Src/Audio/LSNOpenAl.h; sourceTree = SOURCE_ROOT; };
+		12574AAF2BB884E600A4A610 /* LSNHpfFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNHpfFilter.h; path = Src/Audio/LSNHpfFilter.h; sourceTree = SOURCE_ROOT; };
+		12574AB02BB884E600A4A610 /* LSNBiQuadFilterChain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBiQuadFilterChain.cpp; path = Src/Audio/LSNBiQuadFilterChain.cpp; sourceTree = SOURCE_ROOT; };
+		12574AB12BB884E600A4A610 /* LSNOpenAlSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAlSource.cpp; path = Src/Audio/LSNOpenAlSource.cpp; sourceTree = SOURCE_ROOT; };
+		12574AB22BB884E600A4A610 /* LSNPoleFilterLeaky.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPoleFilterLeaky.h; path = Src/Audio/LSNPoleFilterLeaky.h; sourceTree = SOURCE_ROOT; };
+		12574AB32BB884E600A4A610 /* LSNOpenAlDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlDevice.h; path = Src/Audio/LSNOpenAlDevice.h; sourceTree = SOURCE_ROOT; };
+		12574AB42BB884E600A4A610 /* LSNPoleFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPoleFilter.h; path = Src/Audio/LSNPoleFilter.h; sourceTree = SOURCE_ROOT; };
+		12574AB52BB884E600A4A610 /* LSNAudioBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAudioBase.h; path = Src/Audio/LSNAudioBase.h; sourceTree = SOURCE_ROOT; };
+		12574AB62BB884E600A4A610 /* LSNButterworthFilterImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNButterworthFilterImpl.h; path = Src/Audio/LSNButterworthFilterImpl.h; sourceTree = SOURCE_ROOT; };
+		12574AB72BB884E600A4A610 /* LSNOpenAlContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAlContext.cpp; path = Src/Audio/LSNOpenAlContext.cpp; sourceTree = SOURCE_ROOT; };
+		12574AB82BB884E700A4A610 /* LSNAudioOpenAl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNAudioOpenAl.cpp; path = Src/Audio/LSNAudioOpenAl.cpp; sourceTree = SOURCE_ROOT; };
+		12574AB92BB884E700A4A610 /* LSNOpenAlBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAlBuffer.cpp; path = Src/Audio/LSNOpenAlBuffer.cpp; sourceTree = SOURCE_ROOT; };
+		12574ABA2BB884E700A4A610 /* LSNOpenAlContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlContext.h; path = Src/Audio/LSNOpenAlContext.h; sourceTree = SOURCE_ROOT; };
+		12574ABB2BB884E700A4A610 /* LSNButterworthFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNButterworthFilter.h; path = Src/Audio/LSNButterworthFilter.h; sourceTree = SOURCE_ROOT; };
+		12574ABC2BB884E700A4A610 /* LSNOpenAlDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNOpenAlDevice.cpp; path = Src/Audio/LSNOpenAlDevice.cpp; sourceTree = SOURCE_ROOT; };
+		12574ABD2BB884E700A4A610 /* LSNAudioCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNAudioCoreAudio.cpp; path = Src/Audio/LSNAudioCoreAudio.cpp; sourceTree = SOURCE_ROOT; };
+		12574ABE2BB884E700A4A610 /* LSNOpenAlBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOpenAlBuffer.h; path = Src/Audio/LSNOpenAlBuffer.h; sourceTree = SOURCE_ROOT; };
+		12574ABF2BB884E700A4A610 /* LSNAudioOpenAl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAudioOpenAl.h; path = Src/Audio/LSNAudioOpenAl.h; sourceTree = SOURCE_ROOT; };
+		12574AE62BB8854000A4A610 /* LSNPerformance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPerformance.h; path = Src/Utilities/LSNPerformance.h; sourceTree = SOURCE_ROOT; };
+		12574AE72BB8854000A4A610 /* LSNDelayedValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDelayedValue.h; path = Src/Utilities/LSNDelayedValue.h; sourceTree = SOURCE_ROOT; };
+		12574AE82BB8854000A4A610 /* LSNStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNStream.h; path = Src/Utilities/LSNStream.h; sourceTree = SOURCE_ROOT; };
+		12574AE92BB8854000A4A610 /* LSNUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNUtilities.cpp; path = Src/Utilities/LSNUtilities.cpp; sourceTree = SOURCE_ROOT; };
+		12574AEA2BB8854000A4A610 /* LSNUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNUtilities.h; path = Src/Utilities/LSNUtilities.h; sourceTree = SOURCE_ROOT; };
+		12574AEF2BB8857100A4A610 /* LSNClock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNClock.cpp; path = Src/Time/LSNClock.cpp; sourceTree = SOURCE_ROOT; };
+		12574AF02BB8857100A4A610 /* LSNClock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNClock.h; path = Src/Time/LSNClock.h; sourceTree = SOURCE_ROOT; };
+		12574AF52BB8858E00A4A610 /* LSNTickable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNTickable.h; path = Src/System/LSNTickable.h; sourceTree = SOURCE_ROOT; };
+		12574AF62BB8858E00A4A610 /* LSNDmaSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDmaSource.h; path = Src/System/LSNDmaSource.h; sourceTree = SOURCE_ROOT; };
+		12574AF72BB8858E00A4A610 /* LSNSystemBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSystemBase.h; path = Src/System/LSNSystemBase.h; sourceTree = SOURCE_ROOT; };
+		12574AF82BB8858E00A4A610 /* LSNInterruptable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNInterruptable.h; path = Src/System/LSNInterruptable.h; sourceTree = SOURCE_ROOT; };
+		12574AF92BB8858E00A4A610 /* LSNSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNSystem.cpp; path = Src/System/LSNSystem.cpp; sourceTree = SOURCE_ROOT; };
+		12574AFA2BB8858E00A4A610 /* LSNSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSystem.h; path = Src/System/LSNSystem.h; sourceTree = SOURCE_ROOT; };
+		12574AFB2BB8858E00A4A610 /* LSNSystemBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNSystemBase.cpp; path = Src/System/LSNSystemBase.cpp; sourceTree = SOURCE_ROOT; };
+		12574B032BB885B400A4A610 /* LSNRomConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNRomConstants.h; path = Src/Roms/LSNRomConstants.h; sourceTree = SOURCE_ROOT; };
+		12574B042BB885B400A4A610 /* LSNRomInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNRomInfo.cpp; path = Src/Roms/LSNRomInfo.cpp; sourceTree = SOURCE_ROOT; };
+		12574B052BB885B400A4A610 /* LSNRomInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNRomInfo.h; path = Src/Roms/LSNRomInfo.h; sourceTree = SOURCE_ROOT; };
+		12574B062BB885B400A4A610 /* LSNNesHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNesHeader.h; path = Src/Roms/LSNNesHeader.h; sourceTree = SOURCE_ROOT; };
+		12574B072BB885B400A4A610 /* LSNRom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNRom.h; path = Src/Roms/LSNRom.h; sourceTree = SOURCE_ROOT; };
+		12574B082BB885B400A4A610 /* LSNRom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNRom.cpp; path = Src/Roms/LSNRom.cpp; sourceTree = SOURCE_ROOT; };
+		12574B102BB885D300A4A610 /* LSNGenFuncsNtsc.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNGenFuncsNtsc.inl; path = Src/Ppu/LSNGenFuncsNtsc.inl; sourceTree = SOURCE_ROOT; };
+		12574B112BB885D300A4A610 /* LSNCreateCycleTablePal.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNCreateCycleTablePal.inl; path = Src/Ppu/LSNCreateCycleTablePal.inl; sourceTree = SOURCE_ROOT; };
+		12574B122BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNCreateCycleTableNtsc.inl; path = Src/Ppu/LSNCreateCycleTableNtsc.inl; sourceTree = SOURCE_ROOT; };
+		12574B132BB885D300A4A610 /* LSNGenFuncsPalM.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNGenFuncsPalM.inl; path = Src/Ppu/LSNGenFuncsPalM.inl; sourceTree = SOURCE_ROOT; };
+		12574B142BB885D300A4A610 /* LSNGenFuncsPalN.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNGenFuncsPalN.inl; path = Src/Ppu/LSNGenFuncsPalN.inl; sourceTree = SOURCE_ROOT; };
+		12574B152BB885D300A4A610 /* LSNCreateCycleTablePalN.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNCreateCycleTablePalN.inl; path = Src/Ppu/LSNCreateCycleTablePalN.inl; sourceTree = SOURCE_ROOT; };
+		12574B162BB885D300A4A610 /* LSNGenFuncsDendy.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNGenFuncsDendy.inl; path = Src/Ppu/LSNGenFuncsDendy.inl; sourceTree = SOURCE_ROOT; };
+		12574B172BB885D300A4A610 /* LSNPpu2C0X.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPpu2C0X.h; path = Src/Ppu/LSNPpu2C0X.h; sourceTree = SOURCE_ROOT; };
+		12574B182BB885D300A4A610 /* LSNCreateCycleTableDendy.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNCreateCycleTableDendy.inl; path = Src/Ppu/LSNCreateCycleTableDendy.inl; sourceTree = SOURCE_ROOT; };
+		12574B192BB885D300A4A610 /* LSNGenFuncsPal.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNGenFuncsPal.inl; path = Src/Ppu/LSNGenFuncsPal.inl; sourceTree = SOURCE_ROOT; };
+		12574B1A2BB885D300A4A610 /* LSNCreateCycleTablePalM.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNCreateCycleTablePalM.inl; path = Src/Ppu/LSNCreateCycleTablePalM.inl; sourceTree = SOURCE_ROOT; };
+		12574B3A2BB8860300A4A610 /* LSNPalette.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPalette.h; path = Src/Palette/LSNPalette.h; sourceTree = SOURCE_ROOT; };
+		12574B3C2BB8863200A4A610 /* LSNSinCos.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; name = LSNSinCos.asm; path = Src/OS/LSNSinCos.asm; sourceTree = SOURCE_ROOT; };
+		12574B3D2BB8863200A4A610 /* LSNWindows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNWindows.h; path = Src/OS/LSNWindows.h; sourceTree = SOURCE_ROOT; };
+		12574B3E2BB8863200A4A610 /* LSNApple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNApple.h; path = Src/OS/LSNApple.h; sourceTree = SOURCE_ROOT; };
+		12574B412BB8863200A4A610 /* LSNOs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOs.h; path = Src/OS/LSNOs.h; sourceTree = SOURCE_ROOT; };
+		12574B492BB8864B00A4A610 /* LSNInputOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNInputOptions.h; path = Src/Options/LSNInputOptions.h; sourceTree = SOURCE_ROOT; };
+		12574B4A2BB8864B00A4A610 /* LSNOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNOptions.h; path = Src/Options/LSNOptions.h; sourceTree = SOURCE_ROOT; };
+		12574B4B2BB8864B00A4A610 /* LSNWindowOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNWindowOptions.h; path = Src/Options/LSNWindowOptions.h; sourceTree = SOURCE_ROOT; };
+		12574B4D2BB8866A00A4A610 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = Src/MiniZ/miniz.c; sourceTree = SOURCE_ROOT; };
+		12574B4E2BB8866A00A4A610 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = Src/MiniZ/miniz.h; sourceTree = SOURCE_ROOT; };
+		12574B532BB8869E00A4A610 /* LSNMapper032.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper032.h; path = Src/Mappers/LSNMapper032.h; sourceTree = SOURCE_ROOT; };
+		12574B542BB8869E00A4A610 /* LSNMapper011.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper011.h; path = Src/Mappers/LSNMapper011.h; sourceTree = SOURCE_ROOT; };
+		12574B552BB8869E00A4A610 /* LSNMapper113.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper113.h; path = Src/Mappers/LSNMapper113.h; sourceTree = SOURCE_ROOT; };
+		12574B562BB8869E00A4A610 /* LSNMapper066.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper066.h; path = Src/Mappers/LSNMapper066.h; sourceTree = SOURCE_ROOT; };
+		12574B572BB8869E00A4A610 /* LSNMapper184.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper184.h; path = Src/Mappers/LSNMapper184.h; sourceTree = SOURCE_ROOT; };
+		12574B582BB8869E00A4A610 /* LSNMapper136.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper136.h; path = Src/Mappers/LSNMapper136.h; sourceTree = SOURCE_ROOT; };
+		12574B592BB8869E00A4A610 /* LSNMapper041.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper041.h; path = Src/Mappers/LSNMapper041.h; sourceTree = SOURCE_ROOT; };
+		12574B5A2BB8869E00A4A610 /* LSNMapper079.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper079.h; path = Src/Mappers/LSNMapper079.h; sourceTree = SOURCE_ROOT; };
+		12574B5B2BB8869E00A4A610 /* LSNMapper094.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper094.h; path = Src/Mappers/LSNMapper094.h; sourceTree = SOURCE_ROOT; };
+		12574B5C2BB8869E00A4A610 /* LSNMapper010.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper010.h; path = Src/Mappers/LSNMapper010.h; sourceTree = SOURCE_ROOT; };
+		12574B5D2BB8869E00A4A610 /* LSNMapper003.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper003.h; path = Src/Mappers/LSNMapper003.h; sourceTree = SOURCE_ROOT; };
+		12574B5E2BB8869E00A4A610 /* LSNMapper077.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper077.h; path = Src/Mappers/LSNMapper077.h; sourceTree = SOURCE_ROOT; };
+		12574B5F2BB8869E00A4A610 /* LSNMapper112.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper112.h; path = Src/Mappers/LSNMapper112.h; sourceTree = SOURCE_ROOT; };
+		12574B602BB8869E00A4A610 /* LSNMapper232.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper232.h; path = Src/Mappers/LSNMapper232.h; sourceTree = SOURCE_ROOT; };
+		12574B612BB8869E00A4A610 /* LSNMapper034.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper034.h; path = Src/Mappers/LSNMapper034.h; sourceTree = SOURCE_ROOT; };
+		12574B622BB8869E00A4A610 /* LSNMapper002.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper002.h; path = Src/Mappers/LSNMapper002.h; sourceTree = SOURCE_ROOT; };
+		12574B632BB8869E00A4A610 /* LSNMapper007.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper007.h; path = Src/Mappers/LSNMapper007.h; sourceTree = SOURCE_ROOT; };
+		12574B642BB8869E00A4A610 /* LSNMapper036.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper036.h; path = Src/Mappers/LSNMapper036.h; sourceTree = SOURCE_ROOT; };
+		12574B652BB8869E00A4A610 /* LSNMapper080.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper080.h; path = Src/Mappers/LSNMapper080.h; sourceTree = SOURCE_ROOT; };
+		12574B662BB8869E00A4A610 /* LSNMapper068.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper068.h; path = Src/Mappers/LSNMapper068.h; sourceTree = SOURCE_ROOT; };
+		12574B672BB8869E00A4A610 /* LSNMapper078.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper078.h; path = Src/Mappers/LSNMapper078.h; sourceTree = SOURCE_ROOT; };
+		12574B682BB8869E00A4A610 /* LSNMapper081.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper081.h; path = Src/Mappers/LSNMapper081.h; sourceTree = SOURCE_ROOT; };
+		12574B692BB8869E00A4A610 /* LSNMapper092.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper092.h; path = Src/Mappers/LSNMapper092.h; sourceTree = SOURCE_ROOT; };
+		12574B6A2BB8869E00A4A610 /* LSNMapper072.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper072.h; path = Src/Mappers/LSNMapper072.h; sourceTree = SOURCE_ROOT; };
+		12574B6B2BB8869E00A4A610 /* LSNMapper009.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper009.h; path = Src/Mappers/LSNMapper009.h; sourceTree = SOURCE_ROOT; };
+		12574B6C2BB8869E00A4A610 /* LSNMapper004.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper004.h; path = Src/Mappers/LSNMapper004.h; sourceTree = SOURCE_ROOT; };
+		12574B6D2BB8869E00A4A610 /* LSNMapper095.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper095.h; path = Src/Mappers/LSNMapper095.h; sourceTree = SOURCE_ROOT; };
+		12574B6E2BB8869E00A4A610 /* LSNMapper093.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper093.h; path = Src/Mappers/LSNMapper093.h; sourceTree = SOURCE_ROOT; };
+		12574B6F2BB8869E00A4A610 /* LSNMapper087.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper087.h; path = Src/Mappers/LSNMapper087.h; sourceTree = SOURCE_ROOT; };
+		12574B702BB8869E00A4A610 /* LSNMapper033.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper033.h; path = Src/Mappers/LSNMapper033.h; sourceTree = SOURCE_ROOT; };
+		12574B712BB8869E00A4A610 /* LSNMapper097.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper097.h; path = Src/Mappers/LSNMapper097.h; sourceTree = SOURCE_ROOT; };
+		12574B722BB8869E00A4A610 /* LSNAllMappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNAllMappers.h; path = Src/Mappers/LSNAllMappers.h; sourceTree = SOURCE_ROOT; };
+		12574B732BB8869E00A4A610 /* LSNMapper038.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper038.h; path = Src/Mappers/LSNMapper038.h; sourceTree = SOURCE_ROOT; };
+		12574B742BB8869E00A4A610 /* LSNMapperBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapperBase.h; path = Src/Mappers/LSNMapperBase.h; sourceTree = SOURCE_ROOT; };
+		12574B752BB8869E00A4A610 /* LSNMapper132.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper132.h; path = Src/Mappers/LSNMapper132.h; sourceTree = SOURCE_ROOT; };
+		12574B762BB8869E00A4A610 /* LSNMapper001.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper001.h; path = Src/Mappers/LSNMapper001.h; sourceTree = SOURCE_ROOT; };
+		12574B772BB8869E00A4A610 /* LSNMapper075.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper075.h; path = Src/Mappers/LSNMapper075.h; sourceTree = SOURCE_ROOT; };
+		12574B782BB8869E00A4A610 /* LSNMapper000.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper000.h; path = Src/Mappers/LSNMapper000.h; sourceTree = SOURCE_ROOT; };
+		12574B792BB8869E00A4A610 /* LSNMapper089.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper089.h; path = Src/Mappers/LSNMapper089.h; sourceTree = SOURCE_ROOT; };
+		12574B7A2BB8869E00A4A610 /* LSNMapperXXX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapperXXX.h; path = Src/Mappers/LSNMapperXXX.h; sourceTree = SOURCE_ROOT; };
+		12574B7B2BB886B400A4A610 /* LSNLSpiroNes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLSpiroNes.h; path = Src/LSNLSpiroNes.h; sourceTree = SOURCE_ROOT; };
+		12574B7D2BB886D700A4A610 /* LSNLocalization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLocalization.h; path = Src/Localization/LSNLocalization.h; sourceTree = SOURCE_ROOT; };
+		12574B7E2BB886D700A4A610 /* LSNLocalization_en_us.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNLocalization_en_us.h; path = Src/Localization/LSNLocalization_en_us.h; sourceTree = SOURCE_ROOT; };
+		12574B802BB886FD00A4A610 /* LSNUsbControllerBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNUsbControllerBase.h; path = Src/Input/LSNUsbControllerBase.h; sourceTree = SOURCE_ROOT; };
+		12574B812BB886FD00A4A610 /* LSNUsbControllerBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNUsbControllerBase.cpp; path = Src/Input/LSNUsbControllerBase.cpp; sourceTree = SOURCE_ROOT; };
+		12574B822BB886FD00A4A610 /* LSNDirectInput8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDirectInput8.h; path = Src/Input/LSNDirectInput8.h; sourceTree = SOURCE_ROOT; };
+		12574B832BB886FD00A4A610 /* LSNDirectInput8Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDirectInput8Controller.h; path = Src/Input/LSNDirectInput8Controller.h; sourceTree = SOURCE_ROOT; };
+		12574B842BB886FD00A4A610 /* LSNWindowsKeyboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNWindowsKeyboard.cpp; path = Src/Input/LSNWindowsKeyboard.cpp; sourceTree = SOURCE_ROOT; };
+		12574B852BB886FD00A4A610 /* LSNControllerListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNControllerListener.h; path = Src/Input/LSNControllerListener.h; sourceTree = SOURCE_ROOT; };
+		12574B862BB886FD00A4A610 /* LSNWindowsKeyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNWindowsKeyboard.h; path = Src/Input/LSNWindowsKeyboard.h; sourceTree = SOURCE_ROOT; };
+		12574B872BB886FD00A4A610 /* LSNInputPoller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNInputPoller.h; path = Src/Input/LSNInputPoller.h; sourceTree = SOURCE_ROOT; };
+		12574B882BB886FD00A4A610 /* LSNDirectInput8Controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNDirectInput8Controller.cpp; path = Src/Input/LSNDirectInput8Controller.cpp; sourceTree = SOURCE_ROOT; };
+		12574B892BB886FE00A4A610 /* LSNControllerListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNControllerListener.cpp; path = Src/Input/LSNControllerListener.cpp; sourceTree = SOURCE_ROOT; };
+		12574B8A2BB886FE00A4A610 /* LSNInputEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNInputEvent.h; path = Src/Input/LSNInputEvent.h; sourceTree = SOURCE_ROOT; };
+		12574B8B2BB886FE00A4A610 /* LSNDirectInputDevice8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDirectInputDevice8.h; path = Src/Input/LSNDirectInputDevice8.h; sourceTree = SOURCE_ROOT; };
+		12574B8C2BB886FE00A4A610 /* LSNDirectInput8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNDirectInput8.cpp; path = Src/Input/LSNDirectInput8.cpp; sourceTree = SOURCE_ROOT; };
+		12574B9D2BB8872900A4A610 /* LSNNtscCrtFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNtscCrtFilter.h; path = Src/Filters/LSNNtscCrtFilter.h; sourceTree = SOURCE_ROOT; };
+		12574B9E2BB8872900A4A610 /* LSNPalCrtFullFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNPalCrtFullFilter.cpp; path = Src/Filters/LSNPalCrtFullFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BA82BB8872900A4A610 /* nes_ntsc_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nes_ntsc_config.h; sourceTree = "<group>"; };
+		12574BA92BB8872900A4A610 /* nes_ntsc_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nes_ntsc_impl.h; sourceTree = "<group>"; };
+		12574BAA2BB8872900A4A610 /* nes_ntsc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nes_ntsc.c; sourceTree = "<group>"; };
+		12574BAB2BB8872900A4A610 /* nes_ntsc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nes_ntsc.h; sourceTree = "<group>"; };
+		12574BB02BB8872900A4A610 /* LSNRgb24Filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNRgb24Filter.h; path = Src/Filters/LSNRgb24Filter.h; sourceTree = SOURCE_ROOT; };
+		12574BB12BB8872900A4A610 /* LSNNtscBisqwitFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNtscBisqwitFilter.h; path = Src/Filters/LSNNtscBisqwitFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BB22BB8872900A4A610 /* LSNNtscLSpiroFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNtscLSpiroFilter.h; path = Src/Filters/LSNNtscLSpiroFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BB32BB8872900A4A610 /* LSNBiLinearPostProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBiLinearPostProcess.h; path = Src/Filters/LSNBiLinearPostProcess.h; sourceTree = SOURCE_ROOT; };
+		12574BB42BB8872900A4A610 /* LSNNtscCrtFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNtscCrtFilter.cpp; path = Src/Filters/LSNNtscCrtFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BB52BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNtscLSpiroFilter.cpp; path = Src/Filters/LSNNtscLSpiroFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BB62BB8872900A4A610 /* LSNSrgbPostProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNSrgbPostProcess.cpp; path = Src/Filters/LSNSrgbPostProcess.cpp; sourceTree = SOURCE_ROOT; };
+		12574BB72BB8872900A4A610 /* LSNNtscBlarggFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNtscBlarggFilter.h; path = Src/Filters/LSNNtscBlarggFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BB82BB8872900A4A610 /* LSNPalCrtFullFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPalCrtFullFilter.h; path = Src/Filters/LSNPalCrtFullFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BB92BB8872900A4A610 /* LSNPalBlarggFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPalBlarggFilter.h; path = Src/Filters/LSNPalBlarggFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BBA2BB8872900A4A610 /* LSNBiLinearPostProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBiLinearPostProcess.cpp; path = Src/Filters/LSNBiLinearPostProcess.cpp; sourceTree = SOURCE_ROOT; };
+		12574BC22BB8872900A4A610 /* pal_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pal_core.c; sourceTree = "<group>"; };
+		12574BC32BB8872900A4A610 /* pal_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pal_core.h; sourceTree = "<group>"; };
+		12574BC52BB8872900A4A610 /* pal_nes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pal_nes.c; sourceTree = "<group>"; };
+		12574BC62BB8872900A4A610 /* pal_nes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pal_nes.h; sourceTree = "<group>"; };
+		12574BC72BB8872900A4A610 /* pal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pal.c; sourceTree = "<group>"; };
+		12574BC82BB8872900A4A610 /* pal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pal.h; sourceTree = "<group>"; };
+		12574BCF2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNPalLSpiroFilter.cpp; path = Src/Filters/LSNPalLSpiroFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BD52BB8872900A4A610 /* crt_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crt_core.c; sourceTree = "<group>"; };
+		12574BD62BB8872900A4A610 /* crt_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crt_core.h; sourceTree = "<group>"; };
+		12574BD82BB8872900A4A610 /* crt_nes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crt_nes.c; sourceTree = "<group>"; };
+		12574BD92BB8872900A4A610 /* crt_nes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crt_nes.h; sourceTree = "<group>"; };
+		12574BDA2BB8872900A4A610 /* crt_ntsc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crt_ntsc.c; sourceTree = "<group>"; };
+		12574BDB2BB8872900A4A610 /* crt_ntsc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crt_ntsc.h; sourceTree = "<group>"; };
+		12574BE52BB8872900A4A610 /* LSNNtscBlarggFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNtscBlarggFilter.cpp; path = Src/Filters/LSNNtscBlarggFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BE62BB8872900A4A610 /* LSNSrgbPostProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNSrgbPostProcess.h; path = Src/Filters/LSNSrgbPostProcess.h; sourceTree = SOURCE_ROOT; };
+		12574BE72BB8872900A4A610 /* LSNPalBlarggFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNPalBlarggFilter.cpp; path = Src/Filters/LSNPalBlarggFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BE82BB8872900A4A610 /* LSNPostProcessBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPostProcessBase.h; path = Src/Filters/LSNPostProcessBase.h; sourceTree = SOURCE_ROOT; };
+		12574BFA2BB8872900A4A610 /* LSNFilterBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNFilterBase.h; path = Src/Filters/LSNFilterBase.h; sourceTree = SOURCE_ROOT; };
+		12574BFB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNtscCrtFullFilter.cpp; path = Src/Filters/LSNNtscCrtFullFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BFC2BB8872900A4A610 /* LSNBleedPostProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBleedPostProcess.h; path = Src/Filters/LSNBleedPostProcess.h; sourceTree = SOURCE_ROOT; };
+		12574BFD2BB8872900A4A610 /* LSNRgb24Filter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNRgb24Filter.cpp; path = Src/Filters/LSNRgb24Filter.cpp; sourceTree = SOURCE_ROOT; };
+		12574BFE2BB8872900A4A610 /* LSNNtscCrtFullFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNNtscCrtFullFilter.h; path = Src/Filters/LSNNtscCrtFullFilter.h; sourceTree = SOURCE_ROOT; };
+		12574BFF2BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNNtscBisqwitFilter.cpp; path = Src/Filters/LSNNtscBisqwitFilter.cpp; sourceTree = SOURCE_ROOT; };
+		12574C002BB8872900A4A610 /* LSNPalLSpiroFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNPalLSpiroFilter.h; path = Src/Filters/LSNPalLSpiroFilter.h; sourceTree = SOURCE_ROOT; };
+		12574C012BB8872900A4A610 /* LSNFilterBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNFilterBase.cpp; path = Src/Filters/LSNFilterBase.cpp; sourceTree = SOURCE_ROOT; };
+		12574C022BB8872900A4A610 /* LSNBleedPostProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBleedPostProcess.cpp; path = Src/Filters/LSNBleedPostProcess.cpp; sourceTree = SOURCE_ROOT; };
+		12574CCA2BB8874200A4A610 /* LSNStdFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNStdFile.cpp; path = Src/File/LSNStdFile.cpp; sourceTree = SOURCE_ROOT; };
+		12574CCB2BB8874200A4A610 /* LSNFileBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNFileBase.cpp; path = Src/File/LSNFileBase.cpp; sourceTree = SOURCE_ROOT; };
+		12574CCC2BB8874200A4A610 /* LSNFileMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNFileMap.h; path = Src/File/LSNFileMap.h; sourceTree = SOURCE_ROOT; };
+		12574CCD2BB8874200A4A610 /* LSNZipFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNZipFile.cpp; path = Src/File/LSNZipFile.cpp; sourceTree = SOURCE_ROOT; };
+		12574CCE2BB8874200A4A610 /* LSNFileMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNFileMap.cpp; path = Src/File/LSNFileMap.cpp; sourceTree = SOURCE_ROOT; };
+		12574CCF2BB8874200A4A610 /* LSNFileBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNFileBase.h; path = Src/File/LSNFileBase.h; sourceTree = SOURCE_ROOT; };
+		12574CD02BB8874200A4A610 /* LSNZipFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNZipFile.h; path = Src/File/LSNZipFile.h; sourceTree = SOURCE_ROOT; };
+		12574CD12BB8874200A4A610 /* LSNStdFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNStdFile.h; path = Src/File/LSNStdFile.h; sourceTree = SOURCE_ROOT; };
+		12574FEF2BB8876A00A4A610 /* LSNEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNEvent.h; path = Src/Event/LSNEvent.h; sourceTree = SOURCE_ROOT; };
+		12574FF02BB8876A00A4A610 /* LSNEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNEvent.cpp; path = Src/Event/LSNEvent.cpp; sourceTree = SOURCE_ROOT; };
+		12574FF52BB8878800A4A610 /* LSNDisplayHost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNDisplayHost.cpp; path = Src/Display/LSNDisplayHost.cpp; sourceTree = SOURCE_ROOT; };
+		12574FF62BB8878800A4A610 /* LSNDisplayClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNDisplayClient.cpp; path = Src/Display/LSNDisplayClient.cpp; sourceTree = SOURCE_ROOT; };
+		12574FF72BB8878800A4A610 /* LSNDisplayClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDisplayClient.h; path = Src/Display/LSNDisplayClient.h; sourceTree = SOURCE_ROOT; };
+		12574FF82BB8878800A4A610 /* LSNDisplayHost.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDisplayHost.h; path = Src/Display/LSNDisplayHost.h; sourceTree = SOURCE_ROOT; };
+		125750002BB8879D00A4A610 /* LSNDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNDatabase.cpp; path = Src/Database/LSNDatabase.cpp; sourceTree = SOURCE_ROOT; };
+		125750012BB8879D00A4A610 /* LSNDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNDatabase.h; path = Src/Database/LSNDatabase.h; sourceTree = SOURCE_ROOT; };
+		125750062BB887B500A4A610 /* LSNCrc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNCrc.cpp; path = Src/Crc/LSNCrc.cpp; sourceTree = SOURCE_ROOT; };
+		125750072BB887B500A4A610 /* LSNCrc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNCrc.h; path = Src/Crc/LSNCrc.h; sourceTree = SOURCE_ROOT; };
+		1257500C2BB887CC00A4A610 /* LSNInstMetaData.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LSNInstMetaData.inl; path = Src/Cpu/LSNInstMetaData.inl; sourceTree = SOURCE_ROOT; };
+		1257500D2BB887CC00A4A610 /* LSNCpu6502.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNCpu6502.h; path = Src/Cpu/LSNCpu6502.h; sourceTree = SOURCE_ROOT; };
+		1257500E2BB887CC00A4A610 /* LSNCpuBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNCpuBase.h; path = Src/Cpu/LSNCpuBase.h; sourceTree = SOURCE_ROOT; };
+		1257500F2BB887CC00A4A610 /* LSNCpu6502.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNCpu6502.cpp; path = Src/Cpu/LSNCpu6502.cpp; sourceTree = SOURCE_ROOT; };
+		125750172BB887E500A4A610 /* LSNBus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBus.h; path = Src/Bus/LSNBus.h; sourceTree = SOURCE_ROOT; };
+		125750182BB887E500A4A610 /* LSNBus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBus.cpp; path = Src/Bus/LSNBus.cpp; sourceTree = SOURCE_ROOT; };
+		1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBeesNes.cpp; path = Src/BeesNES/LSNBeesNes.cpp; sourceTree = SOURCE_ROOT; };
+		1257501E2BB887FF00A4A610 /* LSNBeesNes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBeesNes.h; path = Src/BeesNES/LSNBeesNes.h; sourceTree = SOURCE_ROOT; };
+		125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ExpressionEvaluator.xcodeproj; path = ExpressionEvaluator/ExpressionEvaluator.xcodeproj; sourceTree = "<group>"; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -186,6 +531,416 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		12574A7E2BB8847D00A4A610 /* Apu */ = {
+			isa = PBXGroup;
+			children = (
+				12574A862BB884A400A4A610 /* LSNApu2A0X.h */,
+				12574A802BB884A300A4A610 /* LSNApuUnit.cpp */,
+				12574A8A2BB884A400A4A610 /* LSNApuUnit.h */,
+				12574A852BB884A300A4A610 /* LSNEnvelope.h */,
+				12574A822BB884A300A4A610 /* LSNLengthCounter.h */,
+				12574A7F2BB884A300A4A610 /* LSNLinearCounter.h */,
+				12574A872BB884A400A4A610 /* LSNNoise.cpp */,
+				12574A892BB884A400A4A610 /* LSNNoise.h */,
+				12574A882BB884A400A4A610 /* LSNPulse.cpp */,
+				12574A812BB884A300A4A610 /* LSNPulse.h */,
+				12574A832BB884A300A4A610 /* LSNSequencer.cpp */,
+				12574A842BB884A300A4A610 /* LSNSequencer.h */,
+				12574A8C2BB884A400A4A610 /* LSNSweeper.h */,
+				12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */,
+				12574A8D2BB884A400A4A610 /* LSNTriangle.h */,
+			);
+			path = Apu;
+			sourceTree = "<group>";
+		};
+		12574A9D2BB884C700A4A610 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				12574AA82BB884E600A4A610 /* LSNAudio.cpp */,
+				12574AAC2BB884E600A4A610 /* LSNAudio.h */,
+				12574AA62BB884E600A4A610 /* LSNAudioBase.cpp */,
+				12574AB52BB884E600A4A610 /* LSNAudioBase.h */,
+				12574ABD2BB884E700A4A610 /* LSNAudioCoreAudio.cpp */,
+				12574AAB2BB884E600A4A610 /* LSNAudioCoreAudio.h */,
+				12574AA12BB884E600A4A610 /* LSNAudioFilterBase.h */,
+				12574AB82BB884E700A4A610 /* LSNAudioOpenAl.cpp */,
+				12574ABF2BB884E700A4A610 /* LSNAudioOpenAl.h */,
+				12574AA42BB884E600A4A610 /* LSNBiQuadFilter.h */,
+				12574AB02BB884E600A4A610 /* LSNBiQuadFilterChain.cpp */,
+				12574AA02BB884E600A4A610 /* LSNBiQuadFilterChain.h */,
+				12574ABB2BB884E700A4A610 /* LSNButterworthFilter.h */,
+				12574AAD2BB884E600A4A610 /* LSNButterworthFilterImpl.cpp */,
+				12574AB62BB884E600A4A610 /* LSNButterworthFilterImpl.h */,
+				12574AAF2BB884E600A4A610 /* LSNHpfFilter.h */,
+				12574A9E2BB884E600A4A610 /* LSNOpenAl.cpp */,
+				12574AAE2BB884E600A4A610 /* LSNOpenAl.h */,
+				12574AB92BB884E700A4A610 /* LSNOpenAlBuffer.cpp */,
+				12574ABE2BB884E700A4A610 /* LSNOpenAlBuffer.h */,
+				12574AB72BB884E600A4A610 /* LSNOpenAlContext.cpp */,
+				12574ABA2BB884E700A4A610 /* LSNOpenAlContext.h */,
+				12574ABC2BB884E700A4A610 /* LSNOpenAlDevice.cpp */,
+				12574AB32BB884E600A4A610 /* LSNOpenAlDevice.h */,
+				12574AA22BB884E600A4A610 /* LSNOpenAlGetError.cpp */,
+				12574A9F2BB884E600A4A610 /* LSNOpenAlGetError.h */,
+				12574AA32BB884E600A4A610 /* LSNOpenAlInclude.h */,
+				12574AB12BB884E600A4A610 /* LSNOpenAlSource.cpp */,
+				12574AA72BB884E600A4A610 /* LSNOpenAlSource.h */,
+				12574AB42BB884E600A4A610 /* LSNPoleFilter.h */,
+				12574AB22BB884E600A4A610 /* LSNPoleFilterLeaky.h */,
+				12574AA92BB884E600A4A610 /* LSNSampleBox.h */,
+				12574AA52BB884E600A4A610 /* LSNSampleBucket.h */,
+				12574AAA2BB884E600A4A610 /* LSNSincFilter.h */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		12574AE52BB8852A00A4A610 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				12574AE72BB8854000A4A610 /* LSNDelayedValue.h */,
+				12574AE62BB8854000A4A610 /* LSNPerformance.h */,
+				12574AE82BB8854000A4A610 /* LSNStream.h */,
+				12574AE92BB8854000A4A610 /* LSNUtilities.cpp */,
+				12574AEA2BB8854000A4A610 /* LSNUtilities.h */,
+			);
+			name = Utilities;
+			sourceTree = "<group>";
+		};
+		12574AEE2BB8855900A4A610 /* Time */ = {
+			isa = PBXGroup;
+			children = (
+				12574AEF2BB8857100A4A610 /* LSNClock.cpp */,
+				12574AF02BB8857100A4A610 /* LSNClock.h */,
+			);
+			name = Time;
+			sourceTree = "<group>";
+		};
+		12574AF42BB8857F00A4A610 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				12574AF62BB8858E00A4A610 /* LSNDmaSource.h */,
+				12574AF82BB8858E00A4A610 /* LSNInterruptable.h */,
+				12574AF92BB8858E00A4A610 /* LSNSystem.cpp */,
+				12574AFA2BB8858E00A4A610 /* LSNSystem.h */,
+				12574AFB2BB8858E00A4A610 /* LSNSystemBase.cpp */,
+				12574AF72BB8858E00A4A610 /* LSNSystemBase.h */,
+				12574AF52BB8858E00A4A610 /* LSNTickable.h */,
+			);
+			name = System;
+			sourceTree = "<group>";
+		};
+		12574B022BB8859F00A4A610 /* Roms */ = {
+			isa = PBXGroup;
+			children = (
+				12574B062BB885B400A4A610 /* LSNNesHeader.h */,
+				12574B082BB885B400A4A610 /* LSNRom.cpp */,
+				12574B072BB885B400A4A610 /* LSNRom.h */,
+				12574B032BB885B400A4A610 /* LSNRomConstants.h */,
+				12574B042BB885B400A4A610 /* LSNRomInfo.cpp */,
+				12574B052BB885B400A4A610 /* LSNRomInfo.h */,
+			);
+			name = Roms;
+			sourceTree = "<group>";
+		};
+		12574B0F2BB885C200A4A610 /* Ppu */ = {
+			isa = PBXGroup;
+			children = (
+				12574B182BB885D300A4A610 /* LSNCreateCycleTableDendy.inl */,
+				12574B122BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl */,
+				12574B112BB885D300A4A610 /* LSNCreateCycleTablePal.inl */,
+				12574B1A2BB885D300A4A610 /* LSNCreateCycleTablePalM.inl */,
+				12574B152BB885D300A4A610 /* LSNCreateCycleTablePalN.inl */,
+				12574B162BB885D300A4A610 /* LSNGenFuncsDendy.inl */,
+				12574B102BB885D300A4A610 /* LSNGenFuncsNtsc.inl */,
+				12574B192BB885D300A4A610 /* LSNGenFuncsPal.inl */,
+				12574B132BB885D300A4A610 /* LSNGenFuncsPalM.inl */,
+				12574B142BB885D300A4A610 /* LSNGenFuncsPalN.inl */,
+				12574B172BB885D300A4A610 /* LSNPpu2C0X.h */,
+			);
+			name = Ppu;
+			sourceTree = "<group>";
+		};
+		12574B392BB885F300A4A610 /* Palette */ = {
+			isa = PBXGroup;
+			children = (
+				12574B3A2BB8860300A4A610 /* LSNPalette.h */,
+			);
+			name = Palette;
+			sourceTree = "<group>";
+		};
+		12574B3B2BB8861D00A4A610 /* OS */ = {
+			isa = PBXGroup;
+			children = (
+				12574B3E2BB8863200A4A610 /* LSNApple.h */,
+				12574B412BB8863200A4A610 /* LSNOs.h */,
+				12574B3C2BB8863200A4A610 /* LSNSinCos.asm */,
+				12574B3D2BB8863200A4A610 /* LSNWindows.h */,
+			);
+			name = OS;
+			sourceTree = "<group>";
+		};
+		12574B482BB8863D00A4A610 /* Options */ = {
+			isa = PBXGroup;
+			children = (
+				12574B492BB8864B00A4A610 /* LSNInputOptions.h */,
+				12574B4A2BB8864B00A4A610 /* LSNOptions.h */,
+				12574B4B2BB8864B00A4A610 /* LSNWindowOptions.h */,
+			);
+			name = Options;
+			sourceTree = "<group>";
+		};
+		12574B4C2BB8865400A4A610 /* MiniZ */ = {
+			isa = PBXGroup;
+			children = (
+				12574B4D2BB8866A00A4A610 /* miniz.c */,
+				12574B4E2BB8866A00A4A610 /* miniz.h */,
+			);
+			name = MiniZ;
+			sourceTree = "<group>";
+		};
+		12574B522BB8867600A4A610 /* Mappers */ = {
+			isa = PBXGroup;
+			children = (
+				12574B722BB8869E00A4A610 /* LSNAllMappers.h */,
+				12574B782BB8869E00A4A610 /* LSNMapper000.h */,
+				12574B762BB8869E00A4A610 /* LSNMapper001.h */,
+				12574B622BB8869E00A4A610 /* LSNMapper002.h */,
+				12574B5D2BB8869E00A4A610 /* LSNMapper003.h */,
+				12574B6C2BB8869E00A4A610 /* LSNMapper004.h */,
+				12574B632BB8869E00A4A610 /* LSNMapper007.h */,
+				12574B6B2BB8869E00A4A610 /* LSNMapper009.h */,
+				12574B5C2BB8869E00A4A610 /* LSNMapper010.h */,
+				12574B542BB8869E00A4A610 /* LSNMapper011.h */,
+				12574B532BB8869E00A4A610 /* LSNMapper032.h */,
+				12574B702BB8869E00A4A610 /* LSNMapper033.h */,
+				12574B612BB8869E00A4A610 /* LSNMapper034.h */,
+				12574B642BB8869E00A4A610 /* LSNMapper036.h */,
+				12574B732BB8869E00A4A610 /* LSNMapper038.h */,
+				12574B592BB8869E00A4A610 /* LSNMapper041.h */,
+				12574B562BB8869E00A4A610 /* LSNMapper066.h */,
+				12574B662BB8869E00A4A610 /* LSNMapper068.h */,
+				12574B6A2BB8869E00A4A610 /* LSNMapper072.h */,
+				12574B772BB8869E00A4A610 /* LSNMapper075.h */,
+				12574B5E2BB8869E00A4A610 /* LSNMapper077.h */,
+				12574B672BB8869E00A4A610 /* LSNMapper078.h */,
+				12574B5A2BB8869E00A4A610 /* LSNMapper079.h */,
+				12574B652BB8869E00A4A610 /* LSNMapper080.h */,
+				12574B682BB8869E00A4A610 /* LSNMapper081.h */,
+				12574B6F2BB8869E00A4A610 /* LSNMapper087.h */,
+				12574B792BB8869E00A4A610 /* LSNMapper089.h */,
+				12574B692BB8869E00A4A610 /* LSNMapper092.h */,
+				12574B6E2BB8869E00A4A610 /* LSNMapper093.h */,
+				12574B5B2BB8869E00A4A610 /* LSNMapper094.h */,
+				12574B6D2BB8869E00A4A610 /* LSNMapper095.h */,
+				12574B712BB8869E00A4A610 /* LSNMapper097.h */,
+				12574B5F2BB8869E00A4A610 /* LSNMapper112.h */,
+				12574B552BB8869E00A4A610 /* LSNMapper113.h */,
+				12574B752BB8869E00A4A610 /* LSNMapper132.h */,
+				12574B582BB8869E00A4A610 /* LSNMapper136.h */,
+				12574B572BB8869E00A4A610 /* LSNMapper184.h */,
+				12574B602BB8869E00A4A610 /* LSNMapper232.h */,
+				12574B742BB8869E00A4A610 /* LSNMapperBase.h */,
+				12574B7A2BB8869E00A4A610 /* LSNMapperXXX.h */,
+			);
+			name = Mappers;
+			sourceTree = "<group>";
+		};
+		12574B7C2BB886C100A4A610 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				12574B7E2BB886D700A4A610 /* LSNLocalization_en_us.h */,
+				12574B7D2BB886D700A4A610 /* LSNLocalization.h */,
+			);
+			name = Localization;
+			sourceTree = "<group>";
+		};
+		12574B7F2BB886EE00A4A610 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				12574B892BB886FE00A4A610 /* LSNControllerListener.cpp */,
+				12574B852BB886FD00A4A610 /* LSNControllerListener.h */,
+				12574B8C2BB886FE00A4A610 /* LSNDirectInput8.cpp */,
+				12574B822BB886FD00A4A610 /* LSNDirectInput8.h */,
+				12574B882BB886FD00A4A610 /* LSNDirectInput8Controller.cpp */,
+				12574B832BB886FD00A4A610 /* LSNDirectInput8Controller.h */,
+				12574B8B2BB886FE00A4A610 /* LSNDirectInputDevice8.h */,
+				12574B8A2BB886FE00A4A610 /* LSNInputEvent.h */,
+				12574B872BB886FD00A4A610 /* LSNInputPoller.h */,
+				12574B812BB886FD00A4A610 /* LSNUsbControllerBase.cpp */,
+				12574B802BB886FD00A4A610 /* LSNUsbControllerBase.h */,
+				12574B842BB886FD00A4A610 /* LSNWindowsKeyboard.cpp */,
+				12574B862BB886FD00A4A610 /* LSNWindowsKeyboard.h */,
+			);
+			name = Input;
+			sourceTree = "<group>";
+		};
+		12574B9C2BB8870A00A4A610 /* Filters */ = {
+			isa = PBXGroup;
+			children = (
+				12574BBA2BB8872900A4A610 /* LSNBiLinearPostProcess.cpp */,
+				12574BB32BB8872900A4A610 /* LSNBiLinearPostProcess.h */,
+				12574C022BB8872900A4A610 /* LSNBleedPostProcess.cpp */,
+				12574BFC2BB8872900A4A610 /* LSNBleedPostProcess.h */,
+				12574C012BB8872900A4A610 /* LSNFilterBase.cpp */,
+				12574BFA2BB8872900A4A610 /* LSNFilterBase.h */,
+				12574BFF2BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp */,
+				12574BB12BB8872900A4A610 /* LSNNtscBisqwitFilter.h */,
+				12574BE52BB8872900A4A610 /* LSNNtscBlarggFilter.cpp */,
+				12574BB72BB8872900A4A610 /* LSNNtscBlarggFilter.h */,
+				12574BB42BB8872900A4A610 /* LSNNtscCrtFilter.cpp */,
+				12574B9D2BB8872900A4A610 /* LSNNtscCrtFilter.h */,
+				12574BFB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp */,
+				12574BFE2BB8872900A4A610 /* LSNNtscCrtFullFilter.h */,
+				12574BB52BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp */,
+				12574BB22BB8872900A4A610 /* LSNNtscLSpiroFilter.h */,
+				12574BE72BB8872900A4A610 /* LSNPalBlarggFilter.cpp */,
+				12574BB92BB8872900A4A610 /* LSNPalBlarggFilter.h */,
+				12574B9E2BB8872900A4A610 /* LSNPalCrtFullFilter.cpp */,
+				12574BB82BB8872900A4A610 /* LSNPalCrtFullFilter.h */,
+				12574BCF2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp */,
+				12574C002BB8872900A4A610 /* LSNPalLSpiroFilter.h */,
+				12574BE82BB8872900A4A610 /* LSNPostProcessBase.h */,
+				12574BFD2BB8872900A4A610 /* LSNRgb24Filter.cpp */,
+				12574BB02BB8872900A4A610 /* LSNRgb24Filter.h */,
+				12574BB62BB8872900A4A610 /* LSNSrgbPostProcess.cpp */,
+				12574BE62BB8872900A4A610 /* LSNSrgbPostProcess.h */,
+				12574BAF2BB8872900A4A610 /* nes_ntsc */,
+				12574BE42BB8872900A4A610 /* NTSC-CRT-Full */,
+				12574BCE2BB8872900A4A610 /* PAL-CRT-Full */,
+			);
+			name = Filters;
+			sourceTree = "<group>";
+		};
+		12574BAF2BB8872900A4A610 /* nes_ntsc */ = {
+			isa = PBXGroup;
+			children = (
+				12574BA82BB8872900A4A610 /* nes_ntsc_config.h */,
+				12574BA92BB8872900A4A610 /* nes_ntsc_impl.h */,
+				12574BAA2BB8872900A4A610 /* nes_ntsc.c */,
+				12574BAB2BB8872900A4A610 /* nes_ntsc.h */,
+			);
+			name = nes_ntsc;
+			path = Src/Filters/nes_ntsc;
+			sourceTree = SOURCE_ROOT;
+		};
+		12574BCE2BB8872900A4A610 /* PAL-CRT-Full */ = {
+			isa = PBXGroup;
+			children = (
+				12574BC22BB8872900A4A610 /* pal_core.c */,
+				12574BC32BB8872900A4A610 /* pal_core.h */,
+				12574BC52BB8872900A4A610 /* pal_nes.c */,
+				12574BC62BB8872900A4A610 /* pal_nes.h */,
+				12574BC72BB8872900A4A610 /* pal.c */,
+				12574BC82BB8872900A4A610 /* pal.h */,
+			);
+			name = "PAL-CRT-Full";
+			path = "Src/Filters/PAL-CRT-Full";
+			sourceTree = SOURCE_ROOT;
+		};
+		12574BE42BB8872900A4A610 /* NTSC-CRT-Full */ = {
+			isa = PBXGroup;
+			children = (
+				12574BD52BB8872900A4A610 /* crt_core.c */,
+				12574BD62BB8872900A4A610 /* crt_core.h */,
+				12574BD82BB8872900A4A610 /* crt_nes.c */,
+				12574BD92BB8872900A4A610 /* crt_nes.h */,
+				12574BDA2BB8872900A4A610 /* crt_ntsc.c */,
+				12574BDB2BB8872900A4A610 /* crt_ntsc.h */,
+			);
+			name = "NTSC-CRT-Full";
+			path = "Src/Filters/NTSC-CRT-Full";
+			sourceTree = SOURCE_ROOT;
+		};
+		12574CC92BB8873500A4A610 /* File */ = {
+			isa = PBXGroup;
+			children = (
+				12574CCB2BB8874200A4A610 /* LSNFileBase.cpp */,
+				12574CCF2BB8874200A4A610 /* LSNFileBase.h */,
+				12574CCE2BB8874200A4A610 /* LSNFileMap.cpp */,
+				12574CCC2BB8874200A4A610 /* LSNFileMap.h */,
+				12574CCA2BB8874200A4A610 /* LSNStdFile.cpp */,
+				12574CD12BB8874200A4A610 /* LSNStdFile.h */,
+				12574CCD2BB8874200A4A610 /* LSNZipFile.cpp */,
+				12574CD02BB8874200A4A610 /* LSNZipFile.h */,
+			);
+			name = File;
+			sourceTree = "<group>";
+		};
+		12574CDE2BB8874F00A4A610 /* Event */ = {
+			isa = PBXGroup;
+			children = (
+				12574FF02BB8876A00A4A610 /* LSNEvent.cpp */,
+				12574FEF2BB8876A00A4A610 /* LSNEvent.h */,
+			);
+			name = Event;
+			sourceTree = "<group>";
+		};
+		12574FF42BB8877500A4A610 /* Display */ = {
+			isa = PBXGroup;
+			children = (
+				12574FF62BB8878800A4A610 /* LSNDisplayClient.cpp */,
+				12574FF72BB8878800A4A610 /* LSNDisplayClient.h */,
+				12574FF52BB8878800A4A610 /* LSNDisplayHost.cpp */,
+				12574FF82BB8878800A4A610 /* LSNDisplayHost.h */,
+			);
+			name = Display;
+			sourceTree = "<group>";
+		};
+		12574FFF2BB8879300A4A610 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				125750002BB8879D00A4A610 /* LSNDatabase.cpp */,
+				125750012BB8879D00A4A610 /* LSNDatabase.h */,
+			);
+			name = Database;
+			sourceTree = "<group>";
+		};
+		125750052BB887A800A4A610 /* Crc */ = {
+			isa = PBXGroup;
+			children = (
+				125750062BB887B500A4A610 /* LSNCrc.cpp */,
+				125750072BB887B500A4A610 /* LSNCrc.h */,
+			);
+			name = Crc;
+			sourceTree = "<group>";
+		};
+		1257500B2BB887BF00A4A610 /* Cpu */ = {
+			isa = PBXGroup;
+			children = (
+				1257500F2BB887CC00A4A610 /* LSNCpu6502.cpp */,
+				1257500D2BB887CC00A4A610 /* LSNCpu6502.h */,
+				1257500E2BB887CC00A4A610 /* LSNCpuBase.h */,
+				1257500C2BB887CC00A4A610 /* LSNInstMetaData.inl */,
+			);
+			name = Cpu;
+			sourceTree = "<group>";
+		};
+		125750162BB887DA00A4A610 /* Bus */ = {
+			isa = PBXGroup;
+			children = (
+				125750182BB887E500A4A610 /* LSNBus.cpp */,
+				125750172BB887E500A4A610 /* LSNBus.h */,
+			);
+			name = Bus;
+			sourceTree = "<group>";
+		};
+		1257501C2BB887F200A4A610 /* BeesNES */ = {
+			isa = PBXGroup;
+			children = (
+				1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */,
+				1257501E2BB887FF00A4A610 /* LSNBeesNes.h */,
+			);
+			name = BeesNES;
+			sourceTree = "<group>";
+		};
+		125750372BB8F3F000A4A610 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		12E8B6972BB59A6300055316 = {
 			isa = PBXGroup;
 			children = (
@@ -200,31 +955,31 @@
 		12E8B69C2BB59A6400055316 /* BeesNES Shared */ = {
 			isa = PBXGroup;
 			children = (
-				12574A182BB835B800A4A610 /* Apu */,
-				12574A162BB835B800A4A610 /* Audio */,
-				12574A242BB835B900A4A610 /* BeesNES */,
-				12574A2E2BB835B900A4A610 /* Bus */,
-				12574A2A2BB835B900A4A610 /* Cpu */,
-				12574A222BB835B900A4A610 /* Crc */,
-				12574A172BB835B800A4A610 /* Database */,
-				12574A262BB835B900A4A610 /* Display */,
-				12574A1F2BB835B800A4A610 /* Event */,
-				12574A1C2BB835B800A4A610 /* File */,
-				12574A2B2BB835B900A4A610 /* Filters */,
-				12574A282BB835B900A4A610 /* Input */,
-				12574A192BB835B800A4A610 /* Localization */,
-				12574A2C2BB835B900A4A610 /* LSNLSpiroNes.h */,
-				12574A1D2BB835B800A4A610 /* Mappers */,
-				12574A1B2BB835B800A4A610 /* MiniZ */,
-				12574A152BB835B800A4A610 /* Options */,
-				12574A292BB835B900A4A610 /* OS */,
-				12574A2D2BB835B900A4A610 /* Palette */,
-				12574A252BB835B900A4A610 /* Ppu */,
-				12574A1A2BB835B800A4A610 /* Roms */,
-				12574A1E2BB835B800A4A610 /* System */,
-				12574A202BB835B800A4A610 /* Time */,
-				12574A232BB835B900A4A610 /* Utilities */,
-				12574A212BB835B900A4A610 /* Windows */,
+				125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */,
+				12574A7E2BB8847D00A4A610 /* Apu */,
+				12574A9D2BB884C700A4A610 /* Audio */,
+				1257501C2BB887F200A4A610 /* BeesNES */,
+				125750162BB887DA00A4A610 /* Bus */,
+				1257500B2BB887BF00A4A610 /* Cpu */,
+				125750052BB887A800A4A610 /* Crc */,
+				12574FFF2BB8879300A4A610 /* Database */,
+				12574FF42BB8877500A4A610 /* Display */,
+				12574CDE2BB8874F00A4A610 /* Event */,
+				12574CC92BB8873500A4A610 /* File */,
+				12574B9C2BB8870A00A4A610 /* Filters */,
+				12574B7F2BB886EE00A4A610 /* Input */,
+				12574B7C2BB886C100A4A610 /* Localization */,
+				12574B7B2BB886B400A4A610 /* LSNLSpiroNes.h */,
+				12574B522BB8867600A4A610 /* Mappers */,
+				12574B4C2BB8865400A4A610 /* MiniZ */,
+				12574B482BB8863D00A4A610 /* Options */,
+				12574B3B2BB8861D00A4A610 /* OS */,
+				12574B392BB885F300A4A610 /* Palette */,
+				12574B0F2BB885C200A4A610 /* Ppu */,
+				12574B022BB8859F00A4A610 /* Roms */,
+				12574AF42BB8857F00A4A610 /* System */,
+				12574AEE2BB8855900A4A610 /* Time */,
+				12574AE52BB8852A00A4A610 /* Utilities */,
 				12E8B69D2BB59A6400055316 /* Renderer.h */,
 				12574A012BB5AE7600A4A610 /* Renderer.mm */,
 				12E8B69F2BB59A6400055316 /* ShaderTypes.h */,
@@ -371,6 +1126,12 @@
 			mainGroup = 12E8B6972BB59A6300055316;
 			productRefGroup = 12E8B6A72BB59A6500055316 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 125750372BB8F3F000A4A610 /* Products */;
+					ProjectRef = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				12E8B6A52BB59A6500055316 /* BeesNES iOS */,
@@ -380,38 +1141,35 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = ExpressionEvaluator.framework;
+			remoteRef = 1257503A2BB8F3F000A4A610 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
 		12E8B6A42BB59A6500055316 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12574A5F2BB835B900A4A610 /* Ppu in Resources */,
-				12574A4A2BB835B900A4A610 /* System in Resources */,
+				12574B2A2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */,
+				12574B242BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */,
+				12574B302BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */,
 				12E8B6B12BB59A6500055316 /* Base in Resources */,
-				12574A6E2BB835B900A4A610 /* Cpu in Resources */,
-				12574A742BB835B900A4A610 /* Palette in Resources */,
-				12574A532BB835B900A4A610 /* Windows in Resources */,
-				12574A502BB835B900A4A610 /* Time in Resources */,
-				12574A322BB835B900A4A610 /* Audio in Resources */,
+				125750102BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */,
+				12574B212BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */,
 				12E8B6E32BB59A6500055316 /* Assets.xcassets in Resources */,
-				12574A772BB835B900A4A610 /* Bus in Resources */,
-				12574A472BB835B900A4A610 /* Mappers in Resources */,
+				12574B362BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */,
+				12574B2D2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */,
+				12574B1E2BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */,
+				12574B272BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */,
+				12574B1B2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */,
+				12574B332BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */,
 				12E8B6B42BB59A6500055316 /* Base in Resources */,
-				12574A5C2BB835B900A4A610 /* BeesNES in Resources */,
-				12574A3E2BB835B900A4A610 /* Roms in Resources */,
-				12574A712BB835B900A4A610 /* Filters in Resources */,
-				12574A682BB835B900A4A610 /* Input in Resources */,
-				12574A2F2BB835B900A4A610 /* Options in Resources */,
-				12574A442BB835B900A4A610 /* File in Resources */,
-				12574A412BB835B900A4A610 /* MiniZ in Resources */,
-				12574A562BB835B900A4A610 /* Crc in Resources */,
-				12574A6B2BB835B900A4A610 /* OS in Resources */,
-				12574A592BB835B900A4A610 /* Utilities in Resources */,
-				12574A3B2BB835B900A4A610 /* Localization in Resources */,
-				12574A352BB835B900A4A610 /* Database in Resources */,
-				12574A622BB835B900A4A610 /* Display in Resources */,
-				12574A382BB835B900A4A610 /* Apu in Resources */,
-				12574A4D2BB835B900A4A610 /* Event in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -419,33 +1177,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12574A602BB835B900A4A610 /* Ppu in Resources */,
-				12574A4B2BB835B900A4A610 /* System in Resources */,
+				12574B2B2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */,
+				12574B252BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */,
+				12574B312BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */,
 				12E8B6C52BB59A6500055316 /* Base in Resources */,
-				12574A6F2BB835B900A4A610 /* Cpu in Resources */,
-				12574A752BB835B900A4A610 /* Palette in Resources */,
-				12574A542BB835B900A4A610 /* Windows in Resources */,
-				12574A512BB835B900A4A610 /* Time in Resources */,
-				12574A332BB835B900A4A610 /* Audio in Resources */,
+				125750112BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */,
+				12574B222BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */,
 				12E8B6E42BB59A6500055316 /* Assets.xcassets in Resources */,
-				12574A782BB835B900A4A610 /* Bus in Resources */,
-				12574A482BB835B900A4A610 /* Mappers in Resources */,
+				12574B372BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */,
+				12574B2E2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */,
+				12574B1F2BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */,
+				12574B282BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */,
+				12574B1C2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */,
+				12574B342BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */,
 				12E8B6C82BB59A6500055316 /* Base in Resources */,
-				12574A5D2BB835B900A4A610 /* BeesNES in Resources */,
-				12574A3F2BB835B900A4A610 /* Roms in Resources */,
-				12574A722BB835B900A4A610 /* Filters in Resources */,
-				12574A692BB835B900A4A610 /* Input in Resources */,
-				12574A302BB835B900A4A610 /* Options in Resources */,
-				12574A452BB835B900A4A610 /* File in Resources */,
-				12574A422BB835B900A4A610 /* MiniZ in Resources */,
-				12574A572BB835B900A4A610 /* Crc in Resources */,
-				12574A6C2BB835B900A4A610 /* OS in Resources */,
-				12574A5A2BB835B900A4A610 /* Utilities in Resources */,
-				12574A3C2BB835B900A4A610 /* Localization in Resources */,
-				12574A362BB835B900A4A610 /* Database in Resources */,
-				12574A632BB835B900A4A610 /* Display in Resources */,
-				12574A392BB835B900A4A610 /* Apu in Resources */,
-				12574A4E2BB835B900A4A610 /* Event in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,32 +1198,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12574A732BB835B900A4A610 /* Filters in Resources */,
-				12574A552BB835B900A4A610 /* Windows in Resources */,
-				12574A372BB835B900A4A610 /* Database in Resources */,
-				12574A3D2BB835B900A4A610 /* Localization in Resources */,
-				12574A582BB835B900A4A610 /* Crc in Resources */,
-				12574A312BB835B900A4A610 /* Options in Resources */,
-				12574A642BB835B900A4A610 /* Display in Resources */,
-				12574A522BB835B900A4A610 /* Time in Resources */,
-				12574A762BB835B900A4A610 /* Palette in Resources */,
+				12574B2C2BB885D300A4A610 /* LSNCreateCycleTablePalN.inl in Resources */,
+				12574B262BB885D300A4A610 /* LSNGenFuncsPalM.inl in Resources */,
+				12574B322BB885D300A4A610 /* LSNCreateCycleTableDendy.inl in Resources */,
+				12574B382BB885D300A4A610 /* LSNCreateCycleTablePalM.inl in Resources */,
 				12E8B6E52BB59A6500055316 /* Assets.xcassets in Resources */,
-				12574A462BB835B900A4A610 /* File in Resources */,
-				12574A3A2BB835B900A4A610 /* Apu in Resources */,
-				12574A6D2BB835B900A4A610 /* OS in Resources */,
-				12574A612BB835B900A4A610 /* Ppu in Resources */,
-				12574A402BB835B900A4A610 /* Roms in Resources */,
-				12574A6A2BB835B900A4A610 /* Input in Resources */,
-				12574A4C2BB835B900A4A610 /* System in Resources */,
-				12574A5B2BB835B900A4A610 /* Utilities in Resources */,
-				12574A702BB835B900A4A610 /* Cpu in Resources */,
-				12574A5E2BB835B900A4A610 /* BeesNES in Resources */,
-				12574A4F2BB835B900A4A610 /* Event in Resources */,
-				12574A432BB835B900A4A610 /* MiniZ in Resources */,
-				12574A492BB835B900A4A610 /* Mappers in Resources */,
-				12574A792BB835B900A4A610 /* Bus in Resources */,
+				12574B202BB885D300A4A610 /* LSNCreateCycleTablePal.inl in Resources */,
+				12574B352BB885D300A4A610 /* LSNGenFuncsPal.inl in Resources */,
 				12E8B6D92BB59A6500055316 /* Base in Resources */,
-				12574A342BB835B900A4A610 /* Audio in Resources */,
+				125750122BB887CC00A4A610 /* LSNInstMetaData.inl in Resources */,
+				12574B2F2BB885D300A4A610 /* LSNGenFuncsDendy.inl in Resources */,
+				12574B1D2BB885D300A4A610 /* LSNGenFuncsNtsc.inl in Resources */,
+				12574B232BB885D300A4A610 /* LSNCreateCycleTableNtsc.inl in Resources */,
+				12574B292BB885D300A4A610 /* LSNGenFuncsPalN.inl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -489,11 +1221,72 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12574C1B2BB8872900A4A610 /* nes_ntsc.c in Sources */,
+				12574AFC2BB8858E00A4A610 /* LSNSystem.cpp in Sources */,
+				12574AC02BB884E700A4A610 /* LSNOpenAl.cpp in Sources */,
+				12574B932BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */,
+				12574C4E2BB8872900A4A610 /* pal.c in Sources */,
+				12574ACC2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */,
+				12574A942BB884A400A4A610 /* LSNNoise.cpp in Sources */,
+				12574A8E2BB884A400A4A610 /* LSNApuUnit.cpp in Sources */,
+				125750082BB887B500A4A610 /* LSNCrc.cpp in Sources */,
+				12574CC32BB8872900A4A610 /* LSNFilterBase.cpp in Sources */,
+				12574C8D2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */,
+				12574AD22BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */,
+				12574C452BB8872900A4A610 /* pal_core.c in Sources */,
+				12574FF12BB8876A00A4A610 /* LSNEvent.cpp in Sources */,
+				12574C272BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */,
+				12574AC62BB884E700A4A610 /* LSNAudioBase.cpp in Sources */,
+				12574C722BB8872900A4A610 /* crt_nes.c in Sources */,
+				12574ACF2BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */,
 				12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */,
+				12574AC32BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */,
+				12574CD22BB8874200A4A610 /* LSNStdFile.cpp in Sources */,
+				125750022BB8879D00A4A610 /* LSNDatabase.cpp in Sources */,
+				12574B962BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */,
+				12574CDB2BB8874200A4A610 /* LSNFileMap.cpp in Sources */,
+				12574FF92BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */,
+				12574C302BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */,
+				12574ADE2BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */,
+				12574AE12BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */,
+				12574AC92BB884E700A4A610 /* LSNAudio.cpp in Sources */,
+				12574A912BB884A400A4A610 /* LSNSequencer.cpp in Sources */,
+				12574B4F2BB8866A00A4A610 /* miniz.c in Sources */,
+				12574A972BB884A400A4A610 /* LSNPulse.cpp in Sources */,
 				12E8B6B62BB59A6500055316 /* main.m in Sources */,
+				12574CC02BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */,
+				12574CBD2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */,
 				12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */,
+				12574ADB2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */,
+				12574AD82BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */,
+				12574C6C2BB8872900A4A610 /* crt_core.c in Sources */,
+				12574AD52BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */,
+				12574FFC2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */,
+				12574C5D2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */,
+				12574AEB2BB8854000A4A610 /* LSNUtilities.cpp in Sources */,
+				12574A9A2BB884A400A4A610 /* LSNTriangle.cpp in Sources */,
+				12574B902BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */,
+				12574CD82BB8874200A4A610 /* LSNZipFile.cpp in Sources */,
+				12574B092BB885B400A4A610 /* LSNRomInfo.cpp in Sources */,
+				12574CBA2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */,
+				12574C902BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */,
 				12574A022BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12574CC62BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */,
+				12574AFF2BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */,
+				125750192BB887E500A4A610 /* LSNBus.cpp in Sources */,
+				1257501F2BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */,
+				12574AF12BB8857100A4A610 /* LSNClock.cpp in Sources */,
+				12574B992BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */,
+				12574C2D2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */,
+				12574B0C2BB885B400A4A610 /* LSNRom.cpp in Sources */,
+				12574C032BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */,
+				12574C752BB8872900A4A610 /* crt_ntsc.c in Sources */,
+				125750132BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */,
+				12574C4B2BB8872900A4A610 /* pal_nes.c in Sources */,
 				12E8B6E02BB59A6500055316 /* Shaders.metal in Sources */,
+				12574CD52BB8874200A4A610 /* LSNFileBase.cpp in Sources */,
+				12574C2A2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */,
+				12574B8D2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -501,11 +1294,72 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12574C1C2BB8872900A4A610 /* nes_ntsc.c in Sources */,
+				12574AFD2BB8858E00A4A610 /* LSNSystem.cpp in Sources */,
+				12574AC12BB884E700A4A610 /* LSNOpenAl.cpp in Sources */,
+				12574B942BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */,
+				12574C4F2BB8872900A4A610 /* pal.c in Sources */,
+				12574ACD2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */,
+				12574A952BB884A400A4A610 /* LSNNoise.cpp in Sources */,
+				12574A8F2BB884A400A4A610 /* LSNApuUnit.cpp in Sources */,
+				125750092BB887B500A4A610 /* LSNCrc.cpp in Sources */,
+				12574CC42BB8872900A4A610 /* LSNFilterBase.cpp in Sources */,
+				12574C8E2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */,
+				12574AD32BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */,
+				12574C462BB8872900A4A610 /* pal_core.c in Sources */,
+				12574FF22BB8876A00A4A610 /* LSNEvent.cpp in Sources */,
+				12574C282BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */,
+				12574AC72BB884E700A4A610 /* LSNAudioBase.cpp in Sources */,
+				12574C732BB8872900A4A610 /* crt_nes.c in Sources */,
+				12574AD02BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */,
 				12E8B6C22BB59A6500055316 /* GameViewController.m in Sources */,
+				12574AC42BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */,
+				12574CD32BB8874200A4A610 /* LSNStdFile.cpp in Sources */,
+				125750032BB8879D00A4A610 /* LSNDatabase.cpp in Sources */,
+				12574B972BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */,
+				12574CDC2BB8874200A4A610 /* LSNFileMap.cpp in Sources */,
+				12574FFA2BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */,
+				12574C312BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */,
+				12574ADF2BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */,
+				12574AE22BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */,
+				12574ACA2BB884E700A4A610 /* LSNAudio.cpp in Sources */,
+				12574A922BB884A400A4A610 /* LSNSequencer.cpp in Sources */,
+				12574B502BB8866A00A4A610 /* miniz.c in Sources */,
+				12574A982BB884A400A4A610 /* LSNPulse.cpp in Sources */,
 				12E8B6CA2BB59A6500055316 /* main.m in Sources */,
+				12574CC12BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */,
+				12574CBE2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */,
 				12E8B6BF2BB59A6500055316 /* AppDelegate.m in Sources */,
+				12574ADC2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */,
+				12574AD92BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */,
+				12574C6D2BB8872900A4A610 /* crt_core.c in Sources */,
+				12574AD62BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */,
+				12574FFD2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */,
+				12574C5E2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */,
+				12574AEC2BB8854000A4A610 /* LSNUtilities.cpp in Sources */,
+				12574A9B2BB884A400A4A610 /* LSNTriangle.cpp in Sources */,
+				12574B912BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */,
+				12574CD92BB8874200A4A610 /* LSNZipFile.cpp in Sources */,
+				12574B0A2BB885B400A4A610 /* LSNRomInfo.cpp in Sources */,
+				12574CBB2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */,
+				12574C912BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */,
 				12574A032BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12574CC72BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */,
+				12574B002BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */,
+				1257501A2BB887E500A4A610 /* LSNBus.cpp in Sources */,
+				125750202BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */,
+				12574AF22BB8857100A4A610 /* LSNClock.cpp in Sources */,
+				12574B9A2BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */,
+				12574C2E2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */,
+				12574B0D2BB885B400A4A610 /* LSNRom.cpp in Sources */,
+				12574C042BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */,
+				12574C762BB8872900A4A610 /* crt_ntsc.c in Sources */,
+				125750142BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */,
+				12574C4C2BB8872900A4A610 /* pal_nes.c in Sources */,
 				12E8B6E12BB59A6500055316 /* Shaders.metal in Sources */,
+				12574CD62BB8874200A4A610 /* LSNFileBase.cpp in Sources */,
+				12574C2B2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */,
+				12574B8E2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,11 +1367,72 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				12574C1D2BB8872900A4A610 /* nes_ntsc.c in Sources */,
+				12574AFE2BB8858E00A4A610 /* LSNSystem.cpp in Sources */,
+				12574AC22BB884E700A4A610 /* LSNOpenAl.cpp in Sources */,
+				12574B952BB886FE00A4A610 /* LSNDirectInput8Controller.cpp in Sources */,
+				12574C502BB8872900A4A610 /* pal.c in Sources */,
+				12574ACE2BB884E700A4A610 /* LSNButterworthFilterImpl.cpp in Sources */,
+				12574A962BB884A400A4A610 /* LSNNoise.cpp in Sources */,
+				12574A902BB884A400A4A610 /* LSNApuUnit.cpp in Sources */,
+				1257500A2BB887B500A4A610 /* LSNCrc.cpp in Sources */,
+				12574CC52BB8872900A4A610 /* LSNFilterBase.cpp in Sources */,
+				12574C8F2BB8872900A4A610 /* LSNNtscBlarggFilter.cpp in Sources */,
+				12574AD42BB884E700A4A610 /* LSNOpenAlSource.cpp in Sources */,
+				12574C472BB8872900A4A610 /* pal_core.c in Sources */,
+				12574FF32BB8876A00A4A610 /* LSNEvent.cpp in Sources */,
+				12574C292BB8872900A4A610 /* LSNNtscCrtFilter.cpp in Sources */,
+				12574AC82BB884E700A4A610 /* LSNAudioBase.cpp in Sources */,
+				12574C742BB8872900A4A610 /* crt_nes.c in Sources */,
+				12574AD12BB884E700A4A610 /* LSNBiQuadFilterChain.cpp in Sources */,
 				12574A142BB6B71F00A4A610 /* main.mm in Sources */,
+				12574AC52BB884E700A4A610 /* LSNOpenAlGetError.cpp in Sources */,
+				12574CD42BB8874200A4A610 /* LSNStdFile.cpp in Sources */,
+				125750042BB8879D00A4A610 /* LSNDatabase.cpp in Sources */,
+				12574B982BB886FE00A4A610 /* LSNControllerListener.cpp in Sources */,
+				12574CDD2BB8874200A4A610 /* LSNFileMap.cpp in Sources */,
+				12574FFB2BB8878800A4A610 /* LSNDisplayHost.cpp in Sources */,
+				12574C322BB8872900A4A610 /* LSNBiLinearPostProcess.cpp in Sources */,
+				12574AE02BB884E700A4A610 /* LSNOpenAlDevice.cpp in Sources */,
+				12574AE32BB884E700A4A610 /* LSNAudioCoreAudio.cpp in Sources */,
+				12574ACB2BB884E700A4A610 /* LSNAudio.cpp in Sources */,
+				12574A932BB884A400A4A610 /* LSNSequencer.cpp in Sources */,
+				12574B512BB8866A00A4A610 /* miniz.c in Sources */,
+				12574A992BB884A400A4A610 /* LSNPulse.cpp in Sources */,
 				12574A0E2BB5BB8700A4A610 /* AppDelegate.mm in Sources */,
+				12574CC22BB8872900A4A610 /* LSNNtscBisqwitFilter.cpp in Sources */,
+				12574CBF2BB8872900A4A610 /* LSNRgb24Filter.cpp in Sources */,
 				12574A042BB5AE7600A4A610 /* Renderer.mm in Sources */,
+				12574ADD2BB884E700A4A610 /* LSNOpenAlBuffer.cpp in Sources */,
+				12574ADA2BB884E700A4A610 /* LSNAudioOpenAl.cpp in Sources */,
+				12574C6E2BB8872900A4A610 /* crt_core.c in Sources */,
+				12574AD72BB884E700A4A610 /* LSNOpenAlContext.cpp in Sources */,
+				12574FFE2BB8878800A4A610 /* LSNDisplayClient.cpp in Sources */,
+				12574C5F2BB8872900A4A610 /* LSNPalLSpiroFilter.cpp in Sources */,
+				12574AED2BB8854000A4A610 /* LSNUtilities.cpp in Sources */,
+				12574A9C2BB884A400A4A610 /* LSNTriangle.cpp in Sources */,
+				12574B922BB886FE00A4A610 /* LSNWindowsKeyboard.cpp in Sources */,
+				12574CDA2BB8874200A4A610 /* LSNZipFile.cpp in Sources */,
+				12574B0B2BB885B400A4A610 /* LSNRomInfo.cpp in Sources */,
+				12574CBC2BB8872900A4A610 /* LSNNtscCrtFullFilter.cpp in Sources */,
+				12574C922BB8872900A4A610 /* LSNPalBlarggFilter.cpp in Sources */,
 				12574A122BB637AC00A4A610 /* GameViewController.m in Sources */,
+				12574CC82BB8872900A4A610 /* LSNBleedPostProcess.cpp in Sources */,
+				12574B012BB8858E00A4A610 /* LSNSystemBase.cpp in Sources */,
+				1257501B2BB887E500A4A610 /* LSNBus.cpp in Sources */,
+				125750212BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */,
+				12574AF32BB8857100A4A610 /* LSNClock.cpp in Sources */,
+				12574B9B2BB886FE00A4A610 /* LSNDirectInput8.cpp in Sources */,
+				12574C2F2BB8872900A4A610 /* LSNSrgbPostProcess.cpp in Sources */,
+				12574B0E2BB885B400A4A610 /* LSNRom.cpp in Sources */,
+				12574C052BB8872900A4A610 /* LSNPalCrtFullFilter.cpp in Sources */,
+				12574C772BB8872900A4A610 /* crt_ntsc.c in Sources */,
+				125750152BB887CC00A4A610 /* LSNCpu6502.cpp in Sources */,
+				12574C4D2BB8872900A4A610 /* pal_nes.c in Sources */,
 				12E8B6E22BB59A6500055316 /* Shaders.metal in Sources */,
+				12574CD72BB8874200A4A610 /* LSNFileBase.cpp in Sources */,
+				12574C2C2BB8872900A4A610 /* LSNNtscLSpiroFilter.cpp in Sources */,
+				12574B8F2BB886FE00A4A610 /* LSNUsbControllerBase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,7 +1489,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -623,6 +1538,8 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
+				"USER_HEADER_SEARCH_PATHS[arch=*]" = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
 			};
 			name = Debug;
 		};
@@ -633,7 +1550,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -675,6 +1592,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
 			};
 			name = Release;
 		};

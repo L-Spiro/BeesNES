@@ -7,7 +7,6 @@
  */
 
 #include "LSNPalBlarggFilter.h"
-#include <Helpers/LSWHelpers.h>
 
 
 namespace lsn {

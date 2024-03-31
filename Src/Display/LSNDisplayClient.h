@@ -67,21 +67,21 @@ namespace lsn {
 		 *
 		 * \return Returns the pixel width of the display area.
 		 */
-		virtual uint32_t						DisplayWidth() const = 0 { return 0; }
+		virtual uint32_t						DisplayWidth() const = 0;
 
 		/**
 		 * Gets the display height in pixels.  Used to create render targets.
 		 *
 		 * \return Returns the pixel height of the display area.
 		 */
-		virtual uint32_t						DisplayHeight() const = 0 { return 0; }
+		virtual uint32_t						DisplayHeight() const = 0;
 
 		/**
 		 * Gets the display ratio in pixels.
 		 *
 		 * \return Returns the ratio of the display area.
 		 */
-		virtual double							DisplayRatio() const = 0 { return 1.0; }
+		virtual double							DisplayRatio() const = 0;
 
 		/**
 		 * Sets the render target.
@@ -102,14 +102,14 @@ namespace lsn {
 		 *
 		 * \return Returns the frame count.
 		 */
-		virtual uint64_t						FrameCount() const = 0 { return 0; }
+		virtual uint64_t						FrameCount() const = 0;
 
 		/**
 		 * Gets the PPU region.
 		 *
 		 * \return Returns the PPU region.
 		 */
-		virtual LSN_PPU_METRICS					PpuRegion() const = 0 { return LSN_PM_NTSC; }
+		virtual LSN_PPU_METRICS					PpuRegion() const = 0;
 
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.

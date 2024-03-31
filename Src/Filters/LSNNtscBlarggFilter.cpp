@@ -7,7 +7,6 @@
  */
 
 #include "LSNNtscBlarggFilter.h"
-#include <Helpers/LSWHelpers.h>
 
 
 namespace lsn {

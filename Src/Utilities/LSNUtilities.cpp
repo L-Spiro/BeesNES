@@ -10,35 +10,15 @@
 #include "LSNUtilities.h"
 #include "../OS/LSNOs.h"
 #include <cwctype>
-#include <EEExpEval.h>
+#include "EEExpEval.h"
 
 #ifndef LSN_WINDOWS
 #include <codecvt>
 #endif
 
-#ifdef __GNUC__
-
-void __cpuid( int* _piCpuInfo, int _iInfo ) {
-	__asm__ __volatile__(
-		"xchg %%ebx, %%edi;"
-		"cpuid;"
-		"xchg %%ebx, %%edi;"
-		:"=a" (_piCpuInfo[0]), "=D" (_piCpuInfo[1]), "=c" (_piCpuInfo[2]), "=d" (_piCpuInfo[3])
-		:"0" (_iInfo)
-	);
-}
-
-unsigned long long _xgetbv( unsigned int _uiIndex ) {
-	unsigned int eax, edx;
-	__asm__ __volatile__(
-		"xgetbv;"
-		: "=a" (eax), "=d"(edx)
-		: "c" (_uiIndex)
-	);
-	return ((unsigned long long)edx << 32) | eax;
-}
-
-#endif
+#if defined( __APPLE__ )
+#include <CoreFoundation/CoreFoundation.h>
+#endif	// #if defined( __APPLE__ )
 
 namespace lsn {
 
@@ -50,7 +30,6 @@ namespace lsn {
 		0.500f, 0.676f, 0.896f, 0.896f  // Signal high, attenuated.
 	};
 
-	LSN_ALIGN( 32 )
 	const float CUtilities::m_fPalLevels[16] = {							/**< Output levels for PAL. */
 		-0.1312201772324471937825052236803458072245121002197265625f,	0.0f,															0.3561690524880709585175964093650691211223602294921875f,	0.8000681663258351061784878766047768294811248779296875f,
 		0.456646216768916202166650464278063736855983734130859375f,		0.74982958418541245659838523351936601102352142333984375f,		1.1f,														1.1f,
@@ -289,19 +268,10 @@ namespace lsn {
 		for ( size_t I = 0; I < _s16Paths.size(); ++I ) {
 			bool bFound = false;
 			for ( size_t J = I + 1; J < _s16Paths.size(); ++J ) {
-#ifdef LSN_WINDOWS
-				if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE,
-					reinterpret_cast<LPCWCH>(_s16Paths[I].u16sFile.c_str()), -1, reinterpret_cast<LPCWCH>(_s16Paths[J].u16sFile.c_str()), -1,
-					NULL, NULL, NULL ) ) {
+				if ( StringCmpUtf16_IgnoreCase( _s16Paths[I].u16sFile, _s16Paths[J].u16sFile ) ) {
 					bFound = true;
 					_vIndices.push_back( J );
 				}
-#else
-				if ( _s16Paths[I] == _s16Paths[J] ) {
-					bFound = true;
-					_vIndices.push_back( J );
-				}
-#endif	// #ifdef LSN_WINDOWS
 			}
 			if ( bFound ) {
 				_vIndices.push_back( I );
@@ -309,6 +279,46 @@ namespace lsn {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Performs a case-insensitive string compare against 2 UTF-16 strings.  Returns true if they are equal.
+	 *
+	 * \param _u16Str0 The left operand.
+	 * \param _u16Str1 The right operand.
+	 * \return Returns true if the given strings are equal as compared via a case-insensitive UTF-16 compare.
+	 **/
+	bool CUtilities::StringCmpUtf16_IgnoreCase( const std::u16string &_u16Str0, const std::u16string &_u16Str1 ) {
+#ifdef LSN_WINDOWS
+		return CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE,
+			reinterpret_cast<LPCWCH>(_u16Str0.c_str()), -1, reinterpret_cast<LPCWCH>(_u16Str1.c_str()), -1,
+			NULL, NULL, NULL );
+#else
+		CFStringRef cfStr1 = ::CFStringCreateWithBytes(
+			nullptr,
+			reinterpret_cast<const UInt8 *>(_u16Str0.c_str()),
+			_u16Str0.length() * sizeof( char16_t ),
+			kCFStringEncodingUTF16,
+			false
+		);
+
+		CFStringRef cfStr2 = ::CFStringCreateWithBytes(
+			nullptr,
+			reinterpret_cast<const UInt8 *>(_u16Str1.c_str()),
+			_u16Str1.length() * sizeof( char16_t ),
+			kCFStringEncodingUTF16,
+			false
+		);
+
+		bool bResult = ::CFStringCompare(
+			cfStr1, cfStr2, kCFCompareCaseInsensitive
+		) == kCFCompareEqualTo;
+
+		CFRelease( cfStr1 );
+		CFRelease( cfStr2 );
+
+		return bResult;
+#endif	// #ifdef LSN_WINDOWS
 	}
 
 	/**

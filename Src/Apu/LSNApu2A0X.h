@@ -668,7 +668,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -683,7 +683,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -701,7 +701,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -715,7 +715,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -733,7 +733,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -748,7 +748,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -766,7 +766,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -780,7 +780,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -798,7 +798,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4008( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -812,7 +812,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400A( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -826,7 +826,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400B( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -844,7 +844,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400C( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -858,7 +858,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -873,7 +873,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -921,7 +921,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
@@ -947,7 +947,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);

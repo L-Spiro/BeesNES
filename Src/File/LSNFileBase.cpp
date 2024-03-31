@@ -11,6 +11,10 @@
 #include "../OS/LSNOs.h"
 #include "../Utilities/LSNUtilities.h"
 
+#ifndef LSN_WINDOWS
+#include <filesystem>
+#endif	// #ifndef LSN_WINDOWS
+
 namespace lsn {
 
 	CFileBase::~CFileBase() {}
@@ -19,7 +23,7 @@ namespace lsn {
 	/**
 	 * Opens a file.  The path is given in UTF-8.
 	 *
-	 * \param _pcPath Path to the file to open.
+	 * \param _pcFile Path to the file to open.
 	 * \return Returns true if the file was opened, false otherwise.
 	 */
 	bool CFileBase::Open( const char8_t * _pcFile ) {
@@ -32,7 +36,7 @@ namespace lsn {
 	/**
 	 * Opens a file.  The path is given in UTF-16.
 	 *
-	 * \param _pcPath Path to the file to open.
+	 * \param _pcFile Path to the file to open.
 	 * \return Returns true if the file was opened, false otherwise.
 	 */
 	bool CFileBase::Open( const char16_t * _pcFile ) {
@@ -45,7 +49,7 @@ namespace lsn {
 	/**
 	 * Creates a file.  The path is given in UTF-8.
 	 *
-	 * \param _pcPath Path to the file to create.
+	 * \param _pcFile Path to the file to create.
 	 * \return Returns true if the file was created, false otherwise.
 	 */
 	bool CFileBase::Create( const char8_t * _pcFile ) {
@@ -58,7 +62,7 @@ namespace lsn {
 	/**
 	 * Creates a file.  The path is given in UTF-16.
 	 *
-	 * \param _pcPath Path to the file to create.
+	 * \param _pcFile Path to the file to create.
 	 * \return Returns true if the file was created, false otherwise.
 	 */
 	bool CFileBase::Create( const char16_t * _pcFile ) {
@@ -155,7 +159,33 @@ namespace lsn {
 		::FindClose( hDir );
 		return _vResult;
 #else
-#error "CFileBase::FindFiles() unimplemented!"
+		// Convert char16_t * to std::u16string.
+		std::u16string sPath = _pcFolderPath;
+		while ( sPath.size() && sPath.back() == u'\\' ) {
+			sPath.pop_back();
+		}
+		sPath.push_back( u'/' );  // Use forward slash for UNIX-like path.
+		
+		std::u16string sSearch = _pcSearchString ? _pcSearchString : u"*";
+		
+		for ( const auto & entry : std::filesystem::directory_iterator( std::filesystem::path( sPath.begin(), sPath.end() ) ) ) {
+			const auto & path = entry.path();
+			bool isDirectory = entry.is_directory();
+
+			if ( !_bIncludeFolders && isDirectory ) {
+				continue;
+			}
+
+			std::u16string sFilename = path.filename().u16string();
+			if ( sFilename[0] == u'.' ) {
+				continue;  // Skip hidden files and directories
+			}
+
+			_vResult.push_back(std::u16string( sPath.begin(), sPath.end()) + sFilename );
+		}
+
+		return _vResult;
+
 #endif	// #ifdef LSN_WINDOWS
 	}
 

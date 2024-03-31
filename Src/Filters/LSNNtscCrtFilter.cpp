@@ -9,7 +9,6 @@
 #include "LSNNtscCrtFilter.h"
 #include "../Utilities/LSNUtilities.h"
 #include "NTSC-CRT-Fast/crt.h"
-#include <Helpers/LSWHelpers.h>
 
 #define m_nsSettings				(*reinterpret_cast<NES_NTSC_SETTINGS *>(m_vSettings.data()))
 #define m_nnCrtNtsc					(*reinterpret_cast<CRT *>(m_vCrtNtsc.data()))

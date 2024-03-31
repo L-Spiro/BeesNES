@@ -144,20 +144,20 @@ namespace lsn {
 	/**
 	 * Opens a file.  The path is given in UTF-8.
 	 *
-	 * \param _pcPath Path to the file to open.
+	 * \param _pcFile Path to the file to open.
 	 * \return Returns true if the file was opened, false otherwise.
 	 */
-	bool CStdFile::Open( const char8_t * _pcFile ) {
+	bool CFileMap::Open( const char8_t * _pcFile ) {
 		return false;
 	}
 
 	/**
 	 * Creates a file.  The path is given in UTF-8.
 	 *
-	 * \param _pcPath Path to the file to create.
+	 * \param _pcFile Path to the file to create.
 	 * \return Returns true if the file was created, false otherwise.
 	 */
-	bool CStdFile::Create( const char8_t * _pcFile ) {
+	bool CFileMap::Create( const char8_t * _pcFile ) {
 		return false;
 	}
 #endif	// #ifdef LSN_WINDOWS

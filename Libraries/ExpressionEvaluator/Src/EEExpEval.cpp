@@ -7,6 +7,11 @@
 
 namespace ee {
 
+// == Members.
+#ifdef __GNUC__
+	::mach_timebase_info_data_t CExpEval::m_mtidInfoData = { 0 };
+#endif	// #ifdef __GNUC__
+
 	// == Functions.
 	// Gets the time of initialization.
 	uint64_t CExpEval::StartTime() {
@@ -15,7 +20,12 @@ namespace ee {
 #ifdef _WIN32
 			::QueryPerformanceCounter( reinterpret_cast<LARGE_INTEGER *>(&uiStart) );
 #else
-#error "No implementation for StartTime()."
+			if ( !m_mtidInfoData.denom ) {
+				if ( KERN_SUCCESS != ::mach_timebase_info( &m_mtidInfoData ) ) {
+					return 0ULL;
+				}
+			}
+			uiStart = ::mach_absolute_time() * m_mtidInfoData.numer;
 #endif	// #ifdef _WIN32
 		}
 		return uiStart;
@@ -922,14 +932,14 @@ namespace ee {
 	void CExpEval::ResolveAllEscapes( const std::string &_sInput, std::string &_sOutput, bool _bIsUtf8 ) {
 		size_t sLen = 1;
 		for ( size_t I = 0; I < _sInput.size() && sLen; I += sLen ) {
-			uint64_t uiNext = _bIsUtf8 ? NextUtf8Char( &_sInput[I], _sInput.size() - I, &sLen ) : (sLen = 1, static_cast<uint8_t>(_sInput[I]));
+			uint64_t uiNext = _bIsUtf8 ? NextUtf8Char( &_sInput[I], _sInput.size() - I, &sLen ) : (static_cast<void>(sLen = 1), static_cast<uint8_t>(_sInput[I]));
 			if ( sLen == 1 ) {
 				// It was just a regular character.  Could be an escape.
 				uiNext = ResolveEscape( &_sInput[I], _sInput.size() - I, sLen, false );
 			}
 			do {
 				uint32_t ui32Len;
-				uint32_t ui32BackToUtf8 = _bIsUtf8 ? Utf32ToUtf8( static_cast<uint32_t>(uiNext), ui32Len ) : (ui32Len = CountSetBytes( uiNext ), static_cast<uint32_t>(uiNext));
+				uint32_t ui32BackToUtf8 = _bIsUtf8 ? Utf32ToUtf8( static_cast<uint32_t>(uiNext), ui32Len ) : (static_cast<void>(ui32Len = CountSetBytes( uiNext )), static_cast<uint32_t>(uiNext));
 				if ( ui32BackToUtf8 == EE_UTF_INVALID ) {
 					ui32Len = 1;
 					ui32BackToUtf8 = static_cast<uint32_t>(uiNext);
@@ -1035,14 +1045,14 @@ namespace ee {
 	void CExpEval::ResolveAllHtmlXmlEscapes( const std::string &_sInput, std::string &_sOutput, bool _bIsUtf8 ) {
 		size_t sLen = 1;
 		for ( size_t I = 0; I < _sInput.size() && sLen; I += sLen ) {
-			uint64_t uiNext = _bIsUtf8 ? NextUtf8Char( &_sInput[I], _sInput.size() - I, &sLen ) : (sLen = 1, static_cast<uint8_t>(_sInput[I]));
+			uint64_t uiNext = _bIsUtf8 ? NextUtf8Char( &_sInput[I], _sInput.size() - I, &sLen ) : (static_cast<void>(sLen = 1), static_cast<uint8_t>(_sInput[I]));
 			if ( sLen == 1 && uiNext == '&' ) {
 				// It was just a regular character.  Could be an escape.
 				uiNext = ResolveEscape( &_sInput[I], _sInput.size() - I, sLen, true );
 			}
 			do {
 				uint32_t ui32Len;
-				uint32_t ui32BackToUtf8 = _bIsUtf8 ? Utf32ToUtf8( static_cast<uint32_t>(uiNext), ui32Len ) : (ui32Len = CountSetBytes( static_cast<uint32_t>(uiNext) ), static_cast<uint32_t>(uiNext));
+				uint32_t ui32BackToUtf8 = _bIsUtf8 ? Utf32ToUtf8( static_cast<uint32_t>(uiNext), ui32Len ) : (static_cast<void>(ui32Len = CountSetBytes( static_cast<uint32_t>(uiNext) )), static_cast<uint32_t>(uiNext));
 				if ( ui32BackToUtf8 == EE_UTF_INVALID ) {
 					ui32Len = 1;
 					ui32BackToUtf8 = static_cast<uint32_t>(uiNext);
@@ -1263,7 +1273,12 @@ namespace ee {
 #ifdef _WIN32
 			::QueryPerformanceFrequency( reinterpret_cast<LARGE_INTEGER *>(&uiFreq) );
 #else
-#error "No implementation for TimerFrequency()."
+			if ( !m_mtidInfoData.denom ) {
+				if ( KERN_SUCCESS != ::mach_timebase_info( &m_mtidInfoData ) ) {
+					return 0ULL;
+				}
+			}
+			uiFreq = (m_mtidInfoData.denom * 1000000000ULL);
 #endif	// #ifdef _WIN32
 		}
 		return uiFreq;

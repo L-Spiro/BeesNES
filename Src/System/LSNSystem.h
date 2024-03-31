@@ -21,7 +21,9 @@
 #include "LSNSystemBase.h"
 
 #include <algorithm>
+#ifdef LSN_WINDOWS
 #include <immintrin.h>
+#endif	// #ifdef LSN_WINDOWS
 
 #define LSN_CPU_SLOT											0
 #define LSN_PPU_SLOT											1
@@ -399,10 +401,12 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapperBase>();
 					m_rRom.riInfo.bMapperSupported = false;
 					std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
+#ifdef LSN_WINDOWS
 					::OutputDebugStringA( sText.c_str() );
+#endif	// #ifdef LSN_WINDOWS
 				}
 			}
-			
+#ifdef LSN_WINDOWS
 			{
 				char szBuffer[128];
 				std::sprintf( szBuffer, "****** CRC: 0x%.8X\r\n", m_rRom.riInfo.ui32Crc );
@@ -422,6 +426,7 @@ namespace lsn {
 				sText = "****** PGM RAM Size: " + std::to_string( m_rRom.i32WorkRamSize ) + ".\r\n";
 				::OutputDebugStringA( sText.c_str() );
 			}
+#endif	// #ifdef LSN_WINDOWS
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
 				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu );

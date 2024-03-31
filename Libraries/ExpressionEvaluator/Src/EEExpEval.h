@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SinCos/EESinCos.h"
+#include <cfloat>
 #include <cinttypes>
 #include <string>
 #include <vector>
@@ -9,6 +10,10 @@
 #define NOMINMAX
 #include <Windows.h>					// For QueryPerformanceCounter() and QueryPerformanceFrequency().
 #endif
+
+#ifdef __GNUC__
+#include <mach/mach_time.h>				// For mach_timebase_info() and mach_absolute_time().
+#endif	// #ifdef __GNUC__
 
 #ifndef EE_MIN_
 #define EE_MIN_( A, B )					(((A) < (B)) ? (A) : (B))
@@ -637,11 +642,16 @@ namespace ee {
 		// Finds the highest-set bit in a given value.
 		static inline uint32_t			HighestSetBit( uint64_t _ui64Value ) {
 			unsigned long ulPos;
-#if defined( _AMD64_ ) && (defined(_M_AMD64) && !defined(RC_INVOKED) && !defined(MIDL_PASS))
+#ifdef __APPLE__
+			if ( _ui64Value != 0 ) {
+				ulPos = 63 - __builtin_clzll( _ui64Value );  // Find the position of the highest-set bit.
+				return static_cast<uint32_t>(ulPos);
+			}
+#else
+#if defined( _AMD64_ ) && (defined( _M_AMD64 ) && !defined( RC_INVOKED ) && !defined( MIDL_PASS ))
 			if ( _BitScanReverse64( &ulPos, _ui64Value ) ) {
 				return static_cast<uint32_t>(ulPos);
 			}
-
 #else
 			unsigned long ulPosHi;
 			if ( _BitScanReverse( &ulPosHi, static_cast<unsigned long>(_ui64Value >> 32ULL) ) ) {
@@ -651,6 +661,7 @@ namespace ee {
 				return ulPos;
 			}
 #endif	// #if defined( _AMD64_ ) && (defined(_M_AMD64) && !defined(RC_INVOKED) && !defined(MIDL_PASS))
+#endif	// #ifdef __APPLE__
 			return 0;
 		}
 	
@@ -760,7 +771,13 @@ namespace ee {
 			::QueryPerformanceCounter( &liInt );
 			return liInt.QuadPart;
 #else
-#error "No implementation for Time()."
+			if ( !m_mtidInfoData.denom ) {
+				if ( KERN_SUCCESS != ::mach_timebase_info( &m_mtidInfoData ) ) {
+					return 0ULL;
+				}
+			}
+			return ::mach_absolute_time() * m_mtidInfoData.numer;
+
 #endif	// #ifdef _WIN32
 		}
 
@@ -1073,6 +1090,13 @@ namespace ee {
 
 		// Pulls any preprocessing directives out of a single line.
 		static bool						PreprocessingDirectives( const std::string &_sInput, std::string &_sDirective, std::string &_sParms );
+		
+		
+		// == Members.
+#ifdef __GNUC__
+		static ::mach_timebase_info_data_t
+										m_mtidInfoData;									/**< Time resoution. */
+#endif	// #ifdef __GNUC__
 	};
 
 }	// namespace ee

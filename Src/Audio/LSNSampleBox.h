@@ -393,8 +393,8 @@ namespace lsn {
 		};
 
 		/** An aligned sampling buffer. */
-		LSN_ALN
 		struct LSN_SAMPLE_STACK {
+			LSN_ALN
 			float											fStack[16];									/**< Stack of samples, fit for an __m512 register. */
 		};
 

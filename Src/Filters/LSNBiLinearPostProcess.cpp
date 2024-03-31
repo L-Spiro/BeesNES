@@ -121,7 +121,7 @@ namespace lsn {
 		for ( uint32_t Y = 0; Y < _ui32Height; ++Y ) {
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_pui8Input + (Y * _ui32Stride));
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + (Y * ui32Stride));
-			//_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((Y + 1) * ui32Stride)), _MM_HINT_T0 );
+			//LSN_PREFETCH_LINE( m_vRowTmp.data() + ((Y + 1) * ui32Stride) );
 			CUtilities::LinearInterpolateRow_Int( pui32SrcRow, pui32DstRow, m_vFactorsX.data(), _ui32Width, _ui32ScreenWidth );
 		}
 #if 1
@@ -137,7 +137,7 @@ namespace lsn {
 			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
 			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
-			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
+			LSN_PREFETCH_LINE( m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride) );
 			uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(m_vFinalBuffer.data() + (Y * ui32Stride));
 			CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ui32ScreenWidth, m_vFactorsY[Y] & 0xFF );
 		}
@@ -150,7 +150,7 @@ namespace lsn {
 			uint32_t ui32SrcRow = m_vFactorsY[Y] >> 8;
 			uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow) * ui32Stride));
 			uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));
-			_mm_prefetch( reinterpret_cast<const char *>(m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride)), _MM_HINT_T0 );
+			LSN_PREFETCH_LINE( m_vRowTmp.data() + ((ui32SrcRow + 2) * ui32Stride) );
 			/*uint32_t * pui32SrcNextRow = (ui32SrcRow == _ui32Height - 1) ?
 				reinterpret_cast<uint32_t *>(m_vEndRow.data()) :
 				reinterpret_cast<uint32_t *>(m_vRowTmp.data() + ((ui32SrcRow + 1) * ui32Stride));*/
@@ -195,7 +195,7 @@ namespace lsn {
 					uint32_t ui32SrcRow = _ptThread->pblppThis->m_vFactorsY[Y] >> 8;
 					uint32_t * pui32SrcRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow) * _ptThread->ui32Stride));
 					uint32_t * pui32SrcNextRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 1) * _ptThread->ui32Stride));
-					_mm_prefetch( reinterpret_cast<const char *>(_ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 2) * _ptThread->ui32Stride)), _MM_HINT_T0 );
+					LSN_PREFETCH_LINE( _ptThread->pblppThis->m_vRowTmp.data() + ((ui32SrcRow + 2) * _ptThread->ui32Stride) );
 					uint32_t * pui32DstRow = reinterpret_cast<uint32_t *>(_ptThread->pblppThis->m_vFinalBuffer.data() + (Y * _ptThread->ui32Stride));
 					CUtilities::LinearInterpCombineRows_Int( pui32SrcRow, pui32SrcNextRow, pui32DstRow, _ptThread->ui32ScreenWidth, _ptThread->pblppThis->m_vFactorsY[Y] & 0xFF );
 				}

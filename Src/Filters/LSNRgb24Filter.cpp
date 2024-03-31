@@ -7,9 +7,7 @@
  */
 
 #include "LSNRgb24Filter.h"
-#include <Helpers/LSWHelpers.h>
-
-using namespace lsw;
+#include "../Utilities/LSNUtilities.h"
 
 
 namespace lsn {
@@ -33,8 +31,8 @@ namespace lsn {
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
 
-		const WORD wBitDepth = WORD( OutputBits() );
-		const DWORD dwStride = DWORD( m_stStride = RowStride( _ui16Width, wBitDepth ) );
+		const uint16_t wBitDepth = uint16_t( OutputBits() );
+		const uint32_t dwStride = uint32_t( m_stStride = RowStride( _ui16Width, wBitDepth ) );
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
 			size_t szPrevSize = m_vBasicRenderTarget[I].size();
 			uint8_t * pui8PrevData = m_vBasicRenderTarget[I].size() ? m_vBasicRenderTarget[I].data() : nullptr;
@@ -48,8 +46,8 @@ namespace lsn {
 						uint8_t * pui8This = &pui8Pixels[Y*dwStride+X*3];
 						/*pui8This[2] = uint8_t( CHelpers::LinearTosRGB( X / 255.0 ) * 255.0 );
 						pui8This[1] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );*/
-						pui8This[2] = uint8_t( CHelpers::sRGBtoLinear( X / 255.0 ) * 255.0 );
-						pui8This[0] = uint8_t( CHelpers::LinearTosRGB( Y / 255.0 ) * 255.0 );
+						pui8This[2] = uint8_t( CUtilities::sRGBtoLinear( X / 255.0 ) * 255.0 );
+						pui8This[0] = uint8_t( CUtilities::LinearTosRGB( Y / 255.0 ) * 255.0 );
 					}
 				}
 			}

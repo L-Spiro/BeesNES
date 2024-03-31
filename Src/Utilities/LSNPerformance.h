@@ -38,6 +38,7 @@ namespace lsn {
 				::OutputDebugStringA( m_sName.c_str() );
 				::OutputDebugStringA( szBuffer );
 #else
+				::fprintf( stderr, "%s\r\n%s", m_sName.c_str(), szBuffer );
 #endif	// #ifdef LSN_WINDOWS
 			}
 		}
@@ -47,14 +48,14 @@ namespace lsn {
 		/**
 		 * Begins monitoring a section of code.
 		 */
-		__forceinline void									Begin() {
+		LSN_FORCEINLINE void								Begin() {
 			m_ui64TimeNow = m_cPerfClock.GetRealTick();
 		}
 
 		/**
 		 * Stops monitoring a section of code.
 		 */
-		__forceinline void									Stop() {
+		LSN_FORCEINLINE void								Stop() {
 			m_ui64AccumTime += m_cPerfClock.GetRealTick() - m_ui64TimeNow;
 			m_ui32Calls++;
 		}

@@ -688,7 +688,6 @@ namespace lsn {
 	 *
 	 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
 	 * \param _fFrac The interpolation amount.
-	 * \param _dPreEmphHzInRadians The pre-emphasis x value.
 	 * \return Returns the interpolated point.
 	 */
 	inline float CAudio::Sample_6Point_5thOrder_32X_Z( const float * _pfsSamples, float _fFrac ) {

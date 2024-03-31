@@ -10,10 +10,12 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#if defined( __i386__ ) || defined( __x86_64__ )
 #include "../OS/LSNFeatureSet.h"
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 
 #include <cmath>
-#include <intrin.h>
+//#include <intrin.h>
 #include <numbers>
 #include <string>
 #include <vector>
@@ -173,7 +175,7 @@ namespace lsn {
 		 * \param _ui32FactorY The vertical interpolation factor (A -> C and B -> D).  0-256.
 		 * \return Returns the 0xAARRGGBB (though color order doesn't actually matter) color resulting from bilinear interpolation.
 		 */
-		static __forceinline uint32_t						BiLinearSample_Int( uint32_t _ui32A, uint32_t _ui32B, uint32_t _ui32C, uint32_t _ui32D, uint32_t _ui32FactorX, uint32_t _ui32FactorY ) {
+		static LSN_FORCEINLINE uint32_t						BiLinearSample_Int( uint32_t _ui32A, uint32_t _ui32B, uint32_t _ui32C, uint32_t _ui32D, uint32_t _ui32FactorX, uint32_t _ui32FactorY ) {
 			// Mercilessly, brutally ripped from:
 			//	https://stackoverflow.com/questions/14659612/sse-bilinear-interpolation
 			constexpr uint32_t ui32MaskRb = 0x00FF00FF;
@@ -210,7 +212,7 @@ namespace lsn {
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 * \return Returns the 0xAARRGGBB (though color order doesn't actually matter) color resulting from linear interpolation.
 		 */
-		static __forceinline uint32_t						LinearSample_Int( uint32_t _ui32A, uint32_t _ui32B, uint32_t _ui32FactorX ) {
+		static LSN_FORCEINLINE uint32_t						LinearSample_Int( uint32_t _ui32A, uint32_t _ui32B, uint32_t _ui32FactorX ) {
 			constexpr uint32_t ui32MaskRb = 0x00FF00FF;
 			constexpr uint32_t ui32MaskAg = 0xFF00FF00;
 
@@ -234,12 +236,12 @@ namespace lsn {
 		/**
 		 * 64-bit integer-based linear interpolation between 2 pairs of ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 *
-		 * \param _ui32A The left color.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
-		 * \param _ui32B The right color.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
-		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 * \param _ui64A The left color.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _ui64B The right color.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _ui64FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 * \return Returns the 0xAARRGGBBAARRGGBB (though color order doesn't actually matter) color resulting from linear interpolation.
 		 */
-		static __forceinline uint64_t						LinearSample_Int64( uint64_t _ui64A, uint64_t _ui64B, uint64_t _ui64FactorX ) {
+		static LSN_FORCEINLINE uint64_t						LinearSample_Int64( uint64_t _ui64A, uint64_t _ui64B, uint64_t _ui64FactorX ) {
 			constexpr uint64_t ui64MaskRb = 0x00FF00FF00FF00FF;
 			constexpr uint64_t ui64MaskAg = 0xFF00FF00FF00FF00;
 
@@ -268,7 +270,8 @@ namespace lsn {
 		 * \param _pui32Result The destination where the interpolated 8 colors go.
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
-		static __forceinline void							LinearSample_SSE4( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+		static LSN_FORCEINLINE void							LinearSample_SSE4( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+#ifdef __SSE4_1__
 			__m128i mA					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32A) );
 			__m128i mB					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32B) );
 
@@ -312,6 +315,7 @@ namespace lsn {
 			__m128i mResult				= _mm_or_si128( mRbResult, mAgResult );
 
 			_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui32Result), mResult );
+#endif	// #ifdef __SSE4_1__
 		}
 
 		/**
@@ -322,7 +326,8 @@ namespace lsn {
 		 * \param _pui32Result The destination where the interpolated 8 colors go.
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
-		static __forceinline void							LinearSample_AVX2( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+		static LSN_FORCEINLINE void							LinearSample_AVX2( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
+#ifdef __AVX2__
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -360,6 +365,7 @@ namespace lsn {
 
 			// Store the result.
 			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
+#endif	// #ifdef __AVX2__
 		}
 
 		/**
@@ -370,7 +376,8 @@ namespace lsn {
 		 * \param _pui32Result The destination where the interpolated 8 colors go.
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
-		static __forceinline void							LinearSample_AVX512( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
+		static LSN_FORCEINLINE void							LinearSample_AVX512( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
+#ifdef __AVX512F__
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -408,6 +415,7 @@ namespace lsn {
 
 			// Store the result.
 			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
+#endif	// #ifdef __AVX512F__
 		}
 
 
@@ -420,7 +428,7 @@ namespace lsn {
 		 * \param _ui32SrcW The input width in pixels.
 		 * \param _ui32DstW The output width in pixels and the number of values to which _pui8Factors points.
 		 */
-		static __forceinline void							LinearInterpolateRow_Int( const uint32_t * _pui32SrcRow, uint32_t * _pui32DstRow, const uint32_t * _pui32Factors, uint32_t _ui32SrcW, uint32_t _ui32DstW ) {
+		static LSN_FORCEINLINE void							LinearInterpolateRow_Int( const uint32_t * _pui32SrcRow, uint32_t * _pui32DstRow, const uint32_t * _pui32Factors, uint32_t _ui32SrcW, uint32_t _ui32DstW ) {
 			for ( uint32_t X = _ui32DstW; X--; ) {
 				uint32_t ui32SrcX = _pui32Factors[X] >> 8;
 
@@ -440,7 +448,7 @@ namespace lsn {
 		 * \param _ui32Width The width of the rows in pixels.
 		 * \param _ui32Factor The mix factor for combining the rows.
 		 */
-		static __forceinline void							LinearInterpCombineRows_Int( const uint32_t * _pui32SrcRow0, const uint32_t * _pui32SrcRow1, uint32_t * _pui32DstRow, uint32_t _ui32Width, uint32_t _ui32Factor ) {
+		static LSN_FORCEINLINE void							LinearInterpCombineRows_Int( const uint32_t * _pui32SrcRow0, const uint32_t * _pui32SrcRow1, uint32_t * _pui32DstRow, uint32_t _ui32Width, uint32_t _ui32Factor ) {
 			if ( _ui32Factor == 0 ) {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
@@ -500,7 +508,7 @@ namespace lsn {
 		 * \param _ui32Color1 The right operand.
 		 * \return Returns the clamped result of adding the colors together.  Each value is clamped between 0x00 and 0xFF inclusively.
 		 */
-		static __forceinline uint32_t						AddArgb( uint32_t _ui32Color0, uint32_t _ui32Color1 ) {
+		static LSN_FORCEINLINE uint32_t						AddArgb( uint32_t _ui32Color0, uint32_t _ui32Color1 ) {
 			uint32_t ui32Ag0 = _ui32Color0 & 0xFF00FF00;
 			uint32_t ui32Rb0 = _ui32Color0 & 0x00FF00FF;
 			uint64_t ui64Ag1 = (_ui32Color1 & 0xFF00FF00ULL) + ui32Ag0;
@@ -537,7 +545,7 @@ namespace lsn {
 		 * \return Returns the shifted RGBA value such that each component is clamped to 0 after the shift.
 		 */
 		template <size_t _stShift>
-		static __forceinline uint32_t						ShiftArgbRight_Int( uint32_t _ui32Val ) {
+		static LSN_FORCEINLINE uint32_t						ShiftArgbRight_Int( uint32_t _ui32Val ) {
 			return (_ui32Val & ArgbShiftMask_Int<_stShift>()) >> _stShift;
 		}
 
@@ -548,7 +556,7 @@ namespace lsn {
 		 * \return Returns the shifted RGBA value such that each component is clamped to 0 after the shift.
 		 */
 		template <size_t _stShift>
-		static __forceinline uint64_t						ShiftArgbRight_Int64( uint64_t _ui64Val ) {
+		static LSN_FORCEINLINE uint64_t						ShiftArgbRight_Int64( uint64_t _ui64Val ) {
 			return (_ui64Val & ArgbShiftMask_Int64<_stShift>()) >> _stShift;
 		}
 
@@ -559,7 +567,7 @@ namespace lsn {
 		 * \return Returns the RGBA value with each component divided by the given value.
 		 */
 		template <uint8_t _ui8Div>
-		static __forceinline uint32_t						DivArgb_Int( uint32_t _ui32Color ) {
+		static LSN_FORCEINLINE uint32_t						DivArgb_Int( uint32_t _ui32Color ) {
 			return 0;
 		}
 
@@ -570,7 +578,7 @@ namespace lsn {
 		 * \param _ui32Width The row stride, in pixels, of the input/output buffer.
 		 * \param _ui32Height The number of rows in the input/output buffer.
 		 */
-		static __forceinline void							DecayArgb( uint32_t * _pui32Src, uint32_t _ui32Width, uint32_t _ui32Height ) {
+		static LSN_FORCEINLINE void							DecayArgb( uint32_t * _pui32Src, uint32_t _ui32Width, uint32_t _ui32Height ) {
 			uint32_t ui32Total = _ui32Width * _ui32Height;
 			uint64_t * pui64Pixels = reinterpret_cast<uint64_t *>(_pui32Src);
 			uint32_t ui32Total2 = ui32Total >> 1;
@@ -600,7 +608,7 @@ namespace lsn {
 		 * \return Returns the 8-bit fixed-point sampling factor where the bottom 8 bits are a fraction between sample[X] and sample[X+1] and the remaining upper bits
 		 *	are the X index of the samples between which to interpolate.
 		 */
-		static __forceinline uint32_t						SamplingFactor_BiLinear( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
+		static LSN_FORCEINLINE uint32_t						SamplingFactor_BiLinear( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
 			return (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
 		}
 
@@ -614,7 +622,7 @@ namespace lsn {
 		 * \return Returns the 8-bit fixed-point sampling factor where the bottom 8 bits are a fraction between sample[X] and sample[X+1] and the remaining upper bits
 		 *	are the X index of the samples between which to interpolate.
 		 */
-		static __forceinline uint32_t						SamplingFactor_Scanline( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
+		static LSN_FORCEINLINE uint32_t						SamplingFactor_Scanline( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
 			uint32_t ui32Factor = (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
 			uint32_t ui32Idx = ui32Factor >> 8;
 			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 1) - 0xFF ) ) );
@@ -645,6 +653,15 @@ namespace lsn {
 		 * \return Returns true if any file names are duplicates of each other when compared with case-insensitivity.
 		 **/
 		static bool											DuplicateFiles( const std::vector<CUtilities::LSN_FILE_PATHS> &_s16Paths, std::vector<size_t> &_vIndices );
+		
+		/**
+		 * Performs a case-insensitive string compare against 2 UTF-16 strings.  Returns true if they are equal.
+		 *
+		 * \param _u16Str0 The left operand.
+		 * \param _u16Str1 The right operand.
+		 * \return Returns true if the given strings are equal as compared via a case-insensitive UTF-16 compare.
+		 **/
+		static bool											StringCmpUtf16_IgnoreCase( const std::u16string &_u16Str0, const std::u16string &_u16Str1 );
 
 		/**
 		 * Copies the last folder in the path given in the first string to the start of the 2nd string.
@@ -654,6 +671,7 @@ namespace lsn {
 		 **/
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 
+#ifdef __AVX512F__
 		/**
 		 * Horizontally adds all the floats in a given AVX-512 register.
 		 * 
@@ -678,7 +696,9 @@ namespace lsn {
 			// Step 4: Extract the scalar value.
 			return _mm_cvtss_f32( mAddH2 );
 		}
+#endif	// #ifdef __AVX512F__
 
+#ifdef __AVX__
 		/**
 		 * Horizontally adds all the floats in a given AVX register.
 		 * 
@@ -698,7 +718,9 @@ namespace lsn {
 			// Step 4: Extract the scalar value.
 			return _mm_cvtss_f32( mAddH2 );
 		}
+#endif	// #ifdef __AVX__
 
+#ifdef __SSE4_1__
 		/**
 		 * Horizontally adds all the floats in a given SSE register.
 		 * 
@@ -710,6 +732,7 @@ namespace lsn {
 			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
 			return _mm_cvtss_f32( mAddH2 );
 		}
+#endif	// #ifdef __SSE4_1__
 
 		/**
 		 * A helper function.
@@ -1018,7 +1041,11 @@ namespace lsn {
 		 * \return Returns true if AVX is supported.
 		 **/
 		static inline bool									IsAvxSupported() {
+#if defined( __i386__ ) || defined( __x86_64__ )
 			return CFeatureSet::AVX();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
 
 		/**
@@ -1027,7 +1054,11 @@ namespace lsn {
 		 * \return Returns true if AVX is supported.
 		 **/
 		static inline bool									IsAvx2Supported() {
+#if defined( __i386__ ) || defined( __x86_64__ )
 			return CFeatureSet::AVX2();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
 
 		/**
@@ -1036,7 +1067,11 @@ namespace lsn {
 		 * \return Returns true if AVX-512F is supported.
 		 **/
 		static inline bool									IsAvx512FSupported() {
+#if defined( __i386__ ) || defined( __x86_64__ )
 			return CFeatureSet::AVX512F();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
 
 		/**
@@ -1045,7 +1080,11 @@ namespace lsn {
 		 * \return Returns true if AVX-512BW is supported.
 		 **/
 		static inline bool									IsAvx512BWSupported() {
+#if defined( __i386__ ) || defined( __x86_64__ )
 			return CFeatureSet::AVX512BW();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
 
 		/**
@@ -1054,14 +1093,18 @@ namespace lsn {
 		 * \return Returns true if SSE 4 is supported.
 		 **/
 		static inline bool									IsSse4Supported() {
+#if defined( __i386__ ) || defined( __x86_64__ )
 			return CFeatureSet::SSE41();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
 
 
 		// == Members.
-		LSN_ALIGN( 32 )
+		LSN_ALIGN( 64 )
 		static const float									m_fNtscLevels[16];							/**< Output levels for NTSC. */
-		LSN_ALIGN( 32 )
+		LSN_ALIGN( 64 )
 		static const float									m_fPalLevels[16];							/**< Output levels for PAL. */
 	};
 

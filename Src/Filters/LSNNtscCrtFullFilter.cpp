@@ -9,7 +9,6 @@
 #include "LSNNtscCrtFullFilter.h"
 #include "../Utilities/LSNUtilities.h"
 #include "NTSC-CRT-Full/crt_core.h"
-#include <Helpers/LSWHelpers.h>
 
 #define m_nsSettings				(*reinterpret_cast<NTSC_SETTINGS *>(m_vSettings.data()))
 #define m_nnCrtNtsc					(*reinterpret_cast<CRT *>(m_vCrtNtsc.data()))

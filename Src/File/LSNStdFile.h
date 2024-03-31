@@ -146,7 +146,7 @@ namespace lsn {
 		 * \param _bFromEnd Whether _ui64Pos is from the end of the file or not. 
 		 * \return Returns the new file position.
 		 **/
-		virtual uint64_t									MovePointerTo( uint64_t _ui64Pos, BOOL _bFromEnd = false ) const;
+		virtual uint64_t									MovePointerTo( uint64_t _ui64Pos, bool _bFromEnd = false ) const;
 
 
 	protected :

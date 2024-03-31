@@ -162,7 +162,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF0_7EF0( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -176,7 +176,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF1_7EF1( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -190,7 +190,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF2_7EF2( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -203,7 +203,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF3_7EF3( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -216,7 +216,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF4_7EF4( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -229,7 +229,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF5_7EF5( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -242,7 +242,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF6_7EF7( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -264,7 +264,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EF8_7EF9( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -277,7 +277,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EFA_7EFB( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -290,7 +290,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EFC_7EFD( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -303,7 +303,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank7EFE_7EFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);
@@ -331,7 +331,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						ChrRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper080 * pmThis = reinterpret_cast<CMapper080 *>(_pvParm0);

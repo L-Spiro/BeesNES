@@ -11,6 +11,19 @@
 #include "../OS/LSNOs.h"
 #include <cstdint>
 
+#ifdef __GNUC__
+#include <pthread.h>
+
+#ifndef WAIT_TIMEOUT
+#define WAIT_TIMEOUT 258
+#endif	// #ifndef WAIT_TIMEOUT
+
+#ifndef WAIT_OBJECT_0
+#define WAIT_OBJECT_0 static_cast<uint32_t>(0)
+#endif	// #ifndef WAIT_OBJECT_0
+
+#endif	// #ifdef __GNUC__
+
 
 namespace lsn {
 
@@ -60,6 +73,10 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		/** The event handle. */
 		HANDLE									m_hHandle;
+#elif defined( __GNUC__ )
+		::pthread_cond_t						m_cHandle;		/**< The event handle. */
+		::pthread_mutex_t						m_mLock;		/**< The mutex. */
+		bool									m_bTriggered;	/**< If the mutex has been signaled. */
 #else
 #endif	// #ifdef LSN_WINDOWS
 	};

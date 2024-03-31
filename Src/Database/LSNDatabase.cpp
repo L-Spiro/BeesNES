@@ -602,7 +602,11 @@ namespace lsn {
 			if ( m_mDatabase.end() != m_mDatabase.find( eEntries[I].ui32Crc ) ) {
 				char szBuffer[128];
 				std::sprintf( szBuffer, "************ Duplicate Entry in Database: 0x%.8X.\r\n", eEntries[I].ui32Crc );
+#ifdef LSN_WINDOWS
 				::OutputDebugStringA( szBuffer );
+#else
+				::fprintf( stderr, "%s", szBuffer );
+#endif	// #ifdef LSN_WINDOWS
 			}
 			m_mDatabase.insert( std::pair<uint32_t, LSN_ENTRY>( eEntries[I].ui32Crc, eEntries[I] ) );
 		}

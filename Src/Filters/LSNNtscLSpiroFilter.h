@@ -13,6 +13,10 @@
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 
+#if defined( __arm__ ) || defined( __aarch64__ )
+#include <arm_neon.h>
+#endif
+
 #include <thread>
 
 #pragma warning( push )
@@ -190,6 +194,13 @@ namespace lsn {
 
 
 		// == Types.
+		/** A 4-element float vector for mega-SIMD. */
+#ifdef __SSE4_1__
+		typedef __m128										simd_4;
+#elif defined( __arm__ ) || defined( __aarch64__ )
+		typedef float32x4_t									simd_4;
+#endif	// #ifdef __SSE4_1__
+		
 		/** Thread data. */
 		struct LSN_THREAD_DATA {
 			uint64_t										ui64RenderStartCycle;					/**< The render cycle at the start of the frame. */
@@ -206,14 +217,13 @@ namespace lsn {
 		uint16_t											m_ui16Height = 0;						/**< The last input height. */
 		uint32_t											m_ui32FinalStride = 0;					/**< The final stride. */
 
+#ifdef __AVX__
 		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
 		__m256												m_mStackedCosTable[12];					/**< 8 elements of the cosine table stacked. */
 		__m256												m_mStackedSinTable[12];					/**< 8 elements of the sine table stacked. */
-
+#endif	// #ifdef __AVX__
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
-		__m128												m_mCosSinTable[12];						/**< The cos/sin table expressed such that each vector is [1.0f, COS, SIN, 0.0f]. */
-
 		
 		float												m_fPhaseCosTable[12];					/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
@@ -222,9 +232,9 @@ namespace lsn {
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
-		std::vector<__m128>									m_vY;									/**< The YIQ Y buffer. */
-		std::vector<__m128>									m_vI;									/**< The YIQ I buffer. */
-		std::vector<__m128>									m_vQ;									/**< The YIQ Q buffer. */
+		std::vector<simd_4>									m_vY;									/**< The YIQ Y buffer. */
+		std::vector<simd_4>									m_vI;									/**< The YIQ I buffer. */
+		std::vector<simd_4>									m_vQ;									/**< The YIQ Q buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
 		uint16_t											m_ui16WidthScale = 8;					/**< Scale factor between input and output width. */
@@ -294,7 +304,6 @@ namespace lsn {
 		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 		 * \param _ui16Start Index of the first scanline to render.
 		 * \param _ui16End INdex of the end scanline.
-		 * \param _ui32Stride Bytes between pixel rows.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
 		 **/
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle );
@@ -328,6 +337,7 @@ namespace lsn {
 		 **/
 		bool												AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale );
 
+#ifdef __AVX__
 		/**
 		 * Performs convolution on 8 values at a time.
 		 * 
@@ -339,7 +349,9 @@ namespace lsn {
 		 * \return Returns the sum of the signal convolution.
 		 **/
 		inline float										Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin );
-
+#endif	// #ifdef __AVX__
+		
+#ifdef __SSE4_1__
 		/**
 		 * Performs convolution on 4 values at a time.
 		 * 
@@ -351,6 +363,7 @@ namespace lsn {
 		 * \return Returns the sum of the signal convolution.
 		 **/
 		inline float										Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, float &_fCos, float &_fSin );
+#endif	// #ifdef __SSE4_1__
 
 		/**
 		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
@@ -422,6 +435,7 @@ namespace lsn {
 		}
 	}
 
+#ifdef __AVX__
 	/**
 	 * Performs convolution on 8 values at a time.
 	 * 
@@ -462,7 +476,9 @@ namespace lsn {
 		_fSin += CUtilities::HorizontalSum( mSin );
 		return CUtilities::HorizontalSum( mLevels );
 	}
+#endif	// #ifdef __AVX__
 
+#ifdef __SSE4_1__
 	/**
 	 * Performs convolution on 4 values at a time.
 	 * 
@@ -503,6 +519,7 @@ namespace lsn {
 		_fSin += CUtilities::HorizontalSum( mSin );
 		return CUtilities::HorizontalSum( mLevels );
 	}
+#endif	// #ifdef __SSE4_1__
 
 }	// namespace lsn
 

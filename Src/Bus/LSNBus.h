@@ -368,7 +368,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL			StdWrite( void * /*_pvParm0*/, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
 			_pui8Data[_ui16Parm1] = _ui8Val;
@@ -391,7 +391,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL			NoWrite( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
 		}

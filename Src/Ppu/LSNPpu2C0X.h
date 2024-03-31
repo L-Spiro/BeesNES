@@ -20,7 +20,9 @@
 #include "../Utilities/LSNDelayedValue.h"
 
 #include <cmath>
+#ifdef LSN_WINDOWS
 #include <intrin.h>
+#endif	// #ifdef LSN_WINDOWS
 
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
@@ -46,7 +48,7 @@ namespace lsn {
 		unsigned _tDotWidth, unsigned _tDotHeight,
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tRenderW, unsigned _tBorderW,
-		bool _bOddFrameShenanigans, double _dPerferredRatio>
+		bool _bOddFrameShenanigans, /*double _dPerferredRatio*/ unsigned _uRatioNumer, unsigned _uRatioDenom>
 	class CPpu2C0X : public CTickable, public CDisplayClient {
 	public :
 		CPpu2C0X( CCpuBus * _pbBus, CInterruptable * _pnNmiTarget ) :
@@ -292,7 +294,11 @@ namespace lsn {
 		 */
 		void											ApplyVerticalMirroring() {
 			CMapperBase::ApplyMirroring( LSN_MM_VERTICAL, &m_bBus, this );
+#ifdef LSN_WINDOWS
 			::OutputDebugStringA( "****** LSN_MM_VERTICAL.\r\n" );
+#else
+			fprintf( stderr, "%s", "****** LSN_MM_VERTICAL.\r\n" );
+#endif	// #ifdef LSN_WINDOWS
 		}
 
 		/**
@@ -300,7 +306,11 @@ namespace lsn {
 		 */
 		void											ApplyHorizontalMirroring() {
 			CMapperBase::ApplyMirroring( LSN_MM_HORIZONTAL, &m_bBus, this );
+#ifdef LSN_WINDOWS
 			::OutputDebugStringA( "****** LSN_MM_HORIZONTAL.\r\n" );
+#else
+			fprintf( stderr, "%s", "****** LSN_MM_HORIZONTAL.\r\n" );
+#endif	// #ifdef LSN_WINDOWS
 		}
 
 		/**
@@ -308,7 +318,11 @@ namespace lsn {
 		 */
 		void											ApplyFourScreensMirroring() {
 			CMapperBase::ApplyMirroring( LSN_MM_4_SCREENS, &m_bBus, this );
+#ifdef LSN_WINDOWS
 			::OutputDebugStringA( "****** LSN_MM_4_SCREENS.\r\n" );
+#else
+			fprintf( stderr, "%s", "****** LSN_MM_4_SCREENS.\r\n" );
+#endif	// #ifdef LSN_WINDOWS
 		}
 
 		/**
@@ -316,7 +330,11 @@ namespace lsn {
 		 */
 		void											ApplyOneScreenMirroring() {
 			CMapperBase::ApplyMirroring( LSN_MM_1_SCREEN_A, &m_bBus, this );
+#ifdef LSN_WINDOWS
 			::OutputDebugStringA( "****** LSN_MM_1_SCREEN_A.\r\n" );
+#else
+			fprintf( stderr, "%s", "****** LSN_MM_1_SCREEN_A.\r\n" );
+#endif	// #ifdef LSN_WINDOWS
 		}
 
 		/**
@@ -324,7 +342,11 @@ namespace lsn {
 		 */
 		void											ApplyOneScreenMirroring_B() {
 			CMapperBase::ApplyMirroring( LSN_MM_1_SCREEN_B, &m_bBus, this );
+#ifdef LSN_WINDOWS
 			::OutputDebugStringA( "****** LSN_MM_1_SCREEN_B.\r\n" );
+#else
+			fprintf( stderr, "%s", "****** LSN_MM_1_SCREEN_B.\r\n" );
+#endif	// #ifdef LSN_WINDOWS
 		}
 
 		/**
@@ -409,7 +431,7 @@ namespace lsn {
 		 *
 		 * \return Returns the ratio of the display area.
 		 */
-		virtual double									DisplayRatio() const { return _dPerferredRatio; }
+		virtual double									DisplayRatio() const { return double( _uRatioNumer ) / double( _uRatioDenom ); }
 
 		/**
 		 * If true, extra room is added to the side of the view to display some debug information.
@@ -706,7 +728,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -735,7 +757,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -804,7 +826,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -817,7 +839,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -856,7 +878,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -875,7 +897,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -898,7 +920,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -968,7 +990,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write2007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -1015,7 +1037,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						PaletteWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -1051,7 +1073,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						WritePaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -1080,7 +1102,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						PpuNoWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
@@ -2277,30 +2299,33 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 4.0 / 3.0>													CNtscPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 4, 3>														CNtscPpu;
 
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)/*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 3717000000, 2543123715
+		/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CPalPpu;
 
 	/**
 	 * A Dendy PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)/*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 3717000000, 2543123715
+/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CDendyPpu;
 
 	/**
 	 * A PAL-M PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 4.0 / 3.0>
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 4, 3>
 																											CPalMPpu;
 
 	/**
 	 * A PAL-N PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), false, (7375000.0 / 5320342.5 * 252.0 / 239.0)>
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), false, 3717000000, 2543123715
+/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CPalNPpu;
 
 #undef LSN_PPU_TYPE

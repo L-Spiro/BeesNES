@@ -183,6 +183,7 @@ namespace lsn {
 			case LSN_ROM_HEADER_VERSION::LSN_RHV_ARCHAIC_INES : {
 				return (ui8Byte9 & 0x01) ? LSN_PPU_METRICS::LSN_PM_PAL : LSN_PPU_METRICS::LSN_PM_UNKNOWN;
 			}
+			default : { break; }
 		}
 		return LSN_PPU_METRICS::LSN_PM_UNKNOWN;
 	}

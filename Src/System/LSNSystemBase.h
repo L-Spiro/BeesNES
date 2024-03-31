@@ -45,13 +45,13 @@ namespace lsn {
 		 * 
 		 * \param _bAnalog If true, a soft reset is performed on the CPU, otherwise the CPU is reset to a known state.
 		 */
-		virtual void									ResetState( bool /*_bAnalog*/ ) = 0 { }
+		virtual void									ResetState( bool /*_bAnalog*/ ) = 0;
 
 		/**
 		 * Performs an update of the system state.  This means getting the amount of time that has passed since this was last called,
 		 *	determining how many cycles need to be run for each hardware component, and running all of them.
 		 */
-		virtual void									Tick() = 0 {}
+		virtual void									Tick() = 0;
 
 		/**
 		 * Loads a ROM image.
@@ -59,7 +59,7 @@ namespace lsn {
 		 * \param _rRom The ROM data to load, previously populated by a call to LoadRom().
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
-		virtual bool									LoadRom( LSN_ROM &/*_rRom*/ ) = 0 { return false; }
+		virtual bool									LoadRom( LSN_ROM &/*_rRom*/ ) = 0;
 
 		/**
 		 * Sets the input poller.

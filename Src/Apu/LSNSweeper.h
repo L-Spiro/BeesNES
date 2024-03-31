@@ -33,7 +33,6 @@ namespace lsn {
 		 * Updates the envelope.
 		 * 
 		 * \param _bOnesCompliment Must be 0 (for two's compliment) or 1 (for one's compliment).
-		 * \return Returns the envelope value after any updating that needs to be done.
 		 **/
 		template <unsigned _uOnesCompliment>
 		inline void									TickSweeper() {

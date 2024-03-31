@@ -7,6 +7,7 @@
 
 #include "../Src/LSNLSpiroNes.h"
 #include "../Src/Audio/LSNAudio.h"
+#include "../Src/Database/LSNDatabase.h"
 
 #import "AppDelegate.h"
 
@@ -17,12 +18,14 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
+    lsn::CDatabase::Init();
+    lsn::CAudio::InitializeAudio();
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
-    // Insert code here to tear down your application
+    lsn::CAudio::ShutdownAudio();
+    lsn::CDatabase::Reset();
 }
 
 

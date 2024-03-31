@@ -482,7 +482,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						DefaultChrRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);
@@ -543,7 +543,7 @@ namespace lsn {
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Ret The value to write.
+		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write_ControllableMirror( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val ) {
 			CMapperBase * pmThis = reinterpret_cast<CMapperBase *>(_pvParm0);

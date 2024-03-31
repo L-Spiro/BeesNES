@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <emmintrin.h>
 #include <memory>
 #include <numbers>
 
@@ -254,9 +253,10 @@ namespace lsn {
 			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;
 			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
 			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
-#if 1
+
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
 			int16_t J = i16Start;
+#ifdef __AVX__
 			if ( CUtilities::IsAvxSupported() ) {
 				while ( i16End - J >= 8 ) {
 					uint16_t ui16CosIdx;
@@ -271,6 +271,8 @@ namespace lsn {
 					J += 8;
 				}
 			}
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
 			if ( CUtilities::IsSse4Supported() ) {
 				while ( i16End - J >= 4 ) {
 					uint16_t ui16CosIdx;
@@ -285,6 +287,7 @@ namespace lsn {
 					J += 4;
 				}
 			}
+#endif	// #ifdef __SSE4_1__
 			{
 				while ( i16End - J >= 1 ) {
 					uint16_t ui16CosIdx;
@@ -304,38 +307,6 @@ namespace lsn {
 			(*_pfDstY++) *= m_fBrightnessSetting;
 			++_pfDstI;
 			++_pfDstQ;
-#else
-			__m128 mYiq = _mm_setzero_ps();
-			for ( int16_t J = i16Start; J < i16End; ++J ) {
-				__m128 mLevel = _mm_set1_ps( pfSignalStart[J] * m_fFilter[J-i16Start] );
-				// Negative indexing into m_pfSignalStart is allowed, since it points no fewer than (m_ui32FilterKernelSize/2) floats into the buffer.
-				mYiq = _mm_add_ps(
-					mYiq,
-					_mm_mul_ps( mLevel, m_mCosSinTable[(_ui16Cycle+(12*4)+J)%12] ) );
-				// (_ui16Cycle+J) can result in negative numbers, which you would fix by adding 12 or some other multiple of 12 as long as that value is large enough to always
-				//	bring the final result back into the positive.
-				// We just add that value pre-emptively before adding J so that the value can never go below 0 in the first place.  (12*4) is used because it should always be
-				//	enough to offset J back into the positive regardless of the kernel size.
-				// If LSN_MAX_FILTER_SIZE were to be increased significantly, this might need to be adjusted accordingly, but currently it allows LSN_MAX_FILTER_SIZE to go as
-				//	high as 96, which is ridiculously high.
-				// See GenFilterKernel() for the creation of m_fFilter.
-				// See GenPhaseTables() for the creation of m_mCosSinTable.
-
-				/**
-				 * This is the same as:
-				 * float fLevel = m_pfSignalStart[J] * m_fFilter[J+i16Start];
-				 * fY += fLevel;
-				 * fI += fLevel * m_fPhaseCosTable[(_ui16Cycle+(12*4)+J)%12];
-				 * fQ += fLevel * m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12];
-				 */
-			}
-			LSN_ALIGN( 32 )
-			float fTmp[4];
-			_mm_store_ps( fTmp, mYiq );
-			(*_pfDstY++) = fTmp[0] * m_fBrightnessSetting;
-			(*_pfDstI++) = fTmp[1];
-			(*_pfDstQ++) = fTmp[2];
-#endif
 		}
 
 	}
@@ -370,7 +341,7 @@ namespace lsn {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
-		size_t sYiqStride = m_ui16ScaledWidth * (sizeof( __m128 ) / sizeof( float ));
+		size_t sYiqStride = m_ui16ScaledWidth * (sizeof( simd_4 ) / sizeof( float ));
 		pfY += sYiqStride * _ui16Start;
 		pfI += sYiqStride * _ui16Start;
 		pfQ += sYiqStride * _ui16Start;
@@ -417,30 +388,8 @@ namespace lsn {
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
 			m_fPhaseSinTable[I] = float( dSin );
-
-			// SIMD version.
-			float fSimd[4] = {
-				1.0f,				// Y
-				float( dCos ),		// cos( M_PI * (phase+p) / 6 )
-				float( dSin ),		// sin( M_PI * (phase+p) / 6 )
-				0.0f,
-			};
-			m_mCosSinTable[I] = _mm_loadu_ps( fSimd );
-
-			/** Using the code on the Wiki as an illustration, the idea is:
-			 *         for(int p = begin; p < end; ++p) // Collect and accumulate samples
-			 *         {
-			 *             float level = signal_levels[p] / 12.f;
-			 *             y  =  y + level;
-			 *             i  =  i + level * cos( M_PI * (phase+p) / 6 );
-			 *             q  =  q + level * sin( M_PI * (phase+p) / 6 );
-			 *         }
-			 * 
-			 * Load level into 1 vector, multiply across with m_mCosSinTable[phase+p%12], and sum across, accumulating into a [y, i, q, 0] vector in the end.
-			 * IE:
-			 * [y, i, q, 0] += [level, level, level, level] * [1, COS, SIN, 0]
-			 **/
 		}
+#ifdef __AVX__
 		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
 			for ( size_t I = 0; I < 12; ++I ) {
 				float * pfThis = reinterpret_cast<float *>(&m_mStackedCosTable[I]);
@@ -450,6 +399,7 @@ namespace lsn {
 				pfThis[J] = m_fPhaseSinTable[(J+I)%12];
 			}
 		}
+#endif	// #ifdef __AVX__
 	}
 
 	/**
@@ -476,13 +426,14 @@ namespace lsn {
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = float( m_fFilter[I] * dNorm );
 		}
-
+#ifdef __AVX__
 		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
 			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
 				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable[I]);
 				pfDst[J] = m_fFilter[(J+I)%_ui32Width];
 			}
 		}
+#endif	// #ifdef __AVX__
 	}
 
 	/**
@@ -534,6 +485,7 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
+#ifdef __AVX512F__
 		if ( CUtilities::IsAvx512BWSupported() ) {
 			__m512 m0 = _mm512_set1_ps( 0.0f );
 			__m512 m299 = _mm512_set1_ps( 299.0f );
@@ -658,7 +610,10 @@ namespace lsn {
 
 			}
 		}
-		else if ( CUtilities::IsAvx2Supported() ) {
+		else
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+		if ( CUtilities::IsAvx2Supported() ) {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
 			__m256 m299 = _mm256_set1_ps( 299.0f );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
@@ -741,7 +696,10 @@ namespace lsn {
 
 			}
 		}
-		else if ( CUtilities::IsSse4Supported() ) {
+		else
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+		if ( CUtilities::IsSse4Supported() ) {
 			__m128 m0 = _mm_set1_ps( 0.0f );
 			__m128 m299 = _mm_set1_ps( 299.0f );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m128 ) / sizeof( float ) ) {
@@ -803,7 +761,9 @@ namespace lsn {
 				pfQ += sizeof( __m128 ) / sizeof( float );
 			}
 		}
-		else {
+		else
+#endif	// #ifdef __SSE4_1__
+		{
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 				// Convert YUV to RGB.
 				// R = Y + (1.139883025203f * V)

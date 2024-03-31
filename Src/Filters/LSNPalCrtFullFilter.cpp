@@ -9,7 +9,6 @@
 #include "LSNPalCrtFullFilter.h"
 #include "../Utilities/LSNUtilities.h"
 #include "PAL-CRT-Full/pal_core.h"
-#include <Helpers/LSWHelpers.h>
 
 #define m_nsSettings				(*reinterpret_cast<PAL_SETTINGS *>(m_vSettings.data()))
 #define m_nnCrtPal					(*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()))

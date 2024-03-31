@@ -58,8 +58,8 @@ namespace lsn {
 			size_t												stIdx;										/**< The index of the POV, button, or axis event. */
 			LSN_INPUT_CLASS										icType;										/**< The type of input. */
 			union {
-				LONG											lAxis;										/**< The axis value if icType is LSN_IC_AXIS. */
-				DWORD											dwPov;										/**< The POV value if icType is LSN_IC_POV. */
+				long											lAxis;										/**< The axis value if icType is LSN_IC_AXIS. */
+				uint32_t										dwPov;										/**< The POV value if icType is LSN_IC_POV. */
 				bool											bButton;									/**< The button value if icType is LSN_IC_BUTTON. */
 			}													u;
 		};
@@ -94,28 +94,28 @@ namespace lsn {
 		 * \param _ui8Idx The controller's axis index to poll.
 		 * \return Returns the axis value at the given axis index.
 		 **/
-		virtual LONG											PollAxis( uint8_t /*_ui8Idx*/ ) const { return 0; }
+		virtual long											PollAxis( uint8_t /*_ui8Idx*/ ) const { return 0; }
 
 		/**
 		 * Gets the X-axis position.
 		 * 
 		 * \return Returns the controller's X axis value.
 		 **/
-		virtual LONG											AxisX() const { return PollAxis( 0 ); }
+		virtual long											AxisX() const { return PollAxis( 0 ); }
 
 		/**
 		 * Gets the Y-axis position.
 		 * 
 		 * \return Returns the controller's Y axis value.
 		 **/
-		virtual LONG											AxisY() const { return PollAxis( 1 ); }
+		virtual long											AxisY() const { return PollAxis( 1 ); }
 
 		/**
 		 * Gets the Z-axis position.
 		 * 
 		 * \return Returns the controller's Z axis value.
 		 **/
-		virtual LONG											AxisZ() const { return PollAxis( 2 ); }
+		virtual long											AxisZ() const { return PollAxis( 2 ); }
 
 		/**
 		 * Gets a POV value given its POV index.
@@ -123,7 +123,7 @@ namespace lsn {
 		 * \param _ui8Idx The controller's POV index to poll.
 		 * \return Returns the POV value given the POV array index.
 		 **/
-		virtual DWORD											PollPov( uint8_t /*_ui8Idx*/ ) const { return 0; }
+		virtual uint32_t										PollPov( uint8_t /*_ui8Idx*/ ) const { return 0; }
 
 		/**
 		 * Starts the thread.

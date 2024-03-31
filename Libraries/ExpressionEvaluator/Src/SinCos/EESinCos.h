@@ -1,8 +1,12 @@
 #pragma once
 
+#ifdef __GNUC__
+#include <math.h>
+#endif	// #ifdef __GNUC__
+
 extern "C" {
 
-#if defined(_M_AMD64)
+#if defined( _M_AMD64 )
 
 // 64-bit implementation in MASM.
 // Enable MASM by right clicking your project in solution explorer then:
@@ -14,6 +18,9 @@ extern void SinCos( double _dRadians, double * _pdSin, double * _pdCos );
 
 // 32-bit implementation in inline assembly.
 inline void SinCos( double _dRadians, double * _pdSin, double * _pdCos ) {
+#ifdef __GNUC__
+	__sincos( _dRadians, _pdSin, _pdCos );
+#else
 	double dSin, dCos;
 	__asm {
 		fld QWORD PTR[_dRadians]
@@ -24,6 +31,7 @@ inline void SinCos( double _dRadians, double * _pdSin, double * _pdCos ) {
 	}
 	(*_pdSin) = dSin;
 	(*_pdCos) = dCos;
+#endif	// #ifdef __GNUC__
 }
 
 #endif

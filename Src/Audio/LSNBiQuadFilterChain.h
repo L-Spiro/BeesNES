@@ -125,8 +125,8 @@ namespace lsn {
 		 * Processes the biquad chain on the input, creating the output.
 		 *
 		 * \param _dInput The input sample to process.
-		 * \param _vOutput The result.
 		 * \param _pbqfCoeffs Array of at _uFilters coefficients.
+		 * \return Returns the processed sample.
 		 */
 		double								ProcessBiQuad( double _dInput, const CBiQuadFilter * _pbqfCoeffs ) {        
 			m_pdYn[0] = _pbqfCoeffs[0].m_dB0 * _dInput + _pbqfCoeffs[0].m_dB1 * m_dXn1 + _pbqfCoeffs[0].m_dB2 * m_dXn2

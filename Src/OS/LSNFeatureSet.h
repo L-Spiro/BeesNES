@@ -13,9 +13,14 @@
 #include <bitset>
 #include <array>
 #include <string>
+#if defined( __i386__ ) || defined( __x86_64__ )
 #include <intrin.h>
+#else
+//#include <x86intrin.h>
+#endif  // #if defined( __i386__ ) || defined( __x86_64__ )
 
 
+#if defined( __i386__ ) || defined( __x86_64__ )
 #ifdef __GNUC__
 
 void __cpuid( int * _piCpuInfo, int _iInfo ) {
@@ -43,7 +48,8 @@ void __cpuidex( int * _piCpuInfo, int _iInfo, int _iSubFunc ) {
     __cpuid_count( _iInfo, _iSubFunc, _piCpuInfo[0], _piCpuInfo[1], _piCpuInfo[2], _piCpuInfo[3] );
 }
 
-#endif
+#endif	// #ifdef __GNUC__
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 
 
 namespace lsn {
