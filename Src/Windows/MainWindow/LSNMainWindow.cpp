@@ -1240,6 +1240,9 @@ namespace lsn {
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB( vTmp[I].x[0] ) * 255.0 ) );
 			}
 			else {
+				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[2] ), 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[1] ), 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[0] ), 1.0 / 2.2 ) ) * 255.0 ) );*/
 				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB( CUtilities::SMPTE170MtoLinear( vTmp[I].x[2] ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB( CUtilities::SMPTE170MtoLinear( vTmp[I].x[1] ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB( CUtilities::SMPTE170MtoLinear( vTmp[I].x[0] ) ) * 255.0 ) );*/
@@ -1412,7 +1415,7 @@ namespace lsn {
 				//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
 				std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
 					wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
-					wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral.fpal";
+					wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
 				lsn::CStdFile sfFile;
 				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 					bool bTheyMightBeGiantFloats = false;

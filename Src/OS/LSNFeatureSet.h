@@ -13,14 +13,16 @@
 #include <bitset>
 #include <array>
 #include <string>
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( _MSC_VER )
 #include <intrin.h>
+#elif defined( __i386__ ) || defined( __x86_64__ )
+#include <cpuid.h>
 #else
 //#include <x86intrin.h>
 #endif  // #if defined( __i386__ ) || defined( __x86_64__ )
 
 
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 #ifdef __GNUC__
 
 void __cpuid( int * _piCpuInfo, int _iInfo ) {

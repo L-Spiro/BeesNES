@@ -103,7 +103,7 @@ namespace lsn {
 	 * \param _ui8Idx The controller's axis index to poll.
 	 * \return Returns the axis value at the given axis index.
 	 **/
-	LONG CDirectInput8Controller::PollAxis( uint8_t _ui8Idx ) const {
+	long CDirectInput8Controller::PollAxis( uint8_t _ui8Idx ) const {
 		if ( !m_did8Device.Obj() ) { return 0; }
 		if ( _ui8Idx == 0 ) { return JoyState().lX; }
 		if ( _ui8Idx == 1 ) { return JoyState().lY; }
@@ -119,7 +119,7 @@ namespace lsn {
 	 * \param _ui8Idx The controller's POV index to poll.
 	 * \return Returns the POV value given the POV array index.
 	 **/
-	DWORD CDirectInput8Controller::PollPov( uint8_t _ui8Idx ) const {
+	uint32_t CDirectInput8Controller::PollPov( uint8_t _ui8Idx ) const {
 		if ( !m_did8Device.Obj() || _ui8Idx >= LSN_ELEMENTS( JoyState().rgdwPOV ) ) { return false; }
 		return JoyState().rgdwPOV[_ui8Idx];
 	}

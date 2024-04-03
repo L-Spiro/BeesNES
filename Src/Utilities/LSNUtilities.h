@@ -10,9 +10,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 #include "../OS/LSNFeatureSet.h"
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 
 #include <cmath>
 //#include <intrin.h>
@@ -1041,7 +1041,7 @@ namespace lsn {
 		 * \return Returns true if AVX is supported.
 		 **/
 		static inline bool									IsAvxSupported() {
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::AVX();
 #else
 			return false;
@@ -1054,7 +1054,7 @@ namespace lsn {
 		 * \return Returns true if AVX is supported.
 		 **/
 		static inline bool									IsAvx2Supported() {
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::AVX2();
 #else
 			return false;
@@ -1067,7 +1067,7 @@ namespace lsn {
 		 * \return Returns true if AVX-512F is supported.
 		 **/
 		static inline bool									IsAvx512FSupported() {
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::AVX512F();
 #else
 			return false;
@@ -1080,7 +1080,7 @@ namespace lsn {
 		 * \return Returns true if AVX-512BW is supported.
 		 **/
 		static inline bool									IsAvx512BWSupported() {
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::AVX512BW();
 #else
 			return false;
@@ -1093,7 +1093,7 @@ namespace lsn {
 		 * \return Returns true if SSE 4 is supported.
 		 **/
 		static inline bool									IsSse4Supported() {
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::SSE41();
 #else
 			return false;

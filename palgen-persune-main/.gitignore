@@ -1,3 +1,4 @@
+# graph plotting
 /*.pal
 /*.png
 /docs/*.svg
@@ -5,3 +6,9 @@
 /docs/palette preview emphasis 0*
 /docs/QAM phase 0*
 /docs/waveform phase 0*
+
+# virtualenv stuff
+/Lib
+/Scripts
+/share
+/pyvenv.cfg

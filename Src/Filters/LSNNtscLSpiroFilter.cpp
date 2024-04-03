@@ -19,9 +19,15 @@ namespace lsn {
 	// == Members.
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
 		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
-		m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
-		m_fBrightnessSetting = 1.0f - 0.075f;	/**< The brightness setting. */
-		m_fSaturationSetting = -0.42f + 1.0f;	/**< The saturation setting. */
+		m_fGammaSetting = 2.22222222222222222222222222f;					/**< The CRT gamma curve. */
+		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;	/**< The brightness setting. */
+		m_fSaturationSetting = -0.40f + 1.0f;								/**< The saturation setting. */
+
+		// RetroTink?
+		//m_fHueSetting = 14.5f * std::numbers::pi / 180.0f;					/**< The hue. */
+		//m_fGammaSetting = 2.5f;					/**< The CRT gamma curve. */
+		//m_fBrightnessSetting = 1.0f - 0.005f;	/**< The brightness setting. */
+		//m_fSaturationSetting = -0.50f + 1.0f;								/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.

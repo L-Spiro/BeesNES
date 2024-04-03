@@ -47,6 +47,8 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
+
+		m_nbfLSpiroNtscFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		if ( !CUtilities::IsAvxSupported() && !CUtilities::IsSse4Supported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 2 );
 			m_nbfLSpiroPalFilter.SetWidthScale( 2 );

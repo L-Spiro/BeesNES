@@ -19,8 +19,7 @@ namespace lsn {
 		if ( m_ui64TotalLifetimeUnqueueds == m_ui64TotalLifetimeQueues ) {
 			m_ui64TotalLifetimeUnqueueds = m_ui64TotalLifetimeQueues = 0;
 			m_sCurBufferSize = 0;
-			m_ui32Frequency = m_ui32NextFrequency;
-			m_fFormat = m_fNextFormat;
+			UndirtyState();
 		}
 	}
 

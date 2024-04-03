@@ -62,7 +62,7 @@ namespace lsn {
 		 * \param _ui8Idx The controller's axis index to poll.
 		 * \return Returns the axis value at the given axis index.
 		 **/
-		virtual LONG											PollAxis( uint8_t _ui8Idx ) const;
+		virtual long											PollAxis( uint8_t _ui8Idx ) const;
 
 		/**
 		 * Gets a POV value given its POV index.
@@ -70,7 +70,7 @@ namespace lsn {
 		 * \param _ui8Idx The controller's POV index to poll.
 		 * \return Returns the POV value given the POV array index.
 		 **/
-		virtual DWORD											PollPov( uint8_t _ui8Idx ) const;
+		virtual uint32_t										PollPov( uint8_t _ui8Idx ) const;
 
 
 		/**

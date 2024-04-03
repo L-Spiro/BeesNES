@@ -226,7 +226,7 @@ namespace lsn {
 		 * \param _pmRegion The region to use when loading the ROM.  If LSN_PM_UNKNOWN, the ROM data is used to determine the region.
 		 * \return Returns true if the ROM was loaded successfully.
 		 */
-		static bool								LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion = LSN_PM_UNKNOWN );
+		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion = LSN_PM_UNKNOWN );
 
 		/**
 		 * Gets the rapid-fire patterns.
