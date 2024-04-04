@@ -7,7 +7,7 @@
  */
 
 #include "LSNOpenAlGetError.h"
-#include "../Localization/LSNLocalization.h"
+#include "../../Localization/LSNLocalization.h"
 
 #ifdef LSN_WINDOWS
 

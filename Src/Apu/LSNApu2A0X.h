@@ -15,7 +15,6 @@
 #include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
 #include "../Audio/LSNPoleFilterLeaky.h"
-#include "../Audio/LSNSampleBucket.h"
 #include "../Audio/LSNSincFilter.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNInterruptable.h"

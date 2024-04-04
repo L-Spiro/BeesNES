@@ -14,10 +14,10 @@
 #ifdef LSN_WINDOWS
 
 #include "LSNAudioBase.h"
-#include "LSNOpenAlBuffer.h"
-#include "LSNOpenAlContext.h"
-#include "LSNOpenAlDevice.h"
-#include "LSNOpenAlSource.h"
+#include "OpenAL/LSNOpenAlBuffer.h"
+#include "OpenAL/LSNOpenAlContext.h"
+#include "OpenAL/LSNOpenAlDevice.h"
+#include "OpenAL/LSNOpenAlSource.h"
 
 namespace lsn {
 

@@ -208,6 +208,12 @@
     <Filter Include="Source Files\Filters\PAL-CRT-Full">
       <UniqueIdentifier>{52e65cb8-c92c-4c20-af57-4f20bac8da9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Audio\OpenAL">
+      <UniqueIdentifier>{867f555c-d898-4c17-acf0-614dee61be66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\OpenAL">
+      <UniqueIdentifier>{e804840d-3480-47bd-92ac-45e7415b0abb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -429,20 +435,8 @@
     <ClInclude Include="Src\Mappers\LSNMapper038.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAl.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Mappers\LSNMapper132.h">
       <Filter>Header Files\Mappers</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlDevice.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlGetError.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlInclude.h">
-      <Filter>Header Files\Audio</Filter>
     </ClInclude>
     <ClInclude Include="Src\Mappers\LSNMapper232.h">
       <Filter>Header Files\Mappers</Filter>
@@ -567,15 +561,6 @@
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_core.h">
       <Filter>Header Files\Filters\PAL-CRT-Full</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlContext.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlBuffer.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNOpenAlSource.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Audio\LSNAudio.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
@@ -587,9 +572,6 @@
     </ClInclude>
     <ClInclude Include="Src\Apu\LSNApuUnit.h">
       <Filter>Header Files\Apu</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Audio\LSNSampleBucket.h">
-      <Filter>Header Files\Audio</Filter>
     </ClInclude>
     <ClInclude Include="Src\System\LSNInterruptable.h">
       <Filter>Header Files\System</Filter>
@@ -681,6 +663,27 @@
     <ClInclude Include="Src\Audio\LSNAudioOpenAl.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAl.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlBuffer.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlContext.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlDevice.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlGetError.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlInclude.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlSource.h">
+      <Filter>Header Files\Audio\OpenAL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -754,15 +757,6 @@
     </ClCompile>
     <ClCompile Include="Src\System\LSNSystemBase.cpp">
       <Filter>Source Files\System</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAl.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAlDevice.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAlGetError.cpp">
-      <Filter>Source Files\Audio</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp">
       <Filter>Source Files\Filters</Filter>
@@ -848,15 +842,6 @@
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c">
       <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAlContext.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAlBuffer.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Audio\LSNOpenAlSource.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Audio\LSNAudio.cpp">
       <Filter>Source Files\Audio</Filter>
     </ClCompile>
@@ -913,6 +898,24 @@
     </ClCompile>
     <ClCompile Include="Src\Audio\LSNAudioOpenAl.cpp">
       <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAl.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlBuffer.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlContext.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlDevice.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlGetError.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlSource.cpp">
+      <Filter>Source Files\Audio\OpenAL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

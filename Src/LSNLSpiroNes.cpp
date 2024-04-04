@@ -37,7 +37,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	// Controls seconds_since_start(), milliseconds_since_start(), etc., Expression Evaluator.
 	// We move it up as close to the start of the loop as possible so that these values most closely mark the actual time that meaningful execution
 	//	takes place (clock() returns the time since the EXE actually started (before main() is even called), so we don't need more tickers from that
-	//	time.
+	//	time).
 	// In a way, this allows (clock() - milliseconds_since_start()) to print the time it takes to initialize.
 	ee::CExpEval::InitializeExpressionEvaluatorLibrary();
 	MSG mMsg = {};

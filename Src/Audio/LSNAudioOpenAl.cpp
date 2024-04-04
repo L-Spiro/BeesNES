@@ -12,7 +12,7 @@
 
 #ifdef LSN_WINDOWS
 
-#include "LSNOpenAl.h"
+#include "OpenAL/LSNOpenAl.h"
 
 namespace lsn {
 

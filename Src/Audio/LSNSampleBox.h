@@ -233,37 +233,29 @@ namespace lsn {
 		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
 		 **/
 		void												SetFeatureSet( bool _bAvx512, bool _bAvx, bool _bSse4 ) {
-			if ( _bAvx512 ) {
-#ifdef __AVX512F__
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX512;
-				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX512;
-#else
-                m_gGen.pfStoreSample = &CSampleBox::StoreSample;
-                m_gGen.pfConvolve = &CSampleBox::Convolve;
-#endif  // #ifdef __AVX512F__
-			}
-			else if ( _bAvx ) {
-#ifdef __AVX__
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
-				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX;
-#else
-                m_gGen.pfStoreSample = &CSampleBox::StoreSample;
-                m_gGen.pfConvolve = &CSampleBox::Convolve;
-#endif  // #ifdef __AVX__
-			}
-			else if ( _bSse4 ) {
+			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
+			m_gGen.pfConvolve = &CSampleBox::Convolve;
+			
 #ifdef __SSE4_1__
+			if ( _bSse4 ) {
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SSE;
 				m_gGen.pfConvolve = &CSampleBox::Convolve_SSE;
-#else
-                m_gGen.pfStoreSample = &CSampleBox::StoreSample;
-                m_gGen.pfConvolve = &CSampleBox::Convolve;
+			}
 #endif  // #ifdef __SSE4_1__
+
+#ifdef __AVX__
+			if ( _bAvx ) {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX;
 			}
-			else {
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample;
-				m_gGen.pfConvolve = &CSampleBox::Convolve;
+#endif  // #ifdef __AVX__
+
+#ifdef __AVX512F__
+			if ( _bAvx512 ) {
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX512;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX512;
 			}
+#endif  // #ifdef __AVX512F__
 		}
 
 		/**

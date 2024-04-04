@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../LSNLSpiroNes.h"
+#include "../../LSNLSpiroNes.h"
 
 #ifdef LSN_WINDOWS
 

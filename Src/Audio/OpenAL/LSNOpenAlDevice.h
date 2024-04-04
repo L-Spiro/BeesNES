@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../LSNLSpiroNes.h"
+#include "../../LSNLSpiroNes.h"
 #include "LSNOpenAlInclude.h"
 
 #ifdef LSN_WINDOWS
