@@ -51,18 +51,18 @@ mz_ulong mz_adler32(mz_ulong adler, const unsigned char *ptr, size_t buf_len)
     {
         for (i = 0; i + 7 < block_len; i += 8, ptr += 8)
         {
-            s1 += ptr[0], s2 += s1;
-            s1 += ptr[1], s2 += s1;
-            s1 += ptr[2], s2 += s1;
-            s1 += ptr[3], s2 += s1;
-            s1 += ptr[4], s2 += s1;
-            s1 += ptr[5], s2 += s1;
-            s1 += ptr[6], s2 += s1;
-            s1 += ptr[7], s2 += s1;
+			(void)(s1 += ptr[0]), s2 += s1;
+			(void)(s1 += ptr[1]), s2 += s1;
+			(void)(s1 += ptr[2]), s2 += s1;
+			(void)(s1 += ptr[3]), s2 += s1;
+			(void)(s1 += ptr[4]), s2 += s1;
+			(void)(s1 += ptr[5]), s2 += s1;
+			(void)(s1 += ptr[6]), s2 += s1;
+			(void)(s1 += ptr[7]), s2 += s1;
         }
         for (; i < block_len; ++i)
-            s1 += *ptr++, s2 += s1;
-        s1 %= 65521U, s2 %= 65521U;
+			(void)(s1 += *ptr++), s2 += s1;
+		(void)(s1 %= 65521U), s2 %= 65521U;
         buf_len -= block_len;
         block_len = 5552;
     }
@@ -1283,7 +1283,7 @@ static int tdefl_flush_block(tdefl_compressor *d, int flush)
     {
         mz_uint i;
         d->m_pOutput_buf = pSaved_output_buf;
-        d->m_bit_buffer = saved_bit_buf, d->m_bits_in = saved_bits_in;
+		(void)(d->m_bit_buffer = saved_bit_buf), d->m_bits_in = saved_bits_in;
         TDEFL_PUT_BITS(0, 2);
         if (d->m_bits_in)
         {
@@ -1302,7 +1302,7 @@ static int tdefl_flush_block(tdefl_compressor *d, int flush)
     else if (!comp_block_succeeded)
     {
         d->m_pOutput_buf = pSaved_output_buf;
-        d->m_bit_buffer = saved_bit_buf, d->m_bits_in = saved_bits_in;
+		(void)(d->m_bit_buffer = saved_bit_buf), d->m_bits_in = saved_bits_in;
         tdefl_compress_block(d, MZ_TRUE);
     }
 
@@ -2201,7 +2201,7 @@ void *tdefl_write_image_to_png_file_in_memory(const void *pImage, int w, int h, 
 /* Allocate the tdefl_compressor and tinfl_decompressor structures in C so that */
 /* non-C language bindings to tdefL_ and tinfl_ API don't need to worry about */
 /* structure size and allocation mechanism. */
-tdefl_compressor *tdefl_compressor_alloc()
+tdefl_compressor *tdefl_compressor_alloc(void)
 {
     return (tdefl_compressor *)MZ_MALLOC(sizeof(tdefl_compressor));
 }
@@ -2533,7 +2533,7 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r, const mz_uint8 *pIn_buf_nex
                 MZ_CLEAR_OBJ(pTable->m_tree);
                 for (i = 0; i < r->m_table_sizes[r->m_type]; ++i)
                     total_syms[pTable->m_code_size[i]]++;
-                used_syms = 0, total = 0;
+				(void)(used_syms = 0), total = 0;
                 next_code[0] = next_code[1] = 0;
                 for (i = 1; i <= 15; ++i)
                 {
@@ -2842,18 +2842,18 @@ common_exit:
         {
             for (i = 0; i + 7 < block_len; i += 8, ptr += 8)
             {
-                s1 += ptr[0], s2 += s1;
-                s1 += ptr[1], s2 += s1;
-                s1 += ptr[2], s2 += s1;
-                s1 += ptr[3], s2 += s1;
-                s1 += ptr[4], s2 += s1;
-                s1 += ptr[5], s2 += s1;
-                s1 += ptr[6], s2 += s1;
-                s1 += ptr[7], s2 += s1;
+				(void)(s1 += ptr[0]), s2 += s1;
+				(void)(s1 += ptr[1]), s2 += s1;
+				(void)(s1 += ptr[2]), s2 += s1;
+				(void)(s1 += ptr[3]), s2 += s1;
+				(void)(s1 += ptr[4]), s2 += s1;
+				(void)(s1 += ptr[5]), s2 += s1;
+				(void)(s1 += ptr[6]), s2 += s1;
+				(void)(s1 += ptr[7]), s2 += s1;
             }
             for (; i < block_len; ++i)
-                s1 += *ptr++, s2 += s1;
-            s1 %= 65521U, s2 %= 65521U;
+				(void)(s1 += *ptr++), s2 += s1;
+			(void)(s1 %= 65521U), s2 %= 65521U;
             buf_len -= block_len;
             block_len = 5552;
         }
@@ -2942,7 +2942,7 @@ int tinfl_decompress_mem_to_callback(const void *pIn_buf, size_t *pIn_buf_size, 
 }
 
 #ifndef MINIZ_NO_MALLOC
-tinfl_decompressor *tinfl_decompressor_alloc()
+tinfl_decompressor *tinfl_decompressor_alloc(void)
 {
     tinfl_decompressor *pDecomp = (tinfl_decompressor *)MZ_MALLOC(sizeof(tinfl_decompressor));
     if (pDecomp)

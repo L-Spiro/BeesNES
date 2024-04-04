@@ -77,7 +77,7 @@ namespace lsn {
 	/**
 	 * Converts a UTF-16 string to a UTF-8 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.
 	 *
-	 * \param _pcPath String to convert.
+	 * \param _pcString String to convert.
 	 * \param _pbErrored If not nullptr, holds a returned boolean indicating success or failure of the conversion.
 	 * \return Returns the converted UTF-8 string.
 	 */
