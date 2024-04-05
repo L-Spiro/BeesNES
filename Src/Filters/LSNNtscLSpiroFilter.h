@@ -248,7 +248,7 @@ namespace lsn {
 		float												m_NormalizedLevels[16];					/**< Normalized levels. */
 
 		// ** SETTINGS ** //
-		float												m_fHueSetting = 1.0f;					/**< The hue. */
+		float												m_fHueSetting = 0.0f;					/**< The hue. */
 		float												m_fGammaSetting = 2.2f;					/**< The CRT gamma curve. */
 		float												m_fBrightnessSetting = 1.0f;			/**< The brightness setting. */
 		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
