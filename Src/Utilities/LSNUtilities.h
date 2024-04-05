@@ -916,6 +916,40 @@ namespace lsn {
 		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
+		static inline float									GaussianXFilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		static inline float									Gaussian12Over30FilterFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, 30.0 / 12.0 ) * _fWidth );
+				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				
+				float fX = _fT - _fWidth;
+				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Gaussian filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
 		static inline float									Gaussian1FilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
@@ -1033,6 +1067,22 @@ namespace lsn {
 		static inline float									BoxFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
+		}
+		/**
+		 * A custom filter with a flat middle and fall-offs on the sides.
+		 * 
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 **/
+		template <unsigned _uNotchW, unsigned _uPowTimes100>
+		static inline float									CrtHumpFunc( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			constexpr double dNotchW = double( _uNotchW ) / 2.0;
+			if ( _fT <= dNotchW ) { return 1.0f; }
+			double dTmp = _fT - dNotchW;
+			double dNorm = dTmp / (_fWidth - dNotchW);
+			return float( std::pow( 1.0 - std::min( dNorm, 1.0 ), (_uPowTimes100 / 100.0) ) );
 		}
 
 		/**

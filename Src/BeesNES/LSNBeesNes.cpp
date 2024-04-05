@@ -48,15 +48,21 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 
-		m_nbfLSpiroNtscFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
+		//m_nbfLSpiroNtscFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		if ( !CUtilities::IsAvxSupported() && !CUtilities::IsSse4Supported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 2 );
+			m_nbfLSpiroNtscFilter.SetKernelSize( 6 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
+
 			m_nbfLSpiroPalFilter.SetWidthScale( 2 );
 			m_nbfLSpiroPalMFilter.SetWidthScale( 2 );
 			m_nbfLSpiroPalNFilter.SetWidthScale( 2 );
 		}
 		else if ( !CUtilities::IsAvxSupported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 4 );
+			m_nbfLSpiroNtscFilter.SetKernelSize( 6 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
+
 			m_nbfLSpiroPalFilter.SetWidthScale( 5 );
 			m_nbfLSpiroPalMFilter.SetWidthScale( 4 );
 			m_nbfLSpiroPalNFilter.SetWidthScale( 4 );
