@@ -19,7 +19,7 @@ namespace lsn {
 	// == Members.
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
 		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
-		m_fGammaSetting = 2.22222222222222222222222222f;					/**< The CRT gamma curve. */
+		m_fGammaSetting = 1.0f / 0.45f;										/**< The CRT gamma curve. */
 		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;	/**< The brightness setting. */
 		m_fSaturationSetting = -0.40f + 1.0f;								/**< The saturation setting. */
 

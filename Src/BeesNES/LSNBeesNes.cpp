@@ -43,7 +43,7 @@ namespace lsn {
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 		};
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
-		m_nbfLSpiroPalMFilter.SetGamma( 2.2222222222222222f );
+		m_nbfLSpiroPalMFilter.SetGamma( 1.0f / 0.45f );
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
