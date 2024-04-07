@@ -21,7 +21,7 @@ namespace lsn {
 		m_fHueSetting = (8.0f + 0.0f) * std::numbers::pi / 180.0f;					/**< The hue. */
 		m_fGammaSetting = 2.8f;														/**< The CRT gamma curve. */
 		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;			/**< The brightness setting. */
-		m_fSaturationSetting = -0.39f + 1.0f;										/**< The saturation setting. */
+		m_fSaturationSetting = -0.40f + 1.0f;										/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
