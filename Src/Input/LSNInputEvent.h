@@ -13,9 +13,12 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNUsbControllerBase.h"
-#ifdef LSN_WINDOWS
+
+#if defined( LSN_WINDOWS )
 #include <Helpers/LSWHelpers.h>
-#endif	// #ifdef LSN_WINDOWS
+#elif defined( LSN_APPLE )
+#include <Carbon/Carbon.h>
+#endif	// #if defined( LSN_WINDOWS )
 
 namespace lsn {
 
@@ -41,10 +44,16 @@ namespace lsn {
 
 		union {
 			struct {
+#if defined( LSN_WINDOWS )
 				lsw::LSW_KEY								kKey;							/**< If LSN_DEVICE_TYPE is LSN_DT_KEYBOARD. */
+#elif defined( LSN_APPLE )
+				CGKeyCode									kcKey;							/**< The keyboard keycode. */
+#endif	// #if defined( LSN_WINDOWS )
 			}												kb;
 			struct {
+#if defined( LSN_WINDOWS )
 				GUID										guId;							/**< The USB controller's product ID. */
+#endif	// #if defined( LSN_WINDOWS )
 				CUsbControllerBase::LSN_INPUT_EVENT			ieEvent;						/**< The controller event */
 				float										fDeadzone;						/**< The dead zone if the input is an axis. */
 			}												cont;

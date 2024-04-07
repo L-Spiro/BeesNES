@@ -15,6 +15,9 @@
 
 #include "LSNAudioBase.h"
 
+#include <AudioToolbox/AudioToolbox.h>
+#include <CoreAudio/CoreAudio.h>
+
 namespace lsn {
 
     /**
@@ -24,7 +27,7 @@ namespace lsn {
      * Description: The implementation of the Core Audio audio system.
      */
     class CAudioCoreAudio : public CAudioBase {
-        public :
+	public :
         // == Functions.
         /**
          * Initializes audio.
@@ -44,6 +47,11 @@ namespace lsn {
          * Called when emulation begins.  Resets the ring buffer of buckets.
          **/
         virtual void                                        BeginEmulation();
+		
+		
+	protected :
+		// == Members.
+		AudioComponentInstance								m_aciInstance = nullptr;					/**< The audio component instance. */
     };
 
 }   // namespace lsn

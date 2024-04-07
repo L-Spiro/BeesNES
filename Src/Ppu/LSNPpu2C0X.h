@@ -884,7 +884,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Scan = ppPpu->m_ui16CurY;
 			// If the scanline is >= 0 and < 240, or -1.
-			if ( ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+			if ( (ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender))) || ui16Scan == (_tDotHeight - 1) ) {
 				ppPpu->m_ui8OamAddr += 4;
 				return;
 			}

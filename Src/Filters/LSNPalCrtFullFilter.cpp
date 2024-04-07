@@ -69,7 +69,7 @@ namespace lsn {
 		m_vFilteredOutput.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
 		::pal_init( &m_nnCrtPal, m_ui32FinalWidth, m_ui32FinalHeight, PAL_PIX_FORMAT_BGRA, m_vFilteredOutput.data() );
-		PAL_CRT psSetts = (*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()));
+		//PAL_CRT psSetts = (*reinterpret_cast<PAL_CRT *>(m_vCrtNtsc.data()));
 		/*m_nnCrtPal.brightness = -14;
 		m_nnCrtPal.contrast = 125;
 		m_nnCrtPal.saturation = 9;

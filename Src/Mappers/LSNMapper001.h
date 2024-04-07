@@ -290,7 +290,7 @@ namespace lsn {
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
 					}
-					else if ( _ui16Parm1 >= 0xE000 && _ui16Parm1 < 0x10000 ) {
+					else if ( _ui16Parm1 >= 0xE000 /*&& _ui16Parm1 < 0x10000*/ ) {
 						/*
 						 *	PRG bank (internal, $E000-$FFFF)
 						 *	4bit0

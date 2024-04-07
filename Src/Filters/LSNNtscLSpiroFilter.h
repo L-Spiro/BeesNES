@@ -408,9 +408,9 @@ namespace lsn {
 		// When de-emphasis bits are set, some parts of the signal are attenuated:
 		// Colors [14..15] are not affected by de-emphasis.
 		uint16_t ui16Atten = ((ui16Color < 0xE) &&
-			((ui16Emphasis & 1) && LSN_INCOLORPHASE( 0xC )) ||
+			(((ui16Emphasis & 1) && LSN_INCOLORPHASE( 0xC )) ||
 			((ui16Emphasis & 2) && LSN_INCOLORPHASE( 0x4 )) ||
-			((ui16Emphasis & 4) && LSN_INCOLORPHASE( 0x8 ))) ? 8 : 0;
+			((ui16Emphasis & 4) && LSN_INCOLORPHASE( 0x8 )))) ? 8 : 0;
 
 		// The square wave for this color alternates between these two voltages:
 		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];

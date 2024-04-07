@@ -284,7 +284,7 @@ pal_demodulate(struct PAL_CRT *c, int noise)
     struct {
         int y, u, v;
     } outbuf[AV_LEN + 16], *out = outbuf + 8, *yuvA, *yuvB;
-    int i, j, line, rn;
+    int i, j = 0, line = 0, rn;
     signed char *sig;
     int s = 0;
     int field, ratio;

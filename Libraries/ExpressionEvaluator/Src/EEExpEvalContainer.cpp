@@ -1,4 +1,4 @@
-﻿#include "EEExpEvalContainer.h"
+#include "EEExpEvalContainer.h"
 #include "Api/EEBaseApi.h"
 #include "Array/EEDefaultArray.h"
 #include "Array/EEDoubleArray.h"
@@ -12,7 +12,6 @@
 #include "Array/EEUInt32Array.h"
 #include "Array/EEUInt64Array.h"
 #include "Object/EEString.h"
-//#include "Object/EEStringRef.h"
 #include "Unicode/EEUnicode.h"
 
 #ifdef _DEBUG
@@ -1517,6 +1516,13 @@ namespace ee {
 		CreateNumber( static_cast<int64_t>(_iVal), _ndNode );
 	}
 
+#ifdef __GNUC__
+		// Creates a numeric constant.
+	void CExpEvalContainer::CreateNumber( ::clock_t _cVal, YYSTYPE::EE_NODE_DATA &_ndNode ) {
+		CreateNumber( static_cast<long>(_cVal), _ndNode );
+	}
+#endif	// #ifdef __GNUC__
+
 	// Creates a numeric constant.
 	void CExpEvalContainer::CreateNumber( float _fVal, YYSTYPE::EE_NODE_DATA &_ndNode ) {
 		CreateDouble( _fVal, _ndNode );
@@ -1526,6 +1532,13 @@ namespace ee {
 	void CExpEvalContainer::CreateNumber( double _dVal, YYSTYPE::EE_NODE_DATA &_ndNode ) {
 		CreateDouble( _dVal, _ndNode );
 	}
+
+#ifdef __GNUC__
+	// Creates a numeric constant.
+	void CExpEvalContainer::CreateNumber( long double _dVal, YYSTYPE::EE_NODE_DATA &_ndNode ) {
+		CreateDouble( static_cast<double>(_dVal), _ndNode );
+	}
+#endif	// #ifdef __GNUC__
 
 	// Creates a numeric constant.
 	void CExpEvalContainer::CreateNumber( long _lVal, YYSTYPE::EE_NODE_DATA &_ndNode ) {

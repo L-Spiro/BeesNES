@@ -26,10 +26,8 @@
 		125750612BB8F4E900A4A610 /* EEPreProcContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257505A2BB8F4E900A4A610 /* EEPreProcContainer.cpp */; };
 		125750622BB8F4E900A4A610 /* EEPreProcContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1257505B2BB8F4E900A4A610 /* EEPreProcContainer.h */; };
 		125750632BB8F4E900A4A610 /* EEPreProcLexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257505C2BB8F4E900A4A610 /* EEPreProcLexer.cpp */; };
-		1257506E2BB8F50E00A4A610 /* EEStringRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750652BB8F50E00A4A610 /* EEStringRef.cpp */; };
 		1257506F2BB8F50E00A4A610 /* EEString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750662BB8F50E00A4A610 /* EEString.cpp */; };
 		125750702BB8F50E00A4A610 /* EEStringBaseApi.h in Headers */ = {isa = PBXBuildFile; fileRef = 125750672BB8F50E00A4A610 /* EEStringBaseApi.h */; };
-		125750712BB8F50E00A4A610 /* EEStringRef.h in Headers */ = {isa = PBXBuildFile; fileRef = 125750682BB8F50E00A4A610 /* EEStringRef.h */; };
 		125750722BB8F50E00A4A610 /* EEStringBaseApi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 125750692BB8F50E00A4A610 /* EEStringBaseApi.cpp */; };
 		125750732BB8F50E00A4A610 /* EEVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1257506A2BB8F50E00A4A610 /* EEVector.h */; };
 		125750742BB8F50E00A4A610 /* EEVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257506B2BB8F50E00A4A610 /* EEVector.cpp */; };
@@ -93,10 +91,8 @@
 		1257505A2BB8F4E900A4A610 /* EEPreProcContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEPreProcContainer.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/PreProc/EEPreProcContainer.cpp; sourceTree = "<group>"; };
 		1257505B2BB8F4E900A4A610 /* EEPreProcContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EEPreProcContainer.h; path = ../../../../Libraries/ExpressionEvaluator/Src/PreProc/EEPreProcContainer.h; sourceTree = "<group>"; };
 		1257505C2BB8F4E900A4A610 /* EEPreProcLexer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEPreProcLexer.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/PreProc/EEPreProcLexer.cpp; sourceTree = "<group>"; };
-		125750652BB8F50E00A4A610 /* EEStringRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEStringRef.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEStringRef.cpp; sourceTree = "<group>"; };
 		125750662BB8F50E00A4A610 /* EEString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEString.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEString.cpp; sourceTree = "<group>"; };
 		125750672BB8F50E00A4A610 /* EEStringBaseApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EEStringBaseApi.h; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEStringBaseApi.h; sourceTree = "<group>"; };
-		125750682BB8F50E00A4A610 /* EEStringRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EEStringRef.h; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEStringRef.h; sourceTree = "<group>"; };
 		125750692BB8F50E00A4A610 /* EEStringBaseApi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEStringBaseApi.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEStringBaseApi.cpp; sourceTree = "<group>"; };
 		1257506A2BB8F50E00A4A610 /* EEVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EEVector.h; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEVector.h; sourceTree = "<group>"; };
 		1257506B2BB8F50E00A4A610 /* EEVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EEVector.cpp; path = ../../../../Libraries/ExpressionEvaluator/Src/Object/EEVector.cpp; sourceTree = "<group>"; };
@@ -247,8 +243,6 @@
 				1257506C2BB8F50E00A4A610 /* EEString.h */,
 				125750692BB8F50E00A4A610 /* EEStringBaseApi.cpp */,
 				125750672BB8F50E00A4A610 /* EEStringBaseApi.h */,
-				125750652BB8F50E00A4A610 /* EEStringRef.cpp */,
-				125750682BB8F50E00A4A610 /* EEStringRef.h */,
 				1257506B2BB8F50E00A4A610 /* EEVector.cpp */,
 				1257506A2BB8F50E00A4A610 /* EEVector.h */,
 			);
@@ -365,7 +359,6 @@
 				125750982BB8F59C00A4A610 /* EEExpEval.h in Headers */,
 				125750602BB8F4E900A4A610 /* EEPreProcLexer.h in Headers */,
 				125750732BB8F50E00A4A610 /* EEVector.h in Headers */,
-				125750712BB8F50E00A4A610 /* EEStringRef.h in Headers */,
 				125750702BB8F50E00A4A610 /* EEStringBaseApi.h in Headers */,
 				125750882BB8F54B00A4A610 /* EEExpEvalParser.h in Headers */,
 				125750AE2BB8F5DA00A4A610 /* EEPrimitiveArrayFloat.h in Headers */,
@@ -448,7 +441,6 @@
 				125750962BB8F59C00A4A610 /* EEExpEval.cpp in Sources */,
 				125750742BB8F50E00A4A610 /* EEVector.cpp in Sources */,
 				125750972BB8F59C00A4A610 /* EEFloatX.cpp in Sources */,
-				1257506E2BB8F50E00A4A610 /* EEStringRef.cpp in Sources */,
 				125750722BB8F50E00A4A610 /* EEStringBaseApi.cpp in Sources */,
 				125750632BB8F4E900A4A610 /* EEPreProcLexer.cpp in Sources */,
 				125750402BB8F45400A4A610 /* EEUnicode.cpp in Sources */,
@@ -481,7 +473,7 @@
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -513,6 +505,7 @@
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
@@ -545,7 +538,7 @@
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -571,6 +564,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;

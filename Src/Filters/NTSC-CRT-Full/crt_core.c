@@ -283,7 +283,7 @@ crt_demodulate_full(struct CRT *v, int noise)
     struct {
         int y, i, q;
     } out[AV_LEN + 1], *yiqA, *yiqB;
-    int i, j, line, rn;
+    int i, j = 0, line = 0, rn;
     signed char *sig;
     int s = 0;
     int field, ratio;
@@ -462,7 +462,7 @@ vsync_found:
         for (pos = scanL; pos < scanR && cL < cR; pos += dx) {
             int y, i, q;
             int r, g, b;
-            int aa, bb;
+            int bb;
 
             R = pos & 0xfff;
             L = 0xfff - R;

@@ -9,10 +9,12 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>					// For QueryPerformanceCounter() and QueryPerformanceFrequency().
+#define EE_PURE							= 0
 #endif
 
 #ifdef __GNUC__
 #include <mach/mach_time.h>				// For mach_timebase_info() and mach_absolute_time().
+#define EE_PURE
 #endif	// #ifdef __GNUC__
 
 #ifndef EE_MIN_
@@ -461,11 +463,11 @@ namespace ee {
 		static _tType					EscapeQuotes( const _tType &_sInput, bool _bEscapeSlashes ) {
 			_tType sRet;
 			for ( size_t I = 0; I < _sInput.size(); ++I ) {
-				if ( _sInput[I] == _tType::value_type( '\"' ) ) {
-					sRet.push_back( _tType::value_type( '\\' ) );
+				if ( _sInput[I] == typename _tType::value_type( '\"' ) ) {
+					sRet.push_back( typename _tType::value_type( '\\' ) );
 				}
-				else if ( _bEscapeSlashes && _sInput[I] == _tType::value_type( '\\' ) ) {
-					sRet.push_back( _tType::value_type( '\\' ) );
+				else if ( _bEscapeSlashes && _sInput[I] == typename _tType::value_type( '\\' ) ) {
+					sRet.push_back( typename _tType::value_type( '\\' ) );
 				}
 				sRet.push_back( _sInput[I] );
 			}
@@ -796,7 +798,7 @@ namespace ee {
 			try {
 				_tType tCurLine;
 				for ( size_t I = 0; I < _sInput.size(); ++I ) {
-					if ( _sInput[I] == _tType::value_type( _ui32Token ) ) {
+					if ( _sInput[I] == typename _tType::value_type( _ui32Token ) ) {
 						if ( tCurLine.size() || _bIncludeEmptyTokens ) {
 							vRet.push_back( tCurLine );
 						}
@@ -824,7 +826,7 @@ namespace ee {
 			try {
 				for ( size_t I = 0; I < _vArray.size(); ++I ) {
 					sRet.append( _vArray[I] );
-					sRet.push_back( _tType::value_type( _ui32Token ) );
+					sRet.push_back( typename _tType::value_type( _ui32Token ) );
 				}
 				if ( pbErrored ) { (*pbErrored) = false; }
 			}
@@ -868,80 +870,80 @@ namespace ee {
 		//	text position is the start of a code-format string.
 		template <typename _tType = std::string>
 		static size_t					CodeStringLength( const _tType &_sInput, size_t _sPos ) {
-#define EE_PREVIEW( OFF )			(((_sPos + (OFF)) < _sInput.size()) ? _sInput[_sPos+(OFF)] : _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((_sPos + (OFF)) < _sInput.size()) ? _sInput[_sPos+(OFF)] : typename _tType::value_type( '\0' ))
 			size_t sStart = _sPos;
-			if ( _sInput[_sPos] == _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\'' ) ) {
+			if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\'' ) ) {
 				_sPos += 2;	// Eat the 2nd and 3rd '.
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) ) {
 						// \' sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\'' ) ) {
 						return _sPos - sStart + 3;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\"' ) ) {
+			else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\"' ) ) {
 				_sPos += 2;	// Eat the 2nd and 3rd ".
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 3;
 					}
 				}
 			}
-			else if ( (_sInput[_sPos] == _tType::value_type( 'r' ) || _sInput[_sPos] == _tType::value_type( 'R' )) &&
-				EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
+			else if ( (_sInput[_sPos] == typename _tType::value_type( 'r' ) || _sInput[_sPos] == typename _tType::value_type( 'R' )) &&
+				EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
 				++_sPos;	// Eat the R.
 				// Eat raw string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
+					if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
+			else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == _tType::value_type( '\'' ) ) {
+			else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) ) {
 				// Eat character quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
@@ -954,7 +956,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveCComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
 
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -963,20 +965,20 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) {
+				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) {
 					size_t stStart = sIdx;
 					sIdx += 2;
 					uint32_t ui32LastChar = '\0';
 					size_t stNewLines = 0;
 					while ( sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) {
+						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) {
 							if ( ui32LastChar == '\\' ) {
 								++stNewLines;
 							}
 							else {
 								// Add back the new lines we skipped.
 								for ( auto J = stNewLines; J--; ) {
-									_sInput[stStart++] = _tType::value_type( '\n' );
+									_sInput[stStart++] = typename _tType::value_type( '\n' );
 								}
 								_sInput.erase( stStart, sIdx - stStart );
 								sIdx = stStart;
@@ -1002,7 +1004,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveCPlusPlusComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
 			_tType sNewLines;
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -1011,11 +1013,11 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '*' ) ) {
+				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '*' ) ) {
 					size_t I = sIdx++;
 					while ( ++sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) { sIdx += 2; break; }
-						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
+						if ( _sInput[sIdx] == typename _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) { sIdx += 2; break; }
+						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
 					}
 					_sInput.erase( I, sIdx - I );
 					_sInput.insert( I, sNewLines );
@@ -1033,7 +1035,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
 			_tType sNewLines;
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -1042,20 +1044,20 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) {
+				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) {
 					size_t stStart = sIdx;
 					sIdx += 2;
 					uint32_t ui32LastChar = '\0';
 					size_t stNewLines = 0;
 					while ( sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) {
+						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) {
 							if ( ui32LastChar == '\\' ) {
 								++stNewLines;
 							}
 							else {
 								// Add back the new lines we skipped.
 								for ( auto J = stNewLines; J--; ) {
-									_sInput[stStart++] = _tType::value_type( '\n' );
+									_sInput[stStart++] = typename _tType::value_type( '\n' );
 								}
 								_sInput.erase( stStart, sIdx - stStart );
 								sIdx = stStart;
@@ -1070,11 +1072,11 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '*' ) ) {
+				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '*' ) ) {
 					size_t I = sIdx++;
 					while ( ++sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) { sIdx += 2; break; }
-						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
+						if ( _sInput[sIdx] == typename _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) { sIdx += 2; break; }
+						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
 					}
 					_sInput.erase( I, sIdx - I );
 					_sInput.insert( I, sNewLines );
