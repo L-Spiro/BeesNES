@@ -21,17 +21,40 @@ namespace lsn {
 	 * \return Returns true if initialization was successful.
 	 **/
 	bool CAudioCoreAudio::InitializeAudio() {
-		AudioObjectID defaultDeviceID;
-		UInt32 dataSize = sizeof(defaultDeviceID);
-		AudioObjectPropertyAddress propertyAddress = {
-			kAudioHardwarePropertyDefaultOutputDevice,
+		UInt32 ui32DataSize;
+		AudioObjectPropertyAddress aopaPropAddr = {
+			kAudioHardwarePropertyDevices,
 			kAudioObjectPropertyScopeGlobal,
 			kAudioObjectPropertyElementMain
 		};
-		OSStatus result = ::AudioObjectGetPropertyData( kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize, &defaultDeviceID );
-		
-		if ( kAudioHardwareNoError != result ) {
-			return false;
+
+		// Get the size of the property data
+		OSStatus sStatus = ::AudioObjectGetPropertyDataSize( kAudioObjectSystemObject, &aopaPropAddr, 0, nullptr, &ui32DataSize );
+
+		if ( kAudioHardwareNoError != sStatus ) { return false; }
+
+		UInt32 ui32DeviceCnt = ui32DataSize / sizeof( AudioObjectID );
+		std::vector<AudioObjectID> vDeviceIds;
+		try {
+			vDeviceIds.resize( ui32DeviceCnt );
+		}
+		catch ( ... ) { return false; }
+
+		// Get the property data.
+		sStatus = ::AudioObjectGetPropertyData( kAudioObjectSystemObject, &aopaPropAddr, 0, nullptr, &ui32DataSize, vDeviceIds.data() );
+
+		if ( kAudioHardwareNoError != sStatus ) { return false; }
+
+		for ( UInt32 I = 0; I < ui32DeviceCnt; ++I ) {
+			AudioObjectPropertyAddress aopaThisDevice = {
+				kAudioDevicePropertyStreamConfiguration,
+				kAudioDevicePropertyScopeOutput,
+				kAudioObjectPropertyElementMain
+			};
+			sStatus = ::AudioObjectGetPropertyDataSize( vDeviceIds[I], &aopaThisDevice, 0, nullptr, &ui32DataSize );
+			if ( kAudioHardwareNoError != sStatus && ui32DataSize > 0 ) {
+				// This device has output streams, so it's an output device.
+			}
 		}
 
 

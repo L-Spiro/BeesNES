@@ -214,6 +214,9 @@
 		125750D02BC2209200A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750CF2BC2209200A4A610 /* CoreAudio.framework */; };
 		125750D22BC2209F00A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750D12BC2209F00A4A610 /* CoreAudio.framework */; };
 		125750D42BC220A500A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750D32BC220A500A4A610 /* CoreAudio.framework */; };
+		125750F92BC27F1100A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
+		125750FC2BC27F1900A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
+		125750FF2BC27F2000A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
 		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
 		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
 		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
@@ -261,6 +264,34 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
 			remoteInfo = ExpressionEvaluator;
+		};
+		125750F32BC27EE400A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 125750DF2BC27E5100A4A610;
+			remoteInfo = LSApple;
+		};
+		125750F72BC27F0C00A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125750DE2BC27E5100A4A610;
+			remoteInfo = LSApple;
+		};
+		125750FA2BC27F1500A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125750DE2BC27E5100A4A610;
+			remoteInfo = LSApple;
+		};
+		125750FD2BC27F1D00A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125750DE2BC27E5100A4A610;
+			remoteInfo = LSApple;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -472,6 +503,7 @@
 		125750CF2BC2209200A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		125750D12BC2209F00A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.4.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
 		125750D32BC220A500A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
+		125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LSApple.xcodeproj; path = Libraries/LSApple/LSApple.xcodeproj; sourceTree = SOURCE_ROOT; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -504,6 +536,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125750F92BC27F1100A4A610 /* LSApple.framework in Frameworks */,
 				125750D42BC220A500A4A610 /* CoreAudio.framework in Frameworks */,
 				125750CC2BBEFCAD00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
@@ -513,6 +546,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125750FC2BC27F1900A4A610 /* LSApple.framework in Frameworks */,
 				125750D22BC2209F00A4A610 /* CoreAudio.framework in Frameworks */,
 				125750CB2BBEFCA800A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
@@ -522,6 +556,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125750FF2BC27F2000A4A610 /* LSApple.framework in Frameworks */,
 				125750D02BC2209200A4A610 /* CoreAudio.framework in Frameworks */,
 				125750CA2BBEFCA300A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
@@ -934,6 +969,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		125750F02BC27EE400A4A610 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				125750F42BC27EE400A4A610 /* LSApple.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		12E8B6972BB59A6300055316 = {
 			isa = PBXGroup;
 			children = (
@@ -949,6 +992,7 @@
 		12E8B69C2BB59A6400055316 /* BeesNES Shared */ = {
 			isa = PBXGroup;
 			children = (
+				125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */,
 				125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */,
 				12574A7E2BB8847D00A4A610 /* Apu */,
 				12574A9D2BB884C700A4A610 /* Audio */,
@@ -1049,6 +1093,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				125750F82BC27F0C00A4A610 /* PBXTargetDependency */,
 				125750C82BBEBD9900A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES iOS";
@@ -1067,6 +1112,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				125750FB2BC27F1500A4A610 /* PBXTargetDependency */,
 				125750C62BBEBD9400A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES tvOS";
@@ -1085,6 +1131,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				125750FE2BC27F1D00A4A610 /* PBXTargetDependency */,
 				125750C42BBEBD8F00A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES macOS";
@@ -1128,6 +1175,10 @@
 					ProductGroup = 125750372BB8F3F000A4A610 /* Products */;
 					ProjectRef = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
 				},
+				{
+					ProductGroup = 125750F02BC27EE400A4A610 /* Products */;
+					ProjectRef = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -1144,6 +1195,13 @@
 			fileType = wrapper.framework;
 			path = ExpressionEvaluator.framework;
 			remoteRef = 1257503A2BB8F3F000A4A610 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		125750F42BC27EE400A4A610 /* LSApple.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = LSApple.framework;
+			remoteRef = 125750F32BC27EE400A4A610 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1429,6 +1487,21 @@
 			isa = PBXTargetDependency;
 			name = ExpressionEvaluator;
 			targetProxy = 125750C72BBEBD9900A4A610 /* PBXContainerItemProxy */;
+		};
+		125750F82BC27F0C00A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSApple;
+			targetProxy = 125750F72BC27F0C00A4A610 /* PBXContainerItemProxy */;
+		};
+		125750FB2BC27F1500A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSApple;
+			targetProxy = 125750FA2BC27F1500A4A610 /* PBXContainerItemProxy */;
+		};
+		125750FE2BC27F1D00A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSApple;
+			targetProxy = 125750FD2BC27F1D00A4A610 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
