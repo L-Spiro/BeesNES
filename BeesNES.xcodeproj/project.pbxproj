@@ -208,15 +208,18 @@
 		1257501F2BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
 		125750202BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
 		125750212BB887FF00A4A610 /* LSNBeesNes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */; };
-		125750CA2BBEFCA300A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */; };
-		125750CB2BBEFCA800A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */; };
-		125750CC2BBEFCAD00A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */; };
 		125750D02BC2209200A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750CF2BC2209200A4A610 /* CoreAudio.framework */; };
 		125750D22BC2209F00A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750D12BC2209F00A4A610 /* CoreAudio.framework */; };
 		125750D42BC220A500A4A610 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750D32BC220A500A4A610 /* CoreAudio.framework */; };
 		125750F92BC27F1100A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
 		125750FC2BC27F1900A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
 		125750FF2BC27F2000A4A610 /* LSApple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125750F42BC27EE400A4A610 /* LSApple.framework */; };
+		125751A72BC2C51E00A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751052BC2C44900A4A610 /* ExpressionEvaluator.framework */; };
+		125751AA2BC2C52500A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751052BC2C44900A4A610 /* ExpressionEvaluator.framework */; };
+		125751AD2BC2C52C00A4A610 /* ExpressionEvaluator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751052BC2C44900A4A610 /* ExpressionEvaluator.framework */; };
+		125751EB2BC4275500A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
+		125751EE2BC4276500A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
+		125751F12BC4276D00A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
 		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
 		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
 		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
@@ -237,34 +240,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1257503A2BB8F3F000A4A610 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 1257502C2BB8F3F000A4A610;
-			remoteInfo = ExpressionEvaluator;
-		};
-		125750C32BBEBD8F00A4A610 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
-			remoteInfo = ExpressionEvaluator;
-		};
-		125750C52BBEBD9400A4A610 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
-			remoteInfo = ExpressionEvaluator;
-		};
-		125750C72BBEBD9900A4A610 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
-			remoteInfo = ExpressionEvaluator;
-		};
 		125750F32BC27EE400A4A610 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
@@ -292,6 +267,62 @@
 			proxyType = 1;
 			remoteGlobalIDString = 125750DE2BC27E5100A4A610;
 			remoteInfo = LSApple;
+		};
+		125751042BC2C44900A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1257502C2BB8F3F000A4A610;
+			remoteInfo = ExpressionEvaluator;
+		};
+		125751A52BC2C51A00A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
+			remoteInfo = ExpressionEvaluator;
+		};
+		125751A82BC2C52200A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
+			remoteInfo = ExpressionEvaluator;
+		};
+		125751AB2BC2C52900A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1257502B2BB8F3F000A4A610;
+			remoteInfo = ExpressionEvaluator;
+		};
+		125751CC2BC4263200A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751C82BC4263100A4A610 /* LSon.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 125751BE2BC4263100A4A610;
+			remoteInfo = LSon;
+		};
+		125751E92BC4275100A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751C82BC4263100A4A610 /* LSon.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125751BD2BC4263100A4A610;
+			remoteInfo = LSon;
+		};
+		125751EC2BC4275900A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751C82BC4263100A4A610 /* LSon.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125751BD2BC4263100A4A610;
+			remoteInfo = LSon;
+		};
+		125751EF2BC4276A00A4A610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 125751C82BC4263100A4A610 /* LSon.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 125751BD2BC4263100A4A610;
+			remoteInfo = LSon;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -499,11 +530,12 @@
 		125750182BB887E500A4A610 /* LSNBus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBus.cpp; path = Src/Bus/LSNBus.cpp; sourceTree = SOURCE_ROOT; };
 		1257501D2BB887FF00A4A610 /* LSNBeesNes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LSNBeesNes.cpp; path = Src/BeesNES/LSNBeesNes.cpp; sourceTree = SOURCE_ROOT; };
 		1257501E2BB887FF00A4A610 /* LSNBeesNes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNBeesNes.h; path = Src/BeesNES/LSNBeesNes.h; sourceTree = SOURCE_ROOT; };
-		125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ExpressionEvaluator.xcodeproj; path = ExpressionEvaluator/ExpressionEvaluator.xcodeproj; sourceTree = "<group>"; };
 		125750CF2BC2209200A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		125750D12BC2209F00A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.4.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
 		125750D32BC220A500A4A610 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
 		125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LSApple.xcodeproj; path = Libraries/LSApple/LSApple.xcodeproj; sourceTree = SOURCE_ROOT; };
+		125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ExpressionEvaluator.xcodeproj; path = Libraries/ExpressionEvaluator/ExpressionEvaluator.xcodeproj; sourceTree = SOURCE_ROOT; };
+		125751C82BC4263100A4A610 /* LSon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LSon.xcodeproj; path = Libraries/LSon/LSon.xcodeproj; sourceTree = SOURCE_ROOT; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -536,9 +568,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751F12BC4276D00A4A610 /* LSon.framework in Frameworks */,
+				125751AD2BC2C52C00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750F92BC27F1100A4A610 /* LSApple.framework in Frameworks */,
 				125750D42BC220A500A4A610 /* CoreAudio.framework in Frameworks */,
-				125750CC2BBEFCAD00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,9 +579,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751EE2BC4276500A4A610 /* LSon.framework in Frameworks */,
+				125751AA2BC2C52500A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750FC2BC27F1900A4A610 /* LSApple.framework in Frameworks */,
 				125750D22BC2209F00A4A610 /* CoreAudio.framework in Frameworks */,
-				125750CB2BBEFCA800A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -556,9 +590,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751EB2BC4275500A4A610 /* LSon.framework in Frameworks */,
+				125751A72BC2C51E00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750FF2BC27F2000A4A610 /* LSApple.framework in Frameworks */,
 				125750D02BC2209200A4A610 /* CoreAudio.framework in Frameworks */,
-				125750CA2BBEFCA300A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -584,7 +619,7 @@
 				12574A8B2BB884A400A4A610 /* LSNTriangle.cpp */,
 				12574A8D2BB884A400A4A610 /* LSNTriangle.h */,
 			);
-			path = Apu;
+			name = Apu;
 			sourceTree = "<group>";
 		};
 		12574A9D2BB884C700A4A610 /* Audio */ = {
@@ -611,7 +646,7 @@
 				12574AA92BB884E600A4A610 /* LSNSampleBox.h */,
 				12574AAA2BB884E600A4A610 /* LSNSincFilter.h */,
 			);
-			path = Audio;
+			name = Audio;
 			sourceTree = "<group>";
 		};
 		12574AE52BB8852A00A4A610 /* Utilities */ = {
@@ -951,14 +986,6 @@
 			name = BeesNES;
 			sourceTree = "<group>";
 		};
-		125750372BB8F3F000A4A610 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		125750C92BBEFCA300A4A610 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -973,6 +1000,22 @@
 			isa = PBXGroup;
 			children = (
 				125750F42BC27EE400A4A610 /* LSApple.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		125751012BC2C44900A4A610 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				125751052BC2C44900A4A610 /* ExpressionEvaluator.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		125751C92BC4263100A4A610 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				125751CD2BC4263200A4A610 /* LSon.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -992,8 +1035,9 @@
 		12E8B69C2BB59A6400055316 /* BeesNES Shared */ = {
 			isa = PBXGroup;
 			children = (
+				125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */,
 				125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */,
-				125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */,
+				125751C82BC4263100A4A610 /* LSon.xcodeproj */,
 				12574A7E2BB8847D00A4A610 /* Apu */,
 				12574A9D2BB884C700A4A610 /* Audio */,
 				1257501C2BB887F200A4A610 /* BeesNES */,
@@ -1093,8 +1137,9 @@
 			buildRules = (
 			);
 			dependencies = (
+				125751F02BC4276A00A4A610 /* PBXTargetDependency */,
+				125751AC2BC2C52900A4A610 /* PBXTargetDependency */,
 				125750F82BC27F0C00A4A610 /* PBXTargetDependency */,
-				125750C82BBEBD9900A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES iOS";
 			productName = "BeesNES iOS";
@@ -1112,8 +1157,9 @@
 			buildRules = (
 			);
 			dependencies = (
+				125751ED2BC4275900A4A610 /* PBXTargetDependency */,
+				125751A92BC2C52200A4A610 /* PBXTargetDependency */,
 				125750FB2BC27F1500A4A610 /* PBXTargetDependency */,
-				125750C62BBEBD9400A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES tvOS";
 			productName = "BeesNES tvOS";
@@ -1131,8 +1177,9 @@
 			buildRules = (
 			);
 			dependencies = (
+				125751EA2BC4275100A4A610 /* PBXTargetDependency */,
+				125751A62BC2C51A00A4A610 /* PBXTargetDependency */,
 				125750FE2BC27F1D00A4A610 /* PBXTargetDependency */,
-				125750C42BBEBD8F00A4A610 /* PBXTargetDependency */,
 			);
 			name = "BeesNES macOS";
 			productName = "BeesNES macOS";
@@ -1172,12 +1219,16 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 125750372BB8F3F000A4A610 /* Products */;
-					ProjectRef = 125750362BB8F3F000A4A610 /* ExpressionEvaluator.xcodeproj */;
+					ProductGroup = 125751012BC2C44900A4A610 /* Products */;
+					ProjectRef = 125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */;
 				},
 				{
 					ProductGroup = 125750F02BC27EE400A4A610 /* Products */;
 					ProjectRef = 125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */;
+				},
+				{
+					ProductGroup = 125751C92BC4263100A4A610 /* Products */;
+					ProjectRef = 125751C82BC4263100A4A610 /* LSon.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -1190,18 +1241,25 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1257503B2BB8F3F000A4A610 /* ExpressionEvaluator.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ExpressionEvaluator.framework;
-			remoteRef = 1257503A2BB8F3F000A4A610 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		125750F42BC27EE400A4A610 /* LSApple.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = LSApple.framework;
 			remoteRef = 125750F32BC27EE400A4A610 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		125751052BC2C44900A4A610 /* ExpressionEvaluator.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = ExpressionEvaluator.framework;
+			remoteRef = 125751042BC2C44900A4A610 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		125751CD2BC4263200A4A610 /* LSon.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = LSon.framework;
+			remoteRef = 125751CC2BC4263200A4A610 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1473,21 +1531,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		125750C42BBEBD8F00A4A610 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ExpressionEvaluator;
-			targetProxy = 125750C32BBEBD8F00A4A610 /* PBXContainerItemProxy */;
-		};
-		125750C62BBEBD9400A4A610 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ExpressionEvaluator;
-			targetProxy = 125750C52BBEBD9400A4A610 /* PBXContainerItemProxy */;
-		};
-		125750C82BBEBD9900A4A610 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ExpressionEvaluator;
-			targetProxy = 125750C72BBEBD9900A4A610 /* PBXContainerItemProxy */;
-		};
 		125750F82BC27F0C00A4A610 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = LSApple;
@@ -1502,6 +1545,36 @@
 			isa = PBXTargetDependency;
 			name = LSApple;
 			targetProxy = 125750FD2BC27F1D00A4A610 /* PBXContainerItemProxy */;
+		};
+		125751A62BC2C51A00A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ExpressionEvaluator;
+			targetProxy = 125751A52BC2C51A00A4A610 /* PBXContainerItemProxy */;
+		};
+		125751A92BC2C52200A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ExpressionEvaluator;
+			targetProxy = 125751A82BC2C52200A4A610 /* PBXContainerItemProxy */;
+		};
+		125751AC2BC2C52900A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ExpressionEvaluator;
+			targetProxy = 125751AB2BC2C52900A4A610 /* PBXContainerItemProxy */;
+		};
+		125751EA2BC4275100A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSon;
+			targetProxy = 125751E92BC4275100A4A610 /* PBXContainerItemProxy */;
+		};
+		125751ED2BC4275900A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSon;
+			targetProxy = 125751EC2BC4275900A4A610 /* PBXContainerItemProxy */;
+		};
+		125751F02BC4276A00A4A610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LSon;
+			targetProxy = 125751EF2BC4276A00A4A610 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
