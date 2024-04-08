@@ -36,6 +36,12 @@ namespace lsn {
 			LSN_C_MMC1B3,
 			LSN_C_MMC1C,
 			LSN_C_MMC1_END,
+
+			LSN_C_BF909X						= 200,
+			LSN_C_BF9093,
+			LSN_C_BF9096,
+			LSN_C_BF9097,
+			LSN_C_BF909X_END,
 		};
 
 

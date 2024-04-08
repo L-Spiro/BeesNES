@@ -579,6 +579,8 @@ namespace lsn {
 			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
+			// Micro Machines (U)
+			{ .ui32Crc = 0x6B523BD7, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Wrecking Crew (JUE)
 			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
 

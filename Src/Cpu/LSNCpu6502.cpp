@@ -2085,7 +2085,7 @@ namespace lsn {
 		// -> _uVal == 1
 		// -> if ( (m_ui8Status & LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) != (1 * LSN_STATUS_FLAGS::LSN_SF_NEGATIVE) ) {
 		if ( (m_ui8Status & _uBit) != (_uVal * _uBit) ) {
-			// Fetch next opcode.
+			// Fetch next operand.
 			LSN_INSTR_READ_PHI1( pc.PC, m_ccCurContext.ui8Operand, Phi2_Read<true> );
 			++pc.PC;
 
@@ -2094,7 +2094,7 @@ namespace lsn {
 			return;
 		}
 		else {
-			// Fetch next opcode.
+			// Fetch next operand.
 			LSN_INSTR_READ_PHI1( pc.PC, m_ccCurContext.ui8Operand, Branch_Cycle2_Phi2 );
 			++pc.PC;
 			// Branch taken.
@@ -2112,6 +2112,11 @@ namespace lsn {
 		LSN_INSTR_READ_PHI2;
 
 		m_ccCurContext.j.ui16JmpTarget = static_cast<int16_t>(static_cast<int8_t>(m_ccCurContext.ui8Operand)) + pc.PC;
+
+		bool bCrossed = m_ccCurContext.j.ui8Bytes[1] != pc.ui8Bytes[1];
+		if ( !bCrossed ) {
+			LSN_CHECK_INTERRUPTS;
+		}
 
 		LSN_INSTR_END_PHI2( LSN_BRANCH_NMI );
 	}
@@ -2138,7 +2143,7 @@ namespace lsn {
 			// Did not cross a page boundary.
 
 			// Last cycle in the instruction.
-			LSN_FINISH_INST( true );	// TODO: Why doesn't this work?
+			LSN_FINISH_INST( false );
 
 			// Set PCL.
 			pc.ui8Bytes[0] = m_ccCurContext.j.ui8Bytes[0];

@@ -684,6 +684,9 @@
     <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlSource.h">
       <Filter>Header Files\Audio\OpenAL</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper071.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
