@@ -30,6 +30,20 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 16 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -50,16 +64,30 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
-			// Set the reads of the fixed bank at the end.		
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), 0x4000 ) - 0x4000;
+			// ================
+			// FIXED BANKS
+			// ================
+			// Set the reads of the fixed bank at the end.
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xC000 ) );
 			}
+
+
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
 			// Set the reads of the selectable bank.
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_4000, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
 
+
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
 			// Writes to the whole area are used to select a bank.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, 0 );	// Treated as ROM.
@@ -84,7 +112,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper002 * pmThis = reinterpret_cast<CMapper002 *>(_pvParm0);
-			pmThis->m_ui8PgmBank = (_ui8Val & pmThis->m_ui8Mask) % (pmThis->m_prRom->vPrgRom.size() / 0x4000);
+			//pmThis->m_ui8PgmBank = (_ui8Val & pmThis->m_ui8Mask) % (pmThis->m_prRom->vPrgRom.size() / PgmBankSize());
+			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val & pmThis->m_ui8Mask) );
 
 		}
 	};

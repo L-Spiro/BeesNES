@@ -125,7 +125,14 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank8000_BFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper071 * pmThis = reinterpret_cast<CMapper071 *>(_pvParm0);
-			pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) | ((_ui8Val & 0b11000) >> 1);
+			if ( pmThis->m_prRom->riInfo.ui16SubMapper == 1 ) {	// Aladdin Deck Enhancer.
+				pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) |
+					((((_ui8Val >> 1) & 0b01000) >> 1) |
+					 (((_ui8Val << 1) & 0b10000) >> 1));
+			}
+			else {
+				pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) | ((_ui8Val & 0b11000) >> 1);
+			}
 
 			pmThis->SetPgmBank<0, PgmBankSize()>( (pmThis->m_ui8Bank & 0b1100) | 0b11 );
 			pmThis->SetPgmBank<1, PgmBankSize()>( pmThis->m_ui8Bank );

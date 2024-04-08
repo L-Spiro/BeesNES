@@ -247,6 +247,7 @@ namespace lsn {
 			m_pmbMapper.reset();
 			m_rRom = std::move( _rRom );
 
+			m_bBus.DGB_FillMemory( 0xFF );
 			m_pPpu.GetPpuBus().DGB_FillMemory( 0xFF );
 
 			uint16_t ui16Addr = 0x8000;

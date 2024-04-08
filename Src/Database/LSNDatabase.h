@@ -54,6 +54,7 @@ namespace lsn {
 			LSN_PPU_METRICS						pmRegion = LSN_PM_UNKNOWN;								/**< The game region. */
 			LSN_CHIP							cChip = LSN_C_UNKNOWN;									/**< The mapper chip. */
 			uint16_t							ui16Mapper = uint16_t( -1 );							/**< The mapper. */
+			uint16_t							ui16SubMapper = uint16_t( -1 );							/**< The sub-mapper. */
 		};
 
 

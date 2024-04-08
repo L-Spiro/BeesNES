@@ -577,10 +577,20 @@ namespace lsn {
 			// ========
 			// Deathbots (USA) (Unl)
 			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
+			// Fantastic Adventures of Dizzy, The (Aladdin) (UE)
+			{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Micro Machines (U)
 			{ .ui32Crc = 0x6B523BD7, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+			// Micro Machines (U)
+			{ .ui32Crc = 0x9235B57B, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+			// Quattro Adventure (Aladdin) (U)
+			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1 },		// 232: 1 Aladdin Deck Enhancer
+			// Quattro Sports (Aladdin) (U)
+			{ .ui32Crc = 0x62EF6C79, .ui16Mapper = 232, .ui16SubMapper = 1 },		// 232: 1 Aladdin Deck Enhancer
+			// Ultimate Stuntman (U)
+			{ .ui32Crc = 0x892434DD, .ui16Mapper = 71 },
 			// Wrecking Crew (JUE)
 			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
 

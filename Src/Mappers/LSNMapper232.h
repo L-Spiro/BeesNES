@@ -41,7 +41,7 @@ namespace lsn {
 		 *
 		 * \return Returns the size of the CHR banks.
 		 */
-		static constexpr uint16_t						ChrBankSize() { return 2 * 1024; }
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
 
 		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
@@ -89,10 +89,10 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper232::SelectBank8000_BFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper232::SelectBank8000_BFFF, this, 0 );
 			}
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper232::SelectBankC000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper232::SelectBankC000_FFFF, this, 0 );
 			}
 		}
 
@@ -114,7 +114,14 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank8000_BFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper232 * pmThis = reinterpret_cast<CMapper232 *>(_pvParm0);
-			pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) | ((_ui8Val & 0b11000) >> 1);
+			if ( pmThis->m_prRom->riInfo.ui16SubMapper == 1 ) {	// Aladdin Deck Enhancer.
+				pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) |
+					((((_ui8Val >> 1) & 0b01000) >> 1) |
+					 (((_ui8Val << 1) & 0b10000) >> 1));
+			}
+			else {
+				pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) | ((_ui8Val & 0b11000) >> 1);
+			}
 
 			pmThis->SetPgmBank<0, PgmBankSize()>( (pmThis->m_ui8Bank & 0b1100) | 0x3 );
 			pmThis->SetPgmBank<1, PgmBankSize()>( pmThis->m_ui8Bank );
