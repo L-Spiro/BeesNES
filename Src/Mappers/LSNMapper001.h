@@ -266,13 +266,13 @@ namespace lsn {
 						 */
 						// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 						if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
-							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
 
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
 						}
 						else {
-							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) >> 1 );
+							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
 							
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
@@ -369,7 +369,7 @@ namespace lsn {
 				}
 				else {
 					// 8 kilobytes.
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1&0x1FFF)];
+					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBank*ChrBankSize()+(_ui16Parm1&0x1FFF)];
 				}
 			}
 		}

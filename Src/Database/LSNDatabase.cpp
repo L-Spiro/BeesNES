@@ -600,6 +600,8 @@ namespace lsn {
 			// ========
 			// American Dream (Japan)
 			{ .ui32Crc = 0xFAF802D1, .cChip = LSN_C_MMC1B2 },
+			// Best Play Pro Yakyuu (Japan)
+			{ .ui32Crc = 0xF79D684A, .cChip = LSN_C_MMC1A },
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
 
