@@ -21,6 +21,8 @@
 #include "../Mappers/LSNMapper010.h"
 #include "../Mappers/LSNMapper011.h"
 
+#include "../Mappers/LSNMapper013.h"
+
 #include "../Mappers/LSNMapper032.h"
 #include "../Mappers/LSNMapper033.h"
 #include "../Mappers/LSNMapper034.h"

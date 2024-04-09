@@ -328,7 +328,7 @@ namespace lsn {
 			// M82 Game Selectable Working Product Display (E)
 			{ .ui32Crc = 0x7D56840A, .pmRegion = LSN_PM_PAL },
 			// Mach Rider (E) [!]
-			{ .ui32Crc = 0x8BBE9BEC, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x8BBE9BEC, .mmMirrorOverride = LSN_MM_VERTICAL, .pmRegion = LSN_PM_PAL },
 			// Maniac Mansion (Europe)
 			{ .ui32Crc = 0xF59CFC3D, .pmRegion = LSN_PM_PAL },
 			// Maniac Mansion (SW)
@@ -566,6 +566,8 @@ namespace lsn {
 			// ========
 			// Doraemon.
 			{ .ui32Crc = 0xB00ABE1C, .mmMirrorOverride = LSN_MM_VERTICAL },
+			// Mach Rider (Japan, USA) (Rev A)
+			{ .ui32Crc = 0x3ACD4BF1, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Ms. Pac Man.
 			{ .ui32Crc = 0x4B2DCE64, .mmMirrorOverride = LSN_MM_HORIZONTAL },
 			// Zippy Race.

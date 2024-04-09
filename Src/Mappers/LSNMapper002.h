@@ -112,9 +112,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper002 * pmThis = reinterpret_cast<CMapper002 *>(_pvParm0);
-			//pmThis->m_ui8PgmBank = (_ui8Val & pmThis->m_ui8Mask) % (pmThis->m_prRom->vPrgRom.size() / PgmBankSize());
 			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val & pmThis->m_ui8Mask) );
-
 		}
 	};
 
