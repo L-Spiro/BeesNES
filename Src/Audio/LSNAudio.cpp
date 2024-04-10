@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Uses OpenAL to handle all for our audio needs.  As an emulator, we just need a single device, context, and source.
+ * Description: Uses OpenAL or Core Audio to handle all for our audio needs.  As an emulator, we just need a single device, context, and source.
  *	This class owns and manages the objects and provides the interface we need to generate audio.
  */
 

@@ -220,6 +220,9 @@
 		125751EB2BC4275500A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
 		125751EE2BC4276500A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
 		125751F12BC4276D00A4A610 /* LSon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751CD2BC4263200A4A610 /* LSon.framework */; };
+		125751F52BC6BCF200A4A610 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751F42BC6BCF200A4A610 /* AudioToolbox.framework */; };
+		125751F72BC6BCF900A4A610 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751F62BC6BCF900A4A610 /* AudioToolbox.framework */; };
+		125751F92BC6BD0100A4A610 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 125751F82BC6BD0100A4A610 /* AudioToolbox.framework */; };
 		12E8B6AB2BB59A6500055316 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AA2BB59A6500055316 /* AppDelegate.m */; };
 		12E8B6AE2BB59A6500055316 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 12E8B6AD2BB59A6500055316 /* GameViewController.m */; };
 		12E8B6B12BB59A6500055316 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 12E8B6B02BB59A6500055316 /* Base */; };
@@ -536,6 +539,9 @@
 		125750EF2BC27EE400A4A610 /* LSApple.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LSApple.xcodeproj; path = Libraries/LSApple/LSApple.xcodeproj; sourceTree = SOURCE_ROOT; };
 		125751002BC2C44900A4A610 /* ExpressionEvaluator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ExpressionEvaluator.xcodeproj; path = Libraries/ExpressionEvaluator/ExpressionEvaluator.xcodeproj; sourceTree = SOURCE_ROOT; };
 		125751C82BC4263100A4A610 /* LSon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LSon.xcodeproj; path = Libraries/LSon/LSon.xcodeproj; sourceTree = SOURCE_ROOT; };
+		125751F42BC6BCF200A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
+		125751F62BC6BCF900A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
+		125751F82BC6BD0100A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -568,6 +574,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751F52BC6BCF200A4A610 /* AudioToolbox.framework in Frameworks */,
 				125751F12BC4276D00A4A610 /* LSon.framework in Frameworks */,
 				125751AD2BC2C52C00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750F92BC27F1100A4A610 /* LSApple.framework in Frameworks */,
@@ -579,6 +586,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751F72BC6BCF900A4A610 /* AudioToolbox.framework in Frameworks */,
 				125751EE2BC4276500A4A610 /* LSon.framework in Frameworks */,
 				125751AA2BC2C52500A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750FC2BC27F1900A4A610 /* LSApple.framework in Frameworks */,
@@ -590,6 +598,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				125751F92BC6BD0100A4A610 /* AudioToolbox.framework in Frameworks */,
 				125751EB2BC4275500A4A610 /* LSon.framework in Frameworks */,
 				125751A72BC2C51E00A4A610 /* ExpressionEvaluator.framework in Frameworks */,
 				125750FF2BC27F2000A4A610 /* LSApple.framework in Frameworks */,
@@ -989,6 +998,9 @@
 		125750C92BBEFCA300A4A610 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				125751F42BC6BCF200A4A610 /* AudioToolbox.framework */,
+				125751F62BC6BCF900A4A610 /* AudioToolbox.framework */,
+				125751F82BC6BD0100A4A610 /* AudioToolbox.framework */,
 				125750D32BC220A500A4A610 /* CoreAudio.framework */,
 				125750D12BC2209F00A4A610 /* CoreAudio.framework */,
 				125750CF2BC2209200A4A610 /* CoreAudio.framework */,
@@ -1679,8 +1691,16 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
-				"USER_HEADER_SEARCH_PATHS[arch=*]" = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/",
+					"$(PROJECT_DIR)/Libraries/LSon/Src/",
+					"$(PROJECT_DIR)/Libraries/LSApple/Src/",
+				);
+				"USER_HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/",
+					"$(PROJECT_DIR)/Libraries/LSon/Src/",
+					"$(PROJECT_DIR)/Libraries/LSApple/Src/",
+				);
 			};
 			name = Debug;
 		};
@@ -1734,7 +1754,11 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/Libraries/ExpressionEvaluator/Src/",
+					"$(PROJECT_DIR)/Libraries/LSon/Src/",
+					"$(PROJECT_DIR)/Libraries/LSApple/Src/",
+				);
 			};
 			name = Release;
 		};

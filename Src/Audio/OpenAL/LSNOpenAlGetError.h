@@ -1,5 +1,5 @@
 /**
- * Copyright L. Spiro 2021
+ * Copyright L. Spiro 2023
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
@@ -20,7 +20,7 @@
 namespace lsn {
 
 	/**
-	 * Class CCpu6502
+	 * Class COpenAlGetError
 	 * \brief Wrapper for error-handling in OpenAL.
 	 *
 	 * Description: Wrapper for error-handling in OpenAL.

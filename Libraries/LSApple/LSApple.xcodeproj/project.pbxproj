@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		125750F62BC27EF700A4A610 /* LSApple.h in Headers */ = {isa = PBXBuildFile; fileRef = 125750F52BC27EF700A4A610 /* LSApple.h */; };
+		125751F32BC4336500A4A610 /* LSAApple.h in Headers */ = {isa = PBXBuildFile; fileRef = 125751F22BC4336500A4A610 /* LSAApple.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		125750DF2BC27E5100A4A610 /* LSApple.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LSApple.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		125750F52BC27EF700A4A610 /* LSApple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSApple.h; path = Src/LSApple.h; sourceTree = "<group>"; };
+		125751F22BC4336500A4A610 /* LSAApple.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LSAApple.h; path = Src/LSAApple.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,7 +29,7 @@
 		125750D52BC27E5100A4A610 = {
 			isa = PBXGroup;
 			children = (
-				125750F52BC27EF700A4A610 /* LSApple.h */,
+				125751F22BC4336500A4A610 /* LSAApple.h */,
 				125750E02BC27E5100A4A610 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,7 +49,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				125750F62BC27EF700A4A610 /* LSApple.h in Headers */,
+				125751F32BC4336500A4A610 /* LSAApple.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
