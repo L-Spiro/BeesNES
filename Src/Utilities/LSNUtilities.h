@@ -870,7 +870,24 @@ namespace lsn {
 		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
 			_fT = ::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 16.0 ) * _fWidth );
+				_fT = float( ::pow( _fT / _fWidth, 12.0 ) * _fWidth );
+				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * The Lanczos filter function with X samples.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		template <unsigned _uPow>
+		static inline float									LanczosXFilterFunc_Pow( float _fT, float _fWidth ) {
+			_fT = ::fabsf( _fT );
+			if ( _fT <= std::ceil( _fWidth ) ) {
+				_fT = float( ::pow( _fT / _fWidth, double( _uPow ) ) * _fWidth );
 				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
 			}
 			return 0.0f;

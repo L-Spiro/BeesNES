@@ -163,6 +163,8 @@ namespace lsn {
 			{ .ui32Crc = 0xBBB3DE0A, .pmRegion = LSN_PM_PAL },
 			// Cobra Triangle (E)
 			{ .ui32Crc = 0x898E4232, .pmRegion = LSN_PM_PAL },
+			// colorwin_pal
+			{ .ui32Crc = 0x6348E921, .pmRegion = LSN_PM_PAL },
 			// Corvette ZR-1 Challenge (Europe)
 			{ .ui32Crc = 0x07637EE4, .pmRegion = LSN_PM_PAL },
 			// Cosmos Cop (Asia) (Mega Soft) (Unl)

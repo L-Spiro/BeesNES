@@ -234,7 +234,7 @@ namespace lsn {
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
 
-		PfFilterFunc										m_pfFilterFunc = CUtilities::Gaussian16FilterFunc;	/**< The filter function. */
+		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;	/**< The filter function. */
 		uint32_t											m_ui32FilterKernelSize = 6;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */

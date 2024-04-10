@@ -125,7 +125,6 @@ namespace lsn {
 		void								ResetToKnown() {
 			ResetAnalog();
 			std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
-			std::memset( m_ui8OpenBusMask, 0xFF, sizeof( m_ui8OpenBusMask ) );
 			m_ui8LastRead = 0;
 		}
 
@@ -133,6 +132,7 @@ namespace lsn {
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
 		void								ResetAnalog() {
+			std::memset( m_ui8OpenBusMask, 0xFF, sizeof( m_ui8OpenBusMask ) );
 		}
 
 		/**

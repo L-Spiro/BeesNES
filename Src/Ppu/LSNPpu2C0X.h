@@ -180,6 +180,7 @@ namespace lsn {
 		 */
 		void											ResetToKnown() {
 			ResetAnalog();
+			m_bBus.ResetToKnown();
 			m_ui64Frame = 0;
 			m_ui64Cycle = 0;
 			m_paPpuAddrT.ui16Addr = 0;
@@ -194,6 +195,7 @@ namespace lsn {
 		 * Performs an "analog" reset, allowing previous data to remain.
 		 */
 		void											ResetAnalog() {
+			m_bBus.ResetAnalog();
 			m_pcPpuCtrl.ui8Reg = 0;
 			
 
@@ -571,6 +573,7 @@ namespace lsn {
 					}
 					case LSN_SES_FINISHED_OAM_LIST : {
 						/** 4. Attempt (and fail) to copy OAM[n][0] into the next free slot in secondary OAM, and increment n (repeat until HBLANK is reached) */
+						LSN_INC_ADDR( 1 );
 						break;
 					}
 				}
@@ -716,13 +719,6 @@ namespace lsn {
 		}
 
 		/**
-		 * Determines if any rendering is taking place.
-		 *
-		 * \return Returns true if either the background or sprites are enabled, false otherwise.
-		 */
-		//inline bool										Rendering() const { return m_dvPpuMaskDelay.Value().s.ui8ShowBackground || m_dvPpuMaskDelay.Value().s.ui8ShowSprites; }
-
-		/**
 		 * Writing to 0x2000 (PPUCTRL).
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -866,8 +862,6 @@ namespace lsn {
 					return;
 				} 
 			}
-			/*_ui8Ret = ppPpu->m_ui8IoBusLatch;
-			ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );*/
 			ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 		}
@@ -930,8 +924,6 @@ namespace lsn {
 			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
 			if ( !ppPpu->m_bAddresLatch ) {
 				// ppPpu->m_bAddresLatch was 1 when we came here, flipped at the start.  This is the 2nd write.
-				//ppPpu->m_paPpuAddrV.ui16Addr = ppPpu->m_paPpuAddrT.ui16Addr;
-
 				ppPpu->m_ui16VAddrCopy = ppPpu->m_paPpuAddrT.ui16Addr;
 				ppPpu->m_ui8VAddrUpdateCounter = 3;
 				ppPpu->m_bVAddrPending = true;
@@ -1021,10 +1013,6 @@ namespace lsn {
 		static void LSN_FASTCALL						PaletteRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			_ui8Ret = ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY];
-			/*if ( _ui16Parm1 & 3 ) {
-				volatile int ghg  = 0;
-			}*/
-
 			/*ppPpu->g_bDoDebugPrint = false;
 			char szBuffer[256];
 			std::sprintf( szBuffer, "PaletteRead: Frame: %u [%u,%u]  V.addr = %.4X [%.2X]\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr, _ui8Ret );
@@ -1092,8 +1080,6 @@ namespace lsn {
 		static void LSN_FASTCALL						PpuNoRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
-
-			//ppPpu->m_ui8IoBusLatch = _pui8Data[_ui16Parm1];
 		}
 
 		/**
