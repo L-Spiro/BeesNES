@@ -14,6 +14,7 @@
 #include "../OS/LSNFeatureSet.h"
 #endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 
+#include <algorithm>
 #include <cmath>
 //#include <intrin.h>
 #include <numbers>
