@@ -13,6 +13,7 @@
 #ifdef LSN_APPLE
 
 #include "LSAApple.h"
+#include "../Localization/LSNLocalization.h"
 
 #include <AudioToolbox/AudioComponent.h>
 
@@ -128,6 +129,7 @@ namespace lsn {
 	 **/
 	bool CAudioCoreAudio::GetAudioDevices( std::vector<AudioObjectID> &_vRet ) {
 		AudioObjectID aoiDefId = DefaultAudioDevice();
+		if ( aoiDefId == 0 ) { return false; }
 		
 		UInt32 ui32DataSize;
 		AudioObjectPropertyAddress aopaPropAddr = {
@@ -166,6 +168,31 @@ namespace lsn {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Gets a Core Audio error string given the error code.
+	 *
+	 * \param _sError The error code to turn into a string.
+	 * \return Returns a pointer to a constant string containing the string form of the error code and its descripton.
+	 */
+	const char8_t * CAudioCoreAudio::ErrorCodeToString( OSStatus _sError ) {
+		switch ( _sError ) {
+			case kAudioHardwareNoError : { return u8"kAudioHardwareNoError: " LSN_U8STR( LSN_AUDIO_HARDWARE_NO_ERROR ); }
+			case kAudioHardwareNotRunningError : { return u8"kAudioHardwareNotRunningError: " LSN_U8STR( LSN_AUDIO_HARDWARE_NOT_RUNNING_ERROR ); }
+			case kAudioHardwareUnspecifiedError : { return u8"kAudioHardwareUnspecifiedError: " LSN_U8STR( LSN_AUDIO_HARDWARE_UNSPECIFIED_ERROR ); }
+			case kAudioHardwareUnknownPropertyError : { return u8"kAudioHardwareUnknownPropertyError: " LSN_U8STR( LSN_AUDIO_HARDWARE_UNKNOWN_PROPERTY_ERROR ); }
+			case kAudioHardwareBadPropertySizeError : { return u8"kAudioHardwareBadPropertySizeError: " LSN_U8STR( LSN_AUDIO_HARDWARE_BAD_PROPERTY_SIZE_ERROR ); }
+			case kAudioHardwareIllegalOperationError : { return u8"kAudioHardwareIllegalOperationError: " LSN_U8STR( LSN_AUDIO_HARDWARE_ILLEGAL_OPERATION_ERROR ); }
+			case kAudioHardwareBadObjectError : { return u8"kAudioHardwareBadObjectError: " LSN_U8STR( LSN_AUDIO_HARDWARE_BAD_OBJECT_ERROR ); }
+			case kAudioHardwareBadDeviceError : { return u8"kAudioHardwareBadDeviceError: " LSN_U8STR( LSN_AUDIO_HARDWARE_BAD_DEVICE_ERROR ); }
+			case kAudioHardwareBadStreamError : { return u8"kAudioHardwareBadStreamError: " LSN_U8STR( LSN_AUDIO_HARDWARE_BAD_STREAM_ERROR ); }
+			case kAudioHardwareUnsupportedOperationError : { return u8"kAudioHardwareUnsupportedOperationError: " LSN_U8STR( LSN_AUDIO_HARDWARE_UNSUPPORTED_OPERATION_ERROR ); }
+			case kAudioHardwareNotReadyError : { return u8"kAudioHardwareNotReadyError: " LSN_U8STR( LSN_AUDIO_HARDWARE_NOT_READY_ERROR ); }
+			case kAudioDeviceUnsupportedFormatError : { return u8"kAudioDeviceUnsupportedFormatError: " LSN_U8STR( LSN_AUDIO_DEVICE_UNSUPPORTED_FORMAT_ERROR ); }
+			case kAudioDevicePermissionsError : { return u8"kAudioDevicePermissionsError: " LSN_U8STR( LSN_AUDIO_DEVICE_PERMISSIONS_ERROR ); }
+			default : { return LSN_U8STR( LSN_CORE_AUDIO_ERROR_UNKNOWN ); }
+		}
 	}
 
 	/**

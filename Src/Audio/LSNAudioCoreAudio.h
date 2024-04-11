@@ -79,6 +79,14 @@ namespace lsn {
 		 **/
 		static bool											GetAudioDevices( std::vector<AudioObjectID> &_vRet );
 		
+		/**
+		 * Gets a Core Audio error string given the error code.
+		 *
+		 * \param _sError The error code to turn into a string.
+		 * \return Returns a pointer to a constant string containing the string form of the error code and its descripton.
+		 */
+		static const char8_t *								ErrorCodeToString( OSStatus _sError );
+		
 	protected :
 		// == Members.
 		AudioComponentInstance								m_aciInstance = nullptr;					/**< The audio component instance. */
