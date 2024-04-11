@@ -71,6 +71,8 @@ namespace lsn {
 			m_ui8OamAddr( 0 ),
 			m_ui8OamLatch( 0 ),
 			m_ui8Oam2ClearIdx( 0 ),
+			m_ui8Oam2WriteIdx( 0 ),
+			m_ui8Oam2SpriteCpyCnt( 0 ),
 			m_dvPpuMaskDelay( MaskCallback, this ),
 			m_bAddresLatch( false ) {
 
@@ -216,6 +218,7 @@ namespace lsn {
 			m_ui8OamAddr = 0;
 			m_ui8OamLatch = 0;
 			m_ui8Oam2ClearIdx = 0;
+			m_ui8Oam2WriteIdx = m_ui8Oam2SpriteCpyCnt = 0;
 
 			m_ui16VAddrCopy = 0;
 			m_ui8VAddrUpdateCounter = 0xFF;
@@ -469,10 +472,11 @@ namespace lsn {
 		template <bool _bIsFirst, bool _bIsOdd>
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 			if constexpr ( _bIsFirst ) {
-				m_ui8SpriteN = m_ui8SpriteCount = 0;
-				m_ui8SpriteM = m_ui8OamAddr;
+				m_ui8SpriteCount = 0;
 				m_sesStage = LSN_SES_CHECK_NEXT;
 				m_bSprite0IsInSecondary = false;
+				m_ui8Oam2WriteIdx = 0;
+				m_ui8Oam2SpriteCpyCnt = 0;
 				/*
 				// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
 				if ( m_ui8OamAddr != 0 ) {
@@ -480,106 +484,133 @@ namespace lsn {
 				*/
 			}
 			if ( !m_bRendering ) { return; }
-
-			uint8_t ui8PrevOamAddr = m_ui8OamAddr;
-
-#define LSN_INC_ADDR( BY )				{						\
-		m_ui8OamAddr += BY;										\
-		if ( m_ui8OamAddr < ui8PrevOamAddr ) {					\
-			m_sesStage = LSN_SES_FINISHED_OAM_LIST;				\
-			break;												\
-		}														\
-	}
 			
+#define LSN_CUROAM											((m_ui8SpriteN << 2) | m_ui8SpriteM)
+#define LSN_RESTORE_OAM										m_ui8OamAddr = LSN_CUROAM//; bOverflowed == (bOverflowed | (m_ui8OamAddr < ui8PrevOamAddr)
+#define LSN_INC_M( BY, CARRY )								m_ui8SpriteM += (BY); if constexpr ( CARRY ) { m_ui8SpriteN += m_ui8SpriteM >> 2; } m_ui8SpriteM &= 0b11; LSN_RESTORE_OAM
+#define LSN_INC_N( BY )										m_ui8SpriteN += (BY); LSN_RESTORE_OAM
+#define LSN_WRITE_OAM2( VAL )								m_soSecondaryOam.ui8Bytes[m_ui8Oam2WriteIdx] = (VAL)
+#define LSN_READ_OAM2										m_soSecondaryOam.ui8Bytes[m_ui8Oam2WriteIdx&0b00011111]
+
+
 			if constexpr ( _bIsOdd ) {
-				// Odd cycles allow reading.
-				switch ( m_sesStage ) {
-					case LSN_SES_FINISHED_OAM_LIST : {}
-					case LSN_SES_CHECK_NEXT : {}
-					case LSN_SES_OF_SEARCH_ADD_SPRITE : {}
-					case LSN_SES_ADD_SPRITE : {
-						m_ui8OamLatch = ReadOam( m_ui8OamAddr );	// Sprite's Y.
-						break;
-					}
-				}
+				m_ui8OamLatch = ReadOam( m_ui8OamAddr );	// Sprite's Y.  Hopefully.
 			}
 			else {
+				//uint8_t ui8PrevOamAddr = m_ui8OamAddr;
+				//bool bOverflowed = false;
+				m_ui8SpriteN = (m_ui8OamAddr & ~0b11) >> 2;
+				m_ui8SpriteM = m_ui8OamAddr & 0b11;
+
 				int16_t i16ScanLine = int16_t( m_ui16CurY );
-				// Even cycles allow writing.
-				uint8_t ui8M = (m_ui8OamAddr - m_ui8SpriteM) & 0x3;
 				switch ( m_sesStage ) {
 					case LSN_SES_CHECK_NEXT : {
-						/** On even cycles, data is written to secondary OAM (unless secondary OAM is full, in which case it will read the value in secondary OAM instead) */
+						/** On even cycles, data is written to secondary OAM (unless secondary OAM is full, in which case it will read the value in secondary OAM instead). */
 						if ( m_ui8SpriteCount < 8 ) {
 							/** 1. Starting at n = 0, read a sprite's Y-coordinate (OAM[n][0], copying it to the next open slot in secondary OAM (unless 8 sprites have been found, in which case the write is ignored). */
-							m_soSecondaryOam.ui8Bytes[m_ui8SpriteCount*4+ui8M] = m_ui8OamLatch;
+							LSN_WRITE_OAM2( m_ui8OamLatch );
 							/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
 							int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
-								// Move to the copy stage.
 								if ( m_ui8OamAddr == 0 ) {
+									// Inform that there is a sprite-0 in the next scanline.
 									m_bSprite0IsInSecondary = true;
 								}
+								// Move to the copy stage.
 								m_sesStage = LSN_SES_ADD_SPRITE;
-								LSN_INC_ADDR( 1 );
+								m_ui8Oam2SpriteCpyCnt = 3;	// Copy 3 bytes.
+								++m_ui8Oam2WriteIdx;		// Starting at the next index.
+								LSN_INC_M( 1, true );
 								break;
 							}
 							else {
 								// Sprite is of no interest.
-								LSN_INC_ADDR( 4 );
+								/** 2. Increment n. */
+								LSN_INC_N( 1 );
+
+								/** 2a. If n has overflowed back to zero (all 64 sprites evaluated), go to 4. */
+								if ( (m_ui8SpriteN & ~0b11000000) == 0 ) {
+									m_sesStage = LSN_SES_FINISHED_OAM_LIST;
+								}
+								/** 2b. If less than 8 sprites have been found, go to 1. */
+								// Implicit.
+								/** 2c. If exactly 8 sprites have been found, disable writes to secondary OAM because it is full. This causes sprites in back to drop out. */
+								// Implicit.
 							}
 						}
 						else {
-							// A read of secondary OAM is prescribed here, but it would have 0 side-effects, so skipping.
+							/** 3. Starting at m = 0, evaluate OAM[n][m] as a Y-coordinate.*/
+
+							// Writes to OAM2 have been disabled.  8 sprites have been found.  Note that doing this before the scanline check below means
+							//	that OAM[n][m] is't being used as a Y-coordinate, but rather whatever is in OAM2 at the current index is.  Is this correct?  Shouldn't be.
+							//m_ui8OamLatch = LSN_READ_OAM2;
+
 							// Check for overflow.
 							int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
-								// Overflow, baby!
+								// Overflow.
 								m_psPpuStatus.s.ui8SpriteOverflow = true;
-								LSN_INC_ADDR( 1 );
+								
+								// Move to the fake copy stage.
+								m_sesStage = LSN_SES_OF_SEARCH_ADD_SPRITE;
+								m_ui8Oam2SpriteCpyCnt = 3;	// Copy 3 bytes.  m_ui8Oam2WriteIdx doesn't matter anymore; not a real copy.
+								LSN_INC_M( 1, true );
+								break;
 							}
 							else {
-								m_sesStage = LSN_SES_OF_SEARCH_ADD_SPRITE;
-								// Let's cause a sprite-overflow bug by modifying M here!
-								LSN_INC_ADDR( 1 );
-								// This causes an extra 4 reads.  m_ui8SpriteM is never used from LSN_SES_OF_SEARCH_ADD_SPRITE on except to track how many bytes copied.
-								m_ui8SpriteM = m_ui8OamAddr;
+								/** 3b. If the value is not in range, increment n and m (without carry). If n overflows to 0, go to 4; otherwise go to 3. */
+								LSN_INC_M( 1, false );
+								LSN_INC_N( 1 );
+								if ( (m_ui8SpriteN & ~0b11000000) == 0 ) {
+									m_sesStage = LSN_SES_FINISHED_OAM_LIST;
+								}
+								else {
+									m_sesStage = LSN_SES_CHECK_NEXT;
+								}
+								break;
 							}
 						}
 						break;
 					}
 					case LSN_SES_ADD_SPRITE : {
-						m_soSecondaryOam.ui8Bytes[m_ui8SpriteCount*4+ui8M] = m_ui8OamLatch;
-						if ( ui8M == 3 ) {
-							// Copied 4 bytes.
+						/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
+						LSN_WRITE_OAM2( m_ui8OamLatch );
+						++m_ui8Oam2WriteIdx;
+						if ( --m_ui8Oam2SpriteCpyCnt == 0 ) {
+							// Copied the desired amount.
 							++m_ui8SpriteCount;
 							m_sesStage = LSN_SES_CHECK_NEXT;
-							LSN_INC_ADDR( 1 );
-							break;
 						}
-						LSN_INC_ADDR( 1 );
+						LSN_INC_M( 1, true );
 						break;
 					}
 					case LSN_SES_OF_SEARCH_ADD_SPRITE : {
-						if ( ui8M == 3 ) {
-							LSN_INC_ADDR( 1 );
-							m_sesStage = LSN_SES_FINISHED_OAM_LIST;
-							break;
+						// This is a fake copy.  After 8 sprites are found:
+						/** 3a. If the value is in range, set the sprite overflow flag in $2002 and read the next 3 entries of OAM (incrementing 'm' after each byte and incrementing 'n' when 'm' overflows); if m = 3, increment n. */
+						if ( --m_ui8Oam2SpriteCpyCnt == 0 ) {
+							// Copied the desired amount.
+							m_sesStage = LSN_SES_CHECK_NEXT;
 						}
-						LSN_INC_ADDR( 1 );
+						LSN_INC_M( 1, true );
 						break;
 					}
 					case LSN_SES_FINISHED_OAM_LIST : {
 						/** 4. Attempt (and fail) to copy OAM[n][0] into the next free slot in secondary OAM, and increment n (repeat until HBLANK is reached) */
-						LSN_INC_ADDR( 1 );
+						LSN_INC_N( 1 );
 						break;
 					}
 				}
+
 			}
 
-#undef LSN_INC_ADDR
+#undef LSN_READ_OAM2
+#undef LSN_WRITE_OAM2
+#undef LSN_INC_N
+#undef LSN_INC_M
+#undef LSN_RESTORE_OAM
+#undef LSN_CUROAM
 		}
 
 		/**
@@ -1252,6 +1283,8 @@ namespace lsn {
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
 		uint8_t											m_ui8OamLatch;									/**< Holds temporary OAM data. */
 		uint8_t											m_ui8Oam2ClearIdx;								/**< The index of the byte being cleared during the secondary OAM clear. */
+		uint8_t											m_ui8Oam2WriteIdx;								/**< The index into which OAM is copied into OAM2 during sprite evaluation. */
+		uint8_t											m_ui8Oam2SpriteCpyCnt;							/**< When copying in-range sprites from OAM to OAM2, this counts down to ensure the desired number of bytes are copied. */
 
 		uint8_t											m_ui8SpriteN;									/**< The N index during sprite evaluation and the sprite Y during fetches. */
 		uint8_t											m_ui8SpriteM;									/**< The M index during sprite evaluation and the sprite tile number during fetches. */
@@ -2013,7 +2046,7 @@ namespace lsn {
 						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
-#if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
+#if 0					// Making this a do-nothing reduces the number of unique functions, improving performance.
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";
