@@ -141,7 +141,7 @@ namespace lsn {
 		static inline uint8_t								SampleToUi8( float _fSample );
 
 		/**
-		 * Converts a sample fron a floating-point format to a uint8_t.  16-bit PCM data is expressed as a signed value over the
+		 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
 		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
 		 *	conversion never generates -32768.
 		 * 
@@ -193,7 +193,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a sample fron a floating-point format to a uint8_t.  16-bit PCM data is expressed as a signed value over the
+	 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
 	 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
 	 *	conversion never generates -32768.
 	 * 
