@@ -477,11 +477,13 @@ namespace lsn {
 				m_bSprite0IsInSecondary = false;
 				m_ui8Oam2WriteIdx = 0;
 				m_ui8Oam2SpriteCpyCnt = 0;
-				/*
+				
 				// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
 				if ( m_ui8OamAddr != 0 ) {
+					for ( size_t I = 0; I < 8; ++I ) {
+						WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
+					}
 				}
-				*/
 			}
 			if ( !m_bRendering ) { return; }
 			
@@ -497,9 +499,7 @@ namespace lsn {
 				m_ui8OamLatch = ReadOam( m_ui8OamAddr );	// Sprite's Y.  Hopefully.
 			}
 			else {
-				//uint8_t ui8PrevOamAddr = m_ui8OamAddr;
-				//bool bOverflowed = false;
-				m_ui8SpriteN = (m_ui8OamAddr & ~0b11) >> 2;
+				m_ui8SpriteN = m_ui8OamAddr >> 2;
 				m_ui8SpriteM = m_ui8OamAddr & 0b11;
 
 				int16_t i16ScanLine = int16_t( m_ui16CurY );
