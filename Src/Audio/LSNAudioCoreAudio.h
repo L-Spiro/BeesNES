@@ -90,6 +90,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		AudioComponentInstance								m_aciInstance = nullptr;					/**< The audio component instance. */
+		AudioStreamBasicDescription							m_asbdStreamFormat = { 0 };					/**< The stream format. */
 		
 		
 		// == Functions.
@@ -105,6 +106,24 @@ namespace lsn {
 		 * Destroys the audio component.
 		 **/
 		void												DestroyAudio();
+		
+		/**
+		 * Undirties the frequency.  Called only when the new frequency differs from the old.
+		 *
+		 * \param _ui32Freq The new frequency to set.
+		 **/
+		virtual void										UndirtyFreq( uint32_t _ui32Freq );
+		
+		/**
+		 * Undirties the format.  Called only when the new format differs from the old.
+		 *
+		 * \param _fFormat The new format to set.
+		 **/
+		virtual void										UndirtyFormat( const LSN_FORMAT &_fFormat );
+		
+		
+	private :
+		typedef CAudioBase									Parent;
     };
 
 }   // namespace lsn

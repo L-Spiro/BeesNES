@@ -1166,6 +1166,47 @@ namespace lsn {
 			return false;
 #endif	// #if defined( __i386__ ) || defined( __x86_64__ )
 		}
+		
+		/**
+		 * Converts a sample fron a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+		 *	audio output level of zero.
+		 *
+		 * \param _fSample The sample to convert.
+		 * \return Returns the converted sample.
+		 **/
+		static inline uint8_t								SampleToUi8( float _fSample ) {
+			float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+			float fScaledSample = (fClampedSample + 1.0f) * 0.5f * 255.0f;
+			return static_cast<uint8_t>(std::round( fScaledSample ));
+		}
+
+		/**
+		 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
+		 *	conversion never generates -32768.
+		 *
+		 * \param _fSample The sample to convert.
+		 * \return Returns the converted sample.
+		 **/
+		static inline int16_t								SampleToI16( float _fSample ) {
+			float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+			float fScaledSample = fClampedSample * 32767.0f;
+			return static_cast<int16_t>(std::round( fScaledSample ));
+		}
+		
+		/**
+		 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+		 *	conversion never generates -8388608.
+		 *
+		 * \param _fSample The sample to convert.
+		 * \return Returns the converted sample.
+		 **/
+		static inline int32_t								SampleToI24( float _fSample ) {
+			double dClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+			double dScaledSample = dClampedSample * 8388607.0;
+			return static_cast<int32_t>(std::round( dScaledSample ));
+		}
 
 
 		// == Members.

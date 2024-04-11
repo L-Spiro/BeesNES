@@ -31,6 +31,15 @@ namespace lsn {
 		if ( !GetAudioDevices( vDeviceIds ) ) { return false; }
 		if ( !CreateAudioById( vDeviceIds[0] ) ) { return false; }
 
+		m_asbdStreamFormat.mSampleRate = Float64( 44100 );
+		m_asbdStreamFormat.mFormatID = kAudioFormatLinearPCM;
+		m_asbdStreamFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+		m_asbdStreamFormat.mFramesPerPacket = 1;
+		m_asbdStreamFormat.mChannelsPerFrame = 1;
+		m_asbdStreamFormat.mBitsPerChannel = 16;
+		m_asbdStreamFormat.mBytesPerFrame = m_asbdStreamFormat.mChannelsPerFrame * (m_asbdStreamFormat.mBitsPerChannel >> 3);
+		m_asbdStreamFormat.mBytesPerPacket = m_asbdStreamFormat.mBytesPerFrame * m_asbdStreamFormat.mFramesPerPacket;
+
 		return true;
 	}
 
@@ -48,6 +57,7 @@ namespace lsn {
 	 * Called when emulation begins.  Resets the ring buffer of buckets.
 	 **/
 	void CAudioCoreAudio::BeginEmulation() {
+		Parent::BeginEmulation();
 	}
 
 	/**
@@ -233,6 +243,7 @@ namespace lsn {
 		);
 
 		if ( kAudioHardwareNoError != sStatus ) {
+			::AudioComponentInstanceDispose( aciUnit );
 			return false;
 		}
 
@@ -272,6 +283,44 @@ namespace lsn {
 
 		// The audioUnit is now properly shut down and resources are freed.
 		m_aciInstance = nullptr;
+	}
+
+	/**
+	 * Undirties the frequency.  Called only when the new frequency differs from the old.
+	 *
+	 * \param _ui32Freq The new frequency to set.
+	 **/
+	void CAudioCoreAudio::UndirtyFreq( uint32_t _ui32Freq ) {
+		m_asbdStreamFormat.mSampleRate = Float64( _ui32Freq );
+	}
+
+	/**
+	 * Undirties the format.  Called only when the new format differs from the old.
+	 *
+	 * \param _fFormat The new format to set.
+	 **/
+	void CAudioCoreAudio::UndirtyFormat( const LSN_FORMAT &_fFormat ) {
+		switch ( _fFormat.sfFormat ) {
+			case LSN_SF_PCM : {
+				//m_asbdStreamFormat.mFormatID = kAudioFormatLinearPCM;
+				if ( _fFormat.ui16BitsPerChannel == 8 ) {
+					m_asbdStreamFormat.mFormatFlags = kAudioFormatFlagIsPacked;
+				}
+				else {
+					m_asbdStreamFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+				}
+				break;
+			}
+			case LSN_SF_FLOAT : {
+				//m_asbdStreamFormat.mFormatID = kAudioFormatLinearPCM;
+				m_asbdStreamFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+				break;
+			}
+		}
+		m_asbdStreamFormat.mChannelsPerFrame = _fFormat.ui16Channels;
+		m_asbdStreamFormat.mBitsPerChannel = _fFormat.ui16BitsPerChannel;
+		m_asbdStreamFormat.mBytesPerFrame = m_asbdStreamFormat.mChannelsPerFrame * (m_asbdStreamFormat.mBitsPerChannel >> 3);
+		m_asbdStreamFormat.mBytesPerPacket = m_asbdStreamFormat.mBytesPerFrame * m_asbdStreamFormat.mFramesPerPacket;
 	}
 
 }	// namespace lsn

@@ -542,6 +542,8 @@
 		125751F42BC6BCF200A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
 		125751F62BC6BCF900A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
 		125751F82BC6BD0100A4A610 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		125751FA2BC7CE9100A4A610 /* LSNMapper013.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper013.h; path = Src/Mappers/LSNMapper013.h; sourceTree = SOURCE_ROOT; };
+		125751FB2BC7CEBB00A4A610 /* LSNMapper071.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSNMapper071.h; path = Src/Mappers/LSNMapper071.h; sourceTree = SOURCE_ROOT; };
 		12E8B69D2BB59A6400055316 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		12E8B69F2BB59A6400055316 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		12E8B6A02BB59A6400055316 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -775,6 +777,7 @@
 				12574B6B2BB8869E00A4A610 /* LSNMapper009.h */,
 				12574B5C2BB8869E00A4A610 /* LSNMapper010.h */,
 				12574B542BB8869E00A4A610 /* LSNMapper011.h */,
+				125751FA2BC7CE9100A4A610 /* LSNMapper013.h */,
 				12574B532BB8869E00A4A610 /* LSNMapper032.h */,
 				12574B702BB8869E00A4A610 /* LSNMapper033.h */,
 				12574B612BB8869E00A4A610 /* LSNMapper034.h */,
@@ -783,6 +786,7 @@
 				12574B592BB8869E00A4A610 /* LSNMapper041.h */,
 				12574B562BB8869E00A4A610 /* LSNMapper066.h */,
 				12574B662BB8869E00A4A610 /* LSNMapper068.h */,
+				125751FB2BC7CEBB00A4A610 /* LSNMapper071.h */,
 				12574B6A2BB8869E00A4A610 /* LSNMapper072.h */,
 				12574B772BB8869E00A4A610 /* LSNMapper075.h */,
 				12574B5E2BB8869E00A4A610 /* LSNMapper077.h */,
