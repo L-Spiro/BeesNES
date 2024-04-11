@@ -977,8 +977,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
 			// TODO: Pre-G PPUs don't let you read palette RAM at all. Reading from $3F00-3FFF are normal PPU bus reads like any other.
-			// The $3F00 palette RAM interface only exists:
-			//	The $3F00-3FFF palette RAM interface only exists:
+			// The $3F00-3FFF palette RAM interface only exists:
 			//	To the CPU when writing to $2007 (all PPUs)
 			//	To the CPU when reading $2007 (G, H, PAL)
 			//	To the PPU when drawing the screen with rendering disabled
