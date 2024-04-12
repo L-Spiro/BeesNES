@@ -19,6 +19,9 @@
 #include <numbers>
 #include <vector>
 
+
+#include <format>	// TMP
+
 #if defined( _MSC_VER )
     // Microsoft Visual Studio Compiler.
     #define LSN_ALN		__declspec( align( 64 ) )
@@ -58,8 +61,14 @@ namespace lsn {
 			m_gGen.ui32OutputHz = 0;
 			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
 			m_gGen.pfConvolve = &CSampleBox::Convolve;
+			m_gGen.pfFinalCallback = &CSampleBox::PassThrough;
 
 			m_sSinc.sM = 0;
+
+			m_lLpf.dLastSample = 0.0;
+			m_lLpf.dLastInput = 0.0;
+			m_lLpf.dGain = 0.0;
+			m_lLpf.dCornerFreq = 0.0;
 
 			m_hHpf.fAlpha = 0.0f;
 			m_hHpf.fPreviousOutput = 0.0f;
@@ -80,6 +89,9 @@ namespace lsn {
 		/** A function pointer for the functions that convolves a sample (sinc filter). */
 		typedef float (CSampleBox:: *						PfConvolve)( size_t );
 
+		/** A callback function used to make any final modifications to the sample before it goes into the output buffer. */
+		typedef float (*									PfFinalCallback)( void *, float, uint32_t );
+
 
 		// == Functions.
 		/**
@@ -94,8 +106,8 @@ namespace lsn {
 		 **/
 		bool												Init( double _dLpf, double _dHpf, size_t _sM, double _dInputRate, uint32_t _ui32OutputRate ) {
 			_dLpf = std::min( _dLpf, _ui32OutputRate / 2.0 - (_ui32OutputRate / 100.0) );
-			// Round up to the nearest 8.
-			_sM = (_sM + 7) / 8 * 8;
+			// Round up to the nearest 16.
+			_sM = (_sM + 15) / 16 * 16;
 			// Subtract 1 to make it odd.
 			--_sM;
 			if ( m_gGen.dInputHz == _dInputRate &&
@@ -104,10 +116,11 @@ namespace lsn {
 				m_gGen.ui32OutputHz == _ui32OutputRate &&
 				m_sSinc.vCeof.size() - 1 == _sM ) { return true; }
 			
+			::OutputDebugStringA( std::format( "Kernel size: {}\r\n", _sM ).c_str() );
 			double dFc = _dLpf / (_ui32OutputRate * 3.0);	// Cut-off ratio.  The sinc is applied to the buffer that is (_ui32OutputRate * 3).
 
 			try {
-				// + 1 makes it a multiple of 8.
+				// + 1 makes it a multiple of 16.
 				m_sSinc.vCeof.resize( _sM + 1 );
 				m_sSinc.vRing.resize( (_sM + 1) * 10 );
 				m_gGen.vBuffer.resize( size_t( ::ceil( _dInputRate / (_ui32OutputRate * 3) ) + 6 ) );
@@ -153,15 +166,25 @@ namespace lsn {
 			}
 
 
+			// Prepare the LPF.
+			{
+				m_lLpf.dCornerFreq = 2.0 * std::numbers::pi * (_dLpf / _dInputRate);
+				m_lLpf.dGain = 1.0 - m_lLpf.dCornerFreq;
+				m_lLpf.dCornerFreq *= 0.5;
+			}
+
+
 			// Prepare the HPF.
 			double dDelta = (_ui32OutputRate != 0) ? (1.0 / _ui32OutputRate) : 0.0;
 			double dTimeConstant = (_dHpf != 0.0) ? (1.0 / _dHpf) : 0.0;
 			m_hHpf.fAlpha = float( ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0 );
 			m_hHpf.fOutput = 0.0f;
-			m_hHpf.fPreviousOutput = m_hHpf.fOutput;
-			m_hHpf.fPrevInput = 0.0f;
+			//m_hHpf.fPreviousOutput = m_hHpf.fOutput;
+			//m_hHpf.fPrevInput = 0.0f;
 			m_hHpf.fDelta = 0.0f;
 
+
+			// General preparation.
 			m_gGen.ui64SrcSampleCnt = 0ULL;
 			m_gGen.ui64SampleCnt = 0ULL;
 			m_gGen.ui64SamplesBuffered = 0ULL;
@@ -182,7 +205,8 @@ namespace lsn {
 		 * \param _fSample The sample to add.
 		 **/
 		inline void											AddSample( float _fSample ) {
-			m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = _fSample;
+			m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = ProcessLpf( _fSample );
+			//m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = _fSample;
 			if ( m_gGen.ui64SrcSampleCnt >= 4 ) {
 				// How many samples should we have processed until now?
 				uint64_t ui64SamplesUntilNow = uint64_t( (m_gGen.ui64SrcSampleCnt - 4.0) * (m_gGen.ui32OutputHz * 3.0) / m_gGen.dInputHz );
@@ -194,6 +218,18 @@ namespace lsn {
 					(this->*m_gGen.pfStoreSample)( sIdx, float( dFrac ) );
 				}
 			}
+		}
+
+		/**
+		 * Processes a single sample.
+		 * 
+		 * \param _fSample The sample to process.
+		 * \return Returns the filtered sample.
+		 **/
+		inline float										ProcessLpf( float _fSample ) {
+			m_lLpf.dLastSample = m_lLpf.dLastSample * m_lLpf.dGain + (_fSample + m_lLpf.dLastInput) * m_lLpf.dCornerFreq;
+			m_lLpf.dLastInput = _fSample;
+			return float( m_lLpf.dLastSample );
 		}
 
 		/**
@@ -259,6 +295,18 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets the AVX/SSE feature set.
+		 * 
+		 * \param _bAvx512 Specifies whether the AVX-512F feature set is available.
+		 * \param _bAvx Specifies whether the AVX feature set is available.
+		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
+		 **/
+		void												SetOutputCallback( PfFinalCallback _pfFunc, void * _pfParm ) {
+			m_gGen.pfFinalCallback = nullptr == _pfFunc ? &CSampleBox::PassThrough : _pfFunc;
+			m_gGen.pvFinalParm = _pfParm;
+		}
+
+		/**
 		 * Calculates the _sM parameter for Init() given a transition bandwidth (the range of frequencies to transition from max volume to silence).
 		 * 
 		 * \param _dBw The frequency range to transition to silence.
@@ -279,7 +327,7 @@ namespace lsn {
 		 * \return Returns the recommended transition range to pass to TransitionRangeToBandwidth().
 		 **/
 		static inline double								TransitionRange( uint32_t _ui32OutputRate ) {
-			return (_ui32OutputRate * 3.0) - (_ui32OutputRate / 2.0);
+			return ((_ui32OutputRate * 1.5) - (_ui32OutputRate / 2.0)) / 2.5;
 		}
 
 		/**
@@ -361,6 +409,8 @@ namespace lsn {
 			double											dInputHz;									/**< The source frequency. */
 			PfStoreSample									pfStoreSample;								/**< The function for stoing a sample from the main input buffer to the intermediate buffer. */
 			PfConvolve										pfConvolve;									/**< The function for convolving a sample. */
+			PfFinalCallback									pfFinalCallback;							/**< Allow the user to make any final custom changes to the sample before it goes into the output buffer. */
+			void *											pvFinalParm;								/**< The parameter to pass to pfFinalCallback. */
 			std::vector<float>								vBuffer;									/**< Ring buffer of the last few input samples. */
 			std::vector<float>								vOutputBuffer;								/**< The final bass-banded output sample. */
 			float											fLpf;										/**< The LPF frequency. */
@@ -373,6 +423,16 @@ namespace lsn {
 			std::vector<float>								vCeof;										/**< The array of coefficients. */
 			std::vector<float>								vRing;										/**< The ring buffer of past samples. */
 			size_t											sM;											/**< The midpoint of vCeof. */
+		};
+
+		/** LPF filter.  Uses doubles because it is meant to operate on the high-frequency input
+		 *	data, which will require extra precision when down-sampling to a significantly smaller output Hz.
+		 */
+		struct LSN_LPF {
+			double											dLastSample;								/**, The last output sample. */
+			double											dLastInput;									/**< The last input. */
+			double											dGain;										/**< The gain control (a0). */
+			double											dCornerFreq;								/**< The corner frequency (b1). */
 		};
 
 		/** HPF filter. */
@@ -401,6 +461,7 @@ namespace lsn {
 
 
 		// == Members.
+		LSN_LPF												m_lLpf;										/**< The LPF applied to the high-frequency data. */
 		LSN_GENERAL											m_gGen;										/**< General members. */
 		LSN_SINC											m_sSinc;									/**< Sinc members. */
 		LSN_HPF												m_hHpf;										/**< HPF members. */
@@ -544,6 +605,7 @@ namespace lsn {
 					size_t sIdx = size_t( (m_gGen.ui64SampleCnt - m_sSinc.sM - 1) % m_sSinc.vRing.size() );
 					// Convolutionatizinatify and HPFify this sample.  The next m_sSinc.sM samples following sIdx and the m_sSinc.sM samples before sIdx are valid.
 					float fConvolvinated = ProcessHpf( (this->*m_gGen.pfConvolve)( sIdx ) );
+					fConvolvinated = (m_gGen.pfFinalCallback)( m_gGen.pvFinalParm, fConvolvinated, m_gGen.ui32OutputHz );
 					// Send that bad momma-hamma to the output buffer to be retrieved by the user.
 					m_gGen.vOutputBuffer.push_back( fConvolvinated );
 				}
@@ -1245,6 +1307,14 @@ namespace lsn {
 				5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
 			return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
 		}
+
+		/**
+		 *  A pass-through function for the sample before final output.
+		 *
+		 * \param _fSample The input and output sample.
+		 * \return Returns _fSample.
+		 */
+		static float										PassThrough( void *, float _fSample, uint32_t ) { return _fSample; }
 
 	};
 

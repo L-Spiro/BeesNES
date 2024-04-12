@@ -477,18 +477,19 @@ namespace lsn {
 				m_bSprite0IsInSecondary = false;
 				m_ui8Oam2WriteIdx = 0;
 				m_ui8Oam2SpriteCpyCnt = 0;
-				
-				// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
-				if ( m_ui8OamAddr != 0 ) {
-					for ( size_t I = 0; I < 8; ++I ) {
-						WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
+				if ( m_bRendering ) {
+					// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
+					if ( m_ui8OamAddr != 0 ) {
+						for ( size_t I = 0; I < 8; ++I ) {
+							WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
+						}
 					}
 				}
 			}
 			if ( !m_bRendering ) { return; }
 			
 #define LSN_CUROAM											((m_ui8SpriteN << 2) | m_ui8SpriteM)
-#define LSN_RESTORE_OAM										m_ui8OamAddr = LSN_CUROAM//; bOverflowed == (bOverflowed | (m_ui8OamAddr < ui8PrevOamAddr)
+#define LSN_RESTORE_OAM										m_ui8OamAddr = LSN_CUROAM
 #define LSN_INC_M( BY, CARRY )								m_ui8SpriteM += (BY); if constexpr ( CARRY ) { m_ui8SpriteN += m_ui8SpriteM >> 2; } m_ui8SpriteM &= 0b11; LSN_RESTORE_OAM
 #define LSN_INC_N( BY )										m_ui8SpriteN += (BY); LSN_RESTORE_OAM
 #define LSN_WRITE_OAM2( VAL )								m_soSecondaryOam.ui8Bytes[m_ui8Oam2WriteIdx] = (VAL)
@@ -1562,6 +1563,14 @@ namespace lsn {
 		 */
 		inline uint8_t									ReadOam( size_t _stIdx ) {
 			uint16_t ui16Scan = m_ui16CurY;
+			
+			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
+#ifdef LSN_INT_OAM_DECAY
+			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
+			if ( m_ui64Cycle >= (*pui64Decay) ) {
+				(*pui8Val) = 0x00;
+			}
+			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
 			// If the scanline is >= 0 and < 240, or -1.
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
 				uint16_t ui16Dot = m_ui16CurX;
@@ -1571,13 +1580,6 @@ namespace lsn {
 					return 0xFF;
 				}
 			}
-			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
-#ifdef LSN_INT_OAM_DECAY
-			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
-			if ( m_ui64Cycle >= (*pui64Decay) ) {
-				(*pui8Val) = 0x00;
-			}
-			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
 			return (*pui8Val);
 #else
 			float * pfDecay = &m_vOamDecay.data()[_stIdx];
@@ -1585,6 +1587,15 @@ namespace lsn {
 				(*pui8Val) = 0x00;
 			}
 			(*pfDecay) = 1.0f;
+			// If the scanline is >= 0 and < 240, or -1.
+			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+				uint16_t ui16Dot = m_ui16CurX;
+				// During the OAM-clear phase.
+				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
+					//(*pui8Val) = 0xFF;
+					return 0xFF;
+				}
+			}
 			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
 			return (*pui8Val);
 #endif	// #ifdef LSN_INT_OAM_DECAY

@@ -130,7 +130,8 @@ namespace lsn {
 			m_dvRegisters3_4017( Set4017, this ) {
 			m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
 			m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
-			m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
+			//m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
+			m_pfPole14.CreateLpf( 20000.0f, HzAsFloat() );
 		}
 		~CApu2A0X() {
 		}
@@ -154,7 +155,10 @@ namespace lsn {
 			// 442.0f
 			// 296.0f
 			// 197.333333333333f
-			CAudio::InitSampleBox( 20000.0f, 197.333333333333f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 16, Hz(), CAudio::GetOutputFrequency() );
+
+			// US-NES-FL-N34169630: 296.0f/90.0f
+			CAudio::InitSampleBox( 20000.0f, 296.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
+			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 
 
 			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
@@ -230,7 +234,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25)) );
+			CAudio::AddSample( static_cast<float>(dFinal * (-4.0 * 1.25)) );
 
 			++m_ui64Cycles;
 		}
@@ -372,7 +376,7 @@ namespace lsn {
 		/** The 14-Hz pole filter. */
 		CPoleFilterLpf									m_pfPole14;
 		/** The output Hz filter. */
-		CPoleFilterLpf									m_pfOutputPole[2];
+		CPoleFilterLpf									m_pfOutputPole[1];
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */
@@ -981,6 +985,22 @@ namespace lsn {
 				};
 				return ui8Seqs[_ui8Duty];
 			}
+		}
+
+		/**
+		 *  Applies a 2nd HPD to the output.
+		 *
+		 * \param _pvThis The this pointer.
+		 * \param _fSample The input sample.
+		 * \param _ui32Hz The output Hz.
+		 * \return Returns _fSample.
+		 */
+		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
+			if ( paApu->m_hfHpfFilter.CreateHpf( 90.0f, float( _ui32Hz ) ) ) {
+				return float( paApu->m_hfHpfFilter.Process( _fSample ) );
+			}
+			return _fSample;
 		}
 
 	};

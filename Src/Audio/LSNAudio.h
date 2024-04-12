@@ -60,6 +60,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets the sample box.
+		 * 
+		 * \return Returns the sample box.
+		 **/
+		static inline CSampleBox &							SampleBox() { return m_sbSampleBox; }
+
+		/**
 		 * Gets the output frequency.
 		 * 
 		 * \return Returns the output frequency.
