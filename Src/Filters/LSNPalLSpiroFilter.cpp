@@ -256,8 +256,29 @@ namespace lsn {
 
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
 			int16_t J = i16Start;
+#ifdef __AVX512F__
+			if ( CUtilities::IsAvx512FSupported() ) {
+				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
+				while ( i16End - J >= 16 ) {
+					uint16_t ui16CosIdx;
+					if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}
+					// Can do 16 at a time.
+					Convolution16( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+					J += 16;
+				}
+				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
+				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
+				(*_pfDstY) += CUtilities::HorizontalSum( mSig );
+			}
+#endif	// #ifdef __AVX512F__
 #ifdef __AVX__
 			if ( CUtilities::IsAvxSupported() ) {
+				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
 				while ( i16End - J >= 8 ) {
 					uint16_t ui16CosIdx;
 					if ( (_sRowIdx & 1) == 0 ) {
@@ -267,13 +288,17 @@ namespace lsn {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					}
 					// Can do 8 at a time.
-					(*_pfDstY) += Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 8;
 				}
+				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
+				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
+				(*_pfDstY) += CUtilities::HorizontalSum( mSig );
 			}
 #endif	// #ifdef __AVX__
 #ifdef __SSE4_1__
 			if ( CUtilities::IsSse4Supported() ) {
+				__m128 mSin = _mm_set1_ps( 0.0f ), mCos = _mm_set1_ps( 0.0f ), mSig = _mm_set1_ps( 0.0f );
 				while ( i16End - J >= 4 ) {
 					uint16_t ui16CosIdx;
 					if ( (_sRowIdx & 1) == 0 ) {
@@ -283,9 +308,12 @@ namespace lsn {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					}
 					// Can do 4 at a time.
-					(*_pfDstY) += Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, (*_pfDstI), (*_pfDstQ) );
+					Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 4;
 				}
+				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
+				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
+				(*_pfDstY) += CUtilities::HorizontalSum( mSig );
 			}
 #endif	// #ifdef __SSE4_1__
 			{
@@ -400,6 +428,17 @@ namespace lsn {
 			}
 		}
 #endif	// #ifdef __AVX__
+#ifdef __AVX512F__
+		for ( size_t J = 0; J < sizeof( __m512 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < 12; ++I ) {
+				float * pfThis = reinterpret_cast<float *>(&m_mStackedCosTable512[I]);
+				pfThis[J] = m_fPhaseCosTable[(J+I)%12];
+
+				pfThis = reinterpret_cast<float *>(&m_mStackedSinTable512[I]);
+				pfThis[J] = m_fPhaseSinTable[(J+I)%12];
+			}
+		}
+#endif	// #ifdef __AVX512F__
 	}
 
 	/**
@@ -434,6 +473,14 @@ namespace lsn {
 			}
 		}
 #endif	// #ifdef __AVX__
+#ifdef __AVX512F__
+		for ( size_t J = 0; J < sizeof( __m512 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable512[I]);
+				pfDst[J] = m_fFilter[(J+I)%_ui32Width];
+			}
+		}
+#endif	// #ifdef __AVX512F__
 	}
 
 	/**

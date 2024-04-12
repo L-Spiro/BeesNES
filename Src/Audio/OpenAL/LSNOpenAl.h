@@ -151,6 +151,16 @@ namespace lsn {
 		static inline int16_t								SampleToI16( float _fSample );
 
 		/**
+		 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+		 *	conversion never generates -8388608.
+		 *
+		 * \param _fSample The sample to convert.
+		 * \return Returns the converted sample.
+		 **/
+		static inline int32_t								SampleToI24( float _fSample );
+
+		/**
 		 * Gets the enumerated value for the mono-24 format.
 		 * 
 		 * \return Returns the enumerated value for the mono-24 format or NULL.
@@ -204,6 +214,20 @@ namespace lsn {
 		float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
 		float fScaledSample = fClampedSample * 32767.0f;
 		return static_cast<int16_t>(std::round( fScaledSample ));
+	}
+
+	/**
+	 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+	 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+	 *	conversion never generates -8388608.
+	 *
+	 * \param _fSample The sample to convert.
+	 * \return Returns the converted sample.
+	 **/
+	inline int32_t COpenAl::SampleToI24( float _fSample ) {
+		double dClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+		double dScaledSample = dClampedSample * 8388607.0;
+		return static_cast<int32_t>(std::round( dScaledSample ));
 	}
 
 }	// namespace lsn

@@ -641,7 +641,7 @@ namespace lsn {
 		float                                               Convolve_SSE( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
-			float fSum = 0.0f;
+			__m128 mSum = _mm_set1_ps( 0.0f );
 			size_t sMod = m_sSinc.vRing.size();
 			_sIdx += sMod * 2 - m_sSinc.sM;
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
@@ -654,15 +654,15 @@ namespace lsn {
 					for ( size_t J = 0; J < (sizeof( __m128 ) / sizeof( float )); ++J ) {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
-					fSum += Convolve_SSE( &pfFilter[I], fTmp );
+					Convolve_SSE( &pfFilter[I], fTmp, mSum );
 					I += (sizeof( __m128 ) / sizeof( float ));
 				}
 				else {
-					fSum += Convolve_SSE( &pfFilter[I], &pfSamples[sIdx] );
+					Convolve_SSE( &pfFilter[I], &pfSamples[sIdx], mSum );
 					I += (sizeof( __m128 ) / sizeof( float ));
 				}
 			}
-			return fSum;
+			return HorizontalSum( mSum );
 		}
         
         /**
@@ -670,13 +670,12 @@ namespace lsn {
          *
          * \param _pfWeights The pointer to the 32-byte-aligned 8 weights.
          * \param _pfSamples Pointer to the samples to convolve.
-         * \return Returns the convolution of the given samples.
+         * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        float                                               Convolve_SSE( const float * _pfWeights, const float * _pfSamples ) {
+        void                                               Convolve_SSE( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
             __m128 mWeights = _mm_load_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
-            __m128 mMul = _mm_mul_ps( mWeights, mSamples );
-            return HorizontalSum( mMul );
+            _mSum = _mm_add_ps( _mSum, _mm_mul_ps( mWeights, mSamples ) );
         }
         
         /**
@@ -846,7 +845,7 @@ namespace lsn {
 		float                                               Convolve_AVX( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
-			float fSum = 0.0f;
+			__m256 mSum = _mm256_set1_ps( 0.0f );
 			size_t sMod = m_sSinc.vRing.size();
 			_sIdx += sMod * 2 - m_sSinc.sM;
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
@@ -859,15 +858,15 @@ namespace lsn {
 					for ( size_t J = 0; J < (sizeof( __m256 ) / sizeof( float )); ++J ) {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
-					fSum += Convolve_AVX( &pfFilter[I], fTmp );
+					Convolve_AVX( &pfFilter[I], fTmp, mSum );
 					I += (sizeof( __m256 ) / sizeof( float ));
 				}
 				else {
-					fSum += Convolve_AVX( &pfFilter[I], &pfSamples[sIdx] );
+					Convolve_AVX( &pfFilter[I], &pfSamples[sIdx], mSum );
 					I += (sizeof( __m256 ) / sizeof( float ));
 				}
 			}
-			return fSum;
+			return HorizontalSum( mSum );
 		}
         
         /**
@@ -875,13 +874,12 @@ namespace lsn {
          *
          * \param _pfWeights The pointer to the 32-byte-aligned 8 weights.
          * \param _pfSamples Pointer to the samples to convolve.
-         * \return Returns the convolution of the given samples.
+         * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        float                                                Convolve_AVX( const float * _pfWeights, const float * _pfSamples ) {
+        void                                                Convolve_AVX( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
             __m256 mWeights = _mm256_load_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
-            __m256 mMul = _mm256_mul_ps( mWeights, mSamples );
-            return HorizontalSum( mMul );
+            _mSum = _mm256_add_ps( _mSum, _mm256_mul_ps( mWeights, mSamples ) );
         }
         
         /**
@@ -1059,10 +1057,10 @@ namespace lsn {
 		float												Convolve_AVX512( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
-			float fSum = 0.0f;
 			size_t sMod = m_sSinc.vRing.size();
 			_sIdx += sMod * 2 - m_sSinc.sM;
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			__m512 mSum = _mm512_set1_ps( 0.0f );
 			for ( size_t I = 0; I < sTotal; ) {
 				size_t sIdx = (_sIdx + I) % sMod;
 				if ( (sMod - sIdx) < (sizeof( __m512 ) / sizeof( float )) ) {
@@ -1072,15 +1070,15 @@ namespace lsn {
 					for ( size_t J = 0; J < (sizeof( __m512 ) / sizeof( float )); ++J ) {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
-					fSum += Convolve_AVX512( &pfFilter[I], fTmp );
+					Convolve_AVX512( &pfFilter[I], fTmp, mSum );
 					I += (sizeof( __m512 ) / sizeof( float ));
 				}
 				else {
-					fSum += Convolve_AVX512( &pfFilter[I], &pfSamples[sIdx] );
+					Convolve_AVX512( &pfFilter[I], &pfSamples[sIdx], mSum );
 					I += (sizeof( __m512 ) / sizeof( float ));
 				}
 			}
-			return fSum;
+			return HorizontalSum( mSum );
 		}
         
         /**
@@ -1088,13 +1086,12 @@ namespace lsn {
          *
          * \param _pfWeights The pointer to the 64-byte-aligned 8 weights.
          * \param _pfSamples Pointer to the samples to convolve.
-         * \return Returns the convolution of the given samples.
+         * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        float                                                Convolve_AVX512( const float * _pfWeights, const float * _pfSamples ) {
+        void                                                Convolve_AVX512( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
             __m512 mWeights = _mm512_load_ps( _pfWeights );
             __m512 mSamples = _mm512_loadu_ps( _pfSamples );
-            __m512 mMul = _mm512_mul_ps( mWeights, mSamples );
-            return HorizontalSum( mMul );
+            _mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
         }
         
         /**
