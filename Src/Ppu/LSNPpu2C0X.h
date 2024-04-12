@@ -883,16 +883,6 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Scan = ppPpu->m_ui16CurY;
-			// If the scanline is >= 0 and < 240, or -1.
-			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
-				uint16_t ui16Dot = ppPpu->m_ui16CurX;
-				// During the OAM-clear phase.
-				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
-					_ui8Ret = 0xFF;
-					return;
-				} 
-			}
 			ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 		}
@@ -1571,8 +1561,18 @@ namespace lsn {
 		 * \return Returns the fetched value, which will be 0x00 after decay.
 		 */
 		inline uint8_t									ReadOam( size_t _stIdx ) {
-#ifdef LSN_INT_OAM_DECAY
+			uint16_t ui16Scan = m_ui16CurY;
+			// If the scanline is >= 0 and < 240, or -1.
+			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+				uint16_t ui16Dot = m_ui16CurX;
+				// During the OAM-clear phase.
+				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
+					//(*pui8Val) = 0xFF;
+					return 0xFF;
+				}
+			}
 			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
+#ifdef LSN_INT_OAM_DECAY
 			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
 			if ( m_ui64Cycle >= (*pui64Decay) ) {
 				(*pui8Val) = 0x00;
@@ -1581,7 +1581,6 @@ namespace lsn {
 			return (*pui8Val);
 #else
 			float * pfDecay = &m_vOamDecay.data()[_stIdx];
-			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
 			if ( (*pfDecay) <= 0.1f ) {
 				(*pui8Val) = 0x00;
 			}
@@ -1900,7 +1899,7 @@ namespace lsn {
 				if ( (_uX >= LSN_LEFT && _uX < LSN_SPR_EVAL_START) ) {
 					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
 						sRet += "\r\n"
-						"m_ui8OamLatch = m_pbBus->Read( LSN_PR_OAMDATA );\r\n";
+						"m_ui8OamLatch = ReadOam( m_ui8OamAddr )\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 						sRet += "\r\n"

@@ -1484,7 +1484,7 @@ void LSN_FASTCALL								Cycle_1__257x311() {
 
 void LSN_FASTCALL								Cycle_1__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x1_X() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
@@ -1522,7 +1522,7 @@ void LSN_FASTCALL								Cycle_1__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 
 void LSN_FASTCALL								Cycle_1__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x1_X() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
@@ -1561,7 +1561,7 @@ void LSN_FASTCALL								Cycle_1__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 
 void LSN_FASTCALL								Cycle_1__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x1_X() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
@@ -1596,7 +1596,7 @@ void LSN_FASTCALL								Cycle_1__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 
 void LSN_FASTCALL								Cycle_1__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x1_X() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
@@ -1631,7 +1631,7 @@ void LSN_FASTCALL								Cycle_1__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 
 void LSN_FASTCALL								Cycle_1__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
@@ -1657,7 +1657,7 @@ void LSN_FASTCALL								Cycle_1__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 
 void LSN_FASTCALL								Cycle_1__1x0() {
 
-	m_ui8OamLatch = m_pbBus->Read(LSN_PR_OAMDATA);
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
