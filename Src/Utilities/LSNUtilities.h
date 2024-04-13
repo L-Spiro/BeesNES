@@ -610,11 +610,11 @@ namespace lsn {
 		 *	are the X index of the samples between which to interpolate.
 		 */
 		static LSN_FORCEINLINE uint32_t						SamplingFactor_BiLinear( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
-			return (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+			return ((_ui32SrcLen * _ui32Idx) << 8) / _ui32DstLen;
 		}
 
 		/**
-		 * Produces a sampling factor for bi-linear filtering.  Bottom 8 bits are the fraction between samples, and the rest of the upper bits are the index (X) of the
+		 * Produces a sharper sampling factor for "scanline" filtering.  Bottom 8 bits are the fraction between samples, and the rest of the upper bits are the index (X) of the
 		 *	first sample to be used in the interpolation between sample[X] and sample[X+1].
 		 *
 		 * \param _ui32SrcLen The width/height of the source image.
@@ -624,9 +624,26 @@ namespace lsn {
 		 *	are the X index of the samples between which to interpolate.
 		 */
 		static LSN_FORCEINLINE uint32_t						SamplingFactor_Scanline( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
-			uint32_t ui32Factor = (((_ui32SrcLen - 1) * _ui32Idx) << 8) / (_ui32DstLen - 1);
+			uint32_t ui32Factor = ((_ui32SrcLen * _ui32Idx) << 8) / _ui32DstLen;
 			uint32_t ui32Idx = ui32Factor >> 8;
 			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 1) - 0xFF ) ) );
+			return (ui32Idx << 8) | ui32Frac;
+		}
+
+		/**
+		 * Produces a sharper sampling factor for "scanline" filtering.  Bottom 8 bits are the fraction between samples, and the rest of the upper bits are the index (X) of the
+		 *	first sample to be used in the interpolation between sample[X] and sample[X+1].
+		 *
+		 * \param _ui32SrcLen The width/height of the source image.
+		 * \param _ui32DstLen The width/height of the destination image.
+		 * \param _ui32Idx The index of the destination sample for which to generate sampler factors.  In the range [0..(_ui32DstLen-1)].
+		 * \return Returns the 8-bit fixed-point sampling factor where the bottom 8 bits are a fraction between sample[X] and sample[X+1] and the remaining upper bits
+		 *	are the X index of the samples between which to interpolate.
+		 */
+		static LSN_FORCEINLINE uint32_t						SamplingFactor_Scanline_Sharp( uint32_t _ui32SrcLen, uint32_t _ui32DstLen, uint32_t _ui32Idx ) {
+			uint32_t ui32Factor = ((_ui32SrcLen * _ui32Idx) << 8) / _ui32DstLen;
+			uint32_t ui32Idx = ui32Factor >> 8;
+			uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((ui32Factor & 0xFF) << 2) - 765 ) ) );
 			return (ui32Idx << 8) | ui32Frac;
 		}
 
