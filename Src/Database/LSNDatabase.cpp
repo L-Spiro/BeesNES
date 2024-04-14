@@ -423,6 +423,8 @@ namespace lsn {
 			{ .ui32Crc = 0x2DBDDD11, .pmRegion = LSN_PM_PAL },
 			// Rescue - The Embassy Mission (E) [!]
 			{ .ui32Crc = 0x7EEF2338, .pmRegion = LSN_PM_PAL },
+			// Retrocoders - Years behind
+			{ .ui32Crc = 0x573DFDFA, .pmRegion = LSN_PM_PAL },
 			// Road Fighter (E) [!]
 			{ .ui32Crc = 0xF51C7D02, .pmRegion = LSN_PM_PAL },
 			// Robocop (E) [!]
@@ -541,6 +543,10 @@ namespace lsn {
 			{ .ui32Crc = 0x75B9C0DB, .pmRegion = LSN_PM_PAL },
 			// Ufouria (E)
 			{ .ui32Crc = 0x0E0C4221, .pmRegion = LSN_PM_PAL },
+			// window_old_pal
+			{ .ui32Crc = 0xD1806D48, .pmRegion = LSN_PM_PAL },
+			// window2_pal
+			{ .ui32Crc = 0x9E373CA7, .pmRegion = LSN_PM_PAL },
 			// Wizards & Warriors (E)
 			{ .ui32Crc = 0x5E6D9975, .pmRegion = LSN_PM_PAL },
 			// Wrath of the Black Manta (E) [!]
