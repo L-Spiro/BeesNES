@@ -144,7 +144,7 @@
 #define LSN_BUTTON_A														A
 
 
-
+// Core Audio.
 #define LSN_AUDIO_HARDWARE_NO_ERROR											The function call completed successfully.
 #define LSN_AUDIO_HARDWARE_NOT_RUNNING_ERROR								The function call requires that the hardware be running but it isn\u2019t.
 #define LSN_AUDIO_HARDWARE_UNSPECIFIED_ERROR								The function call failed while doing something that doesn\u2019t provide any error messages.
