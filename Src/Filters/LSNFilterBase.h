@@ -36,6 +36,7 @@ namespace lsn {
 			LSN_F_PAL_BLARGG,								/**< Blargg's NTSC filter adjusted for PAL. */
 			LSN_F_NTSC_LSPIRO,								/**< L. Spiro's NTSC filter. */
 			LSN_F_PAL_LSPIRO,								/**< L. Spiro's PAL filter. */
+			LSN_F_DENDY_LSPIRO,								/**< L. Spiro's Dendy filter. */
 			LSN_F_PALM_LSPIRO,								/**< L. Spiro's PAL-M filter. */
 			LSN_F_PALN_LSPIRO,								/**< L. Spiro's PAL-N filter. */
 			LSN_F_NTSC_CRT_FULL,							/**< EMMIR (LMP88959)'s NTSC-CRT (full) filter. */

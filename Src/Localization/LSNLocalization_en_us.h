@@ -44,6 +44,7 @@
 //#define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC (L. &Spiro)
 #define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL (L&. Spiro)
+#define LSN_VIDEO_FILTER_DENDY_L_SPIRO										&Dendy (L. Spiro)
 #define LSN_VIDEO_FILTER_PALM_L_SPIRO										PAL-&M (Brazil Famiclone) (L. Spiro)
 #define LSN_VIDEO_FILTER_PALN_L_SPIRO										PAL-&N (Argentina Famiclone) (L. Spiro)
 //#define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)

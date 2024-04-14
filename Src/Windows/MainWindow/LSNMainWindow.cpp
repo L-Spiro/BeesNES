@@ -377,6 +377,10 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_LSPIRO );
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DENDY_LSPIRO : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_DENDY_LSPIRO );
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PALM_LSPIRO : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PALM_LSPIRO );
 				break;
@@ -865,6 +869,11 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_LSPIRO : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DENDY_LSPIRO : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_DENDY_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}

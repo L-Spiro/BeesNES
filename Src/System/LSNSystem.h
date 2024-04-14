@@ -29,7 +29,8 @@
 #define LSN_PPU_SLOT											1
 #define LSN_APU_SLOT											2
 #define LSN_CPU_PHI2_SLOT										3
-#define LSN_SLOTS												4
+#define LSN_PPU_PHI2_SLOT										4
+#define LSN_SLOTS												5
 
 namespace lsn {
 

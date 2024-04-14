@@ -34,6 +34,7 @@ namespace lsn {
 			{ &m_nbfBlarggPalFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_PAL_BLARGG
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter },			// LSN_F_NTSC_LSPIRO
 			{ &m_nbfLSpiroPalFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter },			// LSN_F_PAL_LSPIRO
+			{ &m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter },			// LSN_F_DENDY_LSPIRO
 			{ &m_nbfLSpiroPalMFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter },			// LSN_F_PALM_LSPIRO
 			{ &m_nbfLSpiroPalNFilter,		&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_PALN_LSPIRO
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL
@@ -42,6 +43,7 @@ namespace lsn {
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_AUTO_CRT_FULL
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 		};
+		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalMFilter.SetGamma( 1.0f / 0.45f );
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
