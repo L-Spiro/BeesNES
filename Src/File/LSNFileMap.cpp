@@ -46,7 +46,11 @@ namespace lsn {
 			FILE_ATTRIBUTE_NORMAL,
 			NULL );
 
+#ifdef LSN_USE_WINDOWS
 		if ( !m_hFile.Valid() ) {
+#else
+		if ( !(m_hFile && m_hFile != INVALID_HANDLE_VALUE) ) {
+#endif	// #ifdef LSN_USE_WINDOWS
 			Close();
 			return false;
 		}
@@ -70,7 +74,11 @@ namespace lsn {
 			FILE_ATTRIBUTE_NORMAL,
 			NULL );
 
+#ifdef LSN_USE_WINDOWS
 		if ( !m_hFile.Valid() ) {
+#else
+		if ( !(m_hFile && m_hFile != INVALID_HANDLE_VALUE) ) {
+#endif	// #ifdef LSN_USE_WINDOWS
 			Close();
 			return false;
 		}
@@ -79,7 +87,19 @@ namespace lsn {
 
 		LARGE_INTEGER largeSize;
 		largeSize.QuadPart = 4 * 1024;
-		if ( !::SetFilePointerEx( m_hFile.hHandle, largeSize, NULL, FILE_BEGIN ) || !::SetEndOfFile( m_hFile.hHandle ) ) {
+		if ( !::SetFilePointerEx(
+#ifdef LSN_USE_WINDOWS
+			m_hFile.hHandle
+#else
+			m_hFile
+#endif	// #ifdef LSN_USE_WINDOWS
+			, largeSize, NULL, FILE_BEGIN ) || !::SetEndOfFile(
+#ifdef LSN_USE_WINDOWS
+			m_hFile.hHandle
+#else
+			m_hFile
+#endif	// #ifdef LSN_USE_WINDOWS
+			) ) {
 			Close();
 			return false;
 		}
@@ -95,8 +115,19 @@ namespace lsn {
 			::UnmapViewOfFile( m_pbMapBuffer );
 			m_pbMapBuffer = nullptr;
 		}
+#ifdef LSN_USE_WINDOWS
 		m_hMap.Reset();
 		m_hFile.Reset();
+#else
+		if ( (m_hMap && m_hMap != INVALID_HANDLE_VALUE) ) {
+			::CloseHandle( m_hMap );
+			m_hMap = NULL;
+		}
+		if ( (m_hFile && m_hFile != INVALID_HANDLE_VALUE) ) {
+			::CloseHandle( m_hFile );
+			m_hFile = NULL;
+		}
+#endif	// #ifdef LSN_USE_WINDOWS
 		m_bIsEmpty = TRUE;
 		m_ui64Size = 0;
 		m_ui64MapStart = MAXUINT64;
@@ -111,7 +142,13 @@ namespace lsn {
 	uint64_t CFileMap::Size() const {
 		if ( !m_ui64Size ) {
 			LARGE_INTEGER liInt;
-			if ( ::GetFileSizeEx( m_hFile.hHandle, &liInt ) ) { m_ui64Size = liInt.QuadPart; }
+			if ( ::GetFileSizeEx(
+#ifdef LSN_USE_WINDOWS
+				m_hFile.hHandle
+#else
+				m_hFile
+#endif	// #ifdef LSN_USE_WINDOWS
+				, &liInt ) ) { m_ui64Size = liInt.QuadPart; }
 		}
 		return m_ui64Size;
 	}
@@ -122,17 +159,34 @@ namespace lsn {
 	 * \return Returns true if the file mapping was successfully created.
 	 **/
 	bool CFileMap::CreateFileMap() {
-		if ( !m_hFile.Valid() ) { return false; }
+#ifdef LSN_USE_WINDOWS
+		if ( !m_hFile.Valid() ) {
+#else
+		if ( !(m_hFile && m_hFile != INVALID_HANDLE_VALUE) ) {
+#endif	// #ifdef LSN_USE_WINDOWS
+			return false;
+		}
 		// Can't open 0-sized files.  Emulate the successful mapping of such a file.
 		m_bIsEmpty = Size() == 0;
 		if ( m_bIsEmpty ) { return true; }
-		m_hMap = ::CreateFileMappingW( m_hFile.hHandle,
+		m_hMap = ::CreateFileMappingW(
+#ifdef LSN_USE_WINDOWS
+			m_hFile.hHandle
+#else
+			m_hFile
+#endif	// #ifdef LSN_USE_WINDOWS
+			,
 			NULL,
 			m_bWritable ? PAGE_READWRITE : PAGE_READONLY,
 			0,
 			0,
 			NULL );
+
+#ifdef LSN_USE_WINDOWS
 		if ( !m_hMap.Valid() ) {
+#else
+		if ( !(m_hMap && m_hMap != INVALID_HANDLE_VALUE) ) {
+#endif	// #ifdef LSN_USE_WINDOWS
 			Close();
 			return false;
 		}
@@ -161,7 +215,5 @@ namespace lsn {
 		return false;
 	}
 #endif	// #ifdef LSN_WINDOWS
-
-	
 
 }	// namespace lsn

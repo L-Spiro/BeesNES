@@ -116,8 +116,13 @@ namespace lsn {
 	protected :
 		// == Members.
 #ifdef LSN_WINDOWS
+#ifdef LSN_USE_WINDOWS
 		lsw::LSW_HANDLE										m_hFile;						/**< The file handle. */
 		lsw::LSW_HANDLE										m_hMap;							/**< The file-mapping handle. */
+#else
+		HANDLE												m_hFile = NULL;					/**< The file handle. */
+		HANDLE												m_hMap = NULL;					/**< The file-mapping handle. */
+#endif	// #ifdef SBN_USE_WINDOWS
 		mutable PBYTE										m_pbMapBuffer;					/**< Mapped bytes. */
 		bool												m_bIsEmpty;						/**< Is the file 0-sized? */
 		bool												m_bWritable;					/**< Read-only or read-write? */
