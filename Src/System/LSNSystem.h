@@ -61,6 +61,7 @@ namespace lsn {
 
 				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
 				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv },
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv },
 			};
 			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
 
@@ -170,6 +171,12 @@ namespace lsn {
 						phsSlot = &m_hsSlots[LSN_PPU_SLOT];
 						ui64Low = phsSlot->ui64Counter;
 					}
+#ifdef LSN_USE_PHI2
+					if ( m_hsSlots[LSN_PPU_PHI2_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_PHI2_SLOT].ui64Counter < ui64Low ) {
+						phsSlot = &m_hsSlots[LSN_PPU_PHI2_SLOT];
+						ui64Low = phsSlot->ui64Counter;
+					}
+#endif	// #ifdef LSN_USE_PHI2
 					if ( m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
@@ -178,14 +185,14 @@ namespace lsn {
 						//	0.68499566 cycles-per-tick.
 						// Switching to function pointers inside the CPU Tick() function brought it
 						//	down to 0.63103939.
-						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
 						(m_hsSlots[LSN_APU_SLOT].ptHw->*m_hsSlots[LSN_APU_SLOT].pfTick)();
+						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
 						//m_hsSlots[LSN_APU_SLOT].ptHw->Tick();
 						//(*m_hsSlots[LSN_APU_SLOT].pfTick)();
 					}
 					else if ( phsSlot != nullptr ) {
-						phsSlot->ui64Counter += phsSlot->ui64Inc;
 						(phsSlot->ptHw->*phsSlot->pfTick)();
+						phsSlot->ui64Counter += phsSlot->ui64Inc;
 						//phsSlot->ptHw->Tick();
 					}
 					else { break; }
@@ -248,8 +255,8 @@ namespace lsn {
 			m_pmbMapper.reset();
 			m_rRom = std::move( _rRom );
 
-			m_bBus.DGB_FillMemory( 0xFF );
-			m_pPpu.GetPpuBus().DGB_FillMemory( 0xFF );
+			m_bBus.DGB_FillMemory( 0x00 );
+			m_pPpu.GetPpuBus().DGB_FillMemory( 0x00 );
 
 			uint16_t ui16Addr = 0x8000;
 			uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );

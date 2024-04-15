@@ -27,6 +27,7 @@
 #define LSN_CTRL_NAMETABLE_X( OBJ )						(OBJ.s.ui8Nametable & 0x01)
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
+//#define LSN_USE_PHI2
 #define LSN_INT_OAM_DECAY
 //#define LSN_GEN_PPU
 
@@ -119,6 +120,7 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
+			m_dvPpuMaskDelay.Tick();
 			m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();
 			
@@ -136,6 +138,11 @@ namespace lsn {
 #endif	// #ifdef LSN_INT_OAM_DECAY
 			(this->*m_cCycle[m_stCurCycle])();
 
+
+			
+
+			
+#ifndef LSN_USE_PHI2
 			if ( m_bVAddrPending ) {
 				if ( --m_ui8VAddrUpdateCounter == 0 ) {
 					m_bVAddrPending = false;
@@ -159,7 +166,7 @@ namespace lsn {
 			}
 
 			
-			m_dvPpuMaskDelay.Tick();
+			
 			/*m_bRendering = Rendering();
 			m_bShowBg = !!m_dvPpuMaskDelay.Value().s.ui8ShowBackground;
 			m_bShowSprites = !!m_dvPpuMaskDelay.Value().s.ui8ShowSprites;*/
@@ -172,9 +179,46 @@ namespace lsn {
 				::OutputDebugStringA( ("VBlank Set: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
 			}*/
 
+
 			++m_ui64Cycle;
+#endif	// #ifndef LSN_USE_PHI2
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
+		}
+
+		/**
+		 * Performs a single Phi2 cycle update.
+		 **/
+		virtual void									TickPhi2() {
+#ifdef LSN_USE_PHI2
+			
+			if ( m_bVAddrPending ) {
+				if ( --m_ui8VAddrUpdateCounter == 0 ) {
+					m_bVAddrPending = false;
+					if ( m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
+						if ( m_ui16CurX == 257 ) {
+							m_paPpuAddrV.ui16Addr &= m_ui16VAddrCopy;
+						}
+						else if ( m_ui16CurX > 1 && (m_ui16CurX & 0x7) == 0 && (m_ui16CurX <= 256 || m_ui16CurX >= 321) ) {
+							m_paPpuAddrV.ui16Addr = (m_ui16VAddrCopy & ~0b0000010000011111) | (m_paPpuAddrV.ui16Addr & m_ui16VAddrCopy & 0b0000010000011111);
+						}
+						else {
+							m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+						}
+					}
+					else {
+						m_paPpuAddrV.ui16Addr = m_ui16VAddrCopy;
+					}
+
+					m_paPpuAddrT.ui16Addr = m_paPpuAddrV.ui16Addr;
+				}
+			}
+
+			m_dvPpuMaskDelay.Tick();
+			
+
+			++m_ui64Cycle;
+#endif	// #ifdef LSN_USE_PHI2
 		}
 
 		/**
@@ -1254,7 +1298,7 @@ namespace lsn {
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		CDelayedValue<LSN_PPUMASK, 1>					m_dvPpuMaskDelay;								/**< The PPUMASK register. */
+		CDelayedValue<LSN_PPUMASK, 2>					m_dvPpuMaskDelay;								/**< The PPUMASK register. */
 #ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
 #endif	// #ifndef LSN_INT_OAM_DECAY
