@@ -99,7 +99,7 @@ namespace lsn {
 			m_vFactorsY = std::vector<uint32_t>();
 			m_vFactorsY.resize( _ui32ScreenHeight );
 			for ( uint32_t Y = _ui32ScreenHeight; Y--; ) {
-				m_vFactorsY[Y] = CUtilities::SamplingFactor_Scanline( _ui32Height, _ui32ScreenHeight, Y );
+				m_vFactorsY[Y] = CUtilities::SamplingFactor_Scanline_Sharp( _ui32Height, _ui32ScreenHeight, Y );
 					/*(((_ui32Height - 1) * Y) << 8) / (_ui32ScreenHeight - 1);
 				uint32_t ui32Idx = m_vFactorsY[Y] >> 8;
 				uint32_t ui32Frac = uint32_t( std::max( 0, int32_t( ((m_vFactorsY[Y] & 0xFF) << 1) - 0xFF ) ) );

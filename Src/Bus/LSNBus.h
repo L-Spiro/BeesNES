@@ -159,7 +159,7 @@ namespace lsn {
 			uint8_t ui8Ret = m_ui8LastRead;
 			uint8_t ui8Mask;
 			if constexpr ( _uSize == 0x10000 ) {
-				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
+				const LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,
 					m_ui8Ram, ui8Ret );
@@ -167,7 +167,7 @@ namespace lsn {
 			}
 			else {
 				uint16_t ui16Addr = _ui16Addr & (_uSize - 1);
-				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[ui16Addr];
+				const LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[ui16Addr];
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,
 					m_ui8Ram, ui8Ret );
@@ -188,18 +188,24 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		inline void							Write( uint16_t _ui16Addr, uint8_t _ui8Val ) {
+			uint8_t ui8Mask;
 			if constexpr ( _uSize == 0x10000 ) {
-				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
+				const LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
 				aaAcc.pfWriter( aaAcc.pvWriterParm0,
 					aaAcc.ui16WriterParm1,
 					m_ui8Ram, _ui8Val );
+				ui8Mask = m_ui8OpenBusMask[_ui16Addr];
 			}
 			else {
-				LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr&(_uSize-1)];
+				uint16_t ui16Addr = _ui16Addr & (_uSize - 1);
+				const LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[ui16Addr];
 				aaAcc.pfWriter( aaAcc.pvWriterParm0,
 					aaAcc.ui16WriterParm1,
 					m_ui8Ram, _ui8Val );
+				ui8Mask = m_ui8OpenBusMask[ui16Addr];
 			}
+			m_ui8LastRead = (m_ui8LastRead & ~ui8Mask) | (_ui8Val & ui8Mask);
+
 #ifdef LSN_CPU_VERIFY
 			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = _ui8Val, .bRead = false } );
 #endif	// #ifdef LSN_CPU_VERIFY
