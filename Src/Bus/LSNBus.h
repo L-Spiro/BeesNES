@@ -418,8 +418,7 @@ namespace lsn {
 		 *
 		 * \return Returns a constant reference to the read/write log.
 		 */
-		const std::vector<LSN_READ_WRITE_LOG> &
-											ReadWriteLog() const { return m_vReadWriteLog; }
+		std::vector<LSN_READ_WRITE_LOG> &	ReadWriteLog() { return m_vReadWriteLog; }
 #endif	// #ifdef LSN_CPU_VERIFY
 
 

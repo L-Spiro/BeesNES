@@ -59,6 +59,7 @@ namespace lsn {
 			LSN_AM_INDIRECT_Y,																/**< Indirect Y addressing = 4 extra cycles + optional cycle. */
 			LSN_AM_INDIRECT,																/**< Absolute indirect addressing (JMP) = 4 extra cycles. */
 		};
+
 		/** Instructions. Numbers specified because these are used in look-up tables. */
 		enum LSN_INSTRUCTIONS : uint8_t {
 			LSN_I_ADC						= 0,											/**< Add with carry. */
@@ -154,7 +155,7 @@ namespace lsn {
 
 		/** Other parameters. */
 		enum LSN_MISC {
-			LSN_M_MAX_INSTR_CYCLE_COUNT		= 7,
+			LSN_M_MAX_INSTR_CYCLE_COUNT		= 8,
 		};
 
 
