@@ -43,7 +43,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			&CCpu6502::FetchOperandDecPc_Phi2,
 			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
-		2, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 03
 		LSN_INDIRECT_X_RMW( SLO, Slo )
@@ -133,7 +133,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			&CCpu6502::FetchOperandDecPc_Phi2,
 			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
-		2, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 13
 		LSN_INDIRECT_Y_RMW( SLO, Slo )
@@ -291,7 +291,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			&CCpu6502::FetchOperandDecPc_Phi2,
 			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
-		2, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 23
 		LSN_INDIRECT_X_RMW( RLA, Rla )
@@ -358,7 +358,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			&CCpu6502::FetchOperandDecPc_Phi2,
 			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
-		2, LSN_AM_IMPLIED, 2, LSN_I_JAM
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM
 	},
 	{	// 33
 		LSN_INDIRECT_Y_RMW( RLA, Rla )
@@ -409,6 +409,177 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 
 	/** 40-47 */
+	{	// 40
+		{
+			&CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::PullStackToOperand_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::PullStackToOperand_Phi2,
+			&CCpu6502::CopyOperandToStatusWithoutB_AdjustS, &CCpu6502::PullStackToPcl_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::ReadStackToPch_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::PrefetchNextOp },
+			6, LSN_AM_IMPLIED, 1, LSN_I_RTI,
+	},
+	{	// 41
+		LSN_INDIRECT_X_R( EOR, Eor )
+	},
+	{	// 42
+		{
+			&CCpu6502::FetchOperandDecPc_Phi2,
+			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM
+	},
+	{	// 43
+		LSN_INDIRECT_X_RMW( SRE, Sre )
+	},
+	{	// 44
+		LSN_ZERO_PAGE_R( NOP, Null_Read )
+	},
+	{	// 45
+		LSN_ZERO_PAGE_R( EOR, Eor )
+	},
+	{	// 46
+		LSN_ZERO_PAGE_RMW( LSR, Lsr )
+	},
+	{	// 47
+		LSN_ZERO_PAGE_RMW( SRE, Sre )
+	},
+
+	/** 48-4F */
+	{	// 48
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Null_Write, &CCpu6502::PushA_Phi2,
+			&CCpu6502::NullAdjustS_Write, &CCpu6502::PrefetchNextOp, },
+		3, LSN_AM_IMPLIED, 1, LSN_I_PHA,
+	},
+	{	// 49
+		LSN_IMMEDIATE( EOR, EorAndIncPc )
+	},
+	{	// 4A
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::LsrOnA, &CCpu6502::PrefetchNextOp, },
+		2, LSN_AM_IMPLIED, 1, LSN_I_LSR,
+	},
+	{	// 4B
+		LSN_IMMEDIATE( ASR, AsrAndIncPc )
+	},
+	{	// 4C
+		{
+			&CCpu6502::FetchAddressAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2,
+			&CCpu6502::Jmp, &CCpu6502::PrefetchNextOp, },
+		3, LSN_AM_ABSOLUTE, 3, LSN_I_JMP,
+	},
+	{	// 4D
+		LSN_ABSOLUTE_R( EOR, Eor )
+	},
+	{	// 4E
+		LSN_ABSOLUTE_RMW( LSR, Lsr )
+	},
+	{	// 4F
+		LSN_ABSOLUTE_RMW( SRE, Sre )
+	},
+
+	/** 50-57 */
+	{	// 50
+		LSN_BRANCH( BVC, V(), 0 )													// Branch if V == 0.
+	},
+	{	// 51
+		LSN_INDIRECT_Y_R( EOR, Eor )
+	},
+	{	// 52
+		{
+		&CCpu6502::FetchOperandDecPc_Phi2,
+			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+	},
+	{	// 53
+		LSN_INDIRECT_Y_RMW( SRE, Sre )
+	},
+	{	// 54
+		LSN_ZERO_PAGE_X_R( NOP, Null_Read )
+	},
+	{	// 55
+		LSN_ZERO_PAGE_X_R( EOR, Eor )
+	},
+	{	// 56
+		LSN_ZERO_PAGE_X_RMW( LSR, Lsr )
+	},
+	{	// 57
+		LSN_ZERO_PAGE_X_RMW( SRE, Sre )
+	},
+
+	/** 58-5F */
+	{	// 58
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Cli, &CCpu6502::PrefetchNextOp, },
+		2, LSN_AM_IMPLIED, 1, LSN_I_CLI
+	},
+	{	// 59
+		LSN_ABSOLUTE_Y_R( EOR, Eor )
+	},
+	{	// 5A
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp
+		},
+		2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
+	},
+	{	// 5B
+		LSN_ABSOLUTE_Y_RMW( SRE, Sre )
+	},
+	{	// 5C
+		LSN_ABSOLUTE_X_R( NOP, Null_Read )
+	},
+	{	// 5D
+		LSN_ABSOLUTE_X_R( EOR, Eor )
+	},
+	{	// 5E
+		LSN_ABSOLUTE_X_RMW( LSR, Lsr )
+	},
+	{	// 5F
+		LSN_ABSOLUTE_X_RMW( SRE, Sre )
+	},
+
+	/** 60-67 */
+	{	// 60
+		{
+			&CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::PullStackToOperand_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::PullStackToPcl_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::ReadStackToPch_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::PrefetchNextOp },
+			6, LSN_AM_IMPLIED, 1, LSN_I_RTS,
+	},
+	{	// 61
+		LSN_INDIRECT_X_R( ADC, Adc )
+	},
+	{	// 62
+		{
+			&CCpu6502::FetchOperandDecPc_Phi2,
+			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+	},
+	{	// 63
+		LSN_INDIRECT_X_RMW( RRA, Rra )
+	},
+	{	// 64
+		LSN_ZERO_PAGE_R( NOP, Null_Read )
+	},
+	{	// 65
+		LSN_ZERO_PAGE_R( ADC, Adc )
+	},
+	{	// 66
+		LSN_ZERO_PAGE_RMW( ROR, Ror )
+	},
+	{	// 67
+		LSN_ZERO_PAGE_RMW( RRA, Rra )
+	},
+
+	/** 68-6F */
 };
 
 //LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
