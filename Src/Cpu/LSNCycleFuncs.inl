@@ -1,11 +1,14 @@
 #define LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchOperandAndIncPc_Phi2, &CCpu6502::AddXAndOperandToPointer, &CCpu6502::ReadOperandAndDiscard_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchOperandAndIncPc_Phi2, &CCpu6502::AddXAndOperandToPointer, &CCpu6502::ReadOperandAndDiscard_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 8, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
+#define LSN_INDIRECT_X_W( NAME, FUNC )													{ &CCpu6502::FetchOperandAndIncPc_Phi2, &CCpu6502::AddXAndOperandToPointer, &CCpu6502::ReadOperandAndDiscard_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::Null_Write, &CCpu6502::FUNC, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
 
 #define LSN_INDIRECT_Y_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::AddAddressAndYAndIncPc, &CCpu6502::ReadAddressToOperand_BoundarySkip_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp, }, 5, LSN_AM_INDIRECT_Y, 2, LSN_I_ ## NAME
 #define LSN_INDIRECT_Y_RMW( NAME, FUNC )												{ &CCpu6502::FetchPointerAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::AddAddressAndYAndIncPc, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 8, LSN_AM_INDIRECT_Y, 2, LSN_I_ ## NAME
+#define LSN_INDIRECT_Y_W( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::AddAddressAndYAndIncPc, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::FUNC, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 5, LSN_AM_INDIRECT_Y, 2, LSN_I_ ## NAME
 
-#define LSN_ZERO_PAGE_R( NAME, FUNC )													{ &CCpu6502::FetchOperandAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadOperandToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
+#define LSN_ZERO_PAGE_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
 #define LSN_ZERO_PAGE_RMW( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 5, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
+#define LSN_ZERO_PAGE_W( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Write, &CCpu6502::FUNC, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_ ## NAME
 
 #define LSN_ZERO_PAGE_X_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndX, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp, }, 4, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
 #define LSN_ZERO_PAGE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndX, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 6, LSN_AM_ZERO_PAGE_X, 2, LSN_I_ ## NAME
@@ -14,6 +17,7 @@
 
 #define LSN_ABSOLUTE_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp }, 4, LSN_AM_ABSOLUTE, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_RMW( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp }, 6, LSN_AM_ABSOLUTE, 3, LSN_I_ ## NAME
+#define LSN_ABSOLUTE_W( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FUNC, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp }, 4, LSN_AM_ABSOLUTE, 3, LSN_I_ ## NAME
 
 #define LSN_ABSOLUTE_X_R( NAME, FUNC )													{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::AddAddressAndXIncPc, &CCpu6502::ReadAddressToOperand_BoundarySkip_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::FUNC, &CCpu6502::PrefetchNextOp, }, 4, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
 #define LSN_ABSOLUTE_X_RMW( NAME, FUNC )												{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::AddAddressAndXIncPc, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::Null_Write, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::FUNC, &CCpu6502::WriteOperandToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 7, LSN_AM_ABSOLUTE_X, 3, LSN_I_ ## NAME
@@ -580,6 +584,193 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 
 	/** 68-6F */
+	{	// 68
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::PullStackToOperand_Phi2,
+			&CCpu6502::NullAdjustS_Read, &CCpu6502::ReadStackToOperand_Phi2,
+			&CCpu6502::Pla, &CCpu6502::PrefetchNextOp },
+			4, LSN_AM_IMPLIED, 1, LSN_I_PLP,
+	},
+	{	// 69
+		LSN_IMMEDIATE( ADC, AdcAndIncPc )
+	},
+	{	// 6A
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::RorOnA, &CCpu6502::PrefetchNextOp },
+			2, LSN_AM_IMPLIED, 1, LSN_I_ROR,
+	},
+	{	// 6B
+		LSN_IMMEDIATE( ARR, ArrAndIncPc )
+	},
+	{	// 6C
+		{
+			&CCpu6502::FetchPointerAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::FetchPointerHighAndIncPc_Phi2,
+			&CCpu6502::NullIncPc_Read, &CCpu6502::ReadPointerToAddressLow_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_SamePage_Phi2,
+			&CCpu6502::Jmp, &CCpu6502::PrefetchNextOp },
+			5, LSN_AM_INDIRECT, 3, LSN_I_JMP,
+	},
+	{	// 6D
+		LSN_ABSOLUTE_R( ADC, Adc )
+	},
+	{	// 6E
+		LSN_ABSOLUTE_RMW( ROR, Ror )
+	},
+	{	// 6F
+		LSN_ABSOLUTE_RMW( RRA, Rra )
+	},
+
+	/** 70-77 */
+	{	// 70
+		LSN_BRANCH( BVS, V(), 1 )													// Branch if V == 1.
+	},
+	{	// 71
+		LSN_INDIRECT_Y_R( ADC, Adc )
+	},
+	{	// 72
+		{
+			&CCpu6502::FetchOperandDecPc_Phi2,
+			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+	},
+	{	// 73
+		LSN_INDIRECT_Y_RMW( RRA, Rra )
+	},
+	{	// 74
+		LSN_ZERO_PAGE_X_R( NOP, Null_Read )
+	},
+	{	// 75
+		LSN_ZERO_PAGE_X_R( ADC, Adc )
+	},
+	{	// 76
+		LSN_ZERO_PAGE_X_RMW( ROR, Ror )
+	},
+	{	// 77
+		LSN_ZERO_PAGE_X_RMW( RRA, Rra )
+	},
+
+	/** 78-7F */
+	{	// 78
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Sei, &CCpu6502::PrefetchNextOp, },
+		2, LSN_AM_IMPLIED, 1, LSN_I_SEI
+	},
+	{	// 79
+		LSN_ABSOLUTE_Y_R( ADC, Adc )
+	},
+	{	// 7A
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp
+		},
+		2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
+	},
+	{	// 7B
+		LSN_ABSOLUTE_Y_RMW( RRA, Rra )
+	},
+	{	// 7C
+		LSN_ABSOLUTE_X_R( NOP, Null_Read )
+	},
+	{	// 7D
+		LSN_ABSOLUTE_X_R( ADC, Adc )
+	},
+	{	// 7E
+		LSN_ABSOLUTE_X_RMW( ROR, Ror )
+	},
+	{	// 7F
+		LSN_ABSOLUTE_X_RMW( RRA, Rra )
+	},
+
+	/** 80-87 */
+	{	// 80
+		LSN_IMMEDIATE( NOP, NullIncPc_Read )
+	},
+	{	// 81
+		LSN_INDIRECT_X_W( STA, WriteAToAddress_Phi2 )
+		/*{
+			&CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::AddXAndOperandToPointer, &CCpu6502::ReadOperandAndDiscard_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressLow_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2,
+			&CCpu6502::Null_Write, &CCpu6502::WriteAToAddress_Phi2,
+			&CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp,
+		}, 6, LSN_AM_INDIRECT_X, 2, LSN_I_STA*/
+	},
+	{	// 82
+		LSN_IMMEDIATE( NOP, NullIncPc_Read )
+	},
+	{	// 83
+		LSN_INDIRECT_X_W( SAX, Sax_Phi2 )
+	},
+	{	// 84
+		LSN_ZERO_PAGE_W( STY, WriteYToAddress_Phi2 )
+		//{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Write, &CCpu6502::WriteYToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_STA
+	},
+	{	// 85
+		LSN_ZERO_PAGE_W( STA, WriteAToAddress_Phi2 )
+	},
+	{	// 86
+		LSN_ZERO_PAGE_W( STX, WriteXToAddress_Phi2 )
+	},
+	{	// 87
+		LSN_ZERO_PAGE_W( SAX, Sax_Phi2 )
+	},
+
+	/** 88-8F */
+	{	// 88
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Dey, &CCpu6502::PrefetchNextOp },
+			2, LSN_AM_IMPLIED, 1, LSN_I_ASL,
+	},
+	{	// 89
+		LSN_IMMEDIATE( NOP, NullIncPc_Read )
+	},
+	{	// 8A
+		{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Txa, &CCpu6502::PrefetchNextOp },
+			2, LSN_AM_IMPLIED, 1, LSN_I_TXA,
+	},
+	{	// 8B
+		LSN_IMMEDIATE( ANE, AneAndIncPc )
+	},
+	{	// 8C
+		LSN_ABSOLUTE_W( STY, WriteYToAddress_Phi2 )
+		//{ &CCpu6502::FetchAddressAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::FetchAddressHighAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::WriteYToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp }, 4, LSN_AM_ABSOLUTE, 3, LSN_I_STY
+	},
+	{	// 8D
+		LSN_ABSOLUTE_W( STA, WriteAToAddress_Phi2 )
+	},
+	{	// 8E
+		LSN_ABSOLUTE_W( STX, WriteXToAddress_Phi2 )
+	},
+	{	// 8F
+		LSN_ABSOLUTE_W( SAX, Sax_Phi2 )
+	},
+
+	/** 90-97 */
+	{	// 90
+		LSN_BRANCH( BCC, C(), 0 )													// Branch if C == 0.
+	},
+	{	// 91
+		LSN_INDIRECT_Y_W( STA, WriteAToAddress_Phi2 )
+		//{ &CCpu6502::FetchPointerAndIncPc_Phi2, &CCpu6502::NullIncPc_Read, &CCpu6502::ReadPointerToAddressLow_Phi2, &CCpu6502::Null_Read, &CCpu6502::ReadPointerToAddressHigh_Phi2, &CCpu6502::AddAddressAndYAndIncPc, &CCpu6502::ReadAddressToOperand_Phi2, &CCpu6502::AddAddressAndXorYHigh, &CCpu6502::WriteAToAddress_Phi2, &CCpu6502::Null_Read, &CCpu6502::PrefetchNextOp, }, 5, LSN_AM_INDIRECT_Y, 2, LSN_I_STA
+	},
+	{	// 92
+		{
+			&CCpu6502::FetchOperandDecPc_Phi2,
+			&CCpu6502::Jam, &CCpu6502::Jam_Phi2, },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+	},
+	{	// 93
+		LSN_INDIRECT_Y_W( SHA, Sha_Phi2 )
+	},
+
 };
 
-//LSN_INDIRECT_X_R( NAME, FUNC )													{ &CCpu6502::FetchPointerAndIncPc, &CCpu6502::ReadAddressAddX_IzX, &CCpu6502::FetchEffectiveAddressLow_IzX, &CCpu6502::FetchEffectiveAddressHigh_IzX, &CCpu6502::FUNC, }, 6, LSN_AM_INDIRECT_X, 2, LSN_I_ ## NAME
+//
