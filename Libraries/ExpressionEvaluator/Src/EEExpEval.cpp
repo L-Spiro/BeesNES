@@ -712,6 +712,7 @@ namespace ee {
 		std::stringstream ssStream;
 		ssStream << "0x" <<
 			std::hex <<
+			std::uppercase <<
 			_ui64Val;
 		sTmp = ssStream.str();
 		return sTmp;
@@ -724,9 +725,11 @@ namespace ee {
 		_i64Val < 0 ? 
 			ssStream << "-0x" <<
 				std::hex <<
+				std::uppercase <<
 				-_i64Val :
 			ssStream << "0x" <<
 				std::hex <<
+				std::uppercase <<
 				_i64Val;
 		sTmp = ssStream.str();
 		return sTmp;
@@ -737,6 +740,7 @@ namespace ee {
 		std::string sTmp;
 		std::stringstream ssStream;
 		ssStream << std::hexfloat <<
+			std::uppercase <<
 			_d4Val;
 		sTmp = ssStream.str();
 		return sTmp;
@@ -748,6 +752,7 @@ namespace ee {
 		std::stringstream ssStream;
 		ssStream << "0o" <<
 			std::oct <<
+			std::uppercase <<
 			_ui64Val;
 		sTmp = ssStream.str();
 		return sTmp;
@@ -760,9 +765,11 @@ namespace ee {
 		_i64Val < 0 ? 
 			ssStream << "-0o" <<
 				std::oct <<
+				std::uppercase <<
 				-_i64Val :
 			ssStream << "0o" <<
 				std::oct <<
+				std::uppercase <<
 				_i64Val;
 		sTmp = ssStream.str();
 		return sTmp;
@@ -776,9 +783,11 @@ namespace ee {
 		i64Tmp < 0 ? 
 			ssStream << "-0o" <<
 				std::oct <<
+				std::uppercase <<
 				-i64Tmp :
 			ssStream << "0o" <<
 				std::oct <<
+				std::uppercase <<
 				i64Tmp;
 		sTmp = ssStream.str();
 		return sTmp;
