@@ -222,9 +222,6 @@
     <ClInclude Include="Src\Bus\LSNBus.h">
       <Filter>Header Files\Bus</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Cpu\LSNCpu6502.h">
-      <Filter>Header Files\Cpu</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Roms\LSNNesHeader.h">
       <Filter>Header Files\Roms</Filter>
     </ClInclude>
@@ -690,6 +687,9 @@
     <ClInclude Include="Src\Mappers\LSNMapper013.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Cpu\LSNCpu6502.h">
+      <Filter>Header Files\Cpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -697,9 +697,6 @@
     </ClCompile>
     <ClCompile Include="Src\Bus\LSNBus.cpp">
       <Filter>Source Files\Bus</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Cpu\LSNCpu6502.cpp">
-      <Filter>Source Files\Cpu</Filter>
     </ClCompile>
     <ClCompile Include="Src\MiniZ\miniz.c">
       <Filter>Source Files\MiniZ</Filter>
@@ -923,6 +920,9 @@
     <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlSource.cpp">
       <Filter>Source Files\Audio\OpenAL</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Cpu\LSNCpu6502.cpp">
+      <Filter>Source Files\Cpu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
@@ -957,6 +957,9 @@
     </None>
     <None Include="Src\Ppu\LSNGenFuncsPalN.inl">
       <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Cpu\LSNCycleFuncs.inl">
+      <Filter>Header Files\Cpu</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

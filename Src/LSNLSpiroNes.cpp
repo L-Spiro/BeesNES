@@ -102,7 +102,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 					for ( size_t J = 0; J < jvRoot.vArray.size(); ++J ) {
 						const lson::CJsonContainer::LSON_JSON_VALUE & jvThis = jSon.GetContainer()->GetValue( jvRoot.vArray[J] );
 						if ( !pcCpu->RunJsonTest( jSon, jvThis ) ) {
-							volatile int hkhj = 0;
+							//volatile int hkhj = 0;
 						}
 					}
 
