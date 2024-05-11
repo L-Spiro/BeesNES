@@ -135,7 +135,6 @@ namespace lsn {
 		void												ResetToKnown() {
 			ResetAnalog();
 			std::memset( &m_rRegs, 0, sizeof( m_rRegs ) );
-			m_rRegs.ui16Pc = m_pbBus->Read( 0xFFFC ) | (m_pbBus->Read( 0xFFFD ) << 8);
 			m_rRegs.ui8S = 0x0;
 			m_ui64CycleCount = 0ULL;
 
@@ -152,6 +151,10 @@ namespace lsn {
 			m_bIrqStatusPhi1Flag = false;
 			m_bHandleIrq = false;
 			m_bRdyLow = false;
+
+			std::memset( m_ui8Inputs, 0, sizeof( m_ui8Inputs ) );
+			std::memset( m_ui8InputsState, 0, sizeof( m_ui8InputsState ) );
+			std::memset( m_ui8InputsPoll, 0, sizeof( m_ui8InputsPoll ) );
 		}
 
 		/**
@@ -1046,6 +1049,9 @@ namespace lsn {
 	 * Performs a read of the next opcode at PC, checks signals to decide on going into NMI/IRQ/RESET, etc.
 	 */
 	inline void CCpu6502::PrefetchOpcode() {
+		/*if ( m_ui64CycleCount >= 87666 - 6 ) {
+			volatile int uiuiu = 0;
+		}*/
 		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui8Operand );
 		
 		if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {

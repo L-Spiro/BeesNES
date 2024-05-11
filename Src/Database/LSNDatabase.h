@@ -42,6 +42,10 @@ namespace lsn {
 			LSN_C_BF9096,
 			LSN_C_BF9097,
 			LSN_C_BF909X_END,
+
+			LSN_C_UxROM							= 300,
+			LSN_C_UOROM,
+			LSN_C_UxROM_END,
 		};
 
 

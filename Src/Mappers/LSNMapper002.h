@@ -53,6 +53,9 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			m_ui8PgmBank = 0;
 			m_ui8Mask = 0b0111;
+			if ( _rRom.riInfo.ui16Chip == CDatabase::LSN_C_UOROM ) {
+				m_ui8Mask = 0b1111;
+			}
 		}
 
 		/**

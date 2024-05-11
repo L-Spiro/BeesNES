@@ -39,6 +39,9 @@ namespace lsn {
 	 * Performs a single PHI1 update.
 	 */
 	void CCpu6502::Tick() {
+		/*if ( m_ui64CycleCount >= 87666 - 2 ) {
+			volatile int uiuiu = 0;
+		}*/
 		m_bIrqStatusPhi1Flag = m_bIrqSeenLowPhi2;
 		m_bIrqSeenLowPhi2 = false;
 

@@ -595,6 +595,8 @@ namespace lsn {
 			{ .ui32Crc = 0x6B523BD7, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Micro Machines (U)
 			{ .ui32Crc = 0x9235B57B, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+			// Momotarou Dentetsu (Japan)
+			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
 			// Quattro Adventure (Aladdin) (U)
 			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1 },		// 232: 1 Aladdin Deck Enhancer
 			// Quattro Sports (Aladdin) (U)
