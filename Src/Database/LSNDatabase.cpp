@@ -153,6 +153,8 @@ namespace lsn {
 			{ .ui32Crc = 0x10B4CE4D, .pmRegion = LSN_PM_PAL },
 			// Chessmaster, The (Europe)
 			{ .ui32Crc = 0x64C97986, .pmRegion = LSN_PM_PAL },
+			// Chester Field - Ankoku Shin e no Chousen (Japan)
+			{ .ui32Crc = 0x6C70A17B, .pmRegion = LSN_PM_NTSC },
 			// Chevaliers du Zodiaque, Les - La Legende d'Or (France)
 			{ .ui32Crc = 0x98C546E0, .pmRegion = LSN_PM_DENDY },
 			// Chip 'n Dale - Rescue Rangers (Europe)
