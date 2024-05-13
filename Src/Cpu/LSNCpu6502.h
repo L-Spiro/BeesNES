@@ -137,6 +137,7 @@ namespace lsn {
 			std::memset( &m_rRegs, 0, sizeof( m_rRegs ) );
 			m_rRegs.ui8S = 0x0;
 			m_ui64CycleCount = 0ULL;
+			m_ui8Operand = 0;
 
 			m_ui16DmaCounter = 0;
 			m_ui16DmaAddress = 0;
@@ -276,21 +277,21 @@ namespace lsn {
 		};
 		uint16_t											m_ui16OpCode = 0;																	/**< The current opcode. */
 		uint16_t											m_ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
-		uint16_t							m_ui16DmaCounter = 0;																/**< DMA counter. */
-		uint16_t							m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
-		uint16_t							m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
+		uint16_t											m_ui16DmaCounter = 0;																/**< DMA counter. */
+		uint16_t											m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
+		uint16_t											m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
 		uint8_t												m_ui8SModify = 0;																	/**< The amount by which to modify S during the next Phi1. */
 		uint8_t												m_ui8FuncIndex = 0;																	/**< The function index. */
-		uint8_t								m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
-		uint8_t								m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
-		bool								m_bNmiStatusLine = false;															/**< The status line for NMI. */
-		bool								m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
-		bool								m_bDetectedNmi = false;																/**< The edge detector for the PHI2 part of the cycle. */
-		bool								m_bHandleNmi = false;																/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the PHI1 of the next cycle. */
-		bool								m_bIrqStatusLine = false;															/**< The status line for IRQ. */
-		bool								m_bIrqSeenLowPhi2 = false;															/**< Set if m_bIrqStatusLine is low on PHI2. */
-		bool								m_bIrqStatusPhi1Flag = false;														/**< Set on Phi1 if m_bIrqSeenLowPhi2 was set. */
-		bool								m_bHandleIrq = false;																/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
+		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
+		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
+		bool												m_bNmiStatusLine = false;															/**< The status line for NMI. */
+		bool												m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
+		bool												m_bDetectedNmi = false;																/**< The edge detector for the PHI2 part of the cycle. */
+		bool												m_bHandleNmi = false;																/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the PHI1 of the next cycle. */
+		bool												m_bIrqStatusLine = false;															/**< The status line for IRQ. */
+		bool												m_bIrqSeenLowPhi2 = false;															/**< Set if m_bIrqStatusLine is low on PHI2. */
+		bool												m_bIrqStatusPhi1Flag = false;														/**< Set on Phi1 if m_bIrqSeenLowPhi2 was set. */
+		bool												m_bHandleIrq = false;																/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 		bool												m_bIsReset = true;																	/**< Are we resetting? */
 		
 		//bool												m_bIsReadCycle = true;																/**< Is the current cycle a read? */
@@ -298,8 +299,8 @@ namespace lsn {
 		bool												m_bPushB = false;																	/**< Push the B flag with the status byte? */
 		bool												m_bAllowWritingToPc = true;															/**< Allow writing to PC? */
 		bool												m_bTakeJump = true;																	/**< Determines if a branch is taken. */
-		bool								m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
-		bool								m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
+		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
+		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
 		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
 
 

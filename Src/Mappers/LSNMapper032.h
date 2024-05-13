@@ -30,6 +30,13 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -38,11 +45,11 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
 			m_ui8PgmBank = 0;
-			SanitizeRegs<0x2000, 0x0400>();
-			SetPgmBank<1, 0x2000>( -2 );
+			SanitizeRegs<PgmBankSize(), 0x0400>();
+			SetPgmBank<1, PgmBankSize()>( -2 );
 			m_ui8Mode = 0;
 
-			size_t stBanks = m_prRom->vPrgRom.size() / 0x2000;
+			size_t stBanks = m_prRom->vPrgRom.size() / PgmBankSize();
 			m_ui8Neg1Bank = uint8_t( stBanks - (-(-1) % stBanks) );
 			m_ui8Neg2Bank = uint8_t( stBanks - (-(-2) % stBanks) );
 		}
@@ -60,9 +67,9 @@ namespace lsn {
 			// ================
 			// FIXED BANKS
 			// ================
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), 0x2000 ) - 0x2000;
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
 			for ( uint32_t I = 0xE000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xE000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % m_prRom->vPrgRom.size() ) );
 			}
 
 			 
@@ -109,21 +116,22 @@ namespace lsn {
 			// ================
 			// BANK-SELECT
 			// ================
-			// PGM bank-select 0.
-			for ( uint32_t I = 0x8000; I <= 0x8007; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );	// Treated as ROM.
-			}
-			// PGM bank-select 1.
-			for ( uint32_t I = 0xA000; I <= 0xA007; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankA000_A007, this, uint16_t( I - 0xA000 ) );	// Treated as ROM.
-			}
-			// CHR bank-select.
-			for ( uint32_t I = 0xB000; I <= 0xB007; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankB000_B007, this, uint16_t( I - 0xB000 ) );
-			}
-			// Mode/mirroring.
-			if ( m_prRom->riInfo.ui16SubMapper != 1 && m_prRom->riInfo.ui32Crc != LSN_MAJOR_BALL_CRC ) {
-				for ( uint32_t I = 0x9000; I <= 0x9007; ++I ) {
+			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
+				uint16_t ui16Mask = I & 0xF007;
+				if ( ui16Mask >= 0x8000 && ui16Mask <= 0x8007 ) {
+					// PGM bank-select 0.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );	// Treated as ROM.
+				}
+				if ( ui16Mask >= 0xA000 && ui16Mask <= 0xA007 ) {
+					// PGM bank-select 1.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankA000_A007, this, uint16_t( I - 0xA000 ) );	// Treated as ROM.
+				}
+				if ( ui16Mask >= 0xB000 && ui16Mask <= 0xB007 ) {
+					// CHR bank-select.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankB000_B007, this, uint16_t( I - 0xB000 ) );
+				}
+				if ( ui16Mask >= 0x9000 && ui16Mask <= 0x9007 ) {
+					// Mode/mirroring.
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectModeEtc9000_9007, this, uint16_t( I - 0x9000 ) );
 				}
 			}
@@ -186,7 +194,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank8000_8007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
-			pmThis->SetPgmBank<0, 0x2000>( _ui8Val & 0b11111 );
+			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -199,7 +207,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBankA000_A007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
-			pmThis->SetPgmBank<1, 0x2000>( _ui8Val & 0b11111 );
+			pmThis->SetPgmBank<1, PgmBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -226,10 +234,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_8000_A000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize())];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*PgmBankSize())];
 			}
 		}
 
@@ -244,10 +252,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_A000_C000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize())];
 			}
 		}
 
@@ -262,10 +270,10 @@ namespace lsn {
 		static void LSN_FASTCALL						PgmBankRead_C000_E000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			if ( !pmThis->m_ui8Mode ) {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*PgmBankSize())];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*0x2000)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
 			}
 		}
 	};

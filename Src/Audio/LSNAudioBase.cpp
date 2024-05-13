@@ -69,7 +69,7 @@ namespace lsn {
 		if ( QueueBuffer( m_ui64TotalLifetimeQueues, m_vLocalBuffer.data(), m_sCurBufferSize, m_ui32Frequency ) ) {
 			++m_ui64TotalLifetimeQueues;
 			m_sCurBufferSize = 0;
-			if ( !IsPlaying() && m_ui64TotalLifetimeQueues >= 2 ) {
+			if ( !IsPlaying() && m_ui64TotalLifetimeQueues >= LSN_BUFFER_DELAY ) {
 				bRet = Play();
 			}
 		}

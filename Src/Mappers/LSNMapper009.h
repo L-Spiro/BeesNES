@@ -29,6 +29,13 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -56,9 +63,9 @@ namespace lsn {
 			// FIXED BANKS
 			// ================
 			// Last 3 banks are fixed 8-kilobyte banks.
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), (8 * 1024) * 3 ) - (8 * 1024) * 3;
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() * 3 ) - PgmBankSize() * 3;
 			for ( uint32_t I = 0xA000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( I - 0xA000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xA000) % m_prRom->vPrgRom.size() ) );
 			}
 
 			// ================
