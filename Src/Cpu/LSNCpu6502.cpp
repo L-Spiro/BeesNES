@@ -1036,12 +1036,14 @@ namespace lsn {
 	void CCpu6502::FetchOpcodeAndIncPc() {
 		LSN_INSTR_START_PHI1( true );
 		m_ui16OpCode = m_ui8Operand;
-
+		
 		/*if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
 			m_ui16OpCode = 0;
 			m_ui16PcModify = 0;
 			m_bAllowWritingToPc = false;
 		}*/
+
+		m_pfCurInstruction = m_iInstructionSet[m_ui16OpCode].pfHandler;
 		
 		LSN_UPDATE_PC;
 

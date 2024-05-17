@@ -175,6 +175,8 @@ namespace lsn {
 			m_bAllowWritingToPc = false;
 			m_bIsReset = true;
 #endif	// #ifdef LSN_CPU_VERIFY
+
+			m_pfCurInstruction = m_iInstructionSet[m_ui16OpCode].pfHandler;
 		}
 
 		/**
@@ -263,6 +265,7 @@ namespace lsn {
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
+		const PfCycle *										m_pfCurInstruction = nullptr;														/**< The current instruction being executed. */
 		LSN_REGISTERS										m_rRegs;																			/**< Registers. */
 
 		LSN_VECTORS											m_vBrkVector = LSN_V_IRQ_BRK;														/**< The vector to use inside BRK and whether to push B with status. */
@@ -985,7 +988,8 @@ namespace lsn {
 
 	/** Performs a cycle inside an instruction. */
 	inline void CCpu6502::Tick_InstructionCycleStd() {
-		(this->*m_iInstructionSet[m_ui16OpCode].pfHandler[m_ui8FuncIndex])();
+		//(this->*m_iInstructionSet[m_ui16OpCode].pfHandler[m_ui8FuncIndex])();
+		(this->*m_pfCurInstruction[m_ui8FuncIndex])();
 	}
 
 	/**
