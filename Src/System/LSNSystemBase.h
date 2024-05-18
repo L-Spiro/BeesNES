@@ -193,7 +193,7 @@ namespace lsn {
 		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
 		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
-		CCpuBus											m_bBus;								/**< The bus. */
+		static CCpuBus									m_bBus;								/**< The bus. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
 		bool											m_bPaused;							/**< Pause flag. */

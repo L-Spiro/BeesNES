@@ -15,6 +15,10 @@
 
 namespace lsn {
 
+	// == Members.
+	CCpuBus CSystemBase::m_bBus;								/**< The bus. */
+
+
 	// == Functions.
 	/**
 	 * Loads a ROM into the given LSN_ROM object.
