@@ -94,11 +94,12 @@ namespace lsn {
 		m_nnCrtPal.chroma_correction = 1;
 		m_nsSettings.yoffset = 7;*/
 		
-		m_nnCrtPal.brightness = -9;
-		m_nnCrtPal.contrast = 205;
-		m_nnCrtPal.saturation = 20;
-		m_nnCrtPal.black_point = -1;
-		m_nnCrtPal.white_point = 65;
+		//m_nnCrtPal.hue = 23;
+		m_nnCrtPal.brightness = -2;
+		m_nnCrtPal.contrast = 180;
+		m_nnCrtPal.saturation = 15;
+		m_nnCrtPal.black_point = 2;
+		m_nnCrtPal.white_point = 75;
 		m_nnCrtPal.blend = 1;
 
 		m_nnCrtPal.chroma_correction = 1;

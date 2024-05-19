@@ -424,31 +424,81 @@ namespace lsn {
 	 * \param _s16Path The file path to add or move to the top.
 	 **/
 	void CBeesNes::AddPath( const std::u16string &_s16Path ) {
-		std::u16string vNormalized = CUtilities::Replace( _s16Path, u'/', u'\\' );
+		std::u16string s16Normalized = CUtilities::Replace( _s16Path, u'/', u'\\' );
 		// 2 types of culling owing to the use of ZIP files.
 #ifdef LSN_WINDOWS
 		for ( auto I = m_vRecentFiles.size(); I--; ) {
-			if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE, reinterpret_cast<LPCWCH>(vNormalized.c_str()), -1, reinterpret_cast<LPCWCH>(m_vRecentFiles[I].c_str()), -1, NULL, NULL, NULL ) ) {
+			if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE, reinterpret_cast<LPCWCH>(s16Normalized.c_str()), -1, reinterpret_cast<LPCWCH>(m_vRecentFiles[I].c_str()), -1, NULL, NULL, NULL ) ) {
 				m_vRecentFiles.erase( m_vRecentFiles.begin() + I );
 			}
 		}
 #else
-		auto I = std::find( m_vRecentFiles.begin(), m_vRecentFiles.end(), vNormalized );
-		if ( m_vRecentFiles.end() != I ) {
-			m_vRecentFiles.erase( I );
+		while ( true ) {
+			auto I = std::find( m_vRecentFiles.begin(), m_vRecentFiles.end(), s16Normalized );
+			if ( m_vRecentFiles.end() != I ) {
+				m_vRecentFiles.erase( I );
+			}
+			else { break; }
 		}
 #endif	// #ifdef LSN_WINDOWS
-		std::filesystem::path pPathI( vNormalized );
-		for ( size_t I = 0; I < m_vRecentFiles.size(); ++I ) {
-			std::filesystem::path pPathJ( m_vRecentFiles[I] );
-			try {
-				if ( std::filesystem::equivalent( pPathI, pPathJ ) ) {
-					m_vRecentFiles.erase( m_vRecentFiles.begin() + I-- );
+
+		
+		if ( CUtilities::LastChar( s16Normalized ) == u'}' ) {
+			CUtilities::LSN_FILE_PATHS fpDecPathI;
+			CUtilities::DeconstructFilePath( s16Normalized, fpDecPathI );
+			fpDecPathI.u16sPath.pop_back();
+			std::filesystem::path pPathI( fpDecPathI.u16sPath );
+			for ( size_t I = 0; I < m_vRecentFiles.size(); ++I ) {
+				if ( CUtilities::LastChar( m_vRecentFiles[I] ) == u'}' ) {
+					CUtilities::LSN_FILE_PATHS fpDecPathJ;
+					CUtilities::DeconstructFilePath( m_vRecentFiles[I], fpDecPathJ );
+					fpDecPathJ.u16sPath.pop_back();
+					std::filesystem::path pPathJ( fpDecPathJ.u16sPath );
+
+					try {
+						if ( std::filesystem::equivalent( pPathI, pPathJ ) ) {
+							m_vRecentFiles.erase( m_vRecentFiles.begin() + I-- );
+						}
+					}
+					catch ( ... ) {}
+
+#ifdef LSN_WINDOWS
+					if ( CSTR_EQUAL == ::CompareStringEx( LOCALE_NAME_INVARIANT, NORM_IGNORECASE, reinterpret_cast<LPCWCH>(fpDecPathI.u16sFile.c_str()), -1, reinterpret_cast<LPCWCH>(fpDecPathJ.u16sFile.c_str()), -1, NULL, NULL, NULL ) ) {
+						m_vRecentFiles.erase( m_vRecentFiles.begin() + I );
+					}
+#else
+					if ( fpDecPathI.u16sFile == fpDecPathJ.u16sFile ) {
+						m_vRecentFiles.erase( m_vRecentFiles.begin() + I );
+					}
+					else {
+						try {
+							if ( std::filesystem::equivalent( std::filesystem::path( fpDecPathI.u16sFile ), std::filesystem::path( fpDecPathJ.u16sFile ) ) ) {
+								m_vRecentFiles.erase( m_vRecentFiles.begin() + I-- );
+							}
+						}
+						catch ( ... ) {}
+					}
+#endif	// #ifdef LSN_WINDOWS
+
+
 				}
 			}
-			catch ( ... ) {}
 		}
-		m_vRecentFiles.insert( m_vRecentFiles.begin(), vNormalized );
+		else {
+			std::filesystem::path pPathI( s16Normalized );
+			for ( size_t I = 0; I < m_vRecentFiles.size(); ++I ) {
+				if ( CUtilities::LastChar( m_vRecentFiles[I] ) != u'}' ) {
+					std::filesystem::path pPathJ( m_vRecentFiles[I] );
+					try {
+						if ( std::filesystem::equivalent( pPathI, pPathJ ) ) {
+							m_vRecentFiles.erase( m_vRecentFiles.begin() + I-- );
+						}
+					}
+					catch ( ... ) {}
+				}
+			}
+		}
+		m_vRecentFiles.insert( m_vRecentFiles.begin(), s16Normalized );
 		while ( m_vRecentFiles.size() > m_ui32RecentLimit ) { m_vRecentFiles.pop_back(); }
 	}
 

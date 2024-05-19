@@ -32,6 +32,9 @@
 #define LSN_PPU_PHI2_SLOT										4
 #define LSN_SLOTS												5
 
+#pragma warning( push )
+#pragma warning( disable : 4701 )	// warning C4701: potentially uninitialized local variable 'sCheckedSlot' used
+
 namespace lsn {
 
 	/**
@@ -55,17 +58,15 @@ namespace lsn {
 			m_aApu( &m_bBus, &m_cCpu ) {
 			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
 				// PHI1.
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv },
-				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv },
-				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv, LSN_PPU_SLOT },
+				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv, LSN_APU_SLOT },
 
 				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv },
-				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
 			};
 			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
-
-
 
 			ResetState( false );
 		}
@@ -131,6 +132,9 @@ namespace lsn {
 			m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
 			m_hsSlots[LSN_PPU_SLOT].ui64Counter = 0 + _tPpuDiv;
 			m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
+			m_sSlotsToCheck[0] = LSN_CPU_SLOT;
+			m_sSlotsToCheck[1] = LSN_PPU_SLOT;
+			m_sSlotsToCheck[2] = LSN_APU_SLOT;
 			m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter = m_hsSlots[LSN_CPU_SLOT].ui64Counter + (_tCpuDiv / 2);
 			m_ui64LastRealTime = m_cClock.GetRealTick();
 		}
@@ -158,6 +162,45 @@ namespace lsn {
 				do {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
+#if 1
+					size_t sCheckedSlot;
+					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
+					// CPU slot.
+					size_t sTmp = m_sSlotsToCheck[0];
+					if ( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
+						phsSlot = &m_hsSlots[sTmp];
+						ui64Low = phsSlot->ui64Counter;
+						sCheckedSlot = 0;
+					}
+					// PPU slot.
+					sTmp = m_sSlotsToCheck[1];
+					if ( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter && m_hsSlots[sTmp].ui64Counter <= ui64Low ) {
+						phsSlot = &m_hsSlots[sTmp];
+						ui64Low = phsSlot->ui64Counter;
+						sCheckedSlot = 1;
+					}
+					// By assuming the APU is not divided into PHI1 and PHI2 we can save just a bit of time here.
+					if ( m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
+						// If we come in here then we know that the APU will be the one to tick.
+						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
+						//	as well as the pointer-access ("phsSlot").
+						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
+						//	0.68499566 cycles-per-tick.
+						// Switching to function pointers inside the CPU Tick() function brought it
+						//	down to 0.63103939.
+						(m_hsSlots[LSN_APU_SLOT].ptHw->*m_hsSlots[LSN_APU_SLOT].pfTick)();
+						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
+						//m_hsSlots[LSN_APU_SLOT].ptHw->Tick();
+						//(*m_hsSlots[LSN_APU_SLOT].pfTick)();
+					}
+					else if ( phsSlot != nullptr ) {
+						(phsSlot->ptHw->*phsSlot->pfTick)();
+						phsSlot->ui64Counter += phsSlot->ui64Inc;
+						m_sSlotsToCheck[sCheckedSlot] = phsSlot->sPartnerSlot;
+						//phsSlot->ptHw->Tick();
+					}
+					else { break; }
+#else
 					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
 					if ( m_hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter /*&& m_hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low*/ ) {
 						phsSlot = &m_hsSlots[LSN_CPU_SLOT];
@@ -196,6 +239,7 @@ namespace lsn {
 						//phsSlot->ptHw->Tick();
 					}
 					else { break; }
+#endif
 				} while ( true );
 
 			}
@@ -500,6 +544,7 @@ namespace lsn {
 			CTickable::PfTickFunc						pfTick;
 			uint64_t 									ui64Counter;
 			uint64_t									ui64Inc;
+			size_t										sPartnerSlot;
 		};
 
 
@@ -508,6 +553,7 @@ namespace lsn {
 		_cPpu											m_pPpu;								/**< The PPU. */
 		_cApu											m_aApu;								/**< The APU. */
 		LSN_HW_SLOTS									m_hsSlots[LSN_SLOTS];				/**< Run-time tick states for each component. */
+		size_t											m_sSlotsToCheck[3];					/**< Which slots to actually check.  PHI1 and PHI2 shouldn't be checked at the same time. */
 
 
 		// == Functions.
@@ -664,3 +710,5 @@ namespace lsn {
 #undef LSN_APU_SLOT
 #undef LSN_PPU_SLOT
 #undef LSN_CPU_SLOT
+
+#pragma warning( pop )

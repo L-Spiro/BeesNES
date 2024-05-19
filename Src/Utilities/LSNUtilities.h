@@ -118,6 +118,16 @@ namespace lsn {
 		static std::u16string								GetFilePath( const std::u16string &_s16Path );
 
 		/**
+		 * Gets the last character in a string or std::u16string::traits_type::char_type( 0 ).
+		 * 
+		 * \param _s16Str The string whose last character is to be returned, if it has any characters.
+		 * \return Returns the last character in the given string or std::u16string::traits_type::char_type( 0 ).
+		 **/
+		static std::u16string::traits_type::char_type		LastChar( const std::u16string &_s16Str ) {
+			return _s16Str.size() ? _s16Str[_s16Str.size()-1] : std::u16string::traits_type::char_type( 0 );
+		}
+
+		/**
 		 * Converts from sRGB to linear.
 		 *
 		 * \param _dVal The value to convert.

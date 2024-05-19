@@ -591,8 +591,8 @@ namespace lsn {
 			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
 			// Don Doko Don 2 (Japan)
 			{ .ui32Crc = 0x49C84B4E, .ui16Mapper = 48 },
-			// Fantastic Adventures of Dizzy, The (Aladdin) (UE)
-			{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },
+			// Fantastic Adventures of Dizzy, The (Aladdin) (UE)	// Duplicated as Quattro Adventure (Aladdin) (U)?
+			//{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Micro Machines (U)
