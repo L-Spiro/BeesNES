@@ -149,6 +149,9 @@ namespace lsw {
 			_hHandle = NULL;
 			return (*this);
 		}
+
+
+		// == Functions.
 		VOID								Reset() {
 			if ( Valid() ) {
 				::CloseHandle( hHandle );
@@ -156,14 +159,62 @@ namespace lsw {
 			}
 		}
 
+		inline BOOL							Valid() const { return hHandle && hHandle != INVALID_HANDLE_VALUE; }
+
+		static inline  BOOL					Valid( HANDLE _hHandle ) { return _hHandle && _hHandle != INVALID_HANDLE_VALUE; }
+
+
+		// == Members.
+		HANDLE								hHandle;
+	};
+
+	struct LSW_HMODULE {
+		LSW_HMODULE() : hHandle( NULL ) {}
+		LSW_HMODULE( LPCSTR _sPath ) :
+			hHandle( ::LoadLibraryW( ee::CExpEval::StringToWString( _sPath ).c_str() ) ) {
+		}
+		LSW_HMODULE( LPCWSTR _wsPath ) :
+			hHandle( ::LoadLibraryW( _wsPath ) ) {
+		}
+		LSW_HMODULE( const char16_t * _pu16Path ) :
+			hHandle( ::LoadLibraryW( reinterpret_cast<LPCWSTR>(_pu16Path) ) ) {
+		}
+		~LSW_HMODULE() {
+			Reset();
+		}
+
 
 		// == Functions.
-		BOOL								Valid() const { return hHandle && hHandle != INVALID_HANDLE_VALUE; }
+		BOOL								LoadLibrary( LPCSTR _sPath ) {
+			Reset();
+			hHandle = ::LoadLibraryW( ee::CExpEval::StringToWString( _sPath ).c_str() );
+			return hHandle != NULL;
+		}
 
-		static BOOL							Valid( HANDLE _hHandle ) { return _hHandle && _hHandle != INVALID_HANDLE_VALUE; }
+		BOOL								LoadLibrary( LPCWSTR _wsPath ) {
+			Reset();
+			hHandle = ::LoadLibraryW( _wsPath );
+			return hHandle != NULL;
+		}
+
+		BOOL								LoadLibrary( const char16_t * _pu16Path ) {
+			Reset();
+			hHandle = ::LoadLibraryW( reinterpret_cast<LPCWSTR>(_pu16Path) );
+			return hHandle != NULL;
+		}
+
+		inline VOID							Reset() {
+			if ( Valid() ) {
+				::FreeLibrary( hHandle );
+				hHandle = NULL;
+			}
+		}
+
+		inline BOOL							Valid() const { return hHandle != NULL; }
 
 
-		HANDLE								hHandle;
+		// == Members.
+		HMODULE								hHandle;
 	};
 
 	struct LSW_REBARBANDINFO : REBARBANDINFOW {
@@ -832,7 +883,7 @@ namespace lsw {
 		 * \return Returns the interpolated 24-bit RGB value.
 		 */
 		static DWORD						MixColorRef( DWORD _dwColorA, DWORD _dwColorB, double _dAmnt ) {
-			double dA = sRGBtoLinear( GetRValue( _dwColorA ) / 255.0 );
+			double dA = GetRValue( _dwColorA ) / 255.0;
 			double dB = sRGBtoLinear( GetRValue( _dwColorB ) / 255.0 );
 			BYTE bR = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _dAmnt ) ) * 255.0 ));
 			dA = sRGBtoLinear( GetGValue( _dwColorA ) / 255.0 );
@@ -921,11 +972,11 @@ namespace lsw {
 		 * Converts a modifier to text.
 		 *
 		 * \param _iMod The VK_ modifier to convert to a string.
-		 * \param _swsResult Holds the result of the conversion.
+		 * \param _wsResult Holds the result of the conversion.
 		 * \param _bIgnoreLeftRight If true, left and right Shift, Control, and Alt are considered indistinguishable.
 		 * \return Returns true if the conversion to text was successful.
 		 */
-		static bool							ModifierToString( INT _iMod, std::wstring &_swsResult, bool _bIgnoreLeftRight ) {
+		static bool							ModifierToString( INT _iMod, std::wstring &_wsResult, bool _bIgnoreLeftRight ) {
 			if ( _bIgnoreLeftRight ) {
 				if ( _iMod == VK_LSHIFT || _iMod == VK_RSHIFT ) {
 					_iMod = VK_SHIFT;
@@ -937,7 +988,7 @@ namespace lsw {
 				uiExt |= (_iMod == VK_RCONTROL) ? KF_EXTENDED : 0;
 				uiExt |= (_iMod == VK_RMENU) ? KF_EXTENDED : 0;
 			}
-			_swsResult += ScanCodeToString( (uiKey | uiExt) << 16 );
+			_wsResult += ScanCodeToString( (uiKey | uiExt) << 16 );
 			return true;
 		}
 

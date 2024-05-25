@@ -32,6 +32,33 @@ x64/Debug/*
 x64/Release/*
 x64/CPU Verify/*
 x64/CPU Verify Release/*
+
+x64/DirectX 9 Debug/*
+x64/DirectX 9 Final/*
+x64/DirectX 9 Release/*
+x64/DirectX 12 Debug/*
+x64/DirectX 12 Final/*
+x64/DirectX 12 Release/*
+x64/Vulkan 1 Debug/*
+x64/Vulkan 1 Final/*
+x64/Vulkan 1 Release/*
+x64/Vulkan 1 DirectX 12 DirectX 9 Debug/*
+x64/Vulkan 1 DirectX 12 DirectX 9 Final/*
+x64/Vulkan 1 DirectX 12 DirectX 9 Release/*
+
+Win32/DirectX 9 Debug/*
+Win32/DirectX 9 Final/*
+Win32/DirectX 9 Release/*
+Win32/DirectX 12 Debug/*
+Win32/DirectX 12 Final/*
+Win32/DirectX 12 Release/*
+Win32/Vulkan 1 Debug/*
+Win32/Vulkan 1 Final/*
+Win32/Vulkan 1 Release/*
+Win32/Vulkan 1 DirectX 12 DirectX 9 Debug/*
+Win32/Vulkan 1 DirectX 12 DirectX 9 Final/*
+Win32/Vulkan 1 DirectX 12 DirectX 9 Release/*
+
 Libraries/ExpressionEvaluator/x64/*
 Libraries/ExpressionEvaluator/Win32/*
 Libraries/LSWindows/x64/*

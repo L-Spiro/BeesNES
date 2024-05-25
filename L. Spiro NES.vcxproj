@@ -21,6 +21,54 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Debug|Win32">
+      <Configuration>DirectX 12 Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Debug|x64">
+      <Configuration>DirectX 12 Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Final|Win32">
+      <Configuration>DirectX 12 Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Final|x64">
+      <Configuration>DirectX 12 Final</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Release|Win32">
+      <Configuration>DirectX 12 Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 12 Release|x64">
+      <Configuration>DirectX 12 Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Debug|Win32">
+      <Configuration>DirectX 9 Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Debug|x64">
+      <Configuration>DirectX 9 Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Final|Win32">
+      <Configuration>DirectX 9 Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Final|x64">
+      <Configuration>DirectX 9 Final</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Release|Win32">
+      <Configuration>DirectX 9 Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DirectX 9 Release|x64">
+      <Configuration>DirectX 9 Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Final|Win32">
       <Configuration>Final</Configuration>
       <Platform>Win32</Platform>
@@ -41,6 +89,54 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Debug|Win32">
+      <Configuration>Vulkan 1 Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Debug|x64">
+      <Configuration>Vulkan 1 Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Debug|Win32">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Debug|x64">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Final|Win32">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Final|x64">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Final</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Release|Win32">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 DirectX 12 DirectX 9 Release|x64">
+      <Configuration>Vulkan 1 DirectX 12 DirectX 9 Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Final|Win32">
+      <Configuration>Vulkan 1 Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Final|x64">
+      <Configuration>Vulkan 1 Final</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Release|Win32">
+      <Configuration>Vulkan 1 Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Vulkan 1 Release|x64">
+      <Configuration>Vulkan 1 Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{54EDD654-4F0C-41AA-B428-2BDED2C37CA2}</ProjectGuid>
@@ -55,6 +151,30 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -62,6 +182,34 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -82,7 +230,59 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -95,6 +295,34 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -115,6 +343,34 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
@@ -124,10 +380,34 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|Win32'" Label="PropertySheets">
@@ -136,7 +416,31 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'" Label="PropertySheets">
@@ -145,14 +449,70 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Final|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -174,6 +534,30 @@
     <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
@@ -181,6 +565,38 @@
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -204,7 +620,63 @@
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
@@ -217,6 +689,30 @@
     <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
+    <IncludePath>C:\Program Files (x86)\OpenAL 1.1 SDK\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <TargetName>BeesNES $(LibrariesArchitecture)</TargetName>
@@ -240,7 +736,115 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
@@ -267,7 +871,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
@@ -294,7 +898,115 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -321,7 +1033,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -351,7 +1063,127 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
@@ -381,7 +1213,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
@@ -412,7 +1244,131 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
@@ -442,7 +1398,127 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -472,7 +1548,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -503,7 +1579,131 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>1048576</StackCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>1048576</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -757,15 +1957,39 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <MASM Include="Src\OS\LSNSinCos.asm">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">true</ExcludedFromBuild>
     </MASM>
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />

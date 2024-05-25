@@ -214,6 +214,30 @@
     <Filter Include="Source Files\Audio\OpenAL">
       <UniqueIdentifier>{e804840d-3480-47bd-92ac-45e7415b0abb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GPU">
+      <UniqueIdentifier>{8ee46b47-c797-45a6-93ed-60d605797ac0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GPU">
+      <UniqueIdentifier>{dad133fa-202b-4483-b742-83e25e717031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GPU\DirectX9">
+      <UniqueIdentifier>{b77fc68c-858b-409e-8a2d-4d6c49fc51d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GPU\DirectX9">
+      <UniqueIdentifier>{1352990e-1d73-4fde-9556-9a979a58ba98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GPU\DirectX12">
+      <UniqueIdentifier>{a5307eca-05d4-4856-a34c-ac6bc8d741f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GPU\DirectX12">
+      <UniqueIdentifier>{d44b6d0a-3651-41dc-8af7-d227c444a0b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GPU\Vulkan">
+      <UniqueIdentifier>{c4ebf4d8-297c-4aa1-8b89-dd86064362b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GPU\Vulkan">
+      <UniqueIdentifier>{f5305ebe-aedf-4725-83a1-335fb427a7c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
