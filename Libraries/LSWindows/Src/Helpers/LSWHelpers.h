@@ -883,7 +883,7 @@ namespace lsw {
 		 * \return Returns the interpolated 24-bit RGB value.
 		 */
 		static DWORD						MixColorRef( DWORD _dwColorA, DWORD _dwColorB, double _dAmnt ) {
-			double dA = GetRValue( _dwColorA ) / 255.0;
+			double dA = sRGBtoLinear( GetRValue( _dwColorA ) / 255.0 );
 			double dB = sRGBtoLinear( GetRValue( _dwColorB ) / 255.0 );
 			BYTE bR = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _dAmnt ) ) * 255.0 ));
 			dA = sRGBtoLinear( GetGValue( _dwColorA ) / 255.0 );

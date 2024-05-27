@@ -714,6 +714,24 @@
     <ClInclude Include="Src\Cpu\LSNCpu6502.h">
       <Filter>Header Files\Cpu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\LSNGpuBase.h">
+      <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\LSNTextureBase.h">
+      <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\LSNSurface.h">
+      <Filter>Header Files\GPU</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -946,6 +964,18 @@
     </ClCompile>
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp">
       <Filter>Source Files\Cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\LSNTextureBase.cpp">
+      <Filter>Source Files\GPU</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

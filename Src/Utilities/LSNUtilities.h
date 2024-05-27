@@ -30,6 +30,11 @@
 #define LSN_PI												3.1415926535897932384626433832795
 #endif	// #ifndef LSN_PI
 
+#ifndef LSN_ROUND_UP
+/** Round up to the next nearest Xth, where X is a power of 2. */
+#define LSN_ROUND_UP( VALUE, X )							((VALUE) + (((X) - (VALUE) & ((X) - 1)) & ((X) - 1)))
+#endif	// #ifndef LSN_ROUND_UP
+
 namespace lsn {
 
 	/**

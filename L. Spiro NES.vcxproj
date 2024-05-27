@@ -1778,6 +1778,12 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal.h" />
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_core.h" />
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_nes.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.h" />
+    <ClInclude Include="Src\GPU\LSNGpuBase.h" />
+    <ClInclude Include="Src\GPU\LSNSurface.h" />
+    <ClInclude Include="Src\GPU\LSNTextureBase.h" />
     <ClInclude Include="Src\Input\LSNControllerListener.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
@@ -1919,6 +1925,10 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.cpp" />
+    <ClCompile Include="Src\GPU\LSNTextureBase.cpp" />
     <ClCompile Include="Src\Input\LSNControllerListener.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp" />
