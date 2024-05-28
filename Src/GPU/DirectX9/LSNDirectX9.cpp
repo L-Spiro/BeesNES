@@ -40,10 +40,10 @@ namespace lsn {
 	bool CDirectX9::EnumerateDisplayDevices( IDirect3D9 * _pd3d9Dx9, std::vector<CDirectX9::LSN_ADAPTOR_INFO> &_vDevices ) {
 		if ( nullptr == _pd3d9Dx9 ) { return false; }
 		// Get the number of adapters.
-		UINT adapterCount = _pd3d9Dx9->GetAdapterCount();
+		UINT uiAdaptorCnt = _pd3d9Dx9->GetAdapterCount();
 
 		// Enumerate through all display adapters.
-		for ( UINT I = 0; I < adapterCount; ++I ) {
+		for ( UINT I = 0; I < uiAdaptorCnt; ++I ) {
 			LSN_ADAPTOR_INFO aiAdapterInfo;
 			aiAdapterInfo.uiAdapter = I;
         
@@ -80,12 +80,7 @@ namespace lsn {
 		if ( pD3d == nullptr ) { return false; }
 
 		GatherDevices( pD3d.Get() );
-		for ( size_t I = m_vDisplayDevices.size(); I--; ) {
-			if ( !FAILED( pD3d->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &m_vDisplayDevices[I].cCaps ) ) ) {
-				return true;
-			}
-		}
-		return false;
+		return m_vDisplayDevices.size() != 0;
 	}
 
 	/**
