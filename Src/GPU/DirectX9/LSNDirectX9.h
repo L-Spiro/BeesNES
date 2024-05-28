@@ -16,6 +16,7 @@
 #include "../LSNGpuBase.h"
 
 #include <d3d9.h>
+#include <vector>
 
 namespace lsn {
 
@@ -182,8 +183,20 @@ namespace lsn {
 		// == Types.
 		typedef IDirect3D9 * (WINAPI *							PfDirect3DCreate9)( UINT );
 
+		struct LSN_ADAPTOR_INFO {
+			UINT												uiAdapter;
+			D3DADAPTER_IDENTIFIER9								aiIdentifier;
+			D3DCAPS9											cCaps;
+		};
+
+
 
 		// == Functions.
+		/**
+		 * Cleans up any resources used by Direct3D 9.
+		 **/
+		static void												ShutDown();
+
 		/**
 		 * Determines whether DirectX 9 is available.
 		 *
@@ -191,10 +204,20 @@ namespace lsn {
 		 **/
 		static inline BOOL										Supported();
 
+		/**
+		 * Enumerates display devices via Direct3D 9.
+		 * 
+		 * \param _pd3d9Dx9 The Direct3D 9 device pointer.
+		 * \param _vDevices Display devices are added to _vDevices.
+		 * \return Returns true if no allocations issues were encountered while adding display devices to _vDevices.
+		 **/
+		static bool												EnumerateDisplayDevices( IDirect3D9 * _pd3d9Dx9, std::vector<LSN_ADAPTOR_INFO> &_vDevices );
+
 
 	protected :
 		// == Members.
 		static BOOL												m_bSupported;								/**< Is Direct3D 9 supported? */
+		static std::vector<LSN_ADAPTOR_INFO>					m_vDisplayDevices;							/**< The array of display devices. */
 
 
 		// == Functions.
@@ -204,6 +227,13 @@ namespace lsn {
 		 * \return Returns true if Direct3D 9 is supported.
 		 **/
 		static bool												IsSupported();
+
+		/**
+		 * Populates m_vDisplayDevices.
+		 * 
+		 * \param _pd3d9Dx9 The Direct3D 9 device pointer.
+		 **/
+		static void												GatherDevices( IDirect3D9 * _pd3d9Dx9 );
 	};
 	
 
