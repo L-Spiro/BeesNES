@@ -30,8 +30,8 @@ namespace lsn {
 	class CDirectX12 {
 	public :
 		// == Types.
-		typedef HRESULT (WINAPI *								PfCreateDXGIFactory1)( REFIID, _COM_Outptr_ void ** );
-		typedef HRESULT (WINAPI*								PfD3D12CreateDevice)( _In_opt_ IUnknown *, D3D_FEATURE_LEVEL, _In_ REFIID, _COM_Outptr_opt_ void ** );
+		typedef HRESULT (WINAPI *								PFN_CreateDXGIFactory1)( REFIID, _COM_Outptr_ void ** );
+		typedef HRESULT (WINAPI*								PFN_D3D12CreateDevice)( _In_opt_ IUnknown *, D3D_FEATURE_LEVEL, _In_ REFIID, _COM_Outptr_opt_ void ** );
 
 
 		// == Functions.

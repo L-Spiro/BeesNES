@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef LSN_USE_WINDOWS
 #include <LSWWin.h>
 
@@ -11,7 +13,6 @@
  * Description: Windows macros and header.
  */
 
-#pragma once
 
 /*
 // Just for reference.

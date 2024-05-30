@@ -41,7 +41,7 @@ namespace lsn {
 		if ( nullptr == _pfFactory ) { return false; }
 
 		lsw::LSW_HMODULE hLib( "d3d12.dll" );
-		PfD3D12CreateDevice pD3D12CreateDevice = reinterpret_cast<PfD3D12CreateDevice>(::GetProcAddress( hLib.hHandle, "D3D12CreateDevice" ));
+		PFN_D3D12CreateDevice pD3D12CreateDevice = reinterpret_cast<PFN_D3D12CreateDevice>(::GetProcAddress( hLib.hHandle, "D3D12CreateDevice" ));
 		if ( !pD3D12CreateDevice ) { return false; }
 
 
@@ -77,7 +77,7 @@ namespace lsn {
 		lsw::LSW_HMODULE hLib( "dxgi.dll" );
 		if ( !hLib.Valid() ) { return false; }
 
-		PfCreateDXGIFactory1 pCreateDXGIFactory1 = reinterpret_cast<PfCreateDXGIFactory1>(::GetProcAddress( hLib.hHandle, "CreateDXGIFactory1" ));
+		PFN_CreateDXGIFactory1 pCreateDXGIFactory1 = reinterpret_cast<PFN_CreateDXGIFactory1>(::GetProcAddress( hLib.hHandle, "CreateDXGIFactory1" ));
 		if ( !pCreateDXGIFactory1 ) { return false; }
 		
 		// Create DXGI Factory.

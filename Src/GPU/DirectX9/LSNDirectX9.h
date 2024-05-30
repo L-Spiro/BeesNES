@@ -181,7 +181,7 @@ namespace lsn {
 	class CDirectX9 {
 	public :
 		// == Types.
-		typedef IDirect3D9 * (WINAPI *							PfDirect3DCreate9)( UINT );
+		typedef IDirect3D9 * (WINAPI *							PFN_Direct3DCreate9)( UINT );
 
 		struct LSN_ADAPTOR_INFO {
 			UINT												uiAdapter;

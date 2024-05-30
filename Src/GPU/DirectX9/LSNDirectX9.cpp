@@ -71,7 +71,7 @@ namespace lsn {
 		if ( !hLib.Valid() ) { return false; }
 
 		
-		PfDirect3DCreate9 pfDirect3DCreate9 = reinterpret_cast<PfDirect3DCreate9>(::GetProcAddress( hLib.hHandle, "Direct3DCreate9" ));
+		PFN_Direct3DCreate9 pfDirect3DCreate9 = reinterpret_cast<PFN_Direct3DCreate9>(::GetProcAddress( hLib.hHandle, "Direct3DCreate9" ));
 		if ( pfDirect3DCreate9 == nullptr ) { return false; }
 
 
