@@ -99,6 +99,14 @@ namespace lsn {
 		static VkApplicationInfo								CreateApplicationInfo( const char * _pcApplicationName = nullptr );
 
 		/**
+		 * Loads the vulkan-1.dll DLL.  If the DLL is not already loaded and loads successfully, the Vulkan function pointers are set.
+		 *
+		 * \param _hDll The HMODULE into which to load the DLL.
+		 * \return Returns true if the DLL was loaded or is already loaded.
+		 **/
+		static bool												LoadVulkan( lsw::LSW_HMODULE &_hDll );
+
+		/**
 		 * Create a new Vulkan instance.
 		 * 
 		 * \param _pCreateInfo A pointer to a VkInstanceCreateInfo structure controlling creation of the instance.
@@ -142,14 +150,6 @@ namespace lsn {
 
 
 		// == Functions.
-		/**
-		 * Loads the vulkan-1.dll DLL.  If the DLL is not already loaded and loads successfully, the Vulkan function pointers are set.
-		 *
-		 * \param _hDll The HMODULE into which to load the DLL.
-		 * \return Returns true if the DLL was loaded or is already loaded.
-		 **/
-		static bool												LoadVulkan( lsw::LSW_HMODULE &_hDll );
-
 		/**
 		 * Checks for Vulkan 1.0 support.
 		 * 

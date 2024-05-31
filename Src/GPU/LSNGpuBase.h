@@ -9,44 +9,61 @@
 
 #pragma once
 
-#include "../../LSNLSpiroNes.h"
+#include "../LSNLSpiroNes.h"
 
 namespace lsn {
 
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	// MACROS
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-#define LSN_FILTER_POINT							1												/**< Point filter. */
-#define LSN_FILTER_LINEAR							2												/**< Linear filter. */
-#define	LSN_FILTER_TYPE_MASK						(0x3)											/**< Filter mask. */
-#define	LSN_MIN_FILTER_SHIFT						(4)												/**< Min-filter shift. */
-#define	LSN_MAG_FILTER_SHIFT						(2)												/**< Mag-fiter shift. */
-#define	LSN_MIP_FILTER_SHIFT						(0)												/**< Min-filter shift. */
-#define	LSN_COMPARISON_FILTERING_BIT				(0x80)											/**< Comparison bit. */
-#define	LSN_ANISOTROPIC_FILTERING_BIT				(0x40)											/**< Anisotropic bit. */
-#define LSN_ENC_BASIC_FILTER( MIN, MAG, MIP, COMPARISON )				\
-	((COMPARISON) ? LSN_COMPARISON_FILTERING_BIT : 0) |					\
-	(((MIN) & LSN_FILTER_TYPE_MASK) << LSN_MIN_FILTER_SHIFT) |			\
-	(((MAG) & LSN_FILTER_TYPE_MASK) << LSN_MAG_FILTER_SHIFT) |			\
-	(((MIP) & LSN_FILTER_TYPE_MASK) << LSN_MIP_FILTER_SHIFT)										/**< Encodes a basic (no anisotropy) filter. */
-#define LSN_ENCODE_ANISOTROPIC_FILTER( COMPARISON )						\
-	LSN_ANISOTROPIC_FILTERING_BIT |										\
-	LSN_ENC_BASIC_FILTER( LSN_FILTER_LINEAR,							\
-		LSN_FILTER_LINEAR,												\
-		LSN_FILTER_LINEAR,												\
-		COMPARISON )																				/**< Encodes an anisotropic filter. */
-#define LSN_DECODE_MIN_FILTER( FILTER )									\
-	(((FILTER) >> LSN_MIN_FILTER_SHIFT) & LSN_FILTER_TYPE_MASK)
-#define LSN_DECODE_MAG_FILTER( FILTER )									\
-	(((FILTER) >> LSN_MAG_FILTER_SHIFT) & LSN_FILTER_TYPE_MASK)
-#define LSN_DECODE_MIP_FILTER( FILTER )									\
-	(((FILTER) >> LSN_MIP_FILTER_SHIFT) & LSN_FILTER_TYPE_MASK) 
-#define LSN_DECODE_IS_COMPARISON_FILTER( FILTER )						\
-	((FILTER) & LSN_COMPARISON_FILTERING_BIT)							
-#define LSN_DECODE_IS_ANISOTROPIC_FILTER( FILTER )						\
-	(((FILTER) & LSN_ANISOTROPIC_FILTERING_BIT) &&						\
-	(LSN_FILTER_LINEAR == LSN_DECODE_MIN_FILTER( FILTER )) &&			\
-	(LSN_FILTER_LINEAR == LSN_DECODE_MAG_FILTER( FILTER )) &&			\
-	(LSN_FILTER_LINEAR == LSN_DECODE_MIP_FILTER( FILTER )))
+	// == Enumerations.
+	/** Memory pools. */
+	enum LSN_MEMORY_POOL : uint32_t {
+		LSN_MP_DEFAULT,																			/**< For GPU-accessible memory in DirectX 9, 12, and Vulkan. */
+		LSN_MP_MANAGED,																			/**< Managed by runtime, typically with system memory backing (DirectX 9). */
+		LSN_MP_SYSTEM_MEM,																		/**< Direct CPU access for frequent updates (DirectX 9, Vulkan). */
+		LSN_MP_READ_BACK,																		/**< GPU to CPU readback (DirectX 12). */
+		LSN_MP_STAGING,																			/**< Temporary storage for data transfer (Vulkan, DirectX 12). */
+	};
+
+	/** Texture usages. */
+	enum LSN_TEXTURE_USAGE : uint32_t {
+		LSN_TU_SHADER_RESOURCE,																	/**< Textures used in shaders for sampling. */
+		LSN_TU_RENDER_TARGET,																	/**< Textures used as render targets. */
+		LSN_TU_DEPTH_STENCIL,																	/**< Textures used for depth and stencil operations. */
+		LSN_TU_UNORDERED_ACCESS,																/**< Textures that can be read and written by shaders (DirectX 12, Vulkan). */
+		LSN_TU_COPY_SRC,																		/**< Textures used as sources for copy operations (DirectX 12, Vulkan). */
+		LSN_TU_COPY_DST,																		/**< Textures used as destinations for copy operations (DirectX 12, Vulkan). */
+		LSN_TU_INPUT_ATTACHMENT,																/**< Textures used as input attachments in render passes (Vulkan). */
+	};
+
+	/** Texture formats. */
+	enum LSN_TEXTURE_FORMATS : uint32_t {
+		LSN_TF_R8_UNORM,																		/**< 8-bit unsigned normalized red channel. */
+		LSN_TF_R8G8_UNORM,																		/**< 8-bit unsigned normalized red and green channels. */
+		LSN_TF_R8G8B8_UNORM,																	/**< 8-bit unsigned normalized red, green, and blue channels. */
+		LSN_TF_R8G8B8A8_UNORM,																	/**< 8-bit unsigned normalized red, green, blue, and alpha channels. */
+		LSN_TF_R8G8B8_SRGB,																		/**< 8-bit unsigned normalized red, green, and blue channels in sRGB color space. */
+		LSN_TF_R8G8B8A8_SRGB,																	/**< 8-bit unsigned normalized red, green, blue, and alpha channels in sRGB color space. */
+		LSN_TF_R16_UINT,																		/**< 16-bit unsigned integer red channel. */
+		LSN_TF_R16_SFLOAT,																		/**< 16-bit floating-point red channel. */
+		LSN_TF_R32_SFLOAT,																		/**< 32-bit floating-point red channel. */
+		LSN_TF_A1R5G5B5_UNORM_PACK16,															/**< 1-bit alpha, 5-bit red, 5-bit green, and 5-bit blue channels packed into 16 bits. */
+		LSN_TF_BC3_UNORM_BLOCK,																	/**< Compressed format with 8-bit unsigned normalized color and 4-bit alpha. */
+		LSN_TF_BC3_SRGB_BLOCK,																	/**< Compressed format with 8-bit unsigned normalized color and 4-bit alpha in sRGB color space. */
+		LSN_TF_BC6H_UFLOAT_BLOCK,																/**< Compressed format with unsigned floating-point color, high dynamic range (HDR). */
+		LSN_TF_BC7_UNORM_BLOCK,																	/**< Compressed format with 8-bit unsigned normalized color, high quality. */
+		LSN_TF_BC7_SRGB_BLOCK																	/**< Compressed format with 8-bit unsigned normalized color in sRGB color space, high quality. */
+	};
+
+	/**
+	 * Class CGpuBase
+	 * \brief The base class for the primary interface to the underlying graphics API.
+	 *
+	 * Description: The base class for the primary interface to the underlying graphics API.
+	 */
+	class CGpuBase {
+	public :
+		
+
+
+	};
 
 }	// namespace lsn

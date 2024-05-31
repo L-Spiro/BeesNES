@@ -738,6 +738,9 @@
     <ClInclude Include="Src\GPU\Vulkan\LSNVulkan.h">
       <Filter>Header Files\GPU\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Gpu.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -988,6 +991,9 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\Vulkan\LSNVulkan.cpp">
       <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Gpu.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

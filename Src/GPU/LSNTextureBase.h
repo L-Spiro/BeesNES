@@ -80,6 +80,9 @@ namespace lsn {
 		std::vector<std::unique_ptr<CSurface>>					m_vMipMaps;									/**< The array of mipmaps.  Index 0 is the base level. */
 		size_t													m_sArraySize = 0;							/**< Number of slices in an array.  1 for flat 1D/2D images. */
 		size_t													m_sFaces = 0;								/**< 1 for normal textures, 6 for cube textures. */
+		uint32_t												m_ui32MemoryPool = 0;						/**< The memory pool. */
+		uint32_t												m_ui32Usage = 0;							/**< Texture usage. */
+		uint32_t												m_ui32Format = 0;							/**< The texture format. */
 	};
 	
 

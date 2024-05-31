@@ -24,6 +24,9 @@ namespace lsn {
 	void CTextureBase::Reset() {
 		m_sArraySize = 0;
 		m_sFaces = 0;
+		m_ui32MemoryPool = 0;
+		m_ui32Usage = 0;
+		m_ui32Format = 0;
 		for ( auto I = m_vMipMaps.size(); I--; ) {
 			m_vMipMaps[I]->clear();
 			m_vMipMaps[I].reset();
