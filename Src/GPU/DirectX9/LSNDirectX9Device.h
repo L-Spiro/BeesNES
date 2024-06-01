@@ -19,15 +19,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDirectX9Gpu
+	 * Class CDirectX9Device
 	 * \brief The DirectX 9 GPU object.
 	 *
 	 * Description: The DirectX 9 GPU object.
 	 */
-	class CDirectX9Gpu : public CGpuBase {
+	class CDirectX9Device : public CGpuBase {
 	public :
-		CDirectX9Gpu();
-		~CDirectX9Gpu();
+		CDirectX9Device();
+		~CDirectX9Device();
 
 	protected :
 		// == Members.

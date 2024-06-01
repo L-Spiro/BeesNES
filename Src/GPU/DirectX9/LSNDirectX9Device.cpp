@@ -9,11 +9,14 @@
 
 #ifdef LSN_DX9
 
-#include "LSNDirectX9Gpu.h"
+#include "LSNDirectX9Device.h"
 
 namespace lsn {
 
-
+	CDirectX9Device::CDirectX9Device() {
+	}
+	CDirectX9Device::~CDirectX9Device() {
+	}
 
 }	// namespace lsn
 
