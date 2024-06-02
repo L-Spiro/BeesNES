@@ -49,7 +49,7 @@ namespace lsn {
 
 		/**
 		 * Enumerates display devices via Direct3D 12.
-		 * 
+		 *
 		 * \param _pfFactory The DXGI factory.
 		 * \param _vDevices Display devices are added to _vDevices.
 		 * \return Returns true if no allocations issues were encountered while adding display devices to _vDevices.

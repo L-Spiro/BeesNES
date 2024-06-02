@@ -1779,6 +1779,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_core.h" />
     <ClInclude Include="Src\Filters\PAL-CRT-Full\pal_nes.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Device.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Device.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h" />
@@ -1929,10 +1930,12 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Device.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Device.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.cpp" />
+    <ClCompile Include="Src\GPU\LSNGpuBase.cpp" />
     <ClCompile Include="Src\GPU\LSNTextureBase.cpp" />
     <ClCompile Include="Src\GPU\Vulkan\LSNVulkan.cpp" />
     <ClCompile Include="Src\Input\LSNControllerListener.cpp" />

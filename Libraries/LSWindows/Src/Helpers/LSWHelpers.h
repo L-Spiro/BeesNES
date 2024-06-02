@@ -184,6 +184,23 @@ namespace lsw {
 		}
 
 
+		// == Operators.
+		/**
+		 * Move operator.
+		 * 
+		 * \param _hOther The object to copy and move.
+		 * \return Returns this object.
+		 **/
+		LSW_HMODULE &						operator = ( LSW_HMODULE &&_hOther ) {
+			if ( this != &_hOther ) {
+				Reset();
+				hHandle = _hOther.hHandle;
+				_hOther.hHandle = NULL;
+			}
+			return (*this);
+		}
+
+
 		// == Functions.
 		BOOL								LoadLibrary( LPCSTR _sPath ) {
 			Reset();

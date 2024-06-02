@@ -13,8 +13,9 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../LSNGpuBase.h"
-#include "Helpers/LSWHelpers.h"
 #include "LSNDirectX9.h"
+
+#include <wrl/client.h>
 
 namespace lsn {
 
@@ -27,12 +28,23 @@ namespace lsn {
 	class CDirectX9Device : public CGpuBase {
 	public :
 		CDirectX9Device();
-		~CDirectX9Device();
+		virtual ~CDirectX9Device();
+
+
+		// == Functions.
+		/**
+		 * Creates a Direct3D 9 device.
+		 *
+		 * \param _hWnd The window to which to attach.
+		 * \param _sAdapter The adapter to use.
+		 * \return Returns true if the device was created.
+		 **/
+		virtual bool											Create( HWND _hWnd, const std::string &_sAdapter );
 
 	protected :
 		// == Members.
-		lsw::LSW_HMODULE								m_hLib;									/**< The Direct3D DLL. */
-
+		Microsoft::WRL::ComPtr<IDirect3D9>						m_pdD3d;								/**< The Direct3D 9 COM interface. */
+		Microsoft::WRL::ComPtr<IDirect3DDevice9>				m_pd3dDevice;							/**< The direct3D 9 device. */
 
 	};
 

@@ -76,10 +76,11 @@ namespace lsn {
 
 
 		// Create the Direct3D9 object.
-		Microsoft::WRL::ComPtr<IDirect3D9> pD3d = pfDirect3DCreate9( D3D_SDK_VERSION );
-		if ( pD3d == nullptr ) { return false; }
+		Microsoft::WRL::ComPtr<IDirect3D9> pdD3d;
+		pdD3d.Attach( pfDirect3DCreate9( D3D_SDK_VERSION ) );
+		if ( pdD3d == nullptr ) { return false; }
 
-		GatherDevices( pD3d.Get() );
+		GatherDevices( pdD3d.Get() );
 		return m_vDisplayDevices.size() != 0;
 	}
 
