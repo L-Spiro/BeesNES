@@ -54,46 +54,49 @@ namespace lsn {
 			// Get the adapter identifier.
 			if ( FAILED( pdD3d->GetAdapterIdentifier( I, 0, &aiAdapterInfo ) ) ) { continue; }
 
-			if ( std::string( aiAdapterInfo.Description ) == _sAdapter || !_sAdapter.size() ) {
-				RECT rClient;
-				::GetClientRect( _hWnd, &rClient );
-				D3DPRESENT_PARAMETERS ppPresent = {
-					.BackBufferWidth					= static_cast<UINT>(rClient.right - rClient.left),
-					.BackBufferHeight					= static_cast<UINT>(rClient.bottom - rClient.top),
-					.BackBufferFormat					= D3DFMT_X8R8G8B8,
-					.BackBufferCount					= 1,
+			try {
+				if ( std::string( aiAdapterInfo.Description ) == _sAdapter || !_sAdapter.size() ) {
+					RECT rClient;
+					::GetClientRect( _hWnd, &rClient );
+					D3DPRESENT_PARAMETERS ppPresent = {
+						.BackBufferWidth					= static_cast<UINT>(rClient.right - rClient.left),
+						.BackBufferHeight					= static_cast<UINT>(rClient.bottom - rClient.top),
+						.BackBufferFormat					= D3DFMT_X8R8G8B8,
+						.BackBufferCount					= 1,
 
-					.MultiSampleType					= D3DMULTISAMPLE_NONE,
-					.MultiSampleQuality					= 0,
+						.MultiSampleType					= D3DMULTISAMPLE_NONE,
+						.MultiSampleQuality					= 0,
 
-					.SwapEffect							= D3DSWAPEFFECT_DISCARD,
-					.hDeviceWindow						= _hWnd,
-					.Windowed							= TRUE,
-					.EnableAutoDepthStencil				= TRUE,
-					.AutoDepthStencilFormat				= D3DFMT_D24S8,
-					.Flags								= D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL,
+						.SwapEffect							= D3DSWAPEFFECT_DISCARD,
+						.hDeviceWindow						= _hWnd,
+						.Windowed							= TRUE,
+						.EnableAutoDepthStencil				= TRUE,
+						.AutoDepthStencilFormat				= D3DFMT_D24S8,
+						.Flags								= D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL,
 
-					.FullScreen_RefreshRateInHz			= D3DPRESENT_RATE_DEFAULT,
-					.PresentationInterval				= D3DPRESENT_INTERVAL_IMMEDIATE,
-				};
+						.FullScreen_RefreshRateInHz			= D3DPRESENT_RATE_DEFAULT,
+						.PresentationInterval				= D3DPRESENT_INTERVAL_IMMEDIATE,
+					};
 
 
-				// Get the device capabilities.
-				DWORD dwFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-				D3DCAPS9 cCaps;
-				if ( SUCCEEDED( pdD3d->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &cCaps ) ) ) {
-					if ( (cCaps.DevCaps & (D3DDEVCAPS_PUREDEVICE | D3DDEVCAPS_HWTRANSFORMANDLIGHT)) == (D3DDEVCAPS_PUREDEVICE | D3DDEVCAPS_HWTRANSFORMANDLIGHT) ) { dwFlags = D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING; }
-					else if ( cCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT ) { dwFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING; }
+					// Get the device capabilities.
+					DWORD dwFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+					D3DCAPS9 cCaps;
+					if ( SUCCEEDED( pdD3d->GetDeviceCaps( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &cCaps ) ) ) {
+						if ( (cCaps.DevCaps & (D3DDEVCAPS_PUREDEVICE | D3DDEVCAPS_HWTRANSFORMANDLIGHT)) == (D3DDEVCAPS_PUREDEVICE | D3DDEVCAPS_HWTRANSFORMANDLIGHT) ) { dwFlags = D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING; }
+						else if ( cCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT ) { dwFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING; }
+					}
+
+					if ( SUCCEEDED( pdD3d->CreateDevice( I, D3DDEVTYPE_HAL, ppPresent.hDeviceWindow,
+						dwFlags, &ppPresent, &m_pd3dDevice ) ) ) {
+						m_hLib = std::move( hLib );
+						m_pdD3d = std::move( pdD3d );
+						return true;
+					}
+					return false;
 				}
-
-				if ( SUCCEEDED( pdD3d->CreateDevice( I, D3DDEVTYPE_HAL, ppPresent.hDeviceWindow,
-					dwFlags, &ppPresent, &m_pd3dDevice ) ) ) {
-					m_hLib = std::move( hLib );
-					m_pdD3d = std::move( pdD3d );
-					return true;
-				}
-				return false;
 			}
+			catch ( ... ) {}
 		}
 		return false;
 	}

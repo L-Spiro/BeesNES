@@ -46,9 +46,16 @@ namespace lsn {
 		lsw::LSW_HMODULE										m_hDxgiLib;								/**< The DXGI DLL. */
 		Microsoft::WRL::ComPtr<IDXGIFactory6>					m_pfFactory;							/**< The Direct3D 12 COM interface. */
 		Microsoft::WRL::ComPtr<ID3D12Device>					m_pd3dDevice;							/**< The direct3D 12 device. */
-		//Microsoft::WRL::ComPtr<IDXGIAdapter1>					m_aAdapter;
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue>				m_cqCommandQueue;						/**< The primary command queue. */
 		Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_scSwapChain;							/**< The swapchain. */
 
+
+
+		// == Functions.
+		/**
+		 * Frees all resources used by this object and leaves the object in a valid reusable state.
+		 **/
+		virtual void											Reset();
 
 	};
 

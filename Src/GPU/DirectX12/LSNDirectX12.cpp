@@ -41,6 +41,7 @@ namespace lsn {
 		if ( nullptr == _pfFactory ) { return false; }
 
 		lsw::LSW_HMODULE hLib( "d3d12.dll" );
+		if ( !hLib.Valid() ) { return false; }
 		PFN_D3D12CreateDevice pD3D12CreateDevice = reinterpret_cast<PFN_D3D12CreateDevice>(::GetProcAddress( hLib.hHandle, "D3D12CreateDevice" ));
 		if ( !pD3D12CreateDevice ) { return false; }
 
