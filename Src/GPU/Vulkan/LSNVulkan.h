@@ -17,6 +17,7 @@
 #include "Helpers/LSWHelpers.h"
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 #include <vector>
 
 namespace lsn {
@@ -30,33 +31,187 @@ namespace lsn {
 	class CVulkan {
 	public :
 		// == Types.
+		typedef VkResult (VKAPI_PTR *							PFN_vkCreateDevice)( VkPhysicalDevice, const VkDeviceCreateInfo *, const VkAllocationCallbacks *, VkDevice * );
+		typedef void (VKAPI_PTR *								PFN_vkDestroyDevice)( VkDevice, const VkAllocationCallbacks * );
 		typedef VkResult (VKAPI_PTR *							PFN_vkCreateInstance)( const VkInstanceCreateInfo *, const VkAllocationCallbacks *, VkInstance * );
 		typedef void (VKAPI_PTR *								PFN_vkDestroyInstance)( VkInstance, const VkAllocationCallbacks * );
+		typedef void (VKAPI_PTR *								PFN_vkGetDeviceQueue)( VkDevice, uint32_t, uint32_t, VkQueue * );
 		typedef VkResult (VKAPI_PTR *							PFN_vkEnumeratePhysicalDevices)( VkInstance, uint32_t *, VkPhysicalDevice * );
 		typedef void (VKAPI_PTR *								PFN_vkGetPhysicalDeviceProperties)( VkPhysicalDevice, VkPhysicalDeviceProperties * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkCreateWin32SurfaceKHR)( VkInstance, const VkWin32SurfaceCreateInfoKHR *, const VkAllocationCallbacks *, VkSurfaceKHR * );
+		typedef void (VKAPI_PTR *								PFN_vkDestroySurfaceKHR)( VkInstance, VkSurfaceKHR, const VkAllocationCallbacks * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkCreateSwapchainKHR)( VkDevice, const VkSwapchainCreateInfoKHR *, const VkAllocationCallbacks *, VkSwapchainKHR * );
+		typedef void (VKAPI_PTR *								PFN_vkDestroySwapchainKHR)( VkDevice, VkSwapchainKHR, const VkAllocationCallbacks * );
 
-		/** A Vulkan instance wrapper. */
-		struct LSN_INSTANCE {
-			inline LSN_INSTANCE( const VkInstanceCreateInfo * _piciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
-				rRes( CVulkan::m_pfCreateInstance( _piciCreateInfo, _pacAllocator, &iInstance ) ),
+
+
+		/** A Vulkan VkDevice wrapper. */
+		struct LSN_DEVICE {
+			inline LSN_DEVICE() :
+				dDevice( 0 ),
+				rRes( VK_ERROR_INITIALIZATION_FAILED ),
+				pacAllocCallbacks( nullptr ) {
+			}
+			inline LSN_DEVICE( VkPhysicalDevice _pdPhysicalDevice, const VkDeviceCreateInfo * _pdciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+				rRes( CVulkan::m_pfCreateDevice( _pdPhysicalDevice, _pdciCreateInfo, _pacAllocator, &dDevice ) ),
 				pacAllocCallbacks( _pacAllocator ) {
 			}
-			inline ~LSN_INSTANCE() {
-				if ( Valid() ) {
-					rRes = VK_ERROR_INITIALIZATION_FAILED;
-					CVulkan::m_pfDestroyInstance( iInstance, pacAllocCallbacks );
-					pacAllocCallbacks = nullptr;
-				}
+			inline ~LSN_DEVICE() {
+				Reset();
 			}
+
+
+			// == Operators.
+			/**
+			 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+			 * 
+			 * \param _iOther The object to move.
+			 * \return Returns this object after the move.
+			 **/
+			LSN_DEVICE &										operator = ( LSN_DEVICE &&_iOther ) noexcept {
+				if ( this != &_iOther ) {
+					Reset();
+					rRes = _iOther.rRes;
+					dDevice = _iOther.dDevice;
+					pacAllocCallbacks = _iOther.pacAllocCallbacks;
+
+					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+					_iOther.dDevice = 0;
+					_iOther.pacAllocCallbacks = nullptr;
+				}
+				return (*this);
+			};
 
 
 			// == Functions.
+			/**
+			 * Create a new device instance.
+			 * 
+			 * \param _piciCreateInfo A pointer to a VkInstanceCreateInfo structure controlling creation of the instance.
+			 * \param _pacAllocator Controls host memory allocation.
+			 * \return Returns true if vkCreateInstance() returns VK_SUCCESS.
+			 **/
+			inline bool											Create( VkPhysicalDevice _pdPhysicalDevice, const VkDeviceCreateInfo * _pdciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+				Reset();
+				rRes = CVulkan::m_pfCreateDevice( _pdPhysicalDevice, _pdciCreateInfo, _pacAllocator, &dDevice );
+				pacAllocCallbacks = _pacAllocator;
+				return Valid();
+			}
+
 			/**
 			 * Determines if the instance is valid.
 			 *
 			 * \return Returns true if the initial call to vkCreateInstance() was successful.
 			 **/
 			inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+			/**
+			 * Resets the object to scratch.
+			 **/
+			inline void											Reset() {
+				if ( Valid() ) {
+					rRes = VK_ERROR_INITIALIZATION_FAILED;
+					CVulkan::m_pfDestroyDevice( dDevice, pacAllocCallbacks );
+					pacAllocCallbacks = nullptr;
+					dDevice = 0;
+				}
+			}
+
+			/**
+			 * Gets the return code after creation.
+			 *
+			 * \return Returns the result of creation.
+			 **/
+			inline VkResult										Result() const { return rRes; }
+
+
+			// == Members.
+			VkDevice dDevice									= { 0 };
+
+
+		private :
+			VkResult rRes										= VK_ERROR_INITIALIZATION_FAILED;
+			const VkAllocationCallbacks * pacAllocCallbacks		= nullptr;
+		};
+
+		/** A Vulkan VkInstance wrapper. */
+		struct LSN_INSTANCE {
+			inline LSN_INSTANCE() :
+				iInstance( 0 ),
+				rRes( VK_ERROR_INITIALIZATION_FAILED ),
+				pacAllocCallbacks( nullptr ) {
+			}
+			inline LSN_INSTANCE( const VkInstanceCreateInfo * _piciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+				rRes( CVulkan::m_pfCreateInstance( _piciCreateInfo, _pacAllocator, &iInstance ) ),
+				pacAllocCallbacks( _pacAllocator ) {
+			}
+			inline ~LSN_INSTANCE() {
+				Reset();
+			}
+
+
+			// == Operators.
+			/**
+			 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+			 * 
+			 * \param _iOther The object to move.
+			 * \return Returns this object after the move.
+			 **/
+			LSN_INSTANCE &										operator = ( LSN_INSTANCE &&_iOther ) noexcept {
+				if ( this != &_iOther ) {
+					Reset();
+					rRes = _iOther.rRes;
+					iInstance = _iOther.iInstance;
+					pacAllocCallbacks = _iOther.pacAllocCallbacks;
+
+					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+					_iOther.iInstance = 0;
+					_iOther.pacAllocCallbacks = nullptr;
+				}
+				return (*this);
+			};
+
+
+			// == Functions.
+			/**
+			 * Create a new Vulkan instance.
+			 * 
+			 * \param _piciCreateInfo A pointer to a VkInstanceCreateInfo structure controlling creation of the instance.
+			 * \param _pacAllocator Controls host memory allocation.
+			 * \return Returns true if vkCreateInstance() returns VK_SUCCESS.
+			 **/
+			inline bool											Create( const VkInstanceCreateInfo * _piciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+				Reset();
+				rRes = CVulkan::m_pfCreateInstance( _piciCreateInfo, _pacAllocator, &iInstance );
+				pacAllocCallbacks = _pacAllocator;
+				return Valid();
+			}
+
+			/**
+			 * Determines if the instance is valid.
+			 *
+			 * \return Returns true if the initial call to vkCreateInstance() was successful.
+			 **/
+			inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+			/**
+			 * Resets the object to scratch.
+			 **/
+			inline void											Reset() {
+				if ( Valid() ) {
+					rRes = VK_ERROR_INITIALIZATION_FAILED;
+					CVulkan::m_pfDestroyInstance( iInstance, pacAllocCallbacks );
+					pacAllocCallbacks = nullptr;
+					iInstance = 0;
+				}
+			}
+
+			/**
+			 * Gets the return code after creation.
+			 *
+			 * \return Returns the result of creation.
+			 **/
+			inline VkResult										Result() const { return rRes; }
 
 
 			// == Members.
@@ -66,6 +221,105 @@ namespace lsn {
 		private :
 			VkResult rRes										= VK_ERROR_INITIALIZATION_FAILED;
 			const VkAllocationCallbacks * pacAllocCallbacks		= nullptr;
+		};
+
+		/** A Vulkan VkSurfaceKHR wrapper. */
+		struct LSN_SURFACE {
+			inline LSN_SURFACE() :
+				sSurface( nullptr ),
+				iInstance( nullptr ),
+				rRes( VK_ERROR_INITIALIZATION_FAILED ),
+				pacAllocCallbacks( nullptr ) {
+			}
+#ifdef LSN_WINDOWS
+			inline LSN_SURFACE( VkInstance _iInstance, const VkWin32SurfaceCreateInfoKHR * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+				rRes( CVulkan::m_pfCreateWin32SurfaceKHR( _iInstance, _psciCreateInfo, _pacAllocator, &sSurface ) ),
+				iInstance( _iInstance ),
+				pacAllocCallbacks( _pacAllocator ) {
+			}
+#endif	// #ifdef LSN_WINDOWS
+			inline ~LSN_SURFACE() {
+				Reset();
+			}
+
+
+			// == Operators.
+			/**
+			 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+			 * 
+			 * \param _iOther The object to move.
+			 * \return Returns this object after the move.
+			 **/
+			LSN_SURFACE &										operator = ( LSN_SURFACE &&_iOther ) noexcept {
+				if ( this != &_iOther ) {
+					Reset();
+					rRes = _iOther.rRes;
+					sSurface = _iOther.sSurface;
+					iInstance = _iOther.iInstance;
+					pacAllocCallbacks = _iOther.pacAllocCallbacks;
+
+					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+					_iOther.sSurface = nullptr;
+					_iOther.iInstance = nullptr;
+					_iOther.pacAllocCallbacks = nullptr;
+				}
+				return (*this);
+			};
+
+
+			// == Functions.
+			/**
+			 * Create a new Vulkan surface.
+			 * 
+			 * \param _iInstance The instance to associate the surface with.
+			 * \param _psciCreateInfo A pointer to a VkWin32SurfaceCreateInfoKHR structure containing parameters affecting the creation of the surface object.
+			 * \param _pacAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
+			 * \return Returns true if vkCreateWin32SurfaceKHR() returns VK_SUCCESS.
+			 **/
+			inline bool											Create( VkInstance _iInstance, const VkWin32SurfaceCreateInfoKHR * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+				Reset();
+				rRes = CVulkan::m_pfCreateWin32SurfaceKHR( _iInstance, _psciCreateInfo, _pacAllocator, &sSurface );
+				iInstance = _iInstance;
+				pacAllocCallbacks = _pacAllocator;
+				return Valid();
+			}
+
+			/**
+			 * Determines if the instance is valid.
+			 *
+			 * \return Returns true if the initial call to vkCreateInstance() was successful.
+			 **/
+			inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+			/**
+			 * Resets the object to scratch.
+			 **/
+			inline void											Reset() {
+				if ( Valid() ) {
+					rRes = VK_ERROR_INITIALIZATION_FAILED;
+					CVulkan::m_pfDestroySurfaceKHR( iInstance, sSurface, pacAllocCallbacks );
+					iInstance = nullptr;
+					pacAllocCallbacks = nullptr;
+					sSurface = 0;
+				}
+			}
+
+			/**
+			 * Gets the return code after creation.
+			 *
+			 * \return Returns the result of creation.
+			 **/
+			inline VkResult										Result() const { return rRes; }
+
+
+			// == Members.
+			VkSurfaceKHR										sSurface				= nullptr;
+
+
+		private :
+			VkInstance											iInstance				= nullptr;
+			VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+			const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 		};
 
 
@@ -107,6 +361,25 @@ namespace lsn {
 		static bool												LoadVulkan( lsw::LSW_HMODULE &_hDll );
 
 		/**
+		 * Create a new device instance.
+		 * 
+		 * \param _physicalDevice Must be one of the device handles returned from a call to vkEnumeratePhysicalDevices.
+		 * \param _pCreateInfo A pointer to a VkDeviceCreateInfo structure containing information about how to create the device.
+		 * \param _pAllocator Controls host memory allocation.
+		 * \param _pDevice A pointer to a handle in which the created VkDevice is returned.
+		 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_DEVICE_LOST.
+		 **/
+		static PFN_vkCreateDevice								m_pfCreateDevice;
+
+		/**
+		 * Destroy a logical device.
+		 * 
+		 * \param _device The logical device to destroy.
+		 * \param _pAllocator Controls host memory allocation.
+		 **/
+		static PFN_vkDestroyDevice								m_pfDestroyDevice;
+
+		/**
 		 * Create a new Vulkan instance.
 		 * 
 		 * \param _pCreateInfo A pointer to a VkInstanceCreateInfo structure controlling creation of the instance.
@@ -125,6 +398,16 @@ namespace lsn {
 		static PFN_vkDestroyInstance							m_pfDestroyInstance;
 
 		/**
+		 * Get a queue handle from a device.
+		 * 
+		 * \param _device The logical device that owns the queue.
+		 * \param _queueFamilyIndex The index of the queue family to which the queue belongs.
+		 * \param _queueIndex The index within this queue family of the queue to retrieve.
+		 * \param _pQueue A pointer to a VkQueue object that will be filled with the handle for the requested queue.
+		 **/
+		static PFN_vkGetDeviceQueue								m_pfGetDeviceQueue;
+
+		/**
 		 * Enumerates the physical devices accessible to a Vulkan instance.
 		 * 
 		 * \param _instance A handle to a Vulkan instance previously created with vkCreateInstance.
@@ -141,6 +424,48 @@ namespace lsn {
 		 * \param _pProperties A pointer to a VkPhysicalDeviceProperties structure in which properties are returned.
 		 **/
 		static PFN_vkGetPhysicalDeviceProperties				m_pfGetPhysicalDeviceProperties;
+
+#ifdef LSN_WINDOWS
+		/**
+		 * Create a VkSurfaceKHR object for an Win32 native window.
+		 * 
+		 * \param _instance The instance to associate the surface with.
+		 * \param _pCreateInfo A pointer to a VkWin32SurfaceCreateInfoKHR structure containing parameters affecting the creation of the surface object.
+		 * \param _pAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
+		 * \param _pSurface A pointer to a VkSurfaceKHR handle in which the created surface object is returned.
+		 * \return On success, this command returns: VK_SUCCESS.  On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY
+		 **/
+		static PFN_vkCreateWin32SurfaceKHR						m_pfCreateWin32SurfaceKHR;
+
+		/**
+		 * Destroy a VkSurfaceKHR object.
+		 * 
+		 * \param _instance The instance used to create the surface.
+		 * \param _surface The surface to destroy.
+		 * \param _pAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
+		 **/
+		static PFN_vkDestroySurfaceKHR							m_pfDestroySurfaceKHR;
+
+		/**
+		 * Create a swapchain.
+		 * 
+		 * \param _device The device to create the swapchain for.
+		 * \param _pCreateInfo A pointer to a VkSwapchainCreateInfoKHR structure specifying the parameters of the created swapchain.
+		 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
+		 * \param _pSwapchain A pointer to a VkSwapchainKHR handle in which the created swapchain object will be returned.
+		 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_DEVICE_LOST, VK_ERROR_SURFACE_LOST_KHR, VK_ERROR_NATIVE_WINDOW_IN_USE_KHR, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_COMPRESSION_EXHAUSTED_EXT.
+		 **/
+		static PFN_vkCreateSwapchainKHR							m_pfCreateSwapchainKHR;
+
+		/**
+		 * Destroy a swapchain object.
+		 * 
+		 * \param _device The VkDevice associated with swapchain.
+		 * \param _swapchain The swapchain to destroy.
+		 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
+		 **/
+		static PFN_vkDestroySwapchainKHR						m_pfDestroySwapchainKHR;
+#endif	// #ifdef LSN_WINDOWS
 
 	protected :
 		// == Members.

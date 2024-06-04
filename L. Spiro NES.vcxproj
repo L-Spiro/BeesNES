@@ -1788,6 +1788,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\GPU\LSNSurface.h" />
     <ClInclude Include="Src\GPU\LSNTextureBase.h" />
     <ClInclude Include="Src\GPU\Vulkan\LSNVulkan.h" />
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDevice.h" />
     <ClInclude Include="Src\Input\LSNControllerListener.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8.h" />
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
@@ -1938,6 +1939,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\GPU\LSNGpuBase.cpp" />
     <ClCompile Include="Src\GPU\LSNTextureBase.cpp" />
     <ClCompile Include="Src\GPU\Vulkan\LSNVulkan.cpp" />
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDevice.cpp" />
     <ClCompile Include="Src\Input\LSNControllerListener.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp" />
     <ClCompile Include="Src\Input\LSNDirectInput8Controller.cpp" />
