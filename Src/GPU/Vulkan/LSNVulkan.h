@@ -322,6 +322,105 @@ namespace lsn {
 			const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 		};
 
+		/** A Vulkan VkSwapchainKHR wrapper. */
+		struct LSN_SWAPCHAIN {
+			inline LSN_SWAPCHAIN() :
+				sSwapchain( nullptr ),
+				dDevice( nullptr ),
+				rRes( VK_ERROR_INITIALIZATION_FAILED ),
+				pacAllocCallbacks( nullptr ) {
+			}
+#ifdef LSN_WINDOWS
+			inline LSN_SWAPCHAIN( VkDevice _dDevice, const VkSwapchainCreateInfoKHR * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+				rRes( CVulkan::m_pfCreateSwapchainKHR( _dDevice, _psciCreateInfo, _pacAllocator, &sSwapchain ) ),
+				dDevice( _dDevice ),
+				pacAllocCallbacks( _pacAllocator ) {
+			}
+#endif	// #ifdef LSN_WINDOWS
+			inline ~LSN_SWAPCHAIN() {
+				Reset();
+			}
+
+
+			// == Operators.
+			/**
+			 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+			 * 
+			 * \param _iOther The object to move.
+			 * \return Returns this object after the move.
+			 **/
+			LSN_SWAPCHAIN &										operator = ( LSN_SWAPCHAIN &&_iOther ) noexcept {
+				if ( this != &_iOther ) {
+					Reset();
+					rRes = _iOther.rRes;
+					sSwapchain = _iOther.sSwapchain;
+					dDevice = _iOther.dDevice;
+					pacAllocCallbacks = _iOther.pacAllocCallbacks;
+
+					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+					_iOther.sSwapchain = nullptr;
+					_iOther.dDevice = nullptr;
+					_iOther.pacAllocCallbacks = nullptr;
+				}
+				return (*this);
+			};
+
+
+			// == Functions.
+			/**
+			 * Create a new Vulkan swapchain.
+			 * 
+			 * \param _iInstance The device to create the swapchain for.
+			 * \param _psciCreateInfo A pointer to a VkSwapchainCreateInfoKHR structure specifying the parameters of the created swapchain.
+			 * \param _pacAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
+			 * \return Returns true if vkCreateSwapchainKHR() returns VK_SUCCESS.
+			 **/
+			inline bool											Create( VkDevice _dDevice, const VkSwapchainCreateInfoKHR * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+				Reset();
+				rRes = CVulkan::m_pfCreateSwapchainKHR( _dDevice, _psciCreateInfo, _pacAllocator, &sSwapchain );
+				dDevice = _dDevice;
+				pacAllocCallbacks = _pacAllocator;
+				return Valid();
+			}
+
+			/**
+			 * Determines if the instance is valid.
+			 *
+			 * \return Returns true if the initial call to vkCreateInstance() was successful.
+			 **/
+			inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+			/**
+			 * Resets the object to scratch.
+			 **/
+			inline void											Reset() {
+				if ( Valid() ) {
+					rRes = VK_ERROR_INITIALIZATION_FAILED;
+					CVulkan::m_pfDestroySwapchainKHR( dDevice, sSwapchain, pacAllocCallbacks );
+					dDevice = nullptr;
+					pacAllocCallbacks = nullptr;
+					sSwapchain = 0;
+				}
+			}
+
+			/**
+			 * Gets the return code after creation.
+			 *
+			 * \return Returns the result of creation.
+			 **/
+			inline VkResult										Result() const { return rRes; }
+
+
+			// == Members.
+			VkSwapchainKHR										sSwapchain				= nullptr;
+
+
+		private :
+			VkDevice											dDevice					= nullptr;
+			VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+			const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+		};
+
 
 		// == Functions.
 		/**
