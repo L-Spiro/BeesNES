@@ -45,6 +45,7 @@ namespace lsn {
 		CVulkan::LSN_INSTANCE									m_iInstance;				/**< The Vulkan instance. */
 		CVulkan::LSN_SWAPCHAIN									m_sSwapchain;				/**< The swapchain. */
 		CVulkan::LSN_SURFACE									m_sBackbuffer;				/**< Back buffer. */
+		VkQueue													m_qSwapQueue;				/**< The swapchain queue. */
 
 
 

@@ -30,6 +30,7 @@
 #include <Rebar/LSWRebar.h>
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
+
 #include <commdlg.h>
 #include <dbt.h>
 #include <filesystem>
@@ -37,6 +38,12 @@
 
 #include "../../../resource.h"
 
+#include "../../GPU/DirectX9/LSNDirectX9.h"
+#include "../../GPU/DirectX9/LSNDirectX9Device.h"
+#include "../../GPU/DirectX12/LSNDirectX12.h"
+#include "../../GPU/DirectX12/LSNDirectX12Device.h"
+#include "../../GPU/Vulkan/LSNVulkan.h"
+#include "../../GPU/Vulkan/LSNVulkanDevice.h"
 
 #define LSN_SCALE_RESOLUTION					30.0
 
@@ -50,6 +57,30 @@ namespace lsn {
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ) {
 		(*m_pabIsAlive) = true;
+
+#if 0
+		bool bDx9 = CDirectX9::Supported();
+		bool bDx12 = CDirectX12::Supported();
+		bool bVulkan = CVulkan::Supported();
+
+
+		for ( size_t I = 0; I < 1000000; ++I ) {
+			/*CDirectX12Device dx9dDevice = CDirectX12Device();
+			bool bLoaded = dx9dDevice.Create( Wnd(), "" );*/
+			CVulkanDevice dx9dDevice = CVulkanDevice();
+			bool bLoaded = dx9dDevice.Create( Wnd(), "" );
+			/*{
+				CDirectX9::Supported();
+				CDirectX12::Supported();
+				CVulkan::Supported();
+			}
+			{
+				lsw::LSW_HMODULE hLib( "d3d9.dll" );
+			}*/
+			//CDirectX9Device dx9dDevice = CDirectX9Device();
+			//bool bLoaded = dx9dDevice.Create( Wnd(), "" );
+		}
+#endif
 		
 		static const struct {
 			LPCWSTR				lpwsImageName;

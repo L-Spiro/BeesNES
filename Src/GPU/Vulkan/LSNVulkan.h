@@ -42,13 +42,17 @@ namespace lsn {
 		typedef void (VKAPI_PTR *								PFN_vkDestroySurfaceKHR)( VkInstance, VkSurfaceKHR, const VkAllocationCallbacks * );
 		typedef VkResult (VKAPI_PTR *							PFN_vkCreateSwapchainKHR)( VkDevice, const VkSwapchainCreateInfoKHR *, const VkAllocationCallbacks *, VkSwapchainKHR * );
 		typedef void (VKAPI_PTR *								PFN_vkDestroySwapchainKHR)( VkDevice, VkSwapchainKHR, const VkAllocationCallbacks * );
-
+		typedef VkResult (VKAPI_PTR *							PFN_vkEnumerateInstanceExtensionProperties)( const char *, uint32_t *, VkExtensionProperties * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkEnumerateDeviceExtensionProperties)( VkPhysicalDevice, const char *, uint32_t *, VkExtensionProperties * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkGetPhysicalDeviceSurfaceFormatsKHR)( VkPhysicalDevice, VkSurfaceKHR, uint32_t *, VkSurfaceFormatKHR * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkGetPhysicalDeviceSurfacePresentModesKHR)( VkPhysicalDevice, VkSurfaceKHR, uint32_t *, VkPresentModeKHR * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)( VkPhysicalDevice, VkSurfaceKHR, VkSurfaceCapabilitiesKHR * );
 
 
 		/** A Vulkan VkDevice wrapper. */
 		struct LSN_DEVICE {
 			inline LSN_DEVICE() :
-				dDevice( 0 ),
+				dDevice( nullptr ),
 				rRes( VK_ERROR_INITIALIZATION_FAILED ),
 				pacAllocCallbacks( nullptr ) {
 			}
@@ -76,7 +80,7 @@ namespace lsn {
 					pacAllocCallbacks = _iOther.pacAllocCallbacks;
 
 					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-					_iOther.dDevice = 0;
+					_iOther.dDevice = nullptr;
 					_iOther.pacAllocCallbacks = nullptr;
 				}
 				return (*this);
@@ -113,7 +117,7 @@ namespace lsn {
 					rRes = VK_ERROR_INITIALIZATION_FAILED;
 					CVulkan::m_pfDestroyDevice( dDevice, pacAllocCallbacks );
 					pacAllocCallbacks = nullptr;
-					dDevice = 0;
+					dDevice = nullptr;
 				}
 			}
 
@@ -126,18 +130,18 @@ namespace lsn {
 
 
 			// == Members.
-			VkDevice dDevice									= { 0 };
+			VkDevice											dDevice					= nullptr;
 
 
 		private :
-			VkResult rRes										= VK_ERROR_INITIALIZATION_FAILED;
-			const VkAllocationCallbacks * pacAllocCallbacks		= nullptr;
+			VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+			const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 		};
 
 		/** A Vulkan VkInstance wrapper. */
 		struct LSN_INSTANCE {
 			inline LSN_INSTANCE() :
-				iInstance( 0 ),
+				iInstance( nullptr ),
 				rRes( VK_ERROR_INITIALIZATION_FAILED ),
 				pacAllocCallbacks( nullptr ) {
 			}
@@ -165,7 +169,7 @@ namespace lsn {
 					pacAllocCallbacks = _iOther.pacAllocCallbacks;
 
 					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-					_iOther.iInstance = 0;
+					_iOther.iInstance = nullptr;
 					_iOther.pacAllocCallbacks = nullptr;
 				}
 				return (*this);
@@ -202,7 +206,7 @@ namespace lsn {
 					rRes = VK_ERROR_INITIALIZATION_FAILED;
 					CVulkan::m_pfDestroyInstance( iInstance, pacAllocCallbacks );
 					pacAllocCallbacks = nullptr;
-					iInstance = 0;
+					iInstance = nullptr;
 				}
 			}
 
@@ -215,12 +219,12 @@ namespace lsn {
 
 
 			// == Members.
-			VkInstance iInstance								= { 0 };
+			VkInstance											iInstance				= nullptr;
 
 
 		private :
-			VkResult rRes										= VK_ERROR_INITIALIZATION_FAILED;
-			const VkAllocationCallbacks * pacAllocCallbacks		= nullptr;
+			VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+			const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 		};
 
 		/** A Vulkan VkSurfaceKHR wrapper. */
@@ -460,6 +464,42 @@ namespace lsn {
 		static bool												LoadVulkan( lsw::LSW_HMODULE &_hDll );
 
 		/**
+		 * Checks for a set of given extensions.
+		 * 
+		 * \param _vExtensions The list of extensions for which to check.
+		 * \return Returns true if all extensions are found.
+		 **/
+		static bool												CheckInstanceExtensionSupport( const std::vector<const char *> &_vExtensions );
+
+		/**
+		 * Checks for a set of given extensions on a given device.
+		 * 
+		 * \param _pdDevice The device for which to check extensions.
+		 * \param _vExtensions The list of extensions for which to check.
+		 * \return Returns true if all extensions are found.
+		 **/
+		static bool												CheckDeviceExtensionSupport( VkPhysicalDevice _pdDevice, const std::vector<const char *> &_vExtensions );
+
+		/**
+		 * Gets the format of the back surface.
+		 *
+		 * \param _pdDevice The device.
+		 * \param _sSurface The window/back surface.
+		 * \return Finds a valid format for the back buffer.
+		 */
+		static VkFormat											GetBackSurfaceFormat( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface );
+
+		/**
+		 * Gets the present mode.
+		 *
+		 * \param _pdDevice The device.
+		 * \param _sSurface The window/back surface.
+		 * \return Returns the present mode.
+		 */
+		static VkPresentModeKHR									GetPresentMode( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface );
+
+
+		/**
 		 * Create a new device instance.
 		 * 
 		 * \param _physicalDevice Must be one of the device handles returned from a call to vkEnumeratePhysicalDevices.
@@ -564,7 +604,61 @@ namespace lsn {
 		 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
 		 **/
 		static PFN_vkDestroySwapchainKHR						m_pfDestroySwapchainKHR;
+
+		/**
+		 * Query color formats supported by surface.
+		 * 
+		 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+		 * \param _surface The surface that will be associated with the swapchain.
+		 * \param _pSurfaceFormatCount A pointer to an integer related to the number of format pairs available or queried.
+		 * \param _pSurfaceFormats Either NULL or a pointer to an array of VkSurfaceFormatKHR structures.
+		 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+		 **/
+		static PFN_vkGetPhysicalDeviceSurfaceFormatsKHR			m_pfGetPhysicalDeviceSurfaceFormatsKHR;
+
+		/**
+		 * Query supported presentation modes.
+		 * 
+		 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+		 * \param _surface The surface that will be associated with the swapchain.
+		 * \param _pPresentModeCount A pointer to an integer related to the number of presentation modes available or queried, as described below.
+		 * \param _pPresentModes Either NULL or a pointer to an array of VkPresentModeKHR values, indicating the supported presentation modes
+		 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+		 **/
+		static PFN_vkGetPhysicalDeviceSurfacePresentModesKHR	m_pfGetPhysicalDeviceSurfacePresentModesKHR;
+
+		/**
+		 * Query surface capabilities.
+		 * 
+		 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+		 * \param _surface The surface that will be associated with the swapchain.
+		 * \param _pSurfaceCapabilities A pointer to a VkSurfaceCapabilitiesKHR structure in which the capabilities are returned.
+		 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+		 **/
+		static PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR	m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR;
 #endif	// #ifdef LSN_WINDOWS
+
+		/**
+		 * Returns up to requested number of global extension properties.
+		 * 
+		 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
+		 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried.
+		 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
+		 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
+		 **/
+		static PFN_vkEnumerateInstanceExtensionProperties		m_pfEnumerateInstanceExtensionProperties;
+
+		/**
+		 * Returns properties of available physical device extensions.
+		 * 
+		 * \param _physicalDevice The physical device that will be queried.
+		 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
+		 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried, and is treated in the same fashion as the vkEnumerateInstanceExtensionProperties::pPropertyCount parameter.
+		 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
+		 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
+		 **/
+		static PFN_vkEnumerateDeviceExtensionProperties			m_pfEnumerateDeviceExtensionProperties;
+
 
 	protected :
 		// == Members.

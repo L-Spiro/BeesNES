@@ -120,6 +120,9 @@ namespace lsn {
 	BOOL PASCAL CDirectInput8::DIEnumDevicesCallback_GatherDevices( LPCDIDEVICEINSTANCEW _lpdDi, LPVOID _pvRef ) {
 		std::vector<DIDEVICEINSTANCEW> * pvVector = static_cast<std::vector<DIDEVICEINSTANCEW> *>(_pvRef);
 		pvVector->push_back( (*_lpdDi) );
+		
+		/*::OutputDebugStringW( (*_lpdDi).tszProductName );
+		::OutputDebugStringW( L"\r\n" );*/
 		return DIENUM_CONTINUE;
 	}
 

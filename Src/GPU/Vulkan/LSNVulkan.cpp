@@ -119,7 +119,60 @@ namespace lsn {
 	 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
 	 **/
 	CVulkan::PFN_vkDestroySwapchainKHR CVulkan::m_pfDestroySwapchainKHR = nullptr;
+
+	/**
+	 * Query color formats supported by surface.
+	 * 
+	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+	 * \param _surface The surface that will be associated with the swapchain.
+	 * \param _pSurfaceFormatCount A pointer to an integer related to the number of format pairs available or queried.
+	 * \param _pSurfaceFormats Either NULL or a pointer to an array of VkSurfaceFormatKHR structures.
+	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+	 **/
+	CVulkan::PFN_vkGetPhysicalDeviceSurfaceFormatsKHR CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR = nullptr;
+
+	/**
+	 * Query supported presentation modes.
+	 * 
+	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+	 * \param _surface The surface that will be associated with the swapchain.
+	 * \param _pPresentModeCount A pointer to an integer related to the number of presentation modes available or queried, as described below.
+	 * \param _pPresentModes Either NULL or a pointer to an array of VkPresentModeKHR values, indicating the supported presentation modes
+	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+	 **/
+	CVulkan::PFN_vkGetPhysicalDeviceSurfacePresentModesKHR CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR = nullptr;
+
+	/**
+	 * Query surface capabilities.
+	 * 
+	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
+	 * \param _surface The surface that will be associated with the swapchain.
+	 * \param _pSurfaceCapabilities A pointer to a VkSurfaceCapabilitiesKHR structure in which the capabilities are returned.
+	 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
+	 **/
+	CVulkan::PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR CVulkan::m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR = nullptr;
 #endif	// #ifdef LSN_WINDOWS
+
+	/**
+	 * Returns up to requested number of global extension properties.
+	 * 
+	 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
+	 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried.
+	 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
+	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
+	 **/
+	CVulkan::PFN_vkEnumerateInstanceExtensionProperties CVulkan::m_pfEnumerateInstanceExtensionProperties = nullptr;
+
+	/**
+	 * Returns properties of available physical device extensions.
+	 * 
+	 * \param _physicalDevice The physical device that will be queried.
+	 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
+	 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried, and is treated in the same fashion as the vkEnumerateInstanceExtensionProperties::pPropertyCount parameter.
+	 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
+	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
+	 **/
+	CVulkan::PFN_vkEnumerateDeviceExtensionProperties CVulkan::m_pfEnumerateDeviceExtensionProperties = nullptr;
 
 	BOOL CVulkan::m_bSupported = 3;																										/**< Is Vulkan 1.0 supported? */
 	std::vector<VkPhysicalDeviceProperties> CVulkan::m_vDisplayDevices;																	/**< The array of display devices. */
@@ -208,7 +261,7 @@ namespace lsn {
 	if ( !m_pf ## NAME ) { return false; }
 
 		LSN_LOAD_FUNC( CreateDevice );
-		LSN_LOAD_FUNC( DestroyInstance );
+		LSN_LOAD_FUNC( DestroyDevice );
 
 		LSN_LOAD_FUNC( GetDeviceQueue );
 
@@ -223,10 +276,150 @@ namespace lsn {
 		LSN_LOAD_FUNC( DestroySurfaceKHR );
 		LSN_LOAD_FUNC( CreateSwapchainKHR );
 		LSN_LOAD_FUNC( DestroySwapchainKHR );
+
+		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceFormatsKHR );
+		LSN_LOAD_FUNC( GetPhysicalDeviceSurfacePresentModesKHR );
+		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceCapabilitiesKHR );
 #endif	// #ifdef LSN_WINDOWS
+
+		LSN_LOAD_FUNC( EnumerateInstanceExtensionProperties );
+		LSN_LOAD_FUNC( EnumerateDeviceExtensionProperties );
+
 #undef LSN_LOAD_FUNC
 		
 		return true;
+	}
+
+	/**
+	 * Checks for a set of given extensions.
+	 * 
+	 * \param _vExtensions The list of extensions for which to check.
+	 * \return Returns true if all extensions are found.
+	 **/
+	bool CVulkan::CheckInstanceExtensionSupport( const std::vector<const char *> &_vExtensions ) {
+		try {
+			uint32_t ui32ExtensionCount;
+			m_pfEnumerateInstanceExtensionProperties( nullptr, &ui32ExtensionCount, nullptr );
+
+			std::vector<VkExtensionProperties> vAvailableExtensions( ui32ExtensionCount );
+			m_pfEnumerateInstanceExtensionProperties( nullptr, &ui32ExtensionCount, vAvailableExtensions.data() );
+
+			for ( const char * pcExtension : _vExtensions ) {
+				bool bFound = false;
+				for ( const auto & pcAvailableExtension : vAvailableExtensions ) {
+					if ( std::strcmp( pcExtension, pcAvailableExtension.extensionName ) == 0 ) {
+						bFound = true;
+						break;
+					}
+				}
+				if ( !bFound ) { return false; }
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Checks for a set of given extensions on a given device.
+	 * 
+	 * \param _pdDevice The device for which to check extensions.
+	 * \param _vExtensions The list of extensions for which to check.
+	 * \return Returns true if all extensions are found.
+	 **/
+	bool CVulkan::CheckDeviceExtensionSupport( VkPhysicalDevice _pdDevice, const std::vector<const char *> &_vExtensions ) {
+		try {
+			uint32_t ui32ExtensionCount;
+			m_pfEnumerateDeviceExtensionProperties( _pdDevice, nullptr, &ui32ExtensionCount, nullptr );
+
+			std::vector<VkExtensionProperties> vAvailableExtensions(ui32ExtensionCount);
+			m_pfEnumerateDeviceExtensionProperties( _pdDevice, nullptr, &ui32ExtensionCount, vAvailableExtensions.data() );
+
+			for ( const char * pcExtension : _vExtensions ) {
+				bool bFound = false;
+				for ( const auto & pcAvailableExtension : vAvailableExtensions ) {
+					if ( std::strcmp( pcExtension, pcAvailableExtension.extensionName ) == 0 ) {
+						bFound = true;
+						break;
+					}
+				}
+				if ( !bFound ) {
+					return false;
+				}
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Gets the format of the back surface.
+	 *
+	 * \param _pdDevice The device.
+	 * \param _sSurface The window/back surface.
+	 * \return Finds a valid format for the back buffer.
+	 */
+	VkFormat CVulkan::GetBackSurfaceFormat( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface ) {
+		uint32_t ui32Count = 0;
+		if ( CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR( _pdDevice, _sSurface,
+			&ui32Count, NULL ) ) {
+			return VK_FORMAT_UNDEFINED;
+		}
+		if ( !ui32Count ) { return VK_FORMAT_UNDEFINED; }
+		try {
+			std::vector<VkSurfaceFormatKHR> vFormats( ui32Count );
+
+			// Now get the actual list.
+			if ( CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR( _pdDevice, _sSurface,
+				&ui32Count, &vFormats[0] ) ) {
+				return VK_FORMAT_UNDEFINED;
+			}
+
+			VkFormat fRet;
+			if ( ui32Count == 1 && vFormats[0].format == VK_FORMAT_UNDEFINED ) {
+				fRet = VK_FORMAT_B8G8R8A8_UNORM;
+			}
+			else {
+				fRet = vFormats[0].format;
+			}
+			return fRet;
+		}
+		catch ( ... ) { return VK_FORMAT_UNDEFINED; }
+	}
+
+	/**
+	 * Gets the present mode.
+	 *
+	 * \param _pdDevice The device.
+	 * \param _sSurface The window/back surface.
+	 * \return Returns the present mode.
+	 */
+	VkPresentModeKHR CVulkan::GetPresentMode( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface ) {
+		uint32_t ui32Count = 0;
+		if ( CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR( _pdDevice, _sSurface,
+			&ui32Count, NULL ) ) { return VK_PRESENT_MODE_FIFO_KHR; }
+		if ( !ui32Count ) { return VK_PRESENT_MODE_FIFO_KHR; }
+
+		try {
+			std::vector<VkPresentModeKHR> vPresentMode( ui32Count );
+			if ( CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR( _pdDevice, _sSurface,
+				&ui32Count, &vPresentMode[0] ) ) {
+				return VK_PRESENT_MODE_FIFO_KHR;
+			}
+
+			VkPresentModeKHR pmRet = VK_PRESENT_MODE_FIFO_KHR;
+			for ( uint32_t I = 0; I < ui32Count; ++I ) {
+				if ( vPresentMode[I] == VK_PRESENT_MODE_MAILBOX_KHR ) {
+					pmRet = vPresentMode[I];
+					break;
+				}
+				if ( vPresentMode[I] == VK_PRESENT_MODE_IMMEDIATE_KHR ) {
+					pmRet = VK_PRESENT_MODE_IMMEDIATE_KHR;
+				}
+			}
+
+			return pmRet;
+		}
+		catch ( ... ) { return VK_PRESENT_MODE_FIFO_KHR; }
 	}
 
 	/**
