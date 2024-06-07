@@ -1043,7 +1043,7 @@ namespace lsn {
 				SHORT sState;
 #define LSN_TICK_RAPID( RAPID_IDX, BUTTON )														\
 		if ( m_bnEmulator.RapidFire()[RAPID_IDX] & 0b10000000 ) {								\
-			ui8Ret |= BUTTON;																	\
+			ui8Ret |= BUTTON; bFoundInput = true;												\
 		}																						\
 		m_bnEmulator.RapidFire()[RAPID_IDX] = _rotl8( m_bnEmulator.RapidFire()[RAPID_IDX], 1 );
 #define LSN_CKECK( MAIN_KEY, RAPID_KEY, RAPID_IDX, BUTTON )										\
@@ -1054,83 +1054,96 @@ namespace lsn {
 	else {																						\
 		m_bnEmulator.RapidFire()[RAPID_IDX] = 0b11110000;										\
 		sState = ::GetAsyncKeyState( MAIN_KEY );												\
-		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; }											\
+		if ( sState & 0x8000 ) { ui8Ret |= BUTTON; bFoundInput = true; }						\
 	}
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					m_pdi8cControllers[0]->Poll();
 				}
+				bool bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( m_pdi8cControllers[0]->PollButton( 3 ) ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
 					else {
 						m_bnEmulator.RapidFire()[0] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 2 ) ) { ui8Ret |= LSN_IB_B; }
+						if ( m_pdi8cControllers[0]->PollButton( 2 ) ) { ui8Ret |= LSN_IB_B; bFoundInput = true; }
 					}
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'L', VK_OEM_PERIOD, 0, LSN_IB_B );
 				}
+
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( m_pdi8cControllers[0]->PollButton( 1 ) ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
 					else {
 						m_bnEmulator.RapidFire()[1] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 0 ) ) { ui8Ret |= LSN_IB_A; }
+						if ( m_pdi8cControllers[0]->PollButton( 0 ) ) { ui8Ret |= LSN_IB_A; bFoundInput = true; }
 					}
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( VK_OEM_1, VK_OEM_2, 1, LSN_IB_A );
 				}
 
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( m_pdi8cControllers[0]->PollButton( 8 ) ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
 					else {
 						m_bnEmulator.RapidFire()[2] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 6 ) ) { ui8Ret |= LSN_IB_SELECT; }
+						if ( m_pdi8cControllers[0]->PollButton( 6 ) ) { ui8Ret |= LSN_IB_SELECT; bFoundInput = true; }
 					}
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'O', '9', 2, LSN_IB_SELECT );
 				}
+
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( m_pdi8cControllers[0]->PollButton( 9 ) ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
 					else {
 						m_bnEmulator.RapidFire()[3] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 7 ) ) { ui8Ret |= LSN_IB_START; }
+						if ( m_pdi8cControllers[0]->PollButton( 7 ) ) { ui8Ret |= LSN_IB_START; bFoundInput = true; }
 					}
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'P', '0', 3, LSN_IB_START );
 				}
 
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) < -250 ||
 						((static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 0 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 4500) ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 36000)) ) { ui8Ret |= LSN_IB_UP; }
+						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 36000)) ) { ui8Ret |= LSN_IB_UP; bFoundInput = true; }
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
 				}
+
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) > 250 ||
 						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 13500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 22500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; }
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; bFoundInput = true; }
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
 				}
+
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) < -250 ||
 						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 22500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 31500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; }
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; bFoundInput = true; }
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
 				}
+
+				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) > 250 ||
 						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 4500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 13500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; }
+						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; bFoundInput = true; }
 				}
-				else {
+				if ( !bFoundInput ) {
 					LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
 				}
 #undef LSN_CKECK
