@@ -230,7 +230,7 @@ namespace lsn {
 		/** A Vulkan VkSurfaceKHR wrapper. */
 		struct LSN_SURFACE {
 			inline LSN_SURFACE() :
-				sSurface( nullptr ),
+				sSurface( 0 ),
 				iInstance( nullptr ),
 				rRes( VK_ERROR_INITIALIZATION_FAILED ),
 				pacAllocCallbacks( nullptr ) {
@@ -263,7 +263,7 @@ namespace lsn {
 					pacAllocCallbacks = _iOther.pacAllocCallbacks;
 
 					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-					_iOther.sSurface = nullptr;
+					_iOther.sSurface = 0;
 					_iOther.iInstance = nullptr;
 					_iOther.pacAllocCallbacks = nullptr;
 				}
@@ -317,7 +317,7 @@ namespace lsn {
 
 
 			// == Members.
-			VkSurfaceKHR										sSurface				= nullptr;
+			VkSurfaceKHR										sSurface				= 0;
 
 
 		private :
@@ -329,7 +329,7 @@ namespace lsn {
 		/** A Vulkan VkSwapchainKHR wrapper. */
 		struct LSN_SWAPCHAIN {
 			inline LSN_SWAPCHAIN() :
-				sSwapchain( nullptr ),
+				sSwapchain( 0 ),
 				dDevice( nullptr ),
 				rRes( VK_ERROR_INITIALIZATION_FAILED ),
 				pacAllocCallbacks( nullptr ) {
@@ -362,7 +362,7 @@ namespace lsn {
 					pacAllocCallbacks = _iOther.pacAllocCallbacks;
 
 					_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-					_iOther.sSwapchain = nullptr;
+					_iOther.sSwapchain = 0;
 					_iOther.dDevice = nullptr;
 					_iOther.pacAllocCallbacks = nullptr;
 				}
@@ -416,7 +416,7 @@ namespace lsn {
 
 
 			// == Members.
-			VkSwapchainKHR										sSwapchain				= nullptr;
+			VkSwapchainKHR										sSwapchain				= 0;
 
 
 		private :
