@@ -338,7 +338,7 @@ namespace lsn {
 
 			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
 
-			_pv4bOut->m_fElements[0] = _mm_cvtss_f32( mSmA );
+			_pv4bOut[0].m_fElements[0] = _mm_cvtss_f32( mSmA );
 			_pv4bOut->m_fElements[4] = _mm_cvtss_f32( mSmB );
 
 			
@@ -347,7 +347,7 @@ namespace lsn {
 
 			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
 
-			_pv4bOut->m_fElements[1] = _mm_cvtss_f32( mSmA );
+			_pv4bOut[0].m_fElements[1] = _mm_cvtss_f32( mSmA );
 			_pv4bOut->m_fElements[5] = _mm_cvtss_f32( mSmB );
 
 			
@@ -356,13 +356,13 @@ namespace lsn {
 
 			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[12] );
 
-			_pv4bOut->m_fElements[2] = _mm_cvtss_f32( mSmA );
+			_pv4bOut[0].m_fElements[2] = _mm_cvtss_f32( mSmA );
 			_pv4bOut->m_fElements[6] = _mm_cvtss_f32( mSmB );
 
 			
 			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
 			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
-			_pv4bOut->m_fElements[3] = _mm_cvtss_f32( mSmA );
+			_pv4bOut[0].m_fElements[3] = _mm_cvtss_f32( mSmA );
 			_pv4bOut->m_fElements[7] = _mm_cvtss_f32( mSmB );
 
 
