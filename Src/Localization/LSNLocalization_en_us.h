@@ -114,6 +114,11 @@
 #define LSN_TURBO_															Turbo:
 #define LSN_DEAD_															Dead:
 
+#define LSN_INPUT_DEVICES													Input Devices
+#define LSN_DEVICE_NAME														Device Name
+#define LSN_DEVICE_TYPE_													Device Type
+#define LSN_STATUS															Status
+
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
 // OpenAL.

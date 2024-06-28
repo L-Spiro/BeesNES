@@ -116,6 +116,40 @@ namespace lsn {
 
 #undef LSN_QUICK_BUTTON
 #undef LSN_QUICK_CONTR
+
+		// Input Devices.
+		{
+			LSW_LT_GROUPBOX,						// ltType
+			LSN_SCPI_INPUT_DEVICES_GROUP,			// wId
+			WC_BUTTONW,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_STD_CONT_SS_LEFT,					// iLeft
+			LSN_STD_CONT_DPAD_TOP,					// iTop
+			LSN_STD_CONT_SS_GROUP_W,				// dwWidth
+			(LSN_GROUP_TOP + LSN_GROUP_BOTTOM) + (LSN_DEF_EDIT_HEIGHT * 5),											// dwHeight
+			LSN_GROUPSTYLE,																							// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,							// dwStyleEx
+			LSN_LSTR( LSN_INPUT_DEVICES ),			// pwcText
+			0,										// sTextLen
+			LSN_SCPI_MAINWINDOW,					// dwParentId
+		},
+		{
+			LSW_LT_LISTVIEW,						// ltType
+			LSN_SCPI_INPUT_DEVICES_LISTVIEW,		// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			LSN_STD_CONT_SS_LEFT + LSN_GROUP_LEFT,	// iLeft
+			LSN_STD_CONT_DPAD_TOP + LSN_GROUP_TOP,	// iTop
+			LSN_STD_CONT_SS_GROUP_W - LSN_GROUP_LEFT * 2,															// dwWidth
+			LSN_DEF_EDIT_HEIGHT * 5,				// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_ALIGNLEFT | WS_TABSTOP,		// dwStyle
+			WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,											// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_SCPI_MAINWINDOW,					// dwParentId
+		},
 	};
 
 #undef LSN_STD_CONT_H

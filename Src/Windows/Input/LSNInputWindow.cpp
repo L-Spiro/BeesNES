@@ -50,6 +50,7 @@ namespace lsn {
 				tciItem.pszText = const_cast<LPWSTR>(wsTitle.c_str());
 				ptTab->InsertItem( int( I ), &tciItem, m_vPages[I] );
 			}
+			ptTab->SetCurSel( 0 );
 
 			LSW_RECT rPanelClient = pwGlobal->WindowRect();
 			ptTab->AdjustRect( TRUE, &rPanelClient );
@@ -80,7 +81,7 @@ namespace lsn {
 			rWindow = WindowRect();
 			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height(), FALSE );
 		}
-		
+
 		ForceSizeUpdate();
 		return CMainWindow::InitDialog();
 	}

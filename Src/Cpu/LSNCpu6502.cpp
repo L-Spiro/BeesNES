@@ -492,8 +492,7 @@ namespace lsn {
 
 		m_rRegs.ui8A &= m_ui8Operand;
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<C()|N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
 
 		LSN_NEXT_FUNCTION;
@@ -537,6 +536,7 @@ namespace lsn {
 
 		LSN_UPDATE_PC;
 
+		// "N and Z are set according to the value of the accumulator before the instruction executed" does not seem to be true.
 		m_rRegs.ui8A = (m_rRegs.ui8A | 0xEE) & m_rRegs.ui8X & m_ui8Operand;
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );

@@ -9,9 +9,11 @@
  */
 
 #include "LSNStdControllerPage.h"
+#include "../MainWindow/LSNMainWindow.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNStdControllerPageLayout.h"
 #include <Helpers/LSWHelpers.h>
+#include <ListView/LSWListView.h>
 
 namespace lsn {
 
@@ -22,6 +24,22 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
+		CListView * ptControllerList = static_cast<CListView *>(FindChild( Layout::LSN_SCPI_INPUT_DEVICES_LISTVIEW ));
+		if ( ptControllerList && m_pmwMainWindow ) {
+			INT iCol = ptControllerList->AddColumn( LSN_LSTR( LSN_DEVICE_NAME ) );
+			iCol = ptControllerList->AddColumn( LSN_LSTR( LSN_DEVICE_TYPE_ ) );
+			iCol = ptControllerList->AddColumn( LSN_LSTR( LSN_STATUS ) );
+			m_pmwMainWindow->LockControllers();
+
+			auto aControllerList = m_pmwMainWindow->Controllers();
+			for ( size_t I = 0; I < aControllerList.size(); ++I ) {
+				//ptControllerList->InsertItem( aControllerList[I]->
+			}
+
+			m_pmwMainWindow->UnlockControllers();
+		}
+
+
 		std::memset( m_ieMainButtons, 0, sizeof( m_ieMainButtons ) );
 		std::memset( m_ieTurboButtons, 0, sizeof( m_ieTurboButtons ) );
 

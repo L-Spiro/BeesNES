@@ -76,6 +76,8 @@ namespace lsn {
 			m_nbfLSpiroNtscFilter.SetKernelSize( 8 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 480> );
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 8 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::Gaussian16FilterFunc );*/
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 8 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc_Pow<12> );*/
 
 			m_nbfLSpiroPalFilter.SetWidthScale( 10 );

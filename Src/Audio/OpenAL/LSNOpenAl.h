@@ -132,7 +132,7 @@ namespace lsn {
 		static bool											DistanceModel( ALenum _eModel );
 
 		/**
-		 * Converts a sample fron a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+		 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
 		 *	audio output level of zero.
 		 * 
 		 * \param _fSample The sample to convert.
@@ -141,7 +141,7 @@ namespace lsn {
 		static inline uint8_t								SampleToUi8( float _fSample );
 
 		/**
-		 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+		 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
 		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
 		 *	conversion never generates -32768.
 		 * 
@@ -151,7 +151,7 @@ namespace lsn {
 		static inline int16_t								SampleToI16( float _fSample );
 
 		/**
-		 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
 		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
 		 *	conversion never generates -8388608.
 		 *
@@ -190,7 +190,7 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
 	/**
-	 * Converts a sample fron a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+	 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
 	 *	audio output level of zero.
 	 * 
 	 * \param _fSample The sample to convert.
@@ -203,7 +203,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+	 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
 	 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
 	 *	conversion never generates -32768.
 	 * 
@@ -217,7 +217,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+	 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
 	 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
 	 *	conversion never generates -8388608.
 	 *

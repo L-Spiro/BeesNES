@@ -185,6 +185,8 @@ namespace lsn {
 		double dTauInvMax2 = 2.0 * dTauInvMax;
 		for ( auto I = _vTaps.size(); I--; ) {
 			_vTaps[I] = 0.42 - 0.5 * std::cos( dTauInvMax * I ) + 0.08 * std::cos( dTauInvMax2 * I );
+			// This approximate form gives dB error of 1.10.
+			// The exact form (0.42659071 - 0.49656062 * std::cos( dTauInvMax * I ) + 0.07684867 * std::cos( dTauInvMax2 * I )) gives an error of 1.15.
 		}
 	}
 

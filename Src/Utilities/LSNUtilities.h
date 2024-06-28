@@ -133,6 +133,42 @@ namespace lsn {
 		}
 
 		/**
+		 * Appends a char string to a char16_t string.
+		 * 
+		 * \param _sDst The string to which to append the string.
+		 * \param _pcString The string to append to the string.
+		 * \return Returns the new string.
+		 **/
+		static std::u16string								Append( const std::u16string &_sDst, const char * _pcString ) {
+			try {
+				std::u16string sTmp = _sDst;
+				while ( (*_pcString) ) {
+					sTmp.push_back( (*_pcString++) );
+				}
+				return sTmp;
+			}
+			catch ( ... ) { return std::u16string(); }
+		}
+
+		/**
+		 * Appends a _pwcString string to a char16_t string.
+		 * 
+		 * \param _sDst The string to which to append the string.
+		 * \param _pwcString The string to append to the string.
+		 * \return Returns the new string.
+		 **/
+		static std::u16string								Append( const std::u16string &_sDst, const wchar_t * _pwcString ) {
+			try {
+				std::u16string sTmp = _sDst;
+				while ( (*_pwcString) ) {
+					sTmp.push_back( (*_pwcString++) );
+				}
+				return sTmp;
+			}
+			catch ( ... ) { return std::u16string(); }
+		}
+
+		/**
 		 * Converts from sRGB to linear.
 		 *
 		 * \param _dVal The value to convert.
@@ -773,7 +809,7 @@ namespace lsn {
 		 * \param _dX A happy parameter.
 		 * \return Returns happiness.
 		 */
-		static inline double								SinC( double _dX ) {
+		static inline double								Sinc( double _dX ) {
 			_dX *= std::numbers::pi;
 			if ( _dX < 0.01 && _dX > -0.01 ) {
 				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
@@ -813,7 +849,7 @@ namespace lsn {
 		 */
 		static inline double								KaiserHelper( double _dAlpha, double _dHalfWidth, double _dX ) {
 			const double dRatio = _dX / _dHalfWidth;
-			return Bessel0( _dAlpha * ::sqrt( 1.0 - dRatio * dRatio ) ) / Bessel0( _dAlpha );
+			return Bessel0( _dAlpha * std::sqrt( 1.0 - dRatio * dRatio ) ) / Bessel0( _dAlpha );
 		}
 
 		/**
@@ -823,7 +859,7 @@ namespace lsn {
 		 * \return Returns happiness.
 		 */
 		static float										BlackmanWindow( double _dX ) {
-			return static_cast<float>(42659071 + 0.49656062 * ::cos( std::numbers::pi * _dX ) + 0.07684867 * ::cos( 2.0 * std::numbers::pi * _dX ));
+			return static_cast<float>(0.42659071 + 0.49656062 * std::cos( std::numbers::pi * _dX ) + 0.07684867 * std::cos( 2.0 * std::numbers::pi * _dX ));
 		}
 
 		/**
@@ -844,9 +880,9 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Lanczos2FilterFunc( float _fT ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= 2.0 ) {
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 2.0 ) ));
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 2.0 ) ));
 			}
 			return 0.0f;
 		}
@@ -858,9 +894,9 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Lanczos3FilterFunc( float _fT ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= 3.0 ) {
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 3.0 ) ));
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 3.0 ) ));
 			}
 			return 0.0f;
 		}
@@ -872,9 +908,9 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Lanczos6FilterFunc( float _fT ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= 6.0 ) {
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 6.0 ) ));
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 6.0 ) ));
 			}
 			return 0.0f;
 		}
@@ -886,9 +922,9 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Lanczos12FilterFunc( float _fT ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= 12.0 ) {
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / 12.0 ) ));
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 12.0 ) ));
 			}
 			return 0.0f;
 		}
@@ -901,10 +937,10 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 12.0 ) * _fWidth );
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
+				_fT = float( std::pow( _fT / _fWidth, 12.0 ) * _fWidth );
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / _fWidth ) ));
 			}
 			return 0.0f;
 		}
@@ -918,10 +954,10 @@ namespace lsn {
 		 */
 		template <unsigned _uPow>
 		static inline float									LanczosXFilterFunc_Pow( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, double( _uPow ) ) * _fWidth );
-				return static_cast<float>(Clean( SinC( _fT ) * SinC( _fT / _fWidth ) ));
+				_fT = float( std::pow( _fT / _fWidth, double( _uPow ) ) * _fWidth );
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / _fWidth ) ));
 			}
 			return 0.0f;
 		}
@@ -934,11 +970,11 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									KaiserFilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
 				static const float fAtt = 40.0f;
-				static const double dAlpha = ::exp( ::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
-				return static_cast<float>(Clean( SinC( _fT ) * KaiserHelper( dAlpha, double( _fWidth ), _fT ) ));
+				static const double dAlpha = std::exp( std::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
+				return static_cast<float>(Clean( Sinc( _fT ) * KaiserHelper( dAlpha, double( _fWidth ), _fT ) ));
 			}
 			return 0.0f;
 		}
@@ -951,10 +987,10 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									BlackmanFilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 16.0 ) * _fWidth );
-				return Clean( SinC( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 16.0 ) * _fWidth );
+				return Clean( Sinc( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
 		}
@@ -967,9 +1003,9 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									GaussianXFilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 			}
 			return 0.0f;
 		}
@@ -982,13 +1018,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian12Over30FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 30.0 / 12.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 30.0 / 12.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1001,13 +1037,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian1FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 1.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 1.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1020,13 +1056,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian1_5FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 1.5 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 1.5 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1039,13 +1075,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian2FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 2.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 2.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1058,13 +1094,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian4FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 4.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 4.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1077,13 +1113,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian8FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 8.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 8.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1096,13 +1132,13 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									Gaussian16FilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( ::pow( _fT / _fWidth, 1.0 / 16.0 ) * _fWidth );
-				//return Clean( ::exp( -2.0 * _fT * _fT ) * ::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+				_fT = float( std::pow( _fT / _fWidth, 1.0 / 16.0 ) * _fWidth );
+				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
 				
 				float fX = _fT - _fWidth;
-				return float( (1.0 / (::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
+				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}
@@ -1115,7 +1151,7 @@ namespace lsn {
 		 * \return Returns the filtered value.
 		 */
 		static inline float									BoxFilterFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
 		}
 		/**
@@ -1127,7 +1163,7 @@ namespace lsn {
 		 **/
 		template <unsigned _uNotchW, unsigned _uPowTimes100>
 		static inline float									CrtHumpFunc( float _fT, float _fWidth ) {
-			_fT = ::fabsf( _fT );
+			_fT = std::fabsf( _fT );
 			constexpr double dNotchW = double( _uNotchW ) / 2.0;
 			if ( _fT <= dNotchW ) { return 1.0f; }
 			double dTmp = _fT - dNotchW;
@@ -1201,7 +1237,7 @@ namespace lsn {
 		}
 		
 		/**
-		 * Converts a sample fron a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+		 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
 		 *	audio output level of zero.
 		 *
 		 * \param _fSample The sample to convert.
@@ -1214,7 +1250,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Converts a sample fron a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+		 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
 		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
 		 *	conversion never generates -32768.
 		 *
@@ -1228,7 +1264,7 @@ namespace lsn {
 		}
 		
 		/**
-		 * Converts a sample fron a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
 		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
 		 *	conversion never generates -8388608.
 		 *
