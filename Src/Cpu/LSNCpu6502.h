@@ -618,6 +618,25 @@ namespace lsn {
 		/** Performs A <<= 1.  Sets C, N, and V. */
 		void												AslOnA_BeginInst();
 
+		/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+		template <unsigned _uBit, unsigned _uVal>
+		void												Branch_Cycle1();
+
+		/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+		void												Branch_Cycle1_Phi2();
+
+		/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+		void												Branch_Cycle2_Phi2();
+
+		/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
+		void												Branch_Cycle3();
+
+		/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
+		void												Branch_Cycle3_Phi2();
+
+		/** 4th cycle of branch instructions. Page boundary was crossed. */
+		void												Branch_Cycle4();
+
 		/** Final touches to BRK (copies m_ui16Address to m_rRegs.ui16Pc) and first cycle of the next instruction. */
 		void												Brk_BeginInst();
 
@@ -1059,6 +1078,95 @@ namespace lsn {
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+
+		BeginInst();
+	}
+
+	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+	template <unsigned _uBit, unsigned _uVal>
+	inline void CCpu6502::Branch_Cycle1() {
+		LSN_INSTR_START_PHI1( true );
+
+		m_bTakeJump = (m_rRegs.ui8Status & _uBit) == (_uVal * _uBit);
+		LSN_UPDATE_PC;
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+	inline void CCpu6502::Branch_Cycle1_Phi2() {
+		uint8_t ui8Op;
+		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
+		m_ui8Operand = ui8Op;
+
+		m_ui16PcModify = 1;
+
+		if ( !m_bTakeJump ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+	inline void CCpu6502::Branch_Cycle2_Phi2() {
+		if ( !m_bTakeJump ) {
+			LSN_FINISH_INST( true );
+			/*LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui8Operand );
+			m_ui16PcModify = 1;*/
+		}
+		else {
+			uint8_t ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+
+			LSN_NEXT_FUNCTION;
+
+			m_ui16Address = static_cast<int16_t>(static_cast<int8_t>(m_ui8Operand)) + m_rRegs.ui16Pc;
+
+			m_bBoundaryCrossed = m_ui8Address[1] != m_rRegs.ui8Pc[1];
+			if ( !m_bBoundaryCrossed ) {
+				LSN_CHECK_INTERRUPTS;
+			}
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
+	inline void CCpu6502::Branch_Cycle3() {
+		LSN_INSTR_START_PHI1( true );
+
+		m_rRegs.ui8Pc[0] = m_ui8Address[0];
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
+	inline void CCpu6502::Branch_Cycle3_Phi2() {
+		if ( m_bBoundaryCrossed ) {
+			uint8_t ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+			LSN_NEXT_FUNCTION;
+		}
+		else {
+			LSN_FINISH_INST( false );
+			/*LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui8Operand );
+			m_ui16PcModify = 1;*/
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** 4th cycle of branch instructions. Page boundary was crossed. */
+	inline void CCpu6502::Branch_Cycle4() {
+		m_rRegs.ui8Pc[1] = m_ui8Address[1];
 
 		BeginInst();
 	}

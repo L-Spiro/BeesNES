@@ -90,5 +90,20 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 
 
 	/** 10-17 */
+	{	// 10
+		//LSN_BRANCH( BPL, N(), 0 )														// Branch if N == 0.
+		{
+			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
+			&CCpu6502::Branch_Cycle1<N(), 0>,											&CCpu6502::Branch_Cycle1_Phi2,
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Branch_Cycle2_Phi2,
+			&CCpu6502::Branch_Cycle3,													&CCpu6502::Branch_Cycle3_Phi2,
+			&CCpu6502::Branch_Cycle4,
+			/*&CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::Branch_Cycle2<N(), 0>, &CCpu6502::Branch_Cycle2_Phi2,
+			&CCpu6502::Branch_Cycle3, &CCpu6502::Branch_Cycle3_Phi2,
+			&CCpu6502::Branch_Cycle4, &CCpu6502::PrefetchNextOp*/
+		},
+		2, LSN_AM_RELATIVE, 2, LSN_I_BPL,
+	},
 
 };
