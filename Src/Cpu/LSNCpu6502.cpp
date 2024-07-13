@@ -209,6 +209,11 @@ namespace lsn {
 		LSN_VURIFFY( ui16Pc );
 #undef LSN_VURIFFY
 
+		if ( m_ui8FuncIndex != 0 && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM ) {
+			::OutputDebugStringA( cvoVerifyMe.sName.c_str() );
+			::OutputDebugStringA( "\r\nDidn't read the end of cycle functions.\r\n" );
+			::OutputDebugStringA( "\r\n\r\n" );
+		}
 
 		if ( m_pbBus->ReadWriteLog().size() != cvoVerifyMe.vCycles.size() ) {
 			::OutputDebugStringA( cvoVerifyMe.sName.c_str() );
