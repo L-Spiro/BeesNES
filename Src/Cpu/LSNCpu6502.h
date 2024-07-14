@@ -46,7 +46,7 @@
 #define LSN_CHECK_INTERRUPTS								/*if ( !(m_rRegs.ui8Status & I()) )*/ { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
 #define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (VAL) ); m_ui8SModify = uint8_t( -1 + _i8SOff )
-#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_rRegs.ui8S)), (RESULT) ); m_ui8SModify = 1
+#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (RESULT) ); m_ui8SModify = uint8_t( 1 + _i8SOff )
 
 #define LSN_UPDATE_PC										if ( m_bAllowWritingToPc ) { m_rRegs.ui16Pc += m_ui16PcModify; } m_ui16PcModify = 0
 #define LSN_UPDATE_S										m_rRegs.ui8S += m_ui8SModify; m_ui8SModify = 0
@@ -572,6 +572,7 @@ namespace lsn {
 		void												Anc_IncPc_BeginInst();
 
 		/** Performs A = A & OP.  Sets flags N and Z. */
+		template <bool _bIncPc = false>
 		inline void											And_BeginInst();
 
 		/** Performs M <<= 1.  Sets C, N, and V. */
@@ -664,21 +665,28 @@ namespace lsn {
 		/** Sets m_ui8Operand to the status byte with Break and Reserved set. */
 		void												Php();
 
+		/** Pulls the status byte, unsets X, sets M. */
+		inline void											Plp_BeginInst();
+
+		/** Pulls from the stack, stores in m_ui8Operand. */
+		template <int8_t _i8SOff = 0>
+		inline void											Pull_Stack_To_Operand_Phi2();
+
 		/** Pushes m_ui8Operand. */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
-		inline void											PushOperand_Phi2();
+		inline void											Push_Operand_Phi2();
 
 		/** Pushes PCh with the given S offset. */
 		template <int8_t _i8SOff = 0>
-		inline void											PushPc_H_Phi2();
+		inline void											Push_Pc_H_Phi2();
 
 		/** Pushes PCl with the given S offset. */
 		template <int8_t _i8SOff = 0>
-		inline void											PushPc_L_Phi2();
+		inline void											Push_Pc_L_Phi2();
 
 		/** Pushes Status with or without B/X to the given S offset. */
 		template <int8_t _i8SOff = 0>
-		inline void											PushS_Phi2();
+		inline void											Push_S_Phi2();
 
 		/** Reads from m_ui8Operand, discards result. */
 		void												Read_Operand_Discard_Phi2();
@@ -704,6 +712,7 @@ namespace lsn {
 		inline void											Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2();
 
 		/** Reads the stack, stores in m_ui8Operand. */
+		template <bool _bEndInstr = false>
 		inline void											Read_Stack_To_Operand_Phi2();
 
 		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
@@ -711,6 +720,12 @@ namespace lsn {
 
 		/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
 		inline void											Rol();
+
+		/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
+		inline void											RolOnA_BeginInst();
+
+		/** Sets the carry flag. */
+		inline void											Sec_BeginInst();
 
 		/** Selects the BRK vector etc. */
 		void												SelectBrkVectors();
@@ -952,7 +967,12 @@ namespace lsn {
 	}
 
 	/** Performs A = A & OP.  Sets flags N and Z. */
+	template <bool _bIncPc>
 	inline void CCpu6502::And_BeginInst() {
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
+
 		m_rRegs.ui8A &= m_ui8Operand;
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
@@ -1350,9 +1370,26 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
+	/** Pulls the status byte, unsets X, sets M. */
+	inline void CCpu6502::Plp_BeginInst() {
+		m_rRegs.ui8Status = (m_ui8Operand & ~X()) | M();
+
+		BeginInst();
+	}
+
+	/** Pulls from the stack, stores in m_ui8Operand. */
+	template <int8_t _i8SOff>
+	inline void CCpu6502::Pull_Stack_To_Operand_Phi2() {
+		LSN_POP( m_ui8Operand );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI2;
+	}
+
 	/** Pushes m_ui8Operand. */
 	template <int8_t _i8SOff, bool _bEndInstr>
-	inline void CCpu6502::PushOperand_Phi2() {
+	inline void CCpu6502::Push_Operand_Phi2() {
 		LSN_PUSH( m_ui8Operand );
 
 		if constexpr ( _bEndInstr ) {
@@ -1367,7 +1404,7 @@ namespace lsn {
 
 	/** Pushes PCh with the given S offset. */
 	template <int8_t _i8SOff>
-	inline void CCpu6502::PushPc_H_Phi2() {
+	inline void CCpu6502::Push_Pc_H_Phi2() {
 		LSN_PUSH( m_rRegs.ui8Pc[1] );
 
 		LSN_NEXT_FUNCTION;
@@ -1377,7 +1414,7 @@ namespace lsn {
 
 	/** Pushes PCl with the given S offset. */
 	template <int8_t _i8SOff>
-	inline void CCpu6502::PushPc_L_Phi2() {
+	inline void CCpu6502::Push_Pc_L_Phi2() {
 		LSN_PUSH( m_rRegs.ui8Pc[0] );
 
 		LSN_NEXT_FUNCTION;
@@ -1387,7 +1424,7 @@ namespace lsn {
 
 	/** Pushes Status with or without B/X to the given S offset. */
 	template <int8_t _i8SOff>
-	inline void CCpu6502::PushS_Phi2() {
+	inline void CCpu6502::Push_S_Phi2() {
 		if ( m_bPushB ) {
 			LSN_PUSH( m_rRegs.ui8Status | X() );
 		}
@@ -1510,6 +1547,7 @@ namespace lsn {
 	}
 
 	/** Reads the stack, stores in m_ui8Operand. */
+	template <bool _bEndInstr>
 	inline void CCpu6502::Read_Stack_To_Operand_Phi2() {
 		LSN_INSTR_START_PHI2_READ( 0x100 | m_rRegs.ui8S, m_ui8Operand );
 		
@@ -1551,6 +1589,26 @@ namespace lsn {
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
+	}
+
+	/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
+	inline void CCpu6502::RolOnA_BeginInst() {
+		uint8_t ui8LowBit = m_rRegs.ui8Status & C();
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		m_rRegs.ui8A = (m_rRegs.ui8A << 1) | ui8LowBit;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+
+		BeginInst();
+	}
+
+	/** Sets the carry flag. */
+	inline void CCpu6502::Sec_BeginInst() {
+		SetBit<C(), true>( m_rRegs.ui8Status );
+
+		BeginInst();
 	}
 
 	/** Selects the BRK vector etc. */

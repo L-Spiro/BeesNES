@@ -30,9 +30,9 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Null<LSN_W, true>,												&CCpu6502::PushPc_H_Phi2<0>,
-			&CCpu6502::Null<LSN_W>,														&CCpu6502::PushPc_L_Phi2<-1>,
-			&CCpu6502::SelectBrkVectors,												&CCpu6502::PushS_Phi2<-2>,
+			&CCpu6502::Null<LSN_W, true>,												&CCpu6502::Push_Pc_H_Phi2<0>,
+			&CCpu6502::Null<LSN_W>,														&CCpu6502::Push_Pc_L_Phi2<-1>,
+			&CCpu6502::SelectBrkVectors,												&CCpu6502::Push_S_Phi2<-2>,
 			&CCpu6502::Null<LSN_R, false, true>,										&CCpu6502::CopyVectorToPc_L_Phi2,
 			&CCpu6502::SetBrkFlags,														&CCpu6502::CopyVectorToPc_H_Phi2,
 			&CCpu6502::Brk_BeginInst },
@@ -71,7 +71,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		{
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
-			&CCpu6502::Php,																&CCpu6502::PushOperand_Phi2<0, true>,
+			&CCpu6502::Php,																&CCpu6502::Push_Operand_Phi2<0, true>,
 			&CCpu6502::Null<LSN_R, false, true, true> },
 			3, LSN_AM_IMPLIED, 1, LSN_I_PHP,
 	},
@@ -175,8 +175,8 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_To_AddrOrPtr_IncPc_Phi2<LSN_TO_A>,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Read_Stack_To_Operand_Phi2,
-			&CCpu6502::Null<LSN_W>,														&CCpu6502::PushPc_H_Phi2<0>,
-			&CCpu6502::Null<LSN_W>,														&CCpu6502::PushPc_L_Phi2<-1>,
+			&CCpu6502::Null<LSN_W>,														&CCpu6502::Push_Pc_H_Phi2<0>,
+			&CCpu6502::Null<LSN_W>,														&CCpu6502::Push_Pc_L_Phi2<-1>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2<LSN_TO_A>,
 			&CCpu6502::Jsr_BeginInst, },
 		6, LSN_AM_ABSOLUTE, 3, LSN_I_JSR,
@@ -207,20 +207,115 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	{	// 27
 		LSN_ZERO_PAGE_RMW( RLA, Rla )
 	},
-#if 0
+
 	/** 28-2F */
 	{	// 28
 		{
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
-			//&CCpu6502::Php,																&CCpu6502::PushOperand_Phi2<0, true>,
-			//&CCpu6502::Null<LSN_R, false, true, true>
-
-			/*&CCpu6502::FetchOperandAndDiscard_Phi2,
-			&CCpu6502::Null_Read, &CCpu6502::PullStackToOperand_Phi2,
-			&CCpu6502::NullAdjustS_Read, &CCpu6502::ReadStackToOperand_Phi2,
-			&CCpu6502::Plp, &CCpu6502::PrefetchNextOp*/ },
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::Pull_Stack_To_Operand_Phi2,
+			&CCpu6502::Null<LSN_R, false, true>,										&CCpu6502::Read_Stack_To_Operand_Phi2<true>,
+			&CCpu6502::Plp_BeginInst, },
 			4, LSN_AM_IMPLIED, 1, LSN_I_PLP,
 	},
-#endif
+	{	// 29
+		LSN_IMMEDIATE( AND, And_BeginInst<true> )
+		/*{
+			&CCpu6502::FetchOperandAndIncPc_Phi2,
+			&CCpu6502::AndAndIncPc, &CCpu6502::PrefetchNextOp },
+			2, LSN_AM_IMMEDIATE, 2, LSN_I_ORA,*/
+	},
+	{	// 2A
+		{
+			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::RolOnA_BeginInst,
+			/*&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::RolOnA, &CCpu6502::PrefetchNextOp*/ },
+			2, LSN_AM_IMPLIED, 1, LSN_I_ROL,
+	},
+	{	// 2B
+		LSN_IMMEDIATE( ANC, Anc_IncPc_BeginInst )
+	},
+	{	// 2C
+		LSN_ABSOLUTE_R( BIT, Bit_BeginInst )
+	},
+	{	// 2D
+		LSN_ABSOLUTE_R( AND, And_BeginInst )
+	},
+	{	// 2E
+		LSN_ABSOLUTE_RMW( ROL, Rol )
+	},
+	{	// 2F
+		LSN_ABSOLUTE_RMW( RLA, Rla )
+	},
+
+	/** 30-37 */
+	{	// 30
+		LSN_BRANCH( BMI, N(), 1 )														// Branch if N == 1.
+	},
+	{	// 31
+		LSN_INDIRECT_Y_R( AND, And_BeginInst )
+	},
+	{	// 32
+		{
+			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
+			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
+			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
+	},
+	{	// 33
+		LSN_INDIRECT_Y_RMW( RLA, Rla )
+	},
+	{	// 34
+		LSN_ZERO_PAGE_X_R( NOP, BeginInst )
+	},
+	{	// 35
+		LSN_ZERO_PAGE_X_R( AND, And_BeginInst )
+	},
+	{	// 36
+		LSN_ZERO_PAGE_X_RMW( ROL, Rol )
+	},
+	{	// 37
+		LSN_ZERO_PAGE_X_RMW( RLA, Rla )
+	},
+
+
+	/** 38-3F */
+	{	// 38
+		{
+			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2<true>,
+			&CCpu6502::Sec_BeginInst, },
+		/*{
+			&CCpu6502::FetchOperandAndDiscard_Phi2,
+			&CCpu6502::Sec, &CCpu6502::PrefetchNextOp, },*/
+		2, LSN_AM_IMPLIED, 1, LSN_I_SEC,
+	},
+	{	// 39
+		LSN_ABSOLUTE_Y_R( AND, And )
+	},
+	{	// 3A
+		{
+			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2<true>,
+			&CCpu6502::BeginInst, },
+		2, LSN_AM_IMPLIED, 1, LSN_I_NOP,
+	},
+	{	// 3B
+		LSN_ABSOLUTE_Y_RMW( RLA, Rla )
+	},
+	{	// 3C
+		LSN_ABSOLUTE_X_R( NOP, BeginInst )
+	},
+	{	// 3D
+		LSN_ABSOLUTE_X_R( AND, And_BeginInst )
+	},
+	{	// 3E
+		LSN_ABSOLUTE_X_RMW( ROL, Rol )
+	},
+	{	// 3F
+		LSN_ABSOLUTE_X_RMW( RLA, Rla )
+	},
 };

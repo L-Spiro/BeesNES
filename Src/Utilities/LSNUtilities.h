@@ -169,51 +169,187 @@ namespace lsn {
 		}
 
 		/**
-		 * Converts from sRGB to linear.
+		 * Converts a single double value from sRGB space to linear space.  Performs a conversion according to the standard.
 		 *
 		 * \param _dVal The value to convert.
-		 * \return Returns the color value converted to linear space.
+		 * \return Returns the converted value.
 		 */
-		static double										sRGBtoLinear( double _dVal ) {
+		static inline double LSN_FASTCALL					sRGBtoLinear( double _dVal ) {
 			return _dVal <= 0.04045 ?
 				_dVal * (1.0 / 12.92) :
 				std::pow( (_dVal + 0.055) * (1.0 / 1.055), 2.4 );
 		}
 
 		/**
-		 * Converts from linear to sRGB.
+		 * Converts a single double value from linear space to sRGB space.  Performs a conversion according to the standard.
 		 *
 		 * \param _dVal The value to convert.
-		 * \return Returns the value converted to sRGB space.
+		 * \return Returns the converted value.
 		 */
-		static double										LinearTosRGB( double _dVal ) {
-			return _dVal <= 0.00313080495356037151702786377709 ?	// (1.0 / 12.92) / (1.0 / 0.04045)
+		static inline double LSN_FASTCALL					LinearTosRGB( double _dVal ) {
+			return _dVal <= 0.0031308 ?
 				_dVal * 12.92 :
 				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
 		}
 
 		/**
-		 * Converts from SMPTE 170M-2004 to linear.
+		 * Converts a single double value from sRGB space to linear space.  Performs a precise conversion without a gap.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the converted value.
+		 */
+		static inline double LSN_FASTCALL					sRGBtoLinear_Precise( double _dVal ) {
+			return _dVal <= 0.039285714285714291860163172032116563059389591217041015625 ?
+				_dVal * (1.0 / 12.92321018078785499483274179510772228240966796875) :
+				std::pow( (_dVal + 0.055) * (1.0 / 1.055), 2.4 );
+		}
+
+		/**
+		 * Converts a single double value from linear space to sRGB space.  Performs a precise conversion without a gap.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the converted value.
+		 */
+		static inline double LSN_FASTCALL					LinearTosRGB_Precise( double _dVal ) {
+			return _dVal <= 0.003039934639778431833823102437008856213651597499847412109375 ?
+				_dVal * 12.92321018078785499483274179510772228240966796875 :
+				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
+		}
+
+		/**
+		 * Converts from SMPTE 170M-2004 to linear.  Performs a conversion according to the standard.
 		 * 
 		 * \param _dVal The value to convert.
 		 * \return Returns the color value converted to linear space.
 		 **/
-		static double										SMPTE170MtoLinear( double _dVal ) {
-			return _dVal < 0.0812428582986315 ?						// 4.5 / (1.0 / 0.018053968510807)
-				_dVal / 4.5 :
-				std::pow( (_dVal + 0.099) / 1.09929682680944, 1.0 / 0.45 );
+		static inline double LSN_FASTCALL					SMPTE170MtoLinear( double _dVal ) {
+			return _dVal < 0.081 ?
+				_dVal * (1.0 / 4.5) :
+				std::pow( (_dVal + 0.099) * (1.0 / 1.099), 1.0 / 0.45 );
 		}
 
 		/**
-		 * Converts from linear to SMPTE 170M-2004.
+		 * Converts from linear to SMPTE 170M-2004.  Performs a conversion according to the standard.
 		 *
 		 * \param _dVal The value to convert.
 		 * \return Returns the value converted to SMPTE 170M-2004 space.
 		 */
-		static double										LinearToSMPTE170M( double _dVal ) {
-			return _dVal < 0.018053968510807 ?
-				4.5 * _dVal :
-				1.09929682680944 * std::pow( _dVal, 0.45 ) - 0.099;
+		static inline double LSN_FASTCALL					LinearToSMPTE170M( double _dVal ) {
+			return _dVal < 0.018 ?
+				_dVal * 4.5 :
+				1.099 * std::pow( _dVal, 0.45 ) - 0.099;
+		}
+
+		/**
+		 * Converts from SMPTE 170M-2004 to linear.  Performs a precise conversion without a gap.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					SMPTE170MtoLinear_Precise( double _dVal ) {
+			return _dVal < 0.081 ?
+				_dVal * (1.0 / 4.51378626511533997955893937614746391773223876953125) :
+				std::pow( (_dVal + 0.099) * (1.0 / 1.099), 1.0 / 0.45 );
+		}
+
+		/**
+		 * Converts from linear to SMPTE 170M-2004.  Performs a precise conversion without a gap.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to SMPTE 170M-2004 space.
+		 */
+		static inline double LSN_FASTCALL					LinearToSMPTE170M_Precise( double _dVal ) {
+			return _dVal < 0.01794502336674778930625251405217568390071392059326171875 ?
+				_dVal * 4.51378626511533997955893937614746391773223876953125 :
+				1.099 * std::pow( _dVal, 0.45 ) - 0.099;
+		}
+
+		/**
+		 * Converts from Display P3 to linear.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					DisplayP3toLinear( double _dVal ) {
+			return std::pow( _dVal, 2.6 );
+		}
+
+		/**
+		 * Converts from linear to Display P3.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to Display P3 space.
+		 */
+		static inline double LSN_FASTCALL					LinearToDisplayP3( double _dVal ) {
+			return std::pow( _dVal, 1.0 / 2.6 );
+		}
+
+		/**
+		 * Converts from Adobe RGB to linear.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					AdobeRGBtoLinear( double _dVal ) {
+			return std::pow( _dVal, 2.19921875 );
+		}
+
+		/**
+		 * Converts from linear to Adobe RGB.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to Adobe RGB space.
+		 */
+		static inline double LSN_FASTCALL					LinearToAdobeRGB( double _dVal ) {
+			return std::pow( _dVal, 1.0 / 2.19921875 );
+		}
+
+		/**
+		 * Converts from SMPTE 240M to linear.  Performs a conversion according to the standard.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					SMPTE240MtoLinear( double _dVal ) {
+			return _dVal < 0.0913 ?
+				_dVal / 4.0 :
+				std::pow( (_dVal + 0.1115) / 1.1115, 1.0 / 0.45 );
+		}
+
+		/**
+		 * Converts from linear to SMPTE 240M.  Performs a conversion according to the standard.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to SMPTE 240M space.
+		 */
+		static inline double LSN_FASTCALL					LinearToSMPTE240M( double _dVal ) {
+			return _dVal < 0.0228 ?
+				_dVal * 4.0 :
+				1.1115 * std::pow( _dVal, 0.45 ) - 0.1115;
+		}
+
+		/**
+		 * Converts from SMPTE 240M to linear.  Performs a precise conversion without a gap.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					SMPTE240MtoLinear_Precise( double _dVal ) {
+			return _dVal < 0.09122727272727272629371242373963468708097934722900390625 ?
+				_dVal / 4.00258800708078954500024337903596460819244384765625 :
+				std::pow( (_dVal + 0.1115) / 1.1115, 1.0 / 0.45 );
+		}
+
+		/**
+		 * Converts from linear to SMPTE 240M.  Performs a precise conversion without a gap.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to SMPTE 240M space.
+		 */
+		static inline double LSN_FASTCALL					LinearToSMPTE240M_Precise( double _dVal ) {
+			return _dVal < 0.022792071671100512519902991925846436060965061187744140625 ?
+				_dVal * 4.00258800708078954500024337903596460819244384765625 :
+				1.1115 * std::pow( _dVal, 0.45 ) - 0.1115;
 		}
 
 		/**
@@ -469,7 +605,6 @@ namespace lsn {
 			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
 #endif	// #ifdef __AVX512F__
 		}
-
 
 		/**
 		 * Performs integer-based linear interpolation across a row of ARGB pixels.
