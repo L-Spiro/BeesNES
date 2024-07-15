@@ -184,9 +184,23 @@ namespace lsn {
 		if ( "10 91 3e" == cvoVerifyMe.sName ) {
 			volatile int ghg = 0;
 		}
+		//m_bIsReset = true;
 		for ( auto I = cvoVerifyMe.vCycles.size(); I--; ) {
 			Tick();
+			/*if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM ) {
+				if ( m_bHandleNmi != I < 1 ) {
+					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
+				}
+			}*/
+			m_bDetectedNmi = true;
 			TickPhi2();
+			if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM &&
+				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BPL && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BNE && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVS &&
+				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCS && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BEQ && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BMI ) {
+				if ( m_bHandleNmi != I <= 0 ) {
+					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
+				}
+			}
 		}
 		Tick();
 		

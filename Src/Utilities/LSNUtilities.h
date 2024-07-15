@@ -265,22 +265,22 @@ namespace lsn {
 		}
 
 		/**
-		 * Converts from Display P3 to linear.
+		 * Converts from DCI-P3 to linear.
 		 * 
 		 * \param _dVal The value to convert.
 		 * \return Returns the color value converted to linear space.
 		 **/
-		static inline double LSN_FASTCALL					DisplayP3toLinear( double _dVal ) {
+		static inline double LSN_FASTCALL					DCIP3toLinear( double _dVal ) {
 			return std::pow( _dVal, 2.6 );
 		}
 
 		/**
-		 * Converts from linear to Display P3.
+		 * Converts from linear to DCI-P3.
 		 *
 		 * \param _dVal The value to convert.
-		 * \return Returns the value converted to Display P3 space.
+		 * \return Returns the value converted to DCI-P3 space.
 		 */
-		static inline double LSN_FASTCALL					LinearToDisplayP3( double _dVal ) {
+		static inline double LSN_FASTCALL					LinearToDCIP3( double _dVal ) {
 			return std::pow( _dVal, 1.0 / 2.6 );
 		}
 

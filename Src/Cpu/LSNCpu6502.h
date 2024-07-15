@@ -30,6 +30,7 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
+
 #define LSN_INSTR_START_PHI1( ISREAD )						/*m_bIsReadCycle = (ISREAD)*/
 #define LSN_INSTR_END_PHI1
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) ); /*m_bIsReadCycle = true;*/											\
@@ -552,6 +553,10 @@ namespace lsn {
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// CYCLES
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		/** Performs an add-with-carry with an operand, setting flags C, N, V, and Z. */
+		template <bool _bIncPc = false>
+		inline void											Adc_BeginInst();
+
 		/** Adds X and m_ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
 		inline void											Add_XAndOperand_To_AddrOrPntr_8bit();
@@ -575,11 +580,21 @@ namespace lsn {
 		template <bool _bIncPc = false>
 		inline void											And_BeginInst();
 
+		/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
+		inline void											Ane_IncPc_BeginInst();
+
+		/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
+		template <bool _bIncPc = false>
+		inline void											Arr_BeginInst();
+
 		/** Performs M <<= 1.  Sets C, N, and V. */
 		void												Asl();
 
 		/** Performs A <<= 1.  Sets C, N, and V. */
 		void												AslOnA_BeginInst();
+
+		/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
+		inline void											Asr_IncPc_BeginInst();
 
 		/** Sets flags N, V and Z according to a bit test. */
 		inline void											Bit_BeginInst();
@@ -612,11 +627,29 @@ namespace lsn {
 		/** Clears the carry bit. */
 		void												Clc_BeginInst();
 
+		/** Clears the IRQ flag. */
+		void												Cli_BeginInst();
+
+		/** Copies m_ui8Operand to Status without the B bit. */
+		inline void											CopyOperandToStatusWithoutB();
+
+		/** Adjusts PC and calls BeginInst(). */
+		template <bool _bIncPc = false>
+		inline void											CopyTargetToPc();
+
 		/** Copies from the vector to PC.h. */
+		template <bool _bEndInstr = false>
 		void												CopyVectorToPc_H_Phi2();
 			
 		/** Copies from the vector to PC.l. */
 		void												CopyVectorToPc_L_Phi2();
+
+		/** Performs Y--.  Sets flags N and Z. */
+		inline void											Dey_BeginInst();
+
+		/** Performs A = A ^ OP.  Sets flags N and Z. */
+		template <bool _bIncPc = false>
+		inline void											Eor_BeginInst();
 
 		/** Fetches the current opcode and increments PC. */
 		void												Fetch_Opcode_IncPc_Phi2();
@@ -630,7 +663,7 @@ namespace lsn {
 		void												Fetch_Operand_IncPc_Phi2();
 
 		/** Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC. */
-		template <bool _bToAddr>
+		template <bool _bToAddr, bool _bEndInstr = false>
 		inline void											Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2();
 
 		/** Fetches the operand to either m_ui16Address or m_ui16Pointer and increments PC. */
@@ -652,7 +685,16 @@ namespace lsn {
 		void												Jam_Phi2();
 
 		/** Copies m_ui16Address into PC. */
+		inline void											Jmp_BeginInst();
+
+		/** Copies m_ui16Address into PC, adjusts S. */
 		inline void											Jsr_BeginInst();
+
+		/** Performs OP >>= 1.  Sets flags C, N, and Z. */
+		inline void											Lsr();
+
+		/** Performs A >>= 1.  Sets flags C, N, and Z. */
+		inline void											LsrOnA_BeginInst();
 
 		/** Generic null operation. */
 		template <bool _bRead = true, bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
@@ -665,12 +707,31 @@ namespace lsn {
 		/** Sets m_ui8Operand to the status byte with Break and Reserved set. */
 		void												Php();
 
+		/** Pulls the accumulator: Copies m_ui8Operand to A. */
+		inline void											Pla_BeginInst();
+
 		/** Pulls the status byte, unsets X, sets M. */
 		inline void											Plp_BeginInst();
 
+		/** Pulls from the stack, stores in A. */
+		template <int8_t _i8SOff = 0>
+		inline void											Pull_To_A_Phi2();
+
 		/** Pulls from the stack, stores in m_ui8Operand. */
 		template <int8_t _i8SOff = 0>
-		inline void											Pull_Stack_To_Operand_Phi2();
+		inline void											Pull_To_Operand_Phi2();
+
+		/** Pulls from the stack, stores in m_ui16Target.H. */
+		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
+		inline void											Pull_To_Target_H_Phi2();
+
+		/** Pulls from the stack, stores in m_ui16Target.L. */
+		template <int8_t _i8SOff = 0>
+		inline void											Pull_To_Target_L_Phi2();
+
+		/** Pushes A. */
+		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
+		inline void											Push_A_Phi2();
 
 		/** Pushes m_ui8Operand. */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
@@ -691,9 +752,9 @@ namespace lsn {
 		/** Reads from m_ui8Operand, discards result. */
 		void												Read_Operand_Discard_Phi2();
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
-		//template <bool _bFromAddr>
-		//inline void											Read_PtrOrAddr_To_AddrOrPtr_8Bit_Phi2();
+		/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
+		template <bool _bFromAddr, bool _bEndInstr = false>
+		inline void											Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2();
 
 		/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
 		template <bool _bFromAddr>
@@ -715,6 +776,10 @@ namespace lsn {
 		template <bool _bEndInstr = false>
 		inline void											Read_Stack_To_Operand_Phi2();
 
+		/** Reads the stack, stores in m_ui16Target.H. */
+		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
+		inline void											Read_Stack_To_Target_H_Phi2();
+
 		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
 		inline void											Rla();
 
@@ -724,8 +789,30 @@ namespace lsn {
 		/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
 		inline void											RolOnA_BeginInst();
 
+		/** Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z. */
+		inline void											Ror();
+
+		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+		inline void											RorOnA_BeginInst();
+
+		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
+		inline void											Rra();
+
+		/** Copies m_ui16Target to PC, adjusts S. */
+		inline void											Rti_BeginInst();
+
+		/** Adjusts PC and calls BeginInst(). */
+		inline void											Rts_BeginInst();
+
+		/** Writes (A & X) to either m_ui16Pointer or m_ui16Address. */
+		template <bool _bToAddr>
+		inline void											Sax_Phi2();
+
 		/** Sets the carry flag. */
 		inline void											Sec_BeginInst();
+
+		/** Sets the IRQ flag. */
+		inline void											Sei_BeginInst();
 
 		/** Selects the BRK vector etc. */
 		void												SelectBrkVectors();
@@ -736,14 +823,36 @@ namespace lsn {
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void												Slo();
 
+		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
+		inline void											Sre();
+
+		/** Copies X into A.  Sets flags N, and Z. */
+		inline void											Txa_BeginInst();
+
+		/** Copies X into S. */
+		inline void											Txs_BeginInst();
+
+		/** Writes A to either m_ui16Pointer or m_ui16Address. */
+		template <bool _bToAddr>
+		inline void											Write_A_To_AddrOrPtr_Phi2();
+
 		/** Writes m_ui8Operand to either m_ui16Pointer or m_ui16Address. */
 		template <bool _bToAddr, bool _bEndInstr = false>
 		inline void											Write_Operand_To_AddrOrPtr_Phi2();
+
+		/** Writes X to either m_ui16Pointer or m_ui16Address. */
+		template <bool _bToAddr>
+		inline void											Write_X_To_AddrOrPtr_Phi2();
+
+		/** Writes Y to either m_ui16Pointer or m_ui16Address. */
+		template <bool _bToAddr>
+		inline void											Write_Y_To_AddrOrPtr_Phi2();
 		
 
 		/**
 		 * Prepares to enter a new instruction.
 		 */
+		template <bool _bIncPc = false, bool _bAdjS = false>
 		inline void											BeginInst();
 
 		/**
@@ -792,7 +901,15 @@ namespace lsn {
 	 *
 	 * \param _ui16Op The instruction to begin executing.
 	 */
+	template <bool _bIncPc, bool _bAdjS>
 	inline void CCpu6502::BeginInst() {
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
+
+		if constexpr ( _bAdjS ) {
+			LSN_UPDATE_S;
+		}
 		// Enter normal instruction context.
 		m_ui8FuncIndex = 0;
 		// TODO: Move this to Tick_NextInstructionStd().
@@ -852,7 +969,17 @@ namespace lsn {
 
 
 
+	/** Performs an add-with-carry with an operand, setting flags C, N, V, and Z. */
+	template <bool _bIncPc>
+	inline void CCpu6502::Adc_BeginInst() {
+		BeginInst();
 
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
+
+		Adc( m_rRegs.ui8A, m_ui8Operand );
+	}
 	
 	/** Adds X and m_ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
 	template <bool _bToAddr, bool _bRead, bool _bIncPc>
@@ -958,6 +1085,8 @@ namespace lsn {
 	inline void CCpu6502::Anc_IncPc_BeginInst() {
 		LSN_UPDATE_PC;
 
+		BeginInst();
+
 		m_rRegs.ui8A &= m_ui8Operand;
 
 		SetBit<C() | N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
@@ -973,12 +1102,47 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
+		BeginInst();
+
 		m_rRegs.ui8A &= m_ui8Operand;
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
+	inline void CCpu6502::Ane_IncPc_BeginInst() {
+		BeginInst();
+
+		LSN_UPDATE_PC;
+
+		// "N and Z are set according to the value of the accumulator before the instruction executed" does not seem to be true.
+		m_rRegs.ui8A = (m_rRegs.ui8A | 0xEE) & m_rRegs.ui8X & m_ui8Operand;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
+	template <bool _bIncPc>
+	inline void CCpu6502::Arr_BeginInst() {
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
 
 		BeginInst();
+
+		m_rRegs.ui8A &= m_ui8Operand;
+		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+		// It carries if the last bit gets shifted in.
+		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		m_rRegs.ui8A = (m_rRegs.ui8A >> 1) | ui8HiBit;
+		SetBit<Z()>( m_rRegs.ui8Status, m_rRegs.ui8A == 0x00 );
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<V()>( m_rRegs.ui8Status,
+			((m_rRegs.ui8Status & C()) ^ ((m_rRegs.ui8A >> 5) & 0x1)) != 0 );
+
+		
 	}
 
 	/** Performs M <<= 1.  Sets C, N, and V. */
@@ -999,14 +1163,31 @@ namespace lsn {
 
 	/** Performs A <<= 1.  Sets C, N, and V. */
 	inline void CCpu6502::AslOnA_BeginInst() {
+		BeginInst();
+
 		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 
 		m_rRegs.ui8A <<= 1;
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
+	inline void CCpu6502::Asr_IncPc_BeginInst() {
+		LSN_UPDATE_PC;
 
 		BeginInst();
+
+		m_rRegs.ui8A &= m_ui8Operand;
+		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
+
+		m_rRegs.ui8A >>= 1;
+
+		SetBit<N(), false>( m_rRegs.ui8Status );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+
+		
 	}
 
 	/** Sets flags N, V and Z according to a bit test. */
@@ -1134,11 +1315,52 @@ namespace lsn {
 		BeginInst();
 	}
 
+	/** Clears the IRQ flag. */
+	inline void CCpu6502::Cli_BeginInst() {
+		SetBit<I(), false>( m_rRegs.ui8Status );
+
+		BeginInst();
+	}
+
+	/** Copies m_ui8Operand to Status without the B bit. */
+	inline void CCpu6502::CopyOperandToStatusWithoutB() {
+		LSN_INSTR_START_PHI1( true );
+
+		constexpr uint8_t ui8Mask = M() | X();
+		m_rRegs.ui8Status = (m_ui8Operand & ~ui8Mask) | (m_rRegs.ui8Status & ui8Mask);
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** Adjusts PC and calls BeginInst(). */
+	template <bool _bIncPc>
+	inline void CCpu6502::CopyTargetToPc() {
+		LSN_INSTR_START_PHI1( true );
+
+		m_rRegs.ui16Pc = m_ui16Target;
+
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
 	/** Copies from the vector to PC.h. */
+	template <bool _bEndInstr>
 	inline void CCpu6502::CopyVectorToPc_H_Phi2() {
 		LSN_INSTR_START_PHI2_READ( m_vBrkVector + 1, m_ui8Address[1] );
 
-		LSN_FINISH_INST( true );
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1152,11 +1374,39 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
+	/** Performs Y--.  Sets flags N and Z. */
+	inline void CCpu6502::Dey_BeginInst() {
+		BeginInst();
+
+		--m_rRegs.ui8Y;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8Y & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8Y );
+	}
+
+	/** Performs A = A ^ OP.  Sets flags N and Z. */
+	template <bool _bIncPc>
+	inline void CCpu6502::Eor_BeginInst() {
+		if constexpr ( _bIncPc ) {
+			LSN_UPDATE_PC;
+		}
+
+		m_rRegs.ui8A ^= m_ui8Operand;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		
+		BeginInst();
+	}
+
 	/** Fetches the current opcode and increments PC. */
 	inline void CCpu6502::Fetch_Opcode_IncPc_Phi2() {
 		uint8_t ui8Op;
 		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
 
+#ifdef LSN_CPU_VERIFY
+		m_ui16PcModify = 1;
+#else
 		if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
 			ui8Op = 0;
 			m_ui16PcModify = 0;
@@ -1165,6 +1415,7 @@ namespace lsn {
 		else {
 			m_ui16PcModify = 1;
 		}
+#endif	// #ifdef LSN_CPU_VERIFY
 		m_ui16OpCode = ui8Op;
 		m_pfCurInstruction = m_iInstructionSet[m_ui16OpCode].pfHandler;
 
@@ -1209,7 +1460,7 @@ namespace lsn {
 	}
 
 	/** Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC. */
-	template <bool _bToAddr>
+	template <bool _bToAddr, bool _bEndInstr>
 	inline void CCpu6502::Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2() {
 		if constexpr ( _bToAddr ) {
 			// PC -> Address.
@@ -1222,7 +1473,12 @@ namespace lsn {
 
 		m_ui16PcModify = 1;
 		
-		LSN_NEXT_FUNCTION;
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1311,6 +1567,14 @@ namespace lsn {
 	}
 
 	/** Copies m_ui16Address into PC. */
+	inline void CCpu6502::Jmp_BeginInst() {
+		m_rRegs.ui16Pc = m_ui16Address;
+		m_ui16PcModify = 0;
+
+		BeginInst();
+	}
+
+	/** Copies m_ui16Address into PC, adjusts S. */
 	inline void CCpu6502::Jsr_BeginInst() {
 		m_rRegs.ui16Pc = m_ui16Address;
 		m_ui16PcModify = 0;
@@ -1318,6 +1582,32 @@ namespace lsn {
 		LSN_UPDATE_S;
 
 		BeginInst();
+	}
+
+	/** Performs OP >>= 1.  Sets flags C, N, and Z. */
+	inline void CCpu6502::Lsr() {
+		LSN_INSTR_START_PHI1( false );
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
+		m_ui8Operand >>= 1;
+
+		SetBit<N(), false>( m_rRegs.ui8Status );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** Performs A >>= 1.  Sets flags C, N, and Z. */
+	inline void CCpu6502::LsrOnA_BeginInst() {
+		BeginInst();
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
+		m_rRegs.ui8A >>= 1;
+
+		SetBit<N(), false>( m_rRegs.ui8Status );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
 	}
 
 	/** Generic null operation. */
@@ -1370,6 +1660,15 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
+	/** Pulls the accumulator: Copies m_ui8Operand to A. */
+	inline void CCpu6502::Pla_BeginInst() {
+		BeginInst();
+
+		m_rRegs.ui8A = m_ui8Operand;
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
 	/** Pulls the status byte, unsets X, sets M. */
 	inline void CCpu6502::Plp_BeginInst() {
 		m_rRegs.ui8Status = (m_ui8Operand & ~X()) | M();
@@ -1377,12 +1676,62 @@ namespace lsn {
 		BeginInst();
 	}
 
+	/** Pulls from the stack, stores in A. */
+	template <int8_t _i8SOff>
+	inline void CCpu6502::Pull_To_A_Phi2() {
+		LSN_POP( m_rRegs.ui8A );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI2;
+	}
+
 	/** Pulls from the stack, stores in m_ui8Operand. */
 	template <int8_t _i8SOff>
-	inline void CCpu6502::Pull_Stack_To_Operand_Phi2() {
+	inline void CCpu6502::Pull_To_Operand_Phi2() {
 		LSN_POP( m_ui8Operand );
 
 		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Pulls from the stack, stores in m_ui16Target.H. */
+	template <int8_t _i8SOff, bool _bEndInstr>
+	inline void CCpu6502::Pull_To_Target_H_Phi2() {
+		LSN_POP( m_ui8Target[0] );
+
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Pulls from the stack, stores in m_ui16Target.L. */
+	template <int8_t _i8SOff>
+	inline void CCpu6502::Pull_To_Target_L_Phi2() {
+		LSN_POP( m_ui8Target[0] );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Pushes A. */
+	template <int8_t _i8SOff, bool _bEndInstr>
+	inline void CCpu6502::Push_A_Phi2() {
+		LSN_PUSH( m_rRegs.ui8A );
+
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1447,22 +1796,27 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
-	//template <bool _bFromAddr>
-	//inline void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_8Bit_Phi2() {
-	//	if constexpr ( !_bFromAddr ) {
-	//		// Pointer -> Address.
-	//		LSN_INSTR_START_PHI2_READ( m_ui16Pointer + 1, m_ui8Address[1] );
-	//	}
-	//	else {
-	//		// Address -> Pointer.
-	//		LSN_INSTR_START_PHI2_READ( m_ui16Address + 1, m_ui16Pointer[1] );
-	//	}
-	//	
-	//	LSN_NEXT_FUNCTION;
-	//
-	//	LSN_INSTR_END_PHI2;
-	//}
+	/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
+	template <bool _bFromAddr, bool _bEndInstr>
+	inline void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2() {
+		if constexpr ( !_bFromAddr ) {
+			// Pointer -> Address.
+			LSN_INSTR_START_PHI2_READ( (m_ui8Pointer[1] << 8) | uint8_t( m_ui8Pointer[0] + 1 ), m_ui8Address[1] );
+		}
+		else {
+			// Address -> Pointer.
+			LSN_INSTR_START_PHI2_READ( (m_ui8Address[1] << 8) | uint8_t( m_ui8Address[0] + 1 ), m_ui8Pointer[1] );
+		}
+		
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
 
 	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
 	template <bool _bFromAddr>
@@ -1551,7 +1905,27 @@ namespace lsn {
 	inline void CCpu6502::Read_Stack_To_Operand_Phi2() {
 		LSN_INSTR_START_PHI2_READ( 0x100 | m_rRegs.ui8S, m_ui8Operand );
 		
-		LSN_NEXT_FUNCTION;
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Reads the stack, stores in m_ui16Target.H. */
+	template <int8_t _i8SOff, bool _bEndInstr>
+	inline void CCpu6502::Read_Stack_To_Target_H_Phi2() {
+		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_rRegs.ui8S + _i8SOff ), m_ui8Target[1] );
+		
+		if constexpr ( _bEndInstr ) {
+			LSN_FINISH_INST( true );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1604,9 +1978,93 @@ namespace lsn {
 		BeginInst();
 	}
 
+	/** Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z. */
+	inline void CCpu6502::Ror() {
+		LSN_INSTR_START_PHI1( false );
+
+		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
+		m_ui8Operand = (m_ui8Operand >> 1) | ui8HiBit;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
+	inline void CCpu6502::RorOnA_BeginInst() {
+		BeginInst();
+
+		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
+		m_rRegs.ui8A = (m_rRegs.ui8A >> 1) | ui8HiBit;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
+	inline void CCpu6502::Rra() {
+		LSN_INSTR_START_PHI1( false );
+
+		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
+		m_ui8Operand = (m_ui8Operand >> 1) | ui8HiBit;
+
+		Adc( m_rRegs.ui8A, m_ui8Operand );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** Copies m_ui16Target to PC, adjusts S. */
+	inline void CCpu6502::Rti_BeginInst() {
+		LSN_UPDATE_S;
+
+		m_rRegs.ui16Pc = m_ui16Target;
+
+		BeginInst();
+	}
+
+	/** Adjusts PC and calls BeginInst(). */
+	inline void CCpu6502::Rts_BeginInst() {
+		LSN_UPDATE_PC;
+
+		BeginInst();
+	}
+
+	/** Writes (A & X) to either m_ui16Pointer or m_ui16Address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Sax_Phi2() {
+		if constexpr ( _bToAddr ) {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8A & m_rRegs.ui8X );
+		}
+		else {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8A & m_rRegs.ui8X );
+		}
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
 	/** Sets the carry flag. */
 	inline void CCpu6502::Sec_BeginInst() {
 		SetBit<C(), true>( m_rRegs.ui8Status );
+
+		BeginInst();
+	}
+
+	/** Sets the IRQ flag. */
+	inline void CCpu6502::Sei_BeginInst() {
+		SetBit<I(), true>( m_rRegs.ui8Status );
 
 		BeginInst();
 	}
@@ -1615,6 +2073,10 @@ namespace lsn {
 	inline void CCpu6502::SelectBrkVectors() {
 		LSN_INSTR_START_PHI1( false );
 
+#ifdef LSN_CPU_VERIFY
+		m_vBrkVector = LSN_V_IRQ_BRK;
+		m_bPushB = true;
+#else
 		// Select vector to use.
 		if ( m_bIsReset ) {
 			m_vBrkVector = LSN_V_RESET;
@@ -1639,6 +2101,7 @@ namespace lsn {
 			m_bNmiStatusLine = false;
 		}
 		m_bHandleIrq = false;
+#endif	// #ifdef LSN_CPU_VERIFY
 
 		LSN_NEXT_FUNCTION;
 
@@ -1674,6 +2137,54 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
+	/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
+	inline void CCpu6502::Sre() {
+		LSN_INSTR_START_PHI1( false );
+
+		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
+		m_ui8Operand >>= 1;
+		m_rRegs.ui8A ^= m_ui8Operand;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+
+		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI1;
+	}
+
+	/** Copies X into A.  Sets flags N, and Z. */
+	inline void CCpu6502::Txa_BeginInst() {
+		BeginInst();
+
+		m_rRegs.ui8A = m_rRegs.ui8X;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Copies X into S. */
+	inline void CCpu6502::Txs_BeginInst() {
+		BeginInst();
+
+		m_rRegs.ui8S = m_rRegs.ui8X;
+	}
+
+	/** Writes A to either m_ui16Pointer or m_ui16Address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Write_A_To_AddrOrPtr_Phi2() {
+		if constexpr ( _bToAddr ) {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8A );
+		}
+		else {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8A );
+		}
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
 	/** Writes m_ui8Operand to either m_ui16Pointer or m_ui16Address. */
 	template <bool _bToAddr, bool _bEndInstr>
 	inline void CCpu6502::Write_Operand_To_AddrOrPtr_Phi2() {
@@ -1690,6 +2201,36 @@ namespace lsn {
 		else {
 			LSN_NEXT_FUNCTION;
 		}
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Writes X to either m_ui16Pointer or m_ui16Address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Write_X_To_AddrOrPtr_Phi2() {
+		if constexpr ( _bToAddr ) {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8X );
+		}
+		else {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8X );
+		}
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Writes Y to either m_ui16Pointer or m_ui16Address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Write_Y_To_AddrOrPtr_Phi2() {
+		if constexpr ( _bToAddr ) {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8Y );
+		}
+		else {
+			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8Y );
+		}
+
+		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI2;
 	}
