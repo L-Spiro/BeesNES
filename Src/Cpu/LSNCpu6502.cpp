@@ -181,9 +181,9 @@ namespace lsn {
 		}
 		m_pbBus->ApplyMap();				// Set default read/write functions.
 
-		if ( "10 91 3e" == cvoVerifyMe.sName ) {
+		/*if ( "10 91 3e" == cvoVerifyMe.sName ) {
 			volatile int ghg = 0;
-		}
+		}*/
 		//m_bIsReset = true;
 		for ( auto I = cvoVerifyMe.vCycles.size(); I--; ) {
 			Tick();

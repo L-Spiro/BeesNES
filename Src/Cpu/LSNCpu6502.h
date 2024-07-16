@@ -820,6 +820,22 @@ namespace lsn {
 		/** Sets I and X. */
 		void												SetBrkFlags();
 
+		/** Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address. */
+		template <bool _bToAddr>
+		inline void											Sha_Phi2();
+
+		/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
+		template <bool _bToAddr>
+		inline void											Shs_Phi2();
+
+		/** Illegal. Stores X & (high-byte of address + 1) at the address. */
+		template <bool _bToAddr>
+		inline void											Shx_Phi2();
+
+		/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
+		template <bool _bToAddr>
+		inline void											Shy_Phi2();
+
 		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 		void												Slo();
 
@@ -828,6 +844,9 @@ namespace lsn {
 
 		/** Copies X into A.  Sets flags N, and Z. */
 		inline void											Txa_BeginInst();
+
+		/** Copies Y into A.  Sets flags N, and Z. */
+		inline void											Tya_BeginInst();
 
 		/** Copies X into S. */
 		inline void											Txs_BeginInst();
@@ -2121,6 +2140,152 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
+	/** Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Sha_Phi2() {
+		if constexpr ( _bToAddr ) {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+			}
+		}
+		else {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+			}
+		}
+
+		/* Stores A AND X AND (high-byte of addr. + 1) at addr.
+		
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		A AND X AND (H+1) -> M
+		*/
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Shs_Phi2() {
+		m_rRegs.ui8S = m_rRegs.ui8A & m_rRegs.ui8X;
+
+		if constexpr ( _bToAddr ) {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+			}
+		}
+		else {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+			}
+		}
+
+		/* Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		A AND X -> SP, A AND X AND (H+1) -> M
+		*/
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Illegal. Stores X & (high-byte of address + 1) at the address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Shx_Phi2() {
+		if constexpr ( _bToAddr ) {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+			}
+		}
+		else {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+			}
+		}
+
+		/* Stores X AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		X AND (H+1) -> M
+		*/
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
+	template <bool _bToAddr>
+	inline void CCpu6502::Shy_Phi2() {
+		if constexpr ( _bToAddr ) {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+			}
+		}
+		else {
+			if ( m_bBoundaryCrossed ) {
+				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			}
+			else {
+				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+			}
+		}
+
+		/* Stores Y AND (high-byte of addr. + 1) at addr.
+
+		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+		Y AND (H+1) -> M
+		*/
+
+		LSN_FINISH_INST( true );
+
+		LSN_INSTR_END_PHI2;
+	}
+
 	/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
 	inline void CCpu6502::Slo() {
 		LSN_INSTR_START_PHI1( false );
@@ -2158,6 +2323,16 @@ namespace lsn {
 		BeginInst();
 
 		m_rRegs.ui8A = m_rRegs.ui8X;
+
+		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+	}
+
+	/** Copies Y into A.  Sets flags N, and Z. */
+	inline void CCpu6502::Tya_BeginInst() {
+		BeginInst();
+
+		m_rRegs.ui8A = m_rRegs.ui8Y;
 
 		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
