@@ -813,7 +813,21 @@ namespace lsn {
 				ppPpu->m_pnNmiTarget->ClearNmi();
 			}
 			else if ( (ppPpu->m_pcPpuCtrl.s.ui8Nmi && !bPrevNmi) && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
-				ppPpu->TriggerNmi();
+				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
+				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
+
+				constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
+				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX) + -1;
+
+				int32_t i32Dif = i32CurIdx - i32TargetIdx;
+				if ( i32Dif == -1 ) {
+					ppPpu->m_pcPpuCtrl.s.ui8Nmi = false;
+					ppPpu->TriggerNmi();
+					ppPpu->m_pcPpuCtrl.s.ui8Nmi = true;
+				}
+				else {
+					ppPpu->TriggerNmi();
+				}
 			}
 			/*if ( ppPpu->m_pcPpuCtrl.s.ui8Nmi ) {
 				::OutputDebugStringA( ("Write $2000 NMI ON: " + std::to_string( ppPpu->m_ui16CurY ) + ", " + std::to_string( ppPpu->m_ui16CurX ) + ".  Frame: " + std::to_string( ppPpu->m_ui64Frame ) + "\r\n").c_str() );
@@ -852,30 +866,29 @@ namespace lsn {
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			{
-				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted at the end of that PPU cycle,
 				//	consider this read as happening on the last PPU cycle and adjust accordingly.
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
-				ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+				//ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
-				// Reading $2002 within a few PPU clocks of when VBL is set results in special-case behavior.
-				if ( i16AdjustedY == (_tPreRender + _tRender + _tPostRender) ) {
+				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;
+				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX) + -1;
+
+				int32_t i32Dif = i32CurIdx - i32TargetIdx;
+				if ( i32Dif == -1 ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
-					if ( i16AdjustedX == (1 - 1) ) {
-						ppPpu->m_bSuppressNmi = true;
-						ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
-						//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
-					}
-					else if ( i16AdjustedX == (1 - 0) || i16AdjustedX == (1 + 1) ) {
-						// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
-						ppPpu->m_bSuppressNmi = true;
-						ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
-						//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
-					}
-					//ppPpu->m_bSuppressNmi = false;	// This line changes nothing whether present or absent.
+					ppPpu->m_bSuppressNmi = true;
+					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
+					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
+				}
+				else if ( i32Dif == 0 || i32Dif == 1 ) {
+					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
+					ppPpu->m_bSuppressNmi = true;
+					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
+					//::OutputDebugStringA( ("ULTIMATE MOVE: SUPPRESSION!!\r\n") );
 				}
 			}
-
 			//::OutputDebugStringA( ("REad $2002: " + std::to_string( ppPpu->m_ui16CurY ) + ", " + std::to_string( ppPpu->m_ui16CurX ) + ".  Frame: " + std::to_string( ppPpu->m_ui64Frame ) + "\r\n").c_str() );
 
 

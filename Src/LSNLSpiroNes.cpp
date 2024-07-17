@@ -102,7 +102,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 	{
-		for ( uint32_t I = 0x10; I < 256; ++I ) {
+		for ( uint32_t I = 0x00; I < 256; ++I ) {
 			std::wstring wsFile;
 			lson::CJson jSon;
 			std::vector<uint8_t> vBytes;
@@ -110,7 +110,6 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 			wchar_t wcFile[64];
 			std::swprintf( wcFile, L"..\\..\\Research\\nes6502\\v1\\%.2X.json", I );
 			if ( sfFile.Open( reinterpret_cast<const char16_t *>((wsRoot + wcFile).c_str()) ) ) {
-				//lsn::CStdFile::LoadToMemory( L"J:\\My Projects\\L. Spiro NES\\Research\\nes6502\\v1\\02.json", vBytes );
 				sfFile.LoadToMemory( vBytes );
 				vBytes.push_back( 0 );
 
