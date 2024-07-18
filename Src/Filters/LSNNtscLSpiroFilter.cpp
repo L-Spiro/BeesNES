@@ -102,11 +102,13 @@ namespace lsn {
 	 * Sets the filter kernel size.
 	 * 
 	 * \param _ui32Size The new size of the filter.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	void CNtscLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
+	bool CNtscLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
 		GenFilterKernel( m_ui32FilterKernelSize * 2 );
-		SetWidth( m_ui16Width );
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
+		return true;
 	}
 
 	/**
@@ -131,7 +133,7 @@ namespace lsn {
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
 	bool CNtscLSpiroFilter::SetWidthScale( uint16_t _ui16WidthScale ) {
-		if ( m_ui16Width != _ui16WidthScale ) {
+		if ( m_ui16WidthScale != _ui16WidthScale ) {
 			if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, _ui16WidthScale ) ) { return false; }
 			m_ui16WidthScale = _ui16WidthScale;
 			m_ui16ScaledWidth = m_ui16Width * m_ui16WidthScale;
@@ -161,7 +163,8 @@ namespace lsn {
 	void CNtscLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
-			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
+			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
+			//m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0 ) );
 			//m_ui8Gamma[I] = uint8_t( std::round( (I / 299.0) * 255.0 ) );
 		}
 	}
@@ -437,11 +440,11 @@ namespace lsn {
 		try {
 			// Buffer size:
 			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 16;
+			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + (m_ui32FilterKernelSize * 2) + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
-				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32FilterKernelSize / 2 );
+				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32FilterKernelSize );
 				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
 			}

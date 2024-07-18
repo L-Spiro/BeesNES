@@ -105,8 +105,9 @@ namespace lsn {
 		 * Sets the filter kernel size.
 		 * 
 		 * \param _ui32Size The new size of the filter.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
 		 **/
-		void												SetKernelSize( uint32_t _ui32Size );
+		bool												SetKernelSize( uint32_t _ui32Size );
 
 		/**
 		 * Sets the width of the input.
@@ -189,7 +190,7 @@ namespace lsn {
 		// == Enumerations.
 		/** Metrics. */
 		enum {
-			LSN_MAX_FILTER_SIZE								= 48,									/**< The maximum size of the gather for generating YIQ values. */
+			LSN_MAX_FILTER_SIZE								= 256 * 2 + 8,									/**< The maximum size of the gather for generating YIQ values. */
 		};
 
 

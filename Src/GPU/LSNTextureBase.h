@@ -15,7 +15,7 @@
 namespace lsn {
 
 	/**
-	 * Class CDirectX9LosableResourceManager
+	 * Class CTextureBase
 	 * \brief The base class for textures.
 	 *
 	 * Description: The base class for textures.

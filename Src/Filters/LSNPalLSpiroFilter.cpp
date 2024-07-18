@@ -96,11 +96,13 @@ namespace lsn {
 	 * Sets the filter kernel size.
 	 * 
 	 * \param _ui32Size The new size of the filter.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	void CPalLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
+	bool CPalLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
 		GenFilterKernel( m_ui32FilterKernelSize * 2 );
-		SetWidth( m_ui16Width );
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
+		return true;
 	}
 
 	/**
@@ -125,7 +127,7 @@ namespace lsn {
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
 	bool CPalLSpiroFilter::SetWidthScale( uint16_t _ui16WidthScale ) {
-		if ( m_ui16Width != _ui16WidthScale ) {
+		if ( m_ui16WidthScale != _ui16WidthScale ) {
 			if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, _ui16WidthScale ) ) { return false; }
 			m_ui16WidthScale = _ui16WidthScale;
 			m_ui16ScaledWidth = m_ui16Width * m_ui16WidthScale;
@@ -155,7 +157,7 @@ namespace lsn {
 	void CPalLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
-			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
+			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
 		}
 	}
 

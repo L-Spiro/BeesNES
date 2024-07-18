@@ -998,6 +998,35 @@ namespace lsn {
 		}
 
 		/**
+		 * A helper function for the Mitchell filter.
+		 *
+		 * \param _dT The filter input.
+		 * \param _dB A happy parameter.
+		 * \param _dC A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static inline float									MitchellFilterHelper( double _dT, double _dB, double _dC ) {
+			double dTt = _dT * _dT;
+			_dT = std::fabs( _dT );
+			if ( _dT < 1.0 ) {
+				_dT = (((12.0 - 9.0 * _dB - 6.0 * _dC) * (_dT * dTt))
+					+ ((-18.0 + 12.0 * _dB + 6.0 * _dC) * dTt)
+					+ (6.0 - 2.0 * _dB));
+				return static_cast<float>(_dT / 6.0);
+			}
+			else if ( _dT < 2.0 ) {
+				_dT = (((-1.0 * _dB - 6.0 * _dC) * (_dT * dTt))
+					+ ((6.0 * _dB + 30.0 * _dC) * dTt)
+					+ ((-12.0 * _dB - 48.0 * _dC) * _dT)
+					+ (8.0 * _dB + 24.0 * _dC));
+
+				return static_cast<float>(_dT / 6.0);
+			}
+
+			return 0.0f;
+		}
+
+		/**
 		 * Reject values below a specific epsilon.
 		 *
 		 * \param _dVal The value to test.
@@ -1276,6 +1305,17 @@ namespace lsn {
 				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
+		}
+
+		/**
+		 * The Cardinal Spline Uniform filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel
+		 * \return Returns the filtered value.
+		 */
+		static inline float									CardinalSplineUniformFilterFunc( float _fT, float _fWidth ) {
+			return MitchellFilterHelper( _fT * 2.0 / _fWidth, 0.0, 1.0 );
 		}
 
 		/**
