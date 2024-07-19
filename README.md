@@ -20,20 +20,20 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 RF Cables:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)<br>
 Composite:<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/01721d1b-fd02-4c93-934c-88e9970bf10c)<br>
+![image](https://github.com/user-attachments/assets/ecb304fd-4fcd-43b4-844e-d4324b362b1b)<br>
 HDMI:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/8732d426-64cc-4c7c-9238-e9f70cf6bf26)<br>
 HDMI Mod:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/692e989b-ec8a-4266-913a-ebb921e5e60e)<br>
 
 PAL (Composite:):<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/f7e07a6e-5be8-4d0d-88aa-1aec3ca364ba)<br>
+![image](https://github.com/user-attachments/assets/96cdd992-7f6b-4b70-85ac-4ed7e8136351)<br>
 Dendy (Composite):<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/9a944716-ecec-48e4-8861-44ea5c4d3f8a)<br>
+![image](https://github.com/user-attachments/assets/73a21bab-23ee-433d-a26d-7590174d09a4)<br>
 PAL-M (Brazil) (Composite):<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/94f9db16-68ef-4d41-9e12-d8f0664e5a13)<br>
+![image](https://github.com/user-attachments/assets/44b45dcf-9d80-46f1-bb2a-a0304e733e3e)<br>
 PAL-N (Argentina) (Composite):<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/31e763cf-5d1b-406c-a30f-4660fcbe6c63)<br>
+![image](https://github.com/user-attachments/assets/9a910472-d812-4cb7-a693-de190c6a47bb)<br>
 
 
 ## Audio Samples
