@@ -185,7 +185,7 @@ int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
 		ui64Time / double( cClock.GetResolution() );
 	char szBuffer[256];
 	::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f.\r\n"
-		"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
+		"Master Cycles: %llu (%.8f per second; ideal: %.8f).\r\n"
 		"%.8f cycles per Tick().\r\n"
 		"%.8f FPS.\r\n",
 		ui64TickCount, dTime,

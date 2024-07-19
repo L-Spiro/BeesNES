@@ -1038,90 +1038,19 @@ namespace lsn {
 		}
 
 		/**
-		 * The Lanczos filter function with 2 samples.
-		 *
-		 * \param _fT The value to filter.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Lanczos2FilterFunc( float _fT ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= 2.0 ) {
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 2.0 ) ));
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Lanczos filter function with 3 samples.
-		 *
-		 * \param _fT The value to filter.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Lanczos3FilterFunc( float _fT ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= 3.0 ) {
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 3.0 ) ));
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Lanczos filter function with 6 samples.
-		 *
-		 * \param _fT The value to filter.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Lanczos6FilterFunc( float _fT ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= 6.0 ) {
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 6.0 ) ));
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Lanczos filter function with 12 samples.
-		 *
-		 * \param _fT The value to filter.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Lanczos12FilterFunc( float _fT ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= 12.0 ) {
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / 12.0 ) ));
-			}
-			return 0.0f;
-		}
-
-		/**
 		 * The Lanczos filter function with X samples.
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 */
+		template <unsigned _uWidthD, unsigned _uWidthN>
 		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
 			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 12.0 ) * _fWidth );
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / _fWidth ) ));
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Lanczos filter function with X samples.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		template <unsigned _uPow>
-		static inline float									LanczosXFilterFunc_Pow( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, double( _uPow ) ) * _fWidth );
-				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / _fWidth ) ));
+			constexpr float fW = float( _uWidthD ) / float( _uWidthN );
+			_fT = _fT / _fWidth * fW;
+			if ( _fT <= fW ) {
+				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / fW ) ));
 			}
 			return 0.0f;
 		}
@@ -1169,140 +1098,13 @@ namespace lsn {
 		static inline float									GaussianXFilterFunc( float _fT, float _fWidth ) {
 			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
-				return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-			}
-			return 0.0f;
-		}
 
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian12Over30FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 30.0 / 12.0 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
+				double dSigma = (_fWidth - 1.0 ) / 6.0;
+				double dExpVal = -1 * ((_fT * _fT) / (2.0 * dSigma * 2.0 * dSigma));
+				double dDivider = std::sqrt( 2.0 * std::numbers::pi * (dSigma * dSigma) );
+				return static_cast<float>(std::exp( dExpVal ) / dDivider);
 
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian1FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 1.0 ) * _fWidth );
 				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian1_5FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 1.5 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian2FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 2.0 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian4FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 4.0 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian8FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 8.0 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
-			}
-			return 0.0f;
-		}
-
-		/**
-		 * The Gaussian filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		static inline float									Gaussian16FilterFunc( float _fT, float _fWidth ) {
-			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 1.0 / 16.0 ) * _fWidth );
-				//return Clean( std::exp( -2.0 * _fT * _fT ) * std::sqrt( 2.0 / std::numbers::pi ) * BlackmanWindow( _fT / double( _fWidth ) ) );
-				
-				float fX = _fT - _fWidth;
-				return float( (1.0 / (std::sqrt( 2.0 * std::numbers::pi ) * _fT)) * (std::exp( -(fX * fX) / (2.0 * _fT * _fT) )) );
 			}
 			return 0.0f;
 		}

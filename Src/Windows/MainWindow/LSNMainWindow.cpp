@@ -461,7 +461,7 @@ namespace lsn {
 			double dTime = ui64Time / double( m_cClock.GetResolution() );
 			char szBuffer[256];
 			::sprintf_s( szBuffer, "Ticks: %llu. Time: %.8f (%.8f hours).\r\n"
-				"Master Cycles: %llu (%.8f per second; expected %.8f).\r\n"
+				"Master Cycles: %llu (%.8f per second; ideal: %.8f).\r\n"
 				"%.8f cycles per Tick().\r\n"
 				"%.8f FPS.\r\n",
 				m_bnEmulator.GetSystem()->GetTickCount(), dTime, dTime / 60.0 / 60.0,
