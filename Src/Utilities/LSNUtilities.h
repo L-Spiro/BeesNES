@@ -900,6 +900,86 @@ namespace lsn {
 			// Step 4: Extract the scalar value.
 			return _mm_cvtss_f32( mAddH2 );
 		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (unaligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_AVX512_U( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 16 floats at a time.  But like, 2 16-at-a-times at a time.
+			for ( ; I + 31 < _sTotal; I += 32 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 32 );
+				LSN_PREFETCH_LINE( _pfOp1 + 32 );
+
+				// Load and add the first 16 floats.
+				__m512 mA1 = _mm512_loadu_ps( &_pfOp0[I] );
+				__m512 mB1 = _mm512_loadu_ps( &_pfOp1[I] );
+				__m512 mC1 = _mm512_add_ps( mA1, mB1 );
+				_mm512_storeu_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 16 floats.
+				__m512 mA2 = _mm512_loadu_ps( &_pfOp0[I+16] );
+				__m512 mB2 = _mm512_loadu_ps( &_pfOp1[I+16] );
+				__m512 mC2 = _mm512_add_ps( mA2, mB2 );
+				_mm512_storeu_ps( &_pfOut[I+16], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (aligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_AVX512( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 16 floats at a time.  But like, 2 16-at-a-times at a time.
+			for ( ; I + 31 < _sTotal; I += 32 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 32 );
+				LSN_PREFETCH_LINE( _pfOp1 + 32 );
+
+				// Load and add the first 16 floats.
+				__m512 mA1 = _mm512_load_ps( &_pfOp0[I] );
+				__m512 mB1 = _mm512_load_ps( &_pfOp1[I] );
+				__m512 mC1 = _mm512_add_ps( mA1, mB1 );
+				_mm512_store_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 16 floats.
+				__m512 mA2 = _mm512_load_ps( &_pfOp0[I+16] );
+				__m512 mB2 = _mm512_load_ps( &_pfOp1[I+16] );
+				__m512 mC2 = _mm512_add_ps( mA2, mB2 );
+				_mm512_store_ps( &_pfOut[I+16], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
 #endif	// #ifdef __AVX512F__
 
 #ifdef __AVX__
@@ -922,6 +1002,86 @@ namespace lsn {
 			// Step 4: Extract the scalar value.
 			return _mm_cvtss_f32( mAddH2 );
 		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (unaligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_AVX_U( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 8 floats at a time.  But like, 2 8-at-a-times at a time
+			for ( ; I + 15 < _sTotal; I += 16 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 16 );
+				LSN_PREFETCH_LINE( _pfOp1 + 16 );
+
+				// Load and add the first 8 floats
+				__m256 mA1 = _mm256_loadu_ps( &_pfOp0[I] );
+				__m256 mB1 = _mm256_loadu_ps( &_pfOp1[I] );
+				__m256 mC1 = _mm256_add_ps( mA1, mB1 );
+				_mm256_storeu_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 8 floats
+				__m256 mA2 = _mm256_loadu_ps( &_pfOp0[I+8] );
+				__m256 mB2 = _mm256_loadu_ps( &_pfOp1[I+8] );
+				__m256 mC2 = _mm256_add_ps( mA2, mB2 );
+				_mm256_storeu_ps( &_pfOut[I+8], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (aligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_AVX( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 8 floats at a time.  But like, 2 8-at-a-times at a time.
+			for ( ; I + 15 < _sTotal; I += 16 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 16 );
+				LSN_PREFETCH_LINE( _pfOp1 + 16 );
+
+				// Load and add the first 8 floats.
+				__m256 mA1 = _mm256_load_ps( &_pfOp0[I] );
+				__m256 mB1 = _mm256_load_ps( &_pfOp1[I] );
+				__m256 mC1 = _mm256_add_ps( mA1, mB1 );
+				_mm256_store_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 8 floats.
+				__m256 mA2 = _mm256_load_ps( &_pfOp0[I+8] );
+				__m256 mB2 = _mm256_load_ps( &_pfOp1[I+8] );
+				__m256 mC2 = _mm256_add_ps( mA2, mB2 );
+				_mm256_store_ps( &_pfOut[I+8], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
 #endif	// #ifdef __AVX__
 
 #ifdef __SSE4_1__
@@ -936,7 +1096,124 @@ namespace lsn {
 			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
 			return _mm_cvtss_f32( mAddH2 );
 		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (unaligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_SSE4_U( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 4 floats at a time.  But like, 2 4-at-a-times at a time.
+			for ( ; I + 7 < _sTotal; I += 8 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 8 );
+				LSN_PREFETCH_LINE( _pfOp1 + 8 );
+
+				// Load and add the first 4 floats.
+				__m128 mA1 = _mm_loadu_ps( &_pfOp0[I] );
+				__m128 mB1 = _mm_loadu_ps( &_pfOp1[I] );
+				__m128 mC1 = _mm_add_ps( mA1, mB1 );
+				_mm_storeu_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 4 floats.
+				__m128 mA2 = _mm_loadu_ps( &_pfOp0[I+4] );
+				__m128 mB2 = _mm_loadu_ps( &_pfOp1[I+4] );
+				__m128 mC2 = _mm_add_ps( mA2, mB2 );
+				_mm_storeu_ps( &_pfOut[I+4], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination (aligned).
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray_SSE4( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			size_t I = 0;
+
+			// Prefetch the first set of data.
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			// Process 4 floats at a time.  But like, 2 4-at-a-times at a time.
+			for ( ; I + 7 < _sTotal; I += 8 ) {
+				// Prefetch the next set of data.
+				LSN_PREFETCH_LINE( _pfOp0 + 8 );
+				LSN_PREFETCH_LINE( _pfOp1 + 8 );
+
+				// Load and add the first 4 floats.
+				__m128 mA1 = _mm_load_ps( &_pfOp0[I] );
+				__m128 mB1 = _mm_load_ps( &_pfOp1[I] );
+				__m128 mC1 = _mm_add_ps( mA1, mB1 );
+				_mm_store_ps( &_pfOut[I], mC1 );
+
+				// Load and add the next 4 floats.
+				__m128 mA2 = _mm_load_ps( &_pfOp0[I+4] );
+				__m128 mB2 = _mm_load_ps( &_pfOp1[I+4] );
+				__m128 mC2 = _mm_add_ps( mA2, mB2 );
+				_mm_store_ps( &_pfOut[I+4], mC2 );
+			}
+
+			// Handle remaining elements.
+			for ( ; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
 #endif	// #ifdef __SSE4_1__
+
+		/**
+		 * Sums a pair of arrays of floats to a given destination.
+		 * 
+		 * \param _pfOp0 THe left array of operands.
+		 * \param _pfOp1 The right array of operands.
+		 * \param _pfOut The output array.
+		 * \param _sTotal The number of floats in each array.
+		 **/
+		static inline void									SumArray( const float * _pfOp0, const float * _pfOp1, float * _pfOut, size_t _sTotal ) {
+			LSN_PREFETCH_LINE( _pfOp0 );
+			LSN_PREFETCH_LINE( _pfOp1 );
+
+			while ( _sTotal >= 8 ) {
+				// Let’s do a loop of 8 at a time.
+				_pfOut[0] = _pfOp0[0] + _pfOp1[0];
+				_pfOut[1] = _pfOp0[1] + _pfOp1[1];
+				_pfOut[2] = _pfOp0[2] + _pfOp1[2];
+				_pfOut[3] = _pfOp0[3] + _pfOp1[3];
+				_pfOut[4] = _pfOp0[4] + _pfOp1[4];
+
+				LSN_PREFETCH_LINE( _pfOp0 + 8 );
+				LSN_PREFETCH_LINE( _pfOp1 + 8 );
+
+				_pfOut[5] = _pfOp0[5] + _pfOp1[5];
+				_pfOut[6] = _pfOp0[6] + _pfOp1[6];
+				_pfOut[7] = _pfOp0[7] + _pfOp1[7];
+				_pfOp0 += 8;
+				_pfOp0 += 8;
+				_pfOp1 += 8;
+				_sTotal -= 8;
+			}
+			// Finish the rest.
+			for ( size_t I = 0; I < _sTotal; ++I ) {
+				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
 
 		/**
 		 * A helper function.
