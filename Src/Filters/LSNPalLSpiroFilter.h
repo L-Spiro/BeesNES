@@ -198,7 +198,7 @@ namespace lsn {
 		// == Enumerations.
 		/** Metrics. */
 		enum {
-			LSN_MAX_FILTER_SIZE								= 256 * 2 + 8,									/**< The maximum size of the gather for generating YIQ values. */
+			LSN_MAX_FILTER_SIZE								= 56 * 2 + 8,							/**< The maximum size of the gather for generating YIQ values. */
 		};
 
 
