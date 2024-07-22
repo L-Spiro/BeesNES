@@ -894,6 +894,7 @@ namespace lsn {
 		void												Sei_BeginInst();
 
 		/** Selects the BRK vector etc. */
+		template <bool _bAdjS>
 		void												SelectBrkVectors();
 
 		/** Sets I and X. */

@@ -130,7 +130,7 @@ namespace lsn {
 			m_ui64AccumTime = 0;
 			m_ui64MasterCounter = 0;
 			m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
-			m_hsSlots[LSN_PPU_SLOT].ui64Counter = 0 + _tPpuDiv;
+			m_hsSlots[LSN_PPU_SLOT].ui64Counter = (_tPpuDiv / 2) + _tPpuDiv;
 			m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
 			m_sSlotsToCheck[0] = LSN_CPU_SLOT;
 			m_sSlotsToCheck[1] = LSN_PPU_SLOT;

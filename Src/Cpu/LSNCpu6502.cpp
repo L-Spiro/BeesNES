@@ -840,7 +840,40 @@ namespace lsn {
 			
 	/** Copies from the vector to PC.l. */
 	void CCpu6502::CopyVectorToPc_L_Phi2() {
+
+//#ifdef LSN_CPU_VERIFY
+//		m_vBrkVector = LSN_V_IRQ_BRK;
+//		m_bPushB = true;
+//#else
+//		// Select vector to use.
+//		if ( m_bIsReset ) {
+//			m_vBrkVector = LSN_V_RESET;
+//			m_bPushB = false;
+//			m_bIsReset = false;
+//		}
+//		else if ( m_bDetectedNmi ) {
+//			m_vBrkVector = LSN_V_NMI;
+//			m_bPushB = false;
+//		}
+//		else if ( m_bHandleIrq ) {
+//			m_vBrkVector = LSN_V_IRQ_BRK;
+//			m_bPushB = false;
+//		}
+//		else {
+//			m_vBrkVector = LSN_V_IRQ_BRK;
+//			m_bPushB = true;
+//		}
+//
+//		if ( m_bDetectedNmi ) {
+//			m_bHandleNmi = m_bDetectedNmi = false;
+//			m_bNmiStatusLine = false;
+//		}
+//		m_bHandleIrq = false;
+//#endif	// #ifdef LSN_CPU_VERIFY
+
 		LSN_INSTR_START_PHI2_READ( m_vBrkVector, m_ui8Address[0] );
+
+
 
 		LSN_NEXT_FUNCTION;
 
@@ -1435,6 +1468,38 @@ namespace lsn {
 			LSN_PUSH( m_rRegs.ui8Status );
 		}
 
+//		if constexpr ( _i8SOff == -2 ) {
+//#ifdef LSN_CPU_VERIFY
+//			m_vBrkVector = LSN_V_IRQ_BRK;
+//			m_bPushB = true;
+//#else
+//			// Select vector to use.
+//			if ( m_bIsReset ) {
+//				m_vBrkVector = LSN_V_RESET;
+//				m_bPushB = false;
+//				m_bIsReset = false;
+//			}
+//			else if ( m_bDetectedNmi ) {
+//				m_vBrkVector = LSN_V_NMI;
+//				m_bPushB = false;
+//			}
+//			else if ( m_bHandleIrq ) {
+//				m_vBrkVector = LSN_V_IRQ_BRK;
+//				m_bPushB = false;
+//			}
+//			else {
+//				m_vBrkVector = LSN_V_IRQ_BRK;
+//				m_bPushB = true;
+//			}
+//
+//			if ( m_bDetectedNmi ) {
+//				m_bHandleNmi = m_bDetectedNmi = false;
+//				m_bNmiStatusLine = false;
+//			}
+//			m_bHandleIrq = false;
+//#endif	// #ifdef LSN_CPU_VERIFY
+//		}
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
@@ -1756,8 +1821,17 @@ namespace lsn {
 	}
 
 	/** Selects the BRK vector etc. */
+	template <bool _bAdjS>
 	void CCpu6502::SelectBrkVectors() {
-		LSN_INSTR_START_PHI1( false );
+		
+
+		if constexpr ( _bAdjS ) {
+			LSN_INSTR_START_PHI1( true );
+			LSN_UPDATE_S;
+		}
+		else {
+			LSN_INSTR_START_PHI1( false );
+		}
 
 #ifdef LSN_CPU_VERIFY
 		m_vBrkVector = LSN_V_IRQ_BRK;
