@@ -106,7 +106,7 @@ namespace lsn {
 	 **/
 	bool CNtscLSpiroFilter::SetKernelSize( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
-		GenFilterKernel( m_ui32FilterKernelSize * 2 );
+		GenFilterKernel( m_ui32FilterKernelSize );
 		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
 		return true;
 	}
@@ -241,8 +241,8 @@ namespace lsn {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
 			int16_t i16Center = int16_t( I * 8 / m_ui16WidthScale ) + 4;
-			int16_t i16Start = i16Center - int16_t( m_ui32FilterKernelSize );
-			int16_t i16End = i16Center + int16_t( m_ui32FilterKernelSize );
+			int16_t i16Start = i16Center - int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
+			int16_t i16End = i16Center + int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
 
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
 			int16_t J = i16Start;
@@ -440,11 +440,11 @@ namespace lsn {
 		try {
 			// Buffer size:
 			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + (m_ui32FilterKernelSize * 2) + 16;
+			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
-				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32FilterKernelSize );
+				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + ((m_ui32FilterKernelSize >> 1) + (m_ui32FilterKernelSize & 1)) );
 				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
 			}
