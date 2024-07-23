@@ -73,54 +73,58 @@ namespace lsn {
 		}
 		if ( CUtilities::IsAvxSupported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
-			m_nbfLSpiroNtscFilter.SetKernelSize( 8 * 2 );
+			m_nbfLSpiroNtscFilter.SetKernelSize( 16 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 480> );
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 24 * 2 );
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::CardinalSplineUniformFilterFunc );*/
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 24 * 2 );
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );*/
 
 
 			m_nbfLSpiroPalFilter.SetWidthScale( 10 );
-			m_nbfLSpiroPalFilter.SetKernelSize( 8 * 2 );
+			m_nbfLSpiroPalFilter.SetKernelSize( 16 );
 			m_nbfLSpiroPalFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 480> );
-			/*m_nbfLSpiroPalFilter.SetKernelSize( 24 * 2 );
+			/*m_nbfLSpiroPalFilter.SetKernelSize( 48 );
 			m_nbfLSpiroPalFilter.SetFilterFunc( &CUtilities::CardinalSplineUniformFilterFunc );*/
 			
 
 			m_nbfLSpiroDendyFilter.SetWidthScale( 10 );
-			m_nbfLSpiroDendyFilter.SetKernelSize( 8 * 2 );
+			m_nbfLSpiroDendyFilter.SetKernelSize( 16 );
 			m_nbfLSpiroDendyFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 480> );
 
 			m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalNFilter.SetKernelSize( 8 * 2 );
+			m_nbfLSpiroPalNFilter.SetKernelSize( 16 );
 			m_nbfLSpiroPalNFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 640> );
 
 			m_nbfLSpiroPalMFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalNFilter.SetKernelSize( 8 * 2 );
+			m_nbfLSpiroPalNFilter.SetKernelSize( 16 );
 			m_nbfLSpiroPalNFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 640> );
 		}
 		if ( CUtilities::IsAvx512FSupported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
-			m_nbfLSpiroNtscFilter.SetKernelSize( 24 * 2 );
-			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<9, 4> );
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 24 * 2 );
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 25 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );*/
+			m_nbfLSpiroNtscFilter.SetKernelSize( 61 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<14, 4> );
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );*/
 
 			m_nbfLSpiroPalFilter.SetWidthScale( 10 );
-			m_nbfLSpiroPalFilter.SetKernelSize( 24 * 2 );
+			m_nbfLSpiroPalFilter.SetKernelSize( 48 );
 			m_nbfLSpiroPalFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<5, 2> );
 
 			m_nbfLSpiroDendyFilter.SetWidthScale( 10 );
-			m_nbfLSpiroDendyFilter.SetKernelSize( 22 * 2 );
+			m_nbfLSpiroDendyFilter.SetKernelSize( 44 );
 			m_nbfLSpiroDendyFilter.SetFilterFunc( &CUtilities::CardinalSplineUniformFilterFunc );
 
 			m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalNFilter.SetKernelSize( 24 * 2 );
+			m_nbfLSpiroPalNFilter.SetKernelSize( 48 );
 			m_nbfLSpiroPalNFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 
 			m_nbfLSpiroPalMFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalMFilter.SetKernelSize( 23 * 2 );
+			m_nbfLSpiroPalMFilter.SetKernelSize( 46 );
 			m_nbfLSpiroPalMFilter.SetFilterFunc( &CUtilities::CardinalSplineUniformFilterFunc );
 		}
 

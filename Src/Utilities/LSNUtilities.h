@@ -1304,6 +1304,18 @@ namespace lsn {
 		}
 
 		/**
+		 * A Bartlett window.
+		 * 
+		 * \param _dT The filter input.
+		 * \param _dM The window size.
+		 * \return Returns the windowed value.
+		 **/
+		static inline float									BartlettWindow( double _dT, double _dM ) {
+			--_dM;
+			return static_cast<float>((2.0 / _dM) * ((_dM / 2.0) - std::abs( _dT - (_dM / 2.0) )));
+		}
+
+		/**
 		 * Reject values below a specific epsilon.
 		 *
 		 * \param _dVal The value to test.
@@ -1395,6 +1407,17 @@ namespace lsn {
 		 */
 		static inline float									CardinalSplineUniformFilterFunc( float _fT, float _fWidth ) {
 			return MitchellFilterHelper( _fT * 2.0 / _fWidth, 0.0, 1.0 );
+		}
+
+		/**
+		 * The  Bartlett filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel
+		 * \return Returns the filtered value.
+		 */
+		static inline float									BartlettFilterFunc( float _fT, float _fWidth ) {
+			return BartlettWindow( (_fT + _fWidth) / (_fWidth * 2.0) * ((_fWidth * 2.0) - 1.0), _fWidth * 2.0 );
 		}
 
 		/**
