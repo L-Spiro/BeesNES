@@ -69,11 +69,19 @@ namespace lsn {
 			// ================
 			// FIXED BANKS
 			// ================
-			// Set the reads of the fixed bank at the end.
+			// ================
+			// FIXED BANKS
+			// ================
+			// Set the reads of the fixed bank at the end.		
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
-				// $C000-$FFFF: Fixed to last bank.
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0xC000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xC000) % m_prRom->vPrgRom.size() ) );
 			}
+			// Set the reads of the fixed bank at the end.
+			//for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
+			//	// $C000-$FFFF: Fixed to last bank.
+			//	_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0xC000 ) );
+			//}
 			
 
 			// ================
