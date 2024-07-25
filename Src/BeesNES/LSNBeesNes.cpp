@@ -102,12 +102,12 @@ namespace lsn {
 		}
 		if ( CUtilities::IsAvx512FSupported() ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 25 );
-			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+			m_nbfLSpiroNtscFilter.SetKernelSize( 25 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::BartlettFilterFunc );
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );*/
-			m_nbfLSpiroNtscFilter.SetKernelSize( 61 );
-			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<14, 4> );
+			/*m_nbfLSpiroNtscFilter.SetKernelSize( 61 );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<14, 4> );*/
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );*/
 
