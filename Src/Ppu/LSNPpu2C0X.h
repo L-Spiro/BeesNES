@@ -945,16 +945,23 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			uint16_t ui16Scan = ppPpu->m_ui16CurY;
+			//uint16_t ui16Scan = ppPpu->m_ui16CurY;
+
+			int16_t i16AdjustedX = ppPpu->m_ui16CurX;
+			int16_t i16AdjustedY = ppPpu->m_ui16CurY;
+			ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+			ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+
+
 			// If the scanline is NOT (>= 0 and < 240, or -1).
-			if ( !((ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender))) || ui16Scan == (_tDotHeight - 1)) ) {
+			if ( !((ppPpu->m_bRendering && (i16AdjustedY < (_tPreRender + _tRender))) || i16AdjustedY == (_tDotHeight - 1)) ) {
 				ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
 			}
 			else {
 #define LSN_LEFT				1
 #define LSN_RIGHT				(_tRenderW + LSN_LEFT)		// 257.
 #define LSN_NEXT_TWO			(LSN_RIGHT + 8 * 8)			// 321.
-				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
+				//int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				if ( i16AdjustedX >= LSN_NEXT_TWO || i16AdjustedX == 0 ) {
 					ppPpu->m_ui8IoBusLatch = ppPpu->m_soSecondaryOam.ui8Bytes[0];
 				}
