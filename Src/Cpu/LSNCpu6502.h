@@ -162,7 +162,7 @@ namespace lsn {
 			m_bLastNmiStatusLine = false;
 			m_bDetectedNmi = false;
 			m_bHandleNmi = false;
-			m_bIrqStatusLine = false;
+			m_ui8IrqStatusLine = 0;
 			m_bIrqSeenLowPhi2 = false;
 			m_bIrqStatusPhi1Flag = false;
 			m_bHandleIrq = false;
@@ -228,20 +228,25 @@ namespace lsn {
 
 		/**
 		 * Signals an IRQ to be handled before the next instruction.
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void										Irq();
+		virtual void										Irq( uint8_t _ui8Source );
 
 		/**
 		 * Clears the IRQ flag.
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void										ClearIrq();
+		virtual void										ClearIrq( uint8_t _ui8Source );
 
 		/**
 		 * Gets the status of the IRQ line.
-		 * 
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 * \return Returns true if the IRQ status line is low.
 		 **/
-		virtual bool										GetIrqStatus() const;
+		virtual bool										GetIrqStatus( uint8_t _ui8Source ) const;
 
 
 #ifdef LSN_CPU_VERIFY
@@ -310,7 +315,7 @@ namespace lsn {
 		bool												m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
 		bool												m_bDetectedNmi = false;																/**< The edge detector for the PHI2 part of the cycle. */
 		bool												m_bHandleNmi = false;																/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the PHI1 of the next cycle. */
-		bool												m_bIrqStatusLine = false;															/**< The status line for IRQ. */
+		uint8_t												m_ui8IrqStatusLine = 0;																/**< The status line for IRQ. */
 		bool												m_bIrqSeenLowPhi2 = false;															/**< Set if m_bIrqStatusLine is low on PHI2. */
 		bool												m_bIrqStatusPhi1Flag = false;														/**< Set on Phi1 if m_bIrqSeenLowPhi2 was set. */
 		bool												m_bHandleIrq = false;																/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
@@ -817,6 +822,10 @@ namespace lsn {
 		/** Pushes Status with or without B/X to the given S offset. */
 		template <int8_t _i8SOff = 0>
 		void												Push_S_Phi2();
+
+		/** Reads a given hard-coded address, optionally moving to the next cycle or the previous cycle. */
+		template <uint16_t _ui16Addr, bool _bMoveBack>
+		void												ReadAddr_Phi2();
 
 		/** Reads from m_ui8Operand, discards result. */
 		void												Read_Operand_Discard_Phi2();

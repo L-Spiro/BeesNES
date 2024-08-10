@@ -38,8 +38,10 @@ namespace lsn {
 
 		/**
 		 * Signals an IRQ to be handled before the next instruction.
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void						Irq() {}
+		virtual void						Irq( uint8_t /*_ui8Source*/ ) {}
 
 	protected :
 		// == Enumerations.

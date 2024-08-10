@@ -34,20 +34,25 @@ namespace lsn {
 
 		/**
 		 * Notifies the class that an IRQ has occurred.
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void						Irq() {}
+		virtual void						Irq( uint8_t /*_ui8Source*/ ) {}
 
 		/**
 		 * Clears the IRQ flag.
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void						ClearIrq() {}
+		virtual void						ClearIrq( uint8_t /*_ui8Source*/ ) {}
 
 		/**
 		 * Gets the status of the IRQ line.
-		 * 
+		 *
+		 * \param _ui8Source The source of the IRQ.
 		 * \return Returns true if the IRQ status line is low.
 		 **/
-		virtual bool						GetIrqStatus() const { return false; }
+		virtual bool						GetIrqStatus( uint8_t /*_ui8Source*/ ) const { return false; }
 	};
 
 }	// namespace lsn

@@ -54,10 +54,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 02
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 03
@@ -123,10 +125,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 12
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 13
@@ -197,10 +201,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 22
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 23
@@ -264,10 +270,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 32
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 33
@@ -338,10 +346,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 42
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM
 	},
 	{	// 43
@@ -409,10 +419,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 52
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 53
@@ -482,10 +494,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 62
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 63
@@ -556,10 +570,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 72
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 73
@@ -713,10 +729,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 92
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 93
@@ -869,10 +887,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// B2
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// B3
@@ -1002,10 +1022,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// D2
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// D3
@@ -1127,10 +1149,12 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// F2
 		{
-			// TODO: Use this for LSN_CPU_VERIFY, write real routine otherwise.
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-			&CCpu6502::Jam,																&CCpu6502::Jam_Phi2 },
+			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
+			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// F3

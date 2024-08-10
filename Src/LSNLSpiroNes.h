@@ -280,7 +280,19 @@ namespace lsn {
 		LSN_MM_1_SCREEN_A,														/**< 1 screen. */
 		LSN_MM_1_SCREEN_B,														/**< 1 screen. */
 
-		LSN_MM_NO_OVERRIDE					= -1,								/**< No mirror override (databse only). */
+		LSN_MM_NO_OVERRIDE					= -1,								/**< No mirror override (database only). */
+	};
+
+	/** IRQ sources. */
+	enum LSN_IRQ_SOURCE {
+		LSN_IS_APU_DMC						= (1 << 0),							/**< ON: $4010 write with bit 7 = 1;  OFF: $4010 write otherwise;  ACKNOWLEDGE: Disable then reenable, or APU Status ($4015) write. */
+		LSN_IS_APU							= (1 << 1),							/**< ON: $4017 write with bits 7-6 = 00;  OFF: $4017 write otherwise;  ACKNOWLEDGE: APU Status ($4015) read. */
+		LSN_IS_MMC3							= (1 << 2),							/**< ON: Write to $E001;  OFF: Write to $E000;  ACKNOWLEDGE: Disable then reenable. */
+		LSN_IS_MMC5							= (1 << 3),							/**< ON: Write $80 to $5204;  OFF: Write $00 to $5204;  ACKNOWLEDGE: Read $5204. */
+		LSN_IS_VRC4_5_6						= (1 << 4),							/**< Depends on specific IC. */
+		LSN_IS_FME_7						= (1 << 5),							/**< ON: Write $81 to register $D;  OFF: Write even number to register $D;  ACKNOWLEDGE: Write anything to register $D. */
+		LSN_IS_NAMCO_163					= (1 << 6),							/**< ON: Write to $5000 and $5800;  OFF: $5800 Write with bit 7 = 0;  ACKNOWLEDGE: Write to $5000 or $5800. */
+		LSN_IS_FDS							= (1 << 7),							/**< ON: Write $02 to $4022;  OFF: Write $00 to $4022; ACKNOWLEDGE: Read $4030. */
 	};
 
 

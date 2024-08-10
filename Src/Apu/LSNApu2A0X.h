@@ -59,7 +59,7 @@
 													Tick_Mode0_Step0<_bEven, false>();							\
 												}																\
 												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
-													m_piIrqTarget->ClearIrq();									\
+													m_piIrqTarget->ClearIrq( LSN_IS_APU );						\
 												}																\
 												return;															\
 											}																	\
@@ -483,7 +483,7 @@ namespace lsn {
 		void											Tick_Mode0_Step3() {
 			LSN_APU_UPDATE;
 			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
-				m_piIrqTarget->Irq();
+				m_piIrqTarget->Irq( LSN_IS_APU );
 			}
 
 			if ( (m_ui64StepCycles + 1) == (_tM0S3_2 - 1) ) {
@@ -921,9 +921,9 @@ namespace lsn {
 				_ui8Ret |= 0b1000;
 			}
 
-			if ( paApu->m_piIrqTarget->GetIrqStatus() ) {
+			if ( paApu->m_piIrqTarget->GetIrqStatus( LSN_IS_APU ) ) {
 				_ui8Ret |= 0b01000000;
-				paApu->m_piIrqTarget->ClearIrq();
+				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU );
 			}
 			
 		}

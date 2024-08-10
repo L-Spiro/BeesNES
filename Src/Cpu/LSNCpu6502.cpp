@@ -60,7 +60,7 @@ namespace lsn {
 
 		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
 		//m_bIrqSeenLowPhi2 |= m_bIrqStatusLine & static_cast<int8_t>(!(m_rRegs.ui8Status & I()));
-		m_bIrqSeenLowPhi2 |= m_bIrqStatusLine;
+		m_bIrqSeenLowPhi2 |= (m_ui8IrqStatusLine != 0);
 
 		++m_ui64CycleCount;
 		/*if ( m_ui64CycleCount == (266551) ) {
@@ -125,9 +125,11 @@ namespace lsn {
 
 	/**
 	 * Signals an IRQ to be handled before the next instruction.
+	 *
+	 * \param _ui8Source The source of the IRQ.
 	 */
-	void CCpu6502::Irq() {
-		m_bIrqStatusLine = true;
+	void CCpu6502::Irq( uint8_t _ui8Source ) {
+		m_ui8IrqStatusLine |= _ui8Source;
 
 		/*if ( m_ui64CycleCount < 279340 + 42150 ) {
 			char szBuffer[128];
@@ -138,9 +140,11 @@ namespace lsn {
 
 	/**
 	 * Clears the IRQ flag.
+	 *
+	 * \param _ui8Source The source of the IRQ.
 	 */
-	void CCpu6502::ClearIrq() {
-		m_bIrqStatusLine = false;
+	void CCpu6502::ClearIrq( uint8_t _ui8Source ) {
+		m_ui8IrqStatusLine &= ~_ui8Source;
 
 		/*if ( m_ui64CycleCount < 279340 + 42150 ) {
 			char szBuffer[128];
@@ -151,11 +155,12 @@ namespace lsn {
 
 	/**
 	 * Gets the status of the IRQ line.
-	 * 
+	 *
+	 * \param _ui8Source The source of the IRQ.
 	 * \return Returns true if the IRQ status line is low.
 	 **/
-	bool CCpu6502::GetIrqStatus() const {
-		return m_bIrqStatusLine;
+	bool CCpu6502::GetIrqStatus( uint8_t _ui8Source ) const {
+		return (m_ui8IrqStatusLine & _ui8Source) != 0;
 	}
 
 #ifdef LSN_CPU_VERIFY
@@ -1501,6 +1506,23 @@ namespace lsn {
 //		}
 
 		LSN_NEXT_FUNCTION;
+
+		LSN_INSTR_END_PHI2;
+	}
+
+	/** Reads a given hard-coded address, optionally moving to the next cycle or the previous cycle. */
+	template <uint16_t _ui16Addr, bool _bMoveBack>
+	void CCpu6502::ReadAddr_Phi2() {
+		uint8_t ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( _ui16Addr, ui8Tmp );
+
+		if constexpr ( _bMoveBack ) {
+			LSN_NEXT_FUNCTION_BY( -1 );
+		}
+		else {
+			LSN_NEXT_FUNCTION;
+		}
+		
 
 		LSN_INSTR_END_PHI2;
 	}

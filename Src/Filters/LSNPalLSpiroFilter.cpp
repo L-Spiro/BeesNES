@@ -158,6 +158,7 @@ namespace lsn {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
 			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
+			//m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0 ) );
 		}
 	}
 
