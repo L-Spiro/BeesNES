@@ -63,6 +63,14 @@ namespace lsn {
 		 **/
 		inline bool						HasCoefficients() const;
 
+		/**
+		 * Standard sinc() function.
+		 * 
+		 * \param _dX The operand.
+		 * \return Returns sin(x) / x.
+		 **/
+		static inline double			Sinc( double _dX );
+
 
 	protected :
 		// == Members.
@@ -117,19 +125,10 @@ namespace lsn {
 
 
 		// Apply sinc function.
-		double dFc2 = 2.0 * dFc;
-		const double dTau = 2.0 * std::numbers::pi;
 		int64_t i64SignedL = int64_t( stL );
 		for ( auto I = m_vCeof.size(); I--; ) {
 			int64_t N = int64_t( I ) - i64SignedL;
-			if ( N ) {
-				//m_vCeof[I] *= Sinc( double( N ), dFc2 );
-				m_vCeof[I] *= std::sin( dTau * dFc * N ) / (std::numbers::pi * N);
-			}
-			else {
-				//m_vCeof[I] *= dTau * dFc;
-				m_vCeof[I] *= dFc2;
-			}
+			m_vCeof[I] *= Sinc( 2.0 * dFc * N );
 		}
 
 		// Normalize.
@@ -232,6 +231,21 @@ namespace lsn {
 	 **/
 	inline bool CSincFilter::HasCoefficients() const {
 		return m_vCeof.size() != 0;
+	}
+
+	/**
+	 * Standard sinc() function.
+	 * 
+	 * \param _dX The operand.
+	 * \return Returns sin(x) / x.
+	 **/
+	inline double CSincFilter::Sinc( double _dX ) {
+		_dX *= std::numbers::pi;
+		if ( _dX < 0.01 && _dX > -0.01 ) {
+			return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+		}
+
+		return std::sin( _dX ) / _dX;
 	}
 
 }	// namespace lsn

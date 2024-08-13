@@ -1216,18 +1216,18 @@ namespace lsn {
 		}
 
 		/**
-		 * A helper function.
-		 *
-		 * \param _dX A happy parameter.
-		 * \return Returns happiness.
-		 */
+		 * Standard sinc() function.
+		 * 
+		 * \param _dX The operand.
+		 * \return Returns sin(x) / x.
+		 **/
 		static inline double								Sinc( double _dX ) {
 			_dX *= std::numbers::pi;
 			if ( _dX < 0.01 && _dX > -0.01 ) {
 				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
 			}
 
-			return ::sin( _dX ) / _dX;
+			return std::sin( _dX ) / _dX;
 		}
 
 		/**

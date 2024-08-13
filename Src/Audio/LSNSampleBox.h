@@ -140,17 +140,10 @@ namespace lsn {
 			
 
 			// Apply sinc function.
-			double dFc2 = 2.0 * dFc;
-			const double dTau = 2.0 * std::numbers::pi;
 			int64_t i64SignedL = int64_t( sL );
 			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
 				int64_t N = int64_t( I ) - i64SignedL;
-				if ( N ) {
-					m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * std::sin( dTau * dFc * N ) / (std::numbers::pi * N) );
-				}
-				else {
-					m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * dFc2 );
-				}
+				m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * Sinc( 2.0 * dFc * N ) );
 			}
 
 			// Normalize.
@@ -338,7 +331,7 @@ namespace lsn {
 		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
 		static inline void									SynthesizeBlackmanWindow( std::vector<float> &_vTaps, size_t _sSize ) {
-			const double dTau = 2.0 * std::numbers::pi;
+			constexpr double dTau = 2.0 * std::numbers::pi;
 			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
@@ -361,7 +354,7 @@ namespace lsn {
 		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
 		static inline void									SynthesizeHammingWindow( std::vector<float> &_vTaps, size_t _sSize ) {
-			const double dTau = 2.0 * std::numbers::pi;
+			constexpr double dTau = 2.0 * std::numbers::pi;
 			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
@@ -383,7 +376,7 @@ namespace lsn {
 		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
 		static inline void									SynthesizeHanningWindow( std::vector<float> &_vTaps, size_t _sSize ) {
-			const double dTau = 2.0 * std::numbers::pi;
+			constexpr double dTau = 2.0 * std::numbers::pi;
 			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
 			double dTauInvMax = dTau * dInvMax;
@@ -395,6 +388,21 @@ namespace lsn {
 					_vTaps[I] = float( 0.50 - 0.50 * std::cos( dTauInvMax * I ) );
 				}
 			}
+		}
+
+		/**
+		 * Standard sinc() function.
+		 * 
+		 * \param _dX The operand.
+		 * \return Returns sin(x) / x.
+		 **/
+		static inline double								Sinc( double _dX ) {
+			_dX *= std::numbers::pi;
+			if ( _dX < 0.01 && _dX > -0.01 ) {
+				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+			}
+
+			return std::sin( _dX ) / _dX;
 		}
 
 

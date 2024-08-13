@@ -26,15 +26,20 @@
 #include "LSNTriangle.h"
 
 
+#define LSN_PULSE1_HALT_MASK			0b00100000
+#define LSN_PULSE2_HALT_MASK			0b00100000
+#define LSN_TRIANGLE_HALT_MASK			0b10000000
+#define LSN_NOISE_HALT_MASK				0b00100000
+
 #define LSN_PULSE1_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0001) != 0)
 #define LSN_PULSE2_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0010) != 0)
 #define LSN_TRIANGLE_ENABLED( THIS )	(((THIS)->m_ui8Registers[0x15] & 0b0100) != 0)
 #define LSN_NOISE_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b1000) != 0)
 
-#define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & 0b00100000) != 0)
-#define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & 0b00100000) != 0)
-#define LSN_TRIANGLE_HALT				((m_ui8Registers[0x08] & 0b10000000) != 0)
-#define LSN_NOISE_HALT					((m_ui8Registers[0x0C] & 0b00100000) != 0)
+#define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK) != 0)
+#define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK) != 0)
+#define LSN_TRIANGLE_HALT				((m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK) != 0)
+#define LSN_NOISE_HALT					((m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK) != 0)
 
 #define LSN_PULSE1_USE_VOLUME			((m_ui8Registers[0x00] & 0b00010000) != 0)
 #define LSN_PULSE2_USE_VOLUME			((m_ui8Registers[0x04] & 0b00010000) != 0)
@@ -127,7 +132,16 @@ namespace lsn {
 			m_ui64StepCycles( 0 ),
 			m_ui64LastBucketCycle( 0 ),
 			m_piIrqTarget( _piIrqTarget ),
-			m_dvRegisters3_4017( Set4017, this ) {
+			m_dvRegisters3_4017( Set4017, this ),
+			m_dvPulse1LengthCounter( Pulse1LengthCounter, this ),
+			m_dvPulse2LengthCounter( Pulse2LengthCounter, this ),
+			m_dvTriangleLengthCounter( TriangleLengthCounter, this ),
+			m_dvNoiseLengthCounter( NoiseLengthCounter, this ),
+			m_dvPulse1LengthCounterHalt( ChannelHaltLengthCounter<0x00, LSN_PULSE1_HALT_MASK>, this ),
+			m_dvPulse2LengthCounterHalt( ChannelHaltLengthCounter<0x04, LSN_PULSE2_HALT_MASK>, this ),
+			m_dvTriangleLengthCounterHalt( ChannelHaltLengthCounter<0x08, LSN_TRIANGLE_HALT_MASK>, this ),
+			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ) {
+
 			m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
 			m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
 			//m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
@@ -147,9 +161,21 @@ namespace lsn {
 		 */
 		virtual void									Tick() {
 			m_dvRegisters3_4017.Tick();
+
+			m_dvPulse1LengthCounter.Tick();
+			m_dvPulse2LengthCounter.Tick();
+			m_dvTriangleLengthCounter.Tick();
+			m_dvNoiseLengthCounter.Tick();
+
+			m_dvPulse1LengthCounterHalt.Tick();
+			m_dvPulse2LengthCounterHalt.Tick();
+			m_dvTriangleLengthCounterHalt.Tick();
+			m_dvNoiseLengthCounterHalt.Tick();
+
 			(this->*m_pftTick)();
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
+			
 
 			// Possible HPF's:
 			// 442.0f
@@ -246,6 +272,9 @@ namespace lsn {
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
 			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25)) );
 
+
+
+			
 			++m_ui64Cycles;
 		}
 
@@ -267,6 +296,7 @@ namespace lsn {
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
 			m_fMaxSample = -INFINITY;
 			m_fMinSample = INFINITY;
+			m_i64TicksToLenCntr = _tM0S0;
 		}
 
 		/**
@@ -367,6 +397,8 @@ namespace lsn {
 		uint64_t										m_ui64Cycles;
 		/** The step cycle counter. */
 		uint64_t										m_ui64StepCycles;
+		/** Approximate number of ticks until length counters are ticked. */
+		int64_t											m_i64TicksToLenCntr;
 		/** The cycle of the last-registered sample bucket.  When the APU cycle reachs this value, a new bucket should be registered. */
 		uint64_t										m_ui64LastBucketCycle;
 		/** The main bus. */
@@ -410,12 +442,31 @@ namespace lsn {
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
 		
+		/** Length-counter delay for Pulse 1. */
+		CDelayedValue<uint8_t, 2>						m_dvPulse1LengthCounter;
+		/** Length-counter delay for Pulse 2. */
+		CDelayedValue<uint8_t, 2>						m_dvPulse2LengthCounter;
+		/** Length-counter delay for Triangle. */
+		CDelayedValue<uint8_t, 2>						m_dvTriangleLengthCounter;
+		/** Length-counter delay for Noise. */
+		CDelayedValue<uint8_t, 2>						m_dvNoiseLengthCounter;
+
+		/** Halt delay for Pulse 1. */
+		CDelayedValue<uint8_t, 2>						m_dvPulse1LengthCounterHalt;
+		/** Halt delay for Pulse 2. */
+		CDelayedValue<uint8_t, 2>						m_dvPulse2LengthCounterHalt;
+		/** Halt delay for Triangle. */
+		CDelayedValue<uint8_t, 2>						m_dvTriangleLengthCounterHalt;
+		/** Halt delay for Noise. */
+		CDelayedValue<uint8_t, 2>						m_dvNoiseLengthCounterHalt;
+		
 
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step0() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM0S0);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S0 ) {
@@ -435,6 +486,7 @@ namespace lsn {
 		/** Mode-0 step-1 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step1() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM0S1 - m_ui64StepCycles - 1);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
@@ -462,6 +514,7 @@ namespace lsn {
 		/** Mode-0 step-2 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step2() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM0S2);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S2 ) {
@@ -481,6 +534,7 @@ namespace lsn {
 		/** Mode-0 step-3 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step3() {
+			m_i64TicksToLenCntr = static_cast<int64_t>((_tM0S3_2 - 1) - m_ui64StepCycles - 1);
 			LSN_APU_UPDATE;
 			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
 				m_piIrqTarget->Irq( LSN_IS_APU );
@@ -515,6 +569,7 @@ namespace lsn {
 		/** Mode-1 step-0 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step0() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM1S0);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S0 ) {
@@ -534,6 +589,7 @@ namespace lsn {
 		/** Mode-1 step-1 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step1() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM1S1 - m_ui64StepCycles - 1);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
@@ -561,6 +617,7 @@ namespace lsn {
 		/** Mode-1 step-2 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step2() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM1S2);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S2 ) {
@@ -580,6 +637,7 @@ namespace lsn {
 		/** Mode-1 step-3 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step3() {
+			m_i64TicksToLenCntr = static_cast<int64_t>(_tM1S3);
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S3 ) {
@@ -593,6 +651,7 @@ namespace lsn {
 		/** Mode-1 step-4 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode1_Step4() {
+			m_i64TicksToLenCntr = static_cast<int64_t>((_tM1S4_1 - 1) - m_ui64StepCycles - 1);
 			LSN_APU_UPDATE;
 
 			if ( (m_ui64StepCycles + 1) == (_tM1S4_1 - 1) ) {
@@ -685,7 +744,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
-			paApu->m_ui8Registers[0x00] = _ui8Val;
+			//paApu->m_ui8Registers[0x00] = _ui8Val;
+			paApu->m_ui8Registers[0x00] = (_ui8Val & ~LSN_PULSE1_HALT_MASK) | (paApu->m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK);
+			paApu->m_dvPulse1LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE1_HALT_MASK );
 			paApu->m_pPulse1.SetSeq( GetDuty( _ui8Val >> 6 ) );
 			paApu->m_pPulse1.SetEnvelopeVolume( _ui8Val & 0b1111 );
 		}
@@ -735,7 +796,10 @@ namespace lsn {
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE1_ENABLED( paApu ) ) {
-				paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse1.GetLengthCounter()) ) {
+				//	paApu->m_pPulse1.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//}
+				paApu->m_dvPulse1LengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_pPulse1.RestartEnvelope();
 		}
@@ -750,7 +814,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
-			paApu->m_ui8Registers[0x04] = _ui8Val;
+			//paApu->m_ui8Registers[0x04] = _ui8Val;
+			paApu->m_ui8Registers[0x04] = (_ui8Val & ~LSN_PULSE2_HALT_MASK) | (paApu->m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK);
+			paApu->m_dvPulse2LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE2_HALT_MASK );
 			paApu->m_pPulse2.SetSeq( GetDuty( _ui8Val >> 6 ) );
 			paApu->m_pPulse2.SetEnvelopeVolume( _ui8Val & 0b1111 );
 		}
@@ -800,7 +866,10 @@ namespace lsn {
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE2_ENABLED( paApu ) ) {
-				paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse2.GetLengthCounter()) ) {
+				//	paApu->m_pPulse2.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//}
+				paApu->m_dvPulse2LengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_pPulse2.RestartEnvelope();
 		}
@@ -815,7 +884,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4008( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
-			paApu->m_ui8Registers[0x08] = _ui8Val;
+			//paApu->m_ui8Registers[0x08] = _ui8Val;
+			paApu->m_ui8Registers[0x08] = (_ui8Val & ~LSN_TRIANGLE_HALT_MASK) | (paApu->m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK);
+			paApu->m_dvTriangleLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_TRIANGLE_HALT_MASK );
 			paApu->m_tTriangle.SetLinearCounter( _ui8Val & 0b01111111 );
 		}
 
@@ -846,7 +917,10 @@ namespace lsn {
 			paApu->m_ui8Registers[0x0B] = _ui8Val;
 			paApu->m_tTriangle.SetTimerHigh( _ui8Val, false );
 			if ( LSN_TRIANGLE_ENABLED( paApu ) ) {
-				paApu->m_tTriangle.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_tTriangle.GetLengthCounter()) ) {
+				//	paApu->m_tTriangle.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//}
+				paApu->m_dvTriangleLengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_tTriangle.SetLinearReload();
 		}
@@ -861,7 +935,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400C( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
-			paApu->m_ui8Registers[0x0C] = _ui8Val;
+			//paApu->m_ui8Registers[0x0C] = _ui8Val;
+			paApu->m_ui8Registers[0x0C] = (_ui8Val & ~LSN_NOISE_HALT_MASK) | (paApu->m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK);
+			paApu->m_dvNoiseLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_NOISE_HALT_MASK );
 			paApu->m_nNoise.SetEnvelopeVolume( _ui8Val & 0b1111 );
 		}
 
@@ -892,7 +968,10 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
 			paApu->m_ui8Registers[0x0F] = _ui8Val;
 			if ( LSN_NOISE_ENABLED( paApu ) ) {
-				paApu->m_nNoise.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_nNoise.GetLengthCounter()) ) {
+				//	paApu->m_nNoise.SetLengthCounter( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
+				//}
+				paApu->m_dvNoiseLengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_nNoise.RestartEnvelope();
 		}
@@ -942,15 +1021,19 @@ namespace lsn {
 
 			if ( !LSN_PULSE1_ENABLED( paApu ) ) {
 				paApu->m_pPulse1.SetLengthCounter( 0 );
+				//paApu->m_dvPulse1LengthCounter.WriteWithDelay( 0 );
 			}
 			if ( !LSN_PULSE2_ENABLED( paApu ) ) {
 				paApu->m_pPulse2.SetLengthCounter( 0 );
+				//paApu->m_dvPulse2LengthCounter.WriteWithDelay( 0 );
 			}
 			if ( !LSN_TRIANGLE_ENABLED( paApu ) ) {
 				paApu->m_tTriangle.SetLengthCounter( 0 );
+				//paApu->m_dvTriangleLengthCounter.WriteWithDelay( 0 );
 			}
 			if ( !LSN_NOISE_ENABLED( paApu ) ) {
 				paApu->m_nNoise.SetLengthCounter( 0 );
+				//paApu->m_dvNoiseLengthCounter.WriteWithDelay( 0 );
 			}
 		}
 
@@ -1013,6 +1096,83 @@ namespace lsn {
 			return _fSample;
 		}
 
+		/**
+		 * Updates the length counter for Pulse 1.
+		 * 
+		 * \param _pvObj A pointer to this object.
+		 * \param _ui8NewVal The new value to set.
+		 * \param _ui8OldVal The previous value.
+		 **/
+		static void										Pulse1LengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse1.GetLengthCounter()) ) {
+				paApu->m_pPulse1.SetLengthCounter( _ui8NewVal );
+			}
+			//paApu->m_pPulse1.SetLengthCounter( _ui8NewVal );
+		}
+
+		/**
+		 * Updates the length counter for Pulse 2.
+		 * 
+		 * \param _pvObj A pointer to this object.
+		 * \param _ui8NewVal The new value to set.
+		 * \param _ui8OldVal The previous value.
+		 **/
+		static void										Pulse2LengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse2.GetLengthCounter()) ) {
+				paApu->m_pPulse2.SetLengthCounter( _ui8NewVal );
+			}
+			//paApu->m_pPulse2.SetLengthCounter( _ui8NewVal );
+		}
+
+		/**
+		 * Updates the length counter for Triangle.
+		 * 
+		 * \param _pvObj A pointer to this object.
+		 * \param _ui8NewVal The new value to set.
+		 * \param _ui8OldVal The previous value.
+		 **/
+		static void										TriangleLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_tTriangle.GetLengthCounter()) ) {
+				paApu->m_tTriangle.SetLengthCounter( _ui8NewVal );
+			}
+			//paApu->m_tTriangle.SetLengthCounter( _ui8NewVal );
+		}
+
+		/**
+		 * Updates the length counter for Noise.
+		 * 
+		 * \param _pvObj A pointer to this object.
+		 * \param _ui8NewVal The new value to set.
+		 * \param _ui8OldVal The previous value.
+		 **/
+		static void										NoiseLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_nNoise.GetLengthCounter()) ) {
+				paApu->m_nNoise.SetLengthCounter( _ui8NewVal );
+			}
+			//paApu->m_nNoise.SetLengthCounter( _ui8NewVal );
+		}
+
+		/**
+		 * Halts length counter for a channel.
+		 * 
+		 * \param _pvObj A pointer to this object.
+		 * \param _ui8NewVal The new value to set.
+		 * \param _ui8OldVal The previous value.
+		 **/
+		template <unsigned _uReg, uint8_t _ui8Flag>
+		static void										ChannelHaltLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			if ( _ui8NewVal ) {
+				paApu->m_ui8Registers[_uReg] |= _ui8Flag;
+			}
+			else {
+				paApu->m_ui8Registers[_uReg] &= ~_ui8Flag;
+			}
+		}
 	};
 	
 
