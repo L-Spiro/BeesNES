@@ -123,7 +123,7 @@ namespace lsn {
 				// + 1 makes it a multiple of 16.
 				m_sSinc.vCeof.resize( _sM + 1 );
 				m_sSinc.vRing.resize( (_sM + 1) * 10 );
-				m_gGen.vBuffer.resize( size_t( ::ceil( _dInputRate / (_ui32OutputRate * 3) ) + 6 ) );
+				m_gGen.vBuffer.resize( size_t( std::ceil( _dInputRate / (_ui32OutputRate * 3) ) + 6 ) );
 				m_gGen.vOutputBuffer.clear();
 			}
 			catch ( ... ) { return false; }
@@ -140,10 +140,11 @@ namespace lsn {
 			
 
 			// Apply sinc function.
+			double dFc2 = 2.0 * dFc;
 			int64_t i64SignedL = int64_t( sL );
 			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
 				int64_t N = int64_t( I ) - i64SignedL;
-				m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * Sinc( 2.0 * dFc * N ) );
+				m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * dFc2 * Sinc( dFc2 * N ) );
 			}
 
 			// Normalize.

@@ -138,6 +138,14 @@ namespace lsn {
 		 */
 		static inline void				SynthesizeHanningWindow( std::vector<double> &_vTaps );
 
+		/**
+		 * Standard sinc() function.
+		 * 
+		 * \param _dX The operand.
+		 * \return Returns sin(x) / x.
+		 **/
+		static inline double			Sinc( double _dX );
+
 
 	protected :
 		// == Members.
@@ -218,6 +226,21 @@ namespace lsn {
 		for ( auto I = _vTaps.size(); I--; ) {
 			_vTaps[I] = 0.50 - 0.50 * std::cos( dTauInvMax * I );
 		}
+	}
+
+	/**
+	 * Standard sinc() function.
+	 * 
+	 * \param _dX The operand.
+	 * \return Returns sin(x) / x.
+	 **/
+	inline double CAudioFilterBase::Sinc( double _dX ) {
+		_dX *= std::numbers::pi;
+		if ( _dX < 0.01 && _dX > -0.01 ) {
+			return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+		}
+
+		return std::sin( _dX ) / _dX;
 	}
 
 }	// namespace lsn

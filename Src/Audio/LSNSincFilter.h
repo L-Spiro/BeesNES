@@ -49,6 +49,17 @@ namespace lsn {
 		virtual bool					CreateHpf( float _fFc, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc );
 
 		/**
+		 * Creates a pass-bass IR filter given the sampling rate, the low and high cut-off frequencies, and the bandwidth.
+		 *
+		 * \param _fFl The low cut-off frequency.
+		 * \param _fFh The low cut-off frequency.
+		 * \param _fSampleRate The sample frequency.
+		 * \param _stM The bandwidth of the roll-off.
+		 * \param _pfSynthFunc The synthesis function (IE SynthesizeBlackmanWindow or SynthesizeHammingWindow).
+		 **/
+		virtual bool					CreateBandPass( float _fFl, float _fFh, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc );
+
+		/**
 		 * Filters a single sample.  Call after calling CreateHpf() or CreateLpf().
 		 * 
 		 * \param _dSample The input sample.
@@ -63,14 +74,6 @@ namespace lsn {
 		 **/
 		inline bool						HasCoefficients() const;
 
-		/**
-		 * Standard sinc() function.
-		 * 
-		 * \param _dX The operand.
-		 * \return Returns sin(x) / x.
-		 **/
-		static inline double			Sinc( double _dX );
-
 
 	protected :
 		// == Members.
@@ -80,6 +83,8 @@ namespace lsn {
 		mutable std::vector<double>		m_vRing;
 		/** The current index into the ring buffer. */
 		mutable size_t					m_stRing;
+		/** The high frequency of a band-pass/band-stop filter. */
+		float							m_fFb;
 	};
 	
 
@@ -89,7 +94,8 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	inline CSincFilter::CSincFilter() :
 		CAudioFilterBase(),
-		m_stRing( 0 ) {
+		m_stRing( 0 ),
+		m_fFb( 0.0f ) {
 	}
 	inline CSincFilter::~CSincFilter() {
 	}
@@ -125,10 +131,11 @@ namespace lsn {
 
 
 		// Apply sinc function.
+		double dFc2 = 2.0 * dFc;
 		int64_t i64SignedL = int64_t( stL );
 		for ( auto I = m_vCeof.size(); I--; ) {
 			int64_t N = int64_t( I ) - i64SignedL;
-			m_vCeof[I] *= Sinc( 2.0 * dFc * N );
+			m_vCeof[I] *= dFc2 * CAudioFilterBase::Sinc( dFc2 * N );
 		}
 
 		// Normalize.
@@ -176,18 +183,71 @@ namespace lsn {
 
 		// Apply sinc function.
 		double dFc2 = 2.0 * dFc;
-		const double dTau = 2.0 * std::numbers::pi;
 		int64_t i64SignedL = int64_t( stL );
 		for ( auto I = m_vCeof.size(); I--; ) {
 			int64_t N = int64_t( I ) - i64SignedL;
 			if ( N ) {
-				//m_vCeof[I] *= Sinc( double( N ), dFc2 );
-				m_vCeof[I] *= -std::sin( dTau * dFc * N ) / (std::numbers::pi * N);
+				m_vCeof[I] *= -dFc2 * CAudioFilterBase::Sinc( dFc2 * N );
 			}
 			else {
-				//m_vCeof[I] *= dTau * dFc;
-				m_vCeof[I] *= 1.0 - dFc2;
+				m_vCeof[I] *= 1.0 - dFc2 * CAudioFilterBase::Sinc( dFc2 * N );
 			}
+		}
+
+		// Normalize.
+		{
+			double dSum = 0.0;
+			for ( auto I = m_vCeof.size(); I--; ) {
+				dSum += m_vCeof[I];
+			}
+			double dNorm = 1.0 / dSum;
+			for ( auto I = m_vCeof.size(); I--; ) {
+				m_vCeof[I] *= dNorm;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Creates a pass-bass IR filter given the sampling rate, the low and high cut-off frequencies, and the bandwidth.
+	 *
+	 * \param _fFl The low cut-off frequency.
+	 * \param _fFh The low cut-off frequency.
+	 * \param _fSampleRate The sample frequency.
+	 * \param _stM The bandwidth of the roll-off.
+	 * \param _pfSynthFunc The synthesis function (IE SynthesizeBlackmanWindow or SynthesizeHammingWindow).
+	 **/
+	inline bool CSincFilter::CreateBandPass( float _fFl, float _fFh, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc ) {
+		if ( !(_stM & 1) ) { ++_stM; }						// Must have an odd number of samples for symmetry.
+		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFl && m_fFb == _fFh && m_vCeof.size() == _stM ) { return true; }
+		m_fSampleRate = _fSampleRate;
+		m_fFc = _fFl;
+		m_fFb = _fFh;
+		double dFl = double( _fFl ) / _fSampleRate;			// Cut-off ratios.
+		double dFh = double( _fFh ) / _fSampleRate;
+
+		m_vCeof.resize( _stM );
+		m_vRing.resize( _stM );
+		m_stRing = 0;
+		size_t stL = _stM / 2;								// The center sample is the latency.
+		for ( auto I = m_vCeof.size(); I--; ) {
+			m_vCeof[I] = 1.0;
+			m_vRing[I] = 0.0;
+		}
+		// Create window.
+		if ( _pfSynthFunc ) {
+			_pfSynthFunc( m_vCeof );
+		}
+
+
+		// Apply sinc function.
+		double dFl2 = 2.0 * dFl;
+		double dFh2 = 2.0 * dFh;
+		int64_t i64SignedL = int64_t( stL );
+		for ( auto I = m_vCeof.size(); I--; ) {
+			int64_t N = int64_t( I ) - i64SignedL;
+			m_vCeof[I] *= dFh2 * CAudioFilterBase::Sinc( dFh2 * N ) - dFl2 * CAudioFilterBase::Sinc( dFl2 * N );
 		}
 
 		// Normalize.
@@ -231,21 +291,6 @@ namespace lsn {
 	 **/
 	inline bool CSincFilter::HasCoefficients() const {
 		return m_vCeof.size() != 0;
-	}
-
-	/**
-	 * Standard sinc() function.
-	 * 
-	 * \param _dX The operand.
-	 * \return Returns sin(x) / x.
-	 **/
-	inline double CSincFilter::Sinc( double _dX ) {
-		_dX *= std::numbers::pi;
-		if ( _dX < 0.01 && _dX > -0.01 ) {
-			return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
-		}
-
-		return std::sin( _dX ) / _dX;
 	}
 
 }	// namespace lsn
