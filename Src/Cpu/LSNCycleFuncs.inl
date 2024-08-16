@@ -45,7 +45,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R, false, true>,										&CCpu6502::CopyVectorToPc_L_Phi2,
 			/*&CCpu6502::Null<LSN_W>,														&CCpu6502::Push_S_Phi2<-2>,
 			&CCpu6502::SelectBrkVectors<true>,											&CCpu6502::CopyVectorToPc_L_Phi2,*/
-			&CCpu6502::SetBrkFlags,														&CCpu6502::CopyVectorToPc_H_Phi2<true>,
+			&CCpu6502::SetBrkFlags,														&CCpu6502::CopyVectorToPc_H_Phi2<false>,
 			&CCpu6502::Brk_BeginInst },
 		7, LSN_AM_IMPLIED, 2, LSN_I_BRK,
 	},

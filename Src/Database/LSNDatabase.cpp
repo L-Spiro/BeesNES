@@ -435,6 +435,8 @@ namespace lsn {
 			{ .ui32Crc = 0x22AB9694, .pmRegion = LSN_PM_PAL },
 			// Rush'n Attack (E)
 			{ .ui32Crc = 0xE0AC6242, .pmRegion = LSN_PM_PAL },
+			// Rush'n Attack (U)
+			{ .ui32Crc = 0xDE25B90F, .pmRegion = LSN_PM_NTSC },
 			// Rygar (E) [!]
 			{ .ui32Crc = 0x8F197B0A, .pmRegion = LSN_PM_PAL },
 			// Qi Wang - Chinese Chess (Asia) (Unl)

@@ -87,11 +87,11 @@ namespace lsn {
 		m_nnCrtNtsc.blend = 1;*/
 
 		m_nnCrtNtsc.hue = 23;
-		m_nnCrtNtsc.brightness = 0;
-		m_nnCrtNtsc.contrast = 175;
-		m_nnCrtNtsc.saturation = 13;
+		m_nnCrtNtsc.brightness = 4;
+		m_nnCrtNtsc.contrast = 178;
+		m_nnCrtNtsc.saturation = 15;
 		m_nnCrtNtsc.black_point = 2;
-		m_nnCrtNtsc.white_point = 75;
+		m_nnCrtNtsc.white_point = 72;
 		m_nnCrtNtsc.blend = 1;
 
 		m_nsSettings.border_color = 0x22;

@@ -955,10 +955,12 @@ namespace lsn {
 #else
 		if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
 			ui8Op = 0;
+			m_bPushB = false;
 			m_ui16PcModify = 0;
 			m_bAllowWritingToPc = false;
 		}
 		else {
+			m_bPushB = true;
 			m_ui16PcModify = 1;
 		}
 #endif	// #ifdef LSN_CPU_VERIFY
@@ -1862,20 +1864,20 @@ namespace lsn {
 		// Select vector to use.
 		if ( m_bIsReset ) {
 			m_vBrkVector = LSN_V_RESET;
-			m_bPushB = false;
+			//m_bPushB = false;
 			m_bIsReset = false;
 		}
 		else if ( m_bDetectedNmi ) {
 			m_vBrkVector = LSN_V_NMI;
-			m_bPushB = false;
+			//m_bPushB = false;
 		}
 		else if ( m_bHandleIrq ) {
 			m_vBrkVector = LSN_V_IRQ_BRK;
-			m_bPushB = false;
+			//m_bPushB = false;
 		}
 		else {
 			m_vBrkVector = LSN_V_IRQ_BRK;
-			m_bPushB = true;
+			//m_bPushB = true;
 		}
 
 		if ( m_bDetectedNmi ) {

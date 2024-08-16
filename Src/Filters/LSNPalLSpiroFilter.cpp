@@ -157,8 +157,15 @@ namespace lsn {
 	void CPalLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
-			m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0 ) );
-			//m_ui8Gamma[I] = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0 ) );
+			double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0) ) ) * 255.0;
+			//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
+			
+			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
+			//double dVal = (I / 299.0) * 255.0;
+
+			dVal = std::min( dVal, 255.0 );
+			dVal = std::max( dVal, 0.0 );
+			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
 		}
 	}
 
