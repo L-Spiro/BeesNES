@@ -21,12 +21,11 @@ namespace lsn {
 	 */
 	class CSurface : public std::vector<uint8_t> {
 	public :
-		CSurface( size_t _sAllocSize, size_t _sBaseSize, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32D ) :
-			std::vector<uint8_t>( _sAllocSize ),
-			m_sBaseSize( _sBaseSize ),
-			m_ui32Width( _ui32W ),
-			m_ui32Height( _ui32H ),
-			m_ui32Depth( _ui32D ) {
+		CSurface() :
+			m_sBaseSize( 0 ),
+			m_ui32Width( 0 ),
+			m_ui32Height( 0 ),
+			m_ui32Depth( 0 ) {
 		}
 
 
@@ -58,6 +57,29 @@ namespace lsn {
 		 * \return Returns the depth of the textures in this surface.
 		 **/
 		inline uint32_t											Depth() const { return m_ui32Depth; }
+
+		/**
+		 * Sets the surface dimensions.
+		 * 
+		 * \param _ui32W Width.
+		 * \param _ui32H Height.
+		 * \param _ui32D Depth.
+		 **/
+		inline void												SetSurface( uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32D ) {
+			m_ui32Width = _ui32W;
+			m_ui32Height = _ui32H;
+			m_ui32Depth = _ui32D;
+		}
+
+		/**
+		 * Resets everything to scratch.
+		 */
+		void													Reset() {
+			m_sBaseSize = 0;
+			m_ui32Width = 0;
+			m_ui32Height = 0;
+			m_ui32Depth = 0;
+		}
 
 
 	protected :

@@ -97,6 +97,8 @@ namespace lsn {
 			{ .ui32Crc = 0x58EC824F, .pmRegion = LSN_PM_PAL },
 			// Aussie Rules Footy (Australia)
 			{ .ui32Crc = 0xC004915A, .pmRegion = LSN_PM_PAL },
+			// Bad News Baseball (U)
+			{ .ui32Crc = 0x607F9765, .pmRegion = LSN_PM_NTSC },
 			// BarbieBadDudes Vs DragonNinja (E) [!]
 			{ .ui32Crc = 0x55B8A213, .pmRegion = LSN_PM_PAL },
 			// Balloon Fight (E)
@@ -285,6 +287,8 @@ namespace lsn {
 			{ .ui32Crc = 0x9DB6A3ED, .pmRegion = LSN_PM_PAL },
 			// Ironsword - Wizards & Warriors 2 (E) [!]
 			{ .ui32Crc = 0x694C801F, .pmRegion = LSN_PM_PAL },
+			// Iron Tank (U)
+			{ .ui32Crc = 0x77540BB5, .pmRegion = LSN_PM_NTSC },
 			// Isolated Warrior (E)
 			{ .ui32Crc = 0xC3AEC9FA, .pmRegion = LSN_PM_PAL },
 			// Jack Nicklaus' Greatest 18 Holes of Champ. Golf (E)
@@ -369,6 +373,8 @@ namespace lsn {
 			{ .ui32Crc = 0xC1CD15DD, .pmRegion = LSN_PM_PAL },
 			// Mr. Gimmick (E) [!]
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
+			// M.U.L.E. (U)
+			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC },
 			// Muppet Adventure - Chaos at the Carnival (U)
 			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC },
 			// NFL Football (U)
@@ -427,6 +433,8 @@ namespace lsn {
 			{ .ui32Crc = 0x7EEF2338, .pmRegion = LSN_PM_PAL },
 			// Retrocoders - Years behind
 			{ .ui32Crc = 0x573DFDFA, .pmRegion = LSN_PM_PAL },
+			// RoadBlasters (U)
+			{ .ui32Crc = 0x3AB1E983, .pmRegion = LSN_PM_NTSC },
 			// Road Fighter (E) [!]
 			{ .ui32Crc = 0xF51C7D02, .pmRegion = LSN_PM_PAL },
 			// Robocop (E) [!]

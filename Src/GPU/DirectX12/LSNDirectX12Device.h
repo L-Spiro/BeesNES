@@ -41,6 +41,27 @@ namespace lsn {
 		 **/
 		virtual bool											Create( HWND _hWnd, const std::string &_sAdapter );
 
+		/**
+		 * Gets a pointer to the device.
+		 *
+		 * \return Returns a pointer to the device.
+		 **/
+		ID3D12Device *											Get() { return m_pd3dDevice.Get(); }
+
+		/**
+		 * Gets a pointer to the command queue.
+		 *
+		 * \return Returns a pointer to the command queue.
+		 **/
+		ID3D12CommandQueue *									GetCommandQueue() { return m_cqCommandQueue.Get(); }
+
+		/**
+		 * Gets a pointer to the swap chain.
+		 *
+		 * \return Returns a pointer to the swap chain.
+		 **/
+		IDXGISwapChain4 *										GetSwapChain() { return m_scSwapChain.Get(); }
+
 	protected :
 		// == Members.
 		lsw::LSW_HMODULE										m_hDxgiLib;								/**< The DXGI DLL. */

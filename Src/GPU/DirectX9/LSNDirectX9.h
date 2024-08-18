@@ -213,6 +213,14 @@ namespace lsn {
 		 **/
 		static bool												EnumerateDisplayDevices( IDirect3D9 * _pd3d9Dx9, std::vector<LSN_ADAPTOR_INFO> &_vDevices );
 
+		/**
+		 * Safely release an object.
+		 *
+		 * \param _tObj The object to release.
+		 */
+		template <typename _tnType>
+		static inline void										SafeRelease( _tnType &_tObj );
+
 
 	protected :
 		// == Members.
@@ -242,6 +250,19 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
+	/**
+	 * Safely release an object.
+	 *
+	 * \param _tObj The object to release.
+	 */
+	template <typename _tnType>
+	inline void CDirectX9::SafeRelease( _tnType &_tObj ) {
+		if ( _tObj ) {
+			_tObj->Release();
+			_tObj = NULL;
+		}
+	}
+
 	/**
 	 * Determines whether DirectX 9 is available.
 	 *

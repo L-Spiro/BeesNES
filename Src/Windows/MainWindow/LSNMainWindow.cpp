@@ -1472,7 +1472,8 @@ namespace lsn {
 				//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
 				std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
 					wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
-					wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
+					//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
+					wsRoot + L"Palettes\\savtool_replica_float (1).pal";
 				lsn::CStdFile sfFile;
 				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 					bool bTheyMightBeGiantFloats = false;

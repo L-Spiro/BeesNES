@@ -33,6 +33,7 @@ namespace lsn {
 		m_pd3dDevice.Reset();
 		m_pdD3d.Reset();
 		m_hLib.Reset();
+		m_dwFlags = 0;
 
 		lsw::LSW_HMODULE hLib( "d3d9.dll" );
 		if ( !hLib.Valid() ) { return false; }
@@ -91,6 +92,8 @@ namespace lsn {
 						dwFlags, &ppPresent, &m_pd3dDevice ) ) ) {
 						m_hLib = std::move( hLib );
 						m_pdD3d = std::move( pdD3d );
+						m_dwFlags = dwFlags;
+						m_ppPresentParms = ppPresent;
 						return true;
 					}
 					return false;

@@ -238,6 +238,18 @@
     <Filter Include="Header Files\GPU\Vulkan">
       <UniqueIdentifier>{f5305ebe-aedf-4725-83a1-335fb427a7c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ColorSpace">
+      <UniqueIdentifier>{ccf9ac70-c7a1-4567-a5f4-62b95e51e85f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ColorSpace">
+      <UniqueIdentifier>{282b675c-cfed-4352-8d2c-a9a5ec64e2e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{ffd2cb18-b173-4c8e-9928-6bf9c03034b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{c3452f40-d021-47a1-9568-56ccc06e4b07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -747,6 +759,42 @@
     <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDevice.h">
       <Filter>Header Files\GPU\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Src\ColorSpace\LSNColorSpace.h">
+      <Filter>Header Files\ColorSpace</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Math\LSNMatrix4x4.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Math\LSNVector4.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Math\LSNSimdTypes.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Texture.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\LSNIndexBufferBase.h">
+      <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9IndexBuffer.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\LSNVertexBufferBase.h">
+      <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1009,6 +1057,33 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDevice.cpp">
       <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ColorSpace\LSNColorSpace.cpp">
+      <Filter>Source Files\ColorSpace</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Texture.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\LSNIndexBufferBase.cpp">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9IndexBuffer.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\LSNVertexBufferBase.cpp">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -22,10 +22,6 @@ namespace lsn {
 	 */
 	class CTextureBase {
 	public :
-		CTextureBase();
-		virtual ~CTextureBase();
-
-
 		// == Functions.
 		/**
 		 * Resets the object instance back to scratch, ready to be reused.
@@ -74,6 +70,23 @@ namespace lsn {
 		 **/
 		inline size_t											Faces() const;
 
+		/**
+		 * Allocates surfaces.
+		 * 
+		 * \param _ui32W Surface width.
+		 * \param _ui32H Surface height.
+		 * \param _ui32D Surface depth.
+		 * \param _sMips Total mipmaps.
+		 * \param _sFaces Total faces.
+		 * \param _sArray Total array surfaces.
+		 * \param _ui32Pool Texture pool.
+		 * \param _ui32Usage Texture usage.
+		 * \param _ui32Format Texture format.
+		 * \return Returns true if the allocation was successful.
+		 **/
+		bool													Alloc( uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32D, size_t _sMips, size_t _sFaces, size_t _sArray,
+			uint32_t _ui32Pool, uint32_t _ui32Usage, uint32_t _ui32Format );
+
 
 	protected :
 		// == Members.
@@ -83,6 +96,11 @@ namespace lsn {
 		uint32_t												m_ui32MemoryPool = 0;						/**< The memory pool. */
 		uint32_t												m_ui32Usage = 0;							/**< Texture usage. */
 		uint32_t												m_ui32Format = 0;							/**< The texture format. */
+
+
+		// == Functions.
+		CTextureBase();
+		virtual ~CTextureBase();
 	};
 	
 
