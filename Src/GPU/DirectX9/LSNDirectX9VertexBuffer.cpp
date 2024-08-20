@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D vertex buffer.
+ * Description: A Direct3D 9 vertex buffer.
  */
 
 

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D render target resource.
+ * Description: A Direct3D 9 render target resource.
  */
 
 

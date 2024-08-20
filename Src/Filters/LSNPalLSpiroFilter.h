@@ -261,6 +261,7 @@ namespace lsn {
 		float												m_fPhaseSinTable[12];					/**< The sine phase table. */
 
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
+		uint8_t												m_ui8GammaG[300];						/**< The gamma curve for green. */
 		float												m_NormalizedLevels[16];					/**< Normalized levels. */
 
 

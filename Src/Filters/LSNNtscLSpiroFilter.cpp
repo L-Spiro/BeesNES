@@ -172,6 +172,17 @@ namespace lsn {
 			dVal = std::min( dVal, 255.0 );
 			dVal = std::max( dVal, 0.0 );
 			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
+
+			dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0), 1.0, 0.0181 * 0.5 ) ) * 255.0;
+			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
+			
+			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
+			//dVal = (I / 299.0) * 255.0;
+
+			dVal = std::min( dVal, 255.0 );
+			dVal = std::max( dVal, 0.0 );
+
+			m_ui8GammaG[I] = uint8_t( std::round( dVal ) );
 		}
 	}
 
@@ -522,83 +533,83 @@ namespace lsn {
 				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp0), mBgi );
 				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp1), mRai );
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
 				(*pui8Bgra++) = 255;							// A0;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
 				(*pui8Bgra++) = 255;							// A1;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
 				(*pui8Bgra++) = 255;							// A2;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
 				(*pui8Bgra++) = 255;							// A3;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4]];	// G4;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
 				(*pui8Bgra++) = 255;							// A4;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4]];	// G5;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
 				(*pui8Bgra++) = 255;							// A5;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4]];	// G6;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
 				(*pui8Bgra++) = 255;							// A6;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4]];	// G7;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
 				(*pui8Bgra++) = 255;							// A7;
 
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4]];	// B8;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4]];	// G8;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4+4+4]];	// G8;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4]];	// R8;
 				(*pui8Bgra++) = 255;								// A8;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4]];	// B9;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4]];	// G9;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4+4+4]];	// G9;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4]];	// R9;
 				(*pui8Bgra++) = 255;								// A9;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4]];	// B10;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4]];	// G10;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4+4+4]];	// G10;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4]];	// R10;
 				(*pui8Bgra++) = 255;								// A10;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4]];	// B11;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4]];	// G11;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4+4+4]];	// G11;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4]];	// R11;
 				(*pui8Bgra++) = 255;								// A11;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4+4]];	// B12;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4+4+4]];	// G12;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4+4+4+4+4]];	// G12;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4+4+4]];	// R12;
 				(*pui8Bgra++) = 255;									// A12;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4+4]];	// B13;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4+4+4]];	// G13;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4+4+4+4+4]];	// G13;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4+4+4]];	// R13;
 				(*pui8Bgra++) = 255;									// A13;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4+4]];	// B14;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4+4+4]];	// G14;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4+4+4+4+4]];	// G14;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4+4+4]];	// R14;
 				(*pui8Bgra++) = 255;									// A14;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4+4]];	// B15;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4+4+4]];	// G15;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4+4+4+4+4]];	// G15;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4+4+4]];	// R15;
 				(*pui8Bgra++) = 255;									// A15;
 
@@ -649,42 +660,42 @@ namespace lsn {
 				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
 				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
 				(*pui8Bgra++) = 255;							// A0;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
 				(*pui8Bgra++) = 255;							// A1;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
 				(*pui8Bgra++) = 255;							// A2;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
 				(*pui8Bgra++) = 255;							// A3;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4]];	// G4;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4]];	// G4;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
 				(*pui8Bgra++) = 255;							// A4;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4]];	// G5;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4]];	// G5;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
 				(*pui8Bgra++) = 255;							// A5;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4]];	// G6;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4]];	// G6;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
 				(*pui8Bgra++) = 255;							// A6;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4]];	// G7;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4]];	// G7;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
 				(*pui8Bgra++) = 255;							// A7;
 
@@ -735,22 +746,22 @@ namespace lsn {
 				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
 				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4]];		// G0;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
 				(*pui8Bgra++) = 255;							// A0;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4]];		// G1;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
 				(*pui8Bgra++) = 255;							// A1;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4]];		// G2;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
 				(*pui8Bgra++) = 255;							// A2;
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4]];		// G3;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
 				(*pui8Bgra++) = 255;							// A3;
 
@@ -782,7 +793,7 @@ namespace lsn {
 				uint16_t ui16Bi = static_cast<uint16_t>(std::round( fB ));
 
 				(*pui8Bgra++) = m_ui8Gamma[ui16Bi];			// B0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Gi];			// G0;
+				(*pui8Bgra++) = m_ui8GammaG[ui16Gi];		// G0;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Ri];			// R0;
 				(*pui8Bgra++) = 255;						// A0;
 

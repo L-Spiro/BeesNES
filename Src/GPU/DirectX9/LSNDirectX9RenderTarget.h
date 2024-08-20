@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D render target resource.
+ * Description: A Direct3D 9 render target resource.
  */
 
 
@@ -21,15 +21,15 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9RenderTarget
-	 * \brief A Direct3D render target resource.
+	 * \brief A Direct3D 9 render target resource.
 	 *
-	 * Description: A Direct3D render target resource.
+	 * Description: A Direct3D 9 render target resource.
 	 */
 	class CDirectX9RenderTarget : public CDirectX9LosableResource, public CSurface {
 	public :
 		// == Various constructors.
 		CDirectX9RenderTarget( CDirectX9Device * _pdx9dDevice );
-		~CDirectX9RenderTarget();
+		virtual ~CDirectX9RenderTarget();
 
 
 		// == Functions.

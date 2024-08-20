@@ -95,10 +95,10 @@ namespace lsn {
 		m_nsSettings.yoffset = 7;*/
 		
 		//m_nnCrtPal.hue = 23;
-		m_nnCrtPal.brightness = -2;
+		m_nnCrtPal.brightness = 4;
 		m_nnCrtPal.contrast = 180;
-		m_nnCrtPal.saturation = 15;
-		m_nnCrtPal.black_point = 2;
+		m_nnCrtPal.saturation = 17;
+		m_nnCrtPal.black_point = 4;
 		m_nnCrtPal.white_point = 75;
 		m_nnCrtPal.blend = 1;
 

@@ -26,79 +26,80 @@
 /* Use UA6538 voltages or RP2C07 */
 #define UA6538 0
 
+#if UA6538
+/*  white = 1450
+    *  black = 0
+    *  IREmax = 110
+    *    
+    *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
+    */
+/* From HardWareMan's UA6538 voltage measurements
+    * RELATIVE TO BLACK (mV)
+    *        LOW/EMPH          HIGH/EMPH
+    *  L0   -125 / -208         450 /  234
+    *  L1      0 / -116         934 /  600
+    *  L2    350 /  159        1450 / 1009
+    *  L3    975 /  634        1450 / 1009
+    *  
+    */
+static int IRE[16] = {
+    /* 0d     1d     2d      3d */
+    -9710,  0,     27189,  75741,
+    /* 0d     1d     2d      3d emphasized */
+    -16158,-9011,  12352,  49251,
+    /* 00     10     20      30 */
+    34957, 72556, 112640, 112640,
+    /* 00     10     20      30 emphasized */
+    18178, 46610, 78382,  78382
+};
+#else
+/*  white = 1467
+    *  black = 0
+    *  IREmax = 110
+    *    
+    *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
+    */
+/* From HardWareMan's RP2C07 voltage measurements
+    * RELATIVE TO BLACK (mV)
+    *        LOW/EMPH          HIGH/EMPH
+    *  L0   -175 / -266         609 /  334
+    *  L1      0 / -133        1000 /  642
+    *  L2    475 /  225        1467 / 1000
+    *  L3   1067 /  700        1467 / 1000
+    */
+static int IRE[16] = {
+    /* 0d     1d     2d      3d */
+    -13437, 0,     36472,  81927,
+    /* 0d     1d     2d      3d emphasized */
+    -20424,-10212, 17276,  53748,
+    /* 00     10     20      30 */
+    46761, 76783, 112640, 112640,
+    /* 00     10     20      30 emphasized */
+    25645, 49294, 76783,  76783
+};
+#endif
+#if SWAP_RED_GREEN_EMPHASIS_BITS
+/* red 0200, green 0100, blue 0400 */
+static int active[6] = {
+    0300, 0200,
+    0600, 0400,
+    0500, 0100
+};
+#else
+/* red 0100, green 0200, blue 0400 */
+static int active[6] = {
+    0300, 0100,
+    0500, 0400,
+    0600, 0200
+};
+#endif
 /* generate the square wave for a given 9-bit pixel and phase
  */
 static int alter = 0; /* flag for alternate line */
 static int
 square_sample(int p, int phase)
 {
-#if UA6538
-    /*  white = 1450
-     *  black = 0
-     *  IREmax = 110
-     *    
-     *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
-     */
-    /* From HardWareMan's UA6538 voltage measurements
-     * RELATIVE TO BLACK (mV)
-     *        LOW/EMPH          HIGH/EMPH
-     *  L0   -125 / -208         450 /  234
-     *  L1      0 / -116         934 /  600
-     *  L2    350 /  159        1450 / 1009
-     *  L3    975 /  634        1450 / 1009
-     *  
-     */
-    static int IRE[16] = {
-     /* 0d     1d     2d      3d */
-       -9710,  0,     27189,  75741,
-     /* 0d     1d     2d      3d emphasized */
-       -16158,-9011,  12352,  49251,
-     /* 00     10     20      30 */
-        34957, 72556, 112640, 112640,
-     /* 00     10     20      30 emphasized */
-        18178, 46610, 78382,  78382
-    };
-#else
-    /*  white = 1467
-     *  black = 0
-     *  IREmax = 110
-     *    
-     *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
-     */
-    /* From HardWareMan's RP2C07 voltage measurements
-     * RELATIVE TO BLACK (mV)
-     *        LOW/EMPH          HIGH/EMPH
-     *  L0   -175 / -266         609 /  334
-     *  L1      0 / -133        1000 /  642
-     *  L2    475 /  225        1467 / 1000
-     *  L3   1067 /  700        1467 / 1000
-     */
-    static int IRE[16] = {
-     /* 0d     1d     2d      3d */
-       -13437, 0,     36472,  81927,
-     /* 0d     1d     2d      3d emphasized */
-       -20424,-10212, 17276,  53748,
-     /* 00     10     20      30 */
-        46761, 76783, 112640, 112640,
-     /* 00     10     20      30 emphasized */
-        25645, 49294, 76783,  76783
-    };
-#endif
-#if SWAP_RED_GREEN_EMPHASIS_BITS
-    /* red 0200, green 0100, blue 0400 */
-    static int active[6] = {
-        0300, 0200,
-        0600, 0400,
-        0500, 0100
-    };
-#else
-    /* red 0100, green 0200, blue 0400 */
-    static int active[6] = {
-        0300, 0100,
-        0500, 0400,
-        0600, 0200
-    };
-#endif
+
     int hue, ohue;
     int e, l, v;
 
@@ -221,7 +222,7 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
 
         for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * PAL_CB_FREQ); t++) {
             cb = ccburst[nm6][t & 3];
-            line[t] = (BLANK_LEVEL + (cb * BURST_LEVEL)) >> 15;
+            line[t] = (char)((BLANK_LEVEL + (cb * BURST_LEVEL)) >> 15);
             iccf[nm6][t & 3] = line[t];
         }
         sy *= s->w;
@@ -240,7 +241,7 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
             ire += square_sample(p, phase + 2);
             ire += square_sample(p, phase + 3);
             ire = (ire * v->white_point / 110) >> 12;
-            v->analog[(x + xo) + n * PAL_HRES] = ire;
+            v->analog[(x + xo) + n * PAL_HRES] = (char)(ire);
             phase += 3;
         }
     }

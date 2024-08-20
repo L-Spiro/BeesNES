@@ -184,6 +184,11 @@ namespace lsn {
 #endif	// #ifndef LSN_USE_PHI2
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
+
+			if ( m_bUpdateVramAddr ) {
+				UpdateVramAddr();
+				m_bUpdateVramAddr = false;
+			}
 		}
 
 		/**
@@ -274,6 +279,7 @@ namespace lsn {
 			//m_dvPpuMaskDelay.SetValue( m_pmPpuMask );
 
 			m_bSuppressNmi = false;
+			m_bUpdateVramAddr = false;
 		}
 
 		/**
@@ -288,20 +294,6 @@ namespace lsn {
 
 			// == Nametables
 			ApplyVerticalMirroring();
-
-			// == Palettes
-			//for ( uint32_t I = LSN_PPU_PALETTE_MEMORY; I < LSN_PPU_MEM_FULL_SIZE; ++I ) {
-			//	m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-			//	m_bBus.SetWriteFunc( uint16_t( I ), PaletteWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % LSN_PPU_PALETTE_MEMORY_SIZE) + LSN_PPU_PALETTE_MEMORY ) );
-			//}
-			//// 4th color of each entry mirrors the background color at LSN_PPU_PALETTE_MEMORY.
-			//for ( uint32_t I = LSN_PPU_PALETTE_MEMORY + 4; I < LSN_PPU_MEM_FULL_SIZE; I += 4 ) {
-			//	/*m_bBus.SetReadFunc( uint16_t( I ), CCpuBus::StdRead, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );
-			//	m_bBus.SetWriteFunc( uint16_t( I ), CCpuBus::StdWrite, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 2)) + LSN_PPU_PALETTE_MEMORY ) );*/
-			//	//m_bBus.SetReadFunc( uint16_t( I ), PaletteRead, this, uint16_t( LSN_PPU_PALETTE_MEMORY ) );
-			//	m_bBus.SetReadFunc( uint16_t( I ), ReadPaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
-			//	m_bBus.SetWriteFunc( uint16_t( I ), WritePaletteIdx4, this, uint16_t( ((I - LSN_PPU_PALETTE_MEMORY) % (LSN_PPU_PALETTE_MEMORY_SIZE / 1)) + LSN_PPU_PALETTE_MEMORY ) );
-			//}
 
 			for ( uint32_t I = LSN_PPU_START; I < LSN_APU_START; I += LSN_PPU ) {
 				// 0x2000: PPUCTRL.
@@ -986,7 +978,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Scan = ppPpu->m_ui16CurY;
-			// If the scanline is >= 0 and < 240, or -1.
+			// If the scanline is (>= 0 and < 240, or -1).
 			if ( (ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender))) || ui16Scan == (_tDotHeight - 1) ) {
 				ppPpu->m_ui8OamAddr += 4;
 				return;
@@ -1081,7 +1073,8 @@ namespace lsn {
 				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
 				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 			}
-			ppPpu->UpdateVramAddr();
+			//ppPpu->UpdateVramAddr();
+			ppPpu->m_bUpdateVramAddr = true;
 		}
 
 		/**
@@ -1107,74 +1100,8 @@ namespace lsn {
 				ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
 			}
 			ppPpu->m_ui8IoBusLatch = _ui8Val;
-			ppPpu->UpdateVramAddr();
-		}
-
-		/**
-		 * Reading from the palette.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
-		 * \param _pui8Data The buffer from which to read.
-		 * \param _ui8Ret The read value.
-		 */
-		static void LSN_FASTCALL						PaletteRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			_ui8Ret = ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY];
-			/*ppPpu->g_bDoDebugPrint = false;
-			char szBuffer[256];
-			std::sprintf( szBuffer, "PaletteRead: Frame: %u [%u,%u]  V.addr = %.4X [%.2X]\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr, _ui8Ret );
-			::OutputDebugStringA( szBuffer );*/
-		}
-
-		/**
-		 * Writing to the palette.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Val The value to write.
-		 */
-		static void LSN_FASTCALL						PaletteWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY] = _ui8Val;
-		}
-
-		/**
-		 * Reading from the background index of the palettes ($3F04/$3F08/$3F0C/$3F10/$3F14/$3F18/$3F1C).
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
-		 * \param _pui8Data The buffer from which to read.
-		 * \param _ui8Ret The read value.
-		 */
-		static void LSN_FASTCALL						ReadPaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			if ( ppPpu->m_bRendering ) {
-				_ui8Ret = ppPpu->m_ui8PaletteRam[0];
-			}
-			else {
-				_ui8Ret = ppPpu->m_ui8PaletteRam[_ui16Parm1-LSN_PPU_PALETTE_MEMORY];
-			}
-
-			/*ppPpu->g_bDoDebugPrint = false;
-			char szBuffer[256];
-			std::sprintf( szBuffer, "ReadPaletteIdx4: Frame: %u [%u,%u]  V.addr = %.4X [%.2X]\r\n", uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentScanline(), ppPpu->GetCurrentRowPos(), ppPpu->m_paPpuAddrV.ui16Addr, _ui8Ret );
-			::OutputDebugStringA( szBuffer );*/
-		}
-
-		/**
-		 * Writing to the background index of the palettes ($3F04/$3F08/$3F0C/$3F10/$3F14/$3F18/$3F1C).  These address can contain the written data but also update $3F00.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Val The value to write.
-		 */
-		static void LSN_FASTCALL						WritePaletteIdx4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			_ui16Parm1 -= LSN_PPU_PALETTE_MEMORY;
-			ppPpu->m_ui8PaletteRam[_ui16Parm1] = ppPpu->m_ui8PaletteRam[_ui16Parm1^0x10] = _ui8Val;
+			//ppPpu->UpdateVramAddr();
+			ppPpu->m_bUpdateVramAddr = true;
 		}
 
 		/**
@@ -1387,6 +1314,7 @@ namespace lsn {
 		bool											m_bSprite0IsInSecondaryThisLine;				/**< Copied to m_bSprite0IsInSecondary during sprite fetching, used to determine if sprite 0 is in the current line being drawn. */
 
 		bool											m_bSuppressNmi;									/**< If true, NMI can't be generated. */
+		bool											m_bUpdateVramAddr;								/**< If true, the VRAM address is updated at the end of the cycle. */
 
 		//bool g_bDoDebugPrint									= false;
 
@@ -1417,9 +1345,9 @@ namespace lsn {
 		inline void										UpdateVramAddr() {
 			// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
 			//	consider this read as happening on the last PPU cycle and adjust accordingly.
-			int16_t i16AdjustedX = m_ui16CurX;
+			//int16_t i16AdjustedX = m_ui16CurX;
 			int16_t i16AdjustedY = m_ui16CurY;
-			AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+			//AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
 			if ( (i16AdjustedY >= (_tPreRender + _tRender) && i16AdjustedY != (_tDotHeight - 1) ) || !m_bRendering ) {
 				m_paPpuAddrV.ui16Addr = (m_paPpuAddrV.ui16Addr + (m_pcPpuCtrl.s.ui8IncrementMode ? 32 : 1)) & (0x7FFF);

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D vertex buffer.
+ * Description: A Direct3D 9 vertex buffer.
  */
 
 
@@ -21,15 +21,15 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9VertexBuffer
-	 * \brief A Direct3D vertex buffer.
+	 * \brief A Direct3D 9 vertex buffer.
 	 *
-	 * Description: A Direct3D vertex buffer.
+	 * Description: A Direct3D 9 vertex buffer.
 	 */
 	class CDirectX9VertexBuffer : public CDirectX9LosableResource, public CVertexBufferBase {
 	public :
 		// == Various constructors.
 		CDirectX9VertexBuffer( CDirectX9Device * _pdx9dDevice );
-		~CDirectX9VertexBuffer();
+		virtual ~CDirectX9VertexBuffer();
 
 
 		// == Functions.

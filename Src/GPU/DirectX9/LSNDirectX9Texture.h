@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D texture resource.
+ * Description: A Direct3D 9 texture resource.
  */
 
 
@@ -21,15 +21,15 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9Texture
-	 * \brief A Direct3D texture resource.
+	 * \brief A Direct3D 9 texture resource.
 	 *
-	 * Description: A Direct3D texture resource.
+	 * Description: A Direct3D 9 texture resource.
 	 */
 	class CDirectX9Texture : public CDirectX9LosableResource, public CTextureBase {
 	public :
 		// == Various constructors.
 		CDirectX9Texture( CDirectX9Device * _pdx9dDevice );
-		~CDirectX9Texture();
+		virtual ~CDirectX9Texture();
 
 
 		// == Functions.

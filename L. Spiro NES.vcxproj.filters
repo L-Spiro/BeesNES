@@ -795,6 +795,36 @@
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.h">
       <Filter>Header Files\GPU\DirectX9</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Texture.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resource.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12CommandAllocator.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12CommandList.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12CommandQueue.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12CommandSignature.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12DescriptorHeap.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Fence.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1084,6 +1114,36 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.cpp">
       <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Texture.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resource.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandAllocator.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandList.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandQueue.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandSignature.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12DescriptorHeap.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Fence.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

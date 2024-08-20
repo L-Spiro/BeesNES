@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D texture resource.
+ * Description: A Direct3D 9 texture resource.
  */
 
 

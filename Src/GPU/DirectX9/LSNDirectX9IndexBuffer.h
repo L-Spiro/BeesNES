@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D index buffer.
+ * Description: A Direct3D 9 index buffer.
  */
 
 
@@ -21,15 +21,15 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9IndexBuffer
-	 * \brief A Direct3D index buffer.
+	 * \brief A Direct3D 9 index buffer.
 	 *
-	 * Description: A Direct3D index buffer.
+	 * Description: A Direct3D 9 index buffer.
 	 */
 	class CDirectX9IndexBuffer : public CDirectX9LosableResource, public CIndexBufferBase {
 	public :
 		// == Various constructors.
 		CDirectX9IndexBuffer( CDirectX9Device * _pdx9dDevice );
-		~CDirectX9IndexBuffer();
+		virtual ~CDirectX9IndexBuffer();
 
 
 		// == Functions.

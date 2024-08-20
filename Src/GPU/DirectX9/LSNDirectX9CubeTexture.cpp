@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D cube texture resource.
+ * Description: A Direct3D 9 cube texture resource.
  */
 
 

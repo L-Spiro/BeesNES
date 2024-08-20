@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D volume texture resource.
+ * Description: A Direct3D 9 volume texture resource.
  */
 
 
@@ -21,15 +21,15 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9VolumeTexture
-	 * \brief A Direct3D volume texture resource.
+	 * \brief A Direct3D 9 volume texture resource.
 	 *
-	 * Description: A Direct3D volume texture resource.
+	 * Description: A Direct3D 9 volume texture resource.
 	 */
 	class CDirectX9VolumeTexture : public CDirectX9LosableResource, public CTextureBase {
 	public :
 		// == Various constructors.
 		CDirectX9VolumeTexture( CDirectX9Device * _pdx9dDevice );
-		~CDirectX9VolumeTexture();
+		virtual ~CDirectX9VolumeTexture();
 
 
 		// == Functions.

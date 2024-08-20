@@ -1300,7 +1300,7 @@ namespace lsn {
 				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[1] ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[0] ) ) * 255.0 ) );*/
 				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[2], 1.0 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[1], 1.0 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[1], 1.0, 0.0181 * 0.5 ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[0], 1.0 ) ) * 255.0 ) );
 				
 				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[2], 1.0 / 0.45 ) ) * 255.0 ) );

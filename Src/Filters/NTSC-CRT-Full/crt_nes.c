@@ -17,27 +17,28 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* amplified IRE = ((mV / 7.143) - 312 / 7.143) * 1024 */
+/* https://www.nesdev.org/wiki/NTSC_video#Brightness_Levels */
+static int IRE[16] = {
+    /* 0d     1d     2d      3d */
+    -12042, 0,     34406,  81427,
+    /* 0d     1d     2d      3d emphasized */
+    -17203,-8028,  19497,  57342,
+    /* 00     10     20      30 */
+    43581, 75693, 112965, 112965,
+    /* 00     10     20      30 emphasized */
+    26951, 52181, 83721,  83721
+};
+static int active[6] = {
+    0300, 0100,
+    0500, 0400,
+    0600, 0200
+};
 /* generate the square wave for a given 9-bit pixel and phase */
 static int
 square_sample(int p, int phase)
 {
-    /* amplified IRE = ((mV / 7.143) - 312 / 7.143) * 1024 */
-    /* https://www.nesdev.org/wiki/NTSC_video#Brightness_Levels */
-    static int IRE[16] = {
-     /* 0d     1d     2d      3d */
-       -12042, 0,     34406,  81427,
-     /* 0d     1d     2d      3d emphasized */
-       -17203,-8028,  19497,  57342,
-     /* 00     10     20      30 */
-        43581, 75693, 112965, 112965,
-     /* 00     10     20      30 emphasized */
-        26951, 52181, 83721,  83721
-    };
-    static int active[6] = {
-        0300, 0100,
-        0500, 0400,
-        0600, 0200
-    };
     int hue;
     int e, l, v;
 
@@ -172,7 +173,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         /* CB_CYCLES of color burst at 3.579545 Mhz */
         for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
             cb = ccburst[n % 3][t & 3];
-            line[t] = (BLANK_LEVEL + (cb * BURST_LEVEL)) >> 5;
+            line[t] = (char)((BLANK_LEVEL + (cb * BURST_LEVEL)) >> 5);
             iccf[n % 3][t & 3] = line[t];
         }
         sy *= s->w;
@@ -186,8 +187,8 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             ire += square_sample(p, phase + 1);
             ire += square_sample(p, phase + 2);
             ire += square_sample(p, phase + 3);
-            ire = (ire * v->white_point / 100) >> 12;
-            v->analog[(x + xo) + (y + yo) * CRT_HRES] = ire;
+            ire = ((ire * v->white_point / 100) >> 12);
+            v->analog[(x + xo) + (y + yo) * CRT_HRES] = (char)(ire);
             phase += 3;
         }
     }

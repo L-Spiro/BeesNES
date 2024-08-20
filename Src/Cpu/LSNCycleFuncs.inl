@@ -337,7 +337,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Pull_To_Operand_Phi2<0>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::Pull_To_Operand_Phi2<1>,
 			&CCpu6502::CopyOperandToStatusWithoutB,										&CCpu6502::Pull_To_Target_L_Phi2<2>,
-			&CCpu6502::Null<LSN_R>,														&CCpu6502::Read_Stack_To_Target_H_Phi2<3, true>,
+			&CCpu6502::Null<LSN_R, false, true>,										&CCpu6502::Read_Stack_To_Target_H_Phi2<0, true>,
 			&CCpu6502::Rti_BeginInst, },
 			6, LSN_AM_IMPLIED, 1, LSN_I_RTI,
 	},

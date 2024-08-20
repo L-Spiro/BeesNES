@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A Direct3D cube texture resource.
+ * Description: A Direct3D 9 cube texture resource.
  */
 
 
@@ -21,9 +21,9 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9CubeTexture
-	 * \brief A Direct3D cube texture resource.
+	 * \brief A Direct3D 9 cube texture resource.
 	 *
-	 * Description: A Direct3D cube texture resource.
+	 * Description: A Direct3D 9 cube texture resource.
 	 */
 	class CDirectX9CubeTexture : public CDirectX9LosableResource, public CTextureBase {
 	public :

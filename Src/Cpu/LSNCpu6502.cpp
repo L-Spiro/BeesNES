@@ -204,10 +204,10 @@ namespace lsn {
 			}*/
 			m_bDetectedNmi = true;
 			TickPhi2();
-			if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM &&
+			if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BRK &&
 				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BPL && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BNE && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVS &&
 				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCS && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BEQ && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BMI ) {
-				if ( m_bHandleNmi != I <= 0 ) {
+				if ( m_bHandleNmi != (I <= 0) ) {
 					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
 				}
 			}
@@ -1771,7 +1771,7 @@ namespace lsn {
 	void CCpu6502::Rti_BeginInst() {
 		BeginInst();
 
-		LSN_UPDATE_S;
+		//LSN_UPDATE_S;
 
 		m_rRegs.ui16Pc = m_ui16Target;
 	}

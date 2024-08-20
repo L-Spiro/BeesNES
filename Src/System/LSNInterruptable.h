@@ -25,26 +25,26 @@ namespace lsn {
 		/**
 		 * Notifies the class that an NMI has occurred.
 		 */
-		virtual void						Nmi() {}
+		virtual void										Nmi() {}
 
 		/**
 		 * Clears the NMI flag.
 		 */
-		virtual void						ClearNmi() {}
+		virtual void										ClearNmi() {}
 
 		/**
 		 * Notifies the class that an IRQ has occurred.
 		 *
 		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void						Irq( uint8_t /*_ui8Source*/ ) {}
+		virtual void										Irq( uint8_t /*_ui8Source*/ ) {}
 
 		/**
 		 * Clears the IRQ flag.
 		 *
 		 * \param _ui8Source The source of the IRQ.
 		 */
-		virtual void						ClearIrq( uint8_t /*_ui8Source*/ ) {}
+		virtual void										ClearIrq( uint8_t /*_ui8Source*/ ) {}
 
 		/**
 		 * Gets the status of the IRQ line.
@@ -52,7 +52,14 @@ namespace lsn {
 		 * \param _ui8Source The source of the IRQ.
 		 * \return Returns true if the IRQ status line is low.
 		 **/
-		virtual bool						GetIrqStatus( uint8_t /*_ui8Source*/ ) const { return false; }
+		virtual bool										GetIrqStatus( uint8_t /*_ui8Source*/ ) const { return false; }
+
+		/**
+		 * Begins a DMC DMA.
+		 * 
+		 * \param _ui8Val The value written to 0x4015.
+		 */
+		virtual void										BeginDmc( uint8_t /*_ui8Val*/ ) {}
 	};
 
 }	// namespace lsn
