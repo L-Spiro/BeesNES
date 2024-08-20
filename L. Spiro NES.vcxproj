@@ -1789,7 +1789,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Fence.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resource.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Texture.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.h" />
@@ -1963,7 +1965,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Fence.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resource.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Texture.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.cpp" />
@@ -2053,6 +2057,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">true</ExcludedFromBuild>
     </MASM>
+    <None Include="Src\GPU\Vulkan\LSNVulkanFuncDecl.inl" />
+    <None Include="Src\GPU\Vulkan\LSNVulkanFuncDef.inl" />
+    <None Include="Src\GPU\Vulkan\LSNVulkanWrappers.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />

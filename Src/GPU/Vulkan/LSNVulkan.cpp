@@ -14,165 +14,10 @@
 namespace lsn {
 
 	// == Members.
-	/**
-	 * Create a new device instance.
-	 * 
-	 * \param _physicalDevice Must be one of the device handles returned from a call to vkEnumeratePhysicalDevices.
-	 * \param _pCreateInfo A pointer to a VkDeviceCreateInfo structure containing information about how to create the device.
-	 * \param _pAllocator Controls host memory allocation.
-	 * \param _pDevice A pointer to a handle in which the created VkDevice is returned.
-	 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_DEVICE_LOST.
-	 **/
-	CVulkan::PFN_vkCreateDevice CVulkan::m_pfCreateDevice = nullptr;
+#include "LSNVulkanFuncDef.inl"
+	
 
-	/**
-	 * Destroy a logical device.
-	 * 
-	 * \param _device The logical device to destroy.
-	 * \param _pAllocator Controls host memory allocation.
-	 **/
-	CVulkan::PFN_vkDestroyDevice CVulkan::m_pfDestroyDevice = nullptr;
-
-	/**
-	 * Get a queue handle from a device.
-	 * 
-	 * \param _device The logical device that owns the queue.
-	 * \param _queueFamilyIndex The index of the queue family to which the queue belongs.
-	 * \param _queueIndex The index within this queue family of the queue to retrieve.
-	 * \param _pQueue A pointer to a VkQueue object that will be filled with the handle for the requested queue.
-	 **/
-	CVulkan::PFN_vkGetDeviceQueue CVulkan::m_pfGetDeviceQueue = nullptr;
-
-	/**
-	 * Create a new Vulkan instance.
-	 * 
-	 * \param _pCreateInfo A pointer to a VkInstanceCreateInfo structure controlling creation of the instance.
-	 * \param _pAllocator Controls host memory allocation.
-	 * \param _pInstance Points a VkInstance handle in which the resulting instance is returned.
-	 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_INCOMPATIBLE_DRIVER
-	 **/
-	CVulkan::PFN_vkCreateInstance CVulkan::m_pfCreateInstance = nullptr;
-
-	/**
-	 * Destroy an instance of Vulkan.
-	 * 
-	 * \param _instance The handle of the instance to destroy.
-	 * \param _pAllocator Controls host memory allocation.
-	 **/
-	PFN_vkDestroyInstance CVulkan::m_pfDestroyInstance = nullptr;
-
-	/**
-	 * Enumerates the physical devices accessible to a Vulkan instance.
-	 * 
-	 * \param _instance A handle to a Vulkan instance previously created with vkCreateInstance.
-	 * \param _pPhysicalDeviceCount A pointer to an integer related to the number of physical devices available or queried.
-	 * \param _pPhysicalDevices Either NULL or a pointer to an array of VkPhysicalDevice handles.
-	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED.
-	 **/
-	CVulkan::PFN_vkEnumeratePhysicalDevices CVulkan::m_pfEnumeratePhysicalDevices = nullptr;
-
-	/**
-	 * Returns properties of a physical device.
-	 * 
-	 * \param _physicalDevice The handle to the physical device whose properties will be queried.
-	 * \param _pProperties A pointer to a VkPhysicalDeviceProperties structure in which properties are returned.
-	 **/
-	CVulkan::PFN_vkGetPhysicalDeviceProperties CVulkan::m_pfGetPhysicalDeviceProperties = nullptr;
-
-#ifdef LSN_WINDOWS
-	/**
-	 * Create a VkSurfaceKHR object for an Win32 native window.
-	 * 
-	 * \param _instance The instance to associate the surface with.
-	 * \param _pCreateInfo A pointer to a VkWin32SurfaceCreateInfoKHR structure containing parameters affecting the creation of the surface object.
-	 * \param _pAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
-	 * \param _pSurface A pointer to a VkSurfaceKHR handle in which the created surface object is returned.
-	 * \return On success, this command returns: VK_SUCCESS.  On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY
-	 **/
-	CVulkan::PFN_vkCreateWin32SurfaceKHR CVulkan::m_pfCreateWin32SurfaceKHR = nullptr;
-
-	/**
-	 * Destroy a VkSurfaceKHR object.
-	 * 
-	 * \param _instance The instance used to create the surface.
-	 * \param _surface The surface to destroy.
-	 * \param _pAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
-	 **/
-	CVulkan::PFN_vkDestroySurfaceKHR CVulkan::m_pfDestroySurfaceKHR = nullptr;
-
-	/**
-	 * Create a swapchain.
-	 * 
-	 * \param _device The device to create the swapchain for.
-	 * \param _pCreateInfo A pointer to a VkSwapchainCreateInfoKHR structure specifying the parameters of the created swapchain.
-	 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
-	 * \param _pSwapchain A pointer to a VkSwapchainKHR handle in which the created swapchain object will be returned.
-	 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_DEVICE_LOST, VK_ERROR_SURFACE_LOST_KHR, VK_ERROR_NATIVE_WINDOW_IN_USE_KHR, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_COMPRESSION_EXHAUSTED_EXT.
-	 **/
-	CVulkan::PFN_vkCreateSwapchainKHR CVulkan::m_pfCreateSwapchainKHR = nullptr;
-
-	/**
-	 * Destroy a swapchain object.
-	 * 
-	 * \param _device The VkDevice associated with swapchain.
-	 * \param _swapchain The swapchain to destroy.
-	 * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
-	 **/
-	CVulkan::PFN_vkDestroySwapchainKHR CVulkan::m_pfDestroySwapchainKHR = nullptr;
-
-	/**
-	 * Query color formats supported by surface.
-	 * 
-	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
-	 * \param _surface The surface that will be associated with the swapchain.
-	 * \param _pSurfaceFormatCount A pointer to an integer related to the number of format pairs available or queried.
-	 * \param _pSurfaceFormats Either NULL or a pointer to an array of VkSurfaceFormatKHR structures.
-	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
-	 **/
-	CVulkan::PFN_vkGetPhysicalDeviceSurfaceFormatsKHR CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR = nullptr;
-
-	/**
-	 * Query supported presentation modes.
-	 * 
-	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
-	 * \param _surface The surface that will be associated with the swapchain.
-	 * \param _pPresentModeCount A pointer to an integer related to the number of presentation modes available or queried, as described below.
-	 * \param _pPresentModes Either NULL or a pointer to an array of VkPresentModeKHR values, indicating the supported presentation modes
-	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
-	 **/
-	CVulkan::PFN_vkGetPhysicalDeviceSurfacePresentModesKHR CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR = nullptr;
-
-	/**
-	 * Query surface capabilities.
-	 * 
-	 * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
-	 * \param _surface The surface that will be associated with the swapchain.
-	 * \param _pSurfaceCapabilities A pointer to a VkSurfaceCapabilitiesKHR structure in which the capabilities are returned.
-	 * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
-	 **/
-	CVulkan::PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR CVulkan::m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR = nullptr;
-#endif	// #ifdef LSN_WINDOWS
-
-	/**
-	 * Returns up to requested number of global extension properties.
-	 * 
-	 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
-	 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried.
-	 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
-	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
-	 **/
-	CVulkan::PFN_vkEnumerateInstanceExtensionProperties CVulkan::m_pfEnumerateInstanceExtensionProperties = nullptr;
-
-	/**
-	 * Returns properties of available physical device extensions.
-	 * 
-	 * \param _physicalDevice The physical device that will be queried.
-	 * \param _pLayerName Either NULL or a pointer to a null-terminated UTF-8 string naming the layer to retrieve extensions from.
-	 * \param _pPropertyCount A pointer to an integer related to the number of extension properties available or queried, and is treated in the same fashion as the vkEnumerateInstanceExtensionProperties::pPropertyCount parameter.
-	 * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
-	 * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
-	 **/
-	CVulkan::PFN_vkEnumerateDeviceExtensionProperties CVulkan::m_pfEnumerateDeviceExtensionProperties = nullptr;
+	
 
 	BOOL CVulkan::m_bSupported = 3;																										/**< Is Vulkan 1.0 supported? */
 	std::vector<VkPhysicalDeviceProperties> CVulkan::m_vDisplayDevices;																	/**< The array of display devices. */
@@ -282,8 +127,99 @@ namespace lsn {
 		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceCapabilitiesKHR );
 #endif	// #ifdef LSN_WINDOWS
 
+		LSN_LOAD_FUNC( CreateImage );
+		LSN_LOAD_FUNC( DestroyImage );
+
+		LSN_LOAD_FUNC( GetImageMemoryRequirements );
+
+		LSN_LOAD_FUNC( AllocateMemory );
+		LSN_LOAD_FUNC( FreeMemory );
+
 		LSN_LOAD_FUNC( EnumerateInstanceExtensionProperties );
 		LSN_LOAD_FUNC( EnumerateDeviceExtensionProperties );
+
+		// Loading function pointers for command buffers.
+		LSN_LOAD_FUNC( AllocateCommandBuffers );
+		LSN_LOAD_FUNC( BeginCommandBuffer );
+		LSN_LOAD_FUNC( EndCommandBuffer );
+		LSN_LOAD_FUNC( ResetCommandBuffer );
+
+		// Loading function pointers for command pools.
+		LSN_LOAD_FUNC( CreateCommandPool );
+		LSN_LOAD_FUNC( DestroyCommandPool );
+		LSN_LOAD_FUNC( ResetCommandPool );
+
+		// Loading function pointers for fences.
+		LSN_LOAD_FUNC( CreateFence );
+		LSN_LOAD_FUNC( DestroyFence );
+		LSN_LOAD_FUNC( WaitForFences );
+		LSN_LOAD_FUNC( ResetFences );
+
+		// Loading function pointers for semaphores.
+		LSN_LOAD_FUNC( CreateSemaphore );
+		LSN_LOAD_FUNC( DestroySemaphore );
+
+		// Loading function pointers for buffers.
+		LSN_LOAD_FUNC( CreateBuffer );
+		LSN_LOAD_FUNC( DestroyBuffer );
+		LSN_LOAD_FUNC( GetBufferMemoryRequirements );
+
+		// Loading function pointers for binding memory.
+		LSN_LOAD_FUNC( BindBufferMemory );
+		LSN_LOAD_FUNC( BindImageMemory );
+
+		// Loading function pointers for image views.
+		LSN_LOAD_FUNC( CreateImageView );
+		LSN_LOAD_FUNC( DestroyImageView );
+
+		// Loading function pointers for render passes.
+		LSN_LOAD_FUNC( CreateRenderPass );
+		LSN_LOAD_FUNC( DestroyRenderPass );
+
+		// Loading function pointers for framebuffers.
+		LSN_LOAD_FUNC( CreateFramebuffer );
+		LSN_LOAD_FUNC( DestroyFramebuffer );
+
+		// Loading function pointers for pipelines.
+		LSN_LOAD_FUNC( CreateGraphicsPipelines );
+		LSN_LOAD_FUNC( CreateComputePipelines );
+		LSN_LOAD_FUNC( DestroyPipeline );
+
+		// Loading function pointers for pipeline layouts.
+		LSN_LOAD_FUNC( CreatePipelineLayout );
+		LSN_LOAD_FUNC( DestroyPipelineLayout );
+
+		// Loading function pointers for shader modules.
+		LSN_LOAD_FUNC( CreateShaderModule );
+		LSN_LOAD_FUNC( DestroyShaderModule );
+
+		// Loading function pointers for descriptor set layouts.
+		LSN_LOAD_FUNC( CreateDescriptorSetLayout );
+		LSN_LOAD_FUNC( DestroyDescriptorSetLayout );
+
+		// Loading function pointers for descriptor pools.
+		LSN_LOAD_FUNC( CreateDescriptorPool );
+		LSN_LOAD_FUNC( DestroyDescriptorPool );
+		LSN_LOAD_FUNC( ResetDescriptorPool );
+
+		// Loading function pointers for descriptor sets.
+		LSN_LOAD_FUNC( AllocateDescriptorSets );
+		LSN_LOAD_FUNC( FreeDescriptorSets );
+
+		// Loading function pointers for queue submission and presentation.
+		LSN_LOAD_FUNC( QueueSubmit );
+		LSN_LOAD_FUNC( QueuePresentKHR );
+		LSN_LOAD_FUNC( QueueWaitIdle );
+
+		// Loading function pointers for device idle.
+		LSN_LOAD_FUNC( DeviceWaitIdle );
+
+		// Loading function pointers for memory mapping and flushing.
+		LSN_LOAD_FUNC( MapMemory );
+		LSN_LOAD_FUNC( UnmapMemory );
+		LSN_LOAD_FUNC( FlushMappedMemoryRanges );
+		LSN_LOAD_FUNC( InvalidateMappedMemoryRanges );
+
 
 #undef LSN_LOAD_FUNC
 		

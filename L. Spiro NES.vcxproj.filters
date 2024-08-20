@@ -825,6 +825,12 @@
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.h">
       <Filter>Header Files\GPU\DirectX12</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1145,6 +1151,12 @@
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.cpp">
       <Filter>Source Files\GPU\DirectX12</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
@@ -1182,6 +1194,15 @@
     </None>
     <None Include="Src\Cpu\LSNCycleFuncs.inl">
       <Filter>Header Files\Cpu</Filter>
+    </None>
+    <None Include="Src\GPU\Vulkan\LSNVulkanFuncDecl.inl">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </None>
+    <None Include="Src\GPU\Vulkan\LSNVulkanFuncDef.inl">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </None>
+    <None Include="Src\GPU\Vulkan\LSNVulkanWrappers.inl">
+      <Filter>Header Files\GPU\Vulkan</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
