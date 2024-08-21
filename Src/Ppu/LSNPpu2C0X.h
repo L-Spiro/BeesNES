@@ -143,8 +143,10 @@ namespace lsn {
 
 			
 #ifndef LSN_USE_PHI2
-			if ( m_bVAddrPending ) {
-				if ( --m_ui8VAddrUpdateCounter == 0 ) {
+			if ( LSN_UNLIKELY( m_bVAddrPending ) ) {
+				//__assume( 0 );
+				if ( LSN_UNLIKELY( --m_ui8VAddrUpdateCounter == 0 ) ) {
+					//__assume( 0 );
 					m_bVAddrPending = false;
 					if ( m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
 						if ( m_ui16CurX == 257 ) {
@@ -185,7 +187,8 @@ namespace lsn {
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
 
-			if ( m_bUpdateVramAddr ) {
+			if ( LSN_UNLIKELY( m_bUpdateVramAddr ) ) {
+				//__assume( 0 );
 				UpdateVramAddr();
 				m_bUpdateVramAddr = false;
 			}
@@ -2378,7 +2381,7 @@ namespace lsn {
 	/**
 	 * A PAL-N PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), false, 3717000000, 2543123715
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), true, 3717000000, 2543123715
 /*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CPalNPpu;
 

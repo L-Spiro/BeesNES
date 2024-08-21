@@ -208,7 +208,9 @@ namespace lsn {
 
 		// Loading function pointers for queue submission and presentation.
 		LSN_LOAD_FUNC( QueueSubmit );
+#ifdef LSN_WINDOWS
 		LSN_LOAD_FUNC( QueuePresentKHR );
+#endif	// #ifdef LSN_WINDOWS
 		LSN_LOAD_FUNC( QueueWaitIdle );
 
 		// Loading function pointers for device idle.
@@ -220,6 +222,30 @@ namespace lsn {
 		LSN_LOAD_FUNC( FlushMappedMemoryRanges );
 		LSN_LOAD_FUNC( InvalidateMappedMemoryRanges );
 
+#ifdef LSN_WINDOWS
+		// Ray-tracing.
+		LSN_LOAD_FUNC( CreateRayTracingPipelinesKHR );
+		LSN_LOAD_FUNC( GetRayTracingShaderGroupHandlesKHR );
+		LSN_LOAD_FUNC( GetRayTracingCaptureReplayShaderGroupHandlesKHR );
+
+		// Acceleration structures.
+		LSN_LOAD_FUNC( CreateAccelerationStructureKHR );
+		LSN_LOAD_FUNC( DestroyAccelerationStructureKHR );
+		LSN_LOAD_FUNC( GetAccelerationStructureDeviceAddressKHR );
+		LSN_LOAD_FUNC( BuildAccelerationStructuresKHR );
+		LSN_LOAD_FUNC( CopyAccelerationStructureKHR );
+		LSN_LOAD_FUNC( CopyAccelerationStructureToMemoryKHR );
+		LSN_LOAD_FUNC( CmdCopyMemoryToAccelerationStructureKHR );
+		LSN_LOAD_FUNC( WriteAccelerationStructuresPropertiesKHR );
+		LSN_LOAD_FUNC( GetAccelerationStructureBuildSizesKHR );
+
+		// Ray tracing commands.
+		LSN_LOAD_FUNC( CmdTraceRaysKHR );
+		LSN_LOAD_FUNC( CmdTraceRaysIndirectKHR );
+	
+		// Ray tracing queries.
+		LSN_LOAD_FUNC( GetRayTracingShaderGroupStackSizeKHR );
+#endif	// #ifdef LSN_WINDOWS
 
 #undef LSN_LOAD_FUNC
 		

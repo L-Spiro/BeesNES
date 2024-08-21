@@ -40,6 +40,8 @@ namespace lsn {
 		typedef void (VKAPI_PTR *								PFN_vkGetDeviceQueue)( VkDevice, uint32_t, uint32_t, VkQueue * );
 		typedef VkResult (VKAPI_PTR *							PFN_vkEnumeratePhysicalDevices)( VkInstance, uint32_t *, VkPhysicalDevice * );
 		typedef void (VKAPI_PTR *								PFN_vkGetPhysicalDeviceProperties)( VkPhysicalDevice, VkPhysicalDeviceProperties * );
+		typedef void (VKAPI_PTR *								PFN_vkGetPhysicalDeviceProperties2)( VkPhysicalDevice, VkPhysicalDeviceProperties2 * );
+
 
 		typedef VkResult (VKAPI_PTR *							PFN_vkCreateWin32SurfaceKHR)( VkInstance, const VkWin32SurfaceCreateInfoKHR *, const VkAllocationCallbacks *, VkSurfaceKHR * );
 		typedef void (VKAPI_PTR *								PFN_vkDestroySurfaceKHR)( VkInstance, VkSurfaceKHR, const VkAllocationCallbacks * );
@@ -148,6 +150,29 @@ namespace lsn {
 		// Memory flushing.
 		typedef VkResult (VKAPI_PTR *							PFN_vkFlushMappedMemoryRanges)( VkDevice, uint32_t, const VkMappedMemoryRange * );
 		typedef VkResult (VKAPI_PTR *							PFN_vkInvalidateMappedMemoryRanges)( VkDevice, uint32_t, const VkMappedMemoryRange * );
+
+		// Ray-tracing.
+		typedef VkResult (VKAPI_PTR *							PFN_vkCreateRayTracingPipelinesKHR)( VkDevice, VkDeferredOperationKHR, VkPipelineCache, uint32_t, const VkRayTracingPipelineCreateInfoKHR *, const VkAllocationCallbacks *, VkPipeline * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkGetRayTracingShaderGroupHandlesKHR)( VkDevice, VkPipeline, uint32_t, uint32_t, size_t, void * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)( VkDevice, VkPipeline, uint32_t, uint32_t, size_t, void * );
+
+		// Acceleration structures.
+		typedef VkResult (VKAPI_PTR *							PFN_vkCreateAccelerationStructureKHR)( VkDevice, const VkAccelerationStructureCreateInfoKHR *, const VkAllocationCallbacks *, VkAccelerationStructureKHR * );
+		typedef void (VKAPI_PTR *								PFN_vkDestroyAccelerationStructureKHR)( VkDevice, VkAccelerationStructureKHR, const VkAllocationCallbacks * );
+		typedef VkDeviceAddress (VKAPI_PTR *					PFN_vkGetAccelerationStructureDeviceAddressKHR)( VkDevice, const VkAccelerationStructureDeviceAddressInfoKHR * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkBuildAccelerationStructuresKHR)( VkDevice, VkDeferredOperationKHR, uint32_t, const VkAccelerationStructureBuildGeometryInfoKHR *, const VkAccelerationStructureBuildRangeInfoKHR * const * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkCopyAccelerationStructureKHR)( VkDevice, VkDeferredOperationKHR, const VkCopyAccelerationStructureInfoKHR * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkCopyAccelerationStructureToMemoryKHR)( VkDevice, VkDeferredOperationKHR, const VkCopyAccelerationStructureToMemoryInfoKHR * );
+		typedef void (VKAPI_PTR *								PFN_vkCmdCopyMemoryToAccelerationStructureKHR)( VkCommandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR * );
+		typedef VkResult (VKAPI_PTR *							PFN_vkWriteAccelerationStructuresPropertiesKHR)( VkDevice, uint32_t, const VkAccelerationStructureKHR *, VkQueryType, size_t, void *, size_t );
+		typedef void (VKAPI_PTR *								PFN_vkGetAccelerationStructureBuildSizesKHR)( VkDevice, VkAccelerationStructureBuildTypeKHR, const VkAccelerationStructureBuildGeometryInfoKHR *, const uint32_t *, VkAccelerationStructureBuildSizesInfoKHR * );
+
+		// Ray tracing commands.
+		typedef void (VKAPI_PTR *								PFN_vkCmdTraceRaysKHR)( VkCommandBuffer, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, uint32_t, uint32_t, uint32_t );
+		typedef void (VKAPI_PTR *								PFN_vkCmdTraceRaysIndirectKHR)( VkCommandBuffer, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, const VkStridedDeviceAddressRegionKHR *, VkDeviceAddress );
+
+		// Ray tracing queries.
+		typedef VkDeviceSize (VKAPI_PTR *						PFN_vkGetRayTracingShaderGroupStackSizeKHR)( VkDevice, VkPipeline, uint32_t, VkShaderGroupShaderKHR );
 
 
 #include "LSNVulkanWrappers.inl"

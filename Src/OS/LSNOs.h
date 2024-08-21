@@ -34,9 +34,15 @@
 #if defined( _MSC_VER )
 	#define LSN_FORCEINLINE 					__forceinline
 	#define LSN_PREFETCH_LINE( ADDR )			_mm_prefetch( reinterpret_cast<const char *>(ADDR), _MM_HINT_T0 );
-#elif defined( __GNUC__ )
+    #define LSN_LIKELY(x) (x)
+    #define LSN_UNLIKELY(x) (x)
+#elif defined( __GNUC__ ) || defined( __clang__ )
 	#define LSN_FORCEINLINE 					__inline__ __attribute__( (__always_inline__) )
 	#define LSN_PREFETCH_LINE( ADDR )			__builtin_prefetch( reinterpret_cast<const void *>(ADDR), 1, 1 );
+    #define LSN_LIKELY(x)                       __builtin_expect(!!(x), 1)
+    #define LSN_UNLIKELY(x)                     __builtin_expect(!!(x), 0)
+    #define __assume(x)
 #else
 	#define LSN_FORCEINLINE inline
 #endif
+

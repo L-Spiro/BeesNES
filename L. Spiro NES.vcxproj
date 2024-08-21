@@ -1867,6 +1867,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Math\LSNSimdTypes.h" />
     <ClInclude Include="Src\Math\LSNVector4.h" />
     <ClInclude Include="Src\MiniZ\miniz.h" />
+    <ClInclude Include="Src\Options\LSNGenericOption.h" />
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />

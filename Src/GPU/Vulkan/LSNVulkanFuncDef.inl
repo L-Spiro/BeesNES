@@ -602,6 +602,7 @@ CVulkan::PFN_vkFreeDescriptorSets CVulkan::m_pfFreeDescriptorSets = nullptr;
  **/
 CVulkan::PFN_vkQueueSubmit CVulkan::m_pfQueueSubmit = nullptr;
 
+#ifdef LSN_WINDOWS
 /**
  * Present a swapchain image to the display.
  * 
@@ -610,6 +611,7 @@ CVulkan::PFN_vkQueueSubmit CVulkan::m_pfQueueSubmit = nullptr;
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
 CVulkan::PFN_vkQueuePresentKHR CVulkan::m_pfQueuePresentKHR = nullptr;
+#endif	// #ifdef LSN_WINDOWS
 
 /**
  * Wait for a queue to become idle.
@@ -667,3 +669,176 @@ CVulkan::PFN_vkFlushMappedMemoryRanges CVulkan::m_pfFlushMappedMemoryRanges = nu
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
 CVulkan::PFN_vkInvalidateMappedMemoryRanges CVulkan::m_pfInvalidateMappedMemoryRanges = nullptr;
+
+#ifdef LSN_WINDOWS
+/**
+ * Create a ray tracing pipeline object.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pipelineCache The pipeline cache to use.
+ * \param _createInfoCount The number of ray tracing pipelines to create.
+ * \param _pCreateInfos A pointer to an array of VkRayTracingPipelineCreateInfoKHR structures specifying the parameters for creating the pipelines.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pPipelines A pointer to an array of VkPipeline handles in which the resulting pipelines are returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkCreateRayTracingPipelinesKHR CVulkan::m_pfCreateRayTracingPipelinesKHR = nullptr;
+
+/**
+ * Get ray tracing shader group handles.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _firstGroup The index of the first shader group.
+ * \param _groupCount The number of shader groups.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the shader group handles.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkGetRayTracingShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingShaderGroupHandlesKHR = nullptr;
+
+/**
+ * Get capture replay shader group handles.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _firstGroup The index of the first shader group.
+ * \param _groupCount The number of shader groups.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the shader group handles.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingCaptureReplayShaderGroupHandlesKHR = nullptr;
+
+/**
+ * Create an acceleration structure object.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _pCreateInfo A pointer to a VkAccelerationStructureCreateInfoKHR structure specifying the parameters for creating the acceleration structure.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pAccelerationStructure A pointer to a VkAccelerationStructureKHR handle in which the resulting acceleration structure is returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkCreateAccelerationStructureKHR CVulkan::m_pfCreateAccelerationStructureKHR = nullptr;
+
+/**
+ * Destroy an acceleration structure object.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _accelerationStructure The acceleration structure to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+CVulkan::PFN_vkDestroyAccelerationStructureKHR CVulkan::m_pfDestroyAccelerationStructureKHR = nullptr;
+
+/**
+ * Get the device address of an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _pInfo A pointer to a VkAccelerationStructureDeviceAddressInfoKHR structure specifying the acceleration structure to query.
+ * \return The device address of the acceleration structure.
+ **/
+CVulkan::PFN_vkGetAccelerationStructureDeviceAddressKHR CVulkan::m_pfGetAccelerationStructureDeviceAddressKHR = nullptr;
+
+/**
+ * Build acceleration structures.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _infoCount The number of acceleration structures to build.
+ * \param _pInfos A pointer to an array of VkAccelerationStructureBuildGeometryInfoKHR structures specifying the build operations.
+ * \param _ppBuildRangeInfos A pointer to an array of VkAccelerationStructureBuildRangeInfoKHR pointers specifying the ranges for each geometry in the acceleration structures.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkBuildAccelerationStructuresKHR CVulkan::m_pfBuildAccelerationStructuresKHR = nullptr;
+
+/**
+ * Copy an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pInfo A pointer to a VkCopyAccelerationStructureInfoKHR structure specifying the copy operation.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkCopyAccelerationStructureKHR CVulkan::m_pfCopyAccelerationStructureKHR = nullptr;
+
+/**
+ * Copy an acceleration structure to memory.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pInfo A pointer to a VkCopyAccelerationStructureToMemoryInfoKHR structure specifying the copy operation.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkCopyAccelerationStructureToMemoryKHR CVulkan::m_pfCopyAccelerationStructureToMemoryKHR = nullptr;
+
+/**
+ * Copy memory to an acceleration structure.
+ * 
+ * \param _commandBuffer The command buffer in which the copy command is recorded.
+ * \param _pInfo A pointer to a VkCopyMemoryToAccelerationStructureInfoKHR structure specifying the copy operation.
+ **/
+CVulkan::PFN_vkCmdCopyMemoryToAccelerationStructureKHR CVulkan::m_pfCmdCopyMemoryToAccelerationStructureKHR = nullptr;
+
+/**
+ * Write acceleration structures properties.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _accelerationStructureCount The number of acceleration structures to query.
+ * \param _pAccelerationStructures A pointer to an array of VkAccelerationStructureKHR handles specifying the acceleration structures to query.
+ * \param _queryType The type of query to perform.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the query results.
+ * \param _stride The stride in bytes between successive results.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+CVulkan::PFN_vkWriteAccelerationStructuresPropertiesKHR CVulkan::m_pfWriteAccelerationStructuresPropertiesKHR = nullptr;
+
+/**
+ * Get the build sizes for an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _buildType The type of build operation.
+ * \param _pBuildInfo A pointer to a VkAccelerationStructureBuildGeometryInfoKHR structure specifying the build parameters.
+ * \param _pMaxPrimitiveCounts A pointer to an array of maximum primitive counts for each geometry in the build operation.
+ * \param _pSizeInfo A pointer to a VkAccelerationStructureBuildSizesInfoKHR structure in which the build sizes are returned.
+ **/
+CVulkan::PFN_vkGetAccelerationStructureBuildSizesKHR CVulkan::m_pfGetAccelerationStructureBuildSizesKHR = nullptr;
+
+/**
+ * Trace rays in a ray tracing pipeline.
+ * 
+ * \param _commandBuffer The command buffer in which the trace command is recorded.
+ * \param _pRaygenShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the ray generation shader binding table.
+ * \param _pMissShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the miss shader binding table.
+ * \param _pHitShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the hit shader binding table.
+ * \param _pCallableShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the callable shader binding table.
+ * \param _width The width of the ray trace operation.
+ * \param _height The height of the ray trace operation.
+ * \param _depth The depth of the ray trace operation.
+ **/
+CVulkan::PFN_vkCmdTraceRaysKHR CVulkan::m_pfCmdTraceRaysKHR = nullptr;
+
+/**
+ * Trace rays in a ray tracing pipeline using indirect commands.
+ * 
+ * \param _commandBuffer The command buffer in which the trace command is recorded.
+ * \param _pRaygenShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the ray generation shader binding table.
+ * \param _pMissShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the miss shader binding table.
+ * \param _pHitShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the hit shader binding table.
+ * \param _pCallableShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the callable shader binding table.
+ * \param _indirectDeviceAddress The device address of the indirect command buffer.
+ **/
+CVulkan::PFN_vkCmdTraceRaysIndirectKHR CVulkan::m_pfCmdTraceRaysIndirectKHR = nullptr;
+
+/**
+ * Get the stack size required for a ray tracing shader group.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _group The index of the shader group.
+ * \param _groupShader The specific shader within the group.
+ * \return The stack size in bytes required for the shader group.
+ **/
+CVulkan::PFN_vkGetRayTracingShaderGroupStackSizeKHR CVulkan::m_pfGetRayTracingShaderGroupStackSizeKHR = nullptr;
+#endif	// #ifdef LSN_WINDOWS

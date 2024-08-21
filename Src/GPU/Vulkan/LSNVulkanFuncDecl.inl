@@ -602,6 +602,7 @@ static PFN_vkFreeDescriptorSets                            m_pfFreeDescriptorSet
  **/
 static PFN_vkQueueSubmit                                   m_pfQueueSubmit;
 
+#ifdef LSN_WINDOWS
 /**
  * Present a swapchain image to the display.
  * 
@@ -610,6 +611,7 @@ static PFN_vkQueueSubmit                                   m_pfQueueSubmit;
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
 static PFN_vkQueuePresentKHR                               m_pfQueuePresentKHR;
+#endif	// #ifdef LSN_WINDOWS
 
 /**
  * Wait for a queue to become idle.
@@ -667,3 +669,176 @@ static PFN_vkFlushMappedMemoryRanges                       m_pfFlushMappedMemory
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
 static PFN_vkInvalidateMappedMemoryRanges                  m_pfInvalidateMappedMemoryRanges;
+
+#ifdef LSN_WINDOWS
+/**
+ * Create a ray tracing pipeline object.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pipelineCache The pipeline cache to use.
+ * \param _createInfoCount The number of ray tracing pipelines to create.
+ * \param _pCreateInfos A pointer to an array of VkRayTracingPipelineCreateInfoKHR structures specifying the parameters for creating the pipelines.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pPipelines A pointer to an array of VkPipeline handles in which the resulting pipelines are returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkCreateRayTracingPipelinesKHR                  m_pfCreateRayTracingPipelinesKHR;
+
+/**
+ * Get ray tracing shader group handles.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _firstGroup The index of the first shader group.
+ * \param _groupCount The number of shader groups.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the shader group handles.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkGetRayTracingShaderGroupHandlesKHR            m_pfGetRayTracingShaderGroupHandlesKHR;
+
+/**
+ * Get capture replay shader group handles.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _firstGroup The index of the first shader group.
+ * \param _groupCount The number of shader groups.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the shader group handles.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR m_pfGetRayTracingCaptureReplayShaderGroupHandlesKHR;
+
+/**
+ * Create an acceleration structure object.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _pCreateInfo A pointer to a VkAccelerationStructureCreateInfoKHR structure specifying the parameters for creating the acceleration structure.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pAccelerationStructure A pointer to a VkAccelerationStructureKHR handle in which the resulting acceleration structure is returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkCreateAccelerationStructureKHR                m_pfCreateAccelerationStructureKHR;
+
+/**
+ * Destroy an acceleration structure object.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _accelerationStructure The acceleration structure to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+static PFN_vkDestroyAccelerationStructureKHR               m_pfDestroyAccelerationStructureKHR;
+
+/**
+ * Get the device address of an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structure.
+ * \param _pInfo A pointer to a VkAccelerationStructureDeviceAddressInfoKHR structure specifying the acceleration structure to query.
+ * \return The device address of the acceleration structure.
+ **/
+static PFN_vkGetAccelerationStructureDeviceAddressKHR      m_pfGetAccelerationStructureDeviceAddressKHR;
+
+/**
+ * Build acceleration structures.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _infoCount The number of acceleration structures to build.
+ * \param _pInfos A pointer to an array of VkAccelerationStructureBuildGeometryInfoKHR structures specifying the build operations.
+ * \param _ppBuildRangeInfos A pointer to an array of VkAccelerationStructureBuildRangeInfoKHR pointers specifying the ranges for each geometry in the acceleration structures.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkBuildAccelerationStructuresKHR                m_pfBuildAccelerationStructuresKHR;
+
+/**
+ * Copy an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pInfo A pointer to a VkCopyAccelerationStructureInfoKHR structure specifying the copy operation.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkCopyAccelerationStructureKHR                  m_pfCopyAccelerationStructureKHR;
+
+/**
+ * Copy an acceleration structure to memory.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _deferredOperation An optional deferred operation.
+ * \param _pInfo A pointer to a VkCopyAccelerationStructureToMemoryInfoKHR structure specifying the copy operation.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkCopyAccelerationStructureToMemoryKHR          m_pfCopyAccelerationStructureToMemoryKHR;
+
+/**
+ * Copy memory to an acceleration structure.
+ * 
+ * \param _commandBuffer The command buffer in which the copy command is recorded.
+ * \param _pInfo A pointer to a VkCopyMemoryToAccelerationStructureInfoKHR structure specifying the copy operation.
+ **/
+static PFN_vkCmdCopyMemoryToAccelerationStructureKHR       m_pfCmdCopyMemoryToAccelerationStructureKHR;
+
+/**
+ * Write acceleration structures properties.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _accelerationStructureCount The number of acceleration structures to query.
+ * \param _pAccelerationStructures A pointer to an array of VkAccelerationStructureKHR handles specifying the acceleration structures to query.
+ * \param _queryType The type of query to perform.
+ * \param _dataSize The size of the output data buffer.
+ * \param _pData A pointer to a buffer to receive the query results.
+ * \param _stride The stride in bytes between successive results.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkWriteAccelerationStructuresPropertiesKHR      m_pfWriteAccelerationStructuresPropertiesKHR;
+
+/**
+ * Get the build sizes for an acceleration structure.
+ * 
+ * \param _device The logical device that owns the acceleration structures.
+ * \param _buildType The type of build operation.
+ * \param _pBuildInfo A pointer to a VkAccelerationStructureBuildGeometryInfoKHR structure specifying the build parameters.
+ * \param _pMaxPrimitiveCounts A pointer to an array of maximum primitive counts for each geometry in the build operation.
+ * \param _pSizeInfo A pointer to a VkAccelerationStructureBuildSizesInfoKHR structure in which the build sizes are returned.
+ **/
+static PFN_vkGetAccelerationStructureBuildSizesKHR         m_pfGetAccelerationStructureBuildSizesKHR;
+
+/**
+ * Trace rays in a ray tracing pipeline.
+ * 
+ * \param _commandBuffer The command buffer in which the trace command is recorded.
+ * \param _pRaygenShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the ray generation shader binding table.
+ * \param _pMissShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the miss shader binding table.
+ * \param _pHitShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the hit shader binding table.
+ * \param _pCallableShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the callable shader binding table.
+ * \param _width The width of the ray trace operation.
+ * \param _height The height of the ray trace operation.
+ * \param _depth The depth of the ray trace operation.
+ **/
+static PFN_vkCmdTraceRaysKHR                               m_pfCmdTraceRaysKHR;
+
+/**
+ * Trace rays in a ray tracing pipeline using indirect commands.
+ * 
+ * \param _commandBuffer The command buffer in which the trace command is recorded.
+ * \param _pRaygenShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the ray generation shader binding table.
+ * \param _pMissShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the miss shader binding table.
+ * \param _pHitShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the hit shader binding table.
+ * \param _pCallableShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the callable shader binding table.
+ * \param _indirectDeviceAddress The device address of the indirect command buffer.
+ **/
+static PFN_vkCmdTraceRaysIndirectKHR                       m_pfCmdTraceRaysIndirectKHR;
+
+/**
+ * Get the stack size required for a ray tracing shader group.
+ * 
+ * \param _device The logical device that owns the pipeline.
+ * \param _pipeline The ray tracing pipeline.
+ * \param _group The index of the shader group.
+ * \param _groupShader The specific shader within the group.
+ * \return The stack size in bytes required for the shader group.
+ **/
+static PFN_vkGetRayTracingShaderGroupStackSizeKHR          m_pfGetRayTracingShaderGroupStackSizeKHR;
+#endif	// #ifdef LSN_WINDOWS
