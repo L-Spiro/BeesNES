@@ -282,12 +282,13 @@ namespace lsn {
 				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
 				while ( i16End - J >= 16 ) {
 					uint16_t ui16CosIdx;
-					if ( (_sRowIdx & 1) == 0 ) {
+					/*if ( (_sRowIdx & 1) == 0 ) {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 16 at a time.
 					Convolution16( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 16;
@@ -302,12 +303,13 @@ namespace lsn {
 				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
 				while ( i16End - J >= 8 ) {
 					uint16_t ui16CosIdx;
-					if ( (_sRowIdx & 1) == 0 ) {
+					/*if ( (_sRowIdx & 1) == 0 ) {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 8 at a time.
 					Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 8;
@@ -322,12 +324,13 @@ namespace lsn {
 				__m128 mSin = _mm_set1_ps( 0.0f ), mCos = _mm_set1_ps( 0.0f ), mSig = _mm_set1_ps( 0.0f );
 				while ( i16End - J >= 4 ) {
 					uint16_t ui16CosIdx;
-					if ( (_sRowIdx & 1) == 0 ) {
+					/*if ( (_sRowIdx & 1) == 0 ) {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 4 at a time.
 					Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 4;
@@ -340,14 +343,15 @@ namespace lsn {
 			{
 				while ( i16End - J >= 1 ) {
 					uint16_t ui16CosIdx;
-					if ( (_sRowIdx & 1) == 0 ) {
+					/*if ( (_sRowIdx & 1) == 0 ) {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
 					}
 					else {
 						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
-					(*_pfDstY) += fLevel;
+					(*_pfDstY) += pfSignalStart[J] * m_fFilterY[J-i16Start];
 					(*_pfDstI) += m_fPhaseCosTable[ui16CosIdx] * fLevel;
 					(*_pfDstQ) += m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12] * fLevel;
 					++J;
@@ -499,6 +503,34 @@ namespace lsn {
 			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
 				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable512[I]);
 				pfDst[J] = m_fFilter[(J+I)%_ui32Width];
+			}
+		}
+#endif	// #ifdef __AVX512F__
+
+
+		dSum = 0.0;
+		for ( size_t I = 0; I < _ui32Width; ++I ) {
+			m_fFilterY[I] = m_pfFilterFuncY( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			dSum += m_fFilterY[I];
+		}
+		dNorm = 1.0 / dSum;
+		for ( size_t I = 0; I < _ui32Width; ++I ) {
+			m_fFilterY[I] = float( m_fFilterY[I] * dNorm );
+		}
+
+#ifdef __AVX__
+		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTableY[I]);
+				pfDst[J] = m_fFilterY[(J+I)%_ui32Width];
+			}
+		}
+#endif	// #ifdef __AVX__
+#ifdef __AVX512F__
+		for ( size_t J = 0; J < sizeof( __m512 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable512Y[I]);
+				pfDst[J] = m_fFilterY[(J+I)%_ui32Width];
 			}
 		}
 #endif	// #ifdef __AVX512F__

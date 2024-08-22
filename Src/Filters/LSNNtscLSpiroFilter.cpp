@@ -306,7 +306,7 @@ namespace lsn {
 				while ( i16End - J >= 1 ) {
 					size_t sIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
-					(*_pfDstY) += fLevel;
+					(*_pfDstY) += pfSignalStart[J] * m_fFilterY[J-i16Start];
 					(*_pfDstI) += m_fPhaseCosTable[sIdx] * fLevel;
 					(*_pfDstQ) += m_fPhaseSinTable[sIdx] * fLevel;
 					++J;
@@ -440,6 +440,34 @@ namespace lsn {
 			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
 				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable512[I]);
 				pfDst[J] = m_fFilter[(J+I)%_ui32Width];
+			}
+		}
+#endif	// #ifdef __AVX512F__
+
+
+		dSum = 0.0;
+		for ( size_t I = 0; I < _ui32Width; ++I ) {
+			m_fFilterY[I] = m_pfFilterFuncY( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			dSum += m_fFilterY[I];
+		}
+		dNorm = 1.0 / dSum;
+		for ( size_t I = 0; I < _ui32Width; ++I ) {
+			m_fFilterY[I] = float( m_fFilterY[I] * dNorm );
+		}
+
+#ifdef __AVX__
+		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTableY[I]);
+				pfDst[J] = m_fFilterY[(J+I)%_ui32Width];
+			}
+		}
+#endif	// #ifdef __AVX__
+#ifdef __AVX512F__
+		for ( size_t J = 0; J < sizeof( __m512 ) / sizeof( float ); ++J ) {
+			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
+				float * pfDst = reinterpret_cast<float *>(&m_mStackedFilterTable512Y[I]);
+				pfDst[J] = m_fFilterY[(J+I)%_ui32Width];
 			}
 		}
 #endif	// #ifdef __AVX512F__

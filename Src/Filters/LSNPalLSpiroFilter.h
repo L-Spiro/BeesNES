@@ -193,6 +193,16 @@ namespace lsn {
 			GenFilterKernel( m_ui32FilterKernelSize );
 		}
 
+		/**
+		 * Sets the Y filter function.
+		 * 
+		 * \param _pfFunc The filter function.
+		 **/
+		void												SetFilterFuncY( PfFilterFunc _pfFunc ) {
+			m_pfFilterFuncY = _pfFunc;
+			GenFilterKernel( m_ui32FilterKernelSize );
+		}
+
 
 	protected :
 		// == Enumerations.
@@ -228,19 +238,23 @@ namespace lsn {
 
 #ifdef __AVX__
 		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedFilterTableY[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
 		__m256												m_mStackedCosTable[12];					/**< 8 elements of the cosine table stacked. */
 		__m256												m_mStackedSinTable[12];					/**< 8 elements of the sine table stacked. */
 #endif	// #ifdef __AVX__
 #ifdef __AVX512F__
-		__m512												m_mStackedFilterTable512[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m512												m_mStackedFilterTable512[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
+		__m512												m_mStackedFilterTable512Y[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
 		__m512												m_mStackedCosTable512[12];				/**< 16 elements of the cosine table stacked. */
 		__m512												m_mStackedSinTable512[12];				/**< 16 elements of the sine table stacked. */
 #endif	// #ifdef __AVX__
 		
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];			/**< The filter kernel. */
+		float												m_fFilterY[LSN_MAX_FILTER_SIZE];		/**< The filter kernel. */
 
-		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;	/**< The filter function. */
+		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;		/**< The filter function for chroma. */
+		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;	/**< The filter function for Y. */
 		uint32_t											m_ui32FilterKernelSize = 12;				/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
@@ -366,7 +380,7 @@ namespace lsn {
 		 * \param _mSin The summed result of sine convolution.
 		 * \param _mSignal The summed result of signal convolution.
 		 **/
-		inline void										Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal );
+		inline void											Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal );
 #endif	// #ifdef __AVX512F__
 
 #ifdef __AVX__
@@ -381,7 +395,7 @@ namespace lsn {
 		 * \param _mSin The summed result of sine convolution.
 		 * \param _mSignal The summed result of signal convolution.
 		 **/
-		inline void										Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal );
+		inline void											Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal );
 #endif	// #ifdef __AVX__
 
 #ifdef __SSE4_1__
@@ -396,7 +410,7 @@ namespace lsn {
 		 * \param _mSin The summed result of sine convolution.
 		 * \param _mSignal The summed result of signal convolution.
 		 **/
-		inline void										Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal );
+		inline void											Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal );
 #endif	// #ifdef __SSE4_1__
 
 		/**
@@ -491,11 +505,13 @@ namespace lsn {
 		__m512 mSignals = _mm512_loadu_ps( _pfSignals );
 		// Load the filter weights.
 		__m512 mFilter = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable512[_sFilterIdx] ) );
+		__m512 mFilterY = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable512Y[_sFilterIdx] ) );
 		// Load the cosine values.
 		__m512 mCos = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable512[_sCosIdx] ) );
 
 		// Multiply Signals and weights.
 		__m512 mLevels = _mm512_mul_ps( mSignals, mFilter );
+		__m512 mLevelsY = _mm512_mul_ps( mSignals, mFilterY );
 		// Load the sine values.
 		__m512 mSin = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable512[_sSinIdx] ) );
 
@@ -504,7 +520,7 @@ namespace lsn {
 		// Multiply levels and sines.
 		_mSin = _mm512_add_ps( _mSin, _mm512_mul_ps( mLevels, mSin ) );
 		// Accumulate the signals.
-		_mSignal = _mm512_add_ps( _mSignal, mLevels );
+		_mSignal = _mm512_add_ps( _mSignal, mLevelsY );
 	}
 #endif	// #ifdef __AVX512F__
 
@@ -525,11 +541,13 @@ namespace lsn {
 		__m256 mSignals = _mm256_loadu_ps( _pfSignals );
 		// Load the filter weights.
 		__m256 mFilter = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		__m256 mFilterY = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
 		// Load the cosine values.
 		__m256 mCos = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
 
 		// Multiply Signals and weights.
 		__m256 mLevels = _mm256_mul_ps( mSignals, mFilter );
+		__m256 mLevelsY = _mm256_mul_ps( mSignals, mFilterY );
 		// Load the sine values.
 		__m256 mSin = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
 
@@ -538,7 +556,7 @@ namespace lsn {
 		// Multiply levels and sines.
 		_mSin = _mm256_add_ps( _mSin, _mm256_mul_ps( mLevels, mSin ) );
 		// Accumulate the signals.
-		_mSignal = _mm256_add_ps( _mSignal, mLevels );
+		_mSignal = _mm256_add_ps( _mSignal, mLevelsY );
 	}
 #endif	// #ifdef __AVX__
 
@@ -559,11 +577,13 @@ namespace lsn {
 		__m128 mSignals = _mm_loadu_ps( _pfSignals );
 		// Load the filter weights.
 		__m128 mFilter = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		__m128 mFilterY = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTableY[_sFilterIdx] ) );
 		// Load the cosine values.
 		__m128 mCos = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
 
 		// Multiply Signals and weights.
 		__m128 mLevels = _mm_mul_ps( mSignals, mFilter );
+		__m128 mLevelsY = _mm_mul_ps( mSignals, mFilterY );
 		// Load the sine values.
 		__m128 mSin = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
 
@@ -572,7 +592,7 @@ namespace lsn {
 		// Multiply levels and sines.
 		_mSin = _mm_add_ps( _mSin, _mm_mul_ps( mLevels, mSin ) );
 		// Accumulate the signals.
-		_mSignal = _mm_add_ps( _mSignal, mLevels );
+		_mSignal = _mm_add_ps( _mSignal, mLevelsY );
 	}
 #endif	// #ifdef __SSE4_1__
 
