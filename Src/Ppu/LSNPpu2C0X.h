@@ -2236,7 +2236,7 @@ namespace lsn {
 				if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
 					sRet += "\r\n"
 					"if constexpr ( _bOddFrameShenanigans ) {\r\n"
-					"	if ( (m_ui64Frame & 0x1) && m_bRendering ) {\r\n"
+					"	if ( ((m_ui64Frame & 0x1) == 0) && m_bRendering ) {\r\n"
 					"		m_stCurCycle = 1;\r\n"
 					"	}\r\n"
 					"	else {\r\n"

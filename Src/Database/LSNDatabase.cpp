@@ -33,7 +33,7 @@ namespace lsn {
 			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_DENDY },
 
 			// Super Mario Bros (E)
-			{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
+			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
 
 			// 01.len_ctr
 			{ .ui32Crc = 0xD1837AD3, .pmRegion = LSN_PM_PAL },
@@ -60,7 +60,7 @@ namespace lsn {
 			// 3-in-1 (E) [!]
 			{ .ui32Crc = 0x7EEF434C, .pmRegion = LSN_PM_PAL },
 			// 25th Anniversary Super Mario Bros. (Europe) (Promo, Virtual Console)
-			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PAL },
 			// Action 52 (E)
 			{ .ui32Crc = 0x795D23EC, .pmRegion = LSN_PM_PAL },
 			// Action in New York (Europe)

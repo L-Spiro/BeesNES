@@ -9,7 +9,7 @@ void LSN_FASTCALL								Cycle_0__340x261() {
 	++m_stCurCycle;
 
 	if constexpr (_bOddFrameShenanigans) {
-		if ((m_ui64Frame & 0x1) && m_bRendering) {
+		if (((m_ui64Frame & 0x1) == 0) && m_bRendering) {
 			m_stCurCycle = 1;
 		}
 		else {
