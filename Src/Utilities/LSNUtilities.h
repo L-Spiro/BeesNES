@@ -49,7 +49,7 @@ namespace lsn {
 		struct LSN_FILE_PATHS {
 			std::u16string u16sFullPath;					/**< The full file path. */
 			std::u16string u16sPath;						/**< Path to the file without the file name. */
-			std::u16string u16sFile;						/**< THe file name. */
+			std::u16string u16sFile;						/**< The file name. */
 		};
 
 
@@ -71,6 +71,43 @@ namespace lsn {
 		 * \return Returns the converted UTF-8 string.
 		 */
 		static std::string									Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored = nullptr );
+
+		/**
+		 * Converts a value to a string.
+		 * 
+		 * \param _tVal The value to convert.
+		 * \param _stDigits The number of digits to which to pad.
+		 * \return Returns the string form of the given value.
+		 **/
+		template <typename _tType>
+		static std::u16string								ToString( _tType _tVal, size_t _stDigits = 0 ) {
+			std::wstring wsNumber = std::to_wstring( _tVal );
+			std::u16string usNumber( wsNumber.begin(), wsNumber.end() );
+			while ( usNumber.size() < _stDigits ) {
+				usNumber.insert( usNumber.begin(), u'0' );
+			}
+			return usNumber;
+		}
+
+		/**
+		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
+		 *
+		 * \param _s16String The string in which replacements are to be made.
+		 * \param _cReplaceMe The character to replace.
+		 * \param _cWithMe The character with which to replace _cReplaceMe.
+		 * \return Returns the new string with the given replacements made.
+		 */
+		template <typename _tType = std::u16string>
+		static _tType										Replace( const _tType &_s16String, const _tType &_cReplaceMe, const _tType &_cWithMe ) {
+			_tType sCopy = _s16String;
+			const size_t sLen = _cReplaceMe.size();
+			size_t sIdx = sCopy.find( _cReplaceMe );
+			while ( _tType::npos != sIdx ) {
+				sCopy = sCopy.replace( sIdx, sLen, _cWithMe );
+				sIdx = sCopy.find( _cReplaceMe );
+			}
+			return sCopy;
+		}
 
 		/**
 		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
@@ -397,6 +434,44 @@ namespace lsn {
 				return std::pow( _dVal / std::pow( dVc + _dB, (dAlpha1 - dAlpha2) ), 1.0 / dAlpha2 ) - _dB;
 			}
 			return std::pow( _dVal, 1.0 / dAlpha1 ) - _dB;
+		}
+
+		/**
+		 * A proper CRT curve based on measurements.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					CrtProper2ToLinear( double _dVal ) {
+			constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
+			constexpr double dBeta = 1.1115721959217312875267680283286608755588531494140625;
+			constexpr double dCut = 0.0912863421177801115380390228892792947590351104736328125;
+			if ( _dVal >= 0.36 ) { return std::pow( _dVal, 2.31 ); }
+			double dFrac = _dVal / 0.36;
+			return ((_dVal <= dCut ?
+				_dVal / 4.0 :
+				std::pow( (_dVal + dAlpha) / dBeta, 1.0 / 0.45 ))
+				* (1.0 - dFrac))
+				+ (dFrac * std::pow( _dVal, 2.31 ));
+		}
+
+		/**
+		 * The inverse of CrtProper2ToLinear().
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to SMPTE 240M space.
+		 */
+		static inline double LSN_FASTCALL					LinearToCrtProper2( double _dVal ) {
+			constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
+			constexpr double dBeta = 1.1115721959217312875267680283286608755588531494140625;
+			constexpr double dCut = 0.022821585529445027884509755722319823689758777618408203125;
+			if ( _dVal >= 0.36 ) { return std::pow( _dVal, 1.0 / 2.31 ); }
+			double dFrac = _dVal / 0.36;
+			return ((_dVal <= dCut ?
+				_dVal * 4.0 :
+				dBeta * std::pow( _dVal, 0.45 ) - dAlpha)
+				* (1.0 - dFrac))
+				+ (dFrac * std::pow( _dVal, 1.0 / 2.31 ));
 		}
 
 		/**

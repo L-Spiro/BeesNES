@@ -51,7 +51,7 @@ namespace lsn {
 		CVector4( const float * _pdData ) {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				_mm_store_ps( m_fElements, _mm_load_ps( _pdData ) );
+				_mm_store_ps( m_fElements, _mm_loadu_ps( _pdData ) );
 				return;
 			}
 #endif	// __SSE4_1__
@@ -60,6 +60,24 @@ namespace lsn {
 			m_fElements[2] = (*_pdData++);
 			m_fElements[3] = (*_pdData++);
 		}
+		template <unsigned _uType>
+		CVector4( const CVector4<_uType> &_vOther ) {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				_mm128_store_ps( m_fElements, _mm128_load_ps( _vOther.m_fElements ) );
+			}
+#endif	// #ifdef __SSE4_1__
+			m_fElements[0] = _vOther[0];
+			m_fElements[1] = _vOther[1];
+			m_fElements[2] = _vOther[2];
+			m_fElements[3] = _vOther[3];
+		}
+
+#ifdef __SSE4_1__
+		CVector4( __m128 _vfVal ) {
+			_mm_store_ps( m_fElements, _vfVal );
+		}
+#endif	// #ifdef __SSE4_1__
 
 
 		// == Operators.
@@ -79,15 +97,180 @@ namespace lsn {
 		 */
 		inline float &											operator [] ( size_t _sIndex ) { return m_fElements[_sIndex]; }
 
+		/**
+		 * The += operator.
+		 * 
+		 * \param _vOther The vector to add to this one.
+		 * \return Returns a reference to this vector after the operation.
+		 **/
+		inline CVector4<_uSimd> &								operator += ( const CVector4<_uSimd> &_vOther ) {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				mThisVec = _mm128_add_ps( mThisVec, mOthrVec );				// Perform vectorized addition.
+				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
+				return (*this);
+			}
+#endif	// #ifdef __SSE4_1__
+			m_fElements[0] += _vOther[0];
+			m_fElements[1] += _vOther[1];
+			m_fElements[2] += _vOther[2];
+			m_fElements[3] += _vOther[3];
+			return (*this);
+		}
+
+		/**
+		 * The + operator.
+		 * 
+		 * \param _vOther The vector to add to this one.
+		 * \return Returns a resulting vector.
+		 **/
+		inline CVector4<_uSimd>									operator + ( const CVector4<_uSimd> &_vOther ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				return _mm128_add_ps( mThisVec, mOthrVec );					// Perform vectorized addition.
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( m_fElements[0] + _vOther[0],
+				m_fElements[1] + _vOther[1],
+				m_fElements[2] + _vOther[2],
+				m_fElements[3] + _vOther[3] );
+		}
+
+		/**
+		 * The -= operator.
+		 * 
+		 * \param _vOther The vector to subtract from this one.
+		 * \return Returns a reference to this vector after the operation.
+		 **/
+		inline CVector4<_uSimd> &								operator -= ( const CVector4<_uSimd> &_vOther ) {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				mThisVec = _mm128_sub_ps( mThisVec, mOthrVec );				// Perform vectorized subtraction.
+				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
+				return (*this);
+			}
+#endif	// #ifdef __SSE4_1__
+			m_fElements[0] -= _vOther[0];
+			m_fElements[1] -= _vOther[1];
+			m_fElements[2] -= _vOther[2];
+			m_fElements[3] -= _vOther[3];
+			return (*this);
+		}
+
+		/**
+		 * The - operator.
+		 * 
+		 * \param _vOther The vector to subtract from this one.
+		 * \return Returns a resulting vector.
+		 **/
+		inline CVector4<_uSimd>									operator - ( const CVector4<_uSimd> &_vOther ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				return _mm128_sub_ps( mThisVec, mOthrVec );					// Perform vectorized subtraction.
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( m_fElements[0] - _vOther[0],
+				m_fElements[1] - _vOther[1],
+				m_fElements[2] - _vOther[2],
+				m_fElements[3] - _vOther[3] );
+		}
+
+		/**
+		 * The * operator.
+		 * 
+		 * \param _vOther The vector by which to multiply this vector.
+		 * \return Returns a resulting vector.
+		 **/
+		inline CVector4<_uSimd>									operator * ( const CVector4<_uSimd> &_vOther ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( m_fElements[0] * _vOther[0],
+				m_fElements[1] * _vOther[1],
+				m_fElements[2] * _vOther[2],
+				m_fElements[3] * _vOther[3] );
+		}
+
+		/**
+		 * The * operator.
+		 * 
+		 * \param _fVal The value by which to multiply this vector.
+		 * \return Returns a resulting vector.
+		 **/
+		inline CVector4<_uSimd>									operator * ( float _fVal ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_set1_ps( _fVal );					// Broadcast the scalar to all elements of the AVX register.
+				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( m_fElements[0] * _fVal,
+				m_fElements[1] * _fVal,
+				m_fElements[2] * _fVal,
+				m_fElements[3] * _fVal );
+		}
+
+		/**
+		 * The / operator.
+		 * 
+		 * \param _vOther The vector by which to divide this one.
+		 * \return Returns a resulting vector.
+		 **/
+		inline CVector4<_uSimd>									operator / ( const CVector4<_uSimd> &_vOther ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( m_fElements[0] / _vOther[0],
+				m_fElements[1] / _vOther[1],
+				m_fElements[2] / _vOther[2],
+				m_fElements[3] / _vOther[3] );
+		}
+
+		/**
+		 * The / operator.
+		 * 
+		 * \param _fVal The value by which to divide this one.
+		 * \return Returns a reference to this vector after the operation.
+		 **/
+		inline CVector4<_uSimd>									operator / ( float _fVal ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
+				__m128 mOthrVec = _mm128_set1_ps( _fVal );					// Broadcast the scalar to all elements of the AVX register.
+				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
+			}
+#endif	// #ifdef __SSE4_1__
+			float dDiv = 1.0f / _fVal;
+			return CVector4<_uSimd>( m_fElements[0] * dDiv,
+				m_fElements[1] * dDiv,
+				m_fElements[2] * dDiv,
+				m_fElements[3] * dDiv );
+		}
+
 
 		// == Functions.
 		/**
 		 * Normalizes this vector.  Normalization is the process of adjusting the length of the vector so that it is
 		 *	unit length (1 unit in length) while maintaining its direction.
-		 * Accuracy/speed depends on the LSM_PERFORMANCE macro.
 		 */
-		inline CVector4											Normalize() {
-			CVector4 vCopy;
+		inline CVector4<_uSimd>									Normalize() {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				// Load the elements into an SSE register.
@@ -105,12 +288,10 @@ namespace lsn {
 
 				// Multiply the original vector by the inverse length to normalize.
 				__m128 vResult = _mm_mul_ps( mVec, mInvLen );
-
-				// Store the vResult back into vCopy.
-				_mm_store_ps( vCopy, vResult );
-				return vCopy.
+				return vResult;
 			}
 #endif	// __SSE4_1__
+			CVector4<_uSimd> vCopy;
 			float dInvLen = 1.0 / std::sqrt( m_fElements[0] * m_fElements[0] + m_fElements[1] * m_fElements[1] + m_fElements[2] * m_fElements[2] + m_fElements[3] * m_fElements[3] );
 			vCopy.m_fElements[0] = m_fElements[0] * dInvLen;
 			vCopy.m_fElements[1] = m_fElements[1] * dInvLen;
@@ -126,7 +307,7 @@ namespace lsn {
 		 * \param _v4bOther The vector against which the dot product is to be determined.
 		 * \return Returns the dot product between the two vectors.
 		 */
-		inline float 											Dot( const CVector4 &_v4bOther ) const {
+		inline float 											Dot( const CVector4<_uSimd> &_v4bOther ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				// Load the elements of both vectors into SSE registers.
@@ -191,10 +372,95 @@ namespace lsn {
 			return std::min( std::min( std::min( m_fElements[0], m_fElements[1] ), m_fElements[2] ), m_fElements[3] );
 		}
 
+		/**
+		 * Are any of the components NaN?
+		 * 
+		 * \return Returns true if any of the components are NaN.
+		 **/
+		inline bool												IsNan() const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 vElements = _mm128_load_ps( m_fElements );
+				// Compare each element with itself to check for NaN (NaN is not equal to itself).
+				__m128 vResult = _mm128_cmp_ps( vElements, vElements, _CMP_UNORD_Q );
+				// Move the result mask to integer and check if any comparison returned true (NaN detected).
+				return (_mm128_movemask_ps( vResult ) != 0);
+			}
+#endif	// #ifdef __SSE4_1__
+			return std::isnan( m_fElements[0] ) ||
+				std::isnan( m_fElements[1] ) ||
+				std::isnan( m_fElements[2] ) ||
+				std::isnan( m_fElements[3] );
+		}
+
+		/**
+		 * Sets the vector to 0.
+		 **/
+		inline CVector4<_uSimd>	&								Zero() {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				_mm128_store_ps( m_fElements, _mm128_setzero_ps() );
+				return (*this);
+			}
+#endif	// #ifdef __SSE4_1__
+			m_fElements[0] = m_fElements[1] = m_fElements[2] = m_fElements[3] = 0.0;
+			return (*this);
+		}
+
+		/**
+		 * Clamps all components of the vector into the given range.
+		 * 
+		 * \param _fMin The min value.
+		 * \param _fMax The max value.
+		 * \return Returns a copy that has been clamped between _fMin and _fMax.
+		 **/
+		inline CVector4<_uSimd>									Clamp( float _fMin, float _fMax ) const {
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 vMin = _mm128_set1_ps( _fMin );
+				__m128 vMax = _mm128_set1_ps( _fMax );
+				__m128 vElems = _mm128_load_ps( m_fElements );
+				return _mm128_max_ps( vMin, _mm128_min_ps( vElems, vMax ) );
+			}
+#endif	// #ifdef __SSE4_1__
+			return CVector4<_uSimd>( std::clamp( m_fElements[0], _fMin, _fMax ),
+				std::clamp( m_fElements[1], _fMin, _fMax ),
+				std::clamp( m_fElements[2], _fMin, _fMax ),
+				std::clamp( m_fElements[3], _fMin, _fMax ) );
+		}
+
+		/**
+		 * X.
+		 * 
+		 * \return Returns X.
+		 **/
+		inline float 											X() const { return m_fElements[0]; }
+
+		/**
+		 * Y.
+		 * 
+		 * \return Returns X.
+		 **/
+		inline float 											Y() const { return m_fElements[1]; }
+
+		/**
+		 * Z.
+		 * 
+		 * \return Returns X.
+		 **/
+		inline float 											Z() const { return m_fElements[2]; }
+
+		/**
+		 * W.
+		 * 
+		 * \return Returns X.
+		 **/
+		inline float 											W() const { return m_fElements[3]; }
+
 
 		// == Members.
 		/** The components. */
-		LSN_ALIGN( 64 )
+		LSN_ALIGN( 16 )
 		float													m_fElements[4];
 	};
 

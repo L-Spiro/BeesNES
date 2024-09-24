@@ -502,6 +502,8 @@ namespace lsn {
 	// WM_PAINT.
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
+		//::SetThreadHighPriority();
+
 		LSW_BEGINPAINT bpPaint( Wnd() );
 		::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
 
@@ -594,7 +596,7 @@ namespace lsn {
 				DIB_RGB_COLORS );
 		}
 
-
+		//::SetThreadNormalPriority();
 		return LSW_H_HANDLED;
 	}
 

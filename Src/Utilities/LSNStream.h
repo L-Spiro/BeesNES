@@ -40,7 +40,7 @@ namespace lsn {
 		 * \param _ui8Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadUi8( uint8_t &_ui8Value ) {
+		inline bool									ReadUi8( uint8_t &_ui8Value ) const {
 			return Read( _ui8Value );
 		}
 
@@ -50,7 +50,7 @@ namespace lsn {
 		 * \param _ui16Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadUi16( uint16_t &_ui16Value ) {
+		inline bool									ReadUi16( uint16_t &_ui16Value ) const {
 			return Read( _ui16Value );
 		}
 
@@ -60,7 +60,7 @@ namespace lsn {
 		 * \param _ui32Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadUi32( uint32_t &_ui32Value ) {
+		inline bool									ReadUi32( uint32_t &_ui32Value ) const {
 			return Read( _ui32Value );
 		}
 
@@ -70,7 +70,7 @@ namespace lsn {
 		 * \param _ui64Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadUi64( uint64_t &_ui64Value ) {
+		inline bool									ReadUi64( uint64_t &_ui64Value ) const {
 			return Read( _ui64Value );
 		}
 
@@ -80,7 +80,7 @@ namespace lsn {
 		 * \param _i8Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadI8( int8_t &_i8Value ) {
+		inline bool									ReadI8( int8_t &_i8Value ) const {
 			return Read( _i8Value );
 		}
 
@@ -90,7 +90,7 @@ namespace lsn {
 		 * \param _i16Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadI16( int16_t &_i16Value ) {
+		inline bool									ReadI16( int16_t &_i16Value ) const {
 			return Read( _i16Value );
 		}
 
@@ -100,7 +100,7 @@ namespace lsn {
 		 * \param _i32Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadI32( int32_t &_i32Value ) {
+		inline bool									ReadI32( int32_t &_i32Value ) const {
 			return Read( _i32Value );
 		}
 
@@ -110,7 +110,7 @@ namespace lsn {
 		 * \param _i64Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadI64( int64_t &_i64Value ) {
+		inline bool									ReadI64( int64_t &_i64Value ) const {
 			return Read( _i64Value );
 		}
 
@@ -120,7 +120,7 @@ namespace lsn {
 		 * \param _bValue Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		inline bool									ReadBool( bool &_bValue ) {
+		inline bool									ReadBool( bool &_bValue ) const {
 			return Read<bool>( _bValue );
 		}
 
@@ -130,7 +130,7 @@ namespace lsn {
 		 * \param _sString Holds the return string.
 		 * \return Returns true if there was enough space left in the stream to read the string.
 		 **/
-		inline bool									ReadString( std::string &_sString ) {
+		inline bool									ReadString( std::string &_sString ) const {
 			_sString.clear();
 			uint32_t ui32Len;
 			if ( !ReadUi32( ui32Len ) ) { return false; }
@@ -148,12 +148,12 @@ namespace lsn {
 		}
 
 		/**
-		 * REads a u16char_t string from the stream.
+		 * Reads a u16char_t string from the stream.
 		 * 
 		 * \param _u16String Holds the return string.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		inline bool									ReadStringU16( std::u16string &_u16String ) {
+		inline bool									ReadStringU16( std::u16string &_u16String ) const {
 			std::string sTmp;
 			if ( !ReadString( sTmp ) ) { return false; }
 
@@ -301,7 +301,7 @@ namespace lsn {
 		 * \return Returns true if there was enough space left in the stream to read the given value.
 		 */
 		template <typename _tType>
-		inline bool									Read( _tType &_tValue ) {
+		inline bool									Read( _tType &_tValue ) const {
 			if ( (m_vStream.size() - m_stPos) >= sizeof( _tType ) ) {
 				_tValue = (*reinterpret_cast<_tType *>(&m_vStream.data()[m_stPos]));
 				m_stPos += sizeof( _tType );
@@ -327,13 +327,73 @@ namespace lsn {
 		}
 
 
+		/**
+		 * Reads data from the array.
+		 * 
+		 * \param _pui8Dst A pointer to the destination buffer.  If nullptr, _sSize bytes are skipped in the stream.
+		 * \param _sSize The total number of bytes to copy or skip.
+		 * \return Returns the total number of bytes copied.
+		 **/
+		inline size_t								Read( uint8_t * _pui8Dst, size_t _sSize ) const {
+			_sSize = std::min( _sSize, Remaining() );
+			if ( _pui8Dst ) {
+				std::memcpy( _pui8Dst, &m_vStream.data()[m_stPos], _sSize );
+			}
+			m_stPos += _sSize;
+			return _sSize;
+		}
+
+		/**
+		 * Writes data to the array.
+		 * 
+		 * \param _pui8Src A pointer to the source buffer.  If nullptr, 0's are written.
+		 * \param _sSize The total number of bytes to write.
+		 * \return Returns the total number of bytes written.
+		 **/
+		inline size_t								Write( const uint8_t * _pui8Src, size_t _sSize ) {
+			if ( m_stPos + _sSize > m_vStream.size() ) {
+				m_vStream.resize( m_stPos + _sSize );
+			}
+			if ( _pui8Src ) {
+				std::memcpy( &m_vStream.data()[m_stPos], _pui8Src, _sSize );
+			}
+			else {
+				std::memset( &m_vStream.data()[m_stPos], 0, _sSize );
+			}
+			m_stPos += _sSize;
+			return _sSize;
+		}
+
+
+		/**
+		 * Gets the pointer to the current data in the stream.
+		 *
+		 * \return Returns a pointer to the current position in the vector.
+		 **/
+		inline uint8_t *							Data() { return m_vStream.data() + m_stPos; }
+
+		/**
+		 * Gets the number of bytes remaining in the buffer.
+		 *
+		 * \return Returns the number of bytes remaining in the buffer.
+		 **/
+		inline size_t								Remaining() const { return m_vStream.size() - m_stPos; }
+
+		/**
+		 * Gets the current position of the stream.
+		 *
+		 * \return Returns the current position of the stream.
+		 **/
+		inline size_t								Pos() const { return m_stPos; }
+
+
 
 	protected :
 		// == Members.
 		/** The vector object. */
 		std::vector<uint8_t> &						m_vStream;
 		/** Our position within the vector. */
-		size_t										m_stPos;
+		mutable size_t								m_stPos;
 	};
 
 }	// namespace lsn

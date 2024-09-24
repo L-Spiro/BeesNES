@@ -164,6 +164,7 @@ namespace lsn {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < 300; ++I ) {
 			double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0) ) ) * 255.0;
+			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / 299.0 ) ) * 255;
 			//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
 			
 			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
@@ -174,6 +175,7 @@ namespace lsn {
 			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
 
 			dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0), 1.0, 0.0181 * 0.5 ) ) * 255.0;
+			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / 299.0 ) ) * 255;
 			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
 			
 			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
@@ -852,6 +854,7 @@ namespace lsn {
 	 * \param _ptdData Parameters passed to the thread.
 	 **/
 	void CNtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+		::SetThreadHighPriority();
 		while ( !_ptdData->bEndThread ) {
 			_ptdData->pnlsfThis->m_eDone.Signal();
 			_ptdData->pnlsfThis->m_eGo.WaitForSignal();

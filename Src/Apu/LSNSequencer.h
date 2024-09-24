@@ -176,7 +176,7 @@ namespace lsn {
 	inline uint16_t CSequencer::SetTimerHigh( uint8_t _ui8Val, bool _bReset ) {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		if ( _bReset ) {
-			m_ui16Timer = m_ui16Reload;
+			//m_ui16Timer = m_ui16Reload;
 			m_ui8SeqOff = 0;
 		}
 		return m_ui16Reload;

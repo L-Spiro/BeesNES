@@ -12,6 +12,8 @@
 #include "LSNWindows.h"
 #elif defined( __APPLE__ )
 #include "LSNApple.h"
+
+#include <pthread.h>
 #else
 #endif  // #if defined( _WIN32 ) || defined( _WIN64 )
 
@@ -46,3 +48,36 @@
 	#define LSN_FORCEINLINE inline
 #endif
 
+#ifdef LSN_WINDOWS
+inline void SetThreadHighPriority() {
+    ::SetThreadPriority( ::GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
+}
+inline void SetThreadNormalPriority() {
+    ::SetThreadPriority( ::GetCurrentThread(), THREAD_PRIORITY_NORMAL );
+}
+#else
+inline void SetThreadHighPriority() {
+    sched_param spSchParms;
+    spSchParms.sched_priority = ::sched_get_priority_max( SCHED_FIFO );
+    ::pthread_setschedparam( ::pthread_self(), SCHED_FIFO, &spSchParms );
+}
+void SetThreadNormalPriority() {
+    sched_param spSchParms;
+    spSchParms.sched_priority = 0;  // Normal priority
+    ::pthread_setschedparam( ::pthread_self(), SCHED_OTHER, &spSchParms );
+}
+#endif  // LSN_WINDOWS
+
+inline void SetThreadAffinity( size_t sCoreId ) {
+#ifdef LSN_WINDOWS
+	// Set thread affinity to the specified core on Windows
+	DWORD_PTR dwptrMask = DWORD_PTR( 1 ) << sCoreId;
+	::SetThreadAffinityMask( ::GetCurrentThread(), dwptrMask );
+#elif defined( LSN_APPLE ) || defined( __linux__ )
+	// Set thread affinity on Linux
+	cpu_set_t cpuset;
+	CPU_ZERO( &cpuset );
+	CPU_SET( sCoreId, &cpuset );
+	::pthread_setaffinity_np( ::pthread_self(), sizeof( cpu_set_t ), &cpuset );
+#endif
+}

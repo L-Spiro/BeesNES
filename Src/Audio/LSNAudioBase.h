@@ -19,8 +19,8 @@
 
 #define LSN_AUDIO_BUFFERS									288
 
-#define LSN_BUFFER_DELAY									2		// How many buffers to fill before beginning to play audio.  Reduces early crackling when set higher.
-//#define LSN_BUFFER_DELAY									200		// For personal recording needs where audio delay is not important.
+//#define LSN_BUFFER_DELAY									2		// How many buffers to fill before beginning to play audio.  Reduces early crackling when set higher.
+#define LSN_BUFFER_DELAY									200		// For personal recording needs where audio delay is not important.
 
 namespace lsn {
 

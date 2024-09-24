@@ -142,8 +142,8 @@ namespace lsn {
 			m_dvTriangleLengthCounterHalt( ChannelHaltLengthCounter<0x08, LSN_TRIANGLE_HALT_MASK>, this ),
 			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ) {
 
-			m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
-			m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
+			//m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
+			//m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
 			//m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
 			m_pfPole14.CreateLpf( 20000.0f, HzAsFloat() );
 		}
@@ -183,7 +183,8 @@ namespace lsn {
 			// 197.333333333333f
 
 			// US-NES-FL-N34169630: 296.0f/90.0f
-			CAudio::InitSampleBox( 20000.0f, 296.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
+			// JP-TwinFami-475711-NESRGB-RCA-stock: 168.75f/90.0f.
+			CAudio::InitSampleBox( 20000.0f, 168.75f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
 			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 
 
@@ -411,10 +412,12 @@ namespace lsn {
 		typedef CPoleFilter								CPoleFilterLpf;
 		//typedef CPoleFilterLeaky						CPoleFilterLpf;
 		typedef CHpfFilter								CPoleFilterHpf;
+		/** The 37-Hz pole filter. */
+		CPoleFilterHpf									m_pfPole37;
 		/** The 90-Hz pole filter. */
-		CPoleFilterHpf									m_pfPole90;
+		//CPoleFilterHpf									m_pfPole90;
 		/** The 440-Hz pole filter. */
-		CPoleFilterHpf									m_pfPole440;
+		//CPoleFilterHpf									m_pfPole440;
 		/** The 14-Hz pole filter. */
 		CPoleFilterLpf									m_pfPole14;
 		/** The output Hz filter. */
@@ -422,7 +425,9 @@ namespace lsn {
 		/** The output (down-sampling) filter. */
 		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */
-		CHpfFilter										m_hfHpfFilter;
+		CHpfFilter										m_hfHpfFilter90;
+		/** A sanitization HPF. */
+		CHpfFilter										m_hfHpfFilter37;
 		/** Max output sample. */
 		float											m_fMaxSample;
 		/** Min output sample. */
@@ -1090,8 +1095,10 @@ namespace lsn {
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
-			if ( paApu->m_hfHpfFilter.CreateHpf( 90.0f, float( _ui32Hz ) ) ) {
-				return float( paApu->m_hfHpfFilter.Process( _fSample ) );
+			if ( paApu->m_hfHpfFilter90.CreateHpf( 90.0f, float( _ui32Hz ) ) ) {
+				if ( paApu->m_hfHpfFilter37.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
+					return float( paApu->m_hfHpfFilter90.Process( paApu->m_hfHpfFilter37.Process( _fSample ) ) );
+				}
 			}
 			return _fSample;
 		}
