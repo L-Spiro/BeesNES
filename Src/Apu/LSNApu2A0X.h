@@ -183,8 +183,8 @@ namespace lsn {
 			// 197.333333333333f
 
 			// US-NES-FL-N34169630: 296.0f/90.0f
-			// JP-TwinFami-475711-NESRGB-RCA-stock: 168.75f/90.0f.
-			CAudio::InitSampleBox( 20000.0f, 168.75f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
+			// JP-TwinFami-475711-NESRGB-RCA-stock: 110.0f/90.0f/37.0f.
+			CAudio::InitSampleBox( 20000.0f, 194.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
 			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 
 
@@ -1095,7 +1095,7 @@ namespace lsn {
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
-			if ( paApu->m_hfHpfFilter90.CreateHpf( 90.0f, float( _ui32Hz ) ) ) {
+			if ( paApu->m_hfHpfFilter90.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
 				if ( paApu->m_hfHpfFilter37.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
 					return float( paApu->m_hfHpfFilter90.Process( paApu->m_hfHpfFilter37.Process( _fSample ) ) );
 				}

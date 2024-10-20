@@ -332,6 +332,17 @@ namespace lsn {
 		 *	to allow for faster SIMD or other reasons.  Indices beyond this are set to 0.
 		 */
 		static inline void									SynthesizeBlackmanWindow( std::vector<float> &_vTaps, size_t _sSize ) {
+			// These exact values place zeros at the third and fourth sidelobes, but result in a discontinuity at the edges and a 6 dB/oct fall-off.
+			//constexpr double dA0 = 7938.0 / 18608.0;	// 0.42659071367153911236158592146239243447780609130859375
+			//constexpr double dA1 = 9240.0 / 18608.0;	// 0.4965606190885640813803547644056379795074462890625
+			//constexpr double dA2 = 1430.0 / 18608.0;	// 0.07684866723989682013584712194642634131014347076416015625
+			
+			// The truncated coefficients do not null the sidelobes as well, but have an improved 18 dB/oct fall-off.
+			constexpr double dA = 0.16;
+			constexpr double dA0 = (1.0 - dA) / 2.0;	// 0.419999999999999984456877655247808434069156646728515625
+			constexpr double dA1 = 1.0 / 2.0;			// 0.5
+			constexpr double dA2 = dA / 2.0;			// 0.08000000000000000166533453693773481063544750213623046875
+
 			constexpr double dTau = 2.0 * std::numbers::pi;
 			size_t stMax = _sSize - 1;
 			double dInvMax = 1.0 / stMax;
@@ -342,7 +353,7 @@ namespace lsn {
 					_vTaps[I] = 0.0f;
 				}
 				else {
-					_vTaps[I] = float( 0.42 - 0.5 * std::cos( dTauInvMax * I ) + 0.08 * std::cos( dTauInvMax2 * I ) );
+					_vTaps[I] = float( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) );
 				}
 			}
 		}
@@ -364,7 +375,7 @@ namespace lsn {
 					_vTaps[I] = 0.0f;
 				}
 				else {
-					_vTaps[I] = float( 0.54 - 0.46 * std::cos( dTauInvMax * I ) );
+					_vTaps[I] = float( 0.53836 - 0.46164 * std::cos( dTauInvMax * I ) );
 				}
 			}
 		}
@@ -395,7 +406,7 @@ namespace lsn {
 		 * Standard sinc() function.
 		 * 
 		 * \param _dX The operand.
-		 * \return Returns sin(x) / x.
+		 * \return Returns sin(x*PI) / x*PI.
 		 **/
 		static inline double								Sinc( double _dX ) {
 			_dX *= std::numbers::pi;
