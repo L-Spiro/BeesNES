@@ -120,12 +120,17 @@ namespace lsn {
 		static std::u16string								Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe );
 
 		/**
-		 * Lower-cases a Unicode string.
+		 * Performs ::towlower() on the given input.
 		 * 
-		 * \param _u16Input THe string to lower-case.
-		 * \return Returns a copy of the given string in lower-case.
+		 * \param _pcStr The string to convert to lower-case
+		 * \return Returns the lower-cased input.
 		 **/
-		static std::u16string								ToLower( const std::u16string &_u16Input );
+		template <typename _tType = std::u8string>
+		static inline _tType								ToLower( const _tType &_Str ) {
+			_tType sRet = _Str;
+			std::transform( sRet.begin(), sRet.end(), sRet.begin(), []( _tType::value_type _iC ) { return ::towlower( static_cast<wint_t>(_iC) ); } );	
+			return sRet;
+		}
 
 		/**
 		 * Gets the extension from a file path.

@@ -848,7 +848,7 @@ namespace lsn {
          * \param _mReg The register containing all of the values to sum.
          * \return Returns the sum of all the floats in the given register.
          **/
-        static inline float                                 HorizontalSum( __m128 &_mReg ) {
+        static inline float                                 HorizontalSum( const __m128 &_mReg ) {
             __m128 mAddH1 = _mm_hadd_ps( _mReg, _mReg );
             __m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
             return _mm_cvtss_f32( mAddH2 );
@@ -1052,18 +1052,15 @@ namespace lsn {
          * \param _mReg The register containing all of the values to sum.
          * \return Returns the sum of all the floats in the given register.
          **/
-        static inline float                                 HorizontalSum( __m256 &_mReg ) {
-            // Step 1 & 2: Shuffle and add the high 128 to the low 128.
-            __m128 mHigh128 = _mm256_extractf128_ps( _mReg, 1 );        // Extract high 128 bits.
-            __m128 mLow128 = _mm256_castps256_ps128( _mReg );            // Directly use low 128 bits.
-            __m128 mSum128 = _mm_add_ps( mHigh128, mLow128 );            // Add them.
+        static inline float                                 HorizontalSum( const __m256 &_mReg ) {
+            __m256 mTmp = _mm256_permute2f128_ps(_mReg, _mReg, 1);	// Shuffle high 128 to low.
+			mTmp = _mm256_add_ps( _mReg, mTmp );					// Add high and low parts.
 
-            // Step 3: Perform horizontal addition.
-            __m128 mAddH1 = _mm_hadd_ps( mSum128, mSum128 );
-            __m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
+			mTmp = _mm256_hadd_ps( mTmp, mTmp );					// First horizontal add.
+			mTmp = _mm256_hadd_ps( mTmp, mTmp );					// Second horizontal add.
 
-            // Step 4: Extract the scalar value.
-            return _mm_cvtss_f32( mAddH2 );
+			// Extract the lower float which now contains the sum.
+			return _mm256_cvtss_f32( mTmp );
         }
 #endif  // #ifdef __AVX__
 
@@ -1264,23 +1261,18 @@ namespace lsn {
          * \param _mReg The register containing all of the values to sum.
          * \return Returns the sum of all the floats in the given register.
          **/
-        static inline float                                 HorizontalSum( __m512 _mReg ) {
-            // Step 1: Reduce 512 bits to 256 bits by adding high and low 256 bits.
-            __m256 mLow256 = _mm512_castps512_ps256( _mReg );            // Low 256 bits.
-            __m256 mHigh256 = _mm512_extractf32x8_ps( _mReg, 1 );        // High 256 bits.
-            __m256 mSum256 = _mm256_add_ps( mLow256, mHigh256 );
+        static inline float                                 HorizontalSum( const __m512 _mReg ) {
+            // Step 1: Reduce 512 bits to 256 bits by permuting and adding high and low 256 bits.
+			__m256 mLow256 = _mm512_castps512_ps256( _mReg );			// Low 256 bits.
+			__m256 mHigh256 = _mm512_extractf32x8_ps( _mReg, 1 );		// High 256 bits.
+			__m256 mSum256 = _mm256_add_ps( mLow256, mHigh256 );		// Add high and low 256-bit parts.
 
-            // Step 2: Reduce 256 bits to 128 bits (similar to AVX version).
-            __m128 mHigh128 = _mm256_extractf128_ps( mSum256, 1 );        // High 128 bits.
-            __m128 mLow128 = _mm256_castps256_ps128( mSum256 );            // Low 128 bits.
-            __m128 mSum128 = _mm_add_ps( mHigh128, mLow128 );            // Add them.
+			// Step 2: Perform horizontal addition on 256 bits.
+			mSum256 = _mm256_hadd_ps( mSum256, mSum256 );				// First horizontal add.
+			mSum256 = _mm256_hadd_ps( mSum256, mSum256 );				// Second horizontal add.
 
-            // Step 3: Perform horizontal addition on 128 bits.
-            __m128 mAddH1 = _mm_hadd_ps( mSum128, mSum128 );
-            __m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
-
-            // Step 4: Extract the scalar value.
-            return _mm_cvtss_f32( mAddH2 );
+			// Step 3: Extract the lower float which now contains the sum.
+			return _mm256_cvtss_f32( mSum256 );
         }
 #endif  // #ifdef __AVX512F__
 

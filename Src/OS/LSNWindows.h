@@ -128,9 +128,8 @@ inline uint64_t LSN_FASTCALL _udiv128( uint64_t _ui64High, uint64_t _ui64Low, ui
 extern "C" {
 
 #if defined( _M_AMD64 )
-
 extern void sincos( double _dAngle, double * _pdSin, double * _pdCos );
-
+extern void sincosf( float _fAngle, float * _pfSin, float * _pfCos );
 #else
 
 // 32 bit implementation in inline assembly
@@ -145,6 +144,19 @@ inline void sincos( double _dAngle, double * _pdSin, double * _pdCos ) {
 	}
 	(*_pdSin) = dSin;
 	(*_pdCos) = dCos;
+}
+
+inline void sincosf( float _fAngle, float * _pfSin, float * _pfCos ) {
+    float fSinT, fCosT;
+    __asm {
+        fld DWORD PTR[_fAngle]		// Load the 32-bit float into the FPU stack.
+        fsincos						// Compute cosine and sine.
+        fstp DWORD PTR[fCosT]		// Store the cosine value.
+        fstp DWORD PTR[fSinT]		// Store the sine value.
+        fwait						// Wait for the FPU to finish.
+    }
+    (*_pfSin) = fSinT;
+    (*_pfCos) = fCosT;
 }
 
 #endif

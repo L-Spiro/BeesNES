@@ -128,30 +128,6 @@ namespace lsn {
 	}
 
 	/**
-	 * Lower-cases a Unicode string.
-	 * 
-	 * \param _u16Input THe string to lower-case.
-	 * \return Returns a copy of the given string in lower-case.
-	 **/
-	std::u16string CUtilities::ToLower( const std::u16string &_u16Input ) {
-		std::u16string swsRet;
-		size_t sLen = 0;
-		for ( size_t I = 0; I < _u16Input.size(); I += sLen ) {
-			uint32_t uiConverted = ee::CExpEval::NextUtf16Char( reinterpret_cast<const wchar_t *>(&_u16Input[I]), _u16Input.size() - I, &sLen );
-			uint32_t uiTempLen;
-			uiConverted = ee::CExpEval::Utf32ToUtf16( uiConverted, uiTempLen );
-			if ( uiTempLen == 1 ) {
-				uiConverted = std::towlower( static_cast<wint_t>(ee::CExpEval::Utf32ToUtf16( uiConverted, uiTempLen )) );
-			}
-			for ( size_t J = 0; J < uiTempLen; ++J ) {
-				swsRet.push_back( static_cast<char16_t>(uiConverted) );
-				uiConverted >>= 16;
-			}
-		}
-		return swsRet;
-	}
-
-	/**
 	 * Gets the extension from a file path.
 	 *
 	 * \param _s16Path The file path whose extension is to be obtained.

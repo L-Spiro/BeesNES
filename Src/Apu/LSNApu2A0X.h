@@ -183,7 +183,7 @@ namespace lsn {
 			// 197.333333333333f
 
 			// US-NES-FL-N34169630: 296.0f/90.0f
-			// JP-TwinFami-475711-NESRGB-RCA-stock: 110.0f/90.0f/37.0f.
+			// JP-TwinFami-475711-NESRGB-RCA-stock: 194.0f/37.0f/37.0f.
 			CAudio::InitSampleBox( 20000.0f, 194.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
 			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 
