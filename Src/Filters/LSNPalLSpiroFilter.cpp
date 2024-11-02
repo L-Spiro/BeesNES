@@ -712,7 +712,7 @@ namespace lsn {
 		}
 		else
 #endif	// #ifdef __AVX512F__
-#ifdef __AVX__
+#ifdef __AVX2__
 		if ( CUtilities::IsAvx2Supported() ) {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
 			__m256 m299 = _mm256_set1_ps( 299.0f );
