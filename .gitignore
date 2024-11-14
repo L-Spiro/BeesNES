@@ -15,7 +15,6 @@ Src/MiniZ/examples/*
 Debug/*
 Release/*
 Research/*
-!Research/nes6502/
 !Research/nes-test-roms-master/
 Libraries/ExpressionEvaluator/.vs/*
 Libraries/LSWindows/x64/
