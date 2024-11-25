@@ -286,7 +286,7 @@ namespace lsn {
 		 *
 		 * \return Returns the PPU frame count.
 		 */
-		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.GetFrameCount(); }
+		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.FrameCount(); }
 
 		/**
 		 * Loads a ROM image.

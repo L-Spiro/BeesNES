@@ -412,13 +412,6 @@ namespace lsn {
 		 *
 		 * \return Returns the frame count.
 		 */
-		inline uint64_t									GetFrameCount() const { return m_ui64Frame; }
-
-		/**
-		 * Gets the frame count.
-		 *
-		 * \return Returns the frame count.
-		 */
 		virtual uint64_t								FrameCount() const { return m_ui64Frame; }
 
 		/**

@@ -191,7 +191,7 @@ int wmain( int /*_iArgC*/, wchar_t * /*_pwcArgv*/[] ) {
 		ui64TickCount, dTime,
 		pnsSystem->GetMasterCounter(), pnsSystem->GetMasterCounter() / dTime, double( pnsSystem->MasterHz() ) / pnsSystem->MasterDiv(),
 		pnsSystem->GetMasterCounter() / double( ui64TickCount ),
-		pnsSystem->GetPpu().GetFrameCount() / dTime
+		pnsSystem->GetPpu().FrameCount() / dTime
 		);
 	::OutputDebugStringA( szBuffer );
 	return 0;

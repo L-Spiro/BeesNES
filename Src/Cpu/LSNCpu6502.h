@@ -401,6 +401,14 @@ namespace lsn {
 		void												Tick_Dma() {
 #define LSN_GET									0
 #define LSN_PUT									(LSN_GET ^ 1)
+			/*if constexpr ( _uState == LSN_DS_IDLE && _bPhi2 == false ) {
+				::OutputDebugStringA( "\r\n" );
+			}
+			{
+				char szBuffer[64];
+				::sprintf( szBuffer, "_uState %u, _bPhi2 %u\r\n", _uState, _bPhi2 );
+				::OutputDebugStringA( szBuffer );
+			}*/
 			// _uState == LSN_DMA_STATES
 			// _bEven is true when the cycle index is odd (1, 3, 5, etc.)
 			//
@@ -433,6 +441,11 @@ namespace lsn {
 							// Read (get).
 							m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmaAddress + m_ui8DmaPos ) );
 							m_bDmaRead = false;
+							/*{
+								char szBuffer[64];
+								::sprintf( szBuffer, "Read: %.4X, %u\r\n", uint16_t( m_ui16DmaAddress + m_ui8DmaPos ), m_ui8DmaPos );
+								::OutputDebugStringA( szBuffer );
+							}*/
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
@@ -444,6 +457,13 @@ namespace lsn {
 						if ( (m_ui64CycleCount & 0x1) == LSN_PUT ) {
 							// Write (put).
 							m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
+
+							/*{
+								char szBuffer[64];
+								::sprintf( szBuffer, "Write: %.2X\r\n", m_ui8DmaValue );
+								::OutputDebugStringA( szBuffer );
+							}*/
+
 							if ( --m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
