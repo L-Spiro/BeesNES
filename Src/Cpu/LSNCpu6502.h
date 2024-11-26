@@ -683,7 +683,7 @@ namespace lsn {
 		/** Copies m_ui8Operand to Status without the B bit. */
 		void												CopyOperandToStatusWithoutB();
 
-		/** Adjusts PC and calls BeginInst(). */
+		/** Copies m_ui16Target to PC, optionally adjusts PC. */
 		template <bool _bIncPc = false>
 		void												CopyTargetToPc();
 

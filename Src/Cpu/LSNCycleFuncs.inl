@@ -102,7 +102,6 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		LSN_IMMEDIATE( ANC, Anc_IncPc_BeginInst )
 	},
 	{	// 0C
-		
 		LSN_ABSOLUTE_R( NOP, BeginInst )
 	},
 	{	// 0D
@@ -485,7 +484,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Pull_To_Operand_Phi2<0>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::Pull_To_Target_L_Phi2<1>,
 			&CCpu6502::Null<LSN_R, false, true>,										&CCpu6502::Read_Stack_To_Target_H_Phi2,
-			&CCpu6502::CopyTargetToPc<true>,											&CCpu6502::Fetch_Operand_IncPc_Phi2<true>,
+			&CCpu6502::CopyTargetToPc<false>,											&CCpu6502::Fetch_Operand_IncPc_Phi2<true>,
 			&CCpu6502::Rts_BeginInst, },
 			6, LSN_AM_IMPLIED, 1, LSN_I_RTS,
 	},

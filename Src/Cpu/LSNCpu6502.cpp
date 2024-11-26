@@ -812,7 +812,7 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Adjusts PC and calls BeginInst(). */
+	/** Copies m_ui16Target to PC, optionally adjusts PC. */
 	template <bool _bIncPc>
 	void CCpu6502::CopyTargetToPc() {
 		LSN_INSTR_START_PHI1( true );
