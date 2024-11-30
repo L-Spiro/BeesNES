@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright L. Spiro 2022
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -1298,7 +1298,7 @@ namespace lsn {
 			LSN_PREFETCH_LINE( _pfOp1 );
 
 			while ( _sTotal >= 8 ) {
-				// Let�s do a loop of 8 at a time.
+				// Let’s do a loop of 8 at a time.
 				_pfOut[0] = _pfOp0[0] + _pfOp1[0];
 				_pfOut[1] = _pfOp0[1] + _pfOp1[1];
 				_pfOut[2] = _pfOp0[2] + _pfOp1[2];

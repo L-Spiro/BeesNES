@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright L. Spiro 2022
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -128,7 +128,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The cycle at the first pixel of the 256�240 output image ([0,0]). */
+		/** The cycle at the first pixel of the 256×240 output image ([0,0]). */
 		uint64_t								m_ui64RenderStartCycle;
 		/** The host pointr. */
 		CDisplayHost *							m_pdhHost;

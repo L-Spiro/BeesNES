@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * Copyright L. Spiro 2022
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -32,12 +32,12 @@
 #define LSN_INPUT															&Input
 #define LSN_VIDEO															&Video
 // Video sizes.
-#define LSN_VIDEO_SIZE_1X													1×
-#define LSN_VIDEO_SIZE_2X													2×
-#define LSN_VIDEO_SIZE_3X													3×
-#define LSN_VIDEO_SIZE_4X													4×
-#define LSN_VIDEO_SIZE_5X													5×
-#define LSN_VIDEO_SIZE_6X													6×
+#define LSN_VIDEO_SIZE_1X													1Ã—
+#define LSN_VIDEO_SIZE_2X													2Ã—
+#define LSN_VIDEO_SIZE_3X													3Ã—
+#define LSN_VIDEO_SIZE_4X													4Ã—
+#define LSN_VIDEO_SIZE_5X													5Ã—
+#define LSN_VIDEO_SIZE_6X													6Ã—
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												N&one
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)

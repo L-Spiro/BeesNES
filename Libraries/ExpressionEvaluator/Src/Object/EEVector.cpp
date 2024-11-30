@@ -1,4 +1,4 @@
-#include "EEVector.h"
+﻿#include "EEVector.h"
 
 
 namespace ee {
@@ -203,7 +203,7 @@ namespace ee {
 	 * Operator +.  If _rRet is another vector, a new vector is returned containing the contents of this vector with _rRet appended, otherwise a new vector is returned containing this vector and the new item appended.
 	 *
 	 * \param _rRet The concatenation object.
-	 * \return If _rRet is another vector, a new vector is returned with both this and _rRet�s contents, otherwise an invalid object is returned.
+	 * \return If _rRet is another vector, a new vector is returned with both this and _rRet’s contents, otherwise an invalid object is returned.
 	 */
 	CExpEvalContainer::EE_RESULT CVector::Plus( CExpEvalContainer::EE_RESULT &_rRet ) {
 		CExpEvalContainer::EE_RESULT rRet = { EE_NC_INVALID };

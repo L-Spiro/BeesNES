@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EEObject.h"
 
@@ -91,7 +91,7 @@ namespace ee {
 		 * Operator +.  If _rRet is another vector, a new vector is returned containing the contents of this vector with _rRet appended, otherwise a new vector is returned containing this vector and the new item appended.
 		 *
 		 * \param _rRet The concatenation object.
-		 * \return If _rRet is another vector, a new vector is returned with both this and _rRet�s contents, otherwise an invalid object is returned.
+		 * \return If _rRet is another vector, a new vector is returned with both this and _rRet’s contents, otherwise an invalid object is returned.
 		 */
 		virtual CExpEvalContainer::EE_RESULT		Plus( CExpEvalContainer::EE_RESULT &_rRet );
 
