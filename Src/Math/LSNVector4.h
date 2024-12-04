@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <immintrin.h>
 
 namespace lsn {
 
@@ -64,7 +65,7 @@ namespace lsn {
 		CVector4( const CVector4<_uType> &_vOther ) {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				_mm128_store_ps( m_fElements, _mm128_load_ps( _vOther.m_fElements ) );
+				_mm128_store_ps( m_fElements, _mm_load_ps( _vOther.m_fElements ) );
 			}
 #endif	// #ifdef __SSE4_1__
 			m_fElements[0] = _vOther[0];
@@ -106,8 +107,8 @@ namespace lsn {
 		inline CVector4<_uSimd> &								operator += ( const CVector4<_uSimd> &_vOther ) {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				mThisVec = _mm128_add_ps( mThisVec, mOthrVec );				// Perform vectorized addition.
 				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
 				return (*this);
@@ -129,8 +130,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator + ( const CVector4<_uSimd> &_vOther ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				return _mm128_add_ps( mThisVec, mOthrVec );					// Perform vectorized addition.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -149,8 +150,8 @@ namespace lsn {
 		inline CVector4<_uSimd> &								operator -= ( const CVector4<_uSimd> &_vOther ) {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				mThisVec = _mm128_sub_ps( mThisVec, mOthrVec );				// Perform vectorized subtraction.
 				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
 				return (*this);
@@ -172,8 +173,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator - ( const CVector4<_uSimd> &_vOther ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				return _mm128_sub_ps( mThisVec, mOthrVec );					// Perform vectorized subtraction.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -192,8 +193,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator * ( const CVector4<_uSimd> &_vOther ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -212,8 +213,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator * ( float _fVal ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_set1_ps( _fVal );					// Broadcast the scalar to all elements of the AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_set1_ps( _fVal );						// Broadcast the scalar to all elements of the SSE 4.1 register.
 				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -232,8 +233,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator / ( const CVector4<_uSimd> &_vOther ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_load_ps( _vOther.m_fElements );	// Load _vOther's elements into another AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
 				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -252,8 +253,8 @@ namespace lsn {
 		inline CVector4<_uSimd>									operator / ( float _fVal ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 mThisVec = _mm128_load_ps( m_fElements );			// Load this object's elements into a 128-bit AVX register.
-				__m128 mOthrVec = _mm128_set1_ps( _fVal );					// Broadcast the scalar to all elements of the AVX register.
+				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
+				__m128 mOthrVec = _mm_set1_ps( _fVal );						// Broadcast the scalar to all elements of the SSE 4.1 register.
 				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
 			}
 #endif	// #ifdef __SSE4_1__
@@ -380,9 +381,9 @@ namespace lsn {
 		inline bool												IsNan() const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 vElements = _mm128_load_ps( m_fElements );
+				__m128 vElements = _mm_load_ps( m_fElements );
 				// Compare each element with itself to check for NaN (NaN is not equal to itself).
-				__m128 vResult = _mm128_cmp_ps( vElements, vElements, _CMP_UNORD_Q );
+				__m128 vResult = _mm_cmp_ps( vElements, vElements, _CMP_UNORD_Q );
 				// Move the result mask to integer and check if any comparison returned true (NaN detected).
 				return (_mm128_movemask_ps( vResult ) != 0);
 			}
@@ -399,11 +400,11 @@ namespace lsn {
 		inline CVector4<_uSimd>	&								Zero() {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				_mm128_store_ps( m_fElements, _mm128_setzero_ps() );
+				_mm_store_ps( m_fElements, _mm_setzero_ps() );
 				return (*this);
 			}
 #endif	// #ifdef __SSE4_1__
-			m_fElements[0] = m_fElements[1] = m_fElements[2] = m_fElements[3] = 0.0;
+			m_fElements[0] = m_fElements[1] = m_fElements[2] = m_fElements[3] = 0.0f;
 			return (*this);
 		}
 
@@ -417,10 +418,10 @@ namespace lsn {
 		inline CVector4<_uSimd>									Clamp( float _fMin, float _fMax ) const {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				__m128 vMin = _mm128_set1_ps( _fMin );
-				__m128 vMax = _mm128_set1_ps( _fMax );
-				__m128 vElems = _mm128_load_ps( m_fElements );
-				return _mm128_max_ps( vMin, _mm128_min_ps( vElems, vMax ) );
+				__m128 vMin = _mm_set1_ps( _fMin );
+				__m128 vMax = _mm_set1_ps( _fMax );
+				__m128 vElems = _mm_load_ps( m_fElements );
+				return _mm_max_ps( vMin, _mm_min_ps( vElems, vMax ) );
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( std::clamp( m_fElements[0], _fMin, _fMax ),

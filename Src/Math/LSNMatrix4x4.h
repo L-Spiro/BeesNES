@@ -16,8 +16,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <initializer_list>
 
 #define LSN_MAT_EPSILON											1.192092896e-07
+
+#pragma warning( push )
+#pragma warning( disable : 4702 )	// warning C4702: unreachable code
 
 namespace lsn {
 
@@ -29,6 +33,7 @@ namespace lsn {
 	 */
 	template <unsigned _uSimd = LSN_ST_RAW>
 	class CMatrix4x4 {
+	public :
 		CMatrix4x4() {
 			//std::memset( m_fElements, 0, sizeof( m_fElements ) );
 		}
@@ -39,6 +44,67 @@ namespace lsn {
 			std::memset( (*this)[3], 0, sizeof( CVector4<_uSimd> ) * 3 / 4 );
 			(*this)[3][3] = 1.0f;
 		}
+		CMatrix4x4( const std::initializer_list<float> &_ilVec0, const std::initializer_list<float> &_ilVec1, const std::initializer_list<float> &_ilVec2 ) {
+			size_t I = 0;
+			for ( float fThis : _ilVec0 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[0][I++] = fThis;
+			}
+			for ( I = _ilVec0.size(); I < 4; ++I ) { (*this)[0][I] = (I == 0) ? 1.0f : 0.0f; }
+
+			I = 0;
+			for ( float fThis : _ilVec1 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[1][I++] = fThis;
+			}
+			for ( I = _ilVec1.size(); I < 4; ++I ) { (*this)[1][I] = (I == 1) ? 1.0f : 0.0f; }
+
+			I = 0;
+			for ( float fThis : _ilVec2 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[2][I++] = fThis;
+			}
+			for ( I = _ilVec2.size(); I < 4; ++I ) { (*this)[2][I] = (I == 2) ? 1.0f : 0.0f; }
+
+			std::memset( (*this)[3], 0, sizeof( CVector4<_uSimd> ) * 3 / 4 );
+			(*this)[3][3] = 1.0f;
+		}
+		CMatrix4x4( const std::initializer_list<float> &_ilVec0, const std::initializer_list<float> &_ilVec1, const std::initializer_list<float> &_ilVec2, const std::initializer_list<float> &_ilVec3 ) {
+			size_t I = 0;
+			for ( float fThis : _ilVec0 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[0][I++] = fThis;
+			}
+			for ( I = _ilVec0.size(); I < 4; ++I ) { (*this)[0][I] = (I == 0) ? 1.0f : 0.0f; }
+
+			I = 0;
+			for ( float fThis : _ilVec1 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[1][I++] = fThis;
+			}
+			for ( I = _ilVec1.size(); I < 4; ++I ) { (*this)[1][I] = (I == 1) ? 1.0f : 0.0f; }
+
+			I = 0;
+			for ( float fThis : _ilVec2 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[2][I++] = fThis;
+			}
+			for ( I = _ilVec2.size(); I < 4; ++I ) { (*this)[2][I] = (I == 2) ? 1.0f : 0.0f; }
+
+			I = 0;
+			for ( float fThis : _ilVec3 ) {
+				if ( I >= 4 ) { break; }
+				(*this)[3][I++] = fThis;
+			}
+			for ( I = _ilVec3.size(); I < 4; ++I ) { (*this)[3][I] = (I == 3) ? 1.0f : 0.0f; }
+		}
+		template <unsigned _uMatSimd>
+		CMatrix4x4( const CMatrix4x4<_uMatSimd> &_mOther ) {
+			std::memcpy( (*this)[0], _mOther[0], sizeof( CMatrix4x4<_uSimd> ) );
+		}
+		CMatrix4x4( const float * _pfValues ) {
+			std::memcpy( (*this)[0], _pfValues, sizeof( CMatrix4x4<_uSimd> ) );
+		}
 
 
 		// == Operators.
@@ -48,7 +114,7 @@ namespace lsn {
 		 * \param _ui32Index Index of the row to get.
 		 * \return Returns a pointer to the given row.
 		 */
-		inline const float *									operator [] ( size_t _sIndex ) const { return &m_fElements[_sIndex]; }
+		inline const float *									operator [] ( size_t _sIndex ) const { return &m_fElements[_sIndex<<2]; }
 
 		/**
 		 * Array access.
@@ -56,7 +122,7 @@ namespace lsn {
 		 * \param _ui32Index Index of the row to get.
 		 * \return Returns a pointer to the given row.
 		 */
-		inline float *											operator [] ( size_t _sIndex ) { return &m_fElements[_sIndex]; }
+		inline float *											operator [] ( size_t _sIndex ) { return &m_fElements[_sIndex<<2]; }
 
 		/**
 		 * Multiplies this matrix with the given vector.
@@ -64,7 +130,17 @@ namespace lsn {
 		 * \param _vVec The vector to multiply against this matrix.
 		 * \return Returns the multiplied vector.
 		 **/
-		inline CVector4<_uSimd>									operator * ( const CVector4<_uSimd> &_vVec ) const { return MultiplyVec4( (*this), _vVec ); }
+		template <unsigned _uVecSimd>
+		inline CVector4<_uSimd>									operator * ( const CVector4<_uVecSimd> &_vVec ) const { return MultiplyVec4( (*this), _vVec ); }
+
+		/**
+		 * Multiplies this matrix with the given matrix.
+		 * 
+		 * \param _mMat The matrix to multiply against this matrix.
+		 * \return Returns the result of the multiplication.
+		 **/
+		template <unsigned _uMatSimd>
+		inline CMatrix4x4<_uSimd>								operator * ( const CMatrix4x4<_uMatSimd> &_mMat ) const { return MultiplyMatrix( (*this), _mMat ); }
 
 
 		// == Functions.
@@ -196,8 +272,10 @@ namespace lsn {
 		 *
 		 * \param _m44bMat The matrix by which to transform the given vector.
 		 * \param _v4bIn The vector to transform.
+		 * \return Returns the transformed vector.
 		 */
-		static CVector4<_uSimd>									MultiplyVec4( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uSimd> &_v4bIn ) {
+		template <unsigned _uVecSimd>
+		static CVector4<_uSimd>									MultiplyVec4( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> &_v4bIn ) {
 			CVector4<_uSimd> _v4bOut;
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
@@ -233,6 +311,45 @@ namespace lsn {
 			return _v4bOut;
 		}
 
+		/**
+		 * Transforms a matrix by another matrix as A * B.
+		 *
+		 * \param _m44bA The left operand.
+		 * \param _m44bB The right operand.
+		 * \return Returns the transformed matrix.
+		 */
+		template <unsigned _uMatSimd>
+		static CMatrix4x4<_uSimd>								MultiplyMatrix( const CMatrix4x4<_uSimd> &_m44bA, const CMatrix4x4<_uMatSimd> &_m44bB ) {
+			CMatrix4x4<_uSimd> mC;
+#ifdef __SSE4_1__
+			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
+				__m128 mRow0 = _mm_loadu_ps( _m44bA[0] );
+				__m128 mRow1 = _mm_loadu_ps( _m44bA[1] );
+				__m128 mRow2 = _mm_loadu_ps( _m44bA[2] );
+				__m128 mRow3 = _mm_loadu_ps( _m44bA[3] );
+
+				for ( int I = 0; I < 4; ++I ) {
+					__m128 mCol = _mm_set_ps( _m44bB[3][I], _m44bB[2][I], _m44bB[1][I], _m44bB[0][I] );
+					mC[0][I] = _mm_cvtss_f32( _mm_dp_ps( mRow0, mCol, 0xF1 ) );
+					mC[1][I] = _mm_cvtss_f32( _mm_dp_ps( mRow1, mCol, 0xF1 ) );
+					mC[2][I] = _mm_cvtss_f32( _mm_dp_ps( mRow2, mCol, 0xF1 ) );
+					mC[3][I] = _mm_cvtss_f32( _mm_dp_ps( mRow3, mCol, 0xF1 ) );
+				}
+
+				return mC;
+			}
+#endif	// #ifdef __SSE4_1__
+			for ( int I = 0; I < 4; ++I ) {
+				for ( int J = 0; J < 4; ++J ) {
+					mC[I][J] = _m44bA[I][0] * _m44bB[0][J] +
+						_m44bA[I][1] * _m44bB[1][J] +
+						_m44bA[I][2] * _m44bB[2][J] +
+						_m44bA[I][3] * _m44bB[3][J];
+				}
+			}
+			return mC;
+		}
+
 
 		// == Members.
 		/** The components. */
@@ -241,3 +358,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#pragma warning( pop )

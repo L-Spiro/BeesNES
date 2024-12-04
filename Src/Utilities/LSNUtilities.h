@@ -480,6 +480,38 @@ namespace lsn {
 		}
 
 		/**
+		 * Converts XYZ values to chromaticities.
+		 * 
+		 * \param _fX The input X.
+		 * \param _fY The input Y.
+		 * \param _fZ The input Z.
+		 * \param _fChromaX The output chromaticity X.
+		 * \param _fChromaY The output chromaticity Y.
+		 **/
+		static inline void									XYZtoChromaticity( float _fX, float _fY, float _fZ, float &_fChromaX, float &_fChromaY ) {
+			float fX = _fX / _fY;
+			constexpr float dY = 1.0f;
+			float dZ = _fZ / _fY;
+
+			_fChromaX = fX / (fX + dY + dZ);
+			_fChromaY = dY / (fX + dY + dZ);
+		}
+
+		/**
+		 * Converts chromaticities to XYZ values.
+		 * 
+		 * \param _fChromaX The input chromaticity X.
+		 * \param _fChromaY The input chromaticity Y.
+		 * \param _fY0 The input XYZ Y value.
+		 * \param _fX0 The output XYZ Z value.
+		 * \param _fZ0 The output XYZ Z value.
+		 **/
+		static void											ChromaticityToXYZ( float _fChromaX, float _fChromaY, float _fY0, float &_fX0, float &_fZ0 ) {
+			_fX0 = _fChromaX * (_fY0 / _fChromaY);
+			_fZ0 = (1.0f - _fChromaX - _fChromaY) * (_fY0 / _fChromaY);
+		}
+
+		/**
 		 * Integer-based bilinear sampling.
 		 *
 		 * \param _ui32A The upper-left color.  0xAARRGGBB, though color order doesn't actually matter.
@@ -1670,3 +1702,170 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+
+#if 0
+#include <immintrin.h>
+#include <iostream>
+
+/**
+ * @brief Multiplies RGBA pixels by a 4x4 matrix using AVX2 intrinsics with FMA, keeping RGBA values interleaved on output.
+ * @param rgba_input Pointer to input RGBA pixels (multiple of 2 pixels, 8 floats per 2 pixels).
+ * @param matrix 4x4 transformation matrix (16 floats, row-major order).
+ * @param rgba_output Pointer to output RGBA pixels (same size as input).
+ * @param pixel_count Number of pixels to process (must be even).
+ */
+void multiply_rgba_by_matrix_avx2_fma(const float* rgba_input, const float* matrix, float* rgba_output, int pixel_count) {
+    // Ensure that pixel_count is even
+    if (pixel_count % 2 != 0) {
+        std::cerr << "Pixel count must be an even number for AVX2 processing." << std::endl;
+        return;
+    }
+
+    // Process two pixels (8 floats) at a time
+    for (int i = 0; i < pixel_count; i += 2) {
+        // Load 8 floats (2 RGBA pixels) into AVX2 register
+        __m256 rgba = _mm256_loadu_ps(rgba_input + i * 4);
+
+        // Deinterleave RGBA components
+        __m256 r = _mm256_shuffle_ps(rgba, rgba, _MM_SHUFFLE(0,0,0,0));
+        __m256 g = _mm256_shuffle_ps(rgba, rgba, _MM_SHUFFLE(1,1,1,1));
+        __m256 b = _mm256_shuffle_ps(rgba, rgba, _MM_SHUFFLE(2,2,2,2));
+        __m256 a = _mm256_shuffle_ps(rgba, rgba, _MM_SHUFFLE(3,3,3,3));
+
+        // Load matrix rows and broadcast elements
+        __m256 mat_row0 = _mm256_loadu_ps(matrix);        // Elements 0-7
+        __m256 mat_row1 = _mm256_loadu_ps(matrix + 4);    // Elements 4-7
+        __m256 mat_row2 = _mm256_loadu_ps(matrix + 8);    // Elements 8-11
+        __m256 mat_row3 = _mm256_loadu_ps(matrix + 12);   // Elements 12-15
+
+        // Compute new R component using FMA
+        __m256 new_r = _mm256_fmadd_ps(r, _mm256_set1_ps(matrix[0]),
+                            _mm256_fmadd_ps(g, _mm256_set1_ps(matrix[1]),
+                                _mm256_fmadd_ps(b, _mm256_set1_ps(matrix[2]),
+                                    _mm256_mul_ps(a, _mm256_set1_ps(matrix[3])))));
+
+        // Compute new G component using FMA
+        __m256 new_g = _mm256_fmadd_ps(r, _mm256_set1_ps(matrix[4]),
+                            _mm256_fmadd_ps(g, _mm256_set1_ps(matrix[5]),
+                                _mm256_fmadd_ps(b, _mm256_set1_ps(matrix[6]),
+                                    _mm256_mul_ps(a, _mm256_set1_ps(matrix[7])))));
+
+        // Compute new B component using FMA
+        __m256 new_b = _mm256_fmadd_ps(r, _mm256_set1_ps(matrix[8]),
+                            _mm256_fmadd_ps(g, _mm256_set1_ps(matrix[9]),
+                                _mm256_fmadd_ps(b, _mm256_set1_ps(matrix[10]),
+                                    _mm256_mul_ps(a, _mm256_set1_ps(matrix[11])))));
+
+        // Compute new A component using FMA
+        __m256 new_a = _mm256_fmadd_ps(r, _mm256_set1_ps(matrix[12]),
+                            _mm256_fmadd_ps(g, _mm256_set1_ps(matrix[13]),
+                                _mm256_fmadd_ps(b, _mm256_set1_ps(matrix[14]),
+                                    _mm256_mul_ps(a, _mm256_set1_ps(matrix[15])))));
+
+        // Interleave components back into RGBA format
+        __m256 rg = _mm256_unpacklo_ps(new_r, new_g); // Interleave R and G
+        __m256 ba = _mm256_unpacklo_ps(new_b, new_a); // Interleave B and A
+
+        __m256 rgba_result = _mm256_unpacklo_pd(_mm256_castps_pd(rg), _mm256_castps_pd(ba));
+        rgba_result = _mm256_castpd_ps(rgba_result);
+
+        // Store the results back to output
+        _mm256_storeu_ps(rgba_output + i * 4, rgba_result);
+    }
+}
+
+#include <immintrin.h>
+#include <iostream>
+
+/**
+ * @brief Multiplies RGBA pixels by a 4x4 matrix using AVX-512 intrinsics with FMA, keeping RGBA values interleaved on output.
+ * @param rgba_input Pointer to input RGBA pixels (multiple of 4 pixels, 16 floats per 4 pixels).
+ * @param matrix 4x4 transformation matrix (16 floats, row-major order).
+ * @param rgba_output Pointer to output RGBA pixels (same size as input).
+ * @param pixel_count Number of pixels to process (must be a multiple of 4).
+ */
+void multiply_rgba_by_matrix_avx512_fma(const float* rgba_input, const float* matrix, float* rgba_output, int pixel_count) {
+    // Ensure that pixel_count is a multiple of 4
+    if (pixel_count % 4 != 0) {
+        std::cerr << "Pixel count must be a multiple of 4 for AVX-512 processing." << std::endl;
+        return;
+    }
+
+    // Process four pixels (16 floats) at a time
+    for (int i = 0; i < pixel_count; i += 4) {
+        // Load 16 floats (4 RGBA pixels) into AVX-512 register
+        __m512 rgba = _mm512_loadu_ps(rgba_input + i * 4);
+
+        // Deinterleave RGBA components
+        __m512 r = _mm512_permute_ps(rgba, _MM_PERM_AAAA);
+        __m512 g = _mm512_permute_ps(rgba, _MM_PERM_BBBB);
+        __m512 b = _mm512_permute_ps(rgba, _MM_PERM_CCCC);
+        __m512 a = _mm512_permute_ps(rgba, _MM_PERM_DDDD);
+
+        // Load matrix rows and broadcast elements
+        __m512 mat_row0_r = _mm512_set1_ps(matrix[0]);
+        __m512 mat_row0_g = _mm512_set1_ps(matrix[1]);
+        __m512 mat_row0_b = _mm512_set1_ps(matrix[2]);
+        __m512 mat_row0_a = _mm512_set1_ps(matrix[3]);
+
+        __m512 mat_row1_r = _mm512_set1_ps(matrix[4]);
+        __m512 mat_row1_g = _mm512_set1_ps(matrix[5]);
+        __m512 mat_row1_b = _mm512_set1_ps(matrix[6]);
+        __m512 mat_row1_a = _mm512_set1_ps(matrix[7]);
+
+        __m512 mat_row2_r = _mm512_set1_ps(matrix[8]);
+        __m512 mat_row2_g = _mm512_set1_ps(matrix[9]);
+        __m512 mat_row2_b = _mm512_set1_ps(matrix[10]);
+        __m512 mat_row2_a = _mm512_set1_ps(matrix[11]);
+
+        __m512 mat_row3_r = _mm512_set1_ps(matrix[12]);
+        __m512 mat_row3_g = _mm512_set1_ps(matrix[13]);
+        __m512 mat_row3_b = _mm512_set1_ps(matrix[14]);
+        __m512 mat_row3_a = _mm512_set1_ps(matrix[15]);
+
+        // Compute new R component using FMA
+        __m512 new_r = _mm512_fmadd_ps(r, mat_row0_r,
+                                _mm512_fmadd_ps(g, mat_row0_g,
+                                    _mm512_fmadd_ps(b, mat_row0_b,
+                                        _mm512_mul_ps(a, mat_row0_a))));
+
+        // Compute new G component using FMA
+        __m512 new_g = _mm512_fmadd_ps(r, mat_row1_r,
+                                _mm512_fmadd_ps(g, mat_row1_g,
+                                    _mm512_fmadd_ps(b, mat_row1_b,
+                                        _mm512_mul_ps(a, mat_row1_a))));
+
+        // Compute new B component using FMA
+        __m512 new_b = _mm512_fmadd_ps(r, mat_row2_r,
+                                _mm512_fmadd_ps(g, mat_row2_g,
+                                    _mm512_fmadd_ps(b, mat_row2_b,
+                                        _mm512_mul_ps(a, mat_row2_a))));
+
+        // Compute new A component using FMA
+        __m512 new_a = _mm512_fmadd_ps(r, mat_row3_r,
+                                _mm512_fmadd_ps(g, mat_row3_g,
+                                    _mm512_fmadd_ps(b, mat_row3_b,
+                                        _mm512_mul_ps(a, mat_row3_a))));
+
+        // Interleave the components back into RGBA format
+        // Interleave R and G
+        __m512 rg_lo = _mm512_unpacklo_ps(new_r, new_g);
+        __m512 rg_hi = _mm512_unpackhi_ps(new_r, new_g);
+
+        // Interleave B and A
+        __m512 ba_lo = _mm512_unpacklo_ps(new_b, new_a);
+        __m512 ba_hi = _mm512_unpackhi_ps(new_b, new_a);
+
+        // Interleave RG and BA to get RGBA
+        __m512 rgba_lo = _mm512_shuffle_ps(rg_lo, ba_lo, _MM_SHUFFLE(2, 0, 2, 0));
+        __m512 rgba_hi = _mm512_shuffle_ps(rg_hi, ba_hi, _MM_SHUFFLE(2, 0, 2, 0));
+
+        // Store the results back to output
+        _mm512_storeu_ps(rgba_output + i * 4, rgba_lo);
+        _mm512_storeu_ps(rgba_output + i * 4 + 16, rgba_hi);
+    }
+}
+
+
+#endif
