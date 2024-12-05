@@ -275,7 +275,7 @@ namespace lsn {
 		 * \return Returns the transformed vector.
 		 */
 		template <unsigned _uVecSimd>
-		static CVector4<_uSimd>									MultiplyVec4( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> &_v4bIn ) {
+		static inline CVector4<_uSimd>							MultiplyVec4( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> &_v4bIn ) {
 			CVector4<_uSimd> _v4bOut;
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
@@ -309,6 +309,158 @@ namespace lsn {
 			_v4bOut[3] = _m44bMat[0][3] * pfIn[0] + _m44bMat[1][3] * pfIn[1] +
 				_m44bMat[2][3] * pfIn[2] + _m44bMat[3][3] * pfIn[3];
 			return _v4bOut;
+		}
+
+		/**
+		 * Transforms 2 vectors (x, y, z, w, x, y, z, w) by a given matrix.
+		 *
+		 * \param _m44bMat The matrix by which to transform the given vectors.
+		 * \param _pv4bIn The vectors to transform.
+		 * \param Returns the transformed vector.
+		 */
+		template <unsigned _uVecSimd>
+		static inline void										MultiplyVec4_2( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+#ifdef __AVX__
+			__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+
+			__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+
+			// Row 0.
+			__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
+			__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
+			__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
+			__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			// Row 1.
+			mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
+			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
+			mMul = _mm256_mul_ps( mMatRow, mVec );
+			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			// Row 2.
+			mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
+			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
+			mMul = _mm256_mul_ps( mMatRow, mVec );
+			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			// Row 3.
+			mMask = _mm256_set_epi32( -1, 0, 0, 0, -1, 0, 0, 0 );
+			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[12]) );
+			mMul = _mm256_mul_ps( mMatRow, mVec );
+			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+#else
+			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[0] );
+			_pv4bOut[1] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[1] );
+#endif	// #ifdef __AVX__
+		}
+
+		/**
+		 * Transforms 2 vectors (x, y, z, w, x, y, z, w) by a given matrix, but only transforms the x, y, and z.  No operations are performed on w to save time.
+		 *
+		 * \param _m44bMat The matrix by which to transform the given vectors.
+		 * \param _pv4bIn The vectors to transform.
+		 * \param Returns the transformed vector.
+		 */
+		template <unsigned _uVecSimd>
+		static inline void										MultiplyVec4_2_XYZ( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+#ifdef __AVX__
+			__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+
+			__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+
+			// Row 0.
+			__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
+			__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
+			__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
+			__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			// Row 1.
+			mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
+			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
+			mMul = _mm256_mul_ps( mMatRow, mVec );
+			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			// Row 2.
+			mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
+			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
+			mMul = _mm256_mul_ps( mMatRow, mVec );
+			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			/*_pv4bOut->m_fElements[3] = _pv4bIn->m_fElements[3];
+			_pv4bOut->m_fElements[7] = _pv4bIn->m_fElements[7];*/
+#else
+			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[0] );
+			_pv4bOut[1] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[1] );
+#endif	// #ifdef __AVX__
+		}
+
+		/**
+		 * Transforms 4 vectors (x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w) by a given matrix.
+		 *
+		 * \param _m44bMat The matrix by which to transform the given vectors.
+		 * \param _pv4bIn The vectors to transform.
+		 * \param _pv4bOut The transformed vectors.
+		 */
+		template <unsigned _uVecSimd>
+		static inline void										MultiplyVec4_4( const CMatrix4x4<_uSimd> & _m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+#ifdef __AVX512F__
+			// Load four vectors (16 floats) into an AVX-512 register
+			__m512 mVec = _mm512_load_ps( _pv4bIn->m_fElements );
+
+			// Row 0
+			__mmask16 mMask = 0x1111; // Store only 0th, 4th, 8th, and 12th elements
+			__m512 mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0])) );
+			__m512 mMul = _mm512_mul_ps( mMatRow, mVec );
+			__m512 mSum = _mm512_add_ps(
+				_mm512_add_ps( _mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 2, 3, 0, 1 ) ), mMul ),
+				_mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 1, 0, 3, 2 ) ) );
+			_mm512_mask_store_ps( _pv4bOut->m_fElements, mMask, mSum );
+
+			// Row 1
+			mMask = 0x2222; // Store only 1st, 5th, 9th, and 13th elements
+			mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4])) );
+			mMul = _mm512_mul_ps( mMatRow, mVec );
+			mSum = _mm512_add_ps(
+				_mm512_add_ps( _mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 2, 3, 0, 1 ) ), mMul ),
+				_mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 1, 0, 3, 2 ) ) );
+			_mm512_mask_store_ps( _pv4bOut->m_fElements, mMask, mSum );
+
+			// Row 2
+			mMask = 0x4444; // Store only 2nd, 6th, 10th, and 14th elements
+			mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8])) );
+			mMul = _mm512_mul_ps( mMatRow, mVec );
+			mSum = _mm512_add_ps(
+				_mm512_add_ps( _mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 2, 3, 0, 1 ) ), mMul ),
+				_mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 1, 0, 3, 2 ) ) );
+			_mm512_mask_store_ps( _pv4bOut->m_fElements, mMask, mSum );
+
+			// Row 3
+			mMask = 0x8888; // Store only 3rd, 7th, 11th, and 15th elements
+			mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[12])) );
+			mMul = _mm512_mul_ps( mMatRow, mVec );
+			mSum = _mm512_add_ps(
+				_mm512_add_ps( _mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 2, 3, 0, 1 ) ), mMul ),
+				_mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 1, 0, 3, 2 ) ) );
+			_mm512_mask_store_ps( _pv4bOut->m_fElements, mMask, mSum );
+#else
+			// Fallback to handling each vector individually
+			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, &_pv4bIn[0] );
+			_pv4bOut[1] = MultiplyVec4<_uVecSimd>( _m44bMat, &_pv4bIn[1] );
+			_pv4bOut[2] = MultiplyVec4<_uVecSimd>( _m44bMat, &_pv4bIn[2] );
+			_pv4bOut[3] = MultiplyVec4<_uVecSimd>( _m44bMat, &_pv4bIn[3] );
+#endif // #ifdef __AVX512F__
 		}
 
 		/**

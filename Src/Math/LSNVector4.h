@@ -17,6 +17,9 @@
 #include <cstdint>
 #include <immintrin.h>
 
+#pragma warning( push )
+#pragma warning( disable : 4702 )	// warning C4702: unreachable code
+
 namespace lsn {
 
 	/**
@@ -431,6 +434,28 @@ namespace lsn {
 		}
 
 		/**
+		 * Applies the given function to only the X, Y, and Z components.
+		 * 
+		 * \param _fFunc The function to call.  Takes a single input and returns a single output.
+		 * \return Returns a copy that has been clamped between _fMin and _fMax.
+		 **/
+		template <typename _tFunc>
+		inline CVector4<_uSimd>									XyzFunc( _tFunc _fFunc ) {
+			return CVector4<_uSimd>( float( _fFunc( X() ) ), float( _fFunc( Y() ) ), float( _fFunc( Z() ) ), W() );
+		}
+
+		/**
+		 * Applies the given function to all components.
+		 * 
+		 * \param _fFunc The function to call.  Takes a single input and returns a single output.
+		 * \return Returns a copy that has been clamped between _fMin and _fMax.
+		 **/
+		template <typename _tFunc>
+		inline CVector4<_uSimd>									XyzwFunc( _tFunc _fFunc ) {
+			return CVector4<_uSimd>( float( _fFunc( X() ) ), float( _fFunc( Y() ) ), float( _fFunc( Z() ) ), float( _fFunc( W() ) ) );
+		}
+
+		/**
 		 * X.
 		 * 
 		 * \return Returns X.
@@ -466,3 +491,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#pragma warning( pop )

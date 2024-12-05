@@ -79,8 +79,8 @@ namespace lsn {
 		static float														m_fSmpte[8];						/**< Chromaticities and white point for SMPTE 170M, SMPTE 240M, BT.601 525. */
 		static float														m_f1953[8];							/**< Chromaticities and white point for NTSC 1953. */
 		static float														m_fBt2020[8];						/**< Chromaticities and white point for BT.2020. */
-		static float														m_fBt709[8];						/**< Chromaticities and white point for BT.709. */
-		static float														m_fBt601_625[8];					/**< Chromaticities and white point for BT.601 625 (and sRGB). */
+		static float														m_fBt709[8];						/**< Chromaticities and white point for BT.709 (and sRGB). */
+		static float														m_fBt601_625[8];					/**< Chromaticities and white point for BT.601 625. */
 		static float														m_fBt470_NTSC[8];					/**< Chromaticities and white point for BT.470 NTSC. */
 		static float														m_fBt470_PAL[8];					/**< Chromaticities and white point for BT.470 PAL. */
 		static float														m_fsRgb[8];							/**< Chromaticities and white point for sRGB. */

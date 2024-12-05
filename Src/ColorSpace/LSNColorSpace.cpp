@@ -33,14 +33,14 @@ namespace lsn {
 		0.3127f, 0.3290f
 	};
 
-	float CColorSpace::m_fBt709[8] = {																/**< Chromaticities and white point for BT.709. */
+	float CColorSpace::m_fBt709[8] = {																/**< Chromaticities and white point for BT.709 (and sRGB). */
 		0.640f, 0.330f,
 		0.300f, 0.600f,
 		0.150f, 0.060f,
 		0.3127f, 0.3290f
 	};
 
-	float CColorSpace::m_fBt601_625[8] = {															/**< Chromaticities and white point for BT.601 625 (and sRGB). */
+	float CColorSpace::m_fBt601_625[8] = {															/**< Chromaticities and white point for BT.601 625. */
 		0.640f, 0.330f,
 		0.290f, 0.600f,
 		0.150f, 0.060f,
