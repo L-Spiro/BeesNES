@@ -418,7 +418,29 @@ namespace lsn {
 #ifdef __AVX512F__
 			// Load four vectors (16 floats) into an AVX-512 register
 			__m512 mVec = _mm512_load_ps( _pv4bIn->m_fElements );
+#if 1
+			for ( int I = 0; I < 4; ++I ) {
+				__m512 mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[I<<2])) );
+				__m512 mMul = _mm512_mul_ps( mMatRow, mVec );
 
+				__m128 v0 = _mm512_extractf32x4_ps( mMul, 0 );
+				__m128 v1 = _mm512_extractf32x4_ps( mMul, 1 );
+				__m128 v2 = _mm512_extractf32x4_ps( mMul, 2 );
+				__m128 v3 = _mm512_extractf32x4_ps( mMul, 3 );
+
+				auto HSum_4 = []( __m128 _vVal ) {
+					__m128 mH1 = _mm_hadd_ps( _vVal, _vVal );
+					__m128 mH2 = _mm_hadd_ps( mH1, mH1 );
+					return _mm_cvtss_f32( mH2 );
+				};
+
+				_pv4bOut->m_fElements[I] = HSum_4( v0);
+				_pv4bOut->m_fElements[I+4] = HSum_4( v1 );
+				_pv4bOut->m_fElements[I+8] = HSum_4( v2 );
+				_pv4bOut->m_fElements[I+12] = HSum_4( v3 );
+
+			}
+#else
 			// Row 0
 			__mmask16 mMask = 0x1111; // Store only 0th, 4th, 8th, and 12th elements
 			__m512 mMatRow = _mm512_broadcast_f32x4( (*reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0])) );
@@ -454,6 +476,7 @@ namespace lsn {
 				_mm512_add_ps( _mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 2, 3, 0, 1 ) ), mMul ),
 				_mm512_shuffle_f32x4( mMul, mMul, _MM_SHUFFLE( 1, 0, 3, 2 ) ) );
 			_mm512_mask_store_ps( _pv4bOut->m_fElements, mMask, mSum );
+#endif
 #else
 			// Fallback to handling each vector individually
 			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, &_pv4bIn[0] );
