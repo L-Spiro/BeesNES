@@ -1885,6 +1885,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNSystemBase.h" />
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
+    <ClInclude Include="Src\Time\LSNTimer.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />

@@ -274,40 +274,48 @@ namespace lsn {
 		 * \param _v4bIn The vector to transform.
 		 * \return Returns the transformed vector.
 		 */
-		template <unsigned _uVecSimd>
-		static inline CVector4<_uSimd>							MultiplyVec4( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> &_v4bIn ) {
+		template <unsigned _uMatSimd, unsigned _uVecSimd>
+		static inline CVector4<_uSimd>							MultiplyVec4( const CMatrix4x4<_uMatSimd> &_m44bMat, const CVector4<_uVecSimd> &_v4bIn ) {
 			CVector4<_uSimd> _v4bOut;
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				// Load the vector into an SSE register.
 				__m128 mVec = _mm_load_ps( _v4bIn.m_fElements );
 
-				for ( int I = 0; I < 4; ++I ) {
-					// Load the I-th row of the matrix into an SSE register.
+				/*for ( int I = 0; I < 4; ++I ) {
 					__m128 mMatRow = _mm_load_ps( _m44bMat[I] );
-
-					// Perform dot product of the matrix row with the vector.
-					__m128 mMul = _mm_mul_ps( mMatRow, mVec );
-					__m128 mSm1 = _mm_hadd_ps( mMul, mMul );
-					__m128 mSm2 = _mm_hadd_ps( mSm1, mSm1 );
-
-					// Store the result in the output vector.
+					__m128 mSm2 = _mm_dp_ps( mMatRow, mVec, 0xF1 );
 					_v4bOut.m_fElements[I] = _mm_cvtss_f32( mSm2 );
-				}
+				}*/
+				__m128 mMatRow = _mm_load_ps( _m44bMat.m_fElements );
+				__m128 mSm2 = _mm_dp_ps( mMatRow, mVec, 0xF1 );
+				_v4bOut.m_fElements[0] = _mm_cvtss_f32( mSm2 );
+
+				mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
+				mSm2 = _mm_dp_ps( mMatRow, mVec, 0xF1 );
+				_v4bOut.m_fElements[1] = _mm_cvtss_f32( mSm2 );
+
+				mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
+				mSm2 = _mm_dp_ps( mMatRow, mVec, 0xF1 );
+				_v4bOut.m_fElements[2] = _mm_cvtss_f32( mSm2 );
+
+				mMatRow = _mm_load_ps( &_m44bMat.m_fElements[12] );
+				mSm2 = _mm_dp_ps( mMatRow, mVec, 0xF1 );
+				_v4bOut.m_fElements[3] = _mm_cvtss_f32( mSm2 );
 
 				return _v4bOut;
 			}
 #endif	// __SSE4_1__
 			
 			const float * pfIn = _v4bIn.m_fElements;
-			_v4bOut[0] = _m44bMat[0][0] * pfIn[0] + _m44bMat[1][0] * pfIn[1] + 
-				_m44bMat[2][0] * pfIn[2] + _m44bMat[3][0] * pfIn[3];
-			_v4bOut[1] = _m44bMat[0][1] * pfIn[0] + _m44bMat[1][1] * pfIn[1] +
-				_m44bMat[2][1] * pfIn[2] + _m44bMat[3][1] * pfIn[3];
-			_v4bOut[2] = _m44bMat[0][2] * pfIn[0] + _m44bMat[1][2] * pfIn[1] +
-				_m44bMat[2][2] * pfIn[2] + _m44bMat[3][2] * pfIn[3];
-			_v4bOut[3] = _m44bMat[0][3] * pfIn[0] + _m44bMat[1][3] * pfIn[1] +
-				_m44bMat[2][3] * pfIn[2] + _m44bMat[3][3] * pfIn[3];
+			_v4bOut[0] = _m44bMat[0][0] * pfIn[0] + _m44bMat[0][1] * pfIn[1] + 
+				_m44bMat[0][2] * pfIn[2] + _m44bMat[0][3] * pfIn[3];
+			_v4bOut[1] = _m44bMat[1][0] * pfIn[0] + _m44bMat[1][1] * pfIn[1] +
+				_m44bMat[1][2] * pfIn[2] + _m44bMat[1][3] * pfIn[3];
+			_v4bOut[2] = _m44bMat[2][0] * pfIn[0] + _m44bMat[2][1] * pfIn[1] +
+				_m44bMat[2][2] * pfIn[2] + _m44bMat[2][3] * pfIn[3];
+			_v4bOut[3] = _m44bMat[3][0] * pfIn[0] + _m44bMat[3][1] * pfIn[1] +
+				_m44bMat[3][2] * pfIn[2] + _m44bMat[3][3] * pfIn[3];
 			return _v4bOut;
 		}
 
@@ -318,43 +326,110 @@ namespace lsn {
 		 * \param _pv4bIn The vectors to transform.
 		 * \param Returns the transformed vector.
 		 */
-		template <unsigned _uVecSimd>
-		static inline void										MultiplyVec4_2( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
-#ifdef __AVX__
-			__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+		template <unsigned _uMatSimd, unsigned _uVecSimd>
+		static inline void										MultiplyVec4_2( const CMatrix4x4<_uMatSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+#ifdef __SSE4_1__
+			__m128 mA = _mm_load_ps( _pv4bIn[0].m_fElements );
+			__m128 mB = _mm_load_ps( _pv4bIn[1].m_fElements );
 
-			__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+			__m128 mMatRow = _mm_load_ps( _m44bMat.m_fElements );
+			__m128 mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			__m128 mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
 
-			// Row 0.
-			__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
-			__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
-			__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
-			__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
 
-			// Row 1.
-			mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
-			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
-			mMul = _mm256_mul_ps( mMatRow, mVec );
-			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
-			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			_pv4bOut->m_fElements[0] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[4] = _mm_cvtss_f32( mSmB );
 
-			// Row 2.
-			mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
-			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
-			mMul = _mm256_mul_ps( mMatRow, mVec );
-			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
-			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
 
-			// Row 3.
-			mMask = _mm256_set_epi32( -1, 0, 0, 0, -1, 0, 0, 0 );
-			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[12]) );
-			mMul = _mm256_mul_ps( mMatRow, mVec );
-			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
-			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
+
+			_pv4bOut->m_fElements[1] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[5] = _mm_cvtss_f32( mSmB );
+
+			
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[12] );
+
+			_pv4bOut->m_fElements[2] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[6] = _mm_cvtss_f32( mSmB );
+
+			
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[3] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[7] = _mm_cvtss_f32( mSmB );
+
+
+			/*__m128 mA = _mm_load_ps( _pv4bIn[0].m_fElements );
+			__m128 mB = _mm_load_ps( _pv4bIn[1].m_fElements );
+
+			__m128 mMatRow = _mm_load_ps( _m44bMat.m_fElements );
+			__m128 mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			__m128 mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[0] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[4] = _mm_cvtss_f32( mSmB );
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[1] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[5] = _mm_cvtss_f32( mSmB );
+			
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[2] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[6] = _mm_cvtss_f32( mSmB );
+			
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[12] );
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[3] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[7] = _mm_cvtss_f32( mSmB );*/
+
+//#ifdef __AVX__
+			//__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+
+			//__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+
+			//// Row 0.
+			//__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
+			//__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
+			//__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
+			//__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			//// Row 1.
+			//mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
+			//mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
+			//mMul = _mm256_mul_ps( mMatRow, mVec );
+			//mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			//mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			//// Row 2.
+			//mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
+			//mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
+			//mMul = _mm256_mul_ps( mMatRow, mVec );
+			//mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			//mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			//// Row 3.
+			//mMask = _mm256_set_epi32( -1, 0, 0, 0, -1, 0, 0, 0 );
+			//mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[12]) );
+			//mMul = _mm256_mul_ps( mMatRow, mVec );
+			//mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			//mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
 #else
 			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[0] );
 			_pv4bOut[1] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[1] );
@@ -368,38 +443,89 @@ namespace lsn {
 		 * \param _pv4bIn The vectors to transform.
 		 * \param Returns the transformed vector.
 		 */
-		template <unsigned _uVecSimd>
-		static inline void										MultiplyVec4_2_XYZ( const CMatrix4x4<_uSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
-#ifdef __AVX__
-			__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+		template <unsigned _uMatSimd, unsigned _uVecSimd>
+		static inline void										MultiplyVec4_2_XYZ( const CMatrix4x4<_uMatSimd> &_m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+#ifdef __SSE4_1__
+			__m128 mA = _mm_load_ps( _pv4bIn[0].m_fElements );
+			__m128 mB = _mm_load_ps( _pv4bIn[1].m_fElements );
 
-			__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+			__m128 mMatRow = _mm_load_ps( _m44bMat.m_fElements );
+			__m128 mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			__m128 mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
 
-			// Row 0.
-			__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
-			__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
-			__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
-			__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
 
-			// Row 1.
-			mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
-			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
-			mMul = _mm256_mul_ps( mMatRow, mVec );
-			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
-			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			_pv4bOut->m_fElements[0] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[4] = _mm_cvtss_f32( mSmB );
 
-			// Row 2.
-			mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
-			mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
-			mMul = _mm256_mul_ps( mMatRow, mVec );
-			mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
-			mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
-			_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+			
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
 
-			/*_pv4bOut->m_fElements[3] = _pv4bIn->m_fElements[3];
-			_pv4bOut->m_fElements[7] = _pv4bIn->m_fElements[7];*/
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
+
+			_pv4bOut->m_fElements[1] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[5] = _mm_cvtss_f32( mSmB );
+
+			
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+
+			_pv4bOut->m_fElements[2] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[6] = _mm_cvtss_f32( mSmB );
+
+
+			/*__m128 mA = _mm_load_ps( _pv4bIn[0].m_fElements );
+			__m128 mB = _mm_load_ps( _pv4bIn[1].m_fElements );
+
+			__m128 mMatRow = _mm_load_ps( _m44bMat.m_fElements );
+			__m128 mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			__m128 mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[0] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[4] = _mm_cvtss_f32( mSmB );
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[4] );
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[1] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[5] = _mm_cvtss_f32( mSmB );
+
+			mMatRow = _mm_load_ps( &_m44bMat.m_fElements[8] );
+			mSmA = _mm_dp_ps( mMatRow, mA, 0xF1 );
+			mSmB = _mm_dp_ps( mMatRow, mB, 0xF1 );
+			_pv4bOut->m_fElements[2] = _mm_cvtss_f32( mSmA );
+			_pv4bOut->m_fElements[6] = _mm_cvtss_f32( mSmB );*/
+
+//#ifdef __AVX__
+			//__m256 mVec = _mm256_load_ps( _pv4bIn->m_fElements );
+
+			//__m256i mMask = _mm256_set_epi32( 0, 0, 0, -1, 0, 0, 0, -1 );
+
+			//// Row 0.
+			//__m256 mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[0]) );
+			//__m256 mMul = _mm256_mul_ps( mMatRow, mVec );
+			//__m256 mHAdd1 = _mm256_hadd_ps( mMul, mMul );		// Sum adjacent pairs.
+			//__m256 mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );	// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			//// Row 1.
+			//mMask = _mm256_set_epi32( 0, 0, -1, 0, 0, 0, -1, 0 );
+			//mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[4]) );
+			//mMul = _mm256_mul_ps( mMatRow, mVec );
+			//mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			//mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			//// Row 2.
+			//mMask = _mm256_set_epi32( 0, -1, 0, 0, 0, -1, 0, 0 );
+			//mMatRow = _mm256_broadcast_ps( reinterpret_cast<const __m128 *>(&_m44bMat.m_fElements[8]) );
+			//mMul = _mm256_mul_ps( mMatRow, mVec );
+			//mHAdd1 = _mm256_hadd_ps( mMul, mMul );				// Sum adjacent pairs.
+			//mHAdd2 = _mm256_hadd_ps( mHAdd1, mHAdd1 );			// Final sum within 128-bit lanes.
+			//_mm256_maskstore_ps( _pv4bOut->m_fElements, mMask, mHAdd2 );
+
+			///*_pv4bOut->m_fElements[3] = _pv4bIn->m_fElements[3];
+			//_pv4bOut->m_fElements[7] = _pv4bIn->m_fElements[7];*/
 #else
 			_pv4bOut[0] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[0] );
 			_pv4bOut[1] = MultiplyVec4<_uVecSimd>( _m44bMat, _pv4bIn[1] );
@@ -413,8 +539,8 @@ namespace lsn {
 		 * \param _pv4bIn The vectors to transform.
 		 * \param _pv4bOut The transformed vectors.
 		 */
-		template <unsigned _uVecSimd>
-		static inline void										MultiplyVec4_4( const CMatrix4x4<_uSimd> & _m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
+		template <unsigned _uMatSimd, unsigned _uVecSimd>
+		static inline void										MultiplyVec4_4( const CMatrix4x4<_uMatSimd> & _m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
 #ifdef __AVX512F__
 			// Load four vectors (16 floats) into an AVX-512 register
 			__m512 mVec = _mm512_load_ps( _pv4bIn->m_fElements );
@@ -493,8 +619,8 @@ namespace lsn {
 		 * \param _m44bB The right operand.
 		 * \return Returns the transformed matrix.
 		 */
-		template <unsigned _uMatSimd>
-		static CMatrix4x4<_uSimd>								MultiplyMatrix( const CMatrix4x4<_uSimd> &_m44bA, const CMatrix4x4<_uMatSimd> &_m44bB ) {
+		template <unsigned _uLeft, unsigned _uRight>
+		static CMatrix4x4<_uSimd>								MultiplyMatrix( const CMatrix4x4<_uLeft> &_m44bA, const CMatrix4x4<_uRight> &_m44bB ) {
 			CMatrix4x4<_uSimd> mC;
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {

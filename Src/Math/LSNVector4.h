@@ -316,16 +316,8 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				// Load the elements of both vectors into SSE registers.
 				__m128 mVec1 = _mm_load_ps( m_fElements );
-				__m128 mVec2 = _mm_load_ps( _v4bOther );
-
-				// Multiply the vectors element-wise.
-				__m128 mMul = _mm_mul_ps( mVec1, mVec2 );
-
-				// Horizontally add the results to get the dot product.
-				mMul = _mm_hadd_ps( mMul, mMul );
-				mMul = _mm_hadd_ps( mMul, mMul );
-
-				// Extract the result and return it.
+				__m128 mVec2 = _mm_load_ps( _v4bOther.m_fElements );
+				__m128 mMul = _mm_dp_ps( mVec1, mVec2, 0xF1 );
 				return _mm_cvtss_f32( mMul );
 			}
 #endif	// #ifdef __SSE4_1__
