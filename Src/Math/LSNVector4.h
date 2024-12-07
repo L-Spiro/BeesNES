@@ -68,7 +68,7 @@ namespace lsn {
 		CVector4( const CVector4<_uType> &_vOther ) {
 #ifdef __SSE4_1__
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
-				_mm128_store_ps( m_fElements, _mm_load_ps( _vOther.m_fElements ) );
+				_mm_store_ps( m_fElements, _mm_load_ps( _vOther.m_fElements ) );
 			}
 #endif	// #ifdef __SSE4_1__
 			m_fElements[0] = _vOther[0];
@@ -112,8 +112,8 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				mThisVec = _mm128_add_ps( mThisVec, mOthrVec );				// Perform vectorized addition.
-				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
+				mThisVec = _mm_add_ps( mThisVec, mOthrVec );				// Perform vectorized addition.
+				_mm_store_ps( m_fElements, mThisVec );						// Store the result back into this object's elements.
 				return (*this);
 			}
 #endif	// #ifdef __SSE4_1__
@@ -135,7 +135,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				return _mm128_add_ps( mThisVec, mOthrVec );					// Perform vectorized addition.
+				return _mm_add_ps( mThisVec, mOthrVec );					// Perform vectorized addition.
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( m_fElements[0] + _vOther[0],
@@ -155,8 +155,8 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				mThisVec = _mm128_sub_ps( mThisVec, mOthrVec );				// Perform vectorized subtraction.
-				_mm128_store_ps( m_fElements, mThisVec );					// Store the result back into this object's elements.
+				mThisVec = _mm_sub_ps( mThisVec, mOthrVec );				// Perform vectorized subtraction.
+				_mm_store_ps( m_fElements, mThisVec );						// Store the result back into this object's elements.
 				return (*this);
 			}
 #endif	// #ifdef __SSE4_1__
@@ -178,7 +178,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				return _mm128_sub_ps( mThisVec, mOthrVec );					// Perform vectorized subtraction.
+				return _mm_sub_ps( mThisVec, mOthrVec );					// Perform vectorized subtraction.
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( m_fElements[0] - _vOther[0],
@@ -198,7 +198,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
+				return _mm_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( m_fElements[0] * _vOther[0],
@@ -218,7 +218,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_set1_ps( _fVal );						// Broadcast the scalar to all elements of the SSE 4.1 register.
-				return _mm128_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
+				return _mm_mul_ps( mThisVec, mOthrVec );					// Perform vectorized multiplication.
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( m_fElements[0] * _fVal,
@@ -238,7 +238,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_load_ps( _vOther.m_fElements );		// Load _vOther's elements into another SSE 4.1 register.
-				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
+				return _mm_div_ps( mThisVec, mOthrVec );					// Perform vectorized division.
 			}
 #endif	// #ifdef __SSE4_1__
 			return CVector4<_uSimd>( m_fElements[0] / _vOther[0],
@@ -258,7 +258,7 @@ namespace lsn {
 			if constexpr ( _uSimd >= LSN_ST_SSE4_1 ) {
 				__m128 mThisVec = _mm_load_ps( m_fElements );				// Load this object's elements into a 128-bit SSE 4.1 register.
 				__m128 mOthrVec = _mm_set1_ps( _fVal );						// Broadcast the scalar to all elements of the SSE 4.1 register.
-				return _mm128_fiv_ps( mThisVec, mOthrVec );					// Perform vectorized division.
+				return _mm_div_ps( mThisVec, mOthrVec );					// Perform vectorized division.
 			}
 #endif	// #ifdef __SSE4_1__
 			float dDiv = 1.0f / _fVal;
@@ -380,7 +380,7 @@ namespace lsn {
 				// Compare each element with itself to check for NaN (NaN is not equal to itself).
 				__m128 vResult = _mm_cmp_ps( vElements, vElements, _CMP_UNORD_Q );
 				// Move the result mask to integer and check if any comparison returned true (NaN detected).
-				return (_mm128_movemask_ps( vResult ) != 0);
+				return (_mm_movemask_ps( vResult ) != 0);
 			}
 #endif	// #ifdef __SSE4_1__
 			return std::isnan( m_fElements[0] ) ||
@@ -485,4 +485,3 @@ namespace lsn {
 }	// namespace lsn
 
 #pragma warning( pop )
-
