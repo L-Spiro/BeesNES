@@ -522,7 +522,7 @@ namespace lsn {
 		 */
 		template <unsigned _uMatSimd, unsigned _uVecSimd>
 		static inline void										MultiplyVec4_4( const CMatrix4x4<_uMatSimd> & _m44bMat, const CVector4<_uVecSimd> * _pv4bIn, CVector4<_uVecSimd> * _pv4bOut ) {
-#if defined( __AVX512F__ )
+#if defined( __AVX512F__ ) && 0
 
 			// Load four vectors (16 floats) into an AVX-512 register
 			__m512 mVec = _mm512_loadu_ps( _pv4bIn->m_fElements );
@@ -727,12 +727,31 @@ namespace lsn {
 			}
 #endif	// #ifdef __SSE4_1__
 			for ( int I = 0; I < 4; ++I ) {
-				for ( int J = 0; J < 4; ++J ) {
+				/*for ( int J = 0; J < 4; ++J ) {
 					mC[I][J] = _m44bA[I][0] * _m44bB[0][J] +
 						_m44bA[I][1] * _m44bB[1][J] +
 						_m44bA[I][2] * _m44bB[2][J] +
 						_m44bA[I][3] * _m44bB[3][J];
-				}
+				}*/
+				mC[I][0] = _m44bA[I][0] * _m44bB[0][0] +
+					_m44bA[I][1] * _m44bB[1][0] +
+					_m44bA[I][2] * _m44bB[2][0] +
+					_m44bA[I][3] * _m44bB[3][0];
+
+				mC[I][1] = _m44bA[I][0] * _m44bB[0][1] +
+					_m44bA[I][1] * _m44bB[1][1] +
+					_m44bA[I][2] * _m44bB[2][1] +
+					_m44bA[I][3] * _m44bB[3][1];
+
+				mC[I][2] = _m44bA[I][0] * _m44bB[0][2] +
+					_m44bA[I][1] * _m44bB[1][2] +
+					_m44bA[I][2] * _m44bB[2][2] +
+					_m44bA[I][3] * _m44bB[3][2];
+
+				mC[I][3] = _m44bA[I][0] * _m44bB[0][3] +
+					_m44bA[I][1] * _m44bB[1][3] +
+					_m44bA[I][2] * _m44bB[2][3] +
+					_m44bA[I][3] * _m44bB[3][3];
 			}
 			return mC;
 		}

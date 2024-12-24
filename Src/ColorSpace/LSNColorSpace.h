@@ -75,6 +75,7 @@ namespace lsn {
 		 */
 		static inline CMatrix4x4<LSN_ST_AVX512>								ComputeXyzToRgbMatrix( const float * _pfChromas );
 
+
 		// == Members.
 		static float														m_fSmpte[8];						/**< Chromaticities and white point for SMPTE 170M, SMPTE 240M, BT.601 525. */
 		static float														m_f1953[8];							/**< Chromaticities and white point for NTSC 1953. */
