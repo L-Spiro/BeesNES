@@ -16,6 +16,7 @@ Debug/*
 Release/*
 Research/*
 !Research/nes-test-roms-master/
+!Research/Instructions/
 Libraries/ExpressionEvaluator/.vs/*
 Libraries/LSWindows/x64/
 Libraries/LSWindows/.vs/*
