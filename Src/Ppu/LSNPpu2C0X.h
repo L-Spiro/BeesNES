@@ -308,7 +308,7 @@ namespace lsn {
 
 				// 0x2001: PPUMASK.
 				m_pbBus->SetReadFunc( uint16_t( I + 0x01 ), PpuNoRead, this, LSN_PPU_START + 0x01 );
-				m_pbBus->SetWriteFunc( uint16_t( I + 0x01 ), Write2001, this, 0 );
+				m_pbBus->SetWriteFunc( uint16_t( I + 0x01 ), Write2001, this, uint16_t( I ) );
 
 				// 0x2002: PPUSTATUS.
 				m_pbBus->SetReadFunc( uint16_t( I + 0x02 ), Read2002, this, 0 );
@@ -842,6 +842,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			//uint8_t ui8Last = ppPpu->m_pbBus->GetFloat();
 			LSN_PPUMASK pmTmp;
 			ppPpu->m_ui8IoBusLatch = pmTmp.ui8Reg = _ui8Val;
 			ppPpu->m_dvPpuMaskDelay.WriteWithDelay( pmTmp );
@@ -1268,8 +1269,8 @@ namespace lsn {
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftRedgreenDelay;							/**< The PPUMASK register. */
-		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register. */
+		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftRedgreenDelay;							/**< The PPUMASK register (left* /red/green bits). */
+		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register (the rest of the bits). */
 		
 #ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
