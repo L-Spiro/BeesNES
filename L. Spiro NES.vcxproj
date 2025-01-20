@@ -1903,6 +1903,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindowLayout.h" />
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowLayout.h" />
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialog.h" />
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h" />
@@ -2013,6 +2014,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialog.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp" />

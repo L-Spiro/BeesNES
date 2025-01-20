@@ -250,6 +250,12 @@
     <Filter Include="Source Files\Math">
       <UniqueIdentifier>{c3452f40-d021-47a1-9568-56ccc06e4b07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\Patch">
+      <UniqueIdentifier>{e947146f-19c4-4457-996c-3c33701bfe2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Patch">
+      <UniqueIdentifier>{183b18e4-67dd-44bf-967a-724576f0067e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -837,6 +843,9 @@
     <ClInclude Include="Src\Time\LSNTimer.h">
       <Filter>Header Files\Time</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowLayout.h">
+      <Filter>Header Files\Windows\Patch</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1162,6 +1171,9 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp">
       <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowLayout.cpp">
+      <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

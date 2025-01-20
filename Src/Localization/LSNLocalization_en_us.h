@@ -55,6 +55,7 @@
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL-CRT &Auto (LMP88959)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL Auto (L. S&piro)
 // Tools menu.
+#define LSN_TOOLS_PATCH														&Patcher
 
 // Main menu.
 #define LSN_SELECT_ROM														Select ROM

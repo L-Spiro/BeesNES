@@ -25,6 +25,8 @@
 #include "File/LSNStdFile.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
+#include "ColorSpace/LSNColorSpace.h"
+#include "Time/LSNTimer.h"
 
 int main() {
 	return 0;
@@ -46,6 +48,117 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 
 	std::atomic_bool abIsAlive = false;
 	lsn::CMainWindow * pwMainWindow = static_cast<lsn::CMainWindow *>(lsn::CMainWindowLayout::CreateMainWindow( &abIsAlive ));
+
+
+	//auto mMat =
+	//lsn::CColorSpace::ComputeRgbToXyzMatrix( 0.630f, 0.340f,
+	//	0.310f, 0.595f,
+	//	0.155f, 0.070f,
+	//	0.3127f, 0.3290f );
+
+	//auto a1953 = lsn::CColorSpace::ComputeRgbToXyzMatrix( lsn::CColorSpace::m_fSmpte );
+	//auto aSrgb = lsn::CColorSpace::ComputeXyzToRgbMatrix( lsn::CColorSpace::m_fsRgb );
+	//auto aTmpA_Mat = aSrgb * a1953;
+	//auto aTmpB_Mat = lsn::CMatrix4x4<4>::MultiplyMatrix( a1953, aSrgb );
+
+	//lsn::CVector4<0> vColor0( 0.5f, 0.5f, 0.5f, 1.0f );
+	//lsn::CVector4<4> vColor1( 0.5f, 0.5f, 0.5f, 1.0f );
+
+	//auto vColor0_Mul = aTmpA_Mat * vColor0;
+	//auto vColor1_Mul = aSrgb * (a1953 * vColor1);
+
+	//lsn::CVector4<0> vGamma = vColor0_Mul.XyzFunc( lsn::CUtilities::LinearTosRGB );
+
+	//lsn::CVector4<0> vArray[4] = {
+	//	vColor0,
+	//	vColor1,
+	//	vColor0,
+	//	vColor1,
+	//};
+	//LSN_ALIGN( 64 )
+	//float fOut[16];
+
+	//constexpr size_t sTotal = 256 * 8 * 240 * 4;
+	//std::vector<lsn::CVector4<0>> vArrayOut( sTotal );
+	//std::vector<lsn::CVector4<0>> vArrayIn( sTotal );
+	//lsn::CMatrix4x4<4>::MultiplyVec4_2_XYZ( aTmpA_Mat, vArray, vArrayOut.data() );
+
+	//for ( size_t I = 0; I < sTotal; ++I ) {
+	//	vArrayIn[I] = vArray[I&3];
+	//}
+	//
+	//lsn::CTimer tTime;
+	//auto aAddr = vArrayOut.data();
+ //   
+	//float fSum = 0.0f;
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; ++I ) {
+	//	(*reinterpret_cast<lsn::CVector4<0> *>(aAddr++)) = lsn::CMatrix4x4<0>::MultiplyVec4_XYZ( aTmpA_Mat, vArrayIn[I] );
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<0>::MultiplyVec4_XYZ " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
+
+	//fSum = 0.0f;
+	//aAddr = vArrayOut.data();
+	//tTime.Reset();
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; ++I ) {
+	//	(*reinterpret_cast<lsn::CVector4<4> *>(aAddr++)) = lsn::CMatrix4x4<4>::MultiplyVec4_XYZ( aTmpA_Mat, vArrayIn[I] );
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<4>::MultiplyVec4_XYZ " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
+
+
+
+
+	//aAddr = vArrayOut.data();
+	//for ( size_t I = 0; I < sTotal; I += 2, aAddr += 2 ) {
+	//	lsn::CMatrix4x4<0>::MultiplyVec4_2( aTmpA_Mat, &vArrayIn[I], aAddr );
+	//}
+	//fSum = 0.0f;
+	//aAddr = vArrayOut.data();
+	//tTime.Reset();
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; I += 2, aAddr += 2 ) {
+	//	lsn::CMatrix4x4<4>::MultiplyVec4_2( aTmpA_Mat, &vArrayIn[I], aAddr );
+	//	fSum++;
+	//	//fSum += vArrayOut[0].X() + vArrayOut[1].X();
+	//	/*if ( (I & 3) == 0 ) {
+	//		LSN_PREFETCH_LINE( aAddr + 4 );
+	//	}*/
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<4>::MultiplyVec4_2 " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
+
+	//fSum = 0.0f;
+	//aAddr = vArrayOut.data();
+	//tTime.Reset();
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; I += 2, aAddr += 2 ) {
+	//	lsn::CMatrix4x4<4>::MultiplyVec4_2_XYZ( aTmpB_Mat, &vArrayIn[I], aAddr );
+	//	fSum++;
+	//	//fSum += vArrayOut[0].X();// + vArrayOut[1].X();
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<4>::MultiplyVec4_2_XYZ " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
+
+	//fSum = 0.0f;
+	//aAddr = vArrayOut.data();
+	//tTime.Reset();
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; I += 4, aAddr += 4 ) {
+	//	lsn::CMatrix4x4<4>::MultiplyVec4_4( aTmpB_Mat, &vArrayIn[I], aAddr );
+	//	fSum++;
+	//	//fSum += vArrayOut[0].X();// + vArrayOut[1].X();
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<4>::MultiplyVec4_4 " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
+
+	//fSum = 0.0f;
+	//aAddr = vArrayOut.data();
+	//tTime.Reset();
+	//tTime.Start();
+	//for ( size_t I = 0; I < sTotal; I += 4, aAddr += 4 ) {
+	//	lsn::CMatrix4x4<4>::MultiplyVec4_4_XYZ( aTmpB_Mat, &vArrayIn[I], aAddr );
+	//	fSum++;
+	//	//fSum += vArrayOut[0].X();// + vArrayOut[1].X();
+	//}
+	//::OutputDebugStringA( (std::string( "lsn::CMatrix4x4<4>::MultiplyVec4_4_XYZ " ) + std::to_string( tTime.ElapsedSeconds() ) + "s. " + std::to_string( fSum ) + "\r\n").c_str() );
 
 	// Controls seconds_since_start(), milliseconds_since_start(), etc., Expression Evaluator.
 	// We move it up as close to the start of the loop as possible so that these values most closely mark the actual time that meaningful execution

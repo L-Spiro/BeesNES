@@ -15,7 +15,6 @@
 #include "../Layout/LSNLayoutManager.h"
 
 
-
 namespace lsn {
 
 #define LSN_FIRST_SECTION_W							(80 * 60 / 100)

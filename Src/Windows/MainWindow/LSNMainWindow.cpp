@@ -25,6 +25,7 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../Patch/LSNPatchWindowLayout.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
@@ -442,6 +443,10 @@ namespace lsn {
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_LSPIRO : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_LSPIRO );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_TOOLS_PATCH : {
+				CPatchWindowLayout::CreatePatchWindow( this );
 				break;
 			}
 

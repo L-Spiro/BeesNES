@@ -106,7 +106,7 @@ namespace lsn {
 			m_nbfLSpiroPalNFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<12, 640> );
 			m_nbfLSpiroPalNFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<12, 640> );
 		}
-		if ( CUtilities::IsAvx512FSupported() ) {
+		if ( CUtilities::IsAvx512FSupported() || true ) {
 			m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 25 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
