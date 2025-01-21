@@ -1,7 +1,7 @@
 #ifdef LSN_USE_WINDOWS
 
 /**
- * Copyright L. Spiro 2024
+ * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
@@ -33,6 +33,19 @@ namespace lsn {
 		enum LSN_PATCH_WINDOW_IDS : WORD {
 			LSN_PWI_NONE,
 			LSN_PWI_MAINWINDOW,
+
+			LSN_PWI_FILE_GROUP,
+			LSN_PWI_FILE_IN_LABEL,
+			LSN_PWI_FILE_IN_EDIT,
+			LSN_PWI_FILE_IN_BUTTON,
+
+			LSN_PWI_FILE_PATCH_LABEL,
+			LSN_PWI_FILE_PATCH_EDIT,
+			LSN_PWI_FILE_PATCH_BUTTON,
+
+			LSN_PWI_FILE_OUT_LABEL,
+			LSN_PWI_FILE_OUT_EDIT,
+			LSN_PWI_FILE_OUT_BUTTON,
 
 		};
 

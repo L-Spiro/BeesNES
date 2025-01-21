@@ -846,6 +846,9 @@
     <ClInclude Include="Src\Windows\Patch\LSNPatchWindowLayout.h">
       <Filter>Header Files\Windows\Patch</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindow.h">
+      <Filter>Header Files\Windows\Patch</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1173,6 +1176,9 @@
       <Filter>Source Files\GPU\DirectX12</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindowLayout.cpp">
+      <Filter>Source Files\Windows\Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindow.cpp">
       <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
   </ItemGroup>

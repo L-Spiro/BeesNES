@@ -122,6 +122,14 @@
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
+// Patcher.
+#define LSN_PATCH_PATCH_ROM													Patch a ROM
+#define LSN_PATCH_FILE														File
+#define LSN_PATCH_ROM_TO_PATCH												ROM to Patch:
+#define LSN_PATCH_PATCH_FILE												Patch File:
+#define LSN_PATCH_OUTPUT_FILE												Output File:
+#define LSN_PATCH_BROWSE													Browse
+
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.
