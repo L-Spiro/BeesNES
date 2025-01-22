@@ -129,6 +129,7 @@
 #define LSN_PATCH_PATCH_FILE												Patch File:
 #define LSN_PATCH_OUTPUT_FILE												Output File:
 #define LSN_PATCH_BROWSE													Browse
+#define LSN_PATCH_FILE_TYPES												Patch Files (*.ips, *.bps, *.zip)\0*.ips;*.bps;*.zip\0All Files (*.*)\0*.*\0\0
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

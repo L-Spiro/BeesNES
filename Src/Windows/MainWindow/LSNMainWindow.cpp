@@ -27,6 +27,7 @@
 #include "../Layout/LSNLayoutManager.h"
 #include "../Patch/LSNPatchWindowLayout.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
 #include <StatusBar/LSWStatusBar.h>
@@ -56,7 +57,8 @@ namespace lsn {
 		m_bnEmulator( this, this ),
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
-		m_bMaximized( false ) {
+		m_bMaximized( false ),
+		m_pwPatchWindow( nullptr ) {
 		(*m_pabIsAlive) = true;
 
 #if 0
@@ -446,12 +448,33 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_PATCH : {
-				CPatchWindowLayout::CreatePatchWindow( this );
+				if ( m_pwPatchWindow ) {
+					m_pwPatchWindow->SetFocus();
+				}
+				else { m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( this ); }
 				break;
 			}
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
 				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
+				break;
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Handles WM_USER/custom messages.
+	 * 
+	 * \param _uMsg The message to handle.
+	 * \param _wParam Additional message-specific information.
+	 * \param _lParam Additional message-specific information.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CMainWindow::CustomPrivateMsg( UINT _uMsg, WPARAM /*_wParam*/, LPARAM /*_lParam*/ ) {
+		switch ( _uMsg ) {
+			case CWinUtilities::LSN_CLOSE_PATCHER : {
+				delete m_pwPatchWindow;
 				break;
 			}
 		}
@@ -1614,6 +1637,18 @@ namespace lsn {
 			delete m_pdi8cControllers[I];
 		}
 		m_pdi8cControllers.clear();
+	}
+
+	/**
+	 * Informs that a child was removed from a child control (IE this control's child had a child control removed from it).
+	 *	Is also called on the control from which a child was removed for convenience.
+	 * 
+	 * \param _pwChild The child being removed.
+	 **/
+	void CMainWindow::ChildWasRemoved( const CWidget * _pwChild ) {
+		if ( _pwChild == m_pwPatchWindow ) {
+			m_pwPatchWindow = nullptr;
+		}
 	}
 
 	/**

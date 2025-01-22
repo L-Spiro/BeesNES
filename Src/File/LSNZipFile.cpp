@@ -10,6 +10,8 @@
 #include "LSNZipFile.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <filesystem>
+
 namespace lsn {
 
 	CZipFile::CZipFile() {
@@ -54,6 +56,33 @@ namespace lsn {
 					return false;
 				}
 				_vResult.push_back( CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(zafsStat.m_filename) ) );
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Gathers the file names of a specific type in the archive into an array.
+	 *
+	 * \param _vResult The location where to store the file names.
+	 * \param _pcExt The extension of files to add to _vResult.
+	 * \return Returns true if the file names were successfully added to the given array.  A return of false will typically indicate that the file is not opened or that it is not a valid .ZIP file.
+	 */
+	bool CZipFile::GatherArchiveFiles( std::vector<std::u16string> &_vResult, const char16_t * _pcExt ) const {
+		auto sExt = CUtilities::ToLower( std::u16string( _pcExt ) );
+		if ( m_pfFile != nullptr ) {
+			mz_uint uiTotal = ::mz_zip_reader_get_num_files( const_cast<mz_zip_archive *>(&m_zaArchive) );
+			for ( mz_uint I = 0; I  < uiTotal; ++I ) {
+				::mz_zip_archive_file_stat zafsStat;
+				if ( !::mz_zip_reader_file_stat( const_cast<mz_zip_archive *>(&m_zaArchive), I, &zafsStat ) ) {
+					return false;
+				}
+				std::filesystem::path pTmp = reinterpret_cast<const char8_t *>(zafsStat.m_filename);
+				auto aTmp = CUtilities::ToLower( pTmp.extension().u16string() );
+				if ( aTmp == sExt ) {
+					_vResult.push_back( CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(zafsStat.m_filename) ) );
+				}
 			}
 			return true;
 		}

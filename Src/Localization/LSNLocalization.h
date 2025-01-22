@@ -18,3 +18,5 @@
 #define LSN_LSTR( STR )					LSN_LSTR_X( STR )
 #define LSN_U8STR_X( STR )				u8 ## # STR
 #define LSN_U8STR( STR )				LSN_U8STR_X( STR )
+#define LSN_U16STR_X( STR )				u ## # STR
+#define LSN_U16STR( STR )				LSN_U16STR_X( STR )

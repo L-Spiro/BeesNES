@@ -28,6 +28,15 @@ namespace lsn {
 	 */
 	class CWinUtilities {
 	public :
+		// == Enumerations.
+		/** Custom window messages. */
+		enum LSN_MSG : uint16_t {
+#if defined( LSN_WINDOWS )
+			LSN_CLOSE_PATCHER									= WM_USER + 1
+#endif	// #if defined( LSN_WINDOWS )
+		};
+
+
 		// == Types.
 		/** An entry in a combo box. */
 		struct LSN_COMBO_ENTRY {

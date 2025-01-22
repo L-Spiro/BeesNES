@@ -47,6 +47,9 @@ namespace lsn {
 			LSN_PWI_FILE_OUT_EDIT,
 			LSN_PWI_FILE_OUT_BUTTON,
 
+
+			LSN_PWI_INFO_GROUP,
+			LSN_PWI_INFO_CRC_LABEL,
 		};
 
 

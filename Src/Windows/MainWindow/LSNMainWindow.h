@@ -73,6 +73,16 @@ namespace lsn {
 		// WM_COMMAND from menu.
 		virtual LSW_HANDLED						MenuCommand( WORD _wId ) { return Command( 0, _wId, nullptr ); }
 
+		/**
+		 * Handles WM_USER/custom messages.
+		 * 
+		 * \param _uMsg The message to handle.
+		 * \param _wParam Additional message-specific information.
+		 * \param _lParam Additional message-specific information.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED						CustomPrivateMsg( UINT _uMsg, WPARAM /*_wParam*/, LPARAM /*_lParam*/ );
+
 		// WM_NCDESTROY.
 		virtual LSW_HANDLED						NcDestroy();
 
@@ -308,6 +318,7 @@ namespace lsn {
 		/** Is the window maximized? */
 		bool									m_bMaximized;
 		/** Window/UI options/settings. */
+		lsw::CWidget *							m_pwPatchWindow;
 		/** The window/UI settings/options. */
 		LSN_WINDOW_OPTIONS						m_woWindowOptions;
 		
@@ -393,7 +404,7 @@ namespace lsn {
 		 * \param _vPalFile The loaded palette file raw bytes.
 		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
 		 **/
-		std::vector<Double3>					Load32bitPalette_512( const std::vector<uint8_t> &_vPalFile );
+		//std::vector<Double3>					Load32bitPalette_512( const std::vector<uint8_t> &_vPalFile );
 
 		/**
 		 * Loads a 64-entry 32-bit float palette into a 512-entry floating-point palette.
@@ -401,7 +412,7 @@ namespace lsn {
 		 * \param _vPalFile The loaded palette file raw bytes.
 		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
 		 **/
-		std::vector<Double3>					Load64bitPalette_64( const std::vector<uint8_t> &_vPalFile );
+		//std::vector<Double3>					Load64bitPalette_64( const std::vector<uint8_t> &_vPalFile );
 
 		/**
 		 * Loads a 512-entry 32-bit float palette into a 512-entry floating-point palette.
@@ -409,7 +420,7 @@ namespace lsn {
 		 * \param _vPalFile The loaded palette file raw bytes.
 		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
 		 **/
-		std::vector<Double3>					Load64bitPalette_512( const std::vector<uint8_t> &_vPalFile );
+		//std::vector<Double3>					Load64bitPalette_512( const std::vector<uint8_t> &_vPalFile );
 
 		/**
 		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
@@ -439,6 +450,14 @@ namespace lsn {
 		 * Destroys all controller inputs.
 		 **/
 		void									DestroyControllers();
+
+		/**
+		 * Informs that a child was removed from a child control (IE this control's child had a child control removed from it).
+		 *	Is also called on the control from which a child was removed for convenience.
+		 * 
+		 * \param _pwChild The child being removed.
+		 **/
+		virtual void						ChildWasRemoved( const CWidget * _pwChild );
 
 		/**
 		 * The WM_DEVICECHANGE handler.

@@ -267,17 +267,11 @@
 	// Creates the window.
 	CWidget * CPatchWindowLayout::CreatePatchWindow( CWidget * _pwParent ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-			CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, 0 );
-			if ( pwWidget ) {
-				// Success.  Do stuff.
-			}
-			return pwWidget;
-		/*lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwThis = plmLayout->CreateWindowX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ),
-			nullptr, 0,
-			_pwParent, 0 );
-
-		return pwThis;*/
+		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, 0 );
+		if ( pwWidget ) {
+			// Success.  Do stuff.
+		}
+		return pwWidget;
 	}
 
  }	// namespace lsn

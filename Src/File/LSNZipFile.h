@@ -49,6 +49,15 @@ namespace lsn {
 		virtual bool										GatherArchiveFiles( std::vector<std::u16string> &_vResult ) const;
 
 		/**
+		 * Gathers the file names of a specific type in the archive into an array.
+		 *
+		 * \param _vResult The location where to store the file names.
+		 * \param _pcExt The extension of files to add to _vResult.
+		 * \return Returns true if the file names were successfully added to the given array.  A return of false will typically indicate that the file is not opened or that it is not a valid .ZIP file.
+		 */
+		virtual bool										GatherArchiveFiles( std::vector<std::u16string> &_vResult, const char16_t * _pcExt ) const;
+
+		/**
 		 * Gathers the file names in the archive into an array.
 		 *
 		 * \param _s16File The name of the file to extract.
