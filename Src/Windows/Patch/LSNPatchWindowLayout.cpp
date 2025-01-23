@@ -265,9 +265,9 @@
 
 	// == Functions.
 	// Creates the window.
-	CWidget * CPatchWindowLayout::CreatePatchWindow( CWidget * _pwParent ) {
+	CWidget * CPatchWindowLayout::CreatePatchWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, 0 );
+		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

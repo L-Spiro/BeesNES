@@ -557,7 +557,7 @@ namespace lsn {
 #if 1
 				// Gamma.
 				mRi = _mm512_i32gather_epi32( mRi, m_ui32Gamma, 4 );
-				mGi = _mm512_i32gather_epi32( mGi, m_ui32Gamma, 4 );
+				mGi = _mm512_i32gather_epi32( mGi, m_ui32GammaG, 4 );
 				mBi = _mm512_i32gather_epi32( mBi, m_ui32Gamma, 4 );
 
 				// Combine sRGB channels into packed format.

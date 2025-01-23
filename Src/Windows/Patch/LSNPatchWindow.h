@@ -68,9 +68,8 @@ namespace lsn {
 	protected :
 		// == Members.
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
-		std::wstring										m_wInRomInitPath;											/**< The initial directory for the input ROM. */
-		std::wstring										m_wOutRomInitPath;											/**< The initial directory for the output ROM. */
-		std::wstring										m_wPatchInitPath;											/**< The initial directory for the patch file. */
+		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
+		bool												m_bOutIsAutoFilled;											/**< THe output path was auto-generated. */
 
 
 	private :

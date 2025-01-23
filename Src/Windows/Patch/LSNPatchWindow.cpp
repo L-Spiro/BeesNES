@@ -21,7 +21,9 @@
 namespace lsn {
 
 	CPatchWindow::CPatchWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ),
+		m_bOutIsAutoFilled( false ) {
 	}
 	CPatchWindow::~CPatchWindow() {
 	}
@@ -59,7 +61,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CPatchWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
+	CWidget::LSW_HANDLED CPatchWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			case CPatchWindowLayout::LSN_PWI_FILE_IN_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
@@ -71,11 +73,11 @@ namespace lsn {
 				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_wInRomInitPath.c_str();
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wInRomInitPath.c_str();
 	
-				std::u16string u16Path;
+				std::u16string u16Path, u16FileName;
 				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_wInRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					m_poOptions->wInRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 
 					lsn::CZipFile zfFile;
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
@@ -90,6 +92,7 @@ namespace lsn {
 							u16Path += u'{';
 							u16Path += vFiles[0];
 							u16Path += u'}';
+							u16FileName = std::filesystem::path( vFiles[0] ).filename().u16string();
 							/*CUtilities::LSN_FILE_PATHS fpPath;
 							CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile), fpPath );*/
 							//fpPath.u16sFile
@@ -102,11 +105,34 @@ namespace lsn {
 							if ( !sfFile.LoadToMemory( m_vPatchRomFile ) ) {
 							}
 							u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+							u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
 						}
 					}
 					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
+					}
+					pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
+					if ( pwPathEdit ) {
+						if ( m_bOutIsAutoFilled || !pwPathEdit->GetTextW().size() ) {
+							std::filesystem::path pPath( u16Path );
+							auto aTmp = pPath.remove_filename();
+							aTmp /= u16FileName;
+							aTmp = aTmp.replace_filename( CUtilities::NoExtension( std::filesystem::path( u16FileName ).filename().u16string() ) + u" Patched" );
+
+							auto aFinal = aTmp;
+							aFinal += ".nes";
+							size_t sIdx = 0;
+							while ( std::filesystem::exists( aFinal ) ) {
+								aFinal = aTmp;
+								aFinal += " " + std::to_string( sIdx++ );
+								aFinal += ".nes";
+							}
+							
+							pwPathEdit->SetTextW( aFinal.native().c_str() );
+							m_bOutIsAutoFilled = true;
+							m_poOptions->wOutRomInitPath = aFinal.remove_filename();
+						}
 					}
 				}
 				break;
@@ -121,11 +147,11 @@ namespace lsn {
 				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_wPatchInitPath.c_str();
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wPatchInitPath.c_str();
 				
 				std::u16string u16Path;
 				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_wPatchInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					m_poOptions->wPatchInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 
 					lsn::CZipFile zfFile;
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
@@ -159,6 +185,38 @@ namespace lsn {
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 					}
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_FILE_OUT_BUTTON : {
+				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+				std::u16string szFileName;
+				szFileName.resize( 0xFFFF + 2 );
+
+				ofnOpenFile.hwndOwner = Wnd();
+				ofnOpenFile.lpstrFilter = LSN_LSTR( LSN_NES_FILES____NES____NES_ );
+				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
+				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutRomInitPath.c_str();
+	
+				std::u16string u16Path, u16FileName;
+				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+					m_poOptions->wOutRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+
+					u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+					u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
+					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
+					if ( pwPathEdit ) {
+						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
+						m_bOutIsAutoFilled = false;
+					}
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE ) {
+					return LSW_H_CONTINUE;
 				}
 				break;
 			}

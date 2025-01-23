@@ -451,7 +451,7 @@ namespace lsn {
 				if ( m_pwPatchWindow ) {
 					m_pwPatchWindow->SetFocus();
 				}
-				else { m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( this ); }
+				else { m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( this, m_bnEmulator.Options() ); }
 				break;
 			}
 

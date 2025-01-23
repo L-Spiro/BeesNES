@@ -166,6 +166,7 @@ namespace lsn {
 			dVal = std::min( dVal, 255.0 );
 			dVal = std::max( dVal, 0.0 );
 			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
+			m_ui32Gamma[I] = m_ui8Gamma[I];
 
 			dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0), 1.0, 0.0181 * 0.0000025 ) ) * 255.0;
 			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
@@ -177,6 +178,7 @@ namespace lsn {
 			dVal = std::max( dVal, 0.0 );
 
 			m_ui8GammaG[I] = uint8_t( std::round( dVal ) );
+			m_ui32GammaG[I] = m_ui8GammaG[I];
 		}
 	}
 
@@ -613,6 +615,23 @@ namespace lsn {
 				__m512i mGi = _mm512_cvtps_epi32( mG );
 				__m512i mBi = _mm512_cvtps_epi32( mB );
 
+#if 1
+				// Gamma.
+				mRi = _mm512_i32gather_epi32( mRi, m_ui32Gamma, 4 );
+				mGi = _mm512_i32gather_epi32( mGi, m_ui32GammaG, 4 );
+				mBi = _mm512_i32gather_epi32( mBi, m_ui32Gamma, 4 );
+
+				// Combine sRGB channels into packed format.
+				__m512i mSrgb = _mm512_or_si512(
+					_mm512_or_si512( mBi, _mm512_slli_epi32( mGi, 8 ) ),
+					_mm512_slli_epi32( mRi, 16 )
+				);
+
+				_mm512_storeu_si512( pui8Bgra, mSrgb );
+				pui8Bgra += 512 / 8;
+
+#else
+
 				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
 				__m512i mBgi = _mm512_packus_epi32( mBi, mGi );
 				__m512i mRai = _mm512_packus_epi32( mRi, mGi );
@@ -704,6 +723,8 @@ namespace lsn {
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4+4+4]];	// R15;
 				(*pui8Bgra++) = 255;									// A15;
 
+#endif	// #if 1
+
 				pfY += sizeof( __m512 ) / sizeof( float );
 				pfI += sizeof( __m512 ) / sizeof( float );
 				pfQ += sizeof( __m512 ) / sizeof( float );
@@ -739,6 +760,23 @@ namespace lsn {
 				__m256i mRi = _mm256_cvtps_epi32( mR );
 				__m256i mGi = _mm256_cvtps_epi32( mG );
 				__m256i mBi = _mm256_cvtps_epi32( mB );
+
+#if 1
+				// Gamma.
+				mRi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mRi, 4 );
+				mGi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32GammaG), mGi, 4 );
+				mBi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mBi, 4 );
+
+				// Combine sRGB channels into packed format.
+				__m256i mSrgb = _mm256_or_si256(
+					_mm256_or_si256( mBi, _mm256_slli_epi32( mGi, 8 ) ),
+					_mm256_slli_epi32( mRi, 16 )
+				);
+
+				_mm256_storeu_si256( reinterpret_cast<__m256i *>(pui8Bgra), mSrgb );
+				pui8Bgra += 256 / 8;
+
+#else
 
 				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
 				__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
@@ -789,6 +827,8 @@ namespace lsn {
 				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4]];	// G7;
 				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
 				(*pui8Bgra++) = 255;							// A7;
+
+#endif	// #if 1
 
 				pfY += sizeof( __m256 ) / sizeof( float );
 				pfI += sizeof( __m256 ) / sizeof( float );

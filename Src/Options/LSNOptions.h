@@ -23,10 +23,12 @@ namespace lsn {
 	 * Description: Emulator options.
 	 */
 	struct LSN_OPTIONS {
-		/** Global input options. */
-		LSN_INPUT_OPTIONS					ioGlobalInputOptions;
-		/** This game's input options. */
-		LSN_INPUT_OPTIONS					ioThisGameInputOptions;
+		LSN_INPUT_OPTIONS									ioGlobalInputOptions;										/**< Global input options. */
+		LSN_INPUT_OPTIONS									ioThisGameInputOptions;										/**< This game's input options. */
+
+		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
+		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */
+		std::wstring										wPatchInitPath;												/**< The initial directory for the patch file. */
 	};
 
 }	// namespace lsn

@@ -55,7 +55,7 @@ namespace lsn {
 
 		// == Functions.
 		// Creates the window.
-		static CWidget *						CreatePatchWindow( CWidget * _pwParent );
+		static CWidget *						CreatePatchWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
 
 	protected :
