@@ -265,6 +265,8 @@ namespace lsn {
 		std::unique_ptr<std::thread>						m_ptThread;								/**< The 2nd thread. */
 		LSN_THREAD_DATA										m_tdThreadData;							/**< Thread data. */
 
+		uint32_t											m_ui32Gamma[300];						/**< The gamma curve. */
+		uint32_t											m_ui32GammaG[300];						/**< The gamma curve for green. */
 		uint8_t												m_ui8Gamma[300];						/**< The gamma curve. */
 		uint8_t												m_ui8GammaG[300];						/**< The gamma curve for green. */
 		float												m_NormalizedLevels[16];					/**< Normalized levels. */
