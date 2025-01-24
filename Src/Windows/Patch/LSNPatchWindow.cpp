@@ -61,7 +61,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CPatchWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CPatchWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
 			case CPatchWindowLayout::LSN_PWI_FILE_IN_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
@@ -85,55 +85,22 @@ namespace lsn {
 						zfFile.GatherArchiveFiles( vFiles, u".nes" );
 
 						if ( vFiles.size() == 1 ) {
-							m_vPatchRomFile.clear();
-							if ( !zfFile.ExtractToMemory( vFiles[0], m_vPatchRomFile ) ) {
-							}
 							u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
 							u16Path += u'{';
 							u16Path += vFiles[0];
 							u16Path += u'}';
 							u16FileName = std::filesystem::path( vFiles[0] ).filename().u16string();
-							/*CUtilities::LSN_FILE_PATHS fpPath;
-							CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile), fpPath );*/
-							//fpPath.u16sFile
 						}
 					}
 					else if ( !zfFile.IsArchive() ) {
-						lsn::CStdFile sfFile;
-						if ( sfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
-							m_vPatchRomFile.clear();
-							if ( !sfFile.LoadToMemory( m_vPatchRomFile ) ) {
-							}
-							u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
-							u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
-						}
+						u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+						u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
 					}
 					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 					}
-					pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
-					if ( pwPathEdit ) {
-						if ( m_bOutIsAutoFilled || !pwPathEdit->GetTextW().size() ) {
-							std::filesystem::path pPath( u16Path );
-							auto aTmp = pPath.remove_filename();
-							aTmp /= u16FileName;
-							aTmp = aTmp.replace_filename( CUtilities::NoExtension( std::filesystem::path( u16FileName ).filename().u16string() ) + u" Patched" );
-
-							auto aFinal = aTmp;
-							aFinal += ".nes";
-							size_t sIdx = 0;
-							while ( std::filesystem::exists( aFinal ) ) {
-								aFinal = aTmp;
-								aFinal += " " + std::to_string( sIdx++ );
-								aFinal += ".nes";
-							}
-							
-							pwPathEdit->SetTextW( aFinal.native().c_str() );
-							m_bOutIsAutoFilled = true;
-							m_poOptions->wOutRomInitPath = aFinal.remove_filename();
-						}
-					}
+					
 				}
 				break;
 			}
@@ -214,8 +181,61 @@ namespace lsn {
 				}
 				break;
 			}
+			case CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE ) {
+					auto wsText = _pwSrc->GetTextW();
+					CUtilities::LSN_FILE_PATHS fpPath;
+					CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(wsText.c_str()), fpPath );
+					if ( CUtilities::LastChar( fpPath.u16sFullPath ) == u'}' ) {
+						lsn::CZipFile zfFile;
+						auto aZipPath = fpPath.u16sPath;
+						aZipPath.pop_back();
+						if ( zfFile.Open( aZipPath.c_str() ) && zfFile.IsArchive() ) {
+							m_vPatchRomFile.clear();
+							if ( zfFile.ExtractToMemory( fpPath.u16sFile, m_vPatchRomFile ) ) {
+							}
+						}
+					}
+					else {
+						lsn::CStdFile sfFile;
+						if ( sfFile.Open( fpPath.u16sFullPath.c_str() ) ) {
+							m_vPatchRomFile.clear();
+							if ( sfFile.LoadToMemory( m_vPatchRomFile ) ) {
+							}
+						}
+					}
+
+					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
+					if ( pwPathEdit ) {
+						if ( m_bOutIsAutoFilled || !pwPathEdit->GetTextW().size() ) {
+							if ( CUtilities::LastChar( fpPath.u16sFullPath ) == u'}' ) { fpPath.u16sPath.pop_back(); }
+							std::filesystem::path pPath( fpPath.u16sPath );
+							auto aTmp = pPath.remove_filename();
+							aTmp /= fpPath.u16sFile;
+							aTmp = aTmp.replace_filename( CUtilities::NoExtension( std::filesystem::path( fpPath.u16sFile ).filename().u16string() ) + u" Patched" );
+
+							auto aFinal = aTmp;
+							aFinal += ".nes";
+							size_t sIdx = 0;
+							while ( std::filesystem::exists( aFinal ) ) {
+								aFinal = aTmp;
+								aFinal += " " + std::to_string( sIdx++ );
+								aFinal += ".nes";
+							}
+							
+							pwPathEdit->SetTextW( aFinal.native().c_str() );
+							m_bOutIsAutoFilled = true;
+							m_poOptions->wOutRomInitPath = aFinal.remove_filename();
+						}
+					}
+					UpdateInfo();
+					return LSW_H_CONTINUE;
+				}
+				break;
+			}
 			case CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
+					m_bOutIsAutoFilled = false;
 					return LSW_H_CONTINUE;
 				}
 				break;
@@ -248,6 +268,12 @@ namespace lsn {
 		_pmmiInfo->ptMinTrackSize.x = lLeft;
 		_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
 		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * Updates the source ROM information labels.
+	 **/
+	void CPatchWindow::UpdateInfo() {
 	}
 
 }	// namespace lsn

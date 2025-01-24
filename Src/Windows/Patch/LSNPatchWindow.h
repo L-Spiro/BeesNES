@@ -66,10 +66,25 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** Any available patch information. */
+		struct LSN_PATCH_INFO {
+			std::vector<uint8_t>							vLoadedPatchFile;											/**< The in-memory patch file. */
+			uint32_t										ui32Crc = 0;												/**< The desired CRC for the source ROM. */
+		};
+
+
 		// == Members.
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
 		bool												m_bOutIsAutoFilled;											/**< THe output path was auto-generated. */
+
+
+		// == Functions.
+		/**
+		 * Updates the source ROM information labels.
+		 **/
+		void												UpdateInfo();
 
 
 	private :
