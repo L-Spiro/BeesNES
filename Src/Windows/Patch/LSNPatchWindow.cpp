@@ -9,9 +9,11 @@
  */
 
 #include "LSNPatchWindow.h"
+#include "../../Crc/LSNCrc.h"
 #include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../System/LSNSystemBase.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
 #include <commdlg.h>
@@ -204,6 +206,7 @@ namespace lsn {
 							}
 						}
 					}
+					m_u16RomPath = fpPath.u16sPath + fpPath.u16sFile;
 
 					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
 					if ( pwPathEdit ) {
@@ -274,6 +277,53 @@ namespace lsn {
 	 * Updates the source ROM information labels.
 	 **/
 	void CPatchWindow::UpdateInfo() {
+		LSN_ROM rRom;
+		if ( m_vPatchRomFile.size() && CSystemBase::LoadRom( m_vPatchRomFile, rRom, m_u16RomPath ) ) {
+			
+			auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_CRC_LABEL );
+			if ( pwPathEdit ) {
+				auto aFullCrc = CCrc::GetCrc( m_vPatchRomFile.data(), m_vPatchRomFile.size() );
+				pwPathEdit->SetTextW( std::format( L"Full CRC32:\t{:08X}", aFullCrc ).c_str() );
+			}
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CRC_LABEL );
+			if ( pwPathEdit ) {
+				pwPathEdit->SetTextW( std::format( L"ROM CRC32:\t{:08X}", rRom.riInfo.ui32Crc ).c_str() );
+			}
+
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_PGM_SIZE_LABEL );
+			if ( pwPathEdit ) {
+				pwPathEdit->SetTextW( std::format( L"ROM PGM Size:\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+			}
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CHR_SIZE_LABEL );
+			if ( pwPathEdit ) {
+				pwPathEdit->SetTextW( std::format( L"ROM CHR Size:\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vChrRom.size(), rRom.vChrRom.size() / 1024.0 ).c_str() );
+			}
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_MIRROR_LABEL );
+			if ( pwPathEdit ) {
+				switch ( rRom.riInfo.mmMirroring ) {
+					case LSN_MM_VERTICAL : {
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\tVertical", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						break;
+					}
+					case LSN_MM_HORIZONTAL : {
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\tHorizontal", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						break;
+					}
+					case LSN_MM_4_SCREENS : {
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\t4 Screens", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						break;
+					}
+					case LSN_MM_1_SCREEN_A : {
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\tScreen A", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						break;
+					}
+					case LSN_MM_1_SCREEN_B : {
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\tScreen B", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						break;
+					}
+				}
+			}
+		}
 	}
 
 }	// namespace lsn

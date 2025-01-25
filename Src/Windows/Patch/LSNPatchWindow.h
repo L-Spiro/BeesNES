@@ -75,8 +75,10 @@ namespace lsn {
 
 
 		// == Members.
-		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
+		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
+		std::u16string										m_u16RomPath;												/**< Path to the ROM. */
+		LSN_PATCH_INFO										m_piPatchInfo;												/**< The patch information. */
 		bool												m_bOutIsAutoFilled;											/**< THe output path was auto-generated. */
 
 
