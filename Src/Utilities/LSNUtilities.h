@@ -90,6 +90,44 @@ namespace lsn {
 		}
 
 		/**
+		 * Converts an * string to a std::u16string.  Call inside try{}catch(...){}.
+		 * 
+		 * \param _pwcStr The string to convert.
+		 * \param _sLen The length of the string or 0.
+		 * \return Returns the converted string.
+		 **/
+		template <typename _tCharType>
+		static inline std::u16string						XStringToU16String( const _tCharType * _pwcStr, size_t _sLen ) {
+			std::u16string u16Tmp;
+			if ( _sLen ) {
+				u16Tmp.reserve( _sLen );
+			}
+			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+				u16Tmp.push_back( static_cast<char16_t>(_pwcStr[I]) );
+			}
+			return u16Tmp;
+		}
+
+		/**
+		 * Converts an * string to a std::u8string.  Call inside try{}catch(...){}.
+		 * 
+		 * \param _pwcStr The string to convert.
+		 * \param _sLen The length of the string or 0.
+		 * \return Returns the converted string.
+		 **/
+		template <typename _tCharType>
+		static inline std::u8string							XStringToU8String( const _tCharType * _pwcStr, size_t _sLen ) {
+			std::u8string u16Tmp;
+			if ( _sLen ) {
+				u16Tmp.reserve( _sLen );
+			}
+			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+				u16Tmp.push_back( static_cast<char8_t>(_pwcStr[I]) );
+			}
+			return u16Tmp;
+		}
+
+		/**
 		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
 		 *
 		 * \param _s16String The string in which replacements are to be made.

@@ -219,7 +219,7 @@ namespace ee {
 	/**
 	 * Creates a list of external declarations.
 	 *
-	 * \param _ndLeft Left operand.
+	 * \param param _ndLeft Left operand.
 	 * \param _ndRight Right operand.
 	 * \param _ndNode Node to create.
 	 * \return Returns true if the node was added.
@@ -237,7 +237,7 @@ namespace ee {
 	/**
 	 * Gets a node for read-only.
 	 *
-	 * \param _stIndex Index of the node to get.
+	 * \param _ui32Index Index of the node to get.
 	 * \return Returns a constant reference to the requested node.
 	 */
 	const EE_PREPROC_SYNTAX_NODES::EE_NODE_DATA & CPreProcContainer::GetNode( size_t _stIndex ) const {

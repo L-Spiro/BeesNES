@@ -1,21 +1,16 @@
 #pragma once
 
 #include "SinCos/EESinCos.h"
-#include <cfloat>
+#include <cmath>
 #include <cinttypes>
+#include <numbers>
 #include <string>
 #include <vector>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>					// For QueryPerformanceCounter() and QueryPerformanceFrequency().
-#define EE_PURE							= 0
 #endif
-
-#ifdef __GNUC__
-#include <mach/mach_time.h>				// For mach_timebase_info() and mach_absolute_time().
-#define EE_PURE
-#endif	// #ifdef __GNUC__
 
 #ifndef EE_MIN_
 #define EE_MIN_( A, B )					(((A) < (B)) ? (A) : (B))
@@ -41,9 +36,19 @@
 #ifndef NDEBUG
 #define EE_MAX_ITERATION_COUNT			90000
 #else
-#define EE_MAX_ITERATION_COUNT			9000000
+#define EE_MAX_ITERATION_COUNT			0x10000000
 #endif	// NDEBUG
 #endif	// EE_MAX_ITERATION_COUNT
+
+#ifndef EE_PI
+#define EE_PI							3.1415926535897932384626433832795
+#endif // #ifndef EE_PI
+
+#if defined( _MSC_VER )
+#define EE_FALLTHROUGH					[[fallthrough]];
+#else
+#define EE_FALLTHROUGH					
+#endif	// #if defined( _MSC_VER )
 
 
 namespace ee {
@@ -59,10 +64,16 @@ namespace ee {
 	class CExpEval {
 	public :
 		// == Functions.
-		// Gets the time of initialization.
+		/**
+		 * Gets the time of initialization.
+		 * 
+		 * \return Returns the system time when InitializeExpressionEvaluatorLibrary() was called.
+		 **/
 		static uint64_t					StartTime();
 
-		// Called at start-up to initialize the Expression Evaluator Library.
+		/**
+		 * Called at start-up to initialize the Expression Evaluator Library.
+		 **/
 		static inline void				InitializeExpressionEvaluatorLibrary() {
 			StartTime();
 		}
@@ -463,18 +474,25 @@ namespace ee {
 		static _tType					EscapeQuotes( const _tType &_sInput, bool _bEscapeSlashes ) {
 			_tType sRet;
 			for ( size_t I = 0; I < _sInput.size(); ++I ) {
-				if ( _sInput[I] == typename _tType::value_type( '\"' ) ) {
-					sRet.push_back( typename _tType::value_type( '\\' ) );
+				if ( _sInput[I] == _tType::value_type( '\"' ) ) {
+					sRet.push_back( _tType::value_type( '\\' ) );
 				}
-				else if ( _bEscapeSlashes && _sInput[I] == typename _tType::value_type( '\\' ) ) {
-					sRet.push_back( typename _tType::value_type( '\\' ) );
+				else if ( _bEscapeSlashes && _sInput[I] == _tType::value_type( '\\' ) ) {
+					sRet.push_back( _tType::value_type( '\\' ) );
 				}
 				sRet.push_back( _sInput[I] );
 			}
 			return sRet;
 		}
 
-		// Gets the next UTF-32 character from a stream or error (EE_UTF_INVALID)
+		/**
+		 * Gets the next UTF-32 character from a stream or error (EE_UTF_INVALID).
+		 * 
+		 * \param _puiString The string to parse.
+		 * \param _sLen The length of the string to which _puiString points.
+		 * \param _psSize Optional pointer to a size_t that will contain the number of characters eaten from _puiString during the parsing.
+		 * \return Returns the next character as a UTF-32 code.
+		 **/
 		static inline uint32_t			NextUtf32Char( const uint32_t * _puiString, size_t _sLen, size_t * _psSize = nullptr ) {
 			if ( _sLen == 0 ) {
 				if ( _psSize ) { (*_psSize) = 0; }
@@ -486,28 +504,85 @@ namespace ee {
 			return ui32Ret;
 		}
 
-		// Gets the next UTF-16 character from a stream or error (EE_UTF_INVALID)
+		/**
+		 * Gets the next UTF-16 character from a stream or error (EE_UTF_INVALID).
+		 * 
+		 * \param _pwcString The string to parse.
+		 * \param _sLen The length of the string to which _pwcString points.
+		 * \param _psSize Optional pointer to a size_t that will contain the number of characters eaten from _pwcString during the parsing.
+		 * \return Returns the next character as a UTF-32 code.
+		 **/
 		static uint32_t					NextUtf16Char( const wchar_t * _pwcString, size_t _sLen, size_t * _psSize = nullptr );
 
-		// Gets the next UTF-8 character from a stream or error (EE_UTF_INVALID)
+		/**
+		 * Gets the next UTF-8 character from a stream or error (EE_UTF_INVALID).
+		 * 
+		 * \param _pcString The string to parse.
+		 * \param _sLen The length of the string to which _pcString points.
+		 * \param _psSize Optional pointer to a size_t that will contain the number of characters eaten from _pcString during the parsing.
+		 * \return Returns the next character as a UTF-32 code.
+		 **/
 		static uint32_t					NextUtf8Char( const char * _pcString, size_t _sLen, size_t * _psSize = nullptr );
 
-		// Gets the size of the given UTF-8 character.
+		/**
+		 * Gets the size of the given UTF-8 character.
+		 * 
+		 * \param _pcString Pointer to the UTF-8 characters to decode.
+		 * \param _sLen The number of characters to which _pcString points.
+		 * \return Returns the size of the UTF-8 character to which _pcString points.
+		 **/
 		static size_t					Utf8CharSize( const char * _pcString, size_t _sLen );
 
-		// Converts a UTF-32 character to a UTF-16 character.
+		/**
+		 * Converts a UTF-32 character to a UTF-16 character.
+		 * 
+		 * \param _ui32Utf32 The UTF-32 character to convert to UTF-16.
+		 * \param _ui32Len Holds the returned number of 16-bit characters held in the return value.
+		 * \return Returns up to 2 UTF-16 characters.
+		 **/
 		static uint32_t					Utf32ToUtf16( uint32_t _ui32Utf32, uint32_t &_ui32Len );
 
-		// Converts a UTF-32 character to a UTF-8 character.
+		/**
+		 * Converts a UTF-32 character to a UTF-8 character.
+		 * 
+		 * \param _ui32Utf32 The UTF-32 character to convert to UTF-8.
+		 * \param _ui32Len Holds the returned number of 16-bit characters held in the return value.
+		 * \return Returns up to 4 UTF-8 characters.
+		 **/
 		static uint32_t					Utf32ToUtf8( uint32_t _ui32Utf32, uint32_t &_ui32Len );
 
-		// Converts a wstring to a UTF-8 string.
-		static std::string				WStringToString( const std::wstring &_wsIn );
+		/**
+		 * Converts a wstring to a UTF-8 string.  Converts the full length of the string, so embedded 0 characters don't stop the conversion.
+		 * 
+		 * \param _wsIn The UTF-16 string to convert.
+		 * \return Returns the converted UTF-8 string, including any embedded 0's.
+		 **/
+		static std::string				WStringToString( const std::wstring &_wsIn ) { return WStringToString( _wsIn.c_str(), _wsIn.size() ); }
 
-		// Converts a UTF-8 string to wstring (UTF-16).
-		static std::wstring				StringToWString( const std::string &_sIn );
+		/**
+		 * Converts a wstring to a UTF-8 string.  Converts the full length of the string, so embedded 0 characters don't stop the conversion.
+		 * 
+		 * \param _pwcIn The UTF-16 string to convert.
+		 * \param _sLen The number of characters to which _pwcIn points.
+		 * \return Returns the converted UTF-8 string, including any embedded 0's.
+		 **/
+		static std::string				WStringToString( const wchar_t * _pwcIn, size_t _sLen );
 
-		// Converts a UTF-8 string to wstring (UTF-16).
+		/**
+		 * Converts a UTF-8 string to wstring (UTF-16).  Converts the full length of the string, so embedded 0 characters don't stop the conversion.
+		 * 
+		 * \param _sIn The UTF-8 string to convert.
+		 * \return Returns the converted UTF-16 string, including any embedded 0's.
+		 **/
+		static std::wstring				StringToWString( const std::string &_sIn ) { return StringToWString( _sIn.c_str(), _sIn.size() ); }
+
+		/**
+		 * Converts a UTF-8 string to wstring (UTF-16).  Converts the full length of the string, so embedded 0 characters don't stop the conversion.
+		 * 
+		 * \param _pcIn The UTF-8 string to convert.
+		 * \param _sLen The number of characters to which _pcIn points.
+		 * \return Returns the converted UTF-16 string, including any embedded 0's.
+		 **/
 		static std::wstring				StringToWString( const char * _pcIn, size_t _sLen );
 
 		// Converts a UTF-32 string to a UTF-16 string.
@@ -591,6 +666,9 @@ namespace ee {
 		// Converts from UTF-8 to ASCII.
 		static std::string				ToAscii( const std::string &_sIn );
 
+		// Converts from UTF-8 to a C string.
+		static std::string				ToCString( const std::string &_sIn );
+
 		// Represents a value in binary notation.
 		static std::string				ToBinary( uint64_t _ui64Val );
 
@@ -644,16 +722,11 @@ namespace ee {
 		// Finds the highest-set bit in a given value.
 		static inline uint32_t			HighestSetBit( uint64_t _ui64Value ) {
 			unsigned long ulPos;
-#ifdef __APPLE__
-			if ( _ui64Value != 0 ) {
-				ulPos = 63 - __builtin_clzll( _ui64Value );  // Find the position of the highest-set bit.
-				return static_cast<uint32_t>(ulPos);
-			}
-#else
-#if defined( _AMD64_ ) && (defined( _M_AMD64 ) && !defined( RC_INVOKED ) && !defined( MIDL_PASS ))
+#if defined( _AMD64_ ) && (defined(_M_AMD64) && !defined(RC_INVOKED) && !defined(MIDL_PASS))
 			if ( _BitScanReverse64( &ulPos, _ui64Value ) ) {
 				return static_cast<uint32_t>(ulPos);
 			}
+
 #else
 			unsigned long ulPosHi;
 			if ( _BitScanReverse( &ulPosHi, static_cast<unsigned long>(_ui64Value >> 32ULL) ) ) {
@@ -663,8 +736,65 @@ namespace ee {
 				return ulPos;
 			}
 #endif	// #if defined( _AMD64_ ) && (defined(_M_AMD64) && !defined(RC_INVOKED) && !defined(MIDL_PASS))
-#endif	// #ifdef __APPLE__
 			return 0;
+		}
+
+		/**
+		 * Reverses the bits in an 8-bit value.
+		 * 
+		 * \param _ui8Val The value to bit-reverse.
+		 * \return Returns the bit-reversed result.
+		 **/
+		static inline uint8_t			ReverseBits8( uint8_t _ui8Val ) {
+			_ui8Val = (_ui8Val & 0xF0) >> 4 | (_ui8Val & 0x0F) << 4;
+			_ui8Val = (_ui8Val & 0xCC) >> 2 | (_ui8Val & 0x33) << 2;
+			_ui8Val = (_ui8Val & 0xAA) >> 1 | (_ui8Val & 0x55) << 1;
+			return _ui8Val;
+		}
+
+		/**
+		 * Reverses the bits in an 16-bit value.
+		 * 
+		 * \param _ui16Val The value to bit-reverse.
+		 * \return Returns the bit-reversed result.
+		 **/
+		static inline uint16_t			ReverseBits16( uint16_t _ui16Val ) {
+			_ui16Val = ((_ui16Val >> 1) & 0x5555) | ((_ui16Val & 0x5555) << 1);
+			_ui16Val = ((_ui16Val >> 2) & 0x3333) | ((_ui16Val & 0x3333) << 2);
+			_ui16Val = ((_ui16Val >> 4) & 0x0F0F) | ((_ui16Val & 0x0F0F) << 4);
+			_ui16Val = ((_ui16Val >> 8) & 0x00FF) | ((_ui16Val & 0x00FF) << 8);
+			return _ui16Val;
+		}
+
+		/**
+		 * Reverses the bits in an 32-bit value.
+		 * 
+		 * \param _ui32Val The value to bit-reverse.
+		 * \return Returns the bit-reversed result.
+		 **/
+		static inline uint32_t			ReverseBits32( uint32_t _ui32Val ) {
+			_ui32Val = ((_ui32Val >> 1) & 0x55555555U) | ((_ui32Val & 0x55555555U) << 1);
+			_ui32Val = ((_ui32Val >> 2) & 0x33333333U) | ((_ui32Val & 0x33333333U) << 2);
+			_ui32Val = ((_ui32Val >> 4) & 0x0F0F0F0FU) | ((_ui32Val & 0x0F0F0F0FU) << 4);
+			_ui32Val = ((_ui32Val >> 8) & 0x00FF00FFU) | ((_ui32Val & 0x00FF00FFU) << 8);
+			_ui32Val = ((_ui32Val >> 16) & 0xFFFFU) | ((_ui32Val & 0xFFFFU) << 16);
+			return _ui32Val;
+		}
+
+		/**
+		 * Reverses the bits in an 64-bit value.
+		 * 
+		 * \param _ui64Val The value to bit-reverse.
+		 * \return Returns the bit-reversed result.
+		 **/
+		static inline uint64_t			ReverseBits64( uint64_t _ui64Val ) {
+			_ui64Val = ((_ui64Val >> 1) & 0x5555555555555555ULL) | ((_ui64Val & 0x5555555555555555ULL) << 1);
+			_ui64Val = ((_ui64Val >> 2) & 0x3333333333333333ULL) | ((_ui64Val & 0x3333333333333333ULL) << 2);
+			_ui64Val = ((_ui64Val >> 4) & 0x0F0F0F0F0F0F0F0FULL) | ((_ui64Val & 0x0F0F0F0F0F0F0F0FULL) << 4);
+			_ui64Val = ((_ui64Val >> 8) & 0x00FF00FF00FF00FFULL) | ((_ui64Val & 0x00FF00FF00FF00FFULL) << 8);
+			_ui64Val = ((_ui64Val >> 16) & 0x0000FFFF0000FFFFULL) | ((_ui64Val & 0x0000FFFF0000FFFFULL) << 16);
+			_ui64Val = ((_ui64Val >> 32) & 0x00000000FFFFFFFFULL) | ((_ui64Val & 0x00000000FFFFFFFFULL) << 32);
+			return _ui64Val;
 		}
 	
 		// Resolves escape sequences.  Returns the full string as a 32-bit character array.
@@ -716,10 +846,26 @@ namespace ee {
 		// Counts the number of UTF-8 code points in the given string.
 		static uint64_t					CountUtfCodePoints( const std::string &_sInput );
 
-		// String to integer, from any base.  Since std::stoull() raises exceptions etc.
+		/**
+		 * String to integer, from any base.  Since std::stoull() raises exceptions etc.
+		 * 
+		 * \param _pcText The text to parse.
+		 * \param _iBase The base of the number to parse out of the text.
+		 * \param _psEaten Optional pointer to a size_t that will be set to the number of character eaten during parsing.
+		 * \param _uiMax The maximum value after which overflow is considered to have happened.
+		 * \param _pbOverflow An optional pointer to a boolean used to indicate whether overflow has occurred or not.
+		 * \return DESC
+		 **/
 		static uint64_t					StoULL( const char * _pcText, int _iBase = 10, size_t * _psEaten = nullptr, uint64_t _uiMax = 0xFFFFFFFFFFFFFFFFULL, bool * _pbOverflow = nullptr );
 
-		// String to double.  Unlike std::atof(), this returns the number of characters eaten.
+		/**
+		 * String to double.  Unlike std::atof(), this returns the number of characters eaten, and casts to float when the f postfix is seen.
+		 * 
+		 * \param _pcText The text to parse.
+		 * \param _psEaten The number of characters consumed while parsing the double value.
+		 * \param _pbError Optional pointer to a booleon which will be set to true if there are parsing errors.
+		 * \return Returns the parsed double.
+		 **/
 		static double					AtoF( const char * _pcText, size_t * _psEaten = nullptr, bool * _pbError = nullptr );
 
 		// Basic epsilon comparison.
@@ -773,13 +919,7 @@ namespace ee {
 			::QueryPerformanceCounter( &liInt );
 			return liInt.QuadPart;
 #else
-			if ( !m_mtidInfoData.denom ) {
-				if ( KERN_SUCCESS != ::mach_timebase_info( &m_mtidInfoData ) ) {
-					return 0ULL;
-				}
-			}
-			return ::mach_absolute_time() * m_mtidInfoData.numer;
-
+#error "No implementation for Time()."
 #endif	// #ifdef _WIN32
 		}
 
@@ -798,7 +938,7 @@ namespace ee {
 			try {
 				_tType tCurLine;
 				for ( size_t I = 0; I < _sInput.size(); ++I ) {
-					if ( _sInput[I] == typename _tType::value_type( _ui32Token ) ) {
+					if ( _sInput[I] == _tType::value_type( _ui32Token ) ) {
 						if ( tCurLine.size() || _bIncludeEmptyTokens ) {
 							vRet.push_back( tCurLine );
 						}
@@ -819,6 +959,47 @@ namespace ee {
 			return vRet;
 		}
 
+		// Parse a string into an array of strings given a UTF-32 delimiter.
+		template <typename _tType = std::string>
+		static std::vector<_tType>		TokenizeUtf( const _tType &_sInput, uint32_t _ui32Token, bool _bIncludeEmptyTokens = true, bool * pbErrored = nullptr ) {
+			std::vector<_tType> vRet;
+			try {
+				_tType tCurLine;
+				size_t sSize = 1;
+				for ( size_t I = 0; I < _sInput.size(); I += sSize ) {
+					uint32_t ui32Char;
+					if constexpr ( sizeof( _tType::value_type ) == sizeof( char8_t ) ) {
+						ui32Char = NextUtf8Char( reinterpret_cast<const char *>(&_sInput[I]), _sInput.size() - I, &sSize );
+					}
+					else if constexpr ( sizeof( _tType::value_type ) == sizeof( char16_t ) ) {
+						ui32Char = NextUtf16Char( &_sInput[I], _sInput.size() - I, &sSize );
+					}
+					else {
+						sSize = 1;
+						ui32Char = _sInput[I];
+					}
+
+					if ( ui32Char == _ui32Token ) {
+						if ( tCurLine.size() || _bIncludeEmptyTokens ) {
+							vRet.push_back( tCurLine );
+						}
+						tCurLine.clear();
+					}
+					else {
+						tCurLine.append( &_sInput[I], sSize );
+					}
+				}
+				if ( tCurLine.size() || _bIncludeEmptyTokens ) {
+					vRet.push_back( tCurLine );
+				}
+				if ( pbErrored ) { (*pbErrored) = false; }
+			}
+			catch ( ... ) {
+				if ( pbErrored ) { (*pbErrored) = true; }
+			}
+			return vRet;
+		}
+
 		// Recombines an array of strings back into a single string.
 		template <typename _tType = std::string>
 		static _tType					Reconstitute( const std::vector<_tType> &_vArray, uint32_t _ui32Token, bool * pbErrored = nullptr ) {
@@ -826,7 +1007,7 @@ namespace ee {
 			try {
 				for ( size_t I = 0; I < _vArray.size(); ++I ) {
 					sRet.append( _vArray[I] );
-					sRet.push_back( typename _tType::value_type( _ui32Token ) );
+					sRet.push_back( _tType::value_type( _ui32Token ) );
 				}
 				if ( pbErrored ) { (*pbErrored) = false; }
 			}
@@ -870,80 +1051,80 @@ namespace ee {
 		//	text position is the start of a code-format string.
 		template <typename _tType = std::string>
 		static size_t					CodeStringLength( const _tType &_sInput, size_t _sPos ) {
-#define EE_PREVIEW( OFF )			(((_sPos + (OFF)) < _sInput.size()) ? _sInput[_sPos+(OFF)] : typename _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((_sPos + (OFF)) < _sInput.size()) ? _sInput[_sPos+(OFF)] : _tType::value_type( '\0' ))
 			size_t sStart = _sPos;
-			if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\'' ) ) {
+			if ( _sInput[_sPos] == _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\'' ) ) {
 				_sPos += 2;	// Eat the 2nd and 3rd '.
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) ) {
 						// \' sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\'' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\'' ) ) {
 						return _sPos - sStart + 3;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\"' ) ) {
+			else if ( _sInput[_sPos] == _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\"' ) ) {
 				_sPos += 2;	// Eat the 2nd and 3rd ".
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == typename _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\"' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) && EE_PREVIEW( 2 ) == _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 3;
 					}
 				}
 			}
-			else if ( (_sInput[_sPos] == typename _tType::value_type( 'r' ) || _sInput[_sPos] == typename _tType::value_type( 'R' )) &&
-				EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
+			else if ( (_sInput[_sPos] == _tType::value_type( 'r' ) || _sInput[_sPos] == _tType::value_type( 'R' )) &&
+				EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
 				++_sPos;	// Eat the R.
 				// Eat raw string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
+					if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
+			else if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
 				// Eat string quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\"' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\"' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\"' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
 			}
-			else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) ) {
+			else if ( _sInput[_sPos] == _tType::value_type( '\'' ) ) {
 				// Eat character quotes.
 				while ( ++_sPos < _sInput.size() ) {
-					if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\\' ) ) {
+					if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\\' ) ) {
 						// \\ sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\\' ) && EE_PREVIEW( 1 ) == _tType::value_type( '\'' ) ) {
 						// \" sequence.  Skip.
 						++_sPos;
 					}
-					else if ( _sInput[_sPos] == typename _tType::value_type( '\'' ) ) {
+					else if ( _sInput[_sPos] == _tType::value_type( '\'' ) ) {
 						return _sPos - sStart + 1;
 					}
 				}
@@ -956,7 +1137,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveCComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
 
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -965,20 +1146,20 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) {
+				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) {
 					size_t stStart = sIdx;
 					sIdx += 2;
 					uint32_t ui32LastChar = '\0';
 					size_t stNewLines = 0;
 					while ( sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) {
+						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) {
 							if ( ui32LastChar == '\\' ) {
 								++stNewLines;
 							}
 							else {
 								// Add back the new lines we skipped.
 								for ( auto J = stNewLines; J--; ) {
-									_sInput[stStart++] = typename _tType::value_type( '\n' );
+									_sInput[stStart++] = _tType::value_type( '\n' );
 								}
 								_sInput.erase( stStart, sIdx - stStart );
 								sIdx = stStart;
@@ -1004,7 +1185,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveCPlusPlusComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
 			_tType sNewLines;
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -1013,11 +1194,11 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '*' ) ) {
+				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '*' ) ) {
 					size_t I = sIdx++;
 					while ( ++sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == typename _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) { sIdx += 2; break; }
-						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
+						if ( _sInput[sIdx] == _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) { sIdx += 2; break; }
+						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
 					}
 					_sInput.erase( I, sIdx - I );
 					_sInput.insert( I, sNewLines );
@@ -1035,7 +1216,7 @@ namespace ee {
 		template <typename _tType = std::string>
 		static _tType &					RemoveComments( _tType &_sInput ) {
 			size_t sIdx = 0;
-#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : typename _tType::value_type( '\0' ))
+#define EE_PREVIEW( OFF )			(((sIdx + (OFF)) < _sInput.size()) ? _sInput[sIdx+(OFF)] : _tType::value_type( '\0' ))
 			_tType sNewLines;
 			while ( sIdx < _sInput.size() ) {
 				size_t stStrLen = CodeStringLength( _sInput, sIdx );
@@ -1044,20 +1225,20 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) {
+				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) {
 					size_t stStart = sIdx;
 					sIdx += 2;
 					uint32_t ui32LastChar = '\0';
 					size_t stNewLines = 0;
 					while ( sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) {
+						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) {
 							if ( ui32LastChar == '\\' ) {
 								++stNewLines;
 							}
 							else {
 								// Add back the new lines we skipped.
 								for ( auto J = stNewLines; J--; ) {
-									_sInput[stStart++] = typename _tType::value_type( '\n' );
+									_sInput[stStart++] = _tType::value_type( '\n' );
 								}
 								_sInput.erase( stStart, sIdx - stStart );
 								sIdx = stStart;
@@ -1072,11 +1253,11 @@ namespace ee {
 					continue;
 				}
 
-				if ( _sInput[sIdx] == typename _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '*' ) ) {
+				if ( _sInput[sIdx] == _tType::value_type( '/' ) && EE_PREVIEW( 1 ) == _tType::value_type( '*' ) ) {
 					size_t I = sIdx++;
 					while ( ++sIdx < _sInput.size() ) {
-						if ( _sInput[sIdx] == typename _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == typename _tType::value_type( '/' ) ) { sIdx += 2; break; }
-						if ( _sInput[sIdx] == typename _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
+						if ( _sInput[sIdx] == _tType::value_type( '*' ) && EE_PREVIEW( 1 ) == _tType::value_type( '/' ) ) { sIdx += 2; break; }
+						if ( _sInput[sIdx] == _tType::value_type( '\n' ) ) { sNewLines.push_back( '\n' ); }
 					}
 					_sInput.erase( I, sIdx - I );
 					_sInput.insert( I, sNewLines );
@@ -1092,13 +1273,308 @@ namespace ee {
 
 		// Pulls any preprocessing directives out of a single line.
 		static bool						PreprocessingDirectives( const std::string &_sInput, std::string &_sDirective, std::string &_sParms );
-		
-		
-		// == Members.
-#ifdef __GNUC__
-		static ::mach_timebase_info_data_t
-										m_mtidInfoData;									/**< Time resoution. */
-#endif	// #ifdef __GNUC__
+
+		/**
+		 * Creates a Hann window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						HannWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( 0.5 - 0.5 * std::cos( dTauInvMax * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Hamming window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						HammingWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( 0.53836 - 0.46164 * std::cos( dTauInvMax * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Blackman window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						BlackmanWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			// These exact values place zeros at the third and fourth sidelobes, but result in a discontinuity at the edges and a 6 dB/oct fall-off.
+			//constexpr double dA0 = 7938.0 / 18608.0;	// 0.42659071367153911236158592146239243447780609130859375
+			//constexpr double dA1 = 9240.0 / 18608.0;	// 0.4965606190885640813803547644056379795074462890625
+			//constexpr double dA2 = 1430.0 / 18608.0;	// 0.07684866723989682013584712194642634131014347076416015625
+			
+			// The truncated coefficients do not null the sidelobes as well, but have an improved 18 dB/oct fall-off.
+			constexpr double dA = 0.16;					// 0.1600000000000000033306690738754696212708950042724609375
+			constexpr double dA0 = (1.0 - dA) / 2.0;	// 0.419999999999999984456877655247808434069156646728515625
+			constexpr double dA1 = 1.0 / 2.0;			// 0.5
+			constexpr double dA2 = dA / 2.0;			// 0.08000000000000000166533453693773481063544750213623046875
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				double dTauInvMax2 = 2.0 * dTauInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Bartlett window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						BartlettWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			try {
+				_vRet.resize( _sN );
+
+				size_t stMax = _vRet.size() - 1;
+				double d2InvMax = 2.0 / stMax;
+				double dHalfMax = stMax / 2.0;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( d2InvMax * (dHalfMax - std::abs( I - dHalfMax )) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * A 0th-order Bessel function needed for the Kaiser window.
+		 * 
+		 * \param _dX The Bessel term.
+		 * \return Returns the Bessel function for the given term.
+		 **/
+		static inline double			Bessel0( double _dX ) {
+			constexpr double dEspiRatio = 1.0e-16;
+			double dSum = 1.0, dPow = 1.0, dDs = 1.0, dXh = _dX * 0.5;
+			uint32_t ui32K = 0;
+
+			while ( dDs > dSum * dEspiRatio ) {
+				++ui32K;
+				dPow *= (dXh / ui32K);
+				dDs = dPow * dPow;
+				dSum += dDs;
+			}
+
+			return dSum;
+		}
+
+		/**
+		 * Creates a Kaiser window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _tBeta The beta parameter.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						KaiserWindow( size_t _sN, _tType _tBeta, std::vector<_tType> &_vRet ) {
+			try {
+				_vRet.resize( _sN );
+
+				double dDenominator = Bessel0( double( _tBeta ) );
+
+				for ( size_t I = 0; I < _sN; ++I ) {
+					double dRatio = 0.0;
+					if ( _sN > 1 ) {
+						dRatio = (2.0 * I) / (_sN - 1) - 1.0;
+					}
+					double dArg = _tBeta * std::sqrt( 1.0 - dRatio * dRatio );
+					_vRet[I] = _tType( Bessel0( dArg ) / dDenominator );
+				}
+
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Nuttal window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						NuttalWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			constexpr double dA0 = 0.355768;			// 0.35576799999999997314859001562581397593021392822265625
+			constexpr double dA1 = 0.487396;			// 0.487395999999999995910826555700623430311679840087890625
+			constexpr double dA2 = 0.144232;			// 0.1442319999999999990958343687452725134789943695068359375
+			constexpr double dA3 = 0.012604;			// 0.0126040000000000006197264923457623808644711971282958984375
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				double dTauInvMax2 = 2.0 * dTauInvMax;
+				double dTauInvMax3 = 3.0 * dTauInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) - dA3 * std::cos( dTauInvMax3 * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Blackman-Nuttal window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						BlackmanNuttalWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			constexpr double dA0 = 0.3635819;			// 0.3635819000000000134065203383215703070163726806640625
+			constexpr double dA1 = 0.4891775;			// 0.489177499999999987334575735076214186847209930419921875
+			constexpr double dA2 = 0.1365995;			// 0.1365995000000000125783827797931735403835773468017578125
+			constexpr double dA3 = 0.0106411;			// 0.01064110000000000055830895462349872104823589324951171875
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				double dTauInvMax2 = 2.0 * dTauInvMax;
+				double dTauInvMax3 = 3.0 * dTauInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) - dA3 * std::cos( dTauInvMax3 * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a Blackman-Harris window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						BlackmanHarrisWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			constexpr double dA0 = 0.35875;				// 0.35875000000000001332267629550187848508358001708984375
+			constexpr double dA1 = 0.48829;				// 0.48829000000000000181188397618825547397136688232421875
+			constexpr double dA2 = 0.14128;				// 0.1412799999999999889244151063394383527338504791259765625
+			constexpr double dA3 = 0.01168;				// 0.0116799999999999994104715739240418770350515842437744140625
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				double dTauInvMax2 = 2.0 * dTauInvMax;
+				double dTauInvMax3 = 3.0 * dTauInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) - dA3 * std::cos( dTauInvMax3 * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Creates a FLat-Top window.
+		 * 
+		 * \param _sN Number of samples.  Generally an odd number.
+		 * \param _vRet The returned vector.
+		 * \return Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						FlatTopWindow( size_t _sN, std::vector<_tType> &_vRet ) {
+			constexpr double dA0 = 0.21557895;			// 0.215578949999999991415933209282229654490947723388671875
+			constexpr double dA1 = 0.41663158;			// 0.4166315800000000013625367500935681164264678955078125
+			constexpr double dA2 = 0.277263158;			// 0.2772631580000000095509449238306842744350433349609375
+			constexpr double dA3 = 0.083578947;			// 0.08357894700000000065553962258491083048284053802490234375
+			constexpr double dA4 = 0.006947368;			// 0.006947367999999999772786640761523813125677406787872314453125
+			try {
+				_vRet.resize( _sN );
+
+				const double dTau = 2.0 * std::numbers::pi;
+				size_t stMax = _vRet.size() - 1;
+				double dInvMax = 1.0 / stMax;
+				double dTauInvMax = dTau * dInvMax;
+				double dTauInvMax2 = 2.0 * dTauInvMax;
+				double dTauInvMax3 = 3.0 * dTauInvMax;
+				double dTauInvMax4 = 4.0 * dTauInvMax;
+				for ( auto I = _vRet.size(); I--; ) {
+					_vRet[I] = _tType( dA0 - dA1 * std::cos( dTauInvMax * I ) + dA2 * std::cos( dTauInvMax2 * I ) - dA3 * std::cos( dTauInvMax3 * I ) + dA4 * std::cos( dTauInvMax4 * I ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Standard sinc() function.
+		 * 
+		 * \param _dX The operand.
+		 * \return Returns sin(x*PI) / x*PI.
+		 **/
+		static inline double			Sinc( double _dX ) {
+			_dX *= std::numbers::pi;
+			if ( _dX < 0.01 && _dX > -0.01 ) {
+				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+			}
+
+			return std::sin( _dX ) / _dX;
+		}
 	};
 
 }	// namespace ee

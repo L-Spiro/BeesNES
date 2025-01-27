@@ -144,11 +144,9 @@ namespace lsw {
 		}
 
 		LSW_HANDLE &						operator = ( HANDLE &_hHandle ) {
-			if ( &hHandle != &_hHandle ) {
-				Reset();
-				hHandle = _hHandle;
-				_hHandle = NULL;
-			}
+			Reset();
+			hHandle = _hHandle;
+			_hHandle = NULL;
 			return (*this);
 		}
 
@@ -183,23 +181,6 @@ namespace lsw {
 		}
 		~LSW_HMODULE() {
 			Reset();
-		}
-
-
-		// == Operators.
-		/**
-		 * Move operator.
-		 * 
-		 * \param _hOther The object to copy and move.
-		 * \return Returns this object.
-		 **/
-		LSW_HMODULE &						operator = ( LSW_HMODULE &&_hOther ) noexcept {
-			if ( this != &_hOther ) {
-				Reset();
-				hHandle = _hOther.hHandle;
-				_hOther.hHandle = NULL;
-			}
-			return (*this);
 		}
 
 

@@ -50,7 +50,7 @@ namespace ee {
 				
 				break;
 			}
-			case EE_SNC_FLOAT : {
+			case EE_NC_FLOATING : {
 				rTmp.ncType = EE_NC_FLOATING;
 				bool bErrored = false;
 				size_t sEaten = 0;

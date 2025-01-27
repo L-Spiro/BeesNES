@@ -18,7 +18,7 @@ namespace ee {
 		// == Enumerations.
 		// The built-in types.
 		enum EE_BUILT_IN_TYPES : uint32_t {
-			EE_BIT_STRING_REF						= (1 << 0),						// CStringRef
+			//EE_BIT_STRING_REF						= (1 << 0),						// CStringRef
 			EE_BIT_STRING							= (1 << 1),						// CString
 			EE_BIT_VECTOR							= (1 << 2),						// CVector
 		};
@@ -29,30 +29,38 @@ namespace ee {
 			EE_AEF_END								= (1 << 1),						// _i64Idx1 is valid.
 		};
 
+		// ToString() flags.
+		enum EE_TOSTRING_FLAGS : uint32_t {
+			EE_TF_NONE								= 0,
+			EE_TF_C_STRING							= (1 << 0),						// Hey "Bob" -> "Hey \"Bob\""
+		};
+
 
 		// == Functions.
 		// Gets the object type.
-		virtual uint32_t							Type() const EE_PURE { return 0; }
+		virtual uint32_t							Type() const = 0 { return 0; }
 
 		// Creates a string representation of the object, with the string usually assumed to be in UTF-8 format.
-		virtual bool								ToString( std::string &_sString ) EE_PURE {
+		virtual bool								ToString( std::string &_sString, uint32_t /*_ui32Depth*/, uint32_t _ui32Flags = EE_TF_NONE ) = 0 {
+			static_cast<void>(_ui32Flags);
 			_sString = "<null>";
 			return false;
 		}
 
 		// Creates a formatted string representation of the object.
-		virtual std::string							FormattedString( const std::string &/*_sFormat*/ ) EE_PURE {
+		virtual std::string							FormattedString( const std::string &/*_sFormat*/, uint32_t _ui32Flags = EE_TF_NONE ) = 0 {
+			static_cast<void>(_ui32Flags);
 			return std::string( "<null>" );
 		}
 
 		// Converts to another object of the given type.
-		virtual CExpEvalContainer::EE_RESULT		ConvertTo( EE_NUM_CONSTANTS /*_ncType*/ ) EE_PURE {
+		virtual CExpEvalContainer::EE_RESULT		ConvertTo( EE_NUM_CONSTANTS /*_ncType*/ ) = 0 {
 			CExpEvalContainer::EE_RESULT rRet = { EE_NC_INVALID };
 			return rRet;
 		}
 
 		// Initializes this object given another object.
-		virtual bool								InitializeFrom( const CExpEvalContainer::EE_RESULT &/*_rObj*/ ) EE_PURE {
+		virtual bool								InitializeFrom( const CExpEvalContainer::EE_RESULT &/*_rObj*/ ) = 0 {
 			return false;
 		}
 
@@ -71,12 +79,12 @@ namespace ee {
 		}
 
 		// Array access.
-		virtual CExpEvalContainer::EE_RESULT		ArrayAccess( int64_t /*_i64Idx*/ ) EE_PURE {
+		virtual CExpEvalContainer::EE_RESULT		ArrayAccess( int64_t /*_i64Idx*/ ) = 0 {
 			return { EE_NC_OBJECT };
 		}
 
 		// Extended array access.
-		virtual CExpEvalContainer::EE_RESULT		ArrayAccessEx( int64_t /*_i64Idx0*/, int64_t /*_i64Idx1*/, uint32_t /*_ui32Mask*/ ) EE_PURE {
+		virtual CExpEvalContainer::EE_RESULT		ArrayAccessEx( int64_t /*_i64Idx0*/, int64_t /*_i64Idx1*/, uint32_t /*_ui32Mask*/ ) = 0 {
 			return { EE_NC_OBJECT };
 		}
 

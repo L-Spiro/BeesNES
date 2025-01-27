@@ -71,6 +71,7 @@ namespace lsn {
 		struct LSN_PATCH_INFO {
 			std::u16string									u16FullPath;												/**< The full path to the patch file. */
 			std::vector<uint8_t>							vLoadedPatchFile;											/**< The in-memory patch file. */
+			std::vector<std::u8string>						vTokenizedFolders;											/**< The tokenized folders. */
 			uint32_t										ui32Crc = 0;												/**< The desired CRC for the source ROM. */
 			uint32_t										ui32PatchCrc = 0;											/**< the CRC for the patch file. */
 			uint32_t										ui32PatchCrcMinus4 = 0;										/**< the CRC for the patch file excluding the final 4 bytes. */

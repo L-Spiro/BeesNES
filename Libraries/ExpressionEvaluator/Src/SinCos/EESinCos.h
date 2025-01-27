@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __GNUC__
-#include <math.h>
-#endif	// #ifdef __GNUC__
-
 extern "C" {
 
 #if defined( _M_AMD64 )
@@ -18,9 +14,6 @@ extern void SinCos( double _dRadians, double * _pdSin, double * _pdCos );
 
 // 32-bit implementation in inline assembly.
 inline void SinCos( double _dRadians, double * _pdSin, double * _pdCos ) {
-#ifdef __GNUC__
-	__sincos( _dRadians, _pdSin, _pdCos );
-#else
 	double dSin, dCos;
 	__asm {
 		fld QWORD PTR[_dRadians]
@@ -31,7 +24,19 @@ inline void SinCos( double _dRadians, double * _pdSin, double * _pdCos ) {
 	}
 	(*_pdSin) = dSin;
 	(*_pdCos) = dCos;
-#endif	// #ifdef __GNUC__
+}
+
+inline void SinCosF( float _fAngle, float * _pfSin, float * _pfCos ) {
+    float fSinT, fCosT;
+    __asm {
+        fld DWORD PTR[_fAngle]		// Load the 32-bit float into the FPU stack.
+        fsincos						// Compute cosine and sine.
+        fstp DWORD PTR[fCosT]		// Store the cosine value.
+        fstp DWORD PTR[fSinT]		// Store the sine value.
+        fwait						// Wait for the FPU to finish.
+    }
+    (*_pfSin) = fSinT;
+    (*_pfCos) = fCosT;
 }
 
 #endif

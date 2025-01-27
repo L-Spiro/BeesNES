@@ -125,7 +125,7 @@ namespace ee {
 		/**
 		 * Creates a list of external declarations.
 		 *
-		 * \param _ndLeft Left operand.
+		 * \param param _ndLeft Left operand.
 		 * \param _ndRight Right operand.
 		 * \param _ndNode Node to create.
 		 * \return Returns true if the node was added.

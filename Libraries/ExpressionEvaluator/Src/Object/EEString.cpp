@@ -77,7 +77,7 @@ namespace ee {
 			}
 			case EE_NC_OBJECT : {
 				if ( _rObj.u.poObj ) {
-					 return _rObj.u.poObj->ToString( m_sObj );
+					 return _rObj.u.poObj->ToString( m_sObj, 0 );
 				}
 			}
 		}
@@ -99,6 +99,7 @@ namespace ee {
 			sIdx = static_cast<size_t>(_i64Idx);
 			if ( static_cast<int64_t>(sIdx) != _i64Idx ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 		}
+		if ( sIdx == size_t( -1 ) ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 		uint32_t ui32Val;
 		CStringBaseApi::UpdateArrayAccessOptimizer( m_sObj, m_vArrayOpt, sIdx, ui32Val );
 		rRet.u.ui64Val = ui32Val;
@@ -121,6 +122,7 @@ namespace ee {
 				sIdx0 = static_cast<size_t>(_i64Idx0);
 				if ( static_cast<int64_t>(sIdx0) != _i64Idx0 ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 			}
+			if ( sIdx0 == size_t( -1 ) ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 			sIdx0 = ee::CExpEval::GetUtf8CharPosByIdx( m_sObj, sIdx0 );
 		}
 
@@ -136,6 +138,7 @@ namespace ee {
 				sIdx1 = static_cast<size_t>(_i64Idx1);
 				if ( static_cast<int64_t>(sIdx1) != _i64Idx1 ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 			}
+			if ( sIdx1 == size_t( -1 ) ) { rRet.u.ui64Val = EE_UTF_INVALID; return rRet; }
 			sIdx1 = ee::CExpEval::GetUtf8CharPosByIdx( m_sObj, sIdx1 );
 		}
 		else {
@@ -281,9 +284,9 @@ namespace ee {
 				return true;
 			}
 			case EE_NC_OBJECT : {
-				if ( _rRet.u.poObj && (_rRet.u.poObj->Type() & (EE_BIT_STRING_REF | EE_BIT_STRING)) ) {
+				if ( _rRet.u.poObj && (_rRet.u.poObj->Type() & EE_BIT_STRING) ) {
 					std::string sTmp;
-					if ( !_rRet.u.poObj->ToString( sTmp ) ) { return false; }
+					if ( !_rRet.u.poObj->ToString( sTmp, 0 ) ) { return false; }
 					m_sObj += sTmp;
 					Dirty();
 					_rRet = CreateResult();
@@ -338,6 +341,69 @@ namespace ee {
 	// Returns the ordinal value of the object as a Unicode character (always EE_NC_UNSIGNED).
 	CExpEvalContainer::EE_RESULT CString::Ord() const {
 		return CStringBaseApi::Ord( m_sObj, m_peecContainer );
+	}
+
+	// Pops the back item.
+	CExpEvalContainer::EE_RESULT CString::PopBack() {
+		auto aLen = Len();
+		if ( !aLen.u.ui64Val ) { return CreateResult(); }
+		--aLen.u.ui64Val;
+		
+		if ( m_vArrayOpt.size() <= aLen.u.ui64Val ) {
+			uint32_t ui32Val;
+			CStringBaseApi::UpdateArrayAccessOptimizer( m_sObj, m_vArrayOpt, size_t( aLen.u.ui64Val ), ui32Val );
+		}
+		while ( m_sObj.size() > m_vArrayOpt[aLen.u.ui64Val] ) {
+			m_sObj.pop_back();
+		}
+		//Dirty();
+		m_ui64Len = aLen.u.ui64Val;
+		m_vArrayOpt.pop_back();
+		return CreateResult();
+	}
+
+	// Gets a value in the string.
+	CExpEvalContainer::EE_RESULT CString::At( size_t _sIdx ) {
+		CExpEvalContainer::EE_RESULT rRet = { .ncType = EE_NC_UNSIGNED, };
+		_sIdx = ArrayIndexToLinearIndex( _sIdx, static_cast<size_t>(Len().u.ui64Val) );
+		if ( _sIdx == EE_INVALID_IDX ) { rRet.ncType = EE_NC_INVALID; return rRet; }
+		
+		uint32_t ui32Val;
+		CStringBaseApi::UpdateArrayAccessOptimizer( m_sObj, m_vArrayOpt, _sIdx, ui32Val );
+		rRet.u.ui64Val = ui32Val;
+		return rRet;
+	}
+
+	// Inserts a value at a given index in the string.
+	CExpEvalContainer::EE_RESULT CString::Insert( size_t _sIdx, CExpEvalContainer::EE_RESULT &_rRet ) {
+		CExpEvalContainer::EE_RESULT rRet = { .ncType = EE_NC_UNSIGNED };
+		if ( _sIdx != static_cast<size_t>(Len().u.ui64Val) ) {
+			_sIdx = ArrayIndexToLinearIndex( _sIdx, static_cast<size_t>(Len().u.ui64Val) );
+			if ( _sIdx == EE_INVALID_IDX ) { rRet.ncType = EE_NC_INVALID; return rRet; }
+		}
+
+		if ( _rRet.ncType == EE_NC_OBJECT && _rRet.u.poObj && _rRet.u.poObj->Type() & CObject::EE_BIT_STRING ) {
+			ee::CString * psThis = static_cast<CString *>(_rRet.u.poObj);
+			uint32_t ui32Val;
+			CStringBaseApi::UpdateArrayAccessOptimizer( m_sObj, m_vArrayOpt, _sIdx, ui32Val );
+			m_sObj.insert( m_sObj.begin() + m_vArrayOpt[_sIdx], psThis->m_sObj.begin(), psThis->m_sObj.end() );
+		}
+		else {
+			CExpEvalContainer::EE_RESULT rVal = m_peecContainer->ConvertResultOrObject( _rRet, EE_NC_UNSIGNED );
+			if ( rVal.ncType == EE_NC_INVALID ) { rRet.ncType = EE_NC_INVALID; return rRet; }
+
+			uint32_t ui32Char, ui32Len;
+			ui32Char = ee::CExpEval::Utf32ToUtf8( uint32_t( rVal.u.ui64Val ), ui32Len );
+			//if ( EE_UTF_INVALID == ui32Char ) { rRet.ncType = EE_NC_INVALID; return rRet; }
+
+			uint32_t ui32Val;
+			CStringBaseApi::UpdateArrayAccessOptimizer( m_sObj, m_vArrayOpt, _sIdx, ui32Val );
+			while ( ui32Len-- ) {
+				m_sObj.insert( m_sObj.begin() + m_vArrayOpt[_sIdx], std::string::value_type( ui32Char >> (ui32Len * 8)) );
+			}
+		}
+		Dirty();
+		return CreateResult();
 	}
 
 	// Resets the object.

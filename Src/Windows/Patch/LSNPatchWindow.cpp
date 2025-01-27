@@ -127,12 +127,17 @@ namespace lsn {
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
 						std::vector<std::u16string> vFiles;
 						std::vector<std::vector<uint8_t>> vPatchImage;
-						zfFile.ExtractToMemory( vFiles, vPatchImage, u".ips" );
-						sBpsStart = vFiles.size();
-						zfFile.ExtractToMemory( vFiles, vPatchImage, u".bps" );
-						sTxtStart = vFiles.size();
-						zfFile.ExtractToMemory( vFiles, vPatchImage, u".txt" );
-						zfFile.ExtractToMemory( vFiles, vPatchImage, u".md" );
+						try {
+							zfFile.ExtractToMemory( vFiles, vPatchImage, u".ips" );
+							sBpsStart = vFiles.size();
+							zfFile.ExtractToMemory( vFiles, vPatchImage, u".bps" );
+							sTxtStart = vFiles.size();
+							zfFile.ExtractToMemory( vFiles, vPatchImage, u".txt" );
+							zfFile.ExtractToMemory( vFiles, vPatchImage, u".md" );
+						}
+						catch ( ... ) {
+							// Stack overflow is the only possible exception.
+						}
 
 						//if ( vFiles.size() == 1 ) {
 						//	m_vPatchRomFile.clear();
@@ -189,6 +194,9 @@ namespace lsn {
 									m_vPatchInfo[I].ui32Crc = (*reinterpret_cast<uint32_t *>(&m_vPatchInfo[I].vLoadedPatchFile[m_vPatchInfo[I].vLoadedPatchFile.size()-12]));
 								}
 							}
+							if ( I >= sTxtStart ) {
+								m_vPatchInfo[I].bIsText = true;
+							}
 
 							::OutputDebugStringW( reinterpret_cast<const wchar_t *>((m_vPatchInfo[I].u16FullPath + u"\r\n").c_str()) );
 						}
@@ -202,6 +210,9 @@ namespace lsn {
 							u16Tmp = CUtilities::Replace( u16Tmp, std::u16string( u"}" ), std::u16string( u"" ) );
 							u16Tmp = CUtilities::Replace( u16Tmp, u'/', u'\\' );
 							CUtilities::DeconstructFilePath( u16Tmp.c_str(), fpPath );
+							auto aTmp = CUtilities::Utf16ToUtf8( u16Tmp.c_str() );
+							std::u8string u8Str = CUtilities::XStringToU8String( aTmp.c_str(), aTmp.size() );
+							m_vPatchInfo[I].vTokenizedFolders = ee::CExpEval::TokenizeUtf( u8Str, '\\', false );
 							sPaths.insert( fpPath.u16sPath );
 						}
 						if ( !sPaths.size() ) {
