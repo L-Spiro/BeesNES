@@ -18,6 +18,7 @@
 
 #include <commdlg.h>
 #include <filesystem>
+#include <set>
 
 
 namespace lsn {
@@ -121,38 +122,98 @@ namespace lsn {
 				std::u16string u16Path;
 				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
 					m_poOptions->wPatchInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-
+					size_t sBpsStart = 1, sTxtStart = 1;
 					lsn::CZipFile zfFile;
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
 						std::vector<std::u16string> vFiles;
-						zfFile.GatherArchiveFiles( vFiles, u".ips" );
-						zfFile.GatherArchiveFiles( vFiles, u".bps" );
+						std::vector<std::vector<uint8_t>> vPatchImage;
+						zfFile.ExtractToMemory( vFiles, vPatchImage, u".ips" );
+						sBpsStart = vFiles.size();
+						zfFile.ExtractToMemory( vFiles, vPatchImage, u".bps" );
+						sTxtStart = vFiles.size();
+						zfFile.ExtractToMemory( vFiles, vPatchImage, u".txt" );
+						zfFile.ExtractToMemory( vFiles, vPatchImage, u".md" );
 
-						if ( vFiles.size() == 1 ) {
-							m_vPatchRomFile.clear();
-							if ( !zfFile.ExtractToMemory( vFiles[0], m_vPatchRomFile ) ) {
+						//if ( vFiles.size() == 1 ) {
+						//	m_vPatchRomFile.clear();
+						//	if ( !zfFile.ExtractToMemory( vFiles[0], m_vPatchRomFile ) ) {
+						//	}
+						//	u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+						//	u16Path += u'{';
+						//	u16Path += vFiles[0];
+						//	u16Path += u'}';
+						//	/*CUtilities::LSN_FILE_PATHS fpPath;
+						//	CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile), fpPath );*/
+						//	//fpPath.u16sFile
+						//}
+						try {
+							m_vPatchInfo.resize( vFiles.size() );
+							for ( size_t I = 0; I < vFiles.size(); ++I ) {
+								m_vPatchInfo[I].u16FullPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+								m_vPatchInfo[I].u16FullPath += u'{' + vFiles[I] + u'}';
+								m_vPatchInfo[I].vLoadedPatchFile = std::move( vPatchImage[I] );
+								u16Path += m_vPatchInfo[I].u16FullPath;
+								u16Path += u';';
 							}
-							u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
-							u16Path += u'{';
-							u16Path += vFiles[0];
-							u16Path += u'}';
-							/*CUtilities::LSN_FILE_PATHS fpPath;
-							CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile), fpPath );*/
-							//fpPath.u16sFile
 						}
+						catch ( ... ) {
+						}
+						
 					}
 					else if ( !zfFile.IsArchive() ) {
 						lsn::CStdFile sfFile;
 						if ( sfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
-							m_vPatchRomFile.clear();
-							if ( !sfFile.LoadToMemory( m_vPatchRomFile ) ) {
+							try {
+								m_vPatchInfo.resize( 1 );
+								m_vPatchInfo[0].u16FullPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+							}
+							catch ( ... ) {
+							}
+							if ( !sfFile.LoadToMemory( m_vPatchInfo[0].vLoadedPatchFile ) ) {
 							}
 							u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
 						}
 					}
+
+					try {
+						//std::set<std::u16string> sPaths;
+						for ( size_t I = 0; I < m_vPatchInfo.size(); ++I ) {
+							m_vPatchInfo[I].ui32PatchCrc = CCrc::GetCrc( m_vPatchInfo[I].vLoadedPatchFile.data(), m_vPatchInfo[I].vLoadedPatchFile.size() );
+							if ( I < sTxtStart ) {
+								if ( m_vPatchInfo[I].vLoadedPatchFile.size() >= 4 ) {
+									m_vPatchInfo[I].ui32PatchCrcMinus4 = CCrc::GetCrc( m_vPatchInfo[I].vLoadedPatchFile.data(), m_vPatchInfo[I].vLoadedPatchFile.size() - 4 );
+								}
+							}
+							if ( I >= sBpsStart && I < sTxtStart ) {
+								if ( m_vPatchInfo[I].vLoadedPatchFile.size() >= 12 ) {
+									m_vPatchInfo[I].ui32Crc = (*reinterpret_cast<uint32_t *>(&m_vPatchInfo[I].vLoadedPatchFile[m_vPatchInfo[I].vLoadedPatchFile.size()-12]));
+								}
+							}
+
+							::OutputDebugStringW( reinterpret_cast<const wchar_t *>((m_vPatchInfo[I].u16FullPath + u"\r\n").c_str()) );
+						}
+
+
+						std::set<std::u16string> sPaths;
+						for ( size_t I = 0; I < m_vPatchInfo.size(); ++I ) {
+							CUtilities::LSN_FILE_PATHS fpPath;
+							auto u16Tmp = m_vPatchInfo[I].u16FullPath;
+							u16Tmp = CUtilities::Replace( u16Tmp, std::u16string( u"{" ), std::u16string( u"\\" ) );
+							u16Tmp = CUtilities::Replace( u16Tmp, std::u16string( u"}" ), std::u16string( u"" ) );
+							u16Tmp = CUtilities::Replace( u16Tmp, u'/', u'\\' );
+							CUtilities::DeconstructFilePath( u16Tmp.c_str(), fpPath );
+							sPaths.insert( fpPath.u16sPath );
+						}
+						if ( !sPaths.size() ) {
+							sPaths.insert( u"" );
+						}
+					}
+					catch ( ... ) {
+					}
 					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
+						//::OutputDebugStringW( reinterpret_cast<const wchar_t *>((u16Path + u"\r\n").c_str()) );
 					}
 				}
 				break;

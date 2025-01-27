@@ -69,8 +69,12 @@ namespace lsn {
 		// == Types.
 		/** Any available patch information. */
 		struct LSN_PATCH_INFO {
+			std::u16string									u16FullPath;												/**< The full path to the patch file. */
 			std::vector<uint8_t>							vLoadedPatchFile;											/**< The in-memory patch file. */
 			uint32_t										ui32Crc = 0;												/**< The desired CRC for the source ROM. */
+			uint32_t										ui32PatchCrc = 0;											/**< the CRC for the patch file. */
+			uint32_t										ui32PatchCrcMinus4 = 0;										/**< the CRC for the patch file excluding the final 4 bytes. */
+			bool											bIsText = false;											/**< Is a text file or .MD file. */
 		};
 
 
@@ -78,7 +82,7 @@ namespace lsn {
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		std::u16string										m_u16RomPath;												/**< Path to the ROM. */
-		LSN_PATCH_INFO										m_piPatchInfo;												/**< The patch information. */
+		std::vector<LSN_PATCH_INFO>							m_vPatchInfo;												/**< The patch information. */
 		bool												m_bOutIsAutoFilled;											/**< THe output path was auto-generated. */
 
 
