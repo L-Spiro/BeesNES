@@ -130,7 +130,7 @@ namespace lsn {
 			
 			size_t sL = _sM / 2;							// The center sample is the latency.
 			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
-				m_sSinc.vCeof[I] = 1.0f;
+				m_sSinc.vCeof[I] = 0.0f;
 			}
 			for ( auto I = m_sSinc.vRing.size(); I--; ) {
 				m_sSinc.vRing[I] = 0.0f;
@@ -142,7 +142,7 @@ namespace lsn {
 			// Apply sinc function.
 			double dFc2 = 2.0 * dFc;
 			int64_t i64SignedL = int64_t( sL );
-			for ( auto I = m_sSinc.vCeof.size(); I--; ) {
+			for ( auto I = _sM; I--; ) {
 				int64_t N = int64_t( I ) - i64SignedL;
 				m_sSinc.vCeof[I] = float( m_sSinc.vCeof[I] * dFc2 * Sinc( dFc2 * N ) );
 			}
@@ -1262,17 +1262,7 @@ namespace lsn {
          * \return Returns the sum of all the floats in the given register.
          **/
         static inline float                                 HorizontalSum( const __m512 _mReg ) {
-            // Step 1: Reduce 512 bits to 256 bits by permuting and adding high and low 256 bits.
-			__m256 mLow256 = _mm512_castps512_ps256( _mReg );			// Low 256 bits.
-			__m256 mHigh256 = _mm512_extractf32x8_ps( _mReg, 1 );		// High 256 bits.
-			__m256 mSum256 = _mm256_add_ps( mLow256, mHigh256 );		// Add high and low 256-bit parts.
-
-			// Step 2: Perform horizontal addition on 256 bits.
-			mSum256 = _mm256_hadd_ps( mSum256, mSum256 );				// First horizontal add.
-			mSum256 = _mm256_hadd_ps( mSum256, mSum256 );				// Second horizontal add.
-
-			// Step 3: Extract the lower float which now contains the sum.
-			return _mm256_cvtss_f32( mSum256 );
+			return _mm512_reduce_add_ps( _mReg );
         }
 #endif  // #ifdef __AVX512F__
 
