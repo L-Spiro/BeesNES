@@ -272,7 +272,7 @@ namespace lsn {
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
 						}
 						else {
-							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
+							pmThis->SetChrBank<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
 							
 							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
 						}
@@ -310,7 +310,7 @@ namespace lsn {
 							// 0, 1: switch 32 KB at $8000, ignoring low bit of bank number;
 							case 1 : {}
 							case 0 : {
-								pmThis->SetPgmBank2x<0, PgmBankSize()>( (pmThis->m_ui8Load & 0b1110) >> 1 );
+								pmThis->SetPgmBank2x<0, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
 
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( (pmThis->m_ui8Load & 0b1111) + 1 );
@@ -319,7 +319,7 @@ namespace lsn {
 							// 2: fix first bank at $8000 and switch 16 KB bank at $C000;
 							case 2 : {
 								pmThis->SetPgmBank<0, PgmBankSize()>( 0 );
-								pmThis->SetPgmBank<1, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
+								pmThis->SetPgmBank<1, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
 
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( 0 );
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
@@ -327,8 +327,8 @@ namespace lsn {
 							}
 							// 3: fix last bank at $C000 and switch 16 KB bank at $8000)
 							case 3 : {
-								pmThis->SetPgmBank<0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
-								pmThis->SetPgmBank<1, PgmBankSize()>( -1 );
+								pmThis->SetPgmBank<0, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
+								pmThis->SetPgmBank<1, PgmBankSize()*2>( -1 );
 
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( -1 );

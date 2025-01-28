@@ -1,3 +1,6 @@
+
+
+
 void LSN_FASTCALL								Cycle_1__0x0_338x0_340x0_0x1_338x1_340x1_0x2_338x2_340x2_0x3_X() {
 
 	++m_stCurCycle;
@@ -68,7 +71,10 @@ void LSN_FASTCALL								Cycle_1__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 
 	RenderPixel();
 
-	m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -99,7 +105,10 @@ void LSN_FASTCALL								Cycle_1__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 
 	RenderPixel();
 
-	m_ui8NextTileId = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -130,7 +139,10 @@ void LSN_FASTCALL								Cycle_1__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 
 	RenderPixel();
 
-	m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -161,7 +173,10 @@ void LSN_FASTCALL								Cycle_1__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 
 	RenderPixel();
 
-	m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
 
 	// Increase v.H.
 	if (m_bRendering) {
@@ -197,7 +212,10 @@ void LSN_FASTCALL								Cycle_1__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 
 	RenderPixel();
 
-	m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
 
 	// Increase v.H.
 	if (m_bRendering) {
@@ -244,8 +262,11 @@ void LSN_FASTCALL								Cycle_1__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_13
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	++m_stCurCycle;
 }
@@ -276,15 +297,18 @@ void LSN_FASTCALL								Cycle_1__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
-		(m_paPpuAddrV.s.ui16NametableX << 10) |
-		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-		(m_paPpuAddrV.s.ui16CourseX >> 2));
-	if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
-	if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
-	m_ui8NtAtBuffer &= 0x3;
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
+		m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+			(m_paPpuAddrV.s.ui16NametableX << 10) |
+			((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
+			(m_paPpuAddrV.s.ui16CourseX >> 2));
+		if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
+		if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
+		m_ui8NtAtBuffer &= 0x3;
+	}
 
 	++m_stCurCycle;
 }
@@ -315,11 +339,14 @@ void LSN_FASTCALL								Cycle_1__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 
 	RenderPixel();
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		0));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			0));
+	}
 
 	++m_stCurCycle;
 }
@@ -350,11 +377,14 @@ void LSN_FASTCALL								Cycle_1__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 
 	RenderPixel();
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		8));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			8));
+	}
 
 	++m_stCurCycle;
 }
@@ -391,8 +421,11 @@ void LSN_FASTCALL								Cycle_1__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	++m_stCurCycle;
 }
@@ -1070,8 +1103,11 @@ void LSN_FASTCALL								Cycle_1__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
 	}
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	++m_stCurCycle;
 }
@@ -1086,15 +1122,18 @@ void LSN_FASTCALL								Cycle_1__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
-		(m_paPpuAddrV.s.ui16NametableX << 10) |
-		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-		(m_paPpuAddrV.s.ui16CourseX >> 2));
-	if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
-	if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
-	m_ui8NtAtBuffer &= 0x3;
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
+		m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+			(m_paPpuAddrV.s.ui16NametableX << 10) |
+			((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
+			(m_paPpuAddrV.s.ui16CourseX >> 2));
+		if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
+		if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
+		m_ui8NtAtBuffer &= 0x3;
+	}
 
 	++m_stCurCycle;
 }
@@ -1109,11 +1148,14 @@ void LSN_FASTCALL								Cycle_1__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		0));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			0));
+	}
 
 	++m_stCurCycle;
 }
@@ -1128,11 +1170,14 @@ void LSN_FASTCALL								Cycle_1__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		8));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			8));
+	}
 
 	++m_stCurCycle;
 }
@@ -1147,7 +1192,10 @@ void LSN_FASTCALL								Cycle_1__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1162,7 +1210,10 @@ void LSN_FASTCALL								Cycle_1__322x0_330x0_322x1_330x1_322x2_330x2_322x3_330x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileId = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1177,7 +1228,10 @@ void LSN_FASTCALL								Cycle_1__326x0_334x0_326x1_334x1_326x2_334x2_326x3_334x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1192,7 +1246,10 @@ void LSN_FASTCALL								Cycle_1__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
 
 	// Increase v.H.
 	if (m_bRendering) {
@@ -1212,7 +1269,10 @@ void LSN_FASTCALL								Cycle_1__256x311() {
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
 
 	// Increase v.H.
 	if (m_bRendering) {
@@ -1284,7 +1344,10 @@ void LSN_FASTCALL								Cycle_1__2x311() {
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	m_ui8NextTileId = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1315,7 +1378,10 @@ void LSN_FASTCALL								Cycle_1__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 
 	RenderPixel();
 
-	m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1346,7 +1412,10 @@ void LSN_FASTCALL								Cycle_1__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x
 
 	RenderPixel();
 
-	m_ui8NextTileId = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1377,7 +1446,10 @@ void LSN_FASTCALL								Cycle_1__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 
 	RenderPixel();
 
-	m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
 
 	++m_stCurCycle;
 }
@@ -1408,7 +1480,10 @@ void LSN_FASTCALL								Cycle_1__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 
 	RenderPixel();
 
-	m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
 
 	// Increase v.H.
 	if (m_bRendering) {
@@ -1513,8 +1588,11 @@ void LSN_FASTCALL								Cycle_1__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	++m_stCurCycle;
 }
@@ -1545,15 +1623,18 @@ void LSN_FASTCALL								Cycle_1__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
-	m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
-		(m_paPpuAddrV.s.ui16NametableX << 10) |
-		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
-		(m_paPpuAddrV.s.ui16CourseX >> 2));
-	if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
-	if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
-	m_ui8NtAtBuffer &= 0x3;
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
+		m_ui8NtAtBuffer = Read((LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |
+			(m_paPpuAddrV.s.ui16NametableX << 10) |
+			((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |
+			(m_paPpuAddrV.s.ui16CourseX >> 2));
+		if (m_paPpuAddrV.s.ui16CourseY & 0x2) { m_ui8NtAtBuffer >>= 4; }
+		if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
+		m_ui8NtAtBuffer &= 0x3;
+	}
 
 	++m_stCurCycle;
 }
@@ -1584,11 +1665,14 @@ void LSN_FASTCALL								Cycle_1__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 
 	RenderPixel();
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		0));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			0));
+	}
 
 	++m_stCurCycle;
 }
@@ -1619,11 +1703,14 @@ void LSN_FASTCALL								Cycle_1__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 
 	RenderPixel();
 
-	// LSN_PPU_PATTERN_TABLES = 0x0000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-		(m_paPpuAddrV.s.ui16FineY) +
-		8));
+	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			8));
+	}
 
 	++m_stCurCycle;
 }
@@ -1648,8 +1735,11 @@ void LSN_FASTCALL								Cycle_1__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	++m_stCurCycle;
 }
@@ -1674,8 +1764,11 @@ void LSN_FASTCALL								Cycle_1__1x0() {
 
 	RenderPixel();
 
-	// LSN_PPU_NAMETABLES = 0x2000.
-	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	m_ui64RenderStartCycle = m_ui64Cycle;
 
@@ -1689,3 +1782,5 @@ void LSN_FASTCALL								Cycle_1__0x240() {
 
 	++m_stCurCycle;
 }
+
+

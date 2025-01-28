@@ -658,6 +658,7 @@ namespace lsn {
 		 */
 		template <unsigned _uSpriteIdx, unsigned _uStage>
 		inline void LSN_FASTCALL						Pixel_Fetch_Sprite() {
+			if ( !m_bRendering ) { return; }
 			// 1-4: Read the Y-coordinate, tile number, attributes, and X-coordinate of the selected sprite from secondary OAM
 			// ========================
 			// Garbage NT fetch 0.
@@ -1935,11 +1936,13 @@ namespace lsn {
 
 			// Sprites.
 			if ( (_uY >= 0 && _uY < ui61RenderHeight) ) {
-				// Sprite secondary OAM clear
+				// Sprite secondary OAM clear.
+				
+				
 				if ( (_uX >= LSN_LEFT && _uX < LSN_SPR_EVAL_START) ) {
 					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
 						sRet += "\r\n"
-						"m_ui8OamLatch = ReadOam( m_ui8OamAddr )\r\n";
+						"m_ui8OamLatch = ReadOam( m_ui8OamAddr );\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 						sRet += "\r\n"
@@ -1948,6 +1951,7 @@ namespace lsn {
 					}
 				}
 				// Sprite evaluation.
+				
 				if ( (_uX >= LSN_SPR_EVAL_START && _uX < LSN_RIGHT) ) {
 					sRet += "\r\n"
 					"Pixel_Evaluation_Sprite<";
@@ -2019,6 +2023,8 @@ namespace lsn {
 				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				// Load background data.
 				{
+					sRet += "\r\n"
+					"if ( m_bRendering ) {\r\n";
 					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
@@ -2068,6 +2074,8 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
 					}
+					sRet +=	
+					"}\r\n";
 				}
 			}
 
