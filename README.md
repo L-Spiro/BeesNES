@@ -16,6 +16,11 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 ![image](https://user-images.githubusercontent.com/7362666/215371958-b742960a-ec5f-47f8-8b8a-7dc55162ffb5.png)
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/0b615d51-0bde-419f-bf91-76e7c91ae991)
 ![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)
+![image](https://github.com/user-attachments/assets/446eeaef-fa7d-47a5-bf9f-9192e07a4ce7)
+![image](https://github.com/user-attachments/assets/27fd5b5e-f741-4e62-b0d2-a072ff31e782)
+![image](https://github.com/user-attachments/assets/88460fed-0a79-4f64-97c2-beaf1a0546ed)
+![image](https://github.com/user-attachments/assets/b6a6913c-4a68-4c99-8e23-5799f3135b50)
+
 
 RF Cables:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)<br>
