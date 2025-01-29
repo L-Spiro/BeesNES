@@ -38,6 +38,9 @@ namespace lsw {
 	 */
 	void CTreeListView::InitControl( HWND _hWnd ) {
 		CListView::InitControl( _hWnd );
+		//::SetWindowLongPtrW( Wnd(), GWL_STYLE, LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA );
+		::SetWindowLongPtrW( Wnd(), GWL_EXSTYLE, LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER );
+		::SendMessageW( Wnd(), LVM_SETVIEW, LV_VIEW_DETAILS, 0 );
 		m_wpListViewProc = CHelpers::SetWndProc( Wnd(), ListViewOverride );
 		::SetPropW( Wnd(), m_szProp, reinterpret_cast<HANDLE>(this) );
 

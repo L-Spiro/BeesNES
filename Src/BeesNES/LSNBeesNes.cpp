@@ -365,6 +365,10 @@ namespace lsn {
 
 		if ( !LoadInputSettings( ui32Version, _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
 		if ( !LoadRecentFiles( ui32Version, _sFile ) ) { return false; }
+
+		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wInRomInitPath)) ) ) { return false; }
+		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wOutRomInitPath)) ) ) { return false; }
+		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wPatchInitPath)) ) ) { return false; }
 		return true;
 	}
 
@@ -378,6 +382,10 @@ namespace lsn {
 		if ( !_sFile.WriteUi32( LSN_BEESNES_SETTINGS_VERSION ) ) { return false; }
 		if ( !SaveInputSettings( _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
 		if ( !SaveRecentFiles( _sFile ) ) { return false; }
+
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wInRomInitPath.c_str(), m_oOptions.wInRomInitPath.size() ) ) ) { return false; }
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wOutRomInitPath.c_str(), m_oOptions.wOutRomInitPath.size() ) ) ) { return false; }
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wPatchInitPath.c_str(), m_oOptions.wPatchInitPath.size() ) ) ) { return false; }
 		return true;
 	}
 

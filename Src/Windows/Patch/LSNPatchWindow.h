@@ -11,7 +11,9 @@
 #pragma once
 
 #include "LSNPatchWindowLayout.h"
+
 #include <MainWindow/LSWMainWindow.h>
+#include <TreeListView/LSWTreeListView.h>
 
 using namespace lsw;
 
@@ -78,6 +80,14 @@ namespace lsn {
 			bool											bIsText = false;											/**< Is a text file or .MD file. */
 		};
 
+		/** A class for a temporary tree. */
+		struct LSN_PATCH_INFO_TREE_ITEM {
+			//const LSN_PATCH_INFO *							ppiInfo = nullptr;											/**< Pointer to the patch information. */
+			std::vector<LSN_PATCH_INFO_TREE_ITEM>			vChildren;													/**< The children for this node. */
+			std::u8string									u8Name;														/**< Name of the node. */
+			size_t											sIdx = ~size_t( 0 );										/**< Index of the information item. */
+		};
+
 
 		// == Members.
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
@@ -93,6 +103,38 @@ namespace lsn {
 		 **/
 		void												UpdateInfo();
 
+		/**
+		 * Creates a non-optimized basic tree given patch information.
+		 * 
+		 * \param _vInfo The information from which to generate a basic tree structure.
+		 * \return Returns the root nodes of the tree.
+		 **/
+		static std::vector<LSN_PATCH_INFO_TREE_ITEM>		CreateBasicTree( const std::vector<LSN_PATCH_INFO> &_vInfo );
+
+		/**
+		 * Finds a node with the given name.  Returns a pointer to the node or nullptr.
+		 * 
+		 * \param _vNodes the nodes to search.
+		 * \param _u8Name The name of the node to find.
+		 * \return Returns the node if found or nullptr otherwise.
+		 **/
+		static LSN_PATCH_INFO_TREE_ITEM *					FindNode( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, const std::u8string &_u8Name );
+
+		/**
+		 * Simplifies the tree by joining a parent with its child if it has only 1 child.
+		 * 
+		 * \param _vTree The tree to simplify.
+		 **/
+		static void											SimplifyTree( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vTree );
+
+		/**
+		 * Adds all the nodes in _vNodes as children of _hParent.
+		 * 
+		 * \param _vNodes The nodes to add under _hParent.
+		 * \param _hParent The parent under which to add _vNodes.
+		 * \return DESC
+		 **/
+		static void											AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
 
 	private :
 		typedef CPatchWindowLayout							Layout;

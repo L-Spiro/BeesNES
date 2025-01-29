@@ -19,8 +19,10 @@
  #define LSN_PATCH_W								500
  #define LSN_PATCH_CONTENT_W						(LSN_PATCH_W - LSN_LEFT_JUST * 2)
  #define LSN_PATCH_INNER_CONTENT_W					(LSN_PATCH_CONTENT_W - LSN_GROUP_LEFT * 2)
+
+ #define LSN_PATCH_TREE_HEIGHT						(LSN_DEF_EDIT_HEIGHT * 15)
  #define LSN_PATCH_FILE_GROUP_TOP					LSN_TOP_JUST
- #define LSN_PATCH_FILE_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT /*+ LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT*/)
+ #define LSN_PATCH_FILE_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST + LSN_PATCH_TREE_HEIGHT /*+ LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT*/)
  
  #define LSN_PATCH_LABEL0_W							50
 
@@ -97,7 +99,7 @@
 			LSN_PWI_FILE_IN_EDIT,					// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
-			FALSE,									// bActive
+			TRUE,									// bActive
 			(LSN_LEFT_JUST + LSN_GROUP_LEFT) + LSN_PATCH_LABEL0_W,																	// iLeft
 			LSN_PATCH_FILE_GROUP_TOP + LSN_GROUP_TOP,																				// iTop
 			LSN_PATCH_W - ((LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2 + LSN_PATCH_LABEL0_W) - (LSN_DEF_BUTTON_WIDTH) - LSN_LEFT_JUST,		// dwWidth
@@ -156,7 +158,7 @@
 			LSN_PWI_NONE,							// dwParentId
 		},
 		{
-			LSW_LT_EDIT,							// ltType
+			LSW_LT_TREELISTVIEW,							// ltType
 			LSN_PWI_FILE_PATCH_EDIT,				// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
@@ -164,9 +166,11 @@
 			(LSN_LEFT_JUST + LSN_GROUP_LEFT) + LSN_PATCH_LABEL0_W,																	// iLeft
 			LSN_PATCH_FILE_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST),										// iTop
 			LSN_PATCH_W - ((LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2 + LSN_PATCH_LABEL0_W) - (LSN_DEF_BUTTON_WIDTH) - LSN_LEFT_JUST,		// dwWidth
-			LSN_DEF_EDIT_HEIGHT,					// dwHeight
-			LSN_EDITSTYLE,							// dwStyle
-			WS_EX_CLIENTEDGE,						// dwStyleEx
+			LSN_PATCH_TREE_HEIGHT,					// dwHeight
+			LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA | WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP,				// dwStyle
+			LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,																				// dwStyleEx
+			//LSN_EDITSTYLE,							// dwStyle
+			//WS_EX_CLIENTEDGE,						// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_PWI_NONE,							// dwParentId
@@ -412,6 +416,7 @@
 #undef LSN_PATCH_LABEL0_W
 #undef LSN_PATCH_FILE_GROUP_H
 #undef LSN_PATCH_FILE_GROUP_TOP
+#undef LSN_PATCH_TREE_HEIGHT
 #undef LSN_PATCH_CONTENT_W
 #undef LSN_PATCH_W
 

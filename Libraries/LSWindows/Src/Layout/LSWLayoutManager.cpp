@@ -111,13 +111,13 @@ namespace lsw {
 			return NULL;
 		}
 
-		/*HWND hWnd = */::CreateDialogIndirectParamW( CBase::GetThisHandle(), 
+		HWND hWnd = ::CreateDialogIndirectParamW( CBase::GetThisHandle(), 
 			dtTemplate.pdtTemplate, 
 			_pwParent->Wnd(), 
 			CWidget::DialogProc,
 			reinterpret_cast<LPARAM>(&dtTemplate.vWidgets) );
 		
-#if 0
+#if 1
 		if ( !hWnd ) {
 			CBase::PrintError( L"CreateDialogX" );
 		}
@@ -346,6 +346,8 @@ namespace lsw {
 				{ LSW_LT_TOOLBAR, TOOLBARCLASSNAMEW },
 				{ LSW_LT_TOOLTIP, TOOLTIPS_CLASSW },
 				{ LSW_LT_TREEVIEW, WC_TREEVIEWW },
+				// { LSW_LT_TREELISTVIEW, lsw::CBase::TreeListViewString().c_str() },
+				{ LSW_LT_TREELISTVIEW, WC_LISTVIEWW },
 				{ LSW_LT_UPDOWN, UPDOWN_CLASSW },
 			};
 			for ( size_t I = 0; I < LSW_ELEMENTS( aStruct ); ++I ) {
@@ -466,6 +468,18 @@ namespace lsw {
 	SIZE_T CLayoutManager::ItemTemplateString( const WCHAR * _pwcString, WORD * _pwDest ) {
 		SIZE_T sRet = 0;
 		if ( _pwcString ) {
+			if ( HIWORD( _pwcString ) == 0 ) {
+				// It's an atom.
+				if ( _pwDest ) {
+					(*_pwDest++) = 0xFFFF;
+				}
+				sRet += sizeof( WORD );
+				if ( _pwDest ) {
+					(*_pwDest++) = LOWORD( _pwcString );
+				}
+				sRet += sizeof( WORD );
+				return sRet;
+			}
 			while ( (*_pwcString) ) {
 				if ( _pwDest ) {
 					(*_pwDest++) = (*_pwcString);

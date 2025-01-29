@@ -973,27 +973,32 @@ namespace lsw {
 				CREATESTRUCTW * pcsCreate = reinterpret_cast<CREATESTRUCTW *>(_lParam);
 				::SetWindowLongPtrW( _hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pcsCreate->lpCreateParams) );
 				pmwThis = reinterpret_cast<CWidget *>(pcsCreate->lpCreateParams);
-				pmwThis->m_hWnd = _hWnd;
+				if ( pmwThis ) {
+					pmwThis->m_hWnd = _hWnd;
 
-				// ControlSetup() called by the layout manager because WM_NCCREATE is inside a constructor.
+					// ControlSetup() called by the layout manager because WM_NCCREATE is inside a constructor.
 
-				LSW_HANDLED hHandled = pmwThis->NcCreate( (*pcsCreate) );
-				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+					LSW_HANDLED hHandled = pmwThis->NcCreate( (*pcsCreate) );
+					if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+				}
 				break;
 			}
 			case WM_CREATE : {
 				CREATESTRUCTW * pcsCreate = reinterpret_cast<CREATESTRUCTW *>(_lParam);
-				LSW_HANDLED hHandled = pmwThis->Create( (*pcsCreate) );
-				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+				if ( pmwThis ) {
+					LSW_HANDLED hHandled = pmwThis->Create( (*pcsCreate) );
+					if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
+				}
 				break;
 			}
 			case WM_INITDIALOG : {
 				std::vector<CWidget *> * pvWidgets = reinterpret_cast<std::vector<CWidget *> *>(_lParam);
 				pmwThis = (*pvWidgets)[0];
 				::SetWindowLongPtrW( _hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pmwThis) );
-				pmwThis->InitControl( _hWnd );
+				if ( pmwThis ) {
+					pmwThis->InitControl( _hWnd );
 				
-				ControlSetup( pmwThis, (*pvWidgets) );
+					ControlSetup( pmwThis, (*pvWidgets) );
 
 				// Window rect.
 #define MX_X	384
@@ -1007,12 +1012,14 @@ namespace lsw {
 #define MX_OFF_X	0
 #define MX_OFF_Y	0
 #endif
-				POINT pConvOrg = PixelsToDialogUnits( _hWnd, 585 - MX_X - MX_OFF_X, 189 - MX_Y - MX_OFF_Y );
-				//POINT pConv = PixelsToDialogUnits( _hWnd, 559 - 548 - 7, 486 - 453 - 30 );
-				POINT pConvClient = PixelsToDialogUnits( _hWnd, 290, 47 );
+					POINT pConvOrg = PixelsToDialogUnits( _hWnd, 585 - MX_X - MX_OFF_X, 189 - MX_Y - MX_OFF_Y );
+					//POINT pConv = PixelsToDialogUnits( _hWnd, 559 - 548 - 7, 486 - 453 - 30 );
+					POINT pConvClient = PixelsToDialogUnits( _hWnd, 290, 47 );
 				
-				pmwThis->InitDialog();
-				LSW_RET( TRUE, TRUE );	// Return TRUE to pass focus on to the control specified by _wParam.
+					pmwThis->InitDialog();
+					LSW_RET( TRUE, TRUE );	// Return TRUE to pass focus on to the control specified by _wParam.
+				}
+				break;
 			}
 			case WM_DESTROY : {
 				if ( pmwThis ) {
@@ -1058,6 +1065,7 @@ namespace lsw {
 				break;
 			}
 			case WM_SIZE : {
+				if ( !pmwThis ) { break; }
 				LSW_HANDLED hHandled;
 				switch ( _wParam ) {
 					case SIZE_MINIMIZED : {
@@ -1077,6 +1085,7 @@ namespace lsw {
 				break;
 			}
 			case WM_MOVE : {
+				if ( !pmwThis ) { break; }
 				if ( !::IsIconic( _hWnd ) ) {
 					/*::GetWindowRect( _hWnd, &pmwThis->m_rRect );
 					::GetClientRect( _hWnd, &pmwThis->m_rClientRect );*/
@@ -1087,6 +1096,7 @@ namespace lsw {
 				break;
 			}
 			case WM_WINDOWPOSCHANGED : {
+				if ( !pmwThis ) { break; }
 				WINDOWPOS * pwpPos = reinterpret_cast<WINDOWPOS *>(_lParam);
 				LSW_HANDLED hHandled = pmwThis->WindowPosChanged( pwpPos );
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }

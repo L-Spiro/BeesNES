@@ -38,8 +38,15 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CPatchWindow::InitDialog() {
+		CMainWindow::InitDialog();
+		lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT ));
+		if ( ptlTree ) {
+			ptlTree->SetColumnText( LSN_LSTR( LSN_PATCH_PATCH ), 0 );
+			ptlTree->SetColumnWidth( 0, 230 );
+			ptlTree->InsertColumn( L"Something Else", 450, -1 );
+		}
 
-		return CMainWindow::InitDialog();
+		return LSW_H_CONTINUE;
 	}
 
 	/**
@@ -213,11 +220,15 @@ namespace lsn {
 							auto aTmp = CUtilities::Utf16ToUtf8( u16Tmp.c_str() );
 							std::u8string u8Str = CUtilities::XStringToU8String( aTmp.c_str(), aTmp.size() );
 							m_vPatchInfo[I].vTokenizedFolders = ee::CExpEval::TokenizeUtf( u8Str, '\\', false );
-							sPaths.insert( fpPath.u16sPath );
+							//sPaths.insert( fpPath.u16sPath );
 						}
-						if ( !sPaths.size() ) {
-							sPaths.insert( u"" );
-						}
+						auto aTmp = CreateBasicTree( m_vPatchInfo );
+						SimplifyTree( aTmp );
+						auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT ));
+						ptvTree->DeleteAll();
+						ptvTree->BeginLargeUpdate();
+						AddToTree( aTmp, TVI_ROOT, ptvTree );
+						ptvTree->FinishUpdate();
 					}
 					catch ( ... ) {
 					}
@@ -395,6 +406,93 @@ namespace lsn {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Creates a non-optimized basic tree given patch information.
+	 * 
+	 * \param _vInfo The information from which to generate a basic tree structure.
+	 * \return Returns the root nodes of the tree.
+	 **/
+	std::vector<CPatchWindow::LSN_PATCH_INFO_TREE_ITEM> CPatchWindow::CreateBasicTree( const std::vector<LSN_PATCH_INFO> &_vInfo ) {
+		std::vector<LSN_PATCH_INFO_TREE_ITEM> vReturn;
+		for ( size_t I = 0; I < _vInfo.size(); ++I ) {
+			std::vector<LSN_PATCH_INFO_TREE_ITEM> * pvNodes = &vReturn;
+			// For each parent.
+			LSN_PATCH_INFO_TREE_ITEM * pnitiItem = nullptr;
+			for ( size_t P = 0; P < _vInfo[I].vTokenizedFolders.size(); ++P ) {
+				pnitiItem = FindNode( (*pvNodes), _vInfo[I].vTokenizedFolders[P] );
+				if ( !pnitiItem ) {
+					(*pvNodes).push_back( LSN_PATCH_INFO_TREE_ITEM() );
+					pnitiItem = &(*pvNodes)[(*pvNodes).size()-1];
+					pnitiItem->u8Name = _vInfo[I].vTokenizedFolders[P];
+				}
+				pvNodes = &pnitiItem->vChildren;
+			}
+			if ( pnitiItem ) {
+				//pnitiItem->ppiInfo = &_vInfo[I];
+				pnitiItem->sIdx = I;
+			}
+		}
+		return vReturn;
+	}
+
+	/**
+	 * Finds a node with the given name.  Returns a pointer to the node or nullptr.
+	 * 
+	 * \param _vNodes the nodes to search.
+	 * \param _u8Name The name of the node to find.
+	 * \return Returns the node if found or nullptr otherwise.
+	 **/
+	CPatchWindow::LSN_PATCH_INFO_TREE_ITEM * CPatchWindow::FindNode( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, const std::u8string &_u8Name ) {
+		for ( size_t I = 0; I < _vNodes.size(); ++I ) {
+			if ( _vNodes[I].u8Name == _u8Name ) { return &_vNodes[I]; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Simplifies the tree by joining a parent with its child if it has only 1 child.
+	 * 
+	 * \param _vTree The tree to simplify.
+	 **/
+	void CPatchWindow::SimplifyTree( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vTree ) {
+		for ( size_t I = 0; I < _vTree.size(); ) {
+			// If this node has only 1 child, merge it into this node.
+			if ( _vTree[I].vChildren.size() == 1 ) {
+				_vTree[I].u8Name += u8'\\';
+				_vTree[I].u8Name += _vTree[I].vChildren[0].u8Name;
+				//_vTree[I].ppiInfo = _vTree[I].vChildren[0].ppiInfo;
+				_vTree[I].sIdx = _vTree[I].vChildren[0].sIdx;
+				auto aTmp = std::move( _vTree[I].vChildren[0].vChildren );
+				_vTree[I].vChildren = std::move( aTmp );
+				I = 0;
+				continue;
+			}
+
+			++I;
+		}
+		// Same thing for each child.
+		for ( size_t I = 0; I < _vTree.size(); ++I ) {
+			SimplifyTree( _vTree[I].vChildren );
+		}
+	}
+
+	/**
+	 * Adds all the nodes in _vNodes as children of _hParent.
+	 * 
+	 * \param _vNodes The nodes to add under _hParent.
+	 * \param _hParent The parent under which to add _vNodes.
+	 * \return DESC
+	 **/
+	void CPatchWindow::AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree ) {
+		for ( size_t I = 0; I < _vNodes.size(); ++I ) {
+			auto u16Tmp = CUtilities::Utf8ToUtf16( _vNodes[I].u8Name.c_str() );
+			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(u16Tmp.c_str()),
+				_vNodes[I].sIdx, _hParent );
+			HTREEITEM hItem = _ptlTree->InsertItem( &isInsertMe );
+			AddToTree( _vNodes[I].vChildren, hItem, _ptlTree );
 		}
 	}
 

@@ -126,11 +126,13 @@
 #define LSN_PATCH_PATCH_ROM													Patch a ROM
 #define LSN_PATCH_FILE														File
 #define LSN_PATCH_ROM_TO_PATCH												ROM to Patch:
-#define LSN_PATCH_PATCH_FILE												Patch File:
+#define LSN_PATCH_PATCH_FILE												Patch File(s):
 #define LSN_PATCH_OUTPUT_FILE												Output File:
 #define LSN_PATCH_BROWSE													Browse
 #define LSN_PATCH_FILE_TYPES												Patch Files (*.ips, *.bps, *.zip)\0*.ips;*.bps;*.zip\0All Files (*.*)\0*.*\0\0
 #define LSN_PATCH_SRC_INFO													Source ROM Information
+#define LSN_PATCH_PATCH														Patch
+//#define LSN_PATCH_
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
