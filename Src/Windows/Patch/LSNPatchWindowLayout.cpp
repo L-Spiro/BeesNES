@@ -44,7 +44,7 @@
 			0,										// iTop
 			LSN_PATCH_W,							// dwWidth
 			LSN_PATCH_H,							// dwHeight
-			(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME) | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_SETFONT,		// dwStyle
+			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_SETFONT,											// dwStyle
 			WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																					// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
 			0,										// sTextLen
@@ -72,8 +72,8 @@
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
-			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_TOP,							// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
 		},
@@ -159,7 +159,7 @@
 		},
 		{
 			LSW_LT_TREELISTVIEW,							// ltType
-			LSN_PWI_FILE_PATCH_EDIT,				// wId
+			LSN_PWI_FILE_PATCH_TREELISTVIEW,				// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -177,8 +177,8 @@
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
-			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_TOP,							// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
 		},
@@ -290,9 +290,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -313,9 +313,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -336,9 +336,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -359,9 +359,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -382,9 +382,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,							// ltType
@@ -405,9 +405,9 @@
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
 			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
 	};
 

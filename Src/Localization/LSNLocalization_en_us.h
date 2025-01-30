@@ -132,7 +132,10 @@
 #define LSN_PATCH_FILE_TYPES												Patch Files (*.ips, *.bps, *.zip)\0*.ips;*.bps;*.zip\0All Files (*.*)\0*.*\0\0
 #define LSN_PATCH_SRC_INFO													Source ROM Information
 #define LSN_PATCH_PATCH														Patch
-//#define LSN_PATCH_
+#define LSN_PATCH_EXPAND_SELECTED											Expand Selec&ted
+#define LSN_PATCH_EXPAND_ALL												E&xpand All
+#define LSN_PATCH_COLLAPSE_SELECTED											C&ollapse Selected
+#define LSN_PATCH_COLLAPSE_ALL												&Collapse All
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

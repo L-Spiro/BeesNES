@@ -311,6 +311,23 @@ namespace lsw {
 		return hMenu;
 	}
 
+	// Creates a pop-up menu.
+	BOOL CLayoutManager::CreatePopupMenuEx( CWidget * _pwParent, const LSW_MENU_LAYOUT * _pmlLayout, size_t _sTotal,
+		INT _iX, INT _iY, UINT _uiFlags ) {
+		HMENU hMenu = CreatePopupMenu( _pmlLayout, _sTotal );
+		if ( !hMenu ) { return false; }
+
+		if ( _iX == -1 && _iY == -1 ) {
+			POINT pPos;
+			::GetCursorPos( &pPos );
+			_iX = pPos.x;
+			_iY = pPos.y;
+		}
+		return ::TrackPopupMenu( hMenu,
+			_uiFlags,
+			_iX, _iY, 0, _pwParent ? _pwParent->Wnd() : NULL, NULL );
+	}
+
 	// Takes the given layout and produces a copy with certain things changed as necessary.  For example, if
 	//	the control type is LSW_LT_DOCKWINDOW, the class name is changed to lsw::CBase::DockableAtom().
 	// In other cases this fills in missing information, so if you pass a nullptr control class name, the common name will be filled automatically here, etc.

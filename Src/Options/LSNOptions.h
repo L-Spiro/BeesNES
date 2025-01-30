@@ -29,6 +29,7 @@ namespace lsn {
 		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
 		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */
 		std::wstring										wPatchInitPath;												/**< The initial directory for the patch file. */
+		std::wstring										wDefaultRomPath;											/**< The normal path to ROM files. */
 	};
 
 }	// namespace lsn

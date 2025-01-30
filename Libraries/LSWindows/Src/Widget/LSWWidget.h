@@ -15,6 +15,7 @@ namespace lsw {
 	class CWidget {
 		friend class						CDockable;
 		friend class						CLayoutManager;
+		friend class						CTreeListView;
 	public :
 		CWidget( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		virtual ~CWidget();

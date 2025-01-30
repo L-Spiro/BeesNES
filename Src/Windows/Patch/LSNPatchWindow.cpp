@@ -14,6 +14,7 @@
 #include "../../File/LSNZipFile.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../../System/LSNSystemBase.h"
+#include "../../Windows/Layout/LSNLayoutManager.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
 #include <commdlg.h>
@@ -39,11 +40,11 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CPatchWindow::InitDialog() {
 		CMainWindow::InitDialog();
-		lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT ));
+		lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_PATCH_PATCH ), 0 );
-			ptlTree->SetColumnWidth( 0, 230 );
-			ptlTree->InsertColumn( L"Something Else", 450, -1 );
+			ptlTree->SetColumnWidth( 0, 450 );
+			ptlTree->InsertColumn( L"Something Else", 180, -1 );
 		}
 
 		return LSW_H_CONTINUE;
@@ -146,19 +147,8 @@ namespace lsn {
 							// Stack overflow is the only possible exception.
 						}
 
-						//if ( vFiles.size() == 1 ) {
-						//	m_vPatchRomFile.clear();
-						//	if ( !zfFile.ExtractToMemory( vFiles[0], m_vPatchRomFile ) ) {
-						//	}
-						//	u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
-						//	u16Path += u'{';
-						//	u16Path += vFiles[0];
-						//	u16Path += u'}';
-						//	/*CUtilities::LSN_FILE_PATHS fpPath;
-						//	CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile), fpPath );*/
-						//	//fpPath.u16sFile
-						//}
 						try {
+							m_vPatchInfo.clear();
 							m_vPatchInfo.resize( vFiles.size() );
 							for ( size_t I = 0; I < vFiles.size(); ++I ) {
 								m_vPatchInfo[I].u16FullPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
@@ -176,6 +166,7 @@ namespace lsn {
 						lsn::CStdFile sfFile;
 						if ( sfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
 							try {
+								m_vPatchInfo.clear();
 								m_vPatchInfo.resize( 1 );
 								m_vPatchInfo[0].u16FullPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
 							}
@@ -188,7 +179,6 @@ namespace lsn {
 					}
 
 					try {
-						//std::set<std::u16string> sPaths;
 						for ( size_t I = 0; I < m_vPatchInfo.size(); ++I ) {
 							m_vPatchInfo[I].ui32PatchCrc = CCrc::GetCrc( m_vPatchInfo[I].vLoadedPatchFile.data(), m_vPatchInfo[I].vLoadedPatchFile.size() );
 							if ( I < sTxtStart ) {
@@ -220,11 +210,10 @@ namespace lsn {
 							auto aTmp = CUtilities::Utf16ToUtf8( u16Tmp.c_str() );
 							std::u8string u8Str = CUtilities::XStringToU8String( aTmp.c_str(), aTmp.size() );
 							m_vPatchInfo[I].vTokenizedFolders = ee::CExpEval::TokenizeUtf( u8Str, '\\', false );
-							//sPaths.insert( fpPath.u16sPath );
 						}
 						auto aTmp = CreateBasicTree( m_vPatchInfo );
 						SimplifyTree( aTmp );
-						auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT ));
+						auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 						ptvTree->DeleteAll();
 						ptvTree->BeginLargeUpdate();
 						AddToTree( aTmp, TVI_ROOT, ptvTree );
@@ -232,7 +221,7 @@ namespace lsn {
 					}
 					catch ( ... ) {
 					}
-					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_EDIT );
+					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 						//::OutputDebugStringW( reinterpret_cast<const wchar_t *>((u16Path + u"\r\n").c_str()) );
@@ -240,7 +229,7 @@ namespace lsn {
 				}
 				break;
 			}
-			case CPatchWindowLayout::LSN_PWI_FILE_OUT_BUTTON : {
+			/*case CPatchWindowLayout::LSN_PWI_FILE_OUT_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::u16string szFileName;
 				szFileName.resize( 0xFFFF + 2 );
@@ -265,7 +254,7 @@ namespace lsn {
 					}
 				}
 				break;
-			}
+			}*/
 			case CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
 					auto wsText = _pwSrc->GetTextW();
@@ -319,10 +308,40 @@ namespace lsn {
 				}
 				break;
 			}
-			case CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT : {
+			/*case CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
 					m_bOutIsAutoFilled = false;
 					return LSW_H_CONTINUE;
+				}
+				break;
+			}*/
+
+
+			case CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->ExpandSelected();
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_COPY_EXPAND_ALL : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->ExpandAll();
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_SELECTED : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->CollapseSelected();
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_ALL : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->CollapseAll();
 				}
 				break;
 			}
@@ -336,8 +355,9 @@ namespace lsn {
 	 * \param _pmmiInfo The min/max info structure to fill out.
 	 * \return Returns an LSW_HANDLED code.
 	 **/
-	CWidget::LSW_HANDLED CPatchWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
-		LONG lLeft = 100;
+	CWidget::LSW_HANDLED CPatchWindow::GetMinMaxInfo( MINMAXINFO * /*_pmmiInfo*/ ) {
+		return LSW_H_CONTINUE;
+		/*LONG lLeft = 100;
 		if ( m_pwParent ) {
 			auto aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
 			if ( aTmp ) {
@@ -353,7 +373,76 @@ namespace lsn {
 		}
 		_pmmiInfo->ptMinTrackSize.x = lLeft;
 		_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
-		return LSW_H_HANDLED;
+		return LSW_H_HANDLED;*/
+	}
+
+	/**
+	 * Handles the WM_CONTEXTMENU message.
+	 * 
+	 * \param _pwControl The control that was clicked.
+	 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+	 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CPatchWindow::ContextMenu( CWidget * _pwControl, INT _iX, INT _iY ) {
+		if ( _pwControl->Id() == CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ) {
+			auto ptlvTree = static_cast<CTreeListView *>(_pwControl);
+			bool bExpSel = ptlvTree->AnySelectedHasUnexpandedChildren();
+			bool bExpAll = ptlvTree->AnyHasUnexpandedChildren();
+			bool bColSel = ptlvTree->AnySelectedHasExpandedChildren();
+			bool bColAll = ptlvTree->AnyHasExpandedChildren();
+			LSW_MENU_ITEM miMenuBar[] = {
+				//bIsSeperator	dwId													bCheckable	bChecked	bEnabled	lpwcText, stTextLen												bSkip
+				/*{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_FIELD,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_05239A67_Copy__Field, _LEN_05239A67 ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_VALUE,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_43A1870B_Copy__Value, _LEN_43A1870B ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_OFFSET,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_EF323132_Copy__Offset, _LEN_EF323132 ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_BYTES,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_C928AB0C_Copy__Raw_Bytes, _LEN_C928AB0C ),		FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_DESC,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_03939D2C_Copy__Desc, _LEN_03939D2C ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_ALL,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_9B7D368F_Copy_A_ll, _LEN_9B7D368F ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_FIELD_VALUE,				FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_E9B5F487_Copy_F_ield__Value, _LEN_E9B5F487 ),	FALSE },
+				{ TRUE,			0,															FALSE,		FALSE,		TRUE,		nullptr,									FALSE },*/
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED,			FALSE,		FALSE,		bExpSel,	LSN_LSTR( LSN_PATCH_EXPAND_SELECTED ),		FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_ALL,				FALSE,		FALSE,		bExpAll,	LSN_LSTR( LSN_PATCH_EXPAND_ALL ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_SELECTED,			FALSE,		FALSE,		bColSel,	LSN_LSTR( LSN_PATCH_COLLAPSE_SELECTED ),	FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_ALL,				FALSE,		FALSE,		bColAll,	LSN_LSTR( LSN_PATCH_COLLAPSE_ALL ),			FALSE },
+			};
+
+			const LSW_MENU_LAYOUT miMenus[] = {
+				{
+					LSN_M_CONTEXT_MENU,
+					0,
+					0,
+					LSN_ELEMENTS( miMenuBar ),
+					miMenuBar
+				},
+			};
+			lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
+			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, LSN_ELEMENTS( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
+			return LSW_H_HANDLED;
+		}
+		return lsw::CMainWindow::ContextMenu( _pwControl, _iX, _iY );
+	}
+
+	/**
+	 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+	 *
+	 * \param _lplvParm The notifacation structure.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CPatchWindow::Notify_ItemChanged( LPNMLISTVIEW _lplvParm ) {
+		::OutputDebugStringW( std::format( L"CPatchWindow::Notify_ItemChanged:\t{} {} {}\r\n", _lplvParm->iItem, _lplvParm->uOldState, _lplvParm->uNewState ).c_str() );
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+	 *
+	 * \param _lposcParm The notifacation structure.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CPatchWindow::Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm ) {
+		::OutputDebugStringW( std::format( L"CPatchWindow::Notify_OdStateChange:\t{} {}\r\n", _lposcParm->iFrom, _lposcParm->iTo ).c_str() );
+		return LSW_H_CONTINUE;
 	}
 
 	/**
@@ -406,6 +495,35 @@ namespace lsn {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Adds all the nodes in _vNodes as children of _hParent.
+	 * 
+	 * \param _vNodes The nodes to add under _hParent.
+	 * \param _hParent The parent under which to add _vNodes.
+	 * \return DESC
+	 **/
+	void CPatchWindow::AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree ) {
+		for ( size_t I = 0; I < _vNodes.size(); ++I ) {
+			auto u16Tmp = CUtilities::Utf8ToUtf16( _vNodes[I].u8Name.c_str() );
+			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(u16Tmp.c_str()),
+				_vNodes[I].sIdx, _hParent );
+			HTREEITEM hItem = _ptlTree->InsertItem( &isInsertMe );
+			if ( _vNodes[I].sIdx != ~size_t( 0 ) ) {
+				if ( m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ) {
+					_ptlTree->SetItemText( hItem, std::format( L"Source ROM CRC32: {:08X}", m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ).c_str(), 1 );
+				}
+				else if ( m_vPatchInfo[_vNodes[I].sIdx].bIsText && m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.size() != 0 ) {
+					auto aReplaced = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.data()) );
+					aReplaced = CUtilities::Replace( aReplaced, std::u16string( u"\r" ), std::u16string( u"\\r" ) );
+					aReplaced = CUtilities::Replace( aReplaced, std::u16string( u"\n" ), std::u16string( u"\\n" ) );
+					_ptlTree->SetItemText( hItem,
+						reinterpret_cast<const WCHAR *>(aReplaced.c_str()), 1 );
+				}
+			}
+			AddToTree( _vNodes[I].vChildren, hItem, _ptlTree );
 		}
 	}
 
@@ -476,23 +594,6 @@ namespace lsn {
 		// Same thing for each child.
 		for ( size_t I = 0; I < _vTree.size(); ++I ) {
 			SimplifyTree( _vTree[I].vChildren );
-		}
-	}
-
-	/**
-	 * Adds all the nodes in _vNodes as children of _hParent.
-	 * 
-	 * \param _vNodes The nodes to add under _hParent.
-	 * \param _hParent The parent under which to add _vNodes.
-	 * \return DESC
-	 **/
-	void CPatchWindow::AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree ) {
-		for ( size_t I = 0; I < _vNodes.size(); ++I ) {
-			auto u16Tmp = CUtilities::Utf8ToUtf16( _vNodes[I].u8Name.c_str() );
-			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(u16Tmp.c_str()),
-				_vNodes[I].sIdx, _hParent );
-			HTREEITEM hItem = _ptlTree->InsertItem( &isInsertMe );
-			AddToTree( _vNodes[I].vChildren, hItem, _ptlTree );
 		}
 	}
 

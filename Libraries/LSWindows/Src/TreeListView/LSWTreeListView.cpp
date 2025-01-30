@@ -136,6 +136,29 @@ namespace lsw {
 	}
 
 	/**
+	 * Counts the total number of expanded items.
+	 *
+	 * \return Returns the total number of items, accounting for expandedness.
+	 */
+	size_t CTreeListView::CountExpanded() const {
+		size_t stCnt = 0;
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptTmp = nullptr;
+		while ( (ptTmp = NextByExpansion( ptTmp )) != nullptr ) {
+			++stCnt;
+		}
+		return stCnt;
+	}
+
+	/**
+	 * Deletes all items.
+	 */
+	VOID CTreeListView::DeleteAll() {
+		ClearCache();
+		CListView::DeleteAll();
+		m_tRoot.RemoveAllChildren();
+	}
+
+	/**
 	 * Returns true if any of the selected items have children and are not in expanded view.
 	 *
 	 * \return Returns true if any of the selected items have children and are not in expanded view.
@@ -564,20 +587,6 @@ namespace lsw {
 	}
 
 	/**
-	 * Counts the total number of expanded items.
-	 *
-	 * \return Returns the total number of items, accounting for expandedness.
-	 */
-	size_t CTreeListView::CountExpanded() const {
-		size_t stCnt = 0;
-		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptTmp = nullptr;
-		while ( (ptTmp = NextByExpansion( ptTmp )) != nullptr ) {
-			++stCnt;
-		}
-		return stCnt;
-	}
-
-	/**
 	 * Gets the indentation level for an item.
 	 *
 	 * \param _ptThis The item whose indentation level is to be obtained.
@@ -835,6 +844,12 @@ namespace lsw {
 			}
 		}
 
+		if ( m_pwParent ) {
+			if ( LSW_H_HANDLED == m_pwParent->Notify_ItemChanged( _lplvParm ) ) {
+				return LSW_H_HANDLED;
+			}
+		}
+
 		return LSW_H_CONTINUE;
 	}
 
@@ -869,6 +884,12 @@ namespace lsw {
 			}
 		}
 		
+		if ( m_pwParent ) {
+			if ( LSW_H_HANDLED == m_pwParent->Notify_OdStateChange( _lposcParm ) ) {
+				return LSW_H_HANDLED;
+			}
+		}
+
 		return LSW_H_CONTINUE;
 	}
 

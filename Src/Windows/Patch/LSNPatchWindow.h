@@ -33,6 +33,13 @@ namespace lsn {
 		virtual ~CPatchWindow();
 
 
+		// == Enumerations.
+		// Menus.
+		enum LSN_MENUS {
+			LSN_M_CONTEXT_MENU								= 156,
+		};
+
+
 		// == Functions.
 		/**
 		 * The WM_INITDIALOG handler.
@@ -65,6 +72,32 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 **/
 		virtual LSW_HANDLED									GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
+
+		/**
+		 * Handles the WM_CONTEXTMENU message.
+		 * 
+		 * \param _pwControl The control that was clicked.
+		 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									ContextMenu( CWidget * _pwControl, INT _iX, INT _iY );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+		 *
+		 * \param _lplvParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_ItemChanged( LPNMLISTVIEW _lplvParm );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+		 *
+		 * \param _lposcParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm );
 
 
 	protected :
@@ -104,6 +137,15 @@ namespace lsn {
 		void												UpdateInfo();
 
 		/**
+		 * Adds all the nodes in _vNodes as children of _hParent.
+		 * 
+		 * \param _vNodes The nodes to add under _hParent.
+		 * \param _hParent The parent under which to add _vNodes.
+		 * \return DESC
+		 **/
+		void												AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
+
+		/**
 		 * Creates a non-optimized basic tree given patch information.
 		 * 
 		 * \param _vInfo The information from which to generate a basic tree structure.
@@ -126,15 +168,6 @@ namespace lsn {
 		 * \param _vTree The tree to simplify.
 		 **/
 		static void											SimplifyTree( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vTree );
-
-		/**
-		 * Adds all the nodes in _vNodes as children of _hParent.
-		 * 
-		 * \param _vNodes The nodes to add under _hParent.
-		 * \param _hParent The parent under which to add _vNodes.
-		 * \return DESC
-		 **/
-		static void											AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
 
 	private :
 		typedef CPatchWindowLayout							Layout;
