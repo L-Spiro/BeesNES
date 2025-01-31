@@ -67,6 +67,8 @@ namespace lsn {
 			SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( -1 );
 
 			m_bRamEnabled = _rRom.riInfo.ui16Chip != CDatabase::LSN_C_MMC1C;
+			m_ui64LastWriteCycle = ~uint64_t( 0 );
+			m_ui8LastByteWritten = 0;
 		}
 
 		/**
@@ -116,6 +118,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The last write cycle. */
+		uint64_t										m_ui64LastWriteCycle = ~uint64_t( 0 );
 		/** The RAM. */
 		uint8_t											m_ui8PgmRam[8*1024];
 		/** The control register. */
@@ -124,6 +128,8 @@ namespace lsn {
 		uint8_t											m_ui8Load;
 		/** The load count. */
 		uint8_t											m_ui8LoadCnt;
+		/** The last byte written. */
+		uint8_t											m_ui8LastByteWritten;
 		/** PGM RAM enabled. */
 		bool											m_bRamEnabled;
 
@@ -196,6 +202,14 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write_PGM_8000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
+			uint64_t ui64Cycle = pmThis->m_pcbCpu->GetCycleCount();
+			if ( pmThis->m_ui64LastWriteCycle == ui64Cycle + 1 ) {
+				::OutputDebugStringA( "   Mapper 1 QUIRK: IT HAPPENED.\r\n" );
+				pmThis->m_ui64LastWriteCycle = ui64Cycle;
+				_ui8Val = (_ui8Val & 0xFE) | (pmThis->m_ui8LastByteWritten & 0x01);
+			}
+			pmThis->m_ui8LastByteWritten = _ui8Val;
+			pmThis->m_ui64LastWriteCycle = ui64Cycle;
 			/*
 			 *	7  bit  0
 			 *	---- ----
