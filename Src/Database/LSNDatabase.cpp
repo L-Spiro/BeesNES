@@ -216,11 +216,11 @@ namespace lsn {
 			// Duck Tales (E)
 			{ .ui32Crc = 0xD029F841, .pmRegion = LSN_PM_PAL },
 			// Dynablaster (Europe)
-			{ .ui32Crc = 0x34BB757B, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x34BB757B, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Eliminator Boat Duel (Europe)
 			{ .ui32Crc = 0x5202FD30, .pmRegion = LSN_PM_PAL },
 			// Elite (Europe) (En,Fr,De)
-			{ .ui32Crc = 0xA4BDCC1D, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xA4BDCC1D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Excitebike (E)
 			{ .ui32Crc = 0x0B5667E9, .pmRegion = LSN_PM_PAL },
 			// F-1 Sensation (E) [!]
@@ -624,12 +624,53 @@ namespace lsn {
 			// ========
 			// CHIPS
 			// ========
+			// Akagawa Jirou no Yuurei Ressha (Japan)
+			{ .ui32Crc = 0x9D976153, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// American Dream (Japan)
 			{ .ui32Crc = 0xFAF802D1, .cChip = LSN_C_MMC1B2 },
+			// Bard's Tale - Tales of the Unknown, The (U) [!]
+			{ .ui32Crc = 0x9B821A83, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Bard's Tale II, The - The Destiny Knight (Japan)
+			{ .ui32Crc = 0xC4E1886F, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },	// HVC-SNROM?
 			// Best Play Pro Yakyuu (Japan)
 			{ .ui32Crc = 0xF79D684A, .cChip = LSN_C_MMC1A },
+			// Best Play Pro Yakyuu '90 (Japan)
+			{ .ui32Crc = 0x974E8840, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// HVC-SNROM?
+			// Best Play Pro Yakyuu II (Japan)
+			{ .ui32Crc = 0xC2EF3422, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// HVC-SNROM?
+			// Bikkuriman World - Gekitou Sei Senshi (Japan)
+			{ .ui32Crc = 0xC6224026, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// HVC-SNROM?
+			// Bill & Ted's Excellent Video Game Adventure (U)
+			{ .ui32Crc = 0xD65C0697, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SLROM },
+			// Bloody Warriors - Shan-Go no Gyakushuu (Japan)
+			{ .ui32Crc = 0x391AA1B8, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// HVC-SNROM?
+			// Bomberman 2 (U)
+			{ .ui32Crc = 0x1EBB5B42, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Destiny of an Emperor (U)
+			{ .ui32Crc = 0xA558FB52, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Doraemon - Giga Zombie no Gyakushuu (Japan)
+			{ .ui32Crc = 0xD7215873, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Dragon Quest III - Soshite Densetsu e... (Japan) (Rev 0A)
+			{ .ui32Crc = 0xA49B48B8, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Dragon Warrior 2 (U)
+			{ .ui32Crc = 0x8C5A784E, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Dungeon Kid (Japan)
+			{ .ui32Crc = 0xD68A6F33, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Famicom Top Management (Japan)
+			{ .ui32Crc = 0x58507BC9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Final Fantasy (U) [a1]
+			{ .ui32Crc = 0xB8B88130, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Final Fantasy (U)
+			{ .ui32Crc = 0xCEBD2A31, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Final Fantasy I, II (Japan)
+			{ .ui32Crc = 0xC9556B36, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SXROM },
+
+			// Final Fantasy II (Japan)
+			{ .ui32Crc = 0xD29DB3C7, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
+
 
 
 			// ========

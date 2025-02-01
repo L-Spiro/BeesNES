@@ -849,6 +849,9 @@
     <ClInclude Include="Src\Windows\Patch\LSNPatchWindow.h">
       <Filter>Header Files\Windows\Patch</Filter>
     </ClInclude>
+    <ClInclude Include="Src\System\LSNBussable.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

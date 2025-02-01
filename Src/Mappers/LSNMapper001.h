@@ -53,22 +53,27 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
 			SanitizeRegs<PgmBankSize() * 2, ChrBankSize() * 2>();
-			SetChrBank2x<0, ChrBankSize()>( 0 );
+			SetChrBank2x<0, ChrBankSize()*2>( 0 );
 			SetChrBank2x<LSN_CHR_BNK_SMALL, ChrBankSize()>( 0 );
 			m_ui8Control = 0x1C;
 			m_ui8Load = 0;
 			m_ui8LoadCnt = 0;
-			SetPgmBank<0, PgmBankSize()>( 0 );
-			SetPgmBank<1, PgmBankSize()>( -1 );
+			SetPgmBank<0, PgmBankSize()*2>( 0 );
+			SetPgmBank<1, PgmBankSize()*2>( -1 );
 			SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( 0 );
 			SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( -1 );
 
 			m_bRamEnabled = _rRom.riInfo.ui16Chip != CDatabase::LSN_C_MMC1C;
+			m_ui8PgmRamChr0 = m_ui8PgmRamChr1 = m_ui8PgmRamPgm0 = 0;
 			m_ui64LastWriteCycle = ~uint64_t( 0 );
-			m_ui8LastByteWritten = 0;
+
+
+			m_vChrRam.resize( std::max<size_t>( m_prRom->vChrRom.size(), 8 * 1024 ) );
+			std::memcpy( m_vChrRam.data(), m_prRom->vChrRom.data(), m_prRom->vChrRom.size() );
+			m_pui8PgmRam = m_ui8PgmRam;
 		}
 
 		/**
@@ -80,6 +85,10 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
+			bool ibIsSxROM = (m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SEROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SHROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SH1ROM);
+
 			// ================
 			// SWAPPABLE BANKS
 			// ================
@@ -88,10 +97,9 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_PGM_8000_FFFF, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 			// PPU.
-			if ( m_prRom->vChrRom.size() ) {
-				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
-				}
+			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
 			}
 			// RAM.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
@@ -104,7 +112,8 @@ namespace lsn {
 			// BANK-SELECT
 			// ================
 			// PGM bank-select.
-			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
+			uint32_t ui32Reg = ibIsSxROM ? 0xE000 : 0x10000;
+			for ( uint32_t I = 0x8000; I < ui32Reg; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_PGM_8000_FFFF, this, uint16_t( I ) );
 			}
 
@@ -118,18 +127,30 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** PGM RAM pointer. */
+		uint8_t *										m_pui8PgmRam = nullptr;
 		/** The last write cycle. */
 		uint64_t										m_ui64LastWriteCycle = ~uint64_t( 0 );
-		/** The RAM. */
-		uint8_t											m_ui8PgmRam[8*1024];
+		/** The PGM RAM size. */
+		size_t											m_sPgmRamSize = 8 * 1024;
+		/** The PGM RAM. */
+		uint8_t											m_ui8PgmRam[32*1024];
+		/** The CHR RAM size. */
+		size_t											m_sChrRamSize = 8 * 1024;
+		/** the CHR RAM. */
+		std::vector<uint8_t>							m_vChrRam;
 		/** The control register. */
 		uint8_t											m_ui8Control;
 		/** The load register. */
 		uint8_t											m_ui8Load;
 		/** The load count. */
 		uint8_t											m_ui8LoadCnt;
-		/** The last byte written. */
-		uint8_t											m_ui8LastByteWritten;
+		/** CHR-0 PRG-RAM register. */
+		uint8_t											m_ui8PgmRamChr0;
+		/** CHR-1 PRG-RAM register. */
+		uint8_t											m_ui8PgmRamChr1;
+		/** PGM-0 PRG-RAM register. */
+		uint8_t											m_ui8PgmRamPgm0;
 		/** PGM RAM enabled. */
 		bool											m_bRamEnabled;
 
@@ -146,7 +167,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Mapper001PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			if ( pmThis->m_bRamEnabled ) {
-				_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+				_ui8Ret = pmThis->m_pui8PgmRam[_ui16Parm1];
 			}
 		}
 
@@ -161,7 +182,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Mapper001PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			if ( pmThis->m_bRamEnabled ) {
-				pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+				pmThis->m_pui8PgmRam[_ui16Parm1] = _ui8Val;
 			}
 		}
 
@@ -178,6 +199,7 @@ namespace lsn {
 			if ( pmThis->m_ui8Control & 0b01000 ) {
 				// 8-kilobyte chunks.
 				if ( _ui16Parm1 >= 0xC000 - 0x8000 ) {
+				//if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
 					// Hi chunk.
 					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[LSN_PGM_BNK_SMALL+1]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
 				}
@@ -204,11 +226,9 @@ namespace lsn {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			uint64_t ui64Cycle = pmThis->m_pcbCpu->GetCycleCount();
 			if ( pmThis->m_ui64LastWriteCycle == ui64Cycle + 1 ) {
-				::OutputDebugStringA( "   Mapper 1 QUIRK: IT HAPPENED.\r\n" );
-				pmThis->m_ui64LastWriteCycle = ui64Cycle;
-				_ui8Val = (_ui8Val & 0xFE) | (pmThis->m_ui8LastByteWritten & 0x01);
+				::OutputDebugStringA( "   Mapper 1 QUIRK: IT HAPPENED.\r\n" );				
+				if ( !(_ui8Val & 0x80) ) { pmThis->m_ui64LastWriteCycle = ui64Cycle; return; }
 			}
-			pmThis->m_ui8LastByteWritten = _ui8Val;
 			pmThis->m_ui64LastWriteCycle = ui64Cycle;
 			/*
 			 *	7  bit  0
@@ -246,6 +266,11 @@ namespace lsn {
 						 *	+----- CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 						 */
 						pmThis->m_ui8Control = pmThis->m_ui8Load & 0b11111;
+						if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
+							pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
+								(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
+								(pmThis->m_ui8PgmRamChr0 == 0);
+						}
 						switch ( pmThis->m_ui8Control & 0b11 ) {
 							case 0 : {
 								pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
@@ -270,39 +295,94 @@ namespace lsn {
 						}
 					}
 					else if ( _ui16Parm1 >= 0xA000 && _ui16Parm1 < 0xC000 ) {
-						/*
-						 *	CHR bank 0 (internal, $A000-$BFFF)
-						 *	4bit0
-						 *	-----
-						 *	CCCCC
-						 *	|||||
-						 *	+++++- Select 4 KB or 8 KB CHR bank at PPU $0000 (low bit ignored in 8 KB mode)
-						 */
-						// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
-						if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
-							pmThis->SetChrBank2x<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
+						// SxROM:
+						switch ( pmThis->m_prRom->riInfo.ui16PcbClass ) {
+							case CDatabase::LSN_PC_SNROM : {
+								/*
+								 *	4bit0
+								 *	-----
+								 *	ExxxC
+								 *	|   |
+								 *	|   +- Select 4 KB CHR-RAM bank at PPU $0000 (ignored in 8 KB mode)
+								 *	+----- PRG-RAM disable (0: enable, 1: open bus) 
+								 */
+								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b00001 );
+								pmThis->m_ui8PgmRamChr0 = (pmThis->m_ui8Load & 0b10000);
+								pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
+									(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
+									(pmThis->m_ui8PgmRamChr0 == 0);
+								break;
+							}
+							case CDatabase::LSN_PC_SXROM : {
+								/*
+								 *	4bit0
+								 *	-----
+								 *	PSSxC
+								 *	||| |
+								 *	||| +- Select 4 KB CHR-RAM bank at PPU $0000 (ignored in 8 KB mode)
+								 *	|++--- Select 8 KB PRG-RAM bank
+								 *	+----- Select 256 KB PRG-ROM bank
+								 */
+								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b00001 );
+								break;
+							}
+							default : {
+								/*
+								 *	CHR bank 0 (internal, $A000-$BFFF)
+								 *	4bit0
+								 *	-----
+								 *	CCCCC
+								 *	|||||
+								 *	+++++- Select 4 KB or 8 KB CHR bank at PPU $0000 (low bit ignored in 8 KB mode)
+								 */
+								// CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
+								if ( (pmThis->m_ui8Control & 0b10000) == 0 ) {
+									pmThis->SetChrBank2x<0, ChrBankSize()*2>( (pmThis->m_ui8Load & 0b11110) >> 1 );
 
-							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
-							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
-						}
-						else {
-							pmThis->SetChrBank<0, ChrBankSize()>( (pmThis->m_ui8Load & 0b11110) );
+									pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+									pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( (pmThis->m_ui8Load & 0b11111) + 1 );
+								}
+								else {
+									pmThis->SetChrBank<0, ChrBankSize()*2>( (pmThis->m_ui8Load & 0b11110) >> 1 );
 							
-							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+									pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+								}
+							}
 						}
+						
 					}
 					else if ( _ui16Parm1 >= 0xC000 && _ui16Parm1 < 0xE000 ) {
-						/*
-						 *	CHR bank 1 (internal, $C000-$DFFF)
-						 *	4bit0
-						 *	-----
-						 *	CCCCC
-						 *	|||||
-						 *	+++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
-						 */
-						if ( pmThis->m_ui8Control & 0b10000 ) {
-							pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+						// SxROM:
+						switch ( pmThis->m_prRom->riInfo.ui16PcbClass ) {
+							case CDatabase::LSN_PC_SNROM : {
+								/*
+								 *	4bit0
+								 *	-----
+								 *	ExxxC
+								 *	|   |
+								 *	|   +- Select 4 KB CHR-RAM bank at PPU $0000 (ignored in 8 KB mode)
+								 *	+----- PRG-RAM disable (0: enable, 1: open bus) 
+								 */
+								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b00001 );
+								pmThis->m_ui8PgmRamChr1 = (pmThis->m_ui8Load & 0b10000);
+								pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
+									(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
+									(pmThis->m_ui8PgmRamChr0 == 0);
+								break;
+							}
+							default : {
+								/*
+								 *	CHR bank 1 (internal, $C000-$DFFF)
+								 *	4bit0
+								 *	-----
+								 *	CCCCC
+								 *	|||||
+								 *	+++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
+								 */
+								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+1, ChrBankSize()>( pmThis->m_ui8Load & 0b11111 );
+							}
 						}
+						
 					}
 					else if ( _ui16Parm1 >= 0xE000 /*&& _ui16Parm1 < 0x10000*/ ) {
 						/*
@@ -315,8 +395,14 @@ namespace lsn {
 						 *	+----- MMC1B and later: PRG RAM chip enable (0: enabled; 1: disabled; ignored on MMC1A)
 						 *		   MMC1A: Bit 3 bypasses fixed bank logic in 16K mode (0: affected; 1: bypassed)
 						 */
+						pmThis->m_ui8PgmRamPgm0 = (pmThis->m_ui8Load & 0b10000);
 						if ( pmThis->m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && pmThis->m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END ) {
-							pmThis->m_bRamEnabled = (pmThis->m_ui8Load & 0b10000) != 0;
+							pmThis->m_bRamEnabled = pmThis->m_ui8PgmRamPgm0 == 0;
+						}
+						else if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
+							pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
+								(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
+								(pmThis->m_ui8PgmRamChr0 == 0);
 						}
 
 						uint8_t ui8PgmMode = (pmThis->m_ui8Control >> 2) & 0b11;
@@ -324,7 +410,7 @@ namespace lsn {
 							// 0, 1: switch 32 KB at $8000, ignoring low bit of bank number;
 							case 1 : {}
 							case 0 : {
-								pmThis->SetPgmBank2x<0, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
+								pmThis->SetPgmBank<0, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
 
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( pmThis->m_ui8Load & 0b1111 );
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+1, PgmBankSize()>( (pmThis->m_ui8Load & 0b1111) + 1 );
@@ -332,7 +418,7 @@ namespace lsn {
 							}
 							// 2: fix first bank at $8000 and switch 16 KB bank at $C000;
 							case 2 : {
-								pmThis->SetPgmBank<0, PgmBankSize()>( 0 );
+								pmThis->SetPgmBank<0, PgmBankSize()*2>( 0 );
 								pmThis->SetPgmBank<1, PgmBankSize()*2>( (pmThis->m_ui8Load & 0b1110) >> 1 );
 
 								pmThis->SetPgmBank<LSN_PGM_BNK_SMALL+0, PgmBankSize()>( 0 );
@@ -366,25 +452,50 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
-			if ( !pmThis->m_prRom->vChrRom.size() ) {
-				_ui8Ret = pmThis->m_ui8DefaultChrRam[_ui16Parm1];
-			}
-			else {
-				if ( pmThis->m_ui8Control & 0b10000 ) {
-					// 4-kilobyte chunks.
-					if ( _ui16Parm1 >= ChrBankSize() ) {
-						// Hi chunk.
-						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
-					}
-					else {
-						// Lo chunk.
-						_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
-					}
+			if ( pmThis->m_ui8Control & 0b10000 ) {
+				//pmThis->m_pcbCpu
+				// 4-kilobyte chunks.
+				//if ( _ui16Parm1 >= ChrBankSize() ) {
+				if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
+					// Hi chunk.
+					_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
 				}
 				else {
-					// 8 kilobytes.
-					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBank*ChrBankSize()+(_ui16Parm1&0x1FFF)];
+					// Lo chunk.
+					_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
 				}
+			}
+			else {
+				// 8 kilobytes.
+				_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1&0x1FFF)];
+			}
+		}
+
+		/**
+		 * Handles CHR writes to 0x0000-0x1FFF.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Write_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
+			if ( pmThis->m_ui8Control & 0b10000 ) {
+				// 4-kilobyte chunks.
+				//if ( _ui16Parm1 >= ChrBankSize() ) {
+				if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
+					// Hi chunk.
+					pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)] = _ui8Val;
+				}
+				else {
+					// Lo chunk.
+					pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)] = _ui8Val;
+				}
+			}
+			else {
+				// 8 kilobytes.
+				pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1&0x1FFF)] = _ui8Val;
 			}
 		}
 	};

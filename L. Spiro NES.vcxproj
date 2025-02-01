@@ -1880,6 +1880,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />
+    <ClInclude Include="Src\System\LSNBussable.h" />
     <ClInclude Include="Src\System\LSNInterruptable.h" />
     <ClInclude Include="Src\System\LSNSystem.h" />
     <ClInclude Include="Src\System\LSNSystemBase.h" />

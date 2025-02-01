@@ -490,7 +490,7 @@ namespace lsn {
 #endif	// #ifdef LSN_WINDOWS
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
-				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu );
+				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu, &m_pPpu );
 			}
 
 			return true;

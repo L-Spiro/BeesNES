@@ -13,6 +13,7 @@
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpuBase.h"
 #include "../Roms/LSNRom.h"
+#include "../System/LSNBussable.h"
 
 namespace lsn {
 
@@ -27,6 +28,7 @@ namespace lsn {
 		CMapperBase() :
 			m_prRom( nullptr ),
 			m_pcbCpu( nullptr ),
+			m_pbPpuBus( nullptr ),
 			m_stFixedOffset( 0 ),
 			m_mmMirror( LSN_MM_HORIZONTAL ),
 			m_ui8PgmBank( m_ui8PgmBanks[0] ),
@@ -43,9 +45,10 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
 			m_prRom = &_rRom;
 			m_pcbCpu = _pcbCpuBase;
+			m_pbPpuBus = _pbPpuBus;
 		}
 
 		/**
@@ -109,6 +112,8 @@ namespace lsn {
 		LSN_ROM *										m_prRom;
 		/** The CPU, for reading information such as cycle counts and for sending IRQ's. */
 		CCpuBase *										m_pcbCpu;
+		/** The PPU pointer, for accessing the PPU address bus. */
+		CBussable *										m_pbPpuBus;
 		/** The offset of the fixed bank. */
 		size_t											m_stFixedOffset;
 		/** The PGM bank. */

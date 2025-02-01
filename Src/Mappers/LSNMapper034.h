@@ -49,8 +49,8 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			// For compatibility between both BNROM and NINA-001 boards.
 			m_ui8PgmBanks[0] = 0;

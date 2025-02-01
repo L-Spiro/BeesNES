@@ -15,6 +15,7 @@
 #include "../Display/LSNDisplayHost.h"
 #include "../Mappers/LSNMapperBase.h"
 #include "../Palette/LSNPalette.h"
+#include "../System/LSNBussable.h"
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
@@ -50,7 +51,7 @@ namespace lsn {
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tRenderW, unsigned _tBorderW,
 		bool _bOddFrameShenanigans, /*double _dPerferredRatio*/ unsigned _uRatioNumer, unsigned _uRatioDenom>
-	class CPpu2C0X : public CTickable, public CDisplayClient {
+	class CPpu2C0X : public CTickable, public CDisplayClient, public CBussable {
 	public :
 		CPpu2C0X( CCpuBus * _pbBus, CInterruptable * _pnNmiTarget ) :
 			m_pbBus( _pbBus ),
@@ -1418,17 +1419,19 @@ namespace lsn {
 			int16_t i16AdjustedX = m_ui16CurX;
 			int16_t i16AdjustedY = m_ui16CurY;
 			if constexpr ( _bFromCpu ) {
-				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and teh end of that PPU cycle,
+				// Since this happens after the last PPU cycle has ended and cycle counts have been adjusted and the end of that PPU cycle,
 				//	consider this read as happening on the last PPU cycle and adjust accordingly.
 				AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 			}
 			if ( m_bRendering &&
 				((i16AdjustedY >= 0 && i16AdjustedY < (_tPreRender + _tRender)) || (i16AdjustedY == _tDotHeight - 1)) ) {
+				m_ui16LastBusAddr = _ui16Addr;
 				if ( _ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( _ui16Addr );
 				}
 				return m_bBus.Read( _ui16Addr );
 			}
+			m_ui16LastBusAddr = m_paPpuAddrV.ui16Addr;
 			if constexpr ( !_bFromCpu ) {
 				if ( m_paPpuAddrV.ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( m_paPpuAddrV.ui16Addr );
