@@ -453,10 +453,9 @@ namespace lsn {
 		static void LSN_FASTCALL						Read_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			if ( pmThis->m_ui8Control & 0b10000 ) {
-				//pmThis->m_pcbCpu
 				// 4-kilobyte chunks.
-				//if ( _ui16Parm1 >= ChrBankSize() ) {
-				if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
+				if ( _ui16Parm1 >= ChrBankSize() ) {
+				//if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
 					// Hi chunk.
 					_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
 				}
@@ -483,8 +482,7 @@ namespace lsn {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
 			if ( pmThis->m_ui8Control & 0b10000 ) {
 				// 4-kilobyte chunks.
-				//if ( _ui16Parm1 >= ChrBankSize() ) {
-				if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {
+				if ( _ui16Parm1 >= ChrBankSize() ) {
 					// Hi chunk.
 					pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+1]*ChrBankSize()+(_ui16Parm1&0x0FFF)] = _ui8Val;
 				}
