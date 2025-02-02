@@ -205,12 +205,12 @@ namespace lsn {
 				}
 				else {
 					// Lo chunk.
-					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[LSN_PGM_BNK_SMALL+0]*PgmBankSize()+(_ui16Parm1&0x3FFF)];
+					_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBanks[LSN_PGM_BNK_SMALL+0]*PgmBankSize()+(_ui16Parm1/*&0x3FFF*/)];
 				}
 			}
 			else {
 				// 32 kikobytes.
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBank*(PgmBankSize()*2)+(_ui16Parm1&0x7FFF)];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[pmThis->m_ui8PgmBank*(PgmBankSize()*2)+(_ui16Parm1/*&0x7FFF*/)];
 			}
 		}
 
@@ -461,12 +461,12 @@ namespace lsn {
 				}
 				else {
 					// Lo chunk.
-					_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)];
+					_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1/*&0x0FFF*/)];
 				}
 			}
 			else {
 				// 8 kilobytes.
-				_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1&0x1FFF)];
+				_ui8Ret = pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1/*&0x1FFF*/)];
 			}
 		}
 
@@ -488,12 +488,12 @@ namespace lsn {
 				}
 				else {
 					// Lo chunk.
-					pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1&0x0FFF)] = _ui8Val;
+					pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBanks[LSN_CHR_BNK_SMALL+0]*ChrBankSize()+(_ui16Parm1/*&0x0FFF*/)] = _ui8Val;
 				}
 			}
 			else {
 				// 8 kilobytes.
-				pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1&0x1FFF)] = _ui8Val;
+				pmThis->m_vChrRam.data()[pmThis->m_ui8ChrBank*(ChrBankSize()*2)+(_ui16Parm1/*&0x1FFF*/)] = _ui8Val;
 			}
 		}
 	};
