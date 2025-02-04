@@ -70,6 +70,22 @@ namespace lsn {
 			m_ui8PgmRamChr0 = m_ui8PgmRamChr1 = m_ui8PgmRamPgm0 = 0;
 			m_ui64LastWriteCycle = ~uint64_t( 0 );
 
+			// Outer ROM.
+			if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SUROM || m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ) {
+				m_sOuterPgmRomSize = 512 * 1024;
+			}
+			// RAM size.
+			if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM || m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
+				m_sPgmRamSize = 16 * 1024;
+			}
+			else if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ) {
+				m_sPgmRamSize = 32 * 1024;
+			}
+			// CHR RAM.
+			if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
+				m_sChrRamSize = 64 * 1024;
+			}
+
 
 			m_vChrRam.resize( std::max<size_t>( m_prRom->vChrRom.size(), 8 * 1024 ) );
 			std::memcpy( m_vChrRam.data(), m_prRom->vChrRom.data(), m_prRom->vChrRom.size() );
@@ -127,18 +143,24 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** PGM RAM pointer. */
-		uint8_t *										m_pui8PgmRam = nullptr;
 		/** The last write cycle. */
 		uint64_t										m_ui64LastWriteCycle = ~uint64_t( 0 );
+		/** PGM RAM pointer. */
+		uint8_t *										m_pui8PgmRam = nullptr;
+		/** PGM-ROM outer banks. */
+		uint8_t *										m_puiPgmRomOuterBanks[4];
+		/** PGM-RAM outer banks. */
+		uint8_t *										m_puiPgmRamOuterBanks[4];
 		/** The PGM RAM size. */
 		size_t											m_sPgmRamSize = 8 * 1024;
 		/** The PGM RAM. */
 		uint8_t											m_ui8PgmRam[32*1024];
 		/** The CHR RAM size. */
 		size_t											m_sChrRamSize = 8 * 1024;
-		/** the CHR RAM. */
+		/** The CHR RAM. */
 		std::vector<uint8_t>							m_vChrRam;
+		/** The Outer PGM-ROM size. */
+		size_t											m_sOuterPgmRomSize = 256 * 1024;
 		/** The control register. */
 		uint8_t											m_ui8Control;
 		/** The load register. */
@@ -156,6 +178,20 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Gets the status of RAM-enable.
+		 *
+		 * \return Returns the status of RAM-enable.
+		 **/
+		bool											UpdateRamEnabled() {
+			if ( m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END ) {
+				return (m_ui8PgmRamPgm0 == 0) &&
+					(m_ui8PgmRamChr1 == 0 || ((m_ui8Control & 0b10000) != 0)) &&
+					(m_ui8PgmRamChr0 == 0);
+			}
+			else { return true; }
+		}
+
 		/**
 		 * Reads from the PGM RAM.
 		 *
@@ -267,9 +303,7 @@ namespace lsn {
 						 */
 						pmThis->m_ui8Control = pmThis->m_ui8Load & 0b11111;
 						if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
-							pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
-								(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
-								(pmThis->m_ui8PgmRamChr0 == 0);
+							pmThis->m_bRamEnabled = pmThis->UpdateRamEnabled();
 						}
 						switch ( pmThis->m_ui8Control & 0b11 ) {
 							case 0 : {
@@ -308,9 +342,7 @@ namespace lsn {
 								 */
 								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b00001 );
 								pmThis->m_ui8PgmRamChr0 = (pmThis->m_ui8Load & 0b10000);
-								pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
-									(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
-									(pmThis->m_ui8PgmRamChr0 == 0);
+								pmThis->m_bRamEnabled = pmThis->UpdateRamEnabled();
 								break;
 							}
 							case CDatabase::LSN_PC_SXROM : {
@@ -365,9 +397,7 @@ namespace lsn {
 								 */
 								pmThis->SetChrBank<LSN_CHR_BNK_SMALL+0, ChrBankSize()>( pmThis->m_ui8Load & 0b00001 );
 								pmThis->m_ui8PgmRamChr1 = (pmThis->m_ui8Load & 0b10000);
-								pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
-									(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
-									(pmThis->m_ui8PgmRamChr0 == 0);
+								pmThis->m_bRamEnabled = pmThis->UpdateRamEnabled();
 								break;
 							}
 							default : {
@@ -400,9 +430,7 @@ namespace lsn {
 							pmThis->m_bRamEnabled = pmThis->m_ui8PgmRamPgm0 == 0;
 						}
 						else if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
-							pmThis->m_bRamEnabled = (pmThis->m_ui8PgmRamPgm0 == 0) &&
-								(pmThis->m_ui8PgmRamChr1 == 0 || ((pmThis->m_ui8Control & 0b10000) != 0)) &&
-								(pmThis->m_ui8PgmRamChr0 == 0);
+							pmThis->m_bRamEnabled = pmThis->UpdateRamEnabled();
 						}
 
 						uint8_t ui8PgmMode = (pmThis->m_ui8Control >> 2) & 0b11;
