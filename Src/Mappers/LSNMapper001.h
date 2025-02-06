@@ -651,9 +651,10 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write_CHR_0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper001 * pmThis = reinterpret_cast<CMapper001 *>(_pvParm0);
-			if ( pmThis->m_ui8Control & 0b10000 ) {
+			if ( !pmThis->In8kMode_CHR() ) {
 				// 4-kilobyte chunks.
-				if ( _ui16Parm1 >= ChrBankSize() ) {
+				if ( _ui16Parm1 & (1 << 12) ) {									// Same result, slightly faster.
+				//if ( pmThis->m_pbPpuBus->LastBusAddress() & (1 << 12) ) {		// Strictly accurate.
 					// Hi chunk.
 					size_t sBnk = pmThis->m_crChrBanks[1].ui8ChrBank;
 					pmThis->m_vChrRam.data()[sBnk*ChrBankSize()+(_ui16Parm1&0x0FFF)] = _ui8Val;
