@@ -31,6 +31,7 @@ namespace lsn {
 			LSN_C_MMC1							= 100,
 			LSN_C_MMC1A,
 			LSN_C_MMC1B1,
+			LSN_C_MMC1B1H,
 			LSN_C_MMC1B2,
 			LSN_C_MMC1B2F,
 			LSN_C_MMC1B3,

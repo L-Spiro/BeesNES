@@ -216,6 +216,31 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets a bank by index.
+		 *
+		 * \param _i16Bank The register value, which can be negative to set a bank from the end.
+		 * \param _sMemSize The size of the memory.
+		 * \param _sBankSize The bank size.
+		 * \return Returns the normalized bank index.
+		 */
+		static inline uint8_t							GetBank( int16_t _i16Bank, size_t _sMemSize, size_t _sBankSize ) {
+			size_t stBanks = _sMemSize / _sBankSize;
+			if ( stBanks ) {
+				size_t stIdx;
+				if ( _i16Bank < 0 ) {
+					stIdx = stBanks - (-_i16Bank % stBanks);
+				}
+				else {
+					stIdx = _i16Bank % stBanks;
+				}
+				return uint8_t( stIdx );
+			}
+			else {
+				return 0;
+			}
+		}
+
+		/**
 		 * Gets a PGM bank by index.
 		 *
 		 * \param _i16Bank The register value, which can be negative to set a bank from the end.

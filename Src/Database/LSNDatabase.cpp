@@ -233,6 +233,8 @@ namespace lsn {
 			{ .ui32Crc = 0x18C64981, .pmRegion = LSN_PM_PAL },
 			// Four Players' Tennis (Europe)
 			{ .ui32Crc = 0xE16F25CC, .pmRegion = LSN_PM_PAL },
+			// Future Wars - Mirai Senshi Lios (Japan)
+			{ .ui32Crc = 0xE94D5181, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Galaxy 5000 (E)
 			{ .ui32Crc = 0xF5DFA4A2, .pmRegion = LSN_PM_PAL },
 			// Gargoyle's Quest 2 - The Demon Darkness (E)
@@ -304,7 +306,7 @@ namespace lsn {
 			// Kabuki - Quantum Fighter (E)
 			{ .ui32Crc = 0x6F860E89, .pmRegion = LSN_PM_PAL },
 			// Kid Icarus (Europe)
-			{ .ui32Crc = 0xD67FD6A6, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xD67FD6A6, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Kick Off (E)
 			{ .ui32Crc = 0xD161888B, .pmRegion = LSN_PM_PAL },
 			// Kickle Cubicle (E) [!]
@@ -318,7 +320,9 @@ namespace lsn {
 			// Legend of Prince Valiant, The (E)
 			{ .ui32Crc = 0xFB40D76C, .pmRegion = LSN_PM_PAL },
 			// Legend of Zelda, The (Europe)
-			{ .ui32Crc = 0xED7F5555, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xED7F5555, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3 },
+			// Legend of Zelda, The (Europe) (Rev A)
+			{ .ui32Crc = 0xD44B412E, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3 },
 			// Lifeforce (E) [!]
 			{ .ui32Crc = 0x7002FE8D, .pmRegion = LSN_PM_PAL },
 			// Lion King, The (Europe)
@@ -337,10 +341,16 @@ namespace lsn {
 			{ .ui32Crc = 0x7D56840A, .pmRegion = LSN_PM_PAL },
 			// Mach Rider (E) [!]
 			{ .ui32Crc = 0x8BBE9BEC, .mmMirrorOverride = LSN_MM_VERTICAL, .pmRegion = LSN_PM_PAL },
+			// Maniac Mansion (France)
+			{ .ui32Crc = 0xF4B70BFE, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Maniac Mansion (Europe)
-			{ .ui32Crc = 0xF59CFC3D, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xF59CFC3D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Maniac Mansion (Germany)
+			{ .ui32Crc = 0x60EA98A0, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Maniac Mansion (Spain)
+			{ .ui32Crc = 0xF5B2AFCA, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Maniac Mansion (SW)
-			{ .ui32Crc = 0x3F2BDA65, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x3F2BDA65, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Marble Madness (E)
 			{ .ui32Crc = 0x51BF28AF, .pmRegion = LSN_PM_PAL },
 			// Mario & Yoshi (E) [!]
@@ -374,7 +384,7 @@ namespace lsn {
 			// Mr. Gimmick (E) [!]
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
 			// M.U.L.E. (U)
-			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC },
+			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Muppet Adventure - Chaos at the Carnival (U)
 			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC },
 			// NFL Football (U)
@@ -624,6 +634,10 @@ namespace lsn {
 			// ========
 			// CHIPS
 			// ========
+			// AD&D Hillsfar (Japan)
+			{ .ui32Crc = 0x2C33161D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// AD&D Hillsfar (U) [!]
+			{ .ui32Crc = 0x5DE61639, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Akagawa Jirou no Yuurei Ressha (Japan)
 			{ .ui32Crc = 0x9D976153, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// American Dream (Japan)
@@ -664,12 +678,76 @@ namespace lsn {
 			{ .ui32Crc = 0xCEBD2A31, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Final Fantasy I, II (Japan)
 			{ .ui32Crc = 0xC9556B36, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SXROM },
-
 			// Final Fantasy II (Japan)
 			{ .ui32Crc = 0xD29DB3C7, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Gambler Jiko Chuushinha - Mahjong Game (Japan)
+			{ .ui32Crc = 0x2E2ACAE9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Gambler Jiko Chuushinha 2 (Japan)
+			{ .ui32Crc = 0x85F12D37, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Greg Norman's Golf Power (U)
+			{ .ui32Crc = 0x1352F1B9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Hanjuku Hero (Japan)
+			{ .ui32Crc = 0xCD7A2FD7, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Hatris (Japan)
+			{ .ui32Crc = 0xB4113F3C, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Hatris (U)
+			{ .ui32Crc = 0x841B69B6, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Heracles no Eikou - Toujin Makyou Den (Japan)
+			{ .ui32Crc = 0xB15653BD, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Hissatsu Doujou Yaburi (Japan)
+			{ .ui32Crc = 0x565A4681, .cChip = LSN_C_MMC1B1H, .pcPcbClass = LSN_PC_SNROM },
+			// Hitler no Fukkatsu - Top Secret (Japan)
+			{ .ui32Crc = 0x16A0A3A3, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Hokuto no Ken 3 - Shin Seiki Souzou Seiken Restuden (Japan)
+			{ .ui32Crc = 0x771CE357, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan)
+			{ .ui32Crc = 0x63469396, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Hototogisu (Japan)
+			{ .ui32Crc = 0x9EBDC94E, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Ide Yousuke Meijin no Jissen Mahjong II (Japan)
+			{ .ui32Crc = 0x7B44FB2A, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// TODO: No input?
+			// Indora no Hikari (Japan)
+			{ .ui32Crc = 0x174F860A, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SNROM },		// TODO: No input?
+			// Isaki Shuugorou no Keiba Hisshou Gaku (Japan)
+			{ .ui32Crc = 0x18D44BBA, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// TODO: No input after a while.
+			// Kaguya Hime Densetsu (Japan)
+			{ .ui32Crc = 0x26CEC726, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Kid Icarus (UE)
+			{ .ui32Crc = 0xD770C1A9, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Kid Icarus (USA, Europe)
+			{ .ui32Crc = 0xD9F0749F, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Legend of Zelda, The (USA) (Rev A) (GameCube Edition)
+			{ .ui32Crc = 0x46E0D37D, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Legend of Zelda, The (USA)/Legend of Zelda, The (U) (PRG 0)
+			{ .ui32Crc = 0x3FE272FB, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Legend of Zelda, The (U) (PRG 1)
+			{ .ui32Crc = 0xEAF7ED72, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Mahjong Taikai (Japan)
+			{ .ui32Crc = 0xF714FAE3, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Maison Ikkoku (Japan)
+			{ .ui32Crc = 0x46F30F2D, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Mashin Eiyuu Den Wataru Gaiden (Japan)
+			{ .ui32Crc = 0xD0CC5EC8, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Maniac Mansion (U)
+			{ .ui32Crc = 0x0D9F5BD1, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Mario Open Golf (Japan)
+			{ .ui32Crc = 0xBAEBA201, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Matsumoto Tooru no Kabushiki Hisshou Gaku - Vol. 1 (Japan)
+			{ .ui32Crc = 0xABAA6F78, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Matsumoto Tooru no Kabushiki Hisshou Gaku - Part II (Japan)
+			{ .ui32Crc = 0x1208E754, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Metroid (E) [!]
+			{ .ui32Crc = 0x7751588D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Metroid (USA)
+			{ .ui32Crc = 0x70080810, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+
+			
 
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3 },
+
+			// Zelda no Densetsu 1 - The Hyrule Fantasy (Japan)
+			{ .ui32Crc = 0x7AE0BF3C, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 
 
 
