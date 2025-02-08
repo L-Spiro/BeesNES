@@ -444,9 +444,9 @@ namespace lsn {
 			// Rainbow Islands - The Story of Bubble Bobble 2 (E) [!]
 			{ .ui32Crc = 0xAE71768E, .pmRegion = LSN_PM_PAL },
 			// RC Pro-Am (E) (PRG 0)
-			{ .ui32Crc = 0xE5A972BE, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xE5A972BE, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
 			// RC Pro-Am (E) (PRG 1)
-			{ .ui32Crc = 0x2DBDDD11, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x2DBDDD11, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Rescue - The Embassy Mission (E) [!]
 			{ .ui32Crc = 0x7EEF2338, .pmRegion = LSN_PM_PAL },
 			// Retrocoders - Years behind
@@ -494,7 +494,7 @@ namespace lsn {
 			// Smurfs, The (E) [!]
 			{ .ui32Crc = 0x4022C94E, .pmRegion = LSN_PM_PAL },
 			// Snake Rattle'n Roll (E)
-			{ .ui32Crc = 0x533F5707, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x533F5707, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SEROM },
 			// Snake's Revenge (E) [!]
 			{ .ui32Crc = 0x27ACEC9E, .pmRegion = LSN_PM_PAL },
 			// Soccer (E) [!]
@@ -549,6 +549,8 @@ namespace lsn {
 			{ .ui32Crc = 0x108F732E, .pmRegion = LSN_PM_PAL },
 			// Terminator 2 - Judgement Day (E) [!]
 			{ .ui32Crc = 0x75DC25A7, .pmRegion = LSN_PM_PAL },
+			// Tetris (Europe)
+			{ .ui32Crc = 0xD3DEA841, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SEROM },
 			// Tetris 2 (E)
 			{ .ui32Crc = 0xCD8B279F, .pmRegion = LSN_PM_PAL },
 			// Tiger-Heli (E) [!]
@@ -664,6 +666,8 @@ namespace lsn {
 			{ .ui32Crc = 0xC4E1886F, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Barker Bill's Trick Shooting (U)
 			{ .ui32Crc = 0xF2641AD0, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SCROM },
+			// Bases Loaded (U)
+			{ .ui32Crc = 0x778AAF25, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
 			// Best Play Pro Yakyuu (Japan)
 			{ .ui32Crc = 0xF79D684A, .cChip = LSN_C_MMC1A },
 			// Best Play Pro Yakyuu '90 (Japan)
@@ -686,6 +690,8 @@ namespace lsn {
 			{ .ui32Crc = 0xC6475C2A, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Boulder Dash (U)
 			{ .ui32Crc = 0x62DFC064, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
+			// Break Time (U)
+			{ .ui32Crc = 0x50059012, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
 			// Bugs Bunny Crazy Castle, The (U)
 			{ .ui32Crc = 0xB10429AA, .cChip = LSN_C_MMC1B1, .pcPcbClass = LSN_PC_SBROM },
 			// Dance Aerobics (U)
@@ -751,7 +757,7 @@ namespace lsn {
 			// Hototogisu (Japan)
 			{ .ui32Crc = 0x9EBDC94E, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Ide Yousuke Meijin no Jissen Mahjong II (Japan)
-			{ .ui32Crc = 0x7B44FB2A, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// TODO: No input?
+			{ .ui32Crc = 0x7B44FB2A, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },	// No input?  Bad ROM?
 			// Indora no Hikari (Japan)
 			{ .ui32Crc = 0x174F860A, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SNROM },
 			// Isaki Shuugorou no Keiba Hisshou Gaku (Japan)
@@ -828,22 +834,16 @@ namespace lsn {
 			{ .ui32Crc = 0xC9484BB3, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Qix (U)
 			{ .ui32Crc = 0x95E4E594, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
-			// RC Pro-Am (E) (PRG 0)
-			{ .ui32Crc = 0xE5A972BE, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
-			// RC Pro-Am (E) (PRG 1)
-			{ .ui32Crc = 0x2DBDDD11, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// RC Pro-Am (U) (PRG 1)
 			{ .ui32Crc = 0x82CFDE25, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
 			// Romance of the Three Kingdoms (U)
 			{ .ui32Crc = 0xC6182024, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SOROM },
 			// Sangokushi (Japan) (Rev A)
 			{ .ui32Crc = 0xCCF35C02, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SOROM },
-
 			// Sesame Street 123 (U)
 			{ .ui32Crc = 0x0847C623, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Sesame Street ABC (U)
 			{ .ui32Crc = 0x2E6C3CA9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
-
 			// Satsui no Kaisou - Soft House Renzoku Satsujin Jiken (Japan)
 			{ .ui32Crc = 0x2858933B, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Shin Satomi Hakken-Den - Hikari to Yami no Tatakai (Japan)
@@ -862,6 +862,10 @@ namespace lsn {
 			{ .ui32Crc = 0x96C4CE38, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SBROM },
 			// Shoukoushi Ceddie (Japan)
 			{ .ui32Crc = 0xC30C9EC9, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Snake Rattle'n Roll (U)
+			{ .ui32Crc = 0x406FE900, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
+			// Snake Rattle'n Roll (U)
+			{ .ui32Crc = 0x8E9C4F74, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Spot (U)
 			{ .ui32Crc = 0xCFAE9DFA, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Square no Tom Sawyer (Japan)
@@ -872,6 +876,8 @@ namespace lsn {
 			{ .ui32Crc = 0x09FFDF45, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Sweet Home (Japan)
 			{ .ui32Crc = 0x252FFD12, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Taboo - The Sixth Sense (U)
+			{ .ui32Crc = 0x05FE773B, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
 			// Takeda Shingen 2 (Japan)
 			{ .ui32Crc = 0x0E997CF6, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Tamura Koushou Mahjong Seminar (Japan)
@@ -884,12 +890,16 @@ namespace lsn {
 			{ .ui32Crc = 0x1AC701B5, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Tenchi o Kurau (Japan) (Rev A)
 			{ .ui32Crc = 0x637A7ACB, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Tetris (U) [!]
+			{ .ui32Crc = 0x943DFBBE, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Tetris 2 + Bombliss (Japan)
 			{ .ui32Crc = 0x3FF44F87, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Tetris 2 + Bombliss (Japan) (Rev A)
 			{ .ui32Crc = 0xFD45E9C1, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Titan (Japan)
 			{ .ui32Crc = 0x75901B18, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Touch Down Fever (Japan)
+			{ .ui32Crc = 0x96277A43, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SFROM },
 			// Ultima - Exodus (U)
 			{ .ui32Crc = 0xA4062017, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Ultima - Exodus (Japan)
