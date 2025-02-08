@@ -134,6 +134,7 @@ namespace lsn {
 			}
 
 			m_bRamEnabled = GetRamEnabled();
+			std::memset( m_ui8PgmRam, 0, sizeof( m_ui8PgmRam ) );
 		}
 
 		/**
@@ -145,9 +146,9 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
-			bool ibIsSxROM = (m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SEROM ||
+			constexpr bool ibIsSxROM = false;/*(m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SEROM ||
 				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SHROM ||
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SH1ROM);
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SH1ROM);*/
 
 			// ================
 			// SWAPPABLE BANKS
@@ -312,7 +313,12 @@ namespace lsn {
 		 * \return Returns the status of RAM-enable.
 		 **/
 		bool											GetRamEnabled() {
-			if ( m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END ) {
+			if ( /*(m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END) ||*/
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SUROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
 				/*
 				 *  In order to enable PRG RAM on SNROM...
 				 *	The bit in $E000 must be 0 (which the chip itself transforms into 5V)
@@ -323,7 +329,7 @@ namespace lsn {
 					(m_crChrBanks[1].bPgmRamEnable || In8kMode_CHR()) &&
 					(m_crChrBanks[0].bPgmRamEnable);
 			}
-			else { return m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_MMC1A; }
+			else { return m_prPgmBank.bPgmRamEnable; }
 		}
 
 		// ================
@@ -533,9 +539,7 @@ namespace lsn {
 					 *	+----- CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
 					 */
 					pmThis->m_ui8Control = pmThis->m_ui8Load & 0b11111;
-					if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
-						pmThis->m_bRamEnabled = pmThis->GetRamEnabled();
-					}
+					pmThis->m_bRamEnabled = pmThis->GetRamEnabled();
 					switch ( pmThis->m_ui8Control & 0b11 ) {
 						case 0 : {
 							pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
@@ -588,7 +592,13 @@ namespace lsn {
 							 *	+----- Select 256 KB PRG-ROM bank
 							 */
 							pmThis->m_crChrBanks[0].ui8ChrBank = GetBank( pmThis->m_ui8Load & 0b00001, pmThis->m_vChrRam.size(), ChrBankSize() );
-							pmThis->m_crChrBanks[0].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 2) & 0b00011, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							// The SOROM board only implements the upper S bit, while the SUROM board only implements the P bit. For SXROM, the upper S (bit 3) selects the SRAM's A14, and the lower S (bit 2) selects A13
+							if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ) {
+								pmThis->m_crChrBanks[0].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 3) & 0b00001, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							}
+							else {
+								pmThis->m_crChrBanks[0].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 2) & 0b00011, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							}
 							pmThis->m_crChrBanks[0].ui8PgmRomBank = GetBank( (pmThis->m_ui8Load >> 4) & 0b0001, pmThis->m_sOuterPgmRomSize, 256 * 1024 );
 							break;
 						}
@@ -647,7 +657,13 @@ namespace lsn {
 							 *	+----- Select 256 KB PRG-ROM bank (ignored in 8 KB mode)
 							 */
 							pmThis->m_crChrBanks[1].ui8ChrBank = GetBank( pmThis->m_ui8Load & 0b00001, pmThis->m_vChrRam.size(), ChrBankSize() );
-							pmThis->m_crChrBanks[1].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 2) & 0b00011, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							// The SOROM board only implements the upper S bit, while the SUROM board only implements the P bit. For SXROM, the upper S (bit 3) selects the SRAM's A14, and the lower S (bit 2) selects A13
+							if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ) {
+								pmThis->m_crChrBanks[1].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 3) & 0b00001, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							}
+							else {
+								pmThis->m_crChrBanks[1].ui8PgmRamBank = GetBank( (pmThis->m_ui8Load >> 2) & 0b00011, pmThis->m_sPgmRamSize, PgmRamBankSize() );
+							}
 							pmThis->m_crChrBanks[1].ui8PgmRomBank = GetBank( (pmThis->m_ui8Load >> 4) & 0b0001, pmThis->m_sOuterPgmRomSize, 256 * 1024 );
 							break;
 						}
@@ -698,19 +714,7 @@ namespace lsn {
 						ui8Val = (pmThis->m_ui8Load & 0b01111);
 					}
 					pmThis->m_prPgmBank.bPgmRamEnable = !(pmThis->m_ui8Load & 0b10000);
-					if ( pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ||
-						
-						pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ||
-						pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SUROM ||
-						pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ||
-						
-						pmThis->m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
-						pmThis->m_bRamEnabled = pmThis->GetRamEnabled();
-					}
-					else if ( pmThis->m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && pmThis->m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END ) {
-						pmThis->m_bRamEnabled = pmThis->m_prPgmBank.bPgmRamEnable;
-					}
-
+					pmThis->m_bRamEnabled = pmThis->GetRamEnabled();
 					
 
 					uint8_t ui8PgmMode = (pmThis->m_ui8Control >> 2) & 0b11;
