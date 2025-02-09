@@ -837,43 +837,45 @@ namespace lsn {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
-				if ( IsAvx512FSupported() ) {
+				if ( IsAvx512BWSupported() ) {
 					while ( _ui32Width >= 16 ) {
 						LinearSample_AVX512( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 16;
-						if ( !_ui32Width ) { return; }
+						//if ( !_ui32Width ) { return; }
 						_pui32SrcRow0 += 16;
 						_pui32SrcRow1 += 16;
 						_pui32DstRow += 16;
 					}
+					goto NoSimd;
 				}
 
 				if ( IsAvx2Supported() ) {
 					while ( _ui32Width >= 8 ) {
 						LinearSample_AVX2( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 8;
-						if ( !_ui32Width ) { return; }
+						//if ( !_ui32Width ) { return; }
 						_pui32SrcRow0 += 8;
 						_pui32SrcRow1 += 8;
 						_pui32DstRow += 8;
 					}
+					goto NoSimd;
 				}
 
 				if ( IsSse4Supported() ) {
 					while ( _ui32Width >= 4 ) {
 						LinearSample_SSE4( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 4;
-						if ( !_ui32Width ) { return; }
+						//if ( !_ui32Width ) { return; }
 						_pui32SrcRow0 += 4;
 						_pui32SrcRow1 += 4;
 						_pui32DstRow += 4;
 					}
 				}
-
+			NoSimd :
 				while ( _ui32Width >= 2 ) {
 					(*reinterpret_cast<uint64_t *>(_pui32DstRow)) = LinearSample_Int64( (*reinterpret_cast<const uint64_t *>(_pui32SrcRow0)), (*reinterpret_cast<const uint64_t *>(_pui32SrcRow1)), _ui32Factor );
 					_ui32Width -= 2;
-					if ( !_ui32Width ) { return; }
+					//if ( !_ui32Width ) { return; }
 					_pui32SrcRow0 += 2;
 					_pui32SrcRow1 += 2;
 					_pui32DstRow += 2;

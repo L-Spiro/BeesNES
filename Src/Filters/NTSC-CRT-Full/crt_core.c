@@ -460,7 +460,7 @@ vsync_found:
         cR = cL + pitch;
 
         for (pos = scanL; pos < scanR && cL < cR; pos += dx) {
-            int y, i, q;
+            int y, I, q;
             int r, g, b;
             int bb;
 
@@ -473,13 +473,13 @@ vsync_found:
             
             /* interpolate between samples if needed */
             y = ((yiqA->y * L) >>  2) + ((yiqB->y * R) >>  2);
-            i = ((yiqA->i * L) >> 14) + ((yiqB->i * R) >> 14);
+            I = ((yiqA->i * L) >> 14) + ((yiqB->i * R) >> 14);
             q = ((yiqA->q * L) >> 14) + ((yiqB->q * R) >> 14);
             
             /* YIQ to RGB */
-            r = (((y + 3879 * i + 2556 * q) >> 12) * v->contrast) >> 8;
-            g = (((y - 1126 * i - 2605 * q) >> 12) * v->contrast) >> 8;
-            b = (((y - 4530 * i + 7021 * q) >> 12) * v->contrast) >> 8;
+            r = (((y + 3879 * I + 2556 * q) >> 12) * v->contrast) >> 8;
+            g = (((y - 1126 * I - 2605 * q) >> 12) * v->contrast) >> 8;
+            b = (((y - 4530 * I + 7021 * q) >> 12) * v->contrast) >> 8;
 
 #define LSN_DECAY_HACK
 

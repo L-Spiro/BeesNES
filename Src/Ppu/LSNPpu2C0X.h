@@ -33,6 +33,8 @@
 //#define LSN_GEN_PPU
 
 #ifdef LSN_GEN_PPU
+#include "../Utilities/LSNUtilities.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -1414,7 +1416,7 @@ namespace lsn {
 		 * \param _ui16Addr The address from which to read.  Reading may not happen from this address under certain conditions.
 		 * \return Returns the value at the given address or the value at V.addr.
 		 **/
-		template <bool _bFromCpu = false>
+		template <bool _bFromCpu = false, bool _bDebug = false>
 		inline uint8_t									Read( uint16_t _ui16Addr ) {
 			int16_t i16AdjustedX = m_ui16CurX;
 			int16_t i16AdjustedY = m_ui16CurY;
@@ -1425,13 +1427,13 @@ namespace lsn {
 			}
 			if ( m_bRendering &&
 				((i16AdjustedY >= 0 && i16AdjustedY < (_tPreRender + _tRender)) || (i16AdjustedY == _tDotHeight - 1)) ) {
-				m_ui16LastBusAddr = _ui16Addr;
+				if constexpr ( _bDebug ) { m_ui16LastBusAddr = _ui16Addr; }
 				if ( _ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( _ui16Addr );
 				}
 				return m_bBus.Read( _ui16Addr );
 			}
-			m_ui16LastBusAddr = m_paPpuAddrV.ui16Addr;
+			if constexpr ( _bDebug ) { m_ui16LastBusAddr = m_paPpuAddrV.ui16Addr; }
 			if constexpr ( !_bFromCpu ) {
 				if ( m_paPpuAddrV.ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( m_paPpuAddrV.ui16Addr );
@@ -1924,8 +1926,10 @@ namespace lsn {
 				{
 					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
 						sRet += "\r\n"
-						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+						"if ( m_bRendering ) {\r\n"
+						"	// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+						"	m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n"
+						"}\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
 #if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
@@ -2022,12 +2026,12 @@ namespace lsn {
 			}
 
 			// Background processing (1-256, 321-336).
+			sRet += "\r\n"
+			"if ( m_bRendering ) {\r\n";
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 				// Load background data.
 				{
-					sRet += "\r\n"
-					"if ( m_bRendering ) {\r\n";
 					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
 						sRet += "\r\n"
 						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
@@ -2077,8 +2081,6 @@ namespace lsn {
 						sRet += "\r\n"
 						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
 					}
-					sRet +=	
-					"}\r\n";
 				}
 			}
 
@@ -2140,16 +2142,12 @@ namespace lsn {
 				if ( (_uX - LSN_LEFT) % 8 == 7 ) {
 					sRet += "\r\n"
 					"// Increase v.H.\r\n"
-					"if ( m_bRendering ) {\r\n"
-					"	IncHorizontal();\r\n"
-					"}\r\n";
+					"IncHorizontal();\r\n";
 				}
 				if ( _uX == LSN_RIGHT - 1 ) {
 					sRet += "\r\n"
 					"// Increase v.V.\r\n"
-					"if ( m_bRendering ) {\r\n"
-					"	IncVertical();\r\n"
-					"}\r\n";
+					"IncVertical();\r\n";
 				}
 			}
 
@@ -2157,21 +2155,20 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX == LSN_RIGHT) ) {
 				sRet += "\r\n"
-				"if ( m_bRendering ) {\r\n"
-				"	m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;\r\n"
-				"	m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;\r\n"
-				"}\r\n";
+				"m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;\r\n"
+				"m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;\r\n";
 			}
 
 			// Copy vertical T into V.
 			if ( (_uY == _tDotHeight - 1) && (_uX >= 280 && _uX < 305) ) {
 				sRet += "\r\n"
-				"if ( m_bRendering ) {\r\n"
-				"	m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;\r\n"
-				"	m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;\r\n"
-				"	m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;\r\n"
-				"}\r\n";
+				"m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;\r\n"
+				"m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;\r\n"
+				"m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;\r\n";
 			}
+
+			sRet +=	
+			"}\r\n";
 
 			// Swap render targets.
 			if ( _uY == ui61RenderHeight && _uX == (1 + _tRenderW) ) {
@@ -2184,8 +2181,8 @@ namespace lsn {
 				"					for ( uint16_t ui16TileX = 0; ui16TileX < 16; ++ui16TileX ) {\r\n"
 				"						uint16_t ui16Offset = ui16TileY * 256 + ui16TileX * 16;\r\n"
 				"						for ( uint16_t ui16Row = 0; ui16Row < 8; ++ui16Row ) {\r\n"
-				"							uint8_t ui8TileLsb = Read( 0x1000 * I + ui16Offset + ui16Row + 0 );\r\n"
-				"							uint8_t ui8TileMsb = Read( 0x1000 * I + ui16Offset + ui16Row + 8 );\r\n"
+				"							uint8_t ui8TileLsb = Read<false, true>( 0x1000 * I + ui16Offset + ui16Row + 0 );\r\n"
+				"							uint8_t ui8TileMsb = Read<false, true>( 0x1000 * I + ui16Offset + ui16Row + 8 );\r\n"
 				"							for ( uint16_t ui16Col = 0; ui16Col < 8; ++ui16Col ) {\r\n"
 				"								uint8_t ui8Pixel = (ui8TileLsb & 0x01) + (ui8TileMsb & 0x01);\r\n"
 				"								ui8TileLsb >>= 1;\r\n"
@@ -2260,6 +2257,9 @@ namespace lsn {
 					"++m_ui64Frame;\r\n";
 				}
 			}
+
+			// Remove empty if(){} blocks.
+			sRet = CUtilities::Replace( sRet, std::string( "if ( m_bRendering ) {\r\n" "}\r\n" ), std::string() );
 
 			return sRet;
 #undef LSN_DUMMY_BEGIN

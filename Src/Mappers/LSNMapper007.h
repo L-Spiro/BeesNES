@@ -69,7 +69,7 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_8000, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
 
 
@@ -111,7 +111,7 @@ namespace lsn {
 			 *	   |  +++- Select 32 KB PRG ROM bank for CPU $8000-$FFFF
 			 *	   +------ Select 1 KB VRAM page for all 4 nametables
 			 */
-			pmThis->SetPgmBank<0, 0x8000>( _ui8Val & 0b0111 );
+			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b0111 );
 			switch ( _ui8Val & 0b10000 ) {
 				case 0b10000 : {
 					pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
