@@ -2088,7 +2088,7 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX >= LSN_RIGHT && _uX < LSN_NEXT_TWO) ) {
 				{
-					// This has 2 pttern fetches instead of a pattern fetch and then an attribute fetch.
+					// This has 2 pattern fetches instead of a pattern fetch and then an attribute fetch.
 					// It also sets OAMADDR to 0.
 					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
 						sRet += "\r\n"
@@ -2110,7 +2110,7 @@ namespace lsn {
 						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );	// Garbage fetches (257-320).\r\n";
 					}
 					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
-#if 0					// Makin this a do-nothing reduces the number of unique functions, improving performance.
+#if 0					// Making this a do-nothing reduces the number of unique functions, improving performance.
 						sRet += "\r\n"
 						"m_ui8OamAddr = 0;\r\n"
 						"/*m_ui8NextTileId = */m_ui8NtAtBuffer;\r\n";

@@ -355,9 +355,9 @@ namespace lsn {
 	 * \param _pmmiInfo The min/max info structure to fill out.
 	 * \return Returns an LSW_HANDLED code.
 	 **/
-	CWidget::LSW_HANDLED CPatchWindow::GetMinMaxInfo( MINMAXINFO * /*_pmmiInfo*/ ) {
-		return LSW_H_CONTINUE;
-		/*LONG lLeft = 100;
+	CWidget::LSW_HANDLED CPatchWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
+		//return LSW_H_CONTINUE;
+		LONG lLeft = 100;
 		if ( m_pwParent ) {
 			auto aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
 			if ( aTmp ) {
@@ -372,8 +372,9 @@ namespace lsn {
 			lLeft += 130;
 		}
 		_pmmiInfo->ptMinTrackSize.x = lLeft;
-		_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
-		return LSW_H_HANDLED;*/
+		//_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
+		_pmmiInfo->ptMinTrackSize.y = m_rStartingRect.Height();
+		return LSW_H_HANDLED;
 	}
 
 	/**

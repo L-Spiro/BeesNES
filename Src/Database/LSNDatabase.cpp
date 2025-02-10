@@ -30,7 +30,7 @@ namespace lsn {
 			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
 			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },*/
 			// Super Mario Bros. (World)
-			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALM },
+			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALN },
 
 			// Super Mario Bros (E)
 			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
@@ -370,7 +370,7 @@ namespace lsn {
 			// Mega Man (Europe)
 			{ .ui32Crc = 0x94476A70, .pmRegion = LSN_PM_PAL },
 			// Mega Man 2 (E) [!]
-			{ .ui32Crc = 0xA6638CBA, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xA6638CBA, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Mega Man 4 (E)
 			{ .ui32Crc = 0x1B932BEA, .pmRegion = LSN_PM_PAL },
 			// Metal Fighter (Asia) (Sachen) (Unl)
@@ -396,7 +396,7 @@ namespace lsn {
 			// M.U.L.E. (U)
 			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Muppet Adventure - Chaos at the Carnival (U)
-			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC },
+			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// NFL Football (U)
 			{ .ui32Crc = 0x35B6FEBF, .pmRegion = LSN_PM_NTSC },
 			// NES Open Tournament Golf (Europe)
@@ -444,7 +444,7 @@ namespace lsn {
 			// Rackets & Rivals (E) [!]
 			{ .ui32Crc = 0x7F60BF49, .pmRegion = LSN_PM_PAL },
 			// Rad Racer (E)
-			{ .ui32Crc = 0x654F4E90, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x654F4E90, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Rainbow Islands - The Story of Bubble Bobble 2 (E) [!]
 			{ .ui32Crc = 0xAE71768E, .pmRegion = LSN_PM_PAL },
 			// RC Pro-Am (E) (PRG 0)
@@ -822,6 +822,10 @@ namespace lsn {
 			{ .ui32Crc = 0xD770C1A9, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Kid Icarus (USA, Europe)
 			{ .ui32Crc = 0xD9F0749F, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Kid Niki - Radical Ninja (U) (PRG 0)
+			{ .ui32Crc = 0x8192D2E7, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+			// Kid Niki - Radical Ninja (U) (PRG 1) [!]
+			{ .ui32Crc = 0xA9415562, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Knight Rider (U)
 			{ .ui32Crc = 0xE5F49166, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SC1ROM },
 			// Kujaku Ou (Japan)
@@ -854,6 +858,8 @@ namespace lsn {
 			{ .ui32Crc = 0x9EEF47AA, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SCROM },
 			// Meitantei Holmes - M kara no Chousenjou (Japan)
 			{ .ui32Crc = 0x0A73A792, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+			// Mega Man 2 (U)
+			{ .ui32Crc = 0x0FCFC04D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Metroid (USA)
 			{ .ui32Crc = 0x70080810, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Mezase Pachi Pro - Pachio-kun (Japan)
@@ -896,12 +902,19 @@ namespace lsn {
 			{ .ui32Crc = 0x1E9EBB00, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Perfect Bowling (Japan)
 			{ .ui32Crc = 0x10327E0E, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
+			// Phantom Fighter (U)
+			{ .ui32Crc = 0xCC37094C, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// President no Sentaku (Japan)
 			{ .ui32Crc = 0x4640EBE0, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Princess Tomato in Salad Kingdom (U)
+			{ .ui32Crc = 0x56756615, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Pro Yakyuu Satsujin Jiken! (Japan)
 			{ .ui32Crc = 0xC9484BB3, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Qix (U)
 			{ .ui32Crc = 0x95E4E594, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Rad Racer (U)
+			{ .ui32Crc = 0x8B9D3E9C, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+
 			// RC Pro-Am (U) (PRG 1)
 			{ .ui32Crc = 0x82CFDE25, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },			
 			// Rollerball (Japan)
