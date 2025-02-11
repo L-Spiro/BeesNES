@@ -647,6 +647,7 @@ namespace lsn {
 			return ui64Ag | ui64Rb;
 		}
 
+#ifdef __SSE4_1__
 		/**
 		 * 128-bit integer-based linear interpolation between 2 sets of 4 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 * 
@@ -656,7 +657,6 @@ namespace lsn {
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
 		static LSN_FORCEINLINE void							LinearSample_SSE4( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
-#ifdef __SSE4_1__
 			__m128i mA					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32A) );
 			__m128i mB					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32B) );
 
@@ -700,9 +700,10 @@ namespace lsn {
 			__m128i mResult				= _mm_or_si128( mRbResult, mAgResult );
 
 			_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui32Result), mResult );
-#endif	// #ifdef __SSE4_1__
 		}
+#endif	// #ifdef __SSE4_1__
 
+#ifdef __AVX2__
 		/**
 		 * 256-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 * 
@@ -712,7 +713,7 @@ namespace lsn {
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
 		static LSN_FORCEINLINE void							LinearSample_AVX2( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
-#ifdef __AVX2__
+
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -750,9 +751,10 @@ namespace lsn {
 
 			// Store the result.
 			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
-#endif	// #ifdef __AVX2__
 		}
+#endif	// #ifdef __AVX2__
 
+#ifdef __AVX512F__
 		/**
 		 * 512-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 * 
@@ -762,7 +764,7 @@ namespace lsn {
 		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
 		 **/
 		static LSN_FORCEINLINE void							LinearSample_AVX512( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
-#ifdef __AVX512F__
+
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -800,8 +802,8 @@ namespace lsn {
 
 			// Store the result.
 			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
-#endif	// #ifdef __AVX512F__
 		}
+#endif	// #ifdef __AVX512F__
 
 		/**
 		 * Performs integer-based linear interpolation across a row of ARGB pixels.
@@ -837,6 +839,7 @@ namespace lsn {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
+#ifdef __AVX512F__
 				if ( IsAvx512BWSupported() ) {
 					while ( _ui32Width >= 16 ) {
 						LinearSample_AVX512( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
@@ -848,7 +851,8 @@ namespace lsn {
 					}
 					goto NoSimd;
 				}
-
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX2__
 				if ( IsAvx2Supported() ) {
 					while ( _ui32Width >= 8 ) {
 						LinearSample_AVX2( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
@@ -860,7 +864,8 @@ namespace lsn {
 					}
 					goto NoSimd;
 				}
-
+#endif	// #ifdef __AVX2__
+#ifdef __SSE4_1__
 				if ( IsSse4Supported() ) {
 					while ( _ui32Width >= 4 ) {
 						LinearSample_SSE4( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
@@ -871,6 +876,7 @@ namespace lsn {
 						_pui32DstRow += 4;
 					}
 				}
+#endif	// #ifdef __SSE4_1__
 			NoSimd :
 				while ( _ui32Width >= 2 ) {
 					(*reinterpret_cast<uint64_t *>(_pui32DstRow)) = LinearSample_Int64( (*reinterpret_cast<const uint64_t *>(_pui32SrcRow0)), (*reinterpret_cast<const uint64_t *>(_pui32SrcRow1)), _ui32Factor );

@@ -256,6 +256,12 @@
     <Filter Include="Source Files\Windows\Patch">
       <UniqueIdentifier>{183b18e4-67dd-44bf-967a-724576f0067e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\Audio">
+      <UniqueIdentifier>{81ab3c26-5f06-41ac-8739-1bc2d00361b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Audio">
+      <UniqueIdentifier>{06863381-3f29-44b9-a3cd-3d6c86fa7561}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -852,6 +858,9 @@
     <ClInclude Include="Src\System\LSNBussable.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h">
+      <Filter>Header Files\Windows\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1183,6 +1192,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindow.cpp">
       <Filter>Source Files\Windows\Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp">
+      <Filter>Source Files\Windows\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

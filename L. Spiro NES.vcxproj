@@ -1891,6 +1891,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerConfigurePage.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerSetupWindow.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerSetupWindowLayout.h" />
@@ -2004,6 +2005,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNControllerConfigurePage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNControllerSetupWindow.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNControllerSetupWindowLayout.cpp" />

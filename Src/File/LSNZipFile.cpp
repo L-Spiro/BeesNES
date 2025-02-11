@@ -195,8 +195,6 @@ namespace lsn {
 				if ( !GatherArchiveFiles( vZips, u".zip" ) ) {
 					return false;
 				}
-				//auto aFullPath = _u16PathTo;
-				size_t sInitialSize = _vResult.size();
 				for ( size_t I = 0; I < vZips.size(); ++I ) {
 					CZipFile zfTmp;
 					std::vector<uint8_t> vTmp;
