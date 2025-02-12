@@ -44,9 +44,10 @@ namespace lsn {
 		 * Creates the page.
 		 *
 		 * \param _pwParent the parent of the page.
-		 * \return Returns the created widget.
+		 * \param _oOptions A reference to the options object.
+		 * \return Returns TRUE if the dialog was created successfully.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent );
+		static BOOL								CreateAudioOptionsDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
 
 	protected :

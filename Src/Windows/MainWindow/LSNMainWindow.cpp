@@ -23,6 +23,7 @@
 #include "../../Input/LSNDirectInput8.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Audio/LSNAudioOptionsWindowLayout.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
 #include "../Patch/LSNPatchWindowLayout.h"
@@ -458,6 +459,10 @@ namespace lsn {
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
 				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_AUDIO : {
+				CAudioOptionsWindowLayout::CreateAudioOptionsDialog( this, m_bnEmulator.Options() );
 				break;
 			}
 		}

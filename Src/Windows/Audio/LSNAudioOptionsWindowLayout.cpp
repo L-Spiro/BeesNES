@@ -18,25 +18,25 @@
 
 namespace lsn {
 
-#define LSN_AUDIO_OPTIONS_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 200 + LSN_LEFT_JUST + LSN_LEFT_JUST)
+#define LSN_AUDIO_OPTIONS_W									(LSN_LEFT_JUST + LSN_LEFT_JUST + 500 + LSN_LEFT_JUST + LSN_LEFT_JUST)
 #define LSN_AUDIO_OPTIONS_H									(50 + 150 + 20)
 
 	// == Members.
 	/** The layout for the template window. */
 	LSW_WIDGET_LAYOUT CAudioOptionsWindowLayout::m_wlPage[] = {
 		{
-			LSN_LT_INPUT_DIALOG,					// ltType
+			LSN_LT_AUDIO_OPTIONS_DIALOG,			// ltType
 			LSN_AOWI_MAINWINDOW,					// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			0,										// iLeft
 			0,										// iTop
-			LSN_AUDIO_OPTIONS_W,							// dwWidth
-			LSN_AUDIO_OPTIONS_H,							// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
-			nullptr,								// pwcText
+			LSN_AUDIO_OPTIONS_W,					// dwWidth
+			LSN_AUDIO_OPTIONS_H,					// dwHeight
+			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS ),			// pwcText
 			0,										// sTextLen
 			LSN_AOWI_NONE,							// dwParentId
 
@@ -58,15 +58,21 @@ namespace lsn {
 	 * Creates the page.
 	 *
 	 * \param _pwParent the parent of the page.
-	 * \return Returns the created widget.
+	 * \param _oOptions A reference to the options object.
+	 * \return Returns TRUE if the dialog was created successfully.
 	 */
-	CWidget * CAudioOptionsWindowLayout::CreatePage( CWidget * _pwParent ) {
+	BOOL CAudioOptionsWindowLayout::CreateAudioOptionsDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPage, LSN_ELEMENTS( m_wlPage ), _pwParent, 0 );
-		if ( pwWidget ) {
+		/*CInputWindow::LSN_CONTROLLER_SETUP_DATA csdData = {
+			.poOptions = &_oOptions,
+			.pmwMainWindow = _pmwMainWindow,
+		};*/
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlPage, LSN_ELEMENTS( m_wlPage ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
+			return TRUE;
 		}
-		return pwWidget;
+		return FALSE;
 	}
 
 }	// namespace lsn

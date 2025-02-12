@@ -861,6 +861,9 @@
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h">
       <Filter>Header Files\Windows\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h">
+      <Filter>Header Files\Windows\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1194,6 +1197,9 @@
       <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp">
+      <Filter>Source Files\Windows\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindow.cpp">
       <Filter>Source Files\Windows\Audio</Filter>
     </ClCompile>
   </ItemGroup>

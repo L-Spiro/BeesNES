@@ -31,6 +31,7 @@
 #define LSN_VIDEO_FILTER													Video &Filter
 #define LSN_INPUT															&Input
 #define LSN_VIDEO															&Video
+#define LSN_AUDIO															&Audio
 // Video sizes.
 #define LSN_VIDEO_SIZE_1X													1×
 #define LSN_VIDEO_SIZE_2X													2×
@@ -121,6 +122,9 @@
 #define LSN_STATUS															Status
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
+
+// Audio Options.
+#define LSN_AUDIO_OPTIONS													Audio Options
 
 // Patcher.
 #define LSN_PATCH_PATCH_ROM													Patch a ROM

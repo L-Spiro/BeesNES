@@ -9,6 +9,7 @@
  */
 
 #include "LSNLayoutManager.h"
+#include "../Audio/LSNAudioOptionsWindow.h"
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
@@ -45,7 +46,9 @@ namespace lsn {
 			case LSN_LT_STD_CONTROLLER_PAGE : {
 				return new CStdControllerPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
-
+			case LSN_LT_AUDIO_OPTIONS_DIALOG : {
+				return new CAudioOptionsWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
 			case LSN_LT_PATCH_DIALOG : {
 				return new CPatchWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}

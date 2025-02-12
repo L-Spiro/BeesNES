@@ -134,6 +134,7 @@ namespace lsn {
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_INPUT,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_INPUT ) },
 		{ FALSE,		LSN_MWMI_VIDEO,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO ) },
+		{ FALSE,		LSN_MWMI_AUDIO,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_AUDIO ) },
 	};
 
 	/** Tools menu. */

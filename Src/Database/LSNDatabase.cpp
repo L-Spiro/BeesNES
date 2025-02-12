@@ -88,7 +88,9 @@ namespace lsn {
 			// Air Fortress (Europe)
 			{ .ui32Crc = 0x991CBDF2, .pmRegion = LSN_PM_PAL },
 			// Airwolf (Europe)
-			{ .ui32Crc = 0xF71A9931, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xF71A9931, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SHROM },
+			// Airwolf (U)
+			{ .ui32Crc = 0xAA174BC6, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SH1ROM },
 			// Aladdin (Europe)
 			{ .ui32Crc = 0x41D32FD7, .pmRegion = LSN_PM_PAL },
 			// Alpha Mission (Europe)
@@ -233,6 +235,8 @@ namespace lsn {
 			{ .ui32Crc = 0x0B5667E9, .pmRegion = LSN_PM_PAL },
 			// F-1 Sensation (E) [!]
 			{ .ui32Crc = 0xA369AA0F, .pmRegion = LSN_PM_PAL },
+			// Family Feud (U)
+			{ .ui32Crc = 0x26F2B268, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SHROM },
 			// Faxanadu (Europe)
 			{ .ui32Crc = 0x76C161E3, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Ferrari Grand Prix Challenge (Europe)
@@ -289,6 +293,8 @@ namespace lsn {
 			{ .ui32Crc = 0x407B7EEB, .pmRegion = LSN_PM_PAL },
 			// Ice Hockey (Europe)
 			{ .ui32Crc = 0xCCCC1034, .pmRegion = LSN_PM_PAL },
+			// Igo - Kyuu Roban Taikyoku (Japan)
+			{ .ui32Crc = 0xB37F48CD, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SIROM },
 			// Ikari Warriors (E)
 			{ .ui32Crc = 0x538218B2, .pmRegion = LSN_PM_PAL },
 			// IkariInternational Cricket (E) [!]
@@ -337,6 +343,8 @@ namespace lsn {
 			{ .ui32Crc = 0x7002FE8D, .pmRegion = LSN_PM_PAL },
 			// Lion King, The (Europe)
 			{ .ui32Crc = 0x89984244, .pmRegion = LSN_PM_PAL },
+			// Lipple Island (Japan)
+			{ .ui32Crc = 0xA38857EB, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Little Nemo - The Dream Master (E)
 			{ .ui32Crc = 0x5A2D1ABF, .pmRegion = LSN_PM_PAL },
 			// Little Ninja Brothers (E)
@@ -413,6 +421,10 @@ namespace lsn {
 			{ .ui32Crc = 0x725B0234, .pmRegion = LSN_PM_PAL },
 			// Noah's Ark (E)
 			{ .ui32Crc = 0xB99085CE, .pmRegion = LSN_PM_PAL },
+
+			// Nintendo - NTF2 System Cartridge (USA)
+			{ .ui32Crc = 0xAF8F7059, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B1H, .pcPcbClass = LSN_PC_SIROM },
+
 			// Operation Wolf (Europe)
 			{ .ui32Crc = 0x54C34223, .pmRegion = LSN_PM_PAL },
 			// Over Horizon (E) [!]
@@ -451,6 +463,8 @@ namespace lsn {
 			{ .ui32Crc = 0xE5A972BE, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
 			// RC Pro-Am (E) (PRG 1)
 			{ .ui32Crc = 0x2DBDDD11, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
+			// Reigen Doushi (Japan)
+			{ .ui32Crc = 0x0021ED29, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Rescue - The Embassy Mission (E) [!]
 			{ .ui32Crc = 0x7EEF2338, .pmRegion = LSN_PM_PAL },
 			// Retrocoders - Years behind
@@ -459,12 +473,28 @@ namespace lsn {
 			{ .ui32Crc = 0x3AB1E983, .pmRegion = LSN_PM_NTSC },
 			// Road Fighter (E) [!]
 			{ .ui32Crc = 0xF51C7D02, .pmRegion = LSN_PM_PAL },
+			// Robin Hood - Prince of Thieves (Germany)
+			{ .ui32Crc = 0xD49DCA84, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+			// Robin Hood - Prince of Thieves (Scandinavia)
+			{ .ui32Crc = 0xB67D16F6, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+			// Robin Hood - Prince of Thieves (Spain)
+			{ .ui32Crc = 0xFD21F54D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+			// Robin Hood - Prince of Thieves (U)
+			{ .ui32Crc = 0x86B0D1CF, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },	// Cool music.
 			// Robocop (E) [!]
 			{ .ui32Crc = 0x2706B3A1, .pmRegion = LSN_PM_PAL },
+			// Rocket Ranger (U) [!]
+			{ .ui32Crc = 0x67F77118, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+			// Rocketeer, The (U)
+			{ .ui32Crc = 0x1D6DECCC, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SGROM },
+			// Rockman 2 - Dr. Wily no Nazo (Japan)
+			{ .ui32Crc = 0x6150517C, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Rod Land (E) [!]
 			{ .ui32Crc = 0x22AB9694, .pmRegion = LSN_PM_PAL },
 			// Rollerball (Australia)
 			{ .ui32Crc = 0x954C5ACB, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
+			// Romancia (Japan)
+			{ .ui32Crc = 0xCF9CF7A2, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SGROM },	// Cool music.  TODO: Bad CHR after intro?
 			// Rush'n Attack (E)
 			{ .ui32Crc = 0xE0AC6242, .pmRegion = LSN_PM_PAL },
 			// Rush'n Attack (U)
@@ -473,6 +503,8 @@ namespace lsn {
 			{ .ui32Crc = 0x8F197B0A, .pmRegion = LSN_PM_PAL },
 			// Qi Wang - Chinese Chess (Asia) (Unl)
 			{ .ui32Crc = 0x0744648C, .pmRegion = LSN_PM_PAL },
+			// Salad no Kuni no Tomato Hime (Japan)
+			{ .ui32Crc = 0x016C93D8, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// San Guo Zhi - Qun Xiong Zheng Ba (Asia) (Unl)
 			{ .ui32Crc = 0x81E8992C, .pmRegion = LSN_PM_PAL },
 			// Sesame Street ABC (U) [a1]/// Sesame Street ABC (U) [a2]
@@ -487,12 +519,16 @@ namespace lsn {
 			{ .ui32Crc = 0x04D6B4F6, .pmRegion = LSN_PM_PAL },
 			// Shatterhand (E) [!]
 			{ .ui32Crc = 0x97E2B312, .pmRegion = LSN_PM_PAL },
+			// Shikinjou (Japan)
+			{ .ui32Crc = 0x9B53F848, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Silent Service (E)
 			{ .ui32Crc = 0xFA014BA1, .pmRegion = LSN_PM_PAL },
 			// Simpsons - Bart Vs the Space Mutants, The (E) [!]
 			{ .ui32Crc = 0xBB2E87AA, .pmRegion = LSN_PM_PAL },
 			// Skate or Die! (E) [!]
 			{ .ui32Crc = 0x66EBDB64, .pmRegion = LSN_PM_PAL },
+			// Sky Kid (U)
+			{ .ui32Crc = 0xAD7F9480, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SHROM },
 			// Slalom (E)
 			{ .ui32Crc = 0x8A65BAFF, .pmRegion = LSN_PM_PAL },
 			// Smash TV (E) [!]
@@ -511,6 +547,10 @@ namespace lsn {
 			{ .ui32Crc = 0x3067E376, .pmRegion = LSN_PM_PAL },
 			// Solstice (E) [!]
 			{ .ui32Crc = 0x7CB0D70D, .pmRegion = LSN_PM_PAL },
+			// Space Harrier (Japan)
+			{ .ui32Crc = 0x43539A3C, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+			// Space Shuttle Project (U)
+			{ .ui32Crc = 0x2220E14A, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Spy Vs Spy (E) [!]
 			{ .ui32Crc = 0xDC719391, .pmRegion = LSN_PM_PAL },
 			// Star Wars (E)
@@ -521,6 +561,8 @@ namespace lsn {
 			{ .ui32Crc = 0x632EDF4E, .pmRegion = LSN_PM_PAL },
 			// Street Gangs (E)
 			{ .ui32Crc = 0x30A174AC, .pmRegion = LSN_PM_PAL },
+			// Strider (U)
+			{ .ui32Crc = 0x02EE3706, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },	// Cool music.
 			// Super Cartridge Ver 6 - 6 in 1 (Asia) (Unl)
 			{ .ui32Crc = 0xA08C46F5, .pmRegion = LSN_PM_PAL },
 			// Super Mario Bros. + Duck Hunt (Europe)
@@ -543,8 +585,12 @@ namespace lsn {
 			{ .ui32Crc = 0x36002ED2, .pmRegion = LSN_PM_PAL },
 			// Swords and Serpents (E) [!]
 			{ .ui32Crc = 0xD153CAF6, .pmRegion = LSN_PM_PAL },
+			// Taiyou no Shinden (Japan)
+			{ .ui32Crc = 0x50CCDA33, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// TaleSpin (E) [!]
 			{ .ui32Crc = 0x29C15923, .pmRegion = LSN_PM_PAL },
+			// Tecmo Baseball (U)
+			{ .ui32Crc = 0xAD12A34F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Tecmo World Wrestling (E)
 			{ .ui32Crc = 0x790D2916, .pmRegion = LSN_PM_PAL },
 			// Teenage Mutant Hero Turtles (E)
@@ -562,7 +608,9 @@ namespace lsn {
 			// Tiger-Heli (E) [!]
 			{ .ui32Crc = 0x7925EC62, .pmRegion = LSN_PM_PAL },
 			// Time Lord (E)
-			{ .ui32Crc = 0x9198279E, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x9198279E, .pmRegion = LSN_PM_PAL },			
+			// Tombs and Treasure (U)
+			{ .ui32Crc = 0x50D296B3, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Top Gun - The Second Mission (E)
 			{ .ui32Crc = 0xBCEA2BA6, .pmRegion = LSN_PM_PAL },
 			// Top Gun (E) [!]
@@ -583,6 +631,8 @@ namespace lsn {
 			{ .ui32Crc = 0x75B9C0DB, .pmRegion = LSN_PM_PAL },
 			// Ufouria (E)
 			{ .ui32Crc = 0x0E0C4221, .pmRegion = LSN_PM_PAL },
+			// Win, Lose or Draw (U)
+			{ .ui32Crc = 0xF74DFC91, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// window_old_pal
 			{ .ui32Crc = 0xD1806D48, .pmRegion = LSN_PM_PAL },
 			// window2_pal
@@ -672,6 +722,10 @@ namespace lsn {
 			{ .ui32Crc = 0x79D8C39D, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
 			// Aoki Ookami to Shiroki Mejika - Genghis Khan (Japan)
 			{ .ui32Crc = 0xFB69743A, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SOROM },
+
+			// Artelius (Japan)
+			{ .ui32Crc = 0xEBAC24E9, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SJROM },
+
 			// Bad Street Brawler (USA)
 			{ .ui32Crc = 0x1AE7B933, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Baken Hisshou Gaku - Gate In (Japan)
@@ -720,6 +774,10 @@ namespace lsn {
 			{ .ui32Crc = 0x3F56A392, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Casino Derby (Japan)
 			{ .ui32Crc = 0xE44001D8, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+
+			// Daisenryaku (Japan)
+			{ .ui32Crc = 0x53A94738, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SJROM },
+
 			// Dance Aerobics (U)
 			{ .ui32Crc = 0xD836A90B, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SBROM },
 			// Defender of the Crown (U)
@@ -812,6 +870,10 @@ namespace lsn {
 			{ .ui32Crc = 0x18D44BBA, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Jesus - Kyoufu no Bio Monster (Japan)
 			{ .ui32Crc = 0x0DC53188, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+
+			// Jumbo Ozaki no Hole in One Professional (Japan)
+			{ .ui32Crc = 0xFB26FF02, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SJROM },
+
 			// Kaettekita! Gunjin Shougi - Nanya Sore! (Japan)
 			{ .ui32Crc = 0xE74AA15A, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Kaguya Hime Densetsu (Japan)
@@ -868,6 +930,10 @@ namespace lsn {
 			{ .ui32Crc = 0x09C1FC7D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Momotarou Densetsu (Japan)
 			{ .ui32Crc = 0xB5576820, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+
+			// Money Game, The (Japan)
+			{ .ui32Crc = 0x8CE9C87B, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SJROM },	// TODO: Does nothing.
+
 			// Monopoly (Japan)
 			{ .ui32Crc = 0x86759C0F, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SGROM },
 			// Monster Maker - 7 Tsu no Hihou (Japan)
@@ -914,7 +980,6 @@ namespace lsn {
 			{ .ui32Crc = 0x95E4E594, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Rad Racer (U)
 			{ .ui32Crc = 0x8B9D3E9C, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
-
 			// RC Pro-Am (U) (PRG 1)
 			{ .ui32Crc = 0x82CFDE25, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },			
 			// Rollerball (Japan)
@@ -1015,6 +1080,8 @@ namespace lsn {
 			{ .ui32Crc = 0x7AE0BF3C, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Zoids 2 - Zenebas no Gyakushuu (Japan)
 			{ .ui32Crc = 0x89E085FE, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+			// Zombie Hunter (Japan)
+			{ .ui32Crc = 0xC35E8D34, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SJROM },
 
 
 
