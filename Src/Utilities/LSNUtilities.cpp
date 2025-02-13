@@ -55,10 +55,10 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		if ( _pbErrored != nullptr ) { (*_pbErrored) = true; }
 		std::u16string wsOutput;
-		int iLen = ::MultiByteToWideChar( CP_UTF8, MB_ERR_INVALID_CHARS, reinterpret_cast<LPCCH>(_pcString), -1, reinterpret_cast<LPWSTR>(wsOutput.data()), static_cast<int>(wsOutput.size()) );
+		int iLen = ::MultiByteToWideChar( CP_UTF8, 0/*MB_ERR_INVALID_CHARS*/, reinterpret_cast<LPCCH>(_pcString), -1, reinterpret_cast<LPWSTR>(wsOutput.data()), static_cast<int>(wsOutput.size()) );
 		if ( iLen <= 0 ) { return wsOutput; }
 		wsOutput.resize( iLen + 10 );	// Pretty sure it doesn't have to be + 10; + 1 would probably be fine but an example on MSDN uses + 10 so meh, let's just go with it.
-		iLen = ::MultiByteToWideChar( CP_UTF8, MB_ERR_INVALID_CHARS, reinterpret_cast<LPCCH>(_pcString), -1, reinterpret_cast<LPWSTR>(wsOutput.data()), static_cast<int>(wsOutput.size()) );
+		iLen = ::MultiByteToWideChar( CP_UTF8, 0/*MB_ERR_INVALID_CHARS*/, reinterpret_cast<LPCCH>(_pcString), -1, reinterpret_cast<LPWSTR>(wsOutput.data()), static_cast<int>(wsOutput.size()) );
 		if ( iLen <= 0 ) {
 			wsOutput.clear();
 			return wsOutput;
@@ -90,10 +90,10 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		if ( _pbErrored != nullptr ) { (*_pbErrored) = true; }
 		std::string sOutput;
-		int iLen = ::WideCharToMultiByte( CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
+		int iLen = ::WideCharToMultiByte( CP_UTF8, 0/*WC_ERR_INVALID_CHARS*/, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
 		if ( iLen <= 0 ) { return sOutput; }
 		sOutput.resize( iLen + 10 );
-		iLen = ::WideCharToMultiByte( CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
+		iLen = ::WideCharToMultiByte( CP_UTF8, 0/*WC_ERR_INVALID_CHARS*/, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
 		if ( iLen <= 0 ) {
 			sOutput.clear();
 			return sOutput;
