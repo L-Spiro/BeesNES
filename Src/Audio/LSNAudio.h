@@ -15,6 +15,7 @@
 #include "LSNAudioBase.h"
 #include "LSNAudioCoreAudio.h"
 #include "LSNAudioOpenAl.h"
+#include "LSNAudioOptions.h"
 #include "LSNSampleBox.h"
 
 #include <thread>
@@ -87,9 +88,16 @@ namespace lsn {
 		 * 
 		 * \param _fFormat The new output format.
 		 **/
-		static void											SetOutputFormat( CAudioBase::LSN_FORMAT _fFormat ) {
+		static void											SetOutputFormat( LSN_AUDIO_FORMAT _fFormat ) {
 			m_adAudioDevice.SetOutputFormat( _fFormat );
 		}
+
+		/**
+		 * Sets all output settings.
+		 * 
+		 * \param _aoSettings The new settings to apply.
+		 **/
+		static void											SetOutputSettings( const LSN_AUDIO_OPTIONS &_aoSettings );
 
 		/**
 		 *  6-point, 5th-order Hermite Z-form sampling.
@@ -109,6 +117,7 @@ namespace lsn {
 		 */
 		static inline float									Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac );
 
+#ifdef __AVX__
 		/**
 		 * 6-point, 5th-order Hermite X-form sampling.
 		 *
@@ -126,7 +135,9 @@ namespace lsn {
 			const float * _pfsSamples4, const float * _pfsSamples5,
 			const float * _pfFrac,
 			float * _pfOut );
+#endif	// #ifdef __AVX__
 
+#ifdef __SSE4_1__
 		/**
 		 * 6-point, 5th-order Hermite X-form sampling.
 		 *
@@ -144,6 +155,7 @@ namespace lsn {
 			const float * _pfsSamples4, const float * _pfsSamples5,
 			const float * _pfFrac,
 			float * _pfOut );
+#endif	// #ifdef __SSE4_1__
 
 		/**
 		 * 4-point, 2nd-order parabolic 2x x-form sampling.
@@ -154,6 +166,7 @@ namespace lsn {
 		 */
 		static inline float									Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac );
 
+#ifdef __AVX__
 		/**
 		 * 4-point, 2nd-order parabolic 2x x-form sampling.
 		 *
@@ -171,7 +184,9 @@ namespace lsn {
 			const float * _pfsSamples4, const float * _pfsSamples5,
 			const float * _pfFrac,
 			float * _pfOut );
+#endif	// #ifdef __AVX__
 
+#ifdef __SSE4_1__
 		/**
 		 * 4-point, 2nd-order parabolic 2x x-form sampling.
 		 *
@@ -189,6 +204,7 @@ namespace lsn {
 			const float * _pfsSamples4, const float * _pfsSamples5,
 			const float * _pfFrac,
 			float * _pfOut );
+#endif	// #ifdef __SSE4_1__
 
 		/**
 		 * 6-point, 4th-order optimal 2x z-form sampling.
@@ -242,11 +258,11 @@ namespace lsn {
 		/** The audio interface object. */
 		static CAudioDevice									m_adAudioDevice;
 		/** The audio thread. */
-		static std::unique_ptr<std::thread>					m_ptAudioThread;
+		//static std::unique_ptr<std::thread>					m_ptAudioThread;
 		/** Boolean to stop the audio thread. */
-		static std::atomic<bool>							m_bRunThread;
+		//static std::atomic<bool>							m_bRunThread;
 		/** The signal that the thread has finished. */
-		static CEvent										m_eThreadClosed;
+		//static CEvent										m_eThreadClosed;
 		/** The sample box for band-passed output. */
 		static CSampleBox									m_sbSampleBox;
 

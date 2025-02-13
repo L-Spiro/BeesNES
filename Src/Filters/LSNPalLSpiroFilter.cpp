@@ -271,6 +271,32 @@ namespace lsn {
 			pfSignals += m_ui16PixelToSignal;
 		}
 
+		// Add noise.
+		pfSignals = pfSignalStart;
+		float * pfSignalEnd = pfSignals + LSN_PM_PAL_RENDER_WIDTH * m_ui16PixelToSignal;
+#ifdef __AVX512F__
+		if ( CUtilities::IsAvx512FSupported() ) {
+			while ( pfSignals < pfSignalEnd ) {
+				__m512 vNoise = _mm512_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m512 vSig = _mm512_loadu_ps( pfSignals );
+				vSig = _mm512_add_ps( vSig, vNoise );
+				_mm512_storeu_ps( pfSignals, vSig );
+				pfSignals += 16;
+			}
+		}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			while ( pfSignals < pfSignalEnd ) {
+				__m256 vNoise = _mm256_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m256 vSig = _mm256_loadu_ps( pfSignals );
+				vSig = _mm256_add_ps( vSig, vNoise );
+				_mm256_storeu_ps( pfSignals, vSig );
+				pfSignals += 8;
+			}
+		}
+#endif	// #ifdef __AVX__
+
 		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;

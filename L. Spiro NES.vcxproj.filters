@@ -864,6 +864,9 @@
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h">
       <Filter>Header Files\Windows\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNAudioOptions.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -977,9 +980,6 @@
     <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp">
       <Filter>Source Files\BeesNES</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.c">
-      <Filter>Source Files\Filters\NTSC-CRT-Full</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_nes.c">
       <Filter>Source Files\Filters\NTSC-CRT-Full</Filter>
     </ClCompile>
@@ -1011,9 +1011,6 @@
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal.c">
-      <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.c">
       <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c">
@@ -1201,6 +1198,12 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindow.cpp">
       <Filter>Source Files\Windows\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.cpp">
+      <Filter>Source Files\Filters\NTSC-CRT-Full</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.cpp">
+      <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

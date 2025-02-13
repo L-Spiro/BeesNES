@@ -1,17 +1,47 @@
 /*****************************************************************************/
 /*
- * NTSC/CRT - integer-only NTSC video signal encoding / decoding emulation
- * 
+ * PAL/CRT - integer-only PAL video signal encoding / decoding emulation
+ *
  *   by EMMIR 2018-2023
- *   
+ *
+ *   GitHub : https://github.com/LMP88959/PAL-CRT
  *   YouTube: https://www.youtube.com/@EMMIR_KC/videos
  *   Discord: https://discord.com/invite/hdYctSmyQJ
  */
 /*****************************************************************************/
-#include "crt_core.h"
+
+#include "pal_core.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+#if defined( _MSC_VER )
+    // Microsoft Visual Studio Compiler.
+    #define LSN_ALN								__declspec( align( 64 ) )
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( x ) [[likely]]
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( x ) [[unlikely]]
+	#endif	// #ifndef LSN_UNLIKELY
+#elif defined( __GNUC__ ) || defined( __clang__ )
+    // GNU Compiler Collection (GCC) or Clang.
+    #define LSN_ALN								__attribute__( (aligned( 64 )) )
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( __builtin_expect( !!(x), 1 ) )
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( __builtin_expect( !!(x), 0 ) )
+	#endif	// #ifndef LSN_UNLIKELY
+    #define __assume( x )
+#else
+    #ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( x )
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( x )
+	#endif	// #ifndef LSN_UNLIKELY
+#endif
 
 /* ensure negative values for x get properly modulo'd */
 #define POSMOD(x, n)     (((x) % (n) + (n)) % (n))
@@ -40,7 +70,7 @@ sintabil8(int n)
 
 /* 14-bit interpolated sine/cosine */
 extern void
-crt_sincos14_full(int *s, int *c, int n)
+pal_sincos14(int *s, int *c, int n)
 {
     int h;
     
@@ -61,16 +91,16 @@ crt_sincos14_full(int *s, int *c, int n)
 }
 
 extern int
-crt_bpp4fmt(int format)
+pal_bpp4fmt(int format)
 {
     switch (format) {
-        case CRT_PIX_FORMAT_RGB: 
-        case CRT_PIX_FORMAT_BGR: 
+        case PAL_PIX_FORMAT_RGB: 
+        case PAL_PIX_FORMAT_BGR: 
             return 3;
-        case CRT_PIX_FORMAT_ARGB:
-        case CRT_PIX_FORMAT_RGBA:
-        case CRT_PIX_FORMAT_ABGR:
-        case CRT_PIX_FORMAT_BGRA:
+        case PAL_PIX_FORMAT_ARGB:
+        case PAL_PIX_FORMAT_RGBA:
+        case PAL_PIX_FORMAT_ABGR:
+        case PAL_PIX_FORMAT_BGRA:
             return 4;
         default:
             return 0;
@@ -94,7 +124,7 @@ crt_bpp4fmt(int format)
  */
 static struct EQF {
     int h[7];
-} eqY, eqI, eqQ;
+} eqY, eqU, eqV;
 
 /* params unused to keep the function the same */
 static void
@@ -155,7 +185,7 @@ static struct EQF {
     int fL[4];
     int fH[4];
     int h[HISTLEN]; /* history */
-} eqY, eqI, eqQ;
+} eqY, eqU, eqV;
 
 /* f_lo - low cutoff frequency
  * f_hi - high cutoff frequency
@@ -175,14 +205,14 @@ init_eq(struct EQF *f,
     f->g[1] = g_mid;
     f->g[2] = g_hi;
     
-    crt_sincos14_full(&sn, &cs, T14_PI * f_lo / rate);
-    if (EQ_P >= 15) {
+    pal_sincos14(&sn, &cs, T14_PI * f_lo / rate);
+    if constexpr (EQ_P >= 15) {
         f->lf = 2 * (sn << (EQ_P - 15));
     } else {
         f->lf = 2 * (sn >> (15 - EQ_P));
     }
-    crt_sincos14_full(&sn, &cs, T14_PI * f_hi / rate);
-    if (EQ_P >= 15) {
+    pal_sincos14(&sn, &cs, T14_PI * f_hi / rate);
+    if constexpr (EQ_P >= 15) {
         f->hf = 2 * (sn << (EQ_P - 15));
     } else {
         f->hf = 2 * (sn >> (15 - EQ_P));
@@ -233,7 +263,7 @@ eqf(struct EQF *f, int s)
 /*****************************************************************************/
 
 extern void
-crt_resize_full(struct CRT *v, int w, int h, int f, unsigned char *out)
+pal_resize(struct PAL_CRT *v, int w, int h, int f, unsigned char *out)
 {    
     v->outw = w;
     v->outh = h;
@@ -242,9 +272,8 @@ crt_resize_full(struct CRT *v, int w, int h, int f, unsigned char *out)
 }
 
 extern void
-crt_reset_full(struct CRT *v)
+pal_reset(struct PAL_CRT *v)
 {
-    v->hue = 0;
     v->saturation = 10;
     v->brightness = 0;
     v->contrast = 180;
@@ -255,22 +284,22 @@ crt_reset_full(struct CRT *v)
 }
 
 extern void
-crt_init_full(struct CRT *v, int w, int h, int f, unsigned char *out)
+pal_init(struct PAL_CRT *v, int w, int h, int f, unsigned char *out)
 {
-    memset(v, 0, sizeof(struct CRT));
-    crt_resize_full(v, w, h, f, out);
-    crt_reset_full(v);
+    memset(v, 0, sizeof(struct PAL_CRT));
+    pal_resize(v, w, h, f, out);
+    pal_reset(v);
     v->rn = 194;
     
     /* kilohertz to line sample conversion */
-#define kHz2L(kHz) (CRT_HRES * (kHz * 100) / L_FREQ)
+#define kHz2L(kHz) (PAL_HRES * (kHz * 100) / L_FREQ)
     
     /* band gains are pre-scaled as 16-bit fixed point
      * if you change the EQ_P define, you'll need to update these gains too
      */
-    init_eq(&eqY, kHz2L(1500), kHz2L(3000), CRT_HRES, 65536, 8192, 9175);
-    init_eq(&eqI, kHz2L(80),   kHz2L(1150), CRT_HRES, 65536, 65536, 1311);
-    init_eq(&eqQ, kHz2L(80),   kHz2L(1000), CRT_HRES, 65536, 65536, 0);
+    init_eq(&eqY, kHz2L(1890), kHz2L(3320), PAL_HRES, 65536, 8192, 9175);
+    init_eq(&eqU, kHz2L(80),   kHz2L(1320), PAL_HRES, 65536, 65536, 1311);
+    init_eq(&eqV, kHz2L(80),   kHz2L(1320), PAL_HRES, 65536, 65536, 1311);
 }
 
 /* search windows, in samples */
@@ -278,11 +307,11 @@ crt_init_full(struct CRT *v, int w, int h, int f, unsigned char *out)
 #define VSYNC_WINDOW 6
 
 extern void
-crt_demodulate_full(struct CRT *v, int noise)
+pal_demodulate(struct PAL_CRT *c, int noise)
 {
     struct {
-        int y, i, q;
-    } out[AV_LEN + 1], *yiqA, *yiqB;
+        int y, u, v;
+    } outbuf[AV_LEN + 16], *out = outbuf + 8, *yuvA, *yuvB;
     int i, j = 0, line = 0, rn;
     signed char *sig;
     int s = 0;
@@ -290,34 +319,30 @@ crt_demodulate_full(struct CRT *v, int noise)
     int *ccr; /* color carrier signal */
     int huesn, huecs;
     int xnudge = -3, ynudge = 3;
-    int bright = v->brightness - (BLACK_LEVEL + v->black_point);
+    int bright = c->brightness - (BLACK_LEVEL + c->black_point);
     int bpp, pitch;
-#if CRT_DO_BLOOM
+#if PAL_DO_BLOOM
     int prev_e; /* filtered beam energy per scan line */
     int max_e; /* approx maximum energy in a scan line */
 #endif
     
-    bpp = crt_bpp4fmt(v->out_format);
-    if (bpp == 0) {
+    bpp = pal_bpp4fmt(c->out_format);
+    if LSN_UNLIKELY(bpp == 0) {
         return;
     }
-    pitch = v->outw * bpp;
+    pitch = c->outw * bpp;
     
-    crt_sincos14_full(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
-    huesn >>= 11; /* make 4-bit */
-    huecs >>= 11;
-
-    rn = v->rn;
-    for (i = 0; i < CRT_INPUT_SIZE; i++) {
+    rn = c->rn;
+    for (i = 0; i < PAL_INPUT_SIZE; i++) {
         rn = (214019 * rn + 140327895);
 
         /* signal + noise */
-        s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
-        if (s >  127) { s =  127; }
-        if (s < -127) { s = -127; }
-        v->inp[i] = s;
+        s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
+        if LSN_UNLIKELY(s >  127) { s =  127; }
+        if LSN_UNLIKELY(s < -127) { s = -127; }
+        c->inp[i] = s;
     }
-    v->rn = rn;
+    c->rn = rn;
 
     /* Look for vertical sync.
      * 
@@ -329,102 +354,123 @@ crt_demodulate_full(struct CRT *v, int noise)
      * the noise in the signal.
      */
     for (i = -VSYNC_WINDOW; i < VSYNC_WINDOW; i++) {
-        line = POSMOD(v->vsync + i, CRT_VRES);
-        sig = v->inp + line * CRT_HRES;
+        line = POSMOD(c->vsync + i, PAL_VRES);
+        sig = c->inp + line * PAL_HRES;
         s = 0;
-        for (j = 0; j < CRT_HRES; j++) {
+        for (j = 0; j < PAL_HRES; j++) {
             s += sig[j];
             /* increase the multiplier to make the vsync
              * more stable when there is a lot of noise
              */
-            if (s <= (94 * SYNC_LEVEL)) {
+            if LSN_UNLIKELY(s <= (125 * SYNC_LEVEL)) {
                 goto vsync_found;
             }
         }
     }
 vsync_found:
-#if CRT_DO_VSYNC
-    v->vsync = line; /* vsync found (or gave up) at this line */
+#if PAL_DO_VSYNC
+    c->vsync = line; /* vsync found (or gave up) at this line */
 #else
-    v->vsync = -3;
+    c->vsync = -3;
 #endif
     /* if vsync signal was in second half of line, odd field */
-    field = (j > (CRT_HRES / 2));
-#if CRT_DO_BLOOM
+    field = (j > (PAL_HRES / 2));
+
+#if PAL_DO_BLOOM
     max_e = (128 + (noise / 2)) * AV_LEN;
     prev_e = (16384 / 8);
 #endif
     /* ratio of output height to active video lines in the signal */
-    ratio = (v->outh << 16) / CRT_LINES;
+    ratio = (c->outh << 16) / PAL_LINES;
     ratio = (ratio + 32768) >> 16;
     
     field = (field * (ratio / 2));
 
-    for (line = CRT_TOP; line < CRT_BOT; line++) {
+    for (line = PAL_TOP; line < PAL_BOT; line++) {
         unsigned pos, ln;
         int scanL, scanR, dx;
         int L, R;
         unsigned char *cL, *cR;
         int wave[4];
-        int dci, dcq; /* decoded I, Q */
+        int dcu, dcv; /* decoded U, V */
         int xpos, ypos;
         int beg, end;
         int phasealign;
-#if CRT_DO_BLOOM
+        int odd;
+#if PAL_DO_BLOOM
         int line_w;
 #endif
   
-        beg = (line - CRT_TOP + 0) * (v->outh + v->v_fac) / CRT_LINES + field;
-        end = (line - CRT_TOP + 1) * (v->outh + v->v_fac) / CRT_LINES + field;
+        beg = (line - PAL_TOP + 0) * (c->outh + c->v_fac) / PAL_LINES + field;
+        end = (line - PAL_TOP + 1) * (c->outh + c->v_fac) / PAL_LINES + field;
 
-        if (beg >= v->outh) { continue; }
-        if (end > v->outh) { end = v->outh; }
+        if LSN_UNLIKELY(beg >= c->outh) { continue; }
+        if (end > c->outh) { end = c->outh; }
 
         /* Look for horizontal sync.
          * See comment above regarding vertical sync.
          */
-        ln = (POSMOD(line + v->vsync, CRT_VRES)) * CRT_HRES;
-        sig = v->inp + ln + v->hsync;
+        ln = (POSMOD(line + c->vsync, PAL_VRES)) * PAL_HRES;
+        sig = c->inp + ln + c->hsync;
+
         s = 0;
         for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
             s += sig[SYNC_BEG + i];
-            if (s <= (4 * SYNC_LEVEL)) {
+            if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL)) {
                 break;
             }
         }
-#if CRT_DO_HSYNC
-        v->hsync = POSMOD(i + v->hsync, CRT_HRES);
+#if PAL_DO_HSYNC
+        c->hsync = POSMOD(i + c->hsync, PAL_HRES);
 #else
-        v->hsync = 0;
+        c->hsync = 0;
 #endif
         
-        xpos = POSMOD(AV_BEG + v->hsync + xnudge, CRT_HRES);
-        ypos = POSMOD(line + v->vsync + ynudge, CRT_VRES);
-        pos = xpos + ypos * CRT_HRES;
+        xpos = POSMOD(AV_BEG + c->hsync + xnudge, PAL_HRES);
+        ypos = POSMOD(line + c->vsync + ynudge, PAL_VRES);
+        pos = xpos + ypos * PAL_HRES;
         
-        ccr = v->ccf[ypos % v->cc_period];
-        sig = v->inp + ln + (v->hsync & ~3); /* burst @ 1/CB_FREQ sample rate */
-        for (i = CB_BEG; i < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); i++) {
+        sig = c->inp + ln + c->hsync;
+        odd = 0; /* PAL switch, odd line has SYNC in breezeway, even is blank */
+        s = 0;
+        for (i = 0; i < 8; i++) {
+            s += sig[BW_BEG + i];
+            if (s <= (4 * SYNC_LEVEL)) {
+                odd = 1;
+                break;
+            }
+        }
+        ccr = c->ccf[ypos % c->cc_period];
+        sig = c->inp + ln + (c->hsync & ~3);
+        for (i = CB_BEG; i < CB_BEG + (CB_CYCLES * PAL_CB_FREQ); i++) {
             int p, n;
             p = ccr[i & 3] * 127 / 128; /* fraction of the previous */
             n = sig[i];                 /* mixed with the new sample */
             ccr[i & 3] = p + n;
         }
  
-        phasealign = POSMOD(v->hsync, 4);
+        phasealign = POSMOD(c->hsync, 4);
 
+        if (!odd) {
+            phasealign -= 1;
+        }
+        odd = odd ? -1 : 1;
+
+        pal_sincos14(&huesn, &huecs, 90 * 8192 / 180 - OFFSET_25Hz(line));
+        huesn >>= 7; /* make 8-bit */
+        huecs >>= 7;
+        
         /* amplitude of carrier = saturation, phase difference = hue */
-        dci = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
-        dcq = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
+        dcu = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
+        dcv = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
 
-        /* rotate them by the hue adjustment angle */
-        wave[0] = ((dci * huecs - dcq * huesn) >> 4) * v->saturation;
-        wave[1] = ((dcq * huecs + dci * huesn) >> 4) * v->saturation;
+        wave[0] = ((dcu * huecs - dcv * huesn) >> 8) * c->saturation;
+        wave[1] = ((dcv * huecs + dcu * huesn) >> 8) * c->saturation;
         wave[2] = -wave[0];
         wave[3] = -wave[1];
-        
-        sig = v->inp + pos;
-#if CRT_DO_BLOOM
+       
+        sig = c->inp + pos;
+#if PAL_DO_BLOOM
         s = 0;
         for (i = 0; i < AV_LEN; i++) {
             s += sig[i]; /* sum up the scan line */
@@ -433,82 +479,91 @@ vsync_found:
         prev_e = (prev_e * 123 / 128) + ((((max_e >> 1) - s) << 10) / max_e);
         line_w = (AV_LEN * 112 / 128) + (prev_e >> 9);
 
-        dx = (line_w << 12) / v->outw;
+        dx = (line_w << 12) / c->outw;
         scanL = ((AV_LEN / 2) - (line_w >> 1) + 8) << 12;
         scanR = (AV_LEN - 1) << 12;
         
         L = (scanL >> 12);
         R = (scanR >> 12);
 #else
-        dx = ((AV_LEN - 1) << 12) / v->outw;
+        dx = ((AV_LEN - 1) << 12) / c->outw;
         scanL = 0;
         scanR = (AV_LEN - 1) << 12;
         L = 0;
         R = AV_LEN;
 #endif
         reset_eq(&eqY);
-        reset_eq(&eqI);
-        reset_eq(&eqQ);
+        reset_eq(&eqU);
+        reset_eq(&eqV);
         
         for (i = L; i < R; i++) {
+            int dmU, dmV;
+            int ou, ov;
+
+            dmU = sig[i] * wave[(i + 0) & 3];
+            dmV = sig[i] * wave[(i + 3) & 3] * odd;
+            if LSN_LIKELY(c->chroma_correction) {
+                static struct { int u, v; } delay_line[AV_LEN + 1];
+                ou = dmU;
+                ov = dmV;
+                dmU = (delay_line[i].u + dmU) / 2;
+                dmV = (delay_line[i].v + dmV) / 2;
+                delay_line[i].u = ou;
+                delay_line[i].v = ov;
+            }
             out[i].y = eqf(&eqY, sig[i] + bright) << 4;
-            out[i].i = eqf(&eqI, sig[i] * wave[(i + 0) & 3] >> 9) >> 3;
-            out[i].q = eqf(&eqQ, sig[i] * wave[(i + 3) & 3] >> 9) >> 3;
+            out[i + c->chroma_lag].u = eqf(&eqU, dmU >> 9) >> 3;
+            out[i + c->chroma_lag].v = eqf(&eqV, dmV >> 9) >> 3;
         }
 
-        cL = v->out + (beg * pitch);
+        cL = c->out + (beg * pitch);
         cR = cL + pitch;
 
         for (pos = scanL; pos < scanR && cL < cR; pos += dx) {
-            int y, I, q;
+            int y, u, v;
             int r, g, b;
-            int bb;
+            int aa, bb;
 
             R = pos & 0xfff;
             L = 0xfff - R;
             s = pos >> 12;
             
-            yiqA = out + s;
-            yiqB = out + s + 1;
+            yuvA = out + s;
+            yuvB = out + s + 1;
             
             /* interpolate between samples if needed */
-            y = ((yiqA->y * L) >>  2) + ((yiqB->y * R) >>  2);
-            I = ((yiqA->i * L) >> 14) + ((yiqB->i * R) >> 14);
-            q = ((yiqA->q * L) >> 14) + ((yiqB->q * R) >> 14);
-            
-            /* YIQ to RGB */
-            r = (((y + 3879 * I + 2556 * q) >> 12) * v->contrast) >> 8;
-            g = (((y - 1126 * I - 2605 * q) >> 12) * v->contrast) >> 8;
-            b = (((y - 4530 * I + 7021 * q) >> 12) * v->contrast) >> 8;
+            y = ((yuvA->y * L) >>  2) + ((yuvB->y * R) >>  2);
+            u = ((yuvA->u * L) >> 14) + ((yuvB->u * R) >> 14);
+            v = ((yuvA->v * L) >> 14) + ((yuvB->v * R) >> 14);
 
-#define LSN_DECAY_HACK
+            /* YUV to RGB */
+            r = (((y + 4669 * v) >> 12) * c->contrast) >> 8;
+            g = (((y - 1622 * u - 2380 * v) >> 12) * c->contrast) >> 8;
+            b = (((y + 8311 * u) >> 12) * c->contrast) >> 8;
 
-            if (r < 0) r = 0;
-            if (g < 0) g = 0;
-            if (b < 0) b = 0;
-#ifndef LSN_DECAY_HACK
-            if (r > 255) r = 255;
-            if (g > 255) g = 255;
-            if (b > 255) b = 255;
-#endif
-            
-#ifndef LSN_DECAY_HACK
-            if (v->blend) {
+            if LSN_UNLIKELY(r < 0) r = 0;
+            if LSN_UNLIKELY(g < 0) g = 0;
+            if LSN_UNLIKELY(b < 0) b = 0;
+            if LSN_UNLIKELY(r > 255) r = 255;
+            if LSN_UNLIKELY(g > 255) g = 255;
+            if LSN_UNLIKELY(b > 255) b = 255;
+
+            if LSN_LIKELY(c->blend) {
                 aa = (r << 16 | g << 8 | b);
 
-                switch (v->out_format) {
-                    case CRT_PIX_FORMAT_RGB:
-                    case CRT_PIX_FORMAT_RGBA:
+                switch (c->out_format) {
+                    case PAL_PIX_FORMAT_RGB:
+                    case PAL_PIX_FORMAT_RGBA:
                         bb = cL[0] << 16 | cL[1] << 8 | cL[2];
                         break;
-                    case CRT_PIX_FORMAT_BGR: 
-                    case CRT_PIX_FORMAT_BGRA:
+                    case PAL_PIX_FORMAT_BGR: 
+                    case PAL_PIX_FORMAT_BGRA:
                         bb = cL[2] << 16 | cL[1] << 8 | cL[0];
                         break;
-                    case CRT_PIX_FORMAT_ARGB:
+                    case PAL_PIX_FORMAT_ARGB:
                         bb = cL[1] << 16 | cL[2] << 8 | cL[3];
                         break;
-                    case CRT_PIX_FORMAT_ABGR:
+                    case PAL_PIX_FORMAT_ABGR:
                         bb = cL[3] << 16 | cL[2] << 8 | cL[1];
                         break;
                     default:
@@ -522,25 +577,31 @@ vsync_found:
                 bb = (r << 16 | g << 8 | b);
             }
 
-            switch (v->out_format) {
-                case CRT_PIX_FORMAT_RGB:
-                case CRT_PIX_FORMAT_RGBA:
+#ifdef _WIN32
+			cL[0] = bb >>  0 & 0xff;
+            cL[1] = bb >>  8 & 0xff;
+            cL[2] = bb >> 16 & 0xff;
+#else 
+
+            switch (c->out_format) {
+                case PAL_PIX_FORMAT_RGB:
+                case PAL_PIX_FORMAT_RGBA:
                     cL[0] = bb >> 16 & 0xff;
                     cL[1] = bb >>  8 & 0xff;
                     cL[2] = bb >>  0 & 0xff;
                     break;
-                case CRT_PIX_FORMAT_BGR: 
-                case CRT_PIX_FORMAT_BGRA:
+                case PAL_PIX_FORMAT_BGR: 
+                case PAL_PIX_FORMAT_BGRA:
                     cL[0] = bb >>  0 & 0xff;
                     cL[1] = bb >>  8 & 0xff;
                     cL[2] = bb >> 16 & 0xff;
                     break;
-                case CRT_PIX_FORMAT_ARGB:
+                case PAL_PIX_FORMAT_ARGB:
                     cL[1] = bb >> 16 & 0xff;
                     cL[2] = bb >>  8 & 0xff;
                     cL[3] = bb >>  0 & 0xff;
                     break;
-                case CRT_PIX_FORMAT_ABGR:
+                case PAL_PIX_FORMAT_ABGR:
                     cL[1] = bb >>  0 & 0xff;
                     cL[2] = bb >>  8 & 0xff;
                     cL[3] = bb >> 16 & 0xff;
@@ -548,41 +609,13 @@ vsync_found:
                 default:
                     break;
             }
-
-#else
-            if (v->blend) {
-                int sr, sg, sb;
-                
-                bb = *(int *)cL;
-
-                sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
-                sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
-                sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);
-                
-                if (sr > 255) sr = 255;
-                if (sg > 255) sg = 255;
-                if (sb > 255) sb = 255;
-                
-                //*cL++ = (sr << 16 | sg << 8 | sb);
-                cL[0] = (unsigned char)sb;
-                cL[1] = (unsigned char)sg;
-                cL[2] = (unsigned char)sr;
-            } else {
-                if (r > 255) r = 255;
-                if (g > 255) g = 255;
-                if (b > 255) b = 255;
-                //*cL = (r << 16 | g << 8 | b);
-                cL[0] = (unsigned char)b;
-                cL[1] = (unsigned char)g;
-                cL[2] = (unsigned char)r;
-            }
-#endif  // #ifndef LSN_DECAY_HACK
-            cL += bpp;
+#endif	// #ifdef _WIN32
+			cL += bpp;
         }
         
         /* duplicate extra lines */
-        for (s = beg + 1; s < (end - v->scanlines); s++) {
-            memcpy(v->out + s * pitch, v->out + (s - 1) * pitch, pitch);
+        for (s = beg + 1; s < (end - c->scanlines); s++) {
+            memcpy(c->out + s * pitch, c->out + (s - 1) * pitch, pitch);
         }
     }
 }

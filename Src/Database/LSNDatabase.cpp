@@ -86,7 +86,9 @@ namespace lsn {
 			// Adventures of Rad Gravity, The (Europe)
 			{ .ui32Crc = 0xE4C1A245, .pmRegion = LSN_PM_PAL },
 			// Air Fortress (Europe)
-			{ .ui32Crc = 0x991CBDF2, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x991CBDF2, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SJROM },
+			// Air Fortress (U)
+			{ .ui32Crc = 0xFBAAB554, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SJROM },
 			// Airwolf (Europe)
 			{ .ui32Crc = 0xF71A9931, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SHROM },
 			// Airwolf (U)
@@ -164,7 +166,9 @@ namespace lsn {
 			// Championship Rally (Europe)
 			{ .ui32Crc = 0x10B4CE4D, .pmRegion = LSN_PM_PAL },
 			// Chessmaster, The (Europe)
-			{ .ui32Crc = 0x64C97986, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x64C97986, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SJROM },
+			// Chessmaster, The (USA)
+			{ .ui32Crc = 0x3484AB0C, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SJROM },
 			// Chester Field - Ankoku Shin e no Chousen (Japan)
 			{ .ui32Crc = 0x6C70A17B, .pmRegion = LSN_PM_NTSC },
 			// Chevaliers du Zodiaque, Les - La Legende d'Or (France)
@@ -395,6 +399,12 @@ namespace lsn {
 			{ .ui32Crc = 0xF2A43A8A, .pmRegion = LSN_PM_PAL },
 			// Mind Blower Pak (Australia) (Unl)
 			{ .ui32Crc = 0xE7933763, .pmRegion = LSN_PM_PAL },
+			// Miracle Piano Teaching System, The (France)
+			{ .ui32Crc = 0x4DA4D863, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SJROM },
+			// Miracle Piano Teaching System, The (Germany)
+			{ .ui32Crc = 0xC19B77F5, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SJROM },
+			// Miracle Piano Teaching System, The (U)
+			{ .ui32Crc = 0x3349BA0E, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SJROM },
 			// Mission Impossible (E) [!]
 			{ .ui32Crc = 0x71BAECEC, .pmRegion = LSN_PM_PAL },
 			// Monster in My Pocket (E)

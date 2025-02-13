@@ -25,11 +25,13 @@
 #include <immintrin.h>
 #endif	// #ifdef LSN_WINDOWS
 
-#define LSN_CPU_SLOT											0
-#define LSN_PPU_SLOT											1
+// Slots are sorted for performance.  Since the PPU is fastest, checking for it first makes the other cases less likely, because their times then not only have to be less than the global tick count but also less than the PPU's tick count.
+// Because the other cases become less likely, we can add meaningful branch-prediction signals to the compiler.
+#define LSN_PPU_SLOT											0
+#define LSN_CPU_SLOT											1
 #define LSN_APU_SLOT											2
-#define LSN_CPU_PHI2_SLOT										3
-#define LSN_PPU_PHI2_SLOT										4
+#define LSN_PPU_PHI2_SLOT										3
+#define LSN_CPU_PHI2_SLOT										4
 #define LSN_SLOTS												5
 
 #pragma warning( push )
@@ -58,13 +60,13 @@ namespace lsn {
 			m_aApu( &m_bBus, &m_cCpu ) {
 			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
 				// PHI1.
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv, LSN_PPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
 				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv, LSN_APU_SLOT },
 
 				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
 			};
 			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
 
@@ -146,7 +148,7 @@ namespace lsn {
 		void											Tick() {
 			m_ui64TickCount++;
 			uint64_t ui64CurRealTime = m_cClock.GetRealTick();
-			if ( !m_bPaused ) {
+			if LSN_LIKELY( !m_bPaused ) {
 				uint64_t ui64Diff = ui64CurRealTime - m_ui64LastRealTime;
 				m_ui64AccumTime += ui64Diff;
 				{
@@ -165,22 +167,22 @@ namespace lsn {
 #if 1
 					size_t sCheckedSlot;
 					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
-					// CPU slot.
+					// PPU slot.
 					size_t sTmp = m_sSlotsToCheck[0];
-					if ( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
+					if LSN_LIKELY( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
 						phsSlot = &m_hsSlots[sTmp];
 						ui64Low = phsSlot->ui64Counter;
 						sCheckedSlot = 0;
 					}
-					// PPU slot.
+					// CPU slot.
 					sTmp = m_sSlotsToCheck[1];
-					if ( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter && m_hsSlots[sTmp].ui64Counter <= ui64Low ) {
+					if LSN_UNLIKELY( m_hsSlots[sTmp].ui64Counter <= ui64Low && m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
 						phsSlot = &m_hsSlots[sTmp];
 						ui64Low = phsSlot->ui64Counter;
 						sCheckedSlot = 1;
 					}
 					// By assuming the APU is not divided into PHI1 and PHI2 we can save just a bit of time here.
-					if ( m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
+					if LSN_UNLIKELY( m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low && m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
 						//	as well as the pointer-access ("phsSlot").

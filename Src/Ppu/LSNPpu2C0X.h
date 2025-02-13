@@ -148,9 +148,9 @@ namespace lsn {
 
 			
 #ifndef LSN_USE_PHI2
-			if ( LSN_UNLIKELY( m_bVAddrPending ) ) {
+			if LSN_UNLIKELY( m_bVAddrPending ) {
 				//__assume( 0 );
-				if ( LSN_UNLIKELY( --m_ui8VAddrUpdateCounter == 0 ) ) {
+				if LSN_UNLIKELY( --m_ui8VAddrUpdateCounter == 0 ) {
 					//__assume( 0 );
 					m_bVAddrPending = false;
 					if ( m_bRendering && m_ui16CurY < (_tPreRender + _tRender) ) {
@@ -192,7 +192,7 @@ namespace lsn {
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
 
-			if ( LSN_UNLIKELY( m_bUpdateVramAddr ) ) {
+			if LSN_UNLIKELY( m_bUpdateVramAddr ) {
 				//__assume( 0 );
 				UpdateVramAddr();
 				m_bUpdateVramAddr = false;

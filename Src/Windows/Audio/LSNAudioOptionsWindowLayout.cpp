@@ -36,7 +36,7 @@ namespace lsn {
 			LSN_AUDIO_OPTIONS_H,					// dwHeight
 			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS ),			// pwcText
+			LSN_LSTR( LSN_AUDIO_OPTIONS_ ),			// pwcText
 			0,										// sTextLen
 			LSN_AOWI_NONE,							// dwParentId
 

@@ -91,7 +91,7 @@ namespace lsn {
 		 * 
 		 * \param _fFormat The new format to set.
 		 **/
-		virtual void										UndirtyFormat( const LSN_FORMAT &_fFormat );
+		virtual void										UndirtyFormat( const LSN_AUDIO_FORMAT &_fFormat );
 
 		/**
 		 * Unqueues a buffer by index.
@@ -168,7 +168,7 @@ namespace lsn {
 		 * \param _fFormat The format descriptor.
 		 * \return Returns the OpenAL enum that represents _fFormat.
 		 **/
-		static ALenum										FormatToEnum( const LSN_FORMAT &_fFormat );
+		static ALenum										FormatToEnum( const LSN_AUDIO_FORMAT &_fFormat );
 
 
 	private :

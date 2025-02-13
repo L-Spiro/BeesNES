@@ -25,6 +25,8 @@ namespace lsn {
 		m_ui32RecentLimit( 13 * 4 ) {
 
 		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
+
+		CUtilities::GenGaussianNoise( 0.0125f );
 		
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {

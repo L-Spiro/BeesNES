@@ -75,7 +75,7 @@ namespace lsn {
 	 * 
 	 * \param _fFormat The new format to set.
 	 **/
-	void CAudioOpenAl::UndirtyFormat( const LSN_FORMAT &_fFormat ) {
+	void CAudioOpenAl::UndirtyFormat( const LSN_AUDIO_FORMAT &_fFormat ) {
 		Parent::UndirtyFormat( _fFormat );
 		m_eFormat = FormatToEnum( _fFormat );
 	}
@@ -231,7 +231,7 @@ namespace lsn {
 	 * \param _fFormat The format descriptor.
 	 * \return Returns the OpenAL enum that represents _fFormat.
 	 **/
-	ALenum CAudioOpenAl::FormatToEnum( const LSN_FORMAT &_fFormat ) {
+	ALenum CAudioOpenAl::FormatToEnum( const LSN_AUDIO_FORMAT &_fFormat ) {
 		switch ( _fFormat.sfFormat ) {
 			case LSN_SF_PCM : {
 				switch ( _fFormat.ui16BitsPerChannel ) {

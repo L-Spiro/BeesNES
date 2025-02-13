@@ -18,6 +18,7 @@
 #include <cmath>
 //#include <intrin.h>
 #include <numbers>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,8 @@
 /** Round up to the next nearest Xth, where X is a power of 2. */
 #define LSN_ROUND_UP( VALUE, X )							((VALUE) + (((X) - (VALUE) & ((X) - 1)) & ((X) - 1)))
 #endif	// #ifndef LSN_ROUND_UP
+
+#define LSN_NOISE_BUFFERS									13
 
 namespace lsn {
 
@@ -566,7 +569,7 @@ namespace lsn {
 			constexpr uint32_t ui32MaskRb = 0x00FF00FF;
 			constexpr uint32_t ui32MaskAg = 0xFF00FF00;
 
-			if ( _ui32A == _ui32B && _ui32C == _ui32D && _ui32A == _ui32D ) { return _ui32A; }
+			if LSN_UNLIKELY( _ui32A == _ui32B && _ui32C == _ui32D && _ui32A == _ui32D ) { return _ui32A; }
 
 			const uint32_t ui32Arb        =   _ui32A & ui32MaskRb;
 			const uint32_t ui32Crb        =   _ui32C & ui32MaskRb;
@@ -601,7 +604,7 @@ namespace lsn {
 			constexpr uint32_t ui32MaskRb = 0x00FF00FF;
 			constexpr uint32_t ui32MaskAg = 0xFF00FF00;
 
-			if ( _ui32A == _ui32B ) { return _ui32A; }
+			if LSN_UNLIKELY( _ui32A == _ui32B ) { return _ui32A; }
 
 			const uint32_t ui32Arb        =   _ui32A & ui32MaskRb;
 			const uint32_t ui32Aag        =   _ui32A & ui32MaskAg;
@@ -630,7 +633,7 @@ namespace lsn {
 			constexpr uint64_t ui64MaskRb = 0x00FF00FF00FF00FF;
 			constexpr uint64_t ui64MaskAg = 0xFF00FF00FF00FF00;
 
-			if ( _ui64A == _ui64B ) { return _ui64A; }
+			if LSN_UNLIKELY( _ui64A == _ui64B ) { return _ui64A; }
 
 			const uint64_t ui64Arb        =   _ui64A & ui64MaskRb;
 			const uint64_t ui64Aag        =   _ui64A & ui64MaskAg;
@@ -661,7 +664,7 @@ namespace lsn {
 			__m128i mB					= _mm_loadu_si128( reinterpret_cast<const __m128i *>(_pui32B) );
 
 			// Early out if both colors are the same.
-			if ( _mm_test_all_zeros( _mm_xor_si128( mA, mB ), _mm_set1_epi32( -1 ) ) ) {
+			if LSN_UNLIKELY( _mm_test_all_zeros( _mm_xor_si128( mA, mB ), _mm_set1_epi32( -1 ) ) ) {
 				_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui32Result), mA );
 				return;
 			}
@@ -707,13 +710,12 @@ namespace lsn {
 		/**
 		 * 256-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 * 
-		 * \param _pui32A The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
-		 * \param _pui32B The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mA The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mB The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
 		 * \param _pui32Result The destination where the interpolated 8 colors go.
-		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _mA and 256 = _mB.
 		 **/
-		static LSN_FORCEINLINE void							LinearSample_AVX2( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
-
+		static LSN_FORCEINLINE void							LinearSample_AVX2( const __m256i &_mA, const __m256i &_mB, uint32_t * _pui32Result,  uint32_t _ui32FactorX ) {
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -722,14 +724,11 @@ namespace lsn {
 			__m256i mFactorX			= _mm256_set1_epi32( _ui32FactorX );
 			__m256i mFactorXCompliment	= _mm256_set1_epi32( 256 - _ui32FactorX );
 
-			__m256i mA					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32A) );
-			__m256i mB					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32B) );
-
 			// Separate the channels.
-			__m256i mArb				= _mm256_and_si256( mA, mMaskRb256 );
-			__m256i mAag				= _mm256_and_si256( mA, mMaskAg256 );
-			__m256i mBrb				= _mm256_and_si256( mB, mMaskRb256 );
-			__m256i mBag				= _mm256_and_si256( mB, mMaskAg256 );
+			__m256i mArb				= _mm256_and_si256( _mA, mMaskRb256 );
+			__m256i mAag				= _mm256_and_si256( _mA, mMaskAg256 );
+			__m256i mBrb				= _mm256_and_si256( _mB, mMaskRb256 );
+			__m256i mBag				= _mm256_and_si256( _mB, mMaskAg256 );
 
 			// Interpolate R and B channels.
 			__m256i mRbInterp			= _mm256_add_epi32(
@@ -752,19 +751,62 @@ namespace lsn {
 			// Store the result.
 			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
 		}
+
+		/**
+		 * 256-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 
+		 * \param _mA The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mB The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32Result The destination where the interpolated 8 colors go.
+		 * \param _mFactorX The interpolation factor (A -> B).  0-256, such that 0 = _mA and 256 = _mB.
+		 **/
+		static LSN_FORCEINLINE void							LinearSample_AVX2( const __m256i &_mA, const __m256i &_mB, uint32_t * _pui32Result, __m256i _mFactorX ) {
+			constexpr uint32_t mMaskRb	= 0x00FF00FF;
+			constexpr uint32_t mMaskAg	= 0xFF00FF00;
+
+			__m256i mMaskRb256			= _mm256_set1_epi32( mMaskRb );
+			__m256i mMaskAg256			= _mm256_set1_epi32( mMaskAg );
+			__m256i mFactorXCompliment	= _mm256_sub_epi32( _mm256_set1_epi32( 256 ), _mFactorX );
+
+			// Separate the channels.
+			__m256i mArb				= _mm256_and_si256( _mA, mMaskRb256 );
+			__m256i mAag				= _mm256_and_si256( _mA, mMaskAg256 );
+			__m256i mBrb				= _mm256_and_si256( _mB, mMaskRb256 );
+			__m256i mBag				= _mm256_and_si256( _mB, mMaskAg256 );
+
+			// Interpolate R and B channels.
+			__m256i mRbInterp			= _mm256_add_epi32(
+				_mm256_mullo_epi32( mArb, mFactorXCompliment ),
+				_mm256_mullo_epi32( mBrb, _mFactorX )
+			);
+			mRbInterp					= _mm256_srli_epi32( mRbInterp, 8 );
+			mRbInterp					= _mm256_and_si256( mRbInterp, mMaskRb256 );
+
+			// Interpolate A and G channels (factor is applied after shifting right by 8 to simulate division by 256).
+			__m256i mAgInterp			= _mm256_add_epi32(
+				_mm256_mullo_epi32(_mm256_srli_epi32( mAag, 8 ), mFactorXCompliment ),
+				_mm256_mullo_epi32(_mm256_srli_epi32( mBag, 8 ), _mFactorX )
+			);
+			mAgInterp					= _mm256_and_si256( mAgInterp, mMaskAg256 );
+
+			// Combine interpolated channels.
+			__m256i mResult				= _mm256_or_si256( mRbInterp, mAgInterp );
+
+			// Store the result.
+			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pui32Result), mResult );
+		}
 #endif	// #ifdef __AVX2__
 
 #ifdef __AVX512F__
 		/**
-		 * 512-bit integer-based linear interpolation between 2 sets of 8 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 512-bit integer-based linear interpolation between 2 sets of 16 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
 		 * 
-		 * \param _pui32A The left 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
-		 * \param _pui32B The right 8 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mA The left 16 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mB The right 16 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
 		 * \param _pui32Result The destination where the interpolated 8 colors go.
-		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _ui32A and 256 = _ui32B.
+		 * \param _ui32FactorX The interpolation factor (A -> B).  0-256, such that 0 = _mA and 256 = _mB.
 		 **/
-		static LSN_FORCEINLINE void							LinearSample_AVX512( const uint32_t * _pui32A, const uint32_t * _pui32B, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
-
+		static LSN_FORCEINLINE void							LinearSample_AVX512( const __m512i &_mA, const __m512i &_mB, uint32_t * _pui32Result, uint32_t _ui32FactorX ) {
 			constexpr uint32_t mMaskRb	= 0x00FF00FF;
 			constexpr uint32_t mMaskAg	= 0xFF00FF00;
 
@@ -773,14 +815,11 @@ namespace lsn {
 			__m512i mFactorX			= _mm512_set1_epi32( _ui32FactorX );
 			__m512i mFactorXCompliment	= _mm512_set1_epi32( 256 - _ui32FactorX );
 
-			__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32A) );
-			__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32B) );
-
 			// Separate the channels.
-			__m512i mArb				= _mm512_and_si512( mA, mMaskRb512 );
-			__m512i mAag				= _mm512_and_si512( mA, mMaskAg512 );
-			__m512i mBrb				= _mm512_and_si512( mB, mMaskRb512 );
-			__m512i mBag				= _mm512_and_si512( mB, mMaskAg512 );
+			__m512i mArb				= _mm512_and_si512( _mA, mMaskRb512 );
+			__m512i mAag				= _mm512_and_si512( _mA, mMaskAg512 );
+			__m512i mBrb				= _mm512_and_si512( _mB, mMaskRb512 );
+			__m512i mBag				= _mm512_and_si512( _mB, mMaskAg512 );
 
 			// Interpolate R and B channels.
 			__m512i mRbInterp			= _mm512_add_epi32(
@@ -803,6 +842,50 @@ namespace lsn {
 			// Store the result.
 			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
 		}
+
+		/**
+		 * 512-bit integer-based linear interpolation between 2 sets of 16 ARGB values (0xAARRGGBBAARRGGBB, though color order doesn't actually matter).
+		 * 
+		 * \param _mA The left 16 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _mB The right 16 colors.  0xAARRGGBBAARRGGBB, though color order doesn't actually matter.
+		 * \param _pui32Result The destination where the interpolated 8 colors go.
+		 * \param _mFactorX The interpolation factor (A -> B).  0-256, such that 0 = _mA and 256 = _mB.
+		 **/
+		static LSN_FORCEINLINE void							LinearSample_AVX512( const __m512i &_mA, const __m512i &_mB, uint32_t * _pui32Result, __m512i _mFactorX ) {
+			constexpr uint32_t mMaskRb	= 0x00FF00FF;
+			constexpr uint32_t mMaskAg	= 0xFF00FF00;
+
+			__m512i mMaskRb512			= _mm512_set1_epi32( mMaskRb );
+			__m512i mMaskAg512			= _mm512_set1_epi32( mMaskAg );
+			__m512i mFactorXCompliment	= _mm512_sub_epi32( _mm512_set1_epi32( 256 ), _mFactorX );
+
+			// Separate the channels.
+			__m512i mArb				= _mm512_and_si512( _mA, mMaskRb512 );
+			__m512i mAag				= _mm512_and_si512( _mA, mMaskAg512 );
+			__m512i mBrb				= _mm512_and_si512( _mB, mMaskRb512 );
+			__m512i mBag				= _mm512_and_si512( _mB, mMaskAg512 );
+
+			// Interpolate R and B channels.
+			__m512i mRbInterp			= _mm512_add_epi32(
+				_mm512_mullo_epi32( mArb, mFactorXCompliment ),
+				_mm512_mullo_epi32( mBrb, _mFactorX )
+			);
+			mRbInterp					= _mm512_srli_epi32( mRbInterp, 8 );
+			mRbInterp					= _mm512_and_si512( mRbInterp, mMaskRb512 );
+
+			// Interpolate A and G channels (factor is applied after shifting right by 8 to simulate division by 256).
+			__m512i mAgInterp			= _mm512_add_epi32(
+				_mm512_mullo_epi32(_mm512_srli_epi32( mAag, 8 ), mFactorXCompliment ),
+				_mm512_mullo_epi32(_mm512_srli_epi32( mBag, 8 ), _mFactorX )
+			);
+			mAgInterp					= _mm512_and_si512( mAgInterp, mMaskAg512 );
+
+			// Combine interpolated channels.
+			__m512i mResult				= _mm512_or_si512( mRbInterp, mAgInterp );
+
+			// Store the result.
+			_mm512_storeu_si512( reinterpret_cast<__m512i *>(_pui32Result), mResult );
+		}
 #endif	// #ifdef __AVX512F__
 
 		/**
@@ -815,13 +898,81 @@ namespace lsn {
 		 * \param _ui32DstW The output width in pixels and the number of values to which _pui8Factors points.
 		 */
 		static LSN_FORCEINLINE void							LinearInterpolateRow_Int( const uint32_t * _pui32SrcRow, uint32_t * _pui32DstRow, const uint32_t * _pui32Factors, uint32_t _ui32SrcW, uint32_t _ui32DstW ) {
-			for ( uint32_t X = _ui32DstW; X--; ) {
+			// Let's be dope and prefetch the middle of the buffers.
+			LSN_PREFETCH_LINE( _pui32SrcRow + (_ui32SrcW >> 1) );
+			uint32_t X = 0;
+#ifdef __AVX512F__
+			if ( IsAvx512BWSupported() ) {
+				constexpr uint32_t ui32RegSize = sizeof( __m512i ) / sizeof( uint32_t );
+				if LSN_LIKELY( _ui32DstW >= ui32RegSize ) { 
+					uint32_t ui32Total = _ui32DstW - ui32RegSize;
+					while ( X <= ui32Total ) {
+						// Load sixteen factors.
+						__m512i vFactors = _mm512_loadu_si512( reinterpret_cast<const __m512i *>( _pui32Factors + X ) );
+						// Compute source index: ui32SrcX = factor >> 8.
+						__m512i vSrcX = _mm512_srli_epi32( vFactors, 8 );
+        
+						// Gather A = _pui32SrcRow[vSrcX].
+						__m512i vA = _mm512_i32gather_epi32( vSrcX, reinterpret_cast<const int *>( _pui32SrcRow ), 4 );
+        
+						// Gather B = _pui32SrcRow[vSrcX + 1].
+						__m512i vSrcXplus = _mm512_add_epi32( vSrcX, _mm512_set1_epi32( 1 ) );
+						__m512i vB = _mm512_i32gather_epi32( vSrcXplus, reinterpret_cast<const int *>( _pui32SrcRow ), 4 );
+						// If vSrcX equals (_ui32SrcW - 1), set B to 0.
+						__m512i vLastIndex = _mm512_set1_epi32( _ui32SrcW - 1 );
+						__mmask16 k = _mm512_cmpeq_epi32_mask( vSrcX, vLastIndex );
+						vB = _mm512_mask_set1_epi32( vB, k, 0 );
+        
+						// Extract the interpolation factor (T) = factor & 0xFF.
+						__m512i vT = _mm512_and_epi32( vFactors, _mm512_set1_epi32( 0xFF ) );
+        
+						// Perform the per-pixel linear interpolation on 16 pixels.
+						LinearSample_AVX512( vA, vB, _pui32DstRow + X, vT );
+
+						X += ui32RegSize;
+					}
+				}
+			}
+#endif	// #ifdef __AVX512F__
+
+#ifdef __AVX2__
+			if LSN_LIKELY( IsAvx2Supported() ) {
+				constexpr uint32_t ui32RegSize = sizeof( __m256i ) / sizeof( uint32_t );
+				if LSN_LIKELY( _ui32DstW >= ui32RegSize ) { 
+					uint32_t ui32Total = _ui32DstW - ui32RegSize;
+					while ( X <= ui32Total ) {
+						// Load eight factors.
+						__m256i vFactors	= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32Factors + X) );
+						// Compute source index: ui32SrcX = factor >> 8.
+						__m256i vSrcX		= _mm256_srli_epi32( vFactors, 8 );
+        
+						// Gather A = _pui32SrcRow[vSrcX].
+						__m256i vA			= _mm256_i32gather_epi32( reinterpret_cast<const int *>(_pui32SrcRow), vSrcX, 4 );
+        
+						// Gather B = _pui32SrcRow[vSrcX+1].
+						__m256i vSrcXplus	= _mm256_add_epi32( vSrcX, _mm256_set1_epi32( 1 ) );
+						__m256i vB			= _mm256_i32gather_epi32( reinterpret_cast<const int *>(_pui32SrcRow), vSrcXplus, 4 );
+						// If vSrcX equals (_ui32SrcW - 1), set B to 0.
+						__m256i vLastIndex	= _mm256_set1_epi32( _ui32SrcW - 1 );
+						__m256i vEqMask		= _mm256_cmpeq_epi32( vSrcX, vLastIndex );
+						vB					= _mm256_blendv_epi8( vB, _mm256_setzero_si256(), vEqMask );
+
+						// Extract the interpolation factor (T) = factor & 0xFF.
+						__m256i vT			= _mm256_and_si256( vFactors, _mm256_set1_epi32( 0xFF ) );
+						LinearSample_AVX2( vA, vB, _pui32DstRow + X, vT );
+						X += ui32RegSize;
+					}
+				}
+			}
+#endif	// #ifdef __AVX2__
+			while ( X < _ui32DstW ) {
 				uint32_t ui32SrcX = _pui32Factors[X] >> 8;
 
 				uint32_t ui32A = _pui32SrcRow[ui32SrcX];
 				uint32_t ui32B = (ui32SrcX == _ui32SrcW - 1) ? 0x00000000 : _pui32SrcRow[ui32SrcX+1];
 
 				_pui32DstRow[X] = CUtilities::LinearSample_Int( ui32A, ui32B, _pui32Factors[X] & 0xFF );
+				++X;
 			}
 		}
 
@@ -835,16 +986,18 @@ namespace lsn {
 		 * \param _ui32Factor The mix factor for combining the rows.
 		 */
 		static LSN_FORCEINLINE void							LinearInterpCombineRows_Int( const uint32_t * _pui32SrcRow0, const uint32_t * _pui32SrcRow1, uint32_t * _pui32DstRow, uint32_t _ui32Width, uint32_t _ui32Factor ) {
-			if ( _ui32Factor == 0 ) {
+			if LSN_UNLIKELY( _ui32Factor == 0 ) {
 				std::memcpy( _pui32DstRow, _pui32SrcRow0, _ui32Width * sizeof( uint32_t ) );
 			}
 			else {
 #ifdef __AVX512F__
 				if ( IsAvx512BWSupported() ) {
 					while ( _ui32Width >= 16 ) {
-						LinearSample_AVX512( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
+						__m512i mA					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32SrcRow0) );
+						__m512i mB					= _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32SrcRow1) );
+						LinearSample_AVX512( mA, mB, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 16;
-						//if ( !_ui32Width ) { return; }
+						if LSN_UNLIKELY( !_ui32Width ) { return; }
 						_pui32SrcRow0 += 16;
 						_pui32SrcRow1 += 16;
 						_pui32DstRow += 16;
@@ -855,9 +1008,11 @@ namespace lsn {
 #ifdef __AVX2__
 				if ( IsAvx2Supported() ) {
 					while ( _ui32Width >= 8 ) {
-						LinearSample_AVX2( _pui32SrcRow0, _pui32SrcRow1, _pui32DstRow, _ui32Factor );
+						__m256i mA					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32SrcRow0) );
+						__m256i mB					= _mm256_loadu_si256( reinterpret_cast<const __m256i *>(_pui32SrcRow1) );
+						LinearSample_AVX2( mA, mB, _pui32DstRow, _ui32Factor );
 						_ui32Width -= 8;
-						//if ( !_ui32Width ) { return; }
+						if LSN_UNLIKELY( !_ui32Width ) { return; }
 						_pui32SrcRow0 += 8;
 						_pui32SrcRow1 += 8;
 						_pui32DstRow += 8;
@@ -1180,12 +1335,10 @@ namespace lsn {
 		 * \return Returns the sum of all the floats in the given register.
 		 **/
 		static inline float									HorizontalSum( __m256 &_mReg ) {
-			LSN_ALIGN( 32 )
-			float fSumArray[8];
-			__m256 mTmp = _mm256_hadd_ps( _mReg, _mReg );
+			__m256 mTmp = _mm256_add_ps( _mReg, _mm256_permute2f128_ps( _mReg, _mReg, 1 ) );
 			mTmp = _mm256_hadd_ps( mTmp, mTmp );
-			_mm256_store_ps( fSumArray, mTmp );
-			return fSumArray[0] + fSumArray[4];
+			mTmp = _mm256_hadd_ps( mTmp, mTmp );
+			return _mm256_cvtss_f32( mTmp );
 		}
 
 		/**
@@ -1649,11 +1802,24 @@ namespace lsn {
 		/**
 		 * Is AVX 2 supported?
 		 *
-		 * \return Returns true if AVX is supported.
+		 * \return Returns true if AVX 2 is supported.
 		 **/
 		static inline bool									IsAvx2Supported() {
 #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 			return CFeatureSet::AVX2();
+#else
+			return false;
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+		}
+
+		/**
+		 * Is FMA supported?
+		 *
+		 * \return Returns true if FMA is supported.
+		 **/
+		static inline bool									IsFmaSupported() {
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
+			return CFeatureSet::FMA();
 #else
 			return false;
 #endif	// #if defined( __i386__ ) || defined( __x86_64__ )
@@ -1739,12 +1905,83 @@ namespace lsn {
 			return static_cast<int32_t>(std::round( dScaledSample ));
 		}
 
+		/**
+		 * Generates uniformly distributed noise.
+		 * 
+		 * \param _pfTarget The buffer to fill with random values.
+		 * \param _sSize The size of the buffer to fill in samples.
+		 * \param _fAmplitude The noise amplitude.
+		 **/
+		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, float _fAmplitude = 0.1f ) {
+			std::random_device rdDev;
+			std::mt19937 mGen( rdDev() );
+			// Generate uniform noise in [-amplitude, +amplitude]
+			std::uniform_real_distribution<float> urdDist( -_fAmplitude, _fAmplitude );
+
+			while ( _sSize-- ) {
+				_pfTarget[_sSize] = urdDist( mGen );
+			}
+		}
+
+		/**
+		 * Generates Gaussian noise.
+		 * 
+		 * \param _pfTarget The buffer to fill with random values.
+		 * \param _sSize The size of the buffer to fill in samples.
+		 * \param _fStdDev The standard deviation.
+		 **/
+		static inline void									GaussianNoise( float * _pfTarget, size_t _sSize, float _fStdDev = 0.05f ) {
+			std::random_device rdDev;
+			std::mt19937 mGen( rdDev() );
+			std::normal_distribution<float> urdDist( 0.0f, _fStdDev );
+
+			while ( _sSize-- ) {
+				_pfTarget[_sSize] = urdDist( mGen );
+			}
+		}
+
+		/**
+		 * Fills the noise buffers with uniform noise.
+		 * 
+		 * \param _fAmplitude The noise amplitude.
+		 **/
+		static void inline									GenUniformNoise( float _fAmplitude = 0.1f ) {
+			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
+				UniformNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fAmplitude );
+			}
+		}
+
+		/**
+		 * Fills the noise buffers with Gaussian noise.
+		 * 
+		 * \param _fStdDev The standard deviation.
+		 **/
+		static void inline									GenGaussianNoise( float _fStdDev = 0.05f ) {
+			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
+				GaussianNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fStdDev );
+			}
+		}
+
+		/**
+		 * Gets a pseudo-random number quickly.
+		 * 
+		 * \return Returns a random value using a super cheap and efficient random pattern.
+		 **/
+		static inline uint32_t								Rand() {
+			uint32_t ui32Ret = m_ui32Rand;
+			m_ui32Rand = (214019 * m_ui32Rand + 140327895);
+			return ui32Ret;
+		}
+
 
 		// == Members.
 		LSN_ALIGN( 64 )
 		static const float									m_fNtscLevels[16];							/**< Output levels for NTSC. */
 		LSN_ALIGN( 64 )
 		static const float									m_fPalLevels[16];							/**< Output levels for PAL. */
+		LSN_ALIGN( 64 )
+		static float										m_fNoiseBuffers[LSN_NOISE_BUFFERS][16];		/**< LSN_NOISE_BUFFERS noise buffers, each with 16 samples. */
+		static uint32_t										m_ui32Rand;									/**< A quick pseudo-random value updated each time it is accessed via Rand(). */
 	};
 
 }	// namespace lsn

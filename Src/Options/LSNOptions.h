@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Audio/LSNAudioOptions.h"
 #include "LSNInputOptions.h"
 
 
@@ -25,6 +26,9 @@ namespace lsn {
 	struct LSN_OPTIONS {
 		LSN_INPUT_OPTIONS									ioGlobalInputOptions;										/**< Global input options. */
 		LSN_INPUT_OPTIONS									ioThisGameInputOptions;										/**< This game's input options. */
+
+		LSN_AUDIO_OPTIONS									aoGlobalAudioOptions;										/**< Global audio options. */
+		LSN_AUDIO_OPTIONS									aoThisGameAudioOptions;										/**< This game's audio options. */
 
 		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
 		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */

@@ -258,6 +258,33 @@ namespace lsn {
 			pfSignals += 8;
 		}
 
+		// Add noise.
+		pfSignals = pfSignalStart;
+		float * pfSignalEnd = pfSignals + LSN_PM_NTSC_RENDER_WIDTH * 8;
+#ifdef __AVX512F__
+		if ( CUtilities::IsAvx512FSupported() ) {
+			while ( pfSignals < pfSignalEnd ) {
+				__m512 vNoise = _mm512_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m512 vSig = _mm512_loadu_ps( pfSignals );
+				vSig = _mm512_add_ps( vSig, vNoise );
+				_mm512_storeu_ps( pfSignals, vSig );
+				pfSignals += 16;
+			}
+		}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			while ( pfSignals < pfSignalEnd ) {
+				__m256 vNoise = _mm256_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m256 vSig = _mm256_loadu_ps( pfSignals );
+				vSig = _mm256_add_ps( vSig, vNoise );
+				_mm256_storeu_ps( pfSignals, vSig );
+				pfSignals += 8;
+			}
+		}
+#endif	// #ifdef __AVX__
+
+
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
@@ -281,7 +308,7 @@ namespace lsn {
 			}
 #endif	// #ifdef __AVX512F__
 #ifdef __AVX__
-			if ( CUtilities::IsAvxSupported() ) {
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
 				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
 				while ( i16End - J >= 8 ) {
 					// Can do 8 at a time.

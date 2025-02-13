@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "LSNAudioOptions.h"
 #include "OpenAL/LSNOpenAlBuffer.h"
 #include "OpenAL/LSNOpenAlContext.h"
 #include "OpenAL/LSNOpenAlDevice.h"
@@ -32,40 +33,6 @@ namespace lsn {
 	 */
 	class CAudioBase {
 	public :
-		// == Enumerations.
-		/** Format types. */
-		enum LSN_SAMPLE_FORMAT {
-			LSN_SF_PCM,										/**< Signed integer formats. */
-			LSN_SF_FLOAT									/**< A floating-point format. */
-		};
-
-
-		// == Types.
-		/** The audio format. */
-		struct LSN_FORMAT {
-			/** The sample format. */
-			LSN_SAMPLE_FORMAT								sfFormat = LSN_SF_PCM;
-			/** The number of channels. */
-			uint16_t										ui16Channels = 1;
-			/** The number of bits in a sample. */
-			uint16_t										ui16BitsPerChannel = 16;
-
-
-			// == Operators.
-			/**
-			 * Inequality operator.
-			 * 
-			 * \param _fFormat The format against which to compare.
-			 * \return Returns true if the given format does not equal this format.
-			 **/
-			bool											operator != ( const LSN_FORMAT &_fFormat ) const {
-				return sfFormat != _fFormat.sfFormat ||
-					ui16Channels != _fFormat.ui16Channels ||
-					ui16BitsPerChannel != _fFormat.ui16BitsPerChannel;
-			}
-		};
-
-
 		// == Functions.
 		/**
 		 * Initializes audio.
@@ -109,7 +76,7 @@ namespace lsn {
 		 * 
 		 * \param _fFormat The new output format.
 		 **/
-		void												SetOutputFormat( LSN_FORMAT _fFormat ) {
+		void												SetOutputFormat( LSN_AUDIO_FORMAT _fFormat ) {
 			m_fNextFormat = _fFormat;
 		}
 
@@ -155,9 +122,9 @@ namespace lsn {
 		/** The current buffer position. */
 		size_t												m_sCurBufferSize = 0;
 		/** The current format. */
-		LSN_FORMAT											m_fFormat;
+		LSN_AUDIO_FORMAT									m_fFormat;
 		/** The next format. */
-		LSN_FORMAT											m_fNextFormat;
+		LSN_AUDIO_FORMAT									m_fNextFormat;
 
 
 		// == Functions.
@@ -185,7 +152,7 @@ namespace lsn {
 		 * 
 		 * \param _fFormat The new format to set.
 		 **/
-		virtual void										UndirtyFormat( const LSN_FORMAT &_fFormat );
+		virtual void										UndirtyFormat( const LSN_AUDIO_FORMAT &_fFormat );
 
 		/**
 		 * Copies from m_vTmpBuffer into the local buffer passed to the native audio API, performing the format conversion as necessary.

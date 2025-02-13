@@ -38,6 +38,11 @@ namespace lsn {
 
 	};
 
+	LSN_ALIGN( 64 )
+	float CUtilities::m_fNoiseBuffers[LSN_NOISE_BUFFERS][16];				/**< LSN_NOISE_BUFFERS noise buffers, each with 16 samples. */
+
+	uint32_t CUtilities::m_ui32Rand = 194;									/**< A quick pseudo-random value updated each time it is accessed via Rand(). */
+
 	// == Functions.
 	/**
 	 * Converts a UTF-8 string to a UTF-16 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.

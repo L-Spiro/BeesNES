@@ -24,10 +24,23 @@
 
 #if defined( _MSC_VER )
     // Microsoft Visual Studio Compiler.
-    #define LSN_ALN		__declspec( align( 64 ) )
+    #define LSN_ALN								__declspec( align( 64 ) )
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( x ) [[likely]]
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( x ) [[unlikely]]
+	#endif	// #ifndef LSN_UNLIKELY
 #elif defined( __GNUC__ ) || defined( __clang__ )
     // GNU Compiler Collection (GCC) or Clang.
-    #define LSN_ALN		__attribute__( (aligned( 64 )) )
+    #define LSN_ALN								__attribute__( (aligned( 64 )) )
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( __builtin_expect( !!(x), 1 ) )
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( __builtin_expect( !!(x), 0 ) )
+	#endif	// #ifndef LSN_UNLIKELY
+    #define __assume( x )
 #else
     #error "Unsupported compiler."
 #endif
@@ -116,7 +129,9 @@ namespace lsn {
 				m_gGen.ui32OutputHz == _ui32OutputRate &&
 				m_sSinc.vCeof.size() - 1 == _sM ) { return true; }
 			
+#ifdef _WIN32
 			::OutputDebugStringA( std::format( "Kernel size: {}\r\n", _sM ).c_str() );
+#endif	// #ifdef _WIN32
 			double dFc = _dLpf / (_ui32OutputRate * 3.0);	// Cut-off ratio.  The sinc is applied to the buffer that is (_ui32OutputRate * 3).
 
 			try {
@@ -201,7 +216,7 @@ namespace lsn {
 		inline void											AddSample( float _fSample ) {
 			m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = ProcessLpf( _fSample );
 			//m_gGen.vBuffer[(m_gGen.ui64SrcSampleCnt++)%m_gGen.vBuffer.size()] = _fSample;
-			if ( m_gGen.ui64SrcSampleCnt >= 4 ) {
+			if LSN_LIKELY( m_gGen.ui64SrcSampleCnt >= 4 ) {
 				// How many samples should we have processed until now?
 				uint64_t ui64SamplesUntilNow = uint64_t( (m_gGen.ui64SrcSampleCnt - 4.0) * (m_gGen.ui32OutputHz * 3.0) / m_gGen.dInputHz );
 				// Process as many as needed to catch up to where we should be.
@@ -261,22 +276,23 @@ namespace lsn {
 		 * \param _bAvx512 Specifies whether the AVX-512F feature set is available.
 		 * \param _bAvx Specifies whether the AVX feature set is available.
 		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
+		 * \param _bFma Specifies whether the FMA (fused multiply-add) feature set is available.
 		 **/
-		void												SetFeatureSet( bool _bAvx512, bool _bAvx, bool _bSse4 ) {
+		void												SetFeatureSet( bool _bAvx512, bool _bAvx, bool _bSse4, bool _bFma ) {
 			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
 			m_gGen.pfConvolve = &CSampleBox::Convolve;
 			
 #ifdef __SSE4_1__
 			if ( _bSse4 ) {
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SSE;
-				m_gGen.pfConvolve = &CSampleBox::Convolve_SSE;
+				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_SSE_FMA : &CSampleBox::Convolve_SSE;
 			}
 #endif  // #ifdef __SSE4_1__
 
 #ifdef __AVX__
 			if ( _bAvx ) {
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
-				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX;
+				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_AVX_FMA : &CSampleBox::Convolve_AVX;
 			}
 #endif  // #ifdef __AVX__
 
@@ -499,7 +515,7 @@ namespace lsn {
 		void												StoreSample( size_t _sBufferIdx, float _fFrac ) {
 			_sBufferIdx %= m_gGen.vBuffer.size();
 			float fSample;
-			if ( _sBufferIdx >= 2 && _sBufferIdx < (m_gGen.vBuffer.size() - 3) ) {
+			if LSN_LIKELY( _sBufferIdx >= 2 && _sBufferIdx < (m_gGen.vBuffer.size() - 3) ) {
 				// We can interpolate directly out of the ring buffer.
 				fSample = Sample_4Point_2ndOrder_Parabolic_2X_X( &m_gGen.vBuffer[_sBufferIdx-2], _fFrac );
 			}
@@ -565,7 +581,7 @@ namespace lsn {
 			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
 			m_pPoints.sSimdStackSize &= (sizeof( __m256 ) / sizeof( float ) - 1);
 			++m_gGen.ui64SamplesBuffered;
-			if ( 0 == m_pPoints.sSimdStackSize ) {
+			if LSN_UNLIKELY( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m256)/sizeof(float)];
@@ -597,7 +613,7 @@ namespace lsn {
 			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
 			m_pPoints.sSimdStackSize &= (sizeof( __m512 ) / sizeof( float ) - 1);
 			++m_gGen.ui64SamplesBuffered;
-			if ( 0 == m_pPoints.sSimdStackSize ) {
+			if LSN_UNLIKELY( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m512)/sizeof(float)];
@@ -619,10 +635,10 @@ namespace lsn {
 		 **/
 		inline void											AddSampleToIntermediateBuffer( float _fSample ) {
 			m_sSinc.vRing[m_gGen.ui64SampleCnt%m_sSinc.vRing.size()] = _fSample;
-			if ( m_gGen.ui64SampleCnt++ % 3 == 0 ) {
+			if LSN_UNLIKELY( m_gGen.ui64SampleCnt++ % 3 == 0 ) {
 				// Every 3rd sample goes to the output (passing through a sinc filter and HPF).
-				if ( m_gGen.ui64SampleCnt > m_sSinc.sM ) {
-					size_t sIdx = size_t( (m_gGen.ui64SampleCnt - m_sSinc.sM - 1) % m_sSinc.vRing.size() );
+				if LSN_LIKELY( m_gGen.ui64SampleCnt > m_sSinc.sM ) {
+					size_t sIdx = size_t( (m_gGen.ui64SampleCnt - m_sSinc.sM - 2) % m_sSinc.vRing.size() );
 					// Convolutionatizinatify and HPFify this sample.  The next m_sSinc.sM samples following sIdx and the m_sSinc.sM samples before sIdx are valid.
 					float fConvolvinated = ProcessHpf( (this->*m_gGen.pfConvolve)( sIdx ) );
 					fConvolvinated = (m_gGen.pfFinalCallback)( m_gGen.pvFinalParm, fConvolvinated, m_gGen.ui32OutputHz );
@@ -667,20 +683,51 @@ namespace lsn {
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
 			for ( size_t I = 0; I < sTotal; ) {
 				size_t sIdx = (_sIdx + I) % sMod;
-				if ( (sMod - sIdx) < (sizeof( __m128 ) / sizeof( float )) ) {
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m128 ) / sizeof( float )) ) {
 					// Copy into a temporary.
 					LSN_ALN
 					float fTmp[(sizeof(__m128)/sizeof(float))];
 					for ( size_t J = 0; J < (sizeof( __m128 ) / sizeof( float )); ++J ) {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
-					Convolve_SSE( &pfFilter[I], fTmp, mSum );
-					I += (sizeof( __m128 ) / sizeof( float ));
+					Convolve_SSE_Single( &pfFilter[I], fTmp, mSum );
 				}
 				else {
-					Convolve_SSE( &pfFilter[I], &pfSamples[sIdx], mSum );
-					I += (sizeof( __m128 ) / sizeof( float ));
+					Convolve_SSE_Single( &pfFilter[I], &pfSamples[sIdx], mSum );
 				}
+				I += (sizeof( __m128 ) / sizeof( float ));
+			}
+			return HorizontalSum( mSum );
+		}
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float                                               Convolve_SSE_FMA( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			__m128 mSum = _mm_set1_ps( 0.0f );
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for ( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m128 ) / sizeof( float )) ) {
+					// Copy into a temporary.
+					LSN_ALN
+					float fTmp[(sizeof(__m128)/sizeof(float))];
+					for ( size_t J = 0; J < (sizeof( __m128 ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					Convolve_SSE_FMA_Single( &pfFilter[I], fTmp, mSum );
+				}
+				else {
+					Convolve_SSE_FMA_Single( &pfFilter[I], &pfSamples[sIdx], mSum );
+				}
+				I += (sizeof( __m128 ) / sizeof( float ));
 			}
 			return HorizontalSum( mSum );
 		}
@@ -692,10 +739,23 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                               Convolve_SSE( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
+        void                                               Convolve_SSE_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
             __m128 mWeights = _mm_load_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
             _mSum = _mm_add_ps( _mSum, _mm_mul_ps( mWeights, mSamples ) );
+        }
+
+		/**
+         * Convolves the given weights with the given samples.  The weights (_pfWeights) must be aligned to a 32-byte boundary.
+         *
+         * \param _pfWeights The pointer to the 32-byte-aligned 8 weights.
+         * \param _pfSamples Pointer to the samples to convolve.
+         * \param _mSum Maintains the sum of convolution over many iterations.
+         **/
+        void                                               Convolve_SSE_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
+            __m128 mWeights = _mm_load_ps( _pfWeights );
+            __m128 mSamples = _mm_loadu_ps( _pfSamples );
+            _mSum = _mm_fmadd_ps( mWeights, mSamples, _mSum );
         }
         
         /**
@@ -871,20 +931,51 @@ namespace lsn {
 			size_t sTotal = m_sSinc.vCeof.size() - 1;
 			for ( size_t I = 0; I < sTotal; ) {
 				size_t sIdx = (_sIdx + I) % sMod;
-				if ( (sMod - sIdx) < (sizeof( __m256 ) / sizeof( float )) ) {
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m256 ) / sizeof( float )) ) {
 					// Copy into a temporary.
 					LSN_ALN
 					float fTmp[(sizeof(__m256)/sizeof(float))];
 					for ( size_t J = 0; J < (sizeof( __m256 ) / sizeof( float )); ++J ) {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
-					Convolve_AVX( &pfFilter[I], fTmp, mSum );
-					I += (sizeof( __m256 ) / sizeof( float ));
+					Convolve_AVX_Single( &pfFilter[I], fTmp, mSum );
 				}
 				else {
-					Convolve_AVX( &pfFilter[I], &pfSamples[sIdx], mSum );
-					I += (sizeof( __m256 ) / sizeof( float ));
+					Convolve_AVX_Single( &pfFilter[I], &pfSamples[sIdx], mSum );
 				}
+				I += (sizeof( __m256 ) / sizeof( float ));
+			}
+			return HorizontalSum( mSum );
+		}
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float                                               Convolve_AVX_FMA( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			__m256 mSum = _mm256_set1_ps( 0.0f );
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for ( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m256 ) / sizeof( float )) ) {
+					// Copy into a temporary.
+					LSN_ALN
+					float fTmp[(sizeof(__m256)/sizeof(float))];
+					for ( size_t J = 0; J < (sizeof( __m256 ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					Convolve_AVX_FMA_Single( &pfFilter[I], fTmp, mSum );
+				}
+				else {
+					Convolve_AVX_FMA_Single( &pfFilter[I], &pfSamples[sIdx], mSum );
+				}
+				I += (sizeof( __m256 ) / sizeof( float ));
 			}
 			return HorizontalSum( mSum );
 		}
@@ -896,10 +987,23 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                                Convolve_AVX( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
+        void                                                Convolve_AVX_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
             __m256 mWeights = _mm256_load_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
             _mSum = _mm256_add_ps( _mSum, _mm256_mul_ps( mWeights, mSamples ) );
+        }
+
+		/**
+         * Convolves the given weights with the given samples.  The weights (_pfWeights) must be aligned to a 32-byte boundary.
+         *
+         * \param _pfWeights The pointer to the 32-byte-aligned 8 weights.
+         * \param _pfSamples Pointer to the samples to convolve.
+         * \param _mSum Maintains the sum of convolution over many iterations.
+         **/
+        void                                                Convolve_AVX_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
+            __m256 mWeights = _mm256_load_ps( _pfWeights );
+            __m256 mSamples = _mm256_loadu_ps( _pfSamples );
+            _mSum = _mm256_fmadd_ps( mWeights, mSamples, _mSum );
         }
         
         /**
@@ -1053,13 +1157,9 @@ namespace lsn {
          * \return Returns the sum of all the floats in the given register.
          **/
         static inline float                                 HorizontalSum( const __m256 &_mReg ) {
-            __m256 mTmp = _mm256_permute2f128_ps(_mReg, _mReg, 1);	// Shuffle high 128 to low.
-			mTmp = _mm256_add_ps( _mReg, mTmp );					// Add high and low parts.
-
-			mTmp = _mm256_hadd_ps( mTmp, mTmp );					// First horizontal add.
-			mTmp = _mm256_hadd_ps( mTmp, mTmp );					// Second horizontal add.
-
-			// Extract the lower float which now contains the sum.
+			__m256 mTmp = _mm256_add_ps( _mReg, _mm256_permute2f128_ps( _mReg, _mReg, 1 ) );
+			mTmp = _mm256_hadd_ps( mTmp, mTmp );
+			mTmp = _mm256_hadd_ps( mTmp, mTmp );
 			return _mm256_cvtss_f32( mTmp );
         }
 #endif  // #ifdef __AVX__
@@ -1080,7 +1180,7 @@ namespace lsn {
 			__m512 mSum = _mm512_set1_ps( 0.0f );
 			for ( size_t I = 0; I < sTotal; ) {
 				size_t sIdx = (_sIdx + I) % sMod;
-				if ( (sMod - sIdx) < (sizeof( __m512 ) / sizeof( float )) ) {
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m512 ) / sizeof( float )) ) {
 					// Copy into a temporary.
 					LSN_ALN
 					float fTmp[(sizeof(__m512)/sizeof(float))];
@@ -1088,12 +1188,11 @@ namespace lsn {
 						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
 					}
 					Convolve_AVX512( &pfFilter[I], fTmp, mSum );
-					I += (sizeof( __m512 ) / sizeof( float ));
 				}
 				else {
 					Convolve_AVX512( &pfFilter[I], &pfSamples[sIdx], mSum );
-					I += (sizeof( __m512 ) / sizeof( float ));
 				}
+				I += (sizeof( __m512 ) / sizeof( float ));
 			}
 			return HorizontalSum( mSum );
 		}
@@ -1108,7 +1207,8 @@ namespace lsn {
         void                                                Convolve_AVX512( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
             __m512 mWeights = _mm512_load_ps( _pfWeights );
             __m512 mSamples = _mm512_loadu_ps( _pfSamples );
-            _mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
+            //_mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
+			_mSum = _mm512_fmadd_ps( mWeights, mSamples, _mSum );
         }
         
         /**

@@ -124,7 +124,7 @@
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
 // Audio Options.
-#define LSN_AUDIO_OPTIONS													Audio Options
+#define LSN_AUDIO_OPTIONS_													Audio Options
 
 // Patcher.
 #define LSN_PATCH_PATCH_ROM													Patch a ROM

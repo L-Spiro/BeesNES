@@ -25,7 +25,7 @@
  *	or any other special-case operation for a given address.  This solves the performance issue
  *	along with the hard-to-follow logic issue.  During setup, the hardware components get to assign
  *	these accessors to addresses as they please, solving the extensibility/flexibility issues that
- *	would have been served by virtual functions.  Ultiately, memory access can be made into an
+ *	would have been served by virtual functions.  Ultimately, memory access can be made into an
  *	entirely branchless system.
  *
  * An outward-facing design decision is to have the entire block of system RAM contiguous in memory
@@ -72,7 +72,7 @@ namespace lsn {
 	 *	or any other special-case operation for a given address.  This solves the performance issue
 	 *	along with the hard-to-follow logic issue.  During setup, the hardware components get to assign
 	 *	these accessors to addresses as they please, solving the extensibility/flexibility issues that
-	 *	would have been served by virtual functions.  Ultiately, memory access can be made into an
+	 *	would have been served by virtual functions.  Ultimately, memory access can be made into an
 	 *	entirely branchless system.
 	 *
 	 * An outward-facing design decision is to have the entire block of system RAM contiguous in memory
@@ -150,7 +150,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Performs a CPU read of a given address.
+		 * Performs a read of a given address.
 		 *
 		 * \param _ui16Addr The address to read.
 		 * \return Returns the requested value.
@@ -182,7 +182,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Performs a CPU write of a given address.
+		 * Performs a write of a given address.
 		 *
 		 * \param _ui16Addr The address to write.
 		 * \param _ui8Val The value to write.

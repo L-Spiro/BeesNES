@@ -17,13 +17,13 @@ namespace lsn {
 	CAudio::CAudioDevice CAudio::m_adAudioDevice;
 
 	/** The audio thread. */
-	std::unique_ptr<std::thread> CAudio::m_ptAudioThread;
+	//std::unique_ptr<std::thread> CAudio::m_ptAudioThread;
 
 	/** Boolean to stop the audio thread. */
-	std::atomic<bool> CAudio::m_bRunThread = true;
+	//std::atomic<bool> CAudio::m_bRunThread = true;
 
 	/** The signal that the thread has finished. */
-	CEvent CAudio::m_eThreadClosed;
+	//CEvent CAudio::m_eThreadClosed;
 
 	/** The sample box for band-passed output. */
 	CSampleBox CAudio::m_sbSampleBox;
@@ -36,7 +36,7 @@ namespace lsn {
 	 * \return Returns true if initialization was successful.
 	 **/
 	bool CAudio::InitializeAudio() {
-		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported() );
+		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported(), CUtilities::IsFmaSupported() );
 
 		if ( !m_adAudioDevice.InitializeAudio() ) { return false; }
 
@@ -53,6 +53,16 @@ namespace lsn {
 		StopThread();
 		
 		return m_adAudioDevice.ShutdownAudio();
+	}
+
+	/**
+	 * Sets all output settings.
+	 * 
+	 * \param _aoSettings The new settings to apply.
+	 **/
+	void CAudio::SetOutputSettings( const LSN_AUDIO_OPTIONS &_aoSettings ) {
+		SetOutputFormat( _aoSettings.afFormat );
+		SetOutputFrequency( _aoSettings.ui32OutputHz );
 	}
 
 	/**
@@ -97,11 +107,11 @@ namespace lsn {
 	 * Stops the audio thread.
 	 **/
 	void CAudio::StopThread() {
-		if ( nullptr == m_ptAudioThread.get() ) { return; }
+		/*if ( nullptr == m_ptAudioThread.get() ) { return; }
 		m_bRunThread = false;
 		m_eThreadClosed.WaitForSignal();
 		m_ptAudioThread->join();
-		m_ptAudioThread.reset();
+		m_ptAudioThread.reset();*/
 	}
 
 	/**
@@ -110,9 +120,9 @@ namespace lsn {
 	 * \param _pvParm Unused.
 	 */
 	void CAudio::AudioThread( void * /*_pvParm*/ ) {
-		while ( m_bRunThread ) {
+		/*while ( m_bRunThread ) {
 		}
-		m_eThreadClosed.Signal();
+		m_eThreadClosed.Signal();*/
 	}
 
 }	// namespace lsn

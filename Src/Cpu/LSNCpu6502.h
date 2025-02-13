@@ -34,7 +34,7 @@
 #define LSN_INSTR_START_PHI1( ISREAD )						/*m_bIsReadCycle = (ISREAD)*/
 #define LSN_INSTR_END_PHI1
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) ); /*m_bIsReadCycle = true;*/											\
-															if ( m_bRdyLow ) { m_ui16DmaCpuAddress = uint16_t( ADDR );														\
+															if LSN_UNLIKELY( m_bRdyLow ) { m_ui16DmaCpuAddress = uint16_t( ADDR );											\
 																m_bDmaGo = true;																							\
 																/*return*/; }
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				/*m_bIsReadCycle = false;*/ m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
@@ -49,7 +49,7 @@
 #define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (VAL) ); m_ui8SModify = uint8_t( -1 + _i8SOff )
 #define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (RESULT) ); m_ui8SModify = uint8_t( 1 + _i8SOff )
 
-#define LSN_UPDATE_PC										if ( m_bAllowWritingToPc ) { m_rRegs.ui16Pc += m_ui16PcModify; } m_ui16PcModify = 0
+#define LSN_UPDATE_PC										if LSN_LIKELY( m_bAllowWritingToPc ) { m_rRegs.ui16Pc += m_ui16PcModify; } m_ui16PcModify = 0
 #define LSN_UPDATE_S										m_rRegs.ui8S += m_ui8SModify; m_ui8SModify = 0
 
 #define LSN_R												true
@@ -1040,6 +1040,8 @@ namespace lsn {
 	 */
 	template <bool _bIncPc, bool _bAdjS>
 	inline void CCpu6502::BeginInst() {
+		LSN_INSTR_START_PHI1( true );
+
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
 		}
@@ -1052,8 +1054,6 @@ namespace lsn {
 		// TODO: Move this to Tick_NextInstructionStd().
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 		m_bBoundaryCrossed = false;
-
-		LSN_INSTR_START_PHI1( true );
 
 		LSN_INSTR_END_PHI1;
 	}

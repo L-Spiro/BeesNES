@@ -100,7 +100,7 @@ namespace lsn {
 	 * 
 	 * \param _fFormat The new format to set.
 	 **/
-	void CAudioBase::UndirtyFormat( const LSN_FORMAT &_fFormat ) {
+	void CAudioBase::UndirtyFormat( const LSN_AUDIO_FORMAT &_fFormat ) {
 		m_fFormat = _fFormat;
 	}
 
