@@ -106,7 +106,7 @@ square_sample(int p, int phase)
     hue = (p & 0x0f);
 
     /* last two columns are black */
-    if (hue >= 0x0e) {
+    if LSN_UNLIKELY(hue >= 0x0e) {
         return 0;
     }
     ohue = hue;
@@ -144,13 +144,13 @@ setup_field(struct PAL_CRT *v, struct PAL_SETTINGS *s)
  
         t = LINE_BEG;
 
-        if (n <= 3 || (n >= 7 && n <= 9)) {
+        if LSN_UNLIKELY(n <= 3 || (n >= 7 && n <= 9)) {
             /* equalizing pulses - small blips of sync, mostly blank */
             while (t < (4   * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
             while (t < (50  * PAL_HRES / 100)) line[t++] = BLANK_LEVEL;
             while (t < (54  * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
             while (t < (100 * PAL_HRES / 100)) line[t++] = BLANK_LEVEL;
-        } else if (n >= 4 && n <= 6) {
+        } else if LSN_UNLIKELY(n >= 4 && n <= 6) {
             int offs[4] = { 46, 50, 96, 100 };
             /* vertical sync pulse - small blips of blank, mostly sync */
             while (t < (offs[0] * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
@@ -186,7 +186,7 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
     int ccburst[6][4]; /* color phase for burst */
     int sn, cs;
         
-    if (!s->field_initialized) {
+    if LSN_UNLIKELY(!s->field_initialized) {
         setup_field(v, s);
         s->field_initialized = 1;
     }
@@ -213,8 +213,8 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
         int t, cb, nm6;
         int sy = (y * s->h) / desth;
 
-        if (sy >= s->h) sy = s->h;
-        if (sy < 0) sy = 0;
+        if LSN_UNLIKELY(sy >= s->h) sy = s->h;
+        if LSN_UNLIKELY(sy < 0) sy = 0;
  
         n = (y + yo);
         nm6 = n % 6;

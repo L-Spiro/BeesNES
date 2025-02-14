@@ -34,7 +34,7 @@ namespace lsn {
 		 * \param _fSampleRate The input/output sample rate.
 		 **/
 		virtual bool				CreateHpf( float _fFc, float _fSampleRate ) {
-			if ( Dirty( _fFc, _fSampleRate ) ) {
+			if LSN_UNLIKELY( Dirty( _fFc, _fSampleRate ) ) {
 				double dDelta = (_fSampleRate != 0.0f) ? (1.0 / _fSampleRate) : 0.0;
 				double dTimeConstant = (_fFc != 0.0f) ? (1.0 / _fFc) : 0.0;
 				m_dAlpha = ((dTimeConstant + dDelta) != 0.0) ? (dTimeConstant / (dTimeConstant + dDelta)) : 0.0;

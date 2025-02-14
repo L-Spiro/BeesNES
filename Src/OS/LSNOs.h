@@ -80,3 +80,60 @@ inline void SetThreadAffinity( size_t sCoreId ) {
 	::pthread_setaffinity_np( ::pthread_self(), sizeof( cpu_set_t ), &cpuset );
 #endif
 }
+
+#if defined( _MSC_VER )
+#define bswap_16( X )							_byteswap_ushort( X )
+#define bswap_32( X )							_byteswap_ulong( X )
+#define bswap_64( X )							_byteswap_uint64( X )
+#elif defined( __APPLE__ )
+// Mac OS X/Darwin features.
+#include <libkern/OSByteOrder.h>
+#define bswap_16( X )							OSSwapInt16( X )
+#define bswap_32( X )							OSSwapInt32( X )
+#define bswap_64( X )							OSSwapInt64( X )
+#elif defined( __sun ) || defined( sun )
+
+#include <sys/byteorder.h>
+#define bswap_16( X )							BSWAP_16( X )
+#define bswap_32( X )							BSWAP_32( X )
+#define bswap_64( X )							BSWAP_64( X )
+
+#elif defined( __FreeBSD__ )
+
+#include <sys/endian.h>
+#define bswap_16( X )							bswap16( X )
+#define bswap_32( X )							bswap32( X )
+#define bswap_64( X )							bswap64( X )
+
+#elif defined( __OpenBSD__ )
+
+#include <sys/types.h>
+#define bswap_16( X )							swap16( X )
+#define bswap_32( X )							swap32( X )
+#define bswap_64( X )							swap64( X )
+
+#elif defined( __NetBSD__ )
+
+#include <sys/types.h>
+#include <machine/bswap.h>
+#if defined( __BSWAP_RENAME ) && !defined( __bswap_32 )
+#define bswap_16( X )							bswap16( X )
+#define bswap_32( X )							bswap32( X )
+#define bswap_64( X )							bswap64( X )
+#endif
+
+#else
+inline uint16_t                                 bswap_16( uint16_t _ui16Val ) { return (_ui16Val >> 8) | (_ui16Val << 8); }
+inline unsigned long                            bswap_32( unsigned long _ui32Val ) { return uint32_t( (uint32_t( _ui32Val ) >> 24) |
+	((_ui32Val >> 8) & 0x0000FF00) |
+	((_ui32Val << 8) & 0x00FF0000) |
+	(_ui32Val << 24) ); }
+inline uint64_t                                 bswap_64( uint64_t _ui64Val ) { return (_ui64Val >> 56) |
+	((_ui64Val >> 40) & 0x000000000000FF00ULL) |
+	((_ui64Val >> 24) & 0x0000000000FF0000ULL) |
+	((_ui64Val >> 8) & 0x00000000FF000000ULL) |
+	((_ui64Val << 8) & 0x000000FF00000000ULL) |
+	((_ui64Val << 24) & 0x0000FF0000000000ULL) |
+	((_ui64Val << 40) & 0x00FF000000000000ULL) |
+	(_ui64Val << 56); }
+#endif	// #if defined( _MSC_VER )

@@ -277,7 +277,7 @@ namespace lsn {
 #ifdef __AVX512F__
 		if ( CUtilities::IsAvx512FSupported() ) {
 			while ( pfSignals < pfSignalEnd ) {
-				__m512 vNoise = _mm512_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m512 vNoise = _mm512_load_ps( CUtilities::m_fNoiseBuffers[LSN_NOISE_BUFFER(CUtilities::Rand())] );
 				__m512 vSig = _mm512_loadu_ps( pfSignals );
 				vSig = _mm512_add_ps( vSig, vNoise );
 				_mm512_storeu_ps( pfSignals, vSig );
@@ -288,7 +288,7 @@ namespace lsn {
 #ifdef __AVX__
 		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
 			while ( pfSignals < pfSignalEnd ) {
-				__m256 vNoise = _mm256_load_ps( CUtilities::m_fNoiseBuffers[CUtilities::Rand()%LSN_NOISE_BUFFERS] );
+				__m256 vNoise = _mm256_load_ps( CUtilities::m_fNoiseBuffers[LSN_NOISE_BUFFER(CUtilities::Rand())] );
 				__m256 vSig = _mm256_loadu_ps( pfSignals );
 				vSig = _mm256_add_ps( vSig, vNoise );
 				_mm256_storeu_ps( pfSignals, vSig );

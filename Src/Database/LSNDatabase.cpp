@@ -228,7 +228,11 @@ namespace lsn {
 			// Drop Zone (E)
 			{ .ui32Crc = 0xD21DA4F7, .pmRegion = LSN_PM_PAL },
 			// Duck Tales (E)
-			{ .ui32Crc = 0xD029F841, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xD029F841, .pmRegion = LSN_PM_PAL },			
+			// Dungeon & Magic - Swords of Element (Japan)
+			{ .ui32Crc = 0xFDA76F70, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
+			// Dungeon Magic - Sword of the Elements (USA)
+			{ .ui32Crc = 0x4EBDB122, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Dynablaster (Europe)
 			{ .ui32Crc = 0x34BB757B, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Eliminator Boat Duel (Europe)

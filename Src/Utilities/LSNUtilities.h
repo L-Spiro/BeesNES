@@ -36,7 +36,8 @@
 #define LSN_ROUND_UP( VALUE, X )							((VALUE) + (((X) - (VALUE) & ((X) - 1)) & ((X) - 1)))
 #endif	// #ifndef LSN_ROUND_UP
 
-#define LSN_NOISE_BUFFERS									13
+#define LSN_NOISE_BUFFERS									32
+#define LSN_NOISE_BUFFER( X )								((X) & 0x1F)
 
 namespace lsn {
 
@@ -1946,9 +1947,12 @@ namespace lsn {
 		 * \param _fAmplitude The noise amplitude.
 		 **/
 		static void inline									GenUniformNoise( float _fAmplitude = 0.1f ) {
+			if LSN_LIKELY( !m_bNoiseIsGaussian && m_fLastNoiseParm == _fAmplitude ) { return; }
 			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
 				UniformNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fAmplitude );
 			}
+			m_bNoiseIsGaussian = false;
+			m_fLastNoiseParm = _fAmplitude;
 		}
 
 		/**
@@ -1957,9 +1961,12 @@ namespace lsn {
 		 * \param _fStdDev The standard deviation.
 		 **/
 		static void inline									GenGaussianNoise( float _fStdDev = 0.05f ) {
+			if LSN_LIKELY( m_bNoiseIsGaussian && m_fLastNoiseParm == _fStdDev ) { return; }
 			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
 				GaussianNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fStdDev );
 			}
+			m_bNoiseIsGaussian = true;
+			m_fLastNoiseParm = _fStdDev;
 		}
 
 		/**
@@ -1969,7 +1976,7 @@ namespace lsn {
 		 **/
 		static inline uint32_t								Rand() {
 			uint32_t ui32Ret = m_ui32Rand;
-			m_ui32Rand = (214019 * m_ui32Rand + 140327895);
+			m_ui32Rand = bswap_32( 214019 * m_ui32Rand + 140327895 );
 			return ui32Ret;
 		}
 
@@ -1982,6 +1989,8 @@ namespace lsn {
 		LSN_ALIGN( 64 )
 		static float										m_fNoiseBuffers[LSN_NOISE_BUFFERS][16];		/**< LSN_NOISE_BUFFERS noise buffers, each with 16 samples. */
 		static uint32_t										m_ui32Rand;									/**< A quick pseudo-random value updated each time it is accessed via Rand(). */
+		static bool											m_bNoiseIsGaussian;							/**< True if the last call was to GenGaussianNoise(). */
+		static float										m_fLastNoiseParm;							/**< The last value passed to either GenUniformNoise() or GenGaussianNoise(). */
 	};
 
 }	// namespace lsn

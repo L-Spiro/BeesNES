@@ -111,7 +111,7 @@ namespace lsn {
 	 **/
 	inline bool CSincFilter::CreateLpf( float _fFc, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc ) {
 		if ( !(_stM & 1) ) { ++_stM; }						// Must have an odd number of samples for symmetry.
-		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
+		if LSN_LIKELY( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
 		m_fSampleRate = _fSampleRate;
 		m_fFc = _fFc;
 		double dFc = double( _fFc ) / _fSampleRate;			// Cut-off ratio.
@@ -162,7 +162,7 @@ namespace lsn {
 	 **/
 	inline bool CSincFilter::CreateHpf( float _fFc, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc ) {
 		if ( !(_stM & 1) ) { ++_stM; }						// Must have an odd number of samples for symmetry.
-		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
+		if LSN_LIKELY( m_fSampleRate == _fSampleRate && m_fFc == _fFc && m_vCeof.size() == _stM ) { return true; }
 		m_fSampleRate = _fSampleRate;
 		m_fFc = _fFc;
 		double dFc = double( _fFc ) / _fSampleRate;			// Cut-off ratio.
@@ -220,7 +220,7 @@ namespace lsn {
 	 **/
 	inline bool CSincFilter::CreateBandPass( float _fFl, float _fFh, float _fSampleRate, size_t _stM, PfWindowFunc _pfSynthFunc ) {
 		if ( !(_stM & 1) ) { ++_stM; }						// Must have an odd number of samples for symmetry.
-		if ( m_fSampleRate == _fSampleRate && m_fFc == _fFl && m_fFb == _fFh && m_vCeof.size() == _stM ) { return true; }
+		if LSN_LIKELY( m_fSampleRate == _fSampleRate && m_fFc == _fFl && m_fFb == _fFh && m_vCeof.size() == _stM ) { return true; }
 		m_fSampleRate = _fSampleRate;
 		m_fFc = _fFl;
 		m_fFb = _fFh;
@@ -273,7 +273,7 @@ namespace lsn {
 	 **/
 	inline double CSincFilter::Process( double _dSample ) const {
 		--m_stRing;
-		if ( m_stRing >= m_vRing.size() ) {
+		if LSN_UNLIKELY( m_stRing >= m_vRing.size() ) {
 			m_stRing += m_vRing.size();
 		}
 		m_vRing[m_stRing] = _dSample;

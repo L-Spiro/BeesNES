@@ -43,6 +43,9 @@ namespace lsn {
 
 	uint32_t CUtilities::m_ui32Rand = 194;									/**< A quick pseudo-random value updated each time it is accessed via Rand(). */
 
+	bool CUtilities::m_bNoiseIsGaussian = false;							/**< True if the last call was to GenGaussianNoise(). */
+	float CUtilities::m_fLastNoiseParm = 0.0f;								/**< The last value passed to either GenUniformNoise() or GenGaussianNoise(). */
+
 	// == Functions.
 	/**
 	 * Converts a UTF-8 string to a UTF-16 string.  The resulting string may have allocated more characters than necessary but will be terminated with a NULL.

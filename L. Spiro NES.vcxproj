@@ -1958,11 +1958,10 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Filters\LSNSrgbPostProcess.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.cpp" />
-    <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_nes.c" />
-    <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_ntsc.c" />
+    <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_nes.cpp" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal.c" />
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_core.cpp" />
-    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.c" />
+    <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandAllocator.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12CommandList.cpp" />

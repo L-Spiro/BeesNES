@@ -13,34 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined( _MSC_VER )
-    // Microsoft Visual Studio Compiler.
-    #define LSN_ALN								__declspec( align( 64 ) )
-	#ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( x ) [[likely]]
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( x ) [[unlikely]]
-	#endif	// #ifndef LSN_UNLIKELY
-#elif defined( __GNUC__ ) || defined( __clang__ )
-    // GNU Compiler Collection (GCC) or Clang.
-    #define LSN_ALN								__attribute__( (aligned( 64 )) )
-	#ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( __builtin_expect( !!(x), 1 ) )
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( __builtin_expect( !!(x), 0 ) )
-	#endif	// #ifndef LSN_UNLIKELY
-    #define __assume( x )
-#else
-    #ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( x )
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( x )
-	#endif	// #ifndef LSN_UNLIKELY
-#endif
-
 /* ensure negative values for x get properly modulo'd */
 #define POSMOD(x, n)     (((x) % (n) + (n)) % (n))
 
@@ -204,13 +176,13 @@ init_eq(struct EQF *f,
     f->g[2] = g_hi;
     
     crt_sincos14_full(&sn, &cs, T14_PI * f_lo / rate);
-    if (EQ_P >= 15) {
+    if constexpr (EQ_P >= 15) {
         f->lf = 2 * (sn << (EQ_P - 15));
     } else {
         f->lf = 2 * (sn >> (15 - EQ_P));
     }
     crt_sincos14_full(&sn, &cs, T14_PI * f_hi / rate);
-    if (EQ_P >= 15) {
+    if constexpr (EQ_P >= 15) {
         f->hf = 2 * (sn << (EQ_P - 15));
     } else {
         f->hf = 2 * (sn >> (15 - EQ_P));
@@ -343,7 +315,7 @@ crt_demodulate_full(struct CRT *v, int noise)
         s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
         if LSN_UNLIKELY(s >  127) { s =  127; }
         if LSN_UNLIKELY(s < -127) { s = -127; }
-        v->inp[i] = s;
+        v->inp[i] = (signed char)s;
     }
     v->rn = rn;
 
@@ -371,11 +343,17 @@ crt_demodulate_full(struct CRT *v, int noise)
         }
     }
 vsync_found:
-#if CRT_DO_VSYNC
-    v->vsync = line; /* vsync found (or gave up) at this line */
-#else
-    v->vsync = -3;
-#endif
+	if LSN_LIKELY( v->do_vsync ) {
+		v->vsync = line; /* vsync found (or gave up) at this line */
+	}
+	else {
+		v->vsync = -3;
+	}
+//#if CRT_DO_VSYNC
+//    v->vsync = line; /* vsync found (or gave up) at this line */
+//#else
+//    v->vsync = -3;
+//#endif
     /* if vsync signal was in second half of line, odd field */
     field = (j > (CRT_HRES / 2));
 #if CRT_DO_BLOOM
@@ -406,7 +384,7 @@ vsync_found:
         end = (line - CRT_TOP + 1) * (v->outh + v->v_fac) / CRT_LINES + field;
 
         if LSN_UNLIKELY(beg >= v->outh) { continue; }
-        if (end > v->outh) { end = v->outh; }
+        if LSN_UNLIKELY(end > v->outh) { end = v->outh; }
 
         /* Look for horizontal sync.
          * See comment above regarding vertical sync.
@@ -420,11 +398,18 @@ vsync_found:
                 break;
             }
         }
-#if CRT_DO_HSYNC
-        v->hsync = POSMOD(i + v->hsync, CRT_HRES);
-#else
-        v->hsync = 0;
-#endif
+
+		if LSN_LIKELY( v->do_hsync ) {
+			v->hsync = POSMOD(i + v->hsync, CRT_HRES);
+		}
+		else {
+			v->hsync = 0;
+		}
+//#if CRT_DO_HSYNC
+//        v->hsync = POSMOD(i + v->hsync, CRT_HRES);
+//#else
+//        v->hsync = 0;
+//#endif
         
         xpos = POSMOD(AV_BEG + v->hsync + xnudge, CRT_HRES);
         ypos = POSMOD(line + v->vsync + ynudge, CRT_VRES);
@@ -487,10 +472,10 @@ vsync_found:
         cL = v->out + (beg * pitch);
         cR = cL + pitch;
 
-        for (pos = scanL; pos < scanR && cL < cR; pos += dx) {
+        for (pos = scanL; (int)pos < scanR && cL < cR; pos += dx) {
             int y, I, q;
             int r, g, b;
-            int bb;
+            //int bb;
 
             R = pos & 0xfff;
             L = 0xfff - R;
@@ -581,11 +566,14 @@ vsync_found:
             if (v->blend) {
                 int sr, sg, sb;
                 
-                bb = *(int *)cL;
+                /*bb = *(int *)cL;
 
                 sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
                 sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
-                sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);
+                sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);*/
+				sr = (((cL[2]) * 6 + (r * 10)) >> 4);
+                sg = (((cL[1]) * 6 + (g * 10)) >> 4);
+                sb = (((cL[0]) * 6 + (b * 10)) >> 4);
                 
                 if LSN_UNLIKELY(sr > 255) sr = 255;
                 if LSN_UNLIKELY(sg > 255) sg = 255;

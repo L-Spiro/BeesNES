@@ -45,7 +45,7 @@ square_sample(int p, int phase)
     hue = (p & 0x0f);
 
     /* last two columns are black */
-    if (hue >= 0x0e) {
+    if LSN_UNLIKELY(hue >= 0x0e) {
         return 0;
     }
 
@@ -91,7 +91,7 @@ setup_field(struct CRT *v)
         t = LINE_BEG;
  
         /* vertical sync scanlines */
-        if (n >= 259 && n <= CRT_VRES) {
+        if LSN_UNLIKELY(n >= 259 && n <= CRT_VRES) {
            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
            while (t < PPUpx2pos(327)) line[t++] = SYNC_LEVEL; /* sync separator */
            while (t < CRT_HRES) line[t++] = BLANK_LEVEL; /* blank */
@@ -116,7 +116,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     int sn, cs;
     static int phasetab[4] = { 0, 4, 8 };
         
-    if (!s->field_initialized) {
+    if LSN_UNLIKELY(!s->field_initialized) {
         setup_field(v);
         s->field_initialized = 1;
     }
@@ -164,8 +164,8 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         int t, cb;
         int sy = (y * s->h) / desth;
         
-        if (sy >= s->h) sy = s->h;
-        if (sy < 0) sy = 0;
+        if LSN_UNLIKELY(sy >= s->h) sy = s->h;
+        if LSN_UNLIKELY(sy < 0) sy = 0;
  
         n = (y + yo);
         line = &v->analog[n * CRT_HRES];

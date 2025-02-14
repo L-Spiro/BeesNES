@@ -162,7 +162,7 @@ namespace lsn {
 			}
 		}
 
-		::pal_demodulate( &m_nnCrtPal, 4 );
+		::pal_demodulate( &m_nnCrtPal, 3 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;

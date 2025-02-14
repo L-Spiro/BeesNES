@@ -93,6 +93,8 @@ namespace lsn {
 		m_nnCrtNtsc.black_point = 4;
 		m_nnCrtNtsc.white_point = 75;
 		m_nnCrtNtsc.blend = 1;
+		m_nnCrtNtsc.do_vsync = true;
+		m_nnCrtNtsc.do_hsync = true;
 
 		m_nsSettings.border_color = 0x22;
 

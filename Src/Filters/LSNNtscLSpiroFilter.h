@@ -453,8 +453,8 @@ namespace lsn {
 		// The square wave for this color alternates between these two voltages:
 		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];
 		float fHigh = (&m_NormalizedLevels[4])[ui16Level+ui16Atten];
-		if ( ui16Color == 0 ) { return fHigh; }			// For color 0, only high level is emitted.
-		if ( ui16Color > 12 ) { return fLow; }			// For colors 13..15, only low level is emitted.
+		if LSN_UNLIKELY( ui16Color == 0 ) { return fHigh; }			// For color 0, only high level is emitted.
+		if ( ui16Color > 12 ) { return fLow; }						// For colors 13..15, only low level is emitted.
 
 		return LSN_INCOLORPHASE( ui16Color ) ? fHigh : fLow;
 #undef LSN_INCOLORPHASE

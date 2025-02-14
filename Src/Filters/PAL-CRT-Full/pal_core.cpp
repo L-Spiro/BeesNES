@@ -15,34 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined( _MSC_VER )
-    // Microsoft Visual Studio Compiler.
-    #define LSN_ALN								__declspec( align( 64 ) )
-	#ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( x ) [[likely]]
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( x ) [[unlikely]]
-	#endif	// #ifndef LSN_UNLIKELY
-#elif defined( __GNUC__ ) || defined( __clang__ )
-    // GNU Compiler Collection (GCC) or Clang.
-    #define LSN_ALN								__attribute__( (aligned( 64 )) )
-	#ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( __builtin_expect( !!(x), 1 ) )
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( __builtin_expect( !!(x), 0 ) )
-	#endif	// #ifndef LSN_UNLIKELY
-    #define __assume( x )
-#else
-    #ifndef LSN_LIKELY
-		#define LSN_LIKELY( x )					( x )
-	#endif	// #ifndef LSN_LIKELY
-	#ifndef LSN_UNLIKELY
-		#define LSN_UNLIKELY( x )				( x )
-	#endif	// #ifndef LSN_UNLIKELY
-#endif
-
 /* ensure negative values for x get properly modulo'd */
 #define POSMOD(x, n)     (((x) % (n) + (n)) % (n))
 
@@ -327,9 +299,9 @@ pal_demodulate(struct PAL_CRT *c, int noise)
 #endif
     
     bpp = pal_bpp4fmt(c->out_format);
-    if LSN_UNLIKELY(bpp == 0) {
+    /*if LSN_UNLIKELY(bpp == 0) {
         return;
-    }
+    }*/
     pitch = c->outw * bpp;
     
     rn = c->rn;
@@ -340,7 +312,7 @@ pal_demodulate(struct PAL_CRT *c, int noise)
         s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
         if LSN_UNLIKELY(s >  127) { s =  127; }
         if LSN_UNLIKELY(s < -127) { s = -127; }
-        c->inp[i] = s;
+        c->inp[i] = (signed char)s;
     }
     c->rn = rn;
 
@@ -405,7 +377,7 @@ vsync_found:
         end = (line - PAL_TOP + 1) * (c->outh + c->v_fac) / PAL_LINES + field;
 
         if LSN_UNLIKELY(beg >= c->outh) { continue; }
-        if (end > c->outh) { end = c->outh; }
+        if LSN_UNLIKELY(end > c->outh) { end = c->outh; }
 
         /* Look for horizontal sync.
          * See comment above regarding vertical sync.
@@ -519,7 +491,7 @@ vsync_found:
         cL = c->out + (beg * pitch);
         cR = cL + pitch;
 
-        for (pos = scanL; pos < scanR && cL < cR; pos += dx) {
+        for (pos = scanL; (int)pos < scanR && cL < cR; pos += dx) {
             int y, u, v;
             int r, g, b;
             int aa, bb;

@@ -11,6 +11,41 @@
 #ifndef _CRT_CORE_H_
 #define _CRT_CORE_H_
 
+#if defined( _MSC_VER )
+    // Microsoft Visual Studio Compiler.
+	#ifndef LSN_ALN
+		#define LSN_ALN								__declspec( align( 64 ) )
+	#endif	// #ifndef LSN_ALN
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( x ) [[likely]]
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( x ) [[unlikely]]
+	#endif	// #ifndef LSN_UNLIKELY
+#elif defined( __GNUC__ ) || defined( __clang__ )
+    // GNU Compiler Collection (GCC) or Clang.
+	#ifndef LSN_ALN
+		#define LSN_ALN								__attribute__( (aligned( 64 )) )
+	#endif	// #ifndef LSN_ALN
+	#ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( __builtin_expect( !!(x), 1 ) )
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( __builtin_expect( !!(x), 0 ) )
+	#endif	// #ifndef LSN_UNLIKELY
+    #define __assume( x )
+#else
+	#ifndef LSN_ALN
+		#define LSN_ALN							
+	#endif	// #ifndef LSN_ALN
+    #ifndef LSN_LIKELY
+		#define LSN_LIKELY( x )					( x )
+	#endif	// #ifndef LSN_LIKELY
+	#ifndef LSN_UNLIKELY
+		#define LSN_UNLIKELY( x )				( x )
+	#endif	// #ifndef LSN_UNLIKELY
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,8 +86,8 @@ extern "C" {
 
 /* do bloom emulation (side effect: makes screen have black borders) */
 #define CRT_DO_BLOOM    0  /* does not work for NES */
-#define CRT_DO_VSYNC    1  /* look for VSYNC */
-#define CRT_DO_HSYNC    1  /* look for HSYNC */
+//#define CRT_DO_VSYNC    1  /* look for VSYNC */
+//#define CRT_DO_HSYNC    1  /* look for HSYNC */
 
 struct CRT {
     signed char analog[CRT_INPUT_SIZE];
@@ -73,6 +108,9 @@ struct CRT {
     int cc_period; /* vertically */
     int hsync, vsync; /* keep track of sync over frames */
     int rn; /* seed for the 'random' noise */
+
+	bool do_vsync; /* look for VSYNC */
+	bool do_hsync; /* look for HSYNC */
 };
 
 /* Initializes the library. Sets up filters.
