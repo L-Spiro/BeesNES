@@ -477,8 +477,8 @@ vsync_found:
 		pos = scanL;
 
 
-#if defined( __AVX512BW__ )
-		if ( lsn::CUtilities::IsAvx512BWSupported() ) {
+#if defined( __AVX512F__ )
+		if ( lsn::CUtilities::IsAvx512FSupported() ) {
 			// Preload constant vectors.
 			__m512i vMaskFFf    = _mm512_set1_epi32(0xfff);
 			__m512i vContrast   = _mm512_set1_epi32(v->contrast);
@@ -570,7 +570,7 @@ vsync_found:
 				__m512i b_tmp = _mm512_srai_epi32(b_term, 12);
 				__m512i b_vec = _mm512_srai_epi32(_mm512_mullo_epi32(b_tmp, vContrast), 8);
 
-				if (v->blend) {
+				if LSN_LIKELY(v->blend) {
 					// Clamp negative values to zero.
 					r_vec = _mm512_max_epi32(r_vec, vZero);
 					g_vec = _mm512_max_epi32(g_vec, vZero);
@@ -598,14 +598,20 @@ vsync_found:
 					}
 				} else {
 					// Non-blend: perform a saturated conversion and store 16 pixels in B, G, R order.
-					__m128i r8 = _mm512_cvtusepi32_epi8(r_vec);
-					__m128i g8 = _mm512_cvtusepi32_epi8(g_vec);
-					__m128i b8 = _mm512_cvtusepi32_epi8(b_vec);
+					// Clamp negative values to zero.
+					r_vec = _mm512_max_epi32(r_vec, vZero);
+					g_vec = _mm512_max_epi32(g_vec, vZero);
+					b_vec = _mm512_max_epi32(b_vec, vZero);
 
-					LSN_ALN uint8_t r_arr[16], g_arr[16], b_arr[16];
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(r_arr), r8);
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(g_arr), g8);
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(b_arr), b8);
+					// Clamp negative values to zero.
+					r_vec = _mm512_min_epi32(r_vec, vMax255);
+					g_vec = _mm512_min_epi32(g_vec, vMax255);
+					b_vec = _mm512_min_epi32(b_vec, vMax255);
+
+					LSN_ALN uint32_t r_arr[16], g_arr[16], b_arr[16];
+					_mm512_store_epi32(r_arr, r_vec);
+					_mm512_store_epi32(g_arr, g_vec);
+					_mm512_store_epi32(b_arr, b_vec);
 
 					for (int k = 0; k < 16; k++) {
 						cL[bpp*k+0] = static_cast<unsigned char>(b_arr[k]);
@@ -718,14 +724,8 @@ vsync_found:
 				_mm256_store_si256(reinterpret_cast<__m256i*>(g_arr), g_vec);
 				_mm256_store_si256(reinterpret_cast<__m256i*>(b_arr), b_vec);
 
-				if (v->blend) {
+				if LSN_LIKELY(v->blend) {
 					int sr, sg, sb;
-                
-					/*bb = *(int *)cL;
-
-					sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
-					sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
-					sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);*/
 					for (int k = 0; k < 8; k++) {
 						sr = (((cL[bpp*k+2]) * 6 + (r_arr[k] * 10)) >> 4);
 						sg = (((cL[bpp*k+1]) * 6 + (g_arr[k] * 10)) >> 4);
@@ -735,7 +735,6 @@ vsync_found:
 						if LSN_UNLIKELY(sg > 255) sg = 255;
 						if LSN_UNLIKELY(sb > 255) sb = 255;
                 
-						//*cL++ = (sr << 16 | sg << 8 | sb);
 						cL[bpp*k+0] = static_cast<unsigned char>(sb);
 						cL[bpp*k+1] = static_cast<unsigned char>(sg);
 						cL[bpp*k+2] = static_cast<unsigned char>(sr);
