@@ -271,7 +271,7 @@ namespace lsn {
 			//if ( fRange == 0.0f ) { fRange = 1.0f; }
 			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
 			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25)) );
+			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25 * 3.0)) );
 
 
 
@@ -1095,8 +1095,8 @@ namespace lsn {
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
-			if ( paApu->m_hfHpfFilter90.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
-				if ( paApu->m_hfHpfFilter37.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
+			if LSN_LIKELY ( paApu->m_hfHpfFilter90.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
+				if LSN_LIKELY( paApu->m_hfHpfFilter37.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
 					return float( paApu->m_hfHpfFilter90.Process( paApu->m_hfHpfFilter37.Process( _fSample ) ) );
 				}
 			}
