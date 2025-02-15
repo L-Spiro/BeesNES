@@ -282,44 +282,44 @@ crt_init_full(struct CRT *v, int w, int h, int f, unsigned char *out)
 extern void
 crt_demodulate_full(struct CRT *v, int noise)
 {
-    struct {
-        int y, i, q;
-    } out[AV_LEN + 1], *yiqA, *yiqB;
-    int i, j = 0, line = 0, rn;
-    signed char *sig;
-    int s = 0;
-    int field, ratio;
-    int *ccr; /* color carrier signal */
-    int huesn, huecs;
-    int xnudge = -3, ynudge = 3;
-    int bright = v->brightness - (BLACK_LEVEL + v->black_point);
-    int bpp, pitch;
+	struct {
+		int y, i, q;
+	} out[AV_LEN + 1], *yiqA, *yiqB;
+	int i, j = 0, line = 0, rn;
+	signed char *sig;
+	int s = 0;
+	int field, ratio;
+	int *ccr; /* color carrier signal */
+	int huesn, huecs;
+	int xnudge = -3, ynudge = 3;
+	int bright = v->brightness - (BLACK_LEVEL + v->black_point);
+	int bpp, pitch;
 #if CRT_DO_BLOOM
-    int prev_e; /* filtered beam energy per scan line */
-    int max_e; /* approx maximum energy in a scan line */
+	int prev_e; /* filtered beam energy per scan line */
+	int max_e; /* approx maximum energy in a scan line */
 #endif
     
-    bpp = 4;//crt_bpp4fmt(v->out_format);
-    /*if (bpp == 0) {
-        return;
-    }*/
-    pitch = v->outw * bpp;
+	bpp = 4;//crt_bpp4fmt(v->out_format);
+	/*if (bpp == 0) {
+		return;
+	}*/
+	pitch = v->outw * bpp;
     
-    crt_sincos14_full(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
-    huesn >>= 11; /* make 4-bit */
-    huecs >>= 11;
+	crt_sincos14_full(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
+	huesn >>= 11; /* make 4-bit */
+	huecs >>= 11;
 
-    rn = v->rn;
-    for (i = 0; i < CRT_INPUT_SIZE; i++) {
-        rn = (214019 * rn + 140327895);
+	rn = v->rn;
+	for (i = 0; i < CRT_INPUT_SIZE; i++) {
+		rn = (214019 * rn + 140327895);
 
-        /* signal + noise */
-        s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
-        if LSN_UNLIKELY(s >  127) { s =  127; }
-        if LSN_UNLIKELY(s < -127) { s = -127; }
-        v->inp[i] = (signed char)s;
-    }
-    v->rn = rn;
+		/* signal + noise */
+		s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
+		if LSN_UNLIKELY(s >  127) { s =  127; }
+		if LSN_UNLIKELY(s < -127) { s = -127; }
+		v->inp[i] = (signed char)s;
+	}
+	v->rn = rn;
 
     /* Look for vertical sync.
      * 
@@ -330,20 +330,20 @@ crt_demodulate_full(struct CRT *v, int noise)
      * The signal needs to be integrated to lessen
      * the noise in the signal.
      */
-    for (i = -VSYNC_WINDOW; i < VSYNC_WINDOW; i++) {
-        line = POSMOD(v->vsync + i, CRT_VRES);
-        sig = v->inp + line * CRT_HRES;
-        s = 0;
-        for (j = 0; j < CRT_HRES; j++) {
-            s += sig[j];
-            /* increase the multiplier to make the vsync
-             * more stable when there is a lot of noise
-             */
-            if (s <= (94 * SYNC_LEVEL)) {
-                goto vsync_found;
-            }
-        }
-    }
+	for (i = -VSYNC_WINDOW; i < VSYNC_WINDOW; i++) {
+		line = POSMOD(v->vsync + i, CRT_VRES);
+		sig = v->inp + line * CRT_HRES;
+		s = 0;
+		for (j = 0; j < CRT_HRES; j++) {
+			s += sig[j];
+			/* increase the multiplier to make the vsync
+				* more stable when there is a lot of noise
+				*/
+			if (s <= (94 * SYNC_LEVEL)) {
+				goto vsync_found;
+			}
+		}
+	}
 vsync_found:
 	if LSN_LIKELY( v->do_vsync ) {
 		v->vsync = line; /* vsync found (or gave up) at this line */
@@ -356,50 +356,50 @@ vsync_found:
 //#else
 //    v->vsync = -3;
 //#endif
-    /* if vsync signal was in second half of line, odd field */
-    field = (j > (CRT_HRES / 2));
+	/* if vsync signal was in second half of line, odd field */
+	field = (j > (CRT_HRES / 2));
 #if CRT_DO_BLOOM
-    max_e = (128 + (noise / 2)) * AV_LEN;
-    prev_e = (16384 / 8);
+	max_e = (128 + (noise / 2)) * AV_LEN;
+	prev_e = (16384 / 8);
 #endif
-    /* ratio of output height to active video lines in the signal */
-    ratio = (v->outh << 16) / CRT_LINES;
-    ratio = (ratio + 32768) >> 16;
+	/* ratio of output height to active video lines in the signal */
+	ratio = (v->outh << 16) / CRT_LINES;
+	ratio = (ratio + 32768) >> 16;
     
-    field = (field * (ratio / 2));
+	field = (field * (ratio / 2));
 
-    for (line = CRT_TOP; line < CRT_BOT; line++) {
-        unsigned pos, ln;
-        int scanL, scanR, dx;
-        int L, R;
-        unsigned char *cL, *cR;
-        int wave[4];
-        int dci, dcq; /* decoded I, Q */
-        int xpos, ypos;
-        int beg, end;
-        int phasealign;
+	for (line = CRT_TOP; line < CRT_BOT; line++) {
+		unsigned pos, ln;
+		int scanL, scanR, dx;
+		int L, R;
+		unsigned char *cL, *cR;
+		int wave[4];
+		int dci, dcq; /* decoded I, Q */
+		int xpos, ypos;
+		int beg, end;
+		int phasealign;
 #if CRT_DO_BLOOM
-        int line_w;
+		int line_w;
 #endif
   
-        beg = (line - CRT_TOP + 0) * (v->outh + v->v_fac) / CRT_LINES + field;
-        end = (line - CRT_TOP + 1) * (v->outh + v->v_fac) / CRT_LINES + field;
+		beg = (line - CRT_TOP + 0) * (v->outh + v->v_fac) / CRT_LINES + field;
+		end = (line - CRT_TOP + 1) * (v->outh + v->v_fac) / CRT_LINES + field;
 
-        if LSN_UNLIKELY(beg >= v->outh) { continue; }
-        if LSN_UNLIKELY(end > v->outh) { end = v->outh; }
+		if LSN_UNLIKELY(beg >= v->outh) { continue; }
+		if LSN_UNLIKELY(end > v->outh) { end = v->outh; }
 
-        /* Look for horizontal sync.
-         * See comment above regarding vertical sync.
-         */
-        ln = (POSMOD(line + v->vsync, CRT_VRES)) * CRT_HRES;
-        sig = v->inp + ln + v->hsync;
-        s = 0;
-        for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
-            s += sig[SYNC_BEG + i];
-            if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL)) {
-                break;
-            }
-        }
+		/* Look for horizontal sync.
+			* See comment above regarding vertical sync.
+			*/
+		ln = (POSMOD(line + v->vsync, CRT_VRES)) * CRT_HRES;
+		sig = v->inp + ln + v->hsync;
+		s = 0;
+		for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
+			s += sig[SYNC_BEG + i];
+			if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL)) {
+				break;
+			}
+		}
 
 		if LSN_LIKELY( v->do_hsync ) {
 			v->hsync = POSMOD(i + v->hsync, CRT_HRES);
@@ -413,68 +413,219 @@ vsync_found:
 //        v->hsync = 0;
 //#endif
         
-        xpos = POSMOD(AV_BEG + v->hsync + xnudge, CRT_HRES);
-        ypos = POSMOD(line + v->vsync + ynudge, CRT_VRES);
-        pos = xpos + ypos * CRT_HRES;
+		xpos = POSMOD(AV_BEG + v->hsync + xnudge, CRT_HRES);
+		ypos = POSMOD(line + v->vsync + ynudge, CRT_VRES);
+		pos = xpos + ypos * CRT_HRES;
         
-        ccr = v->ccf[ypos % v->cc_period];
-        sig = v->inp + ln + (v->hsync & ~3); /* burst @ 1/CB_FREQ sample rate */
-        for (i = CB_BEG; i < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); i++) {
-            int p, n;
-            p = ccr[i & 3] * 127 / 128; /* fraction of the previous */
-            n = sig[i];                 /* mixed with the new sample */
-            ccr[i & 3] = p + n;
-        }
+		ccr = v->ccf[ypos % v->cc_period];
+		sig = v->inp + ln + (v->hsync & ~3); /* burst @ 1/CB_FREQ sample rate */
+		for (i = CB_BEG; i < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); i++) {
+			int p, n;
+			p = ccr[i & 3] * 127 / 128; /* fraction of the previous */
+			n = sig[i];                 /* mixed with the new sample */
+			ccr[i & 3] = p + n;
+		}
  
-        phasealign = POSMOD(v->hsync, 4);
+		phasealign = POSMOD(v->hsync, 4);
 
-        /* amplitude of carrier = saturation, phase difference = hue */
-        dci = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
-        dcq = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
+		/* amplitude of carrier = saturation, phase difference = hue */
+		dci = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
+		dcq = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
 
-        /* rotate them by the hue adjustment angle */
-        wave[0] = ((dci * huecs - dcq * huesn) >> 4) * v->saturation;
-        wave[1] = ((dcq * huecs + dci * huesn) >> 4) * v->saturation;
-        wave[2] = -wave[0];
-        wave[3] = -wave[1];
+		/* rotate them by the hue adjustment angle */
+		wave[0] = ((dci * huecs - dcq * huesn) >> 4) * v->saturation;
+		wave[1] = ((dcq * huecs + dci * huesn) >> 4) * v->saturation;
+		wave[2] = -wave[0];
+		wave[3] = -wave[1];
         
-        sig = v->inp + pos;
+		sig = v->inp + pos;
 #if CRT_DO_BLOOM
-        s = 0;
-        for (i = 0; i < AV_LEN; i++) {
-            s += sig[i]; /* sum up the scan line */
-        }
-        /* bloom emulation */
-        prev_e = (prev_e * 123 / 128) + ((((max_e >> 1) - s) << 10) / max_e);
-        line_w = (AV_LEN * 112 / 128) + (prev_e >> 9);
+		s = 0;
+		for (i = 0; i < AV_LEN; i++) {
+			s += sig[i]; /* sum up the scan line */
+		}
+		/* bloom emulation */
+		prev_e = (prev_e * 123 / 128) + ((((max_e >> 1) - s) << 10) / max_e);
+		line_w = (AV_LEN * 112 / 128) + (prev_e >> 9);
 
-        dx = (line_w << 12) / v->outw;
-        scanL = ((AV_LEN / 2) - (line_w >> 1) + 8) << 12;
-        scanR = (AV_LEN - 1) << 12;
+		dx = (line_w << 12) / v->outw;
+		scanL = ((AV_LEN / 2) - (line_w >> 1) + 8) << 12;
+		scanR = (AV_LEN - 1) << 12;
         
-        L = (scanL >> 12);
-        R = (scanR >> 12);
+		L = (scanL >> 12);
+		R = (scanR >> 12);
 #else
-        dx = ((AV_LEN - 1) << 12) / v->outw;
-        scanL = 0;
-        scanR = (AV_LEN - 1) << 12;
-        L = 0;
-        R = AV_LEN;
+		dx = ((AV_LEN - 1) << 12) / v->outw;
+		scanL = 0;
+		scanR = (AV_LEN - 1) << 12;
+		L = 0;
+		R = AV_LEN;
 #endif
-        reset_eq(&eqY);
-        reset_eq(&eqI);
-        reset_eq(&eqQ);
+		reset_eq(&eqY);
+		reset_eq(&eqI);
+		reset_eq(&eqQ);
         
-        for (i = L; i < R; i++) {
-            out[i].y = eqf(&eqY, sig[i] + bright) << 4;
-            out[i].i = eqf(&eqI, sig[i] * wave[(i + 0) & 3] >> 9) >> 3;
-            out[i].q = eqf(&eqQ, sig[i] * wave[(i + 3) & 3] >> 9) >> 3;
-        }
+		for (i = L; i < R; i++) {
+			out[i].y = eqf(&eqY, sig[i] + bright) << 4;
+			out[i].i = eqf(&eqI, sig[i] * wave[(i + 0) & 3] >> 9) >> 3;
+			out[i].q = eqf(&eqQ, sig[i] * wave[(i + 3) & 3] >> 9) >> 3;
+		}
 
-        cL = v->out + (beg * pitch);
-        cR = cL + pitch;
+		cL = v->out + (beg * pitch);
+		cR = cL + pitch;
 
 		pos = scanL;
+
+
+#if defined( __AVX512BW__ )
+		if ( lsn::CUtilities::IsAvx512BWSupported() ) {
+			// Preload constant vectors.
+			__m512i vMaskFFf    = _mm512_set1_epi32(0xfff);
+			__m512i vContrast   = _mm512_set1_epi32(v->contrast);
+			__m512i vMax255     = _mm512_set1_epi32(255);
+			__m512i vZero       = _mm512_setzero_si512();
+			__m512i v3          = _mm512_set1_epi32(3);
+			__m512i vConst3879  = _mm512_set1_epi32(3879);
+			__m512i vConst2556  = _mm512_set1_epi32(2556);
+			__m512i vConst1126  = _mm512_set1_epi32(1126);
+			__m512i vConst2605  = _mm512_set1_epi32(2605);
+			__m512i vConst4530  = _mm512_set1_epi32(4530);
+			__m512i vConst7021  = _mm512_set1_epi32(7021);
+
+			// Precompute an index vector for multiplying dx:
+			// 0, dx, 2*dx, ..., 15*dx.
+			__m512i idxInc = _mm512_setr_epi32(
+				0,      dx,     2*dx,   3*dx,
+				4*dx,   5*dx,   6*dx,   7*dx,
+				8*dx,   9*dx,   10*dx,  11*dx,
+				12*dx,  13*dx,  14*dx,  15*dx
+			);
+
+			// Process 16 pixels per loop.
+			while ((int)pos <= scanR - 16 && cL <= cR - (16 * bpp)) {
+				// Compute positions for 16 pixels: pos, pos+dx, ..., pos+15*dx.
+				__m512i vPos = _mm512_add_epi32(_mm512_set1_epi32(pos), idxInc);
+
+				// Compute R = pos & 0xfff.
+				__m512i vR = _mm512_and_epi32(vPos, vMaskFFf);
+				// Compute L = 0xfff - R.
+				__m512i vL = _mm512_sub_epi32(vMaskFFf, vR);
+				// Compute sample index s = pos >> 12.
+				__m512i vs = _mm512_srli_epi32(vPos, 12);
+
+				// For each sample, load two YIQ samples.
+				// Each YIQ occupies 3 ints; sample A's y is at index = s*3.
+				__m512i indexA = _mm512_mullo_epi32(vs, v3);
+				__m512i indexB = _mm512_add_epi32(indexA, _mm512_set1_epi32(3));
+
+				// Gather A.y, A.i, A.q.
+				__m512i A_y = _mm512_i32gather_epi32(indexA, reinterpret_cast<const int*>(out), 4);
+				__m512i A_i = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(1)),
+													 reinterpret_cast<const int*>(out), 4);
+				__m512i A_q = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(2)),
+													 reinterpret_cast<const int*>(out), 4);
+
+				// Gather B.y, B.i, B.q.
+				__m512i B_y = _mm512_i32gather_epi32(indexB, reinterpret_cast<const int*>(out), 4);
+				__m512i B_i = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(1)),
+													 reinterpret_cast<const int*>(out), 4);
+				__m512i B_q = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(2)),
+													 reinterpret_cast<const int*>(out), 4);
+
+				// Interpolate Y, I, and q.
+				// y = ((A_y * L) >> 2) + ((B_y * R) >> 2)
+				__m512i yA = _mm512_mullo_epi32(A_y, vL);
+				__m512i yB = _mm512_mullo_epi32(B_y, vR);
+				__m512i y_vec = _mm512_add_epi32(_mm512_srai_epi32(yA, 2), _mm512_srai_epi32(yB, 2));
+
+				// I = ((A_i * L) >> 14) + ((B_i * R) >> 14)
+				__m512i iA = _mm512_mullo_epi32(A_i, vL);
+				__m512i iB = _mm512_mullo_epi32(B_i, vR);
+				__m512i I_vec = _mm512_add_epi32(_mm512_srai_epi32(iA, 14), _mm512_srai_epi32(iB, 14));
+
+				// q = ((A_q * L) >> 14) + ((B_q * R) >> 14)
+				__m512i qA = _mm512_mullo_epi32(A_q, vL);
+				__m512i qB = _mm512_mullo_epi32(B_q, vR);
+				__m512i q_vec = _mm512_add_epi32(_mm512_srai_epi32(qA, 14), _mm512_srai_epi32(qB, 14));
+
+				// Convert YIQ to RGB.
+				// r = (((y + 3879*I + 2556*q) >> 12) * contrast) >> 8;
+				__m512i r_term = _mm512_add_epi32(y_vec,
+									_mm512_add_epi32(_mm512_mullo_epi32(I_vec, vConst3879),
+													 _mm512_mullo_epi32(q_vec, vConst2556)));
+				__m512i r_tmp = _mm512_srai_epi32(r_term, 12);
+				__m512i r_vec = _mm512_srai_epi32(_mm512_mullo_epi32(r_tmp, vContrast), 8);
+
+				// g = (((y - 1126*I - 2605*q) >> 12) * contrast) >> 8;
+				__m512i g_term = _mm512_sub_epi32(y_vec,
+									_mm512_add_epi32(_mm512_mullo_epi32(I_vec, vConst1126),
+													 _mm512_mullo_epi32(q_vec, vConst2605)));
+				__m512i g_tmp = _mm512_srai_epi32(g_term, 12);
+				__m512i g_vec = _mm512_srai_epi32(_mm512_mullo_epi32(g_tmp, vContrast), 8);
+
+				// b = (((y - 4530*I + 7021*q) >> 12) * contrast) >> 8;
+				__m512i b_term = _mm512_add_epi32(
+									_mm512_sub_epi32(y_vec, _mm512_mullo_epi32(I_vec, vConst4530)),
+									_mm512_mullo_epi32(q_vec, vConst7021));
+				__m512i b_tmp = _mm512_srai_epi32(b_term, 12);
+				__m512i b_vec = _mm512_srai_epi32(_mm512_mullo_epi32(b_tmp, vContrast), 8);
+
+				// Clamp negative values to zero.
+				r_vec = _mm512_max_epi32(r_vec, vZero);
+				g_vec = _mm512_max_epi32(g_vec, vZero);
+				b_vec = _mm512_max_epi32(b_vec, vZero);
+
+				if (v->blend) {
+					// Convert to 8-bit with saturation.
+					__m128i r8 = _mm512_cvtusepi32_epi8(r_vec);
+					__m128i g8 = _mm512_cvtusepi32_epi8(g_vec);
+					__m128i b8 = _mm512_cvtusepi32_epi8(b_vec);
+
+					// Store results to temporary arrays.
+					alignas(64) uint8_t r_arr[16], g_arr[16], b_arr[16];
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(r_arr), r8);
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(g_arr), g8);
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(b_arr), b8);
+
+					int sr, sg, sb;
+					for (int k = 0; k < 16; k++) {
+						sr = (((cL[bpp*k+2]) * 6 + (r_arr[k] * 10)) >> 4);
+						sg = (((cL[bpp*k+1]) * 6 + (g_arr[k] * 10)) >> 4);
+						sb = (((cL[bpp*k+0]) * 6 + (b_arr[k] * 10)) >> 4);
+
+						if LSN_UNLIKELY(sr > 255) sr = 255;
+						if LSN_UNLIKELY(sg > 255) sg = 255;
+						if LSN_UNLIKELY(sb > 255) sb = 255;
+
+						cL[bpp*k+0] = static_cast<unsigned char>(sb);
+						cL[bpp*k+1] = static_cast<unsigned char>(sg);
+						cL[bpp*k+2] = static_cast<unsigned char>(sr);
+					}
+				} else {
+					// Non-blend: perform a saturated conversion and store 16 pixels in B, G, R order.
+					__m128i r8 = _mm512_cvtusepi32_epi8(r_vec);
+					__m128i g8 = _mm512_cvtusepi32_epi8(g_vec);
+					__m128i b8 = _mm512_cvtusepi32_epi8(b_vec);
+
+					LSN_ALN uint8_t r_arr[16], g_arr[16], b_arr[16];
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(r_arr), r8);
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(g_arr), g8);
+					_mm_storeu_si128(reinterpret_cast<__m128i*>(b_arr), b8);
+
+					for (int k = 0; k < 16; k++) {
+						cL[bpp*k+0] = static_cast<unsigned char>(b_arr[k]);
+						cL[bpp*k+1] = static_cast<unsigned char>(g_arr[k]);
+						cL[bpp*k+2] = static_cast<unsigned char>(r_arr[k]);
+					}
+				}
+
+				pos += dx * 16;
+				cL  += 16 * bpp;
+			}
+			goto Finish;
+		}
+#endif  // #if defined(__AVX512BW__)
+
 #if defined( __AVX2__ )
 		if LSN_LIKELY( lsn::CUtilities::IsAvxSupported() ) {
 			// Preload constant vectors.
@@ -615,6 +766,9 @@ vsync_found:
 		}
 #endif	// #if defined( __AVX2__ )
 
+#if defined( __AVX512BW__ )
+	Finish :
+#endif	// #if defined( __AVX512BW__ )
         for (/*pos = scanL*/; (int)pos < scanR && cL < cR; pos += dx) {
             int y, I, q;
             int r, g, b;
