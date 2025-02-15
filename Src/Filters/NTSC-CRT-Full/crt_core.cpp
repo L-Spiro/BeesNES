@@ -502,7 +502,9 @@ vsync_found:
 			);
 
 			// Process 16 pixels per loop.
-			while ((int)pos <= scanR - 16 && cL <= cR - (16 * bpp)) {
+			auto scanRtotal = scanR - 16;
+			auto cRtotal = cR - (16 * bpp);
+			while ((int)pos <= scanRtotal && cL <= cRtotal) {
 				// Compute positions for 16 pixels: pos, pos+dx, ..., pos+15*dx.
 				__m512i vPos = _mm512_add_epi32(_mm512_set1_epi32(pos), idxInc);
 
@@ -646,7 +648,9 @@ vsync_found:
 			__m256i idxInc = _mm256_setr_epi32(0, dx, 2*dx, 3*dx, 4*dx, 5*dx, 6*dx, 7*dx);
 		
 			// Process 8 pixels per loop.
-			while ((int)pos <= scanR - 8 && cL <= cR - (8 * bpp)) {
+			auto scanRtotal = scanR - 8;
+			auto cRtotal = cR - (8 * bpp);
+			while ((int)pos <= scanRtotal && cL <= cRtotal) {
 				// Compute the positions for 8 pixels: pos, pos+dx, ..., pos+7*dx.
 				__m256i vPos = _mm256_add_epi32(_mm256_set1_epi32(pos), idxInc);
 
