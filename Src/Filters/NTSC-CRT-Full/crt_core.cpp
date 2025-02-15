@@ -293,13 +293,14 @@ crt_demodulate_full(struct CRT *v, int noise)
 	int huesn, huecs;
 	int xnudge = -3, ynudge = 3;
 	int bright = v->brightness - (BLACK_LEVEL + v->black_point);
-	int bpp, pitch;
+	constexpr int bpp = 4;
+	int  pitch;
 #if CRT_DO_BLOOM
 	int prev_e; /* filtered beam energy per scan line */
 	int max_e; /* approx maximum energy in a scan line */
 #endif
     
-	bpp = 4;//crt_bpp4fmt(v->out_format);
+	//bpp = 4;//crt_bpp4fmt(v->out_format);
 	/*if (bpp == 0) {
 		return;
 	}*/
@@ -523,16 +524,16 @@ vsync_found:
 				// Gather A.y, A.i, A.q.
 				__m512i A_y = _mm512_i32gather_epi32(indexA, reinterpret_cast<const int*>(out), 4);
 				__m512i A_i = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(1)),
-													 reinterpret_cast<const int*>(out), 4);
+														reinterpret_cast<const int*>(out), 4);
 				__m512i A_q = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(2)),
-													 reinterpret_cast<const int*>(out), 4);
+														reinterpret_cast<const int*>(out), 4);
 
 				// Gather B.y, B.i, B.q.
 				__m512i B_y = _mm512_i32gather_epi32(indexB, reinterpret_cast<const int*>(out), 4);
 				__m512i B_i = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(1)),
-													 reinterpret_cast<const int*>(out), 4);
+														reinterpret_cast<const int*>(out), 4);
 				__m512i B_q = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(2)),
-													 reinterpret_cast<const int*>(out), 4);
+														reinterpret_cast<const int*>(out), 4);
 
 				// Interpolate Y, I, and q.
 				// y = ((A_y * L) >> 2) + ((B_y * R) >> 2)
@@ -554,14 +555,14 @@ vsync_found:
 				// r = (((y + 3879*I + 2556*q) >> 12) * contrast) >> 8;
 				__m512i r_term = _mm512_add_epi32(y_vec,
 									_mm512_add_epi32(_mm512_mullo_epi32(I_vec, vConst3879),
-													 _mm512_mullo_epi32(q_vec, vConst2556)));
+														_mm512_mullo_epi32(q_vec, vConst2556)));
 				__m512i r_tmp = _mm512_srai_epi32(r_term, 12);
 				__m512i r_vec = _mm512_srai_epi32(_mm512_mullo_epi32(r_tmp, vContrast), 8);
 
 				// g = (((y - 1126*I - 2605*q) >> 12) * contrast) >> 8;
 				__m512i g_term = _mm512_sub_epi32(y_vec,
 									_mm512_add_epi32(_mm512_mullo_epi32(I_vec, vConst1126),
-													 _mm512_mullo_epi32(q_vec, vConst2605)));
+														_mm512_mullo_epi32(q_vec, vConst2605)));
 				__m512i g_tmp = _mm512_srai_epi32(g_term, 12);
 				__m512i g_vec = _mm512_srai_epi32(_mm512_mullo_epi32(g_tmp, vContrast), 8);
 
@@ -695,22 +696,22 @@ vsync_found:
 				// Convert YIQ to RGB.
 				// r = (((y + 3879*I + 2556*q) >> 12) * contrast) >> 8;
 				__m256i r_term = _mm256_add_epi32(y_vec,
-								  _mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst3879),
-												   _mm256_mullo_epi32(q_vec, vConst2556)));
+									_mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst3879),
+													_mm256_mullo_epi32(q_vec, vConst2556)));
 				__m256i r_tmp = _mm256_srai_epi32(r_term, 12);
 				__m256i r_vec = _mm256_srai_epi32(_mm256_mullo_epi32(r_tmp, vContrast), 8);
 
 				// g = (((y - 1126*I - 2605*q) >> 12) * contrast) >> 8;
 				__m256i g_term = _mm256_sub_epi32(y_vec,
-								  _mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst1126),
-												   _mm256_mullo_epi32(q_vec, vConst2605)));
+									_mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst1126),
+													_mm256_mullo_epi32(q_vec, vConst2605)));
 				__m256i g_tmp = _mm256_srai_epi32(g_term, 12);
 				__m256i g_vec = _mm256_srai_epi32(_mm256_mullo_epi32(g_tmp, vContrast), 8);
 
 				// b = (((y - 4530*I + 7021*q) >> 12) * contrast) >> 8;
 				__m256i b_term = _mm256_add_epi32(
-								   _mm256_sub_epi32(y_vec, _mm256_mullo_epi32(I_vec, vConst4530)),
-								   _mm256_mullo_epi32(q_vec, vConst7021));
+									_mm256_sub_epi32(y_vec, _mm256_mullo_epi32(I_vec, vConst4530)),
+									_mm256_mullo_epi32(q_vec, vConst7021));
 				__m256i b_tmp = _mm256_srai_epi32(b_term, 12);
 				__m256i b_vec = _mm256_srai_epi32(_mm256_mullo_epi32(b_tmp, vContrast), 8);
 
@@ -767,133 +768,133 @@ vsync_found:
 #if defined( __AVX512BW__ )
 	Finish :
 #endif	// #if defined( __AVX512BW__ )
-        for (/*pos = scanL*/; (int)pos < scanR && cL < cR; pos += dx) {
-            int y, I, q;
-            int r, g, b;
-            //int bb;
+		for (/*pos = scanL*/; (int)pos < scanR && cL < cR; pos += dx) {
+			int y, I, q;
+			int r, g, b;
+			//int bb;
 
-            R = pos & 0xfff;
-            L = 0xfff - R;
-            s = pos >> 12;
+			R = pos & 0xfff;
+			L = 0xfff - R;
+			s = pos >> 12;
             
-            yiqA = out + s;
-            yiqB = out + s + 1;
+			yiqA = out + s;
+			yiqB = out + s + 1;
             
-            /* interpolate between samples if needed */
-            y = ((yiqA->y * L) >>  2) + ((yiqB->y * R) >>  2);
-            I = ((yiqA->i * L) >> 14) + ((yiqB->i * R) >> 14);
-            q = ((yiqA->q * L) >> 14) + ((yiqB->q * R) >> 14);
+			/* interpolate between samples if needed */
+			y = ((yiqA->y * L) >>  2) + ((yiqB->y * R) >>  2);
+			I = ((yiqA->i * L) >> 14) + ((yiqB->i * R) >> 14);
+			q = ((yiqA->q * L) >> 14) + ((yiqB->q * R) >> 14);
             
-            /* YIQ to RGB */
-            r = (((y + 3879 * I + 2556 * q) >> 12) * v->contrast) >> 8;
-            g = (((y - 1126 * I - 2605 * q) >> 12) * v->contrast) >> 8;
-            b = (((y - 4530 * I + 7021 * q) >> 12) * v->contrast) >> 8;
+			/* YIQ to RGB */
+			r = (((y + 3879 * I + 2556 * q) >> 12) * v->contrast) >> 8;
+			g = (((y - 1126 * I - 2605 * q) >> 12) * v->contrast) >> 8;
+			b = (((y - 4530 * I + 7021 * q) >> 12) * v->contrast) >> 8;
 
 #define LSN_DECAY_HACK
 
-            if LSN_UNLIKELY(r < 0) r = 0;
-            if LSN_UNLIKELY(g < 0) g = 0;
-            if LSN_UNLIKELY(b < 0) b = 0;
+			if LSN_UNLIKELY(r < 0) r = 0;
+			if LSN_UNLIKELY(g < 0) g = 0;
+			if LSN_UNLIKELY(b < 0) b = 0;
 #ifndef LSN_DECAY_HACK
-            if LSN_UNLIKELY(r > 255) r = 255;
-            if LSN_UNLIKELY(g > 255) g = 255;
-            if LSN_UNLIKELY(b > 255) b = 255;
+			if LSN_UNLIKELY(r > 255) r = 255;
+			if LSN_UNLIKELY(g > 255) g = 255;
+			if LSN_UNLIKELY(b > 255) b = 255;
 #endif
             
 #ifndef LSN_DECAY_HACK
-            if (v->blend) {
-                aa = (r << 16 | g << 8 | b);
+			if (v->blend) {
+				aa = (r << 16 | g << 8 | b);
 
-                switch (v->out_format) {
-                    case CRT_PIX_FORMAT_RGB:
-                    case CRT_PIX_FORMAT_RGBA:
-                        bb = cL[0] << 16 | cL[1] << 8 | cL[2];
-                        break;
-                    case CRT_PIX_FORMAT_BGR: 
-                    case CRT_PIX_FORMAT_BGRA:
-                        bb = cL[2] << 16 | cL[1] << 8 | cL[0];
-                        break;
-                    case CRT_PIX_FORMAT_ARGB:
-                        bb = cL[1] << 16 | cL[2] << 8 | cL[3];
-                        break;
-                    case CRT_PIX_FORMAT_ABGR:
-                        bb = cL[3] << 16 | cL[2] << 8 | cL[1];
-                        break;
-                    default:
-                        bb = 0;
-                        break;
-                }
+				switch (v->out_format) {
+					case CRT_PIX_FORMAT_RGB:
+					case CRT_PIX_FORMAT_RGBA:
+						bb = cL[0] << 16 | cL[1] << 8 | cL[2];
+						break;
+					case CRT_PIX_FORMAT_BGR: 
+					case CRT_PIX_FORMAT_BGRA:
+						bb = cL[2] << 16 | cL[1] << 8 | cL[0];
+						break;
+					case CRT_PIX_FORMAT_ARGB:
+						bb = cL[1] << 16 | cL[2] << 8 | cL[3];
+						break;
+					case CRT_PIX_FORMAT_ABGR:
+						bb = cL[3] << 16 | cL[2] << 8 | cL[1];
+						break;
+					default:
+						bb = 0;
+						break;
+				}
 
-                /* blend with previous color there */
-                bb = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
-            } else {
-                bb = (r << 16 | g << 8 | b);
-            }
+				/* blend with previous color there */
+				bb = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
+			} else {
+				bb = (r << 16 | g << 8 | b);
+			}
 
-            switch (v->out_format) {
-                case CRT_PIX_FORMAT_RGB:
-                case CRT_PIX_FORMAT_RGBA:
-                    cL[0] = bb >> 16 & 0xff;
-                    cL[1] = bb >>  8 & 0xff;
-                    cL[2] = bb >>  0 & 0xff;
-                    break;
-                case CRT_PIX_FORMAT_BGR: 
-                case CRT_PIX_FORMAT_BGRA:
-                    cL[0] = bb >>  0 & 0xff;
-                    cL[1] = bb >>  8 & 0xff;
-                    cL[2] = bb >> 16 & 0xff;
-                    break;
-                case CRT_PIX_FORMAT_ARGB:
-                    cL[1] = bb >> 16 & 0xff;
-                    cL[2] = bb >>  8 & 0xff;
-                    cL[3] = bb >>  0 & 0xff;
-                    break;
-                case CRT_PIX_FORMAT_ABGR:
-                    cL[1] = bb >>  0 & 0xff;
-                    cL[2] = bb >>  8 & 0xff;
-                    cL[3] = bb >> 16 & 0xff;
-                    break;
-                default:
-                    break;
-            }
+			switch (v->out_format) {
+				case CRT_PIX_FORMAT_RGB:
+				case CRT_PIX_FORMAT_RGBA:
+					cL[0] = bb >> 16 & 0xff;
+					cL[1] = bb >>  8 & 0xff;
+					cL[2] = bb >>  0 & 0xff;
+					break;
+				case CRT_PIX_FORMAT_BGR: 
+				case CRT_PIX_FORMAT_BGRA:
+					cL[0] = bb >>  0 & 0xff;
+					cL[1] = bb >>  8 & 0xff;
+					cL[2] = bb >> 16 & 0xff;
+					break;
+				case CRT_PIX_FORMAT_ARGB:
+					cL[1] = bb >> 16 & 0xff;
+					cL[2] = bb >>  8 & 0xff;
+					cL[3] = bb >>  0 & 0xff;
+					break;
+				case CRT_PIX_FORMAT_ABGR:
+					cL[1] = bb >>  0 & 0xff;
+					cL[2] = bb >>  8 & 0xff;
+					cL[3] = bb >> 16 & 0xff;
+					break;
+				default:
+					break;
+			}
 
 #else
-            if (v->blend) {
-                int sr, sg, sb;
+			if (v->blend) {
+				int sr, sg, sb;
                 
-                /*bb = *(int *)cL;
+				/*bb = *(int *)cL;
 
-                sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
-                sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
-                sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);*/
+				sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
+				sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
+				sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);*/
 				sr = (((cL[2]) * 6 + (r * 10)) >> 4);
-                sg = (((cL[1]) * 6 + (g * 10)) >> 4);
-                sb = (((cL[0]) * 6 + (b * 10)) >> 4);
+				sg = (((cL[1]) * 6 + (g * 10)) >> 4);
+				sb = (((cL[0]) * 6 + (b * 10)) >> 4);
                 
-                if LSN_UNLIKELY(sr > 255) sr = 255;
-                if LSN_UNLIKELY(sg > 255) sg = 255;
-                if LSN_UNLIKELY(sb > 255) sb = 255;
+				if LSN_UNLIKELY(sr > 255) sr = 255;
+				if LSN_UNLIKELY(sg > 255) sg = 255;
+				if LSN_UNLIKELY(sb > 255) sb = 255;
                 
-                //*cL++ = (sr << 16 | sg << 8 | sb);
-                cL[0] = (unsigned char)sb;
-                cL[1] = (unsigned char)sg;
-                cL[2] = (unsigned char)sr;
-            } else {
-                if LSN_UNLIKELY(r > 255) r = 255;
-                if LSN_UNLIKELY(g > 255) g = 255;
-                if LSN_UNLIKELY(b > 255) b = 255;
-                //*cL = (r << 16 | g << 8 | b);
-                cL[0] = (unsigned char)b;
-                cL[1] = (unsigned char)g;
-                cL[2] = (unsigned char)r;
-            }
+				//*cL++ = (sr << 16 | sg << 8 | sb);
+				cL[0] = (unsigned char)sb;
+				cL[1] = (unsigned char)sg;
+				cL[2] = (unsigned char)sr;
+			} else {
+				if LSN_UNLIKELY(r > 255) r = 255;
+				if LSN_UNLIKELY(g > 255) g = 255;
+				if LSN_UNLIKELY(b > 255) b = 255;
+				//*cL = (r << 16 | g << 8 | b);
+				cL[0] = (unsigned char)b;
+				cL[1] = (unsigned char)g;
+				cL[2] = (unsigned char)r;
+			}
 #endif  // #ifndef LSN_DECAY_HACK
-            cL += bpp;
-        }
+			cL += bpp;
+		}
         
-        /* duplicate extra lines */
-        for (s = beg + 1; s < (end - v->scanlines); s++) {
-            memcpy(v->out + s * pitch, v->out + (s - 1) * pitch, pitch);
-        }
+		/* duplicate extra lines */
+		for (s = beg + 1; s < (end - v->scanlines); s++) {
+			memcpy(v->out + s * pitch, v->out + (s - 1) * pitch, pitch);
+		}
     }
 }
