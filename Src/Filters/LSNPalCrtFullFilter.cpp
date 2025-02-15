@@ -144,7 +144,7 @@ namespace lsn {
 #endif	// #ifdef LSN_CRT_PERF
 		// Fade the phosphers.
 		if ( m_nnCrtPal.blend ) {
-			if ( m_ptPhospherThread.get() ) {
+			if LSN_LIKELY( m_ptPhospherThread.get() ) {
 				m_ePhospherGo.Signal();
 			}
 		}
@@ -157,7 +157,7 @@ namespace lsn {
 		::pal_modulate( &m_nnCrtPal, &m_nsSettings );
 
 		if ( m_nnCrtPal.blend ) {
-			if ( m_ptPhospherThread.get() ) {
+			if LSN_LIKELY( m_ptPhospherThread.get() ) {
 				m_ePhospherDone.WaitForSignal();
 			}
 		}

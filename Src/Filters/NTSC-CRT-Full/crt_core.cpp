@@ -9,7 +9,9 @@
  */
 /*****************************************************************************/
 #include "crt_core.h"
+#include "../../Utilities/LSNUtilities.h"
 
+#include <immintrin.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -297,10 +299,10 @@ crt_demodulate_full(struct CRT *v, int noise)
     int max_e; /* approx maximum energy in a scan line */
 #endif
     
-    bpp = crt_bpp4fmt(v->out_format);
-    if (bpp == 0) {
+    bpp = 4;//crt_bpp4fmt(v->out_format);
+    /*if (bpp == 0) {
         return;
-    }
+    }*/
     pitch = v->outw * bpp;
     
     crt_sincos14_full(&huesn, &huecs, ((v->hue % 360) + 33) * 8192 / 180);
@@ -472,7 +474,148 @@ vsync_found:
         cL = v->out + (beg * pitch);
         cR = cL + pitch;
 
-        for (pos = scanL; (int)pos < scanR && cL < cR; pos += dx) {
+		pos = scanL;
+#if defined( __AVX2__ )
+		if LSN_LIKELY( lsn::CUtilities::IsAvxSupported() ) {
+			// Preload constant vectors.
+			__m256i vMaskFFf = _mm256_set1_epi32(0xfff);
+			__m256i vContrast = _mm256_set1_epi32(v->contrast);
+			__m256i vMax255   = _mm256_set1_epi32(255);
+			__m256i vZero     = _mm256_setzero_si256();
+			__m256i v3        = _mm256_set1_epi32(3);
+			__m256i vConst3879= _mm256_set1_epi32(3879);
+			__m256i vConst2556= _mm256_set1_epi32(2556);
+			__m256i vConst1126= _mm256_set1_epi32(1126);
+			__m256i vConst2605= _mm256_set1_epi32(2605);
+			__m256i vConst4530= _mm256_set1_epi32(4530);
+			__m256i vConst7021= _mm256_set1_epi32(7021);
+
+			// Precompute an index vector for multiplying dx.
+			__m256i idxInc = _mm256_setr_epi32(0, dx, 2*dx, 3*dx, 4*dx, 5*dx, 6*dx, 7*dx);
+		
+			// Process 8 pixels per loop.
+			while ((int)pos <= scanR - 8 && cL <= cR - (8 * bpp)) {
+				// Compute the positions for 8 pixels: pos, pos+dx, ..., pos+7*dx.
+				__m256i vPos = _mm256_add_epi32(_mm256_set1_epi32(pos), idxInc);
+
+				// Compute R = pos & 0xfff.
+				__m256i vR = _mm256_and_si256(vPos, vMaskFFf);
+				// Compute L = 0xfff - R.
+				__m256i vL = _mm256_sub_epi32(vMaskFFf, vR);
+				// Compute sample index s = pos >> 12.
+				__m256i vs = _mm256_srli_epi32(vPos, 12);
+
+				// For each sample, we need to load two YIQ samples.
+				// Since each YIQ is 3 ints, the first sampleÅfs y is at index = s*3.
+				__m256i indexA = _mm256_mullo_epi32(vs, v3);
+				__m256i indexB = _mm256_add_epi32(indexA, _mm256_set1_epi32(3));
+
+				// Gather A.y, A.i, A.q.
+				__m256i A_y = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), indexA, 4);
+				__m256i A_i = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), _mm256_add_epi32(indexA, _mm256_set1_epi32(1)), 4);
+				__m256i A_q = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), _mm256_add_epi32(indexA, _mm256_set1_epi32(2)), 4);
+
+				// Gather B.y, B.i, B.q.
+				__m256i B_y = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), indexB, 4);
+				__m256i B_i = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), _mm256_add_epi32(indexB, _mm256_set1_epi32(1)), 4);
+				__m256i B_q = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), _mm256_add_epi32(indexB, _mm256_set1_epi32(2)), 4);
+
+				// Interpolate Y, I, and q.
+				// y = ((A_y * L) >> 2) + ((B_y * R) >> 2)
+				__m256i yA = _mm256_mullo_epi32(A_y, vL);
+				__m256i yB = _mm256_mullo_epi32(B_y, vR);
+				__m256i y_vec = _mm256_add_epi32(_mm256_srai_epi32(yA, 2), _mm256_srai_epi32(yB, 2));
+
+				// I = ((A_i * L) >> 14) + ((B_i * R) >> 14)
+				__m256i iA = _mm256_mullo_epi32(A_i, vL);
+				__m256i iB = _mm256_mullo_epi32(B_i, vR);
+				__m256i I_vec = _mm256_add_epi32(_mm256_srai_epi32(iA, 14), _mm256_srai_epi32(iB, 14));
+
+				// q = ((A_q * L) >> 14) + ((B_q * R) >> 14)
+				__m256i qA = _mm256_mullo_epi32(A_q, vL);
+				__m256i qB = _mm256_mullo_epi32(B_q, vR);
+				__m256i q_vec = _mm256_add_epi32(_mm256_srai_epi32(qA, 14), _mm256_srai_epi32(qB, 14));
+
+				// Convert YIQ to RGB.
+				// r = (((y + 3879*I + 2556*q) >> 12) * contrast) >> 8;
+				__m256i r_term = _mm256_add_epi32(y_vec,
+								  _mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst3879),
+												   _mm256_mullo_epi32(q_vec, vConst2556)));
+				__m256i r_tmp = _mm256_srai_epi32(r_term, 12);
+				__m256i r_vec = _mm256_srai_epi32(_mm256_mullo_epi32(r_tmp, vContrast), 8);
+
+				// g = (((y - 1126*I - 2605*q) >> 12) * contrast) >> 8;
+				__m256i g_term = _mm256_sub_epi32(y_vec,
+								  _mm256_add_epi32(_mm256_mullo_epi32(I_vec, vConst1126),
+												   _mm256_mullo_epi32(q_vec, vConst2605)));
+				__m256i g_tmp = _mm256_srai_epi32(g_term, 12);
+				__m256i g_vec = _mm256_srai_epi32(_mm256_mullo_epi32(g_tmp, vContrast), 8);
+
+				// b = (((y - 4530*I + 7021*q) >> 12) * contrast) >> 8;
+				__m256i b_term = _mm256_add_epi32(
+								   _mm256_sub_epi32(y_vec, _mm256_mullo_epi32(I_vec, vConst4530)),
+								   _mm256_mullo_epi32(q_vec, vConst7021));
+				__m256i b_tmp = _mm256_srai_epi32(b_term, 12);
+				__m256i b_vec = _mm256_srai_epi32(_mm256_mullo_epi32(b_tmp, vContrast), 8);
+
+				// Clamp negative values to zero.
+				r_vec = _mm256_max_epi32(r_vec, vZero);
+				g_vec = _mm256_max_epi32(g_vec, vZero);
+				b_vec = _mm256_max_epi32(b_vec, vZero);
+
+				// At this point, each lane of r_vec, g_vec, and b_vec holds a computed 0-255 value.
+				// Because our destination is packed 3-bytes per pixel, we store the 8 computed pixels
+				// into a temporary array and then write them out.
+				LSN_ALN
+				int r_arr[8], g_arr[8], b_arr[8];
+				_mm256_store_si256(reinterpret_cast<__m256i*>(r_arr), r_vec);
+				_mm256_store_si256(reinterpret_cast<__m256i*>(g_arr), g_vec);
+				_mm256_store_si256(reinterpret_cast<__m256i*>(b_arr), b_vec);
+
+				if (v->blend) {
+					int sr, sg, sb;
+                
+					/*bb = *(int *)cL;
+
+					sr = (((bb >> 16 & 0xff) * 6 + (r * 10)) >> 4);
+					sg = (((bb >> 8 & 0xff) * 6 + (g * 10)) >> 4);
+					sb = (((bb >> 0 & 0xff) * 6 + (b * 10)) >> 4);*/
+					for (int k = 0; k < 8; k++) {
+						sr = (((cL[bpp*k+2]) * 6 + (r_arr[k] * 10)) >> 4);
+						sg = (((cL[bpp*k+1]) * 6 + (g_arr[k] * 10)) >> 4);
+						sb = (((cL[bpp*k+0]) * 6 + (b_arr[k] * 10)) >> 4);
+                
+						if LSN_UNLIKELY(sr > 255) sr = 255;
+						if LSN_UNLIKELY(sg > 255) sg = 255;
+						if LSN_UNLIKELY(sb > 255) sb = 255;
+                
+						//*cL++ = (sr << 16 | sg << 8 | sb);
+						cL[bpp*k+0] = static_cast<unsigned char>(sb);
+						cL[bpp*k+1] = static_cast<unsigned char>(sg);
+						cL[bpp*k+2] = static_cast<unsigned char>(sr);
+					}
+				} else {
+					// Clamp values to 255.
+					r_vec = _mm256_min_epi32(r_vec, vMax255);
+					g_vec = _mm256_min_epi32(g_vec, vMax255);
+					b_vec = _mm256_min_epi32(b_vec, vMax255);
+					// Write out 8 pixels in B, G, R order.
+					// (You may wish to unroll this inner loop or use a more advanced permutation
+					// if your destination data is 4-byte aligned.)
+					for (int k = 0; k < 8; k++) {
+						cL[bpp*k+0] = static_cast<unsigned char>(b_arr[k]);
+						cL[bpp*k+1] = static_cast<unsigned char>(g_arr[k]);
+						cL[bpp*k+2] = static_cast<unsigned char>(r_arr[k]);
+					}
+				}
+
+				pos += dx * 8;
+				cL  += 8 * bpp;
+			}
+		}
+#endif	// #if defined( __AVX2__ )
+
+        for (/*pos = scanL*/; (int)pos < scanR && cL < cR; pos += dx) {
             int y, I, q;
             int r, g, b;
             //int bb;
