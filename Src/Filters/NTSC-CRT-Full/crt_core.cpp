@@ -570,22 +570,17 @@ vsync_found:
 				__m512i b_tmp = _mm512_srai_epi32(b_term, 12);
 				__m512i b_vec = _mm512_srai_epi32(_mm512_mullo_epi32(b_tmp, vContrast), 8);
 
-				// Clamp negative values to zero.
-				r_vec = _mm512_max_epi32(r_vec, vZero);
-				g_vec = _mm512_max_epi32(g_vec, vZero);
-				b_vec = _mm512_max_epi32(b_vec, vZero);
-
 				if (v->blend) {
-					// Convert to 8-bit with saturation.
-					__m128i r8 = _mm512_cvtusepi32_epi8(r_vec);
-					__m128i g8 = _mm512_cvtusepi32_epi8(g_vec);
-					__m128i b8 = _mm512_cvtusepi32_epi8(b_vec);
+					// Clamp negative values to zero.
+					r_vec = _mm512_max_epi32(r_vec, vZero);
+					g_vec = _mm512_max_epi32(g_vec, vZero);
+					b_vec = _mm512_max_epi32(b_vec, vZero);
 
 					// Store results to temporary arrays.
-					alignas(64) uint8_t r_arr[16], g_arr[16], b_arr[16];
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(r_arr), r8);
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(g_arr), g8);
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(b_arr), b8);
+					LSN_ALN uint32_t r_arr[16], g_arr[16], b_arr[16];
+					_mm512_store_epi32(r_arr, r_vec);
+					_mm512_store_epi32(g_arr, g_vec);
+					_mm512_store_epi32(b_arr, b_vec);
 
 					int sr, sg, sb;
 					for (int k = 0; k < 16; k++) {
