@@ -767,9 +767,9 @@ vsync_found:
 					_mm256_store_si256((__m256i*)b_arr, b_sat);
 
 					for (int k = 0; k < 8; k++) {
-						cL[bpp*k+0] = b_arr[k];
-						cL[bpp*k+1] = g_arr[k];
-						cL[bpp*k+2] = r_arr[k];
+						cL[bpp*k+0] = (unsigned char)b_arr[k];
+						cL[bpp*k+1] = (unsigned char)g_arr[k];
+						cL[bpp*k+2] = (unsigned char)r_arr[k];
 					}
 				}
 			}
