@@ -11,7 +11,9 @@
 /*****************************************************************************/
 
 #include "pal_core.h"
+#include "../../Utilities/LSNUtilities.h"
 
+#include <immintrin.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -84,10 +86,10 @@ pal_bpp4fmt(int format)
 /*****************************************************************************/
 
 /* convolution is much faster but the EQ looks softer, more authentic, and more analog */
-#define USE_CONVOLUTION 0
-#define USE_7_SAMPLE_KERNEL 0
+#define USE_CONVOLUTION 1
+#define USE_7_SAMPLE_KERNEL 1
 #define USE_6_SAMPLE_KERNEL 0
-#define USE_5_SAMPLE_KERNEL 1
+#define USE_5_SAMPLE_KERNEL 0
 
 #if USE_CONVOLUTION
 
@@ -123,15 +125,15 @@ eqf(struct EQF *f, int s)
         h[i] = h[i - 1];
     }
     h[0] = s;
-#if USE_7_SAMPLE
+#if USE_7_SAMPLE_KERNEL
     /* index : 0 1 2 3 4 5 6 */
     /* weight: 1 4 7 8 7 4 1 */
     return (s + h[6] + ((h[1] + h[5]) * 4) + ((h[2] + h[4]) * 7) + (h[3] * 8)) >> 5;
-#elif USE_6_SAMPLE
+#elif USE_6_SAMPLE_KERNEL
     /* index : 0 1 2 3 4 5 */
     /* weight: 1 3 4 4 3 1 */
     return (s + h[5] + 3 * (h[1] + h[4]) + 4 * (h[2] + h[3])) >> 4;
-#elif USE_5_SAMPLE
+#elif USE_5_SAMPLE_KERNEL
     /* index : 0 1 2 3 4 */
     /* weight: 1 2 2 2 1 */
     return (s + h[4] + ((h[1] + h[2] + h[3]) << 1)) >> 3;
@@ -292,13 +294,14 @@ pal_demodulate(struct PAL_CRT *c, int noise)
     int huesn, huecs;
     int xnudge = -3, ynudge = 3;
     int bright = c->brightness - (BLACK_LEVEL + c->black_point);
-    int bpp, pitch;
+    constexpr int bpp = 4;
+	int pitch;
 #if PAL_DO_BLOOM
     int prev_e; /* filtered beam energy per scan line */
     int max_e; /* approx maximum energy in a scan line */
 #endif
     
-    bpp = pal_bpp4fmt(c->out_format);
+    //bpp = pal_bpp4fmt(c->out_format);
     /*if LSN_UNLIKELY(bpp == 0) {
         return;
     }*/
@@ -490,8 +493,291 @@ vsync_found:
 
         cL = c->out + (beg * pitch);
         cR = cL + pitch;
+		pos = scanL;
 
-        for (pos = scanL; (int)pos < scanR && cL < cR; pos += dx) {
+#if defined(__AVX512F__)
+		if ( lsn::CUtilities::IsAvx512FSupported() ) {
+			// Preload constant vectors in 512-bit registers.
+			__m512i vMaskFFF    = _mm512_set1_epi32(0xfff);
+			__m512i vConst3     = _mm512_set1_epi32(3);
+			__m512i vShift2     = _mm512_set1_epi32(2);
+			__m512i vShift14    = _mm512_set1_epi32(14);
+			__m512i vConst4669  = _mm512_set1_epi32(4669);
+			__m512i vConst1622  = _mm512_set1_epi32(1622);
+			__m512i vConst2380  = _mm512_set1_epi32(2380);
+			__m512i vConst8311  = _mm512_set1_epi32(8311);
+			__m512i vShift12    = _mm512_set1_epi32(12);
+			__m512i vShift8     = _mm512_set1_epi32(8);
+			__m512i vContrast   = _mm512_set1_epi32(c->contrast);
+			__m512i vMax255     = _mm512_set1_epi32(255);
+
+			// Precompute an index vector for dx increments:
+			// { 0, dx, 2*dx, …, 15*dx }.
+			__m512i idxInc = _mm512_setr_epi32(
+				0,      dx,     2*dx,   3*dx,
+				4*dx,   5*dx,   6*dx,   7*dx,
+				8*dx,   9*dx,   10*dx,  11*dx,
+				12*dx,  13*dx,  14*dx,  15*dx
+			);
+
+			// Process 16 pixels per iteration.
+			for ( ; (int)pos < scanR && cL < cR; pos += dx * 16, cL += 16 * bpp ) {
+				// Compute positions for 16 pixels: pos, pos+dx, …, pos+15*dx.
+				__m512i vPos = _mm512_add_epi32(_mm512_set1_epi32(pos), idxInc);
+
+				// Compute R = pos & 0xfff and L = 0xfff - R.
+				__m512i vR = _mm512_and_epi32(vPos, vMaskFFF);
+				__m512i vL = _mm512_sub_epi32(vMaskFFF, vR);
+
+				// Compute sample index s = pos >> 12.
+				__m512i vs = _mm512_srli_epi32(vPos, 12);
+
+				// Compute gather indices for YUV.
+				// Each YUV sample consists of three ints (y,u,v); for sample s, Y is at index = s*3.
+				__m512i indexA = _mm512_mullo_epi32(vs, vConst3);
+				__m512i indexB = _mm512_add_epi32(indexA, _mm512_set1_epi32(3));
+
+				// Gather Y, U, V from sample A.
+				__m512i A_y = _mm512_i32gather_epi32(indexA, reinterpret_cast<const int*>(out), 4);
+				__m512i A_u = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(1)),
+													  reinterpret_cast<const int*>(out), 4);
+				__m512i A_v = _mm512_i32gather_epi32(_mm512_add_epi32(indexA, _mm512_set1_epi32(2)),
+													  reinterpret_cast<const int*>(out), 4);
+
+				// Gather Y, U, V from sample B.
+				__m512i B_y = _mm512_i32gather_epi32(indexB, reinterpret_cast<const int*>(out), 4);
+				__m512i B_u = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(1)),
+													  reinterpret_cast<const int*>(out), 4);
+				__m512i B_v = _mm512_i32gather_epi32(_mm512_add_epi32(indexB, _mm512_set1_epi32(2)),
+													  reinterpret_cast<const int*>(out), 4);
+
+				// Interpolate between samples:
+				// y = ((A_y * L) >> 2) + ((B_y * R) >> 2)
+				__m512i yA = _mm512_mullo_epi32(A_y, vL);
+				__m512i yB = _mm512_mullo_epi32(B_y, vR);
+				__m512i y_vec = _mm512_add_epi32(_mm512_srai_epi32(yA, 2),
+												 _mm512_srai_epi32(yB, 2));
+
+				// u = ((A_u * L) >> 14) + ((B_u * R) >> 14)
+				__m512i uA = _mm512_mullo_epi32(A_u, vL);
+				__m512i uB = _mm512_mullo_epi32(B_u, vR);
+				__m512i u_vec = _mm512_add_epi32(_mm512_srai_epi32(uA, 14),
+												 _mm512_srai_epi32(uB, 14));
+
+				// v = ((A_v * L) >> 14) + ((B_v * R) >> 14)
+				__m512i vA = _mm512_mullo_epi32(A_v, vL);
+				__m512i vB = _mm512_mullo_epi32(B_v, vR);
+				__m512i v_vec = _mm512_add_epi32(_mm512_srai_epi32(vA, 14),
+												 _mm512_srai_epi32(vB, 14));
+
+				// YUV to RGB conversion:
+				// r = (((y + 4669*v) >> 12) * contrast) >> 8;
+				__m512i r_term = _mm512_add_epi32(y_vec, _mm512_mullo_epi32(v_vec, vConst4669));
+				__m512i r_tmp  = _mm512_srai_epi32(r_term, 12);
+				__m512i r_vec  = _mm512_srai_epi32(_mm512_mullo_epi32(r_tmp, vContrast), 8);
+
+				// g = (((y - 1622*u - 2380*v) >> 12) * contrast) >> 8;
+				__m512i t1     = _mm512_mullo_epi32(u_vec, vConst1622);
+				__m512i t2     = _mm512_mullo_epi32(v_vec, vConst2380);
+				__m512i g_term = _mm512_sub_epi32(y_vec, _mm512_add_epi32(t1, t2));
+				__m512i g_tmp  = _mm512_srai_epi32(g_term, 12);
+				__m512i g_vec  = _mm512_srai_epi32(_mm512_mullo_epi32(g_tmp, vContrast), 8);
+
+				// b = (((y + 8311*u) >> 12) * contrast) >> 8;
+				__m512i b_term = _mm512_add_epi32(y_vec, _mm512_mullo_epi32(u_vec, vConst8311));
+				__m512i b_tmp  = _mm512_srai_epi32(b_term, 12);
+				__m512i b_vec  = _mm512_srai_epi32(_mm512_mullo_epi32(b_tmp, vContrast), 8);
+
+				// Clamp negative values to zero.
+				__m512i r_sat = _mm512_max_epi32(r_vec, _mm512_setzero_si512());
+				__m512i g_sat = _mm512_max_epi32(g_vec, _mm512_setzero_si512());
+				__m512i b_sat = _mm512_max_epi32(b_vec, _mm512_setzero_si512());
+
+				r_sat = _mm512_min_epi32(r_sat, vMax255);
+				g_sat = _mm512_min_epi32(g_sat, vMax255);
+				b_sat = _mm512_min_epi32(b_sat, vMax255);
+
+				if (c->blend) {
+					// For blending, also clamp to 255.
+					
+
+					// Store computed R, G, B into temporary arrays.
+					LSN_ALN int r_arr[16], g_arr[16], b_arr[16];
+					_mm512_store_si512((__m512i*)r_arr, r_sat);
+					_mm512_store_si512((__m512i*)g_arr, g_sat);
+					_mm512_store_si512((__m512i*)b_arr, b_sat);
+
+					int aa, bb;
+					for (int k = 0; k < 16; k++) {
+						aa = (r_arr[k] << 16) | (g_arr[k] << 8) | b_arr[k];
+						bb = (cL[bpp*k+2] << 16) | (cL[bpp*k+1] << 8) | (cL[bpp*k+0]);
+						// Blend: average the two colors using the 0xfefeff mask trick.
+						bb = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
+						cL[bpp*k+0] = static_cast<unsigned char>(bb & 0xff);
+						cL[bpp*k+1] = static_cast<unsigned char>((bb >> 8) & 0xff);
+						cL[bpp*k+2] = static_cast<unsigned char>((bb >> 16) & 0xff);
+					}
+				} else {
+					// Non-blend branch:
+					// Store the 32-bit integers to temporary int arrays.
+					LSN_ALN int r_arr[16], g_arr[16], b_arr[16];
+					_mm512_store_si512((__m512i*)r_arr, r_sat);
+					_mm512_store_si512((__m512i*)g_arr, g_sat);
+					_mm512_store_si512((__m512i*)b_arr, b_sat);
+
+					// Write out the final 16 pixels by casting each int (in [0,255]) to uint8_t.
+					for (int k = 0; k < 16; k++) {
+						cL[bpp*k+0] = static_cast<unsigned char>(b_arr[k]);
+						cL[bpp*k+1] = static_cast<unsigned char>(g_arr[k]);
+						cL[bpp*k+2] = static_cast<unsigned char>(r_arr[k]);
+					}
+
+				}
+			}
+		}
+#endif  // __AVX512F__
+
+
+#if defined(__AVX2__)
+		if LSN_LIKELY( lsn::CUtilities::IsAvx2Supported() ) {
+			// Preload constant vectors.
+			__m256i vMaskFFF    = _mm256_set1_epi32(0xfff);
+			__m256i vConst3     = _mm256_set1_epi32(3);
+			__m256i vShift2     = _mm256_set1_epi32(2);
+			__m256i vShift14    = _mm256_set1_epi32(14);
+			__m256i vConst4669  = _mm256_set1_epi32(4669);
+			__m256i vConst1622  = _mm256_set1_epi32(1622);
+			__m256i vConst2380  = _mm256_set1_epi32(2380);
+			__m256i vConst8311  = _mm256_set1_epi32(8311);
+			__m256i vShift12    = _mm256_set1_epi32(12);
+			__m256i vShift8     = _mm256_set1_epi32(8);
+			__m256i vContrast   = _mm256_set1_epi32(c->contrast);
+			__m256i vMax255     = _mm256_set1_epi32(255);
+
+			// Precompute an index vector for dx increments:
+			// { 0, dx, 2*dx, …, 7*dx }.
+			__m256i idxInc = _mm256_setr_epi32(0, dx, 2*dx, 3*dx, 4*dx, 5*dx, 6*dx, 7*dx);
+
+			// Process eight pixels per iteration.
+			for ( ; (int)pos < scanR && cL < cR; pos += dx * 8, cL += 8 * bpp ) {
+				// Compute the positions for eight pixels: pos, pos+dx, …, pos+7*dx.
+				__m256i vPos = _mm256_add_epi32(_mm256_set1_epi32(pos), idxInc);
+
+				// Compute R = pos & 0xfff and L = 0xfff - R.
+				__m256i vR = _mm256_and_si256(vPos, vMaskFFF);
+				__m256i vL = _mm256_sub_epi32(vMaskFFF, vR);
+
+				// Compute sample index s = pos >> 12.
+				__m256i vs = _mm256_srli_epi32(vPos, 12);
+
+				// Compute gather indices for YUV.
+				// Each YUV sample consists of three ints (y,u,v) in memory.
+				// For sample s, the Y is at index = s*3.
+				__m256i indexA = _mm256_mullo_epi32(vs, vConst3);
+				__m256i indexB = _mm256_add_epi32(indexA, _mm256_set1_epi32(3));
+
+				// Gather Y, U, and V components from sample A.
+				__m256i A_y = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), indexA, 4);
+				__m256i A_u = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out),
+													 _mm256_add_epi32(indexA, _mm256_set1_epi32(1)), 4);
+				__m256i A_v = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out),
+													 _mm256_add_epi32(indexA, _mm256_set1_epi32(2)), 4);
+
+				// Gather Y, U, and V components from sample B.
+				__m256i B_y = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out), indexB, 4);
+				__m256i B_u = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out),
+													 _mm256_add_epi32(indexB, _mm256_set1_epi32(1)), 4);
+				__m256i B_v = _mm256_i32gather_epi32(reinterpret_cast<const int*>(out),
+													 _mm256_add_epi32(indexB, _mm256_set1_epi32(2)), 4);
+
+				// Interpolate between samples:
+				// y = ((A_y * L) >> 2) + ((B_y * R) >> 2)
+				__m256i yA = _mm256_mullo_epi32(A_y, vL);
+				__m256i yB = _mm256_mullo_epi32(B_y, vR);
+				__m256i y_vec = _mm256_add_epi32(_mm256_srai_epi32(yA, 2),
+												 _mm256_srai_epi32(yB, 2));
+
+				// u = ((A_u * L) >> 14) + ((B_u * R) >> 14)
+				__m256i uA = _mm256_mullo_epi32(A_u, vL);
+				__m256i uB = _mm256_mullo_epi32(B_u, vR);
+				__m256i u_vec = _mm256_add_epi32(_mm256_srai_epi32(uA, 14),
+												 _mm256_srai_epi32(uB, 14));
+
+				// v = ((A_v * L) >> 14) + ((B_v * R) >> 14)
+				__m256i vA = _mm256_mullo_epi32(A_v, vL);
+				__m256i vB = _mm256_mullo_epi32(B_v, vR);
+				__m256i v_vec = _mm256_add_epi32(_mm256_srai_epi32(vA, 14),
+												 _mm256_srai_epi32(vB, 14));
+
+				// YUV to RGB conversion:
+				// r = (((y + 4669*v) >> 12) * contrast) >> 8;
+				__m256i r_term = _mm256_add_epi32(y_vec, _mm256_mullo_epi32(v_vec, vConst4669));
+				__m256i r_tmp  = _mm256_srai_epi32(r_term, 12);
+				__m256i r_vec  = _mm256_srai_epi32(_mm256_mullo_epi32(r_tmp, vContrast), 8);
+
+				// g = (((y - 1622*u - 2380*v) >> 12) * contrast) >> 8;
+				__m256i t1     = _mm256_mullo_epi32(u_vec, vConst1622);
+				__m256i t2     = _mm256_mullo_epi32(v_vec, vConst2380);
+				__m256i g_term = _mm256_sub_epi32(y_vec, _mm256_add_epi32(t1, t2));
+				__m256i g_tmp  = _mm256_srai_epi32(g_term, 12);
+				__m256i g_vec  = _mm256_srai_epi32(_mm256_mullo_epi32(g_tmp, vContrast), 8);
+
+				// b = (((y + 8311*u) >> 12) * contrast) >> 8;
+				__m256i b_term = _mm256_add_epi32(y_vec, _mm256_mullo_epi32(u_vec, vConst8311));
+				__m256i b_tmp  = _mm256_srai_epi32(b_term, 12);
+				__m256i b_vec  = _mm256_srai_epi32(_mm256_mullo_epi32(b_tmp, vContrast), 8);
+
+				// First, clamp any negative results to zero.
+				__m256i r_sat = _mm256_max_epi32(r_vec, _mm256_setzero_si256());
+				__m256i g_sat = _mm256_max_epi32(g_vec, _mm256_setzero_si256());
+				__m256i b_sat = _mm256_max_epi32(b_vec, _mm256_setzero_si256());
+
+				r_sat = _mm256_min_epi32(r_sat, vMax255);
+				g_sat = _mm256_min_epi32(g_sat, vMax255);
+				b_sat = _mm256_min_epi32(b_sat, vMax255);
+
+				if LSN_LIKELY(c->blend) {
+					// Blend branch: store computed R, G, B into temporary arrays,
+					// then blend with the existing destination pixels.
+					LSN_ALN int r_arr[8], g_arr[8], b_arr[8];
+					_mm256_store_si256((__m256i*)r_arr, r_sat);
+					_mm256_store_si256((__m256i*)g_arr, g_sat);
+					_mm256_store_si256((__m256i*)b_arr, b_sat);
+
+					int aa, bb;
+					for (int k = 0; k < 8; k++) {
+						aa = (r_arr[k] << 16) | (g_arr[k] << 8) | b_arr[k];
+
+						bb = (cL[bpp*k+2] << 16) | (cL[bpp*k+1] << 8) | (cL[bpp*k+0]);
+
+						// Blend: average the two colors using the 0xfefeff mask trick.
+						bb = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
+
+						cL[bpp*k+0] = static_cast<unsigned char>(bb & 0xff);
+						cL[bpp*k+1] = static_cast<unsigned char>((bb >> 8) & 0xff);
+						cL[bpp*k+2] = static_cast<unsigned char>((bb >> 16) & 0xff);
+					}
+				} else {
+					// Non-blend branch:
+					// Blend branch: store computed R, G, B into temporary arrays,
+					// then blend with the existing destination pixels.
+					LSN_ALN int r_arr[8], g_arr[8], b_arr[8];
+					_mm256_store_si256((__m256i*)r_arr, r_sat);
+					_mm256_store_si256((__m256i*)g_arr, g_sat);
+					_mm256_store_si256((__m256i*)b_arr, b_sat);
+
+					for (int k = 0; k < 8; k++) {
+						cL[bpp*k+0] = b_arr[k];
+						cL[bpp*k+1] = g_arr[k];
+						cL[bpp*k+2] = r_arr[k];
+					}
+				}
+			}
+		}
+#endif  // __AVX2__
+
+
+        for (; (int)pos < scanR && cL < cR; pos += dx) {
             int y, u, v;
             int r, g, b;
             int aa, bb;
@@ -523,7 +809,8 @@ vsync_found:
             if LSN_LIKELY(c->blend) {
                 aa = (r << 16 | g << 8 | b);
 
-                switch (c->out_format) {
+				bb = cL[2] << 16 | cL[1] << 8 | cL[0];
+                /*switch (c->out_format) {
                     case PAL_PIX_FORMAT_RGB:
                     case PAL_PIX_FORMAT_RGBA:
                         bb = cL[0] << 16 | cL[1] << 8 | cL[2];
@@ -541,47 +828,51 @@ vsync_found:
                     default:
                         bb = 0;
                         break;
-                }
+                }*/
 
                 /* blend with previous color there */
                 bb = (((aa & 0xfefeff) >> 1) + ((bb & 0xfefeff) >> 1));
-            } else {
-                bb = (r << 16 | g << 8 | b);
-            }
-
 #ifdef _WIN32
-			cL[0] = bb >>  0 & 0xff;
-            cL[1] = bb >>  8 & 0xff;
-            cL[2] = bb >> 16 & 0xff;
+				cL[0] = bb >>  0 & 0xff;
+				cL[1] = bb >>  8 & 0xff;
+				cL[2] = bb >> 16 & 0xff;
 #else 
 
-            switch (c->out_format) {
-                case PAL_PIX_FORMAT_RGB:
-                case PAL_PIX_FORMAT_RGBA:
-                    cL[0] = bb >> 16 & 0xff;
-                    cL[1] = bb >>  8 & 0xff;
-                    cL[2] = bb >>  0 & 0xff;
-                    break;
-                case PAL_PIX_FORMAT_BGR: 
-                case PAL_PIX_FORMAT_BGRA:
-                    cL[0] = bb >>  0 & 0xff;
-                    cL[1] = bb >>  8 & 0xff;
-                    cL[2] = bb >> 16 & 0xff;
-                    break;
-                case PAL_PIX_FORMAT_ARGB:
-                    cL[1] = bb >> 16 & 0xff;
-                    cL[2] = bb >>  8 & 0xff;
-                    cL[3] = bb >>  0 & 0xff;
-                    break;
-                case PAL_PIX_FORMAT_ABGR:
-                    cL[1] = bb >>  0 & 0xff;
-                    cL[2] = bb >>  8 & 0xff;
-                    cL[3] = bb >> 16 & 0xff;
-                    break;
-                default:
-                    break;
-            }
+				switch (c->out_format) {
+					case PAL_PIX_FORMAT_RGB:
+					case PAL_PIX_FORMAT_RGBA:
+						cL[0] = bb >> 16 & 0xff;
+						cL[1] = bb >>  8 & 0xff;
+						cL[2] = bb >>  0 & 0xff;
+						break;
+					case PAL_PIX_FORMAT_BGR: 
+					case PAL_PIX_FORMAT_BGRA:
+						cL[0] = bb >>  0 & 0xff;
+						cL[1] = bb >>  8 & 0xff;
+						cL[2] = bb >> 16 & 0xff;
+						break;
+					case PAL_PIX_FORMAT_ARGB:
+						cL[1] = bb >> 16 & 0xff;
+						cL[2] = bb >>  8 & 0xff;
+						cL[3] = bb >>  0 & 0xff;
+						break;
+					case PAL_PIX_FORMAT_ABGR:
+						cL[1] = bb >>  0 & 0xff;
+						cL[2] = bb >>  8 & 0xff;
+						cL[3] = bb >> 16 & 0xff;
+						break;
+					default:
+						break;
+				}
 #endif	// #ifdef _WIN32
+            } else {
+				cL[0] = (unsigned char)b;
+				cL[1] = (unsigned char)g;
+				cL[2] = (unsigned char)r;
+                //bb = (r << 16 | g << 8 | b);
+            }
+
+
 			cL += bpp;
         }
         

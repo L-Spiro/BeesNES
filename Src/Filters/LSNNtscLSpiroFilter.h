@@ -250,12 +250,13 @@ namespace lsn {
 		
 		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;		/**< The filter function for chroma. */
 		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;	/**< The filter function for Y. */
-		uint32_t											m_ui32FilterKernelSize = 12;				/**< The kernel size for the gather during YIQ creation. */
+		uint32_t											m_ui32FilterKernelSize = 12;			/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
 		std::vector<simd_4>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<simd_4>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;									/**< The YIQ Q buffer. */
+		std::vector<float>									m_vBlendBuffer;							/**< The blend buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
 		uint16_t											m_ui16WidthScale = 8;					/**< Scale factor between input and output width. */
@@ -278,6 +279,7 @@ namespace lsn {
 		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
 		float												m_fBlackSetting = 0.312f;				/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
+		float												m_fPhosphorDecayRate = 0.44;			/**< Phosphor decay rate. */
 
 		
 		
@@ -453,8 +455,8 @@ namespace lsn {
 		// The square wave for this color alternates between these two voltages:
 		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];
 		float fHigh = (&m_NormalizedLevels[4])[ui16Level+ui16Atten];
-		if LSN_UNLIKELY( ui16Color == 0 ) { return fHigh; }			// For color 0, only high level is emitted.
-		if ( ui16Color > 12 ) { return fLow; }						// For colors 13..15, only low level is emitted.
+		if LSN_UNLIKELY( ui16Color == 0 ) { return fHigh; }						// For color 0, only high level is emitted.
+		if LSN_UNLIKELY( ui16Color > 12 ) { return fLow; }						// For colors 13..15, only low level is emitted.
 
 		return LSN_INCOLORPHASE( ui16Color ) ? fHigh : fLow;
 #undef LSN_INCOLORPHASE

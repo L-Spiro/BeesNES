@@ -39,6 +39,29 @@ static int active[6] = {
 static int
 square_sample(int p, int phase)
 {
+#if 0
+	// Decode the NES color.
+	unsigned short ui16Color = (p & 0x0F);								// 0..15 "cccc".
+	unsigned short ui16Level = (ui16Color >= 0xE) ? 1 : (p >> 4) & 3;	// 0..3  "ll".  For colors 14..15, level 1 is forced.
+	unsigned short ui16Emphasis = (p >> 6);								// 0..7  "eee".
+
+#define LSN_INCOLORPHASE( COLOR )					(((COLOR) + phase) % 12 < 6)
+	// When de-emphasis bits are set, some parts of the signal are attenuated:
+	// Colors [14..15] are not affected by de-emphasis.
+	unsigned short ui16Atten = ((ui16Color < 0xE) &&
+		(((ui16Emphasis & 1) && LSN_INCOLORPHASE( 0xC )) ||
+		((ui16Emphasis & 2) && LSN_INCOLORPHASE( 0x4 )) ||
+		((ui16Emphasis & 4) && LSN_INCOLORPHASE( 0x8 )))) ? 8 : 0;
+
+	// The square wave for this color alternates between these two voltages:
+	int fLow  = IRE[ui16Level+ui16Atten];
+	int fHigh = (&IRE[4])[ui16Level+ui16Atten];
+	if LSN_UNLIKELY( ui16Color == 0 ) { return fHigh; }						// For color 0, only high level is emitted.
+	if LSN_UNLIKELY( ui16Color > 12 ) { return fLow; }						// For colors 13..15, only low level is emitted.
+
+	return LSN_INCOLORPHASE( ui16Color ) ? fHigh : fLow;
+#undef LSN_INCOLORPHASE
+#else
     int hue;
     int e, l, v;
 
@@ -59,6 +82,7 @@ square_sample(int p, int phase)
         default:   l = v; break;
     }
     return IRE[(l << 3) + (e << 2) + ((p >> 4) & 3)];
+#endif
 }
 
 #define NES_OPTIMIZED 1

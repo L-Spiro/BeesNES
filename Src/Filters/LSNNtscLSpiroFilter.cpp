@@ -18,10 +18,10 @@ namespace lsn {
 
 	// == Members.
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
-		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;					/**< The hue. */
-		m_fGammaSetting = 1.0f / 0.45f;										/**< The CRT gamma curve. */
-		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;	/**< The brightness setting. */
-		m_fSaturationSetting = -0.40f + 1.0f;								/**< The saturation setting. */
+		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;														/**< The hue. */
+		m_fGammaSetting = 1.0f / 0.45f;																			/**< The CRT gamma curve. */
+		m_fBrightnessSetting = (1.0f - (0.070710678118654752440084436210485f)) * (1.0f - m_fPhosphorDecayRate);	/**< The brightness setting. */
+		m_fSaturationSetting = -0.40f + 1.0f;																	/**< The saturation setting. */
 
 		// RetroTink?
 		//m_fHueSetting = 14.5f * std::numbers::pi / 180.0f;					/**< The hue. */
@@ -533,6 +533,7 @@ namespace lsn {
 			m_vQ.resize( sSize );
 
 			m_vRgbBuffer.resize( sSize * 4 );
+			m_vBlendBuffer.resize( sSize * 3 );
 			return true;
 		}
 		catch ( ... ) { return false; }
@@ -553,15 +554,21 @@ namespace lsn {
 		pfQ += sYiqStride;
 
 		uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
+		float * pfBlendBuffer = m_vBlendBuffer.data() + m_ui16ScaledWidth * 3 * _sScanline;
 #ifdef __AVX512F__
 		if ( CUtilities::IsAvx512BWSupported() ) {
 			__m512 m0 = _mm512_set1_ps( 0.0f );
 			__m512 m299 = _mm512_set1_ps( 299.0f );
-			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m512 ) / sizeof( float ) ) {
+			__m512 mPhosphorDecay = _mm512_set1_ps( m_fPhosphorDecayRate );
+			constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m512 mY = _mm512_load_ps( pfY );
 				__m512 mU = _mm512_load_ps( pfQ );
 				__m512 mV = _mm512_load_ps( pfI );
+				__m512 mOldR = _mm512_load_ps( pfBlendBuffer );
+				__m512 mOldG = _mm512_load_ps( pfBlendBuffer + sRegSize );
+				__m512 mOldB = _mm512_load_ps( pfBlendBuffer + (sRegSize * 2) );
 
 				// Convert YUV to RGB.
 				// R = Y + (1.139883025203f * V)
@@ -570,6 +577,17 @@ namespace lsn {
 				__m512 mR = _mm512_add_ps( mY, _mm512_mul_ps( mV, _mm512_set1_ps( 1.139883025203f ) ) );
 				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
 				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
+
+				// Phosphor decay.
+				mR = _mm512_fmadd_ps( mPhosphorDecay, mOldR, mR );
+				_mm512_store_ps( pfBlendBuffer, mR );
+				pfBlendBuffer += sRegSize;
+				mG = _mm512_fmadd_ps( mPhosphorDecay, mOldG, mG );
+				_mm512_store_ps( pfBlendBuffer, mG );
+				pfBlendBuffer += sRegSize;
+				mB = _mm512_fmadd_ps( mPhosphorDecay, mOldB, mB );
+				_mm512_store_ps( pfBlendBuffer, mB );
+				pfBlendBuffer += sRegSize;
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 				mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
@@ -690,9 +708,9 @@ namespace lsn {
 				(*pui8Bgra++) = 255;									// A15;
 #endif	// #if 0
 
-				pfY += sizeof( __m512 ) / sizeof( float );
-				pfI += sizeof( __m512 ) / sizeof( float );
-				pfQ += sizeof( __m512 ) / sizeof( float );
+				pfY += sRegSize;
+				pfI += sRegSize;
+				pfQ += sRegSize;
 
 			}
 		}
@@ -702,11 +720,16 @@ namespace lsn {
 		if ( CUtilities::IsAvx2Supported() ) {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
 			__m256 m299 = _mm256_set1_ps( 299.0f );
-			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sizeof( __m256 ) / sizeof( float ) ) {
+			__m256 mPhosphorDecay = _mm256_set1_ps( m_fPhosphorDecayRate );
+			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
 				__m256 mY = _mm256_load_ps( pfY );
 				__m256 mU = _mm256_load_ps( pfQ );
 				__m256 mV = _mm256_load_ps( pfI );
+				__m256 mOldR = _mm256_load_ps( pfBlendBuffer );
+				__m256 mOldG = _mm256_load_ps( pfBlendBuffer + sRegSize );
+				__m256 mOldB = _mm256_load_ps( pfBlendBuffer + (sRegSize * 2) );
 
 				// Convert YUV to RGB.
 				// R = Y + (1.139883025203f * V)
@@ -716,10 +739,23 @@ namespace lsn {
 				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
+				// Phosphor decay.
+				mR = _mm256_fmadd_ps( mPhosphorDecay, mOldR, mR );
+				_mm256_store_ps( pfBlendBuffer, mR );
+				pfBlendBuffer += sRegSize;
+				mG = _mm256_fmadd_ps( mPhosphorDecay, mOldG, mG );
+				_mm256_store_ps( pfBlendBuffer, mG );
+				pfBlendBuffer += sRegSize;
+				mB = _mm256_fmadd_ps( mPhosphorDecay, mOldB, mB );
+				_mm256_store_ps( pfBlendBuffer, mB );
+				pfBlendBuffer += sRegSize;
+
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
 				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
 				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
+
+				
 
 				// Convert to integers.
 				__m256i mRi = _mm256_cvtps_epi32( mR );
@@ -793,9 +829,9 @@ namespace lsn {
 				(*pui8Bgra++) = 255;							// A7;
 #endif	// #if 0
 
-				pfY += sizeof( __m256 ) / sizeof( float );
-				pfI += sizeof( __m256 ) / sizeof( float );
-				pfQ += sizeof( __m256 ) / sizeof( float );
+				pfY += sRegSize;
+				pfI += sRegSize;
+				pfQ += sRegSize;
 
 			}
 		}

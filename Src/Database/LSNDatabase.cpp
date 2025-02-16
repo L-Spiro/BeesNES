@@ -401,6 +401,12 @@ namespace lsn {
 			{ .ui32Crc = 0x4C09E6B8, .pmRegion = LSN_PM_PAL },
 			// Mike Tyson's Punch-Out!! (E) (PRG 1) [!]
 			{ .ui32Crc = 0xF2A43A8A, .pmRegion = LSN_PM_PAL },
+			// Mike Tyson's Punch-Out!! (J)
+			{ .ui32Crc = 0x8DB6D11F, .pmRegion = LSN_PM_NTSC },
+			// Mike Tyson's Punch-Out!! (U) (PRG 0)
+			{ .ui32Crc = 0x8DB6D11F, .pmRegion = LSN_PM_NTSC },
+			// Mike Tyson's Punch-Out!! (U) (PRG 1)
+			{ .ui32Crc = 0xF1D861EF, .pmRegion = LSN_PM_NTSC },
 			// Mind Blower Pak (Australia) (Unl)
 			{ .ui32Crc = 0xE7933763, .pmRegion = LSN_PM_PAL },
 			// Miracle Piano Teaching System, The (France)
@@ -467,6 +473,8 @@ namespace lsn {
 			{ .ui32Crc = 0x5BF675BA, .pmRegion = LSN_PM_PAL },
 			// Punch-Out!! (E) [!]
 			{ .ui32Crc = 0xC9EB73F9, .pmRegion = LSN_PM_PAL },
+			// Punch-Out!! (U)
+			{ .ui32Crc = 0xC032E5B0, .pmRegion = LSN_PM_NTSC },
 			// Rackets & Rivals (E) [!]
 			{ .ui32Crc = 0x7F60BF49, .pmRegion = LSN_PM_PAL },
 			// Rad Racer (E)

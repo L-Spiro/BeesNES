@@ -86,7 +86,7 @@ namespace lsn {
 		m_nnCrtNtsc.white_point = 85;
 		m_nnCrtNtsc.blend = 1;*/
 
-		m_nnCrtNtsc.hue = 23;
+		m_nnCrtNtsc.hue = 20;
 		m_nnCrtNtsc.brightness = 4;
 		m_nnCrtNtsc.contrast = 180;
 		m_nnCrtNtsc.saturation = 17;
