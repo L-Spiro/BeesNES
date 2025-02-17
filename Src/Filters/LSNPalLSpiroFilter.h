@@ -255,12 +255,13 @@ namespace lsn {
 
 		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;		/**< The filter function for chroma. */
 		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;	/**< The filter function for Y. */
-		uint32_t											m_ui32FilterKernelSize = 12;				/**< The kernel size for the gather during YIQ creation. */
+		uint32_t											m_ui32FilterKernelSize = 12;			/**< The kernel size for the gather during YIQ creation. */
 		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
 		std::vector<simd_4>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<simd_4>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;									/**< The YIQ Q buffer. */
+		std::vector<float>									m_vBlendBuffer;							/**< The blend buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
 		uint16_t											m_ui16PixelToSignal = 10;				/**< How many signals each pixel generates. */
@@ -288,6 +289,7 @@ namespace lsn {
 		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
 		float												m_fBlackSetting = 0.0f;					/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
+		float												m_fPhosphorDecayRate = 0.40;			/**< Phosphor decay rate. */
 
 
 		// == Functions.

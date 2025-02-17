@@ -1329,22 +1329,27 @@ namespace lsn {
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( vTmp[I].x[0] ) * 255.0 ) );
 			}
 			else {
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[2] ), 1.0 / 2.2 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[1] ), 1.0 / 2.2 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[0] ), 1.0 / 2.2 ) ) * 255.0 ) );*/
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[2] ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[1] ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[0] ) ) * 255.0 ) );*/
+#if 1
 				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[2], 1.0 ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[1], 1.0, 0.0181 * 0.5 ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[0], 1.0 ) ) * 255.0 ) );
+
+				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[2] ), 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[1] ), 1.0 / 2.2 ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[0] ), 1.0 / 2.2 ) ) * 255.0 ) );*/
 				
+				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[2] ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[1] ) ) * 255.0 ) );
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[0] ) ) * 255.0 ) );*/
+
 				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[2], 1.0 / 0.45 ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[1], 1.0 / 0.45 ) ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[0], 1.0 / 0.45 ) ) * 255.0 ) );*/
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( ( vTmp[I].x[2] ) * 255.0 ) );
+#else
+				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( ( vTmp[I].x[2] ) * 255.0 ) );
 				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( ( vTmp[I].x[1] ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( ( vTmp[I].x[0] ) * 255.0 ) );*/
+				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( ( vTmp[I].x[0] ) * 255.0 ) );
+#endif
 			}
 		}
 
@@ -1509,8 +1514,8 @@ namespace lsn {
 				std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
 					wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
 					//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
-					wsRoot + L"Palettes\\savtool_replica_float (1).pal";
-					//wsRoot + L"Palettes\\sRGB.pal";
+					wsRoot + L"Palettes\\savtool_replica_float.pal";
+					//wsRoot + L"Palettes\\Composite_wiki.pal";
 				lsn::CStdFile sfFile;
 				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 					bool bTheyMightBeGiantFloats = false;
