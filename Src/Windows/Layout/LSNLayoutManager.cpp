@@ -15,7 +15,9 @@
 #include "../Input/LSNInputWindow.h"
 #include "../Input/LSNStdControllerPage.h"
 #include "../MainWindow/LSNMainWindow.h"
+#include "../Patch/LSNPatchWindowBottomPage.h"
 #include "../Patch/LSNPatchWindow.h"
+#include "../Patch/LSNPatchWindowTopPage.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
 
 
@@ -51,6 +53,12 @@ namespace lsn {
 			}
 			case LSN_LT_PATCH_DIALOG : {
 				return new CPatchWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_PATCH_PAGE_TOP : {
+				return new CPatchWindowTopPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_PATCH_PAGE_BOTTOM : {
+				return new CPatchWindowBottomPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

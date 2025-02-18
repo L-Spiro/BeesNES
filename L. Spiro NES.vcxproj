@@ -1833,6 +1833,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Mappers\LSNMapper010.h" />
     <ClInclude Include="Src\Mappers\LSNMapper011.h" />
     <ClInclude Include="Src\Mappers\LSNMapper013.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper028.h" />
     <ClInclude Include="Src\Mappers\LSNMapper032.h" />
     <ClInclude Include="Src\Mappers\LSNMapper033.h" />
     <ClInclude Include="Src\Mappers\LSNMapper034.h" />
@@ -1888,6 +1889,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\System\LSNTickable.h" />
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Time\LSNTimer.h" />
+    <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
@@ -1908,7 +1910,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindowLayout.h" />
     <ClInclude Include="Src\Windows\Patch\LSNPatchWindow.h" />
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowBottomPage.h" />
     <ClInclude Include="Src\Windows\Patch\LSNPatchWindowLayout.h" />
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowTopPage.h" />
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialog.h" />
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h" />
@@ -2021,7 +2025,9 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindow.cpp" />
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowBottomPage.cpp" />
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowTopPage.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialog.cpp" />
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp" />

@@ -86,7 +86,7 @@ pal_bpp4fmt(int format)
 /*****************************************************************************/
 
 /* convolution is much faster but the EQ looks softer, more authentic, and more analog */
-#define USE_CONVOLUTION 1
+#define USE_CONVOLUTION 0
 #define USE_7_SAMPLE_KERNEL 1
 #define USE_6_SAMPLE_KERNEL 0
 #define USE_5_SAMPLE_KERNEL 0
@@ -103,8 +103,8 @@ static struct EQF {
 /* params unused to keep the function the same */
 static void
 init_eq(struct EQF *f,
-        int f_lo, int f_hi, int rate,
-        int g_lo, int g_mid, int g_hi)
+        int /*f_lo*/, int /*f_hi*/, int /*rate*/,
+        int /*g_lo*/, int /*g_mid*/, int /*g_hi*/)
 {    
     memset(f, 0, sizeof(struct EQF));
 }

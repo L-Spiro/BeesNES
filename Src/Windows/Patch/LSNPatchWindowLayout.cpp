@@ -49,8 +49,58 @@
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
 			0,										// sTextLen
 			LSN_PWI_NONE,							// dwParentId
+		},
+		//{
+		//	LSW_LT_SPLITTER,						// ltType
+		//	LSN_PWI_SPLITTER,						// wId
+		//	nullptr,								// lpwcClass
+		//	TRUE,									// bEnabled
+		//	FALSE,									// bActive
+		//	0,										// iLeft
+		//	0,										// iTop
+		//	LSN_PATCH_W,							// dwWidth
+		//	LSN_PATCH_H,							// dwHeight
+		//	WS_CHILDWINDOW | WS_VISIBLE,			// dwStyle
+		//	0,										// dwStyleEx
+		//	nullptr,								// pwcText
+		//	0,										// sTextLen
+		//	LSN_LT_PATCH_DIALOG,					// dwParentId
 
-			
+		//	LSN_LOCK_LEFT,							// pcLeftSizeExp
+		//	LSN_LOCK_RIGHT,							// pcRightSizeExp
+		//	LSN_LOCK_TOP,							// pcTopSizeExp
+		//	LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+		//	nullptr, 0,								// pcWidthSizeExp
+		//	nullptr, 0,								// pcHeightSizeExp
+		//},
+
+	};
+
+
+	/** The layout for the top page. */
+	LSW_WIDGET_LAYOUT CPatchWindowLayout::m_wlPatchWindowTopPage[] {
+		{
+			LSN_LT_PATCH_PAGE_TOP,					// ltType
+			LSN_PWI_TOP_PAGE,						// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			0,										// iLeft
+			0,										// iTop
+			LSN_PATCH_W,							// dwWidth
+			LSN_PATCH_H,							// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,					// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,							// dwStyleEx
+			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
+			0,										// sTextLen
+			LSN_PWI_NONE,							// dwParentId
+
+			LSN_LOCK_LEFT,							// pcLeftSizeExp
+			LSN_LOCK_RIGHT,							// pcRightSizeExp
+			LSN_LOCK_TOP,							// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			nullptr, 0,								// pcWidthSizeExp
+			nullptr, 0,								// pcHeightSizeExp
 		},
 
 		// File.
@@ -68,7 +118,7 @@
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_PATCH_FILE ),				// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -92,7 +142,7 @@
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_PATCH_ROM_TO_PATCH ),		// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 		},
 		{
 			LSW_LT_EDIT,							// ltType
@@ -108,7 +158,7 @@
 			WS_EX_CLIENTEDGE,						// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -131,7 +181,7 @@
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_PATCH_BROWSE ),			// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			nullptr, 0,								// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -155,7 +205,7 @@
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_FILE ),		// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 		},
 		{
 			LSW_LT_TREELISTVIEW,							// ltType
@@ -173,7 +223,7 @@
 			//WS_EX_CLIENTEDGE,						// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -196,7 +246,7 @@
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_PATCH_BROWSE ),			// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			nullptr, 0,								// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -220,7 +270,7 @@
 		//	0,										// dwStyleEx
 		//	LSN_LSTR( LSN_PATCH_OUTPUT_FILE ),		// pwcText
 		//	0,										// sTextLen
-		//	LSN_PWI_NONE,							// dwParentId
+		//	LSN_PWI_TOP_PAGE,						// dwParentId
 		//},
 		//{
 		//	LSW_LT_EDIT,							// ltType
@@ -236,7 +286,7 @@
 		//	WS_EX_CLIENTEDGE,						// dwStyleEx
 		//	nullptr,								// pwcText
 		//	0,										// sTextLen
-		//	LSN_PWI_NONE,							// dwParentId
+		//	LSN_PWI_TOP_PAGE,						// dwParentId
 
 		//	LSN_LOCK_LEFT,							// pcLeftSizeExp
 		//	LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -259,7 +309,7 @@
 		//	WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 		//	LSN_LSTR( LSN_PATCH_BROWSE ),			// pwcText
 		//	0,										// sTextLen
-		//	LSN_PWI_NONE,							// dwParentId
+		//	LSN_PWI_TOP_PAGE,						// dwParentId
 
 		//	nullptr, 0,								// pcLeftSizeExp
 		//	LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -285,7 +335,7 @@
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_PATCH_SRC_INFO ),			// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -308,7 +358,7 @@
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -331,7 +381,7 @@
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -354,7 +404,7 @@
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -377,7 +427,7 @@
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -400,7 +450,7 @@
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_PWI_NONE,							// dwParentId
+			LSN_PWI_TOP_PAGE,						// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -409,6 +459,7 @@
 			nullptr, 0,								// pcWidthSizeExp
 			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
 		},
+		
 	};
 
 
@@ -425,6 +476,33 @@
 	CWidget * CPatchWindowLayout::CreatePatchWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
 		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		if ( pwWidget ) {
+			// Success.  Do stuff.
+		}
+		return pwWidget;
+	}
+
+	/**
+	 * Creates the top page.
+	 *
+	 * \param _pwParent The parent widget.
+	 * \return Returns the created page.
+	 */
+	CWidget * CPatchWindowLayout::CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+		return CreatePage( _pwParent, m_wlPatchWindowTopPage, LSN_ELEMENTS( m_wlPatchWindowTopPage ), _oOptions );
+	}
+
+	/**
+	 * Creates the tab pages.
+	 *
+	 * \param _pwParent The parent widget.
+	 * \param _pwlLayout The page layout.
+	 * \param _sTotal The number of items to which _pwlLayout points.
+	 * \return Returns the created page.
+	 */
+	CWidget * CPatchWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions ) {
+		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
+		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

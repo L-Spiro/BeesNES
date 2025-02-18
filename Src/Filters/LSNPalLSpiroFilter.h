@@ -10,6 +10,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Event/LSNEvent.h"
+#include "../Utilities/LSNAlignmentAllocator.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 
@@ -256,12 +257,12 @@ namespace lsn {
 		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;		/**< The filter function for chroma. */
 		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;	/**< The filter function for Y. */
 		uint32_t											m_ui32FilterKernelSize = 12;			/**< The kernel size for the gather during YIQ creation. */
-		std::vector<float>									m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;						/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;							/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
 		std::vector<simd_4>									m_vY;									/**< The YIQ Y buffer. */
 		std::vector<simd_4>									m_vI;									/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;									/**< The YIQ Q buffer. */
-		std::vector<float>									m_vBlendBuffer;							/**< The blend buffer. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vBlendBuffer;							/**< The blend buffer. */
 		std::vector<uint8_t>								m_vRgbBuffer;							/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;					/**< Output width. */
 		uint16_t											m_ui16PixelToSignal = 10;				/**< How many signals each pixel generates. */
@@ -520,9 +521,11 @@ namespace lsn {
 		__m512 mSin = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable512[_sSinIdx] ) );
 
 		// Multiply levels and cosines.
-		_mCos = _mm512_add_ps( _mCos, _mm512_mul_ps( mLevels, mCos ) );
+		//_mCos = _mm512_add_ps( _mCos, _mm512_mul_ps( mLevels, mCos ) );
+		_mCos = _mm512_fmadd_ps( mLevels, mCos, _mCos );
 		// Multiply levels and sines.
-		_mSin = _mm512_add_ps( _mSin, _mm512_mul_ps( mLevels, mSin ) );
+		//_mSin = _mm512_add_ps( _mSin, _mm512_mul_ps( mLevels, mSin ) );
+		_mSin = _mm512_fmadd_ps( mLevels, mSin, _mSin );
 		// Accumulate the signals.
 		_mSignal = _mm512_add_ps( _mSignal, mLevelsY );
 	}
@@ -556,9 +559,11 @@ namespace lsn {
 		__m256 mSin = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
 
 		// Multiply levels and cosines.
-		_mCos = _mm256_add_ps( _mCos, _mm256_mul_ps( mLevels, mCos ) );
+		//_mCos = _mm256_add_ps( _mCos, _mm256_mul_ps( mLevels, mCos ) );
+		_mCos = _mm256_fmadd_ps( mLevels, mCos, _mCos );
 		// Multiply levels and sines.
-		_mSin = _mm256_add_ps( _mSin, _mm256_mul_ps( mLevels, mSin ) );
+		//_mSin = _mm256_add_ps( _mSin, _mm256_mul_ps( mLevels, mSin ) );
+		_mSin = _mm256_fmadd_ps( mLevels, mSin, _mSin );
 		// Accumulate the signals.
 		_mSignal = _mm256_add_ps( _mSignal, mLevelsY );
 	}

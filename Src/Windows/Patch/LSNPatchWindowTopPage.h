@@ -5,32 +5,29 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The patch window.
+ * Description: The top part of the patch window.
  */
 
 #pragma once
 
 #include "LSNPatchWindowLayout.h"
 
-#include <MainWindow/LSWMainWindow.h>
+#include <Widget/LSWWidget.h>
 #include <TreeListView/LSWTreeListView.h>
 
 using namespace lsw;
 
 namespace lsn {
-
-	class													CMainWindow;
-
 	/**
-	 * Class CPatchWindow
-	 * \brief The patch window.
+	 * Class CPatchWindowTopPage
+	 * \brief The top part of the patch window.
 	 *
-	 * Description: The patch window.
+	 * Description: The top part of the patch window.
 	 */
-	class CPatchWindow : public lsw::CMainWindow {
+	class CPatchWindowTopPage : public lsw::CWidget {
 	public :
-		CPatchWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
-		virtual ~CPatchWindow();
+		CPatchWindowTopPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
+		virtual ~CPatchWindowTopPage();
 
 
 		// == Enumerations.
@@ -73,6 +70,32 @@ namespace lsn {
 		 **/
 		virtual LSW_HANDLED									GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
 
+		/**
+		 * Handles the WM_CONTEXTMENU message.
+		 * 
+		 * \param _pwControl The control that was clicked.
+		 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									ContextMenu( CWidget * _pwControl, INT _iX, INT _iY );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+		 *
+		 * \param _lplvParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_ItemChanged( LPNMLISTVIEW _lplvParm );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+		 *
+		 * \param _lposcParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm );
+
 
 	protected :
 		// == Types.
@@ -96,7 +119,6 @@ namespace lsn {
 
 
 		// == Members.
-		std::vector<CWidget *>								m_vPages;													/**< The pages. */
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		std::u16string										m_u16RomPath;												/**< Path to the ROM. */
@@ -105,10 +127,46 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Updates the source ROM information labels.
+		 **/
+		void												UpdateInfo();
+
+		/**
+		 * Adds all the nodes in _vNodes as children of _hParent.
+		 * 
+		 * \param _vNodes The nodes to add under _hParent.
+		 * \param _hParent The parent under which to add _vNodes.
+		 **/
+		void												AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
+
+		/**
+		 * Creates a non-optimized basic tree given patch information.
+		 * 
+		 * \param _vInfo The information from which to generate a basic tree structure.
+		 * \return Returns the root nodes of the tree.
+		 **/
+		static std::vector<LSN_PATCH_INFO_TREE_ITEM>		CreateBasicTree( const std::vector<LSN_PATCH_INFO> &_vInfo );
+
+		/**
+		 * Finds a node with the given name.  Returns a pointer to the node or nullptr.
+		 * 
+		 * \param _vNodes the nodes to search.
+		 * \param _u8Name The name of the node to find.
+		 * \return Returns the node if found or nullptr otherwise.
+		 **/
+		static LSN_PATCH_INFO_TREE_ITEM *					FindNode( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, const std::u8string &_u8Name );
+
+		/**
+		 * Simplifies the tree by joining a parent with its child if it has only 1 child.
+		 * 
+		 * \param _vTree The tree to simplify.
+		 **/
+		static void											SimplifyTree( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vTree );
 
 	private :
 		typedef CPatchWindowLayout							Layout;
-		typedef lsw::CMainWindow							Parent;
+		typedef lsw::CWidget								Parent;
 
 	};
 

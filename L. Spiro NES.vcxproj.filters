@@ -867,6 +867,18 @@
     <ClInclude Include="Src\Audio\LSNAudioOptions.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowTopPage.h">
+      <Filter>Header Files\Windows\Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper028.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Patch\LSNPatchWindowBottomPage.h">
+      <Filter>Header Files\Windows\Patch</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1201,6 +1213,12 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\PAL-CRT-Full\pal_nes.cpp">
       <Filter>Source Files\Filters\PAL-CRT-Full</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowTopPage.cpp">
+      <Filter>Source Files\Windows\Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Patch\LSNPatchWindowBottomPage.cpp">
+      <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

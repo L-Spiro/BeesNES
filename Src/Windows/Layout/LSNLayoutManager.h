@@ -28,6 +28,8 @@ namespace lsn {
 		LSN_LT_AUDIO_OPTIONS_DIALOG,
 
 		LSN_LT_PATCH_DIALOG,
+		LSN_LT_PATCH_PAGE_TOP,
+		LSN_LT_PATCH_PAGE_BOTTOM,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

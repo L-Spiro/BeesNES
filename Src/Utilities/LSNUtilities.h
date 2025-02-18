@@ -28,7 +28,7 @@
 #endif	// #ifndef LSN_ELEMENTS
 
 #ifndef LSN_PI
-#define LSN_PI												3.1415926535897932384626433832795
+#define LSN_PI												3.14159265358979323846264338327950288419716939937510	// You can tell how cool a programmer is by how many digits she puts in the PI macro.
 #endif	// #ifndef LSN_PI
 
 #ifndef LSN_ROUND_UP

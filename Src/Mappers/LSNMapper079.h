@@ -30,6 +30,20 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -37,7 +51,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
-			SanitizeRegs<32 * 1024, 8 * 1024>();
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 		}
 
 		/**
@@ -54,11 +68,11 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, 32 * 1024>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, 8 * 1024>, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
 			}
 
 
@@ -89,8 +103,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank4100_5FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper079 * pmThis = reinterpret_cast<CMapper079 *>(_pvParm0);
-			pmThis->SetPgmBank<0, 32 * 1024>( (_ui8Val >> 3) & 1 );
-			pmThis->SetChrBank<0, 8 * 1024>( _ui8Val & 0b111 );
+			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val >> 3) & 1 );
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b111 );
 		}
 	};
 

@@ -12,8 +12,10 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../../Options/LSNOptions.h"
+
 #include <Layout/LSWMenuLayout.h>
 #include <Layout/LSWWidgetLayout.h>
+#include <Splitter/LSWSplitter.h>
 #include <Widget/LSWWidget.h>
 
 using namespace lsw;
@@ -33,6 +35,8 @@ namespace lsn {
 		enum LSN_PATCH_WINDOW_IDS : WORD {
 			LSN_PWI_NONE,
 			LSN_PWI_MAINWINDOW				= 3450,
+			LSN_PWI_TOP_PAGE,
+			LSN_PWI_SPLITTER,
 
 			LSN_PWI_FILE_GROUP,
 			LSN_PWI_FILE_IN_LABEL,
@@ -71,11 +75,34 @@ namespace lsn {
 		// Creates the window.
 		static CWidget *						CreatePatchWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
+		/**
+		 * Creates the top page.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
+
 
 	protected :
 		// == Members.
 		/** The layout for the main window. */
 		static LSW_WIDGET_LAYOUT				m_wlPatchWindow[];
+
+		/** The layout for the top page. */
+		static LSW_WIDGET_LAYOUT				m_wlPatchWindowTopPage[];
+
+
+		// == Functions.
+		/**
+		 * Creates the pages.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \param _pwlLayout The page layout.
+		 * \param _sTotal The number of items to which _pwlLayout points.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions );
 	};
 
 }	// namespace lsn

@@ -27,6 +27,7 @@ namespace lsn {
 		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
 
 		CUtilities::GenGaussianNoise( 0.0125f );
+		CAudio::SetOutputSettings( Options().aoGlobalAudioOptions );
 		
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {

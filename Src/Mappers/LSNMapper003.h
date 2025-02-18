@@ -30,6 +30,20 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the PGM bank size.
+		 *
+		 * \return Returns the size of the PGM banks.
+		 */
+		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
+
+		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 8 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -37,7 +51,7 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
-			SanitizeRegs<32 * 1024, 8 * 1024>();
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 		}
 
 		/**
@@ -75,7 +89,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
-			pmThis->SetChrBank<0, 8 * 1024>( _ui8Val & 0x3 );
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0x3 );
 		}
 		
 	};
