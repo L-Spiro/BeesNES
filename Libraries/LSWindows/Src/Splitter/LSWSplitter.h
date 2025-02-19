@@ -144,6 +144,28 @@ namespace lsw {
 		// Size all attachments.
 		void								SizeAttachments() const;
 
+		/**
+		 * The WM_SIZE handler.
+		 *
+		 * \param _wParam The type of resizing requested.
+		 * \param _lWidth The new width of the client area.
+		 * \param _lHeight The new height of the client area.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED					Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight );
+
+		/**
+		 * The WM_SIZING handler.
+		 *
+		 * \param _iEdge The edge of the window that is being sized.
+		 * \param _prRect A pointer to a RECT structure with the screen coordinates of the drag rectangle. To change the size or position of the drag rectangle, an application must change the members of this structure.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 */
+		virtual LSW_HANDLED					Sizing( INT _iEdge, LSW_RECT * _prRect );
+
+		// WM_PAINT.
+		virtual LSW_HANDLED					Paint();
+
 		// WM_LBUTTONDOWN.
 		virtual LSW_HANDLED					LButtonDown( DWORD _dwVirtKeys, const POINTS &_pCursorPos );
 

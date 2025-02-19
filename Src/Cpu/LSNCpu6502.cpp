@@ -668,13 +668,14 @@ namespace lsn {
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2() {
-		LSN_UPDATE_PC;
-
 		if ( !m_bTakeJump ) {
 			BeginInst();
+			LSN_UPDATE_PC;
 		}
 		else {
 			LSN_INSTR_START_PHI1( true );
+
+			LSN_UPDATE_PC;
 
 			LSN_NEXT_FUNCTION;
 
@@ -699,12 +700,15 @@ namespace lsn {
 
 	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
 	void CCpu6502::Branch_Cycle3() {
-		m_rRegs.ui8Pc[0] = m_ui8Address[0];
 		if ( !m_bBoundaryCrossed ) {
 			BeginInst();
+
+			m_rRegs.ui8Pc[0] = m_ui8Address[0];
 		}
 		else {
 			LSN_INSTR_START_PHI1( true );
+
+			m_rRegs.ui8Pc[0] = m_ui8Address[0];
 			
 			LSN_NEXT_FUNCTION;
 
@@ -759,9 +763,9 @@ namespace lsn {
 
 	/** Clears the overflow flag. */
 	void CCpu6502::Clv_BeginInst() {
-		SetBit<V(), false>( m_rRegs.ui8Status );
-
 		BeginInst();
+
+		SetBit<V(), false>( m_rRegs.ui8Status );
 	}
 
 	/** Compares A with OP. */
@@ -831,7 +835,9 @@ namespace lsn {
 	/** Copies from the vector to PC.h. */
 	template <bool _bEndInstr>
 	void CCpu6502::CopyVectorToPc_H_Phi2() {
-		LSN_INSTR_START_PHI2_READ( m_vBrkVector + 1, m_ui8Address[1] );
+		uint8_t ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( m_vBrkVector + 1, ui8Tmp );
+		m_ui8Address[1] = ui8Tmp;
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -845,39 +851,9 @@ namespace lsn {
 			
 	/** Copies from the vector to PC.l. */
 	void CCpu6502::CopyVectorToPc_L_Phi2() {
-
-//#ifdef LSN_CPU_VERIFY
-//		m_vBrkVector = LSN_V_IRQ_BRK;
-//		m_bPushB = true;
-//#else
-//		// Select vector to use.
-//		if ( m_bIsReset ) {
-//			m_vBrkVector = LSN_V_RESET;
-//			m_bPushB = false;
-//			m_bIsReset = false;
-//		}
-//		else if ( m_bDetectedNmi ) {
-//			m_vBrkVector = LSN_V_NMI;
-//			m_bPushB = false;
-//		}
-//		else if ( m_bHandleIrq ) {
-//			m_vBrkVector = LSN_V_IRQ_BRK;
-//			m_bPushB = false;
-//		}
-//		else {
-//			m_vBrkVector = LSN_V_IRQ_BRK;
-//			m_bPushB = true;
-//		}
-//
-//		if ( m_bDetectedNmi ) {
-//			m_bHandleNmi = m_bDetectedNmi = false;
-//			m_bNmiStatusLine = false;
-//		}
-//		m_bHandleIrq = false;
-//#endif	// #ifdef LSN_CPU_VERIFY
-
-		LSN_INSTR_START_PHI2_READ( m_vBrkVector, m_ui8Address[0] );
-
+		uint8_t ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( m_vBrkVector, ui8Tmp );
+		m_ui8Address[0] = ui8Tmp;
 
 
 		LSN_NEXT_FUNCTION;
@@ -1019,13 +995,16 @@ namespace lsn {
 	/** Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC. */
 	template <bool _bToAddr, bool _bEndInstr>
 	void CCpu6502::Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( _bToAddr ) {
 			// PC -> Address.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui8Address[1] );
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+			m_ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// PC -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui8Pointer[1] );
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+			m_ui8Pointer[1] = ui8Tmp;
 		}
 
 		m_ui16PcModify = 1;
@@ -1043,13 +1022,16 @@ namespace lsn {
 	/** Fetches the operand to either m_ui16Address or m_ui16Pointer and increments PC. */
 	template <bool _bToAddr>
 	void CCpu6502::Fetch_Operand_To_AddrOrPtr_IncPc_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( _bToAddr ) {
 			// PC -> Address.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui16Address );
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+			m_ui16Address = ui8Tmp;
 		}
 		else {
 			// PC -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, m_ui16Pointer );
+			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+			m_ui16Pointer = ui8Tmp;
 		}
 
 		m_ui16PcModify = 1;
@@ -1308,18 +1290,25 @@ namespace lsn {
 	/** Generic null operation. */
 	template <bool _bRead, bool _bIncPc, bool _bAdjS, bool _bBeginInstr>
 	void CCpu6502::Null() {
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
-		if constexpr ( _bAdjS ) {
-			LSN_UPDATE_S;
-		}
-
 		if constexpr ( _bBeginInstr ) {
 			BeginInst();
+
+			if constexpr ( _bIncPc ) {
+				LSN_UPDATE_PC;
+			}
+			if constexpr ( _bAdjS ) {
+				LSN_UPDATE_S;
+			}
 		}
 		else {
 			LSN_INSTR_START_PHI1( _bRead );
+
+			if constexpr ( _bIncPc ) {
+				LSN_UPDATE_PC;
+			}
+			if constexpr ( _bAdjS ) {
+				LSN_UPDATE_S;
+			}
 
 			LSN_NEXT_FUNCTION;
 
@@ -1542,13 +1531,16 @@ namespace lsn {
 	/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( (m_ui8Pointer[1] << 8) | uint8_t( m_ui8Pointer[0] + 1 ), m_ui8Address[1] );
+			LSN_INSTR_START_PHI2_READ( (m_ui8Pointer[1] << 8) | uint8_t( m_ui8Pointer[0] + 1 ), ui8Tmp );
+			m_ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( (m_ui8Address[1] << 8) | uint8_t( m_ui8Address[0] + 1 ), m_ui8Pointer[1] );
+			LSN_INSTR_START_PHI2_READ( (m_ui8Address[1] << 8) | uint8_t( m_ui8Address[0] + 1 ), ui8Tmp );
+			m_ui8Pointer[1] = ui8Tmp;
 		}
 		
 		if constexpr ( _bEndInstr ) {
@@ -1564,13 +1556,16 @@ namespace lsn {
 	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
 	template <bool _bFromAddr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_8Bit_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Pointer + 1 ), m_ui8Address[1] );
+			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Pointer + 1 ), ui8Tmp );
+			m_ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Address + 1 ), m_ui16Pointer[1] );
+			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Address + 1 ), ui8Tmp );
+			m_ui8Pointer[1] = ui8Tmp;
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1581,13 +1576,16 @@ namespace lsn {
 	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.L or m_ui16Pointer.L. */
 	template <bool _bFromAddr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_L_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, m_ui16Address );
+			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
+			m_ui16Address = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, m_ui16Pointer );
+			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
+			m_ui16Pointer = ui8Tmp;
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1598,13 +1596,15 @@ namespace lsn {
 	/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand. */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_Operand_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, m_ui8Operand );
+			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
 		}
 		else {
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, m_ui8Operand );
+			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
 		}
-		
+		m_ui8Operand = ui8Tmp;
+
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
 		}
@@ -1618,12 +1618,14 @@ namespace lsn {
 	/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand.  Skips a full cycle if m_bBoundaryCrossed is false (and only then is _bEndInstr checked). */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2() {
+		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, m_ui8Operand );
+			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
 		}
 		else {
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, m_ui8Operand );
+			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
 		}
+		m_ui8Operand = ui8Tmp;
 		
 		if ( !m_bBoundaryCrossed ) {
 			// No page boundaries were crossed.  We can optionally end, but must always skip 2 extra functions.
@@ -1646,7 +1648,9 @@ namespace lsn {
 	/** Reads the stack, stores in m_ui8Operand. */
 	template <bool _bEndInstr>
 	void CCpu6502::Read_Stack_To_Operand_Phi2() {
-		LSN_INSTR_START_PHI2_READ( 0x100 | m_rRegs.ui8S, m_ui8Operand );
+		uint8_t ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( 0x100 | m_rRegs.ui8S, ui8Tmp );
+		m_ui8Operand = ui8Tmp;
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1661,7 +1665,9 @@ namespace lsn {
 	/** Reads the stack, stores in m_ui16Target.H. */
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Read_Stack_To_Target_H_Phi2() {
-		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_rRegs.ui8S + _i8SOff ), m_ui8Target[1] );
+		uint8_t ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_rRegs.ui8S + _i8SOff ), ui8Tmp );
+		m_ui8Target[1] = ui8Tmp;
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );

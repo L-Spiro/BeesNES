@@ -42,7 +42,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CPatchWindow::InitDialog() {
 		Parent::InitDialog();
 
-		LSW_RECT rClient = ClientRect();
+		LSW_RECT rClient = ClientRect( nullptr );
 
 		LSW_WIDGET_LAYOUT wlLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
 			LSW_LT_SPLITTER,						// ltType
@@ -67,16 +67,27 @@ namespace lsn {
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
 		} );
+		
+		
+		CWidget * pwTopPage = CPatchWindowLayout::CPatchWindowLayout::CreateTopPage( this, (*m_poOptions) );
+		CWidget * pwBottomPage = CPatchWindowLayout::CPatchWindowLayout::CreateBottomPage( this, (*m_poOptions) );
+		auto rTopRect = pwTopPage->ClientRect();
+		m_vPages.push_back( pwTopPage );
+		m_vPages.push_back( pwBottomPage );
+
 		CSplitter * aSplitter = static_cast<CSplitter *>(static_cast<lsw::CLayoutManager *>(lsw::CBase::LayoutManager())->CreateWidget( wlLayout, this, TRUE, NULL, 0 ));
 		if ( !aSplitter ) {
 			delete aSplitter;
 			return LSW_H_CONTINUE;
 		}
-
-		CWidget * pwTopPage = CPatchWindowLayout::CPatchWindowLayout::CreateTopPage( aSplitter, (*m_poOptions) );
-		m_vPages.push_back( pwTopPage );
-
+		m_psSplitter = aSplitter;
+		/*pwTopPage->SetParent( aSplitter );
+		pwBottomPage->SetParent( aSplitter );*/
+		
+		aSplitter->SetSplitterType( CSplitter::LSW_SS_HORIZONTAL );
 		aSplitter->Attach( pwTopPage, CSplitter::LSW_A_UPPER );
+		aSplitter->Attach( pwBottomPage, CSplitter::LSW_A_BOTTOM );
+		
 
 		/*lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( ptlTree ) {
@@ -84,7 +95,7 @@ namespace lsn {
 			ptlTree->SetColumnWidth( 0, 450 );
 			ptlTree->InsertColumn( L"Something Else", 180, -1 );
 		}*/
-
+		//::InvalidateRect( pwTopPage->Wnd(), NULL, FALSE );
 		return LSW_H_CONTINUE;
 	}
 
@@ -140,6 +151,36 @@ namespace lsn {
 		//_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
 		_pmmiInfo->ptMinTrackSize.y = m_rStartingRect.Height();
 		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * Gets the client rectangle for the given widget or gets this control's client rectangle if _pwChild is nullptr.
+	 * 
+	 * \param _pwChild The widget whose client rectangle is to be gotten.
+	 * \return Returns the child's client rectangle or this client rectangle.
+	 **/
+	LSW_RECT CPatchWindow::ClientRect( const CWidget * _pwChild ) const {
+		for ( auto I = m_vPages.size(); I--; ) {
+			if ( m_vPages[I] == _pwChild ) { return m_psSplitter->ClientRect( _pwChild ); }
+		}
+		return Parent::ClientRect( _pwChild );
+	}
+
+	/**
+	 * Gets the window rectangle for the given widget or gets this control's window rectangle if _pwChild is nullptr.
+	 * 
+	 * \param _pwChild The widget whose window rectangle is to be gotten.
+	 * \return Returns the child's window rectangle or this client rectangle.
+	 **/
+	LSW_RECT CPatchWindow::WindowRect( const CWidget * _pwChild ) const {
+		for ( auto I = m_vPages.size(); I--; ) {
+			if ( m_vPages[I] == _pwChild ) {
+				LSW_RECT rTmp = m_psSplitter->WindowRect( _pwChild );
+				::AdjustWindowRectEx( &rTmp, ::GetWindowLongW( Wnd(), GWL_STYLE ), FALSE, ::GetWindowLongW( Wnd(), GWL_EXSTYLE ) );
+				return rTmp;
+			}
+		}
+		return Parent::WindowRect( _pwChild );
 	}
 
 }	// namespace lsn

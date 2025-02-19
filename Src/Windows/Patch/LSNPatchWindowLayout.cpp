@@ -43,7 +43,7 @@
 			0,										// iLeft
 			0,										// iTop
 			LSN_PATCH_W,							// dwWidth
-			LSN_PATCH_H,							// dwHeight
+			LSN_PATCH_H + 0,						// dwHeight
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_SETFONT,											// dwStyle
 			WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																					// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
@@ -89,18 +89,18 @@
 			0,										// iTop
 			LSN_PATCH_W,							// dwWidth
 			LSN_PATCH_H,							// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,					// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL | WS_CLIPSIBLINGS,	// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,							// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
 			0,										// sTextLen
 			LSN_PWI_NONE,							// dwParentId
 
-			LSN_LOCK_LEFT,							// pcLeftSizeExp
-			LSN_LOCK_RIGHT,							// pcRightSizeExp
-			LSN_LOCK_TOP,							// pcTopSizeExp
-			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			//LSN_LOCK_LEFT,							// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,							// pcRightSizeExp
+			//LSN_LOCK_TOP,							// pcTopSizeExp
+			///*"20+"*/ LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			//nullptr, 0,								// pcWidthSizeExp
+			//nullptr, 0,								// pcHeightSizeExp
 		},
 
 		// File.
@@ -463,6 +463,34 @@
 	};
 
 
+	/** The layout for the bottom page. */
+	LSW_WIDGET_LAYOUT CPatchWindowLayout::m_wlPatchWindowBottomPage[] = {
+		{
+			LSN_LT_PATCH_PAGE_BOTTOM,				// ltType
+			LSN_PWI_BOTTOM_PAGE,					// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			0,										// iLeft
+			0,										// iTop
+			LSN_PATCH_W,							// dwWidth
+			LSN_PATCH_H,							// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL | WS_CLIPSIBLINGS,	// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,							// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_PWI_NONE,							// dwParentId
+
+			//LSN_LOCK_LEFT,							// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,							// pcRightSizeExp
+			//LSN_LOCK_TOP,							// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			//nullptr, 0,								// pcWidthSizeExp
+			//nullptr, 0,								// pcHeightSizeExp
+		},
+	};
+
+
 #undef LSN_PATCH_H
 #undef LSN_PATCH_LABEL0_W
 #undef LSN_PATCH_FILE_GROUP_H
@@ -490,6 +518,16 @@
 	 */
 	CWidget * CPatchWindowLayout::CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		return CreatePage( _pwParent, m_wlPatchWindowTopPage, LSN_ELEMENTS( m_wlPatchWindowTopPage ), _oOptions );
+	}
+
+	/**
+	 * Creates the bottom page.
+	 *
+	 * \param _pwParent The parent widget.
+	 * \return Returns the created page.
+	 */
+	CWidget * CPatchWindowLayout::CreateBottomPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
+		return CreatePage( _pwParent, m_wlPatchWindowBottomPage, LSN_ELEMENTS( m_wlPatchWindowBottomPage ), _oOptions );
 	}
 
 	/**

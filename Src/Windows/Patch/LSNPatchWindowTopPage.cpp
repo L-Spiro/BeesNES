@@ -447,6 +447,23 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the window rectangle for the given widget or gets this control's window rectangle if _pwChild is nullptr.
+	 * 
+	 * \param _pwChild The widget whose window rectangle is to be gotten.
+	 * \return Returns the child's window rectangle or this client rectangle.
+	 **/
+	//LSW_RECT CPatchWindowTopPage::WindowRect( const CWidget * _pwChild ) const {
+	//	LSW_RECT rWindow;
+	//	::GetWindowRect( Wnd(), &rWindow );
+	//	//LSW_RECT rRet = m_pwParent ? m_pwParent->ClientRect( _pwChild ? _pwChild : this ) : ClientRect( _pwChild );
+	//	LSW_RECT rRet;
+	//	if ( (!_pwChild || _pwChild == this) && m_pwParent ) { rRet = m_pwParent->ClientRect( this ); }
+	//	else { rRet = ClientRect( _pwChild ); }
+	//	rRet.MoveBy( rWindow.left, rWindow.top );
+	//	return rRet;
+	//}
+
+	/**
 	 * Updates the source ROM information labels.
 	 **/
 	void CPatchWindowTopPage::UpdateInfo() {

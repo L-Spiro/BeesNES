@@ -36,6 +36,7 @@ namespace lsn {
 			LSN_PWI_NONE,
 			LSN_PWI_MAINWINDOW				= 3450,
 			LSN_PWI_TOP_PAGE,
+			LSN_PWI_BOTTOM_PAGE,
 			LSN_PWI_SPLITTER,
 
 			LSN_PWI_FILE_GROUP,
@@ -83,14 +84,23 @@ namespace lsn {
 		 */
 		static CWidget *						CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
+		/**
+		 * Creates the bottom page.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreateBottomPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
+
 
 	protected :
 		// == Members.
 		/** The layout for the main window. */
 		static LSW_WIDGET_LAYOUT				m_wlPatchWindow[];
-
 		/** The layout for the top page. */
 		static LSW_WIDGET_LAYOUT				m_wlPatchWindowTopPage[];
+		/** The layout for the bottom page. */
+		static LSW_WIDGET_LAYOUT				m_wlPatchWindowBottomPage[];
 
 
 		// == Functions.

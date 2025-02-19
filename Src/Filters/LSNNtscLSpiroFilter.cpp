@@ -13,6 +13,7 @@
 #include <memory>
 #include <numbers>
 
+#define LSN_FINAL_BRIGHT							m_fBrightnessSetting// * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/))
 
 namespace lsn {
 
@@ -293,7 +294,7 @@ namespace lsn {
 		}
 #endif	// #ifdef __AVX__
 
-		float fBrightness = m_fBrightnessSetting * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/));
+		float fBrightness = LSN_FINAL_BRIGHT;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
@@ -412,8 +413,8 @@ namespace lsn {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
 			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue, &dSin, &dCos );
-			dCos *= (m_fBrightnessSetting * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/))) * m_fSaturationSetting * 2.0;
-			dSin *= (m_fBrightnessSetting * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/))) * m_fSaturationSetting * 2.0;
+			dCos *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
+			dSin *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
@@ -769,7 +770,7 @@ namespace lsn {
 				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
-#if 1
+#if 0
 				// Phosphor decay.
 				mR = _mm256_fmadd_ps( mPhosphorDecay, mOldR, mR );
 				_mm256_store_ps( pfBlendBuffer, mR );
@@ -783,28 +784,17 @@ namespace lsn {
 #else
 				mOldR = _mm256_mul_ps( mPhosphorDecay, mOldR );
 				mR = _mm256_max_ps( mOldR, mR );
-				mOldR = _mm256_add_ps( _mm256_mul_ps( mR, mPhosInitDecay ), mOldR );
-				
-				_mm256_store_ps( pfBlendBuffer, mOldR );
-				/*mOldR = _mm256_mul_ps( mPhosphorDecay, mOldR );
-				__m256 mScaledR = _mm256_mul_ps( mPhosInitDecay, mR );
-				mOldR = _mm256_add_ps( mOldR, mScaledR );
-				_mm256_store_ps( pfBlendBuffer, mOldR );
-				mR = _mm256_max_ps( mOldR, mR );*/
+				_mm256_store_ps( pfBlendBuffer, mR );
 				pfBlendBuffer += sRegSize;
 
 				mOldG = _mm256_mul_ps( mPhosphorDecay, mOldG );
 				mG = _mm256_max_ps( mOldG, mG );
-				mOldG = _mm256_add_ps( _mm256_mul_ps( mG, mPhosInitDecay ), mOldG );
-				
-				_mm256_store_ps( pfBlendBuffer, mOldG );
+				_mm256_store_ps( pfBlendBuffer, mG );
 				pfBlendBuffer += sRegSize;
 
 				mOldB = _mm256_mul_ps( mPhosphorDecay, mOldB );
 				mB = _mm256_max_ps( mOldB, mB );
-				mOldB = _mm256_add_ps( _mm256_mul_ps( mB, mPhosInitDecay ), mOldB );
-				
-				_mm256_store_ps( pfBlendBuffer, mOldB );
+				_mm256_store_ps( pfBlendBuffer, mB );
 				pfBlendBuffer += sRegSize;
 #endif
 

@@ -73,6 +73,22 @@ namespace lsn {
 		 **/
 		virtual LSW_HANDLED									GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
 
+		/**
+		 * Gets the client rectangle for the given widget or gets this control's client rectangle if _pwChild is nullptr.
+		 * 
+		 * \param _pwChild The widget whose client rectangle is to be gotten.
+		 * \return Returns the child's client rectangle or this client rectangle.
+		 **/
+		virtual LSW_RECT									ClientRect( const CWidget * _pwChild ) const;
+
+		/**
+		 * Gets the window rectangle for the given widget or gets this control's window rectangle if _pwChild is nullptr.
+		 * 
+		 * \param _pwChild The widget whose window rectangle is to be gotten.
+		 * \return Returns the child's window rectangle or this client rectangle.
+		 **/
+		virtual LSW_RECT									WindowRect( const CWidget * _pwChild ) const;
+
 
 	protected :
 		// == Types.
@@ -97,6 +113,7 @@ namespace lsn {
 
 		// == Members.
 		std::vector<CWidget *>								m_vPages;													/**< The pages. */
+		CSplitter *											m_psSplitter = nullptr;										/**< The splitter. */
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		std::u16string										m_u16RomPath;												/**< Path to the ROM. */

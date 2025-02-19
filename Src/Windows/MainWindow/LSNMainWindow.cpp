@@ -1515,7 +1515,8 @@ namespace lsn {
 					wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
 					//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
 					wsRoot + L"Palettes\\savtool_replica_float.pal";
-					//wsRoot + L"Palettes\\Composite_wiki.pal";
+					//wsRoot + L"Palettes\\2C02G_wiki.pal";
+					//wsRoot + L"Palettes\\2C07_wiki.pal";
 				lsn::CStdFile sfFile;
 				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
 					bool bTheyMightBeGiantFloats = false;

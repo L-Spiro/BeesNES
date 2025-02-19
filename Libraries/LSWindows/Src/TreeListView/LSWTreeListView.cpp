@@ -743,6 +743,36 @@ namespace lsw {
 	}
 
 	/**
+	 * WM_LBUTTONDBLCLK.
+	 * 
+	 * \param _dwVirtKeys Indicates whether various virtual keys are down. This parameter can be one or more of the following values: MK_CONTROL, MK_LBUTTON, MK_MBUTTON, MK_RBUTTON, MK_SHIFT, MK_XBUTTON1, MK_XBUTTON2.
+	 * \param _pCursorPos The coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+	 * \return Returns a HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CTreeListView::LButtonDblClk( DWORD /*_dwVirtKeys*/, const POINTS &_pCursorPos ) {
+		LVHITTESTINFO hitTestInfo;
+		hitTestInfo.pt.x = _pCursorPos.x;
+		hitTestInfo.pt.y = _pCursorPos.y;
+		ListView_HitTest( Wnd(), &hitTestInfo );
+		if ( hitTestInfo.iItem >= 0 ) {
+			auto aItem = ItemByIndex( hitTestInfo.iItem );
+			if ( aItem ) {
+				if ( (aItem->Value().uiState & TVIS_EXPANDED) && aItem->Size() ) {
+					aItem->Value().uiState &= ~TVIS_EXPANDED;
+					UpdateListView();
+					return LSW_H_HANDLED;
+				}
+				else if ( !(aItem->Value().uiState & TVIS_EXPANDED) && aItem->Size() ) {
+					aItem->Value().uiState |= TVIS_EXPANDED;
+					UpdateListView();
+					return LSW_H_HANDLED;
+				}
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * WM_LBUTTONDOWN.
 	 * 
 	 * \param _dwVirtKeys Indicates whether various virtual keys are down.
@@ -1139,8 +1169,17 @@ namespace lsw {
 				break;
 			}
 			case WM_LBUTTONDBLCLK : {
-				//LSW_RECT rRect = ptlThis->VirtualClientRect( nullptr );
-				//::MoveWindow( _hWnd, rRect.left, rRect.top, rRect.Width(), rRect.Height(), TRUE );
+				if ( ptlThis ) {
+					POINTS pPos = {
+						GET_X_LPARAM( _lParam ),
+						GET_Y_LPARAM( _lParam ),
+					};
+					LSW_HANDLED hHandled = ptlThis->LButtonDblClk( static_cast<DWORD>(_wParam), pPos );
+
+					// Return value
+					//	An application should return zero if it processes this message.
+					if ( hHandled == LSW_H_HANDLED ) { return 0; }
+				}
 				break;
 			}
 			case WM_NCLBUTTONDBLCLK : {

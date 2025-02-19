@@ -428,6 +428,15 @@ namespace lsw {
 		virtual LSW_HANDLED					KeyDown( UINT _uiKeyCode, UINT _uiFlags );
 
 		/**
+		 * WM_LBUTTONDBLCLK.
+		 * 
+		 * \param _dwVirtKeys Indicates whether various virtual keys are down. This parameter can be one or more of the following values: MK_CONTROL, MK_LBUTTON, MK_MBUTTON, MK_RBUTTON, MK_SHIFT, MK_XBUTTON1, MK_XBUTTON2.
+		 * \param _pCursorPos The coordinate of the cursor. The coordinate is relative to the upper-left corner of the client area.
+		 * \return Returns a HANDLED code.
+		 **/
+		virtual LSW_HANDLED					LButtonDblClk( DWORD /*_dwVirtKeys*/, const POINTS &_pCursorPos );
+
+		/**
 		 * WM_LBUTTONDOWN.
 		 * 
 		 * \param _dwVirtKeys Indicates whether various virtual keys are down.

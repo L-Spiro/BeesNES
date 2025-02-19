@@ -96,6 +96,14 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED									Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm );
 
+		/**
+		 * Gets the window rectangle for the given widget or gets this control's window rectangle if _pwChild is nullptr.
+		 * 
+		 * \param _pwChild The widget whose window rectangle is to be gotten.
+		 * \return Returns the child's window rectangle or this client rectangle.
+		 **/
+		//virtual LSW_RECT									WindowRect( const CWidget * _pwChild ) const;
+
 
 	protected :
 		// == Types.
