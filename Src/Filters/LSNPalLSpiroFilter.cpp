@@ -13,6 +13,7 @@
 #include <memory>
 #include <numbers>
 
+#define LSN_FINAL_BRIGHT							m_fBrightnessSetting// * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/))
 
 namespace lsn {
 
@@ -306,7 +307,7 @@ namespace lsn {
 		}
 #endif	// #ifdef __AVX__
 
-		float fBrightness = m_fBrightnessSetting * (1.0f - m_fPhosphorDecayRate);
+		float fBrightness = LSN_FINAL_BRIGHT;
 		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;
@@ -473,8 +474,8 @@ namespace lsn {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
 			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue, &dSin, &dCos );
-			dCos *= (m_fBrightnessSetting * (1.0f - m_fPhosphorDecayRate)) * m_fSaturationSetting * 2.0;
-			dSin *= (m_fBrightnessSetting * (1.0f - m_fPhosphorDecayRate)) * m_fSaturationSetting * 2.0;
+			dCos *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
+			dSin *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
@@ -653,6 +654,7 @@ namespace lsn {
 				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
 				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
 
+#if 0
 				// Phosphor decay.
 				mR = _mm512_fmadd_ps( mPhosphorDecay, mOldR, mR );
 				_mm512_store_ps( pfBlendBuffer, mR );
@@ -663,6 +665,22 @@ namespace lsn {
 				mB = _mm512_fmadd_ps( mPhosphorDecay, mOldB, mB );
 				_mm512_store_ps( pfBlendBuffer, mB );
 				pfBlendBuffer += sRegSize;
+#else
+				mOldR = _mm512_mul_ps( mPhosphorDecay, mOldR );
+				mR = _mm512_max_ps( mOldR, mR );
+				_mm512_store_ps( pfBlendBuffer, mR );
+				pfBlendBuffer += sRegSize;
+
+				mOldG = _mm512_mul_ps( mPhosphorDecay, mOldG );
+				mG = _mm512_max_ps( mOldG, mG );
+				_mm512_store_ps( pfBlendBuffer, mG );
+				pfBlendBuffer += sRegSize;
+
+				mOldB = _mm512_mul_ps( mPhosphorDecay, mOldB );
+				mB = _mm512_max_ps( mOldB, mB );
+				_mm512_store_ps( pfBlendBuffer, mB );
+				pfBlendBuffer += sRegSize;
+#endif
 				
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
@@ -816,6 +834,7 @@ namespace lsn {
 				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
+#if 0
 				// Phosphor decay.
 				mR = _mm256_fmadd_ps( mPhosphorDecay, mOldR, mR );
 				_mm256_store_ps( pfBlendBuffer, mR );
@@ -826,6 +845,22 @@ namespace lsn {
 				mB = _mm256_fmadd_ps( mPhosphorDecay, mOldB, mB );
 				_mm256_store_ps( pfBlendBuffer, mB );
 				pfBlendBuffer += sRegSize;
+#else
+				mOldR = _mm256_mul_ps( mPhosphorDecay, mOldR );
+				mR = _mm256_max_ps( mOldR, mR );
+				_mm256_store_ps( pfBlendBuffer, mR );
+				pfBlendBuffer += sRegSize;
+
+				mOldG = _mm256_mul_ps( mPhosphorDecay, mOldG );
+				mG = _mm256_max_ps( mOldG, mG );
+				_mm256_store_ps( pfBlendBuffer, mG );
+				pfBlendBuffer += sRegSize;
+
+				mOldB = _mm256_mul_ps( mPhosphorDecay, mOldB );
+				mB = _mm256_max_ps( mOldB, mB );
+				_mm256_store_ps( pfBlendBuffer, mB );
+				pfBlendBuffer += sRegSize;
+#endif
 
 				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
 				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
@@ -1067,3 +1102,5 @@ namespace lsn {
 	}
 
 }	// namespace lsn
+
+#undef LSN_FINAL_BRIGHT

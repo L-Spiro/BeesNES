@@ -43,36 +43,13 @@
 			0,										// iLeft
 			0,										// iTop
 			LSN_PATCH_W,							// dwWidth
-			LSN_PATCH_H + 0,						// dwHeight
+			LSN_PATCH_H + 120,						// dwHeight
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_SETFONT,											// dwStyle
 			WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																					// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),		// pwcText
 			0,										// sTextLen
 			LSN_PWI_NONE,							// dwParentId
 		},
-		//{
-		//	LSW_LT_SPLITTER,						// ltType
-		//	LSN_PWI_SPLITTER,						// wId
-		//	nullptr,								// lpwcClass
-		//	TRUE,									// bEnabled
-		//	FALSE,									// bActive
-		//	0,										// iLeft
-		//	0,										// iTop
-		//	LSN_PATCH_W,							// dwWidth
-		//	LSN_PATCH_H,							// dwHeight
-		//	WS_CHILDWINDOW | WS_VISIBLE,			// dwStyle
-		//	0,										// dwStyleEx
-		//	nullptr,								// pwcText
-		//	0,										// sTextLen
-		//	LSN_LT_PATCH_DIALOG,					// dwParentId
-
-		//	LSN_LOCK_LEFT,							// pcLeftSizeExp
-		//	LSN_LOCK_RIGHT,							// pcRightSizeExp
-		//	LSN_LOCK_TOP,							// pcTopSizeExp
-		//	LSN_LOCK_BOTTOM,						// pcBottomSizeExp
-		//	nullptr, 0,								// pcWidthSizeExp
-		//	nullptr, 0,								// pcHeightSizeExp
-		//},
 
 	};
 
@@ -487,6 +464,29 @@
 			//LSN_LOCK_BOTTOM,						// pcBottomSizeExp
 			//nullptr, 0,								// pcWidthSizeExp
 			//nullptr, 0,								// pcHeightSizeExp
+		},
+		{
+			LSW_LT_TAB,								// ltType
+			LSN_PWI_BOTTOM_TABS,					// wId
+			nullptr,								// lpwcClass
+			TRUE,									// bEnabled
+			FALSE,									// bActive
+			0,										// iLeft
+			0,										// iTop
+			LSN_PATCH_W,							// dwWidth
+			LSN_PATCH_H,							// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
+			WS_EX_ACCEPTFILES,														// dwStyleEx
+			nullptr,								// pwcText
+			0,										// sTextLen
+			LSN_PWI_BOTTOM_PAGE,					// dwParentId
+
+			LSN_LOCK_LEFT,							// pcLeftSizeExp
+			LSN_LOCK_RIGHT,							// pcRightSizeExp
+			LSN_LOCK_TOP,							// pcTopSizeExp
+			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
+			nullptr, 0,								// pcWidthSizeExp
+			nullptr, 0,								// pcHeightSizeExp
 		},
 	};
 

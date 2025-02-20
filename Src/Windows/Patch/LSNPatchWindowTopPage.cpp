@@ -45,6 +45,7 @@ namespace lsn {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_PATCH_PATCH ), 0 );
 			ptlTree->SetColumnWidth( 0, 450 );
 			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 180, -1 );
+			ptlTree->SetColumnWidth( 1, 550 );
 		}
 
 		return LSW_H_CONTINUE;

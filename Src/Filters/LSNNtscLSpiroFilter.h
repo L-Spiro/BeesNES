@@ -280,8 +280,8 @@ namespace lsn {
 		float												m_fSaturationSetting = 1.0f;			/**< The saturation setting. */
 		float												m_fBlackSetting = 0.312f;				/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;				/**< White level. */
-		float												m_fPhosphorDecayRate = 0.56f;			/**< Phosphor decay rate. */
-		//float												m_fInitPhosphorDecay = 0.25f;			/**< Initial phosphor decay. */
+		float												m_fPhosphorDecayRate = 0.95f;			/**< Phosphor decay rate. */
+		float												m_fInitPhosphorDecay = 0.25f;			/**< Initial phosphor decay. */
 
 		
 		

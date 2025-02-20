@@ -71,25 +71,21 @@ namespace lsw {
 
 		// == Members.
 		// Are we dragging?
-		BOOL								m_bDragging;
-
+		BOOL								m_bDragging = FALSE;
 		// Last-drawn point.
 		POINT								m_pLastPoint;
-
 		// Splitter type.
 		DWORD								m_dwSplitterType;
-
 		// Width of the bar.
-		DWORD								m_dwBarWidth;
-
+		DWORD								m_dwBarWidth = 4;
 		// Y position of the horizontal bar.
-		INT									m_iHorPos;
-
+		INT									m_iHorPos = 10;
 		// X position of the vertical bar.
-		INT									m_iVertPos;
-
+		INT									m_iVertPos = 10;
 		// Attached controls.
 		std::vector<LSW_SPLITTERATTACH>		m_vAttachments;
+		// Set when the mouse moves, unset when SetCursor() is called.
+		bool								m_bSetCursorToggle = false;
 
 
 		// == Functions.
@@ -162,6 +158,16 @@ namespace lsw {
 		 * \return Returns a LSW_HANDLED enumeration.
 		 */
 		virtual LSW_HANDLED					Sizing( INT _iEdge, LSW_RECT * _prRect );
+
+		/**
+		 * WM_SETCURSOR.
+		 * 
+		 * \param _pwControl A pointer to the window that contains the cursor
+		 * \param _wHitTest Specifies the hit-test result for the cursor position.
+		 * \param _wIdent Specifies the mouse window message which triggered this event, such as WM_MOUSEMOVE. When the window enters menu mode, this value is zero.
+		 * \return Returns a LSW_HANDLED enumeration.
+		 **/
+		virtual LSW_HANDLED					SetCursor( CWidget * _pwControl, WORD _wHitTest, WORD _wIdent );
 
 		// WM_PAINT.
 		virtual LSW_HANDLED					Paint();

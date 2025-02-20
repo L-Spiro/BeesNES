@@ -242,7 +242,6 @@ namespace lsw {
 		for ( size_t I = 0; I < m_vAttachments.size(); ++I ) {
 			LSW_RECT rRect = ClientRect( m_vAttachments[I].pwWidget );
 			::SetWindowPos( m_vAttachments[I].pwWidget->Wnd(), NULL, rRect.left, rRect.top, rRect.Width(), rRect.Height(), SWP_NOACTIVATE | SWP_NOZORDER | SWP_DRAWFRAME | SWP_NOSENDCHANGING );
-			//::InvalidateRect( m_vAttachments[I].pwWidget->Wnd(), NULL, TRUE );
 		}
 	}
 
@@ -255,10 +254,7 @@ namespace lsw {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 */
 	CWidget::LSW_HANDLED CSplitter::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
-		for ( size_t I = 0; I < m_vAttachments.size(); ++I ) {
-			::InvalidateRect( m_vAttachments[I].pwWidget->Wnd(), NULL, FALSE );
-			::PostMessageW( m_vAttachments[I].pwWidget->Wnd(), WM_PAINT, 0, 0 );
-		}
+		SizeAttachments();
 		return CWidget::Size( _wParam, _lWidth, _lHeight );
 	}
 		
@@ -270,10 +266,10 @@ namespace lsw {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 */
 	CWidget::LSW_HANDLED CSplitter::Sizing( INT _iEdge, LSW_RECT * _prRect ) {
-		for ( size_t I = 0; I < m_vAttachments.size(); ++I ) {
+		/*for ( size_t I = 0; I < m_vAttachments.size(); ++I ) {
 			::InvalidateRect( m_vAttachments[I].pwWidget->Wnd(), NULL, FALSE );
 			::PostMessageW( m_vAttachments[I].pwWidget->Wnd(), WM_PAINT, 0, 0 );
-		}
+		}*/
 		return CWidget::Sizing( _iEdge, _prRect );
 	}
 
@@ -283,6 +279,38 @@ namespace lsw {
 			::InvalidateRect( m_vAttachments[I].pwWidget->Wnd(), NULL, FALSE );
 			::PostMessageW( m_vAttachments[I].pwWidget->Wnd(), WM_PAINT, 0, 0 );
 		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * WM_SETCURSOR.
+	 * 
+	 * \param _pwControl A pointer to the window that contains the cursor
+	 * \param _wHitTest Specifies the hit-test result for the cursor position.
+	 * \param _wIdent Specifies the mouse window message which triggered this event, such as WM_MOUSEMOVE. When the window enters menu mode, this value is zero.
+	 * \return Returns a LSW_HANDLED enumeration.
+	 **/
+	CWidget::LSW_HANDLED CSplitter::SetCursor( CWidget * /*_pwControl*/, WORD _wHitTest, WORD /*_wIdent*/ ) {
+		HCURSOR hCursor = NULL;
+		if ( m_bSetCursorToggle ) {
+			switch ( _wHitTest & LSW_SS_BOTH ) {
+				case 0 : { break; }
+				case LSW_SS_HORIZONTAL : {
+					hCursor = ::LoadCursorW( NULL, IDC_SIZENS );
+					break;
+				}
+				case LSW_SS_VERTICAL : {
+					hCursor = ::LoadCursorW( NULL, IDC_SIZEWE );
+					break;
+				}
+				case LSW_SS_BOTH : {
+					hCursor = ::LoadCursorW( NULL, IDC_SIZEALL );
+					break;
+				}
+			}
+		}
+		::SetCursor( hCursor );
+		m_bSetCursorToggle = false;
 		return LSW_H_CONTINUE;
 	}
 
@@ -302,6 +330,7 @@ namespace lsw {
 
 	// WM_MOUSEMOVE.
 	CWidget::LSW_HANDLED CSplitter::MouseMove( DWORD /*_dwVirtKeys*/, const POINTS &_pCursorPos ) {
+		m_bSetCursorToggle = true;
 		for ( size_t I = 0; I < m_vAttachments.size(); ++I ) {
 			::InvalidateRect( m_vAttachments[I].pwWidget->Wnd(), NULL, FALSE );
 		}
@@ -312,7 +341,6 @@ namespace lsw {
 		LSW_RECT rRect = ClientRect( this );
 		DrawBar( m_pLastPoint, rRect, FALSE );
 		DrawBar( pCurPos, rRect, FALSE );
-
 		return LSW_H_CONTINUE;
 	}
 

@@ -71,10 +71,10 @@ namespace lsn {
 			{ .ui32Crc = 0x4FD3C549, .pmRegion = LSN_PM_PAL },
 			// Addams Family, The (Europe) (En,Fr,De)
 			{ .ui32Crc = 0x0FA94D88, .pmRegion = LSN_PM_PAL },
-
 			// Advanced Dungeons & Dragons - Dragons of Flame (Japan)
 			{ .ui32Crc = 0x1E0C7EA3, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
-
+			// Advanced Dungeons & Dragons - Heroes of the Lance (Japan)
+			{ .ui32Crc = 0x929C7B2F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Adventures in the Magic Kingdom (Europe)
 			{ .ui32Crc = 0x0E3A7F49, .pmRegion = LSN_PM_PAL },
 			// Adventure Island Classic (E) [!]
@@ -239,10 +239,8 @@ namespace lsn {
 			{ .ui32Crc = 0x9DF89BE5, .pmRegion = LSN_PM_NTSC },
 			// demo_pal
 			{ .ui32Crc = 0x2747EE68, .pmRegion = LSN_PM_PAL },
-
 			// Derby Stallion - Zenkoku Ban (Japan)
 			{ .ui32Crc = 0x0B0D4D1B, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SKROM },
-
 			// Devil World (E) [!]
 			{ .ui32Crc = 0x60CB6FF6, .pmRegion = LSN_PM_PAL },
 			// Die Hard (Europe)
@@ -273,12 +271,22 @@ namespace lsn {
 			{ .ui32Crc = 0x5202FD30, .pmRegion = LSN_PM_PAL },
 			// Elite (Europe) (En,Fr,De)
 			{ .ui32Crc = 0xA4BDCC1D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+			// Emoyan no 10 Bai Pro Yakyuu (Japan)
+			{ .ui32Crc = 0x5BF4DA62, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Excitebike (E)
 			{ .ui32Crc = 0x0B5667E9, .pmRegion = LSN_PM_PAL },
 			// F-1 Sensation (E) [!]
 			{ .ui32Crc = 0xA369AA0F, .pmRegion = LSN_PM_PAL },
+			// Famicom Meijin Sen (Japan)
+			{ .ui32Crc = 0x740C8108, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
+			// Famicom Meijin Sen (Japan) (Rev A)
+			{ .ui32Crc = 0x7DD82754, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
+			// Famicom Yakyuu Ban (Japan)
+			{ .ui32Crc = 0xB6DC9AA7, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Family Feud (U)
 			{ .ui32Crc = 0x26F2B268, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SHROM },
+			// Faria - Fuuin no Tsurugi (Japan)
+			{ .ui32Crc = 0xBF5E2513, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B1H, .pcPcbClass = LSN_PC_SKROM },
 			// Faxanadu (Europe)
 			{ .ui32Crc = 0x76C161E3, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Ferrari Grand Prix Challenge (Europe)
@@ -301,6 +309,8 @@ namespace lsn {
 			{ .ui32Crc = 0x9369A2F8, .pmRegion = LSN_PM_PAL },
 			// Gilligan's Island (U)
 			{ .ui32Crc = 0x55773880, .pmRegion = LSN_PM_NTSC },
+			// Ginga Eiyuu Densetsu (Japan)
+			{ .ui32Crc = 0x6E32F3C2, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
 			// Goal! (E)
 			{ .ui32Crc = 0xAB547071, .pmRegion = LSN_PM_PAL },
 			// GoalGoal! Two (E)
@@ -321,6 +331,8 @@ namespace lsn {
 			{ .ui32Crc = 0x1554FD9D, .pmRegion = LSN_PM_NTSC },
 			// Gun Smoke (E)
 			{ .ui32Crc = 0xB79C320D, .pmRegion = LSN_PM_PAL },
+			// Gunhed - Aratanaru Tatakai (Japan)
+			{ .ui32Crc = 0xE362ECDC, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Hammerin' Harry (E) [!]
 			{ .ui32Crc = 0x065FF04F, .pmRegion = LSN_PM_PAL },
 			// Hook (E)
@@ -333,6 +345,8 @@ namespace lsn {
 			{ .ui32Crc = 0xAF2BB895, .pmRegion = LSN_PM_PAL },
 			// Hunt for Red October, The (E) [!]
 			{ .ui32Crc = 0x407B7EEB, .pmRegion = LSN_PM_PAL },
+			// Hyakkiyagyou (Japan)
+			{ .ui32Crc = 0x1E2F89C8, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
 			// Ice Hockey (Europe)
 			{ .ui32Crc = 0xCCCC1034, .pmRegion = LSN_PM_PAL },
 			// Igo - Kyuu Roban Taikyoku (Japan)
@@ -349,6 +363,8 @@ namespace lsn {
 			{ .ui32Crc = 0x77540BB5, .pmRegion = LSN_PM_NTSC },
 			// Isolated Warrior (E)
 			{ .ui32Crc = 0xC3AEC9FA, .pmRegion = LSN_PM_PAL },
+			// Itadaki Street - Watashi no Omise ni Yottette (Japan)
+			{ .ui32Crc = 0x7E5D2F1A, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Jack Nicklaus' Greatest 18 Holes of Champ. Golf (E)
 			{ .ui32Crc = 0x836FE2C2, .pmRegion = LSN_PM_PAL },
 			// Jackie Chan's Action Kung Fu (E) [!]
@@ -373,8 +389,12 @@ namespace lsn {
 			{ .ui32Crc = 0x329301C1, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SCROM },
 			// Konami Hyper Soccer (E)
 			{ .ui32Crc = 0xD7B35F7D, .pmRegion = LSN_PM_PAL },
+			// Koushien (Japan)
+			{ .ui32Crc = 0xA817D175, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Krusty's Fun House (E)
 			{ .ui32Crc = 0x278DB9E3, .pmRegion = LSN_PM_PAL },
+			// Kujaku Ou II (Japan)
+			{ .ui32Crc = 0xA5781280, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },	// Cool music.
 			// Legend of Prince Valiant, The (E)
 			{ .ui32Crc = 0xFB40D76C, .pmRegion = LSN_PM_PAL },
 			// Legend of Zelda, The (Europe)
@@ -491,6 +511,10 @@ namespace lsn {
 			{ .ui32Crc = 0x381AAEF6, .pmRegion = LSN_PM_PAL },
 			// Parodius (E)
 			{ .ui32Crc = 0x5755A36C, .pmRegion = LSN_PM_PAL },
+
+			// Pennant League!! - Home Run Nighter (Japan)
+			{ .ui32Crc = 0x52449508, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
+
 			// Pinball (E) [!]
 			{ .ui32Crc = 0xB8571339, .pmRegion = LSN_PM_PAL },
 			// Pinbot (E)

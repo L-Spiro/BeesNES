@@ -59,6 +59,9 @@ namespace lsn {
 			LSN_PWI_INFO_ROM_PGM_SIZE_LABEL,
 			LSN_PWI_INFO_ROM_CHR_SIZE_LABEL,
 			LSN_PWI_INFO_ROM_MIRROR_LABEL,
+
+
+			LSN_PWI_BOTTOM_TABS,
 		};
 
 		// Menu items
