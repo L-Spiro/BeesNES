@@ -30,10 +30,10 @@ namespace lsn {
 			{ .ui32Crc = 0x2B5A92FE, .pmRegion = LSN_PM_PAL },
 			{ .ui32Crc = 0x76D3FCF0, .pmRegion = LSN_PM_PAL },*/
 			// Super Mario Bros. (World)
-			//{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALN },
+			{ .ui32Crc = 0x5CF548D3, .pmRegion = LSN_PM_PALM },
 
 			// Super Mario Bros (E)
-			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
+			{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PALN },
 
 			// 01.len_ctr
 			{ .ui32Crc = 0xD1837AD3, .pmRegion = LSN_PM_PAL },
@@ -60,7 +60,7 @@ namespace lsn {
 			// 3-in-1 (E) [!]
 			{ .ui32Crc = 0x7EEF434C, .pmRegion = LSN_PM_PAL },
 			// 25th Anniversary Super Mario Bros. (Europe) (Promo, Virtual Console)
-			{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PAL },
+			//{ .ui32Crc = 0x967A605F, .pmRegion = LSN_PM_PAL },
 			// Action 52 (E)
 			{ .ui32Crc = 0x795D23EC, .pmRegion = LSN_PM_PAL },
 			// Action in New York (Europe)
@@ -211,10 +211,8 @@ namespace lsn {
 			{ .ui32Crc = 0x6A10ADD2, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Corvette ZR-1 Challenge (Europe)
 			{ .ui32Crc = 0x07637EE4, .pmRegion = LSN_PM_PAL },
-
 			// Cosmic Wars (Japan)
 			{ .ui32Crc = 0x9EAB6B1F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM, .ui16Mapper = 1 },	// Cool music.
-
 			// Cosmos Cop (Asia) (Mega Soft) (Unl)
 			{ .ui32Crc = 0x18EC3D59, .pmRegion = LSN_PM_PAL },
 			// Crackout (E)
@@ -471,12 +469,16 @@ namespace lsn {
 			{ .ui32Crc = 0x71BAECEC, .pmRegion = LSN_PM_PAL },
 			// Monster in My Pocket (E)
 			{ .ui32Crc = 0xC1CD15DD, .pmRegion = LSN_PM_PAL },
+			// Moulin Rouge Senki - Melville no Honoo (Japan)
+			{ .ui32Crc = 0x005682D5, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Mr. Gimmick (E) [!]
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
 			// M.U.L.E. (U)
 			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Muppet Adventure - Chaos at the Carnival (U)
 			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+			// Musashi no Bouken (Japan)
+			{ .ui32Crc = 0xFA4B1D72, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// NFL Football (U)
 			{ .ui32Crc = 0x35B6FEBF, .pmRegion = LSN_PM_NTSC },
 			// NES Open Tournament Golf (Europe)
@@ -493,10 +495,10 @@ namespace lsn {
 			{ .ui32Crc = 0x725B0234, .pmRegion = LSN_PM_PAL },
 			// Noah's Ark (E)
 			{ .ui32Crc = 0xB99085CE, .pmRegion = LSN_PM_PAL },
-
 			// Nintendo - NTF2 System Cartridge (USA)
 			{ .ui32Crc = 0xAF8F7059, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B1H, .pcPcbClass = LSN_PC_SIROM },
-
+			// Obocchama-kun (Japan)
+			{ .ui32Crc = 0x09EEFDE3, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Operation Wolf (Europe)
 			{ .ui32Crc = 0x54C34223, .pmRegion = LSN_PM_PAL },
 			// Over Horizon (E) [!]
@@ -511,10 +513,8 @@ namespace lsn {
 			{ .ui32Crc = 0x381AAEF6, .pmRegion = LSN_PM_PAL },
 			// Parodius (E)
 			{ .ui32Crc = 0x5755A36C, .pmRegion = LSN_PM_PAL },
-
 			// Pennant League!! - Home Run Nighter (Japan)
 			{ .ui32Crc = 0x52449508, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
-
 			// Pinball (E) [!]
 			{ .ui32Crc = 0xB8571339, .pmRegion = LSN_PM_PAL },
 			// Pinbot (E)
@@ -585,6 +585,12 @@ namespace lsn {
 			{ .ui32Crc = 0x016C93D8, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// San Guo Zhi - Qun Xiong Zheng Ba (Asia) (Unl)
 			{ .ui32Crc = 0x81E8992C, .pmRegion = LSN_PM_PAL },
+			// Sanada Juu Yuushi (Japan)
+			{ .ui32Crc = 0x3403B1FC, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
+			// Satomi Hakkenden (Japan)
+			{ .ui32Crc = 0x2B6D2447, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
+			// Sensha Senryaku - Sabaku no Kitsune (Japan)
+			{ .ui32Crc = 0x93DC3C82, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
 			// Sesame Street ABC (U) [a1]/// Sesame Street ABC (U) [a2]
 			{ .ui32Crc = 0xAC38CF63, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Shadow Warriors (E)
@@ -637,6 +643,8 @@ namespace lsn {
 			{ .ui32Crc = 0xBEB88304, .pmRegion = LSN_PM_NTSC },
 			// Stealth ATF (E)
 			{ .ui32Crc = 0x632EDF4E, .pmRegion = LSN_PM_PAL },
+			// Sted - Iseki Wakusei no Yabou (Japan)
+			{ .ui32Crc = 0x33159EAC, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Street Gangs (E)
 			{ .ui32Crc = 0x30A174AC, .pmRegion = LSN_PM_PAL },
 			// Strider (U)
@@ -667,6 +675,8 @@ namespace lsn {
 			{ .ui32Crc = 0x50CCDA33, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// TaleSpin (E) [!]
 			{ .ui32Crc = 0x29C15923, .pmRegion = LSN_PM_PAL },
+			// Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan)
+			{ .ui32Crc = 0x15D53E78, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },	// TODO: Just produces audio fuzz and a black screen.
 			// Tecmo Baseball (U)
 			{ .ui32Crc = 0xAD12A34F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Tecmo World Wrestling (E)
@@ -705,6 +715,8 @@ namespace lsn {
 			{ .ui32Crc = 0x4F48B240, .pmRegion = LSN_PM_PAL },
 			// Trolls in Crazyland (E)
 			{ .ui32Crc = 0xA37B767D, .pmRegion = LSN_PM_PAL },
+			// Tsuppari Wars (Japan)
+			{ .ui32Crc = 0xD54F5DA9, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Turbo Racing (E)
 			{ .ui32Crc = 0x75B9C0DB, .pmRegion = LSN_PM_PAL },
 			// Ufouria (E)

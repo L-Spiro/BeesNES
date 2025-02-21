@@ -204,12 +204,42 @@ namespace lsn {
 			GenFilterKernel( m_ui32FilterKernelSize );
 		}
 
+		/**
+		 * Sets the phospher decay time.
+		 * 
+		 * \param _fTime The time it takes the phosphors to decay to 0.001.
+		 **/
+		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
+			m_fPhosphorDecayTime = _fTime;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
+		/**
+		 * Sets the FPS of the hardware.
+		 * 
+		 * \param _fFps The FPS to set.
+		 **/
+		void												SetFps( float _fFps  = 50.006977081298828125f ) {
+			m_fFps = _fFps;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
+		/**
+		 * Sets the initial phosphor decay level.
+		 * 
+		 * \param _fLevel The strength of the phosphor decay.
+		 **/
+		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
+			m_fInitPhosphorDecay = _fLevel;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
 
 	protected :
 		// == Enumerations.
 		/** Metrics. */
 		enum {
-			LSN_MAX_FILTER_SIZE								= 128,									/**< The maximum size of the gather for generating YIQ values. */
+			LSN_MAX_FILTER_SIZE								= 128,												/**< The maximum size of the gather for generating YIQ values. */
 		};
 
 
@@ -223,75 +253,78 @@ namespace lsn {
 		
 		/** Thread data. */
 		struct LSN_THREAD_DATA {
-			uint64_t										ui64RenderStartCycle;							/**< The render cycle at the start of the frame. */
-			CPalLSpiroFilter *								pnlsfThis;										/**< Point to this object. */
-			const uint8_t *									pui8Pixels;										/**< The input 9-bit pixel array. */
-			uint16_t										ui16LinesDone;									/**< How many lines the thread has done. */
-			uint16_t										ui16EndLine;									/**< Line on which to end work. */
-			std::atomic<bool>								bEndThread;										/**< If true, the thread is ended. */
+			uint64_t										ui64RenderStartCycle;								/**< The render cycle at the start of the frame. */
+			CPalLSpiroFilter *								pnlsfThis;											/**< Point to this object. */
+			const uint8_t *									pui8Pixels;											/**< The input 9-bit pixel array. */
+			uint16_t										ui16LinesDone;										/**< How many lines the thread has done. */
+			uint16_t										ui16EndLine;										/**< Line on which to end work. */
+			std::atomic<bool>								bEndThread;											/**< If true, the thread is ended. */
 		};
 
 
 		// == Members.
-		uint16_t											m_ui16Width = 0;								/**< The last input width. */
-		uint16_t											m_ui16Height = 0;								/**< The last input height. */
-		uint32_t											m_ui32FinalStride = 0;							/**< The final stride. */
+		float												m_fFps = 50.006977081298828125f;					/**< The FPS. */
+		uint16_t											m_ui16Width = 0;									/**< The last input width. */
+		uint16_t											m_ui16Height = 0;									/**< The last input height. */
+		uint32_t											m_ui32FinalStride = 0;								/**< The final stride. */
 
 #ifdef __AVX__
-		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
-		__m256												m_mStackedFilterTableY[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
-		__m256												m_mStackedCosTable[12];							/**< 8 elements of the cosine table stacked. */
-		__m256												m_mStackedSinTable[12];							/**< 8 elements of the sine table stacked. */
+		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];			/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedFilterTableY[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedCosTable[12];								/**< 8 elements of the cosine table stacked. */
+		__m256												m_mStackedSinTable[12];								/**< 8 elements of the sine table stacked. */
 #endif	// #ifdef __AVX__
 #ifdef __AVX512F__
-		__m512												m_mStackedFilterTable512[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
-		__m512												m_mStackedFilterTable512Y[LSN_MAX_FILTER_SIZE];	/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
-		__m512												m_mStackedCosTable512[12];						/**< 16 elements of the cosine table stacked. */
-		__m512												m_mStackedSinTable512[12];						/**< 16 elements of the sine table stacked. */
+		__m512												m_mStackedFilterTable512[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
+		__m512												m_mStackedFilterTable512Y[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
+		__m512												m_mStackedCosTable512[12];							/**< 16 elements of the cosine table stacked. */
+		__m512												m_mStackedSinTable512[12];							/**< 16 elements of the sine table stacked. */
 #endif	// #ifdef __AVX__
 		
 		LSN_ALIGN( 32 )
-		float												m_fFilter[LSN_MAX_FILTER_SIZE];					/**< The filter kernel. */
-		float												m_fFilterY[LSN_MAX_FILTER_SIZE];				/**< The filter kernel. */
+		float												m_fFilter[LSN_MAX_FILTER_SIZE];						/**< The filter kernel. */
+		float												m_fFilterY[LSN_MAX_FILTER_SIZE];					/**< The filter kernel. */
 
-		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;		/**< The filter function for chroma. */
-		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;	/**< The filter function for Y. */
-		uint32_t											m_ui32FilterKernelSize = 12;					/**< The kernel size for the gather during YIQ creation. */
-		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;								/**< The intermediate signal buffer for a single scanline. */
-		std::vector<float *>								m_vSignalStart;									/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
-		std::vector<simd_4>									m_vY;											/**< The YIQ Y buffer. */
-		std::vector<simd_4>									m_vI;											/**< The YIQ I buffer. */
-		std::vector<simd_4>									m_vQ;											/**< The YIQ Q buffer. */
-		std::vector<float, CAlignmentAllocator<float>>		m_vBlendBuffer;									/**< The blend buffer. */
-		std::vector<uint8_t>								m_vRgbBuffer;									/**< The output created by calling FilterFrame(). */
-		uint16_t											m_ui16ScaledWidth = 0;							/**< Output width. */
-		uint16_t											m_ui16PixelToSignal = 10;						/**< How many signals each pixel generates. */
-		uint16_t											m_ui16WidthScale = 10;							/**< Scale factor between input and output width. */
+		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;			/**< The filter function for chroma. */
+		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;		/**< The filter function for Y. */
+		uint32_t											m_ui32FilterKernelSize = 12;						/**< The kernel size for the gather during YIQ creation. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;									/**< The intermediate signal buffer for a single scanline. */
+		std::vector<float *>								m_vSignalStart;										/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
+		std::vector<simd_4>									m_vY;												/**< The YIQ Y buffer. */
+		std::vector<simd_4>									m_vI;												/**< The YIQ I buffer. */
+		std::vector<simd_4>									m_vQ;												/**< The YIQ Q buffer. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vBlendBuffer;										/**< The blend buffer. */
+		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		uint16_t											m_ui16ScaledWidth = 0;								/**< Output width. */
+		uint16_t											m_ui16PixelToSignal = 10;							/**< How many signals each pixel generates. */
+		uint16_t											m_ui16WidthScale = 10;								/**< Scale factor between input and output width. */
 
-		CEvent												m_eGo;											/**< Signal to tell the thread to go. */
-		CEvent												m_eDone;										/**< Thread to tell the main thread that the 2nd thread is done. */
-		std::unique_ptr<std::thread>						m_ptThread;										/**< The 2nd thread. */
-		LSN_THREAD_DATA										m_tdThreadData;									/**< Thread data. */
+		CEvent												m_eGo;												/**< Signal to tell the thread to go. */
+		CEvent												m_eDone;											/**< Thread to tell the main thread that the 2nd thread is done. */
+		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
+		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
 
-		float												m_fPhaseCosTable[12];							/**< The cosine phase table. */
-		float												m_fPhaseSinTable[12];							/**< The sine phase table. */
+		float												m_fPhaseCosTable[12];								/**< The cosine phase table. */
+		float												m_fPhaseSinTable[12];								/**< The sine phase table. */
 
-		uint32_t											m_ui32Gamma[300];								/**< The gamma curve. */
-		uint32_t											m_ui32GammaG[300];								/**< The gamma curve for green. */
-		uint8_t												m_ui8Gamma[300];								/**< The gamma curve. */
-		uint8_t												m_ui8GammaG[300];								/**< The gamma curve for green. */
-		float												m_NormalizedLevels[16];							/**< Normalized levels. */
+		uint32_t											m_ui32Gamma[300];									/**< The gamma curve. */
+		uint32_t											m_ui32GammaG[300];									/**< The gamma curve for green. */
+		uint8_t												m_ui8Gamma[300];									/**< The gamma curve. */
+		uint8_t												m_ui8GammaG[300];									/**< The gamma curve for green. */
+		float												m_NormalizedLevels[16];								/**< Normalized levels. */
 
 
 		// ** SETTINGS ** //
-		float												m_fHueSetting = 0.0f;							/**< The hue. */
-		float												m_fGammaSetting = 2.2f;							/**< The CRT gamma curve. */
-		float												m_fBrightnessSetting = 1.0f;					/**< The brightness setting. */
-		float												m_fSaturationSetting = 1.0f;					/**< The saturation setting. */
-		float												m_fBlackSetting = 0.0f;							/**< Black level. */
-		float												m_fWhiteSetting = 1.100f;						/**< White level. */
-		float												m_fPhosphorDecayRate = 0.51;					/**< Phosphor decay rate. */
-
+		float												m_fHueSetting = 0.0f;								/**< The hue. */
+		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
+		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
+		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
+		float												m_fBlackSetting = 0.0f;								/**< Black level. */
+		float												m_fWhiteSetting = 1.100f;							/**< White level. */
+		float												m_fPhosphorDecayRate = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */
+		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */
+		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
+		
 
 		// == Functions.
 		/**

@@ -160,6 +160,40 @@ namespace lsn {
 		 **/
 		static inline int32_t								SampleToI24( float _fSample );
 
+#ifdef __AVX__
+		/**
+		 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+		 *	audio output level of zero.
+		 * 
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pui8Dst Pointer to the output.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToUi8_AVX( const float * _pfSample, uint8_t * _pui8Dst );
+
+		/**
+		 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
+		 *	conversion never generates -32768.
+		 * 
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pi16Dst Pointer to the output.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToI16_AVX( const float * _pfSample, int16_t * _pi16Dst );
+
+		/**
+		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+		 *	conversion never generates -8388608.
+		 *
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pi32Dst Pointer to the output.  Must be aligned to a 32-byte boundary.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToI24_AVX( const float * _pfSample, int32_t * _pi32Dst );
+#endif	// #ifdef __AVX__
+
 		/**
 		 * Gets the enumerated value for the mono-24 format.
 		 * 
@@ -197,7 +231,11 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline uint8_t COpenAl::SampleToUi8( float _fSample ) {
-		float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+		float fClampedSample;
+		if LSN_UNLIKELY( _fSample < -1.0f ) { fClampedSample = -1.0f; }
+		else if LSN_UNLIKELY( _fSample > 1.0f ) { fClampedSample = 1.0f; }
+		else { fClampedSample = _fSample; }
+		//float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
 		float fScaledSample = (fClampedSample + 1.0f) * 0.5f * 255.0f;
 		return static_cast<uint8_t>(std::round( fScaledSample ));
 	}
@@ -211,7 +249,11 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline int16_t COpenAl::SampleToI16( float _fSample ) {
-		float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+		float fClampedSample;
+		if LSN_UNLIKELY( _fSample < -1.0f ) { fClampedSample = -1.0f; }
+		else if LSN_UNLIKELY( _fSample > 1.0f ) { fClampedSample = 1.0f; }
+		else { fClampedSample = _fSample; }
+		//float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
 		float fScaledSample = fClampedSample * 32767.0f;
 		return static_cast<int16_t>(std::round( fScaledSample ));
 	}
@@ -225,10 +267,85 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline int32_t COpenAl::SampleToI24( float _fSample ) {
-		double dClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
+		double dClampedSample;
+		if LSN_UNLIKELY( _fSample < -1.0f ) { dClampedSample = -1.0; }
+		else if LSN_UNLIKELY( _fSample > 1.0f ) { dClampedSample = 1.0; }
+		else { dClampedSample = _fSample; }
+		//float fClampedSample = std::clamp( _fSample, -1.0f, 1.0f );
 		double dScaledSample = dClampedSample * 8388607.0;
 		return static_cast<int32_t>(std::round( dScaledSample ));
 	}
+
+#ifdef __AVX__
+	/**
+	 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+	 *	audio output level of zero.
+	 * 
+	 * \param _pfSample Pointer to the samples to convert.
+	 * \param _pui8Dst Pointer to the output.
+	 * \return Returns the converted sample.
+	 **/
+	inline void COpenAl::SampleToUi8_AVX( const float * _pfSample, uint8_t * _pui8Dst ) {
+		auto vSamples = _mm256_loadu_ps( _pfSample );
+		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled = _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
+		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+		// Paack into 8-bit PCM values.
+		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+
+		auto vLo = _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
+		auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
+		auto vPacked16 = _mm_packus_epi32( vLo, vHi );
+
+		// Finally, pack the 16-bit integers into 8-bit integers.
+		auto vPacked8 = _mm_packus_epi16( vPacked16, vPacked16 );
+		_mm_storeu_epi8( _pui8Dst, vPacked8 );
+	}
+
+	/**
+	 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+	 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
+	 *	conversion never generates -32768.
+	 * 
+	 * \param _pfSample Pointer to the samples to convert.
+	 * \param _pi16Dst Pointer to the output.
+	 * \return Returns the converted sample.
+	 **/
+	inline void COpenAl::SampleToI16_AVX( const float * _pfSample, int16_t * _pi16Dst ) {
+		auto vSamples = _mm256_loadu_ps( _pfSample );
+		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
+		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+    
+		// Extract the lower and upper 128-bit lanes.
+		auto vLo  = _mm256_castsi256_si128( vInt32Vals );				// Lower 4 integers.
+		auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
+		auto vPacked16 = _mm_packs_epi32( vLo, vHi );
+    
+		_mm_storeu_epi16( _pi16Dst, vPacked16 );
+	}
+
+	/**
+	 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+	 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+	 *	conversion never generates -8388608.
+	 *
+	 * \param _pfSample Pointer to the samples to convert.
+	 * \param _pi32Dst Pointer to the output.  Must be aligned to a 32-byte boundary.
+	 * \return Returns the converted sample.
+	 **/
+	inline void COpenAl::SampleToI24_AVX( const float * _pfSample, int32_t * _pi32Dst ) {
+		auto vSamples = _mm256_loadu_ps( _pfSample );
+		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
+		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+		_mm256_store_si256( reinterpret_cast<__m256i *>(_pi32Dst), vInt32Vals );
+	}
+#endif	// #ifdef __AVX__
 
 }	// namespace lsn
 

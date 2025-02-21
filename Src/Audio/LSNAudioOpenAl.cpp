@@ -12,6 +12,7 @@
 
 #ifdef LSN_WINDOWS
 
+#include "../Utilities/LSNUtilities.h"
 #include "OpenAL/LSNOpenAl.h"
 
 namespace lsn {
@@ -152,10 +153,22 @@ namespace lsn {
 		while ( _sTotal >= stMax ) {
 			// Convert and flush.
 			int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
-			for ( size_t I = 0; I < stMax; ++I ) {
-				(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
-				m_sCurBufferSize += sizeof( int16_t );
+			size_t I = 0;
+#ifdef __AVX__
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+				constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+				int32_t i32Total = int32_t( stMax - sRegSize );
+				for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+					COpenAl::SampleToI16_AVX( _pfSamples, pi16Dst );
+					_pfSamples += sRegSize;
+					pi16Dst += sRegSize;
+				}
 			}
+#endif	// #ifdef __AVX__
+			for ( ; I < stMax; ++I ) {
+				(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+			}
+			m_sCurBufferSize += (sizeof( int16_t ) * stMax);
 
 
 			if ( !Flush() ) { return false; }
@@ -174,10 +187,22 @@ namespace lsn {
 		}
 		// Finish converting.
 		int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
-		for ( size_t I = 0; I < _sTotal; ++I ) {
-			(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
-			m_sCurBufferSize += sizeof( int16_t );
+		size_t I = 0;
+#ifdef __AVX__
+		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+			int32_t i32Total = int32_t( _sTotal - sRegSize );
+			for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+				COpenAl::SampleToI16_AVX( _pfSamples, pi16Dst );
+				_pfSamples += sRegSize;
+				pi16Dst += sRegSize;
+			}
 		}
+#endif	// #ifdef __AVX__
+		for ( ; I < _sTotal; ++I ) {
+			(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+		}
+		m_sCurBufferSize += sizeof( int16_t ) * _sTotal;
 		return true;
 	}
 
