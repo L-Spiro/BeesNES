@@ -36,6 +36,12 @@ namespace lsn {
 			LSN_AOWI_TAB,
 			LSN_AOWI_OK,
 			LSN_AOWI_CANCEL,
+
+
+			LSN_AOWI_PAGE_GLOBAL,
+			LSN_AOWI_PAGE_PERGAME,
+
+			LSN_AOWI_PAGE_GENERAL_GROUP,
 		};
 
 
@@ -49,11 +55,43 @@ namespace lsn {
 		 */
 		static BOOL								CreateAudioOptionsDialog( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
 
+		/**
+		 * Creates the global page.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
+
+		/**
+		 * Creates the per-game page.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
+
 
 	protected :
 		// == Members.
+		/** The layout for the global panel. */
+		static LSW_WIDGET_LAYOUT				m_wlGlobalPage[];
 		/** The layout for the per-game-setup panel. */
-		static LSW_WIDGET_LAYOUT				m_wlPage[];
+		static LSW_WIDGET_LAYOUT				m_wlPerGamePage[];
+		/** The layout for main window. */
+		static LSW_WIDGET_LAYOUT				m_wlWindow[];
+
+
+		// == Functions.
+		/**
+		 * Creates the pages.
+		 *
+		 * \param _pwParent The parent widget.
+		 * \param _pwlLayout The page layout.
+		 * \param _sTotal The number of items to which _pwlLayout points.
+		 * \return Returns the created page.
+		 */
+		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions );
  		
 	};
 

@@ -1894,6 +1894,7 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsGeneralPage.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerConfigurePage.h" />

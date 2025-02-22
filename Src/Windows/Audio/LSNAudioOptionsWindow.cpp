@@ -32,7 +32,33 @@ namespace lsn {
 	CWidget::LSW_HANDLED CAudioOptionsWindow::InitDialog() {
 		Parent::InitDialog();
 
+		CTab * ptTab = reinterpret_cast<CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+		if ( ptTab ) {
+			ptTab->SetShowCloseBoxes( false );
+
+			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( ptTab, (*m_poOptions) );
+			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( ptTab, (*m_poOptions) );
 		
+			m_vPages.push_back( pwGlobalPage );
+			m_vPages.push_back( pwPerGamePage );
+
+			TCITEMW tciItem = { 0 };
+			tciItem.mask = TCIF_TEXT;
+			tciItem.pszText = const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_GENERAL ));
+			if ( ptTab->InsertItem( 0, &tciItem, pwGlobalPage ) != -1 ) {
+				LSW_RECT rTabWindow = ptTab->WindowRect();
+				ptTab->AdjustRect( FALSE, &rTabWindow );
+				rTabWindow = rTabWindow.ScreenToClient( ptTab->Wnd() );
+				//rPanelClient = pscpPage->WindowRect();
+				//LSW_RECT rWindow = ptTab->WindowRect().ScreenToClient( pscpPage->Wnd() );
+				//LSW_RECT rWindow = ptTab->ClientRect();
+				//rWindow = rWindow.MapWindowPoints( pscpPage->Wnd(), Wnd() );
+				::MoveWindow( pwGlobalPage->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
+			}
+			if ( ptTab->InsertItem( 1, &tciItem, pwPerGamePage ) != -1 ) {
+			}
+		}
+
 		//ForceSizeUpdate();
 		return CMainWindow::InitDialog();
 	}

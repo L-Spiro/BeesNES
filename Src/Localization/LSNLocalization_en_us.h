@@ -125,6 +125,27 @@
 
 // Audio Options.
 #define LSN_AUDIO_OPTIONS_													Audio Options
+#define LSN_AUDIO_OPTIONS_GENERAL											General
+#define LSN_AUDIO_OPTIONS_USE_GLOBAL										Use Global
+#define LSN_AUDIO_OPTIONS_DEVICE											Device:
+#define LSN_AUDIO_OPTIONS_ENABLED											Enabled
+#define LSN_AUDIO_OPTIONS_FORMAT											Format:
+#define LSN_AUDIO_OPTIONS_DITHER											Dither
+#define LSN_AUDIO_OPTIONS_VOLUME											Volume:
+#define LSN_AUDIO_OPTIONS_BG_VOL											BG Vol:
+
+#define LSN_AUDIO_OPTIONS_ADVANCED											Advanced
+#define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:
+#define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
+#define LSN_AUDIO_OPTIONS_HPF_2_HZ											HPF 2 Hz:
+#define LSN_AUDIO_OPTIONS_HPF_3_HZ											HPF 3 Hz:
+#define LSN_AUDIO_OPTIONS_INVERT											Invert
+
+#define LSN_AUDIO_OPTIONS_INTERNAL											Internal
+#define LSN_AUDIO_OPTIONS_BUFFER_SIZE										Buffer Size:
+#define LSN_AUDIO_OPTIONS_BUFFERS											Buffers:
+#define LSN_AUDIO_OPTIONS_BUFFER_DELAY										Buffer Delay:
+#define LSN_AUDIO_OPTIONS_ANTI_ALIASING_QUALITY								Anti-Aliasing Quality:
 
 // Patcher.
 #define LSN_PATCH_PATCH_ROM													Patch a ROM

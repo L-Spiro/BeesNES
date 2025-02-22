@@ -17,7 +17,7 @@ using namespace lsw;
 
 namespace lsn {
 
-	class											CMainWindow;
+	class													CMainWindow;
 
 	/**
 	 * Class CAudioOptionsWindow
@@ -36,14 +36,14 @@ namespace lsn {
 		 *
 		 * \return Returns an LSW_HANDLED code.
 		 */
-		LSW_HANDLED									InitDialog();
+		LSW_HANDLED											InitDialog();
 
 		/**
 		 * The WM_CLOSE handler.
 		 *
 		 * \return Returns an LSW_HANDLED code.
 		 */
-		LSW_HANDLED									Close();
+		LSW_HANDLED											Close();
 
 		/**
 		 * Handles the WM_COMMAND message.
@@ -53,7 +53,7 @@ namespace lsn {
 		 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 		 * \return Returns an LSW_HANDLED code.
 		 */
-		virtual LSW_HANDLED							Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		/**
 		 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
@@ -63,12 +63,12 @@ namespace lsn {
 		 * \param pwChild The child window for whom the virtual client rectangle should be returned.
 		 * \return Returns the virtual client rectangle for this window for the given widget.
 		 */
-		virtual const LSW_RECT						VirtualClientRect( const CWidget * pwChild ) const;
+		virtual const LSW_RECT								VirtualClientRect( const CWidget * pwChild ) const;
 
 		/**
 		 * Saves the current input configuration and closes the dialog.
 		 */
-		void										SaveAndClose();
+		void												SaveAndClose();
 
 
 
@@ -76,13 +76,12 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The options object. */
-		LSN_OPTIONS *								m_poOptions;
-		/** The main window. */
-		lsn::CMainWindow *							m_pmwMainWindow;
+		LSN_OPTIONS *										m_poOptions;
+		std::vector<CWidget *>								m_vPages;													/**< The pages. */
 
 	private :
-		typedef CAudioOptionsWindowLayout			Layout;
-		typedef lsw::CMainWindow					Parent;
+		typedef CAudioOptionsWindowLayout					Layout;
+		typedef lsw::CMainWindow							Parent;
 	};
 
 
