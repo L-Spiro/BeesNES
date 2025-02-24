@@ -14,6 +14,8 @@
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -32,31 +34,46 @@ namespace lsn {
 	CWidget::LSW_HANDLED CAudioOptionsWindow::InitDialog() {
 		Parent::InitDialog();
 
-		CTab * ptTab = reinterpret_cast<CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+		HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_AUDIO_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(hIcon) );
+		hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_AUDIO_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(hIcon) );
+
+		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
 
 			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( ptTab, (*m_poOptions) );
 			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( ptTab, (*m_poOptions) );
+			if ( !pwGlobalPage || !pwPerGamePage ) { return LSW_H_HANDLED; }
 		
 			m_vPages.push_back( pwGlobalPage );
 			m_vPages.push_back( pwPerGamePage );
 
 			TCITEMW tciItem = { 0 };
 			tciItem.mask = TCIF_TEXT;
-			tciItem.pszText = const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_GENERAL ));
-			if ( ptTab->InsertItem( 0, &tciItem, pwGlobalPage ) != -1 ) {
+			static LPWSTR const lpwstrTabTitles[] = {
+				const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_GLOBAL_SETTINGS )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_PERGAME_SETTINGS )),
+			};
+
+			ptTab->SetShowCloseBoxes( false );
+			for ( size_t I = 0; I < m_vPages.size(); ++I ) {
+				std::wstring wsTitle = lpwstrTabTitles[I];
+				tciItem.pszText = const_cast<LPWSTR>(wsTitle.c_str());
+				ptTab->InsertItem( int( I ), &tciItem, m_vPages[I] );
+
 				LSW_RECT rTabWindow = ptTab->WindowRect();
 				ptTab->AdjustRect( FALSE, &rTabWindow );
 				rTabWindow = rTabWindow.ScreenToClient( ptTab->Wnd() );
-				//rPanelClient = pscpPage->WindowRect();
-				//LSW_RECT rWindow = ptTab->WindowRect().ScreenToClient( pscpPage->Wnd() );
-				//LSW_RECT rWindow = ptTab->ClientRect();
-				//rWindow = rWindow.MapWindowPoints( pscpPage->Wnd(), Wnd() );
-				::MoveWindow( pwGlobalPage->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
+				::MoveWindow( m_vPages[I]->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
 			}
-			if ( ptTab->InsertItem( 1, &tciItem, pwPerGamePage ) != -1 ) {
-			}
+			ptTab->SetCurSel( 0 );
+
+			LSW_RECT rTab = ptTab->WindowRect();
+			::AdjustWindowRectEx( &rTab, GetStyle(), FALSE, GetStyleEx() );
+			LSW_RECT rWindow = WindowRect();
+			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height() + LSN_TOP_JUST, FALSE );
 		}
 
 		//ForceSizeUpdate();

@@ -10,8 +10,11 @@
 
 #pragma once
 
+#include "../../Audio/LSNAudio.h"
+#include "../../Windows/WinUtilities/LSNWinUtilities.h"
 #include "LSNAudioOptionsWindowLayout.h"
 
+#include <TrackBar/LSWTrackBar.h>
 #include <Widget/LSWWidget.h>
 
 using namespace lsw;
@@ -41,6 +44,43 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED									InitDialog() {
+			auto aDevices = CAudio::GetAudioDevices();
+			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO ));
+			{
+				std::vector<CWinUtilities::LSN_COMBO_ENTRY> vDevices;
+				for ( size_t I = 0; I < aDevices.size(); ++I ) {
+					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = reinterpret_cast<const wchar_t *>(aDevices[I].c_str()), .lpParm = LPARAM( I ) };
+					vDevices.push_back( ceTmp );
+				}
+				lsn::CWinUtilities::FillComboBox( pcbCombo, &vDevices[0], vDevices.size(), 0, 0 );
+			}
+			{
+				pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO ));
+				auto aFormats = CAudio::GetAudioFormatsAndHz();
+				std::vector<CWinUtilities::LSN_COMBO_ENTRY> vFormats;
+				std::vector<std::wstring> vStrings;
+				for ( size_t I = 0; I < aFormats.size(); ++I ) {
+					size_t sIdx = aFormats[I] >> 24;
+					vStrings.push_back( std::format( L"{}, {} Hz", LSN_AUDIO_OPTIONS::s_afFormats[sIdx].pwcName, (aFormats[I] & 0xFFFFFF) * 25 ) );
+					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = vStrings[vStrings.size()-1].c_str(), .lpParm = LPARAM( aFormats[I] ) };
+					vFormats.push_back( ceTmp );
+				}
+				lsn::CWinUtilities::FillComboBox( pcbCombo, &vFormats[0], vFormats.size(), 0, (LSN_SF_MONO_16 << 24) | (44100 / 25) );
+			}
+
+			lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ));
+			if ( ptbTrackBar ) {
+				ptbTrackBar->SetRange( TRUE, 0, 500 );
+				ptbTrackBar->SetTicFreq( 50 );
+				ptbTrackBar->SetPos( TRUE, 100 );
+			}
+			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR ));
+			if ( ptbTrackBar ) {
+				//ptbTrackBar->SetStyle( TBS_AUTOTICKS
+				ptbTrackBar->SetRange( TRUE, 0, 100 );
+				ptbTrackBar->SetTicFreq( 20 );
+				ptbTrackBar->SetPos( TRUE, 20 );
+			}
 			return Parent::InitDialog();
 		}
 

@@ -381,6 +381,8 @@ namespace lsn {
 			{ .ui32Crc = 0xD161888B, .pmRegion = LSN_PM_PAL },
 			// Kickle Cubicle (E) [!]
 			{ .ui32Crc = 0xDF411CF0, .pmRegion = LSN_PM_PAL },
+			// Kid Kool (U)
+			{ .ui32Crc = 0xAA6BB985, .pmRegion = LSN_PM_NTSC },
 			// Kirby's Adventure (E)
 			{ .ui32Crc = 0x014A755A, .pmRegion = LSN_PM_PAL },
 			// Knight Rider (Europe)

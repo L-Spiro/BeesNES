@@ -61,6 +61,7 @@ namespace lsw {
 			}
 			m_vAttachments.push_back( { _pwWidget, _aAttachment } );
 		}
+		SizeAttachments();
 	}
 
 	// Set splitter styles.

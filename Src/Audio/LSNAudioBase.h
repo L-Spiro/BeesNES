@@ -92,6 +92,20 @@ namespace lsn {
 		 **/
 		virtual void										AddSample( float _fSample );
 
+		/**
+		 * Gets a list of audio devices.
+		 * 
+		 * \return Returns a vector of strings listing the audio devices.
+		 **/
+		virtual std::vector<std::u16string>					GetAudioDevices() { return std::vector<std::u16string>(); }
+
+		/**
+		 * Gets all available audio formats and Hz.  The top byte contains the sample format while the bottom 3 bytes contain the Hz in thousands.
+		 * 
+		 * \return Returns a vector of formats and Hz formatted such that the high 8 bits are the format index and the lower 24 bits are the Hz in units of 1,000.
+		 **/
+		virtual std::vector<uint32_t>						GetAudioFormatsAndHz() { return std::vector<uint32_t>(); }
+
 
 	protected :
 		// == Members.

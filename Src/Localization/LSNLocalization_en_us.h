@@ -125,6 +125,9 @@
 
 // Audio Options.
 #define LSN_AUDIO_OPTIONS_													Audio Options
+#define LSN_AUDIO_OPTIONS_GLOBAL_SETTINGS									Global Settings
+#define LSN_AUDIO_OPTIONS_PERGAME_SETTINGS									Per-Game Settings
+#define LSN_AUDIO_OPTIONS_STREAM_TO_FILE									Stream to File
 #define LSN_AUDIO_OPTIONS_GENERAL											General
 #define LSN_AUDIO_OPTIONS_USE_GLOBAL										Use Global
 #define LSN_AUDIO_OPTIONS_DEVICE											Device:
@@ -190,6 +193,11 @@
 #define LSN_BUTTON_B														B
 #define LSN_BUTTON_A														A
 
+// Audio Formats.
+#define LSN_AUDIO_FORMAT_MONO8												Mono, 8-bit PCM
+#define LSN_AUDIO_FORMAT_MONO16												Mono, 16-bit PCM
+#define LSN_AUDIO_FORMAT_MONO24												Mono, 24-bit PCM
+#define LSN_AUDIO_FORMAT_MONO32F											Mono, 32-bit Float
 
 // Core Audio.
 #define LSN_AUDIO_HARDWARE_NO_ERROR											The function call completed successfully.

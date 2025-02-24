@@ -100,6 +100,20 @@ namespace lsn {
 		static void											SetOutputSettings( const LSN_AUDIO_OPTIONS &_aoSettings );
 
 		/**
+		 * Gets a list of audio devices.
+		 * 
+		 * \return Returns a vector of strings listing the audio devices.
+		 **/
+		static std::vector<std::u16string>					GetAudioDevices() { return m_adAudioDevice.GetAudioDevices(); }
+
+		/**
+		 * Gets all available audio formats and Hz.  The top byte contains the sample format while the bottom 3 bytes contain the Hz in thousands.
+		 * 
+		 * \return Returns a vector of formats and Hz formatted such that the high 8 bits are the format index and the lower 24 bits are the Hz in units of 1,000.
+		 **/
+		static std::vector<uint32_t>						GetAudioFormatsAndHz() { return m_adAudioDevice.GetAudioFormatsAndHz(); }
+
+		/**
 		 *  6-point, 5th-order Hermite Z-form sampling.
 		 *
 		 * \param _pfsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.

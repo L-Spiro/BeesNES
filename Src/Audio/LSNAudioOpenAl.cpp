@@ -13,6 +13,7 @@
 #ifdef LSN_WINDOWS
 
 #include "../Utilities/LSNUtilities.h"
+#include "LSNAudioOptions.h"
 #include "OpenAL/LSNOpenAl.h"
 
 namespace lsn {
@@ -24,8 +25,9 @@ namespace lsn {
 	 * \return Returns true if initialization was successful.
 	 **/
 	bool CAudioOpenAl::InitializeAudio() {
+		ShutdownAudio();
 		if ( !Parent::InitializeAudio() ) { return false; }
-		m_eFormat = FormatToEnum( m_fNextFormat );
+		m_eFormat = FormatToEnum( m_fNextFormat.sfFormat );
 
 		std::vector<std::string> vDevices;
 		// We need a dummy device to enumerate the audio devices.
@@ -72,13 +74,70 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets a list of audio devices.
+	 * 
+	 * \return Returns a vector of strings listing the audio devices.
+	 **/
+	std::vector<std::u16string> CAudioOpenAl::GetAudioDevices() {
+		try {
+			std::vector<std::string> vDevices;
+			// We need a dummy device to enumerate the audio devices.
+			COpenAlDevice oadDummy;
+			if ( !COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) ) { return std::vector<std::u16string>(); }
+			std::vector<std::u16string> vRet;
+			vRet.resize( vDevices.size() );
+			for ( size_t I = 0; I < vDevices.size(); ++I ) {
+				vRet[I] = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(vDevices[I].c_str()) );
+			}
+			return vRet;
+		}
+		catch ( ... ) { return std::vector<std::u16string>(); }
+	}
+
+	/**
+	 * Gets all available audio formats and Hz.  The top byte contains the sample format while the bottom 3 bytes contain the Hz in 25ths.
+	 * 
+	 * \return Returns a vector of formats and Hz formatted such that the high 8 bits are the format index and the lower 24 bits are the Hz in units of 25.
+	 **/
+	std::vector<uint32_t> CAudioOpenAl::GetAudioFormatsAndHz() {
+		std::vector<uint32_t> vRet;
+		try {
+			std::vector<LSN_SAMPLE_FORMAT> vFormats = {
+				LSN_SF_MONO_8,
+				LSN_SF_MONO_16,
+				LSN_SF_MONO_24,
+				LSN_SF_MONO_F32,
+			};
+
+			std::vector<ALint> vSampleRates = {
+				8000, 11025, 16000, 22050, 32000, 44100, 48000, 88200, 96000, 192000
+			};
+
+			if ( m_oacContext.MakeCurrent() ) {
+				for ( const auto & sfFormat : vFormats ) {
+					for ( const auto & ui32Rate : vSampleRates ) {
+						::alGetError();
+						COpenAlBuffer oabBuffer;
+						uint32_t ui32Value;
+						if ( oabBuffer.BufferData( FormatToEnum( sfFormat ), &ui32Value, sizeof( ui32Value ), ui32Rate ) ) {
+							vRet.push_back( (sfFormat << 24) | (ui32Rate / 25) );
+						}
+					}
+				}
+			}
+		}
+		catch ( ... ) {}
+		return vRet;
+	}
+
+	/**
 	 * Undirties the format.  Called only when the new format differs from the old.
 	 * 
 	 * \param _fFormat The new format to set.
 	 **/
 	void CAudioOpenAl::UndirtyFormat( const LSN_AUDIO_FORMAT &_fFormat ) {
 		Parent::UndirtyFormat( _fFormat );
-		m_eFormat = FormatToEnum( _fFormat );
+		m_eFormat = FormatToEnum( _fFormat.sfFormat );
 	}
 
 	/**
@@ -253,43 +312,14 @@ namespace lsn {
 	/**
 	 * Gets the OpenAL format enum given a general format descriptor.
 	 * 
-	 * \param _fFormat The format descriptor.
+	 * \param _sfFormat The format descriptor.
 	 * \return Returns the OpenAL enum that represents _fFormat.
 	 **/
-	ALenum CAudioOpenAl::FormatToEnum( const LSN_AUDIO_FORMAT &_fFormat ) {
-		switch ( _fFormat.sfFormat ) {
-			case LSN_SF_PCM : {
-				switch ( _fFormat.ui16BitsPerChannel ) {
-					case 8 : {
-						static const ALenum eTable[] = {
-							AL_FORMAT_MONO8,
-							AL_FORMAT_STEREO8
-						};
-						return _fFormat.ui16Channels <= LSN_ELEMENTS( eTable ) ? eTable[_fFormat.ui16Channels-1] : AL_INVALID;
-					}
-					case 16 : {
-						static const ALenum eTable[] = {
-							AL_FORMAT_MONO16,
-							AL_FORMAT_STEREO16
-						};
-						return _fFormat.ui16Channels <= LSN_ELEMENTS( eTable ) ? eTable[_fFormat.ui16Channels-1] : AL_INVALID;
-					}
-					default : { return AL_INVALID; }
-				}
-				break;
-			}
-			case LSN_SF_FLOAT : {
-				switch ( _fFormat.ui16BitsPerChannel ) {
-					case 32 : {
-						static const ALenum eTable[] = {
-							AL_FORMAT_MONO_FLOAT32,
-							AL_FORMAT_STEREO_FLOAT32
-						};
-						return _fFormat.ui16Channels <= LSN_ELEMENTS( eTable ) ? eTable[_fFormat.ui16Channels-1] : AL_INVALID;
-					}
-				}
-				break;
-			}
+	ALenum CAudioOpenAl::FormatToEnum( const LSN_SAMPLE_FORMAT &_sfFormat ) {
+		switch ( _sfFormat ) {
+			case LSN_SF_MONO_8 : { return AL_FORMAT_MONO8; }
+			case LSN_SF_MONO_16 : { return AL_FORMAT_MONO16; }
+			case LSN_SF_MONO_F32 : { return AL_FORMAT_MONO_FLOAT32; }
 		}
 		return AL_INVALID;
 	}

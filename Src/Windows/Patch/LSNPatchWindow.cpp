@@ -22,6 +22,8 @@
 #include <filesystem>
 #include <set>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -41,6 +43,11 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CPatchWindow::InitDialog() {
 		Parent::InitDialog();
+
+		HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PUZZLE_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(hIcon) );
+		hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PUZZLE_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(hIcon) );
 
 		LSW_RECT rClient = ClientRect( nullptr );
 
@@ -81,21 +88,10 @@ namespace lsn {
 			return LSW_H_CONTINUE;
 		}
 		m_psSplitter = aSplitter;
-		/*pwTopPage->SetParent( aSplitter );
-		pwBottomPage->SetParent( aSplitter );*/
 		
 		aSplitter->SetSplitterType( CSplitter::LSW_SS_HORIZONTAL );
 		aSplitter->Attach( pwTopPage, CSplitter::LSW_A_UPPER );
 		aSplitter->Attach( pwBottomPage, CSplitter::LSW_A_BOTTOM );
-		
-
-		/*lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
-		if ( ptlTree ) {
-			ptlTree->SetColumnText( LSN_LSTR( LSN_PATCH_PATCH ), 0 );
-			ptlTree->SetColumnWidth( 0, 450 );
-			ptlTree->InsertColumn( L"Something Else", 180, -1 );
-		}*/
-		//::InvalidateRect( pwTopPage->Wnd(), NULL, FALSE );
 		return LSW_H_CONTINUE;
 	}
 

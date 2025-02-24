@@ -1223,6 +1223,9 @@
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindowBottomPage.cpp">
       <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Audio\LSNAudioOptions.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
@@ -1292,6 +1295,18 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\icons8-bee-64.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-puzzle-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-puzzle-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-turntable-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-turntable-16.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -64,11 +64,18 @@ namespace lsn {
 		virtual void										BeginEmulation();
 
 		/**
-		 * Adds a sample to all buckets that need it.
-		 *
-		 * \param _fSample The audio sample to be added.
+		 * Gets a list of audio devices.
+		 * 
+		 * \return Returns a vector of strings listing the audio devices.
 		 **/
-		//virtual void										AddSample( float _fSample );
+		virtual std::vector<std::u16string>					GetAudioDevices();
+
+		/**
+		 * Gets all available audio formats and Hz.  The top byte contains the sample format while the bottom 3 bytes contain the Hz in 25ths.
+		 * 
+		 * \return Returns a vector of formats and Hz formatted such that the high 8 bits are the format index and the lower 24 bits are the Hz in units of 25.
+		 **/
+		virtual std::vector<uint32_t>						GetAudioFormatsAndHz();
 
 
 	protected :
@@ -165,10 +172,10 @@ namespace lsn {
 		/**
 		 * Gets the OpenAL format enum given a general format descriptor.
 		 * 
-		 * \param _fFormat The format descriptor.
+		 * \param _sfFormat The format descriptor.
 		 * \return Returns the OpenAL enum that represents _fFormat.
 		 **/
-		static ALenum										FormatToEnum( const LSN_AUDIO_FORMAT &_fFormat );
+		static ALenum										FormatToEnum( const LSN_SAMPLE_FORMAT &_sfFormat );
 
 
 	private :

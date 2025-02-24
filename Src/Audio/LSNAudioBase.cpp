@@ -113,7 +113,20 @@ namespace lsn {
 		auto aSize = m_sTmpBufferIdx;
 		m_sTmpBufferIdx = 0;
 		switch ( m_fFormat.sfFormat ) {
-			case LSN_SF_PCM : {
+			case LSN_SF_MONO_8 : {
+				if ( !BufferMono8( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			case LSN_SF_MONO_16 : {
+				if ( !BufferMono16( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			case LSN_SF_MONO_F32 : {
+				if ( !BufferMonoF32( m_vTmpBuffer.data(), aSize ) ) { return false; }
+				break;
+			}
+			default : { return false; }
+			/*case LSN_SF_PCM : {
 				switch ( m_fFormat.ui16BitsPerChannel ) {
 					case 8 : {
 						if ( !BufferMono8( m_vTmpBuffer.data(), aSize ) ) { return false; }
@@ -135,7 +148,7 @@ namespace lsn {
 				}
 				break;
 			}
-			default : { return false; }
+			default : { return false; }*/
 			
 		}
 		return true;
