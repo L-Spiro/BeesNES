@@ -117,11 +117,10 @@ namespace lsn {
 
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-48.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
-		HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
-		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(hIcon) );
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
-		hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ));
-		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(hIcon) );
+
 		//::SendMessageW( Wnd(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)m_bBitmaps[0].Handle() );
 		// Create the basic render target.
 		m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
@@ -437,10 +436,32 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL );
 				break;
 			}
-			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT );
+			
+			case CMainWindowLayout::LSN_MWMI_REGION_AUTO : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;
 				break;
-			}*/
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_NTSC : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_NTSC;
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_PAL : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_PAL;
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_DENDY : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_DENDY;
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_PALM : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_PALM;
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_PALN : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_PALN;
+				break;
+			}
+
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL );
 				break;
@@ -954,11 +975,38 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
-				/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
+				
+				case CMainWindowLayout::LSN_MWMI_REGION_AUTO : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_UNKNOWN ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
-				}*/
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_NTSC : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_NTSC ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_PAL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_PAL ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_DENDY : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_DENDY ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_PALM : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_PALM ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_PALN : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_PALN ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT_FULL : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_CRT_FULL ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1380,7 +1428,7 @@ namespace lsn {
 	 */
 	bool CMainWindow::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path ) {
 		StopThread();
-		if ( m_bnEmulator.LoadRom( _vRom, _s16Path ) ) {
+		if ( m_bnEmulator.LoadRom( _vRom, _s16Path, m_bnEmulator.Options().pmRegion ) ) {
 			UpdatedConsolePointer();
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
 				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );

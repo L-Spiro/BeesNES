@@ -69,6 +69,7 @@ namespace lsn {
 
 			LSN_MWMI_VIDEO_SIZE,
 			LSN_MWMI_VIDEO_FILTER,
+			LSN_MWMI_REGION,
 			LSN_MWMI_INPUT,
 			LSN_MWMI_VIDEO,
 			LSN_MWMI_AUDIO,
@@ -97,6 +98,14 @@ namespace lsn {
 			LSN_MWMI_VIDEO_FILTER_AUTO_CRT,
 			LSN_MWMI_VIDEO_FILTER_AUTO_CRT_FULL,
 			LSN_MWMI_VIDEO_FILTER_AUTO_LSPIRO,
+
+			LSN_MWMI_REGIONS,
+			LSN_MWMI_REGION_AUTO,
+			LSN_MWMI_REGION_NTSC,
+			LSN_MWMI_REGION_PAL,
+			LSN_MWMI_REGION_DENDY,
+			LSN_MWMI_REGION_PALM,
+			LSN_MWMI_REGION_PALN,
 
 			LSN_MWMI_TOOLS_PATCH,
 
@@ -159,6 +168,9 @@ namespace lsn {
 
 		/** Video-filter sub-menu. */
 		static LSW_MENU_ITEM					m_miVideoFilterMenu[];
+
+		/** Region sub-menu. */
+		static LSW_MENU_ITEM					m_miRegionMenu[];
 
 		/** Menus. */
 		static LSW_MENU_LAYOUT					m_miMenus[];

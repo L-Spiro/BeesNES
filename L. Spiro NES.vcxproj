@@ -742,7 +742,8 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|Win32'">
@@ -769,7 +770,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|Win32'">
@@ -796,7 +798,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|Win32'">
@@ -823,7 +826,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|Win32'">
@@ -850,7 +854,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|Win32'">
@@ -877,7 +882,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -904,7 +910,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Debug|x64'">
@@ -931,7 +938,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Debug|x64'">
@@ -958,7 +966,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Debug|x64'">
@@ -985,7 +994,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Debug|x64'">
@@ -1012,7 +1022,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify|x64'">
@@ -1039,7 +1050,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -1069,7 +1081,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|Win32'">
@@ -1099,7 +1112,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|Win32'">
@@ -1129,7 +1143,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|Win32'">
@@ -1159,7 +1174,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">
@@ -1189,7 +1205,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|Win32'">
@@ -1219,7 +1236,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
@@ -1250,7 +1268,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|Win32'">
@@ -1281,7 +1300,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|Win32'">
@@ -1312,7 +1332,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|Win32'">
@@ -1343,7 +1364,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|Win32'">
@@ -1374,7 +1396,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -1404,7 +1427,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Release|x64'">
@@ -1434,7 +1458,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Release|x64'">
@@ -1464,7 +1489,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Release|x64'">
@@ -1494,7 +1520,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|x64'">
@@ -1524,7 +1551,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CPU Verify Release|x64'">
@@ -1554,7 +1582,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|x64'">
@@ -1585,7 +1614,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 DirectX 12 DirectX 9 Final|x64'">
@@ -1616,7 +1646,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Vulkan 1 Final|x64'">
@@ -1647,7 +1678,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 12 Final|x64'">
@@ -1678,7 +1710,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Final|x64'">
@@ -1709,7 +1742,8 @@ xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palett
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i</Command>
+xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

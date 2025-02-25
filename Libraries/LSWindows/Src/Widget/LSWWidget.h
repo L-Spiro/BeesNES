@@ -53,25 +53,53 @@ namespace lsw {
 		static INT_PTR CALLBACK				DialogProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam );
 
 
-		// The Window handle.
+		/**
+		 * The Window handle.
+		 * 
+		 * \return Returns the native window handle.
+		 **/
 		HWND								Wnd() const { return m_hWnd; }
 
-		// The parent widget.
+		/**
+		 * The parent widget.
+		 * 
+		 * \return Returns a pointer to the parent or nullptr.
+		 **/
 		CWidget *							Parent() { return m_pwParent; }
 
-		// The parent widget.
+		/**
+		 * The parent widget.
+		 * 
+		 * \return Returns a pointer to the parent or nullptr.
+		 **/
 		const CWidget *						Parent() const { return m_pwParent; }
 
-		// The ancestor widget.
+		/**
+		 * The ancestor widget.
+		 * 
+		 * \return Returns a pointer to the most parent object or nullptr.
+		 **/
 		CWidget *							Ancestor();
 
-		// The ancestor widget.
+		/**
+		 * The ancestor widget.
+		 * 
+		 * \return Returns a pointer to the most parent object or nullptr.
+		 **/
 		const CWidget *						Ancestor() const;
 
-		// Custom ID.
+		/**
+		 * Custom ID.
+		 * 
+		 * \return Returns the control ID.
+		 **/
 		WORD								Id() const { return m_wId; }
 
-		// Enabled or disabled.
+		/**
+		 * Enabled or disabled.
+		 * 
+		 * \return Returns TRUE or FALSE.
+		 **/
 		BOOL								Enabled() const { return m_bEnabled; }
 
 		// Enable or disable.
@@ -80,7 +108,11 @@ namespace lsw {
 		// Set treats all as hex or not.
 		BOOL								SetTreatAsHex( BOOL _bVal ) { BOOL bRet = m_bTreatAsHex; m_bTreatAsHex = _bVal; return bRet; }
 
-		// Does it treat text as hex by default?
+		/**
+		 * Does it treat text as hex by default?
+		 * 
+		 * \return Returns TRUE if the Expression treats standard decimal values as hexadecimal.
+		 **/
 		BOOL								TreatAsHex() const { return m_bTreatAsHex; }
 
 		// Sets the address handler.
@@ -320,6 +352,31 @@ namespace lsw {
 		void								SetWidgetParent( CWidget * _pwParent );
 
 		/**
+		 * Sets the small and big icons.
+		 * 
+		 * \param _hSmall The small icon handle or NULL.
+		 * \param _hBig The big icon handle or NULL.
+		 * \return Returns true if all icons were set.
+		 **/
+		bool								SetIcons( HICON _hSmall, HICON _hBig );
+
+		/**
+		 * Sets the small icon, returning the previous icon that was set.
+		 * 
+		 * \param _hSmall The small icon handle or NULL.
+		 * \return Returns the previous icon.
+		 **/
+		HICON								SetSmallIcon( HICON _hSmall );
+
+		/**
+		 * Sets the big icon, returning the previous icon that was set.
+		 * 
+		 * \param _hBig The big icon handle or NULL.
+		 * \return Returns the previous icon.
+		 **/
+		HICON								SetBigIcon( HICON _hBig );
+
+		/**
 		 * Sets user custom data.
 		 * 
 		 * \param _ui64Data The custom user value to associate with this object.
@@ -555,10 +612,10 @@ namespace lsw {
 		virtual LSW_HANDLED					CaptureChanged( CWidget * /*_pwNewCaptureOwner*/ ) { return LSW_H_CONTINUE; }
 
 		// WM_HSCROLL
-		virtual LSW_HANDLED					HScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, HWND /*_hSender*/ ) { return LSW_H_CONTINUE; }
+		virtual LSW_HANDLED					HScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, CWidget * /*_pwWidget*/ ) { return LSW_H_CONTINUE; }
 
 		// WM_VSCROLL
-		virtual LSW_HANDLED					VScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, HWND /*_hSender*/ ) { return LSW_H_CONTINUE; }
+		virtual LSW_HANDLED					VScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, CWidget * /*_pwWidget*/ ) { return LSW_H_CONTINUE; }
 
 		/**
 		 * The WM_INPUT handler.

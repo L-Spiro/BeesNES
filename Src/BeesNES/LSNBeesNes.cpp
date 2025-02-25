@@ -382,6 +382,8 @@ namespace lsn {
 		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wOutRomInitPath)) ) ) { return false; }
 		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wPatchInitPath)) ) ) { return false; }
 		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wDefaultRomPath)) ) ) { return false; }
+
+		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
 		return true;
 	}
 
@@ -400,6 +402,8 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wOutRomInitPath.c_str(), m_oOptions.wOutRomInitPath.size() ) ) ) { return false; }
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wPatchInitPath.c_str(), m_oOptions.wPatchInitPath.size() ) ) ) { return false; }
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wDefaultRomPath.c_str(), m_oOptions.wDefaultRomPath.size() ) ) ) { return false; }
+
+		if ( !_sFile.Write( m_oOptions.pmRegion ) ) { return false; }
 		return true;
 	}
 

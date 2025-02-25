@@ -144,7 +144,11 @@ namespace lsw {
 		return ipDlgRes;
 	}
 
-	// The ancestor widget.
+	/**
+	 * The ancestor widget.
+	 * 
+	 * \return Returns a pointer to the most parent object or nullptr.
+	 **/
 	CWidget * CWidget::Ancestor() {
 		CWidget * pwNext = Parent();
 		while ( pwNext && pwNext->Parent() ) {
@@ -153,7 +157,11 @@ namespace lsw {
 		return pwNext;
 	}
 
-	// The ancestor widget.
+	/**
+	 * The ancestor widget.
+	 * 
+	 * \return Returns a pointer to the most parent object or nullptr.
+	 **/
 	const CWidget * CWidget::Ancestor() const {
 		const CWidget * pwNext = Parent();
 		while ( pwNext && pwNext->Parent() ) {
@@ -340,6 +348,42 @@ namespace lsw {
 		if ( m_pwParent ) {
 			m_pwParent->AddChild( this );
 		}
+	}
+
+	/**
+	 * Sets the small and big icons.
+	 * 
+	 * \param _hSmall The small icon handle or NULL.
+	 * \param _hBig The big icon handle or NULL.
+	 * \return Returns true if all icons were set.
+	 **/
+	bool CWidget::SetIcons( HICON _hSmall, HICON _hBig ) {
+		if ( !Wnd() ) { return false; }
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(_hSmall) );
+		::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(_hBig) );
+		return true;
+	}
+
+	/**
+	 * Sets the small icon, returning the previous icon that was set.
+	 * 
+	 * \param _hSmall The small icon handle or NULL.
+	 * \return Returns the previous icon.
+	 **/
+	HICON CWidget::SetSmallIcon( HICON _hSmall ) {
+		if ( !Wnd() ) { return NULL; }
+		return reinterpret_cast<HICON>(::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_SMALL), reinterpret_cast<LPARAM>(_hSmall) ));
+	}
+
+	/**
+	 * Sets the big icon, returning the previous icon that was set.
+	 * 
+	 * \param _hBig The big icon handle or NULL.
+	 * \return Returns the previous icon.
+	 **/
+	HICON CWidget::SetBigIcon( HICON _hBig ) {
+		if ( !Wnd() ) { return NULL; }
+		return reinterpret_cast<HICON>(::SendMessageW( Wnd(), WM_SETICON, static_cast<WPARAM>(ICON_BIG), reinterpret_cast<LPARAM>(_hBig) ));
 	}
 
 	// Translate a child's tooltip text.
@@ -1828,12 +1872,14 @@ namespace lsw {
 			// Scroll.
 			// =======================================
 			case WM_HSCROLL : {
-				LSW_HANDLED hHandled = pmwThis->HScroll( HIWORD( _wParam ), LOWORD( _wParam ), reinterpret_cast<HWND>(_lParam) );
+				CWidget * pwWidget = LSW_WIN2CLASS( reinterpret_cast<HWND>(_lParam) );
+				LSW_HANDLED hHandled = pmwThis->HScroll( HIWORD( _wParam ), LOWORD( _wParam ), pwWidget );
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
 				break;
 			}
 			case WM_VSCROLL : {
-				LSW_HANDLED hHandled = pmwThis->VScroll( HIWORD( _wParam ), LOWORD( _wParam ), reinterpret_cast<HWND>(_lParam) );
+				CWidget * pwWidget = LSW_WIN2CLASS( reinterpret_cast<HWND>(_lParam) );
+				LSW_HANDLED hHandled = pmwThis->VScroll( HIWORD( _wParam ), LOWORD( _wParam ), pwWidget );
 				if ( hHandled == LSW_H_HANDLED ) { LSW_RET( 0, 0 ); }
 				break;
 			}

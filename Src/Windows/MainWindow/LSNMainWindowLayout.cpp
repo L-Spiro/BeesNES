@@ -128,9 +128,10 @@ namespace lsn {
 
 	/** Options menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miOptionsMenu[] = {
-		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled
 		{ FALSE,		LSN_MWMI_VIDEO_SIZE,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE ) },
 		{ FALSE,		LSN_MWMI_VIDEO_FILTER,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_FILTER ) },
+		{ FALSE,		LSN_MWMI_REGION,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION ) },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_INPUT,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_INPUT ) },
 		{ FALSE,		LSN_MWMI_VIDEO,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO ) },
@@ -188,6 +189,18 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_VIDEO_FILTER_AUTO_LSPIRO,		TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_FILTER_AUTO_LSPIRO ) },
 	};
 
+	/** Region sub-menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miRegionMenu[] = {
+		//bIsSeperator	dwId									bCheckable	bChecked	bEnabled	
+		{ FALSE,		LSN_MWMI_REGION_AUTO,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_AUTO ) },
+		{ TRUE,			0,										FALSE,		FALSE,		TRUE,		nullptr },
+		{ FALSE,		LSN_MWMI_REGION_NTSC,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_NTSC ) },
+		{ FALSE,		LSN_MWMI_REGION_PAL,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_PAL ) },
+		{ FALSE,		LSN_MWMI_REGION_DENDY,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_DENDY ) },
+		{ FALSE,		LSN_MWMI_REGION_PALM,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_PALM ) },
+		{ FALSE,		LSN_MWMI_REGION_PALN,					TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_PALN ) },
+	};
+
 	/** Menus. */
 	LSW_MENU_LAYOUT CMainWindowLayout::m_miMenus[] = {
 		{
@@ -241,6 +254,14 @@ namespace lsn {
 			LSN_MWMI_VIDEO_FILTER,
 			LSN_ELEMENTS( m_miVideoFilterMenu ),
 			m_miVideoFilterMenu
+		},
+		// Regions.
+		{
+			LSN_MWMI_REGIONS,
+			LSN_MWMI_MENU_OPTIONS,
+			LSN_MWMI_REGION,
+			LSN_ELEMENTS( m_miRegionMenu ),
+			m_miRegionMenu
 		},
 	};
 

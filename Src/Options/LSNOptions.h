@@ -30,6 +30,8 @@ namespace lsn {
 		LSN_AUDIO_OPTIONS									aoGlobalAudioOptions;										/**< Global audio options. */
 		LSN_AUDIO_OPTIONS									aoThisGameAudioOptions;										/**< This game's audio options. */
 
+		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
+
 		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
 		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */
 		std::wstring										wPatchInitPath;												/**< The initial directory for the patch file. */

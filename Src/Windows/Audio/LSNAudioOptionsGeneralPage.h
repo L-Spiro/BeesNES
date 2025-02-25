@@ -73,13 +73,18 @@ namespace lsn {
 				ptbTrackBar->SetRange( TRUE, 0, 500 );
 				ptbTrackBar->SetTicFreq( 50 );
 				ptbTrackBar->SetPos( TRUE, 100 );
+
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT );
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR ));
 			if ( ptbTrackBar ) {
-				//ptbTrackBar->SetStyle( TBS_AUTOTICKS
 				ptbTrackBar->SetRange( TRUE, 0, 100 );
 				ptbTrackBar->SetTicFreq( 20 );
 				ptbTrackBar->SetPos( TRUE, 20 );
+
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT );
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
 			}
 			return Parent::InitDialog();
 		}
@@ -93,7 +98,58 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
+			switch ( _wId ) {
+				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT : {
+					if ( _wCtrlCode == EN_CHANGE ) {
+						lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ));
+						if ( ptbTrackBar ) {
+							ee::CExpEvalContainer::EE_RESULT rRes;
+							if ( _pwSrc->GetTextAsUInt64Expression( rRes ) ) {
+								rRes.u.ui64Val = std::clamp<uint64_t>( rRes.u.ui64Val, 0, 500 );
+								ptbTrackBar->SetPos( TRUE, LPARAM( rRes.u.ui64Val ) );
+							}
+						}
+					}
+					break;
+				}
+				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT : {
+					if ( _wCtrlCode == EN_CHANGE ) {
+						lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR ));
+						if ( ptbTrackBar ) {
+							ee::CExpEvalContainer::EE_RESULT rRes;
+							if ( _pwSrc->GetTextAsUInt64Expression( rRes ) ) {
+								rRes.u.ui64Val = std::clamp<uint64_t>( rRes.u.ui64Val, 0, 100 );
+								ptbTrackBar->SetPos( TRUE, LPARAM( rRes.u.ui64Val ) );
+							}
+						}
+					}
+					break;
+				}
+			}
+
 			return Parent::Command( _wCtrlCode, _wId, _pwSrc );
+		}
+
+		/**
+		 * WM_HSCROLL.
+		 * 
+		 * \param _uScrollPos Specifies the current position of the scroll box if the LOWORD is SB_THUMBPOSITION or SB_THUMBTRACK; otherwise, this word is not used.
+		 * \param PARM Specifies a scroll bar value that indicates the user's scrolling request. This word can be one of the following values: SB_ENDSCROLL, SB_LEFT, SB_RIGHT, SB_LINELEFT, SB_LINERIGHT, SB_PAGELEFT, SB_PAGERIGHT, SB_THUMBPOSITION, SB_THUMBTRACK.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									HScroll( USHORT /*_uScrollPos*/, USHORT /*_uScrollType*/, CWidget * _pwWidget ) {
+			if ( !_pwWidget ) { return LSW_H_CONTINUE; }
+			if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ) {
+				lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(_pwWidget);
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT );
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
+			}
+			else if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR ) {
+				lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(_pwWidget);
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT );
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
+			}
+			return LSW_H_CONTINUE;
 		}
 
 

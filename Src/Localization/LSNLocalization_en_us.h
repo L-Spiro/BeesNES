@@ -29,6 +29,7 @@
 // Options menu.
 #define LSN_VIDEO_SIZE														Video Si&ze
 #define LSN_VIDEO_FILTER													Video &Filter
+#define LSN_REGION															&Region
 #define LSN_INPUT															&Input
 #define LSN_VIDEO															&Video
 #define LSN_AUDIO															&Audio
@@ -55,6 +56,14 @@
 //#define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL-CRT &Auto (LMP88959)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL Auto (L. S&piro)
+// Regions.
+#define LSN_REGION_AUTO														&Automatic
+#define LSN_REGION_NTSC														&NTSC
+#define LSN_REGION_PAL														&PAL
+#define LSN_REGION_DENDY													&Dendy
+#define LSN_REGION_PALM														PAL-&M
+#define LSN_REGION_PALN														PA&L-N
+
 // Tools menu.
 #define LSN_TOOLS_PATCH														&Patcher
 
@@ -137,12 +146,16 @@
 #define LSN_AUDIO_OPTIONS_VOLUME											Volume:
 #define LSN_AUDIO_OPTIONS_BG_VOL											BG Vol:
 
-#define LSN_AUDIO_OPTIONS_ADVANCED											Advanced
+#define LSN_AUDIO_OPTIONS_AUDIO_CHARACTERISTICS								Audio Characteristics
+#define LSN_AUDIO_OPTIONS_PRESET											Preset:
+#define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									JP TwinFami 475711 NESRGB RCA (Stock)
+#define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_DESC								Japanese Twin Famicom with NESRGB mod, stock RCA audio output.
 #define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:
 #define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
 #define LSN_AUDIO_OPTIONS_HPF_2_HZ											HPF 2 Hz:
 #define LSN_AUDIO_OPTIONS_HPF_3_HZ											HPF 3 Hz:
 #define LSN_AUDIO_OPTIONS_INVERT											Invert
+#define LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM									Noise/Mains Hum
 
 #define LSN_AUDIO_OPTIONS_INTERNAL											Internal
 #define LSN_AUDIO_OPTIONS_BUFFER_SIZE										Buffer Size:

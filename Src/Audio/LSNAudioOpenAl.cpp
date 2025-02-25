@@ -45,7 +45,6 @@ namespace lsn {
 		if ( !m_oasSource.CreateSource() ) { return false; }
 		if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
 
-		
 		return true;
 	}
 
