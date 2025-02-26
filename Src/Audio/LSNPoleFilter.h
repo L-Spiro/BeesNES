@@ -66,10 +66,13 @@ namespace lsn {
 		 * \return Returns the filtered sample.
 		 **/
 		inline double				Process( double _dSample ) {
-			m_dLastSample = m_dLastSample * m_dGain + (_dSample + m_dLastInput) * m_dCornerFreq;
-			//m_dLastSample = (_dSample + m_dLastInput) * m_dGain + m_dLastSample * m_dCornerFreq;
-			m_dLastInput = _dSample;
-			return m_dLastSample;
+			if LSN_LIKELY( m_bEnabled ) {
+				m_dLastSample = m_dLastSample * m_dGain + (_dSample + m_dLastInput) * m_dCornerFreq;
+				//m_dLastSample = (_dSample + m_dLastInput) * m_dGain + m_dLastSample * m_dCornerFreq;
+				m_dLastInput = _dSample;
+				return m_dLastSample;
+			}
+			return _dSample;
 		}
 
 		/**

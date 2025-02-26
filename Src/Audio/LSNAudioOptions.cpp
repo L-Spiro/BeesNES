@@ -22,6 +22,11 @@ namespace lsn {
 		{ LSN_SF_MONO_F32,		1,					32,						LSN_LSTR( LSN_AUDIO_FORMAT_MONO32F ) },
 	};
 
+	LSN_AUDIO_PROFILE LSN_AUDIO_OPTIONS::s_apProfiles[] = {
+		//wsDevice													fLpf			fHpf0			fHpf1			fHpf2			bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),			0.0f,			194.0f,			37.0f,			37.0f,			false,		true,		true,		true,		true,	true }
+	};
+
 	// == Functions.
 	/**
 	 * Gets audio-format details by enumeration.
@@ -41,6 +46,13 @@ namespace lsn {
 	 * 
 	 * \return Returns the total values in s_afFormats.
 	 **/
-	const size_t LSN_AUDIO_OPTIONS::FormatTotal() { return LSN_ELEMENTS( s_afFormats ); }
+	size_t LSN_AUDIO_OPTIONS::FormatTotal() { return LSN_ELEMENTS( s_afFormats ); }
+
+	/**
+	 * Gets total presets.
+	 * 
+	 * \return Returns the total values in s_apProfiles.
+	 **/
+	size_t LSN_AUDIO_OPTIONS::PresetTotal() { return LSN_ELEMENTS( s_apProfiles ); }
  
 }	// namespace lsn

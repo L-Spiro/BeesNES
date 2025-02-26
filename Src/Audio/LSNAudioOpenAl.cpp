@@ -22,9 +22,10 @@ namespace lsn {
 	/**
 	 * Initializes audio.
 	 * 
+	 * \param _ui32Device The audio device to use.
 	 * \return Returns true if initialization was successful.
 	 **/
-	bool CAudioOpenAl::InitializeAudio() {
+	bool CAudioOpenAl::InitializeAudio( uint32_t _ui32Device ) {
 		ShutdownAudio();
 		if ( !Parent::InitializeAudio() ) { return false; }
 		m_eFormat = FormatToEnum( m_fNextFormat.sfFormat );
@@ -34,7 +35,8 @@ namespace lsn {
 		COpenAlDevice oadDummy;
 		if ( !COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) ) { return false; }
 		if ( !vDevices.size() ) { return false; }
-		if ( !m_oadDevice.CreateDevice( vDevices[0].c_str() ) ) { return false; }
+		_ui32Device = std::min<uint32_t>( _ui32Device, uint32_t( vDevices.size() - 1 ) );
+		if ( !m_oadDevice.CreateDevice( vDevices[_ui32Device].c_str() ) ) { return false; }
 		if ( !m_oacContext.CreateContext( m_oadDevice, nullptr ) ) { return false; }
 		if ( !m_oacContext.MakeCurrent() ) { return false; }
 

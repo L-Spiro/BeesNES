@@ -52,7 +52,7 @@ namespace lsn {
 		LSW_WIDGET_LAYOUT wlLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
 			LSW_LT_SPLITTER,						// ltType
 			static_cast<WORD>(CPatchWindowLayout::LSN_PWI_SPLITTER),	// wId
-			nullptr,								// lpwcClass
+			reinterpret_cast<LPCWSTR>(lsw::CBase::SplitterAtom()),		// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			0,										// iLeft

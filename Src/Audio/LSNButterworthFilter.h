@@ -72,7 +72,10 @@ namespace lsn {
 		 * \return Returns the filtered sample.
 		 **/
 		inline double								Process( double _dSample ) {
-			return m_bqfcChain.ProcessBiQuad( _dSample, m_pbqfFilter ) * m_dGain;
+			if LSN_LIKELY( m_bEnabled ) {
+				return m_bqfcChain.ProcessBiQuad( _dSample, m_pbqfFilter ) * m_dGain;
+			}
+			return _dSample;
 		}
 
 

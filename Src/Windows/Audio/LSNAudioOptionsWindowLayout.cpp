@@ -1046,7 +1046,7 @@ namespace lsn {
 
 
 #define LSN_AUDIO_OPTIONS_W									LSN_AUDIO_GLOBAL_PAGE_W
-#define LSN_AUDIO_OPTIONS_H									LSN_AUDIO_GLOBAL_PAGE_H
+#define LSN_AUDIO_OPTIONS_H									(LSN_AUDIO_GLOBAL_PAGE_H + LSN_DEF_BUTTON_HEIGHT + (LSN_TOP_JUST * 2))
 
 	// == Members.
 	/** The layout for the template window. */
@@ -1084,9 +1084,9 @@ namespace lsn {
 			0,												// iLeft
 			0,												// iTop
 			LSN_AUDIO_OPTIONS_W,							// dwWidth
-			LSN_AUDIO_OPTIONS_H,							// dwHeight
+			LSN_AUDIO_OPTIONS_H - LSN_DEF_BUTTON_HEIGHT - (LSN_TOP_JUST * 2),		// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
-			WS_EX_ACCEPTFILES,														// dwStyleEx
+			WS_EX_ACCEPTFILES,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			LSN_AOWI_MAINWINDOW,							// dwParentId
@@ -1097,6 +1097,40 @@ namespace lsn {
 			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
 			nullptr, 0,										// pcWidthSizeExp
 			nullptr, 0,										// pcHeightSizeExp
+		},
+
+
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_AOWI_OK,									// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			TRUE,											// bActive
+			LSN_LEFT_JUST,									// iLeft
+			LSN_AUDIO_OPTIONS_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,		// iTop
+			LSN_DEF_BUTTON_WIDTH,							// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_DEFBUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_OK ),								// pwcText
+			0,												// sTextLen
+			LSN_AOWI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_AOWI_CANCEL,								// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_AUDIO_OPTIONS_W - LSN_DEF_BUTTON_WIDTH * 1 - LSN_LEFT_JUST,	// iLeft
+			LSN_AUDIO_OPTIONS_H - LSN_DEF_BUTTON_HEIGHT	- LSN_TOP_JUST,		// iTop
+			LSN_DEF_BUTTON_WIDTH,							// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
+			LSN_LSTR( LSN_CANCEL ),							// pwcText
+			0,												// sTextLen
+			LSN_AOWI_MAINWINDOW,							// dwParentId
 		},
 	};
 

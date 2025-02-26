@@ -33,9 +33,10 @@ namespace lsn {
 		/**
 		 * Initializes audio.
 		 * 
+		 * \param _ui32Device The audio device to use.
 		 * \return Returns true if initialization was successful.
 		 **/
-		virtual bool										InitializeAudio();
+		virtual bool										InitializeAudio( uint32_t _ui32Device );
 
 		/**
 		 * Shuts down the audio.

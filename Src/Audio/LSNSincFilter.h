@@ -272,16 +272,19 @@ namespace lsn {
 	 * \return Returns the filtered sample.
 	 **/
 	inline double CSincFilter::Process( double _dSample ) const {
-		--m_stRing;
-		if LSN_UNLIKELY( m_stRing >= m_vRing.size() ) {
-			m_stRing += m_vRing.size();
+		if LSN_LIKELY( m_bEnabled ) {
+			--m_stRing;
+			if LSN_UNLIKELY( m_stRing >= m_vRing.size() ) {
+				m_stRing += m_vRing.size();
+			}
+			m_vRing[m_stRing] = _dSample;
+			double dSample = 0.0;
+			for ( size_t I = m_vCeof.size(); I--; ) {
+				dSample += m_vCeof[I] * m_vRing[(I+m_stRing)%m_vCeof.size()];
+			}
+			return dSample;
 		}
-		m_vRing[m_stRing] = _dSample;
-		double dSample = 0.0;
-		for ( size_t I = m_vCeof.size(); I--; ) {
-			dSample += m_vCeof[I] * m_vRing[(I+m_stRing)%m_vCeof.size()];
-		}
-		return dSample;
+		return _dSample;
 	}
 
 	/**

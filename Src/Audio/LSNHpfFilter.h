@@ -53,12 +53,15 @@ namespace lsn {
 		 * \return Returns the filtered sample.
 		 **/
 		virtual double				Process( double _dSample ) {
-			m_dPreviousOutput = m_dOutput;
-			m_dDelta = _dSample - m_dPrevInput;
-			m_dPrevInput = _dSample;
+			if LSN_LIKELY( m_bEnabled ) {
+				m_dPreviousOutput = m_dOutput;
+				m_dDelta = _dSample - m_dPrevInput;
+				m_dPrevInput = _dSample;
 
-			m_dOutput = m_dAlpha * m_dPreviousOutput + m_dAlpha * m_dDelta;
-			return m_dOutput;
+				m_dOutput = m_dAlpha * m_dPreviousOutput + m_dAlpha * m_dDelta;
+				return m_dOutput;
+			}
+			return _dSample;
 		}
 
 

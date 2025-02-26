@@ -484,6 +484,67 @@ namespace lsn {
 	}
 
 	/**
+	 * Loads audio settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _aoAudioOptions The audio options into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadAudioSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions ) {
+		if ( !_sFile.Read( _aoAudioOptions.afFormat.sfFormat ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.ui32OutputHz ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.bUseGlobal ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.bEnabled ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.bDither ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.fVolume ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.fBgVol ) ) { return false; }
+
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bLpfEnable ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fLpf ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bHpf0Enable ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fHpf0 ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bHpf1Enable ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fHpf1 ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bHpf2Enable ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fHpf2 ) ) { return false; }
+
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves audio settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _aoAudioOptions The audio options to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveAudioSettings( CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions ) {
+		if ( !_sFile.Write( _aoAudioOptions.afFormat.sfFormat ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.ui32OutputHz ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.bUseGlobal ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.bEnabled ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.bDither ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.fVolume ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.fBgVol ) ) { return false; }
+
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bLpfEnable ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fLpf ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bHpf0Enable ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fHpf0 ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bHpf1Enable ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fHpf1 ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bHpf2Enable ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fHpf2 ) ) { return false; }
+
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
+		return true;
+	}
+
+	/**
 	 * Adds or move to the top a given file path.
 	 * 
 	 * \param _s16Path The file path to add or move to the top.

@@ -11,9 +11,11 @@
 #pragma once
 
 #include "../../Audio/LSNAudio.h"
+#include "../../Localization/LSNLocalization.h"
 #include "../../Windows/WinUtilities/LSNWinUtilities.h"
 #include "LSNAudioOptionsWindowLayout.h"
 
+#include <CheckButton/LSWCheckButton.h>
 #include <TrackBar/LSWTrackBar.h>
 #include <Widget/LSWWidget.h>
 
@@ -45,6 +47,9 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED									InitDialog() {
 			auto aDevices = CAudio::GetAudioDevices();
+
+			LSN_AUDIO_OPTIONS & aoOptions = _bIsGlobal ? m_poOptions->aoGlobalAudioOptions : m_poOptions->aoThisGameAudioOptions;
+
 			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO ));
 			{
 				std::vector<CWinUtilities::LSN_COMBO_ENTRY> vDevices;
@@ -52,7 +57,7 @@ namespace lsn {
 					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = reinterpret_cast<const wchar_t *>(aDevices[I].c_str()), .lpParm = LPARAM( I ) };
 					vDevices.push_back( ceTmp );
 				}
-				lsn::CWinUtilities::FillComboBox( pcbCombo, &vDevices[0], vDevices.size(), 0, 0 );
+				lsn::CWinUtilities::FillComboBox( pcbCombo, &vDevices[0], vDevices.size(), aoOptions.ui32Device, 0 );
 			}
 			{
 				pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO ));
@@ -65,14 +70,15 @@ namespace lsn {
 					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = vStrings[vStrings.size()-1].c_str(), .lpParm = LPARAM( aFormats[I] ) };
 					vFormats.push_back( ceTmp );
 				}
-				lsn::CWinUtilities::FillComboBox( pcbCombo, &vFormats[0], vFormats.size(), 0, (LSN_SF_MONO_16 << 24) | (44100 / 25) );
+				uint32_t ui32Code = (aoOptions.afFormat.sfFormat << 24) | (aoOptions.ui32OutputHz / 25);
+				lsn::CWinUtilities::FillComboBox( pcbCombo, &vFormats[0], vFormats.size(), ui32Code, (LSN_SF_MONO_16 << 24) | (44100 / 25) );
 			}
 
 			lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
 				ptbTrackBar->SetRange( TRUE, 0, 500 );
 				ptbTrackBar->SetTicFreq( 50 );
-				ptbTrackBar->SetPos( TRUE, 100 );
+				ptbTrackBar->SetPos( TRUE, LPARAM( aoOptions.fVolume * 100.0f ) );
 
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
@@ -81,11 +87,61 @@ namespace lsn {
 			if ( ptbTrackBar ) {
 				ptbTrackBar->SetRange( TRUE, 0, 100 );
 				ptbTrackBar->SetTicFreq( 20 );
-				ptbTrackBar->SetPos( TRUE, 20 );
+				ptbTrackBar->SetPos( TRUE, LPARAM( aoOptions.fBgVol * 100.0f ) );
 
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
 			}
+
+			{
+				pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO ));
+				if ( pcbCombo ) {
+					std::vector<CWinUtilities::LSN_COMBO_ENTRY> vPresets;
+					for ( size_t I = 0; I < LSN_AUDIO_OPTIONS::PresetTotal(); ++I ) {
+						CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = LSN_AUDIO_OPTIONS::s_apProfiles[I].wsName.c_str(), .lpParm = LPARAM( I ) };
+						vPresets.push_back( ceTmp );
+					}
+					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ), .lpParm = LPARAM( -1 ) };
+					vPresets.push_back( ceTmp );
+					lsn::CWinUtilities::FillComboBox( pcbCombo, vPresets.data(), vPresets.size(), 0, -1 );
+				}
+			}
+
+			lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.bEnabled );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DITHER_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.bDither );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bLpfEnable );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf0Enable );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf1Enable );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf2Enable );
+			}
+			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
+			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
+
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT );
+			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf0 ).c_str() ); }
+
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT );
+			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf1 ).c_str() ); }
+
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
+			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf2 ).c_str() ); }
 			return Parent::InitDialog();
 		}
 

@@ -69,6 +69,20 @@ namespace lsn {
 		inline bool						Dirty( float _fFc, float _fSampleRate );
 
 		/**
+		 * Enables or disables the filter.
+		 * 
+		 * \param _bEnable Whether to enable or disable the filter.
+		 **/
+		inline void						SetEnabled( bool _bEnable ) { m_bEnabled = _bEnable; }
+
+		/**
+		 * Gets the enabled flagboolean.
+		 * 
+		 * \return Returns true if the filter is enabled.
+		 **/
+		inline bool						Enabled() const { return m_bEnabled; }
+
+		/**
 		 * Creates an LPF IR filter given the sampling rate, the cut-off frequency, and the bandwidth.
 		 * 
 		 * \param _fFc The cut-off frequency.
@@ -151,6 +165,7 @@ namespace lsn {
 		// == Members.
 		float							m_fFc;					/**< The original cut-off frequency. */
 		float							m_fSampleRate;			/**< The original sample rate. */
+		bool							m_bEnabled;				/**< When disabled, the filter can be configured, but Process() is a pass-through function. */
 
 	};
 	
@@ -161,7 +176,8 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	inline CAudioFilterBase::CAudioFilterBase() :
 		m_fFc( 0.0f ),
-		m_fSampleRate( 0.0f ) {
+		m_fSampleRate( 0.0f ),
+		m_bEnabled( true ) {
 	}
 
 	/**

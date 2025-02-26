@@ -20,9 +20,8 @@
 namespace lsn {
 
 	CAudioOptionsWindow::CAudioOptionsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data )/*,
-		m_poOptions( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->poOptions ),
-		m_pmwMainWindow( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->pmwMainWindow )*/ {
+		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
@@ -38,8 +37,12 @@ namespace lsn {
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_AUDIO_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
 		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+		LONG lBottomSpace = 0;
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
+
+			LSW_RECT rWindow = WindowRect();
+			lBottomSpace = ClientRect().bottom - ptTab->ClientRect().bottom;
 
 			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( ptTab, (*m_poOptions) );
 			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( ptTab, (*m_poOptions) );
@@ -70,8 +73,8 @@ namespace lsn {
 
 			LSW_RECT rTab = ptTab->WindowRect();
 			::AdjustWindowRectEx( &rTab, GetStyle(), FALSE, GetStyleEx() );
-			LSW_RECT rWindow = WindowRect();
-			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height() + LSN_TOP_JUST, FALSE );
+			rWindow = WindowRect();
+			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height() + lBottomSpace, FALSE );
 		}
 
 		//ForceSizeUpdate();
@@ -84,7 +87,7 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CAudioOptionsWindow::Close() {
-		::EndDialog( Wnd(), -1 );
+		::EndDialog( Wnd(), 0 );
 		return LSW_H_HANDLED;
 	}
 
@@ -134,7 +137,7 @@ namespace lsn {
 		/*for ( auto I = m_vPages.size(); I--; ) {
 			m_vPages[I]->Save();
 		}*/
-		::EndDialog( Wnd(), 0 );
+		::EndDialog( Wnd(), 1 );
 	}
 
 }	// namespace lsn

@@ -28,19 +28,25 @@ namespace lsn {
 	/** The sample box for band-passed output. */
 	CSampleBox CAudio::m_sbSampleBox;
 
+	/** The index of the audio device being used. */
+	uint32_t CAudio::m_ui32AudioDeviceIdx = uint32_t( ~0 );
+
 
 	// == Functions.
 	/**
 	 * Initializes audio.
 	 * 
+	 * \param _ui32Device The audio device to use.
 	 * \return Returns true if initialization was successful.
 	 **/
-	bool CAudio::InitializeAudio() {
+	bool CAudio::InitializeAudio( uint32_t _ui32Device ) {
+		m_ui32AudioDeviceIdx = uint32_t( ~0 );
 		m_sbSampleBox.SetFeatureSet( CUtilities::IsAvx512FSupported(), CUtilities::IsAvxSupported(), CUtilities::IsSse4Supported(), CUtilities::IsFmaSupported() );
 
-		if ( !m_adAudioDevice.InitializeAudio() ) { return false; }
+		if ( !m_adAudioDevice.InitializeAudio( _ui32Device ) ) { return false; }
 
 		if ( !StartThread() ) { return false; }
+		m_ui32AudioDeviceIdx = _ui32Device;
 		return true;
 	}
 

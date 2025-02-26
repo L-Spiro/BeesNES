@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace lsn {
 
@@ -56,14 +57,40 @@ namespace lsn {
 		}
 	};
 
+	/** Preset audio profiles. */
+	struct LSN_AUDIO_PROFILE {
+		std::wstring									wsName;
+		float											fLpf = 14000.0f;
+		float											fHpf0 = 167.0f;
+		float											fHpf1 = 37.0f;
+		float											fHpf2 = 37.0f;
+		bool											bLpfEnable = true;
+		bool											bHpf0Enable = true;
+		bool											bHpf1Enable = true;
+		bool											bHpf2Enable = true;
+		bool											bInvert = true;
+		bool											bNoise = true;
+	};
+
 	/** Audio-related options. */
 	struct LSN_AUDIO_OPTIONS {
+		uint32_t										ui32Device = 0;
 		uint32_t										ui32OutputHz = 44100;
 		LSN_AUDIO_FORMAT								afFormat;
+		float											fVolume = 3.0f;
+		float											fBgVol = 0.2f;
+		bool											bUseGlobal = true;
+		bool											bEnabled = true;
+		bool											bDither = false;
+
+		LSN_AUDIO_PROFILE								apCharacteristics;
+
+
 		
 
 		// == Members.
 		static LSN_AUDIO_FORMATS						s_afFormats[];
+		static LSN_AUDIO_PROFILE						s_apProfiles[];
 
 
 		// == Functions.
@@ -73,14 +100,21 @@ namespace lsn {
 		 * \param _sfFormat The format whose details are to be found.
 		 * \return Returns a pointer to the specified format or nullptr.
 		 **/
-		const LSN_AUDIO_FORMATS *						FormatByEnum( LSN_SAMPLE_FORMAT _sfFormat );
+		static const LSN_AUDIO_FORMATS *				FormatByEnum( LSN_SAMPLE_FORMAT _sfFormat );
 
 		/**
 		 * Gets total audio formats.
 		 * 
 		 * \return Returns the total values in s_afFormats.
 		 **/
-		const size_t									FormatTotal();
+		static size_t									FormatTotal();
+
+		/**
+		 * Gets total presets.
+		 * 
+		 * \return Returns the total values in s_apProfiles.
+		 **/
+		static size_t									PresetTotal();
 	};
 
 }	// namespace lsn

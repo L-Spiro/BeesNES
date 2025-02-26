@@ -150,6 +150,7 @@
 #define LSN_AUDIO_OPTIONS_PRESET											Preset:
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									JP TwinFami 475711 NESRGB RCA (Stock)
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_DESC								Japanese Twin Famicom with NESRGB mod, stock RCA audio output.
+#define LSN_AUDIO_OPTIONS_CUSTOM											Custom
 #define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:
 #define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
 #define LSN_AUDIO_OPTIONS_HPF_2_HZ											HPF 2 Hz:

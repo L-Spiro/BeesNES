@@ -401,6 +401,25 @@ namespace lsn {
 		bool									SaveRecentFiles( CStream &_sFile );
 
 		/**
+		 * Loads audio settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _aoAudioOptions The audio options into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadAudioSettings( uint32_t _ui32Version, CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions );
+
+		/**
+		 * Saves audio settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _aoAudioOptions The audio options to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveAudioSettings( CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions );
+
+		/**
 		 * Adds or move to the top a given file path.
 		 * 
 		 * \param _s16Path The file path to add or move to the top.

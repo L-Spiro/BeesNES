@@ -35,9 +35,10 @@ namespace lsn {
 		/**
 		 * Initializes audio.
 		 * 
+		 * \param _ui32Device The audio device to use.
 		 * \return Returns true if initialization was successful.
 		 **/
-		static bool											InitializeAudio();
+		static bool											InitializeAudio( uint32_t _ui32Device = 0 );
 
 		/**
 		 * Shuts down the audio.
@@ -259,6 +260,13 @@ namespace lsn {
 		 **/
 		static void											AddSample( float _fSample );
 
+		/**
+		 * Gets the current audio device.
+		 * 
+		 * \return Returns the index of the current audio device.
+		 **/
+		static inline uint32_t								DeviceIdx();
+
 
 	protected :
         // == Types.
@@ -279,6 +287,8 @@ namespace lsn {
 		//static CEvent										m_eThreadClosed;
 		/** The sample box for band-passed output. */
 		static CSampleBox									m_sbSampleBox;
+		/** The index of the audio device being used. */
+		static uint32_t										m_ui32AudioDeviceIdx;
 
 		
 		// == Functions.
@@ -747,5 +757,12 @@ namespace lsn {
 			+ fOdd3 * 0.00834987866042734f;
 		return ((((fC5 * fZ + fC4) * fZ + fC3) * fZ + fC2) * fZ + fC1) * fZ + fC0;
 	}
+
+	/**
+	 * Gets the current audio device.
+	 * 
+	 * \return Returns the index of the current audio device.
+	 **/
+	inline uint32_t CAudio::DeviceIdx() { return m_ui32AudioDeviceIdx; }
 
 }	// namespace lsn
