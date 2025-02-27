@@ -40,6 +40,7 @@ namespace lsn {
 		LONG lBottomSpace = 0;
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
+			
 
 			LSW_RECT rWindow = WindowRect();
 			lBottomSpace = ClientRect().bottom - ptTab->ClientRect().bottom;
@@ -69,7 +70,13 @@ namespace lsn {
 				rTabWindow = rTabWindow.ScreenToClient( ptTab->Wnd() );
 				::MoveWindow( m_vPages[I]->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
 			}
-			ptTab->SetCurSel( 0 );
+			ptTab->SetCheckable( 1 );
+			if ( m_poOptions && !m_poOptions->aoThisGameAudioOptions.bUseGlobal ) {
+				ptTab->SetCurSel( 1 );
+			}
+			else {
+				ptTab->SetCurSel( 0 );
+			}
 
 			LSW_RECT rTab = ptTab->WindowRect();
 			::AdjustWindowRectEx( &rTab, GetStyle(), FALSE, GetStyleEx() );
@@ -138,6 +145,19 @@ namespace lsn {
 			m_vPages[I]->Save();
 		}*/
 		::EndDialog( Wnd(), 1 );
+	}
+
+	/**
+	 * Informs the control that a child tab control has just had a check toggled.
+	 * 
+	 * \param _pwTab A pointer to the tab control.
+	 * \param _iTab The index of the tab that was just toggled.
+	 **/
+	void CAudioOptionsWindow::TabToggled( CWidget * _pwTab, int /*_iTab*/ ) {
+		if ( _pwTab ) {
+			lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(_pwTab);
+			ptTab->SetCurSel( ptTab->IsChecked( 1 ) ? 1 : 0 );
+		}
 	}
 
 }	// namespace lsn

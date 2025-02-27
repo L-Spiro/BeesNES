@@ -131,6 +131,16 @@ namespace lsn {
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf2Enable );
 			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bInvert );
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bNoise );
+			}
+
+
 			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
 

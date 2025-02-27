@@ -70,7 +70,13 @@ namespace lsn {
 		 */
 		void												SaveAndClose();
 
-
+		/**
+		 * Informs the control that a child tab control has just had a check toggled.
+		 * 
+		 * \param _pwTab A pointer to the tab control.
+		 * \param _iTab The index of the tab that was just toggled.
+		 **/
+		virtual void										TabToggled( CWidget * _pwTab, int _iTab );
 
 
 	protected :

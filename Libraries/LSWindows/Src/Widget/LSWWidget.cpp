@@ -1338,6 +1338,17 @@ namespace lsw {
 						}
 						break;
 					}
+					case LSW_TAB_NM_CHECK : {
+						LSW_NMTABCLOSE * ptcClose = reinterpret_cast<LSW_NMTABCLOSE *>(_lParam);
+						if ( ptcClose->iTab != -1 && ptcClose->pwWidget ) {
+							static_cast<CTab *>(ptcClose->pwWidget)->ToggleCheck( ptcClose->iTab );
+							//static_cast<CTab *>(ptcClose->pwWidget)->SetCurSel( ptcClose->iTab );
+						}
+						if ( ptcClose->pwWidget->Parent() ) {
+							ptcClose->pwWidget->Parent()->TabToggled( ptcClose->pwWidget, ptcClose->iTab );
+						}
+						break;
+					}
 					case TCN_SELCHANGE : {
 						CWidget * pwSrc = LSW_WIN2CLASS( lpHdr->hwndFrom );
 						if ( pwSrc ) {

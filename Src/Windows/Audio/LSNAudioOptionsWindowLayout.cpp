@@ -33,7 +33,9 @@ namespace lsn {
 
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP					(LSN_AUDIO_OPTIONS_GENERAL_GROUP_TOP + LSN_AUDIO_OPTIONS_GENERAL_GROUP_H)
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_W						LSN_AUDIO_OPTIONS_GENERAL_GROUP_W
-#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP_PXL + LSN_GROUP_BOTTOM_PXL + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2))
+#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP_PXL + LSN_GROUP_BOTTOM_PXL + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2) + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST)
+
+#define LSN_INV_CHECK_( P )									LSN_EVEN_DIVIDE( LSN_AUDIO_OPTIONS_CHAR_GROUP_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2, LSN_LEFT_JUST + LSN_GROUP_LEFT, 2, P )
 
 #define LSN_AUDIO_GLOBAL_PAGE_H								(LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_AUDIO_OPTIONS_CHAR_GROUP_H + (LSN_TOP_JUST * 1))
 	/** The layout for the global panel. */
@@ -534,6 +536,40 @@ namespace lsn {
 			LSN_CHECKSTYLE,									// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
+
+		// Noise/Invert
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK,																																									// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 0 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + LSN_TOP_JUST + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4,															// iTop
+			LSN_INV_CHECK_( 1 ) - LSN_INV_CHECK_( 0 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK,																																									// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 1 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + LSN_TOP_JUST + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4,															// iTop
+			LSN_INV_CHECK_( 2 ) - LSN_INV_CHECK_( 1 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM ),	// pwcText
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 		},
@@ -1038,6 +1074,40 @@ namespace lsn {
 			LSN_CHECKSTYLE,									// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+
+		// Noise/Invert
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK,																																									// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 0 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + LSN_TOP_JUST + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4,															// iTop
+			LSN_INV_CHECK_( 1 ) - LSN_INV_CHECK_( 0 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK,																																									// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 1 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + LSN_TOP_JUST + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4,															// iTop
+			LSN_INV_CHECK_( 2 ) - LSN_INV_CHECK_( 1 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM ),	// pwcText
 			0,												// sTextLen
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 		},

@@ -31,6 +31,7 @@ namespace lsw {
 			// Tab control notifications.
 			LSW_TAB_NM_BASE					= (0U - 3048U),
 			LSW_TAB_NM_CLOSE				= (LSW_TAB_NM_BASE - 0),
+			LSW_TAB_NM_CHECK,
 		};
 
 
@@ -229,6 +230,14 @@ namespace lsw {
 
 		// Sets the button to BST_CHECKED or BST_UNCHECKED.
 		virtual VOID						SetCheck( BOOL _bChecked ) { CheckButton( _bChecked ? BST_CHECKED : BST_UNCHECKED ); }
+
+		/**
+		 * Informs the control that a child tab control has just had a check toggled.
+		 * 
+		 * \param _pwTab A pointer to the tab control.
+		 * \param _iTab The index of the tab that was just toggled.
+		 **/
+		virtual void						TabToggled( CWidget * /*_pwTab*/, int /*_iTab*/ ) {}
 
 		// Sets the parent window.
 		virtual CWidget *					SetParent( CWidget * _pwParent );

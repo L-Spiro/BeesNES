@@ -61,10 +61,10 @@ namespace lsn {
 	struct LSN_AUDIO_PROFILE {
 		std::wstring									wsName;
 		float											fLpf = 14000.0f;
-		float											fHpf0 = 167.0f;
+		float											fHpf0 = 194.0f;
 		float											fHpf1 = 37.0f;
 		float											fHpf2 = 37.0f;
-		bool											bLpfEnable = true;
+		bool											bLpfEnable = false;
 		bool											bHpf0Enable = true;
 		bool											bHpf1Enable = true;
 		bool											bHpf2Enable = true;
