@@ -37,6 +37,7 @@ namespace lsn {
 			if LSN_UNLIKELY( Dirty( _fFc, _fSampleRate ) ) {
 				m_dCornerFreq = std::exp( -2.0 * std::numbers::pi * (double( _fFc ) / _fSampleRate) );
 				m_dGain = 1.0 - m_dCornerFreq;
+				if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 			}
 			return true;
 		}
@@ -51,6 +52,7 @@ namespace lsn {
 			if LSN_UNLIKELY( Dirty( _fFc, _fSampleRate ) ) {
 				m_dCornerFreq = -std::exp( -2.0 * std::numbers::pi * (0.5 - double( _fFc ) / _fSampleRate) );
 				m_dGain = 1.0 + m_dCornerFreq;
+				if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 			}
 			return true;
 		}

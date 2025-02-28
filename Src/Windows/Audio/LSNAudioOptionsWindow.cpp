@@ -11,6 +11,8 @@
 #include "LSNAudioOptionsWindow.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
+#include "LSNAudioOptionsGeneralPage.h"
+
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
 
@@ -38,12 +40,10 @@ namespace lsn {
 
 		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
 		LONG lBottomSpace = 0;
+
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
-			
 
-			LSW_RECT rWindow = WindowRect();
-			lBottomSpace = ClientRect().bottom - ptTab->ClientRect().bottom;
 
 			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( ptTab, (*m_poOptions) );
 			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( ptTab, (*m_poOptions) );
@@ -51,6 +51,10 @@ namespace lsn {
 		
 			m_vPages.push_back( pwGlobalPage );
 			m_vPages.push_back( pwPerGamePage );
+
+			LSW_RECT rWindow = WindowRect();
+			lBottomSpace = ClientRect().bottom - ptTab->ClientRect().bottom;
+
 
 			TCITEMW tciItem = { 0 };
 			tciItem.mask = TCIF_TEXT;
@@ -65,6 +69,13 @@ namespace lsn {
 				tciItem.pszText = const_cast<LPWSTR>(wsTitle.c_str());
 				ptTab->InsertItem( int( I ), &tciItem, m_vPages[I] );
 
+				if ( I == 0 ) {
+					LSW_RECT rThisRect = m_vPages[I]->WindowRect();
+					LSW_RECT rTabWindow = rThisRect;//ptTab->WindowRect();
+					ptTab->AdjustRect( TRUE, &rTabWindow );
+					rTabWindow = rTabWindow.ScreenToClient( Wnd() );
+					::MoveWindow( ptTab->Wnd(), 0, 0, rTabWindow.Width(), rTabWindow.Height(), FALSE );
+				}
 				LSW_RECT rTabWindow = ptTab->WindowRect();
 				ptTab->AdjustRect( FALSE, &rTabWindow );
 				rTabWindow = rTabWindow.ScreenToClient( ptTab->Wnd() );
@@ -83,9 +94,11 @@ namespace lsn {
 			rWindow = WindowRect();
 			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height() + lBottomSpace, FALSE );
 		}
-
+		if ( m_vPages.size() >= 2 ) {
+			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
+		}
 		//ForceSizeUpdate();
-		return CMainWindow::InitDialog();
+		return LSW_H_CONTINUE;
 	}
 
 	/**
@@ -157,6 +170,7 @@ namespace lsn {
 		if ( _pwTab ) {
 			lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(_pwTab);
 			ptTab->SetCurSel( ptTab->IsChecked( 1 ) ? 1 : 0 );
+			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
 		}
 	}
 

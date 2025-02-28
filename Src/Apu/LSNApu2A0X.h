@@ -254,7 +254,7 @@ namespace lsn {
 			double dFinal = fFinalPulse + fFinalTnd;
 			//dFinal = m_pfPole90.Process( dFinal );
 			//dFinal = m_pfPole440.Process( dFinal );
-			//dFinal = m_pfPole14.Process( dFinal );
+			dFinal = m_pfPole14.Process( dFinal );
 			{
 				const float fMinLpf = HzAsFloat() / 2.0f;
 				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {

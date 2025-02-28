@@ -149,6 +149,7 @@ namespace lsn {
 				m_vCeof[I] *= dNorm;
 			}
 		}
+		if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 		return true;
 	}
 
@@ -205,7 +206,7 @@ namespace lsn {
 				m_vCeof[I] *= dNorm;
 			}
 		}
-
+		if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 		return true;
 	}
 
@@ -261,7 +262,6 @@ namespace lsn {
 				m_vCeof[I] *= dNorm;
 			}
 		}
-
 		return true;
 	}
 

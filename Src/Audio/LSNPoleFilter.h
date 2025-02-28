@@ -39,6 +39,7 @@ namespace lsn {
 				m_dGain = 1.0 - m_dCornerFreq;
 				m_dCornerFreq *= 0.5;
 				//m_dGain *= 0.5;
+				if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 			}
 			return true;
 		}
@@ -55,6 +56,7 @@ namespace lsn {
 				m_dGain = 1.0 + m_dCornerFreq;
 				m_dCornerFreq *= 0.5;
 				//m_dGain *= 0.5;
+				if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
 			}
 			return true;
 		}

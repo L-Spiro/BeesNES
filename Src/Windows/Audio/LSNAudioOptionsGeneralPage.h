@@ -16,6 +16,7 @@
 #include "LSNAudioOptionsWindowLayout.h"
 
 #include <CheckButton/LSWCheckButton.h>
+#include <Tab/LSWTab.h>
 #include <TrackBar/LSWTrackBar.h>
 #include <Widget/LSWWidget.h>
 
@@ -152,6 +153,8 @@ namespace lsn {
 
 			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf2 ).c_str() ); }
+
+			Update();
 			return Parent::InitDialog();
 		}
 
@@ -218,6 +221,48 @@ namespace lsn {
 			return LSW_H_CONTINUE;
 		}
 
+		/**
+		 * Updates the dialog.
+		 **/
+		void												Update() {
+			if constexpr ( !_bIsGlobal ) {
+				if ( m_pwParent && m_pwParent->IsTab() ) {
+					WORD wId[] = {
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DITHER_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,
+
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK,
+
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK,
+
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK,
+
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK,
+					};
+					bool bEnabled = reinterpret_cast<lsw::CTab *>(m_pwParent)->IsChecked( 1 );
+					for ( auto I = LSN_ELEMENTS( wId ); I--; ) {
+						auto aTmp = FindChild( wId[I] );
+						if ( aTmp ) {
+							aTmp->SetEnabled( bEnabled );
+						}
+					}
+				}
+			}
+		}
+
 
 	protected :
 		// == Members.
@@ -225,6 +270,7 @@ namespace lsn {
 
 
 		// == Functions.
+		
 
 	private :
 		typedef CAudioOptionsWindowLayout					Layout;

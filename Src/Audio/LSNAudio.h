@@ -105,14 +105,14 @@ namespace lsn {
 		 * 
 		 * \return Returns a vector of strings listing the audio devices.
 		 **/
-		static std::vector<std::u16string>					GetAudioDevices() { return m_adAudioDevice.GetAudioDevices(); }
+		static std::vector<std::u16string>					GetAudioDevices() { return m_vAudioDevices; }
 
 		/**
 		 * Gets all available audio formats and Hz.  The top byte contains the sample format while the bottom 3 bytes contain the Hz in thousands.
 		 * 
 		 * \return Returns a vector of formats and Hz formatted such that the high 8 bits are the format index and the lower 24 bits are the Hz in units of 1,000.
 		 **/
-		static std::vector<uint32_t>						GetAudioFormatsAndHz() { return m_adAudioDevice.GetAudioFormatsAndHz(); }
+		static std::vector<uint32_t>						GetAudioFormatsAndHz() { return m_vSupportedFormats; }
 
 		/**
 		 *  6-point, 5th-order Hermite Z-form sampling.
@@ -289,6 +289,10 @@ namespace lsn {
 		static CSampleBox									m_sbSampleBox;
 		/** The index of the audio device being used. */
 		static uint32_t										m_ui32AudioDeviceIdx;
+		/** The audio devices. */
+		static std::vector<std::u16string>					m_vAudioDevices;
+		/** The supported audio formats. */
+		static std::vector<uint32_t>						m_vSupportedFormats;
 
 		
 		// == Functions.

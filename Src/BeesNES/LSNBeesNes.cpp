@@ -492,6 +492,7 @@ namespace lsn {
 	 * \return Returns true if the settings data was loaded.
 	 */
 	bool CBeesNes::LoadAudioSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions ) {
+		_aoAudioOptions = LSN_AUDIO_OPTIONS();	// Set default values.
 		if ( !_sFile.Read( _aoAudioOptions.afFormat.sfFormat ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.ui32OutputHz ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.bUseGlobal ) ) { return false; }
@@ -511,6 +512,7 @@ namespace lsn {
 
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bNoise2 ) ) { return false; }
 		return true;
 	}
 
@@ -541,6 +543,7 @@ namespace lsn {
 
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise2 ) ) { return false; }
 		return true;
 	}
 

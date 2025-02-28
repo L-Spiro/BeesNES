@@ -70,6 +70,7 @@ namespace lsn {
 		bool											bHpf2Enable = true;
 		bool											bInvert = true;
 		bool											bNoise = true;
+		bool											bNoise2 = false;
 	};
 
 	/** Audio-related options. */

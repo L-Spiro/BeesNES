@@ -31,6 +31,12 @@ namespace lsn {
 	/** The index of the audio device being used. */
 	uint32_t CAudio::m_ui32AudioDeviceIdx = uint32_t( ~0 );
 
+	/** The audio devices. */
+	std::vector<std::u16string> CAudio::m_vAudioDevices;
+
+	/** The supported audio formats. */
+	std::vector<uint32_t> CAudio::m_vSupportedFormats;
+
 
 	// == Functions.
 	/**
@@ -47,6 +53,8 @@ namespace lsn {
 
 		if ( !StartThread() ) { return false; }
 		m_ui32AudioDeviceIdx = _ui32Device;
+		m_vAudioDevices = m_adAudioDevice.GetAudioDevices();
+		m_vSupportedFormats = m_adAudioDevice.GetAudioFormatsAndHz();
 		return true;
 	}
 

@@ -228,7 +228,6 @@ namespace lsw {
 		else {
 			if ( _iItem < m_vTabs.size() ) { m_vTabs[_iItem].bCheckable = true; }
 		}
-		Paint();
 	}
 
 	/**
@@ -243,13 +242,11 @@ namespace lsw {
 			for ( auto I = m_vTabs.size(); I--; ) {
 				m_vTabs[I].bChecked = _bChecked;
 			}
-			Paint();
 			return true;
 		}
 		else {
 			if ( _iItem < m_vTabs.size() ) {
 				m_vTabs[_iItem].bChecked = _bChecked;
-				Paint();
 				return true;
 			}
 		}

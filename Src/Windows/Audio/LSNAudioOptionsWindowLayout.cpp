@@ -29,11 +29,11 @@ namespace lsn {
 #define LSN_AUDIO_GLOBAL_PAGE_W								(LSN_LEFT_JUST + LSN_LEFT_JUST + (LSN_GENERAL_CHECK0_L + LSN_GENERAL_CHECK0_W + LSN_LEFT_JUST) + LSN_LEFT_JUST + LSN_LEFT_JUST)
 #define LSN_AUDIO_OPTIONS_GENERAL_GROUP_TOP					LSN_TOP_JUST
 #define LSN_AUDIO_OPTIONS_GENERAL_GROUP_W					(LSN_AUDIO_GLOBAL_PAGE_W - (LSN_LEFT_JUST * 2))
-#define LSN_AUDIO_OPTIONS_GENERAL_GROUP_H					(LSN_GROUP_TOP_PXL + LSN_GROUP_BOTTOM_PXL + ((LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2) + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 2)
+#define LSN_AUDIO_OPTIONS_GENERAL_GROUP_H					(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + ((LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 2) + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 2)
 
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP					(LSN_AUDIO_OPTIONS_GENERAL_GROUP_TOP + LSN_AUDIO_OPTIONS_GENERAL_GROUP_H)
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_W						LSN_AUDIO_OPTIONS_GENERAL_GROUP_W
-#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP_PXL + LSN_GROUP_BOTTOM_PXL + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2) + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST)
+#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2) + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST)
 
 #define LSN_INV_CHECK_( P )									LSN_EVEN_DIVIDE( LSN_AUDIO_OPTIONS_CHAR_GROUP_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) * 2, LSN_LEFT_JUST + LSN_GROUP_LEFT, 2, P )
 
@@ -50,13 +50,14 @@ namespace lsn {
 			0,												// iTop
 			LSN_AUDIO_GLOBAL_PAGE_W,						// dwWidth
 			LSN_AUDIO_GLOBAL_PAGE_H,						// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL | WS_CLIPSIBLINGS,	// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL /*| WS_CLIPSIBLINGS*/,	// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,							// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),				// pwcText
 			0,												// sTextLen
 			LSN_AOWI_NONE,									// dwParentId
 		},
 
+#if 1
 		// == General
 		{
 			LSW_LT_GROUPBOX,								// ltType
@@ -74,12 +75,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 
-			LSN_LOCK_LEFT,									// pcLeftSizeExp
-			LSN_LOCK_RIGHT,									// pcRightSizeExp
-			LSN_LOCK_TOP,									// pcTopSizeExp
-			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
-			nullptr, 0,										// pcWidthSizeExp
-			nullptr, 0,										// pcHeightSizeExp
+			//LSN_LOCK_LEFT,									// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,									// pcRightSizeExp
+			//LSN_LOCK_TOP,									// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			//nullptr, 0,										// pcWidthSizeExp
+			//nullptr, 0,										// pcHeightSizeExp
 		},
 
 		// Device.
@@ -99,6 +100,7 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 		},
+
 		{
 			LSW_LT_COMBOBOX,								// ltType
 			LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,				// wId
@@ -300,12 +302,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 
-			LSN_LOCK_LEFT,									// pcLeftSizeExp
-			LSN_LOCK_RIGHT,									// pcRightSizeExp
-			LSN_LOCK_TOP,									// pcTopSizeExp
-			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
-			nullptr, 0,										// pcWidthSizeExp
-			nullptr, 0,										// pcHeightSizeExp
+			//LSN_LOCK_LEFT,									// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,									// pcRightSizeExp
+			//LSN_LOCK_TOP,									// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			//nullptr, 0,										// pcWidthSizeExp
+			//nullptr, 0,										// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,									// ltType
@@ -573,6 +575,7 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 		},
+#endif	// #if 0
 	};
 
 
@@ -588,13 +591,13 @@ namespace lsn {
 			0,												// iTop
 			LSN_AUDIO_GLOBAL_PAGE_W,						// dwWidth
 			LSN_AUDIO_GLOBAL_PAGE_H,						// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL | WS_CLIPSIBLINGS,	// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL /*| WS_CLIPSIBLINGS*/,	// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			LSN_AOWI_NONE,									// dwParentId
 		},
-
+#if 1
 		// == General
 		{
 			LSW_LT_GROUPBOX,								// ltType
@@ -612,12 +615,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 
-			LSN_LOCK_LEFT,									// pcLeftSizeExp
-			LSN_LOCK_RIGHT,									// pcRightSizeExp
-			LSN_LOCK_TOP,									// pcTopSizeExp
-			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
-			nullptr, 0,										// pcWidthSizeExp
-			nullptr, 0,										// pcHeightSizeExp
+			//LSN_LOCK_LEFT,									// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,									// pcRightSizeExp
+			//LSN_LOCK_TOP,									// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			//nullptr, 0,										// pcWidthSizeExp
+			//nullptr, 0,										// pcHeightSizeExp
 		},
 		
 		// Device.
@@ -838,12 +841,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 
-			LSN_LOCK_LEFT,									// pcLeftSizeExp
-			LSN_LOCK_RIGHT,									// pcRightSizeExp
-			LSN_LOCK_TOP,									// pcTopSizeExp
-			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
-			nullptr, 0,										// pcWidthSizeExp
-			nullptr, 0,										// pcHeightSizeExp
+			//LSN_LOCK_LEFT,									// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,									// pcRightSizeExp
+			//LSN_LOCK_TOP,									// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			//nullptr, 0,										// pcWidthSizeExp
+			//nullptr, 0,										// pcHeightSizeExp
 		},
 		{
 			LSW_LT_LABEL,									// ltType
@@ -1111,6 +1114,7 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 		},
+#endif	// #if 0
 	};
 
 
@@ -1137,12 +1141,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_NONE,									// dwParentId
 
-			LSN_PARENT_VCLEFT,								// pcLeftSizeExp
-			nullptr, 0,										// pcRightSizeExp
-			LSN_PARENT_VCTOP,								// pcTopSizeExp
-			nullptr, 0,										// pcBottomSizeExp
-			LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			//LSN_PARENT_VCLEFT,								// pcLeftSizeExp
+			//nullptr, 0,										// pcRightSizeExp
+			//LSN_PARENT_VCTOP,								// pcTopSizeExp
+			//nullptr, 0,										// pcBottomSizeExp
+			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 
 		{
@@ -1161,12 +1165,12 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_MAINWINDOW,							// dwParentId
 
-			LSN_LOCK_LEFT,									// pcLeftSizeExp
-			LSN_LOCK_RIGHT,									// pcRightSizeExp
-			LSN_LOCK_TOP,									// pcTopSizeExp
-			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
-			nullptr, 0,										// pcWidthSizeExp
-			nullptr, 0,										// pcHeightSizeExp
+			//LSN_LOCK_LEFT,									// pcLeftSizeExp
+			//LSN_LOCK_RIGHT,									// pcRightSizeExp
+			//LSN_LOCK_TOP,									// pcTopSizeExp
+			//LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			//nullptr, 0,										// pcWidthSizeExp
+			//nullptr, 0,										// pcHeightSizeExp
 		},
 
 
@@ -1185,6 +1189,13 @@ namespace lsn {
 			LSN_LSTR( LSN_OK ),								// pwcText
 			0,												// sTextLen
 			LSN_AOWI_MAINWINDOW,							// dwParentId
+
+			LSN_LOCK_LEFT,									// pcLeftSizeExp
+			nullptr, 0,										// pcRightSizeExp
+			nullptr, 0,										// pcTopSizeExp
+			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -1201,6 +1212,13 @@ namespace lsn {
 			LSN_LSTR( LSN_CANCEL ),							// pwcText
 			0,												// sTextLen
 			LSN_AOWI_MAINWINDOW,							// dwParentId
+
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			nullptr, 0,										// pcTopSizeExp
+			LSN_LOCK_BOTTOM,								// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 	};
 

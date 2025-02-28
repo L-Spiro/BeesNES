@@ -70,6 +70,7 @@ namespace lsn {
 		const ALvoid * _pvData,
 		ALsizei _sSize,
 		ALsizei _sFreq ) {
+		if ( AL_INVALID == _eFormat ) { return false; }
 		if ( m_uiId == 0 ) {
 			if ( !CreateBuffer() ) { return false; }
 		}
