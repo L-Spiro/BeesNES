@@ -82,8 +82,9 @@ namespace lsn {
 	 * Undirties the settings state (frequency and format).
 	 **/
 	void CAudioBase::UndirtyState() {
-		if ( m_ui32Frequency != m_ui32NextFrequency ) { UndirtyFreq( m_ui32NextFrequency ); }
-		if ( m_fFormat != m_fNextFormat ) { UndirtyFormat( m_fNextFormat ); }
+		if LSN_UNLIKELY( m_ui32CurDevice != m_ui32Device ) { InitializeAudio( m_ui32Device ); }
+		if LSN_UNLIKELY( m_ui32Frequency != m_ui32NextFrequency ) { UndirtyFreq( m_ui32NextFrequency ); }
+		if LSN_UNLIKELY( m_fFormat != m_fNextFormat ) { UndirtyFormat( m_fNextFormat ); }
 	}
 
 	/**
@@ -126,30 +127,6 @@ namespace lsn {
 				break;
 			}
 			default : { return false; }
-			/*case LSN_SF_PCM : {
-				switch ( m_fFormat.ui16BitsPerChannel ) {
-					case 8 : {
-						if ( !BufferMono8( m_vTmpBuffer.data(), aSize ) ) { return false; }
-						break;
-					}
-					case 16 : {
-						if ( !BufferMono16( m_vTmpBuffer.data(), aSize ) ) { return false; }
-						break;
-					}
-				}
-				break;
-			}
-			case LSN_SF_FLOAT : {
-				switch ( m_fFormat.ui16BitsPerChannel ) {
-					case 32 : {
-						if ( !BufferMonoF32( m_vTmpBuffer.data(), aSize ) ) { return false; }
-						break;
-					}
-				}
-				break;
-			}
-			default : { return false; }*/
-			
 		}
 		return true;
 	}

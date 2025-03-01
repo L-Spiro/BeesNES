@@ -546,22 +546,22 @@ namespace lsn {
 			0,										// sTextLen
 			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
 		},
-		{
-			LSW_LT_CHECK,							// ltType
-			LSN_IWI_PER_GAME( USE_GLOBAL_CHECK ),	// wId
-			WC_BUTTONW,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			LSN_THIRD_SECTION_L,					// iLeft
-			LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),							// iTop
-			LSN_THIRD_SECTION_W,					// dwWidth
-			LSN_DEF_CHECK_HEIGHT,					// dwHeight
-			LSN_CHECKSTYLE,							// dwStyle
-			0,										// dwStyleEx
-			LSN_LSTR( LSN_INPUT_USE_GLOBAL ),		// pwcText
-			0,										// sTextLen
-			LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
-		},
+		//{
+		//	LSW_LT_CHECK,							// ltType
+		//	LSN_IWI_PER_GAME( USE_GLOBAL_CHECK ),	// wId
+		//	WC_BUTTONW,								// lpwcClass
+		//	TRUE,									// bEnabled
+		//	FALSE,									// bActive
+		//	LSN_THIRD_SECTION_L,					// iLeft
+		//	LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),							// iTop
+		//	LSN_THIRD_SECTION_W,					// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,					// dwHeight
+		//	LSN_CHECKSTYLE,							// dwStyle
+		//	0,										// dwStyleEx
+		//	LSN_LSTR( LSN_INPUT_USE_GLOBAL ),		// pwcText
+		//	0,										// sTextLen
+		//	LSN_IWI_PER_GAME_SETTINGS_PANEL,		// dwParentId
+		//},
 
 
 		// Settings.

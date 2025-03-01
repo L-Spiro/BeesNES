@@ -11,11 +11,9 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudio.h"
-#include "../Audio/LSNButterworthFilter.h"
+#include "../Audio/LSNAudioOptions.h"
 #include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
-#include "../Audio/LSNPoleFilterLeaky.h"
-#include "../Audio/LSNSincFilter.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
@@ -26,57 +24,57 @@
 #include "LSNTriangle.h"
 
 
-#define LSN_PULSE1_HALT_MASK			0b00100000
-#define LSN_PULSE2_HALT_MASK			0b00100000
-#define LSN_TRIANGLE_HALT_MASK			0b10000000
-#define LSN_NOISE_HALT_MASK				0b00100000
+#define LSN_PULSE1_HALT_MASK							0b00100000
+#define LSN_PULSE2_HALT_MASK							0b00100000
+#define LSN_TRIANGLE_HALT_MASK							0b10000000
+#define LSN_NOISE_HALT_MASK								0b00100000
 
-#define LSN_PULSE1_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0001) != 0)
-#define LSN_PULSE2_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b0010) != 0)
-#define LSN_TRIANGLE_ENABLED( THIS )	(((THIS)->m_ui8Registers[0x15] & 0b0100) != 0)
-#define LSN_NOISE_ENABLED( THIS )		(((THIS)->m_ui8Registers[0x15] & 0b1000) != 0)
+#define LSN_PULSE1_ENABLED( THIS )						(((THIS)->m_ui8Registers[0x15] & 0b0001) != 0)
+#define LSN_PULSE2_ENABLED( THIS )						(((THIS)->m_ui8Registers[0x15] & 0b0010) != 0)
+#define LSN_TRIANGLE_ENABLED( THIS )					(((THIS)->m_ui8Registers[0x15] & 0b0100) != 0)
+#define LSN_NOISE_ENABLED( THIS )						(((THIS)->m_ui8Registers[0x15] & 0b1000) != 0)
 
-#define LSN_PULSE1_HALT					((m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK) != 0)
-#define LSN_PULSE2_HALT					((m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK) != 0)
-#define LSN_TRIANGLE_HALT				((m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK) != 0)
-#define LSN_NOISE_HALT					((m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK) != 0)
+#define LSN_PULSE1_HALT									((m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK) != 0)
+#define LSN_PULSE2_HALT									((m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK) != 0)
+#define LSN_TRIANGLE_HALT								((m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK) != 0)
+#define LSN_NOISE_HALT									((m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK) != 0)
 
-#define LSN_PULSE1_USE_VOLUME			((m_ui8Registers[0x00] & 0b00010000) != 0)
-#define LSN_PULSE2_USE_VOLUME			((m_ui8Registers[0x04] & 0b00010000) != 0)
-#define LSN_NOISE_USE_VOLUME			((m_ui8Registers[0x0C] & 0b00010000) != 0)
+#define LSN_PULSE1_USE_VOLUME							((m_ui8Registers[0x00] & 0b00010000) != 0)
+#define LSN_PULSE2_USE_VOLUME							((m_ui8Registers[0x04] & 0b00010000) != 0)
+#define LSN_NOISE_USE_VOLUME							((m_ui8Registers[0x0C] & 0b00010000) != 0)
 
-#define LSN_PULSE1_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x00] & 0b00001111)
-#define LSN_PULSE2_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x04] & 0b00001111)
-#define LSN_NOISE_ENV_DIVIDER( THIS )	((THIS)->m_ui8Registers[0x0C] & 0b00001111)
+#define LSN_PULSE1_ENV_DIVIDER( THIS )					((THIS)->m_ui8Registers[0x00] & 0b00001111)
+#define LSN_PULSE2_ENV_DIVIDER( THIS )					((THIS)->m_ui8Registers[0x04] & 0b00001111)
+#define LSN_NOISE_ENV_DIVIDER( THIS )					((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
 // _bEven is false on 0 2 4 6 8, etc.  It goes by cycle count rather than cycle index.
-#define LSN_APU_UPDATE					if constexpr ( !_bEven ) {												\
-											if ( m_bModeSwitch ) {												\
-												m_bModeSwitch = false;											\
-												if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {		\
-													 m_ui64StepCycles = _tM1S4_1 - 2;							\
-													Tick_Mode1_Step4<_bEven, true>();							\
-													m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;		\
-													m_ui64StepCycles = 1;										\
-												}																\
-												else {															\
-													m_ui64StepCycles = 0;										\
-													Tick_Mode0_Step0<_bEven, false>();							\
-												}																\
-												if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
-													m_piIrqTarget->ClearIrq( LSN_IS_APU );						\
-												}																\
-												return;															\
-											}																	\
-											{																	\
-												m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
-												m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
-												m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
-											}																	\
-										}																		\
-										m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
+#define LSN_APU_UPDATE									if constexpr ( !_bEven ) {												\
+															if ( m_bModeSwitch ) {												\
+																m_bModeSwitch = false;											\
+																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {		\
+																	 m_ui64StepCycles = _tM1S4_1 - 2;							\
+																	Tick_Mode1_Step4<_bEven, true>();							\
+																	m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;		\
+																	m_ui64StepCycles = 1;										\
+																}																\
+																else {															\
+																	m_ui64StepCycles = 0;										\
+																	Tick_Mode0_Step0<_bEven, false>();							\
+																}																\
+																if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
+																	m_piIrqTarget->ClearIrq( LSN_IS_APU );						\
+																}																\
+																return;															\
+															}																	\
+															{																	\
+																m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
+																m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
+																m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
+															}																	\
+														}																		\
+														m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
 
-#define LSN_4017_DELAY					(3+1)
+#define LSN_4017_DELAY									(3+1)
 
 
 namespace lsn {
@@ -140,12 +138,16 @@ namespace lsn {
 			m_dvPulse1LengthCounterHalt( ChannelHaltLengthCounter<0x00, LSN_PULSE1_HALT_MASK>, this ),
 			m_dvPulse2LengthCounterHalt( ChannelHaltLengthCounter<0x04, LSN_PULSE2_HALT_MASK>, this ),
 			m_dvTriangleLengthCounterHalt( ChannelHaltLengthCounter<0x08, LSN_TRIANGLE_HALT_MASK>, this ),
-			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ) {
+			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ),
+			m_fSampleBoxLpf( 20000.0f ),
+			m_fLpf( 20000.0f ),
+			m_fHpf0( 194.0f ),
+			m_fHpf1( 37.0f ),
+			m_fHpf2( 37.0f ),
+			m_bEnabled( true ) {
 
-			//m_pfPole90.CreateHpf( 90.0f, HzAsFloat() );
-			//m_pfPole440.CreateHpf( 442.0f, HzAsFloat() );
-			//m_pfPole14.CreateLpf( 14000.0f, HzAsFloat() );
-			m_pfPole14.CreateLpf( 20000.0f, HzAsFloat() );
+			m_pfLpf.CreateLpf( 20000.0f, HzAsFloat() );
+			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 		}
 		~CApu2A0X() {
 		}
@@ -176,103 +178,90 @@ namespace lsn {
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
 			
-
-			// Possible HPF's:
-			// 442.0f
-			// 296.0f
-			// 197.333333333333f
-
-			// US-NES-FL-N34169630: 296.0f/90.0f
-			// JP-TwinFami-475711-NESRGB-RCA-stock: 194.0f/37.0f/37.0f.
-			CAudio::InitSampleBox( 20000.0f, 194.0f, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
-			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
-
-
-			float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
-			// DEBUG.
-			//fPulse1 = 0.0f;
-			float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
-			//fPulse2 = 0.0f;
-			float fFinalPulse = fPulse1 + fPulse2;
-			if ( fFinalPulse ) {
-				fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
-			}
-			float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f;
-			float fTriangle = m_tTriangle.Output();
-			float fDmc = 0.0f;
-
-			//fFinalPulse = fNoise = fTriangle = 0.0f;
-
-			// DEBUG.
-			//fFinalPulse = fNoise = 0.0f;
-			//fNoise = fTriangle = 0.0f;
-			//fFinalPulse = fTriangle = 0.0f;
-
-			//static uint64_t ui64CycleCnt = 0;
-			//static bool bMadeSound = false;
-			//static bool bWasJustMakingSound = false;
-			//static uint32_t ui32OnOffCnt = 0;
-			//static uint32_t ui32PrintSilenceCnt = 0;
-			//if ( m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) ) ) {
-			//	if ( ui32PrintSilenceCnt >= 43520 && !fPulse2 ) {
-			//		m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) );
-			//	}
-			//	else if ( ui32PrintSilenceCnt >= 44880 && fPulse2 ) {
-			//		m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) );
-			//	}
-			//	ui32OnOffCnt += (bWasJustMakingSound == false) ? 1 : 0;
-			//	bMadeSound = true;
-			//	++ui64CycleCnt;
-			//	bWasJustMakingSound = true;
-
-			//	if ( ui32OnOffCnt > 120 /*&& (ui64CycleCnt % 1000) == 0*/ ) {
-			//		::OutputDebugStringA( (std::string( "Noise: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + " " + std::to_string( fPulse2 ) + "\r\n").c_str() );
-			//		//::OutputDebugStringA( "." );
-			//	}
-			//}
-			//if ( bMadeSound && !m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) ) ) {
-			//	ui32OnOffCnt += (bWasJustMakingSound == true) ? 1 : 0;
-			//	if ( ui32OnOffCnt > 120 ) {
-			//		//::OutputDebugStringA( (std::string( "Silence: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + "\r\n").c_str() );
-			//		//::OutputDebugStringA( " " );
-			//		++ui32PrintSilenceCnt;
-			//		if ( ui32PrintSilenceCnt >= 43520 ) {
-			//		}
-			//	}
-			//	bWasJustMakingSound = false;
-			//}
-
-
-			fNoise /= 12241.0f;
-			fTriangle /= 8227.0f;
-			fDmc /= 22638.0f;
-			float fFinalTnd = 0.0f;
-			if ( fNoise != 0.0f || fTriangle != 0.0f || fDmc != 0.0f ) {
-				fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
-			}
+			if LSN_LIKELY( m_bEnabled ) {
+				// US-NES-FL-N34169630: 296.0f/90.0f
+				// JP-TwinFami-475711-NESRGB-RCA-stock: 194.0f/37.0f/37.0f.
+				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
 			
-			double dFinal = fFinalPulse + fFinalTnd;
-			//dFinal = m_pfPole90.Process( dFinal );
-			//dFinal = m_pfPole440.Process( dFinal );
-			dFinal = m_pfPole14.Process( dFinal );
-			{
-				const float fMinLpf = HzAsFloat() / 2.0f;
-				for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-					float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
-					if ( fLpf < fMinLpf ) {
-						m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
-						dFinal = m_pfOutputPole[I].Process( dFinal );
+
+				float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
+				// DEBUG.
+				//fPulse1 = 0.0f;
+				float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
+				//fPulse2 = 0.0f;
+				float fFinalPulse = fPulse1 + fPulse2;
+				if ( fFinalPulse ) {
+					fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
+				}
+				float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f;
+				float fTriangle = m_tTriangle.Output();
+				float fDmc = 0.0f;
+
+				//fFinalPulse = fNoise = fTriangle = 0.0f;
+
+				// DEBUG.
+				//fFinalPulse = fNoise = 0.0f;
+				//fNoise = fTriangle = 0.0f;
+				//fFinalPulse = fTriangle = 0.0f;
+
+				//static uint64_t ui64CycleCnt = 0;
+				//static bool bMadeSound = false;
+				//static bool bWasJustMakingSound = false;
+				//static uint32_t ui32OnOffCnt = 0;
+				//static uint32_t ui32PrintSilenceCnt = 0;
+				//if ( m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) ) ) {
+				//	if ( ui32PrintSilenceCnt >= 43520 && !fPulse2 ) {
+				//		m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) );
+				//	}
+				//	else if ( ui32PrintSilenceCnt >= 44880 && fPulse2 ) {
+				//		m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) );
+				//	}
+				//	ui32OnOffCnt += (bWasJustMakingSound == false) ? 1 : 0;
+				//	bMadeSound = true;
+				//	++ui64CycleCnt;
+				//	bWasJustMakingSound = true;
+
+				//	if ( ui32OnOffCnt > 120 /*&& (ui64CycleCnt % 1000) == 0*/ ) {
+				//		::OutputDebugStringA( (std::string( "Noise: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + " " + std::to_string( fPulse2 ) + "\r\n").c_str() );
+				//		//::OutputDebugStringA( "." );
+				//	}
+				//}
+				//if ( bMadeSound && !m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) ) ) {
+				//	ui32OnOffCnt += (bWasJustMakingSound == true) ? 1 : 0;
+				//	if ( ui32OnOffCnt > 120 ) {
+				//		//::OutputDebugStringA( (std::string( "Silence: " ) + std::to_string( ui64CycleCnt ) + " " + std::to_string( ui32OnOffCnt ) + "\r\n").c_str() );
+				//		//::OutputDebugStringA( " " );
+				//		++ui32PrintSilenceCnt;
+				//		if ( ui32PrintSilenceCnt >= 43520 ) {
+				//		}
+				//	}
+				//	bWasJustMakingSound = false;
+				//}
+
+
+				fNoise /= 12241.0f;
+				fTriangle /= 8227.0f;
+				fDmc /= 22638.0f;
+				float fFinalTnd = 0.0f;
+				if ( fNoise != 0.0f || fTriangle != 0.0f || fDmc != 0.0f ) {
+					fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
+				}
+			
+				double dFinal = fFinalPulse + fFinalTnd;
+				dFinal = m_pfLpf.Process( dFinal );
+				{
+					const float fMinLpf = HzAsFloat() / 2.0f;
+					for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+						float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
+						if ( fLpf < fMinLpf ) {
+							m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
+							dFinal = m_pfOutputPole[I].Process( dFinal );
+						}
 					}
 				}
-			}
-			//m_fMaxSample = std::max( m_fMaxSample, fFinal );
-			//m_fMinSample = std::min( m_fMinSample, fFinal );
-			//float fRange = m_fMaxSample - m_fMinSample;
-			//if ( fRange == 0.0f ) { fRange = 1.0f; }
-			//float fCenter = (m_fMaxSample + m_fMinSample) / 2.0f;
-			//CAudio::AddSample( m_ui64Cycles, (fFinal - fCenter) * (1.0f / fRange) * 1.0f );
-			CAudio::AddSample( static_cast<float>(dFinal * (-0.5 * 1.25 * 3.0)) );
 
+				CAudio::AddSample( static_cast<float>(dFinal * m_fVolume) );
+			}
 
 
 			
@@ -295,8 +284,8 @@ namespace lsn {
 			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
 			m_pPulse2.SetEnvelopeVolume( LSN_PULSE2_ENV_DIVIDER( this ) );
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
-			m_fMaxSample = -INFINITY;
-			m_fMinSample = INFINITY;
+			/*m_fMaxSample = -INFINITY;
+			m_fMinSample = INFINITY;*/
 			m_i64TicksToLenCntr = _tM0S0;
 		}
 
@@ -385,12 +374,36 @@ namespace lsn {
 		 **/
 		inline constexpr float							HzAsFloat() const { return float( Hz() ); }
 
+		/**
+		 * Sets the audio options.
+		 * 
+		 * \param _aoOptions The options to set.
+		 **/
+		void											SetOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
+			m_fVolume = _aoOptions.fVolume * _aoOptions.apCharacteristics.fVolume;
+			if ( _aoOptions.apCharacteristics.bInvert ) {
+				m_fVolume *= -1.0f;
+			}
+			m_bEnabled = m_fVolume != 0.0f && _aoOptions.bEnabled;
+
+			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? _aoOptions.apCharacteristics.fLpf : _aoOptions.ui32OutputHz / 2.0f;
+			m_fHpf0 = _aoOptions.apCharacteristics.bHpf0Enable ? _aoOptions.apCharacteristics.fHpf0 : 20.0f;
+			m_fHpf1 = _aoOptions.apCharacteristics.fHpf1;
+			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
+
+			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
+			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
+			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
+			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 50.0f;
+		}
 
 
 	protected :
 		// == Types.
 		/** A function pointer for the tick handlers. */
 		typedef void (CApu2A0X:: *						PfTicks)();
+		typedef CPoleFilter								CPoleFilterLpf;
+		typedef CHpfFilter								CPoleFilterHpf;
 
 
 		// == Members.
@@ -408,30 +421,28 @@ namespace lsn {
 		CInterruptable *								m_piIrqTarget;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
-		//typedef CButterworthFilter<1>					CPoleFilterLpf;
-		typedef CPoleFilter								CPoleFilterLpf;
-		//typedef CPoleFilterLeaky						CPoleFilterLpf;
-		typedef CHpfFilter								CPoleFilterHpf;
+		/** Final volume multiplier. */
+		float											m_fVolume = (-0.5f * 1.25f * 3.0f);		
 		/** The 37-Hz pole filter. */
 		CPoleFilterHpf									m_pfPole37;
-		/** The 90-Hz pole filter. */
-		//CPoleFilterHpf									m_pfPole90;
-		/** The 440-Hz pole filter. */
-		//CPoleFilterHpf									m_pfPole440;
 		/** The 14-Hz pole filter. */
-		CPoleFilterLpf									m_pfPole14;
+		CPoleFilterLpf									m_pfLpf;
 		/** The output Hz filter. */
 		CPoleFilterLpf									m_pfOutputPole[1];
-		/** The output (down-sampling) filter. */
-		CSincFilter										m_sfSincFilter;
 		/** A sanitization HPF. */
-		CHpfFilter										m_hfHpfFilter90;
+		CHpfFilter										m_hfHpfFilter1;
 		/** A sanitization HPF. */
-		CHpfFilter										m_hfHpfFilter37;
-		/** Max output sample. */
-		float											m_fMaxSample;
-		/** Min output sample. */
-		float											m_fMinSample;
+		CHpfFilter										m_hfHpfFilter2;
+		/** The sample-box LPF frequency. */
+		float											m_fSampleBoxLpf;
+		/** The LPF frequency. */
+		float											m_fLpf;
+		/** The HPF0 frequency. */
+		float											m_fHpf0;
+		/** The HPF1 frequency. */
+		float											m_fHpf1;
+		/** The HPF2 frequency. */
+		float											m_fHpf2;
 		/** Pulse 1. */
 		CPulse											m_pPulse1;
 		/** Pulse 2. */
@@ -446,6 +457,8 @@ namespace lsn {
 		uint8_t											m_ui8Registers[0x15+1];
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
+		/** Audio setting: Enabled. */
+		bool											m_bEnabled;
 		
 		/** Length-counter delay for Pulse 1. */
 		CDelayedValue<uint8_t, 2>						m_dvPulse1LengthCounter;
@@ -1095,9 +1108,9 @@ namespace lsn {
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
-			if LSN_LIKELY ( paApu->m_hfHpfFilter90.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
-				if LSN_LIKELY( paApu->m_hfHpfFilter37.CreateHpf( 37.0f, float( _ui32Hz ) ) ) {
-					return float( paApu->m_hfHpfFilter90.Process( paApu->m_hfHpfFilter37.Process( _fSample ) ) );
+			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, float( _ui32Hz ) ) ) {
+				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, float( _ui32Hz ) ) ) {
+					return float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
 				}
 			}
 			return _fSample;

@@ -27,7 +27,7 @@ namespace lsn {
 	 **/
 	bool CAudioOpenAl::InitializeAudio( uint32_t _ui32Device ) {
 		ShutdownAudio();
-		if ( !Parent::InitializeAudio() ) { return false; }
+		if ( !Parent::InitializeAudio( _ui32Device ) ) { return false; }
 		m_eFormat = FormatToEnum( m_fNextFormat.sfFormat );
 
 		std::vector<std::string> vDevices;
@@ -46,7 +46,7 @@ namespace lsn {
 
 		if ( !m_oasSource.CreateSource() ) { return false; }
 		if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
-
+		m_ui32CurDevice = _ui32Device;
 		return true;
 	}
 
@@ -173,8 +173,8 @@ namespace lsn {
 			uint8_t * pui8Dst = reinterpret_cast<uint8_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 			for ( size_t I = 0; I < stMax; ++I ) {
 				(*pui8Dst++) = COpenAl::SampleToUi8( (*_pfSamples++) );
-				++m_sCurBufferSize;
 			}
+			m_sCurBufferSize += stMax;
 
 
 			if ( !Flush() ) { return false; }
@@ -195,8 +195,8 @@ namespace lsn {
 		uint8_t * pui8Dst = reinterpret_cast<uint8_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 		for ( size_t I = 0; I < _sTotal; ++I ) {
 			(*pui8Dst++) = COpenAl::SampleToUi8( (*_pfSamples++) );
-			++m_sCurBufferSize;
 		}
+		m_sCurBufferSize += _sTotal;
 		return true;
 	}
 
@@ -275,14 +275,17 @@ namespace lsn {
 	 **/
 	bool CAudioOpenAl::BufferMonoF32( const float * _pfSamples, size_t _sTotal ) {
 		// Determine how many samples we can do before we need to flush.
-		size_t stMax = m_sBufferSizeInSamples - (m_sCurBufferSize / sizeof( int16_t ));
+		size_t stMax = m_sBufferSizeInSamples - (m_sCurBufferSize / sizeof( float ));
 		while ( _sTotal >= stMax ) {
 			// Convert and flush.
 			float * pfDst = reinterpret_cast<float *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
-			for ( size_t I = 0; I < stMax; ++I ) {
+			/*for ( size_t I = 0; I < stMax; ++I ) {
 				(*pfDst++) = (*_pfSamples++);
-				m_sCurBufferSize += sizeof( float );
-			}
+			}*/
+			std::memcpy( pfDst, _pfSamples, sizeof( float ) * stMax );
+			m_sCurBufferSize += sizeof( float ) * stMax;
+			pfDst += stMax;
+			_pfSamples += stMax;
 
 
 			if ( !Flush() ) { return false; }
@@ -303,10 +306,13 @@ namespace lsn {
 		}
 		// Finish converting.
 		float * pfDst = reinterpret_cast<float *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
-		for ( size_t I = 0; I < _sTotal; ++I ) {
+		/*for ( size_t I = 0; I < _sTotal; ++I ) {
 			(*pfDst++) = (*_pfSamples++);
-			m_sCurBufferSize += sizeof( float );
-		}
+		}*/
+		std::memcpy( pfDst, _pfSamples, sizeof( float ) * _sTotal );
+		m_sCurBufferSize += sizeof( float ) * _sTotal;
+		pfDst += _sTotal;
+		_pfSamples += _sTotal;
 		return true;
 	}
 

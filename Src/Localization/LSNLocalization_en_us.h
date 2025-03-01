@@ -101,7 +101,7 @@
 #define LSN_INPUT_EXCITING_BOXING_PUNCHING_BAG								Exciting Boxing Punching Bag
 #define LSN_INPUT_FAMILY_BASIC_KEYBOARD										Family Basic Keyboard
 #define LSN_INPUT_FAMILY_TRAINER											Family Trainer
-#define LSN_INPUT_4_PLAYER_ADAPTOR											4 Players Adaptor
+#define LSN_INPUT_4_PLAYER_ADAPTOR											4-Player Adaptor
 #define LSN_INPUT_HORI_TRACK												Hori Track
 #define LSN_INPUT_JISSEN_MAHJONG_CONTROLLER									Jissen Mahjong Controller
 #define LSN_INPUT_KONAMI_HYPER_SHOT											Konami\u00AE Hyper Shot									// Konami(R) Hyper Shot
@@ -137,7 +137,7 @@
 #define LSN_AUDIO_OPTIONS_GLOBAL_SETTINGS									Global Settings
 #define LSN_AUDIO_OPTIONS_PERGAME_SETTINGS									Per-Game Settings
 #define LSN_AUDIO_OPTIONS_STREAM_TO_FILE									Stream to File
-#define LSN_AUDIO_OPTIONS_GENERAL											General
+#define LSN_AUDIO_OPTIONS_GENERAL											Output Settings
 #define LSN_AUDIO_OPTIONS_USE_GLOBAL										Use Global
 #define LSN_AUDIO_OPTIONS_DEVICE											Device:
 #define LSN_AUDIO_OPTIONS_ENABLED											Enabled
@@ -148,7 +148,7 @@
 
 #define LSN_AUDIO_OPTIONS_AUDIO_CHARACTERISTICS								Audio Characteristics
 #define LSN_AUDIO_OPTIONS_PRESET											Preset:
-#define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									JP TwinFami 475711 NESRGB RCA (Stock)
+#define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									Japanese Twin Famicom 475711, NESRGB, Stock RCA
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_DESC								Japanese Twin Famicom with NESRGB mod, stock RCA audio output.
 #define LSN_AUDIO_OPTIONS_CUSTOM											Custom
 #define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:

@@ -535,6 +535,15 @@ namespace lsn {
 		 */
 		virtual CDisplayClient *						GetDisplayClient() { return &m_pPpu; }
 
+		/**
+		 * Sets the audio options.
+		 * 
+		 * \param _aoOptions The options to set.
+		 **/
+		void											SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
+			m_aApu.SetOptions( _aoOptions );
+		}
+
 		
 
 

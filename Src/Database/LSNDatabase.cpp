@@ -152,7 +152,9 @@ namespace lsn {
 			// Best Keiba - Derby Stallion (Japan)
 			{ .ui32Crc = 0x41482DA3, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Bigfoot (Europe)
-			{ .ui32Crc = 0x629E060B, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x629E060B, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SLROM },
+			// Bigfoot (U)
+			{ .ui32Crc = 0x98BB90D9, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SLROM },
 			// Bionic Commando (Europe)
 			{ .ui32Crc = 0xFA7EE642, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Blades of Steel (E)

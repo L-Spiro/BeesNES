@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Audio/LSNAudioOptions.h"
 #include "../Bus/LSNBus.h"
 #include "../Display/LSNDisplayClient.h"
 #include "../Input/LSNInputPoller.h"
@@ -174,6 +175,13 @@ namespace lsn {
 		 * \return Returns a pointer to the palette.
 		 */
 		virtual const LSN_ROM *							GetRom() const { return IsRomLoaded() ? &m_rRom : nullptr; }
+
+		/**
+		 * Sets the audio options.
+		 * 
+		 * \param _aoOptions The options to set.
+		 **/
+		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &/*_aoOptions*/ ) {}
 
 		/**
 		 * Loads a ROM into the given LSN_ROM object.

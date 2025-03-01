@@ -253,6 +253,16 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets or creates a file path for custom per-ROM settings given its CRC, name, and the per-ROM settings folder path.
+		 * 
+		 * \param _pwcPath Path to the per-ROM settings folder.
+		 * \param _ui32Crc the CRC32 of the ROM.
+		 * \param _pu16Name The name of the ROM.
+		 * \return Returns a path to the per-ROM settings file for the given ROM.
+		 **/
+		static std::u16string								PerRomSettingsPath( const std::wstring &_pwcPath, uint32_t _ui32Crc, const std::u16string &_pu16Name );
+
+		/**
 		 * Converts a single double value from sRGB space to linear space.  Performs a conversion according to the standard.
 		 *
 		 * \param _dVal The value to convert.
@@ -2001,7 +2011,6 @@ namespace lsn {
 		static double										DecayMultiplier( double _dStart, double _dTarget, double _dTime, double _dRate ) {
 			double dSteps = _dRate * _dTime;
 			return std::exp( std::log( _dTarget / _dStart ) / dSteps );
-
 		}
 
 		/**
@@ -2014,7 +2023,7 @@ namespace lsn {
 		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, float _fAmplitude = 0.1f ) {
 			std::random_device rdDev;
 			std::mt19937 mGen( rdDev() );
-			// Generate uniform noise in [-amplitude, +amplitude]
+			// Generate uniform noise in [-amplitude, +amplitude].
 			std::uniform_real_distribution<float> urdDist( -_fAmplitude, _fAmplitude );
 
 			while ( _sSize-- ) {

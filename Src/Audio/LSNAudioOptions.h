@@ -64,6 +64,7 @@ namespace lsn {
 		float											fHpf0 = 194.0f;
 		float											fHpf1 = 37.0f;
 		float											fHpf2 = 37.0f;
+		float											fVolume = 0.625f;
 		bool											bLpfEnable = false;
 		bool											bHpf0Enable = true;
 		bool											bHpf1Enable = true;

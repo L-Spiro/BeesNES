@@ -45,8 +45,8 @@ namespace lsn {
 			ptTab->SetShowCloseBoxes( false );
 
 
-			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( ptTab, (*m_poOptions) );
-			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( ptTab, (*m_poOptions) );
+			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( this, (*m_poOptions) );
+			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( this, (*m_poOptions) );
 			if ( !pwGlobalPage || !pwPerGamePage ) { return LSW_H_HANDLED; }
 		
 			m_vPages.push_back( pwGlobalPage );
@@ -75,6 +75,7 @@ namespace lsn {
 					ptTab->AdjustRect( TRUE, &rTabWindow );
 					rTabWindow = rTabWindow.ScreenToClient( Wnd() );
 					::MoveWindow( ptTab->Wnd(), 0, 0, rTabWindow.Width(), rTabWindow.Height(), FALSE );
+					//::SetWindowPos( ptTab->Wnd(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
 				}
 				LSW_RECT rTabWindow = ptTab->WindowRect();
 				ptTab->AdjustRect( FALSE, &rTabWindow );
@@ -82,6 +83,7 @@ namespace lsn {
 				::MoveWindow( m_vPages[I]->Wnd(), rTabWindow.left, rTabWindow.top, rTabWindow.Width(), rTabWindow.Height(), FALSE );
 			}
 			ptTab->SetCheckable( 1 );
+			ptTab->SetChecked( 1, !m_poOptions->aoThisGameAudioOptions.bUseGlobal );
 			if ( m_poOptions && !m_poOptions->aoThisGameAudioOptions.bUseGlobal ) {
 				ptTab->SetCurSel( 1 );
 			}
@@ -154,9 +156,13 @@ namespace lsn {
 	 * Saves the current input configuration and closes the dialog.
 	 */
 	void CAudioOptionsWindow::SaveAndClose() {
-		/*for ( auto I = m_vPages.size(); I--; ) {
-			m_vPages[I]->Save();
-		}*/
+		// Not so graceful.
+		if ( m_vPages.size() >= 1 ) {
+			reinterpret_cast<CAudioOptionsGeneralPage<true> *>(m_vPages[0])->Save();
+		}
+		if ( m_vPages.size() >= 2 ) {
+			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Save();
+		}
 		::EndDialog( Wnd(), 1 );
 	}
 
@@ -170,7 +176,12 @@ namespace lsn {
 		if ( _pwTab ) {
 			lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(_pwTab);
 			ptTab->SetCurSel( ptTab->IsChecked( 1 ) ? 1 : 0 );
-			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
+			if ( m_vPages.size() >= 2 ) {
+				reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
+			}
+
+			::InvalidateRect( Wnd(), NULL, FALSE );
+			Paint();
 		}
 	}
 

@@ -483,7 +483,10 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_AUDIO : {
-				CAudioOptionsWindowLayout::CreateAudioOptionsDialog( this, m_bnEmulator.Options() );
+				auto iRet = CAudioOptionsWindowLayout::CreateAudioOptionsDialog( this, m_bnEmulator.Options() );
+				if ( iRet ) {
+					m_bnEmulator.ApplyAudioOptions();
+				}
 				break;
 			}
 		}

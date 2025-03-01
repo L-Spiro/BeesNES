@@ -23,8 +23,8 @@ namespace lsn {
 	};
 
 	LSN_AUDIO_PROFILE LSN_AUDIO_OPTIONS::s_apProfiles[] = {
-		//wsDevice													fLpf			fHpf0			fHpf1			fHpf2			bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),			0.0f,			194.0f,			37.0f,			37.0f,			false,		true,		true,		true,		true,	true }
+		//wsDevice													fLpf			fHpf0			fHpf1			fHpf2			fVolume		bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),			0.0f,			194.0f,			37.0f,			37.0f,			0.625f,		false,		true,		true,		true,		true,	true },
 	};
 
 	// == Functions.

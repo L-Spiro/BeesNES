@@ -50,7 +50,15 @@ namespace lsn {
 				tciItem.pszText = const_cast<LPWSTR>(wsTitle.c_str());
 				ptTab->InsertItem( int( I ), &tciItem, m_vPages[I] );
 			}
-			ptTab->SetCurSel( 0 );
+			ptTab->SetCheckable( 1 );
+
+			ptTab->SetChecked( 1, !m_poOptions->ioThisGameInputOptions.bUseGlobal );
+			if ( m_poOptions && !m_poOptions->ioThisGameInputOptions.bUseGlobal ) {
+				ptTab->SetCurSel( 1 );
+			}
+			else {
+				ptTab->SetCurSel( 0 );
+			}
 
 			LSW_RECT rPanelClient = pwGlobal->WindowRect();
 			ptTab->AdjustRect( TRUE, &rPanelClient );
@@ -143,6 +151,22 @@ namespace lsn {
 			m_vPages[I]->Save();
 		}
 		::EndDialog( Wnd(), 0 );
+	}
+
+	/**
+	 * Informs the control that a child tab control has just had a check toggled.
+	 * 
+	 * \param _pwTab A pointer to the tab control.
+	 * \param _iTab The index of the tab that was just toggled.
+	 **/
+	void CInputWindow::TabToggled( CWidget * _pwTab, int /*_iTab*/ ) {
+		if ( _pwTab ) {
+			lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(_pwTab);
+			ptTab->SetCurSel( ptTab->IsChecked( 1 ) ? 1 : 0 );
+			
+			::InvalidateRect( Wnd(), NULL, FALSE );
+			Paint();
+		}
 	}
 
 }	// namespace lsn

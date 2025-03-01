@@ -230,6 +230,50 @@ namespace lsn {
 	}
 
 	/**
+	 * Loads the per-game settings from the given path.
+	 * 
+	 * \param _u16Path The path from which to load per-game settings.
+	 * \return Returns true if the file was found and the settings were loaded from it.
+	 **/
+	bool CBeesNes::LoadPerGameSettings( const std::u16string &_u16Path ) {
+		Options().aoThisGameAudioOptions = Options().aoGlobalAudioOptions;
+		Options().aoThisGameAudioOptions.bUseGlobal = true;
+		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
+		Options().ioThisGameInputOptions.bUseGlobal = true;
+		CStdFile sfFile;
+		if ( sfFile.Open( _u16Path.c_str() ) ) {
+			std::vector<uint8_t> vFile;
+			if ( sfFile.LoadToMemory( vFile ) ) {
+				sfFile.Close();
+				CStream sStream( vFile );
+				uint32_t ui32Version = 0;
+				if ( !sStream.Read( ui32Version ) ) { return false; }
+				if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Saves the per-game settings to a given path.
+	 * 
+	 * \param _u16Path The path to which to save per-game settings.
+	 * \return Returns true if the file was created and fully written.
+	 **/
+	bool CBeesNes::SavePerGameSettings( const std::u16string &_u16Path ) {
+		std::vector<uint8_t> vFile;
+		CStream sStream( vFile );
+		uint32_t ui32Version = 0;
+		if ( !sStream.Write( ui32Version ) ) { return false; }
+		if ( !SaveAudioSettings( sStream, Options().aoThisGameAudioOptions ) ) { return false; }
+
+		CStdFile sfFile;
+		if ( !sfFile.Create( _u16Path.c_str() ) ) { return false; }
+		return sfFile.WriteToFile( vFile );
+	}
+
+	/**
 	 * Sets the current filter.  Changes are not applied to rendering output until Swap() is called.
 	 *
 	 * \param _fFilter The new filter to be applied after the next Swap().
@@ -309,6 +353,10 @@ namespace lsn {
 	 */
 	bool CBeesNes::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion ) {
 		LSN_ROM rTmp;
+		if ( m_u16PerGameSettings.size() ) {
+			SavePerGameSettings( m_u16PerGameSettings );
+			m_u16PerGameSettings.clear();
+		}
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
 			//m_pnsSystem.reset();
 			LSN_PPU_METRICS pmReg = _pmRegion;
@@ -320,6 +368,9 @@ namespace lsn {
 				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
 			}
 			m_pnsSystem = m_psbSystems[m_pmSystem];
+			
+			m_u16PerGameSettings = CUtilities::PerRomSettingsPath( m_wsFolder + L"GameSettings\\", rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
+			LoadPerGameSettings( m_u16PerGameSettings );
 			UpdateCurrentSystem();
 			if ( m_pnsSystem->LoadRom( rTmp ) ) {
 				m_pnsSystem->ResetState( false );
@@ -328,6 +379,21 @@ namespace lsn {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Applies the current audio options.
+	 **/
+	void CBeesNes::ApplyAudioOptions() {
+		LSN_AUDIO_OPTIONS & aoOptions = Options().aoThisGameAudioOptions.bUseGlobal ? Options().aoGlobalAudioOptions : Options().aoThisGameAudioOptions;
+		CAudio::SetOutputSettings( aoOptions );
+		if ( m_pnsSystem ) {
+			m_pnsSystem->SetAudioOptions( aoOptions );
+		}
+
+		if ( m_u16PerGameSettings.size() ) {
+			SavePerGameSettings( m_u16PerGameSettings );
+		}
 	}
 
 	/**
@@ -362,6 +428,8 @@ namespace lsn {
 
 		// Set up input.
 		m_pnsSystem->SetInputPoller( m_pipPoller );
+
+		ApplyAudioOptions();
 	}
 
 	/**
@@ -384,6 +452,8 @@ namespace lsn {
 		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wDefaultRomPath)) ) ) { return false; }
 
 		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
+
+		LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions );
 		return true;
 	}
 
@@ -404,6 +474,8 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wDefaultRomPath.c_str(), m_oOptions.wDefaultRomPath.size() ) ) ) { return false; }
 
 		if ( !_sFile.Write( m_oOptions.pmRegion ) ) { return false; }
+
+		SaveAudioSettings( _sFile, m_oOptions.aoGlobalAudioOptions );
 		return true;
 	}
 

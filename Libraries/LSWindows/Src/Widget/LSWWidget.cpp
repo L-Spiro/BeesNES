@@ -228,21 +228,21 @@ namespace lsw {
 	BOOL CWidget::GetTextAsInt64Expression( ee::CExpEvalContainer::EE_RESULT &_eResult ) const {
 		if ( !GetTextAsExpression( _eResult, ee::CObject::EE_TF_NONE ) ) { return FALSE; }
 		_eResult = ee::CExpEvalContainer::ConvertResult( _eResult, ee::EE_NC_SIGNED );
-		return TRUE;
+		return _eResult.ncType == ee::EE_NC_SIGNED ? TRUE : FALSE;
 	}
 
 	// Get the value of the text as a uint64_t expression.
 	BOOL CWidget::GetTextAsUInt64Expression( ee::CExpEvalContainer::EE_RESULT &_eResult ) const {
 		if ( !GetTextAsExpression( _eResult, ee::CObject::EE_TF_NONE ) ) { return FALSE; }
 		_eResult = ee::CExpEvalContainer::ConvertResult( _eResult, ee::EE_NC_UNSIGNED );
-		return TRUE;
+		return _eResult.ncType == ee::EE_NC_UNSIGNED ? TRUE : FALSE;
 	}
 
 	// Get the value of the text as a double expression.
 	BOOL CWidget::GetTextAsDoubleExpression( ee::CExpEvalContainer::EE_RESULT &_eResult ) const {
 		if ( !GetTextAsExpression( _eResult, ee::CObject::EE_TF_NONE ) ) { return FALSE; }
 		_eResult = ee::CExpEvalContainer::ConvertResult( _eResult, ee::EE_NC_FLOATING );
-		return TRUE;
+		return _eResult.ncType == ee::EE_NC_FLOATING ? TRUE : FALSE;
 	}
 
 	// If the function succeeds, the return value is the pointer to the window that previously had the keyboard focus.

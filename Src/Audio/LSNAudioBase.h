@@ -20,8 +20,8 @@
 
 #define LSN_AUDIO_BUFFERS									288
 
-//#define LSN_BUFFER_DELAY									2		// How many buffers to fill before beginning to play audio.  Reduces early crackling when set higher.
-#define LSN_BUFFER_DELAY									200		// For personal recording needs where audio delay is not important.
+#define LSN_BUFFER_DELAY									2		// How many buffers to fill before beginning to play audio.  Reduces early crackling when set higher.
+//#define LSN_BUFFER_DELAY									4		// For personal recording needs where audio delay is not important.
 
 namespace lsn {
 
@@ -37,9 +37,10 @@ namespace lsn {
 		/**
 		 * Initializes audio.
 		 * 
+		 * \param _ui32Device The audio device to use.
 		 * \return Returns true if initialization was successful.
 		 **/
-		virtual bool										InitializeAudio() {
+		virtual bool										InitializeAudio( uint32_t /*_ui32Device*/ ) {
 			try {
 				m_vTmpBuffer.resize( m_sBufferSizeInSamples );
 				m_vLocalBuffer.resize( m_sBufferSizeInSamples * 4 );
@@ -127,10 +128,10 @@ namespace lsn {
 		size_t												m_sBufferSizeInSamples = 
 #ifdef LSN_WIN64
 			//768
-			16
+			128
 #else
 			//1024 
-			16
+			256
 #endif
 		;
 		/** The current buffer position. */
@@ -139,6 +140,10 @@ namespace lsn {
 		LSN_AUDIO_FORMAT									m_fFormat;
 		/** The next format. */
 		LSN_AUDIO_FORMAT									m_fNextFormat;
+		/** The current device. */
+		uint32_t											m_ui32CurDevice = 0;
+		/** The next device. */
+		uint32_t											m_ui32Device = 0;
 
 
 		// == Functions.

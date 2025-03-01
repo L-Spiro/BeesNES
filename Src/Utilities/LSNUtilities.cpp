@@ -8,9 +8,12 @@
 
 
 #include "LSNUtilities.h"
+#include "../File/LSNFileBase.h"
 #include "../OS/LSNOs.h"
-#include <cwctype>
 #include "EEExpEval.h"
+
+#include <cwctype>
+#include <filesystem>
 
 #ifndef LSN_WINDOWS
 #include <codecvt>
@@ -197,6 +200,30 @@ namespace lsn {
 			return s16File;
 		}
 		return std::u16string();
+	}
+
+	/**
+	 * Gets or creates a file path for custom per-ROM settings given its CRC, name, and the per-ROM settings folder path.
+	 * 
+	 * \param _pwcPath Path to the per-ROM settings folder.
+	 * \param _ui32Crc the CRC32 of the ROM.
+	 * \param _pu16Name The name of the ROM.
+	 * \return Returns a path to the per-ROM settings file for the given ROM.
+	 **/
+	std::u16string CUtilities::PerRomSettingsPath( const std::wstring &_pwcPath, uint32_t _ui32Crc, const std::u16string &_pu16Name ) {
+		std::filesystem::path pDir = _pwcPath;
+		std::filesystem::create_directories( pDir );
+
+		std::filesystem::path pPreferred = pDir;
+		pPreferred /= std::format( L"{:08X} {}.prs", _ui32Crc, reinterpret_cast<const wchar_t *>(_pu16Name.c_str()) );
+		if ( std::filesystem::exists( pPreferred ) ) { return pPreferred.generic_u16string(); }
+		
+		std::filesystem::path pSearch = pDir;
+		auto aTmp = std::format( L"{:08X} *.prs", _ui32Crc );
+		std::vector<std::u16string> vRes;
+		CFileBase::FindFiles( pSearch.generic_u16string().c_str(), XStringToU16String( aTmp.c_str(), aTmp.size() ).c_str(), false, vRes );
+		if ( !vRes.size() ) { return pPreferred.generic_u16string(); }
+		return vRes[0];
 	}
 
 	/**

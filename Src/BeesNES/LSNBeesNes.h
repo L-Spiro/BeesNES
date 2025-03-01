@@ -86,6 +86,22 @@ namespace lsn {
 		bool									SaveSettings();
 
 		/**
+		 * Loads the per-game settings from the given path.
+		 * 
+		 * \param _u16Path The path from which to load per-game settings.
+		 * \return Returns true if the file was found and the settings were loaded from it.
+		 **/
+		bool									LoadPerGameSettings( const std::u16string &_u16Path );
+
+		/**
+		 * Saves the per-game settings to a given path.
+		 * 
+		 * \param _u16Path The path to which to save per-game settings.
+		 * \return Returns true if the file was created and fully written.
+		 **/
+		bool									SavePerGameSettings( const std::u16string &_u16Path );
+
+		/**
 		 * Gets the screen scale.
 		 *
 		 * \return Returns the emulation screen scale.
@@ -256,6 +272,11 @@ namespace lsn {
 		 **/
 		const std::vector<std::u16string> &		RecentFiles() const { return m_vRecentFiles; }
 
+		/**
+		 * Applies the current audio options.
+		 **/
+		void									ApplyAudioOptions();
+
 
 	protected :
 		// == Members.
@@ -335,6 +356,8 @@ namespace lsn {
 		uint8_t									m_ui8RapidFires[8];
 		/** The emulation options. */
 		LSN_OPTIONS								m_oOptions;
+		/** The per-game settings path. */
+		std::u16string							m_u16PerGameSettings;
 
 		/** The list of recently opened ROM's. */
 		std::vector<std::u16string>				m_vRecentFiles;
