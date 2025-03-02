@@ -5,13 +5,14 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The input window.
+ * Description: The audio options window.
  */
 
 #include "LSNAudioOptionsWindow.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "LSNAudioOptionsGeneralPage.h"
+#include "LSNAudioOptionsRecordingPage.h"
 
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
@@ -47,10 +48,12 @@ namespace lsn {
 
 			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( this, (*m_poOptions) );
 			CWidget * pwPerGamePage = CAudioOptionsWindowLayout::CreatePerGamePage( this, (*m_poOptions) );
-			if ( !pwGlobalPage || !pwPerGamePage ) { return LSW_H_HANDLED; }
+			CWidget * pwRecordingPage = CAudioOptionsWindowLayout::CreateRecordingPage( this, (*m_poOptions) );
+			if ( !pwGlobalPage || !pwPerGamePage || !pwRecordingPage ) { return LSW_H_HANDLED; }
 		
 			m_vPages.push_back( pwGlobalPage );
 			m_vPages.push_back( pwPerGamePage );
+			m_vPages.push_back( pwRecordingPage );
 
 			LSW_RECT rWindow = WindowRect();
 			lBottomSpace = ClientRect().bottom - ptTab->ClientRect().bottom;
@@ -61,6 +64,7 @@ namespace lsn {
 			static LPWSTR const lpwstrTabTitles[] = {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_GLOBAL_SETTINGS )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_PERGAME_SETTINGS )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_AUDIO_OPTIONS_STREAM_TO_FILE )),
 			};
 
 			ptTab->SetShowCloseBoxes( false );
@@ -71,11 +75,10 @@ namespace lsn {
 
 				if ( I == 0 ) {
 					LSW_RECT rThisRect = m_vPages[I]->WindowRect();
-					LSW_RECT rTabWindow = rThisRect;//ptTab->WindowRect();
+					LSW_RECT rTabWindow = rThisRect;
 					ptTab->AdjustRect( TRUE, &rTabWindow );
 					rTabWindow = rTabWindow.ScreenToClient( Wnd() );
 					::MoveWindow( ptTab->Wnd(), 0, 0, rTabWindow.Width(), rTabWindow.Height(), FALSE );
-					//::SetWindowPos( ptTab->Wnd(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
 				}
 				LSW_RECT rTabWindow = ptTab->WindowRect();
 				ptTab->AdjustRect( FALSE, &rTabWindow );
@@ -132,24 +135,6 @@ namespace lsn {
 			}
 		}
 		return LSW_H_CONTINUE;
-	}
-
-	/**
-	 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
-	 *	pwChild can be nullptr.  If not nullptr, it is assumed to be a child of the widget, and this widget might create a specific rectangle for
-	 *	the pwChild, such as for splitter controls.
-	 *
-	 * \param pwChild The child window for whom the virtual client rectangle should be returned.
-	 * \return Returns the virtual client rectangle for this window for the given widget.
-	 */
-	const LSW_RECT CAudioOptionsWindow::VirtualClientRect( const CWidget * pwChild ) const {
-		/*if ( pwChild->Id() == CInputWindowLayout::LSN_IWI_PER_GAME_SETTINGS_PANEL || pwChild->Id() == CInputWindowLayout::LSN_IWI_GLOBAL_SETTINGS_PANEL ) {
-			const CTab * ptTab = static_cast<const CTab *>(FindChild( Layout::LSN_IWI_TAB ));
-			if ( ptTab ) {
-				return ptTab->VirtualClientRect( pwChild );
-			}
-		}*/
-		return ClientRect( pwChild );
 	}
 
 	/**

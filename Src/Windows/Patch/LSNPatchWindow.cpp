@@ -50,27 +50,27 @@ namespace lsn {
 		LSW_RECT rClient = ClientRect( nullptr );
 
 		LSW_WIDGET_LAYOUT wlLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
-			LSW_LT_SPLITTER,						// ltType
+			LSW_LT_SPLITTER,											// ltType
 			static_cast<WORD>(CPatchWindowLayout::LSN_PWI_SPLITTER),	// wId
 			reinterpret_cast<LPCWSTR>(lsw::CBase::SplitterAtom()),		// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0,										// iLeft
-			0,										// iTop
-			static_cast<DWORD>(rClient.Width()),	// dwWidth
-			static_cast<DWORD>(rClient.Height()),	// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE,			// dwStyle
-			0,										// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_LT_PATCH_DIALOG,					// dwParentId
+			TRUE,														// bEnabled
+			FALSE,														// bActive
+			0,															// iLeft
+			0,															// iTop
+			static_cast<DWORD>(rClient.Width()),						// dwWidth
+			static_cast<DWORD>(rClient.Height()),						// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE,								// dwStyle
+			0,															// dwStyleEx
+			nullptr,													// pwcText
+			0,															// sTextLen
+			LSN_LT_PATCH_DIALOG,										// dwParentId
 
-			LSN_LOCK_LEFT,							// pcLeftSizeExp
-			LSN_LOCK_RIGHT,							// pcRightSizeExp
-			LSN_LOCK_TOP,							// pcTopSizeExp
-			LSN_LOCK_BOTTOM,						// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
+			LSN_LOCK_LEFT,												// pcLeftSizeExp
+			LSN_LOCK_RIGHT,												// pcRightSizeExp
+			LSN_LOCK_TOP,												// pcTopSizeExp
+			LSN_LOCK_BOTTOM,											// pcBottomSizeExp
+			nullptr, 0,													// pcWidthSizeExp
+			nullptr, 0,													// pcHeightSizeExp
 		} );
 		
 		

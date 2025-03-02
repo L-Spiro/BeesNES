@@ -334,7 +334,7 @@ namespace lsw {
 		rReturn.left = _rTabRect.right - iXW - (_bHasFocus ? 2 : ::GetSystemMetrics( SM_CXFRAME ));
 		rReturn.right = rReturn.left + iXW;
 
-		rReturn.top = _rTabRect.top + ((iHeight - iXH) >> 1);
+		rReturn.top = _rTabRect.top + ((iHeight - iXH) >> 1) + 1;
 		rReturn.bottom = rReturn.top + iXH;
 		return rReturn;
 	}

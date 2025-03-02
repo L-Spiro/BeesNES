@@ -93,18 +93,18 @@ namespace lsn {
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
 			}
-			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ));
+			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
 				ptbTrackBar->SetRange( TRUE, 0, 1000 );
 				ptbTrackBar->SetTicFreq( 50 );
 				ptbTrackBar->SetPos( TRUE, LPARAM( std::round( aoOptions.apCharacteristics.fVolume * 1000.0f ) ) );
 
-				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_EDIT );
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / 1000.0f ).c_str() ); }
 			}
 
 			{
-				pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO ));
+				pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO ));
 				if ( pcbCombo ) {
 					std::vector<CWinUtilities::LSN_COMBO_ENTRY> vPresets;
 					for ( size_t I = 0; I < LSN_AUDIO_OPTIONS::PresetTotal(); ++I ) {
@@ -125,42 +125,42 @@ namespace lsn {
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.bDither );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bLpfEnable );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf0Enable );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf1Enable );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bHpf2Enable );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bInvert );
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bNoise );
 			}
 
 
-			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
+			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
 
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf0 ).c_str() ); }
 
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf1 ).c_str() ); }
 
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf2 ).c_str() ); }
 
 			Update();
@@ -203,9 +203,9 @@ namespace lsn {
 					}
 					break;
 				}
-				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_EDIT : {
+				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT : {
 					if ( _wCtrlCode == EN_CHANGE ) {
-						lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ));
+						lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 						if ( ptbTrackBar ) {
 							ee::CExpEvalContainer::EE_RESULT rRes;
 							if ( _pwSrc->GetTextAsDoubleExpression( rRes ) ) {
@@ -216,55 +216,55 @@ namespace lsn {
 					}
 					break;
 				}
-				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO : {
+				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO : {
 					if ( _wCtrlCode == CBN_SELENDOK ) {
-						auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO ));
+						auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO ));
 						if ( pcbCombo ) {
 							auto lpSel = pcbCombo->GetCurSelItemData();
 							if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
-								auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
+								auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
 								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
 
-								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT );
+								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
 
-								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT );
+								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
 								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf1 ).c_str() ); }
 
-								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
+								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
 								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf2 ).c_str() ); }
 
 
-								lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK ));
+								lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable );
 								}
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf0Enable );
 								}
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf1Enable );
 								}
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable );
 								}
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert );
 								}
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bNoise );
 								}
 
-								auto ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ));
+								auto ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 								if ( ptbTrackBar ) {
 									ptbTrackBar->SetPos( TRUE, LPARAM( std::round( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fVolume * 1000.0f ) ) );
 
-									aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_EDIT );
+									aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
 									if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / 1000.0f ).c_str() ); }
 								}
 							}
@@ -295,9 +295,9 @@ namespace lsn {
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() ).c_str() ); }
 			}
-			else if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ) {
+			else if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ) {
 				lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(_pwWidget);
-				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_EDIT );
+				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
 				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / 1000.0f ).c_str() ); }
 				Update();
 			}
@@ -336,13 +336,13 @@ namespace lsn {
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_LABEL,
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_LABEL,
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_GROUP,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_LABEL,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_GROUP,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_LABEL,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_LABEL,
 
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,
@@ -353,23 +353,23 @@ namespace lsn {
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,
 
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK,
 
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK,
 
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK,
 
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_EDIT,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT,
 
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK,
-						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,
 					};
 					
 					bool bEnabled = ptTab->IsChecked( 1 );
@@ -393,41 +393,41 @@ namespace lsn {
 				pcbCheck->SetEnabled( bDitherEnabled );
 			}
 
-			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_PRESETS_COMBO ));
+			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO ));
 			if ( pcbCombo ) {
 				LSN_AUDIO_PROFILE apProfile;
-				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK ));
+				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK ));
 				if ( pcbCheck ) {
 					apProfile.bLpfEnable = pcbCheck->IsChecked();
-					pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK ));
+					pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK ));
 					if ( pcbCheck ) {
 						apProfile.bHpf0Enable = pcbCheck->IsChecked();
-						pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK ));
+						pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK ));
 						if ( pcbCheck ) {
 							apProfile.bHpf1Enable = pcbCheck->IsChecked();
-							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK ));
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK ));
 							if ( pcbCheck ) {
 								apProfile.bHpf2Enable = pcbCheck->IsChecked();
-								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK ));
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK ));
 								if ( pcbCheck ) {
 									apProfile.bInvert = pcbCheck->IsChecked();
-									pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK ));
+									pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 									if ( pcbCheck ) {
 										apProfile.bNoise = pcbCheck->IsChecked();
-										auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
+										auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
 										ee::CExpEvalContainer::EE_RESULT rRes;
 										if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 											apProfile.fLpf = float( rRes.u.dVal );
-											aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT );
+											aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 												apProfile.fHpf0 = float( rRes.u.dVal );
-												aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT );
+												aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
 												if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 													apProfile.fHpf1 = float( rRes.u.dVal );
-													aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
+													aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
 													if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 														apProfile.fHpf2 = float( rRes.u.dVal );
-														lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ));
+														lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 														if ( ptbTrackBar ) {
 															apProfile.fVolume = (ptbTrackBar->GetPos() / 1000.0f);
 
@@ -491,7 +491,7 @@ namespace lsn {
 			if ( ptbTrackBar ) {
 				aoOptions.fBgVol = (ptbTrackBar->GetPos() / 100.0f);
 			}
-			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_VOLUME_TRACKBAR ));
+			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
 				aoOptions.apCharacteristics.fVolume = (ptbTrackBar->GetPos() / 1000.0f);
 			}
@@ -505,54 +505,54 @@ namespace lsn {
 			if ( pcbCheck ) {
 				aoOptions.bDither = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bLpfEnable = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bHpf0Enable = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bHpf1Enable = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bHpf2Enable = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_INVERT_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bInvert = pcbCheck->IsChecked();
 			}
-			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_NOISE_CHECK ));
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bNoise = pcbCheck->IsChecked();
 			}
 
 			
-			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_LPF_EDIT );
+			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
 			if ( aEdit ) {
 				ee::CExpEvalContainer::EE_RESULT rRes;
 				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
 					aoOptions.apCharacteristics.fLpf = float( rRes.u.dVal );
 				}
 			}
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF0_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 			if ( aEdit ) {
 				ee::CExpEvalContainer::EE_RESULT rRes;
 				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
 					aoOptions.apCharacteristics.fHpf0 = float( rRes.u.dVal );
 				}
 			}
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF1_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
 			if ( aEdit ) {
 				ee::CExpEvalContainer::EE_RESULT rRes;
 				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
 					aoOptions.apCharacteristics.fHpf1 = float( rRes.u.dVal );
 				}
 			}
-			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_CHARACTERISTICS_HPF2_EDIT );
+			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
 			if ( aEdit ) {
 				ee::CExpEvalContainer::EE_RESULT rRes;
 				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {

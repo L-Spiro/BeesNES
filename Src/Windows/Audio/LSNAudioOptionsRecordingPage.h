@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The audio options window.
+ * Description: The audio recording window.
  */
 
 #pragma once
@@ -20,14 +20,14 @@ namespace lsn {
 	class													CMainWindow;
 
 	/**
-	 * Class CAudioOptionsWindow
-	 * \brief The audio options window.
+	 * Class CAudioOptionsRecordingPage
+	 * \brief The audio recording window.
 	 *
-	 * Description: The audio options window.
+	 * Description: The audio recording window.
 	 */
-	class CAudioOptionsWindow : public lsw::CMainWindow {
+	class CAudioOptionsRecordingPage : public lsw::CWidget {
 	public :
-		CAudioOptionsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
+		CAudioOptionsRecordingPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 
 
 		// == Functions.
@@ -37,13 +37,6 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		LSW_HANDLED											InitDialog();
-
-		/**
-		 * The WM_CLOSE handler.
-		 *
-		 * \return Returns an LSW_HANDLED code.
-		 */
-		LSW_HANDLED											Close();
 
 		/**
 		 * Handles the WM_COMMAND message.
@@ -58,26 +51,22 @@ namespace lsn {
 		/**
 		 * Saves the current input configuration and closes the dialog.
 		 */
-		void												SaveAndClose();
+		void												Save();
 
 		/**
-		 * Informs the control that a child tab control has just had a check toggled.
-		 * 
-		 * \param _pwTab A pointer to the tab control.
-		 * \param _iTab The index of the tab that was just toggled.
+		 * Updates the dialog.
 		 **/
-		virtual void										TabToggled( CWidget * _pwTab, int _iTab );
+		void												Update();
 
 
 	protected :
 		// == Members.
 		/** The options object. */
 		LSN_OPTIONS *										m_poOptions;
-		std::vector<CWidget *>								m_vPages;													/**< The pages. */
 
 	private :
 		typedef CAudioOptionsWindowLayout					Layout;
-		typedef lsw::CMainWindow							Parent;
+		typedef lsw::CWidget								Parent;
 	};
 
 

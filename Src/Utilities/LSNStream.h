@@ -261,7 +261,7 @@ namespace lsn {
 		 * \param _sString The string to write.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		inline bool									WriteString( const std::string &_sString ) {
+		inline bool									WriteString( const std::u8string &_sString ) {
 			if constexpr ( sizeof( _sString.size() ) > sizeof( uint32_t ) ) {
 				if ( _sString.size() & (~size_t( INT_MAX ) << 1) ) {
 					if ( !WriteUi32( 0 ) ) { return false; }
@@ -283,9 +283,9 @@ namespace lsn {
 		 **/
 		inline bool									WriteStringU16( const std::u16string &_u16String ) {
 			bool bErrored = false;
-			std::string sTmp = CUtilities::Utf16ToUtf8( _u16String.c_str(), &bErrored );
+			std::u8string sTmp = CUtilities::Utf16ToUtf8( _u16String.c_str(), &bErrored );
 			if ( bErrored ) {
-				return WriteString( std::string() );
+				return WriteString( std::u8string() );
 			}
 			return WriteString( sTmp );
 		}

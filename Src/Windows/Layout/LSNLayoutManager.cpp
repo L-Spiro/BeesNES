@@ -10,6 +10,7 @@
 
 #include "LSNLayoutManager.h"
 #include "../Audio/LSNAudioOptionsGeneralPage.h"
+#include "../Audio/LSNAudioOptionsRecordingPage.h"
 #include "../Audio/LSNAudioOptionsWindow.h"
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
@@ -58,6 +59,9 @@ namespace lsn {
 			}
 			case LSN_LT_AUDIO_OPTIONS_PERGAME_PAGE : {
 				return new CAudioOptionsGeneralPage<false>( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_AUDIO_OPTIONS_RECORDING_PAGE : {
+				return new CAudioOptionsRecordingPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 
 			case LSN_LT_PATCH_DIALOG : {

@@ -164,6 +164,27 @@
 #define LSN_AUDIO_OPTIONS_BUFFER_DELAY										Buffer Delay:
 #define LSN_AUDIO_OPTIONS_ANTI_ALIASING_QUALITY								Anti-Aliasing Quality:
 
+#define LSN_AUDIO_OPTIONS_RAW												Raw Audio Signal
+#define LSN_AUDIO_OPTIONS_CAPTURE_OUTPUT									Capture Output
+#define LSN_AUDIO_OPTIONS_PATH_												Path:
+#define LSN_AUDIO_OPTIONS_BROWSE											Browse
+#define LSN_AUDIO_OPTIONS_HZ_												Hz:
+#define LSN_AUDIO_OPTIONS_BITS_												Bits:
+#define LSN_AUDIO_OPTIONS_PCM												PCM
+#define LSN_AUDIO_OPTIONS_F32												32-Bit Float
+#define LSN_AUDIO_OPTIONS_ADPCM												ADPCM
+#define LSN_AUDIO_OPTIONS_DECIDED_BY_SETTINGS								Decided via Settings
+#define LSN_AUDIO_OPTIONS_RAW_DESC											The raw unfiltered {}-Hz audio signal will be captured to a WAV file set to {} Hz.
+#define LSN_AUDIO_OPTIONS_OUT_DESC											Audio will be captuerd after filters, anti-aliasing, and down-sampling have been applied, but while still in 32-bit float format.
+#define LSN_AUDIO_OPTIONS_START_CONDITION_									Start Condition:
+#define LSN_AUDIO_OPTIONS_END_CONDITION_									End Condition:
+#define LSN_AUDIO_OPTIONS_START_SAMPLE										Start at Sample\u2026									// Start at Sample...
+#define LSN_AUDIO_OPTIONS_END_SAMPLE										End at Sample\u2026										// End at Sample...
+#define LSN_AUDIO_OPTIONS_NONE												None
+#define LSN_AUDIO_OPTIONS_NON_SILENT										First Non-Zero
+#define LSN_AUDIO_OPTIONS_DURATION											Duration (Seconds)
+#define LSN_AUDIO_OPTIONS_SILENCE_FOR										Silence for (Seconds)
+
 // Patcher.
 #define LSN_PATCH_PATCH_ROM													Patch a ROM
 #define LSN_PATCH_FILE														File
@@ -228,3 +249,24 @@
 #define LSN_AUDIO_DEVICE_UNSUPPORTED_FORMAT_ERROR							The AudioStream doesn\u2019t support the requested format.
 #define LSN_AUDIO_DEVICE_PERMISSIONS_ERROR									The requested operation can\u2019t be completed because the process doesn\u2019t have permission.
 #define LSN_CORE_AUDIO_ERROR_UNKNOWN										Unknown Core Audio error.
+
+// WAV Files.
+#define LSN_WAV_PCM															PCM
+#define LSN_WAV_ADPCM														ADPCM
+#define LSN_WAV_IEEE_FLOAT													IEEE Floating Point
+#define LSN_WAV_ALAW														A Law
+#define LSN_WAV_MULAW														Mu Law
+#define LSN_WAV_DVI_ADPCM													DVI ADPCM
+#define LSN_WAV_YAMAHA_ADPCM												Yamaha ADPCM
+#define LSN_WAV_GSM_6_10													GSM Audio
+#define LSN_WAV_ITU_G_721_ADPCM												ITU G ADPCM
+#define LSN_WAV_MPEG														MPEG Audio
+#define LSN_WAV_EXTENSIBLE													Extensible
+
+
+
+
+
+
+
+

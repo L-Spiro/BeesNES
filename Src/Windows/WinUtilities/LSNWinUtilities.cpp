@@ -10,6 +10,7 @@
 
 #include "LSNWinUtilities.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Wav/LSNWavFile.h"
 
 namespace lsn {
 
@@ -110,6 +111,83 @@ namespace lsn {
 			{ LSN_LSTR( LSN_INPUT_ZAPPER ),								LSN_CT_ZAPPER,								},
 		};
 		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, LSN_CT_NONE );
+	}
+
+	/**
+	 * Fills a combo box with WAV-file formats.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavFormats( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WAV_PCM ),									CWavFile::LSN_F_PCM,								},
+			//{ LSN_LSTR( LSN_WAV_ADPCM ),								CWavFile::LSN_F_ADPCM,								},
+			{ LSN_LSTR( LSN_WAV_IEEE_FLOAT ),							CWavFile::LSN_F_IEEE_FLOAT,							},
+			//{ LSN_LSTR( LSN_WAV_ALAW ),									CWavFile::LSN_F_ALAW,								},
+			//{ LSN_LSTR( LSN_WAV_MULAW ),								CWavFile::LSN_F_MULAW,								},
+			//{ LSN_LSTR( LSN_WAV_DVI_ADPCM ),							CWavFile::LSN_F_DVI_ADPCM,							},
+			//{ LSN_LSTR( LSN_WAV_YAMAHA_ADPCM ),							CWavFile::LSN_F_YAMAHA_ADPCM,						},
+			//{ LSN_LSTR( LSN_WAV_GSM_6_10 ),								CWavFile::LSN_F_GSM_6_10,							},
+			//{ LSN_LSTR( LSN_WAV_ITU_G_721_ADPCM ),						CWavFile::LSN_F_ITU_G_721_ADPCM,					},
+			//{ LSN_LSTR( LSN_WAV_MPEG ),									CWavFile::LSN_F_MPEG,								},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_F_PCM );
+	}
+
+	/**
+	 * Fills a combo box with WAV-file streaming start conditions.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavStartConditions( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_NONE ),						CWavFile::LSN_SC_NONE,								},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_START_SAMPLE ),				CWavFile::LSN_SC_START_AT_SAMPLE,					},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_NON_SILENT ),					CWavFile::LSN_SC_FIRST_NON_ZERO,					},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_SILENCE_FOR ),				CWavFile::LSN_SC_ZERO_FOR_DURATION,					},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+	}
+
+	/**
+	 * Fills a combo box with WAV-file streaming end conditions.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavEndConditions( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_NONE ),						CWavFile::LSN_EC_NONE,								},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_END_SAMPLE ),					CWavFile::LSN_EC_END_AT_SAMPLE,						},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_SILENCE_FOR ),				CWavFile::LSN_EC_ZERO_FOR_DURATION,					},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_DURATION ),					CWavFile::LSN_EC_DURATION,							},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+	}
+
+	/**
+	 * Fills a combo box with WAV-file PCM bit values.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ L"8",														8,													},
+			{ L"16",													16,													},
+			{ L"24",													24,													},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
 	}
 
 	/**

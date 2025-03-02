@@ -92,6 +92,65 @@ namespace lsn {
 		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
 		 */
 		static bool												FillComboWithExpansion_Famicom( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV-file formats.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavFormats( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV-file streaming start conditions.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavStartConditions( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV-file streaming end conditions.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavEndConditions( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV-file PCM bit values.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with an array of UTF-16 strings.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		template <typename _tType>
+		static bool												FillComboWithStrings( CWidget * _pwComboBox, const std::vector<_tType> &_vStrings, LPARAM _lpDefaultSelect ) {
+			std::vector<LSN_COMBO_ENTRY> vEntries;
+			try {
+				if ( !_vStrings.size() ) { return FillComboBox( _pwComboBox, nullptr, 0, _lpDefaultSelect ); }
+				vEntries.resize( _vStrings.size() );
+				for ( size_t I = 0; I < _vStrings.size(); ++I ) {
+					vEntries[I].pwcName = reinterpret_cast<const wchar_t *>(_vStrings[I].c_str());
+					vEntries[I].lpParm = LPARAM( I );
+				}
+				return FillComboBox( _pwComboBox, &vEntries[0], vEntries.size(), _lpDefaultSelect );
+			}
+			catch ( ... ) { return false; }
+			return true;
+		}
 		
 		/**
 		 * Fills a combo box with the given array of LSN_COMBO_ENTRY structures.

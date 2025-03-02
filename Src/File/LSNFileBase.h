@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Utilities/LSNUtilities.h"
+
 #include <string>
 #include <vector>
 
@@ -130,6 +132,51 @@ namespace lsn {
 		 * \return Returns _vResult.
 		 **/
 		static std::vector<std::u16string> &				FindFiles( const char16_t * _pcFolderPath, const char16_t * _pcSearchString, bool _bIncludeFolders, std::vector<std::u16string> &_vResult );
+
+		/**
+		 * Gets the extension from a file path.
+		 *
+		 * \param _s16Path The file path whose extension is to be obtained.
+		 * \return Returns a string containing the file extension.
+		 */
+		template <typename _tType>
+		static _tType										GetFileExtension( const _tType &_s16Path );
+
+		/**
+		 * Compares the extention from a given file path to a given extension string.
+		 * 
+		 * \param _s16Path The file path whose extension is to be checked.
+		 * \param _pcExt The extension to check for being in _s16Path.
+		 * \return Returns true if the given file path's extension matches _pcExt.
+		 **/
+		static bool											CmpFileExtension( const std::u16string &_s16Path, const char16_t * _pcExt );
+
+		/**
+		 * Removes the extension from a file path.
+		 *
+		 * \param _s16Path The file path whose extension is to be removed.
+		 * \return Returns a string containing the file mname without the extension.
+		 */
+		template <typename _tType>
+		static _tType										NoExtension( const _tType &_s16Path );
+
+		/**
+		 * Gets the file name from a file path.
+		 *
+		 * \param _s16Path The file path whose name is to be obtained.
+		 * \return Returns a string containing the file name.
+		 */
+		template <typename _tType>
+		static _tType										GetFileName( const _tType &_s16Path );
+
+		/**
+		 * Gets the file path without the file name
+		 *
+		 * \param _s16Path The file path whose path is to be obtained.
+		 * \return Returns a string containing the file path.
+		 */
+		template <typename _tType>
+		static _tType										GetFilePath( const _tType &_s16Path );
 	};
 
 
@@ -137,5 +184,72 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
+	/**
+	 * Gets the extension from a file path.
+	 *
+	 * \param _s16Path The file path whose extension is to be obtained.
+	 * \return Returns a string containing the file extension.
+	 */
+	template <typename _tType>
+	inline _tType CFileBase::GetFileExtension( const _tType &_s16Path ) {
+		_tType s16File = GetFileName( _s16Path );
+		typename _tType::size_type stFound = s16File.rfind( typename _tType::value_type( '.' ) );
+		if ( stFound == _tType::npos ) { return _tType(); }
+		return s16File.substr( stFound + 1 );
+	}
+
+	/**
+	 * Removes the extension from a file path.
+	 *
+	 * \param _s16Path The file path whose extension is to be removed.
+	 * \return Returns a string containing the file mname without the extension.
+	 */
+	template <typename _tType>
+	inline _tType CFileBase::NoExtension( const _tType &_s16Path ) {
+		_tType s16File = GetFileName( _s16Path );
+		typename _tType::size_type stFound = s16File.rfind( typename _tType::value_type( '.' ) );
+		if ( stFound == _tType::npos ) { return _tType(); }
+		return s16File.substr( 0, stFound );
+	}
+
+	/**
+	 * Gets the file name from a file path.
+	 *
+	 * \param _s16Path The file path whose name is to be obtained.
+	 * \return Returns a string containing the file name.
+	 */
+	template <typename _tType>
+	inline _tType CFileBase::GetFileName( const _tType &_s16Path ) {
+		// If the last character is } then it is a file inside a ZIP.
+		if ( _s16Path.size() && _s16Path[_s16Path.size()-1] == typename _tType::value_type( '}' ) ) {
+			typename _tType::size_type stFound = _s16Path.rfind( typename _tType::value_type( '{' ) );
+			_tType s16File = _s16Path.substr( stFound + 1 );
+			s16File.pop_back();
+			return s16File;
+		}
+		_tType s16Normalized = CUtilities::Replace( _s16Path, typename _tType::value_type( '/' ), typename _tType::value_type( '\\' ) );
+		typename _tType::size_type stFound = s16Normalized.rfind( typename _tType::value_type( '\\' ) );
+		_tType s16File = s16Normalized.substr( stFound + 1 );
+
+		return s16File;
+	}
+
+	/**
+	 * Gets the file path without the file name
+	 *
+	 * \param _s16Path The file path whose path is to be obtained.
+	 * \return Returns a string containing the file path.
+	 */
+	template <typename _tType>
+	inline _tType CFileBase::GetFilePath( const _tType &_s16Path ) {
+		if ( _s16Path.size() ) {
+			_tType s16Normalized = CUtilities::Replace( _s16Path, typename _tType::value_type( '/' ), typename _tType::value_type( '\\' ) );
+			typename _tType::size_type stFound = s16Normalized.rfind( typename _tType::value_type( '\\' ) );
+			if ( stFound >= s16Normalized.size() ) { return _tType(); }
+			_tType s16File = s16Normalized.substr( 0, stFound + 1 );
+			return s16File;
+		}
+		return _tType();
+	}
 
 }	// namespace lsn

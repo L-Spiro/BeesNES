@@ -262,6 +262,12 @@
     <Filter Include="Source Files\Windows\Audio">
       <UniqueIdentifier>{06863381-3f29-44b9-a3cd-3d6c86fa7561}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Wav">
+      <UniqueIdentifier>{973d3474-13d3-4002-b28f-f7aa2cbe709c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Wav">
+      <UniqueIdentifier>{b2e67b50-2fb2-4d39-91d8-f25faabbf4c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -882,6 +888,12 @@
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsGeneralPage.h">
       <Filter>Header Files\Windows\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.h">
+      <Filter>Header Files\Windows\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Wav\LSNWavFile.h">
+      <Filter>Header Files\Wav</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1225,6 +1237,12 @@
     </ClCompile>
     <ClCompile Include="Src\Audio\LSNAudioOptions.cpp">
       <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.cpp">
+      <Filter>Source Files\Windows\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Wav\LSNWavFile.cpp">
+      <Filter>Source Files\Wav</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

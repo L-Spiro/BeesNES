@@ -92,14 +92,14 @@ namespace lsn {
 	 * \param _pbErrored If not nullptr, holds a returned boolean indicating success or failure of the conversion.
 	 * \return Returns the converted UTF-8 string.
 	 */
-	std::string CUtilities::Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored ) {
+	std::u8string CUtilities::Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored ) {
 #ifdef LSN_WINDOWS
 		if ( _pbErrored != nullptr ) { (*_pbErrored) = true; }
-		std::string sOutput;
-		int iLen = ::WideCharToMultiByte( CP_UTF8, 0/*WC_ERR_INVALID_CHARS*/, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
+		std::u8string sOutput;
+		int iLen = ::WideCharToMultiByte( CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(_pcString), -1, reinterpret_cast<LPSTR>(sOutput.data()), static_cast<int>(sOutput.size()), NULL, NULL );
 		if ( iLen <= 0 ) { return sOutput; }
 		sOutput.resize( iLen + 10 );
-		iLen = ::WideCharToMultiByte( CP_UTF8, 0/*WC_ERR_INVALID_CHARS*/, reinterpret_cast<LPCWCH>(_pcString), -1, sOutput.data(), static_cast<int>(sOutput.size()), NULL, NULL );
+		iLen = ::WideCharToMultiByte( CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(_pcString), -1, reinterpret_cast<LPSTR>(sOutput.data()), static_cast<int>(sOutput.size()), NULL, NULL );
 		if ( iLen <= 0 ) {
 			sOutput.clear();
 			return sOutput;
@@ -118,24 +118,6 @@ namespace lsn {
 			return std::string();
 		}
 #endif	// #ifdef LSN_WINDOWS
-	}
-
-	/**
-	 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
-	 *
-	 * \param _s16String The string in which replacements are to be made.
-	 * \param _cReplaceMe The character to replace.
-	 * \param _cWithMe The character with which to replace _cReplaceMe.
-	 * \return Returns the new string with the given replacements made.
-	 */
-	std::u16string CUtilities::Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe ) {
-		std::u16string s16Copy = _s16String;
-		auto aFound = s16Copy.find( _cReplaceMe );
-		while ( aFound != std::string::npos ) {
-			s16Copy[aFound] = _cWithMe;
-			aFound = s16Copy.find( _cReplaceMe, aFound + 1 );
-		}
-		return s16Copy;
 	}
 
 	/**

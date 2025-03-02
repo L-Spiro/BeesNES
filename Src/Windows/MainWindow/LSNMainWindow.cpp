@@ -483,6 +483,7 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_AUDIO : {
+				m_bnEmulator.Options().dApuHz = m_bnEmulator.GetSystem()->GetApuHz();
 				auto iRet = CAudioOptionsWindowLayout::CreateAudioOptionsDialog( this, m_bnEmulator.Options() );
 				if ( iRet ) {
 					m_bnEmulator.ApplyAudioOptions();

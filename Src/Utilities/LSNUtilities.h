@@ -74,7 +74,7 @@ namespace lsn {
 		 * \param _pbErrored If not nullptr, holds a returned boolean indicating success or failure of the conversion.
 		 * \return Returns the converted UTF-8 string.
 		 */
-		static std::string									Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored = nullptr );
+		static std::u8string								Utf16ToUtf8( const char16_t * _pcString, bool * _pbErrored = nullptr );
 
 		/**
 		 * Converts a value to a string.
@@ -159,7 +159,16 @@ namespace lsn {
 		 * \param _cWithMe The character with which to replace _cReplaceMe.
 		 * \return Returns the new string with the given replacements made.
 		 */
-		static std::u16string								Replace( const std::u16string &_s16String, char16_t _cReplaceMe, char16_t _cWithMe );
+		template <typename _tType = std::u16string>
+		static _tType										Replace( const _tType &_s16String, _tType::value_type _cReplaceMe, _tType::value_type _cWithMe ) {
+			_tType s16Copy = _s16String;
+			auto aFound = s16Copy.find( _cReplaceMe );
+			while ( aFound != _tType::npos ) {
+				s16Copy[aFound] = _cWithMe;
+				aFound = s16Copy.find( _cReplaceMe, aFound + 1 );
+			}
+			return s16Copy;
+		}
 
 		/**
 		 * Performs ::towlower() on the given input.
@@ -172,6 +181,22 @@ namespace lsn {
 			_tType sRet = _Str;
 			std::transform( sRet.begin(), sRet.end(), sRet.begin(), []( _tType::value_type _iC ) { return ::towlower( static_cast<wint_t>(_iC) ); } );	
 			return sRet;
+		}
+
+		/**
+		 * Adds an element to index 0 for moves it to the bottom (index 0) of an array.
+		 * 
+		 * \param _vArray The array to update.
+		 * \param _tValue The value to insert or move.
+		 **/
+		template <typename _tType = std::u16string>
+		static inline void									AddOrMove( std::vector<_tType> &_vArray, const _tType &_tValue ) {
+			auto aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
+			while ( aTmp != _vArray.end() ) {
+				_vArray.erase( aTmp );
+				aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
+			}
+			_vArray.insert( _vArray.begin(), _tValue );
 		}
 
 		/**

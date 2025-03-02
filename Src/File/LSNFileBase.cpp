@@ -9,7 +9,6 @@
 
 #include "LSNFileBase.h"
 #include "../OS/LSNOs.h"
-#include "../Utilities/LSNUtilities.h"
 
 #ifndef LSN_WINDOWS
 #include <filesystem>
@@ -41,9 +40,9 @@ namespace lsn {
 	 */
 	bool CFileBase::Open( const char16_t * _pcFile ) {
 		bool bErrored;
-		std::string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
+		std::u8string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
 		if ( bErrored ) { return false; }
-		return Open( reinterpret_cast<const char8_t *>(sTmp.c_str()) );
+		return Open( sTmp.c_str() );
 	}
 
 	/**
@@ -67,9 +66,9 @@ namespace lsn {
 	 */
 	bool CFileBase::Create( const char16_t * _pcFile ) {
 		bool bErrored;
-		std::string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
+		std::u8string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
 		if ( bErrored ) { return false; }
-		return Create( reinterpret_cast<const char8_t *>(sTmp.c_str()) );
+		return Create( sTmp.c_str() );
 	}
 
 	/**
@@ -120,12 +119,12 @@ namespace lsn {
 	 **/
 	std::vector<std::u16string> & CFileBase::FindFiles( const char16_t * _pcFolderPath, const char16_t * _pcSearchString, bool _bIncludeFolders, std::vector<std::u16string> &_vResult ) {
 #ifdef LSN_WINDOWS
-		std::u16string sPath = CUtilities::Replace( _pcFolderPath, u'/', u'\\' );
+		std::u16string sPath = CUtilities::Replace( std::u16string( _pcFolderPath ), u'/', u'\\' );
 		while ( sPath.size() && sPath[sPath.size()-1] == u'\\' ) { sPath.pop_back(); }
 		sPath.push_back( u'\\' );
 		std::u16string sSearch;
 		if ( _pcSearchString ) {
-			sSearch = CUtilities::Replace( _pcSearchString, u'/', u'\\' );
+			sSearch = CUtilities::Replace( std::u16string( _pcSearchString ), u'/', u'\\' );
 			while ( sSearch[0] == u'\\' ) {
 				sSearch.erase( sSearch.begin() );
 			}

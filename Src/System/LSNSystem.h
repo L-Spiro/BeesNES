@@ -284,6 +284,13 @@ namespace lsn {
 		virtual uint64_t								GetApuDiv() const { return ApuDiv(); }
 
 		/**
+		 * Gets the APU Hz.
+		 * 
+		 * \return Returns the APU Hz.
+		 **/
+		virtual double									GetApuHz() const { return m_aApu.Hz(); }
+
+		/**
 		 * Gets the PPU frame count
 		 *
 		 * \return Returns the PPU frame count.

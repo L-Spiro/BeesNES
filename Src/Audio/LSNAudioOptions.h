@@ -87,7 +87,6 @@ namespace lsn {
 
 		LSN_AUDIO_PROFILE								apCharacteristics;
 
-
 		
 
 		// == Members.

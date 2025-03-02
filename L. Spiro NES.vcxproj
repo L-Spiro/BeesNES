@@ -1928,7 +1928,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Wav\LSNWavFile.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsGeneralPage.h" />
+    <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerConfigurePage.h" />
@@ -2046,6 +2048,8 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Wav\LSNWavFile.cpp" />
+    <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindow.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNControllerConfigurePage.cpp" />

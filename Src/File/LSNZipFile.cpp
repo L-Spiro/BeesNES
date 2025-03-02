@@ -119,10 +119,10 @@ namespace lsn {
 	bool CZipFile::ExtractToMemory( const std::u16string &_s16File, std::vector<uint8_t> &_vResult ) const {
 		if ( m_pfFile != nullptr || m_zaArchive.m_archive_size != 0 ) {
 			bool bError;
-			std::string sUtf8 = CUtilities::Utf16ToUtf8( _s16File.c_str(), &bError );
+			std::u8string sUtf8 = CUtilities::Utf16ToUtf8( _s16File.c_str(), &bError );
 			if ( bError ) { return false; }
 			size_t stSize;
-			void * pvData = ::mz_zip_reader_extract_file_to_heap( const_cast<mz_zip_archive *>(&m_zaArchive), sUtf8.c_str(), &stSize, 0 );
+			void * pvData = ::mz_zip_reader_extract_file_to_heap( const_cast<mz_zip_archive *>(&m_zaArchive), reinterpret_cast<const char *>(sUtf8.c_str()), &stSize, 0 );
 			if ( pvData == nullptr ) { return false; }
 			try {
 				_vResult = std::vector<uint8_t>( static_cast<uint8_t *>(pvData), static_cast<uint8_t *>(pvData) + stSize );

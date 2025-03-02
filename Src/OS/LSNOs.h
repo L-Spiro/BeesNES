@@ -31,6 +31,7 @@
 	#define LSN_PREFETCH_LINE( ADDR )			_mm_prefetch( reinterpret_cast<const char *>(ADDR), _MM_HINT_T0 );
     #define LSN_LIKELY( x )						( x ) [[likely]]
     #define LSN_UNLIKELY( x )					( x ) [[unlikely]]
+	#define LSN_STDCALL							__stdcall
 #elif defined( __GNUC__ ) || defined( __clang__ )
     // GNU Compiler Collection (GCC) or Clang
     #define LSN_ALIGN( n ) 						__attribute__( (aligned( n )) )
@@ -41,6 +42,7 @@
     #define LSN_LIKELY( x )						( __builtin_expect( !!(x), 1 ) )
     #define LSN_UNLIKELY( x )					( __builtin_expect( !!(x), 0 ) )
     #define __assume( x )
+	#define LSN_STDCALL
 #else
 	#define LSN_FORCEINLINE						inline
     #error "Unsupported compiler"

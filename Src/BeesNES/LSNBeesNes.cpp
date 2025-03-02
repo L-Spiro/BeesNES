@@ -454,6 +454,8 @@ namespace lsn {
 		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
 
 		LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions );
+		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wRawAudioPath)) ) ) { return false; }
+		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wOutAudioPath)) ) ) { return false; }
 		return true;
 	}
 
@@ -476,6 +478,8 @@ namespace lsn {
 		if ( !_sFile.Write( m_oOptions.pmRegion ) ) { return false; }
 
 		SaveAudioSettings( _sFile, m_oOptions.aoGlobalAudioOptions );
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wRawAudioPath.c_str(), m_oOptions.wRawAudioPath.size() ) ) ) { return false; }
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wOutAudioPath.c_str(), m_oOptions.wOutAudioPath.size() ) ) ) { return false; }
 		return true;
 	}
 
