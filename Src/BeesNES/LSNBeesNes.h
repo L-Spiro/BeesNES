@@ -443,6 +443,25 @@ namespace lsn {
 		bool									SaveAudioSettings( CStream &_sFile, LSN_AUDIO_OPTIONS &_aoAudioOptions );
 
 		/**
+		 * Loads audio stream-to-file settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _stfoAudioOptions The audio options into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadAudioStreamSettings( uint32_t _ui32Version, CStream &_sFile, CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoAudioOptions );
+
+		/**
+		 * Saves audio stream-to-file settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _stfoAudioOptions The audio options to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveAudioStreamSettings( CStream &_sFile, CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoAudioOptions );
+
+		/**
 		 * Adds or move to the top a given file path.
 		 * 
 		 * \param _s16Path The file path to add or move to the top.

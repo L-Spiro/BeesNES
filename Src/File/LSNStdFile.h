@@ -100,6 +100,13 @@ namespace lsn {
 		virtual void										Close();
 
 		/**
+		 * Determines whether the file is open for read or write or not.
+		 * 
+		 * \return returns true if the file is open, false otherwise.
+		 **/
+		virtual bool										IsOpen() const { return m_pfFile != NULL; }
+
+		/**
 		 * Loads the opened file to memory, storing the result in _vResult.
 		 *
 		 * \param _vResult The location where to store the file in memory.
@@ -123,6 +130,37 @@ namespace lsn {
 		 * \return Returns true if the data was successfully written to the file.
 		 */
 		virtual bool										WriteToFile( const uint8_t * _pui8Data, size_t _tsSize );
+
+		/**
+		 * Writes arbitrarily typed data to the created file.
+		 * 
+		 * \param _tVal The value to write.
+		 * \return Returns true if the data was successfully written to the file.
+		 **/
+		template <typename _tType>
+		inline bool											Write( const _tType &_tVal ) {
+			return WriteToFile( reinterpret_cast<const uint8_t *>(&_tVal), sizeof( _tVal ) );
+		}
+
+		/**
+		 * Writes an int32_t to the created file.
+		 * 
+		 * \param _i32Val The value to write.
+		 * \return Returns true if the data was successfully written to the file.
+		 **/
+		inline bool											WriteUi32( int32_t _i32Val ) {
+			return WriteToFile( reinterpret_cast<const uint8_t *>(&_i32Val), sizeof( _i32Val ) );
+		}
+
+		/**
+		 * Writes a uint32_t to the created file.
+		 * 
+		 * \param _ui32Val The value to write.
+		 * \return Returns true if the data was successfully written to the file.
+		 **/
+		inline bool											WriteUi32( uint32_t _ui32Val ) {
+			return WriteToFile( reinterpret_cast<const uint8_t *>(&_ui32Val), sizeof( _ui32Val ) );
+		}
 
 		/**
 		 * Gets the size of the file.

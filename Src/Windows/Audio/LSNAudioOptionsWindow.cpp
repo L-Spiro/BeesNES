@@ -141,6 +141,20 @@ namespace lsn {
 	 * Saves the current input configuration and closes the dialog.
 	 */
 	void CAudioOptionsWindow::SaveAndClose() {
+		if ( m_vPages.size() >= 3 ) {
+			std::wstring wsErr;
+			auto pwErrorWidget = reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2])->Verify( wsErr );
+			if ( pwErrorWidget ) {
+				lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+				if ( ptTab ) {
+					ptTab->SetCurSel( 2 );
+					pwErrorWidget->SetFocus();
+				}
+				lsw::CBase::MessageBoxError( Wnd(), wsErr.c_str(), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2])->Save();
+		}
 		// Not so graceful.
 		if ( m_vPages.size() >= 1 ) {
 			reinterpret_cast<CAudioOptionsGeneralPage<true> *>(m_vPages[0])->Save();

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cwctype>
 //#include <intrin.h>
 #include <numbers>
 #include <random>
@@ -91,6 +92,25 @@ namespace lsn {
 				usNumber.insert( usNumber.begin(), u'0' );
 			}
 			return usNumber;
+		}
+
+		/**
+		 * Converts an * string to a std::wstring.  Call inside try{}catch(...){}.
+		 * 
+		 * \param _pwcStr The string to convert.
+		 * \param _sLen The length of the string or 0.
+		 * \return Returns the converted string.
+		 **/
+		template <typename _tCharType>
+		static inline std::wstring							XStringToWString( const _tCharType * _pwcStr, size_t _sLen ) {
+			std::wstring u16Tmp;
+			if ( _sLen ) {
+				u16Tmp.reserve( _sLen );
+			}
+			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+				u16Tmp.push_back( static_cast<wchar_t>(_pwcStr[I]) );
+			}
+			return u16Tmp;
 		}
 
 		/**
@@ -184,19 +204,47 @@ namespace lsn {
 		}
 
 		/**
-		 * Adds an element to index 0 for moves it to the bottom (index 0) of an array.
+		 * Is a string entirely whitespace?
+		 * 
+		 * \param _tValue The string to test.
+		 * \return Returns true if all characters in the given string are whitespace, false otherwise.
+		 **/
+		template <typename _tType = std::u16string>
+		static inline bool									IsWhiteSpace( const _tType &_tValue ) {
+			bool bHasNonZero = false;
+			for ( auto I = _tValue.size(); I--; ) {
+				if ( _tValue[I] && !std::iswspace( _tValue[I] ) ) { return false; }
+				if ( _tValue[I] ) { bHasNonZero = true; }
+			}
+			return !bHasNonZero;
+		}
+
+		/**
+		 * Adds an element to index 0 for moves it to the bottom (index 0) of an array.  Empty strings and whitespace are not added, and are removed from the array on every call.
 		 * 
 		 * \param _vArray The array to update.
 		 * \param _tValue The value to insert or move.
+		 * \param _stMax The maximum size of the array.
 		 **/
 		template <typename _tType = std::u16string>
-		static inline void									AddOrMove( std::vector<_tType> &_vArray, const _tType &_tValue ) {
-			auto aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
-			while ( aTmp != _vArray.end() ) {
-				_vArray.erase( aTmp );
-				aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
+		static inline void									AddOrMove( std::vector<_tType> &_vArray, const _tType &_tValue, size_t _stMax = 100 ) {
+			try {
+				for ( auto I = _vArray.size(); I--; ) {
+					if ( !_vArray[I].size() || IsWhiteSpace( _vArray[I] ) ) { _vArray.erase( _vArray.begin() + I ); }
+				}
+				if ( _tValue.size() ) {
+					auto aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
+					while ( aTmp != _vArray.end() ) {
+						_vArray.erase( aTmp );
+						aTmp = std::find( _vArray.begin(), _vArray.end(), _tValue );
+					}
+					_vArray.insert( _vArray.begin(), _tValue );
+				}
+				if ( _vArray.size() > _stMax ) {
+					_vArray.resize( _stMax );
+				}
 			}
-			_vArray.insert( _vArray.begin(), _tValue );
+			catch ( ... ) {}
 		}
 
 		/**

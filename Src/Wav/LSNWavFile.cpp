@@ -7,7 +7,7 @@
  */
 
 #include "LSNWavFile.h"
-#include "../File/LSNStdFile.h"
+#include "../OS/LSNOs.h"
 #include "../Utilities/LSNUtilities.h"
 
 #include <codecvt>
@@ -27,6 +27,7 @@ namespace lsn {
 		m_uiBaseNote( 64 ) {
 	}
 	CWavFile::~CWavFile() {
+		StopStream();
 		Reset();
 	}
 
@@ -218,11 +219,11 @@ namespace lsn {
 		uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
 		uint32_t ui32DataSize = CalcSize( static_cast<LSN_FORMAT>(fcChunk.uiAudioFormat), static_cast<uint32_t>(_vSamples[0].size()), static_cast<uint16_t>(_vSamples.size()), fcChunk.uiBitsPerSample );
 
-		uint32_t ui32Size = 4 +						// "WAVE".
-			uiFmtSize +								// "fmt " chunk.
-			ui32DataSize + 8 +						// "data" chunk.
-			static_cast<uint32_t>(vLoops.size()) +	// "smpl" chunk.
-			static_cast<uint32_t>(vList.size()) +	// "LIST" chunk.
+		uint32_t ui32Size = 4 +							// "WAVE".
+			uiFmtSize +									// "fmt " chunk.
+			ui32DataSize + 8 +							// "data" chunk.
+			static_cast<uint32_t>(vLoops.size()) +		// "smpl" chunk.
+			static_cast<uint32_t>(vList.size()) +		// "LIST" chunk.
 			0;
 
 		std::vector<uint8_t> vRet;
@@ -292,7 +293,164 @@ namespace lsn {
 
 #undef LSN_PUSH32
 		return true;
+	}
 
+	/**
+	 * Opens a stream to a WAV file.  Samples can be written over time.
+	 * 
+	 * \param _pcPath The path to which to stream WAV data.
+	 * \param _ui32Hz The WAV Hz.
+	 * \param _fFormat The WAV format.
+	 * \param _ui16Bits The PCM bits.
+	 * \param _ui16Channels The channel count.
+	 * \param _bDither Whether to dither 16-bit PCM data or not.
+	 * \param _scStartCondition The starting condition.
+	 * \param _scpStartParm The starting condition paramater.
+	 * \param _ecEndCondition The stopping condition.
+	 * \param _scpEndParm The stopping condition paramater.
+	 * \param _stBufferSize The buffer size (in samples).
+	 * \return Returns true if the file could initially be created and all parameters are correct.
+	 **/
+	bool CWavFile::StreamToFile( const char8_t * _pcPath, uint32_t _ui32Hz, LSN_FORMAT _fFormat, uint16_t _ui16Bits, uint16_t _ui16Channels, bool _bDither,
+		LSN_START_CONDITIONS _scStartCondition, LSN_STREAM_COND_PARM _scpStartParm,
+		LSN_END_CONDITIONS _ecEndCondition, LSN_STREAM_COND_PARM _scpEndParm,
+		size_t _stBufferSize ) {
+		StopStream();
+
+		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+		
+		switch ( _scStartCondition ) {
+			case LSN_SC_NONE : {
+				m_sStream.cdStartData.ui64Parm0 = 0;
+				break;
+			}
+			case LSN_SC_START_AT_SAMPLE : {
+				m_sStream.cdStartData.ui64Parm0 = _scpStartParm.ui64Parm;
+				break;
+			}
+			case LSN_SC_FIRST_NON_ZERO : {
+				break;
+			}
+			case LSN_SC_ZERO_FOR_DURATION : {
+				m_sStream.cdStartData.ui64Counter = 0;
+				m_sStream.cdStartData.ui64Parm0 = uint64_t( std::round( _scpStartParm.dParm * _ui32Hz ) );
+				break;
+			}
+			default : {
+				std::wprintf( L"Unrecognized start condition %X: %s.\r\n", _scStartCondition, reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
+				return false;
+			}
+		}
+		
+		switch ( _ecEndCondition ) {
+			case LSN_EC_NONE : {
+				m_sStream.cdStopData.ui64Parm0 = 0;
+				break;
+			}
+			case LSN_EC_END_AT_SAMPLE : {
+				m_sStream.cdStopData.ui64Parm0 = _scpEndParm.ui64Parm;
+				/*if ( _scStartCondition == LSN_SC_NONE || _scStartCondition == LSN_SC_START_AT_SAMPLE ) {
+					ui64Samples = m_sStream.cdStopData.ui64Parm0 - m_sStream.cdStartData.ui64Parm0;
+				}*/
+				break;
+			}
+			case LSN_EC_ZERO_FOR_DURATION : {
+				m_sStream.cdStopData.ui64Counter = 0;
+				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
+				break;
+			}
+			case LSN_EC_DURATION : {
+				m_sStream.cdStopData.ui64Counter = 0;
+				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
+				/*ui64Samples = m_sStream.cdStopData.ui64Parm0;*/
+				break;
+			}
+			default : {
+				std::wprintf( L"Unrecognized stop condition %X: %s.\r\n", _ecEndCondition, reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
+				return false;
+			}
+		}
+
+		m_sStream.fFormat = _fFormat;
+		m_sStream.ui16Bits = _ui16Bits;
+		m_sStream.ui16Channels = _ui16Channels;
+		m_sStream.bDither = _bDither;
+		m_sStream.ui32Hz = _ui32Hz;
+
+		if ( m_sStream.fFormat == LSN_F_IEEE_FLOAT ) {
+			m_sStream.ui16Bits = 32;
+		}
+		
+		if ( !CreateStreamFile( _pcPath ) ) {
+			m_sStream.sfFile.Close();
+			return false;
+		}
+		
+		try {
+			m_sStream.stBufferSize = _stBufferSize * m_sStream.ui16Channels;
+			m_sStream.vCurBuffer.clear();
+			m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
+		}
+		catch ( ... ) { return false; }
+		m_sStream.bEnd = false;
+		m_sStream.bStreaming = true;
+
+		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
+		return true;
+	}
+
+	/**
+	 * Stops the streaming file.
+	 **/
+	void CWavFile::StopStream() {
+		{
+			std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+			if ( m_sStream.sfFile.IsOpen() ) {
+				if ( m_sStream.bStreaming ) {
+					if ( !m_sStream.vCurBuffer.empty() ) {
+						m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+						m_sStream.vCurBuffer.clear();
+					}
+					m_sStream.bEnd = true;	// File will be closed in the writer thread.
+				}
+			}
+		}
+
+		m_sStream.cvCondition.notify_one();
+        if ( m_sStream.tThread.joinable()) {
+            m_sStream.tThread.join();
+        }
+
+
+		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+		{
+			m_sStream.bStreaming = false;
+		}
+	}
+
+	/**
+	 * Adds a sample to the stream.
+	 * 
+	 * \param _fSample The sample to add.
+	 **/
+	void CWavFile::AddStreamSample( float _fSample ) {
+		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+		if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
+			m_sStream.vCurBuffer.push_back( _fSample );
+			uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
+			++m_sStream.ui32WavFile_DSize;
+
+			if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
+				m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {													// Buffer limit reached.
+				// Efficiently pass the buffer off to the writer thread.
+				m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+				// Create a new buffer and reserve space for efficiency.
+				m_sStream.vCurBuffer.clear();
+				m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
+				// Notify the writer thread that a full buffer is ready.
+				m_sStream.cvCondition.notify_one();
+			}
+		}
 	}
 
 	/**
@@ -1214,6 +1372,107 @@ namespace lsn {
 		}
 #undef LSN_PUSH32
 		return vRet;
+	}
+
+	/**
+	 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
+	 * 
+	 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+	 * \return Returns true if the file was created and the header was written to it.
+	 **/
+	bool CWavFile::CreateStreamFile( const char8_t * _pcPath ) {
+		LSN_SAVE_DATA sdSaveSettings( m_sStream.ui32Hz, m_sStream.ui16Bits );
+		
+		if ( !m_sStream.sfFile.Create( _pcPath ) ) {
+			std::wprintf( L"Failed to create stream file: %s.\r\n", reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
+			return false;
+		}
+
+		LSN_FMT_CHUNK fcChunk = CreateFmt( m_sStream.fFormat, m_sStream.ui16Channels,
+			&sdSaveSettings );
+
+		uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
+		//volatile auto aMaxFmtSize = sizeof( fcChunk );
+
+		uint32_t ui32Samples = 0;//uint32_t( std::min<uint64_t>( UINT_MAX, ui64Samples ));
+		uint32_t ui32DataSize = CalcSize( m_sStream.fFormat, ui32Samples, m_sStream.ui16Channels, fcChunk.uiBitsPerSample );
+
+		uint32_t ui32Size = 4 +							// "WAVE".
+			uiFmtSize +									// "fmt " chunk.
+			ui32DataSize + 8 +							// "data" chunk.
+			0;
+
+		if ( !m_sStream.sfFile.WriteUi32( LSN_C_RIFF ) ) { return false; }
+
+		m_sStream.ui64WavFileOffset_Size = m_sStream.sfFile.Size();
+		if ( !m_sStream.sfFile.Write( ui32Size ) ) { return false; }
+		
+		if ( !m_sStream.sfFile.WriteUi32( LSN_C_WAVE ) ) { return false; }
+
+		if ( !m_sStream.sfFile.WriteToFile( reinterpret_cast<const uint8_t *>(&fcChunk), uiFmtSize ) ) { return false; }
+		// Append the "data" chunk.
+		if ( !m_sStream.sfFile.WriteUi32( LSN_C_DATA ) ) { return false; }
+		
+		m_sStream.ui64WavFileOffset_DSize = m_sStream.sfFile.Size();
+		if ( !m_sStream.sfFile.Write( ui32DataSize ) ) { return false; }
+		
+		// File now ready for streaming.
+		
+		m_sStream.ui32WavFile_Size = 4 + uiFmtSize;
+		m_sStream.ui32WavFile_DSize = 0;
+
+		//m_sStream.ui64FinalSampleCount = ui64Samples;
+		return true;
+	}
+
+	/**
+	 * Closes the current streaming file.
+	 **/
+	void CWavFile::CloseStreamFile() {
+		if LSN_LIKELY( m_sStream.sfFile.IsOpen() ) {
+			if LSN_LIKELY( m_sStream.bStreaming ) {
+				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_Size );
+				m_sStream.sfFile.Write( m_sStream.ui32WavFile_Size );
+
+				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_DSize );
+				m_sStream.sfFile.Write( m_sStream.ui32WavFile_DSize );
+			}
+		
+			m_sStream.sfFile.Close();
+		}
+	}
+
+	/**
+	 * The stream-to-file writer thread.
+	 **/
+	void CWavFile::StreamWriterThread() {
+		while ( true ) {
+			std::vector<float> vBufferToWrite;
+			{
+				std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+				// Wait until there is a full buffer or a shutdown is signaled.
+                m_sStream.cvCondition.wait( ulLock, [this] {
+                    return !m_sStream.qBufferQueue.empty() || m_sStream.bEnd;
+                });
+
+				// If there’s data to write, retrieve the next buffer.
+                if ( !m_sStream.qBufferQueue.empty() ) {
+                    vBufferToWrite = std::move( m_sStream.qBufferQueue.front() );
+                    m_sStream.qBufferQueue.pop();
+                }
+				else if ( m_sStream.bEnd ) {
+                    // No more buffers and shutdown requested.
+                    break;
+                }
+			}
+			// Write the buffer to disk (if any)
+            if ( !vBufferToWrite.empty() ) {
+                m_sStream.sfFile.WriteToFile( reinterpret_cast<const uint8_t *>(vBufferToWrite.data()),
+					vBufferToWrite.size() * sizeof( float ) );
+            }
+		}
+		CloseStreamFile();
+
 	}
 
 }	// namespace lsn

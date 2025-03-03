@@ -446,16 +446,45 @@ namespace lsn {
 		if ( !LoadInputSettings( ui32Version, _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
 		if ( !LoadRecentFiles( ui32Version, _sFile ) ) { return false; }
 
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wInRomInitPath)) ) ) { return false; }
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wOutRomInitPath)) ) ) { return false; }
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wPatchInitPath)) ) ) { return false; }
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wDefaultRomPath)) ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wInRomInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wOutRomInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wPatchInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wDefaultRomPath ) ) { return false; }
 
 		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
 
-		LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions );
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wRawAudioPath)) ) ) { return false; }
-		if ( !_sFile.ReadStringU16( (*reinterpret_cast<std::u16string *>(&m_oOptions.wOutAudioPath)) ) ) { return false; }
+		if ( !LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wRawAudioPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wOutAudioPath ) ) { return false; }
+
+		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
+		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsOutCaptire ) ) { return false; }
+		
+		try {
+			auto aSize = m_oOptions.vRawStartHistory.size();
+			if ( !_sFile.Read( aSize ) ) { return false; }
+			m_oOptions.vRawStartHistory.resize( aSize );
+			for ( size_t I = 0; I < aSize; ++I ) {
+				if ( !_sFile.ReadStringU16( m_oOptions.vRawStartHistory[I] ) ) { return false; }
+			}
+			if ( !_sFile.Read( aSize ) ) { return false; }
+			m_oOptions.vRawEndHistory.resize( aSize );
+			for ( size_t I = 0; I < aSize; ++I ) {
+				if ( !_sFile.ReadStringU16( m_oOptions.vRawEndHistory[I] ) ) { return false; }
+			}
+
+			if ( !_sFile.Read( aSize ) ) { return false; }
+			m_oOptions.vOutStartHistory.resize( aSize );
+			for ( size_t I = 0; I < aSize; ++I ) {
+				if ( !_sFile.ReadStringU16( m_oOptions.vOutStartHistory[I] ) ) { return false; }
+			}
+			if ( !_sFile.Read( aSize ) ) { return false; }
+			m_oOptions.vOutEndHistory.resize( aSize );
+			for ( size_t I = 0; I < aSize; ++I ) {
+				if ( !_sFile.ReadStringU16( m_oOptions.vOutEndHistory[I] ) ) { return false; }
+			}
+		}
+		catch ( ... ) { return false; }
 		return true;
 	}
 
@@ -477,9 +506,30 @@ namespace lsn {
 
 		if ( !_sFile.Write( m_oOptions.pmRegion ) ) { return false; }
 
-		SaveAudioSettings( _sFile, m_oOptions.aoGlobalAudioOptions );
+		if ( !SaveAudioSettings( _sFile, m_oOptions.aoGlobalAudioOptions ) ) { return false; }
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wRawAudioPath.c_str(), m_oOptions.wRawAudioPath.size() ) ) ) { return false; }
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wOutAudioPath.c_str(), m_oOptions.wOutAudioPath.size() ) ) ) { return false; }
+		
+		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
+		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsOutCaptire ) ) { return false; }
+		
+		if ( !_sFile.Write( m_oOptions.vRawStartHistory.size() ) ) { return false; }
+		for ( size_t I = 0; I < m_oOptions.vRawStartHistory.size(); ++I ) {
+			if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.vRawStartHistory[I].c_str(), m_oOptions.vRawStartHistory[I].size() ) ) ) { return false; }
+		}
+		if ( !_sFile.Write( m_oOptions.vRawEndHistory.size() ) ) { return false; }
+		for ( size_t I = 0; I < m_oOptions.vRawEndHistory.size(); ++I ) {
+			if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.vRawEndHistory[I].c_str(), m_oOptions.vRawEndHistory[I].size() ) ) ) { return false; }
+		}
+
+		if ( !_sFile.Write( m_oOptions.vOutStartHistory.size() ) ) { return false; }
+		for ( size_t I = 0; I < m_oOptions.vOutStartHistory.size(); ++I ) {
+			if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.vOutStartHistory[I].c_str(), m_oOptions.vOutStartHistory[I].size() ) ) ) { return false; }
+		}
+		if ( !_sFile.Write( m_oOptions.vOutEndHistory.size() ) ) { return false; }
+		for ( size_t I = 0; I < m_oOptions.vOutEndHistory.size(); ++I ) {
+			if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.vOutEndHistory[I].c_str(), m_oOptions.vOutEndHistory[I].size() ) ) ) { return false; }
+		}
 		return true;
 	}
 
@@ -620,6 +670,57 @@ namespace lsn {
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise2 ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads audio stream-to-file settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _stfoAudioOptions The audio options into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadAudioStreamSettings( uint32_t /*_ui32Version*/, CStream &_sFile, CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoAudioOptions ) {
+		_stfoAudioOptions = CWavFile::LSN_STREAM_TO_FILE_OPTIONS();
+		if ( !_sFile.ReadStringU16( _stfoAudioOptions.wsPath ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.bEnabled ) ) { return false; }
+		_stfoAudioOptions.bEnabled = false;	// It should not be enabled via loading of the settings file, only via the dialog.
+		if ( !_sFile.Read( _stfoAudioOptions.bDither ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.fFormat ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.ui32Bits ) ) { return false; }
+
+		if ( !_sFile.Read( _stfoAudioOptions.scStartCondition ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.ui64StartParm ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.dStartParm ) ) { return false; }
+
+		if ( !_sFile.Read( _stfoAudioOptions.seEndCondition ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.ui64EndParm ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.dEndParm ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves audio stream-to-file settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _stfoAudioOptions The audio options to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveAudioStreamSettings( CStream &_sFile, CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoAudioOptions ) {
+		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( _stfoAudioOptions.wsPath.c_str(), _stfoAudioOptions.wsPath.size() ) ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.bEnabled ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.bDither ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.fFormat ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.ui32Bits ) ) { return false; }
+
+		if ( !_sFile.Write( _stfoAudioOptions.scStartCondition ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.ui64StartParm ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.dStartParm ) ) { return false; }
+
+		if ( !_sFile.Write( _stfoAudioOptions.seEndCondition ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.ui64EndParm ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.dEndParm ) ) { return false; }
 		return true;
 	}
 

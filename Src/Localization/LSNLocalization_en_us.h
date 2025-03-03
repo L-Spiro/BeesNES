@@ -184,6 +184,12 @@
 #define LSN_AUDIO_OPTIONS_NON_SILENT										First Non-Zero
 #define LSN_AUDIO_OPTIONS_DURATION											Duration (Seconds)
 #define LSN_AUDIO_OPTIONS_SILENCE_FOR										Silence for (Seconds)
+#define LSN_AUDIO_OPTIONS_WAV_TYPES											WAV Files (*.wav)\0*.wav\0\0
+#define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
+#define LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND							The selected starting condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C2\u201D, \u201C56.2\u201D, \u201C360.0f\u201D, etc.) or as equations (\u201C2*60+13.5\u201D, \u201Cpow( 10, 6 / 20.0 )\u201D, etc.)
+#define LSN_AUDIO_OPTIONS_ERR_INVALID_END_COND								The selected stopping condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C10\u201D, \u201C5.5\u201D, \u201C0.5f\u201D, etc.) or as equations (\u201C3*60+10.5\u201D, \u201Clog10( 0.5 ) * 20\u201D, etc.)
+#define LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION								Durations must be positive values larger than 0.
+#define LSN_AUDIO_OPTIONS_ERR_INVALID_STOP_SAMPLE							The stop sample must be greater than the start sample.
 
 // Patcher.
 #define LSN_PATCH_PATCH_ROM													Patch a ROM
@@ -263,7 +269,8 @@
 #define LSN_WAV_MPEG														MPEG Audio
 #define LSN_WAV_EXTENSIBLE													Extensible
 
-
+// General.
+#define LSN_ERROR															Error
 
 
 

@@ -16,6 +16,9 @@
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
 
+#include <commdlg.h>
+#include <filesystem>
+
 #include "../../../resource.h"
 
 
@@ -35,7 +38,13 @@ namespace lsn {
 	CWidget::LSW_HANDLED CAudioOptionsRecordingPage::InitDialog() {
 		Parent::InitDialog();
 
-		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_HZ_EDIT );
+
+		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+		if ( aEdit ) { aEdit->SetTextW( m_poOptions->stfStreamOptionsRaw.wsPath.c_str() ); }
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+		if ( aEdit ) { aEdit->SetTextW( m_poOptions->stfStreamOptionsOutCaptire.wsPath.c_str() ); }
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_HZ_EDIT );
 		if ( aEdit ) { aEdit->SetTextA( std::to_string( m_poOptions->dApuHz ).c_str() ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_HZ_EDIT );
 		if ( aEdit ) { aEdit->SetTextW( LSN_LSTR( LSN_AUDIO_OPTIONS_DECIDED_BY_SETTINGS ) ); }
@@ -95,13 +104,53 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CAudioOptionsRecordingPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
-			case Layout::LSN_AOWI_CANCEL : {
-				//return Close();
+			case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
+				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+				std::wstring szFileName;
+				szFileName.resize( 0xFFFF + 2 );
+
+				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+				ofnOpenFile.hwndOwner = Wnd();
+				ofnOpenFile.lpstrFilter = wsFilter.c_str();
+				ofnOpenFile.lpstrFile = szFileName.data();
+				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
+
+				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+					m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+					if ( !pPath.has_extension() ) {
+						pPath += ".wav";
+					}
+					auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
+				}
 				break;
 			}
-			case Layout::LSN_AOWI_OK : {
-				//SaveAndClose();
-				return LSW_H_HANDLED;
+			case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
+				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+				std::wstring szFileName;
+				szFileName.resize( 0xFFFF + 2 );
+
+				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+				ofnOpenFile.hwndOwner = Wnd();
+				ofnOpenFile.lpstrFilter = wsFilter.c_str();
+				ofnOpenFile.lpstrFile = szFileName.data();
+				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
+
+				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+					m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+					if ( !pPath.has_extension() ) {
+						pPath += ".wav";
+					}
+					auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
+				}
+				break;
 			}
 		}
 		Update();
@@ -109,9 +158,205 @@ namespace lsn {
 	}
 
 	/**
+	 * Verifies the inputs.
+	 * 
+	 * \param _wsMsg The error message to display.
+	 * \return Returns the control that failed or nullptr.
+	 **/
+	CWidget * CAudioOptionsRecordingPage::Verify( std::wstring &_wsMsg ) {
+		bool bEnabled = true;
+		lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_ENABLE_CHECK ));
+		if ( pcbCheck ) { bEnabled = pcbCheck->IsChecked(); }
+		LPARAM lStartCond = CWavFile::LSN_SC_NONE;
+		lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_CONDITION_COMBO ));
+		if ( pcbCombo ) { lStartCond = pcbCombo->GetCurSelItemData(); }
+		LPARAM lEndCond = CWavFile::LSN_EC_NONE;
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO ));
+		if ( pcbCombo ) { lEndCond = pcbCombo->GetCurSelItemData(); }
+
+		uint64_t ui64StartSample = 0;
+		uint64_t ui64StopSample = 0;
+		double dStartDur = 0.0;
+		double dStopDur = 0.0;
+		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+		if ( aEdit && bEnabled ) {
+			if ( !aEdit->GetTextW().size() ) {
+				_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_PATH );
+				return aEdit;
+			}
+		}
+
+		ee::CExpEvalContainer::EE_RESULT eTest;
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO );
+		if ( aEdit && bEnabled && lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO ) {
+			if ( lStartCond == CWavFile::LSN_SC_START_AT_SAMPLE ) {
+				if ( !aEdit->GetTextAsUInt64Expression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				ui64StartSample = eTest.u.ui64Val;
+			}
+			else {
+				if ( !aEdit->GetTextAsDoubleExpression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				dStartDur = eTest.u.dVal;
+				if ( dStartDur <= 0.0 ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION );
+					return aEdit;
+				}
+			}
+		}
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO );
+		if ( aEdit && bEnabled && lEndCond != CWavFile::LSN_EC_NONE ) {
+			if ( lEndCond == CWavFile::LSN_EC_END_AT_SAMPLE ) {
+				if ( !aEdit->GetTextAsUInt64Expression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				ui64StopSample = eTest.u.ui64Val;
+				if ( ui64StopSample <= ui64StartSample ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_STOP_SAMPLE );
+					return aEdit;
+				}
+			}
+			else {
+				if ( !aEdit->GetTextAsDoubleExpression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_END_COND );
+					return aEdit;
+				}
+				dStopDur = eTest.u.dVal;
+				if ( dStopDur <= 0.0 ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION );
+					return aEdit;
+				}
+			}
+		}
+
+
+		bEnabled = true;
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_ENABLE_CHECK ));
+		if ( pcbCheck ) { bEnabled = pcbCheck->IsChecked(); }
+		lStartCond = CWavFile::LSN_SC_NONE;
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO ));
+		if ( pcbCombo ) { lStartCond = pcbCombo->GetCurSelItemData(); }
+		lEndCond = CWavFile::LSN_EC_NONE;
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO ));
+		if ( pcbCombo ) { lEndCond = pcbCombo->GetCurSelItemData(); }
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+		if ( aEdit && bEnabled ) {
+			if ( !aEdit->GetTextW().size() ) {
+				_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_PATH );
+				return aEdit;
+			}
+		}
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO );
+		if ( aEdit && bEnabled && lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO ) {
+			if ( lStartCond == CWavFile::LSN_SC_START_AT_SAMPLE ) {
+				if ( !aEdit->GetTextAsUInt64Expression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				ui64StartSample = eTest.u.ui64Val;
+			}
+			else {
+				if ( !aEdit->GetTextAsDoubleExpression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				dStartDur = eTest.u.dVal;
+				if ( dStartDur <= 0.0 ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION );
+					return aEdit;
+				}
+			}
+		}
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO );
+		if ( aEdit && bEnabled && lEndCond != CWavFile::LSN_EC_NONE ) {
+			if ( lEndCond == CWavFile::LSN_EC_END_AT_SAMPLE ) {
+				if ( !aEdit->GetTextAsUInt64Expression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND );
+					return aEdit;
+				}
+				ui64StopSample = eTest.u.ui64Val;
+				if ( ui64StopSample <= ui64StartSample ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_STOP_SAMPLE );
+					return aEdit;
+				}
+			}
+			else {
+				if ( !aEdit->GetTextAsDoubleExpression( eTest ) ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_END_COND );
+					return aEdit;
+				}
+				dStopDur = eTest.u.dVal;
+				if ( dStopDur <= 0.0 ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION );
+					return aEdit;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	/**
 	 * Saves the current input configuration and closes the dialog.
 	 */
 	void CAudioOptionsRecordingPage::Save() {
+		lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_ENABLE_CHECK ));
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsRaw.bEnabled = pcbCheck->IsChecked(); }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_DITHER_CHECK ));
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsRaw.bDither = pcbCheck->IsChecked(); }
+		lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_FORMAT_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsRaw.fFormat = static_cast<CWavFile::LSN_FORMAT>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_CONDITION_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsRaw.scStartCondition = static_cast<CWavFile::LSN_START_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsRaw.seEndCondition = static_cast<CWavFile::LSN_END_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_BITS_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsRaw.ui32Bits = static_cast<uint32_t>(pcbCombo->GetCurSelItemData()); }
+
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_ENABLE_CHECK ));
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCaptire.bEnabled = pcbCheck->IsChecked(); }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_DITHER_CHECK ));
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCaptire.bDither = pcbCheck->IsChecked(); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_FORMAT_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.fFormat = static_cast<CWavFile::LSN_FORMAT>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.scStartCondition = static_cast<CWavFile::LSN_START_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.seEndCondition = static_cast<CWavFile::LSN_END_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_BITS_COMBO ));
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.ui32Bits = static_cast<uint32_t>(pcbCombo->GetCurSelItemData()); }
+
+
+		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+		if ( aEdit ) { m_poOptions->stfStreamOptionsRaw.wsPath = aEdit->GetTextW(); }
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+		if ( aEdit ) { m_poOptions->stfStreamOptionsOutCaptire.wsPath = aEdit->GetTextW(); }
+
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO );
+		if ( aEdit ) {
+			CUtilities::AddOrMove( m_poOptions->vRawStartHistory, aEdit->GetTextW() );
+		}
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO );
+		if ( aEdit ) {
+			CUtilities::AddOrMove( m_poOptions->vOutStartHistory, aEdit->GetTextW() );
+		}
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO );
+		if ( aEdit ) {
+			CUtilities::AddOrMove( m_poOptions->vRawEndHistory, aEdit->GetTextW() );
+		}
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO );
+		if ( aEdit ) {
+			CUtilities::AddOrMove( m_poOptions->vOutEndHistory, aEdit->GetTextW() );
+		}
 		
 	}
 
@@ -157,7 +402,7 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_LABEL,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_SC_NONE },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
 		};
 		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
@@ -198,7 +443,7 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_LABEL,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_SC_NONE },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
 		};
 		for ( auto I = LSN_ELEMENTS( cOutControls ); I--; ) {
 			auto pwThis = FindChild( cOutControls[I].wId );

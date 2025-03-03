@@ -104,7 +104,7 @@ namespace lsn {
 	 * Closes the opened file.
 	 */
 	void CStdFile::Close() {
-		if ( m_pfFile != nullptr ) {
+		if LSN_LIKELY( m_pfFile != nullptr ) {
 			::fclose( m_pfFile );
 			m_pfFile = nullptr;
 			m_ui64Size = 0;
@@ -118,7 +118,7 @@ namespace lsn {
 	 * \return Returns true if the file was successfully loaded into memory.
 	 */
 	bool CStdFile::LoadToMemory( std::vector<uint8_t> &_vResult ) const {
-		if ( m_pfFile != nullptr ) {
+		if LSN_LIKELY( m_pfFile != nullptr ) {
 #ifdef LSN_WINDOWS
 			__int64 i64Pos = ::_ftelli64( m_pfFile );
 			::_fseeki64( m_pfFile, 0, SEEK_END );
@@ -185,7 +185,7 @@ namespace lsn {
 	 * \return Returns true if the data was successfully written to the file.
 	 */
 	bool CStdFile::WriteToFile( const uint8_t * _pui8Data, size_t _tsSize ) {
-		if ( m_pfFile != nullptr ) {
+		if LSN_LIKELY( m_pfFile != nullptr ) {
 			return std::fwrite( _pui8Data, _tsSize, 1, m_pfFile ) == 1;
 		}
 		return false;

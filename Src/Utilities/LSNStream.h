@@ -161,6 +161,21 @@ namespace lsn {
 			return true;
 		}
 
+		/**
+		 * Reads a wchar_t string from the stream.
+		 * 
+		 * \param _wsString Holds the return string.
+		 * \return Returns true if there was enough space left in the stream to write the string.
+		 **/
+		inline bool									ReadStringU16( std::wstring &_wsString ) const {
+			std::string sTmp;
+			if ( !ReadString( sTmp ) ) { return false; }
+
+			auto aTmp = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(sTmp.c_str()) );
+			_wsString = CUtilities::XStringToWString( aTmp.c_str(), aTmp.size() );
+			return true;
+		}
+
 
 		// ========
 		// WRITING

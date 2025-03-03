@@ -49,6 +49,14 @@ namespace lsn {
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		/**
+		 * Verifies the inputs.
+		 * 
+		 * \param _wsMsg The error message to display.
+		 * \return Returns the control that failed or nullptr.
+		 **/
+		CWidget *											Verify( std::wstring &_wsMsg );
+
+		/**
 		 * Saves the current input configuration and closes the dialog.
 		 */
 		void												Save();

@@ -9,12 +9,18 @@
 
 #pragma once
 
+#include "../File/LSNStdFile.h"
 #include "../Utilities/LSNAlignmentAllocator.h"
 #include "../Utilities/LSNUtilities.h"
 
 #include <cinttypes>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <thread>
 #include <vector>
+
 
 
 namespace lsn {
@@ -105,6 +111,9 @@ namespace lsn {
 			LSN_SAVE_DATA() :
 				uiHz( 0 ),
 				uiBitsPerSample( 0 ) {}
+			LSN_SAVE_DATA( uint32_t _ui32Hz, uint16_t _ui16Bits ) :
+				uiHz( _ui32Hz ),
+				uiBitsPerSample( _ui16Bits ) {}
 		};
 
 		/** Loop points. */
@@ -131,6 +140,12 @@ namespace lsn {
 			LSN_END_CONDITIONS											seEndCondition = LSN_EC_NONE;
 			uint64_t													ui64EndParm = 0;
 			double														dEndParm = 0.0;
+		};
+
+		/** Stream-to-file condition parameters. */
+		union LSN_STREAM_COND_PARM {
+			uint64_t													ui64Parm;
+			double														dParm;
 		};
 
 		/** Condition data. */
@@ -222,6 +237,39 @@ namespace lsn {
 		}
 
 		/**
+		 * Opens a stream to a WAV file.  Samples can be written over time.
+		 * 
+		 * \param _pcPath The path to which to stream WAV data.
+		 * \param _ui32Hz The WAV Hz.
+		 * \param _fFormat The WAV format.
+		 * \param _ui16Bits The PCM bits.
+		 * \param _ui16Channels The channel count.
+		 * \param _bDither Whether to dither 16-bit PCM data or not.
+		 * \param _scStartCondition The starting condition.
+		 * \param _scpStartParm The starting condition paramater.
+		 * \param _ecEndCondition The stopping condition.
+		 * \param _scpEndParm The stopping condition paramater.
+		 * \param _stBufferSize The buffer size (in samples).
+		 * \return Returns true if the file could initially be created and all parameters are correct.
+		 **/
+		bool															StreamToFile( const char8_t * _pcPath, uint32_t _ui32Hz, LSN_FORMAT _fFormat, uint16_t _ui16Bits, uint16_t _ui16Channels, bool _bDither,
+			LSN_START_CONDITIONS _scStartCondition, LSN_STREAM_COND_PARM _scpStartParm,
+			LSN_END_CONDITIONS _ecEndCondition, LSN_STREAM_COND_PARM _scpEndParm,
+			size_t _stBufferSize = 10 * 1024 );
+
+		/**
+		 * Stops the streaming file.
+		 **/
+		void															StopStream();
+
+		/**
+		 * Adds a sample to the stream.
+		 * 
+		 * \param _fSample The sample to add.
+		 **/
+		void															AddStreamSample( float _fSample );
+
+		/**
 		 * Resets the object back to scratch.
 		 */
 		void															Reset();
@@ -297,6 +345,9 @@ namespace lsn {
 				case LSN_F_PCM : {
 					return uint32_t( uint64_t( _uiSamples ) * _uiChannels * _uiBitsPerPixel / 8 );
 				}
+				case LSN_F_IEEE_FLOAT : {
+					return uint32_t( uint64_t( _uiSamples ) * _uiChannels * sizeof( float ) );
+				}
 			}
 			return 0;
 		}
@@ -330,7 +381,7 @@ namespace lsn {
 	protected :
 		// == Types.
 #pragma pack( push, 1 )
-		// Chunk.
+		/** Chunk. */
 		struct LSN_CHUNK {
 			union {
 				char8_t													cName[4];
@@ -344,7 +395,7 @@ namespace lsn {
 			std::vector<uint8_t>										vData;
 		};
 
-		// Chunk header.
+		/** Chunk header. */
 		struct LSN_CHUNK_HEADER {
 			union {
 				char8_t													cName[4];
@@ -353,7 +404,7 @@ namespace lsn {
 			uint32_t													uiSize;
 		};
 
-		// FMT chunk.
+		/** FMT chunk. */
 		struct LSN_FMT_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			//uint32_t													uiSubchunk1ID;			// "fmt ".
@@ -368,7 +419,7 @@ namespace lsn {
 			uint8_t														ui8ExtraParams[1];		// uiExtraParamSize bytes of extra data.
 		};
 
-		// DATA chunk.
+		/** DATA chunk. */
 		struct LSN_DATA_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			//uint32_t													uiSubchunk2ID;			// "data".
@@ -376,7 +427,7 @@ namespace lsn {
 			uint8_t														ui8Data[1];				// Sample data (length = uiSubchunk2Size).
 		};
 
-		// SAMPL chunk.
+		/** SAMPL chunk. */
 		struct LSN_SMPL_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			uint32_t													uiManufacturer;
@@ -391,7 +442,7 @@ namespace lsn {
 			LSN_LOOP_POINT												lpLoops[1];
 		};
 
-		// LIST chunk.
+		/** LIST chunk. */
 		struct LSN_LIST_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			union {
@@ -401,7 +452,7 @@ namespace lsn {
 			uint8_t														ui8Data[1];
 		};
 
-		// ID3  chunk.
+		/** ID3  chunk. */
 		struct LSN_ID3_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			char8_t														sName[3];
@@ -411,7 +462,7 @@ namespace lsn {
 			uint8_t														ui8Data[1];
 		};
 
-		// INST chunk.
+		/** INST chunk. */
 		struct LSN_INST_CHUNK {
 			LSN_CHUNK_HEADER											chHeader;
 			uint8_t														ui8UnshiftedNote;
@@ -422,10 +473,9 @@ namespace lsn {
 			uint8_t														ui8LowVel;
 			uint8_t														ui8HiVel;
 		};
-
 #pragma pack( pop )
 
-		// A chunk entry.
+		/** A chunk entry. */
 		struct LSN_CHUNK_ENTRY {
 			union {
 				char8_t													cName[4];
@@ -435,7 +485,7 @@ namespace lsn {
 			uint32_t													uiSize;
 		};
 
-		// A LIST entry.
+		/** A LIST entry. */
 		struct LSN_LIST_ENTRY {
 			union {
 				char8_t													cName[4];
@@ -444,7 +494,7 @@ namespace lsn {
 			std::u8string												sText;
 		};
 
-		// An ID3 entry.
+		/** An ID3 entry. */
 		struct LSN_ID3_ENTRY {
 			union {
 				char8_t													cName[4];
@@ -454,7 +504,7 @@ namespace lsn {
 			std::u8string												sValue;
 		};
 
-		// A DISP entry.
+		/** A DISP entry. */
 		struct LSN_DISP_ENTRY {
 			union {
 				char8_t													cName[4];
@@ -465,7 +515,7 @@ namespace lsn {
 			std::vector<uint8_t>										vValue;
 		};
 
-		// An INST entry.
+		/** An INST entry. */
 		struct LSN_INST_ENTRY {
 			uint8_t														ui8UnshiftedNote;
 			uint8_t														ui8FineTune;
@@ -476,18 +526,47 @@ namespace lsn {
 			uint8_t														ui8HiVel;
 		};
 
+		/** A stream-to-file structure. */
+		struct LSN_STREAMING {
+			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
+			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
+			//uint64_t													ui64FinalSampleCount = 0;	/**< If not 0, indicates the known final sample count. */
+			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
+			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
+			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
+			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
+			CStdFile													sfFile;						/**< The file to which to write the WAV data. */
+			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
+			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
+			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
+			std::thread													tThread;					/**< The thread for writing to the file. */
+			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
+			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
+			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
+			PfStartConditionFunc										pfEndCondFunc = nullptr;	/**< The end-condition function. */
+			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
+			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
+			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
+			LSN_FORMAT													fFormat = LSN_F_PCM;		/**< The WAV-file format. */
+			uint16_t													ui16Bits = 16;				/**< The number of bits-per-sample. */			
+			uint16_t													ui16Channels = 2;			/**< Total channels to output. */
+			bool														bEnd = true;				/**< Tells the thread to stop. */
+			bool														bStreaming = false;			/**< If true, the file must be closed either manually or in the destructor. */
+			bool														bDither = false;			/**< To dither 16-bit PCM or not. */
+		};
+
 
 		// == Members.
 		/** The format. */
 		LSN_FORMAT														m_fFormat;
 		/** The number of channels. */
-		uint16_t														m_uiNumChannels;		// 1 = mono, 2 = stereo, etc.
+		uint16_t														m_uiNumChannels;			// 1 = mono, 2 = stereo, etc.
 		/** The sample rate. */
-		uint32_t														m_uiSampleRate;			// 44,100, 48,000, etc.
+		uint32_t														m_uiSampleRate;				// 44,100, 48,000, etc.
 		/** The bits per sample. */
-		uint16_t														m_uiBitsPerSample;		// 8, 16, etc.
+		uint16_t														m_uiBitsPerSample;			// 8, 16, etc.
 		/** The bytes per sample. */
-		uint16_t														m_uiBytesPerSample;		// m_uiBitsPerSample / 8.
+		uint16_t														m_uiBytesPerSample;			// m_uiBitsPerSample / 8.
 		/** Base note. */
 		uint32_t														m_uiBaseNote;
 		/** The raw sample data. */
@@ -502,6 +581,8 @@ namespace lsn {
 		std::vector<LSN_DISP_ENTRY>										m_vDisp;
 		/** Instrument metadata. */
 		LSN_INST_ENTRY													m_ieInstEntry;
+		/** Streaming data. */
+		LSN_STREAMING													m_sStream;
 
 
 		// == Functions.
@@ -685,6 +766,24 @@ namespace lsn {
 		 * \return Returns the bytes that represent the "LIST" chunk in a file.
 		 */
 		std::vector<uint8_t>											CreateList() const;
+
+		/**
+		 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
+		 * 
+		 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+		 * \return Returns true if the file was created and the header was written to it.
+		 **/
+		bool															CreateStreamFile( const char8_t * _pcPath );
+
+		/**
+		 * Closes the current streaming file.
+		 **/
+		void															CloseStreamFile();
+
+		/**
+		 * The stream-to-file writer thread.
+		 **/
+		void															StreamWriterThread();
 	};
 
 }	// namespace lsn
