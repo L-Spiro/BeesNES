@@ -148,7 +148,7 @@ namespace lsn {
 		 *
 		 * \return Returns the current filter.
 		 */
-		inline CFilterBase::LSN_FILTERS			GetCurFilter() const { return m_fFilter; }
+		inline CFilterBase::LSN_FILTERS			GetCurFilter() const { return m_oOptions.fFilter; }
 
 		/**
 		 * Sets the current filter.  Changes are not applied to rendering output until Swap() is called.
@@ -344,8 +344,7 @@ namespace lsn {
 		std::wstring							m_wsFolder;
 		/** The current system type. */
 		LSN_PPU_METRICS							m_pmSystem;
-		/** The current filter ID. */
-		CFilterBase::LSN_FILTERS				m_fFilter;
+		
 		/** The current post-processing filter. */
 		//CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		std::vector<CPostProcessBase::LSN_POST_PROCESSES>

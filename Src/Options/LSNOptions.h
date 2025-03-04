@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudioOptions.h"
+#include "../Filters/LSNFilterBase.h"
 #include "../Wav/LSNWavFile.h"
 #include "LSNInputOptions.h"
 
@@ -38,6 +39,7 @@ namespace lsn {
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCaptire;									/**< Output capture. */
 
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
+		CFilterBase::LSN_FILTERS							fFilter = CFilterBase::LSN_F_AUTO_CRT_FULL;					/**< The current filter ID. */
 
 		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
 		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */

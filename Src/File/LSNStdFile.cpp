@@ -178,6 +178,19 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the current position inside the file.
+	 * 
+	 * \return Returns the current position inside the file.
+	 **/
+	uint64_t CStdFile::GetPos() const {
+#ifdef LSN_WINDOWS
+		return ::_ftelli64( m_pfFile );
+#else
+		return uint64_t( std::ftell( m_pfFile ) );
+#endif	// #ifdef LSN_WINDOWS
+	}
+
+	/**
 	 * Writes the given data to the created file.  File must have been cerated with Create().
 	 *
 	 * \param _pui8Data The data to write to the file.

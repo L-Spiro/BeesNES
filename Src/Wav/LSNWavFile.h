@@ -131,6 +131,7 @@ namespace lsn {
 			std::wstring												wsPath;
 			LSN_FORMAT													fFormat = LSN_F_IEEE_FLOAT;
 			uint32_t													ui32Bits = 24;
+			uint32_t													ui32Hz = 44100;			// Not set by the user.  Only used to pass information to the set-options functions.
 			bool														bEnabled = false;
 			bool														bDither = false;
 
@@ -156,6 +157,36 @@ namespace lsn {
 		};
 		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData );
 		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t _ui64AbsoluteIdx, uint64_t _ui64IdxSinceStart, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+
+		/** A stream-to-file structure. */
+		struct LSN_STREAMING {
+			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
+			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
+			//uint64_t													ui64FinalSampleCount = 0;	/**< If not 0, indicates the known final sample count. */
+			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
+			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
+			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
+			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
+			std::wstring												wsPath;						/**< The path to the file to which we are streaming. */
+			CStdFile													sfFile;						/**< The file to which to write the WAV data. */
+			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
+			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
+			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
+			std::thread													tThread;					/**< The thread for writing to the file. */
+			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
+			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
+			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
+			PfStartConditionFunc										pfEndCondFunc = nullptr;	/**< The end-condition function. */
+			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
+			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
+			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
+			LSN_FORMAT													fFormat = LSN_F_PCM;		/**< The WAV-file format. */
+			uint16_t													ui16Bits = 16;				/**< The number of bits-per-sample. */			
+			uint16_t													ui16Channels = 2;			/**< Total channels to output. */
+			bool														bEnd = true;				/**< Tells the thread to stop. */
+			bool														bStreaming = false;			/**< If true, the file must be closed either manually or in the destructor. */
+			bool														bDither = false;			/**< To dither 16-bit PCM or not. */
+		};
 
 
 		// == Functions.
@@ -258,6 +289,17 @@ namespace lsn {
 			size_t _stBufferSize = 10 * 1024 );
 
 		/**
+		 * Opens a stream to a WAV file.  Samples can be written over time.
+		 * 
+		 * \param _stfoFileOptions Contains all of the settings for streaming to a file.
+		 * \param _ui32Hz The WAV Hz.
+		 * \param _stBufferSize The buffer size (in samples).
+		 * \return Returns true if the file could initially be created and all parameters are correct.
+		 **/
+		bool															StreamToFile( const LSN_STREAM_TO_FILE_OPTIONS &_stfoFileOptions, uint32_t _ui32Hz,
+			size_t _stBufferSize = 10 * 1024 );
+
+		/**
 		 * Stops the streaming file.
 		 **/
 		void															StopStream();
@@ -268,6 +310,13 @@ namespace lsn {
 		 * \param _fSample The sample to add.
 		 **/
 		void															AddStreamSample( float _fSample );
+
+		/**
+		 * Gets a constant reference to the current streaming data.
+		 * 
+		 * \return Returns a constant reference to the current streaming data.
+		 **/
+		const LSN_STREAMING &											GetStreamData() const { return m_sStream; }
 
 		/**
 		 * Resets the object back to scratch.
@@ -526,36 +575,7 @@ namespace lsn {
 			uint8_t														ui8HiVel;
 		};
 
-		/** A stream-to-file structure. */
-		struct LSN_STREAMING {
-			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
-			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
-			//uint64_t													ui64FinalSampleCount = 0;	/**< If not 0, indicates the known final sample count. */
-			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
-			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
-			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
-			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
-			CStdFile													sfFile;						/**< The file to which to write the WAV data. */
-			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
-			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
-			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
-			std::thread													tThread;					/**< The thread for writing to the file. */
-			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
-			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
-			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
-			PfStartConditionFunc										pfEndCondFunc = nullptr;	/**< The end-condition function. */
-			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
-			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
-			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
-			LSN_FORMAT													fFormat = LSN_F_PCM;		/**< The WAV-file format. */
-			uint16_t													ui16Bits = 16;				/**< The number of bits-per-sample. */			
-			uint16_t													ui16Channels = 2;			/**< Total channels to output. */
-			bool														bEnd = true;				/**< Tells the thread to stop. */
-			bool														bStreaming = false;			/**< If true, the file must be closed either manually or in the destructor. */
-			bool														bDither = false;			/**< To dither 16-bit PCM or not. */
-		};
-
-
+		
 		// == Members.
 		/** The format. */
 		LSN_FORMAT														m_fFormat;

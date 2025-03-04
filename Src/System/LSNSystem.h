@@ -547,11 +547,34 @@ namespace lsn {
 		 * 
 		 * \param _aoOptions The options to set.
 		 **/
-		void											SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
+		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
 			m_aApu.SetOptions( _aoOptions );
 		}
 
-		
+		/**
+		 * Sets the raw stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 **/
+		virtual void									SetRawAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoStreamOptions ) {
+			m_aApu.SetStreamToFileOptions<true>( _stfoStreamOptions );
+		}
+
+		/**
+		 * Sets the output-capture stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 **/
+		virtual void									SetOutputAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoStreamOptions ) {
+			m_aApu.SetStreamToFileOptions<false>( _stfoStreamOptions );
+		}
+
+		/**
+		 * Sets as inactive (another system is being played).
+		 **/
+		virtual void									SetAsInactive() {
+			m_aApu.SetAsInactive();
+		}
 
 
 	protected :

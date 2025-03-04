@@ -11,6 +11,7 @@
 #include "../Utilities/LSNUtilities.h"
 
 #include <codecvt>
+#include <filesystem>
 #include <string>
 
 // warning C4309: 'static_cast': truncation of constant value
@@ -394,9 +395,59 @@ namespace lsn {
 		catch ( ... ) { return false; }
 		m_sStream.bEnd = false;
 		m_sStream.bStreaming = true;
+		std::filesystem::path pPath = _pcPath;
+		m_sStream.wsPath = pPath.generic_wstring();
 
 		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
 		return true;
+	}
+
+	/**
+	 * Opens a stream to a WAV file.  Samples can be written over time.
+	 * 
+	 * \param _stfoFileOptions Contains all of the settings for streaming to a file.
+	 * \param _ui32Hz The WAV Hz.
+	 * \param _stBufferSize The buffer size (in samples).
+	 * \return Returns true if the file could initially be created and all parameters are correct.
+	 **/
+	bool CWavFile::StreamToFile( const LSN_STREAM_TO_FILE_OPTIONS &_stfoFileOptions, uint32_t _ui32Hz,
+		size_t _stBufferSize ) {
+		LSN_STREAM_COND_PARM scpStartParm;
+		scpStartParm.ui64Parm = 0;
+		switch ( _stfoFileOptions.scStartCondition ) {
+			case LSN_SC_START_AT_SAMPLE : {
+				scpStartParm.ui64Parm = _stfoFileOptions.ui64StartParm;
+				break;
+			}
+			case LSN_SC_ZERO_FOR_DURATION : {
+				scpStartParm.dParm = _stfoFileOptions.dStartParm;
+				break;
+			}
+		}
+		LSN_STREAM_COND_PARM scpStopParm;
+		scpStopParm.ui64Parm = 0;
+		switch ( _stfoFileOptions.seEndCondition ) {
+			case LSN_EC_END_AT_SAMPLE : {
+				scpStopParm.ui64Parm = _stfoFileOptions.ui64EndParm;
+				break;
+			}
+			case LSN_EC_ZERO_FOR_DURATION : {
+				scpStopParm.dParm = _stfoFileOptions.dEndParm;
+				break;
+			}
+			case LSN_EC_DURATION : {
+				scpStopParm.dParm = _stfoFileOptions.dEndParm;
+				break;
+			}
+		}
+
+		std::filesystem::path pAbsolutePath = std::filesystem::absolute( std::filesystem::path( _stfoFileOptions.wsPath ) );
+
+		return StreamToFile( pAbsolutePath.generic_u8string().c_str(),
+			_ui32Hz, _stfoFileOptions.fFormat, static_cast<uint16_t>(_stfoFileOptions.ui32Bits), 1, _stfoFileOptions.bDither,
+			_stfoFileOptions.scStartCondition, scpStartParm,
+			_stfoFileOptions.seEndCondition, scpStopParm,
+			_stBufferSize );
 	}
 
 	/**
@@ -438,7 +489,7 @@ namespace lsn {
 		if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
 			m_sStream.vCurBuffer.push_back( _fSample );
 			uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
-			++m_sStream.ui32WavFile_DSize;
+			m_sStream.ui32WavFile_DSize += sizeof( float );
 
 			if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
 				m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {													// Buffer limit reached.
@@ -1404,7 +1455,7 @@ namespace lsn {
 
 		if ( !m_sStream.sfFile.WriteUi32( LSN_C_RIFF ) ) { return false; }
 
-		m_sStream.ui64WavFileOffset_Size = m_sStream.sfFile.Size();
+		m_sStream.ui64WavFileOffset_Size = m_sStream.sfFile.GetPos();
 		if ( !m_sStream.sfFile.Write( ui32Size ) ) { return false; }
 		
 		if ( !m_sStream.sfFile.WriteUi32( LSN_C_WAVE ) ) { return false; }
@@ -1413,7 +1464,7 @@ namespace lsn {
 		// Append the "data" chunk.
 		if ( !m_sStream.sfFile.WriteUi32( LSN_C_DATA ) ) { return false; }
 		
-		m_sStream.ui64WavFileOffset_DSize = m_sStream.sfFile.Size();
+		m_sStream.ui64WavFileOffset_DSize = m_sStream.sfFile.GetPos();
 		if ( !m_sStream.sfFile.Write( ui32DataSize ) ) { return false; }
 		
 		// File now ready for streaming.
@@ -1432,7 +1483,7 @@ namespace lsn {
 		if LSN_LIKELY( m_sStream.sfFile.IsOpen() ) {
 			if LSN_LIKELY( m_sStream.bStreaming ) {
 				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_Size );
-				m_sStream.sfFile.Write( m_sStream.ui32WavFile_Size );
+				m_sStream.sfFile.Write( m_sStream.ui32WavFile_Size + m_sStream.ui32WavFile_DSize );
 
 				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_DSize );
 				m_sStream.sfFile.Write( m_sStream.ui32WavFile_DSize );

@@ -17,6 +17,7 @@
 #include "../Mappers/LSNAllMappers.h"
 #include "../Palette/LSNPalette.h"
 #include "../Time/LSNClock.h"
+#include "../Wav/LSNWavFile.h"
 
 
 namespace lsn {
@@ -189,6 +190,25 @@ namespace lsn {
 		 * \param _aoOptions The options to set.
 		 **/
 		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &/*_aoOptions*/ ) {}
+
+		/**
+		 * Sets the raw stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 **/
+		virtual void									SetRawAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &/*_stfoStreamOptions*/ ) {}
+
+		/**
+		 * Sets the output-capture stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 **/
+		virtual void									SetOutputAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &/*_stfoStreamOptions*/ ) {}
+
+		/**
+		 * Sets as inactive (another system is being played).
+		 **/
+		virtual void									SetAsInactive() {}
 
 		/**
 		 * Loads a ROM into the given LSN_ROM object.

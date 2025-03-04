@@ -17,7 +17,7 @@ namespace lsn {
 		m_dScale( 3.0 ),
 		m_dRatio( 4.0 / 3.0 ),
 		m_dRatioActual( 4.0 / 3.0 ),
-		m_fFilter( CFilterBase::LSN_F_AUTO_CRT_FULL ),
+		//m_oOptions.fFilter( CFilterBase::LSN_F_AUTO_CRT_FULL ),
 		//m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
 		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
@@ -279,10 +279,10 @@ namespace lsn {
 	 * \param _fFilter The new filter to be applied after the next Swap().
 	 */
 	void CBeesNes::SetCurFilter( CFilterBase::LSN_FILTERS _fFilter ) {
-		if ( m_fFilter != _fFilter ) {
-			CFilterBase * pfbPrev = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
-			m_fFilter = _fFilter;
-			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_fFilter][GetCurPpuRegion()];
+		if ( m_oOptions.fFilter != _fFilter ) {
+			CFilterBase * pfbPrev = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
+			m_oOptions.fFilter = _fFilter;
+			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 			if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
 				m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
 			}
@@ -367,6 +367,11 @@ namespace lsn {
 			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
 				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
 			}
+			for ( auto I = LSN_ELEMENTS( m_psbSystems ); I--; ) {
+				if ( I != m_pmSystem ) {
+					m_psbSystems[I]->SetAsInactive();
+				}
+			}
 			m_pnsSystem = m_psbSystems[m_pmSystem];
 			
 			m_u16PerGameSettings = CUtilities::PerRomSettingsPath( m_wsFolder + L"GameSettings\\", rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
@@ -389,6 +394,9 @@ namespace lsn {
 		CAudio::SetOutputSettings( aoOptions );
 		if ( m_pnsSystem ) {
 			m_pnsSystem->SetAudioOptions( aoOptions );
+			m_pnsSystem->SetRawAudioStreamOptions( Options().stfStreamOptionsRaw );
+			Options().stfStreamOptionsOutCaptire.ui32Hz = aoOptions.ui32OutputHz;
+			m_pnsSystem->SetOutputAudioStreamOptions( Options().stfStreamOptionsOutCaptire );
 		}
 
 		if ( m_u16PerGameSettings.size() ) {
@@ -407,7 +415,7 @@ namespace lsn {
 		m_dRatioActual = GetDisplayClient()->DisplayRatio();
 
 		// Prepare filters.
-		m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_fFilter][GetDisplayClient()->PpuRegion()];
+		m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_oOptions.fFilter][GetDisplayClient()->PpuRegion()];
 					
 		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
@@ -485,6 +493,9 @@ namespace lsn {
 			}
 		}
 		catch ( ... ) { return false; }
+
+		if ( !_sFile.Read( m_oOptions.fFilter ) ) { return false; }
+		
 		return true;
 	}
 
@@ -530,6 +541,9 @@ namespace lsn {
 		for ( size_t I = 0; I < m_oOptions.vOutEndHistory.size(); ++I ) {
 			if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.vOutEndHistory[I].c_str(), m_oOptions.vOutEndHistory[I].size() ) ) ) { return false; }
 		}
+
+		if ( !_sFile.Write( m_oOptions.fFilter ) ) { return false; }
+		
 		return true;
 	}
 

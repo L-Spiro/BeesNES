@@ -170,6 +170,13 @@ namespace lsn {
 		virtual uint64_t									Size() const { return m_ui64Size; }
 
 		/**
+		 * Gets the current position inside the file.
+		 * 
+		 * \return Returns the current position inside the file.
+		 **/
+		virtual uint64_t									GetPos() const;
+
+		/**
 		 * Moves the file pointer from the current position and returns the new position.
 		 * 
 		 * \param _i64Offset Amount by which to move the file pointer.

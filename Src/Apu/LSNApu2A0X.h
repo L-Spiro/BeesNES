@@ -17,11 +17,14 @@
 #include "../Bus/LSNBus.h"
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
+#include "../Wav/LSNWavFile.h"
 #include "../Utilities/LSNDelayedValue.h"
 #include "LSNApuUnit.h"
 #include "LSNNoise.h"
 #include "LSNPulse.h"
 #include "LSNTriangle.h"
+
+#include <filesystem>
 
 
 #define LSN_PULSE1_HALT_MASK							0b00100000
@@ -147,7 +150,7 @@ namespace lsn {
 			m_bEnabled( true ) {
 
 			m_pfLpf.CreateLpf( 20000.0f, HzAsFloat() );
-			CAudio::SampleBox().SetOutputCallback( PostHpf, this );
+			
 		}
 		~CApu2A0X() {
 		}
@@ -182,6 +185,7 @@ namespace lsn {
 				// US-NES-FL-N34169630: 296.0f/90.0f
 				// JP-TwinFami-475711-NESRGB-RCA-stock: 194.0f/37.0f/37.0f.
 				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
+				CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 			
 
 				float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
@@ -248,6 +252,11 @@ namespace lsn {
 				}
 			
 				double dFinal = fFinalPulse + fFinalTnd;
+
+				if LSN_UNLIKELY( m_pwfSourceWavFile.get() ) {
+					m_pwfSourceWavFile->AddStreamSample( float( dFinal ) );
+				}
+
 				dFinal = m_pfLpf.Process( dFinal );
 				{
 					const float fMinLpf = HzAsFloat() / 2.0f;
@@ -395,6 +404,81 @@ namespace lsn {
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
 			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 50.0f;
+
+			//if ( _aoOptions.
+		}
+
+		/**
+		 * Sets the stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 * \tparam _bIsRaw If true, the options are applied to the raw signal, otherwise to the output.
+		 **/
+		template <bool _bIsRaw>
+		void											SetStreamToFileOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoStreamOptions ) {
+			uint32_t ui32Hz = _bIsRaw ? static_cast<uint32_t>(std::ceil( Hz() )) : _stfoStreamOptions.ui32Hz;
+			constexpr uint32_t ui32BufferSize = _bIsRaw ? 1024 * 1024 : 10 * 1024;
+			std::unique_ptr<CWavFile> * pupFile = nullptr;
+			try {
+				if constexpr ( _bIsRaw ) {
+					pupFile = &m_pwfSourceWavFile;
+				}
+				else {
+					pupFile = &m_pwfOutputWavFile;
+				}
+				CWavFile * pwfFile = pupFile->get();
+
+				std::filesystem::path pAbsolutePath = _stfoStreamOptions.wsPath.size() ? std::filesystem::absolute( std::filesystem::path( _stfoStreamOptions.wsPath ) ) : std::filesystem::path();
+				if ( pwfFile ) {
+					// If it is already exporting, determine if it needs to be stopped.
+					if ( !_stfoStreamOptions.bEnabled ) {
+						pupFile->reset();
+						pwfFile = nullptr;
+						return;
+					}
+
+					uint16_t ui16Bits = _stfoStreamOptions.fFormat == CWavFile::LSN_F_IEEE_FLOAT ? 32 : uint16_t( _stfoStreamOptions.ui32Bits );
+					// Already streaming and will continue to stream, but maybe some parameters have changed.
+					if ( pwfFile->GetStreamData().wsPath != pAbsolutePath.generic_wstring() ||
+						pwfFile->GetStreamData().ui16Bits != ui16Bits ||
+						pwfFile->GetStreamData().ui16Channels != 1 ||
+						pwfFile->GetStreamData().fFormat != _stfoStreamOptions.fFormat ||
+						pwfFile->GetStreamData().bDither != _stfoStreamOptions.bDither ) {
+						// An entirely new recording should begin.
+						if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
+							pupFile->reset();
+							pwfFile = nullptr;
+							return;
+						}
+					}
+					// TODO: Update starting and stopping condition.
+				}
+				else if ( _stfoStreamOptions.bEnabled ) {
+					(*pupFile) = std::make_unique<CWavFile>();
+					pwfFile = (*pupFile).get();
+					if ( pupFile ) {
+						// Streaming is not being done.  Start a new stream.
+						if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
+							pupFile->reset();
+							pwfFile = nullptr;
+							return;
+						}
+					}
+				}
+			}
+			catch ( ... ) {}
+		}
+
+		/**
+		 * Sets as inactive (another system is being played).
+		 **/
+		virtual void									SetAsInactive() {
+			if ( m_pwfSourceWavFile.get() ) {
+				m_pwfSourceWavFile.reset();
+			}
+			if ( m_pwfOutputWavFile.get() ) {
+				m_pwfOutputWavFile.reset();
+			}
 		}
 
 
@@ -419,6 +503,10 @@ namespace lsn {
 		CCpuBus *										m_pbBus;
 		/** The IRQ target. */
 		CInterruptable *								m_piIrqTarget;
+		/** WAV streamer for the source signal. */
+		std::unique_ptr<CWavFile>						m_pwfSourceWavFile;
+		/** WAV streamer for the output signal. */
+		std::unique_ptr<CWavFile>						m_pwfOutputWavFile;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
 		/** Final volume multiplier. */
@@ -1110,7 +1198,11 @@ namespace lsn {
 			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
 			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, float( _ui32Hz ) ) ) {
 				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, float( _ui32Hz ) ) ) {
-					return float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
+					auto fSample = float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
+					if LSN_UNLIKELY( paApu->m_pwfOutputWavFile.get() ) {
+						paApu->m_pwfOutputWavFile->AddStreamSample( fSample );
+					}
+					return fSample;
 				}
 			}
 			return _fSample;
