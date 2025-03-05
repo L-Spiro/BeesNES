@@ -34,13 +34,13 @@ HDMI Mod:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/692e989b-ec8a-4266-913a-ebb921e5e60e)<br>
 
 PAL (Composite:):<br>
-![image](https://github.com/user-attachments/assets/96cdd992-7f6b-4b70-85ac-4ed7e8136351)<br>
+![image](https://github.com/user-attachments/assets/68e7131a-437f-47f8-8f35-6b95ebc7cfd4)<br>
 Dendy (Composite):<br>
-![image](https://github.com/user-attachments/assets/73a21bab-23ee-433d-a26d-7590174d09a4)<br>
+![image](https://github.com/user-attachments/assets/bf9e8302-88fd-456b-946c-3fd7e772e824)<br>
 PAL-M (Brazil) (Composite):<br>
-![image](https://github.com/user-attachments/assets/44b45dcf-9d80-46f1-bb2a-a0304e733e3e)<br>
+![image](https://github.com/user-attachments/assets/4ee47323-d23d-46e0-91ae-3d52569c2584)<br>
 PAL-N (Argentina) (Composite):<br>
-![image](https://github.com/user-attachments/assets/9a910472-d812-4cb7-a693-de190c6a47bb)<br>
+![image](https://github.com/user-attachments/assets/89777f31-5b1d-410e-a80c-1347c6114731)<br>
 
 
 ## Audio Accuracy
