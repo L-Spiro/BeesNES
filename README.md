@@ -15,17 +15,19 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 ![image](https://user-images.githubusercontent.com/7362666/215371867-63a951cb-303a-4222-8094-6a20b5b9999b.png)
 ![image](https://user-images.githubusercontent.com/7362666/215371958-b742960a-ec5f-47f8-8b8a-7dc55162ffb5.png)
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/0b615d51-0bde-419f-bf91-76e7c91ae991)
-![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)
-![image](https://github.com/user-attachments/assets/446eeaef-fa7d-47a5-bf9f-9192e07a4ce7)
-![image](https://github.com/user-attachments/assets/27fd5b5e-f741-4e62-b0d2-a072ff31e782)
-![image](https://github.com/user-attachments/assets/88460fed-0a79-4f64-97c2-beaf1a0546ed)
-![image](https://github.com/user-attachments/assets/b6a6913c-4a68-4c99-8e23-5799f3135b50)
+![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)<br>
+Authentic Phospher Decay:
+![image](https://github.com/user-attachments/assets/1d0e8df2-2f8d-4363-aa55-4ba60d0f5743)
+![image](https://github.com/user-attachments/assets/7afa4747-34f2-44a6-b266-4a47393fb6a8)
+![image](https://github.com/user-attachments/assets/ecdda2bd-585a-4907-9f8f-7080841ce8c6)
+![image](https://github.com/user-attachments/assets/e074e9bf-2c66-4aeb-b8a3-dca8417e2987)
+
 
 
 RF Cables:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)<br>
 Composite:<br>
-![image](https://github.com/user-attachments/assets/ecb304fd-4fcd-43b4-844e-d4324b362b1b)<br>
+![image](https://github.com/user-attachments/assets/6a5adb3b-8400-4b57-943d-1282ab76b222)<br>
 HDMI:<br>
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/8732d426-64cc-4c7c-9238-e9f70cf6bf26)<br>
 HDMI Mod:<br>
@@ -42,13 +44,16 @@ PAL-N (Argentina) (Composite):<br>
 
 
 ## Audio Accuracy
-![image](https://github.com/user-attachments/assets/c315798b-38c1-47a3-bde2-c68e948ff45e)
+![image](https://github.com/user-attachments/assets/b6de0f6c-a66b-459a-ac1c-19804c26596f)<br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
-![image](https://github.com/user-attachments/assets/1431e83e-5adc-442b-8c97-0e264b2cfd1b)
+
+![image](https://github.com/user-attachments/assets/1431e83e-5adc-442b-8c97-0e264b2cfd1b)<br>
 Top: Hardware reference; Bottom: BeesNES.  The missing areas and the change in volume near the end haven’t been implemented yet, but everything that has been implemented matches hardware exactly, minus the noise.
-![image](https://github.com/user-attachments/assets/a81429a7-cdce-4a6d-884b-77fc81c1d6fb)
+
+![image](https://github.com/user-attachments/assets/a81429a7-cdce-4a6d-884b-77fc81c1d6fb)<br>
 Top: Hardware reference; Bottom: BeesNES.  Excluding noise and the unsupported features, the hardware reference is matched down to the tiniest details.
-![image](https://github.com/user-attachments/assets/06437a28-bbc2-4be0-9fa6-75f1b1e2465a)
+
+![image](https://github.com/user-attachments/assets/06437a28-bbc2-4be0-9fa6-75f1b1e2465a)<br>
 Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
 
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
