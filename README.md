@@ -41,13 +41,16 @@ PAL-N (Argentina) (Composite):<br>
 ![image](https://github.com/user-attachments/assets/9a910472-d812-4cb7-a693-de190c6a47bb)<br>
 
 
-## Audio Samples
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/6ad4194f-3699-4617-8ea9-0e89f457d74a)
-The top is a hardware reference recording in a test ROM.  The bottom is the BeesNES audio output for the same test ROM.
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/625f0254-2515-460e-bd68-cabb7a669bfe)
-Zooming in on the highest frequencies reveals that BeesNES audio is crisp and clean, with high-frequency aliasing **_completely_** eliminated.
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/8d73663c-c233-459f-acfb-e7a62256e4e8)
-All 3 images showcase the accuracy of the audio.
+## Audio Accuracy
+![image](https://github.com/user-attachments/assets/c315798b-38c1-47a3-bde2-c68e948ff45e)
+A wide array of options is available for tailoring the audio to specific hardware devices.
+![image](https://github.com/user-attachments/assets/1431e83e-5adc-442b-8c97-0e264b2cfd1b)
+Top: Hardware reference; Bottom: BeesNES.  The missing areas and the change in volume near the end haven’t been implemented yet, but everything that has been implemented matches hardware exactly, minus the noise.
+![image](https://github.com/user-attachments/assets/a81429a7-cdce-4a6d-884b-77fc81c1d6fb)
+Top: Hardware reference; Bottom: BeesNES.  Excluding noise and the unsupported features, the hardware reference is matched down to the tiniest details.
+![image](https://github.com/user-attachments/assets/06437a28-bbc2-4be0-9fa6-75f1b1e2465a)
+Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
+
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
 
 ## Videos
