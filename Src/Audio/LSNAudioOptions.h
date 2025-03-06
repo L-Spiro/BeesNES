@@ -60,12 +60,12 @@ namespace lsn {
 	/** Preset audio profiles. */
 	struct LSN_AUDIO_PROFILE {
 		std::wstring									wsName;
-		float											fLpf = 14000.0f;
+		float											fLpf = 7872.9f;
 		float											fHpf0 = 194.0f;
 		float											fHpf1 = 37.0f;
 		float											fHpf2 = 37.0f;
 		float											fVolume = 0.625f;
-		bool											bLpfEnable = false;
+		bool											bLpfEnable = true;
 		bool											bHpf0Enable = true;
 		bool											bHpf1Enable = true;
 		bool											bHpf2Enable = true;

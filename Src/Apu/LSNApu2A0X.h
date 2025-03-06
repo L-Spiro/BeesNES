@@ -395,7 +395,7 @@ namespace lsn {
 			}
 			m_bEnabled = m_fVolume != 0.0f && _aoOptions.bEnabled;
 
-			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? _aoOptions.apCharacteristics.fLpf : _aoOptions.ui32OutputHz / 2.0f;
+			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? std::min( _aoOptions.ui32OutputHz / 2.0f, _aoOptions.apCharacteristics.fLpf ) : _aoOptions.ui32OutputHz / 2.0f;
 			m_fHpf0 = _aoOptions.apCharacteristics.bHpf0Enable ? _aoOptions.apCharacteristics.fHpf0 : 20.0f;
 			m_fHpf1 = _aoOptions.apCharacteristics.fHpf1;
 			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
@@ -403,9 +403,7 @@ namespace lsn {
 			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
-			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 50.0f;
-
-			//if ( _aoOptions.
+			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 100.0f;
 		}
 
 		/**

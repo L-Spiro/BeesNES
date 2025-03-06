@@ -23,8 +23,17 @@ namespace lsn {
 	};
 
 	LSN_AUDIO_PROFILE LSN_AUDIO_OPTIONS::s_apProfiles[] = {
-		//wsDevice													fLpf			fHpf0			fHpf1			fHpf2			fVolume		bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),			0.0f,			194.0f,			37.0f,			37.0f,			0.625f,		false,		true,		true,		true,		true,	true },
+		//wsDevice														fLpf			fHpf0			fHpf1			fHpf2			fVolume							bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N1151667 ),				39364.503906f,	100.0f,			20.0f,			20.0f,			0.360f,							true,		true,		true,		true,		true,	true },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N34169630 ),				39364.503906f,	302.8f,			40.0f,			40.0f,			0.395f,							true,		true,		true,		true,		true,	true },
+
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725 ),				26243.0f,		125.9664f,		20.0f,			20.0f,			0.446f,							true,		true,		true,		true,		true,	true },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725_RCA ),			39364.503906f,	100.0f,			20.0f,			20.0f,			0.344f,							true,		true,		true,		true,		true,	true },
+
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_TL_NN101255729 ),				39364.503906f,	119.286369f,	20.0f,			20.0f,			0.957f,							true,		true,		true,		true,		true,	true },
+
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),				7872.899902f,	196.8225f,		37.0f,			37.0f,			0.379f,							true,		true,		true,		true,		true,	true },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART ),			0.0f,			349.9f,			20.0f,			20.0f,			0.735f,							false,		true,		true,		true,		true,	true },
 	};
 
 	// == Functions.

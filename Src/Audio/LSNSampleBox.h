@@ -553,10 +553,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m128)/sizeof(float)];
-				Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				Sample_6Point_5thOrder_Hermite_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				for ( size_t I = 0; I < (sizeof( __m128 ) / sizeof( float )); ++I ) {
 					AddSampleToIntermediateBuffer( fTmp[I] );
 				}
@@ -585,10 +589,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m256)/sizeof(float)];
-				Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				Sample_6Point_5thOrder_Hermite_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				for ( size_t I = 0; I < (sizeof( __m256 ) / sizeof( float )); ++I ) {
 					AddSampleToIntermediateBuffer( fTmp[I] );
 				}
@@ -617,10 +625,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m512)/sizeof(float)];
-				Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				Sample_6Point_5thOrder_Hermite_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				for ( size_t I = 0; I < (sizeof( __m512 ) / sizeof( float )); ++I ) {
 					AddSampleToIntermediateBuffer( fTmp[I] );
 				}

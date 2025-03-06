@@ -152,16 +152,17 @@ namespace lsn {
 
 
 			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
+			//if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
+			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fLpf ).c_str() ); }
 
 			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
-			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf0 ).c_str() ); }
+			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fHpf0 ).c_str() ); }
 
 			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
-			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf1 ).c_str() ); }
+			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fHpf1 ).c_str() ); }
 
 			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
-			if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fHpf2 ).c_str() ); }
+			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fHpf2 ).c_str() ); }
 
 			Update();
 			return Parent::InitDialog();
@@ -223,16 +224,16 @@ namespace lsn {
 							auto lpSel = pcbCombo->GetCurSelItemData();
 							if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
 								auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
 
 								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
-								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
+								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
 
 								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
-								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf1 ).c_str() ); }
+								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf1 ).c_str() ); }
 
 								aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
-								if ( aEdit ) { aEdit->SetTextA( std::to_string( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf2 ).c_str() ); }
+								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf2 ).c_str() ); }
 
 
 								lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK ));
