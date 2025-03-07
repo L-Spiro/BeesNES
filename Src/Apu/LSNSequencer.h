@@ -105,6 +105,8 @@ namespace lsn {
 		uint8_t									m_ui8Out			= 0;
 		/** The sequence offset. */
 		uint8_t									m_ui8SeqOff			= 0;
+		/** To restart the sequence on the next tick or not. */
+		bool									m_bRestartSeq		= false;
 
 
 		// == Functions.
@@ -144,6 +146,10 @@ namespace lsn {
 				m_ui8Out = WeDoBeTicknTho();
 			}
 		}
+		if LSN_UNLIKELY( m_bRestartSeq ) {
+			m_bRestartSeq = false;
+			m_ui8SeqOff = 0;
+		}
 		return m_ui8Out;
 	}
 
@@ -154,6 +160,7 @@ namespace lsn {
 	 **/
 	inline void CSequencer::SetSeq( uint8_t _ui8Val ) {
 		m_ui32Sequence = _ui8Val;
+		m_bRestartSeq = false;
 	}
 
 	/**
@@ -177,7 +184,8 @@ namespace lsn {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		if ( _bReset ) {
 			//m_ui16Timer = m_ui16Reload;
-			m_ui8SeqOff = 0;
+			m_bRestartSeq = true;
+			//m_ui8SeqOff = 0;
 		}
 		return m_ui16Reload;
 	}

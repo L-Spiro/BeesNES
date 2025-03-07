@@ -161,6 +161,10 @@
 #define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
 #define LSN_AUDIO_OPTIONS_HPF_2_HZ											HPF 2 Hz:
 #define LSN_AUDIO_OPTIONS_HPF_3_HZ											HPF 3 Hz:
+#define LSN_AUDIO_OPTIONS_P1_VOLUME											Pulse 1 Vol:
+#define LSN_AUDIO_OPTIONS_P2_VOLUME											Pulse 1 Vol:
+#define LSN_AUDIO_OPTIONS_TRI_VOLUME										Triangle Vol:
+#define LSN_AUDIO_OPTIONS_NOISE_VOLUME										Noise Vol:
 #define LSN_AUDIO_OPTIONS_INVERT											Invert
 #define LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM									Noise/Mains Hum
 

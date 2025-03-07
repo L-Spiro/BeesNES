@@ -31,6 +31,7 @@ namespace lsn {
 		CLengthCounter::ResetToKnown();
 		CLinearCounter::ResetToKnown();
 		CSequencer::ResetToKnown();
+		m_ui8Out = m_ui8Triangle[m_ui8SeqOff];
 	}
 
 	/**

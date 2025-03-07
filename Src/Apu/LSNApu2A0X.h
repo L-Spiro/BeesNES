@@ -147,6 +147,10 @@ namespace lsn {
 			m_fHpf0( 194.0f ),
 			m_fHpf1( 37.0f ),
 			m_fHpf2( 37.0f ),
+			m_fP1Vol( 1.0f ),
+			m_fP2Vol( 1.0f ),
+			m_fTVol( 1.0f ),
+			m_fNVol( 1.0f ),
 			m_bEnabled( true ) {
 
 			m_pfLpf.CreateLpf( 20000.0f, HzAsFloat() );
@@ -188,17 +192,17 @@ namespace lsn {
 				CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 			
 
-				float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f;
+				float fPulse1 = ((m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) )) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f) * m_fP1Vol;
 				// DEBUG.
 				//fPulse1 = 0.0f;
-				float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f;
+				float fPulse2 = ((m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) )) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f) * m_fP2Vol;
 				//fPulse2 = 0.0f;
 				float fFinalPulse = fPulse1 + fPulse2;
 				if ( fFinalPulse ) {
 					fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 				}
-				float fNoise = (m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f;
-				float fTriangle = m_tTriangle.Output();
+				float fNoise = ((m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f) * m_fNVol;
+				float fTriangle = m_tTriangle.Output() * m_fTVol;
 				float fDmc = 0.0f;
 
 				//fFinalPulse = fNoise = fTriangle = 0.0f;
@@ -404,6 +408,11 @@ namespace lsn {
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
 			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 100.0f;
+
+			m_fP1Vol = _aoOptions.apCharacteristics.fP1Volume;
+			m_fP2Vol = _aoOptions.apCharacteristics.fP2Volume;
+			m_fTVol = _aoOptions.apCharacteristics.fTVolume;
+			m_fNVol = _aoOptions.apCharacteristics.fNVolume;
 		}
 
 		/**
@@ -529,6 +538,14 @@ namespace lsn {
 		float											m_fHpf1;
 		/** The HPF2 frequency. */
 		float											m_fHpf2;
+		/** The Pulse 1 master volume. */
+		float											m_fP1Vol;
+		/** The Pulse 2 master volume. */
+		float											m_fP2Vol;
+		/** The Triangle master volume. */
+		float											m_fTVol;
+		/** The Noise master volume. */
+		float											m_fNVol;
 		/** Pulse 1. */
 		CPulse											m_pPulse1;
 		/** Pulse 2. */

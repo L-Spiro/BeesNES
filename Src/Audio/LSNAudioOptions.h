@@ -23,6 +23,13 @@ namespace lsn {
 		LSN_SF_MONO_F32									/**< Mono 32-bit float. */
 	};
 
+	/** Filtering modes. */
+	enum LSN_FILTERING_MODE {
+		LSN_FM_NORMAL,									/**< Standard filtering with LPFfs and HPFfs. */
+		LSN_FM_NONE,									/**< No filtering.  Crappy down-sampling with lots of aliasing.  May never be used. */
+		LSN_FM_RF_1,									/**< One known RF result. */
+	};
+
 
 	// == Types.
 	/** Audio formats. */
@@ -65,6 +72,11 @@ namespace lsn {
 		float											fHpf1 = 37.0f;
 		float											fHpf2 = 37.0f;
 		float											fVolume = 0.625f;
+		float											fP1Volume = 1.0f;
+		float											fP2Volume = 1.0f;
+		float											fTVolume = 1.0f;
+		float											fNVolume = 1.0f;
+		LSN_FILTERING_MODE								fmFilterMode = LSN_FM_NORMAL;
 		bool											bLpfEnable = true;
 		bool											bHpf0Enable = true;
 		bool											bHpf1Enable = true;
