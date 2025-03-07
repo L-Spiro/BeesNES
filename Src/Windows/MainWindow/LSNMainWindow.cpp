@@ -1068,8 +1068,8 @@ namespace lsn {
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {
-		/*if ( m_pnsSystem.get() && m_pnsSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
-			m_pnsSystem->Tick();
+		/*if ( m_psbSystem.get() && m_psbSystem->IsRomLoaded() && m_aiThreadState == LSN_TS_INACTIVE ) {
+			m_psbSystem->Tick();
 		}*/
 	}
 
@@ -1454,33 +1454,33 @@ namespace lsn {
 #if 0
 		LSN_ROM rTmp;
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
-			m_pnsSystem.reset();
-			/*m_pnsSystem = std::make_unique<CRegionalSystem>();*/
+			m_psbSystem.reset();
+			/*m_psbSystem = std::make_unique<CRegionalSystem>();*/
 			switch ( rTmp.riInfo.pmConsoleRegion ) {
 				case LSN_PPU_METRICS::LSN_PM_NTSC : {
-					m_pnsSystem = std::make_unique<CNtscSystem>();
+					m_psbSystem = std::make_unique<CNtscSystem>();
 					break;
 				}
 				case LSN_PPU_METRICS::LSN_PM_PAL : {
-					m_pnsSystem = std::make_unique<CPalSystem>();
+					m_psbSystem = std::make_unique<CPalSystem>();
 					break;
 				}
 				case LSN_PPU_METRICS::LSN_PM_DENDY : {
-					m_pnsSystem = std::make_unique<CDendySystem>();
+					m_psbSystem = std::make_unique<CDendySystem>();
 					break;
 				}
-				default : { m_pnsSystem = std::make_unique<CNtscSystem>(); }
+				default : { m_psbSystem = std::make_unique<CNtscSystem>(); }
 			}
 			UpdatedConsolePointer();
-			if ( m_pnsSystem->LoadRom( rTmp ) ) {
-				if ( m_pnsSystem->GetRom() ) {
-					std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_pnsSystem->GetRom()->riInfo.s16RomName );
-					if ( m_pnsSystem->GetRom()->riInfo.ui16Mapper == 4 ) {
+			if ( m_psbSystem->LoadRom( rTmp ) ) {
+				if ( m_psbSystem->GetRom() ) {
+					std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_psbSystem->GetRom()->riInfo.s16RomName );
+					if ( m_psbSystem->GetRom()->riInfo.ui16Mapper == 4 ) {
 						u16Name += u" (Partial Support)";
 					}
 					::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
 				}
-				m_pnsSystem->ResetState( false );
+				m_psbSystem->ResetState( false );
 				m_cClock.SetStartingTick();
 				StartThread();
 				return true;
@@ -1544,7 +1544,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+	 * Call when changing the m_psbSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
 	 * 
 	 * \param _bMoveWindow If true, te window is resized.
 	 */

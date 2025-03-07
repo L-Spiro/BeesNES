@@ -192,18 +192,18 @@ namespace lsn {
 		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &/*_aoOptions*/ ) {}
 
 		/**
-		 * Sets the raw stream-to-file options.
+		 * Sets the raw stream-to-file pointer.
 		 * 
-		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 * \param _pfStream The stream-to-file pointer to set.
 		 **/
-		virtual void									SetRawAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &/*_stfoStreamOptions*/ ) {}
+		virtual void									SetRawStream( CWavFile * /*_pfStream*/ ) {}
 
 		/**
-		 * Sets the output-capture stream-to-file options.
+		 * Sets the output-capture stream-to-file pointer.
 		 * 
-		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 * \param _pfStream The stream-to-file pointer to set.
 		 **/
-		virtual void									SetOutputAudioStreamOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &/*_stfoStreamOptions*/ ) {}
+		virtual void									SetOutStream( CWavFile * /*_pfStream*/ ) {}
 
 		/**
 		 * Sets as inactive (another system is being played).

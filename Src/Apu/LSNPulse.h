@@ -59,6 +59,14 @@ namespace lsn {
 		 **/
 		virtual uint8_t							WeDoBeTicknTho();
 
+		/**
+		 * Returns the condition for ticking the sequencer.
+		 * 
+		 * \param _bEnabled Whether the unit is enabled for not.
+		 * \return Return true to perform a sequencer tick, or false to skip sequencer work.
+		 **/
+		virtual bool							ShouldBeTicknTho( bool /*_bEnabled*/ ) { return true; }
+
 	};
 	
 

@@ -142,6 +142,8 @@ namespace lsn {
 			m_dvPulse2LengthCounterHalt( ChannelHaltLengthCounter<0x04, LSN_PULSE2_HALT_MASK>, this ),
 			m_dvTriangleLengthCounterHalt( ChannelHaltLengthCounter<0x08, LSN_TRIANGLE_HALT_MASK>, this ),
 			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ),
+			m_pwfRawStream( nullptr ),
+			m_pwfOutStream( nullptr ),
 			m_fSampleBoxLpf( 20000.0f ),
 			m_fLpf( 20000.0f ),
 			m_fHpf0( 194.0f ),
@@ -257,8 +259,8 @@ namespace lsn {
 			
 				double dFinal = fFinalPulse + fFinalTnd;
 
-				if LSN_UNLIKELY( m_pwfSourceWavFile.get() ) {
-					m_pwfSourceWavFile->AddStreamSample( float( dFinal ) );
+				if LSN_UNLIKELY( m_pwfRawStream ) {
+					m_pwfRawStream->AddStreamSample( float( dFinal ) );
 				}
 
 				dFinal = m_pfLpf.Process( dFinal );
@@ -416,76 +418,28 @@ namespace lsn {
 		}
 
 		/**
-		 * Sets the stream-to-file options.
+		 * Sets the raw stream-to-file pointer.
 		 * 
-		 * \param _stfoStreamOptions The stream-to-file options to set.
-		 * \tparam _bIsRaw If true, the options are applied to the raw signal, otherwise to the output.
+		 * \param _pfStream The pointer to set for streaming the raw signal to a file.
 		 **/
-		template <bool _bIsRaw>
-		void											SetStreamToFileOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoStreamOptions ) {
-			uint32_t ui32Hz = _bIsRaw ? static_cast<uint32_t>(std::ceil( Hz() )) : _stfoStreamOptions.ui32Hz;
-			constexpr uint32_t ui32BufferSize = _bIsRaw ? 1024 * 1024 : 10 * 1024;
-			std::unique_ptr<CWavFile> * pupFile = nullptr;
-			try {
-				if constexpr ( _bIsRaw ) {
-					pupFile = &m_pwfSourceWavFile;
-				}
-				else {
-					pupFile = &m_pwfOutputWavFile;
-				}
-				CWavFile * pwfFile = pupFile->get();
+		inline void										SetRawStream( CWavFile * _pfStream ) {
+			m_pwfRawStream = _pfStream;
+		}
 
-				std::filesystem::path pAbsolutePath = _stfoStreamOptions.wsPath.size() ? std::filesystem::absolute( std::filesystem::path( _stfoStreamOptions.wsPath ) ) : std::filesystem::path();
-				if ( pwfFile ) {
-					// If it is already exporting, determine if it needs to be stopped.
-					if ( !_stfoStreamOptions.bEnabled ) {
-						pupFile->reset();
-						pwfFile = nullptr;
-						return;
-					}
-
-					uint16_t ui16Bits = _stfoStreamOptions.fFormat == CWavFile::LSN_F_IEEE_FLOAT ? 32 : uint16_t( _stfoStreamOptions.ui32Bits );
-					// Already streaming and will continue to stream, but maybe some parameters have changed.
-					if ( pwfFile->GetStreamData().wsPath != pAbsolutePath.generic_wstring() ||
-						pwfFile->GetStreamData().ui16Bits != ui16Bits ||
-						pwfFile->GetStreamData().ui16Channels != 1 ||
-						pwfFile->GetStreamData().fFormat != _stfoStreamOptions.fFormat ||
-						pwfFile->GetStreamData().bDither != _stfoStreamOptions.bDither ) {
-						// An entirely new recording should begin.
-						if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
-							pupFile->reset();
-							pwfFile = nullptr;
-							return;
-						}
-					}
-					// TODO: Update starting and stopping condition.
-				}
-				else if ( _stfoStreamOptions.bEnabled ) {
-					(*pupFile) = std::make_unique<CWavFile>();
-					pwfFile = (*pupFile).get();
-					if ( pupFile ) {
-						// Streaming is not being done.  Start a new stream.
-						if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
-							pupFile->reset();
-							pwfFile = nullptr;
-							return;
-						}
-					}
-				}
-			}
-			catch ( ... ) {}
+		/**
+		 * Sets the output stream-to-file pointer.
+		 * 
+		 * \param _pfStream The pointer to set for streaming the output signal to a file.
+		 **/
+		inline void										SetOutStream( CWavFile * _pfStream ) {
+			m_pwfOutStream = _pfStream;
 		}
 
 		/**
 		 * Sets as inactive (another system is being played).
 		 **/
 		virtual void									SetAsInactive() {
-			if ( m_pwfSourceWavFile.get() ) {
-				m_pwfSourceWavFile.reset();
-			}
-			if ( m_pwfOutputWavFile.get() ) {
-				m_pwfOutputWavFile.reset();
-			}
+			m_pwfOutStream = m_pwfRawStream = nullptr;
 		}
 
 
@@ -511,9 +465,9 @@ namespace lsn {
 		/** The IRQ target. */
 		CInterruptable *								m_piIrqTarget;
 		/** WAV streamer for the source signal. */
-		std::unique_ptr<CWavFile>						m_pwfSourceWavFile;
+		CWavFile *										m_pwfRawStream;
 		/** WAV streamer for the output signal. */
-		std::unique_ptr<CWavFile>						m_pwfOutputWavFile;
+		CWavFile *										m_pwfOutStream;
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
 		/** Final volume multiplier. */
@@ -1214,8 +1168,8 @@ namespace lsn {
 			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, float( _ui32Hz ) ) ) {
 				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, float( _ui32Hz ) ) ) {
 					auto fSample = float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
-					if LSN_UNLIKELY( paApu->m_pwfOutputWavFile.get() ) {
-						paApu->m_pwfOutputWavFile->AddStreamSample( fSample );
+					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
+						paApu->m_pwfOutStream->AddStreamSample( fSample );
 					}
 					return fSample;
 				}

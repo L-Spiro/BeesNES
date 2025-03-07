@@ -423,7 +423,7 @@ namespace lsn {
 		//std::vector<Double3>					Load64bitPalette_512( const std::vector<uint8_t> &_vPalFile );
 
 		/**
-		 * Call when changing the m_pnsSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
+		 * Call when changing the m_psbSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
 		 * 
 		 * \param _bMoveWindow If true, te window is resized.
 		 */

@@ -42,7 +42,7 @@ namespace lsn {
 		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
 		if ( aEdit ) { aEdit->SetTextW( m_poOptions->stfStreamOptionsRaw.wsPath.c_str() ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-		if ( aEdit ) { aEdit->SetTextW( m_poOptions->stfStreamOptionsOutCaptire.wsPath.c_str() ); }
+		if ( aEdit ) { aEdit->SetTextW( m_poOptions->stfStreamOptionsOutCapture.wsPath.c_str() ); }
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_HZ_EDIT );
 		if ( aEdit ) { aEdit->SetTextA( std::to_string( m_poOptions->dApuHz ).c_str() ); }
@@ -52,22 +52,22 @@ namespace lsn {
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_FORMAT_COMBO );
 		if ( aEdit ) { CWinUtilities::FillComboWithWavFormats( aEdit, m_poOptions->stfStreamOptionsRaw.fFormat ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_FORMAT_COMBO );
-		if ( aEdit ) { CWinUtilities::FillComboWithWavFormats( aEdit, m_poOptions->stfStreamOptionsOutCaptire.fFormat ); }
+		if ( aEdit ) { CWinUtilities::FillComboWithWavFormats( aEdit, m_poOptions->stfStreamOptionsOutCapture.fFormat ); }
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_BITS_COMBO );
 		if ( aEdit ) { CWinUtilities::FillComboWithWavPcmBits( aEdit, m_poOptions->stfStreamOptionsRaw.ui32Bits ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_BITS_COMBO );
-		if ( aEdit ) { CWinUtilities::FillComboWithWavPcmBits( aEdit, m_poOptions->stfStreamOptionsOutCaptire.ui32Bits ); }
+		if ( aEdit ) { CWinUtilities::FillComboWithWavPcmBits( aEdit, m_poOptions->stfStreamOptionsOutCapture.ui32Bits ); }
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_CONDITION_COMBO );
 		if ( aEdit ) { CWinUtilities::FillComboWithWavStartConditions( aEdit, m_poOptions->stfStreamOptionsRaw.scStartCondition ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO );
-		if ( aEdit ) { CWinUtilities::FillComboWithWavStartConditions( aEdit, m_poOptions->stfStreamOptionsOutCaptire.scStartCondition ); }
+		if ( aEdit ) { CWinUtilities::FillComboWithWavStartConditions( aEdit, m_poOptions->stfStreamOptionsOutCapture.scStartCondition ); }
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO );
 		if ( aEdit ) { CWinUtilities::FillComboWithWavEndConditions( aEdit, m_poOptions->stfStreamOptionsRaw.seEndCondition ); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO );
-		if ( aEdit ) { CWinUtilities::FillComboWithWavEndConditions( aEdit, m_poOptions->stfStreamOptionsOutCaptire.seEndCondition ); }
+		if ( aEdit ) { CWinUtilities::FillComboWithWavEndConditions( aEdit, m_poOptions->stfStreamOptionsOutCapture.seEndCondition ); }
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO );
 		if ( aEdit ) { CWinUtilities::FillComboWithStrings( aEdit, m_poOptions->vRawStartHistory, 0 ); }
@@ -83,12 +83,12 @@ namespace lsn {
 		lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_ENABLE_CHECK ));
 		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.bEnabled ); }
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_ENABLE_CHECK ));
-		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsOutCaptire.bEnabled ); }
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsOutCapture.bEnabled ); }
 
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_DITHER_CHECK ));
 		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.bDither ); }
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_DITHER_CHECK ));
-		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsOutCaptire.bDither ); }
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsOutCapture.bDither ); }
 
 		Update();
 		return LSW_H_CONTINUE;
@@ -321,23 +321,23 @@ namespace lsn {
 		if ( pcbCombo ) { m_poOptions->stfStreamOptionsRaw.ui32Bits = static_cast<uint32_t>(pcbCombo->GetCurSelItemData()); }
 
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_ENABLE_CHECK ));
-		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCaptire.bEnabled = pcbCheck->IsChecked(); }
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCapture.bEnabled = pcbCheck->IsChecked(); }
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_DITHER_CHECK ));
-		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCaptire.bDither = pcbCheck->IsChecked(); }
+		if ( pcbCheck ) { m_poOptions->stfStreamOptionsOutCapture.bDither = pcbCheck->IsChecked(); }
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_FORMAT_COMBO ));
-		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.fFormat = static_cast<CWavFile::LSN_FORMAT>(pcbCombo->GetCurSelItemData()); }
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCapture.fFormat = static_cast<CWavFile::LSN_FORMAT>(pcbCombo->GetCurSelItemData()); }
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO ));
-		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.scStartCondition = static_cast<CWavFile::LSN_START_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCapture.scStartCondition = static_cast<CWavFile::LSN_START_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO ));
-		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.seEndCondition = static_cast<CWavFile::LSN_END_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCapture.seEndCondition = static_cast<CWavFile::LSN_END_CONDITIONS>(pcbCombo->GetCurSelItemData()); }
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_BITS_COMBO ));
-		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCaptire.ui32Bits = static_cast<uint32_t>(pcbCombo->GetCurSelItemData()); }
+		if ( pcbCombo ) { m_poOptions->stfStreamOptionsOutCapture.ui32Bits = static_cast<uint32_t>(pcbCombo->GetCurSelItemData()); }
 
 
 		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
 		if ( aEdit ) { m_poOptions->stfStreamOptionsRaw.wsPath = aEdit->GetTextW(); }
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-		if ( aEdit ) { m_poOptions->stfStreamOptionsOutCaptire.wsPath = aEdit->GetTextW(); }
+		if ( aEdit ) { m_poOptions->stfStreamOptionsOutCapture.wsPath = aEdit->GetTextW(); }
 
 
 		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO );

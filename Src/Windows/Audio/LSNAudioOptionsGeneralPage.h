@@ -80,8 +80,8 @@ namespace lsn {
 
 			lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
-				ptbTrackBar->SetRange( TRUE, 0, 500 );
-				ptbTrackBar->SetTicFreq( 50 );
+				ptbTrackBar->SetRange( TRUE, 0, 1000 );
+				ptbTrackBar->SetTicFreq( 100 );
 				ptbTrackBar->SetPos( TRUE, LPARAM( std::round( aoOptions.fVolume * 100.0f ) ) );
 
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT );
@@ -191,7 +191,6 @@ namespace lsn {
 
 
 			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-			//if ( aEdit ) { aEdit->SetTextA( std::to_string( aoOptions.apCharacteristics.fLpf ).c_str() ); }
 			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fLpf ).c_str() ); }
 
 			aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
@@ -223,7 +222,7 @@ namespace lsn {
 						if ( ptbTrackBar ) {
 							ee::CExpEvalContainer::EE_RESULT rRes;
 							if ( _pwSrc->GetTextAsUInt64Expression( rRes ) ) {
-								rRes.u.ui64Val = std::clamp<uint64_t>( rRes.u.ui64Val, 0, 500 );
+								rRes.u.ui64Val = std::clamp<uint64_t>( rRes.u.ui64Val, 0, 1000 );
 								ptbTrackBar->SetPos( TRUE, LPARAM( rRes.u.ui64Val ) );
 							}
 						}

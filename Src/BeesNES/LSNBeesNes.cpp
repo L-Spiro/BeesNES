@@ -13,6 +13,12 @@
 
 namespace lsn {
 
+	/** The raw WAV stream. */
+	CWavFile CBeesNes::m_wfRawStream;
+	
+	/** The output-capture WAV stream. */
+	CWavFile CBeesNes::m_wfOutStream;
+
 	CBeesNes::CBeesNes( CDisplayHost * _pdhDisplayHost, CInputPoller * _pipPoller ) :
 		m_dScale( 3.0 ),
 		m_dRatio( 4.0 / 3.0 ),
@@ -174,7 +180,7 @@ namespace lsn {
 		m_psbSystems[LSN_PM_PALN] = &m_nsPalNSystem;
 
 
-		m_pnsSystem = m_psbSystems[m_pmSystem];
+		m_psbSystem = m_psbSystems[m_pmSystem];
 
 
 		const size_t stBuffers = 3;
@@ -295,7 +301,7 @@ namespace lsn {
 	 * \return Returns the current region.
 	 */
 	LSN_PPU_METRICS CBeesNes::GetCurPpuRegion() const {
-		return m_pnsSystem->GetDisplayClient()->PpuRegion();
+		return m_psbSystem->GetDisplayClient()->PpuRegion();
 	}
 
 	/**
@@ -358,7 +364,7 @@ namespace lsn {
 			m_u16PerGameSettings.clear();
 		}
 		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
-			//m_pnsSystem.reset();
+			//m_psbSystem.reset();
 			LSN_PPU_METRICS pmReg = _pmRegion;
 			m_pmSystem = pmReg;
 			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
@@ -372,13 +378,13 @@ namespace lsn {
 					m_psbSystems[I]->SetAsInactive();
 				}
 			}
-			m_pnsSystem = m_psbSystems[m_pmSystem];
+			m_psbSystem = m_psbSystems[m_pmSystem];
 			
 			m_u16PerGameSettings = CUtilities::PerRomSettingsPath( m_wsFolder + L"GameSettings\\", rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
 			LoadPerGameSettings( m_u16PerGameSettings );
 			UpdateCurrentSystem();
-			if ( m_pnsSystem->LoadRom( rTmp ) ) {
-				m_pnsSystem->ResetState( false );
+			if ( m_psbSystem->LoadRom( rTmp ) ) {
+				m_psbSystem->ResetState( false );
 				AddPath( _s16Path );
 				return true;
 			}
@@ -392,11 +398,15 @@ namespace lsn {
 	void CBeesNes::ApplyAudioOptions() {
 		LSN_AUDIO_OPTIONS & aoOptions = Options().aoThisGameAudioOptions.bUseGlobal ? Options().aoGlobalAudioOptions : Options().aoThisGameAudioOptions;
 		CAudio::SetOutputSettings( aoOptions );
-		if ( m_pnsSystem ) {
-			m_pnsSystem->SetAudioOptions( aoOptions );
-			m_pnsSystem->SetRawAudioStreamOptions( Options().stfStreamOptionsRaw );
-			Options().stfStreamOptionsOutCaptire.ui32Hz = aoOptions.ui32OutputHz;
-			m_pnsSystem->SetOutputAudioStreamOptions( Options().stfStreamOptionsOutCaptire );
+		if ( m_psbSystem ) {
+			Options().stfStreamOptionsOutCapture.ui32Hz = aoOptions.ui32OutputHz;
+			m_psbSystem->SetAudioOptions( aoOptions );
+			SetStreamToFileOptions<true>( Options().stfStreamOptionsRaw );
+			SetStreamToFileOptions<false>( Options().stfStreamOptionsOutCapture );
+
+			m_psbSystem->SetRawStream( Options().stfStreamOptionsRaw.bEnabled ? &m_wfRawStream : nullptr );
+			m_psbSystem->SetOutStream( Options().stfStreamOptionsOutCapture.bEnabled ? &m_wfOutStream : nullptr );
+			
 		}
 
 		if ( m_u16PerGameSettings.size() ) {
@@ -435,7 +445,7 @@ namespace lsn {
 		GetDisplayClient()->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
 
 		// Set up input.
-		m_pnsSystem->SetInputPoller( m_pipPoller );
+		m_psbSystem->SetInputPoller( m_pipPoller );
 
 		ApplyAudioOptions();
 	}
@@ -466,7 +476,7 @@ namespace lsn {
 		if ( !_sFile.ReadStringU16( m_oOptions.wOutAudioPath ) ) { return false; }
 
 		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
-		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsOutCaptire ) ) { return false; }
+		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsOutCapture ) ) { return false; }
 		
 		try {
 			auto aSize = m_oOptions.vRawStartHistory.size();
@@ -522,7 +532,7 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( CUtilities::XStringToU16String( m_oOptions.wOutAudioPath.c_str(), m_oOptions.wOutAudioPath.size() ) ) ) { return false; }
 		
 		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
-		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsOutCaptire ) ) { return false; }
+		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsOutCapture ) ) { return false; }
 		
 		if ( !_sFile.Write( m_oOptions.vRawStartHistory.size() ) ) { return false; }
 		for ( size_t I = 0; I < m_oOptions.vRawStartHistory.size(); ++I ) {

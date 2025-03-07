@@ -138,19 +138,15 @@ namespace lsn {
 	 * \param _bEnabled Determines if work should actually be done.
 	 * \return Returns m_ui8Out.
 	 **/
-	inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
+    inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
 		if ( ShouldBeTicknTho( _bEnabled ) ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
-
 				m_ui8Out = WeDoBeTicknTho();
 			}
-		}
-		if LSN_UNLIKELY( m_bRestartSeq ) {
-			m_bRestartSeq = false;
-			m_ui8SeqOff = 0;
-		}
-		return m_ui8Out;
+        }
+        return m_ui8Out;
+
 	}
 
 	/**
@@ -160,7 +156,6 @@ namespace lsn {
 	 **/
 	inline void CSequencer::SetSeq( uint8_t _ui8Val ) {
 		m_ui32Sequence = _ui8Val;
-		m_bRestartSeq = false;
 	}
 
 	/**
@@ -184,8 +179,8 @@ namespace lsn {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		if ( _bReset ) {
 			//m_ui16Timer = m_ui16Reload;
-			m_bRestartSeq = true;
-			//m_ui8SeqOff = 0;
+			//m_bRestartSeq = true;
+			m_ui8SeqOff = 0;
 		}
 		return m_ui16Reload;
 	}

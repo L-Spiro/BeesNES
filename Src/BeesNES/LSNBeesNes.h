@@ -169,14 +169,14 @@ namespace lsn {
 		 *
 		 * \return Returns the display client or nullptr.
 		 */
-		inline CDisplayClient *					GetDisplayClient() { return m_pnsSystem->GetDisplayClient(); }
+		inline CDisplayClient *					GetDisplayClient() { return m_psbSystem->GetDisplayClient(); }
 
 		/**
 		 * Gets the current display client.
 		 *
 		 * \return Returns the display client or nullptr.
 		 */
-		inline const CDisplayClient *			GetDisplayClient() const { return m_pnsSystem->GetDisplayClient(); }
+		inline const CDisplayClient *			GetDisplayClient() const { return m_psbSystem->GetDisplayClient(); }
 
 		/**
 		 * Gets the render target width, accounting for any extra debug information to be displayed on the side.
@@ -203,14 +203,14 @@ namespace lsn {
 		 *
 		 * \return Returns a pointer to the current console system.
 		 */
-		CSystemBase *							GetSystem() { return m_pnsSystem; }
+		CSystemBase *							GetSystem() { return m_psbSystem; }
 
 		/**
 		 * Gets the current system.
 		 *
 		 * \return Returns a constant pointer to the current console system.
 		 */
-		const CSystemBase *						GetSystem() const { return m_pnsSystem; }
+		const CSystemBase *						GetSystem() const { return m_psbSystem; }
 
 		/**
 		 * Gets the current render information.
@@ -339,7 +339,7 @@ namespace lsn {
 		/** The array of console pointers. */
 		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL];
 		/** The console pointer. */
-		CSystemBase *							m_pnsSystem;
+		CSystemBase *							m_psbSystem;
 		/** The path to the executable folder. */
 		std::wstring							m_wsFolder;
 		/** The current system type. */
@@ -363,12 +363,70 @@ namespace lsn {
 		/** The total number of recently opened to allow. */
 		uint32_t								m_ui32RecentLimit;
 
+		/** The raw WAV stream. */
+		static CWavFile							m_wfRawStream;
+		/** The output-capture WAV stream. */
+		static CWavFile							m_wfOutStream;
+
 
 		// == Functions.
 		/**
 		 * Updates the current system with render information, display hosts, etc.
 		 */
 		void									UpdateCurrentSystem();
+
+		/**
+		 * Sets the stream-to-file options.
+		 * 
+		 * \param _stfoStreamOptions The stream-to-file options to set.
+		 * \tparam _bIsRaw If true, the options are applied to the raw signal, otherwise to the output.
+		 **/
+		template <bool _bIsRaw>
+		void									SetStreamToFileOptions( const CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoStreamOptions ) {
+			uint32_t ui32Hz = _bIsRaw ? static_cast<uint32_t>(std::ceil( m_psbSystem->GetApuHz() )) : _stfoStreamOptions.ui32Hz;
+			constexpr uint32_t ui32BufferSize = _bIsRaw ? 1024 * 1024 : 10 * 1024;
+			try {
+				CWavFile * pwfFile;
+				if constexpr ( _bIsRaw ) {
+					pwfFile = &m_wfRawStream;
+				}
+				else {
+					pwfFile = &m_wfOutStream;
+				}
+
+				std::filesystem::path pAbsolutePath = _stfoStreamOptions.wsPath.size() ? std::filesystem::absolute( std::filesystem::path( _stfoStreamOptions.wsPath ) ) : std::filesystem::path();
+				if ( pwfFile->GetStreamData().bStreaming ) {
+					// If it is already exporting, determine if it needs to be stopped.
+					if ( !_stfoStreamOptions.bEnabled ) {
+						pwfFile->StopStream();
+						return;
+					}
+					// Streaming is enabled.
+					uint16_t ui16Bits = _stfoStreamOptions.fFormat == CWavFile::LSN_F_IEEE_FLOAT ? 32 : uint16_t( _stfoStreamOptions.ui32Bits );
+					// Already streaming and will continue to stream, but maybe some parameters have changed.
+					if ( pwfFile->GetStreamData().wsPath != pAbsolutePath.generic_wstring() ||
+						pwfFile->GetStreamData().ui16Bits != ui16Bits ||
+						pwfFile->GetStreamData().ui16Channels != 1 ||
+						pwfFile->GetStreamData().fFormat != _stfoStreamOptions.fFormat ||
+						pwfFile->GetStreamData().bDither != _stfoStreamOptions.bDither ) {
+						// An entirely new recording should begin.
+						if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
+							pwfFile->StopStream();
+							return;
+						}
+					}
+					// TODO: Update starting and stopping condition.
+				}
+				else if ( _stfoStreamOptions.bEnabled ) {
+					// Streaming is not being done.  Start a new stream.
+					if ( !pwfFile->StreamToFile( _stfoStreamOptions, ui32Hz, ui32BufferSize ) ) {
+						pwfFile->StopStream();
+						return;
+					}
+				}
+			}
+			catch ( ... ) {}
+		}
 
 		/**
 		 * Loads the settings file.

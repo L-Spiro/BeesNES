@@ -36,7 +36,7 @@ namespace lsn {
 		LSN_AUDIO_OPTIONS									aoGlobalAudioOptions;										/**< Global audio options. */
 		LSN_AUDIO_OPTIONS									aoThisGameAudioOptions;										/**< This game's audio options. */
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsRaw;										/**< Raw capture. */
-		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCaptire;									/**< Output capture. */
+		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCapture;									/**< Output capture. */
 
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
 		CFilterBase::LSN_FILTERS							fFilter = CFilterBase::LSN_F_AUTO_CRT_FULL;					/**< The current filter ID. */
