@@ -59,7 +59,7 @@ namespace lsn {
 		(this->*m_pfTickFunc)();
 
 		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
-		//m_bIrqSeenLowPhi2 |= m_bIrqStatusLine & static_cast<int8_t>(!(m_rRegs.ui8Status & I()));
+		//m_bIrqSeenLowPhi2 |= m_bIrqStatusLine & static_cast<int8_t>(!(m_fsState.rRegs.ui8Status & I()));
 		m_bIrqSeenLowPhi2 |= (m_ui8IrqStatusLine != 0);
 
 		++m_ui64CycleCount;
@@ -179,12 +179,12 @@ namespace lsn {
 		ResetToKnown();
 		m_pbBus->ApplyMap();				// Set default read/write functions.
 		m_ui64CycleCount = 0;
-		m_rRegs.ui8A = cvoVerifyMe.cvsStart.cvrRegisters.ui8A;
-		m_rRegs.ui8S = cvoVerifyMe.cvsStart.cvrRegisters.ui8S;
-		m_rRegs.ui8X = cvoVerifyMe.cvsStart.cvrRegisters.ui8X;
-		m_rRegs.ui8Y = cvoVerifyMe.cvsStart.cvrRegisters.ui8Y;
-		m_rRegs.ui8Status = cvoVerifyMe.cvsStart.cvrRegisters.ui8Status;
-		m_rRegs.ui16Pc = cvoVerifyMe.cvsStart.cvrRegisters.ui16Pc;
+		m_fsState.rRegs.ui8A = cvoVerifyMe.cvsStart.cvrRegisters.ui8A;
+		m_fsState.rRegs.ui8S = cvoVerifyMe.cvsStart.cvrRegisters.ui8S;
+		m_fsState.rRegs.ui8X = cvoVerifyMe.cvsStart.cvrRegisters.ui8X;
+		m_fsState.rRegs.ui8Y = cvoVerifyMe.cvsStart.cvrRegisters.ui8Y;
+		m_fsState.rRegs.ui8Status = cvoVerifyMe.cvsStart.cvrRegisters.ui8Status;
+		m_fsState.rRegs.ui16Pc = cvoVerifyMe.cvsStart.cvrRegisters.ui16Pc;
 
 		for ( auto I = cvoVerifyMe.cvsStart.vRam.size(); I--; ) {
 			m_pbBus->Write( cvoVerifyMe.cvsStart.vRam[I].ui16Addr, cvoVerifyMe.cvsStart.vRam[I].ui8Value );
@@ -197,16 +197,16 @@ namespace lsn {
 		//m_bIsReset = true;
 		for ( auto I = cvoVerifyMe.vCycles.size(); I--; ) {
 			Tick();
-			/*if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM ) {
+			/*if ( m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM ) {
 				if ( m_bHandleNmi != I < 1 ) {
 					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
 				}
 			}*/
 			m_bDetectedNmi = true;
 			TickPhi2();
-			if ( m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BRK &&
-				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BPL && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BNE && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BVS &&
-				m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCC && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BCS && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BEQ && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_BMI ) {
+			if ( m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BRK &&
+				m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BPL && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BNE && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BVC && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BVS &&
+				m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BCC && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BCS && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BEQ && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BMI ) {
 				if ( m_bHandleNmi != (I <= 0) ) {
 					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
 				}
@@ -216,12 +216,12 @@ namespace lsn {
 		
 		// Verify.
 #define LSN_VURIFFY( REG )																																												\
-	if ( m_rRegs. ## REG != cvoVerifyMe.cvsEnd.cvrRegisters. ## REG ) {																																	\
+	if ( m_fsState.rRegs. ## REG != cvoVerifyMe.cvsEnd.cvrRegisters. ## REG ) {																																	\
 		::OutputDebugStringA( cvoVerifyMe.sName.c_str() );																																				\
 		::OutputDebugStringA( "\r\nCPU Failure: " # REG "\r\n" );																																		\
 		::OutputDebugStringA( (std::string( "Expected: ") + std::to_string( cvoVerifyMe.cvsEnd.cvrRegisters. ## REG ) +																					\
-			std::string( " (" ) + ee::CExpEval::ToHex( uint64_t( cvoVerifyMe.cvsEnd.cvrRegisters. ## REG ) ) + std::string( ") Got: " ) + std::to_string( m_rRegs. ## REG ) +							\
-			std::string( " (" ) + ee::CExpEval::ToHex( uint64_t( m_rRegs. ## REG ) ) + std::string( ")" )).c_str() );																					\
+			std::string( " (" ) + ee::CExpEval::ToHex( uint64_t( cvoVerifyMe.cvsEnd.cvrRegisters. ## REG ) ) + std::string( ") Got: " ) + std::to_string( m_fsState.rRegs. ## REG ) +							\
+			std::string( " (" ) + ee::CExpEval::ToHex( uint64_t( m_fsState.rRegs. ## REG ) ) + std::string( ")" )).c_str() );																					\
 		::OutputDebugStringA( "\r\n\r\n" );																																								\
 	}
 
@@ -233,7 +233,7 @@ namespace lsn {
 		LSN_VURIFFY( ui16Pc );
 #undef LSN_VURIFFY
 
-		if ( m_ui8FuncIndex != 0 && m_iInstructionSet[m_ui16OpCode].iInstruction != LSN_I_JAM ) {
+		if ( m_ui8FuncIndex != 0 && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM ) {
 			::OutputDebugStringA( cvoVerifyMe.sName.c_str() );
 			::OutputDebugStringA( "\r\nDidn't read the end of cycle functions.\r\n" );
 			::OutputDebugStringA( "\r\n\r\n" );
@@ -409,10 +409,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		Adc( m_rRegs.ui8A, m_ui8Operand );
+		Adc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
 	
-	/** Adds X and m_ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
+	/** Adds X and m_fsState.ui8Operand, stores to either m_fsState.ui16Address or m_fsState.ui16Pointer. */
 	template <bool _bToAddr, bool _bRead, bool _bIncPc>
 	void CCpu6502::Add_XAndOperand_To_AddrOrPntr_8bit() {
 		LSN_INSTR_START_PHI1( _bRead );
@@ -422,10 +422,10 @@ namespace lsn {
 		}
 
 		if constexpr ( _bToAddr ) {
-			m_ui16Address = uint8_t( m_ui8Operand + m_rRegs.ui8X );
+			m_fsState.ui16Address = uint8_t( m_fsState.ui8Operand + m_fsState.rRegs.ui8X );
 		}
 		else {
-			m_ui16Pointer = uint8_t( m_ui8Operand + m_rRegs.ui8X );
+			m_fsState.ui16Pointer = uint8_t( m_fsState.ui8Operand + m_fsState.rRegs.ui8X );
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -433,7 +433,7 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Adds X and m_ui16Pointer or m_ui16Address, stores to either m_ui16Address or m_ui16Pointer. */
+	/** Adds X and m_fsState.ui16Pointer or m_fsState.ui16Address, stores to either m_fsState.ui16Address or m_fsState.ui16Pointer. */
 	template <bool _bToAddr, bool _bRead, bool _bIncPc>
 	void CCpu6502::Add_XAndPtrOrAddr_To_AddrOrPntr_8bit() {
 		LSN_INSTR_START_PHI1( _bRead );
@@ -443,10 +443,10 @@ namespace lsn {
 		}
 
 		if constexpr ( _bToAddr ) {
-			m_ui16Address = uint8_t( m_ui16Pointer + m_rRegs.ui8X );
+			m_fsState.ui16Address = uint8_t( m_fsState.ui16Pointer + m_fsState.rRegs.ui8X );
 		}
 		else {
-			m_ui16Pointer = uint8_t( m_ui16Address + m_rRegs.ui8X );
+			m_fsState.ui16Pointer = uint8_t( m_fsState.ui16Address + m_fsState.rRegs.ui8X );
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -454,7 +454,7 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Adds X and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address. */
+	/** Adds X and either m_fsState.ui16Address.L or m_fsState.ui16Pointer.L, stores in either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr, bool _bRead, bool _bIncPc>
 	void CCpu6502::Add_XAndPtrOrAddr_To_AddrOrPtr() {
 		LSN_INSTR_START_PHI1( _bRead );
@@ -464,18 +464,18 @@ namespace lsn {
 		}
 
 		if constexpr ( _bToAddr ) {
-			m_ui16Target = m_ui16Pointer + m_rRegs.ui8X;
-			m_ui8Address[0] = m_ui8Target[0];
-			m_ui8Address[1] = m_ui8Pointer[1];
+			m_fsState.ui16Target = m_fsState.ui16Pointer + m_fsState.rRegs.ui8X;
+			m_fsState.ui8Address[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
 
-			m_bBoundaryCrossed = m_ui8Pointer[1] != m_ui8Target[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
 		}
 		else {
-			m_ui16Target = m_ui16Address + m_rRegs.ui8X;
-			m_ui8Pointer[0] = m_ui8Target[0];
-			m_ui8Pointer[1] = m_ui8Address[1];
+			m_fsState.ui16Target = m_fsState.ui16Address + m_fsState.rRegs.ui8X;
+			m_fsState.ui8Pointer[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
 
-			m_bBoundaryCrossed = m_ui8Address[1] != m_ui8Target[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -483,7 +483,7 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Adds Y and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address. */
+	/** Adds Y and either m_fsState.ui16Address.L or m_fsState.ui16Pointer.L, stores in either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr, bool _bRead, bool _bIncPc>
 	void CCpu6502::Add_YAndPtrOrAddr_To_AddrOrPtr() {
 		LSN_INSTR_START_PHI1( _bRead );
@@ -493,18 +493,18 @@ namespace lsn {
 		}
 
 		if constexpr ( _bToAddr ) {
-			m_ui16Target = m_ui16Pointer + m_rRegs.ui8Y;
-			m_ui8Address[0] = m_ui8Target[0];
-			m_ui8Address[1] = m_ui8Pointer[1];
+			m_fsState.ui16Target = m_fsState.ui16Pointer + m_fsState.rRegs.ui8Y;
+			m_fsState.ui8Address[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
 
-			m_bBoundaryCrossed = m_ui8Pointer[1] != m_ui8Target[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
 		}
 		else {
-			m_ui16Target = m_ui16Address + m_rRegs.ui8Y;
-			m_ui8Pointer[0] = m_ui8Target[0];
-			m_ui8Pointer[1] = m_ui8Address[1];
+			m_fsState.ui16Target = m_fsState.ui16Address + m_fsState.rRegs.ui8Y;
+			m_fsState.ui8Pointer[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
 
-			m_bBoundaryCrossed = m_ui8Address[1] != m_ui8Target[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -518,10 +518,10 @@ namespace lsn {
 
 		LSN_UPDATE_PC;
 
-		m_rRegs.ui8A &= m_ui8Operand;
+		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 
-		SetBit<C() | N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<C() | N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = A & OP.  Sets flags N and Z. */
@@ -533,10 +533,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A &= m_ui8Operand;
+		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
@@ -546,10 +546,10 @@ namespace lsn {
 		LSN_UPDATE_PC;
 
 		// "N and Z are set according to the value of the accumulator before the instruction executed" does not seem to be true.
-		m_rRegs.ui8A = (m_rRegs.ui8A | 0xEE) & m_rRegs.ui8X & m_ui8Operand;
+		m_fsState.rRegs.ui8A = (m_fsState.rRegs.ui8A | 0xEE) & m_fsState.rRegs.ui8X & m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
@@ -561,27 +561,27 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A &= m_ui8Operand;
-		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
+		uint8_t ui8HiBit = (m_fsState.rRegs.ui8Status & C()) << 7;
 		// It carries if the last bit gets shifted in.
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		m_rRegs.ui8A = (m_rRegs.ui8A >> 1) | ui8HiBit;
-		SetBit<Z()>( m_rRegs.ui8Status, m_rRegs.ui8A == 0x00 );
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<V()>( m_rRegs.ui8Status,
-			((m_rRegs.ui8Status & C()) ^ ((m_rRegs.ui8A >> 5) & 0x1)) != 0 );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		m_fsState.rRegs.ui8A = (m_fsState.rRegs.ui8A >> 1) | ui8HiBit;
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, m_fsState.rRegs.ui8A == 0x00 );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<V()>( m_fsState.rRegs.ui8Status,
+			((m_fsState.rRegs.ui8Status & C()) ^ ((m_fsState.rRegs.ui8A >> 5) & 0x1)) != 0 );
 	}
 
 	/** Performs M <<= 1.  Sets C, N, and V. */
 	void CCpu6502::Asl() {
 		LSN_INSTR_START_PHI1( false );
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 
-		m_ui8Operand <<= 1;
+		m_fsState.ui8Operand <<= 1;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -592,12 +592,12 @@ namespace lsn {
 	void CCpu6502::AslOnA_BeginInst() {
 		BeginInst();
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 
-		m_rRegs.ui8A <<= 1;
+		m_fsState.rRegs.ui8A <<= 1;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
@@ -606,13 +606,13 @@ namespace lsn {
 
 		LSN_UPDATE_PC;
 
-		m_rRegs.ui8A &= m_ui8Operand;
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
+		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x01) != 0 );
 
-		m_rRegs.ui8A >>= 1;
+		m_fsState.rRegs.ui8A >>= 1;
 
-		SetBit<N(), false>( m_rRegs.ui8Status );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 
 		
 	}
@@ -621,9 +621,9 @@ namespace lsn {
 	void CCpu6502::Bit_BeginInst() {
 		BeginInst();
 
-		SetBit<V()>( m_rRegs.ui8Status, (m_ui8Operand & (1 << 6)) != 0x00 );
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & (1 << 7)) != 0x00 );
-		SetBit<Z()>( m_rRegs.ui8Status, !(m_ui8Operand & m_rRegs.ui8A) );
+		SetBit<V()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & (1 << 6)) != 0x00 );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & (1 << 7)) != 0x00 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !(m_fsState.ui8Operand & m_fsState.rRegs.ui8A) );
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -631,7 +631,7 @@ namespace lsn {
 	void CCpu6502::Branch_Cycle1() {
 		LSN_INSTR_START_PHI1( true );
 
-		m_bTakeJump = (m_rRegs.ui8Status & _uBit) == (_uVal * _uBit);
+		m_fsState.bTakeJump = (m_fsState.rRegs.ui8Status & _uBit) == (_uVal * _uBit);
 		LSN_UPDATE_PC;
 
 		LSN_NEXT_FUNCTION;
@@ -642,21 +642,21 @@ namespace lsn {
 	/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle1_Phi2() {
 		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
-		m_ui8Operand = ui8Op;
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
+		m_fsState.ui8Operand = ui8Op;
 
-		m_ui16PcModify = 1;
+		m_fsState.ui16PcModify = 1;
 
-		if ( !m_bTakeJump ) {
+		if ( !m_fsState.bTakeJump ) {
 			LSN_FINISH_INST( true );
 		}
 		else {
-			m_rRegs.ui16Pc += m_ui16PcModify;
-			m_ui16PcModify = 0;
-			m_ui16Address = static_cast<int16_t>(static_cast<int8_t>(m_ui8Operand)) + (m_rRegs.ui16Pc);
+			m_fsState.rRegs.ui16Pc += m_fsState.ui16PcModify;
+			m_fsState.ui16PcModify = 0;
+			m_fsState.ui16Address = static_cast<int16_t>(static_cast<int8_t>(m_fsState.ui8Operand)) + (m_fsState.rRegs.ui16Pc);
 
-			m_bBoundaryCrossed = m_ui8Address[1] != m_rRegs.ui8Pc[1];
-			if ( !m_bBoundaryCrossed ) {
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.rRegs.ui8Pc[1];
+			if ( !m_fsState.bBoundaryCrossed ) {
 				LSN_CHECK_INTERRUPTS;
 			}
 
@@ -668,7 +668,7 @@ namespace lsn {
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2() {
-		if ( !m_bTakeJump ) {
+		if ( !m_fsState.bTakeJump ) {
 			BeginInst();
 			LSN_UPDATE_PC;
 		}
@@ -686,9 +686,9 @@ namespace lsn {
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 
-		if ( !m_bBoundaryCrossed ) {
+		if ( !m_fsState.bBoundaryCrossed ) {
 			LSN_FINISH_INST( false );
 		}
 		else {
@@ -700,15 +700,15 @@ namespace lsn {
 
 	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
 	void CCpu6502::Branch_Cycle3() {
-		if ( !m_bBoundaryCrossed ) {
+		if ( !m_fsState.bBoundaryCrossed ) {
 			BeginInst();
 
-			m_rRegs.ui8Pc[0] = m_ui8Address[0];
+			m_fsState.rRegs.ui8Pc[0] = m_fsState.ui8Address[0];
 		}
 		else {
 			LSN_INSTR_START_PHI1( true );
 
-			m_rRegs.ui8Pc[0] = m_ui8Address[0];
+			m_fsState.rRegs.ui8Pc[0] = m_fsState.ui8Address[0];
 			
 			LSN_NEXT_FUNCTION;
 
@@ -719,7 +719,7 @@ namespace lsn {
 	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
 	void CCpu6502::Branch_Cycle3_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 
 		LSN_FINISH_INST( true );
 
@@ -730,42 +730,42 @@ namespace lsn {
 	void CCpu6502::Branch_Cycle4() {
 		BeginInst();
 
-		m_rRegs.ui8Pc[1] = m_ui8Address[1];
+		m_fsState.rRegs.ui8Pc[1] = m_fsState.ui8Address[1];
 	}
 		
-	/** Final touches to BRK (copies m_ui16Address to m_rRegs.ui16Pc) and first cycle of the next instruction. */
+	/** Final touches to BRK (copies m_fsState.ui16Address to m_fsState.rRegs.ui16Pc) and first cycle of the next instruction. */
 	void CCpu6502::Brk_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui16Pc = m_ui16Address;
+		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
 	}
 
 	/** Clears the carry bit. */
 	void CCpu6502::Clc_BeginInst() {
 		BeginInst();
 
-		SetBit<C(), false>( m_rRegs.ui8Status );
+		SetBit<C(), false>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Clears the decimal flag. */
 	void CCpu6502::Cld_BeginInst() {
 		BeginInst();
 
-		SetBit<D(), false>( m_rRegs.ui8Status );
+		SetBit<D(), false>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Clears the IRQ flag. */
 	void CCpu6502::Cli_BeginInst() {
 		BeginInst();
 
-		SetBit<I(), false>( m_rRegs.ui8Status );
+		SetBit<I(), false>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Clears the overflow flag. */
 	void CCpu6502::Clv_BeginInst() {
 		BeginInst();
 
-		SetBit<V(), false>( m_rRegs.ui8Status );
+		SetBit<V(), false>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Compares A with OP. */
@@ -777,7 +777,7 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		Cmp( m_rRegs.ui8A, m_ui8Operand );
+		Cmp( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
 
 	/** Compares X with OP. */
@@ -789,7 +789,7 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		Cmp( m_rRegs.ui8X, m_ui8Operand );
+		Cmp( m_fsState.rRegs.ui8X, m_fsState.ui8Operand );
 	}
 
 	/** Compares Y with OP. */
@@ -801,27 +801,27 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		Cmp( m_rRegs.ui8Y, m_ui8Operand );
+		Cmp( m_fsState.rRegs.ui8Y, m_fsState.ui8Operand );
 	}
 
-	/** Copies m_ui8Operand to Status without the B bit. */
+	/** Copies m_fsState.ui8Operand to Status without the B bit. */
 	void CCpu6502::CopyOperandToStatusWithoutB() {
 		LSN_INSTR_START_PHI1( true );
 
 		constexpr uint8_t ui8Mask = M() | X();
-		m_rRegs.ui8Status = (m_ui8Operand & ~ui8Mask) | (m_rRegs.ui8Status & ui8Mask);
+		m_fsState.rRegs.ui8Status = (m_fsState.ui8Operand & ~ui8Mask) | (m_fsState.rRegs.ui8Status & ui8Mask);
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Copies m_ui16Target to PC, optionally adjusts PC. */
+	/** Copies m_fsState.ui16Target to PC, optionally adjusts PC. */
 	template <bool _bIncPc>
 	void CCpu6502::CopyTargetToPc() {
 		LSN_INSTR_START_PHI1( true );
 
-		m_rRegs.ui16Pc = m_ui16Target;
+		m_fsState.rRegs.ui16Pc = m_fsState.ui16Target;
 
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
@@ -836,8 +836,8 @@ namespace lsn {
 	template <bool _bEndInstr>
 	void CCpu6502::CopyVectorToPc_H_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( m_vBrkVector + 1, ui8Tmp );
-		m_ui8Address[1] = ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( m_fsState.vBrkVector + 1, ui8Tmp );
+		m_fsState.ui8Address[1] = ui8Tmp;
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -852,8 +852,8 @@ namespace lsn {
 	/** Copies from the vector to PC.l. */
 	void CCpu6502::CopyVectorToPc_L_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( m_vBrkVector, ui8Tmp );
-		m_ui8Address[0] = ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( m_fsState.vBrkVector, ui8Tmp );
+		m_fsState.ui8Address[0] = ui8Tmp;
 
 
 		LSN_NEXT_FUNCTION;
@@ -865,8 +865,8 @@ namespace lsn {
 	void CCpu6502::Dcp() {
 		LSN_INSTR_START_PHI1( false );
 
-		--m_ui8Operand;
-		Cmp( m_rRegs.ui8A, m_ui8Operand );
+		--m_fsState.ui8Operand;
+		Cmp( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -877,9 +877,9 @@ namespace lsn {
 	void CCpu6502::Dec() {
 		LSN_INSTR_START_PHI1( false );
 
-		--m_ui8Operand;
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		--m_fsState.ui8Operand;
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -890,20 +890,20 @@ namespace lsn {
 	void CCpu6502::Dex_BeginInst() {
 		BeginInst();
 
-		--m_rRegs.ui8X;
+		--m_fsState.rRegs.ui8X;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Performs Y--.  Sets flags N and Z. */
 	void CCpu6502::Dey_BeginInst() {
 		BeginInst();
 
-		--m_rRegs.ui8Y;
+		--m_fsState.rRegs.ui8Y;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8Y & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8Y );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
 	}
 
 	/** Performs A = A ^ OP.  Sets flags N and Z. */
@@ -915,39 +915,39 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A ^= m_ui8Operand;
+		m_fsState.rRegs.ui8A ^= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Fetches the current opcode and increments PC. */
 	void CCpu6502::Fetch_Opcode_IncPc_Phi2() {
 		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
 
 #ifdef LSN_CPU_VERIFY
-		m_ui16PcModify = 1;
+		m_fsState.ui16PcModify = 1;
 #else
 		if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
 			ui8Op = 0;
-			m_bPushB = false;
-			m_ui16PcModify = 0;
-			m_bAllowWritingToPc = false;
+			m_fsState.bPushB = false;
+			m_fsState.ui16PcModify = 0;
+			m_fsState.bAllowWritingToPc = false;
 		}
 		else {
-			m_bPushB = true;
-			m_ui16PcModify = 1;
+			m_fsState.bPushB = true;
+			m_fsState.ui16PcModify = 1;
 		}
 #endif	// #ifdef LSN_CPU_VERIFY
-		m_ui16OpCode = ui8Op;
-		m_pfCurInstruction = m_iInstructionSet[m_ui16OpCode].pfHandler;
+		m_fsState.ui16OpCode = ui8Op;
+		m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 
 #if 0
 		char szBUffer[256];
-		std::sprintf( szBUffer, "%s\t%.2X %lu %.4X\r\n", m_smdInstMetaData[m_iInstructionSet[m_ui16OpCode].iInstruction].pcName, m_ui16OpCode, m_ui64CycleCount, m_rRegs.ui16Pc );
+		std::sprintf( szBUffer, "%s\t%.2X %lu %.4X\r\n", m_smdInstMetaData[m_iInstructionSet[m_fsState.ui16OpCode].iInstruction].pcName, m_fsState.ui16OpCode, m_ui64CycleCount, m_fsState.rRegs.ui16Pc );
 		::OutputDebugStringA( szBUffer );
-		if ( 0xB6FE == m_rRegs.ui16Pc ) {
+		if ( 0xB6FE == m_fsState.rRegs.ui16Pc ) {
 			volatile int gjhgh =0;
 		}
 #endif	// #if 1
@@ -961,7 +961,7 @@ namespace lsn {
 	template <bool _bEndInstr>
 	void CCpu6502::Fetch_Operand_Discard_Phi2() {
 		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -977,10 +977,10 @@ namespace lsn {
 	template <bool _bEndInstr>
 	void CCpu6502::Fetch_Operand_IncPc_Phi2() {
 		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Op );
-		m_ui8Operand = ui8Op;
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
+		m_fsState.ui8Operand = ui8Op;
 
-		m_ui16PcModify = 1;
+		m_fsState.ui16PcModify = 1;
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -992,22 +992,22 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC. */
+	/** Fetches the operand to either m_fsState.ui16Address.H or m_fsState.ui16Pointer.H and increments PC. */
 	template <bool _bToAddr, bool _bEndInstr>
 	void CCpu6502::Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( _bToAddr ) {
 			// PC -> Address.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
-			m_ui8Address[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
+			m_fsState.ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// PC -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
-			m_ui8Pointer[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
+			m_fsState.ui8Pointer[1] = ui8Tmp;
 		}
 
-		m_ui16PcModify = 1;
+		m_fsState.ui16PcModify = 1;
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1019,38 +1019,38 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Fetches the operand to either m_ui16Address or m_ui16Pointer and increments PC. */
+	/** Fetches the operand to either m_fsState.ui16Address or m_fsState.ui16Pointer and increments PC. */
 	template <bool _bToAddr>
 	void CCpu6502::Fetch_Operand_To_AddrOrPtr_IncPc_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( _bToAddr ) {
 			// PC -> Address.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
-			m_ui16Address = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
+			m_fsState.ui16Address = ui8Tmp;
 		}
 		else {
 			// PC -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc, ui8Tmp );
-			m_ui16Pointer = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
+			m_fsState.ui16Pointer = ui8Tmp;
 		}
 
-		m_ui16PcModify = 1;
+		m_fsState.ui16PcModify = 1;
 		
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Uses m_ui16Target to fix the high byte of either m_ui16Address or m_ui16Pointer. */
+	/** Uses m_fsState.ui16Target to fix the high byte of either m_fsState.ui16Address or m_fsState.ui16Pointer. */
 	template <bool _bFromAddr>
 	void CCpu6502::Fix_PtrOrAddr_To_AddrOrPtr_H() {
 		LSN_INSTR_START_PHI1( true );
 
 		if constexpr ( _bFromAddr ) {
-			m_ui8Pointer[1] = m_ui8Target[1];
+			m_fsState.ui8Pointer[1] = m_fsState.ui8Target[1];
 		}
 		else {
-			m_ui8Address[1] = m_ui8Target[1];
+			m_fsState.ui8Address[1] = m_fsState.ui8Target[1];
 		}		
 
 		LSN_NEXT_FUNCTION;
@@ -1058,22 +1058,22 @@ namespace lsn {
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Performs the Indirect Y add on the low byte.  m_ui16Address -> m_ui16Pointer or m_ui16Pointer -> m_ui16Address. */
+	/** Performs the Indirect Y add on the low byte.  m_fsState.ui16Address -> m_fsState.ui16Pointer or m_fsState.ui16Pointer -> m_fsState.ui16Address. */
 	template <bool _bFromAddr>
 	void CCpu6502::IndirectYAdd_PtrOrAddr_To_AddrOrPtr() {
 		LSN_INSTR_START_PHI1( true );
 
 		if constexpr ( _bFromAddr ) {
-			m_ui16Target = m_ui16Address + m_rRegs.ui8Y;
-			m_ui8Pointer[0] = m_ui8Target[0];
-			m_ui8Pointer[1] = m_ui8Address[1];
-			m_bBoundaryCrossed = m_ui8Pointer[1] != m_ui8Target[1];
+			m_fsState.ui16Target = m_fsState.ui16Address + m_fsState.rRegs.ui8Y;
+			m_fsState.ui8Pointer[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
 		}
 		else {
-			m_ui16Target = m_ui16Pointer + m_rRegs.ui8Y;
-			m_ui8Address[0] = m_ui8Target[0];
-			m_ui8Address[1] = m_ui8Pointer[1];
-			m_bBoundaryCrossed = m_ui8Address[1] != m_ui8Target[1];
+			m_fsState.ui16Target = m_fsState.ui16Pointer + m_fsState.rRegs.ui8Y;
+			m_fsState.ui8Address[0] = m_fsState.ui8Target[0];
+			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
+			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
 		}		
 
 		LSN_NEXT_FUNCTION;
@@ -1085,10 +1085,10 @@ namespace lsn {
 	void CCpu6502::Inc() {
 		LSN_INSTR_START_PHI1( false );
 
-		++m_ui8Operand;
+		++m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 		
 
 		LSN_NEXT_FUNCTION;
@@ -1100,28 +1100,28 @@ namespace lsn {
 	void CCpu6502::Inx_BeginInst() {
 		BeginInst();
 
-		++m_rRegs.ui8X;
+		++m_fsState.rRegs.ui8X;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Performs Y++.  Sets flags N and Z. */
 	void CCpu6502::Iny_BeginInst() {
 		BeginInst();
 
-		++m_rRegs.ui8Y;
+		++m_fsState.rRegs.ui8Y;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8Y & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8Y );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
 	}
 
 	/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
 	void CCpu6502::Isb() {
 		LSN_INSTR_START_PHI1( false );
 
-		++m_ui8Operand;
-		Sbc( m_rRegs.ui8A, m_ui8Operand );
+		++m_fsState.ui8Operand;
+		Sbc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1132,10 +1132,10 @@ namespace lsn {
 	void CCpu6502::Jam() {
 		LSN_INSTR_START_PHI1( true );
 
-		if ( m_bAllowWritingToPc ) {
-			m_rRegs.ui16Pc += uint16_t( -int16_t( m_ui16PcModify ) );
+		if ( m_fsState.bAllowWritingToPc ) {
+			m_fsState.rRegs.ui16Pc += uint16_t( -int16_t( m_fsState.ui16PcModify ) );
 		}
-		m_ui16PcModify = 0;
+		m_fsState.ui16PcModify = 0;
 
 		LSN_NEXT_FUNCTION;
 
@@ -1145,27 +1145,27 @@ namespace lsn {
 	/** Jams the machine. */
 	void CCpu6502::Jam_Phi2() {
 		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_rRegs.ui16Pc + 1, ui8Op );
+		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc + 1, ui8Op );
 
 		LSN_NEXT_FUNCTION_BY( -1 );
 
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Copies m_ui16Address into PC. */
+	/** Copies m_fsState.ui16Address into PC. */
 	void CCpu6502::Jmp_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui16Pc = m_ui16Address;
-		m_ui16PcModify = 0;
+		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
+		m_fsState.ui16PcModify = 0;
 	}
 
-	/** Copies m_ui16Address into PC, adjusts S. */
+	/** Copies m_fsState.ui16Address into PC, adjusts S. */
 	void CCpu6502::Jsr_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui16Pc = m_ui16Address;
-		m_ui16PcModify = 0;
+		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
+		m_fsState.ui16PcModify = 0;
 
 		LSN_UPDATE_S;
 	}
@@ -1179,10 +1179,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A = m_rRegs.ui8X = m_rRegs.ui8S = (m_ui8Operand & m_rRegs.ui8S);
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.rRegs.ui8S = (m_fsState.ui8Operand & m_fsState.rRegs.ui8S);
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = X = OP.  Sets flags N and Z. */
@@ -1194,10 +1194,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A = m_rRegs.ui8X = m_ui8Operand;
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = OP.  Sets flags N and Z. */
@@ -1209,10 +1209,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A = m_ui8Operand;
+		m_fsState.rRegs.ui8A = m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs X = OP.  Sets flags N and Z. */
@@ -1224,10 +1224,10 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8X = m_ui8Operand;
+		m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Performs Y = OP.  Sets flags N and Z. */
@@ -1239,21 +1239,21 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8Y = m_ui8Operand;
+		m_fsState.rRegs.ui8Y = m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8Y & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8Y );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
 	}
 
 	/** Performs OP >>= 1.  Sets flags C, N, and Z. */
 	void CCpu6502::Lsr() {
 		LSN_INSTR_START_PHI1( false );
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
-		m_ui8Operand >>= 1;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x01) != 0 );
+		m_fsState.ui8Operand >>= 1;
 
-		SetBit<N(), false>( m_rRegs.ui8Status );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1264,11 +1264,11 @@ namespace lsn {
 	void CCpu6502::LsrOnA_BeginInst() {
 		BeginInst();
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
-		m_rRegs.ui8A >>= 1;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x01) != 0 );
+		m_fsState.rRegs.ui8A >>= 1;
 
-		SetBit<N(), false>( m_rRegs.ui8Status );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
@@ -1278,13 +1278,13 @@ namespace lsn {
 		LSN_UPDATE_PC;
 
 #ifdef LSN_CPU_VERIFY
-		m_rRegs.ui8A = m_rRegs.ui8X = (m_rRegs.ui8A | 0xEE) & m_ui8Operand;
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = (m_fsState.rRegs.ui8A | 0xEE) & m_fsState.ui8Operand;
 #else
-		m_rRegs.ui8A = m_rRegs.ui8X = (m_rRegs.ui8A | 0xFF) & m_ui8Operand;
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = (m_fsState.rRegs.ui8A | 0xFF) & m_fsState.ui8Operand;
 #endif	// #ifdef LSN_CPU_VERIFY
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Generic null operation. */
@@ -1316,7 +1316,7 @@ namespace lsn {
 		}
 	}
 
-	/** Performs A |= Operand with m_ui8Operand.  Sets flags N and Z. */
+	/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ora_BeginInst() {
 		BeginInst();
@@ -1325,64 +1325,64 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		m_rRegs.ui8A |= m_ui8Operand;
+		m_fsState.rRegs.ui8A |= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
-	/** Sets m_ui8Operand to the status byte with Break and Reserved set. */
+	/** Sets m_fsState.ui8Operand to the status byte with Break and Reserved set. */
 	void CCpu6502::Php() {
 		LSN_INSTR_START_PHI1( false );
 
-		m_ui8Operand = m_rRegs.ui8Status;
-		SetBit<X() | M(), true>( m_ui8Operand );
+		m_fsState.ui8Operand = m_fsState.rRegs.ui8Status;
+		SetBit<X() | M(), true>( m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Pulls the accumulator: Copies m_ui8Operand to A. */
+	/** Pulls the accumulator: Copies m_fsState.ui8Operand to A. */
 	void CCpu6502::Pla_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8A = m_ui8Operand;
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		m_fsState.rRegs.ui8A = m_fsState.ui8Operand;
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Pulls the status byte, unsets X, sets M. */
 	void CCpu6502::Plp_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8Status = (m_ui8Operand & ~X()) | M();
+		m_fsState.rRegs.ui8Status = (m_fsState.ui8Operand & ~X()) | M();
 	}
 
 	/** Pulls from the stack, stores in A. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Pull_To_A_Phi2() {
-		LSN_POP( m_rRegs.ui8A );
+		LSN_POP( m_fsState.rRegs.ui8A );
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Pulls from the stack, stores in m_ui8Operand. */
+	/** Pulls from the stack, stores in m_fsState.ui8Operand. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Pull_To_Operand_Phi2() {
-		LSN_POP( m_ui8Operand );
+		LSN_POP( m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Pulls from the stack, stores in m_ui16Target.H. */
+	/** Pulls from the stack, stores in m_fsState.ui16Target.H. */
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Pull_To_Target_H_Phi2() {
-		LSN_POP( m_ui8Target[0] );
+		LSN_POP( m_fsState.ui8Target[0] );
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1394,10 +1394,10 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Pulls from the stack, stores in m_ui16Target.L. */
+	/** Pulls from the stack, stores in m_fsState.ui16Target.L. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Pull_To_Target_L_Phi2() {
-		LSN_POP( m_ui8Target[0] );
+		LSN_POP( m_fsState.ui8Target[0] );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1407,7 +1407,7 @@ namespace lsn {
 	/** Pushes A. */
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Push_A_Phi2() {
-		LSN_PUSH( m_rRegs.ui8A );
+		LSN_PUSH( m_fsState.rRegs.ui8A );
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1419,10 +1419,10 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Pushes m_ui8Operand. */
+	/** Pushes m_fsState.ui8Operand. */
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Push_Operand_Phi2() {
-		LSN_PUSH( m_ui8Operand );
+		LSN_PUSH( m_fsState.ui8Operand );
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1437,7 +1437,7 @@ namespace lsn {
 	/** Pushes PCh with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_H_Phi2() {
-		LSN_PUSH( m_rRegs.ui8Pc[1] );
+		LSN_PUSH( m_fsState.rRegs.ui8Pc[1] );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1447,7 +1447,7 @@ namespace lsn {
 	/** Pushes PCl with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_L_Phi2() {
-		LSN_PUSH( m_rRegs.ui8Pc[0] );
+		LSN_PUSH( m_fsState.rRegs.ui8Pc[0] );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1457,35 +1457,35 @@ namespace lsn {
 	/** Pushes Status with or without B/X to the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_S_Phi2() {
-		if ( m_bPushB ) {
-			LSN_PUSH( m_rRegs.ui8Status | X() );
+		if ( m_fsState.bPushB ) {
+			LSN_PUSH( m_fsState.rRegs.ui8Status | X() );
 		}
 		else {
-			LSN_PUSH( m_rRegs.ui8Status );
+			LSN_PUSH( m_fsState.rRegs.ui8Status );
 		}
 
 //		if constexpr ( _i8SOff == -2 ) {
 //#ifdef LSN_CPU_VERIFY
-//			m_vBrkVector = LSN_V_IRQ_BRK;
-//			m_bPushB = true;
+//			m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+//			m_fsState.bPushB = true;
 //#else
 //			// Select vector to use.
 //			if ( m_bIsReset ) {
-//				m_vBrkVector = LSN_V_RESET;
-//				m_bPushB = false;
+//				m_fsState.vBrkVector = LSN_V_RESET;
+//				m_fsState.bPushB = false;
 //				m_bIsReset = false;
 //			}
 //			else if ( m_bDetectedNmi ) {
-//				m_vBrkVector = LSN_V_NMI;
-//				m_bPushB = false;
+//				m_fsState.vBrkVector = LSN_V_NMI;
+//				m_fsState.bPushB = false;
 //			}
 //			else if ( m_bHandleIrq ) {
-//				m_vBrkVector = LSN_V_IRQ_BRK;
-//				m_bPushB = false;
+//				m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+//				m_fsState.bPushB = false;
 //			}
 //			else {
-//				m_vBrkVector = LSN_V_IRQ_BRK;
-//				m_bPushB = true;
+//				m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+//				m_fsState.bPushB = true;
 //			}
 //
 //			if ( m_bDetectedNmi ) {
@@ -1518,29 +1518,29 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads from m_ui8Operand, discards result. */
+	/** Reads from m_fsState.ui8Operand, discards result. */
 	void CCpu6502::Read_Operand_Discard_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( m_ui8Operand, ui8Tmp );
+		LSN_INSTR_START_PHI2_READ( m_fsState.ui8Operand, ui8Tmp );
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
+	/** Reads from either m_fsState.ui16Pointer or m_fsState.ui16Address and stores the low byte in either m_fsState.ui8Address[1] or m_fsState.ui8Pointer[1]. */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( (m_ui8Pointer[1] << 8) | uint8_t( m_ui8Pointer[0] + 1 ), ui8Tmp );
-			m_ui8Address[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( (m_fsState.ui8Pointer[1] << 8) | uint8_t( m_fsState.ui8Pointer[0] + 1 ), ui8Tmp );
+			m_fsState.ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( (m_ui8Address[1] << 8) | uint8_t( m_ui8Address[0] + 1 ), ui8Tmp );
-			m_ui8Pointer[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( (m_fsState.ui8Address[1] << 8) | uint8_t( m_fsState.ui8Address[0] + 1 ), ui8Tmp );
+			m_fsState.ui8Pointer[1] = ui8Tmp;
 		}
 		
 		if constexpr ( _bEndInstr ) {
@@ -1553,19 +1553,19 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
+	/** Reads either m_fsState.ui16Pointer or m_fsState.ui16Address and stores in either m_fsState.ui16Address.H or m_fsState.ui16Pointer.H. */
 	template <bool _bFromAddr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_8Bit_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Pointer + 1 ), ui8Tmp );
-			m_ui8Address[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( uint8_t( m_fsState.ui16Pointer + 1 ), ui8Tmp );
+			m_fsState.ui8Address[1] = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( uint8_t( m_ui16Address + 1 ), ui8Tmp );
-			m_ui8Pointer[1] = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( uint8_t( m_fsState.ui16Address + 1 ), ui8Tmp );
+			m_fsState.ui8Pointer[1] = ui8Tmp;
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1573,19 +1573,19 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.L or m_ui16Pointer.L. */
+	/** Reads either m_fsState.ui16Pointer or m_fsState.ui16Address and stores in either m_fsState.ui16Address.L or m_fsState.ui16Pointer.L. */
 	template <bool _bFromAddr>
 	void CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_L_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( !_bFromAddr ) {
 			// Pointer -> Address.
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
-			m_ui16Address = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
+			m_fsState.ui16Address = ui8Tmp;
 		}
 		else {
 			// Address -> Pointer.
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
-			m_ui16Pointer = ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
+			m_fsState.ui16Pointer = ui8Tmp;
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1593,17 +1593,17 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand. */
+	/** Reads either m_fsState.ui16Pointer or m_fsState.ui16Address and stores in m_fsState.ui8Operand. */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_Operand_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
 		}
 		else {
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
 		}
-		m_ui8Operand = ui8Tmp;
+		m_fsState.ui8Operand = ui8Tmp;
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1615,19 +1615,19 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand.  Skips a full cycle if m_bBoundaryCrossed is false (and only then is _bEndInstr checked). */
+	/** Reads either m_fsState.ui16Pointer or m_fsState.ui16Address and stores in m_fsState.ui8Operand.  Skips a full cycle if m_fsState.bBoundaryCrossed is false (and only then is _bEndInstr checked). */
 	template <bool _bFromAddr, bool _bEndInstr>
 	void CCpu6502::Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2() {
 		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
-			LSN_INSTR_START_PHI2_READ( m_ui16Address, ui8Tmp );
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
 		}
 		else {
-			LSN_INSTR_START_PHI2_READ( m_ui16Pointer, ui8Tmp );
+			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
 		}
-		m_ui8Operand = ui8Tmp;
+		m_fsState.ui8Operand = ui8Tmp;
 		
-		if ( !m_bBoundaryCrossed ) {
+		if ( !m_fsState.bBoundaryCrossed ) {
 			// No page boundaries were crossed.  We can optionally end, but must always skip 2 extra functions.
 			if constexpr ( _bEndInstr ) {
 				LSN_FINISH_INST( true );			// Gives us a LSN_NEXT_FUNCTION.
@@ -1645,12 +1645,12 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads the stack, stores in m_ui8Operand. */
+	/** Reads the stack, stores in m_fsState.ui8Operand. */
 	template <bool _bEndInstr>
 	void CCpu6502::Read_Stack_To_Operand_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( 0x100 | m_rRegs.ui8S, ui8Tmp );
-		m_ui8Operand = ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( 0x100 | m_fsState.rRegs.ui8S, ui8Tmp );
+		m_fsState.ui8Operand = ui8Tmp;
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1662,12 +1662,12 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Reads the stack, stores in m_ui16Target.H. */
+	/** Reads the stack, stores in m_fsState.ui16Target.H. */
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Read_Stack_To_Target_H_Phi2() {
 		uint8_t ui8Tmp;
-		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_rRegs.ui8S + _i8SOff ), ui8Tmp );
-		m_ui8Target[1] = ui8Tmp;
+		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff ), ui8Tmp );
+		m_fsState.ui8Target[1] = ui8Tmp;
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1683,14 +1683,14 @@ namespace lsn {
 	void CCpu6502::Rla() {
 		LSN_INSTR_START_PHI1( false );
 
-		uint8_t ui8LowBit = m_rRegs.ui8Status & C();
+		uint8_t ui8LowBit = m_fsState.rRegs.ui8Status & C();
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		m_ui8Operand = (m_ui8Operand << 1) | ui8LowBit;
-		m_rRegs.ui8A &= m_ui8Operand;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		m_fsState.ui8Operand = (m_fsState.ui8Operand << 1) | ui8LowBit;
+		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1701,13 +1701,13 @@ namespace lsn {
 	void CCpu6502::Rol() {
 		LSN_INSTR_START_PHI1( false );
 
-		uint8_t ui8LowBit = m_rRegs.ui8Status & C();
+		uint8_t ui8LowBit = m_fsState.rRegs.ui8Status & C();
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		m_ui8Operand = (m_ui8Operand << 1) | ui8LowBit;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		m_fsState.ui8Operand = (m_fsState.ui8Operand << 1) | ui8LowBit;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1718,26 +1718,26 @@ namespace lsn {
 	void CCpu6502::RolOnA_BeginInst() {
 		BeginInst();
 
-		uint8_t ui8LowBit = m_rRegs.ui8Status & C();
+		uint8_t ui8LowBit = m_fsState.rRegs.ui8Status & C();
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		m_rRegs.ui8A = (m_rRegs.ui8A << 1) | ui8LowBit;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		m_fsState.rRegs.ui8A = (m_fsState.rRegs.ui8A << 1) | ui8LowBit;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z. */
 	void CCpu6502::Ror() {
 		LSN_INSTR_START_PHI1( false );
 
-		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+		uint8_t ui8HiBit = (m_fsState.rRegs.ui8Status & C()) << 7;
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
-		m_ui8Operand = (m_ui8Operand >> 1) | ui8HiBit;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x01) != 0 );
+		m_fsState.ui8Operand = (m_fsState.ui8Operand >> 1) | ui8HiBit;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_ui8Operand );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
@@ -1748,38 +1748,38 @@ namespace lsn {
 	void CCpu6502::RorOnA_BeginInst() {
 		BeginInst();
 
-		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+		uint8_t ui8HiBit = (m_fsState.rRegs.ui8Status & C()) << 7;
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x01) != 0 );
-		m_rRegs.ui8A = (m_rRegs.ui8A >> 1) | ui8HiBit;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x01) != 0 );
+		m_fsState.rRegs.ui8A = (m_fsState.rRegs.ui8A >> 1) | ui8HiBit;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
 	void CCpu6502::Rra() {
 		LSN_INSTR_START_PHI1( false );
 
-		uint8_t ui8HiBit = (m_rRegs.ui8Status & C()) << 7;
+		uint8_t ui8HiBit = (m_fsState.rRegs.ui8Status & C()) << 7;
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
-		m_ui8Operand = (m_ui8Operand >> 1) | ui8HiBit;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x01) != 0 );
+		m_fsState.ui8Operand = (m_fsState.ui8Operand >> 1) | ui8HiBit;
 
-		Adc( m_rRegs.ui8A, m_ui8Operand );
+		Adc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Copies m_ui16Target to PC, adjusts S. */
+	/** Copies m_fsState.ui16Target to PC, adjusts S. */
 	void CCpu6502::Rti_BeginInst() {
 		BeginInst();
 
 		//LSN_UPDATE_S;
 
-		m_rRegs.ui16Pc = m_ui16Target;
+		m_fsState.rRegs.ui16Pc = m_fsState.ui16Target;
 	}
 
 	/** Adjusts PC and calls BeginInst(). */
@@ -1789,14 +1789,14 @@ namespace lsn {
 		LSN_UPDATE_PC;
 	}
 
-	/** Writes (A & X) to either m_ui16Pointer or m_ui16Address. */
+	/** Writes (A & X) to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr>
 	void CCpu6502::Sax_Phi2() {
 		if constexpr ( _bToAddr ) {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8A & m_rRegs.ui8X );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X );
 		}
 		else {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8A & m_rRegs.ui8X );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X );
 		}
 
 		LSN_FINISH_INST( true );
@@ -1812,7 +1812,7 @@ namespace lsn {
 			LSN_UPDATE_PC;
 		}
 
-		Sbc( m_rRegs.ui8A, m_ui8Operand );
+		Sbc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
 
 	/** Performs X = (A & X) - OP.  Sets flags C, N and Z. */
@@ -1821,33 +1821,33 @@ namespace lsn {
 
 		LSN_UPDATE_PC;
 
-		const uint8_t ui8AnX = (m_rRegs.ui8A & m_rRegs.ui8X);
-		SetBit<C()>( m_rRegs.ui8Status, ui8AnX >= m_ui8Operand );
-		m_rRegs.ui8X = ui8AnX - m_ui8Operand;
+		const uint8_t ui8AnX = (m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X);
+		SetBit<C()>( m_fsState.rRegs.ui8Status, ui8AnX >= m_fsState.ui8Operand );
+		m_fsState.rRegs.ui8X = ui8AnX - m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Sets the carry flag. */
 	void CCpu6502::Sec_BeginInst() {
 		BeginInst();
 
-		SetBit<C(), true>( m_rRegs.ui8Status );
+		SetBit<C(), true>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Sets the decimal flag. */
 	void CCpu6502::Sed_BeginInst() {
 		BeginInst();
 
-		SetBit<D(), true>( m_rRegs.ui8Status );
+		SetBit<D(), true>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Sets the IRQ flag. */
 	void CCpu6502::Sei_BeginInst() {
 		BeginInst();
 
-		SetBit<I(), true>( m_rRegs.ui8Status );
+		SetBit<I(), true>( m_fsState.rRegs.ui8Status );
 	}
 
 	/** Selects the BRK vector etc. */
@@ -1864,26 +1864,27 @@ namespace lsn {
 		}
 
 #ifdef LSN_CPU_VERIFY
-		m_vBrkVector = LSN_V_IRQ_BRK;
-		m_bPushB = true;
+		m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+		m_fsState.bPushB = true;
 #else
+		// TODO: What happens when DMA interrupts this?  A different vector could be chosen on real hardware.
 		// Select vector to use.
 		if ( m_bIsReset ) {
-			m_vBrkVector = LSN_V_RESET;
-			//m_bPushB = false;
+			m_fsState.vBrkVector = LSN_V_RESET;
+			//m_fsState.bPushB = false;
 			m_bIsReset = false;
 		}
 		else if ( m_bDetectedNmi ) {
-			m_vBrkVector = LSN_V_NMI;
-			//m_bPushB = false;
+			m_fsState.vBrkVector = LSN_V_NMI;
+			//m_fsState.bPushB = false;
 		}
 		else if ( m_bHandleIrq ) {
-			m_vBrkVector = LSN_V_IRQ_BRK;
-			//m_bPushB = false;
+			m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+			//m_fsState.bPushB = false;
 		}
 		else {
-			m_vBrkVector = LSN_V_IRQ_BRK;
-			//m_bPushB = true;
+			m_fsState.vBrkVector = LSN_V_IRQ_BRK;
+			//m_fsState.bPushB = true;
 		}
 
 		if ( m_bDetectedNmi ) {
@@ -1902,36 +1903,36 @@ namespace lsn {
 	void CCpu6502::SetBrkFlags() {
 		LSN_INSTR_START_PHI1( true );
 
-		SetBit<I(), true>( m_rRegs.ui8Status );
-		SetBit<X(), false>( m_rRegs.ui8Status );
-		m_bAllowWritingToPc = true;
+		SetBit<I(), true>( m_fsState.rRegs.ui8Status );
+		SetBit<X(), false>( m_fsState.rRegs.ui8Status );
+		m_fsState.bAllowWritingToPc = true;
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
 	}
 
-	/** Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address. */
+	/** Illegal. Stores A & X & (high-byte of address + 1) at either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr>
 	void CCpu6502::Sha_Phi2() {
 		if constexpr ( _bToAddr ) {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Address[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Address[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 		}
 		else {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Pointer[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Pointer[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 		}
 
@@ -1950,26 +1951,26 @@ namespace lsn {
 	/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
 	template <bool _bToAddr>
 	void CCpu6502::Shs_Phi2() {
-		m_rRegs.ui8S = m_rRegs.ui8A & m_rRegs.ui8X;
+		m_fsState.rRegs.ui8S = m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 
 		if constexpr ( _bToAddr ) {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Address[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Address[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 		}
 		else {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Pointer[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8A & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Pointer[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 		}
 
@@ -1989,23 +1990,23 @@ namespace lsn {
 	template <bool _bToAddr>
 	void CCpu6502::Shx_Phi2() {
 		if constexpr ( _bToAddr ) {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Address[1] & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Address[1] + 1) & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 		}
 		else {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Pointer[1] & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Pointer[1] + 1) & m_fsState.rRegs.ui8X;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 		}
 
@@ -2025,23 +2026,23 @@ namespace lsn {
 	template <bool _bToAddr>
 	void CCpu6502::Shy_Phi2() {
 		if constexpr ( _bToAddr ) {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Address[1] & m_rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Address[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Address[1] & m_fsState.rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Address[1] + 1) & m_rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Address, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Address[1] + 1) & m_fsState.rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 		}
 		else {
-			if ( m_bBoundaryCrossed ) {
-				uint16_t ui16Val = m_ui8Pointer[1] & m_rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( m_ui8Pointer[0] | ui16Val << 8, ui16Val );
+			if ( m_fsState.bBoundaryCrossed ) {
+				uint16_t ui16Val = m_fsState.ui8Pointer[1] & m_fsState.rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_ui8Pointer[1] + 1) & m_rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, ui16Val );
+				uint16_t ui16Val = (m_fsState.ui8Pointer[1] + 1) & m_fsState.rRegs.ui8Y;
+				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 		}
 
@@ -2061,12 +2062,12 @@ namespace lsn {
 	void CCpu6502::Slo() {
 		LSN_INSTR_START_PHI1( false );
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x80) != 0 );
-		m_ui8Operand <<= 1;
-		m_rRegs.ui8A |= m_ui8Operand;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
+		m_fsState.ui8Operand <<= 1;
+		m_fsState.rRegs.ui8A |= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 
 		LSN_NEXT_FUNCTION;
 
@@ -2077,12 +2078,12 @@ namespace lsn {
 	void CCpu6502::Sre() {
 		LSN_INSTR_START_PHI1( false );
 
-		SetBit<C()>( m_rRegs.ui8Status, (m_ui8Operand & 0x01) != 0 );
-		m_ui8Operand >>= 1;
-		m_rRegs.ui8A ^= m_ui8Operand;
+		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x01) != 0 );
+		m_fsState.ui8Operand >>= 1;
+		m_fsState.rRegs.ui8A ^= m_fsState.ui8Operand;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 
 		LSN_NEXT_FUNCTION;
 
@@ -2093,67 +2094,67 @@ namespace lsn {
 	void CCpu6502::Tax_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8X = m_rRegs.ui8A;
+		m_fsState.rRegs.ui8X = m_fsState.rRegs.ui8A;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Copies A into Y.  Sets flags N, and Z. */
 	void CCpu6502::Tay_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8Y = m_rRegs.ui8A;
+		m_fsState.rRegs.ui8Y = m_fsState.rRegs.ui8A;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8Y & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8Y );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
 	}
 
 	/** Copies S into X. */
 	void CCpu6502::Tsx_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8X = m_rRegs.ui8S;
+		m_fsState.rRegs.ui8X = m_fsState.rRegs.ui8S;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8X & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8X );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
 	}
 
 	/** Copies X into A.  Sets flags N, and Z. */
 	void CCpu6502::Txa_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8A = m_rRegs.ui8X;
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Copies Y into A.  Sets flags N, and Z. */
 	void CCpu6502::Tya_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8A = m_rRegs.ui8Y;
+		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8Y;
 
-		SetBit<N()>( m_rRegs.ui8Status, (m_rRegs.ui8A & 0x80) != 0 );
-		SetBit<Z()>( m_rRegs.ui8Status, !m_rRegs.ui8A );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 	}
 
 	/** Copies X into S. */
 	void CCpu6502::Txs_BeginInst() {
 		BeginInst();
 
-		m_rRegs.ui8S = m_rRegs.ui8X;
+		m_fsState.rRegs.ui8S = m_fsState.rRegs.ui8X;
 	}
 
-	/** Writes A to either m_ui16Pointer or m_ui16Address. */
+	/** Writes A to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr>
 	void CCpu6502::Write_A_To_AddrOrPtr_Phi2() {
 		if constexpr ( _bToAddr ) {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8A );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.rRegs.ui8A );
 		}
 		else {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8A );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.rRegs.ui8A );
 		}
 
 		LSN_FINISH_INST( true );
@@ -2161,14 +2162,14 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Writes m_ui8Operand to either m_ui16Pointer or m_ui16Address. */
+	/** Writes m_fsState.ui8Operand to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr, bool _bEndInstr>
 	void CCpu6502::Write_Operand_To_AddrOrPtr_Phi2() {
 		if constexpr ( _bToAddr ) {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_ui8Operand );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.ui8Operand );
 		}
 		else {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_ui8Operand );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.ui8Operand );
 		}
 
 		if constexpr ( _bEndInstr ) {
@@ -2181,14 +2182,14 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Writes X to either m_ui16Pointer or m_ui16Address. */
+	/** Writes X to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr>
 	void CCpu6502::Write_X_To_AddrOrPtr_Phi2() {
 		if constexpr ( _bToAddr ) {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8X );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.rRegs.ui8X );
 		}
 		else {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8X );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.rRegs.ui8X );
 		}
 
 		LSN_FINISH_INST( true );
@@ -2196,14 +2197,14 @@ namespace lsn {
 		LSN_INSTR_END_PHI2;
 	}
 
-	/** Writes Y to either m_ui16Pointer or m_ui16Address. */
+	/** Writes Y to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
 	template <bool _bToAddr>
 	void CCpu6502::Write_Y_To_AddrOrPtr_Phi2() {
 		if constexpr ( _bToAddr ) {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Address, m_rRegs.ui8Y );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.rRegs.ui8Y );
 		}
 		else {
-			LSN_INSTR_START_PHI2_WRITE( m_ui16Pointer, m_rRegs.ui8Y );
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.rRegs.ui8Y );
 		}
 
 		LSN_FINISH_INST( true );

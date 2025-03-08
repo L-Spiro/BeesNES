@@ -312,7 +312,12 @@ namespace lsn {
 		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
 		 **/
 		void												SetOutputCallback( PfFinalCallback _pfFunc, void * _pfParm ) {
-			m_gGen.pfFinalCallback = nullptr == _pfFunc ? &CSampleBox::PassThrough : _pfFunc;
+			if LSN_LIKELY( _pfFunc ) {
+				m_gGen.pfFinalCallback = _pfFunc;
+			}
+			else {
+				m_gGen.pfFinalCallback = &CSampleBox::PassThrough;
+			}
 			m_gGen.pvFinalParm = _pfParm;
 		}
 

@@ -40,17 +40,17 @@
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				/*m_bIsReadCycle = false;*/ m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2
 
-#define LSN_NEXT_FUNCTION_BY( AMT )							m_ui8FuncIndex += uint8_t( AMT )
+#define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION //m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
-#define LSN_CHECK_INTERRUPTS								if ( !(m_rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
+#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
-#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (VAL) ); m_ui8SModify = uint8_t( -1 + _i8SOff )
-#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_rRegs.ui8S + _i8SOff )), (RESULT) ); m_ui8SModify = uint8_t( 1 + _i8SOff )
+#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); m_fsState.ui8SModify = uint8_t( -1 + _i8SOff )
+#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (RESULT) ); m_fsState.ui8SModify = uint8_t( 1 + _i8SOff )
 
-#define LSN_UPDATE_PC										if LSN_LIKELY( m_bAllowWritingToPc ) { m_rRegs.ui16Pc += m_ui16PcModify; } m_ui16PcModify = 0
-#define LSN_UPDATE_S										m_rRegs.ui8S += m_ui8SModify; m_ui8SModify = 0
+#define LSN_UPDATE_PC										if LSN_LIKELY( m_fsState.bAllowWritingToPc ) { m_fsState.rRegs.ui16Pc += m_fsState.ui16PcModify; } m_fsState.ui16PcModify = 0
+#define LSN_UPDATE_S										m_fsState.rRegs.ui8S += m_fsState.ui8SModify; m_fsState.ui8SModify = 0
 
 #define LSN_R												true
 #define LSN_W												false
@@ -149,10 +149,10 @@ namespace lsn {
 		 */
 		void												ResetToKnown() {
 			ResetAnalog();
-			std::memset( &m_rRegs, 0, sizeof( m_rRegs ) );
-			m_rRegs.ui8S = 0x0;
+			std::memset( &m_fsState.rRegs, 0, sizeof( m_fsState.rRegs ) );
+			m_fsState.rRegs.ui8S = 0x0;
 			m_ui64CycleCount = 0ULL;
-			m_ui8Operand = 0;
+			m_fsState.ui8Operand = 0;
 
 			m_ui16DmaCounter = 0;
 			m_ui16DmaAddress = 0;
@@ -178,20 +178,20 @@ namespace lsn {
 		 */
 		void												ResetAnalog() {
 			m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd;
-			m_bBoundaryCrossed = false;
-			m_ui16PcModify = 0;
-			m_ui8SModify = 0;
-			m_ui16OpCode = 0;
+			m_fsState.bBoundaryCrossed = false;
+			m_fsState.ui16PcModify = 0;
+			m_fsState.ui8SModify = 0;
+			m_fsState.ui16OpCode = 0;
 			
 #ifdef LSN_CPU_VERIFY
-			m_bAllowWritingToPc = true;
+			m_fsState.bAllowWritingToPc = true;
 			m_bIsReset = false;
 #else
-			m_bAllowWritingToPc = false;
+			m_fsState.bAllowWritingToPc = false;
 			m_bIsReset = true;
 #endif	// #ifdef LSN_CPU_VERIFY
 
-			m_pfCurInstruction = m_iInstructionSet[m_ui16OpCode].pfHandler;
+			m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 		}
 
 		/**
@@ -280,37 +280,71 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** The full state structure for instructions. */
+		struct LSN_FULL_STATE {
+			const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */
+			LSN_REGISTERS									rRegs;
+			LSN_VECTORS										vBrkVector = LSN_V_IRQ_BRK;															/**< The vector to use inside BRK and whether to push B with status. */
+
+			union {
+				uint8_t										ui8Address[2];																		/**< An address loaded into memory before transfer to a register such as PC. */
+				uint16_t									ui16Address;																		/**< An address loaded into memory before transfer to a register such as PC. */
+			};
+			union {
+				uint8_t										ui8Pointer[2];																		/**< An address loaded into memory for indirect access. */
+				uint16_t									ui16Pointer;																		/**< An address loaded into memory for indirect access. */
+			};
+			union {
+				uint8_t										ui8Target[2];																		/**< When an address needs to be updated with L and H separately. */
+				uint16_t									ui16Target;																			/**< When an address needs to be updated with L and H separately. */
+			};
+			uint16_t										ui16OpCode = 0;																		/**< The current opcode. */
+			uint16_t										ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
+			uint8_t											ui8Operand;																			/**< The operand. */
+			uint8_t											ui8SModify = 0;																		/**< The amount by which to modify S during the next Phi1. */
+			uint8_t											ui8FuncIndex = 0;																	/**< The function index. */
+			bool											bAllowWritingToPc = true;															/**< Allow writing to PC? */
+			bool											bTakeJump = true;																	/**< Determines if a branch is taken. */
+			bool											bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
+			bool											bPushB = false;																		/**< Push the B flag with the status byte? */
+		};
+
+
 		// == Members.
 		PfTicks												m_pfTickFunc = nullptr;																/**< The current tick function (called by Tick()). */
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
-		const PfCycle *										m_pfCurInstruction = nullptr;														/**< The current instruction being executed. */
-		LSN_REGISTERS										m_rRegs;																			/**< Registers. */
+		LSN_FULL_STATE										m_fsState;																			/**< Everything a standard instruction-cycle function can modify.  Backed up at the start of the first DMA read cycle and restored at the end after the read address for that cycle has been calculated. */
+		LSN_FULL_STATE										m_fsStateBackup;																	/**< The backup of the state for the cycle that first gets interrupted by DMA and is then executed at the end of DMA. */
+		//const PfCycle *										m_fsState.pfCurInstruction = nullptr;														/**< The current instruction being executed. */
+		//LSN_REGISTERS										m_fsState.rRegs;																			/**< Registers. */
 
-		LSN_VECTORS											m_vBrkVector = LSN_V_IRQ_BRK;														/**< The vector to use inside BRK and whether to push B with status. */
-		uint8_t												m_ui8Operand;																		/**< The operand. */
-		union {
-			uint8_t											m_ui8Address[2];																	/**< An address loaded into memory before transfer to a register such as PC. */
-			uint16_t										m_ui16Address;																		/**< An address loaded into memory before transfer to a register such as PC. */
-		};
-		union {
-			uint8_t											m_ui8Pointer[2];																	/**< An address loaded into memory for indirect access. */
-			uint16_t										m_ui16Pointer;																		/**< An address loaded into memory for indirect access. */
-		};
-		union {
-			uint8_t											m_ui8Target[2];																		/**< When an address needs to be updated with L and H separately. */
-			uint16_t										m_ui16Target;																		/**< When an address needs to be updated with L and H separately. */
-		};
-		uint16_t											m_ui16OpCode = 0;																	/**< The current opcode. */
-		uint16_t											m_ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
+		//LSN_VECTORS											m_vBrkVector = LSN_V_IRQ_BRK;														/**< The vector to use inside BRK and whether to push B with status. */
+		//uint8_t												m_fsState.ui8Operand;																		/**< The operand. */
+		//union {
+		//	uint8_t											m_ui8Address[2];																	/**< An address loaded into memory before transfer to a register such as PC. */
+		//	uint16_t										m_ui16Address;																		/**< An address loaded into memory before transfer to a register such as PC. */
+		//};
+		//union {
+		//	uint8_t											m_ui8Pointer[2];																	/**< An address loaded into memory for indirect access. */
+		//	uint16_t										m_ui16Pointer;																		/**< An address loaded into memory for indirect access. */
+		//};
+		//union {
+		//	uint8_t											m_ui8Target[2];																		/**< When an address needs to be updated with L and H separately. */
+		//	uint16_t										m_ui16Target;																		/**< When an address needs to be updated with L and H separately. */
+		//};
 		uint16_t											m_ui16DmaCounter = 0;																/**< DMA counter. */
 		uint16_t											m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
 		uint16_t											m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
-		uint8_t												m_ui8SModify = 0;																	/**< The amount by which to modify S during the next Phi1. */
-		uint8_t												m_ui8FuncIndex = 0;																	/**< The function index. */
+		//uint16_t											m_fsState.ui16OpCode = 0;																	/**< The current opcode. */
+		//uint16_t											m_fsState.ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
+		//uint8_t												m_fsState.ui8SModify = 0;																	/**< The amount by which to modify S during the next Phi1. */
+		//uint8_t												m_fsState.ui8FuncIndex = 0;																	/**< The function index. */
 		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
 		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
+		
 		bool												m_bNmiStatusLine = false;															/**< The status line for NMI. */
 		bool												m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
 		bool												m_bDetectedNmi = false;																/**< The edge detector for the PHI2 part of the cycle. */
@@ -322,10 +356,10 @@ namespace lsn {
 		bool												m_bIsReset = true;																	/**< Are we resetting? */
 		
 		//bool												m_bIsReadCycle = true;																/**< Is the current cycle a read? */
-		bool												m_bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
-		bool												m_bPushB = false;																	/**< Push the B flag with the status byte? */
-		bool												m_bAllowWritingToPc = true;															/**< Allow writing to PC? */
-		bool												m_bTakeJump = true;																	/**< Determines if a branch is taken. */
+		//bool												m_fsState.bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
+		//bool												m_bPushB = false;																	/**< Push the B flag with the status byte? */
+		//bool												m_fsState.bAllowWritingToPc = true;															/**< Allow writing to PC? */
+		//bool												m_bTakeJump = true;																	/**< Determines if a branch is taken. */
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
 		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
 		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
@@ -589,7 +623,7 @@ namespace lsn {
 		template <bool _bIncPc = false>
 		void												Adc_BeginInst();
 
-		/** Adds X and m_ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
+		/** Adds X and m_fsState.ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
 		void												Add_XAndOperand_To_AddrOrPntr_8bit();
 
@@ -653,7 +687,7 @@ namespace lsn {
 		/** 4th cycle of branch instructions. Page boundary was crossed. */
 		void												Branch_Cycle4();
 
-		/** Final touches to BRK (copies m_ui16Address to m_rRegs.ui16Pc) and first cycle of the next instruction. */
+		/** Final touches to BRK (copies m_ui16Address to m_fsState.rRegs.ui16Pc) and first cycle of the next instruction. */
 		void												Brk_BeginInst();
 
 		/** Clears the carry bit. */
@@ -680,7 +714,7 @@ namespace lsn {
 		template <bool _bIncPc = false>
 		void												Cpy_BeginInst();
 
-		/** Copies m_ui8Operand to Status without the B bit. */
+		/** Copies m_fsState.ui8Operand to Status without the B bit. */
 		void												CopyOperandToStatusWithoutB();
 
 		/** Copies m_ui16Target to PC, optionally adjusts PC. */
@@ -794,14 +828,14 @@ namespace lsn {
 		template <bool _bRead = true, bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
 		void												Null();
 
-		/** Performs A |= Operand with m_ui8Operand.  Sets flags N and Z. */
+		/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 		template <bool _bIncPc = false>
 		void												Ora_BeginInst();
 
-		/** Sets m_ui8Operand to the status byte with Break and Reserved set. */
+		/** Sets m_fsState.ui8Operand to the status byte with Break and Reserved set. */
 		void												Php();
 
-		/** Pulls the accumulator: Copies m_ui8Operand to A. */
+		/** Pulls the accumulator: Copies m_fsState.ui8Operand to A. */
 		void												Pla_BeginInst();
 
 		/** Pulls the status byte, unsets X, sets M. */
@@ -811,7 +845,7 @@ namespace lsn {
 		template <int8_t _i8SOff = 0>
 		void												Pull_To_A_Phi2();
 
-		/** Pulls from the stack, stores in m_ui8Operand. */
+		/** Pulls from the stack, stores in m_fsState.ui8Operand. */
 		template <int8_t _i8SOff = 0>
 		void												Pull_To_Operand_Phi2();
 
@@ -827,7 +861,7 @@ namespace lsn {
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
 		void												Push_A_Phi2();
 
-		/** Pushes m_ui8Operand. */
+		/** Pushes m_fsState.ui8Operand. */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
 		void												Push_Operand_Phi2();
 
@@ -847,7 +881,7 @@ namespace lsn {
 		template <uint16_t _ui16Addr, bool _bMoveBack>
 		void												ReadAddr_Phi2();
 
-		/** Reads from m_ui8Operand, discards result. */
+		/** Reads from m_fsState.ui8Operand, discards result. */
 		void												Read_Operand_Discard_Phi2();
 
 		/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
@@ -862,15 +896,15 @@ namespace lsn {
 		template <bool _bFromAddr>
 		void												Read_PtrOrAddr_To_AddrOrPtr_L_Phi2();
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand. */
+		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand. */
 		template <bool _bFromAddr, bool _bEndInstr = false>
 		void												Read_PtrOrAddr_To_Operand_Phi2();
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_ui8Operand.  Skips a full cycle if m_bBoundaryCrossed is false (and only then is _bEndInstr checked). */
+		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand.  Skips a full cycle if m_fsState.bBoundaryCrossed is false (and only then is _bEndInstr checked). */
 		template <bool _bFromAddr, bool _bEndInstr = false>
 		void												Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2();
 
-		/** Reads the stack, stores in m_ui8Operand. */
+		/** Reads the stack, stores in m_fsState.ui8Operand. */
 		template <bool _bEndInstr = false>
 		void												Read_Stack_To_Operand_Phi2();
 
@@ -973,7 +1007,7 @@ namespace lsn {
 		template <bool _bToAddr>
 		void												Write_A_To_AddrOrPtr_Phi2();
 
-		/** Writes m_ui8Operand to either m_ui16Pointer or m_ui16Address. */
+		/** Writes m_fsState.ui8Operand to either m_ui16Pointer or m_ui16Address. */
 		template <bool _bToAddr, bool _bEndInstr = false>
 		void												Write_Operand_To_AddrOrPtr_Phi2();
 
@@ -1029,8 +1063,8 @@ namespace lsn {
 
 	/** Performs a cycle inside an instruction. */
 	inline void CCpu6502::Tick_InstructionCycleStd() {
-		//(this->*m_iInstructionSet[m_ui16OpCode].pfHandler[m_ui8FuncIndex])();
-		(this->*m_pfCurInstruction[m_ui8FuncIndex])();
+		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_fsState.ui8FuncIndex])();
+		(this->*m_fsState.pfCurInstruction[m_fsState.ui8FuncIndex])();
 	}
 
 	/**
@@ -1050,10 +1084,10 @@ namespace lsn {
 			LSN_UPDATE_S;
 		}
 		// Enter normal instruction context.
-		m_ui8FuncIndex = 0;
+		m_fsState.ui8FuncIndex = 0;
 		// TODO: Move this to Tick_NextInstructionStd().
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
-		m_bBoundaryCrossed = false;
+		m_fsState.bBoundaryCrossed = false;
 
 		LSN_INSTR_END_PHI1;
 	}
@@ -1065,12 +1099,12 @@ namespace lsn {
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
 	inline void CCpu6502::Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
-		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_rRegs.ui8Status & C());
-		SetBit<V()>( m_rRegs.ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_fsState.rRegs.ui8Status & C());
+		SetBit<V()>( m_fsState.rRegs.ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
-		SetBit<C()>( m_rRegs.ui8Status, ui16Result > 0xFF );
-		SetBit<Z()>( m_rRegs.ui8Status, _ui8RegVal == 0x00 );
-		SetBit<N()>( m_rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 	/**
@@ -1081,11 +1115,11 @@ namespace lsn {
 	 */
 	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
 		// If the value in the register is equal or greater than the compared value, the Carry will be set.
-		SetBit<C()>( m_rRegs.ui8Status, _ui8RegVal >= _ui8OpVal );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, _ui8RegVal >= _ui8OpVal );
 		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof...
-		SetBit<Z()>( m_rRegs.ui8Status, _ui8RegVal == _ui8OpVal );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == _ui8OpVal );
 		// ...and the sign (IE A>=$80) of the register.
-		SetBit<N()>( m_rRegs.ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 
 	/**
@@ -1096,12 +1130,12 @@ namespace lsn {
 	 */
 	inline void CCpu6502::Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
 		uint16_t ui16Val = uint16_t( _ui8OpVal ) ^ 0x00FF;
-		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (ui16Val) + (m_rRegs.ui8Status & C());
-		SetBit<V()>( m_rRegs.ui8Status, ((uint16_t( _ui8RegVal ) ^ ui16Result) & (ui16Val ^ ui16Result) & 0x0080) != 0 );
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (ui16Val) + (m_fsState.rRegs.ui8Status & C());
+		SetBit<V()>( m_fsState.rRegs.ui8Status, ((uint16_t( _ui8RegVal ) ^ ui16Result) & (ui16Val ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
-		SetBit<C()>( m_rRegs.ui8Status, ui16Result > 0xFF );
-		SetBit<Z()>( m_rRegs.ui8Status, _ui8RegVal == 0x00 );
-		SetBit<N()>( m_rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
+		SetBit<C()>( m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
+		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
+		SetBit<N()>( m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 }	// namespace lsn
