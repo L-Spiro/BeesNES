@@ -47,13 +47,13 @@ PAL-N (Argentina) (Composite):<br>
 ![image](https://github.com/user-attachments/assets/b6de0f6c-a66b-459a-ac1c-19804c26596f)<br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
 
-![image](https://github.com/user-attachments/assets/1431e83e-5adc-442b-8c97-0e264b2cfd1b)<br>
-Top: Hardware reference; Bottom: BeesNES.  The missing areas and the change in volume near the end haven’t been implemented yet, but everything that has been implemented matches hardware exactly, minus the noise.
+![image](https://github.com/user-attachments/assets/3b3e5ddd-b1e2-414f-beff-bfdce2ba7891)<br>
+Top: Hardware reference; Bottom: BeesNES.  The missing area hasn’t been implemented yet, but everything that has been implemented matches hardware exactly, minus the noise.
 
-![image](https://github.com/user-attachments/assets/a81429a7-cdce-4a6d-884b-77fc81c1d6fb)<br>
-Top: Hardware reference; Bottom: BeesNES.  Excluding noise and the unsupported features, the hardware reference is matched down to the tiniest details.
+![image](https://github.com/user-attachments/assets/5c1727b8-e1cd-4c36-88a4-9684375f2752)<br>
+Top: Hardware reference; Bottom: BeesNES.  Excluding mains-hum noise and the unsupported feature, the hardware reference is matched down to the tiniest details.  This is actual unedited output from BeesNES (no additional filtering).  Note the lack of aliasing in the high frequencies.
 
-![image](https://github.com/user-attachments/assets/06437a28-bbc2-4be0-9fa6-75f1b1e2465a)<br>
+![image](https://github.com/user-attachments/assets/c03dde8d-0ed3-4247-9154-c88db2ca8a49)<br>
 Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
 
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
