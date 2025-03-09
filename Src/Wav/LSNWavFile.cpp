@@ -1516,7 +1516,7 @@ namespace lsn {
                     break;
                 }
 			}
-			// Write the buffer to disk (if any)
+			// Write the buffer to disk (if any).
             if ( !vBufferToWrite.empty() ) {
                 m_sStream.sfFile.WriteToFile( reinterpret_cast<const uint8_t *>(vBufferToWrite.data()),
 					vBufferToWrite.size() * sizeof( float ) );

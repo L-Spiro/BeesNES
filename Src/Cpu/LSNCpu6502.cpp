@@ -941,7 +941,7 @@ namespace lsn {
 		}
 #endif	// #ifdef LSN_CPU_VERIFY
 		m_fsState.ui16OpCode = ui8Op;
-		m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
+		m_pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 
 #if 0
 		char szBUffer[256];
@@ -1867,7 +1867,7 @@ namespace lsn {
 		m_fsState.vBrkVector = LSN_V_IRQ_BRK;
 		m_fsState.bPushB = true;
 #else
-		// TODO: What happens when DMA interrupts this?  A different vector could be chosen on real hardware.
+
 		// Select vector to use.
 		if ( m_bIsReset ) {
 			m_fsState.vBrkVector = LSN_V_RESET;
@@ -1887,11 +1887,13 @@ namespace lsn {
 			//m_fsState.bPushB = true;
 		}
 
-		if ( m_bDetectedNmi ) {
-			m_bHandleNmi = m_bDetectedNmi = false;
-			m_bNmiStatusLine = false;
+		if LSN_LIKELY( !m_bRdyLow ) {
+			if ( m_bDetectedNmi ) {
+				m_bHandleNmi = m_bDetectedNmi = false;
+				m_bNmiStatusLine = false;
+			}
+			m_bHandleIrq = false;
 		}
-		m_bHandleIrq = false;
 #endif	// #ifdef LSN_CPU_VERIFY
 
 		LSN_NEXT_FUNCTION;

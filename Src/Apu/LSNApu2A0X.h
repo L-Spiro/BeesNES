@@ -153,6 +153,7 @@ namespace lsn {
 			m_fP2Vol( 1.0f ),
 			m_fTVol( 1.0f ),
 			m_fNVol( 1.0f ),
+			m_fDmcRegVol( 0.0f ),
 			m_bEnabled( true ) {
 
 			m_pfLpf.CreateLpf( 20000.0f, HzAsFloat() );
@@ -203,7 +204,7 @@ namespace lsn {
 				}
 				float fNoise = ((m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f) * m_fNVol;
 				float fTriangle = m_tTriangle.Output() * m_fTVol;
-				float fDmc = 0.0f;
+				float fDmc = m_fDmcRegVol;
 
 				//fFinalPulse = fNoise = fTriangle = 0.0f;
 
@@ -319,6 +320,7 @@ namespace lsn {
 			m_nNoise.ResetToKnown();
 			m_tTriangle.ResetToKnown();
 			ResetAnalog();
+			m_fDmcRegVol = 0.0f;
 		}
 
 		/**
@@ -360,6 +362,11 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x400C, Write400C, this, 0 );
 			m_pbBus->SetWriteFunc( 0x400E, Write400E, this, 0 );
 			m_pbBus->SetWriteFunc( 0x400F, Write400F, this, 0 );
+
+			m_pbBus->SetWriteFunc( 0x4010, Write4010, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4011, Write4011, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4012, Write4012, this, 0 );
+			m_pbBus->SetWriteFunc( 0x4013, Write4013, this, 0 );
 
 			m_pbBus->SetReadFunc( 0x4015, Read4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4015, Write4015, this, 0 );
@@ -498,6 +505,8 @@ namespace lsn {
 		float											m_fTVol;
 		/** The Noise master volume. */
 		float											m_fNVol;
+		/** DMC voluem (from register 4011, not settings). */
+		float											m_fDmcRegVol;
 		/** Pulse 1. */
 		CPulse											m_pPulse1;
 		/** Pulse 2. */
@@ -1048,6 +1057,61 @@ namespace lsn {
 			}
 			paApu->m_nNoise.RestartEnvelope();
 		}
+
+
+		/**
+		 * Writing to 0x4010 (Flags and Rate).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Write4010( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x10] = _ui8Val;
+		}
+
+		/**
+		 * Writing to 0x4011 (Direct load).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Write4011( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x11] = _ui8Val;
+			paApu->m_fDmcRegVol = float( _ui8Val & 0b01111111 );
+		}
+
+		/**
+		 * Writing to 0x4012 (Sample address).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Write4012( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x12] = _ui8Val;
+		}
+
+		/**
+		 * Writing to 0x4013 (Sample address).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Write4013( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			paApu->m_ui8Registers[0x13] = _ui8Val;
+		}
+
 
 		/**
 		 * A function usable for addresses that can't be read.

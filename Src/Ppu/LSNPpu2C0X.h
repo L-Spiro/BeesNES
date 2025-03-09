@@ -77,8 +77,8 @@ namespace lsn {
 			m_ui8Oam2ClearIdx( 0 ),
 			m_ui8Oam2WriteIdx( 0 ),
 			m_ui8Oam2SpriteCpyCnt( 0 ),
-			m_dvLeftRedgreenDelay( nullptr, this ),
-			m_dvPpuMaskDelay( MaskCallback, this ),
+			m_dvLeftShowRedGreenDelay( MaskCallback, this ),
+			m_dvPpuMaskDelay( nullptr, this ),
 			m_bAddresLatch( false ) {
 
 #ifdef LSN_INT_OAM_DECAY
@@ -124,7 +124,7 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
-			m_dvLeftRedgreenDelay.Tick();
+			m_dvLeftShowRedGreenDelay.Tick();
 			m_dvPpuMaskDelay.Tick();
 			m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();
@@ -143,8 +143,6 @@ namespace lsn {
 #endif	// #ifdef LSN_INT_OAM_DECAY
 			(this->*m_cCycle[m_stCurCycle])();
 
-
-			
 
 			
 #ifndef LSN_USE_PHI2
@@ -171,21 +169,6 @@ namespace lsn {
 					m_paPpuAddrT.ui16Addr = m_paPpuAddrV.ui16Addr;
 				}
 			}
-
-			
-			
-			/*m_bRendering = Rendering();
-			m_bShowBg = !!m_dvPpuMaskDelay.Value().s.ui8ShowBackground;
-			m_bShowSprites = !!m_dvPpuMaskDelay.Value().s.ui8ShowSprites;*/
-			
-			/*if ( m_bShowBg != !!m_dvPpuMaskDelay.Value().s.ui8ShowBackground || m_bShowSprites != !!m_dvPpuMaskDelay.Value().s.ui8ShowSprites ) {
-				::OutputDebugStringA( "DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!! DELAY DELAY!!\r\n" );
-			}*/
-
-			/*if ( m_psPpuStatus.s.ui8VBlank ) {
-				::OutputDebugStringA( ("VBlank Set: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
-			}*/
-
 
 			++m_ui64Cycle;
 #endif	// #ifndef LSN_USE_PHI2
@@ -262,7 +245,7 @@ namespace lsn {
 			LSN_PPUMASK pmMaskVal;
 			pmMaskVal.ui8Reg = 0;
 			m_dvPpuMaskDelay.SetValue( pmMaskVal );
-			m_dvLeftRedgreenDelay.SetValue( pmMaskVal );
+			m_dvLeftShowRedGreenDelay.SetValue( pmMaskVal );
 
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
@@ -850,7 +833,7 @@ namespace lsn {
 			LSN_PPUMASK pmTmp;
 			ppPpu->m_ui8IoBusLatch = pmTmp.ui8Reg = _ui8Val;
 			ppPpu->m_dvPpuMaskDelay.WriteWithDelay( pmTmp );
-			ppPpu->m_dvLeftRedgreenDelay.WriteWithDelay( pmTmp );
+			ppPpu->m_dvLeftShowRedGreenDelay.WriteWithDelay( pmTmp );
 			/*char szBuffer[256];
 			std::sprintf( szBuffer, "Write2001: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
 			::OutputDebugStringA( szBuffer );*/
@@ -1273,7 +1256,7 @@ namespace lsn {
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftRedgreenDelay;							/**< The PPUMASK register (left* /red/green bits). */
+		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left* /red/green bits). */
 		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register (the rest of the bits). */
 		
 #ifndef LSN_INT_OAM_DECAY
@@ -1721,7 +1704,7 @@ namespace lsn {
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;
-					if ( m_bShowBg && (m_dvLeftRedgreenDelay.Value().s.ui8LeftBackground || ui16X >= 8) ) {
+					if ( m_bShowBg && (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftBackground || ui16X >= 8) ) {
 						const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
 						ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
 							((m_ui16ShiftPatternLo & ui16Bit) > 0);
@@ -1733,7 +1716,7 @@ namespace lsn {
 					uint8_t ui8ForegroundPalette = 0;
 					uint8_t ui8ForegroundPriority = 0;
 					bool bIsRenderingSprite0 = false;
-					if ( m_bShowSprites && (m_dvLeftRedgreenDelay.Value().s.ui8LeftSprites || ui16X >= 8) ) {
+					if ( m_bShowSprites && (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftSprites || ui16X >= 8) ) {
 						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
 							if ( m_asActiveSprites.ui8X[I] == 0 ) {
 								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
@@ -1791,7 +1774,7 @@ namespace lsn {
 							// This is handled elsewhere.  I think.  TODO: Check it.
 
 							// At x=0 to x=7 if the left-side clipping window is enabled (if bit 2 or bit 1 of PPUMASK is 0).
-							if ( ((ui16X >= 8) || (m_dvLeftRedgreenDelay.Value().s.ui8LeftBackground | m_dvLeftRedgreenDelay.Value().s.ui8LeftSprites)) &&
+							if ( ((ui16X >= 8) || (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftBackground | m_dvLeftShowRedGreenDelay.Value().s.ui8LeftSprites)) &&
 								// At x=255, for an obscure reason related to the pixel pipeline.
 								ui16X != 255 ) {
 								m_psPpuStatus.s.ui8Sprite0Hit = 1;
@@ -1813,12 +1796,12 @@ namespace lsn {
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
 					if constexpr ( _tRegCode == LSN_PM_NTSC ) {
-						ui16Val |= (m_dvLeftRedgreenDelay.Value().s.ui8RedEmph << 6);
-						ui16Val |= (m_dvLeftRedgreenDelay.Value().s.ui8GreenEmph << 7);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 6);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 7);
 					}
 					else {
-						ui16Val |= (m_dvLeftRedgreenDelay.Value().s.ui8RedEmph << 7);
-						ui16Val |= (m_dvLeftRedgreenDelay.Value().s.ui8GreenEmph << 6);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 7);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 6);
 					}
 					ui16Val |= (m_dvPpuMaskDelay.MostRecentValue().s.ui8BlueEmph << 8);
 

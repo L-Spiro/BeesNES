@@ -31,16 +31,18 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						/*m_bIsReadCycle = (ISREAD)*/
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } }
 #define LSN_INSTR_END_PHI1
-#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) ); /*m_bIsReadCycle = true;*/											\
-															if LSN_UNLIKELY( m_bRdyLow ) { m_ui16DmaCpuAddress = uint16_t( ADDR );											\
+#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
+															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
 																m_bDmaGo = true;																							\
-																/*return*/; }
-#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				/*m_bIsReadCycle = false;*/ m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
+																RestoreState();																								\
+																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/											\
+																return; }
+#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2
 
-#define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
+#define LSN_NEXT_FUNCTION_BY( AMT )							m_ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION //m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
@@ -182,6 +184,7 @@ namespace lsn {
 			m_fsState.ui16PcModify = 0;
 			m_fsState.ui8SModify = 0;
 			m_fsState.ui16OpCode = 0;
+			m_fsStateBackup.bCopiedState = false;
 			
 #ifdef LSN_CPU_VERIFY
 			m_fsState.bAllowWritingToPc = true;
@@ -191,7 +194,7 @@ namespace lsn {
 			m_bIsReset = true;
 #endif	// #ifdef LSN_CPU_VERIFY
 
-			m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
+			m_pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 		}
 
 		/**
@@ -283,7 +286,7 @@ namespace lsn {
 		// == Types.
 		/** The full state structure for instructions. */
 		struct LSN_FULL_STATE {
-			const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */
+			//const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */
 			LSN_REGISTERS									rRegs;
 			LSN_VECTORS										vBrkVector = LSN_V_IRQ_BRK;															/**< The vector to use inside BRK and whether to push B with status. */
 
@@ -303,11 +306,12 @@ namespace lsn {
 			uint16_t										ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
 			uint8_t											ui8Operand;																			/**< The operand. */
 			uint8_t											ui8SModify = 0;																		/**< The amount by which to modify S during the next Phi1. */
-			uint8_t											ui8FuncIndex = 0;																	/**< The function index. */
+			//uint8_t											ui8FuncIndex = 0;																	/**< The function index. */
 			bool											bAllowWritingToPc = true;															/**< Allow writing to PC? */
 			bool											bTakeJump = true;																	/**< Determines if a branch is taken. */
 			bool											bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
 			bool											bPushB = false;																		/**< Push the B flag with the status byte? */
+			bool											bCopiedState = false;																/**< If m_bRdyLow triggers a state copy, this is set in PHI1 after the copy and used in PHI2 to know that a copy was made and to abord PHI2 as soon as the read address has been finalized. */
 		};
 
 
@@ -316,32 +320,16 @@ namespace lsn {
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
+
+		const PfCycle *										m_pfCurInstruction;
+		uint8_t												m_ui8FuncIndex = 0;																	/**< The function index. */
 		LSN_FULL_STATE										m_fsState;																			/**< Everything a standard instruction-cycle function can modify.  Backed up at the start of the first DMA read cycle and restored at the end after the read address for that cycle has been calculated. */
 		LSN_FULL_STATE										m_fsStateBackup;																	/**< The backup of the state for the cycle that first gets interrupted by DMA and is then executed at the end of DMA. */
-		//const PfCycle *										m_fsState.pfCurInstruction = nullptr;														/**< The current instruction being executed. */
-		//LSN_REGISTERS										m_fsState.rRegs;																			/**< Registers. */
 
-		//LSN_VECTORS											m_vBrkVector = LSN_V_IRQ_BRK;														/**< The vector to use inside BRK and whether to push B with status. */
-		//uint8_t												m_fsState.ui8Operand;																		/**< The operand. */
-		//union {
-		//	uint8_t											m_ui8Address[2];																	/**< An address loaded into memory before transfer to a register such as PC. */
-		//	uint16_t										m_ui16Address;																		/**< An address loaded into memory before transfer to a register such as PC. */
-		//};
-		//union {
-		//	uint8_t											m_ui8Pointer[2];																	/**< An address loaded into memory for indirect access. */
-		//	uint16_t										m_ui16Pointer;																		/**< An address loaded into memory for indirect access. */
-		//};
-		//union {
-		//	uint8_t											m_ui8Target[2];																		/**< When an address needs to be updated with L and H separately. */
-		//	uint16_t										m_ui16Target;																		/**< When an address needs to be updated with L and H separately. */
-		//};
 		uint16_t											m_ui16DmaCounter = 0;																/**< DMA counter. */
 		uint16_t											m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
 		uint16_t											m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
-		//uint16_t											m_fsState.ui16OpCode = 0;																	/**< The current opcode. */
-		//uint16_t											m_fsState.ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
-		//uint8_t												m_fsState.ui8SModify = 0;																	/**< The amount by which to modify S during the next Phi1. */
-		//uint8_t												m_fsState.ui8FuncIndex = 0;																	/**< The function index. */
+
 		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
 		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
 		
@@ -355,11 +343,6 @@ namespace lsn {
 		bool												m_bHandleIrq = false;																/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 		bool												m_bIsReset = true;																	/**< Are we resetting? */
 		
-		//bool												m_bIsReadCycle = true;																/**< Is the current cycle a read? */
-		//bool												m_fsState.bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
-		//bool												m_bPushB = false;																	/**< Push the B flag with the status byte? */
-		//bool												m_fsState.bAllowWritingToPc = true;															/**< Allow writing to PC? */
-		//bool												m_bTakeJump = true;																	/**< Determines if a branch is taken. */
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
 		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
 		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
@@ -539,6 +522,22 @@ namespace lsn {
 		}
 
 		/**
+		 * Backs up the current state.
+		 **/
+		inline void											BackupState() {
+			std::memcpy( &m_fsStateBackup, &m_fsState, sizeof( m_fsState ) );
+			m_fsStateBackup.bCopiedState = true;
+		}
+
+		/**
+		 * Restores the state.
+		 **/
+		inline void											RestoreState() {
+			std::memcpy( &m_fsState, &m_fsStateBackup, sizeof( m_fsState ) );
+			m_fsStateBackup.bCopiedState = false;
+		}
+
+		/**
 		 * Writing to 0x4014 initiates a DMA transfer.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -615,6 +614,7 @@ namespace lsn {
 			pcThis->m_ui8Inputs[1] = (pcThis->m_ui8Inputs[1] & 0b11111000) | (_ui8Val & 0b00000111);
 			pcThis->m_ui8InputsState[1] = pcThis->m_ui8InputsPoll[1];
 		}
+
 
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// CYCLES
@@ -1063,8 +1063,8 @@ namespace lsn {
 
 	/** Performs a cycle inside an instruction. */
 	inline void CCpu6502::Tick_InstructionCycleStd() {
-		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_fsState.ui8FuncIndex])();
-		(this->*m_fsState.pfCurInstruction[m_fsState.ui8FuncIndex])();
+		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_ui8FuncIndex])();
+		(this->*m_pfCurInstruction[m_ui8FuncIndex])();
 	}
 
 	/**
@@ -1084,7 +1084,7 @@ namespace lsn {
 			LSN_UPDATE_S;
 		}
 		// Enter normal instruction context.
-		m_fsState.ui8FuncIndex = 0;
+		m_ui8FuncIndex = 0;
 		// TODO: Move this to Tick_NextInstructionStd().
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 		m_fsState.bBoundaryCrossed = false;
