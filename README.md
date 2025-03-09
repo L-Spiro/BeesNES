@@ -44,7 +44,7 @@ PAL-N (Argentina) (Composite):<br>
 
 
 ## Audio Accuracy
-![image](https://github.com/user-attachments/assets/b6de0f6c-a66b-459a-ac1c-19804c26596f)<br>
+![image](https://github.com/user-attachments/assets/6d0287bb-d70c-485e-a778-f8267cc73c2b)<br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
 
 ![image](https://github.com/user-attachments/assets/3b3e5ddd-b1e2-414f-beff-bfdce2ba7891)<br>
