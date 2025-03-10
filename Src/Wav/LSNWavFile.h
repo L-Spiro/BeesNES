@@ -157,12 +157,13 @@ namespace lsn {
 		};
 		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData );
 		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t _ui64AbsoluteIdx, uint64_t _ui64IdxSinceStart, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+		struct LSN_STREAMING;
+		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &/*_vSrc*/, std::vector<uint8_t> &/*_vOut*/, struct CWavFile::LSN_STREAMING &/*_sStream*/ );
 
 		/** A stream-to-file structure. */
 		struct LSN_STREAMING {
 			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
 			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
-			//uint64_t													ui64FinalSampleCount = 0;	/**< If not 0, indicates the known final sample count. */
 			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
 			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
 			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
@@ -177,6 +178,7 @@ namespace lsn {
 			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
 			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
 			PfStartConditionFunc										pfEndCondFunc = nullptr;	/**< The end-condition function. */
+			PfBatchConvNWrite											pfCvtAndWriteFunc = nullptr;/**< The function for batch conversion and writing to the WAV file. */
 			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
 			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
 			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
@@ -804,6 +806,308 @@ namespace lsn {
 		 * The stream-to-file writer thread.
 		 **/
 		void															StreamWriterThread();
+
+		/**
+		 * Performs no conversion.  Input is directly sent to the file stream.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToF32( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 8-bit PCM using raw C++.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm8( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 16-bit PCM using raw C++.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm16( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 24-bit PCM using raw C++.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm24( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+#ifdef __AVX2__
+		/**
+		 * Converts a batch of floats to 8-bit PCM using AVX.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm8_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 16-bit PCM using AVX.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm16_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 24-bit PCM using AVX.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm24_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+#endif	// #ifdef __AVX2__
+		
 	};
+	
+
+
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// DEFINITIONS
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// == Functions.
+	/**
+	 * Performs no conversion.  Input is directly sent to the file stream.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToF32( const std::vector<float> &_vSrc, std::vector<uint8_t> &/*_vOut*/, LSN_STREAMING &_sStream ) {
+		if LSN_LIKELY( _vSrc.size() ) {
+			_sStream.sfFile.WriteToFile( reinterpret_cast<const uint8_t *>(_vSrc.data()),
+				_vSrc.size() * sizeof( float ) );
+		}
+	}
+
+	/**
+	 * Converts a batch of floats to 8-bit PCM using raw C++.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm8( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize ) {
+				_vOut.resize( sSize );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			for ( size_t I = 0; I < sSize; ++I ) {
+				_vOut[I] = CUtilities::SampleToUi8( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Converts a batch of floats to 16-bit PCM using raw C++.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm16( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize << 1 ) {
+				_vOut.resize( _vSrc.size() << 1 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			for ( size_t I = 0; I < sSize; ++I ) {
+				reinterpret_cast<int16_t *>(_vOut.data())[I<<1] = CUtilities::SampleToI16( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * sizeof( uint16_t ) );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Converts a batch of floats to 24-bit PCM using raw C++.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm24( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize * 3 ) {
+				_vOut.resize( sSize * 3 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			
+			// Assuming penalty for misaligned writes is minor.  Some platforms may benefit from a slower algorithm
+			//	that does only aligned writes.
+			sSize--;
+			size_t I = 0;
+			for ( ; I < sSize; ++I ) {
+				int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+				auto sIdx = I * 3;
+				(*reinterpret_cast<int32_t *>(&_vOut[sIdx])) = i32Tmp;
+			}
+
+			// Last one has to be carefully constructed.
+			int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+			auto sIdx = I * 3;
+			(*reinterpret_cast<int16_t *>(&_vOut[sIdx])) = int16_t( i32Tmp );
+			_vOut[sIdx+2] = uint8_t( i32Tmp >> 16 );
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * 3 );
+		}
+		catch ( ... ) {}
+	}
+
+#ifdef __AVX2__
+	/**
+	 * Converts a batch of floats to 8-bit PCM using AVX.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm8_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize ) {
+				_vOut.resize( sSize );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m256 ) / sizeof( float );
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToUi8_AVX2( &_vSrc[I], &_vOut[I] );
+					I += sRegSize;
+				}
+			}
+
+			for ( ; I < sSize; ++I ) {
+				_vOut[I] = CUtilities::SampleToUi8( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Converts a batch of floats to 16-bit PCM using AVX.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm16_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize << 1 ) {
+				_vOut.resize( _vSrc.size() << 1 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m256 ) / sizeof( float );
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToI16_AVX2( &_vSrc[I], reinterpret_cast<int16_t *>(&_vOut[I<<1]) );
+					I += sRegSize;
+				}
+			}
+
+			for ( ; I < sSize; ++I ) {
+				(*reinterpret_cast<int16_t *>(&_vOut[I<<1])) = CUtilities::SampleToI16( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * sizeof( uint16_t ) );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Converts a batch of floats to 24-bit PCM using AVX.
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm24_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize * 3 ) {
+				_vOut.resize( sSize * 3 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			
+
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m256 ) / sizeof( float );
+			LSN_ALIGN( 32 )
+			int32_t i32uffer[sRegSize];
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToI24_AVX2( &_vSrc[I], i32uffer );
+					for ( size_t J = 0; J < (sRegSize - 1); ++J ) {
+						auto sIdx = (I + J) * 3;
+						(*reinterpret_cast<int32_t *>(&_vOut[sIdx])) = i32uffer[J];
+					}
+					(*reinterpret_cast<int16_t *>(&_vOut[(I+(sRegSize - 1))*3])) = int16_t( i32uffer[(sRegSize-1)] );
+					_vOut[(I+(sRegSize - 1))*3+2] = int8_t( i32uffer[(sRegSize-1)] >> 16 );
+					I += sRegSize;
+				}
+				
+			}
+			if LSN_UNLIKELY( sSize ) {	// Unlikely because almost always we will be passing in buffers that are a size divisible by 8 (sRegSize).
+				--sSize;
+				for ( ; I < sSize; ++I ) {
+					int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+					auto sIdx = I * 3;
+					(*reinterpret_cast<int32_t *>(&_vOut[sIdx])) = i32Tmp;
+				}
+
+				// Last one has to be carefully constructed.
+				int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+				auto sIdx = I * 3;
+				(*reinterpret_cast<int16_t *>(&_vOut[sIdx])) = int16_t( i32Tmp );
+				_vOut[sIdx+2] = uint8_t( i32Tmp >> 16 );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * 3 );
+		}
+		catch ( ... ) {}
+	}
+#endif	// #ifdef __AVX2__
 
 }	// namespace lsn

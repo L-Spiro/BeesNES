@@ -392,13 +392,56 @@ namespace lsn {
 			m_sStream.vCurBuffer.clear();
 			m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
 		}
-		catch ( ... ) { return false; }
+		catch ( ... ) { m_sStream.sfFile.Close(); return false; }
 		m_sStream.bEnd = false;
-		m_sStream.bStreaming = true;
+		switch ( m_sStream.fFormat ) {
+			case LSN_F_PCM : {
+				switch ( m_sStream.ui16Bits ) {
+					case 8 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+						break;
+					}
+					case 16 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+						break;
+					}
+					case 24 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+						break;
+					}
+					default : {
+						m_sStream.sfFile.Close();
+						return false;
+					}
+				}
+				break;
+			}
+			case LSN_F_IEEE_FLOAT : {
+				m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToF32;
+			}
+		}
+		
 		std::filesystem::path pPath = _pcPath;
 		m_sStream.wsPath = pPath.generic_wstring();
 
 		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
+
+		m_sStream.bStreaming = true;
 		return true;
 	}
 
@@ -1497,6 +1540,7 @@ namespace lsn {
 	 * The stream-to-file writer thread.
 	 **/
 	void CWavFile::StreamWriterThread() {
+		std::vector<uint8_t> vConversionBuffer;
 		while ( true ) {
 			std::vector<float> vBufferToWrite;
 			{
@@ -1518,12 +1562,12 @@ namespace lsn {
 			}
 			// Write the buffer to disk (if any).
             if ( !vBufferToWrite.empty() ) {
-                m_sStream.sfFile.WriteToFile( reinterpret_cast<const uint8_t *>(vBufferToWrite.data()),
-					vBufferToWrite.size() * sizeof( float ) );
+				(*m_sStream.pfCvtAndWriteFunc)( vBufferToWrite, vConversionBuffer, m_sStream );
             }
 		}
 		CloseStreamFile();
-
 	}
+
+	
 
 }	// namespace lsn

@@ -160,7 +160,7 @@ namespace lsn {
 		 **/
 		static inline int32_t								SampleToI24( float _fSample );
 
-#ifdef __AVX__
+#ifdef __AVX2__
 		/**
 		 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
 		 *	audio output level of zero.
@@ -169,7 +169,7 @@ namespace lsn {
 		 * \param _pui8Dst Pointer to the output.
 		 * \return Returns the converted sample.
 		 **/
-		static inline void									SampleToUi8_AVX( const float * _pfSample, uint8_t * _pui8Dst );
+		static inline void									SampleToUi8_AVX2( const float * _pfSample, uint8_t * _pui8Dst );
 
 		/**
 		 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
@@ -180,7 +180,7 @@ namespace lsn {
 		 * \param _pi16Dst Pointer to the output.
 		 * \return Returns the converted sample.
 		 **/
-		static inline void									SampleToI16_AVX( const float * _pfSample, int16_t * _pi16Dst );
+		static inline void									SampleToI16_AVX2( const float * _pfSample, int16_t * _pi16Dst );
 
 		/**
 		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
@@ -191,8 +191,8 @@ namespace lsn {
 		 * \param _pi32Dst Pointer to the output.  Must be aligned to a 32-byte boundary.
 		 * \return Returns the converted sample.
 		 **/
-		static inline void									SampleToI24_AVX( const float * _pfSample, int32_t * _pi32Dst );
-#endif	// #ifdef __AVX__
+		static inline void									SampleToI24_AVX2( const float * _pfSample, int32_t * _pi32Dst );
+#endif	// #ifdef __AVX2__
 
 		/**
 		 * Gets the enumerated value for the mono-24 format.
@@ -276,7 +276,7 @@ namespace lsn {
 		return static_cast<int32_t>(std::round( dScaledSample ));
 	}
 
-#ifdef __AVX__
+#ifdef __AVX2__
 	/**
 	 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
 	 *	audio output level of zero.
@@ -285,7 +285,7 @@ namespace lsn {
 	 * \param _pui8Dst Pointer to the output.
 	 * \return Returns the converted sample.
 	 **/
-	inline void COpenAl::SampleToUi8_AVX( const float * _pfSample, uint8_t * _pui8Dst ) {
+	inline void COpenAl::SampleToUi8_AVX2( const float * _pfSample, uint8_t * _pui8Dst ) {
 		auto vSamples = _mm256_loadu_ps( _pfSample );
 		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
 		auto vScaled = _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
@@ -311,7 +311,7 @@ namespace lsn {
 	 * \param _pi16Dst Pointer to the output.
 	 * \return Returns the converted sample.
 	 **/
-	inline void COpenAl::SampleToI16_AVX( const float * _pfSample, int16_t * _pi16Dst ) {
+	inline void COpenAl::SampleToI16_AVX2( const float * _pfSample, int16_t * _pi16Dst ) {
 		auto vSamples = _mm256_loadu_ps( _pfSample );
 		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
 		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
@@ -336,7 +336,7 @@ namespace lsn {
 	 * \param _pi32Dst Pointer to the output.  Must be aligned to a 32-byte boundary.
 	 * \return Returns the converted sample.
 	 **/
-	inline void COpenAl::SampleToI24_AVX( const float * _pfSample, int32_t * _pi32Dst ) {
+	inline void COpenAl::SampleToI24_AVX2( const float * _pfSample, int32_t * _pi32Dst ) {
 		auto vSamples = _mm256_loadu_ps( _pfSample );
 		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
 		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
@@ -345,7 +345,7 @@ namespace lsn {
 		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
 		_mm256_store_si256( reinterpret_cast<__m256i *>(_pi32Dst), vInt32Vals );
 	}
-#endif	// #ifdef __AVX__
+#endif	// #ifdef __AVX2__
 
 }	// namespace lsn
 
