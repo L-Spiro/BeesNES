@@ -414,7 +414,7 @@ namespace lsn {
 			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
-			m_fSampleBoxLpf = _aoOptions.ui32OutputHz / 2.0f - 100.0f;
+			m_fSampleBoxLpf = (20000.0f / 22050.0f) * (_aoOptions.ui32OutputHz / 2.0f);
 
 			m_fP1Vol = _aoOptions.apCharacteristics.fP1Volume;
 			m_fP2Vol = _aoOptions.apCharacteristics.fP2Volume;

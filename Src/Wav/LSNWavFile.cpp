@@ -322,17 +322,20 @@ namespace lsn {
 		
 		switch ( _scStartCondition ) {
 			case LSN_SC_NONE : {
-				m_sStream.cdStartData.ui64Parm0 = 0;
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_None;
 				break;
 			}
 			case LSN_SC_START_AT_SAMPLE : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_StartAtSample;
 				m_sStream.cdStartData.ui64Parm0 = _scpStartParm.ui64Parm;
 				break;
 			}
 			case LSN_SC_FIRST_NON_ZERO : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_FirstNonZero;
 				break;
 			}
 			case LSN_SC_ZERO_FOR_DURATION : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_ZeroForDuration;
 				m_sStream.cdStartData.ui64Counter = 0;
 				m_sStream.cdStartData.ui64Parm0 = uint64_t( std::round( _scpStartParm.dParm * _ui32Hz ) );
 				break;
@@ -345,25 +348,23 @@ namespace lsn {
 		
 		switch ( _ecEndCondition ) {
 			case LSN_EC_NONE : {
-				m_sStream.cdStopData.ui64Parm0 = 0;
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_None;
 				break;
 			}
 			case LSN_EC_END_AT_SAMPLE : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_EndAtSample;
 				m_sStream.cdStopData.ui64Parm0 = _scpEndParm.ui64Parm;
-				/*if ( _scStartCondition == LSN_SC_NONE || _scStartCondition == LSN_SC_START_AT_SAMPLE ) {
-					ui64Samples = m_sStream.cdStopData.ui64Parm0 - m_sStream.cdStartData.ui64Parm0;
-				}*/
 				break;
 			}
 			case LSN_EC_ZERO_FOR_DURATION : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_ZeroForDuration;
 				m_sStream.cdStopData.ui64Counter = 0;
 				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
 				break;
 			}
 			case LSN_EC_DURATION : {
-				m_sStream.cdStopData.ui64Counter = 0;
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_Duration;
 				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
-				/*ui64Samples = m_sStream.cdStopData.ui64Parm0;*/
 				break;
 			}
 			default : {
@@ -1568,6 +1569,96 @@ namespace lsn {
 		CloseStreamFile();
 	}
 
-	
+	/**
+	 * The None start condition.  Returns true.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns true if the start condition has been met.
+	 **/
+	bool LSN_STDCALL CWavFile::StartCondFunc_None( uint64_t /*_ui64AbsoluteIdx*/, float /*_fSample*/, LSN_CONDITIONS_DATA &/*_cdData*/ ) { return true; }
+
+	/**
+	 * The Start-at-Sample start condition.  Returns true if _ui64AbsoluteIdx >= _cdData.ui64Parm0.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns true if the start condition has been met.
+	 **/
+	bool LSN_STDCALL CWavFile::StartCondFunc_StartAtSample( uint64_t _ui64AbsoluteIdx, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData ) { return _ui64AbsoluteIdx >= _cdData.ui64Parm0; }
+
+	/**
+	 * The First-Non-Zero start condition.  Returns true if _fSample != 0.0f.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns true if the start condition has been met.
+	 **/
+	bool LSN_STDCALL CWavFile::StartCondFunc_FirstNonZero( uint64_t /*_ui64AbsoluteIdx*/, float _fSample, LSN_CONDITIONS_DATA &/*_cdData*/ ) { return _fSample != 0.0f; }
+
+	/**
+	 * The Zero-For-Duration start condition.  Returns true if _cdData.ui64Counter >= _cdData.ui64Parm0, with _cdData.ui64Counter being counted on each 0 sample.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns true if the start condition has been met.
+	 **/
+	bool LSN_STDCALL CWavFile::StartCondFunc_ZeroForDuration( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData ) {
+		if ( _fSample && _cdData.ui64Counter >= _cdData.ui64Parm0 ) { return true; }
+		if ( _fSample ) { _cdData.ui64Counter = 0; }
+		else { ++_cdData.ui64Counter; }
+		return false;
+	}
+		
+	/**
+	 * The None end-condition.  Returns true.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns false if the end condition has been met, at which point recording should stop.
+	 **/
+	bool LSN_STDCALL CWavFile::EndCondFunc_None( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &/*_cdData*/ ) { return true; }
+
+	/**
+	 * The End-At-Sample end-condition.  Returns true if _ui64AbsoluteIdx < _cdData.ui64Parm0.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns false if the end condition has been met, at which point recording should stop.
+	 **/
+	bool LSN_STDCALL CWavFile::EndCondFunc_EndAtSample( uint64_t _ui64AbsoluteIdx, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData ) { return _ui64AbsoluteIdx < _cdData.ui64Parm0; }
+
+	/**
+	 * The Zero-For-Duration end-condition.  Returns true if _cdData.ui64Counter < _cdData.ui64Parm0, with _cdData.ui64Counter counting consecutive 0's.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns false if the end condition has been met, at which point recording should stop.
+	 **/
+	bool LSN_STDCALL CWavFile::EndCondFunc_ZeroForDuration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float _fSample, LSN_CONDITIONS_DATA &_cdData ) {
+		if LSN_LIKELY( _fSample ) { _cdData.ui64Counter = 0.0f; return false; }
+		return ++_cdData.ui64Counter < _cdData.ui64Parm0;
+	}
+
+	/**
+	 * The Duration end-condition.  Returns true if _ui64IdxSinceStart < _cdData.ui64Parm0.
+	 * 
+	 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+	 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+	 * \param _fSample The value of the sample being tested.
+	 * \param _cdData Function-specific data.
+	 * \return Returns false if the end condition has been met, at which point recording should stop.
+	 **/
+	bool LSN_STDCALL CWavFile::EndCondFunc_Duration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t _ui64IdxSinceStart, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData ) { return _ui64IdxSinceStart < _cdData.ui64Parm0; }
 
 }	// namespace lsn

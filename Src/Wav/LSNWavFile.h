@@ -177,7 +177,7 @@ namespace lsn {
 			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
 			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
 			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
-			PfStartConditionFunc										pfEndCondFunc = nullptr;	/**< The end-condition function. */
+			PfEndConditionFunc											pfEndCondFunc = nullptr;	/**< The end-condition function. */
 			PfBatchConvNWrite											pfCvtAndWriteFunc = nullptr;/**< The function for batch conversion and writing to the WAV file. */
 			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
 			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
@@ -806,6 +806,90 @@ namespace lsn {
 		 * The stream-to-file writer thread.
 		 **/
 		void															StreamWriterThread();
+
+		/**
+		 * The None start condition.  Returns true.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns true if the start condition has been met.
+		 **/
+		static bool LSN_STDCALL											StartCondFunc_None( uint64_t /*_ui64AbsoluteIdx*/, float /*_fSample*/, LSN_CONDITIONS_DATA &/*_cdData*/ );
+
+		/**
+		 * The Start-at-Sample start condition.  Returns true if _ui64AbsoluteIdx >= _cdData.ui64Parm0.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns true if the start condition has been met.
+		 **/
+		static bool LSN_STDCALL											StartCondFunc_StartAtSample( uint64_t _ui64AbsoluteIdx, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData );
+
+		/**
+		 * The First-Non-Zero start condition.  Returns true if _fSample != 0.0f.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns true if the start condition has been met.
+		 **/
+		static bool LSN_STDCALL											StartCondFunc_FirstNonZero( uint64_t /*_ui64AbsoluteIdx*/, float _fSample, LSN_CONDITIONS_DATA &/*_cdData*/ );
+
+		/**
+		 * The Zero-For-Duration start condition.  Returns true if _cdData.ui64Counter >= _cdData.ui64Parm0, with _cdData.ui64Counter being counted on each 0 sample.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns true if the start condition has been met.
+		 **/
+		static bool LSN_STDCALL											StartCondFunc_ZeroForDuration( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+
+		/**
+		 * The None end-condition.  Returns true.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns false if the end condition has been met, at which point recording should stop.
+		 **/
+		static bool LSN_STDCALL											EndCondFunc_None( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &/*_cdData*/ );
+
+		/**
+		 * The End-At-Sample end-condition.  Returns true if _ui64AbsoluteIdx < _cdData.ui64Parm0.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns false if the end condition has been met, at which point recording should stop.
+		 **/
+		static bool LSN_STDCALL											EndCondFunc_EndAtSample( uint64_t _ui64AbsoluteIdx, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData );
+
+		/**
+		 * The Zero-For-Duration end-condition.  Returns true if _cdData.ui64Counter < _cdData.ui64Parm0, with _cdData.ui64Counter counting consecutive 0's.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns false if the end condition has been met, at which point recording should stop.
+		 **/
+		static bool LSN_STDCALL											EndCondFunc_ZeroForDuration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+
+		/**
+		 * The Duration end-condition.  Returns true if _ui64IdxSinceStart < _cdData.ui64Parm0.
+		 * 
+		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
+		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
+		 * \param _fSample The value of the sample being tested.
+		 * \param _cdData Function-specific data.
+		 * \return Returns false if the end condition has been met, at which point recording should stop.
+		 **/
+		static bool LSN_STDCALL											EndCondFunc_Duration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t _ui64IdxSinceStart, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData );
 
 		/**
 		 * Performs no conversion.  Input is directly sent to the file stream.

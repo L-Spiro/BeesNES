@@ -597,6 +597,16 @@ namespace lsn {
 			{ .ui32Crc = 0x93DC3C82, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SKROM },
 			// Sesame Street ABC (U) [a1]/// Sesame Street ABC (U) [a2]
 			{ .ui32Crc = 0xAC38CF63, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
+			// Shadowgate (E) [!]
+			{ .ui32Crc = 0x0ADB2C4C, .pmRegion = LSN_PM_PAL },
+			// Shadowgate (E) [!]
+			{ .ui32Crc = 0x04D6B4F6, .pmRegion = LSN_PM_PAL },
+			// Shadowgate (E) [!]
+			{ .ui32Crc = 0x8ADE1526, .pmRegion = LSN_PM_PAL },
+			// Shadowgate (J)
+			{ .ui32Crc = 0x6B403C04, .pmRegion = LSN_PM_NTSC },
+			// Shadowgate (U)
+			{ .ui32Crc = 0x591364C9, .pmRegion = LSN_PM_NTSC },
 			// Shadow Warriors (E)
 			{ .ui32Crc = 0xD7679A0E, .pmRegion = LSN_PM_PAL },
 			// Shadow Warriors 2 (E) [!]
