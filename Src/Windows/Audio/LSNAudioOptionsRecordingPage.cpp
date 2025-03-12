@@ -357,6 +357,28 @@ namespace lsn {
 		if ( aEdit ) {
 			CUtilities::AddOrMove( m_poOptions->vOutEndHistory, aEdit->GetTextW() );
 		}
+
+
+		if ( m_poOptions->stfStreamOptionsRaw.wsPath.size() ) {
+			try {
+				auto pPath = std::filesystem::path( m_poOptions->stfStreamOptionsRaw.wsPath );
+				if ( !pPath.has_extension() ) {
+					pPath += ".wav";
+					m_poOptions->stfStreamOptionsRaw.wsPath = pPath.generic_wstring();
+				}
+			}
+			catch ( ... ) {}
+		}
+		if ( m_poOptions->stfStreamOptionsOutCapture.wsPath.size() ) {
+			try {
+				auto pPath = std::filesystem::path( m_poOptions->stfStreamOptionsOutCapture.wsPath );
+				if ( !pPath.has_extension() ) {
+					pPath += ".wav";
+					m_poOptions->stfStreamOptionsOutCapture.wsPath = pPath.generic_wstring();
+				}
+			}
+			catch ( ... ) {}
+		}
 		
 	}
 

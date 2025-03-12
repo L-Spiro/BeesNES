@@ -304,7 +304,7 @@ namespace lsn {
 		 * \param _s16Path The ROM file path.
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
-		bool											LoadRom( LSN_ROM &_rRom ) {
+		virtual bool									LoadRom( LSN_ROM &_rRom ) {
 			m_pmbMapper.reset();
 			m_rRom = std::move( _rRom );
 
@@ -503,6 +503,23 @@ namespace lsn {
 			}
 
 			return true;
+		}
+
+		/**
+		 * Closes the ROM image.
+		 * 
+		 * \return Returns true if no ROM was opened or if everything went as-expected.  False indicates both a ROM being loaded and some kind of failure during its closing process.  Typically it means the ROM will not have been able
+		 *	to save some data to a file that it needed, such as its battery-backed RAM.
+		 **/
+		virtual bool									CloseRom() {
+			bool bRes = true;
+			if ( m_pmbMapper.get() ) {
+				bRes = m_pmbMapper->SaveBatteryBacked();
+				m_pmbMapper.reset();
+			}
+			m_rRom.vPrgRom.clear();
+
+			return bRes;
 		}
 
 		/**

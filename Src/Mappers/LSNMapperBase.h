@@ -76,6 +76,13 @@ namespace lsn {
 		virtual void									Tick() {}
 
 		/**
+		 * Saves its battery-backed RAM to the file specified in m_prRom.u16SaveFilePrefix + u".sav".
+		 * 
+		 * \return Returns true if the operation completed as expected.  False indicates a file-access error.
+		 **/
+		virtual bool									SaveBatteryBacked() { return true; }
+
+		/**
 		 * Applies a mirroring mode to a PPU bus.
 		 *
 		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).

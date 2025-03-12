@@ -514,8 +514,8 @@ namespace lsn {
 
 	// WM_NCDESTROY.
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
+		StopThread();
 		if ( m_bnEmulator.GetSystem()->IsRomLoaded() ) {
-			StopThread();
 			uint64_t ui64Time = m_cClock.GetRealTick() - m_cClock.GetStartTick();
 			double dTime = ui64Time / double( m_cClock.GetResolution() );
 			char szBuffer[256];

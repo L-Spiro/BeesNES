@@ -198,6 +198,8 @@ namespace lsn {
 		UpdateCurrentSystem();
 	}
 	CBeesNes::~CBeesNes() {
+		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
+		}
 	}
 
 	// == Functions.
@@ -246,16 +248,18 @@ namespace lsn {
 		Options().aoThisGameAudioOptions.bUseGlobal = true;
 		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
 		Options().ioThisGameInputOptions.bUseGlobal = true;
-		CStdFile sfFile;
-		if ( sfFile.Open( _u16Path.c_str() ) ) {
-			std::vector<uint8_t> vFile;
-			if ( sfFile.LoadToMemory( vFile ) ) {
-				sfFile.Close();
-				CStream sStream( vFile );
-				uint32_t ui32Version = 0;
-				if ( !sStream.Read( ui32Version ) ) { return false; }
-				if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
-				return true;
+		if ( _u16Path.size() ) {
+			CStdFile sfFile;
+			if ( sfFile.Open( _u16Path.c_str() ) ) {
+				std::vector<uint8_t> vFile;
+				if ( sfFile.LoadToMemory( vFile ) ) {
+					sfFile.Close();
+					CStream sStream( vFile );
+					uint32_t ui32Version = 0;
+					if ( !sStream.Read( ui32Version ) ) { return false; }
+					if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
+					return true;
+				}
 			}
 		}
 		return false;
@@ -358,6 +362,8 @@ namespace lsn {
 	 * \return Returns true if the ROM was loaded successfully.
 	 */
 	bool CBeesNes::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion ) {
+		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
+		}
 		LSN_ROM rTmp;
 		if ( m_u16PerGameSettings.size() ) {
 			SavePerGameSettings( m_u16PerGameSettings );
@@ -379,8 +385,14 @@ namespace lsn {
 				}
 			}
 			m_psbSystem = m_psbSystems[m_pmSystem];
+			rTmp.wsSaveFolder = m_wsFolder + L"GameSettings\\";
+			rTmp.u16SaveFilePrefix = CUtilities::PerRomSettingsPath( rTmp.wsSaveFolder, rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
+			m_u16PerGameSettings = rTmp.u16SaveFilePrefix;
+			if ( rTmp.u16SaveFilePrefix.size() ) {
+				std::filesystem::path pPath( rTmp.u16SaveFilePrefix );
+				rTmp.u16SaveFilePrefix = pPath.replace_extension( "" ).generic_u16string();
+			}
 			
-			m_u16PerGameSettings = CUtilities::PerRomSettingsPath( m_wsFolder + L"GameSettings\\", rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
 			LoadPerGameSettings( m_u16PerGameSettings );
 			UpdateCurrentSystem();
 			if ( m_psbSystem->LoadRom( rTmp ) ) {

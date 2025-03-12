@@ -166,6 +166,7 @@ namespace lsn {
 			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
 			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
 			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
+			double														dDitherError = 0.0;			/**< The dither error. */
 			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
 			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
 			std::wstring												wsPath;						/**< The path to the file to which we are streaming. */
@@ -845,10 +846,10 @@ namespace lsn {
 		 * \param _cdData Function-specific data.
 		 * \return Returns true if the start condition has been met.
 		 **/
-		static bool LSN_STDCALL											StartCondFunc_ZeroForDuration( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+		static bool LSN_STDCALL											StartCondFunc_ZeroForDuration( uint64_t /*_ui64AbsoluteIdx*/, float _fSample, LSN_CONDITIONS_DATA &_cdData );
 
 		/**
-		 * The None end-condition.  Returns true.
+		 * The None end condition.  Returns true.
 		 * 
 		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
 		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
@@ -859,7 +860,7 @@ namespace lsn {
 		static bool LSN_STDCALL											EndCondFunc_None( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &/*_cdData*/ );
 
 		/**
-		 * The End-At-Sample end-condition.  Returns true if _ui64AbsoluteIdx < _cdData.ui64Parm0.
+		 * The End-At-Sample end condition.  Returns true if _ui64AbsoluteIdx < _cdData.ui64Parm0.
 		 * 
 		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
 		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
@@ -870,7 +871,7 @@ namespace lsn {
 		static bool LSN_STDCALL											EndCondFunc_EndAtSample( uint64_t _ui64AbsoluteIdx, uint64_t /*_ui64IdxSinceStart*/, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData );
 
 		/**
-		 * The Zero-For-Duration end-condition.  Returns true if _cdData.ui64Counter < _cdData.ui64Parm0, with _cdData.ui64Counter counting consecutive 0's.
+		 * The Zero-For-Duration end condition.  Returns true if _cdData.ui64Counter < _cdData.ui64Parm0, with _cdData.ui64Counter counting consecutive 0's.
 		 * 
 		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
 		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
@@ -881,7 +882,7 @@ namespace lsn {
 		static bool LSN_STDCALL											EndCondFunc_ZeroForDuration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t /*_ui64IdxSinceStart*/, float _fSample, LSN_CONDITIONS_DATA &_cdData );
 
 		/**
-		 * The Duration end-condition.  Returns true if _ui64IdxSinceStart < _cdData.ui64Parm0.
+		 * The Duration end condition.  Returns true if _ui64IdxSinceStart < _cdData.ui64Parm0.
 		 * 
 		 * \param _ui64AbsoluteIdx The absolute index of the sample being tested.
 		 * \param _ui64IdxSinceStart The index of the sample being tested since recording began.
@@ -917,6 +918,15 @@ namespace lsn {
 		 * \param _sStream The stream data.
 		 **/
 		static inline void LSN_STDCALL									BatchF32ToPcm16( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 16-bit PCM using raw C++.  Applies dither (state stored in _sStream).
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm16_Dither( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 
 		/**
 		 * Converts a batch of floats to 24-bit PCM using raw C++.
@@ -1020,6 +1030,37 @@ namespace lsn {
 			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
 			for ( size_t I = 0; I < sSize; ++I ) {
 				reinterpret_cast<int16_t *>(_vOut.data())[I<<1] = CUtilities::SampleToI16( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * sizeof( uint16_t ) );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Converts a batch of floats to 16-bit PCM using raw C++.  Applies dither (state stored in _sStream).
+	 * 
+	 * \param _vSrc The input samples.
+	 * \param _vOut The output samples.
+	 * \param _sStream The stream data.
+	 **/
+	inline void LSN_STDCALL CWavFile::BatchF32ToPcm16_Dither( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+		try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize << 1 ) {
+				_vOut.resize( _vSrc.size() << 1 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			for ( size_t I = 0; I < sSize; ++I ) {
+				double dThis = _vSrc[I] + _sStream.dDitherError;
+				int16_t i16Final = CUtilities::SampleToI16( static_cast<float>(dThis) );
+				double dScaled = double( i16Final );
+				double dQuantized = dScaled * (1.0 / 32767.0);
+				_sStream.dDitherError = dThis - dQuantized;
+
+				reinterpret_cast<int16_t *>(_vOut.data())[I<<1] = i16Final;
 			}
 
 			_sStream.sfFile.WriteToFile( _vOut.data(),

@@ -64,6 +64,14 @@ namespace lsn {
 		virtual bool									LoadRom( LSN_ROM &/*_rRom*/ ) = 0;
 
 		/**
+		 * Closes the ROM image.
+		 * 
+		 * \return Returns true if no ROM was opened or if everything went as-expected.  False indicates both a ROM being loaded and some kind of failure during its closing process.  Typically it means the ROM will not have been able
+		 *	to save some data to a file that it needed, such as its battery-backed RAM.
+		 **/
+		virtual bool									CloseRom() = 0;
+
+		/**
 		 * Sets the input poller.
 		 *
 		 * \param _pipPoller The input poller pointer.

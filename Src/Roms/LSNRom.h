@@ -36,6 +36,9 @@ namespace lsn {
 		int32_t										i32SaveChrRamSize = -1;									/**< Save character RAM size. */
 		int32_t										i32SaveRamSize = -1;									/**< Save RM size. */
 		int32_t										i32WorkRamSize = -1;									/**< Work RAM size. */
+
+		std::wstring								wsSaveFolder;											/**< Folder where ROM-specific data will be stored. */
+		std::u16string								u16SaveFilePrefix;										/**< The prefix for all of the files specific to this ROM. */
 	};
 
 }	// namespace lsn

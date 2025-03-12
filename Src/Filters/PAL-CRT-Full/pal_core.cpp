@@ -495,7 +495,7 @@ vsync_found:
         cR = cL + pitch;
 		pos = scanL;
 
-#if defined(__AVX512F__)
+#if defined( __AVX512F__ )
 		if ( lsn::CUtilities::IsAvx512FSupported() ) {
 			// Preload constant vectors in 512-bit registers.
 			__m512i vMaskFFF    = _mm512_set1_epi32(0xfff);
@@ -635,10 +635,10 @@ vsync_found:
 				}
 			}
 		}
-#endif  // __AVX512F__
+#endif  // #if defined( __AVX512F__ )
 
 
-#if defined(__AVX2__)
+#if defined( __AVX2__ )
 		if LSN_LIKELY( lsn::CUtilities::IsAvx2Supported() ) {
 			// Preload constant vectors.
 			__m256i vMaskFFF    = _mm256_set1_epi32(0xfff);
@@ -774,7 +774,7 @@ vsync_found:
 				}
 			}
 		}
-#endif  // __AVX2__
+#endif  // #if defined( __AVX2__ )
 
 
         for (; (int)pos < scanR && cL < cR; pos += dx) {

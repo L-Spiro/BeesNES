@@ -628,22 +628,22 @@ vsync_found:
 			}
 			goto Finish;
 		}
-#endif  // #if defined(__AVX512BW__)
+#endif  // #if defined( __AVX512F__ )
 
 #if defined( __AVX2__ )
-		if LSN_LIKELY( lsn::CUtilities::IsAvxSupported() ) {
+		if LSN_LIKELY( lsn::CUtilities::IsAvx2Supported() ) {
 			// Preload constant vectors.
-			__m256i vMaskFFf = _mm256_set1_epi32(0xfff);
-			__m256i vContrast = _mm256_set1_epi32(v->contrast);
-			__m256i vMax255   = _mm256_set1_epi32(255);
-			__m256i vZero     = _mm256_setzero_si256();
-			__m256i v3        = _mm256_set1_epi32(3);
-			__m256i vConst3879= _mm256_set1_epi32(3879);
-			__m256i vConst2556= _mm256_set1_epi32(2556);
-			__m256i vConst1126= _mm256_set1_epi32(1126);
-			__m256i vConst2605= _mm256_set1_epi32(2605);
-			__m256i vConst4530= _mm256_set1_epi32(4530);
-			__m256i vConst7021= _mm256_set1_epi32(7021);
+			__m256i vMaskFFf	= _mm256_set1_epi32(0xfff);
+			__m256i vContrast	= _mm256_set1_epi32(v->contrast);
+			__m256i vMax255		= _mm256_set1_epi32(255);
+			__m256i vZero		= _mm256_setzero_si256();
+			__m256i v3			= _mm256_set1_epi32(3);
+			__m256i vConst3879	= _mm256_set1_epi32(3879);
+			__m256i vConst2556	= _mm256_set1_epi32(2556);
+			__m256i vConst1126	= _mm256_set1_epi32(1126);
+			__m256i vConst2605	= _mm256_set1_epi32(2605);
+			__m256i vConst4530	= _mm256_set1_epi32(4530);
+			__m256i vConst7021	= _mm256_set1_epi32(7021);
 
 			// Precompute an index vector for multiplying dx.
 			__m256i idxInc = _mm256_setr_epi32(0, dx, 2*dx, 3*dx, 4*dx, 5*dx, 6*dx, 7*dx);
@@ -765,9 +765,9 @@ vsync_found:
 		}
 #endif	// #if defined( __AVX2__ )
 
-#if defined( __AVX512BW__ )
+#if defined( __AVX512F__ )
 	Finish :
-#endif	// #if defined( __AVX512BW__ )
+#endif	// #if defined( __AVX512F__ )
 		for (/*pos = scanL*/; (int)pos < scanR && cL < cR; pos += dx) {
 			int y, I, q;
 			int r, g, b;
