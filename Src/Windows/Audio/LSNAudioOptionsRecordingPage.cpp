@@ -380,6 +380,104 @@ namespace lsn {
 			catch ( ... ) {}
 		}
 		
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO );
+		switch ( m_poOptions->stfStreamOptionsRaw.scStartCondition ) {
+			case CWavFile::LSN_SC_NONE : { break; }
+			case CWavFile::LSN_SC_START_AT_SAMPLE : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsUInt64Expression( eRes ) ) {
+						m_poOptions->stfStreamOptionsRaw.ui64StartParm = eRes.u.ui64Val;
+					}
+				}
+				break;
+			}
+			case CWavFile::LSN_SC_FIRST_NON_ZERO : { break; }
+			case CWavFile::LSN_SC_ZERO_FOR_DURATION : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsDoubleExpression( eRes ) ) {
+						m_poOptions->stfStreamOptionsRaw.dStartParm = eRes.u.dVal;
+					}
+				}
+				break;
+			}
+		}
+		
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO );
+		switch ( m_poOptions->stfStreamOptionsRaw.seEndCondition ) {
+			case CWavFile::LSN_EC_NONE : { break; }
+			case CWavFile::LSN_EC_END_AT_SAMPLE : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsUInt64Expression( eRes ) ) {
+						m_poOptions->stfStreamOptionsRaw.ui64EndParm = eRes.u.ui64Val;
+					}
+				}
+				break;
+			}
+			case CWavFile::LSN_EC_ZERO_FOR_DURATION : {}	LSN_FALLTHROUGH
+			case CWavFile::LSN_EC_DURATION : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsDoubleExpression( eRes ) ) {
+						m_poOptions->stfStreamOptionsRaw.dEndParm = eRes.u.dVal;
+					}
+				}
+				break;
+			}
+		}
+
+
+
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO );
+		switch ( m_poOptions->stfStreamOptionsOutCapture.scStartCondition ) {
+			case CWavFile::LSN_SC_NONE : { break; }
+			case CWavFile::LSN_SC_START_AT_SAMPLE : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsUInt64Expression( eRes ) ) {
+						m_poOptions->stfStreamOptionsOutCapture.ui64StartParm = eRes.u.ui64Val;
+					}
+				}
+				break;
+			}
+			case CWavFile::LSN_SC_FIRST_NON_ZERO : { break; }
+			case CWavFile::LSN_SC_ZERO_FOR_DURATION : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsDoubleExpression( eRes ) ) {
+						m_poOptions->stfStreamOptionsOutCapture.dStartParm = eRes.u.dVal;
+					}
+				}
+				break;
+			}
+		}
+		
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO );
+		switch ( m_poOptions->stfStreamOptionsOutCapture.seEndCondition ) {
+			case CWavFile::LSN_EC_NONE : { break; }
+			case CWavFile::LSN_EC_END_AT_SAMPLE : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsUInt64Expression( eRes ) ) {
+						m_poOptions->stfStreamOptionsOutCapture.ui64EndParm = eRes.u.ui64Val;
+					}
+				}
+				break;
+			}
+			case CWavFile::LSN_EC_ZERO_FOR_DURATION : {}	LSN_FALLTHROUGH
+			case CWavFile::LSN_EC_DURATION : {
+				if ( aEdit ) {
+					ee::CExpEvalContainer::EE_RESULT eRes;
+					if ( aEdit->GetTextAsDoubleExpression( eRes ) ) {
+						m_poOptions->stfStreamOptionsOutCapture.dEndParm = eRes.u.dVal;
+					}
+				}
+				break;
+			}
+		}
 	}
 
 	/**

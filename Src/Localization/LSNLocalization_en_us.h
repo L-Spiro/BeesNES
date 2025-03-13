@@ -19,6 +19,7 @@
 #define LSN_ZIP_FILES____ZIP____ZIP_										ZIP Files (*.zip)\0*.zip\0
 #define LSN_ALL_FILES___________											All Files (*.*)\0*.*\0
 #define LSN__FILE															&File
+#define LSN__GAME															&Game
 #define LSN__OPTIONS														&Options
 #define LSN__TOOLS															&Tools
 #define LSN__WINDOW															&Window
@@ -26,6 +27,12 @@
 // File menu.
 #define LSN_OPEN__ROM														Open R&OM
 #define LSN_OPEN_REC_ENT													Open Re&cent
+// Game menu.
+#define LSN_GAME_PAUSE														&Pause
+#define LSN_GAME_RESET														&Reset
+#define LSN_GAME_POWER_CYCLE												Power &Cycle
+#define LSN_GAME_RELOAD_ROM													Re&load ROM
+#define LSN_GAME_POWER_OFF													Power &Off
 // Options menu.
 #define LSN_VIDEO_SIZE														Video Si&ze
 #define LSN_VIDEO_FILTER													Video &Filter

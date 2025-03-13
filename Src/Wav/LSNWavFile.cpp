@@ -372,6 +372,7 @@ namespace lsn {
 				return false;
 			}
 		}
+		m_sStream.pfAddSampleFunc = &CWavFile::AddSample_CheckStartCond;
 
 		m_sStream.fFormat = _fFormat;
 		m_sStream.ui16Bits = _ui16Bits;
@@ -534,21 +535,25 @@ namespace lsn {
 	 **/
 	void CWavFile::AddStreamSample( float _fSample ) {
 		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
-		if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
-			m_sStream.vCurBuffer.push_back( _fSample );
-			uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
-			m_sStream.ui32WavFile_DSize += sizeof( float );
 
-			if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
-				m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {													// Buffer limit reached.
-				// Efficiently pass the buffer off to the writer thread.
-				m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
-				// Create a new buffer and reserve space for efficiency.
-				m_sStream.vCurBuffer.clear();
-				m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
-				// Notify the writer thread that a full buffer is ready.
-				m_sStream.cvCondition.notify_one();
+		if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
+			if ( (*m_sStream.pfAddSampleFunc)( _fSample, m_sStream ) ) {
+				m_sStream.vCurBuffer.push_back( _fSample );
+				uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
+				m_sStream.ui32WavFile_DSize += sizeof( float );
+
+				if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
+					m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {													// Buffer limit reached.
+					// Efficiently pass the buffer off to the writer thread.
+					m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+					// Create a new buffer and reserve space for efficiency.
+					m_sStream.vCurBuffer.clear();
+					m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
+					// Notify the writer thread that a full buffer is ready.
+					m_sStream.cvCondition.notify_one();
+				}
 			}
+			++m_sStream.ui64SamplesReceived;
 		}
 	}
 
@@ -1664,5 +1669,31 @@ namespace lsn {
 	 * \return Returns false if the end condition has been met, at which point recording should stop.
 	 **/
 	bool LSN_STDCALL CWavFile::EndCondFunc_Duration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t _ui64IdxSinceStart, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData ) { return _ui64IdxSinceStart < _cdData.ui64Parm0; }
+
+	/**
+	 * Checks the starting condition before adding a sample.  Once the starting condition has been reached, _sStream.pfAddSampleFunc is changed to AddSample_CheckStopCond().
+	 * 
+	 * \param _fSample The sampple to add.
+	 * \param _sStream The stream data.
+	 * \return Returns true if the starting condition has been reached.
+	 **/
+	bool LSN_STDCALL CWavFile::AddSample_CheckStartCond( float _fSample, LSN_STREAMING &_sStream ) {
+		if ( (*_sStream.pfStartCondFunc)( _sStream.ui64SamplesReceived, _fSample, _sStream.cdStartData ) ) {
+			_sStream.pfAddSampleFunc = &CWavFile::AddSample_CheckStopCond;
+			return (*_sStream.pfAddSampleFunc)( _fSample, _sStream );
+		}
+		return false;
+	}
+
+	/**
+	 * Checks the stopping condition before adding a sample.  Once the stopping condition has been reached, the stream ends. 
+	 * 
+	 * \param _fSample The sampple to add.
+	 * \param _sStream The stream data.
+	 * \return Returns true for as long as samples should be output.  Once false is returned, the ending condition has been reached and the stream should close without adding the sample.
+	 **/
+	bool LSN_STDCALL CWavFile::AddSample_CheckStopCond( float _fSample, LSN_STREAMING &_sStream ) {
+		return (*_sStream.pfEndCondFunc)( _sStream.ui64SamplesReceived, _sStream.ui64SamplesWritten, _fSample, _sStream.cdStopData );
+	}
 
 }	// namespace lsn

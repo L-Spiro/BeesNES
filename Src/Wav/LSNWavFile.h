@@ -155,10 +155,12 @@ namespace lsn {
 			uint64_t													ui64Parm0 = 0;
 			float														fParm1 = 0.0f;
 		};
-		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t _ui64AbsoluteIdx, float _fSample, LSN_CONDITIONS_DATA &_cdData );
-		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t _ui64AbsoluteIdx, uint64_t _ui64IdxSinceStart, float _fSample, LSN_CONDITIONS_DATA &_cdData );
+		
+		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t, float, LSN_CONDITIONS_DATA & );
+		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t, uint64_t, float, LSN_CONDITIONS_DATA & );
 		struct LSN_STREAMING;
-		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &/*_vSrc*/, std::vector<uint8_t> &/*_vOut*/, struct CWavFile::LSN_STREAMING &/*_sStream*/ );
+		typedef bool (LSN_STDCALL *										PfAddSampleFunc)( float, struct CWavFile::LSN_STREAMING & );
+		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &, std::vector<uint8_t> &, struct CWavFile::LSN_STREAMING & );
 
 		/** A stream-to-file structure. */
 		struct LSN_STREAMING {
@@ -180,6 +182,7 @@ namespace lsn {
 			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
 			PfEndConditionFunc											pfEndCondFunc = nullptr;	/**< The end-condition function. */
 			PfBatchConvNWrite											pfCvtAndWriteFunc = nullptr;/**< The function for batch conversion and writing to the WAV file. */
+			PfAddSampleFunc												pfAddSampleFunc = nullptr;	/**< The function for adding a sample.  There is one that checks the starting condition and then one that keeps adding samples until the stopping condition is reached. */
 			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
 			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
 			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
@@ -893,11 +896,29 @@ namespace lsn {
 		static bool LSN_STDCALL											EndCondFunc_Duration( uint64_t /*_ui64AbsoluteIdx*/, uint64_t _ui64IdxSinceStart, float /*_fSample*/, LSN_CONDITIONS_DATA &_cdData );
 
 		/**
+		 * Checks the starting condition before adding a sample.  Once the starting condition has been reached, _sStream.pfAddSampleFunc is changed to AddSample_CheckStopCond().
+		 * 
+		 * \param _fSample The sampple to add.
+		 * \param _sStream The stream data.
+		 **/
+		static bool LSN_STDCALL											AddSample_CheckStartCond( float _fSample, LSN_STREAMING &_sStream );
+
+		/**
+		 * Checks the stopping condition before adding a sample.  Once the stopping condition has been reached, the stream ends. 
+		 * 
+		 * \param _fSample The sampple to add.
+		 * \param _sStream The stream data.
+		 * \return Returns true if the starting condition has been reached.
+		 **/
+		static bool LSN_STDCALL											AddSample_CheckStopCond( float _fSample, LSN_STREAMING &_sStream );
+
+		/**
 		 * Performs no conversion.  Input is directly sent to the file stream.
 		 * 
 		 * \param _vSrc The input samples.
 		 * \param _vOut The output samples.
 		 * \param _sStream The stream data.
+		 * \return Returns true for as long as samples should be output.  Once false is returned, the ending condition has been reached and the stream should close without adding the sample.
 		 **/
 		static inline void LSN_STDCALL									BatchF32ToF32( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 

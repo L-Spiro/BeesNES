@@ -437,6 +437,8 @@ namespace lsn {
 			{ .ui32Crc = 0x51BF28AF, .pmRegion = LSN_PM_PAL },
 			// Mario & Yoshi (E) [!]
 			{ .ui32Crc = 0x1406783D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SFROM },
+			// Maxi 15 (U)
+			{ .ui32Crc = 0x6467A5C4, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 234 },
 			// McDonaldland (E) [!]
 			{ .ui32Crc = 0xF5C527B7, .pmRegion = LSN_PM_PAL },
 			// Mega Man (Europe)
@@ -479,6 +481,8 @@ namespace lsn {
 			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
 			// M.U.L.E. (U)
 			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+			// Magic of Scheherazade, The (U)
+			{ .ui32Crc = 0xA848A2B1, .pmRegion = LSN_PM_NTSC },
 			// Muppet Adventure - Chaos at the Carnival (U)
 			{ .ui32Crc = 0x7156CB4D, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Musashi no Bouken (Japan)

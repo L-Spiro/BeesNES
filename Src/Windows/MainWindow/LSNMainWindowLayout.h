@@ -41,12 +41,14 @@ namespace lsn {
 		enum LSN_MAINWINDOW_MENU_IDS {
 			LSN_MWMI_MENU_BAR					= 300,
 			LSN_MWMI_MENU_FILE,
+			LSN_MWMI_MENU_GAME,
 			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_MENU_TOOLS,
 			LSN_MWMI_MENU_WINDOW,
 			LSN_MWMI_MENU_HELP,
 
 			LSN_MWMI_FILE						= 100,
+			LSN_MWMI_GAME,
 			LSN_MWMI_SEARCH,
 			LSN_MWMI_OPTIONS,
 			LSN_MWMI_TOOLS,
@@ -66,6 +68,12 @@ namespace lsn {
 			LSN_MWMI_LOCK,
 			LSN_MWMI_UNLOCK,
 			LSN_MWMI_EDIT,
+
+			LSN_MWMI_PAUSE,
+			LSN_MWMI_RESET,
+			LSN_MWMI_POWER_CYCLE,
+			LSN_MWMI_RELOAD_ROM,
+			LSN_MWMI_POWER_OFF,
 
 			LSN_MWMI_VIDEO_SIZE,
 			LSN_MWMI_VIDEO_FILTER,
@@ -153,6 +161,9 @@ namespace lsn {
 
 		/** File menu. */
 		static LSW_MENU_ITEM					m_miFileMenu[];
+
+		/** Game menu. */
+		static LSW_MENU_ITEM					m_miGameMenu[];
 
 		/** Options menu. */
 		static LSW_MENU_ITEM					m_miOptionsMenu[];

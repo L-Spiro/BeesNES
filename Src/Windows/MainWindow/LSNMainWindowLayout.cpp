@@ -109,9 +109,10 @@ namespace lsn {
 	LSW_MENU_ITEM CMainWindowLayout::m_miMenuBar[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_FILE,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__FILE ) },
+		{ FALSE,		LSN_MWMI_GAME,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__GAME ) },
 		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__OPTIONS ) },
 		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
-		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
+		//{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
 		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 
@@ -124,6 +125,18 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_OPENSAVEFILE,		FALSE,		FALSE,		TRUE,		L"Dummy &0" },
 		{ FALSE,		LSN_MWMI_SAVE,				FALSE,		FALSE,		TRUE,		L"Dummy &1" },
 		{ FALSE,		LSN_MWMI_SAVEAS,			FALSE,		FALSE,		TRUE,		L"Dummy &2" },
+	};
+
+	/** Game menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miGameMenu[] = {
+		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+		{ FALSE,		LSN_MWMI_PAUSE,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_GAME_PAUSE ) },
+		{ TRUE,			0,										FALSE,		FALSE,		TRUE,		nullptr },
+		{ FALSE,		LSN_MWMI_RESET,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_GAME_RESET ) },
+		{ FALSE,		LSN_MWMI_POWER_CYCLE,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_GAME_POWER_CYCLE ) },
+		{ FALSE,		LSN_MWMI_RELOAD_ROM,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_GAME_RELOAD_ROM ) },
+		{ TRUE,			0,										FALSE,		FALSE,		TRUE,		nullptr },
+		{ FALSE,		LSN_MWMI_POWER_OFF,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_GAME_POWER_OFF ) },
 	};
 
 	/** Options menu. */
@@ -216,6 +229,13 @@ namespace lsn {
 			LSN_MWMI_FILE,
 			LSN_ELEMENTS( m_miFileMenu ),
 			m_miFileMenu
+		},
+		{
+			LSN_MWMI_MENU_GAME,
+			LSN_MWMI_MENU_BAR,
+			LSN_MWMI_GAME,
+			LSN_ELEMENTS( m_miGameMenu ),
+			m_miGameMenu
 		},
 		{
 			LSN_MWMI_MENU_OPTIONS,
