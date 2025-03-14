@@ -29,6 +29,7 @@
 #define LSN_OPEN_REC_ENT													Open Re&cent
 // Game menu.
 #define LSN_GAME_PAUSE														&Pause
+#define LSN_GAME_UNPAUSE													&Unpause
 #define LSN_GAME_RESET														&Reset
 #define LSN_GAME_POWER_CYCLE												Power &Cycle
 #define LSN_GAME_RELOAD_ROM													Re&load ROM

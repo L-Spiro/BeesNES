@@ -65,3 +65,5 @@
 #include "../Mappers/LSNMapper184.h"
 
 #include "../Mappers/LSNMapper232.h"
+
+#include "../Mappers/LSNMapper234.h"

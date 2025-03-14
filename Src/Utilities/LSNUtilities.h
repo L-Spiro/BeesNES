@@ -2011,19 +2011,19 @@ namespace lsn {
 		 * \return Returns the converted sample.
 		 **/
 		static inline void									SampleToUi8_AVX2( const float * _pfSample, uint8_t * _pui8Dst ) {
-			auto vSamples = _mm256_loadu_ps( _pfSample );
-			auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-			auto vScaled = _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
-			auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			auto vSamples	= _mm256_loadu_ps( _pfSample );
+			auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+			auto vScaled	= _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
+			auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 			// Paack into 8-bit PCM values.
 			auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
 
-			auto vLo = _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
-			auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
-			auto vPacked16 = _mm_packus_epi32( vLo, vHi );
+			auto vLo		= _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
+			auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
+			auto vPacked16	= _mm_packus_epi32( vLo, vHi );
 
 			// Finally, pack the 16-bit integers into 8-bit integers.
-			auto vPacked8 = _mm_packus_epi16( vPacked16, vPacked16 );
+			auto vPacked8	= _mm_packus_epi16( vPacked16, vPacked16 );
 			_mm_storeu_epi8( _pui8Dst, vPacked8 );
 		}
 
@@ -2037,17 +2037,17 @@ namespace lsn {
 		 * \return Returns the converted sample.
 		 **/
 		static inline void									SampleToI16_AVX2( const float * _pfSample, int16_t * _pi16Dst ) {
-			auto vSamples = _mm256_loadu_ps( _pfSample );
-			auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-			auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
-			auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			auto vSamples	= _mm256_loadu_ps( _pfSample );
+			auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+			auto vScaled	= _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
+			auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 
-			auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+			auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
     
 			// Extract the lower and upper 128-bit lanes.
-			auto vLo  = _mm256_castsi256_si128( vInt32Vals );				// Lower 4 integers.
-			auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
-			auto vPacked16 = _mm_packs_epi32( vLo, vHi );
+			auto vLo		= _mm256_castsi256_si128( vInt32Vals );				// Lower 4 integers.
+			auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
+			auto vPacked16	= _mm_packs_epi32( vLo, vHi );
     
 			_mm_storeu_epi16( _pi16Dst, vPacked16 );
 		}
@@ -2062,15 +2062,89 @@ namespace lsn {
 		 * \return Returns the converted sample.
 		 **/
 		static inline void									SampleToI24_AVX2( const float * _pfSample, int32_t * _pi32Dst ) {
-			auto vSamples = _mm256_loadu_ps( _pfSample );
-			auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-			auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
-			auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			auto vSamples	= _mm256_loadu_ps( _pfSample );
+			auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+			auto vScaled	= _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
+			auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 
-			auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+			auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
 			_mm256_store_si256( reinterpret_cast<__m256i *>(_pi32Dst), vInt32Vals );
 		}
 #endif	// #ifdef __AVX2__
+
+#ifdef __AVX512F__
+		/**
+		 * Converts a sample from a floating-point format to a uint8_t.  8-bit PCM data is expressed as an unsigned value over the range 0 to 255, 128 being an
+		 *	audio output level of zero.
+		 * 
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pui8Dst Pointer to the output.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToUi8_AVX512( const float * _pfSample, uint8_t * _pui8Dst ) {
+			auto vSamples   = _mm512_loadu_ps( _pfSample );
+			auto vClamped   = _mm512_max_ps( _mm512_set1_ps( -1.0f ), _mm512_min_ps( vSamples, _mm512_set1_ps( 1.0f ) ) );
+			auto vScaled    = _mm512_mul_ps( _mm512_mul_ps( _mm512_add_ps( vClamped, _mm512_set1_ps( 1.0f ) ), _mm512_set1_ps( 0.5f ) ), _mm512_set1_ps( 255.0f ) );
+			auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			// Pack into 8-bit PCM values.
+			auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
+			
+			// Extract lower and upper 256-bit lanes.
+			auto vLo256     = _mm512_castsi512_si256( vInt32Vals );					// Lower 256 bits.
+			auto vHi256     = _mm512_extracti64x4_epi64( vInt32Vals, 1 );			// Upper 256 bits.
+			auto vPacked16  = _mm256_packus_epi32( vLo256, vHi256 );				// 16-bit integers.
+			
+			// Pack the 16-bit integers into 8-bit integers.
+			auto vPacked16Lo = _mm256_castsi256_si128( vPacked16 );
+			auto vPacked16Hi = _mm256_extracti128_si256( vPacked16, 1 );
+			auto vPacked8    = _mm_packus_epi16( vPacked16Lo, vPacked16Hi );
+			_mm_storeu_si128( reinterpret_cast<__m128i *>( _pui8Dst ), vPacked8 );
+		}
+
+		/**
+		 * Converts a sample from a floating-point format to an int16_t.  16-bit PCM data is expressed as a signed value over the
+		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
+		 *	conversion never generates -32768.
+		 * 
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pi16Dst Pointer to the output.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToI16_AVX512( const float * _pfSample, int16_t * _pi16Dst ) {
+			auto vSamples   = _mm512_loadu_ps( _pfSample );
+			auto vClamped   = _mm512_max_ps( _mm512_set1_ps( -1.0f ), _mm512_min_ps( vSamples, _mm512_set1_ps( 1.0f ) ) );
+			auto vScaled    = _mm512_mul_ps( vClamped, _mm512_set1_ps( 32767.0f ) );
+			auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			
+			auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
+			// Extract lower and upper 256-bit lanes.
+			auto vLo256     = _mm512_castsi512_si256( vInt32Vals );					// Lower 256 bits.
+			auto vHi256     = _mm512_extracti64x4_epi64( vInt32Vals, 1 );			// Upper 256 bits.
+			auto vPacked16  = _mm256_packs_epi32( vLo256, vHi256 );					// 16-bit integers.
+			
+			_mm256_storeu_si256( reinterpret_cast<__m256i *>( _pi16Dst ), vPacked16 );
+		}
+
+		/**
+		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the
+		 *	range -8388607 to 8388607, 0 being an audio output level of zero.  Note that both -8388608 and -8388607 are -1.0; a proper
+		 *	conversion never generates -8388608.
+		 *
+		 * \param _pfSample Pointer to the samples to convert.
+		 * \param _pi32Dst Pointer to the output.  Must be aligned to a 64-byte boundary.
+		 * \return Returns the converted sample.
+		 **/
+		static inline void									SampleToI24_AVX512( const float * _pfSample, int32_t * _pi32Dst ) {
+			auto vSamples   = _mm512_loadu_ps( _pfSample );
+			auto vClamped   = _mm512_max_ps( _mm512_set1_ps( -1.0f ), _mm512_min_ps( vSamples, _mm512_set1_ps( 1.0f ) ) );
+			auto vScaled    = _mm512_mul_ps( vClamped, _mm512_set1_ps( 8388607.0f ) );
+			auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+			
+			auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
+			_mm512_store_si512( reinterpret_cast<__m512i *>( _pi32Dst ), vInt32Vals );
+		}
+#endif	// #ifdef __AVX512F__
+
 
 		/**
 		 * Gets a decay multiplier given a starting point, a target point, the duration to reach the target point in seconds, and the number of iterations per second to take.

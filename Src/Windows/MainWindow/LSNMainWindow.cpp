@@ -352,6 +352,17 @@ namespace lsn {
 #undef LSN_FILE_OPEN_FORMAT
 				break;
 			}
+
+			case CMainWindowLayout::LSN_MWMI_POWER_OFF : {
+				StopThread();
+				m_bnEmulator.CloseRom();
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_PAUSE : {
+				m_bnEmulator.TogglePauseRom();
+				break;
+			}
+
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_1X : {
 				m_bnEmulator.SetScale( 1.0 );
 				LSW_RECT rScreen = FinalWindowRect();
@@ -701,6 +712,10 @@ namespace lsn {
 					}
 				}
 			}
+		}
+
+		if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode ) {
+			m_bnEmulator.TogglePauseRom();
 		}
 		return LSW_H_CONTINUE;
 	}

@@ -603,7 +603,7 @@ namespace lsn {
 			{ .ui32Crc = 0xAC38CF63, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Shadowgate (E) [!]
 			{ .ui32Crc = 0x0ADB2C4C, .pmRegion = LSN_PM_PAL },
-			// Shadowgate (E) [!]
+			// Shadowgate (SW)
 			{ .ui32Crc = 0x04D6B4F6, .pmRegion = LSN_PM_PAL },
 			// Shadowgate (E) [!]
 			{ .ui32Crc = 0x8ADE1526, .pmRegion = LSN_PM_PAL },
@@ -615,10 +615,6 @@ namespace lsn {
 			{ .ui32Crc = 0xD7679A0E, .pmRegion = LSN_PM_PAL },
 			// Shadow Warriors 2 (E) [!]
 			{ .ui32Crc = 0x687E25D6, .pmRegion = LSN_PM_PAL },
-			// Shadowgate (E) [!]
-			{ .ui32Crc = 0x0ADB2C4C, .pmRegion = LSN_PM_PAL },
-			// Shadowgate (SW)
-			{ .ui32Crc = 0x04D6B4F6, .pmRegion = LSN_PM_PAL },
 			// Shatterhand (E) [!]
 			{ .ui32Crc = 0x97E2B312, .pmRegion = LSN_PM_PAL },
 			// Shikinjou (Japan)
@@ -714,7 +710,7 @@ namespace lsn {
 			// Tiger-Heli (E) [!]
 			{ .ui32Crc = 0x7925EC62, .pmRegion = LSN_PM_PAL },
 			// Time Lord (E)
-			{ .ui32Crc = 0x9198279E, .pmRegion = LSN_PM_PAL },			
+			{ .ui32Crc = 0x9198279E, .pmRegion = LSN_PM_PAL },														// TODO: Fire Hawk, Mig 29 Soviet Fighter, and Time Lord: These need accurate DMC timing because they abuse APU DMC IRQ to split the screen.
 			// Tombs and Treasure (U)
 			{ .ui32Crc = 0x50D296B3, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Top Gun - The Second Mission (E)
@@ -795,14 +791,16 @@ namespace lsn {
 			{ .ui32Crc = 0x6B523BD7, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Micro Machines (U)
 			{ .ui32Crc = 0x9235B57B, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+			// Micro Machines (Aladdin) (U)
+			{ .ui32Crc = 0x24BA12DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, .ui16SubMapper = 1 },
 			// Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
 			// Quattro Adventure (Aladdin) (U)
-			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1 },		// 232: 1 Aladdin Deck Enhancer
+			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
 			// Quattro Sports (Aladdin) (U)
-			{ .ui32Crc = 0x62EF6C79, .ui16Mapper = 232, .ui16SubMapper = 1 },		// 232: 1 Aladdin Deck Enhancer
+			{ .ui32Crc = 0x62EF6C79, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
 			// Ultimate Stuntman (U)
-			{ .ui32Crc = 0x892434DD, .ui16Mapper = 71 },
+			{ .ui32Crc = 0x892434DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Wrecking Crew (JUE)
 			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
 
@@ -848,6 +846,18 @@ namespace lsn {
 			{ .ui32Crc = 0xF2641AD0, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SCROM },
 			// Bases Loaded (U)
 			{ .ui32Crc = 0x778AAF25, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
+
+			// Bee 52 (U)
+			{ .ui32Crc = 0x6C93377C, .cChip = LSN_C_BF9093, },
+
+			// Big Nose Freaks Out (U)
+			{ .ui32Crc = 0x5B2B72CB, .cChip = LSN_C_BF9093, },								// TODO: Stops after a bit.
+			// Big Nose Freaks Out (Aladdin) (U)
+			{ .ui32Crc = 0xCCDCBFC6, .cChip = LSN_C_BF9093, .ui16SubMapper = 1 },			// TODO: Stops after a bit.
+
+			// Big Nose the Caveman (U)
+			{ .ui32Crc = 0xBD154C3E, .cChip = LSN_C_BF9093, },
+
 			// Best Play Pro Yakyuu (Japan)
 			{ .ui32Crc = 0xF79D684A, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SJROM },
 			// Best Play Pro Yakyuu '90 (Japan)
@@ -892,6 +902,10 @@ namespace lsn {
 			{ .ui32Crc = 0x28FB71AE, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Destiny of an Emperor (U)
 			{ .ui32Crc = 0xA558FB52, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+
+			// Dizzy The Adventurer (Aladdin) (U)
+			{ .ui32Crc = 0xDB99D0CB, .cChip = LSN_C_BF909X, .ui16SubMapper = 1 },
+
 			// Doraemon - Giga Zombie no Gyakushuu (Japan)
 			{ .ui32Crc = 0xD7215873, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Dr. Jekyll and Mr. Hyde (USA)
@@ -916,8 +930,10 @@ namespace lsn {
 			{ .ui32Crc = 0x506E259D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SUROM },
 			// Dungeon Kid (Japan)
 			{ .ui32Crc = 0xD68A6F33, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
-			// Fox's Peter Pan & the Pirates - The Revenge of Captain Hook (USA)
-			{ .ui32Crc = 0x84D51076, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
+			
+			// Fantastic Adventures of Dizzy, The (U)
+			{ .ui32Crc = 0x38FBCC85, .cChip = LSN_C_BF9093, },
+
 			// Famicom Top Management (Japan)
 			{ .ui32Crc = 0x58507BC9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Faxanadu (Japan)
@@ -932,6 +948,12 @@ namespace lsn {
 			{ .ui32Crc = 0xC9556B36, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SXROM },
 			// Final Fantasy II (Japan)
 			{ .ui32Crc = 0xD29DB3C7, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
+
+			// Fire Hawk (U)
+			{ .ui32Crc = 0x1BC686A8, .cChip = LSN_C_BF9097, },									// TODO: Fire Hawk, Mig 29 Soviet Fighter, and Time Lord: These need accurate DMC timing because they abuse APU DMC IRQ to split the screen.
+
+			// Fox's Peter Pan & the Pirates - The Revenge of Captain Hook (USA)
+			{ .ui32Crc = 0x84D51076, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SFROM },
 			// Gambler Jiko Chuushinha - Mahjong Game (Japan)
 			{ .ui32Crc = 0x2E2ACAE9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Gambler Jiko Chuushinha 2 (Japan)
@@ -1006,6 +1028,10 @@ namespace lsn {
 			{ .ui32Crc = 0x3FE272FB, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Legend of Zelda, The (U) (PRG 1)
 			{ .ui32Crc = 0xEAF7ED72, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+
+			// Linus Spacehead's Cosmic Crusade (Aladdin) (U)
+			{ .ui32Crc = 0x9E379698, .cChip = LSN_C_BF9093, .ui16SubMapper = 1 },			// Cool music.
+
 			// Mahjong Taikai (Japan)
 			{ .ui32Crc = 0xF714FAE3, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Maison Ikkoku (Japan)
@@ -1034,6 +1060,10 @@ namespace lsn {
 			{ .ui32Crc = 0x70080810, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Mezase Pachi Pro - Pachio-kun (Japan)
 			{ .ui32Crc = 0x9C3E8FC0, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
+
+			// Mig-29 Soviet Fighter (U)
+			{ .ui32Crc = 0xE62E3382, .cChip = LSN_C_BF9093, },
+
 			// Mizushima Shinji no Daikoushien (Japan)
 			{ .ui32Crc = 0x09C1FC7D, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Momotarou Densetsu (Japan)
@@ -1128,6 +1158,10 @@ namespace lsn {
 			{ .ui32Crc = 0xCFAE9DFA, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Square no Tom Sawyer (Japan)
 			{ .ui32Crc = 0xCB0A76B1, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
+
+			// Stunt Kids (U)
+			{ .ui32Crc = 0x3A990EE0, .cChip = LSN_C_BF9093, },
+
 			// Super Black Onyx (Japan)
 			{ .ui32Crc = 0xDFC0CE21, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SNROM },
 			// Super Mario Bros - Duck Hunt - Track Meet (U)

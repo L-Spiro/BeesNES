@@ -72,6 +72,9 @@ namespace lsn {
 
 			ResetState( false );
 		}
+		~CSystem() {
+			CloseRom();
+		}
 
 
 		// == Functions.
@@ -467,6 +470,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper232>();
 					break;
 				}
+				case 234 : {
+					m_pmbMapper = std::make_unique<CMapper234>();
+					break;
+				}
 				default : {
 					m_pmbMapper = std::make_unique<CMapperBase>();
 					m_rRom.riInfo.bMapperSupported = false;
@@ -521,6 +528,28 @@ namespace lsn {
 
 			return bRes;
 		}
+
+		/**
+		 * Pauses the current ROM.
+		 **/
+		virtual void									PauseRom() { m_bPaused = true; }
+
+		/**
+		 * Unpauses the current ROM.
+		 **/
+		virtual void									UnpauseRom() { m_bPaused = false; }
+
+		/**
+		 * Toggles the current ROM's pause state.
+		 **/
+		virtual void									TogglePauseRom() { m_bPaused = !m_bPaused; }
+
+		/**
+		 * Determines whether the ROM is paused or not.
+		 * 
+		 * \return Returns true if the ROM is paused.
+		 **/
+		virtual bool									RomIsPaused() const { return m_bPaused; }
 
 		/**
 		 * Sets the input poller.

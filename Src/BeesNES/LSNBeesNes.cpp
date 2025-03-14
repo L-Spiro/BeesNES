@@ -362,8 +362,7 @@ namespace lsn {
 	 * \return Returns true if the ROM was loaded successfully.
 	 */
 	bool CBeesNes::LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion ) {
-		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
-		}
+		CloseRom();
 		LSN_ROM rTmp;
 		if ( m_u16PerGameSettings.size() ) {
 			SavePerGameSettings( m_u16PerGameSettings );
@@ -402,6 +401,53 @@ namespace lsn {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Closes the current ROM.
+	 **/
+	void CBeesNes::CloseRom() {
+		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
+		}
+	}
+
+	/**
+	 * Pauses the current ROM.
+	 **/
+	void CBeesNes::PauseRom() {
+		if LSN_LIKELY( m_psbSystem ) {
+			m_psbSystem->PauseRom();
+		}
+	}
+
+	/**
+	 * Unpauses the current ROM.
+	 **/
+	void CBeesNes::UnpauseRom() {
+		if LSN_LIKELY( m_psbSystem ) {
+			m_psbSystem->UnpauseRom();
+		}
+	}
+
+	/**
+	 * Toggles the current ROM's pause state.
+	 **/
+	void CBeesNes::TogglePauseRom() {
+		if LSN_LIKELY( m_psbSystem ) {
+			m_psbSystem->TogglePauseRom();
+		}
+	}
+
+	/**
+	 * Determines whether the ROM is paused or not.
+	 * 
+	 * \return Returns true if the ROM is paused.
+	 **/
+	bool CBeesNes::RomIsPaused() const {
+		if LSN_LIKELY( m_psbSystem ) {
+			return m_psbSystem->RomIsPaused();
+		}
+		return true;
 	}
 
 	/**

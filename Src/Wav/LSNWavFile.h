@@ -960,7 +960,7 @@ namespace lsn {
 
 #ifdef __AVX2__
 		/**
-		 * Converts a batch of floats to 8-bit PCM using AVX.
+		 * Converts a batch of floats to 8-bit PCM using AVX 2.
 		 * 
 		 * \param _vSrc The input samples.
 		 * \param _vOut The output samples.
@@ -969,7 +969,7 @@ namespace lsn {
 		static inline void LSN_STDCALL									BatchF32ToPcm8_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 
 		/**
-		 * Converts a batch of floats to 16-bit PCM using AVX.
+		 * Converts a batch of floats to 16-bit PCM using AVX 2.
 		 * 
 		 * \param _vSrc The input samples.
 		 * \param _vOut The output samples.
@@ -978,7 +978,7 @@ namespace lsn {
 		static inline void LSN_STDCALL									BatchF32ToPcm16_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 
 		/**
-		 * Converts a batch of floats to 24-bit PCM using AVX.
+		 * Converts a batch of floats to 24-bit PCM using AVX 2.
 		 * 
 		 * \param _vSrc The input samples.
 		 * \param _vOut The output samples.
@@ -986,6 +986,34 @@ namespace lsn {
 		 **/
 		static inline void LSN_STDCALL									BatchF32ToPcm24_AVX2( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 #endif	// #ifdef __AVX2__
+
+#ifdef __AVX512F__
+		/* Converts a batch of floats to 8-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm8_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 16-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm16_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+
+		/**
+		 * Converts a batch of floats to 24-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		static inline void LSN_STDCALL									BatchF32ToPcm24_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
+#endif	// #ifdef __AVX512F__
 		
 	};
 	
@@ -1130,7 +1158,7 @@ namespace lsn {
 
 #ifdef __AVX2__
 	/**
-	 * Converts a batch of floats to 8-bit PCM using AVX.
+	 * Converts a batch of floats to 8-bit PCM using AVX 2.
 	 * 
 	 * \param _vSrc The input samples.
 	 * \param _vOut The output samples.
@@ -1165,7 +1193,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a batch of floats to 16-bit PCM using AVX.
+	 * Converts a batch of floats to 16-bit PCM using AVX 2.
 	 * 
 	 * \param _vSrc The input samples.
 	 * \param _vOut The output samples.
@@ -1200,7 +1228,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a batch of floats to 24-bit PCM using AVX.
+	 * Converts a batch of floats to 24-bit PCM using AVX 2.
 	 * 
 	 * \param _vSrc The input samples.
 	 * \param _vOut The output samples.
@@ -1255,5 +1283,132 @@ namespace lsn {
 		catch ( ... ) {}
 	}
 #endif	// #ifdef __AVX2__
+
+#ifdef __AVX512F__
+		/* Converts a batch of floats to 8-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		inline void LSN_STDCALL CWavFile::BatchF32ToPcm8_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+			try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize ) {
+				_vOut.resize( sSize );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m512 ) / sizeof( float );
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToUi8_AVX512( &_vSrc[I], &_vOut[I] );
+					I += sRegSize;
+				}
+			}
+
+			for ( ; I < sSize; ++I ) {
+				_vOut[I] = CUtilities::SampleToUi8( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() );
+		}
+		catch ( ... ) {}
+		}
+
+		/**
+		 * Converts a batch of floats to 16-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		inline void LSN_STDCALL CWavFile::BatchF32ToPcm16_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+			try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize << 1 ) {
+				_vOut.resize( _vSrc.size() << 1 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m512 ) / sizeof( float );
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToI16_AVX512( &_vSrc[I], reinterpret_cast<int16_t *>(&_vOut[I<<1]) );
+					I += sRegSize;
+				}
+			}
+
+			for ( ; I < sSize; ++I ) {
+				(*reinterpret_cast<int16_t *>(&_vOut[I<<1])) = CUtilities::SampleToI16( _vSrc[I] );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * sizeof( uint16_t ) );
+		}
+		catch ( ... ) {}
+		}
+
+		/**
+		 * Converts a batch of floats to 24-bit PCM using AVX-512.
+		 * 
+		 * \param _vSrc The input samples.
+		 * \param _vOut The output samples.
+		 * \param _sStream The stream data.
+		 **/
+		inline void LSN_STDCALL CWavFile::BatchF32ToPcm24_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream ) {
+			try {
+			if LSN_UNLIKELY( !_vSrc.size() ) { _vOut.clear(); return; }
+			size_t sSize = _vSrc.size();
+			if LSN_UNLIKELY( _vOut.size() < sSize * 3 ) {
+				_vOut.resize( sSize * 3 );
+			}
+			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
+			
+
+			size_t I = 0;
+			constexpr size_t sRegSize = sizeof( __m512 ) / sizeof( float );
+			LSN_ALIGN( 64 )
+			int32_t i32uffer[sRegSize];
+			if LSN_LIKELY( sSize >= sRegSize ) {
+				size_t sTotal = sSize - sRegSize;
+				while ( I <= sTotal ) {
+					CUtilities::SampleToI24_AVX512( &_vSrc[I], i32uffer );
+					for ( size_t J = 0; J < (sRegSize - 1); ++J ) {
+						auto sIdx = (I + J) * 3;
+						(*reinterpret_cast<int32_t *>(&_vOut[sIdx])) = i32uffer[J];
+					}
+					(*reinterpret_cast<int16_t *>(&_vOut[(I+(sRegSize - 1))*3])) = int16_t( i32uffer[(sRegSize-1)] );
+					_vOut[(I+(sRegSize - 1))*3+2] = int8_t( i32uffer[(sRegSize-1)] >> 16 );
+					I += sRegSize;
+				}
+				
+			}
+			if LSN_UNLIKELY( sSize ) {	// Unlikely because almost always we will be passing in buffers that are a size divisible by 8 (sRegSize).
+				--sSize;
+				for ( ; I < sSize; ++I ) {
+					int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+					auto sIdx = I * 3;
+					(*reinterpret_cast<int32_t *>(&_vOut[sIdx])) = i32Tmp;
+				}
+
+				// Last one has to be carefully constructed.
+				int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );
+				auto sIdx = I * 3;
+				(*reinterpret_cast<int16_t *>(&_vOut[sIdx])) = int16_t( i32Tmp );
+				_vOut[sIdx+2] = uint8_t( i32Tmp >> 16 );
+			}
+
+			_sStream.sfFile.WriteToFile( _vOut.data(),
+				_vSrc.size() * 3 );
+		}
+		catch ( ... ) {}
+		}
+#endif	// #ifdef __AVX512F__
 
 }	// namespace lsn

@@ -245,6 +245,33 @@ namespace lsn {
 		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path, LSN_PPU_METRICS _pmRegion = LSN_PM_UNKNOWN );
 
 		/**
+		 * Closes the current ROM.
+		 **/
+		void									CloseRom();
+
+		/**
+		 * Pauses the current ROM.
+		 **/
+		void									PauseRom();
+
+		/**
+		 * Unpauses the current ROM.
+		 **/
+		void									UnpauseRom();
+
+		/**
+		 * Toggles the current ROM's pause state.
+		 **/
+		void									TogglePauseRom();
+
+		/**
+		 * Determines whether the ROM is paused or not.
+		 * 
+		 * \return Returns true if the ROM is paused.
+		 **/
+		bool									RomIsPaused() const;
+
+		/**
 		 * Gets the rapid-fire patterns.
 		 *
 		 * \return Returns a pointer to the 8 rapid-fire values.

@@ -72,6 +72,28 @@ namespace lsn {
 		virtual bool									CloseRom() = 0;
 
 		/**
+		 * Pauses the current ROM.
+		 **/
+		virtual void									PauseRom() = 0;
+
+		/**
+		 * Unpauses the current ROM.
+		 **/
+		virtual void									UnpauseRom() = 0;
+
+		/**
+		 * Toggles the current ROM's pause state.
+		 **/
+		virtual void									TogglePauseRom() = 0;
+
+		/**
+		 * Determines whether the ROM is paused or not.
+		 * 
+		 * \return Returns true if the ROM is paused.
+		 **/
+		virtual bool									RomIsPaused() const = 0;
+
+		/**
 		 * Sets the input poller.
 		 *
 		 * \param _pipPoller The input poller pointer.

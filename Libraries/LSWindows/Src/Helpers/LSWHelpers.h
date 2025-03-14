@@ -697,6 +697,7 @@ namespace lsw {
 				bIsSizing = false;
 				lWindowStyle = lStyle;
 				bInBorderless = true;
+				while ( ::ShowCursor( FALSE ) >= 0 ) {}
 				return true;
 			}
 			return false;
@@ -732,6 +733,7 @@ namespace lsw {
 				bInBorderless = true;
 				return false; }
 			::ShowWindow( _hWnd, SW_NORMAL );
+			while ( ::ShowCursor( TRUE ) < 0 ) {}
 			bIsSizing = false;
 			bInBorderless = false;
 			return true;

@@ -72,6 +72,7 @@ namespace lsn {
 			m_gGen.fHpf = 0.0f;
 			m_gGen.dInputHz = 0.0;
 			m_gGen.ui32OutputHz = 0;
+			m_gGen.pfSample = nullptr;
 			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
 			m_gGen.pfConvolve = &CSampleBox::Convolve;
 			m_gGen.pfFinalCallback = &CSampleBox::PassThrough;
@@ -95,6 +96,13 @@ namespace lsn {
 		virtual ~CSampleBox() {
 		}
 
+
+		/** A function pointer for the sampler. */
+		typedef void ( *									PfSample)( const float * _pfsSamples0, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * _pfsSamples5,
+			const float * _pfFrac,
+			float * _pfOut );
 
 		/** A function pointer for the functions that stores a sample from the full-sized buffer to the intermediate buffer. */
 		typedef void (CSampleBox:: *						PfStoreSample)( size_t, float );
@@ -284,6 +292,7 @@ namespace lsn {
 			
 #ifdef __SSE4_1__
 			if ( _bSse4 ) {
+				m_gGen.pfSample = &CSampleBox::Sample_6Point_5thOrder_Hermite_X_SSE;
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SSE;
 				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_SSE_FMA : &CSampleBox::Convolve_SSE;
 			}
@@ -291,6 +300,7 @@ namespace lsn {
 
 #ifdef __AVX__
 			if ( _bAvx ) {
+				m_gGen.pfSample = _bFma ? &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX_FMA : &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX;
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
 				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_AVX_FMA : &CSampleBox::Convolve_AVX;
 			}
@@ -298,8 +308,9 @@ namespace lsn {
 
 #ifdef __AVX512F__
 			if ( _bAvx512 ) {
+				m_gGen.pfSample = _bFma ? &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX512_FMA : &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX512;
 				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX512;
-				m_gGen.pfConvolve = &CSampleBox::Convolve_AVX512;
+				m_gGen.pfConvolve = _bFma ? static_cast<PfConvolve>(&CSampleBox::Convolve_AVX512_FMA) : static_cast<PfConvolve>(&CSampleBox::Convolve_AVX512);
 			}
 #endif  // #ifdef __AVX512F__
 		}
@@ -448,6 +459,7 @@ namespace lsn {
 			uint64_t										ui64SampleCnt;								/**< Total samples sent to the (ui32OutputHz * 3) buffer. */
 			uint64_t										ui64SamplesBuffered;						/**< Similar to ui64SampleCnt, but it counts how many samples have been interpolated.  Samples sent from the input buffer to the (ui32OutputHz * 3) buffer might temporarily be hold in a buffer in order to perform batch interpolations, so this number is always equal to or higher than ui64SampleCnt. */
 			double											dInputHz;									/**< The source frequency. */
+			PfSample										pfSample;									/**< The sample interpolator. */
 			PfStoreSample									pfStoreSample;								/**< The function for stoing a sample from the main input buffer to the intermediate buffer. */
 			PfConvolve										pfConvolve;									/**< The function for convolving a sample. */
 			PfFinalCallback									pfFinalCallback;							/**< Allow the user to make any final custom changes to the sample before it goes into the output buffer. */
@@ -558,10 +570,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m128)/sizeof(float)];
-				Sample_6Point_5thOrder_Hermite_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_6Point_5thOrder_Hermite_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				/*Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
@@ -594,10 +610,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m256)/sizeof(float)];
-				Sample_6Point_5thOrder_Hermite_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_6Point_5thOrder_Hermite_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
@@ -630,10 +650,14 @@ namespace lsn {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
 				float fTmp[sizeof(__m512)/sizeof(float)];
-				Sample_6Point_5thOrder_Hermite_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
+				/*Sample_6Point_5thOrder_Hermite_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
+					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
+					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
+					m_pPoints.fFractions, fTmp );*/
 				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
@@ -671,7 +695,7 @@ namespace lsn {
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
-		float                                               Convolve( size_t _sIdx ) {
+		float												Convolve( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
 			float fSum = 0.0f;
@@ -691,7 +715,7 @@ namespace lsn {
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
-		float                                               Convolve_SSE( size_t _sIdx ) {
+		float												Convolve_SSE( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
 			__m128 mSum = _mm_set1_ps( 0.0f );
@@ -723,7 +747,7 @@ namespace lsn {
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
-		float                                               Convolve_SSE_FMA( size_t _sIdx ) {
+		float												Convolve_SSE_FMA( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
 			__m128 mSum = _mm_set1_ps( 0.0f );
@@ -756,7 +780,7 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                               Convolve_SSE_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
+        void												Convolve_SSE_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
             __m128 mWeights = _mm_load_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
             _mSum = _mm_add_ps( _mSum, _mm_mul_ps( mWeights, mSamples ) );
@@ -769,7 +793,7 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                               Convolve_SSE_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
+        void												Convolve_SSE_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
             __m128 mWeights = _mm_load_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
             _mSum = _mm_fmadd_ps( mWeights, mSamples, _mSum );
@@ -787,7 +811,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                        Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * /*_pfsSamples5*/,
             const float * _pfFrac,
@@ -829,6 +853,60 @@ namespace lsn {
             _mm_store_ps( _pfOut, mRet );
         }
         
+		/**
+         * 4-point, 2nd-order parabolic 2x x-form sampling.
+         *
+         * \param _pfsSamples0 The 16-byte-aligned pointer to the 4 1st points.
+         * \param _pfsSamples1 The 16-byte-aligned pointer to the 4 2nd points.
+         * \param _pfsSamples2 The 16-byte-aligned pointer to the 4 3rd points.
+         * \param _pfsSamples3 The 16-byte-aligned pointer to the 4 4th points.
+         * \param _pfsSamples4 The 16-byte-aligned pointer to the 4 5th points.
+         * \param _pfsSamples5 The 16-byte-aligned pointer to the 4 6th points.
+         * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_SSE_FMA( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[2+2] = _pfsSamples4.
+
+            // Load the inputs/constants.
+            __m128 mS_1p2 = _mm_load_ps( _pfsSamples3 );
+            __m128 m1o2 = _mm_set1_ps( 1.0f / 2.0f );
+            __m128 mS_n1p2 = _mm_load_ps( _pfsSamples1 );
+            __m128 m1o4 = _mm_set1_ps( 1.0f / 4.0f );
+
+            // float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+            __m128 mY1mM1 = _mm_sub_ps( mS_1p2, mS_n1p2 );
+
+            // Load the inputs.
+            __m128 mS_0p2 = _mm_load_ps( _pfsSamples2 );
+
+            // float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+            __m128 mC0 = _mm_add_ps( _mm_mul_ps( m1o2, mS_0p2 ), _mm_mul_ps( m1o4, _mm_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+            // Load the inputs.
+            __m128 mS_2p2 = _mm_load_ps( _pfsSamples4 );
+
+            // float fC1 = (1.0f / 2.0f) * fY1mM1;
+            __m128 mC1 = _mm_mul_ps( m1o2, mY1mM1 );
+
+            // Load the inputs.
+            __m128 mFrac = _mm_load_ps( _pfFrac );
+
+            // float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+            __m128 mC2 = _mm_mul_ps( m1o4, _mm_sub_ps( _mm_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+            // return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+            __m128 mRet = _mm_fmadd_ps( _mm_fmadd_ps( mC2, mFrac, mC1 ), mFrac, mC0 );
+            _mm_store_ps( _pfOut, mRet );
+        }
+
         /**
          * 6-point, 5th-order Hermite X-form sampling.
          *
@@ -841,7 +919,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                        Sample_6Point_5thOrder_Hermite_X_SSE( const float * _pfsSamples0, const float * _pfsSamples1,
+        static inline void									Sample_6Point_5thOrder_Hermite_X_SSE( const float * _pfsSamples0, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * _pfsSamples5,
             const float * _pfFrac,
@@ -918,6 +996,87 @@ namespace lsn {
                     mFrac ), mC0 );
             _mm_store_ps( _pfOut, mRet );
         }
+
+		/**
+         * 6-point, 5th-order Hermite X-form sampling.
+         *
+         * \param _pfsSamples0 The 16-byte-aligned pointer to the 8 1st points.
+         * \param _pfsSamples1 The 16-byte-aligned pointer to the 8 2nd points.
+         * \param _pfsSamples2 The 16-byte-aligned pointer to the 8 3rd points.
+         * \param _pfsSamples3 The 16-byte-aligned pointer to the 8 4th points.
+         * \param _pfsSamples4 The 16-byte-aligned pointer to the 8 5th points.
+         * \param _pfsSamples5 The 16-byte-aligned pointer to the 8 6th points.
+         * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_6Point_5thOrder_Hermite_X_SSE_FMA( const float * _pfsSamples0, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * _pfsSamples5,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // 6-point, 5th-order Hermite (X-form).
+            // _pfsSamples[-2+2] = _pfsSamples0.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[2+2] = _pfsSamples4.
+            // _pfsSamples[3+2] = _pfsSamples5.
+
+            // Load the inputs/constants.
+            __m128 mS_n2p2 = _mm_load_ps( _pfsSamples0 );
+            __m128 m1o8 = _mm_set1_ps( 1.0f / 8.0f );
+            __m128 mS_2p2 = _mm_load_ps( _pfsSamples4 );
+            __m128 m11o24 = _mm_set1_ps( 11.0f / 24.0f );
+
+            // float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
+            __m128 mEightThym2 = _mm_mul_ps( m1o8, mS_n2p2 );
+
+            // Load the inputs/constants.
+            __m128 mS_3p2 = _mm_load_ps( _pfsSamples5 );
+            __m128 m1o12 = _mm_set1_ps( 1.0f / 12.0f );
+
+            // float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
+            __m128 mElevenTwentyFourThy2 = _mm_mul_ps( m11o24, mS_2p2 );
+
+            // float fTwelvThy3 = 1.0f / 12.0f * _pfsSamples[3+2];
+            __m128 mTwelvThy3 = _mm_mul_ps( m1o12, mS_3p2 );
+
+            // float fC0 = _pfsSamples[0+2];
+            __m128 mC0 = _mm_load_ps( _pfsSamples2 );
+
+            // float fC1 = 1.0f / 12.0f * (_pfsSamples[-2+2] - _pfsSamples[2+2]) + 2.0f / 3.0f * (_pfsSamples[1+2] - _pfsSamples[-1+2]);
+            __m128 mS_1p2 = _mm_load_ps( _pfsSamples3 );
+            __m128 mS_n1p2 = _mm_load_ps( _pfsSamples1 );
+            __m128 mC1 = _mm_add_ps( _mm_mul_ps( m1o12, _mm_sub_ps( mS_n2p2, mS_2p2 ) ), _mm_mul_ps( _mm_set1_ps( 2.0f / 3.0f ), _mm_sub_ps( mS_1p2, mS_n1p2 ) ) );
+
+            // float fC2 = 13.0f / 12.0f * _pfsSamples[-1+2] - 25.0f / 12.0f * _pfsSamples[0+2] + 3.0f / 2.0f * _pfsSamples[1+2] -
+            //    fElevenTwentyFourThy2 + fTwelvThy3 - fEightThym2;
+            __m128 m13o12 = _mm_set1_ps( 13.0f / 12.0f );
+            __m128 mC2 = _mm_sub_ps( _mm_add_ps( _mm_sub_ps( _mm_add_ps( _mm_sub_ps( _mm_mul_ps( m13o12, mS_n1p2 ), _mm_mul_ps( _mm_set1_ps( 25.0f / 12.0f ), mC0 ) ), _mm_mul_ps( _mm_set1_ps( 3.0f / 2.0f ), mS_1p2 ) ),
+                mElevenTwentyFourThy2 ), mTwelvThy3 ), mEightThym2 );
+
+            // float fC3 = 5.0f / 12.0f * _pfsSamples[0+2] - 7.0f / 12.0f * _pfsSamples[1+2] + 7.0f / 24.0f * _pfsSamples[2+2] -
+            //    1.0f / 24.0f * (_pfsSamples[-2+2] + _pfsSamples[-1+2] + _pfsSamples[3+2]);
+            __m128 m5o12 = _mm_set1_ps( 5.0f / 12.0f );
+            __m128 m7o12 = _mm_set1_ps( 7.0f / 12.0f );
+            __m128 m1o24 = _mm_set1_ps( 1.0f / 24.0f );
+            __m128 mC3 = _mm_sub_ps( _mm_add_ps( _mm_sub_ps( _mm_mul_ps( m5o12, mC0 ), _mm_mul_ps( m7o12, mS_1p2 ) ), _mm_mul_ps( _mm_set1_ps( 7.0f / 24.0f ), mS_2p2 ) ), _mm_mul_ps( m1o24, _mm_add_ps( _mm_add_ps( mS_n2p2, mS_n1p2 ), mS_3p2 ) ) );
+
+            // float fC4 = fEightThym2 - 7.0f / 12.0f * _pfsSamples[-1+2] + 13.0f / 12.0f * _pfsSamples[0+2] - _pfsSamples[1+2] +
+            //    fElevenTwentyFourThy2 - fTwelvThy3;
+            __m128 mC4 = _mm_sub_ps( _mm_add_ps( _mm_sub_ps( _mm_add_ps( _mm_sub_ps( mEightThym2, _mm_mul_ps( m7o12, mS_n1p2 ) ), _mm_mul_ps( m13o12, mC0 ) ), mS_1p2 ), mElevenTwentyFourThy2 ), mTwelvThy3 );
+
+            // Load the inputs.
+            __m128 mFrac = _mm_load_ps( _pfFrac );
+
+            // float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
+            //    5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
+            __m128 mC5 = _mm_add_ps( _mm_add_ps( _mm_mul_ps( m1o24, _mm_sub_ps( mS_3p2, mS_n2p2 ) ), _mm_mul_ps( _mm_set1_ps( 5.0f / 24.0f ), _mm_sub_ps( mS_n1p2, mS_2p2 ) ) ), _mm_mul_ps( m5o12, _mm_sub_ps( mS_1p2, mC0 ) ) );
+
+            // return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+            __m128 mRet = _mm_fmadd_ps( _mm_fmadd_ps( _mm_fmadd_ps( _mm_fmadd_ps( _mm_fmadd_ps( mC5, mFrac, mC4 ), mFrac, mC3 ), mFrac, mC2 ), mFrac, mC1 ), mFrac, mC0 );
+            _mm_store_ps( _pfOut, mRet );
+        }
         
         /**
          * Horizontally adds all the floats in a given SSE register.
@@ -925,7 +1084,7 @@ namespace lsn {
          * \param _mReg The register containing all of the values to sum.
          * \return Returns the sum of all the floats in the given register.
          **/
-        static inline float                                 HorizontalSum( const __m128 &_mReg ) {
+        static inline float									HorizontalSum( const __m128 &_mReg ) {
             __m128 mAddH1 = _mm_hadd_ps( _mReg, _mReg );
             __m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
             return _mm_cvtss_f32( mAddH2 );
@@ -939,7 +1098,7 @@ namespace lsn {
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
-		float                                               Convolve_AVX( size_t _sIdx ) {
+		float												Convolve_AVX( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
 			__m256 mSum = _mm256_set1_ps( 0.0f );
@@ -971,7 +1130,7 @@ namespace lsn {
 		 * \param _sIdx The index of the sample to convolvify.
 		 * \return Returns the convolved sample.
 		 **/
-		float                                               Convolve_AVX_FMA( size_t _sIdx ) {
+		float												Convolve_AVX_FMA( size_t _sIdx ) {
 			const float * pfFilter = m_sSinc.vCeof.data();
 			const float * pfSamples = m_sSinc.vRing.data();
 			__m256 mSum = _mm256_set1_ps( 0.0f );
@@ -1004,7 +1163,7 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                                Convolve_AVX_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
+        void												Convolve_AVX_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
             __m256 mWeights = _mm256_load_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
             _mSum = _mm256_add_ps( _mSum, _mm256_mul_ps( mWeights, mSamples ) );
@@ -1017,7 +1176,7 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                                Convolve_AVX_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
+        void												Convolve_AVX_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
             __m256 mWeights = _mm256_load_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
             _mSum = _mm256_fmadd_ps( mWeights, mSamples, _mSum );
@@ -1035,7 +1194,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                         Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * /*_pfsSamples5*/,
             const float * _pfFrac,
@@ -1076,6 +1235,60 @@ namespace lsn {
             __m256 mRet = _mm256_add_ps( _mm256_mul_ps( _mm256_add_ps( _mm256_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
             _mm256_store_ps( _pfOut, mRet );
         }
+
+		/**
+         * 4-point, 2nd-order parabolic 2x x-form sampling.
+         *
+         * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
+         * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
+         * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
+         * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
+         * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
+         * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+         * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_AVX_FMA( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[2+2] = _pfsSamples4.
+
+            // Load the inputs/constants.
+            __m256 mS_1p2 = _mm256_load_ps( _pfsSamples3 );
+            __m256 m1o2 = _mm256_set1_ps( 1.0f / 2.0f );
+            __m256 mS_n1p2 = _mm256_load_ps( _pfsSamples1 );
+            __m256 m1o4 = _mm256_set1_ps( 1.0f / 4.0f );
+
+            // float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+            __m256 mY1mM1 = _mm256_sub_ps( mS_1p2, mS_n1p2 );
+
+            // Load the inputs.
+            __m256 mS_0p2 = _mm256_load_ps( _pfsSamples2 );
+
+            // float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+            __m256 mC0 = _mm256_add_ps( _mm256_mul_ps( m1o2, mS_0p2 ), _mm256_mul_ps( m1o4, _mm256_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+            // Load the inputs.
+            __m256 mS_2p2 = _mm256_load_ps( _pfsSamples4 );
+
+            // float fC1 = (1.0f / 2.0f) * fY1mM1;
+            __m256 mC1 = _mm256_mul_ps( m1o2, mY1mM1 );
+
+            // Load the inputs.
+            __m256 mFrac = _mm256_load_ps( _pfFrac );
+
+            // float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+            __m256 mC2 = _mm256_mul_ps( m1o4, _mm256_sub_ps( _mm256_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+            // return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+			__m256 mRet = _mm256_fmadd_ps( _mm256_fmadd_ps( mC2, mFrac, mC1 ), mFrac, mC0 );
+            _mm256_store_ps( _pfOut, mRet );
+        }
         
         /**
          * 6-point, 5th-order Hermite X-form sampling.
@@ -1089,7 +1302,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                        Sample_6Point_5thOrder_Hermite_X_AVX( const float * _pfsSamples0, const float * _pfsSamples1,
+        static inline void									Sample_6Point_5thOrder_Hermite_X_AVX( const float * _pfsSamples0, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * _pfsSamples5,
             const float * _pfFrac,
@@ -1166,6 +1379,87 @@ namespace lsn {
                     mFrac ), mC0 );
             _mm256_store_ps( _pfOut, mRet );
         }
+
+		/**
+         * 6-point, 5th-order Hermite X-form sampling.
+         *
+         * \param _pfsSamples0 The 32-byte-aligned pointer to the 8 1st points.
+         * \param _pfsSamples1 The 32-byte-aligned pointer to the 8 2nd points.
+         * \param _pfsSamples2 The 32-byte-aligned pointer to the 8 3rd points.
+         * \param _pfsSamples3 The 32-byte-aligned pointer to the 8 4th points.
+         * \param _pfsSamples4 The 32-byte-aligned pointer to the 8 5th points.
+         * \param _pfsSamples5 The 32-byte-aligned pointer to the 8 6th points.
+         * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_6Point_5thOrder_Hermite_X_AVX_FMA( const float * _pfsSamples0, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * _pfsSamples5,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // 6-point, 5th-order Hermite (X-form).
+            // _pfsSamples[-2+2] = _pfsSamples0.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[2+2] = _pfsSamples4.
+            // _pfsSamples[3+2] = _pfsSamples5.
+
+            // Load the inputs/constants.
+            __m256 mS_n2p2 = _mm256_load_ps( _pfsSamples0 );
+            __m256 m1o8 = _mm256_set1_ps( 1.0f / 8.0f );
+            __m256 mS_2p2 = _mm256_load_ps( _pfsSamples4 );
+            __m256 m11o24 = _mm256_set1_ps( 11.0f / 24.0f );
+
+            // float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
+            __m256 mEightThym2 = _mm256_mul_ps( m1o8, mS_n2p2 );
+
+            // Load the inputs/constants.
+            __m256 mS_3p2 = _mm256_load_ps( _pfsSamples5 );
+            __m256 m1o12 = _mm256_set1_ps( 1.0f / 12.0f );
+
+            // float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
+            __m256 mElevenTwentyFourThy2 = _mm256_mul_ps( m11o24, mS_2p2 );
+
+            // float fTwelvThy3 = 1.0f / 12.0f * _pfsSamples[3+2];
+            __m256 mTwelvThy3 = _mm256_mul_ps( m1o12, mS_3p2 );
+
+            // float fC0 = _pfsSamples[0+2];
+            __m256 mC0 = _mm256_load_ps( _pfsSamples2 );
+
+            // float fC1 = 1.0f / 12.0f * (_pfsSamples[-2+2] - _pfsSamples[2+2]) + 2.0f / 3.0f * (_pfsSamples[1+2] - _pfsSamples[-1+2]);
+            __m256 mS_1p2 = _mm256_load_ps( _pfsSamples3 );
+            __m256 mS_n1p2 = _mm256_load_ps( _pfsSamples1 );
+            __m256 mC1 = _mm256_add_ps( _mm256_mul_ps( m1o12, _mm256_sub_ps( mS_n2p2, mS_2p2 ) ), _mm256_mul_ps( _mm256_set1_ps( 2.0f / 3.0f ), _mm256_sub_ps( mS_1p2, mS_n1p2 ) ) );
+
+            // float fC2 = 13.0f / 12.0f * _pfsSamples[-1+2] - 25.0f / 12.0f * _pfsSamples[0+2] + 3.0f / 2.0f * _pfsSamples[1+2] -
+            //    fElevenTwentyFourThy2 + fTwelvThy3 - fEightThym2;
+            __m256 m13o12 = _mm256_set1_ps( 13.0f / 12.0f );
+            __m256 mC2 = _mm256_sub_ps( _mm256_add_ps( _mm256_sub_ps( _mm256_add_ps( _mm256_sub_ps( _mm256_mul_ps( m13o12, mS_n1p2 ), _mm256_mul_ps( _mm256_set1_ps( 25.0f / 12.0f ), mC0 ) ), _mm256_mul_ps( _mm256_set1_ps( 3.0f / 2.0f ), mS_1p2 ) ),
+                mElevenTwentyFourThy2 ), mTwelvThy3 ), mEightThym2 );
+
+            // float fC3 = 5.0f / 12.0f * _pfsSamples[0+2] - 7.0f / 12.0f * _pfsSamples[1+2] + 7.0f / 24.0f * _pfsSamples[2+2] -
+            //    1.0f / 24.0f * (_pfsSamples[-2+2] + _pfsSamples[-1+2] + _pfsSamples[3+2]);
+            __m256 m5o12 = _mm256_set1_ps( 5.0f / 12.0f );
+            __m256 m7o12 = _mm256_set1_ps( 7.0f / 12.0f );
+            __m256 m1o24 = _mm256_set1_ps( 1.0f / 24.0f );
+            __m256 mC3 = _mm256_sub_ps( _mm256_add_ps( _mm256_sub_ps( _mm256_mul_ps( m5o12, mC0 ), _mm256_mul_ps( m7o12, mS_1p2 ) ), _mm256_mul_ps( _mm256_set1_ps( 7.0f / 24.0f ), mS_2p2 ) ), _mm256_mul_ps( m1o24, _mm256_add_ps( _mm256_add_ps( mS_n2p2, mS_n1p2 ), mS_3p2 ) ) );
+
+            // float fC4 = fEightThym2 - 7.0f / 12.0f * _pfsSamples[-1+2] + 13.0f / 12.0f * _pfsSamples[0+2] - _pfsSamples[1+2] +
+            //    fElevenTwentyFourThy2 - fTwelvThy3;
+            __m256 mC4 = _mm256_sub_ps( _mm256_add_ps( _mm256_sub_ps( _mm256_add_ps( _mm256_sub_ps( mEightThym2, _mm256_mul_ps( m7o12, mS_n1p2 ) ), _mm256_mul_ps( m13o12, mC0 ) ), mS_1p2 ), mElevenTwentyFourThy2 ), mTwelvThy3 );
+
+            // Load the inputs.
+            __m256 mFrac = _mm256_load_ps( _pfFrac );
+
+            // float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
+            //    5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
+            __m256 mC5 = _mm256_add_ps( _mm256_add_ps( _mm256_mul_ps( m1o24, _mm256_sub_ps( mS_3p2, mS_n2p2 ) ), _mm256_mul_ps( _mm256_set1_ps( 5.0f / 24.0f ), _mm256_sub_ps( mS_n1p2, mS_2p2 ) ) ), _mm256_mul_ps( m5o12, _mm256_sub_ps( mS_1p2, mC0 ) ) );
+
+            // return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+            __m256 mRet = _mm256_fmadd_ps( _mm256_fmadd_ps( _mm256_fmadd_ps( _mm256_fmadd_ps( _mm256_fmadd_ps( mC5, mFrac, mC4 ), mFrac, mC3 ), mFrac, mC2 ), mFrac, mC1 ), mFrac, mC0 );
+            _mm256_store_ps( _pfOut, mRet );
+        }
         
         /**
          * Horizontally adds all the floats in a given AVX register.
@@ -1221,10 +1515,54 @@ namespace lsn {
          * \param _pfSamples Pointer to the samples to convolve.
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
-        void                                                Convolve_AVX512( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
+        void												Convolve_AVX512( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
             __m512 mWeights = _mm512_load_ps( _pfWeights );
             __m512 mSamples = _mm512_loadu_ps( _pfSamples );
-            //_mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
+            _mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
+        }
+
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing).
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float												Convolve_AVX512_FMA( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			__m512 mSum = _mm512_set1_ps( 0.0f );
+			for ( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( __m512 ) / sizeof( float )) ) {
+					// Copy into a temporary.
+					LSN_ALN
+					float fTmp[(sizeof(__m512)/sizeof(float))];
+					for ( size_t J = 0; J < (sizeof( __m512 ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					Convolve_AVX512_FMA( &pfFilter[I], fTmp, mSum );
+				}
+				else {
+					Convolve_AVX512_FMA( &pfFilter[I], &pfSamples[sIdx], mSum );
+				}
+				I += (sizeof( __m512 ) / sizeof( float ));
+			}
+			return HorizontalSum( mSum );
+		}
+        
+        /**
+         * Convolves the given weights with the given samples.  The weights (_pfWeights) must be aligned to a 64-byte boundary.
+         *
+         * \param _pfWeights The pointer to the 64-byte-aligned 8 weights.
+         * \param _pfSamples Pointer to the samples to convolve.
+         * \param _mSum Maintains the sum of convolution over many iterations.
+         **/
+        void												Convolve_AVX512_FMA( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
+            __m512 mWeights = _mm512_load_ps( _pfWeights );
+            __m512 mSamples = _mm512_loadu_ps( _pfSamples );
 			_mSum = _mm512_fmadd_ps( mWeights, mSamples, _mSum );
         }
         
@@ -1240,7 +1578,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 64 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                         Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * /*_pfsSamples5*/,
             const float * _pfFrac,
@@ -1281,6 +1619,60 @@ namespace lsn {
             __m512 mRet = _mm512_add_ps( _mm512_mul_ps( _mm512_add_ps( _mm512_mul_ps( mC2, mFrac ), mC1 ), mFrac ), mC0 );
             _mm512_store_ps( _pfOut, mRet );
         }
+
+		/**
+         * 4-point, 2nd-order parabolic 2x x-form sampling.
+         *
+         * \param _pfsSamples0 The 64-byte-aligned pointer to the 8 1st points.
+         * \param _pfsSamples1 The 64-byte-aligned pointer to the 8 2nd points.
+         * \param _pfsSamples2 The 64-byte-aligned pointer to the 8 3rd points.
+         * \param _pfsSamples3 The 64-byte-aligned pointer to the 8 4th points.
+         * \param _pfsSamples4 The 64-byte-aligned pointer to the 8 5th points.
+         * \param _pfsSamples5 The 64-byte-aligned pointer to the 8 6th points.
+         * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 64 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512_FMA( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[2+2] = _pfsSamples4.
+
+            // Load the inputs/constants.
+            __m512 mS_1p2 = _mm512_load_ps( _pfsSamples3 );
+            __m512 m1o2 = _mm512_set1_ps( 1.0f / 2.0f );
+            __m512 mS_n1p2 = _mm512_load_ps( _pfsSamples1 );
+            __m512 m1o4 = _mm512_set1_ps( 1.0f / 4.0f );
+
+            // float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+            __m512 mY1mM1 = _mm512_sub_ps( mS_1p2, mS_n1p2 );
+
+            // Load the inputs.
+            __m512 mS_0p2 = _mm512_load_ps( _pfsSamples2 );
+
+            // float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+            __m512 mC0 = _mm512_add_ps( _mm512_mul_ps( m1o2, mS_0p2 ), _mm512_mul_ps( m1o4, _mm512_add_ps( mS_n1p2, mS_1p2 ) ) );
+
+            // Load the inputs.
+            __m512 mS_2p2 = _mm512_load_ps( _pfsSamples4 );
+
+            // float fC1 = (1.0f / 2.0f) * fY1mM1;
+            __m512 mC1 = _mm512_mul_ps( m1o2, mY1mM1 );
+
+            // Load the inputs.
+            __m512 mFrac = _mm512_load_ps( _pfFrac );
+
+            // float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+            __m512 mC2 = _mm512_mul_ps( m1o4, _mm512_sub_ps( _mm512_sub_ps( mS_2p2, mS_0p2 ), mY1mM1 ) );
+
+            // return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+            __m512 mRet = _mm512_fmadd_ps( _mm512_fmadd_ps( mC2, mFrac, mC1 ), mFrac, mC0 );
+            _mm512_store_ps( _pfOut, mRet );
+        }
         
         /**
          * 6-point, 5th-order Hermite X-form sampling.
@@ -1294,7 +1686,7 @@ namespace lsn {
          * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 64 bytes.
          * \param _pfOut The output pointer.
          */
-        inline void                                         Sample_6Point_5thOrder_Hermite_X_AVX512( const float * _pfsSamples0, const float * _pfsSamples1,
+        static inline void									Sample_6Point_5thOrder_Hermite_X_AVX512( const float * _pfsSamples0, const float * _pfsSamples1,
             const float * _pfsSamples2, const float * _pfsSamples3,
             const float * _pfsSamples4, const float * _pfsSamples5,
             const float * _pfFrac,
@@ -1371,6 +1763,87 @@ namespace lsn {
                     mFrac ), mC0 );
             _mm512_store_ps( _pfOut, mRet );
         }
+
+		/**
+         * 6-point, 5th-order Hermite X-form sampling.
+         *
+         * \param _pfsSamples0 The 64-byte-aligned pointer to the 8 1st points.
+         * \param _pfsSamples1 The 64-byte-aligned pointer to the 8 2nd points.
+         * \param _pfsSamples2 The 64-byte-aligned pointer to the 8 3rd points.
+         * \param _pfsSamples3 The 64-byte-aligned pointer to the 8 4th points.
+         * \param _pfsSamples4 The 64-byte-aligned pointer to the 8 5th points.
+         * \param _pfsSamples5 The 64-byte-aligned pointer to the 8 6th points.
+         * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 64 bytes.
+         * \param _pfOut The output pointer.
+         */
+        static inline void									Sample_6Point_5thOrder_Hermite_X_AVX512_FMA( const float * _pfsSamples0, const float * _pfsSamples1,
+            const float * _pfsSamples2, const float * _pfsSamples3,
+            const float * _pfsSamples4, const float * _pfsSamples5,
+            const float * _pfFrac,
+            float * _pfOut ) {
+            // 6-point, 5th-order Hermite (X-form).
+            // _pfsSamples[-2+2] = _pfsSamples0.
+            // _pfsSamples[-1+2] = _pfsSamples1.
+            // _pfsSamples[0+2] = _pfsSamples2.
+            // _pfsSamples[1+2] = _pfsSamples3.
+            // _pfsSamples[2+2] = _pfsSamples4.
+            // _pfsSamples[3+2] = _pfsSamples5.
+
+            // Load the inputs/constants.
+            __m512 mS_n2p2 = _mm512_load_ps( _pfsSamples0 );
+            __m512 m1o8 = _mm512_set1_ps( 1.0f / 8.0f );
+            __m512 mS_2p2 = _mm512_load_ps( _pfsSamples4 );
+            __m512 m11o24 = _mm512_set1_ps( 11.0f / 24.0f );
+
+            // float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
+            __m512 mEightThym2 = _mm512_mul_ps( m1o8, mS_n2p2 );
+
+            // Load the inputs/constants.
+            __m512 mS_3p2 = _mm512_load_ps( _pfsSamples5 );
+            __m512 m1o12 = _mm512_set1_ps( 1.0f / 12.0f );
+
+            // float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
+            __m512 mElevenTwentyFourThy2 = _mm512_mul_ps( m11o24, mS_2p2 );
+
+            // float fTwelvThy3 = 1.0f / 12.0f * _pfsSamples[3+2];
+            __m512 mTwelvThy3 = _mm512_mul_ps( m1o12, mS_3p2 );
+
+            // float fC0 = _pfsSamples[0+2];
+            __m512 mC0 = _mm512_load_ps( _pfsSamples2 );
+
+            // float fC1 = 1.0f / 12.0f * (_pfsSamples[-2+2] - _pfsSamples[2+2]) + 2.0f / 3.0f * (_pfsSamples[1+2] - _pfsSamples[-1+2]);
+            __m512 mS_1p2 = _mm512_load_ps( _pfsSamples3 );
+            __m512 mS_n1p2 = _mm512_load_ps( _pfsSamples1 );
+            __m512 mC1 = _mm512_add_ps( _mm512_mul_ps( m1o12, _mm512_sub_ps( mS_n2p2, mS_2p2 ) ), _mm512_mul_ps( _mm512_set1_ps( 2.0f / 3.0f ), _mm512_sub_ps( mS_1p2, mS_n1p2 ) ) );
+
+            // float fC2 = 13.0f / 12.0f * _pfsSamples[-1+2] - 25.0f / 12.0f * _pfsSamples[0+2] + 3.0f / 2.0f * _pfsSamples[1+2] -
+            //    fElevenTwentyFourThy2 + fTwelvThy3 - fEightThym2;
+            __m512 m13o12 = _mm512_set1_ps( 13.0f / 12.0f );
+            __m512 mC2 = _mm512_sub_ps( _mm512_add_ps( _mm512_sub_ps( _mm512_add_ps( _mm512_sub_ps( _mm512_mul_ps( m13o12, mS_n1p2 ), _mm512_mul_ps( _mm512_set1_ps( 25.0f / 12.0f ), mC0 ) ), _mm512_mul_ps( _mm512_set1_ps( 3.0f / 2.0f ), mS_1p2 ) ),
+                mElevenTwentyFourThy2 ), mTwelvThy3 ), mEightThym2 );
+
+            // float fC3 = 5.0f / 12.0f * _pfsSamples[0+2] - 7.0f / 12.0f * _pfsSamples[1+2] + 7.0f / 24.0f * _pfsSamples[2+2] -
+            //    1.0f / 24.0f * (_pfsSamples[-2+2] + _pfsSamples[-1+2] + _pfsSamples[3+2]);
+            __m512 m5o12 = _mm512_set1_ps( 5.0f / 12.0f );
+            __m512 m7o12 = _mm512_set1_ps( 7.0f / 12.0f );
+            __m512 m1o24 = _mm512_set1_ps( 1.0f / 24.0f );
+            __m512 mC3 = _mm512_sub_ps( _mm512_add_ps( _mm512_sub_ps( _mm512_mul_ps( m5o12, mC0 ), _mm512_mul_ps( m7o12, mS_1p2 ) ), _mm512_mul_ps( _mm512_set1_ps( 7.0f / 24.0f ), mS_2p2 ) ), _mm512_mul_ps( m1o24, _mm512_add_ps( _mm512_add_ps( mS_n2p2, mS_n1p2 ), mS_3p2 ) ) );
+
+            // float fC4 = fEightThym2 - 7.0f / 12.0f * _pfsSamples[-1+2] + 13.0f / 12.0f * _pfsSamples[0+2] - _pfsSamples[1+2] +
+            //    fElevenTwentyFourThy2 - fTwelvThy3;
+            __m512 mC4 = _mm512_sub_ps( _mm512_add_ps( _mm512_sub_ps( _mm512_add_ps( _mm512_sub_ps( mEightThym2, _mm512_mul_ps( m7o12, mS_n1p2 ) ), _mm512_mul_ps( m13o12, mC0 ) ), mS_1p2 ), mElevenTwentyFourThy2 ), mTwelvThy3 );
+
+            // Load the inputs.
+            __m512 mFrac = _mm512_load_ps( _pfFrac );
+
+            // float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
+            //    5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
+            __m512 mC5 = _mm512_add_ps( _mm512_add_ps( _mm512_mul_ps( m1o24, _mm512_sub_ps( mS_3p2, mS_n2p2 ) ), _mm512_mul_ps( _mm512_set1_ps( 5.0f / 24.0f ), _mm512_sub_ps( mS_n1p2, mS_2p2 ) ) ), _mm512_mul_ps( m5o12, _mm512_sub_ps( mS_1p2, mC0 ) ) );
+
+            // return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+            __m512 mRet = _mm512_fmadd_ps( _mm512_fmadd_ps( _mm512_fmadd_ps( _mm512_fmadd_ps( _mm512_fmadd_ps( mC5, mFrac, mC4 ), mFrac, mC3 ), mFrac, mC2 ), mFrac, mC1 ), mFrac, mC0 );
+            _mm512_store_ps( _pfOut, mRet );
+        }
         
         /**
          * Horizontally adds all the floats in a given AVX-512 register.
@@ -1378,7 +1851,7 @@ namespace lsn {
          * \param _mReg The register containing all of the values to sum.
          * \return Returns the sum of all the floats in the given register.
          **/
-        static inline float                                 HorizontalSum( const __m512 _mReg ) {
+        static inline float									HorizontalSum( const __m512 _mReg ) {
 			return _mm512_reduce_add_ps( _mReg );
         }
 #endif  // #ifdef __AVX512F__
@@ -1390,7 +1863,7 @@ namespace lsn {
 		 * \param _fFrac The interpolation amount.
 		 * \return Returns the interpolated point.
 		 */
-		inline float										Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
+		static inline float									Sample_4Point_2ndOrder_Parabolic_2X_X( const float * _pfsSamples, float _fFrac ) {
 			// 4-point, 2nd-order parabolic 2x (X-form).
 			float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
 			float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
@@ -1406,7 +1879,7 @@ namespace lsn {
 		 * \param _fFrac The interpolation amount.
 		 * \return Returns the interpolated point.
 		 */
-		inline float										Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac ) {
+		static inline float									Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac ) {
 			// 6-point, 5th-order Hermite (X-form).
 			float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
 			float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
