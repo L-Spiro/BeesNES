@@ -44,7 +44,7 @@ namespace lsn {
 		 *
 		 * \return Returns the size of the PGM banks.
 		 */
-		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
+		static constexpr uint16_t						PgmBankSize() { return 16 * 1024; }
 
 		/**
 		 * Gets the CHR bank size.
@@ -62,6 +62,13 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+
+			m_ui16PrgMask16 = uint16_t( (_rRom.vPrgRom.size() / 16) - 1 );
+
+			m_ui8Outer = 63;
+			m_ui8Prg = 15;
+
+			UpdateBanks();
 		}
 
 		/**
@@ -118,12 +125,17 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		uint16_t										m_ui16PrgMask16;							/**< Mask for 16-kilobyte PGM banking. */
 		LSN_REG											m_rReg;										/**< Which register to use. */
 		uint8_t											m_ui8Reg00;									/**< Register $00. */
 		uint8_t											m_ui8Reg80;									/**< Register $80. */
 		uint8_t											m_ui8Reg01;									/**< Register $01. */
 		uint8_t											m_ui8Reg81;									/**< Register $81. */
 		uint8_t											m_ui8Mode;									/**< The mode value. */
+		uint8_t											m_ui8Outer;									/**< The outer bank. */
+		uint8_t											m_ui8Prg;									/**< The PRG ROM. */
+		uint8_t											m_ui8PrgLo;									/**< The PRG ROM low. */
+		uint8_t											m_ui8PrgHi;									/**< The PRG ROM high. */
 
 
 		// == Functions.
@@ -162,6 +174,91 @@ namespace lsn {
 					break;
 				}
 			}
+		}
+
+		/**
+		 * Updates the bank selection.
+		 **/
+		void inline										UpdateBanks() {
+			int32_t i32OutB = m_ui8Outer << 1;
+
+ 			switch ( m_ui8Mode & 0x3C ) {
+ 				// 32-Kilobyte modes.
+ 				case 0x00 : {} LSN_FALLTHROUGH
+ 				case 0x04 : {
+ 					m_ui8PrgLo = i32OutB;
+ 					m_ui8PrgHi = i32OutB | 1;
+ 					break;
+				}
+ 				case 0x10 : {} LSN_FALLTHROUGH
+ 				case 0x14 : {
+ 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg & 2;
+ 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg & 2 | 1;
+ 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg << 1 & 2;
+ 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg << 1 & 2 | 1;
+ 					break;
+				}
+ 				case 0x20 : {} LSN_FALLTHROUGH
+ 				case 0x24 : {
+ 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg & 6;
+ 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg & 6 | 1;
+ 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg << 1 & 6;
+ 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg << 1 & 6 | 1;
+ 					break;
+				}
+ 				case 0x30 : {} LSN_FALLTHROUGH
+ 				case 0x34 : {
+ 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg & 14;
+ 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg & 14 | 1;
+ 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg << 1 & 14;
+ 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg << 1 & 14 | 1;
+ 					break;
+				}
+ 				// Bottom fixed modes.
+ 				case 0x08 : {
+ 					m_ui8PrgLo = i32OutB;
+ 					m_ui8PrgHi = i32OutB | m_ui8Prg & 1;
+ 					break;
+				}
+ 				case 0x18 : {
+ 					m_ui8PrgLo = i32OutB;
+ 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg & 3;
+ 					break;
+				}
+ 				case 0x28 : {
+ 					m_ui8PrgLo = i32OutB;
+ 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg & 7;
+ 					break;
+				}
+ 				case 0x38 : {
+ 					m_ui8PrgLo = i32OutB;
+ 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg & 15;
+ 					break;
+				}
+ 				// Top fixed modes.
+ 				case 0x0C : {
+ 					m_ui8PrgLo = i32OutB | m_ui8Prg & 1;
+ 					m_ui8PrgHi = i32OutB | 1;
+ 					break;
+				}
+ 				case 0x1C : {
+ 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg & 3;
+ 					m_ui8PrgHi = i32OutB | 1;
+ 					break;
+				}
+ 				case 0x2C : {
+ 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg & 7;
+ 					m_ui8PrgHi = i32OutB | 1;
+ 					break;
+				}
+ 				case 0x3C : {
+ 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg & 15;
+ 					m_ui8PrgHi = i32OutB | 1;
+ 					break;
+				}
+ 			}
+ 			m_ui8PrgLo &= m_ui16PrgMask16;
+ 			m_ui8PrgHi &= m_ui16PrgMask16;
 		}
 
 		/**
@@ -211,6 +308,7 @@ namespace lsn {
 					 *	   +------ Set mirroring mode bit 0 if H/V mirroring is disabled
 					 */
 					pmThis->m_ui8Reg01 = _ui8Val;
+					pmThis->m_ui8Prg = _ui8Val & 0xF;
 					pmThis->UpdateMode( _ui8Val );
 					break;
 				}
@@ -224,6 +322,7 @@ namespace lsn {
 					pmThis->m_ui8Reg80 = _ui8Val;
 					pmThis->m_ui8Mode = _ui8Val & 0x3F;
 					pmThis->ApplyMirror();
+					pmThis->UpdateBanks();
 					break;
 				}
 				case 0x81 : {
@@ -232,8 +331,8 @@ namespace lsn {
 					 *	++++-++++- Set outer PRG ROM bank
 					 */
 					pmThis->m_ui8Reg81 = _ui8Val;
-					pmThis->m_ui8Mode = _ui8Val & 0x3F;
-					pmThis->ApplyMirror();
+					pmThis->m_ui8Outer = _ui8Val & 0x3F;
+					pmThis->UpdateBanks();
 					break;
 				}
 			}

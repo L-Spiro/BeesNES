@@ -552,6 +552,24 @@ namespace lsn {
 		virtual bool									RomIsPaused() const { return m_bPaused; }
 
 		/**
+		 * Reset the ROM.
+		 **/
+		virtual void									ResetRom() {
+			m_cCpu.ResetAnalog();
+			m_pPpu.ResetAnalog();
+			m_aApu.ResetAnalog();
+		}
+
+		/**
+		 * Reset the ROM.
+		 **/
+		virtual void									PowerCycle() {
+			m_cCpu.ResetToKnown();
+			m_pPpu.ResetToKnown();
+			m_aApu.ResetToKnown();
+		}
+
+		/**
 		 * Sets the input poller.
 		 *
 		 * \param _pipPoller The input poller pointer.

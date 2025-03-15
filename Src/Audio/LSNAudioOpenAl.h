@@ -91,7 +91,7 @@ namespace lsn {
 		COpenAlBuffer										m_oabBuffers[LSN_AUDIO_BUFFERS];
 		/** The current output format. Flush to set (flushing copies from the "Next" value into this one). */
 		ALenum												m_eFormat = AL_FORMAT_MONO16;
-
+		
 
 		// == Functions.
 		/**

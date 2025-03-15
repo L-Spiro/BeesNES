@@ -77,6 +77,7 @@ namespace lsn {
 	void CAudio::SetOutputSettings( const LSN_AUDIO_OPTIONS &_aoSettings ) {
 		SetOutputFormat( _aoSettings.afFormat );
 		SetOutputFrequency( _aoSettings.ui32OutputHz );
+		m_adAudioDevice.SetDither( _aoSettings.bDither );
 	}
 
 	/**

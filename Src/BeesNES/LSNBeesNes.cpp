@@ -451,6 +451,24 @@ namespace lsn {
 	}
 
 	/**
+	 * Resets the ROM.
+	 **/
+	void CBeesNes::ResetRom() {
+		if LSN_LIKELY( m_psbSystem ) {
+			m_psbSystem->ResetRom();
+		}
+	}
+
+	/**
+	 * Resets the ROM.
+	 **/
+	void CBeesNes::PowerCycle() {
+		if LSN_LIKELY( m_psbSystem ) {
+			m_psbSystem->PowerCycle();
+		}
+	}
+
+	/**
 	 * Applies the current audio options.
 	 **/
 	void CBeesNes::ApplyAudioOptions() {
@@ -515,6 +533,11 @@ namespace lsn {
 	 * \return Returns true if the settings file was loaded.
 	 */
 	bool CBeesNes::LoadSettings( CStream &_sFile ) {
+		// Defaults.
+#ifdef LSN_WINDOWS
+		m_oOptions.wpMainWindowPlacement = { 0 };
+#endif	// #ifdef LSN_WINDOWS
+
 		// Get the file version.
 		uint32_t ui32Version;
 		if ( !_sFile.ReadUi32( ui32Version ) ) { return false; }
@@ -563,6 +586,10 @@ namespace lsn {
 		catch ( ... ) { return false; }
 
 		if ( !_sFile.Read( m_oOptions.fFilter ) ) { return false; }
+
+#ifdef LSN_WINDOWS
+		if ( !_sFile.Read( m_oOptions.wpMainWindowPlacement ) ) { return false; }
+#endif	// #ifdef LSN_WINDOWS
 		
 		return true;
 	}
@@ -611,6 +638,10 @@ namespace lsn {
 		}
 
 		if ( !_sFile.Write( m_oOptions.fFilter ) ) { return false; }
+
+#ifdef LSN_WINDOWS
+		if ( !_sFile.Write( m_oOptions.wpMainWindowPlacement ) ) { return false; }
+#endif	// #ifdef LSN_WINDOWS
 		
 		return true;
 	}

@@ -198,6 +198,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets m_bIsReset to true.
+		 **/
+		void												Reset() {
+			m_bIsReset = true;
+		}
+
+		/**
 		 * Performs a single PHI1 update.
 		 */
 		virtual void										Tick();

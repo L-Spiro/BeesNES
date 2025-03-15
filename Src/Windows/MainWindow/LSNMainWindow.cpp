@@ -59,7 +59,8 @@ namespace lsn {
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ),
-		m_pwPatchWindow( nullptr ) {
+		m_pwPatchWindow( nullptr ),
+		m_psbCachedBar( nullptr ) {
 		(*m_pabIsAlive) = true;
 
 #if 0
@@ -224,16 +225,15 @@ namespace lsn {
 		
 
 		// ==== STATUS BAR ==== //
-		lsw::CStatusBar * psbStatus = StatusBar();
-		LSW_RECT rStatusBar;
-		rStatusBar.Zero();
-		if ( psbStatus ) {
+		m_psbCachedBar = StatusBar();
+		m_rStatusBarRect.Zero();
+		if ( m_psbCachedBar ) {
 			const CStatusBar::LSW_STATUS_PART spParts[] = {
-				{ rRebarRect.Width() - psbStatus->ClientRect( this ).Height() - 48, TRUE },
-				{ rRebarRect.Width() - psbStatus->ClientRect( this ).Height(), TRUE },
+				{ rRebarRect.Width() - m_psbCachedBar->ClientRect( this ).Height() - 48, TRUE },
+				{ rRebarRect.Width() - m_psbCachedBar->ClientRect( this ).Height(), TRUE },
 			};
-			psbStatus->SetParts( spParts, LSN_ELEMENTS( spParts ) );
-			rStatusBar = psbStatus->WindowRect();
+			m_psbCachedBar->SetParts( spParts, LSN_ELEMENTS( spParts ) );
+			m_rStatusBarRect = m_psbCachedBar->WindowRect();
 		}
 		
 
@@ -243,8 +243,15 @@ namespace lsn {
 		UpdateOpenRecent();
 		ForceSizeUpdate();
 		
-		LSW_RECT rScreen = FinalWindowRect();
-		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+		LSW_RECT rPlacement = m_bnEmulator.Options().wpMainWindowPlacement.rcNormalPosition;
+		if ( rPlacement.Width() && rPlacement.Height() ) {
+			::SetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
+			::MoveWindow( Wnd(), rPlacement.left, rPlacement.top, rPlacement.Width(), rPlacement.Height(), TRUE );
+		}
+		else {
+			LSW_RECT rScreen = FinalWindowRect();
+			::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
+		}
 
 		return LSW_H_CONTINUE;
 	}
@@ -353,15 +360,28 @@ namespace lsn {
 				break;
 			}
 
+			case CMainWindowLayout::LSN_MWMI_PAUSE : {
+				m_bnEmulator.TogglePauseRom();
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_RESET : {
+				StopThread();
+				m_bnEmulator.ResetRom();
+				StartThread();
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_POWER_CYCLE : {
+				StopThread();
+				m_bnEmulator.PowerCycle();
+				StartThread();
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_POWER_OFF : {
 				StopThread();
 				m_bnEmulator.CloseRom();
 				break;
 			}
-			case CMainWindowLayout::LSN_MWMI_PAUSE : {
-				m_bnEmulator.TogglePauseRom();
-				break;
-			}
+			
 
 			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_1X : {
 				m_bnEmulator.SetScale( 1.0 );
@@ -541,6 +561,9 @@ namespace lsn {
 				);
 			::OutputDebugStringA( szBuffer );
 		}
+		if ( !m_wpPlacement.bInBorderless ) {
+			::GetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
+		}
 		::PostQuitMessage( 0 );
 		return LSW_H_CONTINUE;
 	}
@@ -700,22 +723,34 @@ namespace lsn {
 			if ( m_bMaximized ) {
 				if ( m_wpPlacement.bInBorderless ) {
 					if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
-						m_rMaxRect = ClientRect();
+						if ( m_psbCachedBar ) {
+							m_psbCachedBar->SetVisible( TRUE );
+							m_rStatusBarRect = m_psbCachedBar->WindowRect();
+						}
+						m_rMaxRect = VirtualClientRect( this );
 					}
 				}
 			}
 			else {
 				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
 					if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
+						m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
+						if ( m_psbCachedBar ) {
+							m_psbCachedBar->SetVisible( FALSE );
+						}
+						m_rStatusBarRect.Zero();
 						m_bMaximized = true;
-						m_rMaxRect = ClientRect();
+						m_rMaxRect = VirtualClientRect( this );
 					}
 				}
 			}
 		}
 
-		if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode ) {
+		else if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode ) {
 			m_bnEmulator.TogglePauseRom();
+		}
+		else if ( wVkCode == m_woWindowOptions.ukResetKey.bKeyCode ) {
+			m_bnEmulator.ResetRom();
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -857,12 +892,21 @@ namespace lsn {
 		m_bMaximized = _wParam == SIZE_MAXIMIZED;
 		if ( m_bMaximized && m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
 			m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu );
+			m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
+			if ( m_psbCachedBar ) {
+				m_psbCachedBar->SetVisible( FALSE );
+			}
+			m_rStatusBarRect.Zero();
 		}
 		else if ( !m_bMaximized && m_wpPlacement.bInBorderless && !m_wpPlacement.bIsSizing ) {
 			m_wpPlacement.LeaveBorderless( Wnd() );
+			if ( m_psbCachedBar ) {
+				m_psbCachedBar->SetVisible( TRUE );
+				m_rStatusBarRect = m_psbCachedBar->WindowRect();
+			}
 		}
 		//if ( m_bMaximized ) {
-			m_rMaxRect = ClientRect();
+			m_rMaxRect = VirtualClientRect( this );
 		//}
 		
 
@@ -954,6 +998,33 @@ namespace lsn {
 				LSN_CHECK_SCALE( 6 );
 #undef LSN_CHECK_SCALE
 
+
+				case CMainWindowLayout::LSN_MWMI_PAUSE : {
+					try {
+						std::wstring wStr = m_bnEmulator.RomIsPaused() ? LSN_LSTR( LSN_GAME_UNPAUSE ) : LSN_LSTR( LSN_GAME_PAUSE );
+
+						if ( m_woWindowOptions.ukPauseKey.bKeyCode ) {
+							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukPauseKey, false );
+						}
+
+						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
+						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					} catch ( ... ) {}
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_RESET : {
+					try {
+						std::wstring wStr = LSN_LSTR( LSN_GAME_RESET );
+
+						if ( m_woWindowOptions.ukPauseKey.bKeyCode ) {
+							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukResetKey, false );
+						}
+
+						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
+						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					} catch ( ... ) {}
+					break;
+				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_RGB24 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1287,11 +1358,7 @@ namespace lsn {
 			rTemp.top += rRebar.Height();
 		}
 
-		const CStatusBar * psbStatus = StatusBar();
-		if ( psbStatus ) {
-			LSW_RECT rStatus = psbStatus->ClientRect( this );
-			rTemp.bottom -= rStatus.Height();
-		}
+		rTemp.bottom -= m_rStatusBarRect.Height();
 		return rTemp;
 	}
 

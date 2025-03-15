@@ -321,6 +321,11 @@ namespace lsn {
 		lsw::CWidget *							m_pwPatchWindow;
 		/** The window/UI settings/options. */
 		LSN_WINDOW_OPTIONS						m_woWindowOptions;
+
+		/** Cached pointer to the status bar along the bottom. */
+		lsw::CStatusBar *						m_psbCachedBar;
+		/** Cached statuc-bar rectangle. */
+		LSW_RECT								m_rStatusBarRect;
 		
 
 

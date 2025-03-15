@@ -41,6 +41,10 @@ namespace lsn {
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
 		CFilterBase::LSN_FILTERS							fFilter = CFilterBase::LSN_F_AUTO_CRT_FULL;					/**< The current filter ID. */
 
+#ifdef LSN_WINDOWS
+		WINDOWPLACEMENT										wpMainWindowPlacement = { 0 };								/**< The main window's placement. */
+#endif	// #ifdef LSN_WINDOWS
+
 		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
 		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */
 		std::wstring										wPatchInitPath;												/**< The initial directory for the patch file. */

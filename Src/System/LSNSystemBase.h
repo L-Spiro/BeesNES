@@ -94,6 +94,16 @@ namespace lsn {
 		virtual bool									RomIsPaused() const = 0;
 
 		/**
+		 * Reset the ROM.
+		 **/
+		virtual void									ResetRom() = 0;
+
+		/**
+		 * Reset the ROM.
+		 **/
+		virtual void									PowerCycle() = 0;
+
+		/**
 		 * Sets the input poller.
 		 *
 		 * \param _pipPoller The input poller pointer.

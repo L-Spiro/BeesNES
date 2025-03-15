@@ -1078,7 +1078,7 @@ namespace lsn {
 			}
 			LSN_PREFETCH_LINE( _vSrc.data() + (sSize >> 1) );
 			for ( size_t I = 0; I < sSize; ++I ) {
-				reinterpret_cast<int16_t *>(_vOut.data())[I<<1] = CUtilities::SampleToI16( _vSrc[I] );
+				reinterpret_cast<int16_t *>(_vOut.data())[I] = CUtilities::SampleToI16( _vSrc[I] );
 			}
 
 			_sStream.sfFile.WriteToFile( _vOut.data(),
@@ -1109,7 +1109,7 @@ namespace lsn {
 				double dQuantized = dScaled * (1.0 / 32767.0);
 				_sStream.dDitherError = dThis - dQuantized;
 
-				reinterpret_cast<int16_t *>(_vOut.data())[I<<1] = i16Final;
+				reinterpret_cast<int16_t *>(_vOut.data())[I] = i16Final;
 			}
 
 			_sStream.sfFile.WriteToFile( _vOut.data(),

@@ -1982,6 +1982,29 @@ namespace lsn {
 			float fScaledSample = fClampedSample * 32767.0f;
 			return static_cast<int16_t>(std::round( fScaledSample ));
 		}
+
+		/**
+		 * Converts a sample from a floating-point format to an int16_t while applying error-diffusion dithering.  16-bit PCM data is expressed as a signed value over the
+		 *	range -32768 to 32767, 0 being an audio output level of zero.  Note that both -32768 and -32767 are -1.0; a proper
+		 *	conversion never generates -32768.
+		 * 
+		 * \param _fSample The sample to convert.
+		 * \param _fError The running error state.
+		 * \return Returns the converted sample.
+		 **/
+		static inline int16_t								SampleToI16_Dither( float _fSample, float &_fError ) {
+			double dThis = _fSample + _fError;
+			if LSN_UNLIKELY( dThis < -1.0 ) { dThis = -1.0; }
+			else if LSN_UNLIKELY( dThis > 1.0 ) { dThis = 1.0; }
+		
+			int16_t i16Final = static_cast<int16_t>(std::round( static_cast<float>(dThis * 32767.0) ));
+
+			double dScaled = double( i16Final );
+			double dQuantized = dScaled * (1.0 / 32767.0);
+			_fError = float( dThis - dQuantized );
+
+			return i16Final;
+		}
 		
 		/**
 		 * Converts a sample from a floating-point format to an int32_t.  24-bit PCM data is expressed as a signed value over the

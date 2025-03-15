@@ -82,6 +82,15 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets whether to dither 16-bit PCM or not.
+		 * 
+		 * \param _bDither Whether to dither 16-bit PCM.
+		 **/
+		void												SetDither( bool _bDither ) {
+			m_bDither = _bDither;
+		}
+
+		/**
 		 * Called when emulation begins.  Resets the ring buffer of buckets.
 		 **/
 		virtual void										BeginEmulation();
@@ -144,6 +153,10 @@ namespace lsn {
 		uint32_t											m_ui32CurDevice = 0;
 		/** The next device. */
 		uint32_t											m_ui32Device = 0;
+		/** The error-diffusion state. */
+		float												m_fDitherError = 0.0f;
+		/** Use dithering. */
+		bool												m_bDither = false;
 
 
 		// == Functions.

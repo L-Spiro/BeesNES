@@ -37,7 +37,7 @@ namespace lsn {
 			0,										// sTextLen
 			LSN_MWI_NONE,							// dwParentId
 		},
-		/*{
+		{
 			LSW_LT_STATUSBAR,						// ltType
 			LSN_MWI_STATUSBAR,						// wId
 			STATUSCLASSNAMEW,						// lpwcClass
@@ -59,7 +59,7 @@ namespace lsn {
 			nullptr, 0,								// pcBottomSizeExp
 			nullptr, 0,								// pcWidthSizeExp
 			nullptr, 0,								// pcHeightSizeExp
-		},*/
+		},
 		/*{
 			LSW_LT_REBAR,							// ltType
 			LSN_MWI_REBAR0,							// wId
@@ -112,7 +112,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_GAME,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__GAME ) },
 		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__OPTIONS ) },
 		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
-		//{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
+		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
 		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 

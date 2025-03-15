@@ -47,6 +47,7 @@ namespace lsn {
 		if ( !m_oasSource.CreateSource() ) { return false; }
 		if ( !m_oasSource.SetLooping( AL_FALSE ) ) { return false; }
 		m_ui32CurDevice = _ui32Device;
+		m_fDitherError = 0.0f;
 		return true;
 	}
 
@@ -214,19 +215,39 @@ namespace lsn {
 			// Convert and flush.
 			int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 			size_t I = 0;
-#ifdef __AVX2__
-			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
-				constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
-				int32_t i32Total = int32_t( stMax - sRegSize );
-				for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
-					COpenAl::SampleToI16_AVX2( _pfSamples, pi16Dst );
-					_pfSamples += sRegSize;
-					pi16Dst += sRegSize;
+
+			if ( m_bDither ) {
+				for ( ; int32_t( I ) <= _sTotal; ++I ) {
+					(*pi16Dst++) = COpenAl::SampleToI16_Dither( (*_pfSamples++), m_fDitherError );
 				}
 			}
+			else {
+
+#ifdef __AVX512F__
+				if LSN_LIKELY( CUtilities::IsAvx512FSupported() ) {
+					constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
+					int32_t i32Total = int32_t( stMax - sRegSize );
+					for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+						COpenAl::SampleToI16_AVX512( _pfSamples, pi16Dst );
+						_pfSamples += sRegSize;
+						pi16Dst += sRegSize;
+					}
+				}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX2__
+				if LSN_LIKELY( CUtilities::IsAvx2Supported() ) {
+					constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+					int32_t i32Total = int32_t( stMax - sRegSize );
+					for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+						COpenAl::SampleToI16_AVX2( _pfSamples, pi16Dst );
+						_pfSamples += sRegSize;
+						pi16Dst += sRegSize;
+					}
+				}
 #endif	// #ifdef __AVX2__
-			for ( ; I < stMax; ++I ) {
-				(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+				for ( ; I < stMax; ++I ) {
+					(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+				}
 			}
 			m_sCurBufferSize += (sizeof( int16_t ) * stMax);
 
@@ -248,19 +269,37 @@ namespace lsn {
 		// Finish converting.
 		int16_t * pi16Dst = reinterpret_cast<int16_t *>(&m_vLocalBuffer.data()[m_sCurBufferSize]);
 		size_t I = 0;
-#ifdef __AVX2__
-		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
-			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
-			int32_t i32Total = int32_t( _sTotal - sRegSize );
-			for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
-				COpenAl::SampleToI16_AVX2( _pfSamples, pi16Dst );
-				_pfSamples += sRegSize;
-				pi16Dst += sRegSize;
+		if ( m_bDither ) {
+			for ( ; I < _sTotal; ++I ) {
+				(*pi16Dst++) = COpenAl::SampleToI16_Dither( (*_pfSamples++), m_fDitherError );
 			}
 		}
+		else {
+#ifdef __AVX512F__
+			if LSN_LIKELY( CUtilities::IsAvx512FSupported() ) {
+				constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
+				int32_t i32Total = int32_t( _sTotal - sRegSize );
+				for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+					COpenAl::SampleToI16_AVX512( _pfSamples, pi16Dst );
+					_pfSamples += sRegSize;
+					pi16Dst += sRegSize;
+				}
+			}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX2__
+			if LSN_LIKELY( CUtilities::IsAvx2Supported() ) {
+				constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+				int32_t i32Total = int32_t( _sTotal - sRegSize );
+				for ( ; int32_t( I ) <= i32Total; I += sRegSize ) {
+					COpenAl::SampleToI16_AVX2( _pfSamples, pi16Dst );
+					_pfSamples += sRegSize;
+					pi16Dst += sRegSize;
+				}
+			}
 #endif	// #ifdef __AVX2__
-		for ( ; I < _sTotal; ++I ) {
-			(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+			for ( ; I < _sTotal; ++I ) {
+				(*pi16Dst++) = COpenAl::SampleToI16( (*_pfSamples++) );
+			}
 		}
 		m_sCurBufferSize += sizeof( int16_t ) * _sTotal;
 		return true;

@@ -272,6 +272,16 @@ namespace lsn {
 		bool									RomIsPaused() const;
 
 		/**
+		 * Resets the ROM.
+		 **/
+		void									ResetRom();
+
+		/**
+		 * Resets the ROM.
+		 **/
+		void									PowerCycle();
+
+		/**
 		 * Gets the rapid-fire patterns.
 		 *
 		 * \return Returns a pointer to the 8 rapid-fire values.
