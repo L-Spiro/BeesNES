@@ -523,6 +523,8 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_LABEL,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_COMBO,					bEnabled,				bEnabled },
 		};
 		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
@@ -564,6 +566,8 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_LABEL,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_COMBO,					bEnabled,				bEnabled },
 		};
 		for ( auto I = LSN_ELEMENTS( cOutControls ); I--; ) {
 			auto pwThis = FindChild( cOutControls[I].wId );

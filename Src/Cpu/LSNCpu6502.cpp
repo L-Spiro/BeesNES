@@ -941,7 +941,7 @@ namespace lsn {
 		}
 #endif	// #ifdef LSN_CPU_VERIFY
 		m_fsState.ui16OpCode = ui8Op;
-		m_pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
+		m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 
 #if 0
 		char szBUffer[256];

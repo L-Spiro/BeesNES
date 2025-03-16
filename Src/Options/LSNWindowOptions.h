@@ -27,6 +27,10 @@ typedef lsw::LSW_KEY															CUiKey;
 #define LSN_DEFAULT_RESET_KEYCODE												VK_F1
 #define LSN_DEFAULT_RESET_SCANCODE												0x003B0001
 
+#define LSN_DEFAULT_HRESET_KEYMOD												VK_LCONTROL
+#define LSN_DEFAULT_HRESET_KEYCODE												VK_F1
+#define LSN_DEFAULT_HRESET_SCANCODE												0x003B0001
+
 #define LSN_KEY_INIT( SCANCODE, KEYCODE, KEYMOD )								{ .dwScanCode = DWORD( SCANCODE ), .bKeyCode = BYTE( KEYCODE ), .bKeyModifier = BYTE( KEYMOD ) }
 #else
 #endif	// #ifdef LSN_USE_WINDOWS
@@ -48,6 +52,8 @@ namespace lsn {
 		CUiKey								ukPauseKey							= LSN_KEY_INIT( LSN_DEFAULT_PAUSE_SCANCODE, LSN_DEFAULT_PAUSE_KEYCODE, LSN_DEFAULT_PAUSE_KEYMOD );
 		/** The key to reset the system. */
 		CUiKey								ukResetKey							= LSN_KEY_INIT( LSN_DEFAULT_RESET_SCANCODE, LSN_DEFAULT_RESET_KEYCODE, LSN_DEFAULT_RESET_KEYMOD );
+		/** The key to hard-reset the system. */
+		CUiKey								ukHardResetKey						= LSN_KEY_INIT( LSN_DEFAULT_HRESET_SCANCODE, LSN_DEFAULT_HRESET_KEYCODE, LSN_DEFAULT_HRESET_KEYMOD );
 		/** Enter borderless mode on maximize? */
 		bool								bGoBorderless						= true;
 		/** Hide the menu in borderless maximized mode? */

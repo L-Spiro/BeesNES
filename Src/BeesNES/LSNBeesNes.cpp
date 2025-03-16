@@ -395,7 +395,7 @@ namespace lsn {
 			LoadPerGameSettings( m_u16PerGameSettings );
 			UpdateCurrentSystem();
 			if ( m_psbSystem->LoadRom( rTmp ) ) {
-				m_psbSystem->ResetState( false );
+				//m_psbSystem->ResetState( false );
 				AddPath( _s16Path );
 				return true;
 			}

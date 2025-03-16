@@ -298,9 +298,8 @@ namespace lsn {
 			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
 			m_pPulse2.SetEnvelopeVolume( LSN_PULSE2_ENV_DIVIDER( this ) );
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
-			/*m_fMaxSample = -INFINITY;
-			m_fMinSample = INFINITY;*/
 			m_i64TicksToLenCntr = _tM0S0;
+			m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
 		}
 
 		/**
@@ -313,14 +312,15 @@ namespace lsn {
 			for ( auto I = 0x10; I <= 0x13; ++I ) {
 				m_ui8Registers[I] = 0x00;
 			}
-			m_ui8Registers[0x15] = 0x00;
-			m_dvRegisters3_4017.SetValue( 0x00 );
+			//m_ui8Registers[0x15] = 0x00;
+			//m_dvRegisters3_4017.SetValue( 0x00 );
 			m_pPulse1.ResetToKnown();
 			m_pPulse2.ResetToKnown();
 			m_nNoise.ResetToKnown();
 			m_tTriangle.ResetToKnown();
 			ResetAnalog();
 			m_fDmcRegVol = 0.0f;
+			m_dvRegisters3_4017.SetValue( 0x00 );
 		}
 
 		/**
@@ -523,6 +523,9 @@ namespace lsn {
 		bool											m_bModeSwitch;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled;
+
+		/** The last value written to $4017. */
+		uint8_t											m_ui8Last4017 = 0;
 		
 		/** Length-counter delay for Pulse 1. */
 		CDelayedValue<uint8_t, 2>						m_dvPulse1LengthCounter;
@@ -1188,6 +1191,7 @@ namespace lsn {
 			// "During" an APU cycle means every even CPU cycle.  "Between" APU cycles means every odd CPU cycle.
 			// This is handled by having Set4017() set m_bModeSwitch, which will then be seen only on even ticks.
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
+			paApu->m_ui8Last4017 = _ui8Val;
 		}
 
 		/**

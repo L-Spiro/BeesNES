@@ -30,19 +30,32 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
+#define LSN_DMA_EX_AT_END
 
+#ifdef LSN_DMA_EX_AT_END
 #define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } }
 #define LSN_INSTR_END_PHI1
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
 															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
 																m_bDmaGo = true;																							\
 																RestoreState();																								\
-																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/											\
+																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
 																return; }
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2
+#else
+#define LSN_INSTR_START_PHI1( ISREAD )						
+#define LSN_INSTR_END_PHI1
+#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
+															if LSN_UNLIKELY( m_bRdyLow ) { m_ui16DmaCpuAddress = uint16_t( ADDR );											\
+																m_bDmaGo = true;																							\
+																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
+															}
+#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
+#define LSN_INSTR_END_PHI2
+#endif	// #ifdef LSN_DMA_EX_AT_END
 
-#define LSN_NEXT_FUNCTION_BY( AMT )							m_ui8FuncIndex += uint8_t( AMT )
+#define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION //m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
 
@@ -64,6 +77,9 @@
 
 
 namespace lsn {
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CCpu6502::LSN_FULL_STATE': structure was padded due to alignment specifier
 
 	/**
 	 * Class CCpu6502
@@ -194,7 +210,7 @@ namespace lsn {
 			m_bIsReset = true;
 #endif	// #ifdef LSN_CPU_VERIFY
 
-			m_pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
+			m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
 		}
 
 		/**
@@ -292,8 +308,10 @@ namespace lsn {
 	protected :
 		// == Types.
 		/** The full state structure for instructions. */
+
+		LSN_ALIGN( 64 )
 		struct LSN_FULL_STATE {
-			//const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */
+			const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */
 			LSN_REGISTERS									rRegs;
 			LSN_VECTORS										vBrkVector = LSN_V_IRQ_BRK;															/**< The vector to use inside BRK and whether to push B with status. */
 
@@ -313,7 +331,7 @@ namespace lsn {
 			uint16_t										ui16PcModify = 0;																	/**< The amount by which to modify PC during the next Phi1. */
 			uint8_t											ui8Operand;																			/**< The operand. */
 			uint8_t											ui8SModify = 0;																		/**< The amount by which to modify S during the next Phi1. */
-			//uint8_t											ui8FuncIndex = 0;																	/**< The function index. */
+			uint8_t											ui8FuncIndex = 0;																	/**< The function index. */
 			bool											bAllowWritingToPc = true;															/**< Allow writing to PC? */
 			bool											bTakeJump = true;																	/**< Determines if a branch is taken. */
 			bool											bBoundaryCrossed = false;															/**< Did we cross a page boundary? */
@@ -328,8 +346,8 @@ namespace lsn {
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
 
-		const PfCycle *										m_pfCurInstruction;
-		uint8_t												m_ui8FuncIndex = 0;																	/**< The function index. */
+		//const PfCycle *										m_pfCurInstruction;
+		//uint8_t												m_fsState.ui8FuncIndex = 0;																	/**< The function index. */
 		LSN_FULL_STATE										m_fsState;																			/**< Everything a standard instruction-cycle function can modify.  Backed up at the start of the first DMA read cycle and restored at the end after the read address for that cycle has been calculated. */
 		LSN_FULL_STATE										m_fsStateBackup;																	/**< The backup of the state for the cycle that first gets interrupted by DMA and is then executed at the end of DMA. */
 
@@ -491,7 +509,11 @@ namespace lsn {
 							if ( --m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
+#ifdef LSN_DMA_EX_AT_END
+								m_pfTickFunc = m_pfTickFuncCopy;
+#else
 								m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_END, !_bPhi2>;
+#endif	// #ifdef LSN_DMA_EX_AT_END
 							}
 							else {
 								++m_ui8DmaPos;
@@ -511,6 +533,8 @@ namespace lsn {
 				}
 			}
 			if constexpr ( _uState == LSN_DS_END ) {
+#ifdef LSN_DMA_EX_AT_END
+#else
 				// "Replay" the halting cycle by just performing the Phi2 read it made.
 				// This is an adjustment from real hardware because actually going back and replaying the cycle again for
 				//	real is extremely tricky and could incur a permanent performance cost to do properly.
@@ -523,6 +547,7 @@ namespace lsn {
 				else {
 					m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_END, !_bPhi2>;
 				}
+#endif	// #ifdef LSN_DMA_EX_AT_END
 			}
 #undef LSN_PUT
 #undef LSN_GET
@@ -1070,8 +1095,8 @@ namespace lsn {
 
 	/** Performs a cycle inside an instruction. */
 	inline void CCpu6502::Tick_InstructionCycleStd() {
-		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_ui8FuncIndex])();
-		(this->*m_pfCurInstruction[m_ui8FuncIndex])();
+		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_fsState.ui8FuncIndex])();
+		(this->*m_fsState.pfCurInstruction[m_fsState.ui8FuncIndex])();
 	}
 
 	/**
@@ -1091,7 +1116,7 @@ namespace lsn {
 			LSN_UPDATE_S;
 		}
 		// Enter normal instruction context.
-		m_ui8FuncIndex = 0;
+		m_fsState.ui8FuncIndex = 0;
 		// TODO: Move this to Tick_NextInstructionStd().
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 		m_fsState.bBoundaryCrossed = false;
@@ -1144,5 +1169,7 @@ namespace lsn {
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
+
+#pragma warning( pop )
 
 }	// namespace lsn

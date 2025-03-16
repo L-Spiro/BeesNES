@@ -118,8 +118,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ReadFF80_FF9F( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
-			CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
+		static void LSN_FASTCALL						ReadFF80_FF9F( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &/*_ui8Ret*/ ) {
+			//CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
 		}
 
 		/**
@@ -130,8 +130,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBankFF80_FF9F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
+		static void LSN_FASTCALL						SelectBankFF80_FF9F( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+			//CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
 			//if ( pmThis->m_prRom->riInfo.ui16SubMapper == 1 ) {	// Aladdin Deck Enhancer.
 			//	pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b00011) |
 			//		((((_ui8Val >> 1) & 0b01000) >> 1) |
@@ -153,8 +153,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						ReadFFE8_FFF7( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
-			CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
+		static void LSN_FASTCALL						ReadFFE8_FFF7( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &/*_ui8Ret*/ ) {
+			//CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
 		}
 
 		/**
@@ -165,8 +165,8 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBankFFE8_FFF7( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
+		static void LSN_FASTCALL						SelectBankFFE8_FFF7( void * /*_pvParm0*/, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+			//CMapper234 * pmThis = reinterpret_cast<CMapper234 *>(_pvParm0);
 			/*pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b1100) | (_ui8Val & 0b0011);
 			
 			pmThis->SetPgmBank<0, PgmBankSize()>( (pmThis->m_ui8Bank & 0b1100) | 0x3 );

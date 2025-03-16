@@ -711,6 +711,10 @@ namespace lsn {
 		WORD wKeyFlags = HIWORD( _uiFlags );
 		WORD wScanCode = LOBYTE( wKeyFlags );
 
+		bool bHasModifier = (::GetAsyncKeyState( VK_SHIFT ) & 0x8000) || (::GetAsyncKeyState( VK_CONTROL ) & 0x8000) || (::GetAsyncKeyState( VK_MENU ) & 0x8000) ||
+			(::GetAsyncKeyState( VK_LCONTROL ) & 0x8000) || (::GetAsyncKeyState( VK_RCONTROL ) & 0x8000) ||
+			(::GetAsyncKeyState( VK_LSHIFT ) & 0x8000) || (::GetAsyncKeyState( VK_RSHIFT ) & 0x8000) ||
+			(::GetAsyncKeyState( VK_LMENU ) & 0x8000) || (::GetAsyncKeyState( VK_RMENU ) & 0x8000);
 		switch ( wVkCode ) {
 			case VK_SHIFT : {}
 			case VK_CONTROL : {}
@@ -746,12 +750,16 @@ namespace lsn {
 			}
 		}
 
-		else if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode ) {
+		else if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode && ((!m_woWindowOptions.ukPauseKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukPauseKey.bKeyModifier ) & 0x8000) ) {
 			m_bnEmulator.TogglePauseRom();
 		}
-		else if ( wVkCode == m_woWindowOptions.ukResetKey.bKeyCode ) {
+		else if ( wVkCode == m_woWindowOptions.ukResetKey.bKeyCode && ((!m_woWindowOptions.ukResetKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukResetKey.bKeyModifier ) & 0x8000) ) {
 			m_bnEmulator.ResetRom();
 		}
+		else if ( wVkCode == m_woWindowOptions.ukHardResetKey.bKeyCode && ((!m_woWindowOptions.ukHardResetKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukHardResetKey.bKeyModifier ) & 0x8000) ) {
+			m_bnEmulator.PowerCycle();
+		}
+		//::OutputDebugStringA( std::format( "{:X}, {:X}, {:X}\r\n", _uiKeyCode, _uiFlags, wVkCode ).c_str() );
 		return LSW_H_CONTINUE;
 	}
 
@@ -1018,6 +1026,19 @@ namespace lsn {
 
 						if ( m_woWindowOptions.ukPauseKey.bKeyCode ) {
 							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukResetKey, false );
+						}
+
+						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
+						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					} catch ( ... ) {}
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_POWER_CYCLE : {
+					try {
+						std::wstring wStr = LSN_LSTR( LSN_GAME_POWER_CYCLE );
+
+						if ( m_woWindowOptions.ukPauseKey.bKeyCode ) {
+							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukHardResetKey, false );
 						}
 
 						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };

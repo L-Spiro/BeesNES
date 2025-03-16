@@ -84,64 +84,65 @@ namespace lsn {
 		 * \param _bAnalog If true, a soft reset is performed on the CPU, otherwise the CPU is reset to a known state.
 		 */
 		void											ResetState( bool _bAnalog ) {
-			m_bBus.ApplyMap();
-			
-			
-			m_cCpu.ApplyMemoryMap();
-			m_aApu.ApplyMemoryMap();
-			m_pPpu.ApplyMemoryMap();
-
-			if ( IsRomLoaded() ) {
-				switch ( m_rRom.riInfo.mmMirroring ) {
-					case LSN_MM_VERTICAL : {
-						m_pPpu.ApplyVerticalMirroring();
-						break;
-					}
-					case LSN_MM_HORIZONTAL : {
-						m_pPpu.ApplyHorizontalMirroring();
-						break;
-					}
-					case LSN_MM_4_SCREENS : {
-						m_pPpu.ApplyFourScreensMirroring();
-						break;
-					}
-					case LSN_MM_1_SCREEN_A : {
-						m_pPpu.ApplyOneScreenMirroring();
-						break;
-					}
-					case LSN_MM_1_SCREEN_B : {
-						m_pPpu.ApplyOneScreenMirroring_B();
-						break;
-					}
-				}
-
-				if ( m_pmbMapper.get() ) {
-					m_pmbMapper->ApplyMap( &m_bBus, &m_pPpu.GetBus() );
-				}
-			}
-
 			if ( _bAnalog ) {
 				m_cCpu.ResetAnalog();
 				m_aApu.ResetAnalog();
 				m_pPpu.ResetAnalog();
 			}
 			else {
+				m_ui64LastRealTime = m_cClock.GetRealTick();
+				m_bBus.ApplyMap();
+			
+			
+				m_cCpu.ApplyMemoryMap();
+				m_aApu.ApplyMemoryMap();
+				m_pPpu.ApplyMemoryMap();
+
+				if ( IsRomLoaded() ) {
+					switch ( m_rRom.riInfo.mmMirroring ) {
+						case LSN_MM_VERTICAL : {
+							m_pPpu.ApplyVerticalMirroring();
+							break;
+						}
+						case LSN_MM_HORIZONTAL : {
+							m_pPpu.ApplyHorizontalMirroring();
+							break;
+						}
+						case LSN_MM_4_SCREENS : {
+							m_pPpu.ApplyFourScreensMirroring();
+							break;
+						}
+						case LSN_MM_1_SCREEN_A : {
+							m_pPpu.ApplyOneScreenMirroring();
+							break;
+						}
+						case LSN_MM_1_SCREEN_B : {
+							m_pPpu.ApplyOneScreenMirroring_B();
+							break;
+						}
+					}
+
+					if ( m_pmbMapper.get() ) {
+						m_pmbMapper->ApplyMap( &m_bBus, &m_pPpu.GetBus() );
+					}
+				}
+
 				m_cCpu.ResetToKnown();
 				m_aApu.ResetToKnown();
 				m_pPpu.ResetToKnown();
-			}
 
-			m_ui64TickCount = 0;
-			m_ui64AccumTime = 0;
-			m_ui64MasterCounter = 0;
-			m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
-			m_hsSlots[LSN_PPU_SLOT].ui64Counter = (_tPpuDiv / 2) + _tPpuDiv;
-			m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
-			m_sSlotsToCheck[0] = LSN_CPU_SLOT;
-			m_sSlotsToCheck[1] = LSN_PPU_SLOT;
-			m_sSlotsToCheck[2] = LSN_APU_SLOT;
-			m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter = m_hsSlots[LSN_CPU_SLOT].ui64Counter + (_tCpuDiv / 2);
-			m_ui64LastRealTime = m_cClock.GetRealTick();
+				m_ui64TickCount = 0;
+				m_ui64AccumTime = 0;
+				m_ui64MasterCounter = 0;
+				m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
+				m_hsSlots[LSN_PPU_SLOT].ui64Counter = (_tPpuDiv / 2) + _tPpuDiv;
+				m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
+				m_sSlotsToCheck[0] = LSN_CPU_SLOT;
+				m_sSlotsToCheck[1] = LSN_PPU_SLOT;
+				m_sSlotsToCheck[2] = LSN_APU_SLOT;
+				m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter = m_hsSlots[LSN_CPU_SLOT].ui64Counter + (_tCpuDiv / 2);
+				
+			}
 		}
 
 		/**
@@ -564,9 +565,7 @@ namespace lsn {
 		 * Reset the ROM.
 		 **/
 		virtual void									PowerCycle() {
-			m_cCpu.ResetToKnown();
-			m_pPpu.ResetToKnown();
-			m_aApu.ResetToKnown();
+			ResetState( false );
 		}
 
 		/**
