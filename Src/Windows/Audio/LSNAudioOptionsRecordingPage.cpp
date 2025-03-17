@@ -80,6 +80,12 @@ namespace lsn {
 		if ( aEdit ) { CWinUtilities::FillComboWithStrings( aEdit, m_poOptions->vOutEndHistory, 0 ); }
 
 
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_COMBO );
+		if ( aEdit ) { CWinUtilities::FillComboWithWavMetaDataFormats( aEdit, CWavFile::LSN_MF_AUDACITY ); }
+		aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_COMBO );
+		if ( aEdit ) { CWinUtilities::FillComboWithWavMetaDataFormats( aEdit, CWavFile::LSN_MF_AUDACITY ); }
+
+
 		lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_ENABLE_CHECK ));
 		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.bEnabled ); }
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_ENABLE_CHECK ));
@@ -500,6 +506,9 @@ namespace lsn {
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_BITS_COMBO ));
 		if ( pcbCombo ) { lpBits = pcbCombo->GetCurSelItemData(); }
 
+		bool bMetaEnabled = false;
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_CHECK ));
+		if ( pcbCheck ) { bMetaEnabled = pcbCheck->IsChecked(); }
 
 		
 
@@ -523,8 +532,17 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_LABEL,					bEnabled,				bEnabled },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_COMBO,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_CHECK,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_COMBO,					bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_ALL_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_NONE_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_PULSE1_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_PULSE2_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_TRI_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_NOISE_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },
 		};
 		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
@@ -550,6 +568,10 @@ namespace lsn {
 		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_BITS_COMBO ));
 		if ( pcbCombo ) { lpBits = pcbCombo->GetCurSelItemData(); }
 
+		bMetaEnabled = false;
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_CHECK ));
+		if ( pcbCheck ) { bMetaEnabled = pcbCheck->IsChecked(); }
+
 		LSN_CONTROLS cOutControls[] = {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_LABEL,					bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_PATH_EDIT,					bEnabled,				bEnabled },
@@ -566,8 +588,17 @@ namespace lsn {
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_START_COMBO,					bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
 			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_LABEL,					bEnabled,				bEnabled },
-			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_COMBO,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_CHECK,					bEnabled,				bEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_COMBO,					bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_NONE_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_PULSE2_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_TRI_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			bEnabled,				bMetaEnabled },
+			{ CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },
 		};
 		for ( auto I = LSN_ELEMENTS( cOutControls ); I--; ) {
 			auto pwThis = FindChild( cOutControls[I].wId );
@@ -575,6 +606,18 @@ namespace lsn {
 				pwThis->SetEnabled( cOutControls[I].bCloseCondition0 && cOutControls[I].bCloseCondition1 );
 			}
 		}
+	}
+
+	/**
+	 * Sets the Hz.
+	 * 
+	 * \param _ui32Hz The Hz to set.
+	 **/
+	void CAudioOptionsRecordingPage::SetHz( uint32_t _ui32Hz ) {
+		m_ui32SettingsHz = _ui32Hz;
+
+		auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_OUT_HZ_EDIT );
+		if ( aEdit ) { aEdit->SetTextW( std::to_wstring( m_ui32SettingsHz ).c_str() ); }
 	}
 
 }	// namespace lsn

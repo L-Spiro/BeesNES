@@ -23,6 +23,9 @@
 #define LSN_SLIDER_PREC							1000
 #define LSN_SLIDER_PRECF						static_cast<float>(LSN_SLIDER_PREC)
 
+#define LSN_SLIDER_PRES_VOL						1000
+#define LSN_SLIDER_PRES_VOLF					static_cast<float>(LSN_SLIDER_PRES_VOL)
+
 using namespace lsw;
 
 namespace lsn {
@@ -98,12 +101,12 @@ namespace lsn {
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
-				ptbTrackBar->SetRange( TRUE, 0, LSN_SLIDER_PREC );
-				ptbTrackBar->SetTicFreq( LSN_SLIDER_PREC / 20 );
-				ptbTrackBar->SetPos( TRUE, LPARAM( std::round( aoOptions.apCharacteristics.fVolume * LSN_SLIDER_PRECF ) ) );
+				ptbTrackBar->SetRange( TRUE, 0, LSN_SLIDER_PRES_VOL * 2 );
+				ptbTrackBar->SetTicFreq( LSN_SLIDER_PRES_VOL * 2 / 20 );
+				ptbTrackBar->SetPos( TRUE, LPARAM( std::round( aoOptions.apCharacteristics.fVolume * LSN_SLIDER_PRES_VOLF ) ) );
 
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
-				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / LSN_SLIDER_PRECF ).c_str() ); }
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF ).c_str() ); }
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
@@ -216,6 +219,14 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 			switch ( _wId ) {
+				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO : {
+					// Notify the parent of the change.
+					if ( m_pwParent ) {
+						//m_pwParent->Command( CWinUtilities::LSN_UPDATE_HZ, 0, nullptr );
+						::SendMessageW( m_pwParent->Wnd(), WM_COMMAND, CWinUtilities::LSN_UPDATE_HZ, CWinUtilities::LSN_UPDATE_HZ );
+					}
+					break;
+				}
 				case CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT : {
 					if ( _wCtrlCode == EN_CHANGE ) {
 						lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR ));
@@ -248,7 +259,7 @@ namespace lsn {
 						if ( ptbTrackBar ) {
 							ee::CExpEvalContainer::EE_RESULT rRes;
 							if ( _pwSrc->GetTextAsDoubleExpression( rRes ) ) {
-								rRes.u.ui64Val = std::clamp<uint64_t>( uint64_t( std::round( rRes.u.dVal * LSN_SLIDER_PRECF ) ), 0, LSN_SLIDER_PREC );
+								rRes.u.ui64Val = std::clamp<uint64_t>( uint64_t( std::round( rRes.u.dVal * LSN_SLIDER_PRES_VOLF ) ), 0, LSN_SLIDER_PRES_VOL * 2 );
 								ptbTrackBar->SetPos( TRUE, LPARAM( rRes.u.ui64Val ) );
 							}
 						}
@@ -354,7 +365,7 @@ namespace lsn {
 
 								auto ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 								if ( ptbTrackBar ) {
-									ptbTrackBar->SetPos( TRUE, LPARAM( std::round( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fVolume * LSN_SLIDER_PRECF ) ) );
+									ptbTrackBar->SetPos( TRUE, LPARAM( std::round( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fVolume * LSN_SLIDER_PRES_VOLF ) ) );
 
 									aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
 									if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / LSN_SLIDER_PRECF ).c_str() ); }
@@ -418,7 +429,7 @@ namespace lsn {
 			else if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ) {
 				lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(_pwWidget);
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
-				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / LSN_SLIDER_PRECF ).c_str() ); }
+				if ( aEdit ) { aEdit->SetTextA( std::to_string( ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF * 2.0 ).c_str() ); }
 				Update();
 			}
 			else if ( _pwWidget->Id() == CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ) {
@@ -585,7 +596,7 @@ namespace lsn {
 														apProfile.fHpf2 = float( rRes.u.dVal );
 														lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 														if ( ptbTrackBar ) {
-															apProfile.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+															apProfile.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF);
 															ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ));
 															if ( ptbTrackBar ) {
 																apProfile.fP1Volume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
@@ -669,7 +680,7 @@ namespace lsn {
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
-				aoOptions.apCharacteristics.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+				aoOptions.apCharacteristics.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF);
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
@@ -763,6 +774,21 @@ namespace lsn {
 					}
 				}
 			}
+		}
+
+		/**
+		 * Gets the currently selected Hz.
+		 * 
+		 * \return Returns the Hz setting.
+		 **/
+		uint32_t											GetHz() {
+			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO ));
+			if ( pcbCombo ) {
+				auto lpCode = pcbCombo->GetCurSelItemData();
+				//aoOptions.afFormat.sfFormat = static_cast<LSN_SAMPLE_FORMAT>((lpCode >> 24) & 0x0F);
+				return (static_cast<uint32_t>(lpCode) & 0xFFFFFF) * 25;
+			}
+			return 1;
 		}
 
 

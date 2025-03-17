@@ -191,6 +191,22 @@ namespace lsn {
 	}
 
 	/**
+	 * Fills a combo box with WAV metadata formats
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavMetaDataFormats( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_AUDACITY_METADATA ),						CWavFile::LSN_MF_AUDACITY,							},
+			//{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						-1,													},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_MF_AUDACITY );
+	}
+
+	/**
 	 * Fills a combo box with the given array of LSN_COMBO_ENTRY structures.
 	 *
 	 * \param _pwComboBox The combo box to fill.

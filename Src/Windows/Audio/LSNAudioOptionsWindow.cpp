@@ -102,7 +102,8 @@ namespace lsn {
 		if ( m_vPages.size() >= 2 ) {
 			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
 		}
-		//ForceSizeUpdate();
+		
+		::SendMessageW( Wnd(), WM_COMMAND, CWinUtilities::LSN_UPDATE_HZ, CWinUtilities::LSN_UPDATE_HZ );
 		return LSW_H_CONTINUE;
 	}
 
@@ -126,6 +127,23 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CAudioOptionsWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
+			case CWinUtilities::LSN_UPDATE_HZ : {
+				if ( m_vPages.size() >= 3 ) {
+					auto pwErrorWidget = reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2]);
+					if ( pwErrorWidget ) {
+						lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+						if ( ptTab ) {
+							if ( !ptTab->IsChecked( 1 ) ) {
+								pwErrorWidget->SetHz( reinterpret_cast<CAudioOptionsGeneralPage<true> *>(m_vPages[0])->GetHz() );
+							}
+							else {
+								pwErrorWidget->SetHz( reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->GetHz() );
+							}
+						}
+					}
+				}
+				break;
+			}
 			case Layout::LSN_AOWI_CANCEL : {
 				return Close();
 			}
@@ -134,6 +152,7 @@ namespace lsn {
 				return LSW_H_HANDLED;
 			}
 		}
+		
 		return LSW_H_CONTINUE;
 	}
 
@@ -178,7 +197,7 @@ namespace lsn {
 			if ( m_vPages.size() >= 2 ) {
 				reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
 			}
-
+			::SendMessageW( Wnd(), WM_COMMAND, CWinUtilities::LSN_UPDATE_HZ, CWinUtilities::LSN_UPDATE_HZ );
 			::InvalidateRect( Wnd(), NULL, FALSE );
 			Paint();
 		}

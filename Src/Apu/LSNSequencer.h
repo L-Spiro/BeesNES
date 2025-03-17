@@ -139,6 +139,11 @@ namespace lsn {
 	 * \return Returns m_ui8Out.
 	 **/
     inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
+		if LSN_UNLIKELY( m_bRestartSeq ) {
+			m_bRestartSeq = false;
+			m_ui8SeqOff = 0;
+			m_ui16Timer = 0;
+		}
 		if ( ShouldBeTicknTho( _bEnabled ) ) {
 			if ( --m_ui16Timer == 0xFFFF ) {
 				m_ui16Timer = m_ui16Reload;
@@ -179,8 +184,9 @@ namespace lsn {
 		m_ui16Reload = (m_ui16Reload & 0x00FF) | (uint16_t( _ui8Val & 0b111 ) << 8);
 		if ( _bReset ) {
 			//m_ui16Timer = m_ui16Reload;
-			//m_bRestartSeq = true;
-			m_ui8SeqOff = 0;
+			m_bRestartSeq = true;
+			/*m_ui8SeqOff = 0;
+			m_ui16Timer = 0;*/
 		}
 		return m_ui16Reload;
 	}

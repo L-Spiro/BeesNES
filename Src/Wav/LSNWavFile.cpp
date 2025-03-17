@@ -299,161 +299,6 @@ namespace lsn {
 	/**
 	 * Opens a stream to a WAV file.  Samples can be written over time.
 	 * 
-	 * \param _pcPath The path to which to stream WAV data.
-	 * \param _ui32Hz The WAV Hz.
-	 * \param _fFormat The WAV format.
-	 * \param _ui16Bits The PCM bits.
-	 * \param _ui16Channels The channel count.
-	 * \param _bDither Whether to dither 16-bit PCM data or not.
-	 * \param _scStartCondition The starting condition.
-	 * \param _scpStartParm The starting condition paramater.
-	 * \param _ecEndCondition The stopping condition.
-	 * \param _scpEndParm The stopping condition paramater.
-	 * \param _stBufferSize The buffer size (in samples).
-	 * \return Returns true if the file could initially be created and all parameters are correct.
-	 **/
-	bool CWavFile::StreamToFile( const char8_t * _pcPath, uint32_t _ui32Hz, LSN_FORMAT _fFormat, uint16_t _ui16Bits, uint16_t _ui16Channels, bool _bDither,
-		LSN_START_CONDITIONS _scStartCondition, LSN_STREAM_COND_PARM _scpStartParm,
-		LSN_END_CONDITIONS _ecEndCondition, LSN_STREAM_COND_PARM _scpEndParm,
-		size_t _stBufferSize ) {
-		StopStream();
-
-		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
-		
-		switch ( _scStartCondition ) {
-			case LSN_SC_NONE : {
-				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_None;
-				break;
-			}
-			case LSN_SC_START_AT_SAMPLE : {
-				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_StartAtSample;
-				m_sStream.cdStartData.ui64Parm0 = _scpStartParm.ui64Parm;
-				break;
-			}
-			case LSN_SC_FIRST_NON_ZERO : {
-				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_FirstNonZero;
-				break;
-			}
-			case LSN_SC_ZERO_FOR_DURATION : {
-				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_ZeroForDuration;
-				m_sStream.cdStartData.ui64Counter = 0;
-				m_sStream.cdStartData.ui64Parm0 = uint64_t( std::round( _scpStartParm.dParm * _ui32Hz ) );
-				break;
-			}
-			default : {
-				std::wprintf( L"Unrecognized start condition %X: %s.\r\n", _scStartCondition, reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
-				return false;
-			}
-		}
-		
-		switch ( _ecEndCondition ) {
-			case LSN_EC_NONE : {
-				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_None;
-				break;
-			}
-			case LSN_EC_END_AT_SAMPLE : {
-				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_EndAtSample;
-				m_sStream.cdStopData.ui64Parm0 = _scpEndParm.ui64Parm;
-				break;
-			}
-			case LSN_EC_ZERO_FOR_DURATION : {
-				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_ZeroForDuration;
-				m_sStream.cdStopData.ui64Counter = 0;
-				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
-				break;
-			}
-			case LSN_EC_DURATION : {
-				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_Duration;
-				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( _scpEndParm.dParm * _ui32Hz ) );
-				break;
-			}
-			default : {
-				std::wprintf( L"Unrecognized stop condition %X: %s.\r\n", _ecEndCondition, reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
-				return false;
-			}
-		}
-		m_sStream.pfAddSampleFunc = &CWavFile::AddSample_CheckStartCond;
-
-		m_sStream.fFormat = _fFormat;
-		m_sStream.ui16Bits = _ui16Bits;
-		m_sStream.ui16Channels = _ui16Channels;
-		m_sStream.bDither = _bDither;
-		m_sStream.ui32Hz = _ui32Hz;
-		m_sStream.dDitherError = 0.0;
-
-		if ( m_sStream.fFormat == LSN_F_IEEE_FLOAT ) {
-			m_sStream.ui16Bits = 32;
-		}
-		
-		if ( !CreateStreamFile( _pcPath ) ) {
-			m_sStream.sfFile.Close();
-			return false;
-		}
-		
-		try {
-			m_sStream.stBufferSize = _stBufferSize * m_sStream.ui16Channels;
-			m_sStream.vCurBuffer.clear();
-			m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
-		}
-		catch ( ... ) { m_sStream.sfFile.Close(); return false; }
-		m_sStream.bEnd = false;
-		switch ( m_sStream.fFormat ) {
-			case LSN_F_PCM : {
-				switch ( m_sStream.ui16Bits ) {
-					case 8 : {
-						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8;
-#ifdef __AVX2__
-						if ( CUtilities::IsAvx2Supported() ) {
-							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8_AVX2;
-						}
-#endif	// #ifdef __AVX2__
-						break;
-					}
-					case 16 : {
-						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16;
-#ifdef __AVX2__
-						if ( CUtilities::IsAvx2Supported() ) {
-							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_AVX2;
-						}
-#endif	// #ifdef __AVX2__
-						if ( m_sStream.bDither ) {
-							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_Dither;
-						}
-						break;
-					}
-					case 24 : {
-						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24;
-#ifdef __AVX2__
-						if ( CUtilities::IsAvx2Supported() ) {
-							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24_AVX2;
-						}
-#endif	// #ifdef __AVX2__
-						break;
-					}
-					default : {
-						m_sStream.sfFile.Close();
-						return false;
-					}
-				}
-				break;
-			}
-			case LSN_F_IEEE_FLOAT : {
-				m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToF32;
-			}
-		}
-		
-		std::filesystem::path pPath = _pcPath;
-		m_sStream.wsPath = pPath.generic_wstring();
-
-		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
-
-		m_sStream.bStreaming = true;
-		return true;
-	}
-
-	/**
-	 * Opens a stream to a WAV file.  Samples can be written over time.
-	 * 
 	 * \param _stfoFileOptions Contains all of the settings for streaming to a file.
 	 * \param _ui32Hz The WAV Hz.
 	 * \param _stBufferSize The buffer size (in samples).
@@ -492,11 +337,166 @@ namespace lsn {
 
 		std::filesystem::path pAbsolutePath = std::filesystem::absolute( std::filesystem::path( _stfoFileOptions.wsPath ) );
 
-		return StreamToFile( pAbsolutePath.generic_u8string().c_str(),
-			_ui32Hz, _stfoFileOptions.fFormat, static_cast<uint16_t>(_stfoFileOptions.ui32Bits), 1, _stfoFileOptions.bDither,
-			_stfoFileOptions.scStartCondition, scpStartParm,
-			_stfoFileOptions.seEndCondition, scpStopParm,
-			_stBufferSize );
+		StopStream();
+
+		std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
+		
+		switch ( _stfoFileOptions.scStartCondition ) {
+			case LSN_SC_NONE : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_None;
+				break;
+			}
+			case LSN_SC_START_AT_SAMPLE : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_StartAtSample;
+				m_sStream.cdStartData.ui64Parm0 = scpStartParm.ui64Parm;
+				break;
+			}
+			case LSN_SC_FIRST_NON_ZERO : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_FirstNonZero;
+				break;
+			}
+			case LSN_SC_ZERO_FOR_DURATION : {
+				m_sStream.pfStartCondFunc = &CWavFile::StartCondFunc_ZeroForDuration;
+				m_sStream.cdStartData.ui64Counter = 0;
+				m_sStream.cdStartData.ui64Parm0 = uint64_t( std::round( scpStartParm.dParm * _ui32Hz ) );
+				break;
+			}
+			default : {
+				std::wprintf( L"Unrecognized start condition %X: %s.\r\n", _stfoFileOptions.scStartCondition, _stfoFileOptions.wsPath.c_str() );
+				return false;
+			}
+		}
+		
+		switch ( _stfoFileOptions.seEndCondition ) {
+			case LSN_EC_NONE : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_None;
+				break;
+			}
+			case LSN_EC_END_AT_SAMPLE : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_EndAtSample;
+				m_sStream.cdStopData.ui64Parm0 = scpStopParm.ui64Parm;
+				break;
+			}
+			case LSN_EC_ZERO_FOR_DURATION : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_ZeroForDuration;
+				m_sStream.cdStopData.ui64Counter = 0;
+				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( scpStopParm.dParm * _ui32Hz ) );
+				break;
+			}
+			case LSN_EC_DURATION : {
+				m_sStream.pfEndCondFunc = &CWavFile::EndCondFunc_Duration;
+				m_sStream.cdStopData.ui64Parm0 = uint64_t( std::round( scpStopParm.dParm * _ui32Hz ) );
+				break;
+			}
+			default : {
+				std::wprintf( L"Unrecognized stop condition %X: %s.\r\n", _stfoFileOptions.seEndCondition, _stfoFileOptions.wsPath.c_str() );
+				return false;
+			}
+		}
+		m_sStream.pfAddSampleFunc = &CWavFile::AddSample_CheckStartCond;
+
+		m_sStream.fFormat = _stfoFileOptions.fFormat;
+		m_sStream.ui16Bits = static_cast<uint16_t>(_stfoFileOptions.ui32Bits);
+		m_sStream.ui16Channels = 1;
+		m_sStream.bDither = _stfoFileOptions.bDither;
+		m_sStream.ui32Hz = _ui32Hz;
+		m_sStream.dDitherError = 0.0;
+
+		if ( m_sStream.fFormat == LSN_F_IEEE_FLOAT ) {
+			m_sStream.ui16Bits = 32;
+		}
+		
+		if ( !CreateStreamFile( pAbsolutePath.generic_u8string().c_str() ) ) {
+			m_sStream.sfFile.Close();
+			std::wprintf( L"Failed to create WAV stream file: %s.\r\n", _stfoFileOptions.wsPath.c_str() );
+			return false;
+		}
+		
+		try {
+			m_sStream.stBufferSize = _stBufferSize * m_sStream.ui16Channels;
+			m_sStream.vCurBuffer.clear();
+			m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
+		}
+		catch ( ... ) {
+			m_sStream.sfFile.Close();
+			std::wprintf( L"Out of memory creating buffers for WAV stream: %s.\r\n", _stfoFileOptions.wsPath.c_str() );
+			return false;
+		}
+		m_sStream.bEnd = false;
+		switch ( m_sStream.fFormat ) {
+			case LSN_F_PCM : {
+				switch ( m_sStream.ui16Bits ) {
+					case 8 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+#ifdef __AVX512F__
+						if ( CUtilities::IsAvx512FSupported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm8_AVX512;
+						}
+#endif	// #ifdef __AVX512F__
+						break;
+					}
+					case 16 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+#ifdef __AVX512F__
+						if ( CUtilities::IsAvx512FSupported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_AVX512;
+						}
+#endif	// #ifdef __AVX512F__
+						if ( m_sStream.bDither ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm16_Dither;
+						}
+						break;
+					}
+					case 24 : {
+						m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24;
+#ifdef __AVX2__
+						if ( CUtilities::IsAvx2Supported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24_AVX2;
+						}
+#endif	// #ifdef __AVX2__
+#ifdef __AVX512F__
+						if ( CUtilities::IsAvx512FSupported() ) {
+							m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToPcm24_AVX512;
+						}
+#endif	// #ifdef __AVX512F__
+						break;
+					}
+					default : {
+						m_sStream.sfFile.Close();
+						std::wprintf( L"Unrecognized PCM bits %X: %s.\r\n", m_sStream.ui16Bits, _stfoFileOptions.wsPath.c_str() );
+						return false;
+					}
+				}
+				break;
+			}
+			case LSN_F_IEEE_FLOAT : {
+				m_sStream.pfCvtAndWriteFunc = &CWavFile::BatchF32ToF32;
+				break;
+			}
+			default : {
+				m_sStream.sfFile.Close();
+				std::wprintf( L"Unrecognized WAV format %X: %s.\r\n", m_sStream.fFormat, _stfoFileOptions.wsPath.c_str() );
+				return false;
+			}
+		}
+		
+		m_sStream.wsPath = _stfoFileOptions.wsPath;
+
+		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
+
+		m_sStream.ui64SamplesReceived = m_sStream.ui64SamplesWritten = 0;
+		m_sStream.bStreaming = true;
+		return true;
 	}
 
 	/**
@@ -552,6 +552,13 @@ namespace lsn {
 					// Notify the writer thread that a full buffer is ready.
 					m_sStream.cvCondition.notify_one();
 				}
+			}
+			else if ( m_sStream.bEnd ) {
+				m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+				// Create a new buffer and reserve space for efficiency.
+				m_sStream.vCurBuffer.clear();
+				// Notify the writer thread that a full buffer is ready.
+				m_sStream.cvCondition.notify_one();
 			}
 			++m_sStream.ui64SamplesReceived;
 		}
@@ -1693,7 +1700,11 @@ namespace lsn {
 	 * \return Returns true for as long as samples should be output.  Once false is returned, the ending condition has been reached and the stream should close without adding the sample.
 	 **/
 	bool LSN_STDCALL CWavFile::AddSample_CheckStopCond( float _fSample, LSN_STREAMING &_sStream ) {
-		return (*_sStream.pfEndCondFunc)( _sStream.ui64SamplesReceived, _sStream.ui64SamplesWritten, _fSample, _sStream.cdStopData );
+		if LSN_UNLIKELY( !(*_sStream.pfEndCondFunc)( _sStream.ui64SamplesReceived, _sStream.ui64SamplesWritten, _fSample, _sStream.cdStopData ) ) {
+			_sStream.bEnd = true;
+			return false;
+		}
+		return true;
 	}
 
 }	// namespace lsn

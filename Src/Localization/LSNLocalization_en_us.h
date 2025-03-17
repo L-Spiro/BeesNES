@@ -164,6 +164,7 @@
 #define LSN_AUDIO_OPTIONS_FAMI_H11111212									Japanese LSN_FAMICOM H11111212, RF Cables
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									Japanese Twin LSN_FAMICOM 475711, NESRGB, Stock RCA
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART							Japanese Twin LSN_FAMICOM 475711, NESRGB, SCART Out
+#define LSN_AUDIO_OPTIONS_NES_PAL_V7										PAL LSN_NES, Front-Loading NESE-001 (GBR) PM608755
 #define LSN_AUDIO_OPTIONS_CUSTOM											Custom
 #define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:
 #define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
@@ -203,7 +204,16 @@
 #define LSN_AUDIO_OPTIONS_DURATION											Duration (Seconds)
 #define LSN_AUDIO_OPTIONS_SILENCE_FOR										Silence for (Seconds)
 #define LSN_AUDIO_OPTIONS_WAV_TYPES											WAV Files (*.wav)\0*.wav\0\0
-#define LSN_AUDIO_OPTIONS_METADATA											Metadata:
+#define LSN_AUDIO_OPTIONS_METADATA											Metadata
+#define LSN_AUDIO_OPTIONS_METADATA_ALL										All
+#define LSN_AUDIO_OPTIONS_METADATA_NONE										None
+#define LSN_AUDIO_OPTIONS_METADATA_PULSE1									Pulse 1 ($4000-$4003)
+#define LSN_AUDIO_OPTIONS_METADATA_PULSE2									Pulse 2 ($4004-$4007)
+#define LSN_AUDIO_OPTIONS_METADATA_TRIANGLE									Triangle ($4008-$400B)
+#define LSN_AUDIO_OPTIONS_METADATA_NOISE									Noise ($400C-$400F)
+#define LSN_AUDIO_OPTIONS_METADATA_DMC										DMC ($4010-$4013)
+#define LSN_AUDIO_OPTIONS_METADATA_STATUS									Status ($4015)
+#define LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER							Frame Counter ($4017)
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND							The selected starting condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C2\u201D, \u201C56.2\u201D, \u201C360.0f\u201D, etc.) or as equations (\u201C2*60+13.5\u201D, \u201Cpow( 10, 6 / 20.0 )\u201D, etc.)
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_END_COND								The selected stopping condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C10\u201D, \u201C5.5\u201D, \u201C0.5f\u201D, etc.) or as equations (\u201C3*60+10.5\u201D, \u201Clog10( 0.5 ) * 20\u201D, etc.)
@@ -287,6 +297,7 @@
 #define LSN_WAV_ITU_G_721_ADPCM												ITU G ADPCM
 #define LSN_WAV_MPEG														MPEG Audio
 #define LSN_WAV_EXTENSIBLE													Extensible
+#define LSN_AUDACITY_METADATA												Audacity Format: [start time]\\t[end time]\\t[label text]\\r\\n
 
 // General.
 #define LSN_ERROR															Error

@@ -66,11 +66,20 @@ namespace lsn {
 		 **/
 		void												Update();
 
+		/**
+		 * Sets the Hz.
+		 * 
+		 * \param _ui32Hz The Hz to set.
+		 **/
+		void												SetHz( uint32_t _ui32Hz );
+
 
 	protected :
 		// == Members.
 		/** The options object. */
 		LSN_OPTIONS *										m_poOptions;
+		/** The actual Hz set in the settings. */
+		uint32_t											m_ui32SettingsHz = 0;
 
 	private :
 		typedef CAudioOptionsWindowLayout					Layout;

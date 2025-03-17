@@ -32,7 +32,8 @@ namespace lsn {
 		/** Custom window messages. */
 		enum LSN_MSG : uint16_t {
 #if defined( LSN_WINDOWS )
-			LSN_CLOSE_PATCHER									= WM_USER + 1
+			LSN_CLOSE_PATCHER									= WM_USER + 1,
+			LSN_UPDATE_HZ,
 #endif	// #if defined( LSN_WINDOWS )
 		};
 
@@ -130,6 +131,15 @@ namespace lsn {
 		static bool												FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
 
 		/**
+		 * Fills a combo box with WAV metadata formats
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavMetaDataFormats( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
 		 * Fills a combo box with an array of UTF-16 strings.
 		 *
 		 * \param _pwComboBox The combo box to fill.
@@ -146,7 +156,12 @@ namespace lsn {
 					vEntries[I].pwcName = reinterpret_cast<const wchar_t *>(_vStrings[I].c_str());
 					vEntries[I].lpParm = LPARAM( I );
 				}
-				return FillComboBox( _pwComboBox, &vEntries[0], vEntries.size(), _lpDefaultSelect );
+				if ( FillComboBox( _pwComboBox, &vEntries[0], vEntries.size(), _lpDefaultSelect ) ) {
+					lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(_pwComboBox);
+					pcbCombo->SetSel( 0, 0 );
+					return true;
+				}
+				return false;
 			}
 			catch ( ... ) { return false; }
 			return true;

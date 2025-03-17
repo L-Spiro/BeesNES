@@ -97,6 +97,11 @@ namespace lsn {
 			LSN_EC_DURATION,
 		};
 
+		/** Metadata formats. */
+		enum LSN_META_FORMAT {
+			LSN_MF_AUDACITY,
+		};
+
 
 		// == Types.
 		typedef std::vector<double, CAlignmentAllocator<double, 64>>	lwtrack;
@@ -272,27 +277,6 @@ namespace lsn {
 			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const {
 			return SaveAsPcm( CUtilities::Utf16ToUtf8( _pcPath ).c_str(), _vSamples, _psdSaveSettings );
 		}
-
-		/**
-		 * Opens a stream to a WAV file.  Samples can be written over time.
-		 * 
-		 * \param _pcPath The path to which to stream WAV data.
-		 * \param _ui32Hz The WAV Hz.
-		 * \param _fFormat The WAV format.
-		 * \param _ui16Bits The PCM bits.
-		 * \param _ui16Channels The channel count.
-		 * \param _bDither Whether to dither 16-bit PCM data or not.
-		 * \param _scStartCondition The starting condition.
-		 * \param _scpStartParm The starting condition paramater.
-		 * \param _ecEndCondition The stopping condition.
-		 * \param _scpEndParm The stopping condition paramater.
-		 * \param _stBufferSize The buffer size (in samples).
-		 * \return Returns true if the file could initially be created and all parameters are correct.
-		 **/
-		bool															StreamToFile( const char8_t * _pcPath, uint32_t _ui32Hz, LSN_FORMAT _fFormat, uint16_t _ui16Bits, uint16_t _ui16Channels, bool _bDither,
-			LSN_START_CONDITIONS _scStartCondition, LSN_STREAM_COND_PARM _scpStartParm,
-			LSN_END_CONDITIONS _ecEndCondition, LSN_STREAM_COND_PARM _scpEndParm,
-			size_t _stBufferSize = 10 * 1024 );
 
 		/**
 		 * Opens a stream to a WAV file.  Samples can be written over time.
