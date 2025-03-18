@@ -146,6 +146,11 @@ namespace lsn {
 			LSN_END_CONDITIONS											seEndCondition = LSN_EC_NONE;
 			uint64_t													ui64EndParm = 0;
 			double														dEndParm = 0.0;
+
+			uint64_t													ui64MetaParm = 0;
+			void *														pvMetaParm = nullptr;
+			int32_t														i32MetaFormat = 0;
+			bool														bMetaEnabled = false;
 		};
 
 		/** Stream-to-file condition parameters. */

@@ -333,6 +333,8 @@ namespace lsn {
 			{ .ui32Crc = 0xB79C320D, .pmRegion = LSN_PM_PAL },
 			// Gunhed - Aratanaru Tatakai (Japan)
 			{ .ui32Crc = 0xE362ECDC, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
+			// Gyruss (U)
+			{ .ui32Crc = 0x48ECC48A, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 3 },
 			// Hammerin' Harry (E) [!]
 			{ .ui32Crc = 0x065FF04F, .pmRegion = LSN_PM_PAL },
 			// Hook (E)

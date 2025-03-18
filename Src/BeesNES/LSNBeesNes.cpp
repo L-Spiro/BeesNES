@@ -828,6 +828,10 @@ namespace lsn {
 		if ( !_sFile.Read( _stfoAudioOptions.seEndCondition ) ) { return false; }
 		if ( !_sFile.Read( _stfoAudioOptions.ui64EndParm ) ) { return false; }
 		if ( !_sFile.Read( _stfoAudioOptions.dEndParm ) ) { return false; }
+
+		if ( !_sFile.Read( _stfoAudioOptions.ui64MetaParm ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.i32MetaFormat ) ) { return false; }
+		if ( !_sFile.Read( _stfoAudioOptions.bMetaEnabled ) ) { return false; }
 		return true;
 	}
 
@@ -852,6 +856,10 @@ namespace lsn {
 		if ( !_sFile.Write( _stfoAudioOptions.seEndCondition ) ) { return false; }
 		if ( !_sFile.Write( _stfoAudioOptions.ui64EndParm ) ) { return false; }
 		if ( !_sFile.Write( _stfoAudioOptions.dEndParm ) ) { return false; }
+
+		if ( !_sFile.Write( _stfoAudioOptions.ui64MetaParm ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.i32MetaFormat ) ) { return false; }
+		if ( !_sFile.Write( _stfoAudioOptions.bMetaEnabled ) ) { return false; }
 		return true;
 	}
 

@@ -115,6 +115,17 @@ namespace lsn {
 		LSN_AT_PAL_MODE_1_STEP_4_1						= uint32_t( 20783 * 2.0 ),			/**< 41566. */
 	};
 
+	/** Register flags. */
+	enum LSN_REG_FLAGS : uint64_t {
+		LSN_RF_PULSE1									= (1 << 0),
+		LSN_RF_PULSE2									= (1 << 1),
+		LSN_RF_TRIANGLE									= (1 << 2),
+		LSN_RF_NOISE									= (1 << 3),
+		LSN_RF_DMC										= (1 << 4),
+		LSN_RF_STATUS									= (1 << 5),
+		LSN_RF_FRAME_COUNTER							= (1 << 6),
+	};
+
 	/**
 	 * Class CApu2A0X
 	 * \brief The 2A0X series of APU's.
