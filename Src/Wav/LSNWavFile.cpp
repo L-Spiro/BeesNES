@@ -495,6 +495,8 @@ namespace lsn {
 		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
 
 		m_sStream.ui64SamplesReceived = m_sStream.ui64SamplesWritten = 0;
+		m_sStream.bAdding = false;
+		m_sStream.ui64MetaWritten = 0;
 		m_sStream.bStreaming = true;
 		return true;
 	}
@@ -538,6 +540,7 @@ namespace lsn {
 
 		if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
 			if ( (*m_sStream.pfAddSampleFunc)( _fSample, m_sStream ) ) {
+				m_sStream.bAdding = true;
 				m_sStream.vCurBuffer.push_back( _fSample );
 				uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
 				m_sStream.ui32WavFile_DSize += sizeof( float );
@@ -1578,7 +1581,7 @@ namespace lsn {
                 }
 			}
 			// Write the buffer to disk (if any).
-            if ( !vBufferToWrite.empty() ) {
+            if LSN_UNLIKELY( !vBufferToWrite.empty() ) {
 				(*m_sStream.pfCvtAndWriteFunc)( vBufferToWrite, vConversionBuffer, m_sStream );
             }
 		}

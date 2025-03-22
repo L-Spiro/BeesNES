@@ -26,6 +26,7 @@
 
 #include <filesystem>
 
+#include <EEExpEval.h>
 
 #define LSN_PULSE1_HALT_MASK							0b00100000
 #define LSN_PULSE2_HALT_MASK							0b00100000
@@ -199,8 +200,20 @@ namespace lsn {
 			m_pPulse1.UpdateSweeperState();
 			m_pPulse2.UpdateSweeperState();
 			
+
+			//auto aTmp = (*reinterpret_cast<uint32_t *>(&m_ui8Registers[4]));
+			//if ( m_ui32Pulse2 != aTmp ) {
+			//	m_ui32Pulse2 = aTmp;
+			//	if ( m_ui32Pulse2 == 0b00001110101100110000000010110101 ) {
+			//		//__debugbreak();
+			//	}
+			//	//::OutputDebugStringA( (std::format( "{0:.27f}\t{0:.27f}\t", m_ui64Cycles / std::ceil( Hz() ) ) + ee::CExpEval::ToBinary( static_cast<uint64_t>(m_ui32Pulse2) ) + "\r\n").c_str() );
+			//}
 			if LSN_LIKELY( m_bEnabled ) {
-				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0, CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3, Hz(), CAudio::GetOutputFrequency() );
+				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0,
+					200,
+					//CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3,
+					Hz(), CAudio::GetOutputFrequency() );
 				CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 			
 
@@ -311,6 +324,8 @@ namespace lsn {
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
 			m_i64TicksToLenCntr = _tM0S0;
 			m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
+
+			m_ui32Pulse2 = (*reinterpret_cast<uint32_t *>(&m_ui8Registers[4]));
 		}
 
 		/**
@@ -417,7 +432,8 @@ namespace lsn {
 			}
 			m_bEnabled = m_fVolume != 0.0f && _aoOptions.bEnabled;
 
-			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? std::min( _aoOptions.ui32OutputHz / 2.0f, _aoOptions.apCharacteristics.fLpf ) : _aoOptions.ui32OutputHz / 2.0f;
+			float dMaxLpf = _aoOptions.ui32OutputHz * 3.0f / 2.0f;//_aoOptions.ui32OutputHz / 2.0f;
+			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? std::min( dMaxLpf, _aoOptions.apCharacteristics.fLpf ) : dMaxLpf;
 			m_fHpf0 = _aoOptions.apCharacteristics.bHpf0Enable ? _aoOptions.apCharacteristics.fHpf0 : 20.0f;
 			m_fHpf1 = _aoOptions.apCharacteristics.fHpf1;
 			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
@@ -425,7 +441,7 @@ namespace lsn {
 			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
-			m_fSampleBoxLpf = (20000.0f / 22050.0f) * (_aoOptions.ui32OutputHz / 2.0f);
+			m_fSampleBoxLpf = (22000.0f / 22050.0f) * (_aoOptions.ui32OutputHz / 2.0f);
 
 			m_fP1Vol = _aoOptions.apCharacteristics.fP1Volume;
 			m_fP2Vol = _aoOptions.apCharacteristics.fP2Volume;
@@ -557,6 +573,8 @@ namespace lsn {
 		CDelayedValue<uint8_t, 2>						m_dvNoiseLengthCounterHalt;
 		
 
+		// TMP.
+		uint32_t										m_ui32Pulse2 = 0;
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */

@@ -233,7 +233,7 @@ namespace lsn {
 		LSN_VURIFFY( ui16Pc );
 #undef LSN_VURIFFY
 
-		if ( m_ui8FuncIndex != 0 && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM ) {
+		if ( m_fsState.ui8FuncIndex != 0 && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM ) {
 			::OutputDebugStringA( cvoVerifyMe.sName.c_str() );
 			::OutputDebugStringA( "\r\nDidn't read the end of cycle functions.\r\n" );
 			::OutputDebugStringA( "\r\n\r\n" );
@@ -403,11 +403,7 @@ namespace lsn {
 	/** Performs an add-with-carry with an operand, setting flags C, N, V, and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Adc_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		Adc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
@@ -514,9 +510,7 @@ namespace lsn {
 
 	/** Performs A = A & OP.  Sets flags C, N, and Z, increases PC. */
 	void CCpu6502::Anc_IncPc_BeginInst() {
-		BeginInst();
-
-		LSN_UPDATE_PC;
+		BeginInst<true>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 
@@ -527,11 +521,7 @@ namespace lsn {
 	/** Performs A = A & OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::And_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 
@@ -541,9 +531,7 @@ namespace lsn {
 
 	/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
 	void CCpu6502::Ane_IncPc_BeginInst() {
-		BeginInst();
-
-		LSN_UPDATE_PC;
+		BeginInst<true>();
 
 		// "N and Z are set according to the value of the accumulator before the instruction executed" does not seem to be true.
 		m_fsState.rRegs.ui8A = (m_fsState.rRegs.ui8A | 0xEE) & m_fsState.rRegs.ui8X & m_fsState.ui8Operand;
@@ -555,11 +543,7 @@ namespace lsn {
 	/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Arr_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 		uint8_t ui8HiBit = (m_fsState.rRegs.ui8Status & C()) << 7;
@@ -602,9 +586,7 @@ namespace lsn {
 
 	/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
 	void CCpu6502::Asr_IncPc_BeginInst() {
-		BeginInst();
-
-		LSN_UPDATE_PC;
+		BeginInst<true>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
 		SetBit<C()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x01) != 0 );
@@ -669,8 +651,7 @@ namespace lsn {
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2() {
 		if ( !m_fsState.bTakeJump ) {
-			BeginInst();
-			LSN_UPDATE_PC;
+			BeginInst<true>();
 		}
 		else {
 			LSN_INSTR_START_PHI1( true );
@@ -771,11 +752,7 @@ namespace lsn {
 	/** Compares A with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cmp_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
@@ -783,11 +760,7 @@ namespace lsn {
 	/** Compares X with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cpx_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8X, m_fsState.ui8Operand );
 	}
@@ -795,11 +768,7 @@ namespace lsn {
 	/** Compares Y with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cpy_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8Y, m_fsState.ui8Operand );
 	}
@@ -909,11 +878,7 @@ namespace lsn {
 	/** Performs A = A ^ OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Eor_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A ^= m_fsState.ui8Operand;
 
@@ -1162,22 +1127,16 @@ namespace lsn {
 
 	/** Copies m_fsState.ui16Address into PC, adjusts S. */
 	void CCpu6502::Jsr_BeginInst() {
-		BeginInst();
+		BeginInst<false, true>();
 
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
 		m_fsState.ui16PcModify = 0;
-
-		LSN_UPDATE_S;
 	}
 
 	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Las_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.rRegs.ui8S = (m_fsState.ui8Operand & m_fsState.rRegs.ui8S);
 
@@ -1188,11 +1147,7 @@ namespace lsn {
 	/** Performs A = X = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Lax_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
 
@@ -1203,11 +1158,7 @@ namespace lsn {
 	/** Performs A = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Lda_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.ui8Operand;
 
@@ -1218,11 +1169,7 @@ namespace lsn {
 	/** Performs X = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ldx_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
 
@@ -1233,11 +1180,7 @@ namespace lsn {
 	/** Performs Y = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ldy_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8Y = m_fsState.ui8Operand;
 
@@ -1273,7 +1216,7 @@ namespace lsn {
 
 	/** Performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
 	void CCpu6502::Lxa_IncPc_BeginInst() {
-		BeginInst();
+		BeginInst<true>();
 
 		LSN_UPDATE_PC;
 
@@ -1291,14 +1234,7 @@ namespace lsn {
 	template <bool _bRead, bool _bIncPc, bool _bAdjS, bool _bBeginInstr>
 	void CCpu6502::Null() {
 		if constexpr ( _bBeginInstr ) {
-			BeginInst();
-
-			if constexpr ( _bIncPc ) {
-				LSN_UPDATE_PC;
-			}
-			if constexpr ( _bAdjS ) {
-				LSN_UPDATE_S;
-			}
+			BeginInst<_bIncPc, _bAdjS>();
 		}
 		else {
 			LSN_INSTR_START_PHI1( _bRead );
@@ -1319,11 +1255,7 @@ namespace lsn {
 	/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ora_BeginInst() {
-		BeginInst();
-
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A |= m_fsState.ui8Operand;
 
@@ -1784,9 +1716,7 @@ namespace lsn {
 
 	/** Adjusts PC and calls BeginInst(). */
 	void CCpu6502::Rts_BeginInst() {
-		BeginInst();
-
-		LSN_UPDATE_PC;
+		BeginInst<true>();
 	}
 
 	/** Writes (A & X) to either m_fsState.ui16Pointer or m_fsState.ui16Address. */
@@ -1807,19 +1737,14 @@ namespace lsn {
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Sbc_BeginInst() {
-		BeginInst();
-		if constexpr ( _bIncPc ) {
-			LSN_UPDATE_PC;
-		}
+		BeginInst<_bIncPc>();
 
 		Sbc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 	}
 
 	/** Performs X = (A & X) - OP.  Sets flags C, N and Z. */
 	void CCpu6502::Sbx_IncPc_BeginInst() {
-		BeginInst();
-
-		LSN_UPDATE_PC;
+		BeginInst<true>();
 
 		const uint8_t ui8AnX = (m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X);
 		SetBit<C()>( m_fsState.rRegs.ui8Status, ui8AnX >= m_fsState.ui8Operand );

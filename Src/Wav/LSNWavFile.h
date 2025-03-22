@@ -134,6 +134,7 @@ namespace lsn {
 		/** Stream-to-file options. */
 		struct LSN_STREAM_TO_FILE_OPTIONS {
 			std::wstring												wsPath;
+			std::wstring												wsMetaPath;
 			LSN_FORMAT													fFormat = LSN_F_IEEE_FLOAT;
 			uint32_t													ui32Bits = 24;
 			uint32_t													ui32Hz = 44100;			// Not set by the user.  Only used to pass information to the set-options functions.
@@ -176,13 +177,20 @@ namespace lsn {
 		struct LSN_STREAMING {
 			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
 			uint64_t													ui64SamplesWritten = 0;		/**< The number of samples written to the file. */
+			uint64_t													ui64MetaWritten = 0;		/**< The number of metadata items written. */
 			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
 			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
+			uint64_t													ui64MetaParm = 0;			/**< The metadata uint64_t parameter. */
 			double														dDitherError = 0.0;			/**< The dither error. */
 			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
 			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
 			std::wstring												wsPath;						/**< The path to the file to which we are streaming. */
 			CStdFile													sfFile;						/**< The file to which to write the WAV data. */
+
+			std::wstring												wsMetaPath;					/**< The path to the metadata file to which we are streaming. */
+			CStdFile													sfMetaFile;					/**< The metadata file to which to write the Wmetadata. */
+			void *														pvMetaParm = nullptr;		/**< The metadata pointer parameter. */
+
 			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
 			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
 			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
@@ -201,6 +209,7 @@ namespace lsn {
 			uint16_t													ui16Channels = 2;			/**< Total channels to output. */
 			bool														bEnd = true;				/**< Tells the thread to stop. */
 			bool														bStreaming = false;			/**< If true, the file must be closed either manually or in the destructor. */
+			bool														bAdding = false;			/**< Set to true after the starting condition is met.  Indicates that samples are being added. */
 			bool														bDither = false;			/**< To dither 16-bit PCM or not. */
 		};
 

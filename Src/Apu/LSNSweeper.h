@@ -67,9 +67,7 @@ namespace lsn {
 				//m_ui16Change = m_ui16ReloadRef >> m_ui8Shift;
 				m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
 			}
-
 		}
-
 
 		/**
 		 * Sets the "enabled" flag.
