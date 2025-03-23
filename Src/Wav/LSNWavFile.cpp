@@ -411,6 +411,15 @@ namespace lsn {
 			std::wprintf( L"Failed to create WAV stream file: %s.\r\n", _stfoFileOptions.wsPath.c_str() );
 			return false;
 		}
+
+		if ( _stfoFileOptions.bMetaEnabled && _stfoFileOptions.wsMetaPath.size() ) {
+			std::filesystem::path pAbsoluteMetaPath = std::filesystem::absolute( std::filesystem::path( _stfoFileOptions.wsMetaPath ) );
+			if ( !CreateStreamMetaFile( pAbsoluteMetaPath.generic_u8string().c_str() ) ) {
+				m_sStream.sfFile.Close();
+				m_sStream.sfMetaFile.Close();
+				return false;
+			}
+		}
 		
 		try {
 			m_sStream.stBufferSize = _stBufferSize * m_sStream.ui16Channels;
@@ -419,6 +428,7 @@ namespace lsn {
 		}
 		catch ( ... ) {
 			m_sStream.sfFile.Close();
+			m_sStream.sfMetaFile.Close();
 			std::wprintf( L"Out of memory creating buffers for WAV stream: %s.\r\n", _stfoFileOptions.wsPath.c_str() );
 			return false;
 		}
@@ -473,6 +483,7 @@ namespace lsn {
 					}
 					default : {
 						m_sStream.sfFile.Close();
+						m_sStream.sfMetaFile.Close();
 						std::wprintf( L"Unrecognized PCM bits %X: %s.\r\n", m_sStream.ui16Bits, _stfoFileOptions.wsPath.c_str() );
 						return false;
 					}
@@ -485,6 +496,7 @@ namespace lsn {
 			}
 			default : {
 				m_sStream.sfFile.Close();
+				m_sStream.sfMetaFile.Close();
 				std::wprintf( L"Unrecognized WAV format %X: %s.\r\n", m_sStream.fFormat, _stfoFileOptions.wsPath.c_str() );
 				return false;
 			}
@@ -1554,6 +1566,23 @@ namespace lsn {
 		
 			m_sStream.sfFile.Close();
 		}
+		if ( m_sStream.sfMetaFile.IsOpen() ) {
+			m_sStream.sfMetaFile.Close();
+		}
+	}
+
+	/**
+	 * Creates the file for streaming metadata.  All writes to the file are handled by a callback.
+	 * 
+	 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+	 * \return Returns true if the file was created.
+	 **/
+	bool CWavFile::CreateStreamMetaFile( const char8_t * _pcPath ) {
+		if ( !m_sStream.sfMetaFile.Create( _pcPath ) ) {
+			std::wprintf( L"Failed to create stream metadata file: %s.\r\n", reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );
+			return false;
+		}
+		return true;
 	}
 
 	/**

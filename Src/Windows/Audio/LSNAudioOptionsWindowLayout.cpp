@@ -42,7 +42,7 @@ namespace lsn {
 
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP					(LSN_AUDIO_OPTIONS_GENERAL_GROUP_TOP + LSN_AUDIO_OPTIONS_GENERAL_GROUP_H)
 #define LSN_AUDIO_OPTIONS_CHAR_GROUP_W						LSN_AUDIO_OPTIONS_GENERAL_GROUP_W
-#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2) + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5)
+#define LSN_AUDIO_OPTIONS_CHAR_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + (LSN_DEF_COMBO_HEIGHT) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 3 + (LSN_TOP_JUST * 2) + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 6)
 
 #define LSN_AUDIO_OPTIONS_RAW_GROUP_TOP						LSN_TOP_JUST
 #define LSN_META_RAW_GROUP_T								(LSN_AUDIO_OPTIONS_RAW_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 2 + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4 + LSN_TOP_JUST)
@@ -791,12 +791,62 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,																																									// wId
+			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_GENERAL_CHECK0_L,							// iLeft
 			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 4 + ((LSN_DEF_TRACKBAR_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),				// iTop
+			LSN_GENERAL_CHECK0_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
+
+		// DMC Volume.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,					// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5 + ((LSN_DEF_TRACKBAR_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_GENERAL_LABEL0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_DMC_VOLUME ),		// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
+		{
+			LSW_LT_TRACKBAR,								// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_GENERAL_TRACK_L,							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5,							// iTop
+			LSN_GENERAL_TRACK_W,							// dwWidth
+			LSN_DEF_TRACKBAR_HEIGHT,						// dwHeight
+			LSN_TRACKBAR_STYLE,								// dwStyle
+			0,												// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_GENERAL_CHECK0_L,							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5 + ((LSN_DEF_TRACKBAR_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),				// iTop
 			LSN_GENERAL_CHECK0_W,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
@@ -814,7 +864,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INV_CHECK_( 0 ),							// iLeft
-			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 5,											// iTop
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
 			LSN_INV_CHECK_( 1 ) - LSN_INV_CHECK_( 0 ),		// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_CHECKSTYLE,									// dwStyle
@@ -830,7 +880,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INV_CHECK_( 1 ),							// iLeft
-			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 5,											// iTop
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
 			LSN_INV_CHECK_( 2 ) - LSN_INV_CHECK_( 1 ),		// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_CHECKSTYLE,									// dwStyle
@@ -1579,6 +1629,56 @@ namespace lsn {
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 		},
 
+		// DMC Volume.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,					// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5 + ((LSN_DEF_TRACKBAR_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_GENERAL_LABEL0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_DMC_VOLUME ),		// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+		{
+			LSW_LT_TRACKBAR,								// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_GENERAL_TRACK_L,							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5,							// iTop
+			LSN_GENERAL_TRACK_W,							// dwWidth
+			LSN_DEF_TRACKBAR_HEIGHT,						// dwHeight
+			LSN_TRACKBAR_STYLE,								// dwStyle
+			0,												// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_GENERAL_CHECK0_L,							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 2) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + (LSN_DEF_TRACKBAR_HEIGHT + LSN_TOP_JUST) * 5 + ((LSN_DEF_TRACKBAR_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),				// iTop
+			LSN_GENERAL_CHECK0_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+
 		// Noise/Invert
 		{
 			LSW_LT_CHECK,									// ltType
@@ -1587,7 +1687,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INV_CHECK_( 0 ),							// iLeft
-			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 5,											// iTop
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
 			LSN_INV_CHECK_( 1 ) - LSN_INV_CHECK_( 0 ),		// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_CHECKSTYLE,									// dwStyle
@@ -1603,7 +1703,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INV_CHECK_( 1 ),							// iLeft
-			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 5,											// iTop
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
 			LSN_INV_CHECK_( 2 ) - LSN_INV_CHECK_( 1 ),		// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_CHECKSTYLE,									// dwStyle

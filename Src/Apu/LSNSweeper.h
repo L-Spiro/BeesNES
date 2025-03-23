@@ -37,15 +37,7 @@ namespace lsn {
 		template <unsigned _uOnesCompliment>
 		inline void									TickSweeper() {
 			if ( m_ui8Timer == 0 && m_bEnabled && m_ui8Shift > 0 && !m_bMuted ) {
-				uint16_t ui16Change = m_ui16ReloadRef >> m_ui8Shift;
-				if ( m_ui16ReloadRef >= 8 && ui16Change < 0x07FF ) {
-					if ( m_bNegated ) {
-						m_ui16ReloadRef += -ui16Change - _uOnesCompliment;
-					}
-					else {
-						m_ui16ReloadRef += ui16Change;
-					}
-				}
+				m_ui16ReloadRef = NextRefVal<_uOnesCompliment>( m_ui16ReloadRef, m_ui8Shift, m_bNegated );
 			}
 
 			if ( m_ui8Timer == 0 || m_bNeedReload ) {
@@ -56,17 +48,44 @@ namespace lsn {
 				m_ui8Timer--;
 			}
 
-			m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
+			//m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
+			/*auto aTmp = NextRefVal<_uOnesCompliment>( m_ui16ReloadRef, m_ui8Shift, m_bNegated );
+			m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && aTmp > 0x7FF);*/
+		}
+
+		/**
+		 * Gets the next reload reference value.
+		 * 
+		 * \param _ui16ReloadRef The current reload reference value.
+		 * \param _ui8Shift The shift amount.
+		 * \param _bNegated The negated flag.
+		 * \return Returns the adjusted reload reference value.
+		 **/
+		template <unsigned _uOnesCompliment>
+		static inline uint16_t						NextRefVal( uint16_t _ui16ReloadRef, uint8_t _ui8Shift, bool _bNegated ) {
+			uint16_t ui16Change = _ui16ReloadRef >> _ui8Shift;
+			if ( _ui16ReloadRef >= 8 && ui16Change < 0x07FF ) {
+				if ( _bNegated ) {
+					_ui16ReloadRef += -ui16Change - _uOnesCompliment;
+				}
+				else {
+					_ui16ReloadRef += ui16Change;
+				}
+			}
+			return _ui16ReloadRef;
 		}
 
 		/**
 		 * Updates the internal state based on external observations about the target reload value.
 		 **/
+		template <unsigned _uOnesCompliment>
 		inline void									UpdateSweeperState() {
-			if ( m_bEnabled ) {
+			//if ( m_bEnabled ) {
 				//m_ui16Change = m_ui16ReloadRef >> m_ui8Shift;
-				m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
-			}
+				//m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && m_ui16ReloadRef > 0x7FF);
+				auto aTmp = NextRefVal<_uOnesCompliment>( m_ui16ReloadRef, m_ui8Shift, m_bNegated );
+				m_bMuted = (m_ui16ReloadRef < 8) || (!m_bNegated && aTmp > 0x7FF);
+			//}
 		}
 
 		/**

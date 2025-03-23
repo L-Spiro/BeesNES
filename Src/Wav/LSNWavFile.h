@@ -805,6 +805,14 @@ namespace lsn {
 		void															CloseStreamFile();
 
 		/**
+		 * Creates the file for streaming metadata.  All writes to the file are handled by a callback.
+		 * 
+		 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+		 * \return Returns true if the file was created.
+		 **/
+		bool															CreateStreamMetaFile( const char8_t * _pcPath );
+
+		/**
 		 * The stream-to-file writer thread.
 		 **/
 		void															StreamWriterThread();

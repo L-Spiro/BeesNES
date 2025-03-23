@@ -755,6 +755,7 @@ namespace lsn {
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fP2Volume ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fTVolume ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fNVolume ) ) { return false; }
+		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.fDmcVolume ) ) { return false; }
 
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
 		if ( !_sFile.Read( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }
@@ -795,6 +796,7 @@ namespace lsn {
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fP2Volume ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fTVolume ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fNVolume ) ) { return false; }
+		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.fDmcVolume ) ) { return false; }
 
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bNoise ) ) { return false; }
 		if ( !_sFile.Write( _aoAudioOptions.apCharacteristics.bInvert ) ) { return false; }

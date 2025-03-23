@@ -76,6 +76,7 @@ namespace lsn {
 		float											fP2Volume = 1.0f;
 		float											fTVolume = 1.0f;
 		float											fNVolume = 1.0f;
+		float											fDmcVolume = 1.0f;
 		LSN_FILTERING_MODE								fmFilterMode = LSN_FM_NORMAL;
 		bool											bLpfEnable = true;
 		bool											bHpf0Enable = true;

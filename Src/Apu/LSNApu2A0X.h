@@ -165,6 +165,7 @@ namespace lsn {
 			m_fP2Vol( 1.0f ),
 			m_fTVol( 1.0f ),
 			m_fNVol( 1.0f ),
+			m_fDmcVol( 1.0f ),
 			m_fDmcRegVol( 0.0f ),
 			m_bEnabled( true ) {
 
@@ -197,8 +198,8 @@ namespace lsn {
 			m_dvNoiseLengthCounterHalt.Tick();
 
 			(this->*m_pftTick)();
-			m_pPulse1.UpdateSweeperState();
-			m_pPulse2.UpdateSweeperState();
+			m_pPulse1.UpdateSweeperState<1>();
+			m_pPulse2.UpdateSweeperState<0>();
 			
 
 			//auto aTmp = (*reinterpret_cast<uint32_t *>(&m_ui8Registers[4]));
@@ -228,7 +229,7 @@ namespace lsn {
 				}
 				float fNoise = ((m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) )) ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f) * m_fNVol;
 				float fTriangle = m_tTriangle.Output() * m_fTVol;
-				float fDmc = m_fDmcRegVol;
+				float fDmc = m_fDmcRegVol * m_fDmcVol;
 
 				//fFinalPulse = fNoise = fTriangle = 0.0f;
 
@@ -288,13 +289,8 @@ namespace lsn {
 
 				dFinal = m_pfLpf.Process( dFinal );
 				{
-					const float fMinLpf = HzAsFloat() / 2.0f;
 					for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-						float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
-						if ( fLpf < fMinLpf ) {
-							m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
-							dFinal = m_pfOutputPole[I].Process( dFinal );
-						}
+						dFinal = m_pfOutputPole[I].Process( dFinal );
 					}
 				}
 
@@ -432,13 +428,19 @@ namespace lsn {
 			}
 			m_bEnabled = m_fVolume != 0.0f && _aoOptions.bEnabled;
 
-			float dMaxLpf = _aoOptions.ui32OutputHz * 3.0f / 2.0f;//_aoOptions.ui32OutputHz / 2.0f;
+			float dMaxLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
 			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? std::min( dMaxLpf, _aoOptions.apCharacteristics.fLpf ) : dMaxLpf;
 			m_fHpf0 = _aoOptions.apCharacteristics.bHpf0Enable ? _aoOptions.apCharacteristics.fHpf0 : 20.0f;
 			m_fHpf1 = _aoOptions.apCharacteristics.fHpf1;
 			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
 
 			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
+			for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+				//float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
+				float fLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
+				m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );
+			}
+
 			m_hfHpfFilter1.SetEnabled( _aoOptions.apCharacteristics.bHpf1Enable );
 			m_hfHpfFilter2.SetEnabled( _aoOptions.apCharacteristics.bHpf2Enable );
 			m_fSampleBoxLpf = (22000.0f / 22050.0f) * (_aoOptions.ui32OutputHz / 2.0f);
@@ -447,6 +449,7 @@ namespace lsn {
 			m_fP2Vol = _aoOptions.apCharacteristics.fP2Volume;
 			m_fTVol = _aoOptions.apCharacteristics.fTVolume;
 			m_fNVol = _aoOptions.apCharacteristics.fNVolume;
+			m_fDmcVol = _aoOptions.apCharacteristics.fDmcVolume;
 		}
 
 		/**
@@ -532,6 +535,8 @@ namespace lsn {
 		float											m_fTVol;
 		/** The Noise master volume. */
 		float											m_fNVol;
+		/** The Dmc master volume. */
+		float											m_fDmcVol;
 		/** DMC voluem (from register 4011, not settings). */
 		float											m_fDmcRegVol;
 		/** Pulse 1. */

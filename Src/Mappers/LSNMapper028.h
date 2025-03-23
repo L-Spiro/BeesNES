@@ -31,10 +31,10 @@ namespace lsn {
 		// == Enumerations.
 		/** Registers. */
 		enum LSN_REG {
-			LSN_R_00,
-			LSN_R_01,
-			LSN_R_80,
-			LSN_R_81,
+			LSN_R_00									= 0x00,
+			LSN_R_01									= 0x01,
+			LSN_R_80									= 0x80,
+			LSN_R_81									= 0x81,
 		};
 
 
@@ -186,74 +186,74 @@ namespace lsn {
  				// 32-Kilobyte modes.
  				case 0x00 : {} LSN_FALLTHROUGH
  				case 0x04 : {
- 					m_ui8PrgLo = i32OutB;
- 					m_ui8PrgHi = i32OutB | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB );
+ 					m_ui8PrgHi = uint8_t( i32OutB | 1 );
  					break;
 				}
  				case 0x10 : {} LSN_FALLTHROUGH
  				case 0x14 : {
- 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg & 2;
- 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg & 2 | 1;
- 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg << 1 & 2;
- 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg << 1 & 2 | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~2 | m_ui8Prg & 2 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~2 | m_ui8Prg & 2 | 1 );
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~2 | m_ui8Prg << 1 & 2 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~2 | m_ui8Prg << 1 & 2 | 1 );
  					break;
 				}
  				case 0x20 : {} LSN_FALLTHROUGH
  				case 0x24 : {
- 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg & 6;
- 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg & 6 | 1;
- 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg << 1 & 6;
- 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg << 1 & 6 | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~6 | m_ui8Prg & 6 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~6 | m_ui8Prg & 6 | 1 );
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~6 | m_ui8Prg << 1 & 6 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~6 | m_ui8Prg << 1 & 6 | 1 );
  					break;
 				}
  				case 0x30 : {} LSN_FALLTHROUGH
  				case 0x34 : {
- 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg & 14;
- 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg & 14 | 1;
- 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg << 1 & 14;
- 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg << 1 & 14 | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~14 | m_ui8Prg & 14 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~14 | m_ui8Prg & 14 | 1 );
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~14 | m_ui8Prg << 1 & 14 );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~14 | m_ui8Prg << 1 & 14 | 1 );
  					break;
 				}
  				// Bottom fixed modes.
  				case 0x08 : {
- 					m_ui8PrgLo = i32OutB;
- 					m_ui8PrgHi = i32OutB | m_ui8Prg & 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB );
+ 					m_ui8PrgHi = uint8_t( i32OutB | m_ui8Prg & 1 );
  					break;
 				}
  				case 0x18 : {
- 					m_ui8PrgLo = i32OutB;
- 					m_ui8PrgHi = i32OutB & ~2 | m_ui8Prg & 3;
+ 					m_ui8PrgLo = uint8_t( i32OutB );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~2 | m_ui8Prg & 3 );
  					break;
 				}
  				case 0x28 : {
- 					m_ui8PrgLo = i32OutB;
- 					m_ui8PrgHi = i32OutB & ~6 | m_ui8Prg & 7;
+ 					m_ui8PrgLo = uint8_t( i32OutB );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~6 | m_ui8Prg & 7 );
  					break;
 				}
  				case 0x38 : {
- 					m_ui8PrgLo = i32OutB;
- 					m_ui8PrgHi = i32OutB & ~14 | m_ui8Prg & 15;
+ 					m_ui8PrgLo = uint8_t( i32OutB );
+ 					m_ui8PrgHi = uint8_t( i32OutB & ~14 | m_ui8Prg & 15 );
  					break;
 				}
  				// Top fixed modes.
  				case 0x0C : {
- 					m_ui8PrgLo = i32OutB | m_ui8Prg & 1;
- 					m_ui8PrgHi = i32OutB | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB | m_ui8Prg & 1 );
+ 					m_ui8PrgHi = uint8_t( i32OutB | 1 );
  					break;
 				}
  				case 0x1C : {
- 					m_ui8PrgLo = i32OutB & ~2 | m_ui8Prg & 3;
- 					m_ui8PrgHi = i32OutB | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~2 | m_ui8Prg & 3 );
+ 					m_ui8PrgHi = uint8_t( i32OutB | 1 );
  					break;
 				}
  				case 0x2C : {
- 					m_ui8PrgLo = i32OutB & ~6 | m_ui8Prg & 7;
- 					m_ui8PrgHi = i32OutB | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~6 | m_ui8Prg & 7 );
+ 					m_ui8PrgHi = uint8_t( i32OutB | 1 );
  					break;
 				}
  				case 0x3C : {
- 					m_ui8PrgLo = i32OutB & ~14 | m_ui8Prg & 15;
- 					m_ui8PrgHi = i32OutB | 1;
+ 					m_ui8PrgLo = uint8_t( i32OutB & ~14 | m_ui8Prg & 15 );
+ 					m_ui8PrgHi = uint8_t( i32OutB | 1 );
  					break;
 				}
  			}
@@ -271,12 +271,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank5000_5FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper028 * pmThis = reinterpret_cast<CMapper028 *>(_pvParm0);
-			switch ( _ui8Val & 0x81 ) {
-				case 0x00 : { pmThis->m_rReg = LSN_R_00; break; }
-				case 0x01 : { pmThis->m_rReg = LSN_R_01; break; }
-				case 0x80 : { pmThis->m_rReg = LSN_R_80; break; }
-				case 0x81 : { pmThis->m_rReg = LSN_R_81; break; }
-			}
+			pmThis->m_rReg = LSN_REG( _ui8Val & 0x81 );
 		}
 
 		/**
@@ -290,7 +285,7 @@ namespace lsn {
 		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper028 * pmThis = reinterpret_cast<CMapper028 *>(_pvParm0);
 			switch ( pmThis->m_rReg ) {
-				case 0x00 : {
+				case LSN_R_00 : {
 					/*	7654 3210
 					 *	   M   BB
 					 *	   |   ++- Set CHR RAM A14-A13
@@ -301,7 +296,7 @@ namespace lsn {
 					pmThis->UpdateMode( _ui8Val );
 					break;
 				}
-				case 0x01 : {
+				case LSN_R_01 : {
 					/*	7654 3210
 					 *	   M BBBB
 					 *	   | ++++- Set current PRG ROM bank
@@ -312,7 +307,7 @@ namespace lsn {
 					pmThis->UpdateMode( _ui8Val );
 					break;
 				}
-				case 0x80 : {
+				case LSN_R_80 : {
 					/*	7654 3210
 					 *	  SS PPMM
 					 *	  || ||++- Nametable mirroring mode
@@ -325,7 +320,7 @@ namespace lsn {
 					pmThis->UpdateBanks();
 					break;
 				}
-				case 0x81 : {
+				case LSN_R_81 : {
 					/*	7654 3210
 					 *	BBBB Bbbb
 					 *	++++-++++- Set outer PRG ROM bank

@@ -174,6 +174,7 @@
 #define LSN_AUDIO_OPTIONS_P2_VOLUME											Pulse 1 Vol:
 #define LSN_AUDIO_OPTIONS_TRI_VOLUME										Triangle Vol:
 #define LSN_AUDIO_OPTIONS_NOISE_VOLUME										Noise Vol:
+#define LSN_AUDIO_OPTIONS_DMC_VOLUME										DMC Vol:
 #define LSN_AUDIO_OPTIONS_INVERT											Invert
 #define LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM									Noise/Mains Hum
 
