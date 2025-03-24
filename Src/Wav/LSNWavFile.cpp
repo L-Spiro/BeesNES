@@ -412,13 +412,19 @@ namespace lsn {
 			return false;
 		}
 
-		if ( _stfoFileOptions.bMetaEnabled && _stfoFileOptions.wsMetaPath.size() ) {
+		if ( _stfoFileOptions.bMetaEnabled && _stfoFileOptions.wsMetaPath.size() && _stfoFileOptions.pfMetaFunc ) {
 			std::filesystem::path pAbsoluteMetaPath = std::filesystem::absolute( std::filesystem::path( _stfoFileOptions.wsMetaPath ) );
 			if ( !CreateStreamMetaFile( pAbsoluteMetaPath.generic_u8string().c_str() ) ) {
 				m_sStream.sfFile.Close();
 				m_sStream.sfMetaFile.Close();
 				return false;
 			}
+			m_sStream.pfMetaFunc = _stfoFileOptions.pfMetaFunc;
+			m_sStream.pvMetaParm = _stfoFileOptions.pvMetaParm;
+			m_sStream.ui64MetaParm = _stfoFileOptions.ui64MetaParm;
+			m_sStream.i32MetaFormat = _stfoFileOptions.i32MetaFormat;
+			m_sStream.ui64MetaWritten = 0;
+			m_sStream.bMeta = true;
 		}
 		
 		try {

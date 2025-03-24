@@ -639,6 +639,17 @@ namespace lsn {
 			m_aApu.SetAsInactive();
 		}
 
+		/**
+		 * Sets the parameters needed for metadata streaming via our APU.
+		 * 
+		 * \param _pvParm Holds the returned pointer to our APU as a void *.
+		 * \param _pfAddMetaFunc Holds a pointer to the APU's add function.
+		 **/
+		virtual void									SetMetaDataStreamParms( void * &_pvParm, CWavFile::PfAddMetaDataFunc &_pfAddMetaFunc ) {
+			_pvParm = &m_aApu;
+			_pfAddMetaFunc = &m_aApu.AddMetaDataFunc_RingBuffer;
+		}
+
 
 	protected :
 		// == Types.

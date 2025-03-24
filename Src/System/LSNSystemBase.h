@@ -251,6 +251,14 @@ namespace lsn {
 		virtual void									SetAsInactive() {}
 
 		/**
+		 * Sets the parameters needed for metadata streaming via our APU.
+		 * 
+		 * \param _pvParm Holds the returned pointer to our APU as a void *.
+		 * \param _pfAddMetaFunc Holds a pointer to the APU's add function.
+		 **/
+		virtual void									SetMetaDataStreamParms( void * &/*_pvParm*/, CWavFile::PfAddMetaDataFunc &/*_pfAddMetaFunc*/ ) {}
+
+		/**
 		 * Loads a ROM into the given LSN_ROM object.
 		 *
 		 * \param _vRom The in-memory ROM fille.

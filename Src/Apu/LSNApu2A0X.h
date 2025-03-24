@@ -19,6 +19,7 @@
 #include "../System/LSNTickable.h"
 #include "../Wav/LSNWavFile.h"
 #include "../Utilities/LSNDelayedValue.h"
+#include "../Utilities/LSNRingBuffer.h"
 #include "LSNApuUnit.h"
 #include "LSNNoise.h"
 #include "LSNPulse.h"
@@ -80,6 +81,8 @@
 
 #define LSN_4017_DELAY									(3+1)
 
+#pragma warning( push )
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CApu2A0X<0,7457,14913,22371,29828,29829,29830,7457,14913,22371,29829,37281,37282,236250000,11,12,false>': structure was padded due to alignment specifier
 
 namespace lsn {
 
@@ -138,6 +141,8 @@ namespace lsn {
 		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv,
 		bool _bSwapDuty>
 	class CApu2A0X : public CTickable {
+		typedef CApu2A0X<_tType, _tM0S0, _tM0S1, _tM0S2, _tM0S3_0, _tM0S3_1, _tM0S3_2, _tM1S0, _tM1S1, _tM1S2, _tM1S3, _tM1S4_0, _tM1S4_1, _tMasterClock, _tMasterDiv, _tApuDiv, _bSwapDuty>
+														CThisApu;
 	public :
 		CApu2A0X( CCpuBus * _pbBus, CInterruptable * _piIrqTarget ) :
 			m_pbBus( _pbBus ),
@@ -156,6 +161,7 @@ namespace lsn {
 			m_dvNoiseLengthCounterHalt( ChannelHaltLengthCounter<0x0C, LSN_NOISE_HALT_MASK>, this ),
 			m_pwfRawStream( nullptr ),
 			m_pwfOutStream( nullptr ),
+			m_rbRingBuffer( 16 ),
 			m_fSampleBoxLpf( 20000.0f ),
 			m_fLpf( 20000.0f ),
 			m_fHpf0( 194.0f ),
@@ -178,6 +184,101 @@ namespace lsn {
 
 		// == Types.
 		typedef CDelayedValue<uint8_t, LSN_4017_DELAY>	DelayedVal;
+
+		/** The register buffer. */
+		LSN_ALIGN( 64 )
+		struct LSN_REG_BUFFER {
+			LSN_REG_BUFFER() {}
+			LSN_REG_BUFFER( const LSN_REG_BUFFER &_rbOther ) {
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+			}
+			LSN_REG_BUFFER( LSN_REG_BUFFER && _rbOther ) {
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+			}
+			uint8_t										ui8Registers[0x17+1];
+
+
+			// == Operators.
+			/**
+			 * Assignment operator.
+			 * 
+			 * \param _rbOther The object to copy.
+			 * \return Returns a reference to the copied object.
+			 **/
+			LSN_REG_BUFFER &							operator = ( const LSN_REG_BUFFER &_rbOther ) {
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+				return (*this);
+			}
+
+
+			// == Functions.
+			/**
+			 * Gets the Pulse 1 bits.
+			 * 
+			 * \return Returns the 32 Pulse 1 bits.
+			 **/
+			inline uint32_t								Pulse1() const { return (*reinterpret_cast<const uint32_t *>(&ui8Registers[0x00])); }
+
+			/**
+			 * Gets the Pulse 2 bits.
+			 * 
+			 * \return Returns the 32 Pulse 2 bits.
+			 **/
+			inline uint32_t								Pulse2() const { return (*reinterpret_cast<const uint32_t *>(&ui8Registers[0x04])); }
+
+			/**
+			 * Gets the Triangle bits.
+			 * 
+			 * \return Returns the 32 Triangle bits.
+			 **/
+			inline uint32_t								Triangle() const { return (*reinterpret_cast<const uint32_t *>(&ui8Registers[0x08])) & 0xFFFF00FF; }
+
+			/**
+			 * Gets the Noise bits.
+			 * 
+			 * \return Returns the 32 Noise bits.
+			 **/
+			inline uint32_t								Noise() const { return (*reinterpret_cast<const uint32_t *>(&ui8Registers[0x0C])) & 0b11111000100011110000000000111111; }
+
+			/**
+			 * Gets the DMC bits.
+			 * 
+			 * \return Returns the 32 DMC bits.
+			 **/
+			inline uint32_t								Dmc() const { return (*reinterpret_cast<const uint32_t *>(&ui8Registers[0x10])) & 0b11111111111111110111111111001111; }
+
+			/**
+			 * Gets the Status bits.
+			 * 
+			 * \return Returns the 5 Status bits.
+			 **/
+			inline uint8_t								Status() const { return ui8Registers[0x15] & 0b00011111; }
+
+			/**
+			 * Gets the Frame-Counter bits.
+			 * 
+			 * \return Returns the 2 Frame-Counter bits.
+			 **/
+			inline uint8_t								FrameCounter() const { return ui8Registers[0x17] & 0b11000000; }
+
+			/**
+			 * Compares against another set of registers using a bit mask to compare only specific components.
+			 * 
+			 * \param _rbOther The buffer against which to compare.
+			 * \param _ui64Mask The bit mask indicating which channels/registers to compare.
+			 * \return Returns true if the given buffer is equal to this one testing only the components specified by the mask.
+			 **/
+			inline bool									Equals( const LSN_REG_BUFFER &_rbOther, uint64_t _ui64Mask ) const {
+				if ( (_ui64Mask & LSN_RF_PULSE1) && (Pulse1() != _rbOther.Pulse1()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_PULSE2) && (Pulse2() != _rbOther.Pulse2()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_TRIANGLE) && (Triangle() != _rbOther.Triangle()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_NOISE) && (Noise() != _rbOther.Noise()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_DMC) && (Dmc() != _rbOther.Dmc()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_STATUS) && (Status() != _rbOther.Status()) ) { return false; }
+				if ( (_ui64Mask & LSN_RF_FRAME_COUNTER) && (FrameCounter() != _rbOther.FrameCounter()) ) { return false; }
+				return true;
+			}
+		};
 
 
 		// == Functions.
@@ -477,6 +578,29 @@ namespace lsn {
 			m_pwfOutStream = m_pwfRawStream = nullptr;
 		}
 
+		/**
+		 * The add-metadata function used initially.  Keeps the data in a ring buffer until samples actually begin getting output, then switches to the 2nd function for adding
+		 *	metadata until the stream finishes.
+		 * 
+		 * \param _pvParm A pointer to an object of this class.
+		 * \param _sStream A reference to the streaming options.
+		 **/
+		static void LSN_STDCALL							AddMetaDataFunc_RingBuffer( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
+			if ( _sStream.bAdding ) {
+				auto rbTmp = paApu->m_rbRingBuffer.Pop_Ref();
+				if ( !paApu->m_rbLastRegBufferOut.Equals( rbTmp, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+					// Add the buffer to be consumed by the thread later.
+
+
+					paApu->m_rbLastRegBufferOut = rbTmp;
+					++_sStream.ui64MetaWritten;
+				}
+			}
+			else {
+				paApu->m_rbRingBuffer.Pop_Discard();
+			}
+		}
 
 	protected :
 		// == Types.
@@ -550,7 +674,14 @@ namespace lsn {
 		/** Delayed writes. */
 		DelayedVal										m_dvRegisters3_4017;
 		/** Non-delayed registers. */
-		uint8_t											m_ui8Registers[0x15+1];
+		LSN_ALIGN( 64 )
+		uint8_t											m_ui8Registers[0x17+1];
+		/** Ring-buffer of register buffers for metadata streaming. */
+		CRingBuffer<LSN_REG_BUFFER>						m_rbRingBuffer;
+		/** The last set of registers seen during metadata streaming from the output stream. */
+		LSN_REG_BUFFER									m_rbLastRegBufferOut;
+		/** The last set of registers seen during metadata streaming from raw values. */
+		LSN_REG_BUFFER									m_rbLastRegBufferRaw;
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
 		/** Audio setting: Enabled. */
@@ -849,7 +980,7 @@ namespace lsn {
 		 * \param _tOldVal The old value.
 		 **/
 		static void										Set4017( void * _pvParm, DelayedVal::Type /*_tNewVal*/, DelayedVal::Type /*_tOldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
 			paApu->m_bModeSwitch = true;
 		}
 
@@ -862,7 +993,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			//paApu->m_ui8Registers[0x00] = _ui8Val;
 			paApu->m_ui8Registers[0x00] = (_ui8Val & ~LSN_PULSE1_HALT_MASK) | (paApu->m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK);
 			paApu->m_dvPulse1LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE1_HALT_MASK );
@@ -879,7 +1010,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x01] = _ui8Val;
 			paApu->m_pPulse1.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
 			paApu->m_pPulse1.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
@@ -897,7 +1028,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x02] = _ui8Val;
 			paApu->m_pPulse1.SetTimerLow( _ui8Val );
 		}
@@ -911,7 +1042,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE1_ENABLED( paApu ) ) {
@@ -932,7 +1063,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			//paApu->m_ui8Registers[0x04] = _ui8Val;
 			paApu->m_ui8Registers[0x04] = (_ui8Val & ~LSN_PULSE2_HALT_MASK) | (paApu->m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK);
 			paApu->m_dvPulse2LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE2_HALT_MASK );
@@ -949,7 +1080,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x05] = _ui8Val;
 			paApu->m_pPulse2.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
 			paApu->m_pPulse2.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
@@ -967,7 +1098,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x06] = _ui8Val;
 			paApu->m_pPulse2.SetTimerLow( _ui8Val );
 		}
@@ -981,7 +1112,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE2_ENABLED( paApu ) ) {
@@ -1002,7 +1133,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4008( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			//paApu->m_ui8Registers[0x08] = _ui8Val;
 			paApu->m_ui8Registers[0x08] = (_ui8Val & ~LSN_TRIANGLE_HALT_MASK) | (paApu->m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK);
 			paApu->m_dvTriangleLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_TRIANGLE_HALT_MASK );
@@ -1018,7 +1149,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400A( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0A] = _ui8Val;
 			paApu->m_tTriangle.SetTimerLow( _ui8Val );
 		}
@@ -1032,7 +1163,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400B( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0B] = _ui8Val;
 			paApu->m_tTriangle.SetTimerHigh( _ui8Val, false );
 			if ( LSN_TRIANGLE_ENABLED( paApu ) ) {
@@ -1053,7 +1184,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400C( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			//paApu->m_ui8Registers[0x0C] = _ui8Val;
 			paApu->m_ui8Registers[0x0C] = (_ui8Val & ~LSN_NOISE_HALT_MASK) | (paApu->m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK);
 			paApu->m_dvNoiseLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_NOISE_HALT_MASK );
@@ -1069,7 +1200,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
 			paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
 			paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
@@ -1084,7 +1215,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write400F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0F] = _ui8Val;
 			if ( LSN_NOISE_ENABLED( paApu ) ) {
 				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_nNoise.GetLengthCounter()) ) {
@@ -1105,7 +1236,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4010( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x10] = _ui8Val;
 		}
 
@@ -1118,7 +1249,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4011( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x11] = _ui8Val;
 			paApu->m_fDmcRegVol = float( _ui8Val & 0b01111111 );
 		}
@@ -1132,7 +1263,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4012( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x12] = _ui8Val;
 		}
 
@@ -1145,7 +1276,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4013( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x13] = _ui8Val;
 		}
 
@@ -1159,7 +1290,7 @@ namespace lsn {
 		 * \param _ui8Ret The read value.
 		 */
 		static void LSN_FASTCALL						Read4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			_ui8Ret = _ui8Ret & 0b00100000;
 			if ( paApu->m_pPulse1.GetLengthCounter() != 0 ) {
 				_ui8Ret |= 0b0001;
@@ -1190,7 +1321,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x15] = _ui8Val;
 
 			if ( !LSN_PULSE1_ENABLED( paApu ) ) {
@@ -1220,10 +1351,11 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvParm0);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			// * If the write occurs during an APU cycle, the effects occur 3 CPU cycles after the $4017 write cycle, and if the write occurs between APU cycles, the effects occurs 4 CPU cycles after the write cycle.
 			// "During" an APU cycle means every even CPU cycle.  "Between" APU cycles means every odd CPU cycle.
 			// This is handled by having Set4017() set m_bModeSwitch, which will then be seen only on even ticks.
+			paApu->m_ui8Registers[0x17] = _ui8Val;
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
 			paApu->m_ui8Last4017 = _ui8Val;
 		}
@@ -1264,7 +1396,7 @@ namespace lsn {
 		 * \return Returns _fSample.
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvThis);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvThis);
 			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, float( _ui32Hz ) ) ) {
 				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, float( _ui32Hz ) ) ) {
 					auto fSample = float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
@@ -1285,7 +1417,7 @@ namespace lsn {
 		 * \param _ui8OldVal The previous value.
 		 **/
 		static void										Pulse1LengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvObj);
 			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse1.GetLengthCounter()) ) {
 				paApu->m_pPulse1.SetLengthCounter( _ui8NewVal );
 			}
@@ -1300,7 +1432,7 @@ namespace lsn {
 		 * \param _ui8OldVal The previous value.
 		 **/
 		static void										Pulse2LengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvObj);
 			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_pPulse2.GetLengthCounter()) ) {
 				paApu->m_pPulse2.SetLengthCounter( _ui8NewVal );
 			}
@@ -1315,7 +1447,7 @@ namespace lsn {
 		 * \param _ui8OldVal The previous value.
 		 **/
 		static void										TriangleLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvObj);
 			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_tTriangle.GetLengthCounter()) ) {
 				paApu->m_tTriangle.SetLengthCounter( _ui8NewVal );
 			}
@@ -1330,7 +1462,7 @@ namespace lsn {
 		 * \param _ui8OldVal The previous value.
 		 **/
 		static void										NoiseLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvObj);
 			if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_nNoise.GetLengthCounter()) ) {
 				paApu->m_nNoise.SetLengthCounter( _ui8NewVal );
 			}
@@ -1346,7 +1478,7 @@ namespace lsn {
 		 **/
 		template <unsigned _uReg, uint8_t _ui8Flag>
 		static void										ChannelHaltLengthCounter( void * _pvObj, uint8_t _ui8NewVal, uint8_t /*_ui8OldVal*/ ) {
-			CApu2A0X * paApu = reinterpret_cast<CApu2A0X *>(_pvObj);
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvObj);
 			if ( _ui8NewVal ) {
 				paApu->m_ui8Registers[_uReg] |= _ui8Flag;
 			}
@@ -1387,3 +1519,5 @@ namespace lsn {
 #undef LSN_PULSE1_ENABLED
 
 }	// namespace lsn
+
+#pragma warning( pop )

@@ -369,6 +369,8 @@ namespace lsn {
 			{ .ui32Crc = 0x7E5D2F1A, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Jack Nicklaus' Greatest 18 Holes of Champ. Golf (E)
 			{ .ui32Crc = 0x836FE2C2, .pmRegion = LSN_PM_PAL },
+			// Jackal (U)
+			{ .ui32Crc = 0x1D5B03A5, .pmRegion = LSN_PM_NTSC },
 			// Jackie Chan's Action Kung Fu (E) [!]
 			{ .ui32Crc = 0xAD706A0E, .pmRegion = LSN_PM_PAL },
 			// James Bond Jr (E)
@@ -797,6 +799,8 @@ namespace lsn {
 			{ .ui32Crc = 0x24BA12DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, .ui16SubMapper = 1 },
 			// Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
+			// Pipe Dream (U)
+			{ .ui32Crc = 0xDB70A67C, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 3, },
 			// Quattro Adventure (Aladdin) (U)
 			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
 			// Quattro Sports (Aladdin) (U)

@@ -33,6 +33,7 @@ namespace lsn {
 	 */
 	class CWavFile {
 	public :
+		struct LSN_STREAMING;
 		CWavFile();
 		~CWavFile();
 
@@ -106,6 +107,9 @@ namespace lsn {
 		// == Types.
 		typedef std::vector<double, CAlignmentAllocator<double, 64>>	lwtrack;
 		typedef std::vector<lwtrack>									lwaudio;
+		typedef bool (LSN_STDCALL *										PfAddSampleFunc)( float, struct CWavFile::LSN_STREAMING & );
+		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &, std::vector<uint8_t> &, struct CWavFile::LSN_STREAMING & );
+		typedef void (LSN_STDCALL *										PfAddMetaDataFunc)( void *, struct CWavFile::LSN_STREAMING & );
 		
 
 		/** The save data. */
@@ -150,6 +154,7 @@ namespace lsn {
 
 			uint64_t													ui64MetaParm = 0;
 			void *														pvMetaParm = nullptr;
+			PfAddMetaDataFunc											pfMetaFunc = nullptr;
 			int32_t														i32MetaFormat = 0;
 			bool														bMetaEnabled = false;
 		};
@@ -169,9 +174,8 @@ namespace lsn {
 		
 		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t, float, LSN_CONDITIONS_DATA & );
 		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t, uint64_t, float, LSN_CONDITIONS_DATA & );
-		struct LSN_STREAMING;
-		typedef bool (LSN_STDCALL *										PfAddSampleFunc)( float, struct CWavFile::LSN_STREAMING & );
-		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &, std::vector<uint8_t> &, struct CWavFile::LSN_STREAMING & );
+		
+		
 
 		/** A stream-to-file structure. */
 		struct LSN_STREAMING {
@@ -190,6 +194,7 @@ namespace lsn {
 			std::wstring												wsMetaPath;					/**< The path to the metadata file to which we are streaming. */
 			CStdFile													sfMetaFile;					/**< The metadata file to which to write the Wmetadata. */
 			void *														pvMetaParm = nullptr;		/**< The metadata pointer parameter. */
+			PfAddMetaDataFunc											pfMetaFunc = nullptr;		/**< The function for adding metadata. */
 
 			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
 			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
@@ -203,6 +208,7 @@ namespace lsn {
 			PfAddSampleFunc												pfAddSampleFunc = nullptr;	/**< The function for adding a sample.  There is one that checks the starting condition and then one that keeps adding samples until the stopping condition is reached. */
 			uint32_t													ui32WavFile_Size = 0;		/**< The final file size to write to the WAV file. */
 			uint32_t													ui32WavFile_DSize = 0;		/**< The final data size to write to the WAV file. */
+			int32_t														i32MetaFormat = 0;			/**< The metadata format. */
 			uint32_t													ui32Hz = 44100;				/**< The file Hz. */
 			LSN_FORMAT													fFormat = LSN_F_PCM;		/**< The WAV-file format. */
 			uint16_t													ui16Bits = 16;				/**< The number of bits-per-sample. */			
@@ -211,6 +217,7 @@ namespace lsn {
 			bool														bStreaming = false;			/**< If true, the file must be closed either manually or in the destructor. */
 			bool														bAdding = false;			/**< Set to true after the starting condition is met.  Indicates that samples are being added. */
 			bool														bDither = false;			/**< To dither 16-bit PCM or not. */
+			bool														bMeta = false;				/**< Whether metadata is being streamed or not. */
 		};
 
 
