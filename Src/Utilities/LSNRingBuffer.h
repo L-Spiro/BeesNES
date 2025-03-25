@@ -99,6 +99,13 @@ namespace lsn {
 		 **/
 		inline bool														Full() const { return m_stItems == m_vBuffer.size(); }
 
+		/**
+		 * Resets the ring buffer.
+		 **/
+		inline void														Reset() {
+			m_stTail = m_stHead = m_stItems = 0;
+		}
+
 
 
 	protected :

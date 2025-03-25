@@ -476,6 +476,13 @@ namespace lsn {
 		CAudio::SetOutputSettings( aoOptions );
 		if ( m_psbSystem ) {
 			Options().stfStreamOptionsOutCapture.ui32Hz = aoOptions.ui32OutputHz;
+			Options().stfStreamOptionsRaw.ui32Hz = uint32_t( std::ceil( m_psbSystem->GetApuHz() ) );
+			Options().stfStreamOptionsOutCapture.wsMetaPath = Options().stfStreamOptionsOutCapture.wsPath + L".txt";
+			Options().stfStreamOptionsRaw.wsMetaPath = Options().stfStreamOptionsRaw.wsPath + L".txt";
+
+			auto pfTmp = Options().stfStreamOptionsOutCapture.pfMetaFunc;
+			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsOutCapture.pvMetaParm, Options().stfStreamOptionsOutCapture.pfMetaFunc, pfTmp );
+			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsRaw.pvMetaParm, pfTmp, Options().stfStreamOptionsRaw.pfMetaFunc );
 			m_psbSystem->SetAudioOptions( aoOptions );
 			SetStreamToFileOptions<true>( Options().stfStreamOptionsRaw );
 			SetStreamToFileOptions<false>( Options().stfStreamOptionsOutCapture );

@@ -110,6 +110,7 @@ namespace lsn {
 		typedef bool (LSN_STDCALL *										PfAddSampleFunc)( float, struct CWavFile::LSN_STREAMING & );
 		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &, std::vector<uint8_t> &, struct CWavFile::LSN_STREAMING & );
 		typedef void (LSN_STDCALL *										PfAddMetaDataFunc)( void *, struct CWavFile::LSN_STREAMING & );
+		typedef void (LSN_STDCALL *										PfMetaDataThreadFunc)( CWavFile *, void *, struct CWavFile::LSN_STREAMING & );
 		
 
 		/** The save data. */
@@ -155,6 +156,7 @@ namespace lsn {
 			uint64_t													ui64MetaParm = 0;
 			void *														pvMetaParm = nullptr;
 			PfAddMetaDataFunc											pfMetaFunc = nullptr;
+			PfMetaDataThreadFunc										pfMetaThreadFunc = nullptr;
 			int32_t														i32MetaFormat = 0;
 			bool														bMetaEnabled = false;
 		};
@@ -185,9 +187,11 @@ namespace lsn {
 			uint64_t													ui64WavFileOffset_Size = 0;	/**< The offset of the size value in the WAV file. */
 			uint64_t													ui64WavFileOffset_DSize = 0;/**< The offset of the data-size value in the WAV file. */
 			uint64_t													ui64MetaParm = 0;			/**< The metadata uint64_t parameter. */
+			uint64_t													ui64MetaThreadParm = 0;		/**< The metadata thread data used by the thread function to keep track of how many items it has processed, or for any other reason. */
 			double														dDitherError = 0.0;			/**< The dither error. */
 			size_t														stBufferSize = 1024 * 10;	/**< The size of the buffer to fill before flushing. */
 			std::vector<float>											vCurBuffer;					/**< The current buffer awaiting samples. */
+			std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>>		vMetaBuffer;				/**< The buffer for gathering metadata. */
 			std::wstring												wsPath;						/**< The path to the file to which we are streaming. */
 			CStdFile													sfFile;						/**< The file to which to write the WAV data. */
 
@@ -200,6 +204,13 @@ namespace lsn {
 			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
 			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
 			std::thread													tThread;					/**< The thread for writing to the file. */
+
+			std::queue<std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>>>
+																		qMetaBufferQueue;			/**< The queue of buffers handled by the metadata thread. */
+			std::mutex													mMetaMutex;					/**< The thread mutex for metadata streaming. */
+			std::condition_variable										cvMetaCondition;			/**< The conditional variable for the metadata lock. */
+			std::thread													tMetaThread;				/**< The thread for writing to the metadata file. */
+			
 			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
 			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
 			PfStartConditionFunc										pfStartCondFunc = nullptr;	/**< The start-condition function. */
@@ -323,6 +334,11 @@ namespace lsn {
 		void															AddStreamSample( float _fSample );
 
 		/**
+		 * Called to update the metadata stream output.
+		 **/
+		void															AddMetaData();
+
+		/**
 		 * Gets a constant reference to the current streaming data.
 		 * 
 		 * \return Returns a constant reference to the current streaming data.
@@ -437,6 +453,10 @@ namespace lsn {
 		 */
 		const std::vector<LSN_LOOP_POINT> &								Loops() const { return m_vLoops; }
 
+		/**
+		 * Closes the current streaming metadata file.
+		 **/
+		void															CloseStreamMetaFile();
 
 	protected :
 		// == Types.
@@ -823,6 +843,11 @@ namespace lsn {
 		 * The stream-to-file writer thread.
 		 **/
 		void															StreamWriterThread();
+
+		/**
+		 * The metadata-to-file writer thread.
+		 **/
+		void 															MetadataWriterThread();
 
 		/**
 		 * The None start condition.  Returns true.

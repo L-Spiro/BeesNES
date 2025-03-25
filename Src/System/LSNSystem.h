@@ -644,10 +644,12 @@ namespace lsn {
 		 * 
 		 * \param _pvParm Holds the returned pointer to our APU as a void *.
 		 * \param _pfAddMetaFunc Holds a pointer to the APU's add function.
+		 * \param _pfAddMetaFuncRaw Holds a pointer to the APU's add function for the raw stream.
 		 **/
-		virtual void									SetMetaDataStreamParms( void * &_pvParm, CWavFile::PfAddMetaDataFunc &_pfAddMetaFunc ) {
+		virtual void									SetMetaDataStreamParms( void * &_pvParm, CWavFile::PfAddMetaDataFunc &_pfAddMetaFunc, CWavFile::PfAddMetaDataFunc &_pfAddMetaFuncRaw ) {
 			_pvParm = &m_aApu;
 			_pfAddMetaFunc = &m_aApu.AddMetaDataFunc_RingBuffer;
+			_pfAddMetaFuncRaw = &m_aApu.AddMetaDataFunc_Raw;
 		}
 
 

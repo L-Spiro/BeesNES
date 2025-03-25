@@ -190,12 +190,13 @@ namespace lsn {
 		struct LSN_REG_BUFFER {
 			LSN_REG_BUFFER() {}
 			LSN_REG_BUFFER( const LSN_REG_BUFFER &_rbOther ) {
-				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( LSN_REG_BUFFER ) );
 			}
 			LSN_REG_BUFFER( LSN_REG_BUFFER && _rbOther ) {
-				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( LSN_REG_BUFFER ) );
 			}
 			uint8_t										ui8Registers[0x17+1];
+			double										dTime;
 
 
 			// == Operators.
@@ -206,7 +207,18 @@ namespace lsn {
 			 * \return Returns a reference to the copied object.
 			 **/
 			LSN_REG_BUFFER &							operator = ( const LSN_REG_BUFFER &_rbOther ) {
-				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( ui8Registers ) );
+				std::memcpy( ui8Registers, _rbOther.ui8Registers, sizeof( LSN_REG_BUFFER ) );
+				return (*this);
+			}
+
+			/**
+			 * Assignment operator.
+			 * 
+			 * \param _pui8Other The object to copy.  Must be a byte array aligned to 64 bytes and must be 0x17+1 bytes long.
+			 * \return Returns a reference to the copied object.
+			 **/
+			LSN_REG_BUFFER &							operator = ( const uint8_t * _pui8Other ) {
+				std::memcpy( ui8Registers, _pui8Other, sizeof( ui8Registers ) );
 				return (*this);
 			}
 
@@ -277,6 +289,17 @@ namespace lsn {
 				if ( (_ui64Mask & LSN_RF_STATUS) && (Status() != _rbOther.Status()) ) { return false; }
 				if ( (_ui64Mask & LSN_RF_FRAME_COUNTER) && (FrameCounter() != _rbOther.FrameCounter()) ) { return false; }
 				return true;
+			}
+
+			/**
+			 * Compares against another set of registers using a bit mask to compare only specific components.
+			 * 
+			 * \param _pui8Other The buffer against which to compare.
+			 * \param _ui64Mask The bit mask indicating which channels/registers to compare.
+			 * \return Returns true if the given buffer is equal to this one testing only the components specified by the mask.
+			 **/
+			inline bool									Equals( const uint8_t * _pui8Other, uint64_t _ui64Mask ) const {
+				return Equals( (*reinterpret_cast<const LSN_REG_BUFFER *>(_pui8Other)), _ui64Mask );
 			}
 		};
 
@@ -579,28 +602,79 @@ namespace lsn {
 		}
 
 		/**
-		 * The add-metadata function used initially.  Keeps the data in a ring buffer until samples actually begin getting output, then switches to the 2nd function for adding
-		 *	metadata until the stream finishes.
+		 * The add-metadata function.  Fetches the current registers from a ring buffer (because the associated samples may be out-of-date).
 		 * 
 		 * \param _pvParm A pointer to an object of this class.
 		 * \param _sStream A reference to the streaming options.
 		 **/
 		static void LSN_STDCALL							AddMetaDataFunc_RingBuffer( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
-			if ( _sStream.bAdding ) {
-				auto rbTmp = paApu->m_rbRingBuffer.Pop_Ref();
-				if ( !paApu->m_rbLastRegBufferOut.Equals( rbTmp, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
-					// Add the buffer to be consumed by the thread later.
+			std::unique_lock<std::mutex> ulLock( _sStream.mMetaMutex );
+			if LSN_LIKELY( _sStream.bAdding && _sStream.bMeta ) {
+				if LSN_LIKELY( _sStream.bStreaming ) {
+					auto rbTmp = paApu->m_rbRingBuffer.Pop_Ref();
+					if ( !paApu->m_rbLastRegBufferOut.Equals( rbTmp, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+						// Add the buffer to be consumed by the thread later.
+						//paApu->m_vRegBuffersOut.push_back( rbTmp );
+						_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), rbTmp.ui8Registers, rbTmp.ui8Registers + sizeof( LSN_REG_BUFFER ) );
 
-
-					paApu->m_rbLastRegBufferOut = rbTmp;
-					++_sStream.ui64MetaWritten;
+						paApu->m_rbLastRegBufferOut = rbTmp;
+						++_sStream.ui64MetaWritten;
+					}
+				}
+				else {
 				}
 			}
 			else {
 				paApu->m_rbRingBuffer.Pop_Discard();
 			}
 		}
+
+		/**
+		 * The add-metadata function for raw streams.  Fetches from the current registers, since the associated sample stream is always current.
+		 * 
+		 * \param _pvParm A pointer to an object of this class.
+		 * \param _sStream A reference to the streaming options.
+		 **/
+		static void LSN_STDCALL							AddMetaDataFunc_Raw( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
+			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
+			std::unique_lock<std::mutex> ulLock( _sStream.mMetaMutex );
+			if LSN_LIKELY( _sStream.bAdding && _sStream.bMeta ) {
+				if LSN_LIKELY( _sStream.bStreaming ) {
+					if ( !paApu->m_rbLastRegBufferRaw.Equals( paApu->m_ui8Registers, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+						// Add the buffer to be consumed by the thread later.
+						//paApu->m_vRegBuffersRaw.push_back( paApu->m_ui8Registers );
+						size_t sIdx = _sStream.vMetaBuffer.size();
+						_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), paApu->m_ui8Registers, paApu->m_ui8Registers + sizeof( LSN_REG_BUFFER ) );
+						(*reinterpret_cast<LSN_REG_BUFFER *>(&_sStream.vMetaBuffer[sIdx])).dTime = paApu->m_ui64Cycles / paApu->Hz();
+
+						if LSN_UNLIKELY( _sStream.vMetaBuffer.size() == (1024 * sizeof( LSN_REG_BUFFER )) || _sStream.bEnd ) {
+							_sStream.qMetaBufferQueue.push( std::move( _sStream.vMetaBuffer ) );
+							// Create a new buffer and reserve space for efficiency.
+							_sStream.vMetaBuffer.clear();
+							_sStream.vMetaBuffer.reserve( (1024 * sizeof( LSN_REG_BUFFER )) );
+							// Notify the writer thread that a full buffer is ready.
+							_sStream.cvMetaCondition.notify_one();
+						}
+
+						paApu->m_rbLastRegBufferRaw = paApu->m_ui8Registers;
+						++_sStream.ui64MetaWritten;
+					}
+				}
+				else {
+					// Stream is closing.  Push anything remaining.
+					if ( _sStream.vMetaBuffer.size() ) {
+						_sStream.qMetaBufferQueue.push( std::move( _sStream.vMetaBuffer ) );
+						// Create a new buffer and reserve space for efficiency.
+						_sStream.vMetaBuffer.clear();
+						// Notify the writer thread that a full buffer is ready.
+						_sStream.cvMetaCondition.notify_one();
+					}
+				}
+			}
+		}
+
+		
 
 	protected :
 		// == Types.
@@ -630,7 +704,7 @@ namespace lsn {
 		/** The current cycle function. */
 		PfTicks											m_pftTick;
 		/** Final volume multiplier. */
-		float											m_fVolume = (-0.5f * 1.25f * 3.0f);		
+		float											m_fVolume = (-1.0f);		
 		/** The 37-Hz pole filter. */
 		CPoleFilterHpf									m_pfPole37;
 		/** The 14-Hz pole filter. */
@@ -682,6 +756,12 @@ namespace lsn {
 		LSN_REG_BUFFER									m_rbLastRegBufferOut;
 		/** The last set of registers seen during metadata streaming from raw values. */
 		LSN_REG_BUFFER									m_rbLastRegBufferRaw;
+		/** The buffered array of metadata chunks to eventually be converted to text and flushed to disk for output capture. */
+		std::vector<LSN_REG_BUFFER, CAlignmentAllocator<LSN_REG_BUFFER, 64>>
+														m_vRegBuffersOut;
+		/** The buffered array of metadata chunks to eventually be converted to text and flushed to disk for raw capture. */
+		std::vector<LSN_REG_BUFFER, CAlignmentAllocator<LSN_REG_BUFFER, 64>>
+														m_vRegBuffersRaw;
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
 		/** Audio setting: Enabled. */
