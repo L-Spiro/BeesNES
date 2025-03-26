@@ -109,8 +109,8 @@ namespace lsn {
 		typedef std::vector<lwtrack>									lwaudio;
 		typedef bool (LSN_STDCALL *										PfAddSampleFunc)( float, struct CWavFile::LSN_STREAMING & );
 		typedef void (LSN_STDCALL *										PfBatchConvNWrite)( const std::vector<float> &, std::vector<uint8_t> &, struct CWavFile::LSN_STREAMING & );
-		typedef void (LSN_STDCALL *										PfAddMetaDataFunc)( void *, struct CWavFile::LSN_STREAMING & );
-		typedef void (LSN_STDCALL *										PfMetaDataThreadFunc)( CWavFile *, void *, struct CWavFile::LSN_STREAMING & );
+		typedef bool (LSN_STDCALL *										PfAddMetaDataFunc)( void *, struct CWavFile::LSN_STREAMING & );
+		typedef void (LSN_STDCALL *										PfMetaDataThreadFunc)( CWavFile *, void *, struct CWavFile::LSN_STREAMING &, std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>> &, std::vector<uint8_t> & );
 		
 
 		/** The save data. */
@@ -199,6 +199,7 @@ namespace lsn {
 			CStdFile													sfMetaFile;					/**< The metadata file to which to write the Wmetadata. */
 			void *														pvMetaParm = nullptr;		/**< The metadata pointer parameter. */
 			PfAddMetaDataFunc											pfMetaFunc = nullptr;		/**< The function for adding metadata. */
+			PfMetaDataThreadFunc										pfMetaThreadFunc = nullptr;	/**< The function for parsing metadata into the final file output. */
 
 			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
 			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
@@ -210,6 +211,7 @@ namespace lsn {
 			std::mutex													mMetaMutex;					/**< The thread mutex for metadata streaming. */
 			std::condition_variable										cvMetaCondition;			/**< The conditional variable for the metadata lock. */
 			std::thread													tMetaThread;				/**< The thread for writing to the metadata file. */
+			std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>>		vMetaThreadScratch;			/**< A scratch buffer for any data the thread needs to manage. */
 			
 			LSN_CONDITIONS_DATA											cdStartData;				/**< The start-condition data. */
 			LSN_CONDITIONS_DATA											cdStopData;					/**< The stop-condition data. */
@@ -453,10 +455,6 @@ namespace lsn {
 		 */
 		const std::vector<LSN_LOOP_POINT> &								Loops() const { return m_vLoops; }
 
-		/**
-		 * Closes the current streaming metadata file.
-		 **/
-		void															CloseStreamMetaFile();
 
 	protected :
 		// == Types.
@@ -838,6 +836,11 @@ namespace lsn {
 		 * \return Returns true if the file was created.
 		 **/
 		bool															CreateStreamMetaFile( const char8_t * _pcPath );
+
+		/**
+		 * Closes the current streaming metadata file.
+		 **/
+		void															CloseStreamMetaFile();
 
 		/**
 		 * The stream-to-file writer thread.

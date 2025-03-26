@@ -155,9 +155,7 @@ namespace lsn {
 	LSW_MENU_ITEM CMainWindowLayout::m_miToolsMenu[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_TOOLS_PATCH,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_PATCH ) },
-		/*{ FALSE,		LSN_MWMI_DELETEALL,			FALSE,		FALSE,		TRUE,		L"Dummy &1" },
-		{ FALSE,		LSN_MWMI_LOCK,				FALSE,		FALSE,		TRUE,		L"Dummy &2" },
-		{ FALSE,		LSN_MWMI_UNLOCK,			FALSE,		FALSE,		TRUE,		L"Dummy &3" },*/
+		{ FALSE,		LSN_MWMI_TOOLS_WAV_EDIT,	FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_WAV_EDIT ) },
 	};
 
 	/** Windows menu. */

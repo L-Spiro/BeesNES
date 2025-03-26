@@ -256,8 +256,10 @@ namespace lsn {
 		 * \param _pvParm Holds the returned pointer to our APU as a void *.
 		 * \param _pfAddMetaFunc Holds a pointer to the APU's add function.
 		 * \param _pfAddMetaFuncRaw Holds a pointer to the APU's add function for the raw stream.
+		 * \param _pfMetaThreadFunc Holds a pointer to the APU's thread function for either metadata stream.
 		 **/
-		virtual void									SetMetaDataStreamParms( void * &/*_pvParm*/, CWavFile::PfAddMetaDataFunc &/*_pfAddMetaFunc*/, CWavFile::PfAddMetaDataFunc &/*_pfAddMetaFuncRaw*/ ) {}
+		virtual void									SetMetaDataStreamParms( void * &/*_pvParm*/, CWavFile::PfAddMetaDataFunc &/*_pfAddMetaFunc*/, CWavFile::PfAddMetaDataFunc &/*_pfAddMetaFuncRaw*/,
+			CWavFile::PfMetaDataThreadFunc &/*_pfMetaThreadFunc*/ ) {}
 
 		/**
 		 * Loads a ROM into the given LSN_ROM object.

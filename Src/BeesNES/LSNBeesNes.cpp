@@ -481,8 +481,10 @@ namespace lsn {
 			Options().stfStreamOptionsRaw.wsMetaPath = Options().stfStreamOptionsRaw.wsPath + L".txt";
 
 			auto pfTmp = Options().stfStreamOptionsOutCapture.pfMetaFunc;
-			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsOutCapture.pvMetaParm, Options().stfStreamOptionsOutCapture.pfMetaFunc, pfTmp );
-			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsRaw.pvMetaParm, pfTmp, Options().stfStreamOptionsRaw.pfMetaFunc );
+			Options().stfStreamOptionsOutCapture.pfMetaFunc = nullptr;
+			Options().stfStreamOptionsOutCapture.pfMetaThreadFunc = nullptr;
+			//m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsOutCapture.pvMetaParm, Options().stfStreamOptionsOutCapture.pfMetaFunc, pfTmp, Options().stfStreamOptionsOutCapture.pfMetaThreadFunc );
+			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsRaw.pvMetaParm, pfTmp, Options().stfStreamOptionsRaw.pfMetaFunc, Options().stfStreamOptionsRaw.pfMetaThreadFunc );
 			m_psbSystem->SetAudioOptions( aoOptions );
 			SetStreamToFileOptions<true>( Options().stfStreamOptionsRaw );
 			SetStreamToFileOptions<false>( Options().stfStreamOptionsOutCapture );

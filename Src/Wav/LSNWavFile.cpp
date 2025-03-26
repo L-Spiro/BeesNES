@@ -415,7 +415,7 @@ namespace lsn {
 		}
 
 		
-		if ( _stfoFileOptions.bMetaEnabled && _stfoFileOptions.wsMetaPath.size() && _stfoFileOptions.pfMetaFunc /*&& _stfoFileOptions.pfMetaThreadFunc*/ ) {
+		if ( _stfoFileOptions.bMetaEnabled && _stfoFileOptions.wsMetaPath.size() && _stfoFileOptions.pfMetaFunc && _stfoFileOptions.pfMetaThreadFunc ) {
 			std::filesystem::path pAbsoluteMetaPath = std::filesystem::absolute( std::filesystem::path( _stfoFileOptions.wsMetaPath ) );
 			if ( !CreateStreamMetaFile( pAbsoluteMetaPath.generic_u8string().c_str() ) ) {
 				m_sStream.sfFile.Close();
@@ -423,10 +423,13 @@ namespace lsn {
 				return false;
 			}
 			m_sStream.pfMetaFunc = _stfoFileOptions.pfMetaFunc;
+			m_sStream.pfMetaThreadFunc = _stfoFileOptions.pfMetaThreadFunc;
 			m_sStream.pvMetaParm = _stfoFileOptions.pvMetaParm;
 			m_sStream.ui64MetaParm = _stfoFileOptions.ui64MetaParm;
 			m_sStream.i32MetaFormat = _stfoFileOptions.i32MetaFormat;
 			m_sStream.ui64MetaWritten = 0;
+			m_sStream.ui64MetaThreadParm = 0;
+			m_sStream.vMetaThreadScratch.clear();
 			m_sStream.bMeta = true;
 		}
 		
@@ -514,9 +517,9 @@ namespace lsn {
 		m_sStream.wsPath = _stfoFileOptions.wsPath;
 
 		m_sStream.tThread = std::thread( &CWavFile::StreamWriterThread, this );
-		/*if ( m_sStream.bMeta ) {
-			m_sStream.tMetaThread = std::thread( _stfoFileOptions.pfMetaThreadFunc, this, m_sStream.pvMetaParm, std::ref( m_sStream ) );
-		}*/
+		if ( m_sStream.bMeta ) {
+			m_sStream.tMetaThread = std::thread( &CWavFile::MetadataWriterThread, this );
+		}
 
 		m_sStream.ui64SamplesReceived = m_sStream.ui64SamplesWritten = 0;
 		m_sStream.bAdding = false;
@@ -552,20 +555,6 @@ namespace lsn {
 		{
 			m_sStream.bStreaming = false;
 		}
-
-
-
-		//{
-		//	std::unique_lock<std::mutex> ulLock( m_sStream.mMetaMutex );
-		//	if ( m_sStream.bMeta && m_sStream.pfMetaFunc ) {
-		//		(*m_sStream.pfMetaFunc)( m_sStream.pvMetaParm, m_sStream );	// The callback is responsible for detecting m_sStream.bStreaming == false and making its final data flush.
-		//	}
-		//}
-
-		m_sStream.cvMetaCondition.notify_one();
-        if ( m_sStream.tMetaThread.joinable()) {
-            m_sStream.tMetaThread.join();
-        }
 	}
 
 	/**
@@ -584,7 +573,8 @@ namespace lsn {
 				m_sStream.ui32WavFile_DSize += sizeof( float );
 
 				if ( m_sStream.bMeta && m_sStream.pfMetaFunc ) {
-					(*m_sStream.pfMetaFunc)( m_sStream.pvMetaParm, m_sStream );
+					std::unique_lock<std::mutex> ulLockMeta( m_sStream.mMetaMutex );
+					AddMetaData();
 				}
 
 				if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
@@ -613,6 +603,32 @@ namespace lsn {
 	 * Called to update the metadata stream output.  Call immediately after calling AddStreamSample().
 	 **/
 	void CWavFile::AddMetaData() {
+		//if LSN_LIKELY( m_sStream.bAdding && m_sStream.bMeta ) {
+			if LSN_LIKELY( m_sStream.bStreaming && !m_sStream.bEnd ) {
+				if ( (*m_sStream.pfMetaFunc)( m_sStream.pvMetaParm, m_sStream ) ) {
+					if LSN_UNLIKELY( m_sStream.vMetaBuffer.size() >= (1024 * 0x20) ) {
+						m_sStream.qMetaBufferQueue.push( std::move( m_sStream.vMetaBuffer ) );
+						// Create a new buffer and reserve space for efficiency.
+						m_sStream.vMetaBuffer.clear();
+						m_sStream.vMetaBuffer.reserve( (1024 * 0x20) );
+						// Notify the writer thread that a full buffer is ready.
+						m_sStream.cvMetaCondition.notify_one();
+					}
+
+					++m_sStream.ui64MetaWritten;
+				}
+			}
+			else {
+				// Stream is closing.  Push anything remaining.
+				if ( m_sStream.vMetaBuffer.size() ) {
+					m_sStream.qMetaBufferQueue.push( std::move( m_sStream.vMetaBuffer ) );
+					// Create a new buffer and reserve space for efficiency.
+					m_sStream.vMetaBuffer.clear();
+					// Notify the writer thread that a full buffer is ready.
+					m_sStream.cvMetaCondition.notify_one();
+				}
+			}
+		//}
 	}
 
 	/**
@@ -957,15 +973,6 @@ namespace lsn {
 			return true;
 		}
 		catch ( ... ) { return false; }
-	}
-
-	/**
-	 * Closes the current streaming metadata file.
-	 **/
-	void CWavFile::CloseStreamMetaFile() {
-		if ( m_sStream.sfMetaFile.IsOpen() ) {
-			m_sStream.sfMetaFile.Close();
-		}
 	}
 
 	/**
@@ -1601,7 +1608,7 @@ namespace lsn {
 	void CWavFile::CloseStreamFile() {
 		if LSN_LIKELY( m_sStream.sfFile.IsOpen() ) {
 			if LSN_LIKELY( m_sStream.bStreaming ) {
-				uint32_t ui32Size = m_sStream.ui32WavFile_DSize * m_sStream.ui16Bits / (sizeof( float ) * 8);
+				uint32_t ui32Size = uint32_t( m_sStream.ui32WavFile_DSize * uint64_t( m_sStream.ui16Bits ) / (sizeof( float ) * 8) );
 
 				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_Size );
 				m_sStream.sfFile.Write( m_sStream.ui32WavFile_Size + ui32Size );
@@ -1614,6 +1621,21 @@ namespace lsn {
 			m_sStream.ui32WavFile_DSize = 0;
 		}
 		
+
+		{
+			std::unique_lock<std::mutex> ulLockMeta( m_sStream.mMetaMutex );
+			if ( m_sStream.bMeta && m_sStream.pfMetaFunc ) {
+				AddMetaData();
+			}
+		}
+
+		if ( m_sStream.bMeta ) {
+			m_sStream.cvMetaCondition.notify_one();
+			if ( m_sStream.tMetaThread.joinable()) {
+				m_sStream.tMetaThread.join();
+			}
+			m_sStream.bMeta = false;
+		}
 	}
 
 	/**
@@ -1628,6 +1650,15 @@ namespace lsn {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Closes the current streaming metadata file.
+	 **/
+	void CWavFile::CloseStreamMetaFile() {
+		if ( m_sStream.sfMetaFile.IsOpen() ) {
+			m_sStream.sfMetaFile.Close();
+		}
 	}
 
 	/**
@@ -1668,15 +1699,27 @@ namespace lsn {
 	void CWavFile::MetadataWriterThread() {
 		std::vector<uint8_t> vConversionBuffer;
 		while ( true ) {
-			std::unique_lock<std::mutex> ulLock( m_sStream.mMetaMutex );
-			// Wait until there is a full buffer or a shutdown is signaled.
-			m_sStream.cvMetaCondition.wait( ulLock, [this] {
-				return /*!_sStream.qBufferQueue.empty() ||*/ m_sStream.bEnd;
-			});
+			std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>> vTmpBuffer;
+			{
+				std::unique_lock<std::mutex> ulLock( m_sStream.mMetaMutex );
+				// Wait until there is a full buffer or a shutdown is signaled.
+				m_sStream.cvMetaCondition.wait( ulLock, [this] {
+					return !m_sStream.qMetaBufferQueue.empty() || m_sStream.bEnd;
+				});
 
-			if ( m_sStream.bEnd ) {
-                // No more buffers and shutdown requested.
-                break;
+				// If there’s data to write, retrieve the next buffer.
+				if ( !m_sStream.qMetaBufferQueue.empty() ) {
+					vTmpBuffer = std::move( m_sStream.qMetaBufferQueue.front() );
+					m_sStream.qMetaBufferQueue.pop();
+				}
+				else if ( m_sStream.bEnd ) {
+					// No more buffers and shutdown requested.
+					break;
+				}
+			}
+			// Write the buffer to disk (if any).
+            if LSN_UNLIKELY( !vTmpBuffer.empty() ) {
+				(*m_sStream.pfMetaThreadFunc)( this, m_sStream.pvMetaParm, m_sStream, vTmpBuffer, vConversionBuffer );
             }
 		}
 		CloseStreamMetaFile();

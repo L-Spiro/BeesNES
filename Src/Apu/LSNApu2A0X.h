@@ -148,7 +148,7 @@ namespace lsn {
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
-			m_ui64LastBucketCycle( 0 ),
+			m_ui64RawExportStartCycle( 0 ),
 			m_piIrqTarget( _piIrqTarget ),
 			m_dvRegisters3_4017( Set4017, this ),
 			m_dvPulse1LengthCounter( Pulse1LengthCounter, this ),
@@ -326,14 +326,6 @@ namespace lsn {
 			m_pPulse2.UpdateSweeperState<0>();
 			
 
-			//auto aTmp = (*reinterpret_cast<uint32_t *>(&m_ui8Registers[4]));
-			//if ( m_ui32Pulse2 != aTmp ) {
-			//	m_ui32Pulse2 = aTmp;
-			//	if ( m_ui32Pulse2 == 0b00001110101100110000000010110101 ) {
-			//		//__debugbreak();
-			//	}
-			//	//::OutputDebugStringA( (std::format( "{0:.27f}\t{0:.27f}\t", m_ui64Cycles / std::ceil( Hz() ) ) + ee::CExpEval::ToBinary( static_cast<uint64_t>(m_ui32Pulse2) ) + "\r\n").c_str() );
-			//}
 			if LSN_LIKELY( m_bEnabled ) {
 				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0,
 					200,
@@ -433,7 +425,7 @@ namespace lsn {
 			m_ui8Registers[0x15] = 0x00;
 			m_ui64Cycles = 0;
 			m_ui64StepCycles = 0;
-			m_ui64LastBucketCycle = 0;
+			m_ui64RawExportStartCycle = 0;
 			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
@@ -607,26 +599,22 @@ namespace lsn {
 		 * \param _pvParm A pointer to an object of this class.
 		 * \param _sStream A reference to the streaming options.
 		 **/
-		static void LSN_STDCALL							AddMetaDataFunc_RingBuffer( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
+		static bool LSN_STDCALL							AddMetaDataFunc_RingBuffer( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
-			std::unique_lock<std::mutex> ulLock( _sStream.mMetaMutex );
-			if LSN_LIKELY( _sStream.bAdding && _sStream.bMeta ) {
-				if LSN_LIKELY( _sStream.bStreaming ) {
-					auto rbTmp = paApu->m_rbRingBuffer.Pop_Ref();
-					if ( !paApu->m_rbLastRegBufferOut.Equals( rbTmp, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
-						// Add the buffer to be consumed by the thread later.
-						//paApu->m_vRegBuffersOut.push_back( rbTmp );
-						_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), rbTmp.ui8Registers, rbTmp.ui8Registers + sizeof( LSN_REG_BUFFER ) );
 
-						paApu->m_rbLastRegBufferOut = rbTmp;
-						++_sStream.ui64MetaWritten;
-					}
-				}
-				else {
-				}
+			auto rbTmp = paApu->m_rbRingBuffer.Pop_Ref();
+			if ( !paApu->m_rbLastRegBufferOut.Equals( rbTmp, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+				// Add the buffer to be consumed by the thread later.
+				//paApu->m_vRegBuffersOut.push_back( rbTmp );
+				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), rbTmp.ui8Registers, rbTmp.ui8Registers + sizeof( LSN_REG_BUFFER ) );
+
+				paApu->m_rbLastRegBufferOut = rbTmp;
+				++_sStream.ui64MetaWritten;
+				return true;
 			}
 			else {
 				paApu->m_rbRingBuffer.Pop_Discard();
+				return false;
 			}
 		}
 
@@ -636,42 +624,93 @@ namespace lsn {
 		 * \param _pvParm A pointer to an object of this class.
 		 * \param _sStream A reference to the streaming options.
 		 **/
-		static void LSN_STDCALL							AddMetaDataFunc_Raw( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
+		static bool LSN_STDCALL							AddMetaDataFunc_Raw( void * _pvParm, CWavFile::LSN_STREAMING &_sStream ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
-			std::unique_lock<std::mutex> ulLock( _sStream.mMetaMutex );
-			if LSN_LIKELY( _sStream.bAdding && _sStream.bMeta ) {
-				if LSN_LIKELY( _sStream.bStreaming ) {
-					if ( !paApu->m_rbLastRegBufferRaw.Equals( paApu->m_ui8Registers, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
-						// Add the buffer to be consumed by the thread later.
-						//paApu->m_vRegBuffersRaw.push_back( paApu->m_ui8Registers );
-						size_t sIdx = _sStream.vMetaBuffer.size();
-						_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), paApu->m_ui8Registers, paApu->m_ui8Registers + sizeof( LSN_REG_BUFFER ) );
-						(*reinterpret_cast<LSN_REG_BUFFER *>(&_sStream.vMetaBuffer[sIdx])).dTime = paApu->m_ui64Cycles / paApu->Hz();
+			
+			if ( !paApu->m_rbLastRegBufferRaw.Equals( paApu->m_ui8Registers, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+				if LSN_UNLIKELY( _sStream.ui64MetaWritten == 0 ) { paApu->m_ui64RawExportStartCycle = paApu->m_ui64Cycles; }
+				
+				size_t sIdx = _sStream.vMetaBuffer.size();
+				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), paApu->m_ui8Registers, paApu->m_ui8Registers + sizeof( LSN_REG_BUFFER ) );
+				(*reinterpret_cast<LSN_REG_BUFFER *>(&_sStream.vMetaBuffer[sIdx])).dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
 
-						if LSN_UNLIKELY( _sStream.vMetaBuffer.size() == (1024 * sizeof( LSN_REG_BUFFER )) || _sStream.bEnd ) {
-							_sStream.qMetaBufferQueue.push( std::move( _sStream.vMetaBuffer ) );
-							// Create a new buffer and reserve space for efficiency.
-							_sStream.vMetaBuffer.clear();
-							_sStream.vMetaBuffer.reserve( (1024 * sizeof( LSN_REG_BUFFER )) );
-							// Notify the writer thread that a full buffer is ready.
-							_sStream.cvMetaCondition.notify_one();
-						}
+				paApu->m_rbLastRegBufferRaw = paApu->m_ui8Registers;
 
-						paApu->m_rbLastRegBufferRaw = paApu->m_ui8Registers;
-						++_sStream.ui64MetaWritten;
-					}
-				}
-				else {
-					// Stream is closing.  Push anything remaining.
-					if ( _sStream.vMetaBuffer.size() ) {
-						_sStream.qMetaBufferQueue.push( std::move( _sStream.vMetaBuffer ) );
-						// Create a new buffer and reserve space for efficiency.
-						_sStream.vMetaBuffer.clear();
-						// Notify the writer thread that a full buffer is ready.
-						_sStream.cvMetaCondition.notify_one();
-					}
-				}
+				return true;
 			}
+			return false;
+		}
+
+		/**
+		 * The thread callback for actually writing the values to the file.
+		 * 
+		 * \param _pwfWavFile A pointer to the underlying CWavFile object.
+		 * \param _pvParm A pointer to an object of this class.
+		 * \param _sStream A reference to the streaming options.
+		 **/
+		static void LSN_STDCALL							MetaDataThreadFunc( CWavFile * /*_pwfWavFile*/, void * /*_pvParm*/, CWavFile::LSN_STREAMING &_sStream,
+			std::vector<uint8_t, CAlignmentAllocator<uint8_t, 64>> &_vInput, std::vector<uint8_t> &_vTmpBuffer ) {
+			_vTmpBuffer.clear();
+			//CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
+
+			size_t sTotal = _vInput.size() / sizeof( LSN_REG_BUFFER );
+			LSN_REG_BUFFER * prbInput = reinterpret_cast<LSN_REG_BUFFER *>(_vInput.data());
+
+			LSN_REG_BUFFER * prbLast = _sStream.vMetaThreadScratch.size() ? reinterpret_cast<LSN_REG_BUFFER *>(_sStream.vMetaThreadScratch.data()) : nullptr;
+			for ( size_t I = 0; I < sTotal; ++I ) {
+				std::string sBinaryTmp;
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_PULSE1) && prbLast->Pulse1() != prbInput[I].Pulse1()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "Pu1: " + ee::CExpEval::ToBinary( prbInput[I].Pulse1(), 4 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_PULSE2) && prbLast->Pulse2() != prbInput[I].Pulse2()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "Pu2: " + ee::CExpEval::ToBinary( prbInput[I].Pulse2(), 4 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_TRIANGLE) && prbLast->Triangle() != prbInput[I].Triangle()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "Tri: " + ee::CExpEval::ToBinary( prbInput[I].Triangle(), 4 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_NOISE) && prbLast->Noise() != prbInput[I].Noise()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "Noi: " + ee::CExpEval::ToBinary( prbInput[I].Noise(), 4 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_DMC) && prbLast->Dmc() != prbInput[I].Dmc()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "DMC: " + ee::CExpEval::ToBinary( prbInput[I].Dmc(), 4 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_STATUS) && prbLast->Status() != prbInput[I].Status()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "Sts: " + ee::CExpEval::ToBinary( prbInput[I].Status(), 1 * 8 );
+				}
+				if ( !prbLast ||
+					((_sStream.ui64MetaParm & LSN_RF_FRAME_COUNTER) && prbLast->FrameCounter() != prbInput[I].FrameCounter()) ) {
+					
+					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
+					sBinaryTmp += "FrC: " + ee::CExpEval::ToBinary( prbInput[I].FrameCounter(), 1 * 8 );
+				}
+
+				std::string sFinal = std::format( "{0:.27f}\t{0:.27f}\t", prbInput[I].dTime ) + "[" + sBinaryTmp + "]\r\n";
+				_vTmpBuffer.insert( _vTmpBuffer.end(), sFinal.data(), sFinal.data() + sFinal.size() );
+
+				prbLast = &prbInput[I];
+				++_sStream.ui64MetaThreadParm;
+			}
+			_sStream.vMetaThreadScratch.resize( sizeof( LSN_REG_BUFFER ) );
+			(*reinterpret_cast<LSN_REG_BUFFER *>(_sStream.vMetaThreadScratch.data())) = (*prbLast);
+			_sStream.sfMetaFile.WriteToFile( _vTmpBuffer );
 		}
 
 		
@@ -691,8 +730,8 @@ namespace lsn {
 		uint64_t										m_ui64StepCycles;
 		/** Approximate number of ticks until length counters are ticked. */
 		int64_t											m_i64TicksToLenCntr;
-		/** The cycle of the last-registered sample bucket.  When the APU cycle reachs this value, a new bucket should be registered. */
-		uint64_t										m_ui64LastBucketCycle;
+		/** The starting cycle of raw WAV exports. */
+		uint64_t										m_ui64RawExportStartCycle;
 		/** The main bus. */
 		CCpuBus *										m_pbBus;
 		/** The IRQ target. */
@@ -765,7 +804,9 @@ namespace lsn {
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
 		/** Audio setting: Enabled. */
-		bool											m_bEnabled;
+		bool											m_bEnabled = true;
+		/** Register was written this cycle. */
+		bool											m_bRegModified = false;
 
 		/** The last value written to $4017. */
 		uint8_t											m_ui8Last4017 = 0;
@@ -1079,6 +1120,7 @@ namespace lsn {
 			paApu->m_dvPulse1LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE1_HALT_MASK );
 			paApu->m_pPulse1.SetSeq( GetDuty( _ui8Val >> 6 ) );
 			paApu->m_pPulse1.SetEnvelopeVolume( _ui8Val & 0b1111 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1097,6 +1139,7 @@ namespace lsn {
 			paApu->m_pPulse1.SetSweepNegate( ((_ui8Val & 0b1000) != 0) );
 			paApu->m_pPulse1.SetSweepShift( _ui8Val & 0b111 );
 			paApu->m_pPulse1.DirtySweeper();
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1111,6 +1154,7 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x02] = _ui8Val;
 			paApu->m_pPulse1.SetTimerLow( _ui8Val );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1132,6 +1176,7 @@ namespace lsn {
 				paApu->m_dvPulse1LengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_pPulse1.RestartEnvelope();
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1149,6 +1194,7 @@ namespace lsn {
 			paApu->m_dvPulse2LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE2_HALT_MASK );
 			paApu->m_pPulse2.SetSeq( GetDuty( _ui8Val >> 6 ) );
 			paApu->m_pPulse2.SetEnvelopeVolume( _ui8Val & 0b1111 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1167,6 +1213,7 @@ namespace lsn {
 			paApu->m_pPulse2.SetSweepNegate( ((_ui8Val & 0b1000) != 0) );
 			paApu->m_pPulse2.SetSweepShift( _ui8Val & 0b111 );
 			paApu->m_pPulse2.DirtySweeper();
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1181,6 +1228,7 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x06] = _ui8Val;
 			paApu->m_pPulse2.SetTimerLow( _ui8Val );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1202,6 +1250,7 @@ namespace lsn {
 				paApu->m_dvPulse2LengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_pPulse2.RestartEnvelope();
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1218,6 +1267,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x08] = (_ui8Val & ~LSN_TRIANGLE_HALT_MASK) | (paApu->m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK);
 			paApu->m_dvTriangleLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_TRIANGLE_HALT_MASK );
 			paApu->m_tTriangle.SetLinearCounter( _ui8Val & 0b01111111 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1232,6 +1282,7 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0A] = _ui8Val;
 			paApu->m_tTriangle.SetTimerLow( _ui8Val );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1253,6 +1304,7 @@ namespace lsn {
 				paApu->m_dvTriangleLengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_tTriangle.SetLinearReload();
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1269,6 +1321,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x0C] = (_ui8Val & ~LSN_NOISE_HALT_MASK) | (paApu->m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK);
 			paApu->m_dvNoiseLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_NOISE_HALT_MASK );
 			paApu->m_nNoise.SetEnvelopeVolume( _ui8Val & 0b1111 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1284,6 +1337,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
 			paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
 			paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1304,8 +1358,8 @@ namespace lsn {
 				paApu->m_dvNoiseLengthCounter.WriteWithDelay( CApuUnit::LenTable( (_ui8Val /*& 0b11111000*/) >> 3 ) );
 			}
 			paApu->m_nNoise.RestartEnvelope();
+			paApu->m_bRegModified = true;
 		}
-
 
 		/**
 		 * Writing to 0x4010 (Flags and Rate).
@@ -1318,6 +1372,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4010( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x10] = _ui8Val;
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1332,6 +1387,7 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x11] = _ui8Val;
 			paApu->m_fDmcRegVol = float( _ui8Val & 0b01111111 );
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1345,6 +1401,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4012( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x12] = _ui8Val;
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1358,8 +1415,8 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4013( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x13] = _ui8Val;
+			paApu->m_bRegModified = true;
 		}
-
 
 		/**
 		 * A function usable for addresses that can't be read.
@@ -1389,7 +1446,6 @@ namespace lsn {
 				_ui8Ret |= 0b01000000;
 				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU );
 			}
-			
 		}
 
 		/**
@@ -1420,6 +1476,7 @@ namespace lsn {
 				paApu->m_nNoise.SetLengthCounter( 0 );
 				//paApu->m_dvNoiseLengthCounter.WriteWithDelay( 0 );
 			}
+			paApu->m_bRegModified = true;
 		}
 
 		/**
@@ -1438,6 +1495,7 @@ namespace lsn {
 			paApu->m_ui8Registers[0x17] = _ui8Val;
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
 			paApu->m_ui8Last4017 = _ui8Val;
+			paApu->m_bRegModified = true;
 		}
 
 		/**

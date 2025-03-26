@@ -54,7 +54,7 @@ namespace lsn {
 #define LSN_META_OUT_GROUP_T								(LSN_AUDIO_OPTIONS_OUT_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 2 + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4 +					\
 																(/*LSN_DEF_STATIC_HEIGHT * 2 +*/ LSN_TOP_JUST))
 #define LSN_META_OUT_GROUP_H								(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_COMBO_HEIGHT + ((LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 3))
-#define LSN_AUDIO_OPTIONS_OUT_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 2 + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4 + /*(LSN_DEF_STATIC_HEIGHT * 2) +*/ LSN_TOP_JUST + LSN_META_OUT_GROUP_H)
+#define LSN_AUDIO_OPTIONS_OUT_GROUP_H						(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 2 + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST) * 4 /*+ (LSN_DEF_STATIC_HEIGHT * 2) + LSN_TOP_JUST + LSN_META_OUT_GROUP_H*/)
 
 
 #define LSN_META_GROUP_W									(LSN_AUDIO_OPTIONS_GENERAL_GROUP_W - LSN_GROUP_LEFT * 2)
@@ -2555,201 +2555,201 @@ namespace lsn {
 		//},
 
 		// Metadata.
-		{
-			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_GROUP,						// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_LEFT_JUST + LSN_GROUP_LEFT,					// iLeft
-			LSN_META_OUT_GROUP_T,							// iTop
-			LSN_META_GROUP_W,								// dwWidth
-			LSN_META_OUT_GROUP_H,							// dwHeight
-			LSN_GROUPSTYLE,									// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA ),			// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_META_COMBO,					// wId
-			WC_COMBOBOXW,									// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_LEFT_JUST + LSN_GROUP_LEFT * 2,				// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP,			// iTop
-			LSN_META_CHECK0_L - (LSN_LEFT_JUST + LSN_GROUP_LEFT * 2) - LSN_LEFT_JUST * 2,																																		// dwWidth
-			LSN_DEF_COMBO_HEIGHT,							// dwHeight
-			LSN_COMBOSTYLE_LIST,							// dwStyle
-			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
-			nullptr,										// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_CHECK,					// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK0_L,								// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																														// iTop
-			LSN_META_CHECK0_W,								// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 0 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
-			LSN_META_CHECK_W( 0 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_ALL ),		// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_NONE_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 1 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
-			LSN_META_CHECK_W( 1 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NONE ),	// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,			// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 2 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
-			LSN_META_CHECK_W( 2 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE1 ),	// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
+		//{
+		//	LSW_LT_GROUPBOX,								// ltType
+		//	LSN_AOWI_PAGE_OUT_GROUP,						// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_LEFT_JUST + LSN_GROUP_LEFT,					// iLeft
+		//	LSN_META_OUT_GROUP_T,							// iTop
+		//	LSN_META_GROUP_W,								// dwWidth
+		//	LSN_META_OUT_GROUP_H,							// dwHeight
+		//	LSN_GROUPSTYLE,									// dwStyle
+		//	WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA ),			// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_COMBOBOX,								// ltType
+		//	LSN_AOWI_PAGE_OUT_META_COMBO,					// wId
+		//	WC_COMBOBOXW,									// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_LEFT_JUST + LSN_GROUP_LEFT * 2,				// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP,			// iTop
+		//	LSN_META_CHECK0_L - (LSN_LEFT_JUST + LSN_GROUP_LEFT * 2) - LSN_LEFT_JUST * 2,																																		// dwWidth
+		//	LSN_DEF_COMBO_HEIGHT,							// dwHeight
+		//	LSN_COMBOSTYLE_LIST,							// dwStyle
+		//	LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
+		//	nullptr,										// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_CHECK,					// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK0_L,								// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																														// iTop
+		//	LSN_META_CHECK0_W,								// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 0 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
+		//	LSN_META_CHECK_W( 0 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_ALL ),		// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_NONE_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 1 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
+		//	LSN_META_CHECK_W( 1 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NONE ),	// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,			// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 2 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST,																																			// iTop
+		//	LSN_META_CHECK_W( 2 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE1 ),	// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
 
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_PULSE2_CHECK,			// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 0 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
-			LSN_META_CHECK_W( 0 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE2 ),	// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_TRI_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 1 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
-			LSN_META_CHECK_W( 1 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_TRIANGLE ),// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 2 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
-			LSN_META_CHECK_W( 2 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NOISE ),	// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_PULSE2_CHECK,			// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 0 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
+		//	LSN_META_CHECK_W( 0 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE2 ),	// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_TRI_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 1 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
+		//	LSN_META_CHECK_W( 1 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_TRIANGLE ),// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 2 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 1,																								// iTop
+		//	LSN_META_CHECK_W( 2 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NOISE ),	// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
 
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 0 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
-			LSN_META_CHECK_W( 0 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_DMC ),		// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 1 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
-			LSN_META_CHECK_W( 1 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_STATUS ),	// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
-		{
-			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,				// wId
-			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_META_CHECK_L( 2 ),							// iLeft
-			LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
-			LSN_META_CHECK_W( 2 ),							// dwWidth
-			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER ),																																								// pwcText
-			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
-		},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 0 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
+		//	LSN_META_CHECK_W( 0 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_DMC ),		// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 1 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
+		//	LSN_META_CHECK_W( 1 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_STATUS ),	// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
+		//{
+		//	LSW_LT_CHECK,									// ltType
+		//	LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,				// wId
+		//	WC_BUTTONW,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_META_CHECK_L( 2 ),							// iLeft
+		//	LSN_META_OUT_GROUP_T + LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST + (LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST) * 2,																								// iTop
+		//	LSN_META_CHECK_W( 2 ),							// dwWidth
+		//	LSN_DEF_CHECK_HEIGHT,							// dwHeight
+		//	LSN_CHECKSTYLE,									// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER ),																																								// pwcText
+		//	0,												// sTextLen
+		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//},
 
 	};
 

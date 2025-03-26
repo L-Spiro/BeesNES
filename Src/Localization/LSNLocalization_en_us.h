@@ -74,6 +74,7 @@
 
 // Tools menu.
 #define LSN_TOOLS_PATCH														&Patcher
+#define LSN_TOOLS_WAV_EDIT													&WAV Editor
 
 // Main menu.
 #define LSN_SELECT_ROM														Select ROM
