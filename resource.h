@@ -9,6 +9,7 @@
 #define IDI_AUDIO_ICON_32               110
 #define IDI_AUDIO_ICON_16               111
 #define IDI_WAV_EDIT_ICON_32            112
+#define IDI_WAV_EDIT_ICON_16            113
 
 // Next default values for new objects
 // 
