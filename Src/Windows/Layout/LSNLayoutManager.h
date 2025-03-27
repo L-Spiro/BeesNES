@@ -33,6 +33,8 @@ namespace lsn {
 		LSN_LT_PATCH_DIALOG,
 		LSN_LT_PATCH_PAGE_TOP,
 		LSN_LT_PATCH_PAGE_BOTTOM,
+
+		LSN_LT_WAV_EDITOR_WINDOW,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

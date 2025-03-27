@@ -455,46 +455,46 @@ namespace lsn {
 		// == Types.
 		/** General members. */
 		struct LSN_GENERAL {
-			uint64_t										ui64SrcSampleCnt;							/**< Total samples submitted so far. */
-			uint64_t										ui64SampleCnt;								/**< Total samples sent to the (ui32OutputHz * 3) buffer. */
-			uint64_t										ui64SamplesBuffered;						/**< Similar to ui64SampleCnt, but it counts how many samples have been interpolated.  Samples sent from the input buffer to the (ui32OutputHz * 3) buffer might temporarily be hold in a buffer in order to perform batch interpolations, so this number is always equal to or higher than ui64SampleCnt. */
-			double											dInputHz;									/**< The source frequency. */
-			PfSample										pfSample;									/**< The sample interpolator. */
-			PfStoreSample									pfStoreSample;								/**< The function for stoing a sample from the main input buffer to the intermediate buffer. */
-			PfConvolve										pfConvolve;									/**< The function for convolving a sample. */
-			PfFinalCallback									pfFinalCallback;							/**< Allow the user to make any final custom changes to the sample before it goes into the output buffer. */
-			void *											pvFinalParm;								/**< The parameter to pass to pfFinalCallback. */
+			uint64_t										ui64SrcSampleCnt = 0;						/**< Total samples submitted so far. */
+			uint64_t										ui64SampleCnt = 0;							/**< Total samples sent to the (ui32OutputHz * 3) buffer. */
+			uint64_t										ui64SamplesBuffered = 0;					/**< Similar to ui64SampleCnt, but it counts how many samples have been interpolated.  Samples sent from the input buffer to the (ui32OutputHz * 3) buffer might temporarily be hold in a buffer in order to perform batch interpolations, so this number is always equal to or higher than ui64SampleCnt. */
+			double											dInputHz = 0.0;								/**< The source frequency. */
+			PfSample										pfSample = nullptr;							/**< The sample interpolator. */
+			PfStoreSample									pfStoreSample = nullptr;					/**< The function for stoing a sample from the main input buffer to the intermediate buffer. */
+			PfConvolve										pfConvolve = nullptr;						/**< The function for convolving a sample. */
+			PfFinalCallback									pfFinalCallback = nullptr;					/**< Allow the user to make any final custom changes to the sample before it goes into the output buffer. */
+			void *											pvFinalParm = nullptr;						/**< The parameter to pass to pfFinalCallback. */
 			std::vector<float>								vBuffer;									/**< Ring buffer of the last few input samples. */
 			std::vector<float>								vOutputBuffer;								/**< The final bass-banded output sample. */
-			float											fLpf;										/**< The LPF frequency. */
-			float											fHpf;										/**< The HPF frequency. */
-			uint32_t										ui32OutputHz;								/**< The output frequency. */
+			float											fLpf = 0.0f;								/**< The LPF frequency. */
+			float											fHpf = 0.0f;								/**< The HPF frequency. */
+			uint32_t										ui32OutputHz = 0;							/**< The output frequency. */
 		};
 
 		/** Sinc filter (LPF). */
 		struct LSN_SINC {
 			std::vector<float>								vCeof;										/**< The array of coefficients. */
 			std::vector<float>								vRing;										/**< The ring buffer of past samples. */
-			size_t											sM;											/**< The midpoint of vCeof. */
+			size_t											sM = 0;										/**< The midpoint of vCeof. */
 		};
 
 		/** LPF filter.  Uses doubles because it is meant to operate on the high-frequency input
 		 *	data, which will require extra precision when down-sampling to a significantly smaller output Hz.
 		 */
 		struct LSN_LPF {
-			double											dLastSample;								/**, The last output sample. */
-			double											dLastInput;									/**< The last input. */
-			double											dGain;										/**< The gain control (a0). */
-			double											dCornerFreq;								/**< The corner frequency (b1). */
+			double											dLastSample = 0.0;							/**, The last output sample. */
+			double											dLastInput = 0.0;							/**< The last input. */
+			double											dGain = 0.0;								/**< The gain control (a0). */
+			double											dCornerFreq = 0.0;							/**< The corner frequency (b1). */
 		};
 
 		/** HPF filter. */
 		struct LSN_HPF {
-			float											fAlpha;										/**< Alpha. */
-			float											fPreviousOutput;							/**< The previous output sample. */
-			float											fPrevInput;									/**< The previous input sample. */
-			float											fDelta;										/**< Delta. */
-			float											fOutput;									/**< The current filtered output sample. */
+			float											fAlpha = 0.0f;								/**< Alpha. */
+			float											fPreviousOutput = 0.0f;						/**< The previous output sample. */
+			float											fPrevInput = 0.0f;							/**< The previous input sample. */
+			float											fDelta = 0.0f;								/**< Delta. */
+			float											fOutput = 0.0f;								/**< The current filtered output sample. */
 		};
 
 		/** An aligned sampling buffer. */

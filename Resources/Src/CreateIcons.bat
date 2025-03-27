@@ -10,6 +10,10 @@ SurfaceLevel2.exe -file "icons8-bug-96.png" -outfile "..\icons8-bug-48.ico" -fil
 SurfaceLevel2.exe -file "icons8-bug-96.png" -outfile "..\icons8-bug-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-bug-96.png" -outfile "..\icons8-bug-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-equalizer-60.png" -outfile "..\icons8-equalizer-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-equalizer-60.png" -outfile "..\icons8-equalizer-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-equalizer-60.png" -outfile "..\icons8-equalizer-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
 SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
@@ -113,6 +117,10 @@ SurfaceLevel2.exe -file "icons8-plugin-96.png" -outfile "..\icons8-plugin-16.ico
 SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
+SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
 SurfaceLevel2.exe -file "icons8-refresh-96.png" -outfile "..\icons8-refresh-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-refresh-96.png" -outfile "..\icons8-refresh-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb

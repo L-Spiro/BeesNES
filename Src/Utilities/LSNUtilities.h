@@ -152,6 +152,33 @@ namespace lsn {
 		}
 
 		/**
+		 * Generates a string of random characters.
+		 * 
+		 * \param _pcBuffer The buffer to fill with random characters.
+		 * \param _sSize The size of the buffer to which _pcBuffer points, including the NULL terminator.
+		 * \return Returns _pcBuffer.
+		 **/
+		template <typename _tType>
+		static _tType *										RandomString( _tType * _pcBuffer, SIZE_T _sSize ) {
+			if ( !_pcBuffer || !_sSize ) { return _pcBuffer; }
+			std::random_device rdRand;
+			std::mt19937 mGen( rdRand() );
+			std::uniform_int_distribution<> uidDistLower( _tType( 'a' ), _tType( 'z' ) );
+			std::uniform_int_distribution<> uidDistUpper( _tType( 'A' ), _tType( 'Z' ) );
+			std::uniform_int_distribution<> uidBool( 0, 3 );
+			for ( SIZE_T I = 0; I < _sSize - 1; ++I ) {
+				if ( uidBool( mGen ) == 0 ) {
+					_pcBuffer[I] = uidDistUpper( mGen );
+				}
+				else {
+					_pcBuffer[I] = uidDistLower( mGen );
+				}
+			}
+			_pcBuffer[_sSize-1] = _tType( '\0' );
+			return _pcBuffer;
+		}
+
+		/**
 		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
 		 *
 		 * \param _s16String The string in which replacements are to be made.

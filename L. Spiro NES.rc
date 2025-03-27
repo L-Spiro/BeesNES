@@ -64,6 +64,10 @@ IDI_AUDIO_ICON_32       ICON                    "Resources\\icons8-turntable-32.
 
 IDI_AUDIO_ICON_16       ICON                    "Resources\\icons8-turntable-16.ico"
 
+IDI_WAV_EDIT_ICON_32    ICON                    "Resources\\icons8-radio-waves-32.ico"
+
+IDI_WAV_EDIT_ICON_16    ICON                    "Resources\\icons8-radio-waves-16.ico"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

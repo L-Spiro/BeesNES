@@ -48,29 +48,27 @@
 #define LSN_VIDEO_SIZE_4X													4×
 #define LSN_VIDEO_SIZE_5X													5×
 #define LSN_VIDEO_SIZE_6X													6×
+#define LSN_VIDEO_SIZE_7X													7×
+#define LSN_VIDEO_SIZE_8X													8×
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												N&one
-#define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC (&Blargg)
-//#define LSN_VIDEO_FILTER_PAL_BLARGG											&PAL (Blargg)
-#define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC (L. &Spiro)
-#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL (L&. Spiro)
-#define LSN_VIDEO_FILTER_DENDY_L_SPIRO										&Dendy (L. Spiro)
+#define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (&Blargg)
+#define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
+#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-B/B1/D/D1/G/H/I/K (L&. Spiro)
+#define LSN_VIDEO_FILTER_DENDY_L_SPIRO										&SECAM-B/D/G/H/K/K1/L (L. Spiro)
 #define LSN_VIDEO_FILTER_PALM_L_SPIRO										PAL-&M (Brazil Famiclone) (L. Spiro)
 #define LSN_VIDEO_FILTER_PALN_L_SPIRO										PAL-&N (Argentina Famiclone) (L. Spiro)
-//#define LSN_VIDEO_FILTER_AUTO_BLARGG										&NTSC/PAL Auto (Blargg)
-#define LSN_VIDEO_FILTER_NTSC_CRT											NTSC-CRT (&LMP88959)
-#define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-&CRT Full (LMP88959)
-#define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-CRT &Full (LMP88959)
-//#define LSN_VIDEO_FILTER_AUTO_CRT											NTSC-CRT/PAL &Auto (LMP88959/Blargg)
-#define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL-CRT &Auto (LMP88959)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL Auto (L. S&piro)
+#define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-M (LMP&88959)
+#define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-B/B1/D/D1/G/H/I/K (LMP88&959)
+#define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL &Auto (LMP88959)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL/SECAM Auto (L. S&piro)
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
 #define LSN_REGION_NTSC														&NTSC
 #define LSN_REGION_PAL														&PAL
-#define LSN_REGION_DENDY													&Dendy
-#define LSN_REGION_PALM														PAL-&M
-#define LSN_REGION_PALN														PA&L-N
+#define LSN_REGION_DENDY													PAL “&Dendy” Famiclone
+#define LSN_REGION_PALM														&Brazil Famiclone
+#define LSN_REGION_PALN														Ar&gentina Famiclone
 
 // Tools menu.
 #define LSN_TOOLS_PATCH														&Patcher
@@ -217,6 +215,7 @@
 #define LSN_AUDIO_OPTIONS_METADATA_STATUS									Status ($4015)
 #define LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER							Frame Counter ($4017)
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
+#define LSN_AUDIO_OPTIONS_ERR_SAME_PATHS									Cannot output 2 streams to the same path at once.
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND							The selected starting condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C2\u201D, \u201C56.2\u201D, \u201C360.0f\u201D, etc.) or as equations (\u201C2*60+13.5\u201D, \u201Cpow( 10, 6 / 20.0 )\u201D, etc.)
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_END_COND								The selected stopping condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C10\u201D, \u201C5.5\u201D, \u201C0.5f\u201D, etc.) or as equations (\u201C3*60+10.5\u201D, \u201Clog10( 0.5 ) * 20\u201D, etc.)
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_DURATION								Durations must be positive values larger than 0.
@@ -237,6 +236,9 @@
 #define LSN_PATCH_EXPAND_ALL												E&xpand All
 #define LSN_PATCH_COLLAPSE_SELECTED											C&ollapse Selected
 #define LSN_PATCH_COLLAPSE_ALL												&Collapse All
+
+// WAV Editor
+#define LSN_WE_WAV_EDITOR													WAV Editor
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

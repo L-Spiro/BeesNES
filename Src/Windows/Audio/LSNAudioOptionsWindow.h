@@ -1,7 +1,7 @@
 #ifdef LSN_USE_WINDOWS
 
 /**
- * Copyright L. Spiro 2023
+ * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
@@ -11,6 +11,7 @@
 #pragma once
 
 #include "LSNAudioOptionsWindowLayout.h"
+
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;

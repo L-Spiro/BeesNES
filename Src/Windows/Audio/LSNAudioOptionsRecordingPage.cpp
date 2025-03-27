@@ -1,7 +1,7 @@
 #ifdef LSN_USE_WINDOWS
 
 /**
- * Copyright L. Spiro 2023
+ * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
@@ -300,6 +300,8 @@ namespace lsn {
 	 * \return Returns the control that failed or nullptr.
 	 **/
 	CWidget * CAudioOptionsRecordingPage::Verify( std::wstring &_wsMsg ) {
+		std::filesystem::path pRawPath;
+
 		bool bEnabled = true;
 		lsw::CCheckButton * pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_ENABLE_CHECK ));
 		if ( pcbCheck ) { bEnabled = pcbCheck->IsChecked(); }
@@ -320,6 +322,7 @@ namespace lsn {
 				_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_PATH );
 				return aEdit;
 			}
+			pRawPath = std::filesystem::absolute( aEdit->GetTextW() ).make_preferred();
 		}
 
 		ee::CExpEvalContainer::EE_RESULT eTest;
@@ -386,6 +389,12 @@ namespace lsn {
 			if ( !aEdit->GetTextW().size() ) {
 				_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_INVALID_PATH );
 				return aEdit;
+			}
+			if ( !pRawPath.empty() ) {
+				if ( pRawPath == std::filesystem::absolute( aEdit->GetTextW() ).make_preferred() ) {
+					_wsMsg = LSN_LSTR( LSN_AUDIO_OPTIONS_ERR_SAME_PATHS );
+					return aEdit;
+				}
 			}
 		}
 

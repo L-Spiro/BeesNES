@@ -28,6 +28,7 @@
 #include "../Layout/LSNLayoutManager.h"
 #include "../Patch/LSNPatchWindowLayout.h"
 #include "../SelectRom/LSNSelectRomDialogLayout.h"
+#include "../WavEditor/LSNWavEditorWindowLayout.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNMainWindowLayout.h"
 #include <Rebar/LSWRebar.h>
@@ -506,6 +507,13 @@ namespace lsn {
 					m_pwPatchWindow->SetFocus();
 				}
 				else { m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( this, m_bnEmulator.Options() ); }
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_TOOLS_WAV_EDIT : {
+				if ( m_pwWavEditorWindow ) {
+					m_pwWavEditorWindow->SetFocus();
+				}
+				else { m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( this ); }
 				break;
 			}
 
@@ -1816,6 +1824,9 @@ namespace lsn {
 	void CMainWindow::ChildWasRemoved( const CWidget * _pwChild ) {
 		if ( _pwChild == m_pwPatchWindow ) {
 			m_pwPatchWindow = nullptr;
+		}
+		else if ( m_pwWavEditorWindow == _pwChild ) {
+			m_pwWavEditorWindow = nullptr;
 		}
 	}
 

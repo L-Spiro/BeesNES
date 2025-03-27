@@ -316,9 +316,11 @@ namespace lsn {
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
 		volatile std::atomic_int				m_aiThreadState;
 		/** Is the window maximized? */
-		bool									m_bMaximized;
-		/** Window/UI options/settings. */
-		lsw::CWidget *							m_pwPatchWindow;
+		bool									m_bMaximized = false;
+		/** The Patch window. */
+		lsw::CWidget *							m_pwPatchWindow = nullptr;
+		/** The WAV Editor window. */
+		lsw::CWidget *							m_pwWavEditorWindow = nullptr;
 		/** The window/UI settings/options. */
 		LSN_WINDOW_OPTIONS						m_woWindowOptions;
 

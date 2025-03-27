@@ -268,6 +268,12 @@
     <Filter Include="Source Files\Wav">
       <UniqueIdentifier>{b2e67b50-2fb2-4d39-91d8-f25faabbf4c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\WavEditor">
+      <UniqueIdentifier>{7043d69f-4a20-40fb-83a0-5942505456bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\WavEditor">
+      <UniqueIdentifier>{d557fbb8-73fe-45ad-89c1-a828eab36038}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -900,6 +906,12 @@
     <ClInclude Include="Src\Utilities\LSNRingBuffer.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorWindow.h">
+      <Filter>Header Files\Windows\WavEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorWindowLayout.h">
+      <Filter>Header Files\Windows\WavEditor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1250,6 +1262,12 @@
     <ClCompile Include="Src\Wav\LSNWavFile.cpp">
       <Filter>Source Files\Wav</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorWindow.cpp">
+      <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorWindowLayout.cpp">
+      <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Cpu\LSNInstMetaData.inl">
@@ -1331,6 +1349,12 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\icons8-turntable-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-radio-waves-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-radio-waves-16.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

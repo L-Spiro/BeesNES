@@ -68,13 +68,11 @@ namespace lsn {
 		Reset();
 		size_t stOffset = 0;
 		const uint32_t * pui32Scratch;
-		//const uint16_t * pui16Scratch;
 
 #define LSN_PTR_SIZE( TYPE, OFFSET, SIZE )			((OFFSET) + SIZE) > _vData.size() ? nullptr : reinterpret_cast<const TYPE *>(&_vData[OFFSET])
 #define LSN_PTR( TYPE, OFFSET )						LSN_PTR_SIZE( TYPE, OFFSET, sizeof( TYPE ) )
 #define LSN_READ_32( VAL )							pui32Scratch = LSN_PTR( uint32_t, stOffset ); if ( !pui32Scratch ) { return false; } stOffset += sizeof( uint32_t ); VAL = (*pui32Scratch)
-//#define LSN_READ_16( VAL )							pui16Scratch = LSN_PTR( uint16_t, stOffset ); if ( !pui16Scratch ) { return false; } stOffset += sizeof( uint16_t ); VAL = (*pui16Scratch)
-#define LSN_READ_STRUCT( TYPE, VAL )					VAL = LSN_PTR( TYPE, stOffset ); if ( !VAL ) { return false; } stOffset += sizeof( TYPE )
+#define LSN_READ_STRUCT( TYPE, VAL )				VAL = LSN_PTR( TYPE, stOffset ); if ( !VAL ) { return false; } stOffset += sizeof( TYPE )
 
 
 		do {
@@ -145,20 +143,10 @@ namespace lsn {
 				}
 			}
 
-
-			/*switch ( cCurChunk.u2.uiFormat ) {
-				case 0x45564157 : {		// "WAVE"
-					if ( !LoadWAVE( _vData, stOffset ) ) { return false; }
-					break;
-				}
-				default : { return false; }
-			}*/
-			//m_vChunks.push_back( cCurChunk );
 		} while ( stOffset < _vData.size() );
 
 
 #undef LSN_READ_STRUCT
-//#undef LSN_READ_16
 #undef LSN_READ_32
 #undef LSN_PTR
 		return true;
