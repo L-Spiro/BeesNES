@@ -113,7 +113,7 @@ namespace lsw {
 
 		HWND hWnd = ::CreateDialogIndirectParamW( CBase::GetThisHandle(), 
 			dtTemplate.pdtTemplate, 
-			_pwParent->Wnd(), 
+			_pwParent ? _pwParent->Wnd() : NULL, 
 			CWidget::DialogProc,
 			reinterpret_cast<LPARAM>(&dtTemplate.vWidgets) );
 		

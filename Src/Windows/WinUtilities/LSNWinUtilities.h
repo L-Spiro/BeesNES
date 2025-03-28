@@ -33,6 +33,7 @@ namespace lsn {
 		enum LSN_MSG : uint16_t {
 #if defined( LSN_WINDOWS )
 			LSN_CLOSE_PATCHER									= WM_USER + 1,
+			LSN_CLOSE_WAV_EDITOR,
 			LSN_UPDATE_HZ,
 #endif	// #if defined( LSN_WINDOWS )
 		};

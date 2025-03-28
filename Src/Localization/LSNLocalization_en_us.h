@@ -52,16 +52,16 @@
 #define LSN_VIDEO_SIZE_8X													8×
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												N&one
-#define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (&Blargg)
+#define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
-#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-B/B1/D/D1/G/H/I/K (L&. Spiro)
-#define LSN_VIDEO_FILTER_DENDY_L_SPIRO										&SECAM-B/D/G/H/K/K1/L (L. Spiro)
+#define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-&B/B1/G/H/I/K (L. Spiro)
+#define LSN_VIDEO_FILTER_DENDY_L_SPIRO										PAL-&D/D1 (L. Spiro)//&SECAM-B/D/G/H/K/K1/L (L. Spiro)
 #define LSN_VIDEO_FILTER_PALM_L_SPIRO										PAL-&M (Brazil Famiclone) (L. Spiro)
 #define LSN_VIDEO_FILTER_PALN_L_SPIRO										PAL-&N (Argentina Famiclone) (L. Spiro)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-M (LMP&88959)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-B/B1/D/D1/G/H/I/K (LMP88&959)
-#define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL &Auto (LMP88959)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL/SECAM Auto (L. S&piro)
+#define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL Auto (LMP889&59)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
 #define LSN_REGION_NTSC														&NTSC
@@ -239,6 +239,28 @@
 
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
+#define LSN_WE_FILES														#1: Files
+#define LSN_WE_FILE_SETTINGS												#2: Per-File Settings
+#define LSN_WE_SEQUENCING													#2: Per-File Sequencing
+#define LSN_WE_OUTPUT														#3: Output
+#define LSN_WE_ADD_WAV														Add .WAV Files
+#define LSN_WE_ADD_METADATA													Add Metadata
+#define LSN_WE_REMOVE														Remove
+#define LSN_WE_MOVE_UP														Move Up
+#define LSN_WE_MOVE_DOWN													Move Down
+#define LSN_WE_LOOPS														Loops
+#define LSN_WE_START_TIME													Start Time:
+#define LSN_WE_OPENING_SIL													Opening Silence:
+#define LSN_WE_START														Start:
+#define LSN_WE_END															End:
+#define LSN_WE_DELAY														Delay:
+#define LSN_WE_FADE_TIME													Fade Time:
+#define LSN_WE_ONE_SHOT														One-Shot
+#define LSN_WE_TRAIL														Trailing Silence
+#define LSN_WE_OPERATIONS													Operations
+#define LSN_WE_OPERATION													Operation
+#define LSN_WE_PARMS														Parameters
+#define LSN_WE_DESC															Description
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

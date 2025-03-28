@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "LSNWavEditorSequencingPage.h"
 #include "LSNWavEditorWindowLayout.h"
 
 #include <MainWindow/LSWMainWindow.h>
@@ -50,14 +51,31 @@ namespace lsn {
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		/**
+		 * Handles the WM_GETMINMAXINFO message.
+		 * 
+		 * \param _pmmiInfo The min/max info structure to fill out.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
+
+		/**
 		 * Prepares to create the window.  Creates the atom if necessary.
 		 **/
-		static void											PreparePeWorks();
+		static void											PrepareWavEditor();
 
 
+	public :
 		// == Members.
+		/** The sequencing dialogs. */
+		std::vector<CWavEditorSequencingPage *>				m_vSequencePages;
+		/** Toggled when done initializing. */
+		bool												m_bInit = false;
 		/** The main window class. */
 		static ATOM											m_aAtom;
+
+
+	private :
+		typedef CWavEditorWindowLayout						Layout;
 
 	};
 

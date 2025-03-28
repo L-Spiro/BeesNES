@@ -277,9 +277,17 @@
 #define LSN_LEFT_JUST					2	// Dialog units.
 #endif	// LSN_LEFT_JUST
 
+#ifndef LSN_LEFT_JUST_PXL
+#define LSN_LEFT_JUST_PXL				4	// Pixels.
+#endif	// LSN_LEFT_JUST_PXL
+
 #ifndef LSN_TOP_JUST
 #define LSN_TOP_JUST					2	// Dialog units.
 #endif	// LSN_TOP_JUST
+
+#ifndef LSN_TOP_JUST_PXL
+#define LSN_TOP_JUST_PXL				2	// Pixels.
+#endif	// LSN_TOP_JUST_PXL
 
 #ifndef LSN_CHECK_JUST
 #define LSN_CHECK_JUST					1	// Dialog units.

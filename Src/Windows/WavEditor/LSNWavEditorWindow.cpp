@@ -10,6 +10,7 @@
 
 #include "LSNWavEditorWindow.h"
 #include "../../Utilities/LSNUtilities.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <Base/LSWWndClassEx.h>
 
@@ -39,6 +40,24 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
+		CWidget * pwSeqPage = Layout::CreateSequencer( this, 0 );
+		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
+		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
+
+		auto * ptGroup = FindChild( Layout::LSN_WEWI_FILES_GROUP );
+		if ( ptGroup ) {
+			auto aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
+			auto aThisRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
+			::MoveWindow( pwSeqPage->Wnd(), 0, aGroupRect.bottom, aThisRect.Width(), aThisRect.Height(), TRUE );
+
+			aThisRect = pwSeqPage->WindowRect();
+			auto aWindowRect = WindowRect();
+
+			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aWindowRect.Width(), aThisRect.bottom - aWindowRect.top + aGroupRect.left, TRUE );
+		}
+
+		UpdateRects();
+		m_bInit = true;
 		return LSW_H_CONTINUE;
 	}
 
@@ -48,6 +67,9 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CWavEditorWindow::Close() {
+		if ( m_pwParent ) {
+			::PostMessageW( m_pwParent->Wnd(), CWinUtilities::LSN_CLOSE_WAV_EDITOR, 0, 0 );
+		}
 		::DestroyWindow( Wnd() );
 		return LSW_H_HANDLED;
 	}
@@ -65,9 +87,26 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles the WM_GETMINMAXINFO message.
+	 * 
+	 * \param _pmmiInfo The min/max info structure to fill out.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CWavEditorWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
+		if ( m_bInit ) {
+			_pmmiInfo->ptMinTrackSize.x = m_rStartingRect.Width();
+			_pmmiInfo->ptMinTrackSize.y = m_rStartingRect.Height();
+			_pmmiInfo->ptMaxTrackSize.x = _pmmiInfo->ptMinTrackSize.x;
+			_pmmiInfo->ptMaxTrackSize.y = _pmmiInfo->ptMinTrackSize.y;
+			return LSW_H_HANDLED;
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * Prepares to create the window.  Creates the atom if necessary.
 	 **/
-	void CWavEditorWindow::PreparePeWorks() {
+	void CWavEditorWindow::PrepareWavEditor() {
 		if ( !m_aAtom ) {
 			lsw::CWndClassEx wceEx;
 			wceEx.SetInstance( lsw::CBase::GetThisHandle() );

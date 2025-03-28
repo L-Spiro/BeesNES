@@ -159,19 +159,19 @@ namespace lsn {
 		 * \return Returns _pcBuffer.
 		 **/
 		template <typename _tType>
-		static _tType *										RandomString( _tType * _pcBuffer, SIZE_T _sSize ) {
+		static _tType *										RandomString( _tType * _pcBuffer, size_t _sSize ) {
 			if ( !_pcBuffer || !_sSize ) { return _pcBuffer; }
 			std::random_device rdRand;
 			std::mt19937 mGen( rdRand() );
 			std::uniform_int_distribution<> uidDistLower( _tType( 'a' ), _tType( 'z' ) );
 			std::uniform_int_distribution<> uidDistUpper( _tType( 'A' ), _tType( 'Z' ) );
 			std::uniform_int_distribution<> uidBool( 0, 3 );
-			for ( SIZE_T I = 0; I < _sSize - 1; ++I ) {
+			for ( size_t I = 0; I < _sSize - 1; ++I ) {
 				if ( uidBool( mGen ) == 0 ) {
-					_pcBuffer[I] = uidDistUpper( mGen );
+					_pcBuffer[I] = _tType( uidDistUpper( mGen ) );
 				}
 				else {
-					_pcBuffer[I] = uidDistLower( mGen );
+					_pcBuffer[I] = _tType( uidDistLower( mGen ) );
 				}
 			}
 			_pcBuffer[_sSize-1] = _tType( '\0' );

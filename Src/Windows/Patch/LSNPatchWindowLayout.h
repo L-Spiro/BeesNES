@@ -83,6 +83,7 @@ namespace lsn {
 		 * Creates the top page.
 		 *
 		 * \param _pwParent The parent widget.
+		 * \param _oOptions Parameter to pass to the created cotnrol.
 		 * \return Returns the created page.
 		 */
 		static CWidget *						CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
@@ -91,6 +92,7 @@ namespace lsn {
 		 * Creates the bottom page.
 		 *
 		 * \param _pwParent The parent widget.
+		 * \param _oOptions Parameter to pass to the created cotnrol.
 		 * \return Returns the created page.
 		 */
 		static CWidget *						CreateBottomPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions );
@@ -113,6 +115,7 @@ namespace lsn {
 		 * \param _pwParent The parent widget.
 		 * \param _pwlLayout The page layout.
 		 * \param _sTotal The number of items to which _pwlLayout points.
+		 * \param _oOptions Parameter to pass to the created cotnrol.
 		 * \return Returns the created page.
 		 */
 		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_OPTIONS &_oOptions );

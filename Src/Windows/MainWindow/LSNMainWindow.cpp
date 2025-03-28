@@ -506,14 +506,20 @@ namespace lsn {
 				if ( m_pwPatchWindow ) {
 					m_pwPatchWindow->SetFocus();
 				}
-				else { m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( this, m_bnEmulator.Options() ); }
+				else {
+					m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( nullptr, m_bnEmulator.Options() );
+					if ( m_pwPatchWindow ) { m_pwPatchWindow->SetWidgetParent( this ); }
+				}
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_WAV_EDIT : {
 				if ( m_pwWavEditorWindow ) {
 					m_pwWavEditorWindow->SetFocus();
 				}
-				else { m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( this ); }
+				else {
+					m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( nullptr );
+					if ( m_pwWavEditorWindow ) { m_pwWavEditorWindow->SetWidgetParent( this ); }
+				}
 				break;
 			}
 
@@ -545,6 +551,12 @@ namespace lsn {
 		switch ( _uMsg ) {
 			case CWinUtilities::LSN_CLOSE_PATCHER : {
 				delete m_pwPatchWindow;
+				m_pwPatchWindow = nullptr;
+				break;
+			}
+			case CWinUtilities::LSN_CLOSE_WAV_EDITOR : {
+				delete m_pwWavEditorWindow;
+				m_pwWavEditorWindow = nullptr;
 				break;
 			}
 		}

@@ -1956,6 +1956,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePageLayout.h" />
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorSequencingPage.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorWindow.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorWindowLayout.h" />
     <ClInclude Include="Src\Windows\WinUtilities\LSNWinUtilities.h" />
@@ -2076,6 +2077,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Windows\SelectRom\LSNSelectRomDialogLayout.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePageLayout.cpp" />
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorSequencingPage.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorWindow.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\WinUtilities\LSNWinUtilities.cpp" />
