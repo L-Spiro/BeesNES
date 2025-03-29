@@ -53,30 +53,30 @@
 #define LSN_NOISE_ENV_DIVIDER( THIS )					((THIS)->m_ui8Registers[0x0C] & 0b00001111)
 
 // _bEven is false on 0 2 4 6 8, etc.  It goes by cycle count rather than cycle index.
-#define LSN_APU_UPDATE									if constexpr ( !_bEven ) {												\
-															if ( m_bModeSwitch ) {												\
-																m_bModeSwitch = false;											\
-																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {		\
-																	 m_ui64StepCycles = _tM1S4_1 - 2;							\
-																	Tick_Mode1_Step4<_bEven, true>();							\
-																	m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;		\
-																	m_ui64StepCycles = 1;										\
-																}																\
-																else {															\
-																	m_ui64StepCycles = 0;										\
-																	Tick_Mode0_Step0<_bEven, false>();							\
-																}																\
-																if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {		\
-																	m_piIrqTarget->ClearIrq( LSN_IS_APU );						\
-																}																\
-																return;															\
-															}																	\
-															{																	\
-																m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );			\
-																m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );			\
-																m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );			\
-															}																	\
-														}																		\
+#define LSN_APU_UPDATE									if constexpr ( !_bEven ) {																							\
+															if ( m_bModeSwitch ) {																							\
+																m_bModeSwitch = false;																						\
+																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {													\
+																	 m_ui64StepCycles = _tM1S4_1 - 2;																		\
+																	Tick_Mode1_Step4<_bEven, true>();																		\
+																	m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;													\
+																	m_ui64StepCycles = 1;																					\
+																}																											\
+																else {																										\
+																	m_ui64StepCycles = 0;																					\
+																	Tick_Mode0_Step0<_bEven, false>();																		\
+																}																											\
+																if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {													\
+																	m_piIrqTarget->ClearIrq( LSN_IS_APU );																	\
+																}																											\
+																return;																										\
+															}																												\
+															{																												\
+																m_pPulse1.TickSequencer( LSN_PULSE1_ENABLED( this ) );														\
+																m_pPulse2.TickSequencer( LSN_PULSE2_ENABLED( this ) );														\
+																m_nNoise.TickSequencer( LSN_NOISE_ENABLED( this ) );														\
+															}																												\
+														}																													\
 														m_tTriangle.TickSequencer( LSN_TRIANGLE_ENABLED( this ) );
 
 #define LSN_4017_DELAY									(3+1)
@@ -414,7 +414,7 @@ namespace lsn {
 			}
 
 
-			
+			m_bRegModified = false;
 			++m_ui64Cycles;
 		}
 
@@ -435,9 +435,11 @@ namespace lsn {
 			m_pPulse2.SetEnvelopeVolume( LSN_PULSE2_ENV_DIVIDER( this ) );
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
 			m_i64TicksToLenCntr = _tM0S0;
-			m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
+			if ( !m_bLetterless || _tType != LSN_AT_NTSC ) {
+				m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
+			}
 
-			m_ui32Pulse2 = (*reinterpret_cast<uint32_t *>(&m_ui8Registers[4]));
+			m_bRegModified = false;
 		}
 
 		/**
@@ -807,6 +809,8 @@ namespace lsn {
 		bool											m_bEnabled = true;
 		/** Register was written this cycle. */
 		bool											m_bRegModified = false;
+		/** The old letterless buggy RP2A03 version. */
+		bool											m_bLetterless = false;
 
 		/** The last value written to $4017. */
 		uint8_t											m_ui8Last4017 = 0;
@@ -828,10 +832,7 @@ namespace lsn {
 		CDelayedValue<uint8_t, 2>						m_dvTriangleLengthCounterHalt;
 		/** Halt delay for Noise. */
 		CDelayedValue<uint8_t, 2>						m_dvNoiseLengthCounterHalt;
-		
 
-		// TMP.
-		uint32_t										m_ui32Pulse2 = 0;
 
 		// == Functions.
 		/** Mode-0 step-0 tick function. */
@@ -1335,7 +1336,12 @@ namespace lsn {
 		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
-			paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
+			if LSN_UNLIKELY( paApu->m_bLetterless && _tType == LSN_AT_NTSC ) {
+				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<0>( (_ui8Val & 0b00001111) ) );
+			}
+			else {
+				paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
+			}
 			paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
 			paApu->m_bRegModified = true;
 		}

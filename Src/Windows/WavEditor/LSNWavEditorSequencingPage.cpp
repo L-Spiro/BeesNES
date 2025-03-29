@@ -49,7 +49,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CWavEditorSequencingPage::Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CWavEditorSequencingPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			/*case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
@@ -112,7 +112,7 @@ namespace lsn {
 	 * \param _wsMsg The error message to display.
 	 * \return Returns the control that failed or nullptr.
 	 **/
-	CWidget * CWavEditorSequencingPage::Verify( std::wstring &_wsMsg ) {
+	CWidget * CWavEditorSequencingPage::Verify( std::wstring &/*_wsMsg*/ ) {
 		
 
 		return nullptr;

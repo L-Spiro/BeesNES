@@ -1,3 +1,5 @@
+
+
 #ifdef LSN_USE_WINDOWS
 
 /**
@@ -19,14 +21,34 @@
 #include "../../../resource.h"
 
 
-#define LSN_SEQUE_LABEL_0_W									70
+#define LSN_SEQUE_LABEL_0_W									60
 #define LSN_SEQUE_TIME_EDIT_0								150
-#define LSN_SEQUE_TIME_EDIT_1								100
-#define LSN_SEQUE_TIME_GROUP_W								(LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_1 + LSN_GROUP_LEFT)
-#define LSN_SEQUE_TIME_GROUP_H								(LSN_GROUP_TOP + LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST)
+#define LSN_SEQUE_TIME_EDIT_1								125
+#define LSN_SEQUE_LOOP_SECONDS_W							35
+#define LSN_SEQUE_TIME_GROUP_W								((LSN_GROUP_LEFT * 2) + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_1 + (LSN_GROUP_RIGHT * 2))
+
+#define LSN_SEQUE_RANGE_GROUP_T								(LSN_GROUP_TOP)
+#define LSN_SEQUE_RANGE_GROUP_H								(LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + LSN_GROUP_BOTTOM)
+#define LSN_SEQUE_LOOP_GROUP_T								(LSN_SEQUE_RANGE_GROUP_T + LSN_SEQUE_RANGE_GROUP_H)
+#define LSN_SEQUE_LOOP_GROUP_H								(LSN_GROUP_TOP + (LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1) + ((LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 1) + (LSN_TOP_JUST + (LSN_DEF_STATIC_HEIGHT * 2)) + LSN_GROUP_BOTTOM)
+
+#define LSN_SEQUE_SIL_GROUP_T								(LSN_SEQUE_LOOP_GROUP_T + LSN_SEQUE_LOOP_GROUP_H)
+#define LSN_SEQUE_SIL_GROUP_H								(LSN_GROUP_TOP + LSN_DEF_EDIT_HEIGHT + LSN_GROUP_BOTTOM)
+
+#define LSN_SEQUE_TIME_GROUP_H								(LSN_SEQUE_SIL_GROUP_T + LSN_SEQUE_SIL_GROUP_H + LSN_GROUP_BOTTOM)
 #define LSN_SEQUE_TIME_W									(LSN_GROUP_LEFT + LSN_SEQUE_TIME_GROUP_W + LSN_GROUP_LEFT)
 #define LSN_SEQUE_TIME_H									(LSN_TOP_JUST + LSN_SEQUE_TIME_GROUP_H + LSN_TOP_JUST)
 #define LSN_SEQUE_TIME_L									LSN_LEFT_JUST
+#define LSN_SEQUE_INNER_GROUP_L								(LSN_SEQUE_TIME_L + LSN_GROUP_LEFT)
+#define LSN_SEQUE_INNER_GROUP_W								(LSN_SEQUE_TIME_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT)
+#define LSN_SEQUE_LOOP_EDIT_W								(LSN_EVEN_DIVIDE_WIDTH_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 2, 1, LSN_LEFT_JUST ) - (LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST) - (LSN_SEQUE_LOOP_SECONDS_W + LSN_LEFT_JUST) - LSN_LEFT_JUST)
+
+#define LSN_SEQUE_LOOP_1_4_L								LSN_EVEN_DIVIDE_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 4, 0, LSN_LEFT_JUST )
+#define LSN_SEQUE_LOOP_1_4_W								LSN_EVEN_DIVIDE_WIDTH_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 4, 0, LSN_LEFT_JUST )
+#define LSN_SEQUE_LOOP_2_4_L								LSN_EVEN_DIVIDE_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 4, 1, LSN_LEFT_JUST )
+#define LSN_SEQUE_LOOP_2_4_W								LSN_EVEN_DIVIDE_WIDTH_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 4, 1, LSN_LEFT_JUST )
+#define LSN_SEQUE_LOOP_2_2_L								LSN_EVEN_DIVIDE_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 2, 1, LSN_LEFT_JUST )
+#define LSN_SEQUE_LOOP_2_2_W								LSN_EVEN_DIVIDE_WIDTH_EX( LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT, LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT, 2, 1, LSN_LEFT_JUST )
 
 #define LSN_FILES_GROUP_L									LSN_LEFT_JUST_PXL
 #define LSN_FILES_TREE_L									(LSN_FILES_GROUP_L + LSN_GROUP_LEFT_PXL)
@@ -41,14 +63,14 @@
 #define LSN_FILES_TREE_H									((LSN_FILES_BUTTONS_H * 5) + (LSN_TOP_JUST_PXL * 4) + (LSN_TOP_JUST_PXL * 10))
 #define LSN_FILES_GROUP_T									LSN_TOP_JUST_PXL
 
-#define LSN_FILES_GROUP_W									(LSN_GROUP_LEFT_PXL + LSN_FILES_TREE_W + LSN_LEFT_JUST_PXL + LSN_FILES_BUTTONS_W + LSN_GROUP_LEFT_PXL)
-#define LSN_FILES_GROUP_H									(LSN_GROUP_TOP_PXL + LSN_TOP_JUST_PXL + LSN_FILES_TREE_H + LSN_GROUP_BOTTOM_PXL)
+#define LSN_FILES_GROUP_W									(LSN_GROUP_LEFT_PXL + LSN_FILES_TREE_W + LSN_LEFT_JUST_PXL + LSN_FILES_BUTTONS_W + LSN_GROUP_RIGHT_PXL)
+#define LSN_FILES_GROUP_H									(LSN_GROUP_TOP_PXL + LSN_FILES_TREE_H + LSN_GROUP_BOTTOM_PXL)
 
 #define LSN_SEQUE_TIME_T									(LSN_FILES_GROUP_T + LSN_FILES_GROUP_H)
 
 
 #define LSN_W												(LSN_FILES_GROUP_W + (LSN_LEFT_JUST_PXL * 2))
-#define LSN_H												(LSN_SEQUE_TIME_T + (LSN_SEQUE_TIME_H + 80) + LSN_TOP_JUST_PXL)
+#define LSN_H												(LSN_FILES_GROUP_T + (LSN_FILES_GROUP_H + 80) + LSN_TOP_JUST_PXL)
 
 namespace lsn {
 
@@ -74,15 +96,9 @@ namespace lsn {
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),				// pwcText
 			0,												// sTextLen
 			LSN_WEWI_NONE,									// dwParentId
-
-			//LSN_LOCK_LEFT,								// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,								// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			///*"20+"*/ LSN_LOCK_BOTTOM,					// pcBottomSizeExp
-			//nullptr, 0,									// pcWidthSizeExp
-			//nullptr, 0,									// pcHeightSizeExp
 		},
 
+		// Sequencing.
 		{
 			LSW_LT_GROUPBOX,								// ltType
 			LSN_WEWI_SEQ_GROUP,								// wId
@@ -98,22 +114,35 @@ namespace lsn {
 			LSN_LSTR( LSN_WE_SEQUENCING ),					// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
-
-			//LSN_LOCK_LEFT,								// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,								// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,									// pcBottomSizeExp
-			//nullptr, 0,									// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
+
+		// Range.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_WEWI_SEQ_RANGE_GROUP,						// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L,						// iLeft
+			LSN_SEQUE_RANGE_GROUP_T,						// iTop
+			LSN_SEQUE_INNER_GROUP_W,						// dwWidth
+			LSN_SEQUE_RANGE_GROUP_H,						// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_WE_RANGE ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Start Time.
 		{
 			LSW_LT_LABEL,									// ltType
 			LSN_WEWI_SEQ_START_LABEL,						// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_SEQUE_TIME_L + LSN_GROUP_LEFT,				// iLeft
-			LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),															// iTop
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
@@ -128,8 +157,8 @@ namespace lsn {
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_SEQUE_TIME_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,														// iLeft
-			LSN_GROUP_TOP,									// iTop
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,														// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP,		// iTop
 			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_COMBO_HEIGHT,							// dwHeight
 			LSN_COMBOSTYLE_LIST,							// dwStyle
@@ -144,8 +173,8 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_SEQUE_TIME_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,				// iLeft
-			LSN_GROUP_TOP,									// iTop
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,				// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP,		// iTop
 			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
@@ -154,6 +183,428 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
 		},
+
+		// End Time.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_END_LABEL,							// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,								// ltType
+			LSN_WEWI_SEQ_END_COMBO,							// wId
+			WC_COMBOBOXW,									// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																							// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,							// dwHeight
+			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_END_EDIT,							// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,				// iLeft
+			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
+			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Looping.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_WEWI_SEQ_LOOPS_GROUP,						// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L,						// iLeft
+			LSN_SEQUE_LOOP_GROUP_T,							// iTop
+			LSN_SEQUE_INNER_GROUP_W,						// dwWidth
+			LSN_SEQUE_LOOP_GROUP_H,							// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_WE_LOOPS ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Loop/One-Shot.
+		{
+			LSW_LT_RADIO,									// ltType
+			LSN_WEWI_SEQ_LOOP_RADIO,						// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			TRUE,											// bActive
+			LSN_SEQUE_LOOP_1_4_L,							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_BUTTON_HEIGHT - LSN_DEF_RADIO_HEIGHT) >> 1),																			// iTop
+			LSN_SEQUE_LOOP_1_4_W,							// dwWidth
+			LSN_DEF_RADIO_HEIGHT,							// dwHeight
+			LSN_RADIOSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
+			LSN_LSTR( LSN_WE_LOOP ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_RADIO,									// ltType
+			LSN_WEWI_SEQ_ONE_SHOT_RADIO,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_4_L,							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_BUTTON_HEIGHT - LSN_DEF_RADIO_HEIGHT) >> 1),																			// iTop
+			LSN_SEQUE_LOOP_2_4_W,							// dwWidth
+			LSN_DEF_RADIO_HEIGHT,							// dwHeight
+			LSN_RADIOSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
+			LSN_LSTR( LSN_WE_ONE_SHOT ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_WEWI_SEQ_FIND_LOOPS_BUTTON,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L,							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP,			// iTop
+			LSN_SEQUE_LOOP_2_2_W,							// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
+			LSN_LSTR( LSN_WE_FIND_LOOPS ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// End Time.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_END_LABEL,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,								// ltType
+			LSN_WEWI_SEQ_LOOPS_END_COMBO,					// wId
+			WC_COMBOBOXW,									// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT),																						// iTop
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
+			LSN_DEF_COMBO_HEIGHT,							// dwHeight
+			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_LOOPS_END_EDIT,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,													// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT),																						// iTop
+			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Post-Loop Delay.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_DELAY ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																		// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1),																						// iTop
+			LSN_SEQUE_LOOP_EDIT_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,			// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_LOOP_EDIT_W + LSN_LEFT_JUST,																								// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LOOP_SECONDS_W,						// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Fade-Out Time.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_FADE_LABEL,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L,							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_FADE_TIME ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																							// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1),																						// iTop
+			LSN_SEQUE_LOOP_EDIT_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,			// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_LOOP_EDIT_W + LSN_LEFT_JUST,		// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 1) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+			LSN_SEQUE_LOOP_SECONDS_W,						// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Description.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_DESC_LABEL,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),														// iTop
+			(LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT) - LSN_LEFT_JUST - (LSN_DEF_STATIC_HEIGHT * 2),																											// dwWidth
+			LSN_DEF_STATIC_HEIGHT * 2,						// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_LOOPS_WARNING_LABEL,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			(LSN_SEQUE_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT) - LSN_LEFT_JUST - (LSN_DEF_STATIC_HEIGHT * 2) + LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,																// iLeft
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),														// iTop
+			LSN_DEF_STATIC_HEIGHT * 2,						// dwWidth
+			LSN_DEF_STATIC_HEIGHT * 2,						// dwHeight
+			LSN_STATICSTYLE | SS_ICON,						// dwStyle
+			0,												// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Silences.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_WEWI_SEQ_SILENCE_GROUP,						// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L,						// iLeft
+			LSN_SEQUE_SIL_GROUP_T,							// iTop
+			LSN_SEQUE_INNER_GROUP_W,						// dwWidth
+			LSN_SEQUE_SIL_GROUP_H,							// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_WE_SILENCES ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Opening Silence.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_SILENCE_OPEN_SIL_LABEL,			// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT,		// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_OPENING_SIL ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																		// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP,																		// iTop
+			LSN_SEQUE_LOOP_EDIT_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_SILENCE_OPEN_SECONDS_LABEL,		// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_LOOP_EDIT_W + LSN_LEFT_JUST,																								// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_SEQUE_LOOP_SECONDS_W,						// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		// Trailing Silence.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_SILENCE_TRAIL_LABEL,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L,							// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_TRAIL ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																							// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP,			// iTop
+			LSN_SEQUE_LOOP_EDIT_W,							// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_SEQ_SILENCE_SECONDS_LABEL,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_SEQUE_LOOP_2_2_L + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_LOOP_EDIT_W + LSN_LEFT_JUST,		// iLeft
+			LSN_SEQUE_SIL_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),				// iTop
+			LSN_SEQUE_LOOP_SECONDS_W,						// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
+		
 	};
 
 	/** The layout for main window. */
@@ -223,14 +674,14 @@ namespace lsn {
 			//WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//LSN_LOCK_LEFT,									// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//nullptr, 0,										// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			LSN_LOCK_LEFT,									// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			nullptr, 0,										// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -246,14 +697,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_ADD_WAV ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//nullptr, 0,										// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -269,14 +720,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_ADD_METADATA ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//nullptr, 0,										// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -292,14 +743,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_REMOVE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//nullptr, 0,										// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -315,14 +766,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_UP ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//nullptr, 0,										// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -338,14 +789,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_DOWN ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			LSN_WEWI_FILES_GROUP,							// dwParentId
 
-			//nullptr, 0,										// pcLeftSizeExp
-			//LSN_LOCK_RIGHT,									// pcRightSizeExp
-			//LSN_LOCK_TOP,									// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+			nullptr, 0,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,									// pcRightSizeExp
+			LSN_LOCK_TOP,									// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 	};
 
@@ -370,11 +821,27 @@ namespace lsn {
 #undef LSN_FILES_TREE_L
 #undef LSN_FILES_GROUP_L
 
+#undef LSN_SEQUE_LOOP_2_2_W
+#undef LSN_SEQUE_LOOP_2_2_L
+#undef LSN_SEQUE_LOOP_2_4_W
+#undef LSN_SEQUE_LOOP_2_4_L
+#undef LSN_SEQUE_LOOP_1_4_W
+#undef LSN_SEQUE_LOOP_1_4_L
+
+#undef LSN_SEQUE_LOOP_EDIT_W
+#undef LSN_SEQUE_INNER_GROUP_W
+#undef LSN_SEQUE_INNER_GROUP_L
 #undef LSN_SEQUE_TIME_L
 #undef LSN_SEQUE_TIME_H
 #undef LSN_SEQUE_TIME_W
 #undef LSN_SEQUE_TIME_GROUP_H
+#undef LSN_SEQUE_LOOP_GROUP_H
+#undef LSN_SEQUE_LOOP_GROUP_T
+#undef LSN_SEQUE_RANGE_GROUP_H
+#undef LSN_SEQUE_RANGE_GROUP_T
+
 #undef LSN_SEQUE_TIME_GROUP_W
+#undef LSN_SEQUE_LOOP_SECONDS_W
 #undef LSN_SEQUE_TIME_EDIT_1
 #undef LSN_SEQUE_TIME_EDIT_0
 #undef LSN_SEQUE_LABEL_0_W

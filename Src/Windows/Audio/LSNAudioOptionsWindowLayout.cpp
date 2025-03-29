@@ -59,7 +59,7 @@ namespace lsn {
 
 #define LSN_META_GROUP_W									(LSN_AUDIO_OPTIONS_GENERAL_GROUP_W - LSN_GROUP_LEFT * 2)
 
-#define LSN_INV_CHECK_( P )									LSN_EVEN_DIVIDE( LSN_AUDIO_OPTIONS_CHAR_GROUP_W - (LSN_GROUP_LEFT * 2), LSN_LEFT_JUST + LSN_GROUP_LEFT, 2, P )
+#define LSN_INV_CHECK_( P )									LSN_EVEN_DIVIDE( LSN_AUDIO_OPTIONS_CHAR_GROUP_W - (LSN_GROUP_LEFT * 2), LSN_LEFT_JUST + LSN_GROUP_LEFT, 3, P )
 #define LSN_CONDITION_L( P )								LSN_EVEN_DIVIDE_EX( LSN_AUDIO_OPTIONS_RAW_GROUP_W - (LSN_GROUP_LEFT * 2), LSN_LEFT_JUST + LSN_GROUP_LEFT, 4, P, LSN_LEFT_JUST )
 #define LSN_CONDITION_W( P )								LSN_EVEN_DIVIDE_WIDTH_EX( LSN_AUDIO_OPTIONS_RAW_GROUP_W - (LSN_GROUP_LEFT * 2), LSN_LEFT_JUST + LSN_GROUP_LEFT, 4, P, LSN_LEFT_JUST )
 #define LSN_CONDITION2_W( P )								LSN_EVEN_DIVIDE_WIDTH_EX( LSN_AUDIO_OPTIONS_RAW_GROUP_W - (LSN_GROUP_LEFT * 2), LSN_LEFT_JUST + LSN_GROUP_LEFT, 2, P, LSN_LEFT_JUST )
@@ -889,6 +889,22 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
 		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 2 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
+			LSN_INV_CHECK_( 3 ) - LSN_INV_CHECK_( 2 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_RP2A03_4B2_40 ),	// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+		},
 	};
 
 	/** The layout for the per-game-setup panel. */
@@ -1709,6 +1725,22 @@ namespace lsn {
 			LSN_CHECKSTYLE,									// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM ),	// pwcText
+			0,												// sTextLen
+			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_INV_CHECK_( 2 ),							// iLeft
+			LSN_AUDIO_OPTIONS_CHAR_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_COMBO_HEIGHT + LSN_TOP_JUST * 8) * 1 + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 4 + LSN_DEF_TRACKBAR_HEIGHT * 6,											// iTop
+			LSN_INV_CHECK_( 3 ) - LSN_INV_CHECK_( 2 ),		// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_CHECKSTYLE,									// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_RP2A03_4B2_40 ),	// pwcText
 			0,												// sTextLen
 			LSN_AOWI_PAGE_PERGAME,							// dwParentId
 		},

@@ -49,11 +49,19 @@ namespace lsn {
 			auto aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
 			auto aThisRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
 			::MoveWindow( pwSeqPage->Wnd(), 0, aGroupRect.bottom, aThisRect.Width(), aThisRect.Height(), TRUE );
+			auto aSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+			if ( aSeqGroup ) {
+				auto aTmp = aSeqGroup->WindowRect().ScreenToClient( Wnd() );
+				::MoveWindow( ptGroup->Wnd(), aGroupRect.left, aGroupRect.top, aTmp.Width(), aGroupRect.Height(), TRUE );
+				aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
+			}
 
 			aThisRect = pwSeqPage->WindowRect();
 			auto aWindowRect = WindowRect();
+			LSW_RECT aAdjusted = aGroupRect;
+			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
-			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aWindowRect.Width(), aThisRect.bottom - aWindowRect.top + aGroupRect.left, TRUE );
+			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aThisRect.bottom - aWindowRect.top + aGroupRect.left, TRUE );
 		}
 
 		UpdateRects();

@@ -200,6 +200,12 @@ namespace lsn {
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( aoOptions.apCharacteristics.bNoise );
 			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK ));
+			if ( pcbCheck ) {
+				pcbCheck->SetCheck( aoOptions.apCharacteristics.bRp2A02 );
+			}
+
+			
 
 
 			auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
@@ -383,6 +389,10 @@ namespace lsn {
 								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 								if ( pcbCheck ) {
 									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bNoise );
+								}
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK ));
+								if ( pcbCheck ) {
+									pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bRp2A02 );
 								}
 
 								auto ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
@@ -575,6 +585,7 @@ namespace lsn {
 
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,
 						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,
+						CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,
 					};
 					
 					bool bEnabled = ptTab->IsChecked( 1 );
@@ -619,60 +630,65 @@ namespace lsn {
 									pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 									if ( pcbCheck ) {
 										apProfile.bNoise = pcbCheck->IsChecked();
-										auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-										ee::CExpEvalContainer::EE_RESULT rRes;
-										if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-											apProfile.fLpf = float( rRes.u.dVal );
-											aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
+										pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK ));
+										if ( pcbCheck ) {
+											apProfile.bRp2A02 = pcbCheck->IsChecked();
+											auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
+											ee::CExpEvalContainer::EE_RESULT rRes;
 											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-												apProfile.fHpf0 = float( rRes.u.dVal );
-												aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
+												apProfile.fLpf = float( rRes.u.dVal );
+												aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 												if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-													apProfile.fHpf1 = float( rRes.u.dVal );
-													aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
+													apProfile.fHpf0 = float( rRes.u.dVal );
+													aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT );
 													if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-														apProfile.fHpf2 = float( rRes.u.dVal );
-														lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
-														if ( ptbTrackBar ) {
-															apProfile.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF);
-															ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ));
+														apProfile.fHpf1 = float( rRes.u.dVal );
+														aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT );
+														if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+															apProfile.fHpf2 = float( rRes.u.dVal );
+															lsw::CTrackBar * ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 															if ( ptbTrackBar ) {
-																apProfile.fP1Volume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
-																ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR ));
+																apProfile.fVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRES_VOLF);
+																ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR ));
 																if ( ptbTrackBar ) {
-																	apProfile.fP2Volume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
-																	ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR ));
+																	apProfile.fP1Volume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+																	ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR ));
 																	if ( ptbTrackBar ) {
-																		apProfile.fTVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
-																		ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR ));
+																		apProfile.fP2Volume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+																		ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR ));
 																		if ( ptbTrackBar ) {
-																			apProfile.fNVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
-																			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR ));
+																			apProfile.fTVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+																			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR ));
 																			if ( ptbTrackBar ) {
-																				apProfile.fDmcVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
-																				LPARAM lpSel = -1;
-																				for ( auto I = LSN_AUDIO_OPTIONS::PresetTotal(); I--; ) {
-																					if ( LSN_AUDIO_OPTIONS::s_apProfiles[I].bLpfEnable == apProfile.bLpfEnable &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf0Enable == apProfile.bHpf0Enable &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf1Enable == apProfile.bHpf1Enable &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf2Enable == apProfile.bHpf2Enable &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].bInvert == apProfile.bInvert &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].bNoise == apProfile.bNoise &&
-																						(!apProfile.bLpfEnable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fLpf == apProfile.fLpf) &&
-																						(!apProfile.bHpf0Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf0 == apProfile.fHpf0) &&
-																						(!apProfile.bHpf1Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf1 == apProfile.fHpf1) &&
-																						(!apProfile.bHpf2Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf2 == apProfile.fHpf2) &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fVolume == apProfile.fVolume &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fP1Volume == apProfile.fP1Volume &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fP2Volume == apProfile.fP2Volume &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fTVolume == apProfile.fTVolume &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fNVolume == apProfile.fNVolume &&
-																						LSN_AUDIO_OPTIONS::s_apProfiles[I].fDmcVolume == apProfile.fDmcVolume ) {
-																						lpSel = I;
-																						break;
+																				apProfile.fNVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+																				ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR ));
+																				if ( ptbTrackBar ) {
+																					apProfile.fDmcVolume = (ptbTrackBar->GetPos() / LSN_SLIDER_PRECF);
+																					LPARAM lpSel = -1;
+																					for ( auto I = LSN_AUDIO_OPTIONS::PresetTotal(); I--; ) {
+																						if ( LSN_AUDIO_OPTIONS::s_apProfiles[I].bLpfEnable == apProfile.bLpfEnable &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf0Enable == apProfile.bHpf0Enable &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf1Enable == apProfile.bHpf1Enable &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bHpf2Enable == apProfile.bHpf2Enable &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bInvert == apProfile.bInvert &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bNoise == apProfile.bNoise &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bRp2A02 == apProfile.bRp2A02 &&
+																							(!apProfile.bLpfEnable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fLpf == apProfile.fLpf) &&
+																							(!apProfile.bHpf0Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf0 == apProfile.fHpf0) &&
+																							(!apProfile.bHpf1Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf1 == apProfile.fHpf1) &&
+																							(!apProfile.bHpf2Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf2 == apProfile.fHpf2) &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fVolume == apProfile.fVolume &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fP1Volume == apProfile.fP1Volume &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fP2Volume == apProfile.fP2Volume &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fTVolume == apProfile.fTVolume &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fNVolume == apProfile.fNVolume &&
+																							LSN_AUDIO_OPTIONS::s_apProfiles[I].fDmcVolume == apProfile.fDmcVolume ) {
+																							lpSel = I;
+																							break;
+																						}
 																					}
+																					pcbCombo->SetCurSelByItemData( lpSel );
 																				}
-																				pcbCombo->SetCurSelByItemData( lpSel );
 																			}
 																		}
 																	}
@@ -777,6 +793,10 @@ namespace lsn {
 			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK ));
 			if ( pcbCheck ) {
 				aoOptions.apCharacteristics.bNoise = pcbCheck->IsChecked();
+			}
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK ));
+			if ( pcbCheck ) {
+				aoOptions.apCharacteristics.bRp2A02 = pcbCheck->IsChecked();
 			}
 
 			

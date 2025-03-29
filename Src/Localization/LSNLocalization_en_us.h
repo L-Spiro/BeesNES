@@ -163,7 +163,7 @@
 #define LSN_AUDIO_OPTIONS_FAMI_H11111212									Japanese LSN_FAMICOM H11111212, RF Cables
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711									Japanese Twin LSN_FAMICOM 475711, NESRGB, Stock RCA
 #define LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART							Japanese Twin LSN_FAMICOM 475711, NESRGB, SCART Out
-#define LSN_AUDIO_OPTIONS_NES_PAL_V7										PAL LSN_NES, Front-Loading NESE-001 (GBR) PM608755
+#define LSN_AUDIO_OPTIONS_NES_PAL_V7										PAL LSN_NES Front-Loading NESE-001 (GBR) PM608755
 #define LSN_AUDIO_OPTIONS_CUSTOM											Custom
 #define LSN_AUDIO_OPTIONS_LPF_HZ											LPF Hz:
 #define LSN_AUDIO_OPTIONS_HPF_1_HZ											HPF 1 Hz:
@@ -176,6 +176,7 @@
 #define LSN_AUDIO_OPTIONS_DMC_VOLUME										DMC Vol:
 #define LSN_AUDIO_OPTIONS_INVERT											Invert
 #define LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM									Noise/Mains Hum
+#define LSN_AUDIO_OPTIONS_RP2A03_4B2_40										RP2A03 (Original Console)
 
 #define LSN_AUDIO_OPTIONS_INTERNAL											Internal
 #define LSN_AUDIO_OPTIONS_BUFFER_SIZE										Buffer Size:
@@ -239,24 +240,30 @@
 
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
-#define LSN_WE_FILES														#1: Files
-#define LSN_WE_FILE_SETTINGS												#2: Per-File Settings
-#define LSN_WE_SEQUENCING													#2: Per-File Sequencing
-#define LSN_WE_OUTPUT														#3: Output
+#define LSN_WE_FILES														Files
+#define LSN_WE_FILE_SETTINGS												Per-File Settings
+#define LSN_WE_SEQUENCING													Per-File Sequencing
+#define LSN_WE_OUTPUT														Output
 #define LSN_WE_ADD_WAV														Add .WAV Files
 #define LSN_WE_ADD_METADATA													Add Metadata
 #define LSN_WE_REMOVE														Remove
 #define LSN_WE_MOVE_UP														Move Up
 #define LSN_WE_MOVE_DOWN													Move Down
-#define LSN_WE_LOOPS														Loops
+#define LSN_WE_RANGE														Full Track Range (Section of the File Fully Containing This Track)
+#define LSN_WE_LOOPS														Looping/One-Shot
 #define LSN_WE_START_TIME													Start Time:
+#define LSN_WE_END_TIME														End Time:
 #define LSN_WE_OPENING_SIL													Opening Silence:
+#define LSN_WE_TRAIL														Trailing Silence:
+#define LSN_WE_SECONDS														Seconds
+#define LSN_WE_LOOP															Loop
+#define LSN_WE_ONE_SHOT														One-Shot
+#define LSN_WE_FIND_LOOPS													Find Loop Points
 #define LSN_WE_START														Start:
 #define LSN_WE_END															End:
-#define LSN_WE_DELAY														Delay:
-#define LSN_WE_FADE_TIME													Fade Time:
-#define LSN_WE_ONE_SHOT														One-Shot
-#define LSN_WE_TRAIL														Trailing Silence
+#define LSN_WE_DELAY														Pre-Fade Dur.:
+#define LSN_WE_FADE_TIME													Fade Dur.:
+#define LSN_WE_SILENCES														Silence
 #define LSN_WE_OPERATIONS													Operations
 #define LSN_WE_OPERATION													Operation
 #define LSN_WE_PARMS														Parameters

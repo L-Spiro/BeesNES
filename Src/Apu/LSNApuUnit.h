@@ -57,6 +57,18 @@ namespace lsn {
 			return m_ui16NoisePeriods[_tTable][_ui8Idx] - 1;
 		}
 
+		/**
+		 * Gets a value from the old noise period table.
+		 * 
+		 * \param _tTable The system type.  One of the LSN_APU_TYPE values.
+		 * \param _ui8Idx The index in the table for which to get the period.
+		 * \return Returns the associated noise period.
+		 **/
+		template <unsigned _tTable>
+		static inline uint16_t				OldNoiseTable( uint8_t _ui8Idx ) {
+			return m_ui16NoisePeriodsOld[_tTable][_ui8Idx] - 1;
+		}
+
 
 	protected :
 		// == Members.
@@ -65,6 +77,9 @@ namespace lsn {
 
 		/** The noise periods for NTSC and PAL. */
 		static uint16_t						m_ui16NoisePeriods[LSN_AT_TOTAL][0x10];
+
+		/** The old noise periods for NTSC and PAL. */
+		static uint16_t						m_ui16NoisePeriodsOld[LSN_AT_TOTAL][0x10];
 	};
 	
 
