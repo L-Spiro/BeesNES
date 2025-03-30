@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "LSNWavEditorFileSettingsPage.h"
 #include "LSNWavEditorSequencingPage.h"
 #include "LSNWavEditorWindowLayout.h"
 
@@ -68,6 +69,8 @@ namespace lsn {
 		// == Members.
 		/** The sequencing dialogs. */
 		std::vector<CWavEditorSequencingPage *>				m_vSequencePages;
+		/** The settings dialogs. */
+		std::vector<CWavEditorFileSettingsPage *>			m_vSettingsPages;
 		/** Toggled when done initializing. */
 		bool												m_bInit = false;
 		/** The main window class. */

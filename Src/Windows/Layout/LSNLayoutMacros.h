@@ -246,7 +246,7 @@
 #endif	// LSN_GROUP_LEFT
 
 #ifndef LSN_GROUP_LEFT_PXL
-#define LSN_GROUP_LEFT_PXL				9	// Pixels.
+#define LSN_GROUP_LEFT_PXL				8	// Pixels.
 #endif	// LSN_GROUP_LEFT_PXL
 
 #ifndef LSN_GROUP_RIGHT
@@ -262,7 +262,7 @@
 #endif	// LSN_GROUP_TOP
 
 #ifndef LSN_GROUP_TOP_PXL
-#define LSN_GROUP_TOP_PXL				17	// Pixels.
+#define LSN_GROUP_TOP_PXL				14	// Pixels.
 #endif	// LSN_GROUP_TOP_PXL
 
 #ifndef LSN_GROUP_BOTTOM
@@ -270,7 +270,7 @@
 #endif	// LSN_GROUP_BOTTOM
 
 #ifndef LSN_GROUP_BOTTOM_PXL
-#define LSN_GROUP_BOTTOM_PXL			9	// Pixels.
+#define LSN_GROUP_BOTTOM_PXL			11	// Pixels.
 #endif	// LSN_GROUP_BOTTOM_PXL
 
 #ifndef LSN_LEFT_JUST
@@ -278,7 +278,7 @@
 #endif	// LSN_LEFT_JUST
 
 #ifndef LSN_LEFT_JUST_PXL
-#define LSN_LEFT_JUST_PXL				4	// Pixels.
+#define LSN_LEFT_JUST_PXL				3	// Pixels.
 #endif	// LSN_LEFT_JUST_PXL
 
 #ifndef LSN_TOP_JUST
@@ -286,7 +286,7 @@
 #endif	// LSN_TOP_JUST
 
 #ifndef LSN_TOP_JUST_PXL
-#define LSN_TOP_JUST_PXL				2	// Pixels.
+#define LSN_TOP_JUST_PXL				3	// Pixels.
 #endif	// LSN_TOP_JUST_PXL
 
 #ifndef LSN_CHECK_JUST

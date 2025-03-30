@@ -246,6 +246,7 @@
 #define LSN_WE_OUTPUT														Output
 #define LSN_WE_ADD_WAV														Add .WAV Files
 #define LSN_WE_ADD_METADATA													Add Metadata
+#define LSN_WE_ADD_OPERATION												Add Operation
 #define LSN_WE_REMOVE														Remove
 #define LSN_WE_MOVE_UP														Move Up
 #define LSN_WE_MOVE_DOWN													Move Down
@@ -268,6 +269,25 @@
 #define LSN_WE_OPERATION													Operation
 #define LSN_WE_PARMS														Parameters
 #define LSN_WE_DESC															Description
+#define LSN_WE_FILE_DATA													File Data
+#define LSN_WE_TRACK_TITLE													Track Title:
+#define LSN_WE_ACTUAL_HZ													Actual Hz:
+#define LSN_WE_CHARACTERISTICS												Characteristics
+#define LSN_WE_PRESETS														Presets:
+#define LSN_WE_SAVE															Save
+#define LSN_WE_LOAD															Load
+#define LSN_WE_LPF															LPF Hz:
+#define LSN_WE_FALLOFF														Falloff:
+#define LSN_WE_DB_PER_OCTAVE												dB/Octave
+#define LSN_WE_HPF0															HPF 1 Hz:
+#define LSN_WE_HPF1															HPF 2 Hz:
+#define LSN_WE_HPF2															HPF 3 Hz:
+#define LSN_WE_METADATA														Metadata
+#define LSN_WE_ARTIST														Artist:
+#define LSN_WE_ALBUM														Album:
+#define LSN_WE_YEAR															Year:
+#define LSN_WE_COMMENTS														Comments:
+#define LSN_WE_APPLY_TO_ALL													Apply to All
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

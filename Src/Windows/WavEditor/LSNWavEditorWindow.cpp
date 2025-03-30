@@ -44,11 +44,17 @@ namespace lsn {
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
 		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
 
+		CWidget * pwSettingsPage = Layout::CreateFileSettings( this, 0 );
+		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
+		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
+
 		auto * ptGroup = FindChild( Layout::LSN_WEWI_FILES_GROUP );
 		if ( ptGroup ) {
 			auto aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
+			auto aFileSettingsRect = pwSettingsPage->WindowRect().ScreenToClient( Wnd() );
 			auto aThisRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
-			::MoveWindow( pwSeqPage->Wnd(), 0, aGroupRect.bottom, aThisRect.Width(), aThisRect.Height(), TRUE );
+			::MoveWindow( pwSeqPage->Wnd(), aGroupRect.left, aGroupRect.bottom, aThisRect.Width(), aThisRect.Height(), TRUE );
+			::MoveWindow( pwSettingsPage->Wnd(), aThisRect.Width() + aGroupRect.left * 2, aGroupRect.top, aFileSettingsRect.Width(), aFileSettingsRect.Height(), TRUE );
 			auto aSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
 			if ( aSeqGroup ) {
 				auto aTmp = aSeqGroup->WindowRect().ScreenToClient( Wnd() );
@@ -57,8 +63,10 @@ namespace lsn {
 			}
 
 			aThisRect = pwSeqPage->WindowRect();
+			aFileSettingsRect = pwSettingsPage->WindowRect();
 			auto aWindowRect = WindowRect();
 			LSW_RECT aAdjusted = aGroupRect;
+			aAdjusted.right = aAdjusted.left + aFileSettingsRect.right - aThisRect.left;
 			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
 			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aThisRect.bottom - aWindowRect.top + aGroupRect.left, TRUE );

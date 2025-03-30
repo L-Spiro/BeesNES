@@ -21,6 +21,8 @@
 #include "../Patch/LSNPatchWindow.h"
 #include "../Patch/LSNPatchWindowTopPage.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
+#include "../WavEditor/LSNWavEditorFileSettingsPage.h"
+#include "../WavEditor/LSNWavEditorOutputPage.h"
 #include "../WavEditor/LSNWavEditorSequencingPage.h"
 #include "../WavEditor/LSNWavEditorWindow.h"
 
@@ -81,6 +83,12 @@ namespace lsn {
 			}
 			case LSN_LT_WAV_EDITOR_SEQUENCING : {
 				return new CWavEditorSequencingPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_WAV_EDITOR_FILE_SETTINGS : {
+				return new CWavEditorFileSettingsPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_WAV_EDITOR_OUTPUT : {
+				return new CWavEditorOutputPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

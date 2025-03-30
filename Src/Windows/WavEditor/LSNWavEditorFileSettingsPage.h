@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The page for sequencing settings.
+ * Description: The page for file settings.
  */
 
 #pragma once
@@ -18,14 +18,14 @@ using namespace lsw;
 namespace lsn {
 
 	/**
-	 * Class CWavEditorSequencingPage
-	 * \brief The page for sequencing settings.
+	 * Class CWavEditorFileSettingsPage
+	 * \brief The page for file settings.
 	 *
-	 * Description: The page for sequencing settings.
+	 * Description: The page for file settings.
 	 */
-	class CWavEditorSequencingPage : public lsw::CWidget {
+	class CWavEditorFileSettingsPage : public lsw::CWidget {
 	public :
-		CWavEditorSequencingPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
+		CWavEditorFileSettingsPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 
 
 		// == Functions.
