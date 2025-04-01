@@ -276,18 +276,24 @@
 #define LSN_WE_PRESETS														Presets:
 #define LSN_WE_SAVE															Save
 #define LSN_WE_LOAD															Load
-#define LSN_WE_LPF															LPF Hz:
 #define LSN_WE_FALLOFF														Falloff:
 #define LSN_WE_DB_PER_OCTAVE												dB/Octave
-#define LSN_WE_HPF0															HPF 1 Hz:
-#define LSN_WE_HPF1															HPF 2 Hz:
-#define LSN_WE_HPF2															HPF 3 Hz:
 #define LSN_WE_METADATA														Metadata
 #define LSN_WE_ARTIST														Artist:
 #define LSN_WE_ALBUM														Album:
 #define LSN_WE_YEAR															Year:
 #define LSN_WE_COMMENTS														Comments:
 #define LSN_WE_APPLY_TO_ALL													Apply to All
+#define LSN_WE_OUTPUT														Output
+#define LSN_WE_NOISE														Noise
+#define LSN_WE_MASTER_VOLUME												Master Volume
+#define LSN_WE_ABSOLUTE														Absolute:
+#define LSN_WE_NORMALIZE													Normalize to:
+#define LSN_WE_SET_LOUDNESS_TO												Set Loudness to:
+#define LSN_WE_FORMAT														Format
+#define LSN_WE_OUTPUT_FOLDER												Output Folder
+#define LSN_WE_NUMBERED														Numbered
+#define LSN_WE_EXPORT_ALL													Export All
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

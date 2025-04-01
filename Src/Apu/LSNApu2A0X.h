@@ -660,7 +660,7 @@ namespace lsn {
 
 			LSN_REG_BUFFER * prbLast = _sStream.vMetaThreadScratch.size() ? reinterpret_cast<LSN_REG_BUFFER *>(_sStream.vMetaThreadScratch.data()) : nullptr;
 			for ( size_t I = 0; I < sTotal; ++I ) {
-				std::string sBinaryTmp;
+				std::string sBinaryTmp = std::to_string( _sStream.ui64MetaThreadParm ) + ":";
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_PULSE1) && prbLast->Pulse1() != prbInput[I].Pulse1()) ) {
 					

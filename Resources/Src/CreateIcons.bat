@@ -42,6 +42,10 @@ SurfaceLevel2.exe -file "icons8-imac-settings-96.png" -outfile "..\icons8-image-
 SurfaceLevel2.exe -file "icons8-imac-settings-96.png" -outfile "..\icons8-image-settings-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-imac-settings-96.png" -outfile "..\icons8-image-settings-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-infographic-60.png" -outfile "..\icons8-infographic-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-infographic-60.png" -outfile "..\icons8-infographic-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-infographic-60.png" -outfile "..\icons8-infographic-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
 SurfaceLevel2.exe -file "icons8-inspect-code-96.png" -outfile "..\icons8-inspect-code-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-inspect-code-96.png" -outfile "..\icons8-inspect-code-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-inspect-code-96.png" -outfile "..\icons8-inspect-code-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
@@ -61,6 +65,10 @@ SurfaceLevel2.exe -file "icons8-macbook-pictures-96.png" -outfile "..\icons8-pic
 SurfaceLevel2.exe -file "icons8-macbook-settings-96.png" -outfile "..\icons8-ppu-settings-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-macbook-settings-96.png" -outfile "..\icons8-ppu-settings-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-macbook-settings-96.png" -outfile "..\icons8-ppu-settings-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
+SurfaceLevel2.exe -file "icons8-magnifier-60.png" -outfile "..\icons8-magnifier-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-magnifier-60.png" -outfile "..\icons8-magnifier-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-magnifier-60.png" -outfile "..\icons8-magnifier-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
 SurfaceLevel2.exe -file "icons8-mountain-road-60.png" -outfile "..\icons8-filter-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-mountain-road-60.png" -outfile "..\icons8-filter-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
@@ -129,6 +137,10 @@ SurfaceLevel2.exe -file "icons8-refresh-96.png" -outfile "..\icons8-refresh-16.i
 SurfaceLevel2.exe -file "icons8-resize-60.png" -outfile "..\icons8-resize-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-resize-60.png" -outfile "..\icons8-resize-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-resize-60.png" -outfile "..\icons8-resize-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
+SurfaceLevel2.exe -file "icons8-sound-mixer-60.png" -outfile "..\icons8-sound-mixer-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-sound-mixer-60.png" -outfile "..\icons8-sound-mixer-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-sound-mixer-60.png" -outfile "..\icons8-sound-mixer-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
 SurfaceLevel2.exe -file "icons8-step-into-100.png" -outfile "..\icons8-step-into-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-step-into-100.png" -outfile "..\icons8-step-into-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb

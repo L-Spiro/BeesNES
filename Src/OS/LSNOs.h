@@ -24,7 +24,7 @@
 
 #if defined( _MSC_VER )
     // Microsoft Visual Studio Compiler
-    #define LSN_ALIGN( n ) 						alignas( n )//__declspec( align( n ) )
+    #define LSN_ALIGN( n ) 						__declspec( align( n ) )
 	#define	LSN_FALLTHROUGH						[[fallthrough]];
 
 	#define LSN_FORCEINLINE 					__forceinline
@@ -34,7 +34,7 @@
 	#define LSN_STDCALL							__stdcall
 #elif defined( __GNUC__ ) || defined( __clang__ )
     // GNU Compiler Collection (GCC) or Clang
-    #define LSN_ALIGN( n ) 						alignas( n )//__attribute__( (aligned( n )) )
+    #define LSN_ALIGN( n ) 						__attribute__( (aligned( n )) )
 	#define	LSN_FALLTHROUGH
 
 	#define LSN_FORCEINLINE 					__inline__ __attribute__( (__always_inline__) )

@@ -40,6 +40,9 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
+		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, 0 ));
+		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
+
 		CWidget * pwSeqPage = Layout::CreateSequencer( this, 0 );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
 		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
@@ -48,28 +51,86 @@ namespace lsn {
 		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
 		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
 
-		auto * ptGroup = FindChild( Layout::LSN_WEWI_FILES_GROUP );
-		if ( ptGroup ) {
-			auto aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
+		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, 0 ));
+		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
+
+		auto * pwGroup = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_GROUP );
+		if ( pwGroup ) {
+			LONG lMaxHeight = 0;
+			auto aGroupRect = pwGroup->WindowRect().ScreenToClient( Wnd() );
 			auto aFileSettingsRect = pwSettingsPage->WindowRect().ScreenToClient( Wnd() );
-			auto aThisRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
-			::MoveWindow( pwSeqPage->Wnd(), aGroupRect.left, aGroupRect.bottom, aThisRect.Width(), aThisRect.Height(), TRUE );
-			::MoveWindow( pwSettingsPage->Wnd(), aThisRect.Width() + aGroupRect.left * 2, aGroupRect.top, aFileSettingsRect.Width(), aFileSettingsRect.Height(), TRUE );
-			auto aSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
-			if ( aSeqGroup ) {
-				auto aTmp = aSeqGroup->WindowRect().ScreenToClient( Wnd() );
-				::MoveWindow( ptGroup->Wnd(), aGroupRect.left, aGroupRect.top, aTmp.Width(), aGroupRect.Height(), TRUE );
-				aGroupRect = ptGroup->WindowRect().ScreenToClient( Wnd() );
+			auto aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
+			auto aOutputRect = m_pweopOutput->WindowRect().ScreenToClient( Wnd() );
+			::MoveWindow( pwSeqPage->Wnd(), aGroupRect.left, aGroupRect.bottom, aSeqRect.Width(), aSeqRect.Height(), TRUE );
+			::MoveWindow( pwSettingsPage->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top, aFileSettingsRect.Width(), aFileSettingsRect.Height(), TRUE );
+			::MoveWindow( m_pweopOutput->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top + aFileSettingsRect.Height(), aOutputRect.Width(), aOutputRect.Height(), TRUE );
+
+			
+
+			auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_RANGE_GROUP );
+			if ( pwSeqGroup ) {
+				auto rTmpGrpRect = pwSeqGroup->WindowRect().ScreenToClient( Wnd() );
+
+				
+
+				LONG lTreeRight = 100;
+				static const WORD dwIds[] = {
+					Layout::LSN_WEWI_FILES_ADD_BUTTON,
+					Layout::LSN_WEWI_FILES_ADD_META_BUTTON,
+					Layout::LSN_WEWI_FILES_REMOVE_BUTTON,
+					Layout::LSN_WEWI_FILES_UP_BUTTON,
+					Layout::LSN_WEWI_FILES_DOWN_BUTTON,
+				};
+				for ( size_t I = 0; I < LSN_ELEMENTS( dwIds ); ++I ) {
+					auto pwButton = m_pwefFiles->FindChild( dwIds[I] );
+					if ( pwButton ) {
+						auto rTmpThisRect = pwButton->WindowRect().ScreenToClient( Wnd() );
+						lTreeRight = rTmpGrpRect.right - rTmpThisRect.Width() - aGroupRect.left;
+						::MoveWindow( pwButton->Wnd(), rTmpGrpRect.right - rTmpThisRect.Width(), rTmpThisRect.top, rTmpThisRect.Width(), rTmpThisRect.Height(), TRUE );
+					}
+				}
+				
+
+				auto pwTree = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW );
+				if ( pwTree ) {
+					auto rTmpTreeRect = pwTree->WindowRect().ScreenToClient( Wnd() );
+					
+					::MoveWindow( pwTree->Wnd(), rTmpGrpRect.left, rTmpTreeRect.top, lTreeRight - rTmpGrpRect.left, rTmpTreeRect.Height(), TRUE );
+				}
+			}
+			
+			/*auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+			if ( pwSeqGroup ) {
+				auto aTmp = pwSeqGroup->WindowRect().ScreenToClient( Wnd() );
+				::MoveWindow( pwGroup->Wnd(), aGroupRect.left, aGroupRect.top, aTmp.Width(), aGroupRect.Height(), TRUE );
+				aGroupRect = pwGroup->WindowRect().ScreenToClient( Wnd() );
+			}*/
+
+			aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
+			aOutputRect = m_pweopOutput->WindowRect().ScreenToClient( Wnd() );
+			lMaxHeight = std::max( aSeqRect.top + aSeqRect.Height(), aOutputRect.top + aOutputRect.Height() );
+
+
+			auto pwOk = FindChild( Layout::LSN_WEWI_OK );
+			if ( pwOk ) {
+				auto rOkRect = pwOk->WindowRect().ScreenToClient( Wnd() );
+				::MoveWindow( pwOk->Wnd(), rOkRect.left, aOutputRect.bottom - rOkRect.Height(), aGroupRect.right - rOkRect.left, rOkRect.Height(), TRUE );
+			}
+			auto pwCncel = FindChild( Layout::LSN_WEWI_CANCEL );
+			if ( pwCncel ) {
+				auto rCancelRect = pwCncel->WindowRect().ScreenToClient( Wnd() );
+				::MoveWindow( pwCncel->Wnd(), rCancelRect.left, aOutputRect.bottom - rCancelRect.Height(), rCancelRect.Width(), rCancelRect.Height(), TRUE );
 			}
 
-			aThisRect = pwSeqPage->WindowRect();
+			aSeqRect = pwSeqPage->WindowRect();
 			aFileSettingsRect = pwSettingsPage->WindowRect();
 			auto aWindowRect = WindowRect();
 			LSW_RECT aAdjusted = aGroupRect;
-			aAdjusted.right = aAdjusted.left + aFileSettingsRect.right - aThisRect.left;
+			aAdjusted.right = aAdjusted.left + aFileSettingsRect.right - aSeqRect.left;
+			aAdjusted.bottom = aAdjusted.top + lMaxHeight;
 			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
-			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aThisRect.bottom - aWindowRect.top + aGroupRect.left, TRUE );
+			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, /*aSeqRect.bottom - aWindowRect.top*/aAdjusted.Height() + aGroupRect.left, TRUE );
 		}
 
 		UpdateRects();

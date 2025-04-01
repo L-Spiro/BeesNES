@@ -11,7 +11,9 @@
 #pragma once
 
 #include "LSNWavEditorFileSettingsPage.h"
+#include "LSNWavEditorFilesPage.h"
 #include "LSNWavEditorSequencingPage.h"
+#include "LSNWavEditorOutputPage.h"
 #include "LSNWavEditorWindowLayout.h"
 
 #include <MainWindow/LSWMainWindow.h>
@@ -71,6 +73,10 @@ namespace lsn {
 		std::vector<CWavEditorSequencingPage *>				m_vSequencePages;
 		/** The settings dialogs. */
 		std::vector<CWavEditorFileSettingsPage *>			m_vSettingsPages;
+		/** The files page. */
+		CWavEditorFilesPage *								m_pwefFiles = nullptr;
+		/** The output page. */
+		CWavEditorOutputPage *								m_pweopOutput = nullptr;
 		/** Toggled when done initializing. */
 		bool												m_bInit = false;
 		/** The main window class. */
