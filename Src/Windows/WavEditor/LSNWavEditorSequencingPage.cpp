@@ -12,7 +12,7 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 
-#include <ListBox/LSWListBox.h>
+#include <TreeListView/LSWTreeListView.h>
 #include <Tab/LSWTab.h>
 
 #include <commdlg.h>
@@ -36,6 +36,15 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorSequencingPage::InitDialog() {
 		Parent::InitDialog();
 
+		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW ));
+		if ( ptlTree ) {
+			ptlTree->SetColumnText( LSN_LSTR( LSN_WE_OPERATIONS ), 0 );
+			ptlTree->SetColumnWidth( 0, 250 );
+			ptlTree->InsertColumn( LSN_LSTR( LSN_WE_PARMS ), 180, -1 );
+			ptlTree->SetColumnWidth( 1, 450 );
+			ptlTree->InsertColumn( LSN_LSTR( LSN_WE_DESC ), 180, -1 );
+			ptlTree->SetColumnWidth( 2, 550 );
+		}
 
 		Update();
 		return LSW_H_CONTINUE;

@@ -11,9 +11,7 @@
 #include "LSNWavEditorFileSettingsPage.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
-
-#include <ListBox/LSWListBox.h>
-#include <Tab/LSWTab.h>
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <commdlg.h>
 #include <filesystem>
@@ -36,6 +34,17 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorFileSettingsPage::InitDialog() {
 		Parent::InitDialog();
 
+		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, LPARAM( -LSN_PM_NTSC ) ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
 
 		Update();
 		return LSW_H_CONTINUE;

@@ -98,13 +98,7 @@ namespace lsn {
 					::MoveWindow( pwTree->Wnd(), rTmpGrpRect.left, rTmpTreeRect.top, lTreeRight - rTmpGrpRect.left, rTmpTreeRect.Height(), TRUE );
 				}
 			}
-			
-			/*auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
-			if ( pwSeqGroup ) {
-				auto aTmp = pwSeqGroup->WindowRect().ScreenToClient( Wnd() );
-				::MoveWindow( pwGroup->Wnd(), aGroupRect.left, aGroupRect.top, aTmp.Width(), aGroupRect.Height(), TRUE );
-				aGroupRect = pwGroup->WindowRect().ScreenToClient( Wnd() );
-			}*/
+
 
 			aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
 			aOutputRect = m_pweopOutput->WindowRect().ScreenToClient( Wnd() );

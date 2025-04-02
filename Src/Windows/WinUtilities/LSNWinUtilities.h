@@ -16,6 +16,9 @@
 #include <Helpers/LSWInputListenerBase.h>
 #include <Widget/LSWWidget.h>
 
+#include <map>
+#include <vector>
+
 using namespace lsw;
 
 namespace lsn {
@@ -127,18 +130,92 @@ namespace lsn {
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.
+		 * \param _bInclude32 If true, 32 bits is included.
 		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
 		 */
-		static bool												FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+		static bool												FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect, bool _bInclude32 = false );
 
 		/**
-		 * Fills a combo box with WAV metadata formats
+		 * Fills a combo box with WAV metadata formats.
 		 *
 		 * \param _pwComboBox The combo box to fill.
 		 * \param _lpDefaultSelect The default selection.
 		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
 		 */
 		static bool												FillComboWithWavMetaDataFormats( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV Editor "Actual Hz".
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavActialHz( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV Editor noise color.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavNoiseColor( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV Editor noise type.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavNoiseType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV Editor filter type.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavFilterType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV Editor mono-stereo-surround output types.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		static bool												FillComboWithWavStereoSettings( CWidget * _pwComboBox, LPARAM _lpDefaultSelect );
+
+		/**
+		 * Fills a combo box with WAV metadata formats.
+		 *
+		 * \param _pwComboBox The combo box to fill.
+		 * \param _lpDefaultSelect The default selection.
+		 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+		 */
+		template <typename _tKey, typename _tType>
+		static bool												FillComboWithMap( CWidget * _pwComboBox, const std::map<_tKey, _tType> &_mMap, LPARAM _lpDefaultSelect ) {
+			std::vector<LSN_COMBO_ENTRY> vEntries;
+			try {
+				if ( _mMap.empty() ) { return FillComboBox( _pwComboBox, nullptr, 0, _lpDefaultSelect ); }
+
+				vEntries.resize( _mMap.size() );
+				for ( const auto & I : _mMap ) {
+					vEntries[I].pwcName = reinterpret_cast<const wchar_t *>(I.second);
+					vEntries[I].lpParm = LPARAM( I );
+				}
+				if ( FillComboBox( _pwComboBox, &vEntries[0], vEntries.size(), _lpDefaultSelect ) ) {
+					lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(_pwComboBox);
+					pcbCombo->SetSel( 0, 0 );
+					return true;
+				}
+				return false;
+			}
+			catch ( ... ) { return false; }
+		}
 
 		/**
 		 * Fills a combo box with an array of UTF-16 strings.

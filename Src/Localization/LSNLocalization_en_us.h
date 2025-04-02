@@ -285,7 +285,7 @@
 #define LSN_WE_COMMENTS														Comments:
 #define LSN_WE_APPLY_TO_ALL													Apply to All
 #define LSN_WE_OUTPUT														Output
-#define LSN_WE_NOISE														Noise
+#define LSN_WE_NOISE														Noise (Mains Hum/White Noise)
 #define LSN_WE_MASTER_VOLUME												Master Volume
 #define LSN_WE_ABSOLUTE														Absolute:
 #define LSN_WE_NORMALIZE													Normalize to:
@@ -294,6 +294,34 @@
 #define LSN_WE_OUTPUT_FOLDER												Output Folder
 #define LSN_WE_NUMBERED														Numbered
 #define LSN_WE_EXPORT_ALL													Export All
+
+#define LSN_WE_NTSC_HZ														NTSC (1,789,772.7272727272727272727272727 Hz)
+#define LSN_WE_PAL_HZ														PAL (1,662,607.03125 Hz)
+#define LSN_WE_DENDY_HZ														PAL “Dendy” Famiclone (1,773,447.5 Hz)
+#define LSN_WE_PAL_M_HZ														PAL-M (1,787,805.9440559440559440559440559 Hz)
+#define LSN_WE_PAL_N_HZ														PAL-N (1,791,028.125 Hz)
+#define LSN_WE_SET_BY_FILE													Set by File
+
+#define LSN_WE_POLE															Pole
+#define LSN_WE_SINC															Sinc
+
+#define LSN_WE_MONO															Mono
+#define LSN_WE_STEREO														Stereo
+#define LSN_WE_SURROUND														Surround
+
+#define LSN_WE_XX_BLACK														XX-Black (0D)
+#define LSN_WE_X_BLACK														X-Black (1Dem)
+#define LSN_WE_BLACK														Black (1D)
+#define LSN_WE_GREY_00														Grey (00)
+#define LSN_WE_GREY_10														Grey (10)
+#define LSN_WE_GREY_20EM													Grey (20em)
+#define LSN_WE_RED															Red (16)
+#define LSN_WE_GREEN														Green (1A)
+#define LSN_WE_BLUE															Blue (12)
+#define LSN_WE_WHITE														White (30)
+
+#define LSN_WE_GAUSSIAN														Gaussian
+#define LSN_WE_UNIFORM														Uniform
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

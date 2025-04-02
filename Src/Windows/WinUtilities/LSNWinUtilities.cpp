@@ -178,20 +178,33 @@ namespace lsn {
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.
+	 * \param _bInclude32 If true, 32 bits is included.
 	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
 	 */
-	bool CWinUtilities::FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
-		LSN_COMBO_ENTRY ceEnries[] = {
-			//pwcName													lpParm
-			{ L"8",														8,													},
-			{ L"16",													16,													},
-			{ L"24",													24,													},
-		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
+	bool CWinUtilities::FillComboWithWavPcmBits( CWidget * _pwComboBox, LPARAM _lpDefaultSelect, bool _bInclude32 ) {
+		if ( _bInclude32 ) {
+			LSN_COMBO_ENTRY ceEnries[] = {
+				//pwcName													lpParm
+				{ L"8",														8,													},
+				{ L"16",													16,													},
+				{ L"24",													24,													},
+				{ L"32",													32,													},
+			};
+			return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
+		}
+		else {
+			LSN_COMBO_ENTRY ceEnries[] = {
+				//pwcName													lpParm
+				{ L"8",														8,													},
+				{ L"16",													16,													},
+				{ L"24",													24,													},
+			};
+			return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
+		}
 	}
 
 	/**
-	 * Fills a combo box with WAV metadata formats
+	 * Fills a combo box with WAV metadata formats.
 	 *
 	 * \param _pwComboBox The combo box to fill.
 	 * \param _lpDefaultSelect The default selection.
@@ -204,6 +217,102 @@ namespace lsn {
 			//{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						-1,													},
 		};
 		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_MF_AUDACITY );
+	}
+
+	/**
+	 * Fills a combo box with WAV Editor "Actual Hz".
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavActialHz( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WE_NTSC_HZ ),								LPARAM( -LSN_PM_NTSC ),								},
+			{ LSN_LSTR( LSN_WE_PAL_HZ ),								LPARAM( -LSN_PM_PAL ),								},
+			{ LSN_LSTR( LSN_WE_DENDY_HZ ),								LPARAM( -LSN_PM_DENDY ),							},
+			{ LSN_LSTR( LSN_WE_PAL_M_HZ ),								LPARAM( -LSN_PM_PALM ),								},
+			{ LSN_LSTR( LSN_WE_PAL_N_HZ ),								LPARAM( -LSN_PM_PALN ),								},
+			{ LSN_LSTR( LSN_WE_SET_BY_FILE ),							LPARAM( -100 ),										},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						LPARAM( -1000 ),									},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, -LSN_PM_NTSC );
+	}
+
+	/**
+	 * Fills a combo box with WAV Editor noise color.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavNoiseColor( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WE_XX_BLACK ),								LPARAM( 0 ),										},
+			{ LSN_LSTR( LSN_WE_X_BLACK ),								LPARAM( 1 ),										},
+			{ LSN_LSTR( LSN_WE_BLACK ),									LPARAM( 2 ),										},
+			{ LSN_LSTR( LSN_WE_GREY_00 ),								LPARAM( 3 ),										},
+			{ LSN_LSTR( LSN_WE_GREY_10 ),								LPARAM( 4 ),										},
+			{ LSN_LSTR( LSN_WE_GREY_20EM ),								LPARAM( 5 ),										},
+			{ LSN_LSTR( LSN_WE_WHITE ),									LPARAM( 9 ),										},
+			{ LSN_LSTR( LSN_WE_RED ),									LPARAM( 6 ),										},
+			{ LSN_LSTR( LSN_WE_GREEN ),									LPARAM( 7 ),										},
+			{ LSN_LSTR( LSN_WE_BLUE ),									LPARAM( 8 ),										},
+			
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 2 );
+	}
+
+	/**
+	 * Fills a combo box with WAV Editor noise type.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavNoiseType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WE_GAUSSIAN ),								LPARAM( 0 ),										},
+			{ LSN_LSTR( LSN_WE_UNIFORM ),								LPARAM( 1 ),										},
+			
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 2 );
+	}
+
+	/**
+	 * Fills a combo box with WAV Editor filter type.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavFilterType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WE_POLE ),									LPARAM( 0 ),										},
+			{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( 1 ),										},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+	}
+
+	/**
+	 * Fills a combo box with WAV Editor mono-stereo-surround output types.
+	 *
+	 * \param _pwComboBox The combo box to fill.
+	 * \param _lpDefaultSelect The default selection.
+	 * \return Returns true if the combo box will filled.  _pwComboBox must not be nullptr, must be of type CComboBox, and the adding of each item must succeed.
+	 */
+	bool CWinUtilities::FillComboWithWavStereoSettings( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
+		LSN_COMBO_ENTRY ceEnries[] = {
+			//pwcName													lpParm
+			{ LSN_LSTR( LSN_WE_MONO ),									LPARAM( 1 ),										},
+			{ LSN_LSTR( LSN_WE_STEREO ),								LPARAM( 2 ),										},
+			{ LSN_LSTR( LSN_WE_SURROUND ),								LPARAM( 3 ),										},
+		};
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, LPARAM( 1 ) );
 	}
 
 	/**

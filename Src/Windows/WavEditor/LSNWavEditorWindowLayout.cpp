@@ -1642,7 +1642,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_TREELISTVIEW,							// ltType
-			LSN_WEWI_FILES_TREELISTVIEW,					// wId
+			LSN_WEWI_SEQ_OPS_TREELISTVEW,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2086,17 +2086,17 @@ namespace lsn {
 			LSN_WEWI_OUTPUT,								// dwParentId
 		},
 		{
-			LSW_LT_EDIT,									// ltType
+			LSW_LT_COMBOBOX,								// ltType
 			LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO,		// wId
-			nullptr,										// lpwcClass
+			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_OUTPUT_FORMAT_L( 1 ) + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																											// iLeft
-			LSN_OUTPUT_FORMAT_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),																		// iTop
+			LSN_OUTPUT_FORMAT_GROUP_T + LSN_GROUP_TOP + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_COMBO_HEIGHT) >> 1),																		// iTop
 			LSN_OUTPUT_FORMAT_W( 1 ) - LSN_SEQUE_LABEL_0_W - LSN_LEFT_JUST,																											// dwWidth
-			LSN_DEF_EDIT_HEIGHT,							// dwHeight
-			LSN_EDITSTYLE,									// dwStyle
-			WS_EX_CLIENTEDGE,								// dwStyleEx
+			LSN_DEF_COMBO_HEIGHT,							// dwHeight
+			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			LSN_WEWI_OUTPUT,								// dwParentId

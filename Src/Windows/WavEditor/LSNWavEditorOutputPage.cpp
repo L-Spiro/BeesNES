@@ -11,14 +11,8 @@
 #include "LSNWavEditorOutputPage.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
-
-#include <ListBox/LSWListBox.h>
-#include <Tab/LSWTab.h>
-
-#include <commdlg.h>
-#include <filesystem>
-
-#include "../../../resource.h"
+#include "../../Wav/LSNWavFile.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 
 namespace lsn {
@@ -36,6 +30,20 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorOutputPage::InitDialog() {
 		Parent::InitDialog();
 
+		auto aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, 2 ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseType( aTmp, 0 ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavPcmBits( aTmp, 32, true ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFormats( aTmp, CWavFile::LSN_F_PCM ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavStereoSettings( aTmp, 1 ); }
 
 		Update();
 		return LSW_H_CONTINUE;

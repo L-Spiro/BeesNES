@@ -664,44 +664,37 @@ namespace lsn {
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_PULSE1) && prbLast->Pulse1() != prbInput[I].Pulse1()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "Pu1: " + ee::CExpEval::ToBinary( prbInput[I].Pulse1(), 4 * 8 );
+					sBinaryTmp += " Pu1: " + ee::CExpEval::ToBinary( prbInput[I].Pulse1(), 4 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_PULSE2) && prbLast->Pulse2() != prbInput[I].Pulse2()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "Pu2: " + ee::CExpEval::ToBinary( prbInput[I].Pulse2(), 4 * 8 );
+					sBinaryTmp += " Pu2: " + ee::CExpEval::ToBinary( prbInput[I].Pulse2(), 4 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_TRIANGLE) && prbLast->Triangle() != prbInput[I].Triangle()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "Tri: " + ee::CExpEval::ToBinary( prbInput[I].Triangle(), 4 * 8 );
+					sBinaryTmp += " Tri: " + ee::CExpEval::ToBinary( prbInput[I].Triangle(), 4 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_NOISE) && prbLast->Noise() != prbInput[I].Noise()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "Noi: " + ee::CExpEval::ToBinary( prbInput[I].Noise(), 4 * 8 );
+					sBinaryTmp += " Noi: " + ee::CExpEval::ToBinary( prbInput[I].Noise(), 4 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_DMC) && prbLast->Dmc() != prbInput[I].Dmc()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "DMC: " + ee::CExpEval::ToBinary( prbInput[I].Dmc(), 4 * 8 );
+					sBinaryTmp += " DMC: " + ee::CExpEval::ToBinary( prbInput[I].Dmc(), 4 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_STATUS) && prbLast->Status() != prbInput[I].Status()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "Sts: " + ee::CExpEval::ToBinary( prbInput[I].Status(), 1 * 8 );
+					sBinaryTmp += " Sts: " + ee::CExpEval::ToBinary( prbInput[I].Status(), 1 * 8 );
 				}
 				if ( !prbLast ||
 					((_sStream.ui64MetaParm & LSN_RF_FRAME_COUNTER) && prbLast->FrameCounter() != prbInput[I].FrameCounter()) ) {
 					
-					if ( sBinaryTmp.size() ) { sBinaryTmp += " "; }
-					sBinaryTmp += "FrC: " + ee::CExpEval::ToBinary( prbInput[I].FrameCounter(), 1 * 8 );
+					sBinaryTmp += " FrC: " + ee::CExpEval::ToBinary( prbInput[I].FrameCounter(), 1 * 8 );
 				}
 
 				std::string sFinal = std::format( "{0:.27f}\t{0:.27f}\t", prbInput[I].dTime ) + "[" + sBinaryTmp + "]\r\n";
