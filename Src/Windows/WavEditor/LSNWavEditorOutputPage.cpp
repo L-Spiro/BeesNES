@@ -18,7 +18,8 @@
 namespace lsn {
 
 	CWavEditorOutputPage::CWavEditorOutputPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_pwewoOptions( reinterpret_cast<LSN_WAV_EDITOR_WINDOW_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
@@ -30,6 +31,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorOutputPage::InitDialog() {
 		Parent::InitDialog();
 
+		// Combo boxes.
 		auto aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_COMBO );
 		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, 2 ); }
 
@@ -45,6 +47,25 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO );
 		if ( aTmp ) { CWinUtilities::FillComboWithWavStereoSettings( aTmp, 1 ); }
 
+
+		// Last texts.
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_VOL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsMainsHumVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_VOL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsWhiteNoiseVolume.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsAbsoluteVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsNormalizeVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsLoudnessVolume.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsOutputHz.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }
 		Update();
 		return LSW_H_CONTINUE;
 	}

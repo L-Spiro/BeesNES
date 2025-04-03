@@ -517,7 +517,7 @@ namespace lsn {
 					m_pwWavEditorWindow->SetFocus();
 				}
 				else {
-					m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( nullptr );
+					m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( nullptr, m_bnEmulator.Options() );
 					if ( m_pwWavEditorWindow ) { m_pwWavEditorWindow->SetWidgetParent( this ); }
 				}
 				break;

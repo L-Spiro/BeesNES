@@ -11,6 +11,8 @@
 #pragma once
 
 #include "LSNWavEditorWindowLayout.h"
+#include "../../Options/LSNWavEditorWindowOptions.h"
+
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -68,7 +70,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The options object. */
-		//LSN_OPTIONS *										m_poOptions;
+		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 		/** The actual Hz set in the settings. */
 		//uint32_t											m_ui32SettingsHz = 0;
 

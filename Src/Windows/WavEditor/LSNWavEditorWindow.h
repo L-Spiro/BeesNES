@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../../Options/LSNOptions.h"
 #include "LSNWavEditorFileSettingsPage.h"
 #include "LSNWavEditorFilesPage.h"
 #include "LSNWavEditorSequencingPage.h"
@@ -77,6 +78,10 @@ namespace lsn {
 		CWavEditorFilesPage *								m_pwefFiles = nullptr;
 		/** The output page. */
 		CWavEditorOutputPage *								m_pweopOutput = nullptr;
+		/** A copy of the window options. */
+		LSN_WAV_EDITOR_WINDOW_OPTIONS						m_wewoWindowOptions;
+		/** A reference to the system options. */
+		LSN_OPTIONS *										m_poOptions;
 		/** Toggled when done initializing. */
 		bool												m_bInit = false;
 		/** The main window class. */

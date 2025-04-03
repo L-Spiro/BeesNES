@@ -14,6 +14,7 @@
 #include "../Filters/LSNFilterBase.h"
 #include "../Wav/LSNWavFile.h"
 #include "LSNInputOptions.h"
+#include "LSNWavEditorWindowOptions.h"
 
 
 
@@ -55,6 +56,9 @@ namespace lsn {
 		std::vector<std::wstring>							vRawEndHistory;												/**< The history of raw end-condition parameters. */
 		std::vector<std::wstring>							vOutStartHistory;											/**< The history of output-capture start-condition parameters. */
 		std::vector<std::wstring>							vOutEndHistory;												/**< The history of output-capture end-condition parameters. */
+
+
+		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
 	};
 
 }	// namespace lsn

@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright L. Spiro 2023
  *

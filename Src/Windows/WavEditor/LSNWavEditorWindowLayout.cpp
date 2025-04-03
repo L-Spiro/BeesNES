@@ -2553,15 +2553,16 @@ namespace lsn {
 	 * Creates the WAV-Eeitor window.
 	 *
 	 * \param _pwParent The parent of the window.
+	 * \param _oOptions A reference to the system options.
 	 * \return Returns the created window.
 	 */
-	CWidget * CWavEditorWindowLayout::CreateWavEditorWindow( CWidget * _pwParent ) {
+	CWidget * CWavEditorWindowLayout::CreateWavEditorWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		CWavEditorWindow::PrepareWavEditor();
 
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
 		CWidget * pwThis = plmLayout->CreateWindowX( m_wlWindow, LSN_ELEMENTS( m_wlWindow ),
 			nullptr, 0,
-			_pwParent );
+			_pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		return pwThis;
 	}
 
@@ -2569,44 +2570,44 @@ namespace lsn {
 	 * Creates the WAV-Editor files dialog.
 	 * 
 	 * \param _pwParent The parent of the window.
-	 * \param _ui64Options Options to pass to the created dialog.
+	 * \param _wewoOptions Options to pass to the created dialog.
 	 * \return Returns the created widget.
 	 **/
-	CWidget * CWavEditorWindowLayout::CreateFiles( CWidget * _pwParent, uint64_t _ui64Options ) {
-		return CreatePage( _pwParent, m_wlFilesDialog, LSN_ELEMENTS( m_wlFilesDialog ), _ui64Options );
+	CWidget * CWavEditorWindowLayout::CreateFiles( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
+		return CreatePage( _pwParent, m_wlFilesDialog, LSN_ELEMENTS( m_wlFilesDialog ), _wewoOptions );
 	}
 
 	/**
 	 * Creates the WAV-Editor sequencer dialog.
 	 * 
 	 * \param _pwParent The parent of the window.
-	 * \param _ui64Options Options to pass to the created dialog.
+	 * \param _wewoOptions Options to pass to the created dialog.
 	 * \return Returns the created widget.
 	 **/
-	CWidget * CWavEditorWindowLayout::CreateSequencer( CWidget * _pwParent, uint64_t _ui64Options ) {
-		return CreatePage( _pwParent, m_wlSequencingDialog, LSN_ELEMENTS( m_wlSequencingDialog ), _ui64Options );
+	CWidget * CWavEditorWindowLayout::CreateSequencer( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
+		return CreatePage( _pwParent, m_wlSequencingDialog, LSN_ELEMENTS( m_wlSequencingDialog ), _wewoOptions );
 	}
 
 	/**
 	 * Creates the WAV-Editor file settings dialog.
 	 * 
 	 * \param _pwParent The parent of the window.
-	 * \param _ui64Options Options to pass to the created dialog.
+	 * \param _wewoOptions Options to pass to the created dialog.
 	 * \return Returns the created widget.
 	 **/
-	CWidget * CWavEditorWindowLayout::CreateFileSettings( CWidget * _pwParent, uint64_t _ui64Options ) {
-		return CreatePage( _pwParent, m_wlFileSettingsDialog, LSN_ELEMENTS( m_wlFileSettingsDialog ), _ui64Options );
+	CWidget * CWavEditorWindowLayout::CreateFileSettings( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
+		return CreatePage( _pwParent, m_wlFileSettingsDialog, LSN_ELEMENTS( m_wlFileSettingsDialog ), _wewoOptions );
 	}
 
 	/**
 	 * Creates the WAV-Editor output dialog.
 	 * 
 	 * \param _pwParent The parent of the window.
-	 * \param _ui64Options Options to pass to the created dialog.
+	 * \param _wewoOptions Options to pass to the created dialog.
 	 * \return Returns the created widget.
 	 **/
-	CWidget * CWavEditorWindowLayout::CreateOutput( CWidget * _pwParent, uint64_t _ui64Options ) {
-		return CreatePage( _pwParent, m_wlOutputDialog, LSN_ELEMENTS( m_wlOutputDialog ), _ui64Options );
+	CWidget * CWavEditorWindowLayout::CreateOutput( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
+		return CreatePage( _pwParent, m_wlOutputDialog, LSN_ELEMENTS( m_wlOutputDialog ), _wewoOptions );
 	}
 
 	/**
@@ -2615,12 +2616,12 @@ namespace lsn {
 	* \param _pwParent The parent widget.
 	* \param _pwlLayout The page layout.
 	* \param _sTotal The number of items to which _pwlLayout points.
-	* \param _ui64Options The parameter to pass to the created control.
+	* \param _wewoOptions The parameter to pass to the created control.
 	* \return Returns the created page.
 	*/
-	CWidget * CWavEditorWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, uint64_t _ui64Options ) {
+	CWidget * CWavEditorWindowLayout::CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, _ui64Options );
+		CWidget * pwWidget = plmLayout->CreateDialogX( _pwlLayout, _sTotal, _pwParent, reinterpret_cast<uint64_t>(&_wewoOptions) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}

@@ -24,7 +24,9 @@ namespace lsn {
 	ATOM CWavEditorWindow::m_aAtom = 0;
 
 	CWavEditorWindow::CWavEditorWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget , HMENU _hMenu, uint64_t _ui64Data ) :
-		lsw::CMainWindow( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(m_aAtom) ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		lsw::CMainWindow( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(m_aAtom) ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
+		m_wewoWindowOptions = m_poOptions->wewoWavEditorWindow;
 	}
 	CWavEditorWindow::~CWavEditorWindow() {
 	}
@@ -40,18 +42,18 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
-		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, 0 ));
+		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
 
-		CWidget * pwSeqPage = Layout::CreateSequencer( this, 0 );
+		CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
 		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
 
-		CWidget * pwSettingsPage = Layout::CreateFileSettings( this, 0 );
+		CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
 		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
 		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
 
-		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, 0 ));
+		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, m_wewoWindowOptions ));
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
 
 		auto * pwGroup = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_GROUP );

@@ -22,7 +22,8 @@
 namespace lsn {
 
 	CWavEditorFileSettingsPage::CWavEditorFileSettingsPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ) {
+		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		m_pwewoOptions( reinterpret_cast<LSN_WAV_EDITOR_WINDOW_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
@@ -45,6 +46,37 @@ namespace lsn {
 		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
 		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+
+
+		// Last texts.
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharLpfHz.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf0Hz.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf1Hz.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf2Hz.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharLpfFall.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf0Fall.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf1Fall.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf2Fall.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsArtist.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsAlbum.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsYear.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsComment.c_str() ); }
 
 		Update();
 		return LSW_H_CONTINUE;

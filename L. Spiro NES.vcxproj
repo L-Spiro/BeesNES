@@ -1907,6 +1907,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Options\LSNGenericOption.h" />
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
+    <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />
     <ClInclude Include="Src\OS\LSNFeatureSet.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
