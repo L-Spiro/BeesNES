@@ -39,13 +39,13 @@ namespace lsn {
 		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, LPARAM( -LSN_PM_NTSC ) ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 1 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
 
 
 		// Last texts.
@@ -77,6 +77,18 @@ namespace lsn {
 		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsYear.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsComment.c_str() ); }
+
+		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bInvert ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bLpf ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf0 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf1 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf2 ); }
 
 		Update();
 		return LSW_H_CONTINUE;

@@ -34,6 +34,8 @@ namespace lsn {
 		/** The last text in White Noise Volume. */
 		std::wstring												wsWhiteNoiseVolume = L"0.1";
 
+		/** The last text in Actual Hz. */
+		std::wstring												wsActualHz = L"";
 		/** The last text in Characteristics/Volume. */
 		std::wstring												wsCharVolume = L"0.402";
 		/** The last text in Characteristics/LPF Hz. */
@@ -46,13 +48,13 @@ namespace lsn {
 		std::wstring												wsCharHpf2Hz = L"34.5";
 
 		/** The last text in Characteristics/LPF Falloff. */
-		std::wstring												wsCharLpfFall = L"log10( 0.5 ) * 20; // -6.0205999 dB";
+		std::wstring												wsCharLpfFall = L"log10( 0.5 ) * 20 // -6.0205999 dB";
 		/** The last text in Characteristics/HPF 1 Falloff. */
-		std::wstring												wsCharHpf0Fall = L"log10( 0.5 ) * 20; // -6.0205999 dB";
+		std::wstring												wsCharHpf0Fall = L"log10( 0.5 ) * 20 // -6.0205999 dB";
 		/** The last text in Characteristics/HPF 2 Falloff. */
-		std::wstring												wsCharHpf1Fall = L"log10( 0.5 ) * 20; // -6.0205999 dB";
+		std::wstring												wsCharHpf1Fall = L"log10( 0.5 ) * 20 // -6.0205999 dB";
 		/** The last text in Characteristics/HPF 3 Falloff. */
-		std::wstring												wsCharHpf2Fall = L"log10( 0.5 ) * 20; // -6.0205999 dB";
+		std::wstring												wsCharHpf2Fall = L"log10( 0.5 ) * 20 // -6.0205999 dB";
 
 		/** The last text in Artist. */
 		std::wstring												wsArtist = L"";
@@ -73,6 +75,40 @@ namespace lsn {
 		std::wstring												wsOutputHz = L"48000";
 		/** The last text in Output Folder. */
 		std::wstring												wsOutputFolder = L"";
+
+		/** The last Loop check. */
+		bool														bLoop = false;
+
+		/** The last Actual Hz combo selection. */
+		uint32_t													ui32ActualHz = uint32_t( -0 );
+		/** The last Preset combo selection. */
+		uint32_t													ui32CharPreset = uint32_t( -1 );
+		/** The last Invert check. */
+		bool														bInvert = true;
+		/** The last LPF Hz check. */
+		bool														bLpf = true;
+		/** The last HPF 0 Hz check. */
+		bool														bHpf0 = true;
+		/** The last HPF 1 Hz check. */
+		bool														bHpf1 = true;
+		/** The last HPF 2 Hz check. */
+		bool														bHpf2 = true;
+
+		/** The last LPF Type combo selection. */
+		uint32_t													ui32LpfType = uint32_t( 0 );
+		/** The last HPF 0 Type combo selection. */
+		uint32_t													ui32Hpf0Type = uint32_t( 0 );
+		/** The last HPF 1 Type combo selection. */
+		uint32_t													ui32Hpf1Type = uint32_t( 0 );
+		/** The last HPF 2 Type combo selection. */
+		uint32_t													ui32Hpf2Type = uint32_t( 0 );
+
+		/** The last Mains Hum check. */
+		bool														bMainsHum = false;
+		/** The last White Noise check. */
+		bool														bWhiteNoise = false;
+		/** The last White Noise check. */
+		bool														bDither = true;
 	};
 
 }	// namespace lsn

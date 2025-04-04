@@ -47,6 +47,24 @@ namespace lsn {
 			ptlTree->SetColumnWidth( 2, 550 );
 		}
 
+		// Last texts.
+		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsPreFadeDur.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsFadeDur.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsOpeningSilence.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsTrailingSilence.c_str() ); }
+
+
+		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bLoop ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->bLoop ); }
+
 		Update();
 		return LSW_H_CONTINUE;
 	}

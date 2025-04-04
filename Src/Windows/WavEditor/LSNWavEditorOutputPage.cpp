@@ -66,6 +66,15 @@ namespace lsn {
 
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }
+
+
+		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bMainsHum ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bWhiteNoise ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bDither ); }
 		Update();
 		return LSW_H_CONTINUE;
 	}
