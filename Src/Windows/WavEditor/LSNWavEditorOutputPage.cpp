@@ -33,19 +33,19 @@ namespace lsn {
 
 		// Combo boxes.
 		auto aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, 2 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, m_pwewoOptions->ui32MainsHum ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseType( aTmp, 0 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseType( aTmp, m_pwewoOptions->ui32WhiteNoise ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavPcmBits( aTmp, 32, true ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavPcmBits( aTmp, m_pwewoOptions->ui32OutBits, true ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFormats( aTmp, CWavFile::LSN_F_PCM ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFormats( aTmp, m_pwewoOptions->ui32OutFormat ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavStereoSettings( aTmp, 1 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavStereoSettings( aTmp, m_pwewoOptions->ui32Stereo ); }
 
 
 		// Last texts.
@@ -75,6 +75,10 @@ namespace lsn {
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bWhiteNoise ); }
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bDither ); }
+
+
+		// Last combo selections.
+		
 		Update();
 		return LSW_H_CONTINUE;
 	}

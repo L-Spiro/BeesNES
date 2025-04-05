@@ -33,15 +33,22 @@ namespace lsn {
 		std::wstring												wsMainsHumVolume = L"1.0";
 		/** The last text in White Noise Volume. */
 		std::wstring												wsWhiteNoiseVolume = L"0.1";
+		
+		/** The last text in Guassian Noise Bandpass. */
+		std::wstring												wsGuassianNoiseBandwidth = L"1000000";
+		/** The last text in Guassian Noise Temperature. */
+		std::wstring												wsGuassianNoiseTemperature = L"290";
+		/** The last text in Guassian Noise Resistance. */
+		std::wstring												wsGuassianNoiseResistance = L"50";
 
 		/** The last text in Actual Hz. */
 		std::wstring												wsActualHz = L"";
 		/** The last text in Characteristics/Volume. */
 		std::wstring												wsCharVolume = L"0.402";
 		/** The last text in Characteristics/LPF Hz. */
-		std::wstring												wsCharLpfHz = L"7050.0";
+		std::wstring												wsCharLpfHz = L"7050";
 		/** The last text in Characteristics/HPF 1 Hz. */
-		std::wstring												wsCharHpf0Hz = L"200.0";
+		std::wstring												wsCharHpf0Hz = L"200";
 		/** The last text in Characteristics/HPF 2 Hz. */
 		std::wstring												wsCharHpf1Hz = L"34.5";
 		/** The last text in Characteristics/HPF 3 Hz. */
@@ -80,7 +87,7 @@ namespace lsn {
 		bool														bLoop = false;
 
 		/** The last Actual Hz combo selection. */
-		uint32_t													ui32ActualHz = uint32_t( -0 );
+		uint32_t													ui32ActualHz = uint32_t( -LSN_PM_NTSC );
 		/** The last Preset combo selection. */
 		uint32_t													ui32CharPreset = uint32_t( -1 );
 		/** The last Invert check. */
@@ -95,13 +102,13 @@ namespace lsn {
 		bool														bHpf2 = true;
 
 		/** The last LPF Type combo selection. */
-		uint32_t													ui32LpfType = uint32_t( 0 );
+		uint8_t														ui8LpfType = uint8_t( 0 );
 		/** The last HPF 0 Type combo selection. */
-		uint32_t													ui32Hpf0Type = uint32_t( 0 );
+		uint8_t														ui8Hpf0Type = uint8_t( 0 );
 		/** The last HPF 1 Type combo selection. */
-		uint32_t													ui32Hpf1Type = uint32_t( 0 );
+		uint8_t														ui8Hpf1Type = uint8_t( 0 );
 		/** The last HPF 2 Type combo selection. */
-		uint32_t													ui32Hpf2Type = uint32_t( 0 );
+		uint8_t														ui8Hpf2Type = uint8_t( 0 );
 
 		/** The last Mains Hum check. */
 		bool														bMainsHum = false;
@@ -109,6 +116,17 @@ namespace lsn {
 		bool														bWhiteNoise = false;
 		/** The last White Noise check. */
 		bool														bDither = true;
+
+		/** The last Mains Hum combo selection. */
+		uint32_t													ui32MainsHum = 2;
+		/** The last White Noise combo selection. */
+		uint32_t													ui32WhiteNoise = 0;
+		/** The last Format combo selection. */
+		uint32_t													ui32OutFormat = CWavFile::LSN_F_PCM;
+		/** The last Bits combo selection. */
+		uint32_t													ui32OutBits = 32;
+		/** The last Stereo combo selection. */
+		uint32_t													ui32Stereo = 1;
 	};
 
 }	// namespace lsn

@@ -36,16 +36,16 @@ namespace lsn {
 		Parent::InitDialog();
 
 		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, LPARAM( -LSN_PM_NTSC ) ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, m_pwewoOptions->ui32ActualHz ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8LpfType ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf0Type ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf1Type ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, 0 ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf2Type ); }
 
 
 		// Last texts.
@@ -78,6 +78,7 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsComment.c_str() ); }
 
+
 		// Last checks.
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bInvert ); }
@@ -89,6 +90,9 @@ namespace lsn {
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf1 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf2 ); }
+
+
+		// Last combo selections.
 
 		Update();
 		return LSW_H_CONTINUE;

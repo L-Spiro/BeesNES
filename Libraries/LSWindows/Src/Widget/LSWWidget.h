@@ -231,6 +231,12 @@ namespace lsw {
 		// Sets the button to BST_CHECKED or BST_UNCHECKED.
 		virtual VOID						SetCheck( BOOL _bChecked ) { CheckButton( _bChecked ? BST_CHECKED : BST_UNCHECKED ); }
 
+		// Sets the selection based on item data.
+		virtual INT							SetCurSelByItemData( LPARAM /*_pData*/ ) { return CB_ERR; }
+
+		// Gets the currently selected item's data.
+		virtual LPARAM						GetCurSelItemData() const { return LPARAM( -1 ); }
+
 		/**
 		 * Informs the control that a child tab control has just had a check toggled.
 		 * 
