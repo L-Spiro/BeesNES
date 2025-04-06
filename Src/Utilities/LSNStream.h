@@ -305,6 +305,21 @@ namespace lsn {
 			return WriteString( sTmp );
 		}
 
+		/**
+		 * Writes a u16char_t string to the stream.
+		 * 
+		 * \param _wsString The string to write.
+		 * \return Returns true if there was enough space left in the stream to write the string.
+		 **/
+		inline bool									WriteStringU16( const std::wstring &_wsString ) {
+			bool bErrored = false;
+			std::u8string sTmp = CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _wsString.c_str(), _wsString.size() ).c_str(), &bErrored );
+			if ( bErrored ) {
+				return WriteString( std::u8string() );
+			}
+			return WriteString( sTmp );
+		}
+
 
 		// ========
 		// BASE

@@ -556,6 +556,25 @@ namespace lsn {
 		bool									SaveAudioStreamSettings( CStream &_sFile, CWavFile::LSN_STREAM_TO_FILE_OPTIONS &_stfoAudioOptions );
 
 		/**
+		 * Loads WAV Editor window settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _wewoOptions The WAV Editor window settings into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadWavEditorWindowSettings( uint32_t _ui32Version, CStream &_sFile, LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
+
+		/**
+		 * Saves WAV Editor window settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _wewoOptions The WAV Editor window settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveWavEditorWindowSettings( CStream &_sFile, const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
+
+		/**
 		 * Adds or move to the top a given file path.
 		 * 
 		 * \param _s16Path The file path to add or move to the top.
