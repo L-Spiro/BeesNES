@@ -310,6 +310,7 @@ namespace lsn {
 		 */
 		virtual bool									LoadRom( LSN_ROM &_rRom ) {
 			m_pmbMapper.reset();
+			m_cCpu.SetMapper( nullptr );
 			m_rRom = std::move( _rRom );
 
 			m_bBus.DGB_FillMemory( 0x00 );
@@ -524,6 +525,7 @@ namespace lsn {
 			if ( m_pmbMapper.get() ) {
 				bRes = m_pmbMapper->SaveBatteryBacked();
 				m_pmbMapper.reset();
+				m_cCpu.SetMapper( nullptr );
 			}
 			m_rRom.vPrgRom.clear();
 

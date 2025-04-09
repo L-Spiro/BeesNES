@@ -83,6 +83,11 @@ namespace lsn {
 		virtual bool									SaveBatteryBacked() { return true; }
 
 		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() {}
+
+		/**
 		 * Applies a mirroring mode to a PPU bus.
 		 *
 		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).

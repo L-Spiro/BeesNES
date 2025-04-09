@@ -927,6 +927,9 @@
     <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Wav\LSNWavEditor.h">
+      <Filter>Header Files\Wav</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1294,6 +1297,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.cpp">
       <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Wav\LSNWavEditor.cpp">
+      <Filter>Source Files\Wav</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

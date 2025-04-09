@@ -211,6 +211,8 @@ namespace lsn {
 #endif	// #ifdef LSN_CPU_VERIFY
 
 			m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
+
+			if ( m_pmbMapper ) { m_pmbMapper->Reset(); }
 		}
 
 		/**

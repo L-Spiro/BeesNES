@@ -9,6 +9,7 @@
  */
 
 #include "LSNWavEditorWindow.h"
+#include "../../Localization/LSNLocalization.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
@@ -126,7 +127,7 @@ namespace lsn {
 			aAdjusted.bottom = aAdjusted.top + lMaxHeight;
 			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
-			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, /*aSeqRect.bottom - aWindowRect.top*/aAdjusted.Height() + aGroupRect.left, TRUE );
+			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aAdjusted.Height() + aGroupRect.left, TRUE );
 		}
 
 		UpdateRects();
@@ -155,7 +156,15 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD /*_wCtrlCode*/, WORD /*_wId*/, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_OK : {
+				if ( Verify() ) {
+					// Save window settings and export.
+				}
+				break;
+			}
+		}
 		return LSW_H_CONTINUE;
 	}
 
@@ -190,6 +199,47 @@ namespace lsn {
 			wceEx.SetWindPro( CWidget::WindowProc );
 			m_aAtom = lsw::CBase::RegisterClassExW( wceEx.Obj() );
 		}
+	}
+
+	/**
+	 * Verifies each of the dialog contents.
+	 *
+	 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
+	 **/
+	bool CWavEditorWindow::Verify() {
+		// TODO: Check for loaded file.
+		CWidget * pwBaddy = nullptr;
+		std::wstring wsError;
+		if ( (pwBaddy = m_pwefFiles->Verify( wsError )) ) {
+			pwBaddy->SetFocus();
+			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+			return false;
+		}
+		if ( (pwBaddy = m_pweopOutput->Verify( wsError )) ) {
+			pwBaddy->SetFocus();
+			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+			return false;
+		}
+		for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
+			if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
+				// TODO: Select file I-1.
+				pwBaddy->SetFocus();
+				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				return false;
+			}
+		}
+
+		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
+			if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
+				// TODO: Select file I-1.
+				pwBaddy->SetFocus();
+				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				return false;
+			}
+		}
+
+
+		return true;
 	}
 
  }	// namespace lsn

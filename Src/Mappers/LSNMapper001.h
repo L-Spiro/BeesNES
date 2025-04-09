@@ -202,7 +202,7 @@ namespace lsn {
 			// ================
 			// MIRRORING
 			// ================
-			ApplyControllableMirrorMap( _pbPpuBus );			
+			ApplyControllableMirrorMap( _pbPpuBus );
 		}
 
 

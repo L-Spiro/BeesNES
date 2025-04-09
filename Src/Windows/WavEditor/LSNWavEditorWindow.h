@@ -88,6 +88,15 @@ namespace lsn {
 		static ATOM											m_aAtom;
 
 
+		// == Functions.
+		/**
+		 * Verifies each of the dialog contents.
+		 *
+		 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
+		 **/
+		bool												Verify();
+
+
 	private :
 		typedef CWavEditorWindowLayout						Layout;
 
