@@ -167,9 +167,11 @@ namespace lsn {
 				lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
 				if ( ptTab ) {
 					ptTab->SetCurSel( 2 );
-					pwErrorWidget->SetFocus();
 				}
 				lsw::CBase::MessageBoxError( Wnd(), wsErr.c_str(), LSN_LSTR( LSN_ERROR ) );
+				if ( ptTab ) {
+					pwErrorWidget->SetFocus();
+				}
 				return;
 			}
 			reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2])->Save();

@@ -323,6 +323,15 @@
 #define LSN_WE_GAUSSIAN														Gaussian
 #define LSN_WE_UNIFORM														Uniform
 
+#define LSN_WE_OUTPUT_ERR_MAINSHUM_VOL										Mains Hum volume must be a valid expression.  Typical results will be between 0 and 1.
+#define LSN_WE_OUTPUT_ERR_WHITE_NOISE_VOL									White Noise volume must be a valid expression.  Typical results will be between 0 and 1.
+#define LSN_WE_OUTPUT_ERR_ABSOLUTE_VOL										Absolute volume must be a valid expression.  Typical results will be between 0 and 10.
+#define LSN_WE_OUTPUT_ERR_NORMALIZE_LEVEL									Normalize level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -0.1 / 20.0 )” (normalizes to -0.1 dB).
+#define LSN_WE_OUTPUT_ERR_LOUDNESS_LEVEL									Loudness level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -5.5 / 20.0 )” (set average loudness to -5.5 dB).
+#define LSN_WE_OUTPUT_ERR_OUT_HZ											The output Hz must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_OUT_HZ_NEGATIVE									The output Hz expression must result in a positive non-zero value.
+#define LSN_WE_OUTPUT_ERR_OUT_PATH_EMPTY									No output folder provided.
+
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
 #define LSN_OPENAL_AL_INVALID_NAME_DESC										A bad name (ID) was passed to an OpenAL function.

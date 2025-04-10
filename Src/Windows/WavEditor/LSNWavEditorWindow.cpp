@@ -211,20 +211,20 @@ namespace lsn {
 		CWidget * pwBaddy = nullptr;
 		std::wstring wsError;
 		if ( (pwBaddy = m_pwefFiles->Verify( wsError )) ) {
-			pwBaddy->SetFocus();
 			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+			pwBaddy->SetFocus();
 			return false;
 		}
 		if ( (pwBaddy = m_pweopOutput->Verify( wsError )) ) {
-			pwBaddy->SetFocus();
 			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+			pwBaddy->SetFocus();
 			return false;
 		}
 		for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 			if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
 				// TODO: Select file I-1.
-				pwBaddy->SetFocus();
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				pwBaddy->SetFocus();
 				return false;
 			}
 		}
@@ -232,8 +232,8 @@ namespace lsn {
 		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
 			if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
 				// TODO: Select file I-1.
-				pwBaddy->SetFocus();
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				pwBaddy->SetFocus();
 				return false;
 			}
 		}

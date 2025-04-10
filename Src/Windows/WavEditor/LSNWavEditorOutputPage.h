@@ -58,8 +58,10 @@ namespace lsn {
 
 		/**
 		 * Saves the current input configuration and closes the dialog.
+		 * 
+		 * \param _wewoOptions The object to which to save the window state.
 		 */
-		void												Save();
+		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
 
 		/**
 		 * Updates the dialog.
@@ -71,8 +73,6 @@ namespace lsn {
 		// == Members.
 		/** The options object. */
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
-		/** The actual Hz set in the settings. */
-		//uint32_t											m_ui32SettingsHz = 0;
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;

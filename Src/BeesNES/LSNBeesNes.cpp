@@ -932,12 +932,18 @@ namespace lsn {
 		if ( !_sFile.Read( _wewoOptions.bMainsHum ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.bWhiteNoise ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.bDither ) ) { return false; }
+
+		if ( !_sFile.Read( _wewoOptions.bAbsolute ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.bNormalize ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.bLoudness ) ) { return false; }
+
 		if ( !_sFile.Read( _wewoOptions.ui32MainsHum ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.ui32WhiteNoise ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.ui32OutFormat ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.ui32OutBits ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.ui32Stereo ) ) { return false; }
 
+		if ( !_sFile.Read( _wewoOptions.bNumbered ) ) { return false; }
 
 		return true;
 	}
@@ -995,11 +1001,18 @@ namespace lsn {
 		if ( !_sFile.Write( _wewoOptions.bMainsHum ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.bWhiteNoise ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.bDither ) ) { return false; }
+
+		if ( !_sFile.Write( _wewoOptions.bAbsolute ) ) { return false; }
+		if ( !_sFile.Write( _wewoOptions.bNormalize ) ) { return false; }
+		if ( !_sFile.Write( _wewoOptions.bLoudness ) ) { return false; }
+
 		if ( !_sFile.Write( _wewoOptions.ui32MainsHum ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.ui32WhiteNoise ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.ui32OutFormat ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.ui32OutBits ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.ui32Stereo ) ) { return false; }
+
+		if ( !_sFile.Write( _wewoOptions.bNumbered ) ) { return false; }
 
 		return true;
 	}

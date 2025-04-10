@@ -75,7 +75,7 @@ namespace lsn {
 		/** The last text in Absolute Volume. */
 		std::wstring												wsAbsoluteVolume = L"5.0";
 		/** The last text in Normalize to. */
-		std::wstring												wsNormalizeVolume = L"pow( 10, -0.1 / 20.0 ) // -0.1 dB";
+		std::wstring												wsNormalizeVolume = L"pow( 10, -5.5 / 20.0 ) // -5.5 dB";
 		/** The last text in Set Loudness to. */
 		std::wstring												wsLoudnessVolume = L"0.5";
 		/** The last text in Output Hz. */
@@ -114,8 +114,17 @@ namespace lsn {
 		bool														bMainsHum = false;
 		/** The last White Noise check. */
 		bool														bWhiteNoise = false;
-		/** The last White Noise check. */
+		/** The last Dither check. */
 		bool														bDither = true;
+
+		/** The last Absolute check. */
+		bool														bAbsolute = true;
+		/** The last Normalize check. */
+		bool														bNormalize = false;
+		/** The last Loudness check. */
+		bool														bLoudness = false;
+		/** The last Numbered check. */
+		bool														bNumbered = false;
 
 		/** The last Mains Hum combo selection. */
 		uint32_t													ui32MainsHum = 2;

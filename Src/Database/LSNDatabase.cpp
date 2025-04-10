@@ -441,6 +441,8 @@ namespace lsn {
 			{ .ui32Crc = 0x51BF28AF, .pmRegion = LSN_PM_PAL },
 			// Mario & Yoshi (E) [!]
 			{ .ui32Crc = 0x1406783D, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SFROM },
+			// Maxi 15 (A)
+			{ .ui32Crc = 0x5C0E2F89, .pmRegion = LSN_PM_PAL, .ui16Mapper = 234 },
 			// Maxi 15 (U)
 			{ .ui32Crc = 0x6467A5C4, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 234 },
 			// McDonaldland (E) [!]

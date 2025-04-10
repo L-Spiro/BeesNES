@@ -112,8 +112,8 @@ namespace lsn {
 					if ( !pPath.has_extension() ) {
 						pPath += ".wav";
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
+					auto pwWidget = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+					if ( pwWidget ) { pwWidget->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
 				break;
 			}
@@ -136,8 +136,8 @@ namespace lsn {
 					if ( !pPath.has_extension() ) {
 						pPath += ".wav";
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
+					auto pwWidget = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+					if ( pwWidget ) { pwWidget->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
 				break;
 			}*/
@@ -154,17 +154,110 @@ namespace lsn {
 	 * \param _wsMsg The error message to display.
 	 * \return Returns the control that failed or nullptr.
 	 **/
-	CWidget * CWavEditorOutputPage::Verify( std::wstring &/*_wsMsg*/ ) {
+	CWidget * CWavEditorOutputPage::Verify( std::wstring &_wsMsg ) {
 		
+#define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
+	auto wCheckTmp = FindChild( Layout::ID );									\
+	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
 
+		CWidget * pwWidget = nullptr;
+#define LSN_CHECK_EDIT( ID, MSG )		{										\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
+		_wsMsg = MSG;															\
+		return pwWidget;														\
+	} }
+
+		bool bChecked;
+		ee::CExpEvalContainer::EE_RESULT eTest;
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MAINS_CHECK, bChecked );
+		if ( bChecked ) { LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MAINS_VOL_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_MAINSHUM_VOL ) ); }
+
+		LSN_CHECKED( LSN_WEWI_OUTPUT_NOISE_CHECK, bChecked );
+		if ( bChecked ) { LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_NOISE_VOL_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_WHITE_NOISE_VOL ) ); }
+
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO, bChecked );
+		if ( bChecked ) { LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_ABSOLUTE_VOL ) ); }
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO, bChecked );
+		if ( bChecked ) { LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_NORMALIZE_LEVEL ) ); }
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO, bChecked );
+		if ( bChecked ) { LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_LOUDNESS_LEVEL ) ); }
+
+		LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, LSN_LSTR( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT ) );
+		if ( pwWidget ) {
+			if ( eTest.u.dVal <= 0.0 || std::ceil( eTest.u.dVal ) == 0.0 ) {
+				_wsMsg = LSN_LSTR( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT );
+				return pwWidget;
+			}
+		}
+
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+		if ( pwWidget ) {
+			auto wsText = pwWidget->GetTextW();
+			if ( !wsText.size() ) {
+				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_OUT_PATH_EMPTY );
+				return pwWidget;
+			}
+		}
+		
 		return nullptr;
+#undef LSN_CHECK_EDIT
+#undef LSN_CHECKED
 	}
 
 	/**
 	 * Saves the current input configuration and closes the dialog.
+	 * 
+	 * \param _wewoOptions The object to which to save the window state.
 	 */
-	void CWavEditorOutputPage::Save() {
+	void CWavEditorOutputPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
+#define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
+	auto wCheckTmp = FindChild( Layout::ID );									\
+	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+
+#define LSN_EDIT_TEXT( ID, STORE )			{									\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( pwWidget ) { STORE = pwWidget->GetTextW(); } }
+
+#define LSN_EDIT_VAL( ID )			{											\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {} }
+
+		CWidget * pwWidget = nullptr;
+		//ee::CExpEvalContainer::EE_RESULT eTest;
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MAINS_CHECK, _wewoOptions.bMainsHum );
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MAINS_VOL_EDIT, _wewoOptions.wsMainsHumVolume );
+		LSN_CHECKED( LSN_WEWI_OUTPUT_NOISE_CHECK, _wewoOptions.bWhiteNoise );
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_NOISE_VOL_EDIT, _wewoOptions.wsWhiteNoiseVolume );
+
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO, _wewoOptions.bAbsolute );
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT, _wewoOptions.wsAbsoluteVolume );
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO, _wewoOptions.bNormalize );
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT, _wewoOptions.wsNormalizeVolume );
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO, _wewoOptions.bLoudness );
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, _wewoOptions.wsLoudnessVolume );
 		
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
+		if ( pwWidget ) {
+			_wewoOptions.ui32MainsHum = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+		}
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
+		if ( pwWidget ) {
+			_wewoOptions.ui32OutBits = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+		}
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO );
+		if ( pwWidget ) {
+			_wewoOptions.ui32Stereo = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+		}
+
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK, _wewoOptions.bDither );
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK, _wewoOptions.bNumbered );
+
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_PATH_EDIT, _wewoOptions.wsOutputFolder );
+
+#undef LSN_EDIT_VAL
+#undef LSN_EDIT_TEXT
+#undef LSN_CHECKED
 	}
 
 	/**
