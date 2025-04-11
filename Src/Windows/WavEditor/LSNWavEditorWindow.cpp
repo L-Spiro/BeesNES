@@ -45,6 +45,7 @@ namespace lsn {
 
 		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
+		m_pwefFiles->SetWavEditorAndIndex( m_weEditor );
 
 		CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
@@ -56,6 +57,7 @@ namespace lsn {
 
 		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, m_wewoWindowOptions ));
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
+		m_pweopOutput->SetWavEditorAndIndex( m_weEditor );
 
 		auto * pwGroup = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_GROUP );
 		if ( pwGroup ) {
@@ -161,6 +163,9 @@ namespace lsn {
 			case Layout::LSN_WEWI_OK : {
 				if ( Verify() ) {
 					// Save window settings and export.
+					Save( m_wewoWindowOptions, &m_weEditor );
+					m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
+					Close();
 				}
 				break;
 			}
@@ -240,6 +245,27 @@ namespace lsn {
 
 
 		return true;
+	}
+
+	/**
+	 * Saves the window state and optionally filled out the structures to use for actually performing the operations.  Verify() SHOULD be called if only filling out the window state, but
+	 *	MUST be called if filling out the execution state.
+	 * 
+	 * \param _wewoWindowState The window state to fill out.
+	 * \param _pweEditor The optional execution state to fill out.
+	 **/
+	void CWavEditorWindow::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor ) {
+		CWavEditor::LSN_OUTPUT oOutput;
+		
+		//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
+		m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
+		for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
+			//m_vSequencePages[I]->Save( _wewoWindowState, _pweEditor );
+		}
+
+		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
+			//m_vSettingsPages[I]->Save( _wewoWindowState, _pweEditor );
+		}
 	}
 
  }	// namespace lsn

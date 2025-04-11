@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../Options/LSNOptions.h"
+#include "../../Wav/LSNWavEditor.h"
 #include "LSNWavEditorFileSettingsPage.h"
 #include "LSNWavEditorFilesPage.h"
 #include "LSNWavEditorSequencingPage.h"
@@ -70,6 +71,8 @@ namespace lsn {
 
 	public :
 		// == Members.
+		/** The WAV Editor object. */
+		CWavEditor											m_weEditor;
 		/** The sequencing dialogs. */
 		std::vector<CWavEditorSequencingPage *>				m_vSequencePages;
 		/** The settings dialogs. */
@@ -95,6 +98,15 @@ namespace lsn {
 		 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
 		 **/
 		bool												Verify();
+
+		/**
+		 * Saves the window state and optionally filled out the structures to use for actually performing the operations.  Verify() SHOULD be called if only filling out the window state, but
+		 *	MUST be called if filling out the execution state.
+		 * 
+		 * \param _wewoWindowState The window state to fill out.
+		 * \param _pweEditor The optional execution state to fill out.
+		 **/
+		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor );
 
 
 	private :

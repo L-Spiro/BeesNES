@@ -185,7 +185,7 @@ namespace lsn {
 
 		LSN_CHECK_EDIT( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, LSN_LSTR( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT ) );
 		if ( pwWidget ) {
-			if ( eTest.u.dVal <= 0.0 || std::ceil( eTest.u.dVal ) == 0.0 ) {
+			if ( std::ceil( eTest.u.dVal ) <= 0.0 || std::ceil( eTest.u.dVal ) > double( UINT_MAX ) ) {
 				_wsMsg = LSN_LSTR( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT );
 				return pwWidget;
 			}
@@ -209,8 +209,9 @@ namespace lsn {
 	 * Saves the current input configuration and closes the dialog.
 	 * 
 	 * \param _wewoOptions The object to which to save the window state.
+	 * \param _poOutput The otuput object to which to transfer all the window settings.
 	 */
-	void CWavEditorOutputPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
+	void CWavEditorOutputPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_OUTPUT * _poOutput ) {
 #define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
 	auto wCheckTmp = FindChild( Layout::ID );									\
 	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
@@ -219,27 +220,35 @@ namespace lsn {
 	pwWidget = FindChild( Layout::ID );											\
 	if ( pwWidget ) { STORE = pwWidget->GetTextW(); } }
 
-#define LSN_EDIT_VAL( ID )			{											\
+#define LSN_EDIT_VAL( ID, STORE )			if ( _poOutput ) {					\
 	pwWidget = FindChild( Layout::ID );											\
-	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {} }
-
+	if ( pwWidget && pwWidget->GetTextAsDoubleExpression( eTest ) ) { STORE = eTest.u.dVal; } }
+	
 		CWidget * pwWidget = nullptr;
-		//ee::CExpEvalContainer::EE_RESULT eTest;
+		ee::CExpEvalContainer::EE_RESULT eTest;
+
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MAINS_CHECK, _wewoOptions.bMainsHum );
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MAINS_VOL_EDIT, _wewoOptions.wsMainsHumVolume );
+		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MAINS_VOL_EDIT, _poOutput->dMainsHumVol );
 		LSN_CHECKED( LSN_WEWI_OUTPUT_NOISE_CHECK, _wewoOptions.bWhiteNoise );
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_NOISE_VOL_EDIT, _wewoOptions.wsWhiteNoiseVolume );
+		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_NOISE_VOL_EDIT, _poOutput->dWhiteNoiseVol );
 
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO, _wewoOptions.bAbsolute );
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT, _wewoOptions.wsAbsoluteVolume );
+		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT, _poOutput->dAbsoluteVol );
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO, _wewoOptions.bNormalize );
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT, _wewoOptions.wsNormalizeVolume );
+		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT, _poOutput->dNormalizeTo );
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO, _wewoOptions.bLoudness );
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, _wewoOptions.wsLoudnessVolume );
+		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, _poOutput->dLoudness );
+		
+		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, _wewoOptions.wsOutputHz );
 		
 		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
 		if ( pwWidget ) {
-			_wewoOptions.ui32MainsHum = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+			_wewoOptions.ui32OutFormat = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
 		}
 		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
 		if ( pwWidget ) {
@@ -249,11 +258,33 @@ namespace lsn {
 		if ( pwWidget ) {
 			_wewoOptions.ui32Stereo = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
 		}
+		
 
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK, _wewoOptions.bDither );
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK, _wewoOptions.bNumbered );
 
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_PATH_EDIT, _wewoOptions.wsOutputFolder );
+
+		if ( _poOutput ) {
+			double dTmp;
+			LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, dTmp );
+			_poOutput->ui32Hz = uint32_t( std::ceil( dTmp ) );
+			_poOutput->bMainsHum = _wewoOptions.bMainsHum;
+			_poOutput->bWhiteNoise = _wewoOptions.bWhiteNoise;
+
+			if ( _wewoOptions.bAbsolute ) { _poOutput->i32VolType = CWavEditor::LSN_VT_ABS; }
+			else if ( _wewoOptions.bNormalize ) { _poOutput->i32VolType = CWavEditor::LSN_VT_NORM; }
+			else { _poOutput->i32VolType = CWavEditor::LSN_VT_LOUDNESS; }
+
+			_poOutput->i32Format = int32_t( _wewoOptions.ui32OutFormat );
+			_poOutput->ui16Bits = uint16_t( _wewoOptions.ui32OutBits );
+			_poOutput->i32Channels = int32_t( _wewoOptions.ui32Stereo );
+
+			_poOutput->bDither = _wewoOptions.bDither;
+			_poOutput->bNumbered = _wewoOptions.bNumbered;
+
+			_poOutput->wsFolder = _wewoOptions.wsOutputFolder;
+		}
 
 #undef LSN_EDIT_VAL
 #undef LSN_EDIT_TEXT

@@ -12,6 +12,7 @@
 
 #include "LSNWavEditorWindowLayout.h"
 #include "../../Options/LSNWavEditorWindowOptions.h"
+#include "../../Wav/LSNWavEditor.h"
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -37,6 +38,17 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		LSW_HANDLED											InitDialog();
+
+		/**
+		 * Sets the WAV Editor object and its file index.
+		 * 
+		 * \param _weEditor A reference to the WAV Editor object to which to associate this page.
+		 * \param _stIdx The file index to associate with this page.
+		 **/
+		void												SetWavEditorAndIndex( CWavEditor &_weEditor, size_t _stIdx ) {
+			m_pweEditor = &_weEditor;
+			m_stIdx = _stIdx;
+		}
 
 		/**
 		 * Handles the WM_COMMAND message.
@@ -69,6 +81,10 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The WAV Editor object. */
+		CWavEditor *										m_pweEditor = nullptr;
+		/** The index of this page. */
+		size_t												m_stIdx = 0;
 		/** The options object. */
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 		/** The actual Hz set in the settings. */

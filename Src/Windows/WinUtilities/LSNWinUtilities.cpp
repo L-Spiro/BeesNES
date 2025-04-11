@@ -10,6 +10,7 @@
 
 #include "LSNWinUtilities.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Wav/LSNWavEditor.h"
 #include "../../Wav/LSNWavFile.h"
 
 namespace lsn {
@@ -229,15 +230,15 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithWavActialHz( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_WE_NTSC_HZ ),								LPARAM( -LSN_PM_NTSC ),								},
-			{ LSN_LSTR( LSN_WE_PAL_HZ ),								LPARAM( -LSN_PM_PAL ),								},
-			{ LSN_LSTR( LSN_WE_DENDY_HZ ),								LPARAM( -LSN_PM_DENDY ),							},
-			{ LSN_LSTR( LSN_WE_PAL_M_HZ ),								LPARAM( -LSN_PM_PALM ),								},
-			{ LSN_LSTR( LSN_WE_PAL_N_HZ ),								LPARAM( -LSN_PM_PALN ),								},
-			{ LSN_LSTR( LSN_WE_SET_BY_FILE ),							LPARAM( -100 ),										},
-			{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						LPARAM( -1000 ),									},
+			{ LSN_LSTR( LSN_WE_NTSC_HZ ),								LPARAM( CWavEditor::LSN_AH_NTSC ),					},
+			{ LSN_LSTR( LSN_WE_PAL_HZ ),								LPARAM( CWavEditor::LSN_AH_PAL ),					},
+			{ LSN_LSTR( LSN_WE_DENDY_HZ ),								LPARAM( CWavEditor::LSN_AH_DENDY ),					},
+			{ LSN_LSTR( LSN_WE_PAL_M_HZ ),								LPARAM( CWavEditor::LSN_AH_PALM ),					},
+			{ LSN_LSTR( LSN_WE_PAL_N_HZ ),								LPARAM( CWavEditor::LSN_AH_PALN ),					},
+			{ LSN_LSTR( LSN_WE_SET_BY_FILE ),							LPARAM( CWavEditor::LSN_AH_BY_FILE ),				},
+			{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						LPARAM( CWavEditor::LSN_AH_CUSTOM ),				},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, -LSN_PM_NTSC );
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_AH_NTSC );
 	}
 
 	/**
@@ -250,19 +251,19 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithWavNoiseColor( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_WE_XX_BLACK ),								LPARAM( 0 ),										},
-			{ LSN_LSTR( LSN_WE_X_BLACK ),								LPARAM( 1 ),										},
-			{ LSN_LSTR( LSN_WE_BLACK ),									LPARAM( 2 ),										},
-			{ LSN_LSTR( LSN_WE_GREY_00 ),								LPARAM( 3 ),										},
-			{ LSN_LSTR( LSN_WE_GREY_10 ),								LPARAM( 4 ),										},
-			{ LSN_LSTR( LSN_WE_GREY_20EM ),								LPARAM( 5 ),										},
-			{ LSN_LSTR( LSN_WE_WHITE ),									LPARAM( 9 ),										},
-			{ LSN_LSTR( LSN_WE_RED ),									LPARAM( 6 ),										},
-			{ LSN_LSTR( LSN_WE_GREEN ),									LPARAM( 7 ),										},
-			{ LSN_LSTR( LSN_WE_BLUE ),									LPARAM( 8 ),										},
+			{ LSN_LSTR( LSN_WE_XX_BLACK ),								LPARAM( CWavEditor::LSN_MH_XX_BLACK ),				},
+			{ LSN_LSTR( LSN_WE_X_BLACK ),								LPARAM( CWavEditor::LSN_MH_X_BLACK ),				},
+			{ LSN_LSTR( LSN_WE_BLACK ),									LPARAM( CWavEditor::LSN_MH_BLACK ),					},
+			{ LSN_LSTR( LSN_WE_GREY_00 ),								LPARAM( CWavEditor::LSN_MH_GREY_00 ),				},
+			{ LSN_LSTR( LSN_WE_GREY_10 ),								LPARAM( CWavEditor::LSN_MH_GREY_10 ),				},
+			{ LSN_LSTR( LSN_WE_GREY_20EM ),								LPARAM( CWavEditor::LSN_MH_GREY_20EM ),				},
+			{ LSN_LSTR( LSN_WE_WHITE ),									LPARAM( CWavEditor::LSN_MH_WHITE ),					},
+			{ LSN_LSTR( LSN_WE_RED ),									LPARAM( CWavEditor::LSN_MH_RED ),					},
+			{ LSN_LSTR( LSN_WE_GREEN ),									LPARAM( CWavEditor::LSN_MH_GREEN ),					},
+			{ LSN_LSTR( LSN_WE_BLUE ),									LPARAM( CWavEditor::LSN_MH_BLUE ),					},
 			
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 2 );
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_MH_BLACK );
 	}
 
 	/**
@@ -275,11 +276,11 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithWavNoiseType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_WE_GAUSSIAN ),								LPARAM( 0 ),										},
-			{ LSN_LSTR( LSN_WE_UNIFORM ),								LPARAM( 1 ),										},
+			{ LSN_LSTR( LSN_WE_GAUSSIAN ),								LPARAM( CWavEditor::LSN_WN_GAUSSIAN ),				},
+			{ LSN_LSTR( LSN_WE_UNIFORM ),								LPARAM( CWavEditor::LSN_WN_UNIFORM ),				},
 			
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 2 );
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_WN_GAUSSIAN );
 	}
 
 	/**
@@ -292,10 +293,10 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithWavFilterType( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_WE_POLE ),									LPARAM( 0 ),										},
-			{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( 1 ),										},
+			{ LSN_LSTR( LSN_WE_POLE ),									LPARAM( CWavEditor::LSN_F_POLE ),					},
+			{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( CWavEditor::LSN_F_SINC ),					},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_F_POLE );
 	}
 
 	/**
@@ -308,11 +309,11 @@ namespace lsn {
 	bool CWinUtilities::FillComboWithWavStereoSettings( CWidget * _pwComboBox, LPARAM _lpDefaultSelect ) {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
-			{ LSN_LSTR( LSN_WE_MONO ),									LPARAM( 1 ),										},
-			{ LSN_LSTR( LSN_WE_STEREO ),								LPARAM( 2 ),										},
-			{ LSN_LSTR( LSN_WE_SURROUND ),								LPARAM( 3 ),										},
+			{ LSN_LSTR( LSN_WE_MONO ),									LPARAM( CWavEditor::LSN_C_MONO ),					},
+			{ LSN_LSTR( LSN_WE_STEREO ),								LPARAM( CWavEditor::LSN_C_STEREO ),					},
+			{ LSN_LSTR( LSN_WE_SURROUND ),								LPARAM( CWavEditor::LSN_C_SURROUND ),				},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, LPARAM( 1 ) );
+		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_C_MONO );
 	}
 
 	/**

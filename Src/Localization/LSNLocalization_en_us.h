@@ -329,7 +329,7 @@
 #define LSN_WE_OUTPUT_ERR_NORMALIZE_LEVEL									Normalize level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -0.1 / 20.0 )” (normalizes to -0.1 dB).
 #define LSN_WE_OUTPUT_ERR_LOUDNESS_LEVEL									Loudness level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -5.5 / 20.0 )” (set average loudness to -5.5 dB).
 #define LSN_WE_OUTPUT_ERR_OUT_HZ											The output Hz must be a valid expression.
-#define LSN_WE_OUTPUT_ERR_OUT_HZ_NEGATIVE									The output Hz expression must result in a positive non-zero value.
+#define LSN_WE_OUTPUT_ERR_OUT_HZ_NEGATIVE									The output Hz expression must result in a value between 1 and 4,294,967,295 inclusively.
 #define LSN_WE_OUTPUT_ERR_OUT_PATH_EMPTY									No output folder provided.
 
 // OpenAL.

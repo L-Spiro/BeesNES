@@ -12,6 +12,7 @@
 
 #include "LSNWavEditorWindowLayout.h"
 #include "../../Options/LSNWavEditorWindowOptions.h"
+#include "../../Wav/LSNWavEditor.h"
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -39,6 +40,15 @@ namespace lsn {
 		LSW_HANDLED											InitDialog();
 
 		/**
+		 * Sets the WAV Editor object.
+		 * 
+		 * \param _weEditor A reference to the WAV Editor object to which to associate this page.
+		 **/
+		void												SetWavEditorAndIndex( CWavEditor &_weEditor ) {
+			m_pweEditor = &_weEditor;
+		}
+
+		/**
 		 * Handles the WM_COMMAND message.
 		 *
 		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
@@ -60,8 +70,9 @@ namespace lsn {
 		 * Saves the current input configuration and closes the dialog.
 		 * 
 		 * \param _wewoOptions The object to which to save the window state.
+		 * \param _poOutput The otuput object to which to transfer all the window settings.
 		 */
-		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
+		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_OUTPUT * _poOutput );
 
 		/**
 		 * Updates the dialog.
@@ -71,6 +82,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The WAV Editor object. */
+		CWavEditor *										m_pweEditor = nullptr;
 		/** The options object. */
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 
