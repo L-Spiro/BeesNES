@@ -76,6 +76,8 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bDither ); }
 
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bNumbered ); }
 
 		// Last combo selections.
 		
@@ -245,6 +247,15 @@ namespace lsn {
 		LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, _poOutput->dLoudness );
 		
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, _wewoOptions.wsOutputHz );
+
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_COMBO );
+		if ( pwWidget ) {
+			_wewoOptions.ui32MainsHum = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+		}
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_COMBO );
+		if ( pwWidget ) {
+			_wewoOptions.ui32WhiteNoise = static_cast<uint32_t>(pwWidget->GetCurSelItemData());
+		}
 		
 		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
 		if ( pwWidget ) {
@@ -264,13 +275,16 @@ namespace lsn {
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK, _wewoOptions.bNumbered );
 
 		LSN_EDIT_TEXT( LSN_WEWI_OUTPUT_MASTER_PATH_EDIT, _wewoOptions.wsOutputFolder );
+		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK, _wewoOptions.bNumbered );
 
 		if ( _poOutput ) {
 			double dTmp;
-			LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT, dTmp );
+			LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, dTmp );
 			_poOutput->ui32Hz = uint32_t( std::ceil( dTmp ) );
 			_poOutput->bMainsHum = _wewoOptions.bMainsHum;
+			_poOutput->i32MainsHumType = int32_t( _wewoOptions.ui32MainsHum );
 			_poOutput->bWhiteNoise = _wewoOptions.bWhiteNoise;
+			_poOutput->i32WhiteNoiseType = int32_t( _wewoOptions.ui32WhiteNoise );
 
 			if ( _wewoOptions.bAbsolute ) { _poOutput->i32VolType = CWavEditor::LSN_VT_ABS; }
 			else if ( _wewoOptions.bNormalize ) { _poOutput->i32VolType = CWavEditor::LSN_VT_NORM; }
@@ -284,6 +298,7 @@ namespace lsn {
 			_poOutput->bNumbered = _wewoOptions.bNumbered;
 
 			_poOutput->wsFolder = _wewoOptions.wsOutputFolder;
+			_poOutput->bNumbered = _wewoOptions.bNumbered;
 		}
 
 #undef LSN_EDIT_VAL

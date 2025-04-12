@@ -1252,6 +1252,33 @@ namespace lsn {
 		}
 	}
 
+	/** Generic null operation for BRK that can be either a read or write, depending on RESET. */
+	template <bool _bIncPc, bool _bAdjS, bool _bBeginInstr>
+	void CCpu6502::Null_RorW() {
+		if constexpr ( _bBeginInstr ) {
+			BeginInst<_bIncPc, _bAdjS>();
+		}
+		else {
+			if LSN_UNLIKELY( m_bIsReset ) {
+				LSN_INSTR_START_PHI1( true );
+			}
+			else {
+				LSN_INSTR_START_PHI1( false );
+			}
+
+			if constexpr ( _bIncPc ) {
+				LSN_UPDATE_PC;
+			}
+			if constexpr ( _bAdjS ) {
+				LSN_UPDATE_S;
+			}
+
+			LSN_NEXT_FUNCTION;
+
+			LSN_INSTR_END_PHI1;
+		}
+	}
+
 	/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ora_BeginInst() {
@@ -1369,7 +1396,14 @@ namespace lsn {
 	/** Pushes PCh with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_H_Phi2() {
-		LSN_PUSH( m_fsState.rRegs.ui8Pc[1] );
+		if LSN_UNLIKELY( m_bIsReset ) {
+			uint8_t ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
+			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );
+		}
+		else {
+			LSN_PUSH( m_fsState.rRegs.ui8Pc[1] );
+		}
 
 		LSN_NEXT_FUNCTION;
 
@@ -1379,7 +1413,14 @@ namespace lsn {
 	/** Pushes PCl with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_L_Phi2() {
-		LSN_PUSH( m_fsState.rRegs.ui8Pc[0] );
+		if LSN_UNLIKELY( m_bIsReset ) {
+			uint8_t ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
+			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );
+		}
+		else {
+			LSN_PUSH( m_fsState.rRegs.ui8Pc[0] );
+		}
 
 		LSN_NEXT_FUNCTION;
 
@@ -1389,11 +1430,18 @@ namespace lsn {
 	/** Pushes Status with or without B/X to the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_S_Phi2() {
-		if ( m_fsState.bPushB ) {
-			LSN_PUSH( m_fsState.rRegs.ui8Status | X() );
+		if LSN_UNLIKELY( m_bIsReset ) {
+			uint8_t ui8Tmp;
+			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
+			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );
 		}
 		else {
-			LSN_PUSH( m_fsState.rRegs.ui8Status );
+			if ( m_fsState.bPushB ) {
+				LSN_PUSH( m_fsState.rRegs.ui8Status | X() );
+			}
+			else {
+				LSN_PUSH( m_fsState.rRegs.ui8Status );
+			}
 		}
 
 //		if constexpr ( _i8SOff == -2 ) {

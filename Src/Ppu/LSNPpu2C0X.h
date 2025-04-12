@@ -228,6 +228,7 @@ namespace lsn {
 			m_paPpuAddrT.ui16Addr = 0;
 			m_paPpuAddrV.ui16Addr = 0;
 			m_ui8IoBusLatch = 0;
+			m_ui16AddressBus = 0;
 
 			m_stCurCycle = 0;
 			m_ui16CurX = m_ui16CurY = 0;
@@ -272,6 +273,22 @@ namespace lsn {
 
 			m_bSuppressNmi = false;
 			m_bUpdateVramAddr = false;
+		}
+
+		/**
+		 * Sets the address (dot 0).  Called on every even cycle (by index).  IE 0, 2, 4, 6, 8, etc.  Triggers watchers of A12.
+		 **/
+		inline void										SetAddressBus() {
+			m_ui16AddressBus = m_paPpuAddrV.ui16Addr;
+		}
+
+		/**
+		 * Reads the address bus and stores the value into
+		 **/
+		inline void										ReadAddressBus() {
+			uint16_t ui16Addr = (m_ui8AddressBus[0] | (m_paPpuAddrV.ui8Bytes[1] << 8));
+			m_bBus.SetFloat( m_ui8AddressBus[0] );	// Open-bus value comes from the low byte of the address bus.
+			m_ui8AddressBus[0] = Read( ui16Addr );
 		}
 
 		/**
@@ -1270,6 +1287,11 @@ namespace lsn {
 		uint16_t										m_ui16ShiftAttribHi;							/**< The 16-bit shifter for the attribute high bits. */
 		uint16_t										m_ui16SpritePatternTmp;							/**< A temporary used during sprite fetches. */
 		uint16_t										m_ui16VAddrCopy;								/**< The copy of T that will get written to V after 3 cycles. */
+		union {
+			uint16_t									m_ui16AddressBus;								/**< The address bus and databus. */
+			uint8_t										m_ui8AddressBus[2];								/**< The address bus and databus. */
+		};
+
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */

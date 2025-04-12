@@ -61,7 +61,7 @@
 
 #define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
-#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); m_fsState.ui8SModify = uint8_t( -1 + _i8SOff )
+#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); m_fsState.ui8SModify = uint8_t( -1L + _i8SOff )
 #define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (RESULT) ); m_fsState.ui8SModify = uint8_t( 1 + _i8SOff )
 
 #define LSN_UPDATE_PC										if LSN_LIKELY( m_fsState.bAllowWritingToPc ) { m_fsState.rRegs.ui16Pc += m_fsState.ui16PcModify; } m_fsState.ui16PcModify = 0
@@ -861,6 +861,10 @@ namespace lsn {
 		/** Generic null operation. */
 		template <bool _bRead = true, bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
 		void												Null();
+
+		/** Generic null operation for BRK that can be either a read or write, depending on RESET. */
+		template <bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
+		void												Null_RorW();
 
 		/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 		template <bool _bIncPc = false>
