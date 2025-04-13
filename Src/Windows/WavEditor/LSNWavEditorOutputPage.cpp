@@ -79,7 +79,6 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bNumbered ); }
 
-		// Last combo selections.
 		
 		Update();
 		return LSW_H_CONTINUE;

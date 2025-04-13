@@ -266,6 +266,10 @@ namespace lsn {
 		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
 			//m_vSettingsPages[I]->Save( _wewoWindowState, _pweEditor );
 		}
+
+		if ( _pweEditor ) {
+			_pweEditor->SetParms( oOutput );
+		}
 	}
 
  }	// namespace lsn

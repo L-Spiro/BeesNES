@@ -123,6 +123,7 @@ namespace lsn {
 		 **/
 		bool															SetParms( const LSN_OUTPUT &_oOutput ) {
 			m_oOutput = _oOutput;
+			return true;
 		}
 
 
