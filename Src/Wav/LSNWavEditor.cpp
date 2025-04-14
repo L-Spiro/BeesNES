@@ -11,6 +11,9 @@
 
 namespace lsn {
 
+	/** Path ID's. */
+	std::atomic<uint32_t> CWavEditor::m_aPathId = 0;
+
 	CWavEditor::CWavEditor() {
 	}
 	CWavEditor::~CWavEditor() {

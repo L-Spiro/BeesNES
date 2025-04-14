@@ -1329,7 +1329,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
-			if LSN_UNLIKELY( paApu->m_bLetterless && _tType == LSN_AT_NTSC ) {
+			if LSN_UNLIKELY( paApu->m_bLetterless ) {
 				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<0>( (_ui8Val & 0b00001111) ) );
 			}
 			else {

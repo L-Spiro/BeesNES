@@ -13,6 +13,8 @@
 #include "../Utilities/LSNUtilities.h"
 #include "LSNWavFile.h"
 
+#include <atomic>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -112,6 +114,12 @@ namespace lsn {
 			bool														bNumbered = false;								/**< Number the output files? */
 		};
 
+		/** A WAV file. */
+		struct LSN_WAV_FILE {
+			std::wstring												wsPath;											/**< Path to the file. */
+			std::vector<std::wstring>									vExtensions;									/**< Additional files to append to the main file. */
+		};
+
 
 		// == Functions.
 		/**
@@ -126,11 +134,28 @@ namespace lsn {
 			return true;
 		}
 
+		/**
+		 * Gets a pointer to a WAV file given an ID.
+		 * 
+		 * \param _ui32Id The ID of the WAV-file structure to find.
+		 * \return Returns a pointer to the associated WAV-file structure or nullptr.
+		 **/
+		const LSN_WAV_FILE *											WavById( uint32_t _ui32Id ) {
+			auto aFound = m_mFileMapping.find( _ui32Id );
+			if ( aFound == m_mFileMapping.end() ) { return nullptr; }
+			return &aFound->second;
+		}
+
 
 	protected :
 		// == Members.
 		/** The output state. */
 		LSN_OUTPUT														m_oOutput;
+		/** The map of ID's to files. */
+		std::map<uint32_t, LSN_WAV_FILE>								m_mFileMapping;
+
+		/** Path ID's. */
+		static std::atomic<uint32_t>									m_aPathId;
 	};
 
 }	// namespace lsn
