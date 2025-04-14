@@ -73,13 +73,13 @@ namespace lsn {
 	protected :
 		// == Members.
 		/** The length table. */
-		static uint8_t						m_ui8LenTable[32];
+		static const uint8_t				m_ui8LenTable[32];
 
 		/** The noise periods for NTSC and PAL. */
-		static uint16_t						m_ui16NoisePeriods[LSN_AT_TOTAL][0x10];
+		static const uint16_t				m_ui16NoisePeriods[LSN_AT_TOTAL][0x10];
 
 		/** The old noise periods for NTSC and PAL. */
-		static uint16_t						m_ui16NoisePeriodsOld[LSN_AT_TOTAL][0x10];
+		static const uint16_t				m_ui16NoisePeriodsOld[LSN_AT_TOTAL][0x10];
 	};
 	
 
