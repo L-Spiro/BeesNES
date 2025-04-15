@@ -277,7 +277,7 @@ namespace lsn {
 		LSN_CHECKED( LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK, _wewoOptions.bNumbered );
 
 		if ( _poOutput ) {
-			double dTmp;
+			double dTmp = 48000.0;
 			LSN_EDIT_VAL( LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT, dTmp );
 			_poOutput->ui32Hz = uint32_t( std::ceil( dTmp ) );
 			_poOutput->bMainsHum = _wewoOptions.bMainsHum;

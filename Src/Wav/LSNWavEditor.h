@@ -114,10 +114,18 @@ namespace lsn {
 			bool														bNumbered = false;								/**< Number the output files? */
 		};
 
-		/** A WAV file. */
+		/** A single WAV file. */
 		struct LSN_WAV_FILE {
 			std::wstring												wsPath;											/**< Path to the file. */
-			std::vector<std::wstring>									vExtensions;									/**< Additional files to append to the main file. */
+			CWavFile::LSN_FMT_CHUNK										fcFormat;										/**< The WAV-file format. */
+			uint64_t													ui64Samples = 0;								/**< Total samples per channel. */
+		};
+
+		/** A WAV file. */
+		struct LSN_WAV_FILE_SET {
+			LSN_WAV_FILE												wfPath;											/**< Path to the file. */
+			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
+			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
 		};
 
 
@@ -140,7 +148,7 @@ namespace lsn {
 		 * \param _ui32Id The ID of the WAV-file structure to find.
 		 * \return Returns a pointer to the associated WAV-file structure or nullptr.
 		 **/
-		const LSN_WAV_FILE *											WavById( uint32_t _ui32Id ) {
+		LSN_WAV_FILE *													WavById( uint32_t _ui32Id ) {
 			auto aFound = m_mFileMapping.find( _ui32Id );
 			if ( aFound == m_mFileMapping.end() ) { return nullptr; }
 			return &aFound->second;

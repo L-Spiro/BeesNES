@@ -177,7 +177,100 @@ namespace lsn {
 		typedef bool (LSN_STDCALL *										PfStartConditionFunc)( uint64_t, float, LSN_CONDITIONS_DATA & );
 		typedef bool (LSN_STDCALL *										PfEndConditionFunc)( uint64_t, uint64_t, float, LSN_CONDITIONS_DATA & );
 		
-		
+#pragma pack( push, 1 )
+		/** Chunk. */
+		struct LSN_CHUNK {
+			union {
+				char8_t													cName[4];
+				uint32_t												uiName;
+			}															u;
+			uint32_t													uiSize;
+			union {
+				char8_t													cName[4];
+				uint32_t												uiFormat;
+			}															u2;
+			std::vector<uint8_t>										vData;
+		};
+
+		/** Chunk header. */
+		struct LSN_CHUNK_HEADER {
+			union {
+				char8_t													cName[4];
+				uint32_t												uiId;
+			}															u;
+			uint32_t													uiSize;
+		};
+
+		/** FMT chunk. */
+		struct LSN_FMT_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			//uint32_t													uiSubchunk1ID;			// "fmt ".
+			//uint32_t													uiSubchunk1Size;		// Normally 16 (for PCM).
+			uint16_t													uiAudioFormat;			// PCM = 1 (linear quantization).
+			uint16_t													uiNumChannels;			// 1 = mono, 2 = stereo.
+			uint32_t													uiSampleRate;			// 44,100, 48,000, etc.
+			uint32_t													uiByteRate;				// SampleRate * NumChannels * BitsPerSample / 8.
+			uint16_t													uiBlockAlign;			// NumChannels * BitsPerSample / 8.
+			uint16_t													uiBitsPerSample;		// 8, 16, etc.
+			uint16_t													uiExtraParamSize;		// Invalid on PCM.
+			uint8_t														ui8ExtraParams[1];		// uiExtraParamSize bytes of extra data.
+		};
+
+		/** DATA chunk. */
+		struct LSN_DATA_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			//uint32_t													uiSubchunk2ID;			// "data".
+			//uint32_t													uiSubchunk2Size;		// NumSamples * NumChannels * BitsPerSample / 8.
+			uint8_t														ui8Data[1];				// Sample data (length = uiSubchunk2Size).
+		};
+
+		/** SAMPL chunk. */
+		struct LSN_SMPL_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			uint32_t													uiManufacturer;
+			uint32_t													uiProduct;
+			uint32_t													uiSamplePeriod;
+			uint32_t													uiMIDIUnityNote;
+			uint32_t													uiMIDIPitchFraction;
+			uint32_t													uiSMPTEFormat;
+			uint32_t													uiSMPTEOffset;
+			uint32_t													uiNumSampleLoops;
+			uint32_t													uiSamplerData;
+			LSN_LOOP_POINT												lpLoops[1];
+		};
+
+		/** LIST chunk. */
+		struct LSN_LIST_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			union {
+				char8_t													cName[4];
+				uint32_t												uiTypeId;
+			}															u;
+			uint8_t														ui8Data[1];
+		};
+
+		/** ID3  chunk. */
+		struct LSN_ID3_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			char8_t														sName[3];
+			uint16_t													ui16Version;
+			uint8_t														ui8Flags;
+			uint32_t													ui32Size;
+			uint8_t														ui8Data[1];
+		};
+
+		/** INST chunk. */
+		struct LSN_INST_CHUNK {
+			LSN_CHUNK_HEADER											chHeader;
+			uint8_t														ui8UnshiftedNote;
+			uint8_t														ui8FineTune;
+			uint8_t														ui8Gain;
+			uint8_t														ui8LowNote;
+			uint8_t														ui8HiNote;
+			uint8_t														ui8LowVel;
+			uint8_t														ui8HiVel;
+		};
+#pragma pack( pop )
 
 		/** A stream-to-file structure. */
 		struct LSN_STREAMING {
@@ -458,101 +551,6 @@ namespace lsn {
 
 	protected :
 		// == Types.
-#pragma pack( push, 1 )
-		/** Chunk. */
-		struct LSN_CHUNK {
-			union {
-				char8_t													cName[4];
-				uint32_t												uiName;
-			}															u;
-			uint32_t													uiSize;
-			union {
-				char8_t													cName[4];
-				uint32_t												uiFormat;
-			}															u2;
-			std::vector<uint8_t>										vData;
-		};
-
-		/** Chunk header. */
-		struct LSN_CHUNK_HEADER {
-			union {
-				char8_t													cName[4];
-				uint32_t												uiId;
-			}															u;
-			uint32_t													uiSize;
-		};
-
-		/** FMT chunk. */
-		struct LSN_FMT_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			//uint32_t													uiSubchunk1ID;			// "fmt ".
-			//uint32_t													uiSubchunk1Size;		// Normally 16 (for PCM).
-			uint16_t													uiAudioFormat;			// PCM = 1 (linear quantization).
-			uint16_t													uiNumChannels;			// 1 = mono, 2 = stereo.
-			uint32_t													uiSampleRate;			// 44,100, 48,000, etc.
-			uint32_t													uiByteRate;				// SampleRate * NumChannels * BitsPerSample / 8.
-			uint16_t													uiBlockAlign;			// NumChannels * BitsPerSample / 8.
-			uint16_t													uiBitsPerSample;		// 8, 16, etc.
-			uint16_t													uiExtraParamSize;		// Invalid on PCM.
-			uint8_t														ui8ExtraParams[1];		// uiExtraParamSize bytes of extra data.
-		};
-
-		/** DATA chunk. */
-		struct LSN_DATA_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			//uint32_t													uiSubchunk2ID;			// "data".
-			//uint32_t													uiSubchunk2Size;		// NumSamples * NumChannels * BitsPerSample / 8.
-			uint8_t														ui8Data[1];				// Sample data (length = uiSubchunk2Size).
-		};
-
-		/** SAMPL chunk. */
-		struct LSN_SMPL_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			uint32_t													uiManufacturer;
-			uint32_t													uiProduct;
-			uint32_t													uiSamplePeriod;
-			uint32_t													uiMIDIUnityNote;
-			uint32_t													uiMIDIPitchFraction;
-			uint32_t													uiSMPTEFormat;
-			uint32_t													uiSMPTEOffset;
-			uint32_t													uiNumSampleLoops;
-			uint32_t													uiSamplerData;
-			LSN_LOOP_POINT												lpLoops[1];
-		};
-
-		/** LIST chunk. */
-		struct LSN_LIST_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			union {
-				char8_t													cName[4];
-				uint32_t												uiTypeId;
-			}															u;
-			uint8_t														ui8Data[1];
-		};
-
-		/** ID3  chunk. */
-		struct LSN_ID3_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			char8_t														sName[3];
-			uint16_t													ui16Version;
-			uint8_t														ui8Flags;
-			uint32_t													ui32Size;
-			uint8_t														ui8Data[1];
-		};
-
-		/** INST chunk. */
-		struct LSN_INST_CHUNK {
-			LSN_CHUNK_HEADER											chHeader;
-			uint8_t														ui8UnshiftedNote;
-			uint8_t														ui8FineTune;
-			uint8_t														ui8Gain;
-			uint8_t														ui8LowNote;
-			uint8_t														ui8HiNote;
-			uint8_t														ui8LowVel;
-			uint8_t														ui8HiVel;
-		};
-#pragma pack( pop )
-
 		/** A chunk entry. */
 		struct LSN_CHUNK_ENTRY {
 			union {

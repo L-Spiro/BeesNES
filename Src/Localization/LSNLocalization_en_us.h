@@ -298,8 +298,8 @@
 #define LSN_WE_NTSC_HZ														NTSC (1,789,772.7272727272727272727272727 Hz)
 #define LSN_WE_PAL_HZ														PAL (1,662,607.03125 Hz)
 #define LSN_WE_DENDY_HZ														PAL “Dendy” Famiclone (1,773,447.5 Hz)
-#define LSN_WE_PAL_M_HZ														PAL-M (1,787,805.9440559440559440559440559 Hz)
-#define LSN_WE_PAL_N_HZ														PAL-N (1,791,028.125 Hz)
+#define LSN_WE_PAL_M_HZ														PAL-M Brazil Famiclone (1,787,805.9440559440559440559440559 Hz)
+#define LSN_WE_PAL_N_HZ														PAL-N Argentina Famiclone (1,791,028.125 Hz)
 #define LSN_WE_SET_BY_FILE													Set by File
 
 #define LSN_WE_POLE															Pole

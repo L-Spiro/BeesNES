@@ -139,7 +139,6 @@ namespace lsn {
 						if ( !LoadInst( picList ) ) { return false; }
 						break;
 					}
-
 				}
 			}
 

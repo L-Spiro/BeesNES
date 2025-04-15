@@ -9,6 +9,7 @@
  */
 
 #include "LSNWavEditorFilesPage.h"
+#include "LSNWavEditorWindow.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 
@@ -58,7 +59,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CWavEditorFilesPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
-			/*case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
+			case Layout::LSN_WEWI_FILES_ADD_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::wstring szFileName;
 				szFileName.resize( 0xFFFF + 2 );
@@ -68,21 +69,24 @@ namespace lsn {
 				ofnOpenFile.lpstrFilter = wsFilter.c_str();
 				ofnOpenFile.lpstrFile = szFileName.data();
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
+				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+				ofnOpenFile.lpstrInitialDir = m_pwewoOptions->wsLastWavFolder.c_str();
 
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+					m_pwewoOptions->wsLastWavFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
 					if ( !pPath.has_extension() ) {
 						pPath += ".wav";
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
+					//auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+					if ( m_pwParent ) {
+						if ( static_cast<CWavEditorWindow *>(m_pwParent)->AddWavFiles( pPath.generic_wstring() ) ) {
+						}
+					}
 				}
 				break;
 			}
-			case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
+			/*case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::wstring szFileName;
 				szFileName.resize( 0xFFFF + 2 );

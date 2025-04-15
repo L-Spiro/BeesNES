@@ -945,6 +945,8 @@ namespace lsn {
 
 		if ( !_sFile.Read( _wewoOptions.bNumbered ) ) { return false; }
 
+		if ( !_sFile.ReadStringU16( _wewoOptions.wsLastWavFolder ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.wsLastMetaFolder ) ) { return false; }
 		return true;
 	}
 
@@ -1014,6 +1016,8 @@ namespace lsn {
 
 		if ( !_sFile.Write( _wewoOptions.bNumbered ) ) { return false; }
 
+		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastWavFolder ) ) { return false; }
+		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastMetaFolder ) ) { return false; }
 		return true;
 	}
 

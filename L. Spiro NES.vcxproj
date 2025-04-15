@@ -1927,6 +1927,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Time\LSNTimer.h" />
     <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
+    <ClInclude Include="Src\Utilities\LSNLargeVector.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNRingBuffer.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />

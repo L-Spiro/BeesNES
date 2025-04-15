@@ -136,6 +136,14 @@ namespace lsn {
 		uint32_t													ui32OutBits = 32;
 		/** The last Stereo combo selection. */
 		uint32_t													ui32Stereo = 1;
+
+
+
+		/** The last WAV-file folder. */
+		std::wstring												wsLastWavFolder = L"";
+		/** The last Meta-file folder. */
+		std::wstring												wsLastMetaFolder = L"";
+
 	};
 
 }	// namespace lsn

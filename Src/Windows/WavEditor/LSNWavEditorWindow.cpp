@@ -15,6 +15,8 @@
 
 #include <Base/LSWWndClassEx.h>
 
+#include <filesystem>
+
 #include "../../../resource.h"
 
 
@@ -188,6 +190,17 @@ namespace lsn {
 			return LSW_H_HANDLED;
 		}
 		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Load a .WAV file via the Add .WAV Files button.
+	 * 
+	 * \param _wsPath The path to the WAV file to load.  Splices WAV files and associated metadata are also automatically loaded.
+	 * \return Returns true if all given files are valid (exist and of the appropriate type).
+	 **/
+	bool CWavEditorWindow::AddWavFiles( const std::wstring &_wsPath ) {
+		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
+		return true;
 	}
 
 	/**
