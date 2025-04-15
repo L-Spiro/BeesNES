@@ -96,7 +96,7 @@ namespace lsn {
 		}
 
 		/**
-		 * @brief Destructor that deletes the on-disk file.
+		 * \brief Destructor that deletes the on-disk file.
 		 *
 		 * Any errors during file deletion are caught and ignored so that no exceptions are thrown.
 		 */
@@ -251,12 +251,12 @@ namespace lsn {
 		//-------------------------------------------------------------------------
     
 		/**
-		 * @brief Appends an element to the end of the vector.
+		 * \brief Appends an element to the end of the vector.
 		 *
 		 * Flushes the current in–RAM cache to disk, then appends _tElem at the end of the file.
 		 *
-		 * @param _tElem The element to append.
-		 * @throws std::runtime_error if file I/O fails.
+		 * \param _tElem The element to append.
+		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													push_back( const T & _tElem ) {
 			flushCurrentSection();
@@ -269,13 +269,13 @@ namespace lsn {
 		}
 
 		/**
-		 * @brief Appends an array of elements to the end of the vector.
+		 * \brief Appends an array of elements to the end of the vector.
 		 *
 		 * Flushes the current in–RAM cache to disk, then appends _nCount elements from _pArray in a single operation.
 		 *
-		 * @param _pArray Pointer to the first element of the array to append.
-		 * @param _nCount Number of elements to append.
-		 * @throws std::runtime_error if file I/O fails.
+		 * \param _pArray Pointer to the first element of the array to append.
+		 * \param _nCount Number of elements to append.
+		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													push_back( const T * _pArray, size_t _nCount ) {
 			flushCurrentSection();
@@ -288,11 +288,11 @@ namespace lsn {
 		}
     
 		/**
-		 * @brief Removes the last element from the vector.
+		 * \brief Removes the last element from the vector.
 		 *
 		 * Flushes the current cache to disk and then truncates the file to remove the last element.
 		 *
-		 * @throws std::runtime_error if the vector is empty or file I/O fails.
+		 * \throws std::runtime_error if the vector is empty or file I/O fails.
 		 */
 		void													pop_back() {
 			if ( m_nTotalSize == 0 ) { throw std::runtime_error( "pop_back called on empty vector." ); }
@@ -304,18 +304,38 @@ namespace lsn {
 				loadSection( m_nCurrentSectionStart );
 			}
 		}
+
+		/**
+		 * \brief Removes a specified number of elements from the back of the vector.
+		 *
+		 * Flushes the current in–RAM cache, subtracts _nCount from m_nTotalSize (if valid),
+		 * truncates the disk file accordingly, and reloads the current cache if necessary.
+		 *
+		 * \param _nCount The number of items to pop.
+		 * \throws std::runtime_error if _nCount exceeds the current size.
+		 */
+		void													pop_back( size_t _nCount ) {
+			if ( _nCount > m_nTotalSize ) { throw std::runtime_error( "pop_back called with too many items." ); }
+			flushCurrentSection();
+			m_nTotalSize -= _nCount;
+			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
+			if ( m_nCurrentSectionStart >= m_nTotalSize ) {
+				m_nCurrentSectionStart = (m_nTotalSize > 0) ? (((m_nTotalSize - 1) / m_nMaxRamItems) * m_nMaxRamItems) : 0;
+				loadSection( m_nCurrentSectionStart );
+			}
+		}
     
 		/**
-		 * @brief Inserts an element at the specified index.
+		 * \brief Inserts an element at the specified index.
 		 *
 		 * Flushes the current cache to disk, then shifts elements in the file to make room for _tElem.
 		 * The file is updated and m_nTotalSize increases by one. If the insertion occurs within the
 		 * current cached section, the cache is reloaded.
 		 *
-		 * @param _nIndex The global index at which to insert the element.
-		 * @param _tElem The element to insert.
-		 * @throws std::out_of_range if _nIndex is greater than the current size.
-		 * @throws std::runtime_error if file I/O fails.
+		 * \param _nIndex The global index at which to insert the element.
+		 * \param _tElem The element to insert.
+		 * \throws std::out_of_range if _nIndex is greater than the current size.
+		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													insert( size_t _nIndex, const T & _tElem ) {
 			if ( _nIndex > m_nTotalSize ) { throw std::out_of_range( "Insert index out of range." ); }
