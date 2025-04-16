@@ -168,6 +168,17 @@ namespace lsn {
 	}
 
 	/**
+	 * Reads from the file.
+	 * 
+	 * \param _pvDst The destination for the read.  Must be sized appropriately to contain _sSize bytes.
+	 * \param _sSize The number of bytes to read.
+	 * \return Returns true if the read succeeded.  The file must be opened for read and the read operation must not extend beyond the end of the file.
+	 **/
+	bool CStdFile::Read( void * _pvDst, size_t _sSize ) {
+		return std::fread( _pvDst, _sSize, 1, m_pfFile ) == 1;
+	}
+
+	/**
 	 * Writes the given data to the created file.  File must have been cerated with Create().
 	 *
 	 * \param _vData The data to write to the file.
@@ -194,12 +205,12 @@ namespace lsn {
 	 * Writes the given data to the created file.  File must have been cerated with Create().
 	 *
 	 * \param _pui8Data The data to write to the file.
-	 * \param _tsSize The size of the buffer to which _pui8Data points.
+	 * \param _sSize The size of the buffer to which _pui8Data points.
 	 * \return Returns true if the data was successfully written to the file.
 	 */
-	bool CStdFile::WriteToFile( const uint8_t * _pui8Data, size_t _tsSize ) {
+	bool CStdFile::WriteToFile( const uint8_t * _pui8Data, size_t _sSize ) {
 		if LSN_LIKELY( m_pfFile != nullptr ) {
-			return std::fwrite( _pui8Data, _tsSize, 1, m_pfFile ) == 1;
+			return std::fwrite( _pui8Data, _sSize, 1, m_pfFile ) == 1;
 		}
 		return false;
 	}

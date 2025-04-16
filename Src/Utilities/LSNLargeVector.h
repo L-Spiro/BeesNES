@@ -44,7 +44,7 @@ namespace lsn {
 	 * \tparam T The type of elements stored.
 	 */
 	template <typename T, typename Allocator = std::allocator<T>>
-	class large_vector : public std::vector<T, Allocator> {
+	class large_vector : protected std::vector<T, Allocator> {
 	public:
 		/**
 		 * \brief Constructs a large_vector.
@@ -72,7 +72,7 @@ namespace lsn {
 						throw std::runtime_error( "Failed to create directories for large_vector file: " + ecErr.message() );
 					}
 				}
-				s_nInstanceCount++;
+				++s_nInstanceCount;
 			}
 
 			// Generate a unique disk file path.
@@ -103,9 +103,9 @@ namespace lsn {
 		~large_vector() {
 			try {
 				// Optional flush if needed; ignoring any errors.
-				try { flushCurrentSection(); } catch (...) { /* Ignore errors during flush. */ }
+				try { flushCurrentSection(); } catch ( ... ) { /* Ignore errors during flush. */ }
 				std::filesystem::remove( m_pPathDiskFile );
-			} catch (...) {
+			} catch ( ... ) {
 				// Suppress all exceptions in destructor.
 			}
 			{

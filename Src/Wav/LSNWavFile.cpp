@@ -7,9 +7,12 @@
  */
 
 #include "LSNWavFile.h"
+#include "../File/LSNFileStream.h"
 #include "../OS/LSNOs.h"
+#include "../Utilities/LSNStream.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <algorithm>
 #include <codecvt>
 #include <filesystem>
 #include <string>
@@ -21,6 +24,7 @@
 namespace lsn {
 
 	CWavFile::CWavFile() :
+		m_ui32OriginalSampleCount( 0 ),
 		m_uiNumChannels( 0 ),
 		m_uiSampleRate( 0 ),
 		m_uiBitsPerSample( 0 ),
@@ -37,12 +41,19 @@ namespace lsn {
 	 * Loads a WAV file.
 	 *
 	 * \param _pcPath The UTF-8 path to open.
+	 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+	 * \param _ui32StartSample The first sample to load.
+	 * \param _ui32EndSample The last sample (exclusive) to load.
 	 * \return Returns true if the file was opened.
 	 */
-	bool CWavFile::Open( const char8_t * _pcPath ) {
-		std::vector<uint8_t> vFile;
+	bool CWavFile::Open( const char8_t * _pcPath, uint32_t _ui32LoadFlags, uint32_t _ui32StartSample, uint32_t _ui32EndSample ) {
+		CStdFile sfFile;
+		if ( !sfFile.Open( _pcPath ) ) { return false; }
+		CFileStream sStream( sfFile );
+		return LoadFromStream( sStream, _ui32LoadFlags, _ui32StartSample, _ui32EndSample );
+		/*std::vector<uint8_t> vFile;
 		if ( !CStdFile::LoadToMemory( _pcPath, vFile ) ) { return false; }
-		return LoadFromMemory( vFile );
+		return LoadFromMemory( vFile, _ui32LoadFlags, _ui32StartSample, _ui32EndSample );*/
 		//return Open( std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes( _pcPath ).c_str() );
 	}
 
@@ -50,21 +61,159 @@ namespace lsn {
 	 * Loads a WAV file.
 	 *
 	 * \param _pwcPath The UTF-16 path to open.
+	 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+	 * \param _ui32StartSample The first sample to load.
+	 * \param _ui32EndSample The last sample (exclusive) to load.
 	 * \return Returns true if the file was opened.
 	 */
-	bool CWavFile::Open( const char16_t * _pwcPath ) {
-		std::vector<uint8_t> vFile;
+	bool CWavFile::Open( const char16_t * _pwcPath, uint32_t _ui32LoadFlags, uint32_t _ui32StartSample, uint32_t _ui32EndSample ) {
+		CStdFile sfFile;
+		if ( !sfFile.Open( _pwcPath ) ) { return false; }
+		CFileStream sStream( sfFile );
+		return LoadFromStream( sStream, _ui32LoadFlags, _ui32StartSample, _ui32EndSample );
+		/*std::vector<uint8_t> vFile;
 		if ( !CStdFile::LoadToMemory( _pwcPath, vFile ) ) { return false; }
-		return LoadFromMemory( vFile );
+		return LoadFromMemory( vFile, _ui32LoadFlags, _ui32StartSample, _ui32EndSample );*/
+	}
+
+	/**
+	 * Loads a WAV file from a stream.  Will usually be a file stream but can be any stream.
+	 * 
+	 * \param _sbStream The stream from which to load the file.
+	 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+	 * \param _ui32StartSample The first sample to load.
+	 * \param _ui32EndSample The last sample (exclusive) to load.
+	 * \return Returns true if the file is a valid WAV file and there are no memory problems loading it.
+	 **/
+	bool CWavFile::LoadFromStream( CStreamBase &_sbStream, uint32_t _ui32LoadFlags, uint32_t _ui32StartSample, uint32_t _ui32EndSample ) {
+		Reset();
+
+		//do {
+			LSN_CHUNK cCurChunk;
+			if ( !_sbStream.ReadUi32( cCurChunk.u.uiName ) ) { return false; }
+			if ( cCurChunk.u.uiName != LSN_C_RIFF ) { return false; }
+			if ( !_sbStream.ReadUi32( cCurChunk.uiSize ) ) { return false; }
+			if ( !_sbStream.ReadUi32( cCurChunk.u2.uiFormat ) ) { return false; }
+			if ( cCurChunk.u2.uiFormat != LSN_C_WAVE ) { return false; }
+			size_t stStartOff = _sbStream.Pos();
+			std::vector<LSN_CHUNK_ENTRY> ceChunks;
+			LSN_CHUNK_ENTRY ceThis = { 0 };
+			while ( (_sbStream.Pos() - stStartOff) < cCurChunk.uiSize && _sbStream.Remaining() ) {
+				ceThis.uiOffset = static_cast<uint32_t>(_sbStream.Pos());
+				if ( !_sbStream.ReadUi32( ceThis.u.uiName ) ) { return false; }
+				if ( ceThis.u.uiName == 0 ) { break; }
+				if ( !_sbStream.ReadUi32( ceThis.uiSize ) ) { return false; }
+
+				ceChunks.push_back( ceThis );
+				//stOffset += ceThis.uiSize;
+				_sbStream.MovePointerBy( ceThis.uiSize );
+			}
+
+#define LSN_LAOD_SECTION																							\
+	std::vector<uint8_t> vBuffer;																					\
+	_sbStream.MovePointerTo( ceChunks[I].uiOffset );																\
+	if ( _sbStream.Remaining() < ceChunks[I].uiSize + sizeof( LSN_CHUNK_HEADER ) ) { return false; }				\
+	try { vBuffer.resize( ceChunks[I].uiSize + sizeof( LSN_CHUNK_HEADER ) ); }										\
+	catch ( ... ) { return false; }																					\
+	if ( !_sbStream.Read( vBuffer.data(), vBuffer.size() ) ) { return false; }
+
+			// Do the format chunk first.
+			for ( size_t I = 0; I < ceChunks.size(); ++I ) {
+				switch ( ceChunks[I].u.uiName ) {
+					case LSN_C_FMT_ : {		// "fmt "
+						LSN_LAOD_SECTION;
+						const LSN_FMT_CHUNK * pfcFmt = reinterpret_cast<const LSN_FMT_CHUNK *>(vBuffer.data());
+						if ( !pfcFmt ) { return false; }
+
+						if ( !LoadFmt( pfcFmt ) ) { return false; }
+						break;
+					}
+				}
+			}
+			
+			for ( size_t I = 0; I < ceChunks.size(); ++I ) {
+				switch ( ceChunks[I].u.uiName ) {
+					case LSN_C_DATA : {		// "data"
+						m_ui32OriginalSampleCount = ceChunks[I].uiSize / (m_uiNumChannels * m_uiBytesPerSample);
+						if ( !(_ui32LoadFlags & LSN_LF_DATA) ) { break; }
+
+						
+						_ui32EndSample = std::min<uint32_t>( _ui32EndSample, ceChunks[I].uiSize / (m_uiNumChannels * m_uiBytesPerSample) );
+						_ui32StartSample = std::min<uint32_t>( _ui32StartSample, _ui32EndSample );
+						size_t sTotalSamples = std::min<size_t>( _ui32EndSample - _ui32StartSample, ceChunks[I].uiSize / (m_uiNumChannels * m_uiBytesPerSample) - _ui32StartSample );
+
+						ceChunks[I].uiOffset += _ui32StartSample * (m_uiNumChannels * m_uiBytesPerSample);
+						ceChunks[I].uiSize = static_cast<uint32_t>(sTotalSamples * (m_uiNumChannels * m_uiBytesPerSample));
+
+						LSN_LAOD_SECTION;
+						LSN_DATA_CHUNK * pfcData = reinterpret_cast<LSN_DATA_CHUNK *>(vBuffer.data());
+						if ( !pfcData ) { return false; }
+						pfcData->chHeader.u.uiId = ceChunks[I].u.uiName;
+						pfcData->chHeader.uiSize = ceChunks[I].uiSize;
+						
+						if ( !LoadData( pfcData, 0, 0xFFFFFFFF ) ) { return false; }
+						break;
+					}
+					case LSN_C_SMPL : {		// "smpl"
+						if ( !(_ui32LoadFlags & LSN_LF_SMPL) ) { break; }
+						LSN_LAOD_SECTION;
+						const LSN_SMPL_CHUNK * pfcSmpl = reinterpret_cast<const LSN_SMPL_CHUNK *>(vBuffer.data());
+						if ( !pfcSmpl ) { return false; }
+
+						if ( !LoadSmpl( pfcSmpl ) ) { return false; }
+						break;
+					}
+					case LSN_C_LIST : {		// "LIST"
+						if ( !(_ui32LoadFlags & LSN_LF_LIST) ) { break; }
+						LSN_LAOD_SECTION;
+						const LSN_LIST_CHUNK * plcList = reinterpret_cast<const LSN_LIST_CHUNK *>(vBuffer.data());
+						if ( !plcList ) { return false; }
+
+						if ( !LoadList( plcList ) ) { return false; }
+						break;
+					}
+					case LSN_C_ID3_ : {		// "id3 "
+						if ( !(_ui32LoadFlags & LSN_LF_ID3) ) { break; }
+						LSN_LAOD_SECTION;
+						const LSN_ID3_CHUNK * picId3 = reinterpret_cast<const LSN_ID3_CHUNK *>(vBuffer.data());
+						if ( !picId3 ) { return false; }
+
+						if ( !LoadId3( picId3 ) ) { return false; }
+						break;
+					}
+					case LSN_C_INST : {		// "inst"
+						if ( !(_ui32LoadFlags & LSN_LF_INST) ) { break; }
+						LSN_LAOD_SECTION;
+						const LSN_INST_CHUNK * picInst = reinterpret_cast<const LSN_INST_CHUNK *>(vBuffer.data());
+						if ( !picInst ) { return false; }
+
+						if ( !LoadInst( picInst ) ) { return false; }
+						break;
+					}
+				}
+			}
+			
+		//} while ( _sbStream.Remaining() );
+		
+		return true;
 	}
 
 	/**
 	 * Loads a WAV file from memory.  This is just an in-memory version of the file.
 	 *
 	 * \param _vData The in-memory file to load.
+	 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+	 * \param _ui32StartSample The first sample to load.
+	 * \param _ui32EndSample The last sample (exclusive) to load.
 	 * \return Returns true if the file is a valid WAV file.
 	 */
-	bool CWavFile::LoadFromMemory( const std::vector<uint8_t> &_vData ) {
+	bool CWavFile::LoadFromMemory( const std::vector<uint8_t> &_vData, uint32_t _ui32LoadFlags, uint32_t _ui32StartSample, uint32_t _ui32EndSample ) {
+#if 0
+		// Since the whole file is already in memory, using a stream would be less efficient, since it will make another copy of the samples
+		//	before loading them.
+		CStream sStream( const_cast<std::vector<uint8_t> &>(_vData) );
+		return LoadFromStream( sStream, _ui32LoadFlags, _ui32StartSample, _ui32EndSample );
+#else
 		Reset();
 		size_t stOffset = 0;
 		const uint32_t * pui32Scratch;
@@ -75,7 +224,7 @@ namespace lsn {
 #define LSN_READ_STRUCT( TYPE, VAL )				VAL = LSN_PTR( TYPE, stOffset ); if ( !VAL ) { return false; } stOffset += sizeof( TYPE )
 
 
-		do {
+		//do {
 			LSN_CHUNK cCurChunk;
 			LSN_READ_32( cCurChunk.u.uiName );
 			if ( cCurChunk.u.uiName != LSN_C_RIFF ) { return false; }
@@ -95,6 +244,7 @@ namespace lsn {
 				stOffset += ceThis.uiSize;
 			}
 
+			// Do the format chunk first.
 			for ( size_t I = 0; I < ceChunks.size(); ++I ) {
 				switch ( ceChunks[I].u.uiName ) {
 					case LSN_C_FMT_ : {		// "fmt "
@@ -104,14 +254,22 @@ namespace lsn {
 						if ( !LoadFmt( pfcFmt ) ) { return false; }
 						break;
 					}
+				}
+			}
+
+			for ( size_t I = 0; I < ceChunks.size(); ++I ) {
+				switch ( ceChunks[I].u.uiName ) {
 					case LSN_C_DATA : {		// "data"
 						const LSN_DATA_CHUNK * pfcData = LSN_PTR_SIZE( LSN_DATA_CHUNK, ceChunks[I].uiOffset, ceChunks[I].uiSize );
 						if ( !pfcData ) { return false; }
+						m_ui32OriginalSampleCount = pfcData->chHeader.uiSize / (m_uiNumChannels * m_uiBytesPerSample);
 
-						if ( !LoadData( pfcData ) ) { return false; }
+						if ( !(_ui32LoadFlags & LSN_LF_DATA) ) { break; }
+						if ( !LoadData( pfcData, _ui32StartSample, _ui32EndSample ) ) { return false; }
 						break;
 					}
 					case LSN_C_SMPL : {		// "smpl"
+						if ( !(_ui32LoadFlags & LSN_LF_SMPL) ) { break; }
 						const LSN_SMPL_CHUNK * pfcSmpl = LSN_PTR_SIZE( LSN_SMPL_CHUNK, ceChunks[I].uiOffset, ceChunks[I].uiSize );
 						if ( !pfcSmpl ) { return false; }
 
@@ -119,6 +277,7 @@ namespace lsn {
 						break;
 					}
 					case LSN_C_LIST : {		// "LIST"
+						if ( !(_ui32LoadFlags & LSN_LF_LIST) ) { break; }
 						const LSN_LIST_CHUNK * plcList = LSN_PTR_SIZE( LSN_LIST_CHUNK, ceChunks[I].uiOffset, ceChunks[I].uiSize );
 						if ( !plcList ) { return false; }
 
@@ -126,6 +285,7 @@ namespace lsn {
 						break;
 					}
 					case LSN_C_ID3_ : {		// "id3 "
+						if ( !(_ui32LoadFlags & LSN_LF_ID3) ) { break; }
 						const LSN_ID3_CHUNK * picList = LSN_PTR_SIZE( LSN_ID3_CHUNK, ceChunks[I].uiOffset, ceChunks[I].uiSize );
 						if ( !picList ) { return false; }
 
@@ -133,6 +293,7 @@ namespace lsn {
 						break;
 					}
 					case LSN_C_INST : {		// "inst"
+						if ( !(_ui32LoadFlags & LSN_LF_INST) ) { break; }
 						const LSN_INST_CHUNK * picList = LSN_PTR_SIZE( LSN_INST_CHUNK, ceChunks[I].uiOffset, ceChunks[I].uiSize );
 						if ( !picList ) { return false; }
 
@@ -142,13 +303,14 @@ namespace lsn {
 				}
 			}
 
-		} while ( stOffset < _vData.size() );
+		//} while ( stOffset < _vData.size() );
 
 
 #undef LSN_READ_STRUCT
 #undef LSN_READ_32
 #undef LSN_PTR
 		return true;
+#endif
 	}
 
 	/**
@@ -628,6 +790,7 @@ namespace lsn {
 		m_vListEntries.clear();
 		m_vId3Entries.clear();
 		m_vDisp.clear();
+		m_ui32OriginalSampleCount = 0;
 		m_uiNumChannels = 0;
 		m_uiSampleRate = 0;
 		m_uiBytesPerSample = 0;
@@ -983,10 +1146,18 @@ namespace lsn {
 	 * \param _pdcChunk The chunk of data to load
 	 * \return Returns true if everything loaded fine.
 	 */
-	bool CWavFile::LoadData( const LSN_DATA_CHUNK * _pdcChunk ) {
-		m_vSamples.resize( _pdcChunk->chHeader.uiSize );
-		if ( m_vSamples.size() != _pdcChunk->chHeader.uiSize ) { return false; }
-		std::memcpy( m_vSamples.data(), _pdcChunk->ui8Data, m_vSamples.size() );
+	bool CWavFile::LoadData( const LSN_DATA_CHUNK * _pdcChunk, uint32_t _ui32StartSample, uint32_t _ui32EndSample ) {
+		_ui32EndSample = std::min<uint32_t>( _ui32EndSample, _pdcChunk->chHeader.uiSize / (m_uiNumChannels * m_uiBytesPerSample) );
+		_ui32StartSample = std::min<uint32_t>( _ui32StartSample, _ui32EndSample );
+		size_t sTotalSamples = std::min<size_t>( _ui32EndSample - _ui32StartSample, _pdcChunk->chHeader.uiSize / (m_uiNumChannels * m_uiBytesPerSample) - _ui32StartSample ) * m_uiNumChannels;
+
+		try {
+			m_vSamples.resize( sTotalSamples * m_uiBytesPerSample );
+		}
+		catch ( ... ) { return false; }
+		if ( m_vSamples.size() != sTotalSamples * m_uiBytesPerSample ) { return false; }
+		
+		std::memcpy( m_vSamples.data(), _pdcChunk->ui8Data + (_ui32StartSample * (m_uiNumChannels * m_uiBytesPerSample)), m_vSamples.size() );
 		return true;
 	}
 
@@ -1105,7 +1276,7 @@ namespace lsn {
 	 * \param _vResult The vector containing the samples.
 	 * \return Returns true if the vector was able to hold all of the values.
 	 */
-	bool CWavFile::Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+	/*bool CWavFile::Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
 		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 		_vResult.reserve( sFinalSize );
 		uint32_t uiStride;
@@ -1118,7 +1289,7 @@ namespace lsn {
 			++_ui32From;
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Converts a bunch of 16-bit PCM samples to double.
@@ -1129,7 +1300,7 @@ namespace lsn {
 	 * \param _vResult The vector containing the samples.
 	 * \return Returns true if the vector was able to hold all of the values.
 	 */
-	bool CWavFile::Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+	/*bool CWavFile::Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
 		const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
 		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 		_vResult.reserve( sFinalSize );
@@ -1143,7 +1314,7 @@ namespace lsn {
 			++_ui32From;
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Converts a bunch of 24-bit PCM samples to double.
@@ -1154,7 +1325,7 @@ namespace lsn {
 	 * \param _vResult The vector containing the samples.
 	 * \return Returns true if the vector was able to hold all of the values.
 	 */
-	bool CWavFile::Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+	/*bool CWavFile::Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
 		const double dFactor = (std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
 		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 		_vResult.reserve( sFinalSize );
@@ -1174,7 +1345,7 @@ namespace lsn {
 			++_ui32From;
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Converts a bunch of 32-bit PCM samples to double.
@@ -1185,7 +1356,7 @@ namespace lsn {
 	 * \param _vResult The vector containing the samples.
 	 * \return Returns true if the vector was able to hold all of the values.
 	 */
-	bool CWavFile::Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+	/*bool CWavFile::Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
 		const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
 		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 		_vResult.reserve( sFinalSize );
@@ -1199,7 +1370,7 @@ namespace lsn {
 			++_ui32From;
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Converts a bunch of 32-bit float samples to double.
@@ -1210,7 +1381,7 @@ namespace lsn {
 	 * \param _vResult The vector containing the samples.
 	 * \return Returns true if the vector was able to hold all of the values.
 	 */
-	bool CWavFile::F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+	/*bool CWavFile::F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
 		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 		_vResult.reserve( sFinalSize );
 		uint32_t uiStride;
@@ -1223,7 +1394,7 @@ namespace lsn {
 			++_ui32From;
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Converts a batch of F64 samples to PCM samples.

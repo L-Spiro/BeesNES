@@ -82,6 +82,24 @@ namespace lsn {
 		virtual bool										LoadToMemory( std::vector<uint8_t> &_vResult ) const;
 
 		/**
+		 * Reads from the file.
+		 * 
+		 * \param _pvDst The destination for the read.  Must be sized appropriately to contain _sSize bytes.
+		 * \param _sSize The number of bytes to read.
+		 * \return Returns true if the read succeeded.  The file must be opened for read and the read operation must not extend beyond the end of the file.
+		 **/
+		virtual bool										Read( void * /*_pvDst*/, size_t /*_sSize*/ ) { return false; }
+
+		/**
+		 * Writes to the file.
+		 * 
+		 * \param _pvSrc The source for the write.
+		 * \param _sSize The number of bytes to write.
+		 * \return Returns true if the write succeeded.  The file must be opened for write and there must be enough room to extend the file size.
+		 **/
+		virtual bool										Write( const void * /*_pvSrc*/, size_t /*_sSize*/ ) { return false; }
+
+		/**
 		 * Gathers the file names in the archive into an array.
 		 *
 		 * \param _vResult The location where to store the file names.
@@ -104,6 +122,13 @@ namespace lsn {
 		 * \return Returns the size of the file.
 		 **/
 		virtual uint64_t									Size() const { return 0; }
+
+		/**
+		 * Gets the current position inside the file.
+		 * 
+		 * \return Returns the current position inside the file.
+		 **/
+		virtual uint64_t									GetPos() const { return 0; }
 
 		/**
 		 * Moves the file pointer from the current position and returns the new position.
@@ -149,7 +174,7 @@ namespace lsn {
 		 * \param _pcExt The extension to check for being in _s16Path.
 		 * \return Returns true if the given file path's extension matches _pcExt.
 		 **/
-		static bool											CmpFileExtension( const std::u16string &_s16Path, const char16_t * _pcExt );
+		static inline bool									CmpFileExtension( const std::u16string &_s16Path, const char16_t * _pcExt );
 
 		/**
 		 * Removes the extension from a file path.
@@ -196,6 +221,18 @@ namespace lsn {
 		typename _tType::size_type stFound = s16File.rfind( typename _tType::value_type( '.' ) );
 		if ( stFound == _tType::npos ) { return _tType(); }
 		return s16File.substr( stFound + 1 );
+	}
+
+	/**
+	 * Compares the extention from a given file path to a given extension string.
+	 * 
+	 * \param _s16Path The file path whose extension is to be checked.
+	 * \param _pcExt The extension to check for being in _s16Path.
+	 * \return Returns true if the given file path's extension matches _pcExt.
+	 **/
+	inline bool CFileBase::CmpFileExtension( const std::u16string &_s16Path, const char16_t * _pcExt ) {
+		return ::_wcsicmp( reinterpret_cast<const wchar_t *>(lsn::CFileBase::GetFileExtension( _s16Path ).c_str()),
+			reinterpret_cast<const wchar_t *>(_pcExt) ) == 0;
 	}
 
 	/**

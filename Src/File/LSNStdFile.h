@@ -115,6 +115,15 @@ namespace lsn {
 		virtual bool										LoadToMemory( std::vector<uint8_t> &_vResult ) const;
 
 		/**
+		 * Reads from the file.
+		 * 
+		 * \param _pvDst The destination for the read.  Must be sized appropriately to contain _sSize bytes.
+		 * \param _sSize The number of bytes to read.
+		 * \return Returns true if the read succeeded.  The file must be opened for read and the read operation must not extend beyond the end of the file.
+		 **/
+		virtual bool										Read( void * _pvDst, size_t _sSize );
+
+		/**
 		 * Writes the given data to the created file.  File must have been cerated with Create().
 		 *
 		 * \param _vData The data to write to the file.
@@ -126,10 +135,19 @@ namespace lsn {
 		 * Writes the given data to the created file.  File must have been cerated with Create().
 		 *
 		 * \param _pui8Data The data to write to the file.
-		 * \param _tsSize The size of the buffer to which _pui8Data points.
+		 * \param _sSize The size of the buffer to which _pui8Data points.
 		 * \return Returns true if the data was successfully written to the file.
 		 */
-		virtual bool										WriteToFile( const uint8_t * _pui8Data, size_t _tsSize );
+		virtual bool										WriteToFile( const uint8_t * _pui8Data, size_t _sSize );
+
+		/**
+		 * Writes to the file.
+		 * 
+		 * \param _pvSrc The source for the write.
+		 * \param _sSize The number of bytes to write.
+		 * \return Returns true if the write succeeded.  The file must be opened for write and there must be enough room to extend the file size.
+		 **/
+		virtual bool										Write( const void * _pvSrc, size_t _sSize ) { return WriteToFile( static_cast<const uint8_t *>(_pvSrc), _sSize ); }
 
 		/**
 		 * Writes arbitrarily typed data to the created file.
@@ -208,11 +226,11 @@ namespace lsn {
 		 *
 		 * \param _pcFile The file to create.
 		 * \param _pui8Data The data to write to the file.
-		 * \param _tsSize The size of the buffer to which _pui8Data points.
+		 * \param _sSize The size of the buffer to which _pui8Data points.
 		 * \return Returns true if the data was successfully written to the file.
 		 */
 		template <typename _tStrType>
-		static inline bool									WriteToFile( const _tStrType * _pcFile, const uint8_t * _pui8Data, size_t _tsSize );
+		static inline bool									WriteToFile( const _tStrType * _pcFile, const uint8_t * _pui8Data, size_t _sSize );
 
 		/**
 		 * Writes the given data to the created file.
@@ -262,14 +280,14 @@ namespace lsn {
 	 *
 	 * \param _pcFile The file to create.
 	 * \param _pui8Data The data to write to the file.
-	 * \param _tsSize The size of the buffer to which _pui8Data points.
+	 * \param _sSize The size of the buffer to which _pui8Data points.
 	 * \return Returns true if the data was successfully written to the file.
 	 */
 	template <typename _tStrType>
-	inline bool CStdFile::WriteToFile( const _tStrType * _pcFile, const uint8_t * _pui8Data, size_t _tsSize ) {
+	inline bool CStdFile::WriteToFile( const _tStrType * _pcFile, const uint8_t * _pui8Data, size_t _sSize ) {
 		CStdFile sfFile;
 		if ( !sfFile.Create( _pcFile ) ) { return false; }
-		return sfFile.WriteToFile( _pui8Data, _tsSize );
+		return sfFile.WriteToFile( _pui8Data, _sSize );
 	}
 
 	/**

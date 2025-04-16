@@ -11,6 +11,7 @@
 
 #include "../File/LSNStdFile.h"
 #include "../Utilities/LSNAlignmentAllocator.h"
+#include "../Utilities/LSNStreamBase.h"
 #include "../Utilities/LSNUtilities.h"
 
 #include <cinttypes>
@@ -52,6 +53,15 @@ namespace lsn {
 			LSN_F_ITU_G_721_ADPCM										= 0x40,
 			LSN_F_MPEG													= 0x50,
 			LSN_F_EXTENSIBLE											= 0xFFFE,
+		};
+
+		/** Loading options. */
+		enum LSN_LOAD_FLAGS : uint32_t {
+			LSN_LF_DATA													= (1 << 0),
+			LSN_LF_SMPL													= (1 << 1),
+			LSN_LF_LIST													= (1 << 2),
+			LSN_LF_ID3													= (1 << 3),
+			LSN_LF_INST													= (1 << 4),
 		};
 
 		/** Chunks. */
@@ -332,25 +342,45 @@ namespace lsn {
 		 * Loads a WAV file.
 		 *
 		 * \param _pcPath The UTF-8 path to open.
+		 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+		 * \param _ui32StartSample The first sample to load.
+		 * \param _ui32EndSample The last sample (exclusive) to load.
 		 * \return Returns true if the file was opened.
 		 */
-		bool															Open( const char8_t * _pcPath );
+		bool															Open( const char8_t * _pcPath, uint32_t _ui32LoadFlags = 0xFFFFFFFF, uint32_t _ui32StartSample = 0, uint32_t _ui32EndSample = 0xFFFFFFFF );
 
 		/**
 		 * Loads a WAV file.
 		 *
 		 * \param _pwcPath The UTF-16 path to open.
+		 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+		 * \param _ui32StartSample The first sample to load.
+		 * \param _ui32EndSample The last sample (exclusive) to load.
 		 * \return Returns true if the file was opened.
 		 */
-		bool															Open( const char16_t * _pwcPath );
+		bool															Open( const char16_t * _pwcPath, uint32_t _ui32LoadFlags = 0xFFFFFFFF, uint32_t _ui32StartSample = 0, uint32_t _ui32EndSample = 0xFFFFFFFF );
+
+		/**
+		 * Loads a WAV file from a stream.  Will usually be a file stream but can be any stream.
+		 * 
+		 * \param _sbStream The stream from which to load the file.
+		 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+		 * \param _ui32StartSample The first sample to load.
+		 * \param _ui32EndSample The last sample (exclusive) to load.
+		 * \return Returns true if the file is a valid WAV file and there are no memory problems loading it.
+		 **/
+		bool															LoadFromStream( CStreamBase &_sbStream, uint32_t _ui32LoadFlags = 0xFFFFFFFF, uint32_t _ui32StartSample = 0, uint32_t _ui32EndSample = 0xFFFFFFFF );
 
 		/**
 		 * Loads a WAV file from memory.  This is just an in-memory version of the file.
 		 *
 		 * \param _vData The in-memory file to load.
+		 * \param _ui32LoadFlags The loading flags, which allow to not load large portions of the file.
+		 * \param _ui32StartSample The first sample to load.
+		 * \param _ui32EndSample The last sample (exclusive) to load.
 		 * \return Returns true if the file is a valid WAV file.
 		 */
-		bool															LoadFromMemory( const std::vector<uint8_t> &_vData );
+		bool															LoadFromMemory( const std::vector<uint8_t> &_vData, uint32_t _ui32LoadFlags = 0xFFFFFFFF, uint32_t _ui32StartSample = 0, uint32_t _ui32EndSample = 0xFFFFFFFF );
 
 		/**
 		 * Saves as a PCM WAV file.
@@ -451,6 +481,13 @@ namespace lsn {
 		 * \return Returns the number of samples in the loaded file.
 		 */
 		inline uint32_t													TotalSamples() const { return static_cast<uint32_t>(m_vSamples.size() / (m_uiNumChannels * m_uiBytesPerSample)); }
+
+		/**
+		 * Gets the number of samples originally in the WAV file.
+		 * 
+		 * \return Returns the number of samples that were originally in the WAV file.
+		 **/
+		inline uint32_t													FileSampleCnt() const { return m_ui32OriginalSampleCount; }
 
 		/**
 		 * Fills a vector with the whole range of samples for a given channel.
@@ -604,6 +641,8 @@ namespace lsn {
 
 		
 		// == Members.
+		/** The number of samples in the original file.  How many samples are actually loaded can vary. */
+		uint32_t														m_ui32OriginalSampleCount;
 		/** The format. */
 		LSN_FORMAT														m_fFormat;
 		/** The number of channels. */
@@ -647,7 +686,7 @@ namespace lsn {
 		 * \param _pdcChunk The chunk of data to load
 		 * \return Returns true if everything loaded fine.
 		 */
-		bool															LoadData( const LSN_DATA_CHUNK * _pdcChunk );
+		bool															LoadData( const LSN_DATA_CHUNK * _pdcChunk, uint32_t _ui32StartSample = 0, uint32_t _ui32EndSample = 0xFFFFFFFF );
 
 		/**
 		 * Loads the "smpl" chunk.
@@ -690,7 +729,20 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const;
+		bool															Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
+			_vResult.reserve( sFinalSize );
+			uint32_t uiStride;
+			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
+			const int8_t * pi8Samples = reinterpret_cast<const int8_t *>(&m_vSamples.data()[sIdx]);
+			while ( _ui32From < _ui32To ) {
+				_vResult.push_back( (static_cast<int32_t>((*pi8Samples)) - 128) / 127.0 );
+
+				pi8Samples += m_uiNumChannels;
+				++_ui32From;
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a bunch of 16-bit PCM samples to double.
@@ -701,7 +753,21 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const;
+		bool															Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+			const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
+			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
+			_vResult.reserve( sFinalSize );
+			uint32_t uiStride;
+			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
+			const int16_t * pi16Samples = reinterpret_cast<const int16_t *>(&m_vSamples.data()[sIdx]);
+			while ( _ui32From < _ui32To ) {
+				_vResult.push_back( (*pi16Samples) / dFactor );
+
+				pi16Samples += m_uiNumChannels;
+				++_ui32From;
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a bunch of 24-bit PCM samples to double.
@@ -712,7 +778,27 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const;
+		bool															Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+			const double dFactor = (std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
+			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
+			_vResult.reserve( sFinalSize );
+			uint32_t uiStride;
+			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
+			while ( _ui32From < _ui32To ) {
+				if LSN_UNLIKELY( sIdx >= m_vSamples.size() ) {
+					_vResult.push_back( 0.0 );
+				}
+				else {
+					const int32_t * pi32Samples = reinterpret_cast<const int32_t *>(&m_vSamples.data()[sIdx]);
+
+					_vResult.push_back( ((*pi32Samples) << 8) / dFactor );
+				}
+
+				sIdx += uiStride;
+				++_ui32From;
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a bunch of 32-bit PCM samples to double.
@@ -723,7 +809,21 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const;
+		bool															Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+			const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
+			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
+			_vResult.reserve( sFinalSize );
+			uint32_t uiStride;
+			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
+			const int32_t * pi32Samples = reinterpret_cast<const int32_t *>(&m_vSamples.data()[sIdx]);
+			while ( _ui32From < _ui32To ) {
+				_vResult.push_back( (*pi32Samples) / dFactor );
+
+				pi32Samples += m_uiNumChannels;
+				++_ui32From;
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a bunch of 32-bit float samples to double.
@@ -734,7 +834,20 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const;
+		bool															F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
+			_vResult.reserve( sFinalSize );
+			uint32_t uiStride;
+			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
+			const float * pfSamples = reinterpret_cast<const float *>(&m_vSamples.data()[sIdx]);
+			while ( _ui32From < _ui32To ) {
+				_vResult.push_back( (*pfSamples) );
+
+				pfSamples += m_uiNumChannels;
+				++_ui32From;
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a batch of F64 samples to PCM samples.
