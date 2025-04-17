@@ -195,11 +195,13 @@ namespace lsn {
 	/**
 	 * Load a .WAV file via the Add .WAV Files button.
 	 * 
-	 * \param _wsPath The path to the WAV file to load.  Splices WAV files and associated metadata are also automatically loaded.
+	 * \param _wsPath The path to the WAV file to load.  Spliced WAV files and associated metadata are also automatically loaded.
 	 * \return Returns true if all given files are valid (exist and of the appropriate type).
 	 **/
 	bool CWavEditorWindow::AddWavFiles( const std::wstring &_wsPath ) {
+		auto ui32Id = m_weEditor.AddWavFileSet( _wsPath );
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
+		m_pwefFiles->AddToTree( ui32Id );
 		return true;
 	}
 

@@ -123,13 +123,21 @@ namespace lsn {
 
 		/** A WAV file. */
 		struct LSN_WAV_FILE_SET {
-			LSN_WAV_FILE												wfPath;											/**< Path to the file. */
+			LSN_WAV_FILE												wfFile;											/**< The file data. */
 			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
 			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
 		};
 
 
 		// == Functions.
+		/**
+		 * Adds a WAV file.  Automatically detects file sequences and metadata files.
+		 * 
+		 * \param _wsPath The path to the original WAV file to load.  Should be the start of a sequence.
+		 * \return Returns ID of the added file set or 0.
+		 **/
+		uint32_t														AddWavFileSet( const std::wstring &_wsPath );
+
 		/**
 		 * Sets the parameters for conversion.
 		 * 
@@ -148,10 +156,21 @@ namespace lsn {
 		 * \param _ui32Id The ID of the WAV-file structure to find.
 		 * \return Returns a pointer to the associated WAV-file structure or nullptr.
 		 **/
-		LSN_WAV_FILE *													WavById( uint32_t _ui32Id ) {
+		LSN_WAV_FILE_SET *												WavById( uint32_t _ui32Id ) {
 			auto aFound = m_mFileMapping.find( _ui32Id );
 			if ( aFound == m_mFileMapping.end() ) { return nullptr; }
 			return &aFound->second;
+		}
+
+		/**
+		 * Gets a pointer to a WAV file given an index.
+		 * 
+		 * \param _sIdx The index of the WAV-file set.
+		 * \return Returns a pointer to the associated WAV-file structure or nullptr.
+		 **/
+		LSN_WAV_FILE_SET *												WavByIdx( size_t _sIdx ) {
+			if LSN_UNLIKELY( _sIdx >= m_vFileList.size() ) { return nullptr; }
+			return WavById( m_vFileList[_sIdx] );
 		}
 
 
@@ -160,10 +179,23 @@ namespace lsn {
 		/** The output state. */
 		LSN_OUTPUT														m_oOutput;
 		/** The map of ID's to files. */
-		std::map<uint32_t, LSN_WAV_FILE>								m_mFileMapping;
+		std::map<uint32_t, LSN_WAV_FILE_SET>							m_mFileMapping;
+		/** The in-order array of WAV files. */
+		std::vector<uint32_t>											m_vFileList;
 
 		/** Path ID's. */
 		static std::atomic<uint32_t>									m_aPathId;
+
+
+		// == Functions.
+		/**
+		 * Opens a WAV file and fills out its data.
+		 * 
+		 * \param _wsPath The path to the file to load.
+		 * \param _wfData The data structure to fill out for the given WAV file.
+		 * \return Returns false if the file does not exist or could not be accessed or is not a WAV file.
+		 **/
+		bool															CreateWavFile( const std::wstring &_wsPath, LSN_WAV_FILE &_wfData );
 	};
 
 }	// namespace lsn

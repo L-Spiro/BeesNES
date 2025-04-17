@@ -489,6 +489,7 @@ namespace lsn {
 		 **/
 		inline uint32_t													FileSampleCnt() const { return m_ui32OriginalSampleCount; }
 
+#pragma optimize( "gt", on )
 		/**
 		 * Fills a vector with the whole range of samples for a given channel.
 		 *
@@ -496,7 +497,32 @@ namespace lsn {
 		 * \param _vResult The vector containing the samples.
 		 * \return Returns true if the vector was able to fit all samples.
 		 */
-		bool															GetAllSamples( uint16_t _uiChan, lwtrack &_vResult ) const;
+		template <typename _tType = lwtrack>
+		bool															GetAllSamples( uint16_t _uiChan, _tType &_vResult ) const {
+			if ( _uiChan >= m_uiNumChannels ) { return false; }
+			switch ( m_uiBitsPerSample ) {
+				case 8 : {
+					return Pcm8ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
+				}
+				case 16 : {
+					return Pcm16ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
+				}
+				case 24 : {
+					return Pcm24ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
+				}
+				case 32 : {
+					switch ( m_fFormat ) {
+						case LSN_F_IEEE_FLOAT : {
+							return F32ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
+						}
+						case LSN_F_PCM : {
+							return Pcm32ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
+						}
+					}
+				}
+			}
+			return false;
+		}
 
 		/**
 		 * Fills a vector with the whole range of samples for a given channel.
@@ -507,7 +533,32 @@ namespace lsn {
 		 * \param _stTo The ending sample to get, exclusive.
 		 * \return Returns true if the vector was able to fit all samples.
 		 */
-		bool															GetSamples( uint16_t _uiChan, lwtrack &_vResult, size_t _stFrom, size_t _stTo ) const;
+		template <typename _tType = lwtrack>
+		bool															GetSamples( uint16_t _uiChan, _tType &_vResult, size_t _stFrom, size_t _stTo ) const {
+			if ( _uiChan >= m_uiNumChannels ) { return false; }
+			switch ( m_uiBitsPerSample ) {
+				case 8 : {
+					return Pcm8ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
+				}
+				case 16 : {
+					return Pcm16ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
+				}
+				case 24 : {
+					return Pcm24ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
+				}
+				case 32 : {
+					switch ( m_fFormat ) {
+						case LSN_F_IEEE_FLOAT : {
+							return F32ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
+						}
+						case LSN_F_PCM : {
+							return Pcm32ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
+						}
+					}
+				}
+			}
+			return false;
+		}
 
 		/**
 		 * Fills an array of vectors.  There is an array of vectors for each channel, and each vector contains all
@@ -516,7 +567,44 @@ namespace lsn {
 		 * \param _vResult The array of vectors to be filled with all samples in this file.
 		 * \return Returns true if the vector(s) was/were able to fit all samples.
 		 */
-		bool															GetAllSamples( lwaudio &_vResult ) const;
+		template <typename _tType = lwaudio>
+		bool															GetAllSamples( _tType &_vResult ) const {
+			try {
+				if ( m_uiNumChannels > _vResult.size() ) {
+					_vResult.resize( m_uiNumChannels );
+				}
+				if ( _vResult.size() != m_uiNumChannels ) { return false; }
+				for ( auto I = m_uiNumChannels; I--; ) {
+					if ( !GetAllSamples( I, _vResult[I] ) ) { return false; }
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Fills an array of vectors.  There is an array of vectors for each channel, and each vector contains all
+		 *	of the selected samples for that channel.
+		 *
+		 * \param _vResult The array of vectors to be filled with all samples in this file.
+		 * \param _stFrom The starting sample to get.
+		 * \param _stTo The ending sample to get, exclusive.
+		 * \return Returns true if the vector(s) was/were able to fit all samples.
+		 */
+		template <typename _tType = lwaudio>
+		bool															GetSamples( _tType &_vResult, size_t _stFrom, size_t _stTo ) const {
+			try {
+				if ( m_uiNumChannels > _vResult.size() ) {
+					_vResult.resize( m_uiNumChannels );
+				}
+				if ( _vResult.size() != m_uiNumChannels ) { return false; }
+				for ( auto I = m_uiNumChannels; I--; ) {
+					if ( !GetSamples( I, _vResult[I], _stFrom, _stTo ) ) { return false; }
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
 
 		/**
 		 * Gets the Hz.
@@ -538,6 +626,13 @@ namespace lsn {
 		 * \return Returns the number of bits per sample.
 		 */
 		inline uint16_t													BitsPerSample() const { return m_uiBitsPerSample; }
+
+		/**
+		 * Gets the format of the WAV file.
+		 * 
+		 * \return Returns the WAV-file format.
+		 **/
+		inline LSN_FORMAT												Format() const { return m_fFormat; }
 
 		/**
 		 * Calculates the size of a buffer needed to hold the given number of samples on the given number of channels in te given format.
@@ -727,9 +822,11 @@ namespace lsn {
 		 * \param _ui32To Ending sample index.
 		 * \param _uiChan The channel whose sample data is to be obtained.
 		 * \param _vResult The vector containing the samples.
+		 * \tparam _tType The vector tpe to which to write the result.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+		template <typename _tType = lwtrack>
+		bool															Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
@@ -751,9 +848,11 @@ namespace lsn {
 		 * \param _ui32To Ending sample index.
 		 * \param _uiChan The channel whose sample data is to be obtained.
 		 * \param _vResult The vector containing the samples.
+		 * \tparam _tType The vector tpe to which to write the result.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+		template <typename _tType = lwtrack>
+		bool															Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
 			const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
@@ -776,9 +875,11 @@ namespace lsn {
 		 * \param _ui32To Ending sample index.
 		 * \param _uiChan The channel whose sample data is to be obtained.
 		 * \param _vResult The vector containing the samples.
+		 * \tparam _tType The vector tpe to which to write the result.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+		template <typename _tType = lwtrack>
+		bool															Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
 			const double dFactor = (std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
@@ -807,9 +908,11 @@ namespace lsn {
 		 * \param _ui32To Ending sample index.
 		 * \param _uiChan The channel whose sample data is to be obtained.
 		 * \param _vResult The vector containing the samples.
+		 * \tparam _tType The vector tpe to which to write the result.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+		template <typename _tType = lwtrack>
+		bool															Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
 			const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
@@ -832,9 +935,11 @@ namespace lsn {
 		 * \param _ui32To Ending sample index.
 		 * \param _uiChan The channel whose sample data is to be obtained.
 		 * \param _vResult The vector containing the samples.
+		 * \tparam _tType The vector tpe to which to write the result.
 		 * \return Returns true if the vector was able to hold all of the values.
 		 */
-		bool															F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
+		template <typename _tType = lwtrack>
+		bool															F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
@@ -1167,6 +1272,7 @@ namespace lsn {
 		static inline void LSN_STDCALL									BatchF32ToPcm24_AVX512( const std::vector<float> &_vSrc, std::vector<uint8_t> &_vOut, LSN_STREAMING &_sStream );
 #endif	// #ifdef __AVX512F__
 		
+#pragma optimize( "", on )
 	};
 	
 

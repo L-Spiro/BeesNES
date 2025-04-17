@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -367,6 +368,58 @@ namespace lsn {
 		}
     
 		//-------------------------------------------------------------------------
+		// Custom Member Functions: resize() and reserve()
+		//-------------------------------------------------------------------------
+    
+		/**
+		 * \brief Resizes the vector to contain _nNewSize elements.
+		 *
+		 * Flushes the current in–RAM cache to disk and adjusts the on–disk file size:
+		 * - If _nNewSize is larger than the current size, appends default–constructed elements.
+		 * - If smaller, truncates the file.
+		 * Updates m_nTotalSize and reloads the current in–RAM cache if necessary.
+		 *
+		 * \param _nNewSize The new total number of elements.
+		 */
+		void													resize( size_t _nNewSize ) {
+			flushCurrentSection();
+			if ( _nNewSize > m_nTotalSize ) {
+				// Expand file: append default-initialized elements.
+				std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+				if ( !fs ) {
+					throw std::runtime_error( "Failed to open file for resize (expanding)." );
+				}
+				fs.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+				T default_val{};
+				for ( size_t i = m_nTotalSize; i < _nNewSize; ++i ) {
+					fs.write( reinterpret_cast<const char *>(&default_val), sizeof( T ) );
+				}
+				fs.close();
+			}
+			else if ( _nNewSize < m_nTotalSize ) {
+				// Truncate the file.
+				std::filesystem::resize_file( m_pPathDiskFile, _nNewSize * sizeof( T ) );
+				if ( m_nCurrentSectionStart >= _nNewSize ) {
+					m_nCurrentSectionStart = (_nNewSize > 0) ? (((_nNewSize - 1) / m_nMaxRamItems) * m_nMaxRamItems) : 0;
+					loadSection( m_nCurrentSectionStart );
+				}
+			}
+			m_nTotalSize = _nNewSize;
+			size_t nItemsToLoad = (m_nTotalSize > m_nCurrentSectionStart) ?
+				std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart ) : 0;
+			std::vector<T, Allocator>::resize( nItemsToLoad );
+		}
+    
+		/**
+		 * \brief Reserves storage. For large_vector, reserve() does nothing.
+		 *
+		 * \param _nNewCapacity The requested capacity (unused).
+		 */
+		void													reserve( size_t /*_nNewCapacity*/ ) {
+			// Do nothing.
+		}
+    
+		//-------------------------------------------------------------------------
 		// Disk I/O: Flushing and Loading Sections
 		//-------------------------------------------------------------------------
 
@@ -400,7 +453,7 @@ namespace lsn {
 		 */
 		void													loadSection( size_t _nSectionStart ) {
 			m_nCurrentSectionStart = _nSectionStart;
-			size_t nItemsToLoad = std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart	);
+			size_t nItemsToLoad = std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart );
 			std::vector<T, Allocator>::resize(	nItemsToLoad );
 			std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::binary );
 			if ( !fs ) { throw std::runtime_error( "Failed to open file for reading." ); }

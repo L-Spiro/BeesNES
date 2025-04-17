@@ -98,7 +98,7 @@ namespace lsn {
 			size_t stStartOff = _sbStream.Pos();
 			std::vector<LSN_CHUNK_ENTRY> ceChunks;
 			LSN_CHUNK_ENTRY ceThis = { 0 };
-			while ( (_sbStream.Pos() - stStartOff) < cCurChunk.uiSize && _sbStream.Remaining() ) {
+			while ( (_sbStream.Pos() - stStartOff) < cCurChunk.uiSize && _sbStream.Remaining() >= sizeof( LSN_CHUNK_ENTRY ) ) {
 				ceThis.uiOffset = static_cast<uint32_t>(_sbStream.Pos());
 				if ( !_sbStream.ReadUi32( ceThis.u.uiName ) ) { return false; }
 				if ( ceThis.u.uiName == 0 ) { break; }
@@ -799,95 +799,6 @@ namespace lsn {
 	}
 
 #pragma optimize( "gt", on )
-
-	/**
-	 * Fills a vector with the whole range of samples for a given channel.
-	 *
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to fit all samples.
-	 */
-	bool CWavFile::GetAllSamples( uint16_t _uiChan, lwtrack &_vResult ) const {
-		if ( _uiChan >= m_uiNumChannels ) { return false; }
-		switch ( m_uiBitsPerSample ) {
-			case 8 : {
-				return Pcm8ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
-			}
-			case 16 : {
-				return Pcm16ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
-			}
-			case 24 : {
-				return Pcm24ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
-			}
-			case 32 : {
-				switch ( m_fFormat ) {
-					case LSN_F_IEEE_FLOAT : {
-						return F32ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
-					}
-					case LSN_F_PCM : {
-						return Pcm32ToF64( 0, static_cast<uint32_t>(TotalSamples()), _uiChan, _vResult );
-					}
-				}
-			}
-
-		}
-		return false;
-	}
-
-	/**
-	 * Fills a vector with the whole range of samples for a given channel.
-	 *
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \param _stFrom The starting sample to get.
-	 * \param _stTo The ending sample to get, exclusive.
-	 * \return Returns true if the vector was able to fit all samples.
-	 */
-	bool CWavFile::GetSamples( uint16_t _uiChan, lwtrack &_vResult, size_t _stFrom, size_t _stTo ) const {
-		if ( _uiChan >= m_uiNumChannels ) { return false; }
-		switch ( m_uiBitsPerSample ) {
-			case 8 : {
-				return Pcm8ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
-			}
-			case 16 : {
-				return Pcm16ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
-			}
-			case 24 : {
-				return Pcm24ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
-			}
-			case 32 : {
-				switch ( m_fFormat ) {
-					case LSN_F_IEEE_FLOAT : {
-						return F32ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
-					}
-					case LSN_F_PCM : {
-						return Pcm32ToF64( static_cast<uint32_t>(_stFrom), static_cast<uint32_t>(_stTo), _uiChan, _vResult );
-					}
-				}
-			}
-
-		}
-		return false;
-	}
-
-	/**
-	 * Fills an array of vectors.  There is an array of vectors for each channel, and each vector contains all
-	 *	of the samples for that channel.
-	 *
-	 * \param _vResult The array of vectors to be filled with all samples in this file.
-	 * \return Returns true if the vector(s) was/were able to fit all samples.
-	 */
-	bool CWavFile::GetAllSamples( lwaudio &_vResult ) const {
-		try {
-			_vResult.resize( m_uiNumChannels );
-			if ( _vResult.size() != m_uiNumChannels ) { return false; }
-			for ( auto I = m_uiNumChannels; I--; ) {
-				if ( !GetAllSamples( I, _vResult[I] ) ) { return false; }
-			}
-			return true;
-		}
-		catch ( ... ) { return false; }
-	}
 
 	/**
 	 * Adds a LIST entry.

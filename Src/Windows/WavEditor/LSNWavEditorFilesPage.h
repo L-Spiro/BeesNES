@@ -49,6 +49,14 @@ namespace lsn {
 		}
 
 		/**
+		 * Called when a new WAV file has been loaded.
+		 * 
+		 * \param _ui32Id The ID of the WAV file to add.
+		 * \return Returns true if the WAV file was added to the tree.
+		 **/
+		bool												AddToTree( uint32_t _ui32Id );
+
+		/**
 		 * Handles the WM_COMMAND message.
 		 *
 		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.

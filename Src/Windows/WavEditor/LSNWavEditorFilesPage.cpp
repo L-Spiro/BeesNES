@@ -50,6 +50,27 @@ namespace lsn {
 	}
 
 	/**
+	 * Called when a new WAV file has been loaded.
+	 * 
+	 * \param _ui32Id The ID of the WAV file to add.
+	 * \return Returns true if the WAV file was added to the tree.
+	 **/
+	bool CWavEditorFilesPage::AddToTree( uint32_t _ui32Id ) {
+		auto * pItem = m_pweEditor->WavById( _ui32Id );
+		if ( !pItem ) { return false; }
+		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+		if ( ptlTree ) {
+			std::wstring wsTmp = std::filesystem::path( pItem->wfFile.wsPath ).filename().generic_wstring();
+			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
+				_ui32Id, TVI_ROOT );
+			HTREEITEM hItem = ptlTree->InsertItem( &isInsertMe );
+			ptlTree->SetItemText( hItem, std::format( L"Channels: {}; Samples: {}; Hz: {}", pItem->wfFile.fcFormat.uiNumChannels, pItem->wfFile.ui64Samples, pItem->wfFile.fcFormat.uiSampleRate ).c_str(), 1 );
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Handles the WM_COMMAND message.
 	 *
 	 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
