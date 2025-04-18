@@ -1,5 +1,7 @@
 #include "LSWTreeListView.h"
 #include "../Base/LSWBase.h"
+
+#include <set>
 #include <strsafe.h>
 #include <vsstyle.h>
 #include <uxtheme.h>
@@ -150,12 +152,55 @@ namespace lsw {
 	}
 
 	/**
+	 * Deletes all items with the given LPARAM value.
+	 * 
+	 * \param _lpParm The LPARAM value to find and delete.
+	 **/
+	VOID CTreeListView::DeleteByLParam( LPARAM _lpParm ) {
+		ClearCache();
+		for ( auto I = m_tRoot.Size(); I--; ) {
+			if ( m_tRoot.GetChild( I )->Value().lpParam == _lpParm ) {
+				m_tRoot.RemoveChild( I );
+			}
+		}
+		UpdateListView();
+	}
+
+	/**
 	 * Deletes all items.
 	 */
 	VOID CTreeListView::DeleteAll() {
 		ClearCache();
 		CListView::DeleteAll();
 		m_tRoot.RemoveAllChildren();
+	}
+
+	/**
+	 * Moves items up one index.  Items are found by their LPARAM values.
+	 * 
+	 * \param _vItems The array of LPARAM items to move up 1 index.
+	 **/
+	VOID CTreeListView::MoveUp( const std::vector<LPARAM> &_vItems ) {
+		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
+
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = &m_tRoot;
+		ClearCache();
+		MoveUp( ptNode, sSet );
+		UpdateListView();
+	}
+
+	/**
+	 * Moves items down one index.  Items are found by their LPARAM values.
+	 * 
+	 * \param _vItems The array of LPARAM items to move down 1 index.
+	 **/
+	VOID CTreeListView::MoveDown( const std::vector<LPARAM> &_vItems ) {
+		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
+
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = &m_tRoot;
+		ClearCache();
+		MoveDown( ptNode, sSet );
+		UpdateListView();
 	}
 
 	/**
@@ -330,6 +375,20 @@ namespace lsw {
 		_vReturn.clear();
 		size_t stIdx = size_t( -1 );
 		GatherSelected( TVI_ROOT, _vReturn, _bIncludeNonVisible, stIdx );
+		return _vReturn.size();
+	}
+
+	/**
+	 * Gathers the selected item LPARAM values into a vector.
+	 *
+	 * \param _vReturn The array into which to gather the selected items.
+	 * \param _bIncludeNonVisible If true, selected items from collapsed nodes are gathered as well.
+	 * \return Returns the number of items gathered.
+	 */
+	size_t CTreeListView::GatherSelectedLParam( std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible ) const {
+		_vReturn.clear();
+		size_t stIdx = size_t( -1 );
+		GatherSelectedLParam( TVI_ROOT, _vReturn, _bIncludeNonVisible, stIdx );
 		return _vReturn.size();
 	}
 
@@ -640,6 +699,62 @@ namespace lsw {
 			return const_cast<ee::CTree<CTreeListView::LSW_TREE_ROW> *>(m_tRoot.GetChild( 0 ));
 		}
 		return ee::CTree<CTreeListView::LSW_TREE_ROW>::Next( _ptThis );
+	}
+
+	/**
+	 * Moves items up one index.  Items are found by their LPARAM values.
+	 * 
+	 * \param _ptThis The group of items to possibly move up by 1.
+	 * \param _sItems The array of LPARAM items to move up 1 index.
+	 **/
+	VOID CTreeListView::MoveUp( ee::CTree<LSW_TREE_ROW> * _ptThis, const std::set<LPARAM> &_sItems ) {
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		while ( _ptThis ) {
+			if ( _ptThis->Size() ) { MoveUp( _ptThis->GetChild( 0 ), _sItems ); }
+
+			if ( std::find( _sItems.begin(), _sItems.end(), _ptThis->Value().lpParam ) != _sItems.end() ) {
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+				if ( _ptThis->Prev() && i64ThisIdx - i64Idx > 1 ) {
+					ee::CTree<LSW_TREE_ROW>::MoveUp( _ptThis );
+				}
+				i64Idx = i64ThisIdx;
+			}
+
+			_ptThis = _ptThis->Next();
+			++i64ThisIdx;
+		}
+	}
+
+	/**
+	 * Moves items down one index.  Items are found by their LPARAM values.
+	 * 
+	 * \param _ptThis The group of items to possibly move down by 1.
+	 * \param _sItems The array of LPARAM items to move down 1 index.
+	 **/
+	VOID CTreeListView::MoveDown( ee::CTree<LSW_TREE_ROW> * _ptThis, const std::set<LPARAM> &_sItems ) {
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		// Go to the end of the list.
+		while ( _ptThis ) {
+			if ( !_ptThis->Next() ) { break; }
+			_ptThis = _ptThis->Next();
+		}
+
+		while ( _ptThis ) {
+			if ( _ptThis->Size() ) { MoveDown( _ptThis->GetChild( 0 ), _sItems ); }
+
+			if ( std::find( _sItems.begin(), _sItems.end(), _ptThis->Value().lpParam ) != _sItems.end() ) {
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+				if ( _ptThis->Next() && i64ThisIdx - i64Idx > 1 ) {
+					ee::CTree<LSW_TREE_ROW>::MoveDown( _ptThis );
+				}
+				i64Idx = i64ThisIdx;
+			}
+
+			_ptThis = _ptThis->Prev();
+			++i64ThisIdx;
+		}
 	}
 
 	/**
@@ -1017,6 +1132,29 @@ namespace lsw {
 			++_stIndex;
 			if ( _bIncludeNonVisible || (uiState & TVIS_EXPANDED) && ptFrom->Size() ) {
 				GatherSelected( PointerToTreeItem( ptFrom->GetChild( 0 ) ), _vReturn, _bIncludeNonVisible, _stIndex );
+			}
+			ptFrom = ptFrom->Next();
+		}
+	}
+
+	/**
+	 * Gathers the selected item LPARAM values into a vector.
+	 *
+	 * \param _htiFrom The item from which to start gathering.
+	 * \param _vReturn The array into which to gather the selected items.
+	 * \param _bIncludeNonVisible If true, selected items from collapsed nodes are gathered as well.
+	 * \param _stIndex Tracks the current item's index.
+	 */
+	void CTreeListView::GatherSelectedLParam( HTREEITEM _htiFrom, std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible, size_t &_stIndex ) const {
+		const ee::CTree<LSW_TREE_ROW> * ptFrom = TreeItemToPointer( _htiFrom );
+		while ( ptFrom ) {
+			UINT uiState = ptFrom->Value().uiState;
+			if ( uiState & TVIS_SELECTED ) {
+				_vReturn.push_back( ptFrom->Value().lpParam );
+			}
+			++_stIndex;
+			if ( _bIncludeNonVisible || (uiState & TVIS_EXPANDED) && ptFrom->Size() ) {
+				GatherSelectedLParam( PointerToTreeItem( ptFrom->GetChild( 0 ) ), _vReturn, _bIncludeNonVisible, _stIndex );
 			}
 			ptFrom = ptFrom->Next();
 		}

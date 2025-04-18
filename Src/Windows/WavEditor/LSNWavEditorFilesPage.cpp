@@ -64,7 +64,7 @@ namespace lsn {
 			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
 				_ui32Id, TVI_ROOT );
 			HTREEITEM hItem = ptlTree->InsertItem( &isInsertMe );
-			ptlTree->SetItemText( hItem, std::format( L"Channels: {}; Samples: {}; Hz: {}", pItem->wfFile.fcFormat.uiNumChannels, pItem->wfFile.ui64Samples, pItem->wfFile.fcFormat.uiSampleRate ).c_str(), 1 );
+			ptlTree->SetItemText( hItem, std::format( LSN_LSTR( LSN_WE_FILES_DESC ), pItem->wfFile.fcFormat.uiNumChannels, pItem->wfFile.ui64Samples / double( pItem->wfFile.fcFormat.uiSampleRate ), pItem->wfFile.fcFormat.uiSampleRate ).c_str(), 1 );
 			return true;
 		}
 		return false;
@@ -81,58 +81,85 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorFilesPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			case Layout::LSN_WEWI_FILES_ADD_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
+				if ( m_pwParent ) {
+					OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+					std::wstring szFileName;
+					szFileName.resize( 0x1FFFF + 2 );
 
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_pwewoOptions->wsLastWavFolder.c_str();
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					ofnOpenFile.hwndOwner = Wnd();
+					ofnOpenFile.lpstrFilter = wsFilter.c_str();
+					ofnOpenFile.nFilterIndex = 1;
+					ofnOpenFile.lpstrFile = szFileName.data();
+					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+					ofnOpenFile.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+					ofnOpenFile.lpstrInitialDir = m_pwewoOptions->wsLastWavFolder.c_str();
 
-				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_pwewoOptions->wsLastWavFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+					if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+						auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+						ptlTree->BeginLargeUpdate();
+						std::wstring wsDir = ofnOpenFile.lpstrFile;
+						const wchar_t * pwcTmp = ofnOpenFile.lpstrFile + wsDir.size() + 1;
+						if ( (*pwcTmp) == L'\0' ) {
+							m_pwewoOptions->wsLastWavFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+							static_cast<CWavEditorWindow *>(m_pwParent)->AddWavFiles( wsDir );
+						}
+						else {
+							m_pwewoOptions->wsLastWavFolder = std::filesystem::path( ofnOpenFile.lpstrFile );
+							while ( (*pwcTmp) ) {
+								std::wstring wsFile = pwcTmp;
+								static_cast<CWavEditorWindow *>(m_pwParent)->AddWavFiles( wsDir + L"\\" + wsFile );
+								pwcTmp += wsFile.size() + 1;
+							}
+						}
+						ptlTree->FinishUpdate();
 					}
-					//auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( m_pwParent ) {
-						if ( static_cast<CWavEditorWindow *>(m_pwParent)->AddWavFiles( pPath.generic_wstring() ) ) {
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_FILES_REMOVE_BUTTON : {
+				if ( m_pwParent ) {
+					auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					if ( ptlTree ) {
+						std::vector<LPARAM> vSelected;
+						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
+							static_cast<CWavEditorWindow *>(m_pwParent)->Remove( vSelected );
+							ptlTree->BeginLargeUpdate();
+							for ( auto I = vSelected.size(); I--; ) {
+								ptlTree->DeleteByLParam( vSelected[I] );
+							}
+							ptlTree->FinishUpdate();
 						}
 					}
 				}
 				break;
 			}
-			/*case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
-
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
-
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+			case Layout::LSN_WEWI_FILES_UP_BUTTON : {
+				if ( m_pwParent ) {
+					auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					if ( ptlTree ) {
+						std::vector<LPARAM> vSelected;
+						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
+							static_cast<CWavEditorWindow *>(m_pwParent)->MoveUp( vSelected );
+							ptlTree->MoveUp( vSelected );
+						}
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
 				break;
-			}*/
-
-			
+			}
+			case Layout::LSN_WEWI_FILES_DOWN_BUTTON : {
+				if ( m_pwParent ) {
+					auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					if ( ptlTree ) {
+						std::vector<LPARAM> vSelected;
+						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
+							//static_cast<CWavEditorWindow *>(m_pwParent)->MoveUp( vSelected );
+							ptlTree->MoveDown( vSelected );
+						}
+					}
+				}
+				break;
+			}
 		}
 		Update();
 		return LSW_H_CONTINUE;

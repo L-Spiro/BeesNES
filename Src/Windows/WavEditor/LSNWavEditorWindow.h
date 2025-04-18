@@ -72,6 +72,20 @@ namespace lsn {
 		virtual bool										AddWavFiles( const std::wstring &_wsPath );
 
 		/**
+		 * Removes files by unique ID.
+		 * 
+		 * \param _vIds The array of unique ID's to remove.
+		 **/
+		void												Remove( const std::vector<LPARAM> &_vIds );
+
+		/**
+		 * Moves files up 1 by unique ID.
+		 * 
+		 * \param _vIds The array of unique ID's to move.
+		 **/
+		void												MoveUp( const std::vector<LPARAM> &_vIds );
+
+		/**
 		 * Prepares to create the window.  Creates the atom if necessary.
 		 **/
 		static void											PrepareWavEditor();

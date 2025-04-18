@@ -106,9 +106,30 @@ namespace lsw {
 		HTREEITEM							GetNext( HTREEITEM _ptThis ) const { return PointerToTreeItem( Next( const_cast<ee::CTree<LSW_TREE_ROW> *>(TreeItemToPointer( _ptThis )) ) ); }
 
 		/**
+		 * Deletes all items with the given LPARAM value.
+		 * 
+		 * \param _lpParm The LPARAM value to find and delete.
+		 **/
+		virtual VOID						DeleteByLParam( LPARAM _lpParm );
+
+		/**
 		 * Deletes all items.
 		 */
 		virtual VOID						DeleteAll();
+
+		/**
+		 * Moves items up one index.  Items are found by their LPARAM values.
+		 * 
+		 * \param _vItems The array of LPARAM items to move up 1 index.
+		 **/
+		virtual VOID						MoveUp( const std::vector<LPARAM> &_vItems );
+
+		/**
+		 * Moves items down one index.  Items are found by their LPARAM values.
+		 * 
+		 * \param _vItems The array of LPARAM items to move down 1 index.
+		 **/
+		virtual VOID						MoveDown( const std::vector<LPARAM> &_vItems );
 
 		/**
 		 * Returns true if this is a CTreeListView class.
@@ -186,6 +207,15 @@ namespace lsw {
 		 * \return Returns the number of items gathered.
 		 */
 		size_t								GatherSelected( std::vector<size_t> &_vReturn, bool _bIncludeNonVisible = false ) const;
+
+		/**
+		 * Gathers the selected item LPARAM values into a vector.
+		 *
+		 * \param _vReturn The array into which to gather the selected items.
+		 * \param _bIncludeNonVisible If true, selected items from collapsed nodes are gathered as well.
+		 * \return Returns the number of items gathered.
+		 */
+		size_t								GatherSelectedLParam( std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible = false ) const;
 
 		/**
 		 * Gets the index of the highlighted item or returns size_t( -1 ).
@@ -400,6 +430,22 @@ namespace lsw {
 		ee::CTree<LSW_TREE_ROW> *			Next( ee::CTree<LSW_TREE_ROW> * _ptThis ) const;
 
 		/**
+		 * Moves items up one index.  Items are found by their LPARAM values.
+		 * 
+		 * \param _ptThis The group of items to possibly move up by 1.
+		 * \param _sItems The array of LPARAM items to move up 1 index.
+		 **/
+		virtual VOID						MoveUp( ee::CTree<LSW_TREE_ROW> * _ptThis, const std::set<LPARAM> &_sItems );
+
+		/**
+		 * Moves items down one index.  Items are found by their LPARAM values.
+		 * 
+		 * \param _ptThis The group of items to possibly move down by 1.
+		 * \param _sItems The array of LPARAM items to move down 1 index.
+		 **/
+		virtual VOID						MoveDown( ee::CTree<LSW_TREE_ROW> * _ptThis, const std::set<LPARAM> &_sItems );
+
+		/**
 		 * WM_SIZE.
 		 *
 		 * \param _wParam The type of resizing requested.
@@ -508,6 +554,16 @@ namespace lsw {
 		 * \param _stIndex Tracks the current item's index.
 		 */
 		void								GatherSelected( HTREEITEM _htiFrom, std::vector<size_t> &_vReturn, bool _bIncludeNonVisible, size_t &_stIndex ) const;
+
+		/**
+		 * Gathers the selected item LPARAM values into a vector.
+		 *
+		 * \param _htiFrom The item from which to start gathering.
+		 * \param _vReturn The array into which to gather the selected items.
+		 * \param _bIncludeNonVisible If true, selected items from collapsed nodes are gathered as well.
+		 * \param _stIndex Tracks the current item's index.
+		 */
+		void								GatherSelectedLParam( HTREEITEM _htiFrom, std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible, size_t &_stIndex ) const;
 
 		/**
 		 * Gets the highlighted item or returns nullptr.

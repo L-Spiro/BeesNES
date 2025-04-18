@@ -205,6 +205,7 @@
 #define LSN_AUDIO_OPTIONS_DURATION											Duration (Seconds)
 #define LSN_AUDIO_OPTIONS_SILENCE_FOR										Silence for (Seconds)
 #define LSN_AUDIO_OPTIONS_WAV_TYPES											WAV Files (*.wav)\0*.wav\0\0
+#define LSN_AUDIO_OPTIONS_TXT_TYPES											TXT Files (*.txt)\0*.txt\0\0
 #define LSN_AUDIO_OPTIONS_METADATA											Metadata
 #define LSN_AUDIO_OPTIONS_METADATA_ALL										All
 #define LSN_AUDIO_OPTIONS_METADATA_NONE										None
@@ -241,6 +242,7 @@
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
 #define LSN_WE_FILES														Files
+#define LSN_WE_FILES_DESC													Channels: {}; Dur: {:.7f}; Hz: {}
 #define LSN_WE_FILE_SETTINGS												Per-File Settings
 #define LSN_WE_SEQUENCING													Per-File Sequencing
 #define LSN_WE_OUTPUT														Output

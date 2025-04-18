@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -126,6 +127,7 @@ namespace lsn {
 			LSN_WAV_FILE												wfFile;											/**< The file data. */
 			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
 			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
+			uint32_t													ui32Id = 0;										/**< The unique ID assigned to this set. */
 		};
 
 
@@ -137,6 +139,20 @@ namespace lsn {
 		 * \return Returns ID of the added file set or 0.
 		 **/
 		uint32_t														AddWavFileSet( const std::wstring &_wsPath );
+
+		/**
+		 * Removes a WAV file or Metadata file by ID.
+		 * 
+		 * \param _ui32Id The unique of the item to remove.
+		 **/
+		void															RemoveFile( uint32_t _ui32Id );
+
+		/**
+		 * Moves items up 1 based on their unique ID's.
+		 * 
+		 * \param _vItems The items to move up one.
+		 **/
+		void															MoveUp( const std::vector<LPARAM> &_vItems );
 
 		/**
 		 * Sets the parameters for conversion.
@@ -196,6 +212,14 @@ namespace lsn {
 		 * \return Returns false if the file does not exist or could not be accessed or is not a WAV file.
 		 **/
 		bool															CreateWavFile( const std::wstring &_wsPath, LSN_WAV_FILE &_wfData );
+
+		/**
+		 * Moves up 1 any selected children in the given WAV set.
+		 * 
+		 * \param _wfsSet The WAV set to modify.
+		 * \param _sItems The list of children to move up by 1.
+		 **/
+		void															MoveUp( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
 	};
 
 }	// namespace lsn

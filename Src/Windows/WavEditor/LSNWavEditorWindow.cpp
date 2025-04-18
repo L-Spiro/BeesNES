@@ -206,6 +206,26 @@ namespace lsn {
 	}
 
 	/**
+	 * Removes files by unique ID.
+	 * 
+	 * \param _vIds The array of unique ID's to remove.
+	 **/
+	void CWavEditorWindow::Remove( const std::vector<LPARAM> &_vIds ) {
+		for ( auto I = _vIds.size(); I--; ) {
+			m_weEditor.RemoveFile( uint32_t( _vIds[I] ) );
+		}
+	}
+
+	/**
+	 * Moves files up 1 by unique ID.
+	 * 
+	 * \param _vIds The array of unique ID's to move.
+	 **/
+	void CWavEditorWindow::MoveUp( const std::vector<LPARAM> &_vIds ) {
+		m_weEditor.MoveUp( _vIds );
+	}
+
+	/**
 	 * Prepares to create the window.  Creates the atom if necessary.
 	 **/
 	void CWavEditorWindow::PrepareWavEditor() {

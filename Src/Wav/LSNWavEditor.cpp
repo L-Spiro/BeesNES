@@ -56,14 +56,71 @@ namespace lsn {
 
 			uint32_t uID = 0;
 			while ( !uID ) {
-				uID = m_aPathId.fetch_add( 1, std::memory_order_relaxed );
+				uID = m_aPathId.fetch_add( 1, std::memory_order_relaxed ) & 0xFFFF;
 			}
+			wfsSet.ui32Id = uID;
 			m_mFileMapping[uID] = wfsSet;
 			m_vFileList.push_back( uID );
 
 			return uID;
 		}
 		catch ( ... ) { return 0; }
+	}
+
+	/**
+	 * Removes a WAV file or Metadata file by ID.
+	 * 
+	 * \param _ui32Id The unique of the item to remove.
+	 **/
+	void CWavEditor::RemoveFile( uint32_t _ui32Id ) {
+		auto pwfsSet = WavById( _ui32Id & 0xFFFF );
+		if ( pwfsSet ) {
+			if ( (_ui32Id & 0xFFFF0000) == 0xFFFF0000 ) {
+				// Remove the metadata.
+				pwfsSet->wsMetaPath = L"";
+			}
+			else if ( (_ui32Id & 0x80000000) ) {
+				size_t sIdx = (_ui32Id >> 16) & 0x7FFF;
+				if ( sIdx < pwfsSet->vExtensions.size() ) {
+					pwfsSet->vExtensions.erase( pwfsSet->vExtensions.begin() + sIdx );
+				}
+			}
+			else {
+				// erase from the map and vector.
+				m_mFileMapping.erase( _ui32Id & 0xFFFF );
+				m_vFileList.erase(
+					std::remove( m_vFileList.begin(), m_vFileList.end(), _ui32Id & 0xFFFF ),
+					m_vFileList.end()
+				);
+			}
+		}
+	}
+
+	/**
+	 * Moves items up 1 based on their unique ID's.
+	 * 
+	 * \param _vItems The items to move up one.
+	 **/
+	void CWavEditor::MoveUp( const std::vector<LPARAM> &_vItems ) {
+		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
+
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		for ( size_t I = 0; I < m_vFileList.size(); ++I ) {
+			auto ptThis = WavByIdx( I );
+			if ( ptThis ) {
+				MoveUp( (*ptThis), sSet );
+				if ( std::find( sSet.begin(), sSet.end(), ptThis->ui32Id ) != sSet.end() ) {
+					// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+					if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
+						std::swap( m_vFileList[I], m_vFileList[I-1] );
+					}
+					i64Idx = i64ThisIdx;
+				}
+
+				++i64ThisIdx;
+			}
+		}
 	}
 
 	/**
@@ -88,6 +145,30 @@ namespace lsn {
 			return true;
 		}
 		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Moves up 1 any selected children in the given WAV set.
+	 * 
+	 * \param _wfsSet The WAV set to modify.
+	 * \param _sItems The list of children to move up by 1.
+	 **/
+	void CWavEditor::MoveUp( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems ) {
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		for ( size_t I = 0; I < _wfsSet.vExtensions.size(); ++I ) {
+			
+			uint32_t ui32ThisId = uint32_t( (_wfsSet.ui32Id & 0xFFFF) | (I << 16) | 0x80000000 );
+			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+				if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
+					std::swap( _wfsSet.vExtensions[I], _wfsSet.vExtensions[I-1] );
+				}
+				i64Idx = i64ThisIdx;
+			}
+
+			++i64ThisIdx;
+		}
 	}
 
 }	// namespace lsn
