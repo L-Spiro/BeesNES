@@ -139,6 +139,13 @@ namespace lsw {
 		virtual bool						IsTreeListView() const { return true; }
 
 		/**
+		 * Selects all root-level items.
+		 * 
+		 * \return Returns the number of items selected.
+		 **/
+		virtual size_t						SelectRootItems();
+
+		/**
 		 * Returns true if any of the selected items have children and are not in expanded view.
 		 *
 		 * \return Returns true if any of the selected items have children and are not in expanded view.
@@ -251,6 +258,11 @@ namespace lsw {
 		 * \return Returns true if any parent of the item is collapsed.
 		 */
 		bool								IsHidden( HTREEITEM _hiItem ) const;
+
+		/**
+		 * Determines if there is at least one item in the tree list view.
+		 **/
+		bool								HasItem() const { return const_cast<CTreeListView *>(this)->ItemByIndex( 0 ) != nullptr; }
 
 		/**
 		 * Requesting information (notification responder).

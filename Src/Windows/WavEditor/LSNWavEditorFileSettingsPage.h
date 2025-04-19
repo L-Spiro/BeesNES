@@ -20,6 +20,8 @@ using namespace lsw;
 
 namespace lsn {
 
+	class CWavEditorFilesPage;
+
 	/**
 	 * Class CWavEditorFileSettingsPage
 	 * \brief The page for file settings.
@@ -40,15 +42,24 @@ namespace lsn {
 		LSW_HANDLED											InitDialog();
 
 		/**
-		 * Sets the WAV Editor object and its file index.
+		 * Sets the WAV Editor object and its unique ID.
 		 * 
 		 * \param _weEditor A reference to the WAV Editor object to which to associate this page.
-		 * \param _stIdx The file index to associate with this page.
+		 * \param _ui32Id The unique ID to associate with this page.
+		 * \param _pwefpFiles The files control, for accessing selected items.
 		 **/
-		void												SetWavEditorAndIndex( CWavEditor &_weEditor, size_t _stIdx ) {
+		void												SetWavEditorAndId( CWavEditor &_weEditor, uint32_t _ui32Id, CWavEditorFilesPage * _pwefpFiles ) {
 			m_pweEditor = &_weEditor;
-			m_stIdx = _stIdx;
+			m_ui32Id = _ui32Id;
+			m_pwefpFiles = _pwefpFiles;
 		}
+
+		/**
+		 * Gets the unique ID assigned to this window.
+		 * 
+		 * \return Returns the unique ID assigned to this window.
+		 **/
+		uint32_t											UniqueId() const { return m_ui32Id; }
 
 		/**
 		 * Handles the WM_COMMAND message.
@@ -83,12 +94,12 @@ namespace lsn {
 		// == Members.
 		/** The WAV Editor object. */
 		CWavEditor *										m_pweEditor = nullptr;
-		/** The index of this page. */
-		size_t												m_stIdx = 0;
+		/** The ID of the WAV set associated with this page. */
+		uint32_t											m_ui32Id = 0;
 		/** The options object. */
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
-		/** The actual Hz set in the settings. */
-		//uint32_t											m_ui32SettingsHz = 0;
+		/** The files page. */
+		CWavEditorFilesPage *								m_pwefpFiles = nullptr;
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;

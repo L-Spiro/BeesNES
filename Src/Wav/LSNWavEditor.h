@@ -155,6 +155,13 @@ namespace lsn {
 		void															MoveUp( const std::vector<LPARAM> &_vItems );
 
 		/**
+		 * Moves items down 1 based on their unique ID's.
+		 * 
+		 * \param _vItems The items to move down one.
+		 **/
+		void															MoveDown( const std::vector<LPARAM> &_vItems );
+
+		/**
 		 * Sets the parameters for conversion.
 		 * 
 		 * \param _oOutput The output parameters.
@@ -220,6 +227,14 @@ namespace lsn {
 		 * \param _sItems The list of children to move up by 1.
 		 **/
 		void															MoveUp( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
+
+		/**
+		 * Moves down 1 any selected children in the given WAV set.
+		 * 
+		 * \param _wfsSet The WAV set to modify.
+		 * \param _sItems The list of children to move down by 1.
+		 **/
+		void															MoveDown( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
 	};
 
 }	// namespace lsn

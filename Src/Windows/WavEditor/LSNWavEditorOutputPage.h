@@ -44,7 +44,7 @@ namespace lsn {
 		 * 
 		 * \param _weEditor A reference to the WAV Editor object to which to associate this page.
 		 **/
-		void												SetWavEditorAndIndex( CWavEditor &_weEditor ) {
+		void												SetWavEditor( CWavEditor &_weEditor ) {
 			m_pweEditor = &_weEditor;
 		}
 

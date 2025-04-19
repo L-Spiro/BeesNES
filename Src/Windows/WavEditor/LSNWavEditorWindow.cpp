@@ -14,6 +14,7 @@
 #include "../WinUtilities/LSNWinUtilities.h"
 
 #include <Base/LSWWndClassEx.h>
+#include <TreeListView/LSWTreeListView.h>
 
 #include <filesystem>
 
@@ -47,19 +48,21 @@ namespace lsn {
 
 		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
-		m_pwefFiles->SetWavEditorAndIndex( m_weEditor );
+		m_pwefFiles->SetWavEditor( m_weEditor );
 
 		CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
 		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
+		static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
 		CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
 		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
 		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
+		static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
 		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, m_wewoWindowOptions ));
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
-		m_pweopOutput->SetWavEditorAndIndex( m_weEditor );
+		m_pweopOutput->SetWavEditor( m_weEditor );
 
 		auto * pwGroup = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_GROUP );
 		if ( pwGroup ) {
@@ -132,6 +135,9 @@ namespace lsn {
 			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
 			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aAdjusted.Height() + aGroupRect.left, TRUE );
+
+			m_rSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
+			m_rSetRect = pwSettingsPage->WindowRect().ScreenToClient( Wnd() );
 		}
 
 		UpdateRects();
@@ -201,7 +207,21 @@ namespace lsn {
 	bool CWavEditorWindow::AddWavFiles( const std::wstring &_wsPath ) {
 		auto ui32Id = m_weEditor.AddWavFileSet( _wsPath );
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
-		m_pwefFiles->AddToTree( ui32Id );
+		if ( m_pwefFiles->AddToTree( ui32Id ) ) {
+			CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
+			if ( !pwSeqPage ) { return false; }
+			m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
+			static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
+
+			CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
+			if ( !pwSettingsPage ) { return false; }
+			m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
+			static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
+
+			::MoveWindow( pwSeqPage->Wnd(), m_rSeqRect.left, m_rSeqRect.top, m_rSeqRect.Width(), m_rSeqRect.Height(), TRUE );
+			::MoveWindow( pwSettingsPage->Wnd(), m_rSetRect.left, m_rSetRect.top, m_rSetRect.Width(), m_rSetRect.Height(), TRUE );
+			Update();
+		}
 		return true;
 	}
 
@@ -214,6 +234,7 @@ namespace lsn {
 		for ( auto I = _vIds.size(); I--; ) {
 			m_weEditor.RemoveFile( uint32_t( _vIds[I] ) );
 		}
+		Update();
 	}
 
 	/**
@@ -223,6 +244,131 @@ namespace lsn {
 	 **/
 	void CWavEditorWindow::MoveUp( const std::vector<LPARAM> &_vIds ) {
 		m_weEditor.MoveUp( _vIds );
+		Update();
+	}
+
+	/**
+	 * Moves files down 1 by unique ID.
+	 * 
+	 * \param _vIds The array of unique ID's to move.
+	 **/
+	void CWavEditorWindow::MoveDown( const std::vector<LPARAM> &_vIds ) {
+		m_weEditor.MoveDown( _vIds );
+		Update();
+	}
+
+	/**
+	 * Indicates that the file selection has changed.
+	 * 
+	 * \param _vIds The now-selected ID's.
+	 **/
+	void CWavEditorWindow::SelectionChanged( const std::vector<LPARAM> &/*_vIds*/ ) {
+		Update();
+	}
+
+	/**
+	 * Updates the window.
+	 **/
+	void CWavEditorWindow::Update() {
+		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+		if ( ptlTree ) {
+			std::vector<LPARAM> vSelected;
+			ptlTree->GatherSelectedLParam( vSelected );
+			// Remove nested selecttions.
+			for ( auto I = vSelected.size(); I--; ) {
+				if ( vSelected[I] & 0x80000000 ) {
+					vSelected.erase( vSelected.begin() + I );
+				}
+			}
+			if ( vSelected.size() == 1 ) {
+				// Select a specific WAV file.
+				for ( auto I = m_vSequencePages.size(); I--; ) {
+					m_vSequencePages[I]->SetVisible( m_vSequencePages[I]->UniqueId() == vSelected[0] );
+				}
+				for ( auto I = m_vSettingsPages.size(); I--; ) {
+					m_vSettingsPages[I]->SetVisible( m_vSettingsPages[I]->UniqueId() == vSelected[0] );
+				}
+			}
+			else {
+				// Select a specific WAV file.
+				for ( auto I = m_vSequencePages.size(); I--; ) {
+					m_vSequencePages[I]->SetVisible( I == 0 );
+				}
+				for ( auto I = m_vSettingsPages.size(); I--; ) {
+					m_vSettingsPages[I]->SetVisible( I == 0 );
+				}
+
+				auto pwGroup = m_vSequencePages[0]->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+				if ( pwGroup ) {
+					std::wstring wsGroupSeq;
+					if ( vSelected.size() ) {
+						// Create the group name.
+						size_t I = 0;
+						for ( ; I < vSelected.size() && wsGroupSeq.size() < 50; ++I ) {
+							if ( wsGroupSeq.size() ) {
+								wsGroupSeq += L", ";
+							}
+							auto ptWavSet = m_weEditor.WavById( uint32_t( vSelected[I] ) );
+							if ( ptWavSet ) {
+								wsGroupSeq += std::filesystem::path( ptWavSet->wfFile.wsPath ).filename().generic_wstring();
+							}
+							else {
+								wsGroupSeq += L"Error";
+							}
+						}
+						
+						if ( I != vSelected.size() ) {
+							wsGroupSeq += L"c";
+						}
+					}
+					else {
+						wsGroupSeq = LSN_LSTR( LSN_WE_SEQUENCING );
+					}
+					pwGroup->SetTextW( wsGroupSeq.c_str() );
+				}
+
+				pwGroup = m_vSettingsPages[0]->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+				if ( pwGroup ) {
+					std::wstring wsGroupSeq;
+					if ( vSelected.size() ) {
+						// Create the group name.
+						size_t I = 0;
+						for ( ; I < vSelected.size() && wsGroupSeq.size() < 50; ++I ) {
+							if ( wsGroupSeq.size() ) {
+								wsGroupSeq += L", ";
+							}
+							auto ptWavSet = m_weEditor.WavById( uint32_t( vSelected[I] ) );
+							if ( ptWavSet ) {
+								wsGroupSeq += std::filesystem::path( ptWavSet->wfFile.wsPath ).filename().generic_wstring();
+							}
+							else {
+								wsGroupSeq += L"Error";
+							}
+						}
+						
+						if ( I != vSelected.size() ) {
+							wsGroupSeq += L"c";
+						}
+					}
+					else {
+						wsGroupSeq = LSN_LSTR( LSN_WE_FILE_SETTINGS );
+					}
+					pwGroup->SetTextW( wsGroupSeq.c_str() );
+				}
+
+
+				for ( auto I = m_vSequencePages.size(); I--; ) {
+					if ( m_vSequencePages[I]->Visible() ) {
+						m_vSequencePages[I]->Update();
+					}
+				}
+				for ( auto I = m_vSettingsPages.size(); I--; ) {
+					if ( m_vSettingsPages[I]->Visible() ) {
+						m_vSettingsPages[I]->Update();
+					}
+				}
+			}
+		}
 	}
 
 	/**

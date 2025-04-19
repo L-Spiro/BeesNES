@@ -204,6 +204,22 @@ namespace lsw {
 	}
 
 	/**
+	 * Selects all root-level items.
+	 * 
+	 * \return Returns the number of items selected.
+	 **/
+	size_t CTreeListView::SelectRootItems() {
+		ClearCache();
+		size_t sCnt = 0;
+		for ( auto I = m_tRoot.Size(); I--; ) {
+			m_tRoot.GetChild( I )->Value().uiState |= TVIS_SELECTED;
+		}
+
+		UpdateListView();
+		return sCnt;
+	}
+
+	/**
 	 * Returns true if any of the selected items have children and are not in expanded view.
 	 *
 	 * \return Returns true if any of the selected items have children and are not in expanded view.

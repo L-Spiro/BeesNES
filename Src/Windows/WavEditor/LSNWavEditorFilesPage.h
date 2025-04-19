@@ -31,6 +31,13 @@ namespace lsn {
 		CWavEditorFilesPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 
 
+		// == Enumerations.
+		// Menus.
+		enum LSN_MENUS {
+			LSN_M_CONTEXT_MENU								= 200,
+		};
+
+
 		// == Functions.
 		/**
 		 * The WM_INITDIALOG handler.
@@ -44,7 +51,7 @@ namespace lsn {
 		 * 
 		 * \param _weEditor A reference to the WAV Editor object to which to associate this page.
 		 **/
-		void												SetWavEditorAndIndex( CWavEditor &_weEditor ) {
+		void												SetWavEditor( CWavEditor &_weEditor ) {
 			m_pweEditor = &_weEditor;
 		}
 
@@ -65,6 +72,32 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+
+		/**
+		 * Handles the WM_CONTEXTMENU message.
+		 * 
+		 * \param _pwControl The control that was clicked.
+		 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									ContextMenu( CWidget * _pwControl, INT _iX, INT _iY );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+		 *
+		 * \param _lplvParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_ItemChanged( LPNMLISTVIEW _lplvParm );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+		 *
+		 * \param _lposcParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm );
 
 		/**
 		 * Verifies the inputs.

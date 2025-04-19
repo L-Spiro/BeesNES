@@ -86,6 +86,25 @@ namespace lsn {
 		void												MoveUp( const std::vector<LPARAM> &_vIds );
 
 		/**
+		 * Moves files down 1 by unique ID.
+		 * 
+		 * \param _vIds The array of unique ID's to move.
+		 **/
+		void												MoveDown( const std::vector<LPARAM> &_vIds );
+
+		/**
+		 * Indicates that the file selection has changed.
+		 * 
+		 * \param _vIds The now-selected ID's.
+		 **/
+		void												SelectionChanged( const std::vector<LPARAM> &_vIds );
+
+		/**
+		 * Updates the window.
+		 **/
+		void												Update();
+
+		/**
 		 * Prepares to create the window.  Creates the atom if necessary.
 		 **/
 		static void											PrepareWavEditor();
@@ -109,6 +128,10 @@ namespace lsn {
 		LSN_OPTIONS *										m_poOptions;
 		/** Toggled when done initializing. */
 		bool												m_bInit = false;
+		/** The Sequencing rectangle. */
+		LSW_RECT											m_rSeqRect;
+		/** The settings rectangle. */
+		LSW_RECT											m_rSetRect;
 		/** The main window class. */
 		static ATOM											m_aAtom;
 

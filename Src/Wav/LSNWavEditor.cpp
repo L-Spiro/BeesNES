@@ -124,6 +124,33 @@ namespace lsn {
 	}
 
 	/**
+	 * Moves items down 1 based on their unique ID's.
+	 * 
+	 * \param _vItems The items to move down one.
+	 **/
+	void CWavEditor::MoveDown( const std::vector<LPARAM> &_vItems ) {
+		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
+
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		for ( auto I = m_vFileList.size(); I--; ) {
+			auto ptThis = WavByIdx( I );
+			if ( ptThis ) {
+				MoveDown( (*ptThis), sSet );
+				if ( std::find( sSet.begin(), sSet.end(), ptThis->ui32Id ) != sSet.end() ) {
+					// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+					if ( I != m_vFileList.size() - 1 && i64ThisIdx - i64Idx > 1 ) {
+						std::swap( m_vFileList[I], m_vFileList[I+1] );
+					}
+					i64Idx = i64ThisIdx;
+				}
+
+				++i64ThisIdx;
+			}
+		}
+	}
+
+	/**
 	 * Opens a WAV file and fills out its data.
 	 * 
 	 * \param _wsPath The path to the file to load.
@@ -163,6 +190,30 @@ namespace lsn {
 				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
 				if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
 					std::swap( _wfsSet.vExtensions[I], _wfsSet.vExtensions[I-1] );
+				}
+				i64Idx = i64ThisIdx;
+			}
+
+			++i64ThisIdx;
+		}
+	}
+
+	/**
+	 * Moves down 1 any selected children in the given WAV set.
+	 * 
+	 * \param _wfsSet The WAV set to modify.
+	 * \param _sItems The list of children to move down by 1.
+	 **/
+	void CWavEditor::MoveDown( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems ) {
+		int64_t i64Idx = -2;
+		int64_t i64ThisIdx = 0;
+		for ( size_t I = _wfsSet.vExtensions.size(); I--; ) {
+			
+			uint32_t ui32ThisId = uint32_t( (_wfsSet.ui32Id & 0xFFFF) | (I << 16) | 0x80000000 );
+			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
+				if ( I != _wfsSet.vExtensions.size() -1 && i64ThisIdx - i64Idx > 1 ) {
+					std::swap( _wfsSet.vExtensions[I], _wfsSet.vExtensions[I+1] );
 				}
 				i64Idx = i64ThisIdx;
 			}

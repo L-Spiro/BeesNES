@@ -1679,7 +1679,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_LEFT_JUST + LSN_OPER_TREE_W,																																				// iLeft
-			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT,																																			// iTop
+			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT,																																		// iTop
 			LSN_DEF_BUTTON_WIDTH * 2,						// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
 			LSN_BUTTONSTYLE,								// dwStyle
@@ -1695,7 +1695,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_LEFT_JUST + LSN_OPER_TREE_W,																																				// iLeft
-			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT + (LSN_TOP_JUST * 10) + LSN_DEF_BUTTON_HEIGHT,																								// iTop
+			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT + (LSN_TOP_JUST * 11) + LSN_DEF_BUTTON_HEIGHT,																						// iTop
 			LSN_DEF_BUTTON_WIDTH * 2,						// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
 			LSN_BUTTONSTYLE,								// dwStyle
@@ -1711,7 +1711,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_LEFT_JUST + LSN_OPER_TREE_W,																																				// iLeft
-			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT + (LSN_TOP_JUST * 10) + LSN_DEF_BUTTON_HEIGHT + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT,															// iTop
+			LSN_OPER_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST * 3) + LSN_DEF_BUTTON_HEIGHT + (LSN_TOP_JUST * 11) + LSN_DEF_BUTTON_HEIGHT + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT,													// iTop
 			LSN_DEF_BUTTON_WIDTH * 2,						// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
 			LSN_BUTTONSTYLE,								// dwStyle

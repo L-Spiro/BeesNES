@@ -252,7 +252,9 @@
 #define LSN_WE_REMOVE														Remove
 #define LSN_WE_MOVE_UP														Move Up
 #define LSN_WE_MOVE_DOWN													Move Down
+#define LSN_WE_SELECT_ALL													Select &All
 #define LSN_WE_RANGE														Full Track Range (Section of the File Fully Containing This Track)
+#define LSN_WE_RANGES														Full Track Ranges (Sections of the Files Fully Containing These Tracks)
 #define LSN_WE_LOOPS														Looping/One-Shot
 #define LSN_WE_START_TIME													Start Time:
 #define LSN_WE_END_TIME														End Time:
@@ -296,6 +298,9 @@
 #define LSN_WE_OUTPUT_FOLDER												Output Folder
 #define LSN_WE_NUMBERED														Numbered
 #define LSN_WE_EXPORT_ALL													Export All
+
+#define LSN_WE_LOOP_DESC_1_TRACK											Track will start at {:.5g} seconds, play for {:.5g} seconds, continue for another {:.5g} seconds, and then fade out for {:.5g} seconds.  Total duration: {:.5g} seconds.
+#define LSN_WE_ONE_SHOT_DESC_1_TRACK										Track will start at {:.5g} seconds and play for {:.5g} seconds.
 
 #define LSN_WE_NTSC_HZ														NTSC (1,789,772.7272727272727272727272727 Hz)
 #define LSN_WE_PAL_HZ														PAL (1,662,607.03125 Hz)

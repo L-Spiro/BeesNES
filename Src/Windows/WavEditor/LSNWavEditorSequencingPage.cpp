@@ -12,11 +12,14 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 
+#include <CheckButton/LSWCheckButton.h>
+#include <ComboBox/LSWComboBox.h>
 #include <TreeListView/LSWTreeListView.h>
 #include <Tab/LSWTab.h>
 
 #include <commdlg.h>
 #include <filesystem>
+#include <format>
 
 #include "../../../resource.h"
 
@@ -65,6 +68,10 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
 		if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->bLoop ); }
 
+
+		auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
+		if ( pwWarning ) {
+		}
 		Update();
 		return LSW_H_CONTINUE;
 	}
@@ -157,7 +164,178 @@ namespace lsn {
 	 * Updates the dialog.
 	 **/
 	void CWavEditorSequencingPage::Update() {
+		if ( !m_pweEditor ) { return; }
+		bool bHasMeta = true;
+		auto pwfsSet = m_pweEditor->WavById( m_ui32Id );
+		if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 ) {
+			bHasMeta = false;
+		}
+		bool bLooping = false;
+		auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO ));
+		if ( pcbCheck ) { bLooping = pcbCheck->IsChecked(); }
+
+		bool bHasItems = false;
+		bool bSelected = false;
+		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW ));
+		if ( ptlTree ) {
+			bHasItems = ptlTree->HasItem();
+			std::vector<size_t> vSelected;
+			ptlTree->GatherSelected( vSelected );
+			bSelected = vSelected.size() != 0;
+		}
 		
+		struct LSN_CONTROLS {
+			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+			bool													bCloseCondition0;
+		} cControls[] = {
+			{ Layout::LSN_WEWI_SEQ_START_COMBO,						bHasMeta },
+			{ Layout::LSN_WEWI_SEQ_END_COMBO,						bHasMeta },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO,					bHasMeta },
+
+			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,				bLooping },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,				bLooping },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,		bLooping },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_LABEL,				bLooping },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					bLooping },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,		bLooping },
+
+			//{ Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW,					bHasItems },
+			{ Layout::LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,				bSelected },
+			{ Layout::LSN_WEWI_SEQ_OPS_UP_BUTTON,					bSelected },
+			{ Layout::LSN_WEWI_SEQ_OPS_DOWN_BUTTON,					bSelected },
+		};
+		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			auto pwThis = FindChild( cControls[I].wId );
+			if ( pwThis ) {
+				pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+			}
+		}
+
+
+		do {
+			auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DESC_LABEL );
+			if ( pwThis ) {
+				if ( bLooping ) {
+					ee::CExpEvalContainer::EE_RESULT rRes;
+					double dStart = 0.0;
+					double dEnd = 0.0;
+					double dDelay = 0.0;
+					double dFade = 0.0;
+					auto pwStart = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+					if ( pwStart ) {
+						if ( pwStart->GetTextAsDoubleExpression( rRes ) ) {
+							dStart = rRes.u.dVal;
+
+							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+							if ( pwEnd ) {
+								if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
+									dEnd = rRes.u.dVal;
+
+									auto pwDelay = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+									if ( pwDelay ) {
+										if ( pwDelay->GetTextAsDoubleExpression( rRes ) ) {
+											dDelay = rRes.u.dVal;
+
+											auto pwFade = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
+											if ( pwFade ) {
+												if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
+													dFade = rRes.u.dVal;
+
+													dStart = std::max( dStart, 0.0 );
+													dEnd = std::max( dStart, dEnd );
+													dDelay = std::max( dDelay, 0.0 );
+													dFade = std::max( dFade, 0.0 );
+													double dTotalLen = (dEnd - dStart) + dDelay + dFade;
+													pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_LOOP_DESC_1_TRACK ), dStart, dEnd - dStart, dDelay, dFade, dTotalLen ).c_str() );
+
+													auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
+													if ( pwWarning ) {
+														double dFullEnd = 0.0;
+														pwEnd = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+														if ( pwEnd ) {
+															if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
+																dFullEnd = rRes.u.dVal;
+																pwEnd = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+																if ( pwEnd ) {
+																	if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
+																	}
+																}
+																pwWarning->SetVisible( dTotalLen > (dFullEnd - rRes.u.dVal) );
+															}
+														}
+													}
+													break;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					pwThis->SetTextW( L"" );
+					break;
+				}
+				else {
+					ee::CExpEvalContainer::EE_RESULT rRes;
+					double dStart = 0.0;
+					double dEnd = 0.0;
+					auto pwStart = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+					if ( pwStart ) {
+						if ( pwStart->GetTextAsDoubleExpression( rRes ) ) {
+							dStart = rRes.u.dVal;
+
+							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+							if ( pwEnd ) {
+								if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
+									dEnd = rRes.u.dVal;
+
+									dStart = std::max( dStart, 0.0 );
+									dEnd = std::max( dStart, dEnd );
+									pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_ONE_SHOT_DESC_1_TRACK ), dStart, dEnd ).c_str() );
+									break;
+								}
+							}
+						}
+					}
+					pwThis->SetTextW( L"" );
+				}
+			}
+			break;
+		} while ( false );
+
+	}
+
+	/**
+	 * Fills combo boxes with metadata or removes metadata from them.
+	 **/
+	void CWavEditorSequencingPage::FillCombos() {
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
+		
+		if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 ) {
+			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_START_COMBO ));
+			if ( pcbCombo ) {
+				pcbCombo->ResetContent();
+			}
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_END_COMBO ));
+			if ( pcbCombo ) {
+				pcbCombo->ResetContent();
+			}
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO ));
+			if ( pcbCombo ) {
+				pcbCombo->ResetContent();
+			}
+		}
+		if ( pwfsSet ) {
+			auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+			if ( pwThis ) {
+				pwThis->SetTextW( L"0.0" );
+			}
+			pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+			if ( pwThis ) {
+				pwThis->SetTextW( std::format( L"{:.27g}", double( pwfsSet->wfFile.ui64Samples ) / pwfsSet->wfFile.fcFormat.uiSampleRate ).c_str() );
+			}
+		}
 	}
 
 }	// namespace lsn
