@@ -115,11 +115,66 @@ namespace lsn {
 			bool														bNumbered = false;								/**< Number the output files? */
 		};
 
+		/** A metadata entry. */
+		struct LSN_METADATA {
+			double														dTime;											/**< The time of the event. */
+			uint32_t													ui32Idx;										/**< Event ID. */
+			std::string													sText;											/**< Even text. */
+
+
+			LSN_METADATA() = default;
+			LSN_METADATA( const LSN_METADATA & ) = default;
+			LSN_METADATA( LSN_METADATA && ) noexcept = default;
+			LSN_METADATA & operator = ( const LSN_METADATA & ) = default;
+			~LSN_METADATA() = default;
+
+
+			// == Operators.
+			LSN_METADATA &												operator = ( LSN_METADATA &&_mdOther ) noexcept {
+				dTime = _mdOther.dTime;
+				ui32Idx = _mdOther.ui32Idx;
+				sText = std::move( _mdOther.sText );
+				return (*this);
+			}
+
+
+			// == Functions.
+			void														swap( LSN_METADATA &_mdOther ) noexcept {
+				std::swap( dTime, _mdOther.dTime );
+				std::swap( ui32Idx, _mdOther.ui32Idx );
+				std::swap( sText, _mdOther.sText );
+			}
+		};
+
 		/** A single WAV file. */
 		struct LSN_WAV_FILE {
 			std::wstring												wsPath;											/**< Path to the file. */
 			CWavFile::LSN_FMT_CHUNK										fcFormat;										/**< The WAV-file format. */
 			uint64_t													ui64Samples = 0;								/**< Total samples per channel. */
+
+
+			LSN_WAV_FILE() = default;
+			LSN_WAV_FILE( const LSN_WAV_FILE & ) = default;
+			LSN_WAV_FILE( LSN_WAV_FILE && ) noexcept = default;
+			LSN_WAV_FILE & operator = ( const LSN_WAV_FILE & ) = default;
+			~LSN_WAV_FILE() = default;
+
+
+			// == Operators.
+			LSN_WAV_FILE &												operator = ( LSN_WAV_FILE &&_wfOther ) noexcept {
+				fcFormat = _wfOther.fcFormat;
+				ui64Samples = _wfOther.ui64Samples;
+				wsPath = std::move( _wfOther.wsPath );
+				return (*this);
+			}
+
+
+			// == Functions.
+			void														swap( LSN_WAV_FILE &_mdOther ) noexcept {
+				std::swap( fcFormat, _mdOther.fcFormat );
+				std::swap( ui64Samples, _mdOther.ui64Samples );
+				std::swap( wsPath, _mdOther.wsPath );
+			}
 		};
 
 		/** A WAV file. */
@@ -127,7 +182,19 @@ namespace lsn {
 			LSN_WAV_FILE												wfFile;											/**< The file data. */
 			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
 			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
+			std::vector<LSN_METADATA>									vMetadata;										/**< Associated metadata. */
 			uint32_t													ui32Id = 0;										/**< The unique ID assigned to this set. */
+
+
+			// == Operators.
+			LSN_WAV_FILE_SET &											operator = ( LSN_WAV_FILE_SET &&_wfsOther ) noexcept {
+				ui32Id = _wfsOther.ui32Id;
+				wfFile = std::move( _wfsOther.wfFile );
+				vExtensions = std::move( _wfsOther.vExtensions );
+				wsMetaPath = std::move( _wfsOther.wsMetaPath );
+				vMetadata = std::move( _wfsOther.vMetadata );
+				return (*this);
+			}
 		};
 
 
@@ -235,6 +302,15 @@ namespace lsn {
 		 * \param _sItems The list of children to move down by 1.
 		 **/
 		void															MoveDown( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
+
+		/**
+		 * Loads and parses a metadata file.
+		 * 
+		 * \param _wsPath The path to the metadata file.
+		 * \param _vResult Stores the result of the parsed metadata file.
+		 * \return Returns true if the file was successfully loaded and parsed.
+		 **/
+		bool															AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult );
 	};
 
 }	// namespace lsn

@@ -146,6 +146,19 @@ namespace lsw {
 		virtual size_t						SelectRootItems();
 
 		/**
+		 * Sets the selection based on item data.
+		 * 
+		 * \param _pData The LPARAM value to use to decide on selection.
+		 * \return Returns the number of items selected.
+		 **/
+		virtual INT							SetCurSelByItemData( LPARAM _pData );
+
+		/**
+		 * Unselects all items.
+		 **/
+		virtual void						UnselectAll();
+
+		/**
 		 * Returns true if any of the selected items have children and are not in expanded view.
 		 *
 		 * \return Returns true if any of the selected items have children and are not in expanded view.
@@ -225,16 +238,20 @@ namespace lsw {
 		size_t								GatherSelectedLParam( std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible = false ) const;
 
 		/**
+		 * Gathers all LPARAM values of every tree item into an array.
+		 * 
+		 * \param _vReturn The array into which to gather the return values.
+		 * \param _bIncludeNonVisible If true, non-expanded items are also searched.
+		 * \return Returns the total number of items gathered (_vReturn.size()).
+		 **/
+		size_t								GatherAllLParam( std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible = false ) const;
+
+		/**
 		 * Gets the index of the highlighted item or returns size_t( -1 ).
 		 *
 		 * \return Returs the index of the highlighted item or size_t( -1 ) if there is none.
 		 */
 		size_t								FindHighlighted() const;
-
-		/**
-		 * Unselects all.
-		 */
-		void								UnselectAll();
 
 		/**
 		 * Allows quickly updating the tree without causing visual updates to the controls.  Must be paired with a call to FinishUpdate().

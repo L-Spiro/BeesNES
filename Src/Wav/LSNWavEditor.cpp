@@ -7,8 +7,10 @@
  */
  
 #include "LSNWavEditor.h"
+#include "../Utilities/LSNStream.h"
 
 #include <filesystem>
+#include <utility>
 
 
 namespace lsn {
@@ -48,10 +50,15 @@ namespace lsn {
 				}
 				else { break; }
 			}
-			auto pMetaPath = pPath.replace_extension( ".txt" );
+			auto pMetaPath = pPath;
+			pMetaPath += ".txt";
 			std::error_code ecErr;
 			if ( std::filesystem::exists( pMetaPath, ecErr ) ) {
 				wfsSet.wsMetaPath = pMetaPath.generic_wstring();
+				if ( !AddMetadata( wfsSet.wsMetaPath, wfsSet.vMetadata ) ) {
+					wfsSet.vMetadata.clear();
+					wfsSet.wsMetaPath.clear();
+				}
 			}
 
 			uint32_t uID = 0;
@@ -59,7 +66,7 @@ namespace lsn {
 				uID = m_aPathId.fetch_add( 1, std::memory_order_relaxed ) & 0xFFFF;
 			}
 			wfsSet.ui32Id = uID;
-			m_mFileMapping[uID] = wfsSet;
+			m_mFileMapping[uID] = std::move( wfsSet );
 			m_vFileList.push_back( uID );
 
 			return uID;
@@ -189,7 +196,7 @@ namespace lsn {
 			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
 				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
 				if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
-					std::swap( _wfsSet.vExtensions[I], _wfsSet.vExtensions[I-1] );
+					_wfsSet.vExtensions[I].swap( _wfsSet.vExtensions[I-1] );
 				}
 				i64Idx = i64ThisIdx;
 			}
@@ -208,18 +215,54 @@ namespace lsn {
 		int64_t i64Idx = -2;
 		int64_t i64ThisIdx = 0;
 		for ( size_t I = _wfsSet.vExtensions.size(); I--; ) {
-			
 			uint32_t ui32ThisId = uint32_t( (_wfsSet.ui32Id & 0xFFFF) | (I << 16) | 0x80000000 );
 			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
 				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
 				if ( I != _wfsSet.vExtensions.size() -1 && i64ThisIdx - i64Idx > 1 ) {
-					std::swap( _wfsSet.vExtensions[I], _wfsSet.vExtensions[I+1] );
+					_wfsSet.vExtensions[I].swap( _wfsSet.vExtensions[I+1] );
 				}
 				i64Idx = i64ThisIdx;
 			}
-
 			++i64ThisIdx;
 		}
+	}
+
+	/**
+	 * Loads and parses a metadata file.
+	 * 
+	 * \param _wsPath The path to the metadata file.
+	 * \param _vResult Stores the result of the parsed metadata file.
+	 * \return Returns true if the file was successfully loaded and parsed.
+	 **/
+	bool CWavEditor::AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult ) {
+		try {
+			_vResult.clear();
+			CStdFile sfFile;
+			if ( !sfFile.Open( CUtilities::XStringToU16String( _wsPath.c_str(), _wsPath.size() ).c_str() ) ) { return false; }
+		
+			std::vector<uint8_t> vFile;
+			if ( !sfFile.LoadToMemory( vFile ) ) { return false; }
+
+			CStream sStream( vFile );
+
+			std::string sTmp;
+			LSN_METADATA mdMeta;
+			double dTime2;
+			while ( sStream.ReadLine( sTmp ) ) {
+				if ( sTmp.size() >= 511 ) { return false; }
+				char szBuffer[512];
+				auto iConveretd = std::sscanf(
+					sTmp.c_str(),
+					"%lf%*[\t ]%lf%*[\t ][%u: %[^]]",
+					&mdMeta.dTime, &dTime2, &mdMeta.ui32Idx, szBuffer );
+				if ( iConveretd != 4 ) { return false; }
+				mdMeta.sText = szBuffer;
+				_vResult.push_back( std::move( mdMeta ) );
+			}
+		}
+		catch ( ... ) { return false; }
+
+		return true;
 	}
 
 }	// namespace lsn

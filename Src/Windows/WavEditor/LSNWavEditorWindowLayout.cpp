@@ -1334,7 +1334,7 @@ namespace lsn {
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
-			LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
+			LSN_LSTR( LSN_WE_STOP_TIME ),					// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
 		},

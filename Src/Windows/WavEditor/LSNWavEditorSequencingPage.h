@@ -108,6 +108,24 @@ namespace lsn {
 		/** The files page. */
 		CWavEditorFilesPage *								m_pwefpFiles = nullptr;
 
+
+		// == Functions.
+		/**
+		 * Fills a combo box with metadata.
+		 * 
+		 * \param _pwCombo The combo box to fill.
+		 * \param _vMetadata The metadata to use to fill the combo box.
+		 * \return Returns true if _pwCombo is a valid pointer to a combo box and _vMetadata is not empty.
+		 **/
+		bool												FillComboWithMetadata( CWidget * _pwCombo, const std::vector<CWavEditor::LSN_METADATA> &_vMetadata );
+
+		/**
+		 * Gets an array of pages to update on text-editing for the 0th page.
+		 * 
+		 * \param _vPages Holds the returned array of pages to update.
+		 **/
+		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages );
+
 	private :
 		typedef CWavEditorWindowLayout						Layout;
 		typedef lsw::CWidget								Parent;

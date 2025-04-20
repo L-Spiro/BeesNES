@@ -213,10 +213,46 @@ namespace lsw {
 		size_t sCnt = 0;
 		for ( auto I = m_tRoot.Size(); I--; ) {
 			m_tRoot.GetChild( I )->Value().uiState |= TVIS_SELECTED;
+			++sCnt;
 		}
 
 		UpdateListView();
 		return sCnt;
+	}
+
+	/**
+	 * Sets the selection based on item data.
+	 * 
+	 * \param _pData The LPARAM value to use to decide on selection.
+	 * \return Returns the number of items selected.
+	 **/
+	INT CTreeListView::SetCurSelByItemData( LPARAM _pData ) {
+		ClearCache();
+		size_t sCnt = 0;
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
+		while ( ptNode ) {
+			if ( ptNode->Value().lpParam == _pData ) {
+				ptNode->Value().uiState |= TVIS_SELECTED;
+				++sCnt;
+			}
+			ptNode = Next( ptNode );
+		}
+
+		UpdateListView();
+		return INT( sCnt );
+	}
+
+	/**
+	 * Unselects all items.
+	 **/
+	void CTreeListView::UnselectAll() {
+		ClearCache();
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
+		while ( ptNode ) {
+			ptNode->Value().uiState &= ~TVIS_SELECTED;
+			ptNode = Next( ptNode );
+		}
+		UpdateListView();
 	}
 
 	/**
@@ -409,6 +445,23 @@ namespace lsw {
 	}
 
 	/**
+	 * Gathers all LPARAM values of every tree item into an array.
+	 * 
+	 * \param _vReturn The array into which to gather the return values.
+	 * \param _bIncludeNonVisible If true, non-expanded items are also searched.
+	 * \return Returns the total number of items gathered (_vReturn.size()).
+	 **/
+	size_t CTreeListView::GatherAllLParam( std::vector<LPARAM> &_vReturn, bool _bIncludeNonVisible ) const {
+		_vReturn.clear();
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
+		while ( ptNode ) {
+			_vReturn.push_back( ptNode->Value().lpParam );
+			ptNode = _bIncludeNonVisible ? Next( ptNode ) : NextByExpansion( ptNode );
+		}
+		return _vReturn.size();
+	}
+
+	/**
 	 * Gets the index of the highlighted item or returns size_t( -1 ).
 	 *
 	 * \return Returs the index of the highlighted item or size_t( -1 ) if there is none.
@@ -424,17 +477,6 @@ namespace lsw {
 			++stIdx;
 		}
 		return size_t( -1 );
-	}
-
-	/**
-	 * Unselects all.
-	 */
-	void CTreeListView::UnselectAll() {
-		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = Next( nullptr );
-		while ( ptNode ) {
-			ptNode->Value().uiState &= ~TVIS_SELECTED;
-			ptNode = Next( ptNode );
-		}
 	}
 
 	/**

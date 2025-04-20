@@ -178,6 +178,27 @@ namespace lsn {
 			return true;
 		}
 
+		/**
+		 * Reads a line from the loaded memory.  Lines are terminated with \n.  \r characters are ignored.
+		 * 
+		 * \param _sString Holds the return string.
+		 * \return Returns false if there are no characters left to read into the string.
+		 **/
+		virtual bool								ReadLine( std::string &_sString ) const {
+			try {
+				_sString.clear();
+				if ( m_stPos >= m_vStream.size() ) { return false; }
+				while ( m_stPos < m_vStream.size() ) {
+					char cChar;
+					if ( !Read<char>( cChar ) ) { return false; }
+					if ( cChar == '\r' ) { continue; }
+					if ( cChar == '\n' ) { return true; }
+					_sString += cChar;
+				}
+			} catch ( ... ) {}
+			return true;
+		}
+
 
 		// ========
 		// WRITING

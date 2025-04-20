@@ -258,6 +258,7 @@
 #define LSN_WE_LOOPS														Looping/One-Shot
 #define LSN_WE_START_TIME													Start Time:
 #define LSN_WE_END_TIME														End Time:
+#define LSN_WE_STOP_TIME													Stop Time:
 #define LSN_WE_OPENING_SIL													Opening Silence:
 #define LSN_WE_TRAIL														Trailing Silence:
 #define LSN_WE_SECONDS														Seconds
@@ -338,6 +339,22 @@
 #define LSN_WE_OUTPUT_ERR_OUT_HZ											The output Hz must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_OUT_HZ_NEGATIVE									The output Hz expression must result in a value between 1 and 4,294,967,295 inclusively.
 #define LSN_WE_OUTPUT_ERR_OUT_PATH_EMPTY									No output folder provided.
+
+#define LSN_WE_OUTPUT_ERR_SEQ_START_TIME									The track\u2019s starting point must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_START_TIME_NEG								The track\u2019s starting point expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SEQ_FULL_END_TIME									The track\u2019s maximum end point must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_FULL_END_TIME_LESS_THAN						The track\u2019s maximum end point must be larger than the starting point.
+#define LSN_WE_OUTPUT_ERR_SEQ_END_TIME										The track\u2019s stopping point must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_END_TIME_NEG									The track\u2019s stopping point expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SEQ_DEL_TIME										The track\u2019s delay time must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_DEL_TIME_NEG									The track\u2019s delay time expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SEQ_FAD_TIME										The track\u2019s fade time must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_FAD_TIME_NEG									The track\u2019s fade time expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SEQ_TOO_LONG										The track\u2019s duration is larger than the full source range specified by the Start Time and End Time.
+#define LSN_WE_OUTPUT_ERR_SEQ_OPEN_TIME										The track\u2019s opening-sience must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_OPEN_NEG										The track\u2019s opening-sience expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SEQ_TRAIL_TIME									The track\u2019s trailing-sience must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SEQ_TRAIL_NEG										The track\u2019s trailing-sience expression must result in a non-negative value.
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

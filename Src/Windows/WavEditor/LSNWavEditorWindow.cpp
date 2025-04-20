@@ -33,6 +33,16 @@ namespace lsn {
 		m_wewoWindowOptions = m_poOptions->wewoWavEditorWindow;
 	}
 	CWavEditorWindow::~CWavEditorWindow() {
+		for ( auto J = m_vSequencePages.size(); J--; ) {
+			delete m_vSequencePages[J];
+			m_vSequencePages.erase( m_vSequencePages.begin() + J );
+		}
+		for ( auto J = m_vSettingsPages.size(); J--; ) {
+			delete m_vSettingsPages[J];
+			m_vSettingsPages.erase( m_vSettingsPages.begin() + J );
+		}
+		delete m_pwefFiles;
+		delete m_pweopOutput;
 	}
 
 
@@ -233,6 +243,21 @@ namespace lsn {
 	void CWavEditorWindow::Remove( const std::vector<LPARAM> &_vIds ) {
 		for ( auto I = _vIds.size(); I--; ) {
 			m_weEditor.RemoveFile( uint32_t( _vIds[I] ) );
+			
+			if ( uint32_t( _vIds[I] ) ) {
+				for ( auto J = m_vSequencePages.size(); J--; ) {
+					if ( m_vSequencePages[J]->UniqueId() == uint32_t( _vIds[I] ) ) {
+						delete m_vSequencePages[J];
+						m_vSequencePages.erase( m_vSequencePages.begin() + J );
+					}
+				}
+				for ( auto J = m_vSettingsPages.size(); J--; ) {
+					if ( m_vSettingsPages[J]->UniqueId() == uint32_t( _vIds[I] ) ) {
+						delete m_vSettingsPages[J];
+						m_vSettingsPages.erase( m_vSettingsPages.begin() + J );
+					}
+				}
+			}
 		}
 		Update();
 	}
@@ -267,14 +292,91 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the texts of all sequencer edits of the given ID.
+	 * 
+	 * \param _wId The ID of the edits to update.
+	 * \param _wsText The text to apply.
+	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 **/
+	void CWavEditorWindow::SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
+		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
+		for ( auto I = m_vSequencePages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					pwEdit->SetTextW( _wsText.c_str() );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sets the check state of all sequencer checks/radio of the given ID.
+	 * 
+	 * \param _wId The ID of the edits to update.
+	 * \param _bChecked to check or not.
+	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 **/
+	void CWavEditorWindow::SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
+		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
+		for ( auto I = m_vSequencePages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					pwEdit->SetCheck( _bChecked );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sets the texts of all settings edits of the given ID.
+	 * 
+	 * \param _wId The ID of the edits to update.
+	 * \param _wsText The text to apply.
+	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 **/
+	void CWavEditorWindow::SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
+		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					pwEdit->SetTextW( _wsText.c_str() );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sets the check state of all settings checks/radio of the given ID.
+	 * 
+	 * \param _wId The ID of the edits to update.
+	 * \param _bChecked to check or not.
+	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 **/
+	void CWavEditorWindow::SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
+		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					pwEdit->SetCheck( _bChecked );
+				}
+			}
+		}
+	}
+
+	/**
 	 * Updates the window.
 	 **/
 	void CWavEditorWindow::Update() {
+		
 		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
 			std::vector<LPARAM> vSelected;
 			ptlTree->GatherSelectedLParam( vSelected );
-			// Remove nested selecttions.
+			// Remove nested selections.
 			for ( auto I = vSelected.size(); I--; ) {
 				if ( vSelected[I] & 0x80000000 ) {
 					vSelected.erase( vSelected.begin() + I );
@@ -318,7 +420,7 @@ namespace lsn {
 						}
 						
 						if ( I != vSelected.size() ) {
-							wsGroupSeq += L"c";
+							wsGroupSeq += L"\u2026";
 						}
 					}
 					else {
@@ -347,7 +449,7 @@ namespace lsn {
 						}
 						
 						if ( I != vSelected.size() ) {
-							wsGroupSeq += L"c";
+							wsGroupSeq += L"\u2026";
 						}
 					}
 					else {
@@ -368,6 +470,13 @@ namespace lsn {
 					}
 				}
 			}
+		}
+
+		if ( m_pwefFiles ) {
+			m_pwefFiles->Update();
+		}
+		if ( m_pweopOutput ) {
+			m_pweopOutput->Update();
 		}
 	}
 
@@ -410,6 +519,12 @@ namespace lsn {
 			if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
 				// TODO: Select file I-1.
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->UnselectAll();
+					ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+				}
+				Update();
 				pwBaddy->SetFocus();
 				return false;
 			}
@@ -419,6 +534,12 @@ namespace lsn {
 			if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
 				// TODO: Select file I-1.
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->UnselectAll();
+					ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+				}
+				Update();
 				pwBaddy->SetFocus();
 				return false;
 			}

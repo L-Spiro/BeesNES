@@ -11,6 +11,7 @@
 #include "LSNWavEditorSequencingPage.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
+#include "LSNWavEditorWindow.h"
 
 #include <CheckButton/LSWCheckButton.h>
 #include <ComboBox/LSWComboBox.h>
@@ -84,57 +85,119 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CWavEditorSequencingPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CWavEditorSequencingPage::Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
-			/*case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
-
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
-
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+			case Layout::LSN_WEWI_SEQ_START_COMBO : {
+				switch ( _wCtrlCode ) {
+					case CBN_SELCHANGE : {
+						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
+						if ( pcbCombo ) {
+							auto aSelected = pcbCombo->GetCurSelItemData();
+							if ( m_pweEditor ) {
+								auto pwsSet = m_pweEditor->WavById( UniqueId() );
+								if ( pwsSet && size_t( aSelected ) < pwsSet->vMetadata.size() ) {
+									auto sText = std::format( "{:.35g}", pwsSet->vMetadata[aSelected].dTime );
+									auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+									if ( pwThis ) {
+										pwThis->SetTextA( sText.c_str() );
+									}
+								}
+							}
+						}
+						break;
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
 				break;
 			}
-			case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
-
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
-
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+			case Layout::LSN_WEWI_SEQ_END_COMBO : {
+				switch ( _wCtrlCode ) {
+					case CBN_SELCHANGE : {
+						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
+						if ( pcbCombo ) {
+							auto aSelected = pcbCombo->GetCurSelItemData();
+							if ( m_pweEditor ) {
+								auto pwsSet = m_pweEditor->WavById( UniqueId() );
+								if ( pwsSet && size_t( aSelected ) < pwsSet->vMetadata.size() ) {
+									auto sText = std::format( "{:.35g}", pwsSet->vMetadata[aSelected].dTime );
+									auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+									if ( pwThis ) {
+										pwThis->SetTextA( sText.c_str() );
+									}
+								}
+							}
+						}
+						break;
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
 				break;
-			}*/
-
+			}
+			case Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO : {
+				switch ( _wCtrlCode ) {
+					case CBN_SELCHANGE : {
+						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
+						if ( pcbCombo ) {
+							auto aSelected = pcbCombo->GetCurSelItemData();
+							if ( m_pweEditor ) {
+								auto pwsSet = m_pweEditor->WavById( UniqueId() );
+								if ( pwsSet && size_t( aSelected ) < pwsSet->vMetadata.size() ) {
+									auto sText = std::format( "{:.35g}", pwsSet->vMetadata[aSelected].dTime );
+									auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+									if ( pwThis ) {
+										pwThis->SetTextA( sText.c_str() );
+									}
+								}
+							}
+						}
+						break;
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_START_EDIT : {}
+			case Layout::LSN_WEWI_SEQ_END_EDIT : {}
+			case Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT : {}	LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE ) {
+					if ( UniqueId() == 0 ) {
+						// Update all or update selected.
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						auto wsText = pwThis ? pwThis->GetTextW() : L"";
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqEditTexts( _wId, wsText, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_LOOP_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_LOOP_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
 			
 		}
 		Update();
@@ -147,9 +210,83 @@ namespace lsn {
 	 * \param _wsMsg The error message to display.
 	 * \return Returns the control that failed or nullptr.
 	 **/
-	CWidget * CWavEditorSequencingPage::Verify( std::wstring &/*_wsMsg*/ ) {
-		
+	CWidget * CWavEditorSequencingPage::Verify( std::wstring &_wsMsg ) {
+#define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
+	auto wCheckTmp = FindChild( Layout::ID );									\
+	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
 
+		CWidget * pwWidget = nullptr;
+#define LSN_CHECK_EDIT( ID, MSG )		{										\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
+		_wsMsg = MSG;															\
+		return pwWidget;														\
+	} }
+
+		bool bChecked;
+		double dStartTime = 0.0, dFullEndTime = 0.0, dStopTime = 0.0, dFinalDur = 0.0;
+		ee::CExpEvalContainer::EE_RESULT eTest;
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_START_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_START_TIME ) );
+		if ( eTest.u.dVal < 0.0 ) {
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_START_TIME_NEG );
+			return pwWidget;
+		}
+		dStartTime = eTest.u.dVal;
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_END_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_FULL_END_TIME ) );
+		if ( eTest.u.dVal <= dStartTime ) {
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_FULL_END_TIME_LESS_THAN );
+			return pwWidget;
+		}
+		dFullEndTime = eTest.u.dVal;
+		double dMaxDur = dFullEndTime - dStartTime;
+
+
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_LOOPS_END_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_END_TIME ) );
+		if ( eTest.u.dVal < 0.0 ) {
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_END_TIME_NEG );
+			return pwWidget;
+		}
+
+		dStopTime = eTest.u.dVal;
+
+		dFinalDur = dStopTime - dStartTime;
+		LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, bChecked );
+		if ( bChecked ) {
+			LSN_CHECK_EDIT( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_DEL_TIME ) );
+			if ( eTest.u.dVal < 0.0 ) {
+				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_DEL_TIME_NEG );
+				return pwWidget;
+			}
+			dFinalDur += eTest.u.dVal;
+
+			LSN_CHECK_EDIT( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_FAD_TIME ) );
+			if ( eTest.u.dVal < 0.0 ) {
+				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_FAD_TIME_NEG );
+				return pwWidget;
+			}
+			dFinalDur += eTest.u.dVal;
+		}
+
+		if ( dFinalDur - dMaxDur > DBL_EPSILON ) {
+			pwWidget = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_TOO_LONG );
+			return pwWidget;
+		}
+
+
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_OPEN_TIME ) );
+		if ( eTest.u.dVal < 0.0 ) {
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_OPEN_NEG );
+			return pwWidget;
+		}
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_TRAIL_TIME ) );
+		if ( eTest.u.dVal < 0.0 ) {
+			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_TRAIL_NEG );
+			return pwWidget;
+		}
+
+#undef LSN_CHECK_EDIT
+#undef LSN_CHECKED
 		return nullptr;
 	}
 
@@ -335,6 +472,118 @@ namespace lsn {
 			if ( pwThis ) {
 				pwThis->SetTextW( std::format( L"{:.27g}", double( pwfsSet->wfFile.ui64Samples ) / pwfsSet->wfFile.fcFormat.uiSampleRate ).c_str() );
 			}
+
+
+
+			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_START_COMBO ));
+			if ( pcbCombo ) {
+				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
+					pcbCombo->ResetContent();
+				}
+				else {
+					pcbCombo->SetCurSelByItemData( 0 );
+					auto aSelected = pcbCombo->GetCurSelItemData();
+					if ( aSelected != CB_ERR && size_t( aSelected ) < pwfsSet->vMetadata.size() ) {
+						auto sText = std::format( "{:.35g}", pwfsSet->vMetadata[aSelected].dTime );
+						pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+						if ( pwThis ) {
+							pwThis->SetTextA( sText.c_str() );
+						}
+					}
+				}
+			}
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_END_COMBO ));
+			if ( pcbCombo ) {
+				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
+					pcbCombo->ResetContent();
+				}
+				else {
+					pcbCombo->SetCurSelByItemData( pwfsSet->vMetadata.size() - 1 );
+					auto aSelected = pcbCombo->GetCurSelItemData();
+					if ( aSelected != CB_ERR && size_t( aSelected ) < pwfsSet->vMetadata.size() ) {
+						auto sText = std::format( "{:.35g}", pwfsSet->vMetadata[aSelected].dTime );
+						pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+						if ( pwThis ) {
+							pwThis->SetTextA( sText.c_str() );
+						}
+					}
+				}
+			}
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO ));
+			if ( pcbCombo ) {
+				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
+					pcbCombo->ResetContent();
+				}
+			}
+
+
+
+			
+		}
+	}
+
+	/**
+	 * Fills a combo box with metadata.
+	 * 
+	 * \param _pwCombo The combo box to fill.
+	 * \param _vMetadata The metadata to use to fill the combo box.
+	 * \return Returns true if _pwCombo is a valid pointer to a combo box and _vMetadata is not empty.
+	 **/
+	bool CWavEditorSequencingPage::FillComboWithMetadata( CWidget * _pwCombo, const std::vector<CWavEditor::LSN_METADATA> &_vMetadata ) {
+		if ( !_pwCombo ) { return false; }
+		if ( !_vMetadata.size() ) { return false; }
+		try {
+			auto pcbCombo = static_cast<CComboBox *>(_pwCombo);
+			size_t sDigits = size_t( std::ceil( std::log10( _vMetadata.size() + 1 ) ) );
+			for ( size_t I = 0; I < _vMetadata.size(); ++I ) {
+				std::ostringstream ossTmp;
+				ossTmp << std::setw( sDigits ) << std::setfill( '0' ) << _vMetadata[I].ui32Idx;
+
+				auto sTmp = std::format( "{}: {:.30g} {}", ossTmp.str(), _vMetadata[I].dTime, _vMetadata[I].sText );
+				INT iIdx = pcbCombo->AddString( sTmp.c_str() );
+				if ( iIdx != CB_ERR ) {
+					pcbCombo->SetItemData( iIdx, I );
+				}
+			}
+			pcbCombo->AutoSetMinListWidth();
+		}
+		catch ( ... ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Gets an array of pages to update on text-editing for the 0th page.
+	 * 
+	 * \param _vPages Holds the returned array of pages to update.
+	 **/
+	void CWavEditorSequencingPage::GetPagesToUpdate( std::vector<LPARAM> &_vPages ) {
+		_vPages.clear();
+		if ( UniqueId() != 0 || !m_pwefpFiles ) {
+			_vPages.push_back( UniqueId() );
+			return;
+		}
+		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefpFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+		if ( ptlTree ) {
+			ptlTree->GatherSelectedLParam( _vPages, true );
+			// Remove extra WAVS and metadata.
+			for ( auto I = _vPages.size(); I--; ) {
+				if ( _vPages[I] & 0x80000000 ) {
+					_vPages.erase( _vPages.begin() + I );
+				}
+			}
+
+			// If the array is empty, we are updating all pages.
+			if ( !_vPages.size() ) {
+				ptlTree->GatherAllLParam( _vPages, true );
+				// Remove extra WAVS and metadata.
+				for ( auto I = _vPages.size(); I--; ) {
+					if ( _vPages[I] & 0x80000000 ) {
+						_vPages.erase( _vPages.begin() + I );
+					}
+				}
+			}
+
+			// Whatever is left should be updated, even if there is nothing left.
 		}
 	}
 

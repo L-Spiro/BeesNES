@@ -808,6 +808,20 @@ namespace lsw {
 		virtual LSW_HANDLED					SysCommand( WORD /*_wCommand*/, int /*_iMouseX*/, int /*_iMouseY*/ ) { return LSW_H_CONTINUE; }
 
 		/**
+		 * Requesting information (notification responder).
+		 *
+		 * \return Returns TRUE.
+		 **/
+		virtual BOOL						GetDispInfoNotify( NMLVDISPINFOW * /*_plvdiInfo*/ ) { return FALSE; }
+
+		/**
+		 * Requesting information (notification responder).
+		 *
+		 * \return Returns TRUE.
+		 **/
+		virtual BOOL						GetDispInfoNotify( NMCOMBOBOXEXW * /*_plvdiInfo*/ ) { return FALSE; }
+
+		/**
 		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
 		 *
 		 * \param _lplvParm The notifacation structure.

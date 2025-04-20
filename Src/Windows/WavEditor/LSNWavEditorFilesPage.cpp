@@ -41,9 +41,9 @@ namespace lsn {
 		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_WE_FILES ), 0 );
-			ptlTree->SetColumnWidth( 0, 350 );
+			ptlTree->SetColumnWidth( 0, 300 );
 			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 180, -1 );
-			ptlTree->SetColumnWidth( 1, 550 );
+			ptlTree->SetColumnWidth( 1, 250 );
 		}
 
 		Update();
@@ -124,12 +124,12 @@ namespace lsn {
 					if ( ptlTree ) {
 						std::vector<LPARAM> vSelected;
 						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
-							static_cast<CWavEditorWindow *>(m_pwParent)->Remove( vSelected );
 							ptlTree->BeginLargeUpdate();
 							for ( auto I = vSelected.size(); I--; ) {
 								ptlTree->DeleteByLParam( vSelected[I] );
 							}
 							ptlTree->FinishUpdate();
+							static_cast<CWavEditorWindow *>(m_pwParent)->Remove( vSelected );
 						}
 					}
 				}
@@ -141,8 +141,8 @@ namespace lsn {
 					if ( ptlTree ) {
 						std::vector<LPARAM> vSelected;
 						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
-							static_cast<CWavEditorWindow *>(m_pwParent)->MoveUp( vSelected );
 							ptlTree->MoveUp( vSelected );
+							static_cast<CWavEditorWindow *>(m_pwParent)->MoveUp( vSelected );
 						}
 					}
 				}
@@ -154,8 +154,8 @@ namespace lsn {
 					if ( ptlTree ) {
 						std::vector<LPARAM> vSelected;
 						if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
-							static_cast<CWavEditorWindow *>(m_pwParent)->MoveDown( vSelected );
 							ptlTree->MoveDown( vSelected );
+							static_cast<CWavEditorWindow *>(m_pwParent)->MoveDown( vSelected );
 						}
 					}
 				}
@@ -239,7 +239,6 @@ namespace lsn {
 			std::vector<LPARAM> vSelected;
 			ptlTree->GatherSelectedLParam( vSelected, true );
 			static_cast<CWavEditorWindow *>(m_pwParent)->SelectionChanged( vSelected );
-			Update();
 			Update();
 		}
 		return LSW_H_CONTINUE;

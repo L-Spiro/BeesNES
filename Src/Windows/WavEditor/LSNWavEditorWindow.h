@@ -100,6 +100,42 @@ namespace lsn {
 		void												SelectionChanged( const std::vector<LPARAM> &_vIds );
 
 		/**
+		 * Sets the texts of all sequencer edits of the given ID.
+		 * 
+		 * \param _wId The ID of the edits to update.
+		 * \param _wsText The text to apply.
+		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 **/
+		void												SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
+		 * Sets the check state of all sequencer checks/radio of the given ID.
+		 * 
+		 * \param _wId The ID of the edits to update.
+		 * \param _bChecked to check or not.
+		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 **/
+		void												SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
+		 * Sets the texts of all settings edits of the given ID.
+		 * 
+		 * \param _wId The ID of the edits to update.
+		 * \param _wsText The text to apply.
+		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 **/
+		void												SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
+		 * Sets the check state of all settings checks/radio of the given ID.
+		 * 
+		 * \param _wId The ID of the edits to update.
+		 * \param _bChecked to check or not.
+		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 **/
+		void												SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
 		 * Updates the window.
 		 **/
 		void												Update();

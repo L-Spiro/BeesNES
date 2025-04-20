@@ -1,5 +1,6 @@
 #include "LSWWidget.h"
 #include "../Base/LSWBase.h"
+#include "../ComboBox/LSWComboBoxEx.h"
 #include "../Docking/LSWDockable.h"
 #include "../ListView/LSWListView.h"
 #include "../Tab/LSWTab.h"
@@ -1197,6 +1198,20 @@ namespace lsw {
 			case WM_NOTIFY : {
 				LPNMHDR lpHdr = reinterpret_cast<LPNMHDR>(_lParam);
 				switch ( lpHdr->code ) {
+					case CBEN_GETDISPINFOW : {
+						PNMCOMBOBOXEXW plvdiInfo = reinterpret_cast<PNMCOMBOBOXEXW>(_lParam);
+						HWND hFrom = plvdiInfo->hdr.hwndFrom;
+						CWidget * pmwTemp = LSW_WIN2CLASS( hFrom );
+						if ( pmwTemp ) {
+							CComboBoxEx * pcbView = static_cast<CComboBoxEx *>(pmwTemp);
+							if ( !pcbView->GetDispInfoNotify( plvdiInfo ) ) {
+								if ( pmwTemp->Parent() ) {
+									pmwTemp->Parent()->GetDispInfoNotify( plvdiInfo );
+								}
+							}
+						}
+						LSW_RET( 1, TRUE );
+					}
 					case LVN_COLUMNCLICK : {
 						LPNMLISTVIEW plvListView = reinterpret_cast<LPNMLISTVIEW>(_lParam);
 						HWND hFrom = plvListView->hdr.hwndFrom;
