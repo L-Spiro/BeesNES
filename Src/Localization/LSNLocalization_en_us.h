@@ -244,7 +244,9 @@
 #define LSN_WE_FILES														Files
 #define LSN_WE_FILES_DESC													Channels: {}; Dur: {:.7f}; Hz: {}
 #define LSN_WE_FILE_SETTINGS												Per-File Settings
+#define LSN_WE_FILE_SETTINGS_ALL											Per-File Settings (All Files)
 #define LSN_WE_SEQUENCING													Per-File Sequencing
+#define LSN_WE_SEQUENCING_ALL												Per-File Sequencing (All Files)
 #define LSN_WE_OUTPUT														Output
 #define LSN_WE_ADD_WAV														Add .WAV Files
 #define LSN_WE_ADD_METADATA													Add Metadata
@@ -355,6 +357,14 @@
 #define LSN_WE_OUTPUT_ERR_SEQ_OPEN_NEG										The track\u2019s opening-sience expression must result in a non-negative value.
 #define LSN_WE_OUTPUT_ERR_SEQ_TRAIL_TIME									The track\u2019s trailing-sience must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_SEQ_TRAIL_NEG										The track\u2019s trailing-sience expression must result in a non-negative value.
+
+#define LSN_WE_OUTPUT_ERR_SET_NO_NAME										The track must be given a name.
+#define LSN_WE_OUTPUT_ERR_SET_BAD_SR										The track\u2019s sample rate must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SET_SR_NEG										The track\u2019s sample-rate expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SET_BAD_HZ										The filter cut-off frequency must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SET_HZ_NEG										The filter-cut\u2013off-frequency expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SET_FALLOFF_BAD									The filter fall-off rate must be a valid expression.
+#define LSN_WE_OUTPUT_ERR_SET_FALLOFF_POS									The filter-fall\u2013off-rate expression must result in a negative value.
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

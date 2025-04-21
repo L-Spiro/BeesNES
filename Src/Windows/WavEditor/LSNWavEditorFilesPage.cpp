@@ -41,9 +41,9 @@ namespace lsn {
 		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_WE_FILES ), 0 );
-			ptlTree->SetColumnWidth( 0, 300 );
-			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 180, -1 );
-			ptlTree->SetColumnWidth( 1, 250 );
+			ptlTree->SetColumnWidth( 0, 284 );
+			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 240, -1 );
+			//ptlTree->SetColumnWidth( 1, 246 );
 		}
 
 		Update();

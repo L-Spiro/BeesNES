@@ -222,11 +222,16 @@ namespace lsn {
 			if ( !pwSeqPage ) { return false; }
 			m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
 			static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
+			//if ( m_vSequencePages.size() == 2 ) {
+				// Populate the 0th page.
+				m_vSequencePages[0]->Activate();
+			//}
 
 			CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
 			if ( !pwSettingsPage ) { return false; }
 			m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
 			static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
+			m_vSettingsPages[0]->Activate();
 
 			::MoveWindow( pwSeqPage->Wnd(), m_rSeqRect.left, m_rSeqRect.top, m_rSeqRect.Width(), m_rSeqRect.Height(), TRUE );
 			::MoveWindow( pwSettingsPage->Wnd(), m_rSetRect.left, m_rSetRect.top, m_rSetRect.Width(), m_rSetRect.Height(), TRUE );
@@ -288,7 +293,7 @@ namespace lsn {
 	 * \param _vIds The now-selected ID's.
 	 **/
 	void CWavEditorWindow::SelectionChanged( const std::vector<LPARAM> &/*_vIds*/ ) {
-		Update();
+		Update( true );
 	}
 
 	/**
@@ -368,9 +373,168 @@ namespace lsn {
 	}
 
 	/**
-	 * Updates the window.
+	 * Sets the combo selections of all settings combos of the given ID.
+	 * 
+	 * \param _wId The ID of the combos to update.
+	 * \param _lpSelection The data to select within each combo box.
+	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 * \param _lpBadSel In the case of conflicting data selections, this selection is returned.
 	 **/
-	void CWavEditorWindow::Update() {
+	void CWavEditorWindow::SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe ) {
+		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwCombo = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwCombo ) {
+					pwCombo->SetCurSelByItemData( _lpSelection );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+	 * 
+	 * \param _wId The ID of the edit controls to inspect on each page.
+	 * \param _vPages The pages to inspect for a string.
+	 * \return Returns the string to set based on the contents of each edit in each page.
+	 **/
+	std::wstring CWavEditorWindow::GetAllSeqEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages ) {
+		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+		bool bFoundOne = false;
+		std::wstring wsOut;
+		for ( auto I = m_vSequencePages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					if ( !bFoundOne ) {
+						wsOut = pwEdit->GetTextW();
+						bFoundOne = true;
+					}
+					else {
+						auto wsTmp = pwEdit->GetTextW();
+						if ( wsTmp != wsOut ) { return std::wstring(); }
+					}
+				}
+			}
+		}
+		return wsOut;
+	}
+
+	/**
+	 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+	 * 
+	 * \param _wId The ID of the edit controls to inspect on each page.
+	 * \param _vPages The pages to inspect for a string.
+	 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+	 **/
+	bool CWavEditorWindow::GetAllSeqCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
+		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+		for ( auto I = m_vSequencePages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwCheck = m_vSequencePages[I]->FindChild( _wId );
+				if ( pwCheck ) {
+					if ( pwCheck->IsChecked() ) { return true; }
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+	 * 
+	 * \param _wId The ID of the edit controls to inspect on each page.
+	 * \param _vPages The pages to inspect for a string.
+	 * \return Returns the string to set based on the contents of each edit in each page.
+	 **/
+	std::wstring CWavEditorWindow::GetAllSettingsEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages ) {
+		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+		bool bFoundOne = false;
+		std::wstring wsOut;
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwEdit ) {
+					if ( !bFoundOne ) {
+						wsOut = pwEdit->GetTextW();
+						bFoundOne = true;
+					}
+					else {
+						auto wsTmp = pwEdit->GetTextW();
+						if ( wsTmp != wsOut ) { return std::wstring(); }
+					}
+				}
+			}
+		}
+		return wsOut;
+	}
+
+	/**
+	 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+	 * 
+	 * \param _wId The ID of the edit controls to inspect on each page.
+	 * \param _vPages The pages to inspect for a string.
+	 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+	 **/
+	int CWavEditorWindow::GetAllSettingsCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
+		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+		bool bFoundOne = false;
+		int iValue;
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwCheck = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwCheck ) {
+					if ( !bFoundOne ) {
+						iValue = pwCheck->IsChecked() ? BST_CHECKED : BST_UNCHECKED;
+						bFoundOne = true;
+					}
+					else {
+						int iTmp = pwCheck->IsChecked() ? BST_CHECKED : BST_UNCHECKED;
+						if ( iValue != iTmp ) { return BST_INDETERMINATE; }
+					}
+				}
+			}
+		}
+		return iValue;
+	}
+
+	/**
+	 * Gets the selected item of each combobox across all pages.  If they are the same, the value is returned, otherwise _lpBad is returned.
+	 * 
+	 * \param _wId The ID of the combobox controls to inspect on each page.
+	 * \param _vPages The pages to inspect for a string.
+	 * \param _lpBad The value to return upon inconsistent combobox selections.
+	 * \return Returns the combobox data selection if all combos match, otherwise _lpBad.
+	 **/
+	LPARAM CWavEditorWindow::GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages, LPARAM _lpBad ) {
+		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+		bool bFoundOne = false;
+		LPARAM lpValue = _lpBad;
+		for ( auto I = m_vSettingsPages.size(); I--; ) {
+			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+				auto pwComboBox = m_vSettingsPages[I]->FindChild( _wId );
+				if ( pwComboBox ) {
+					if ( !bFoundOne ) {
+						lpValue = pwComboBox->GetCurSelItemData();
+						bFoundOne = true;
+					}
+					else {
+						if ( lpValue != pwComboBox->GetCurSelItemData() ) { return _lpBad; }
+					}
+				}
+			}
+		}
+		return lpValue;
+	}
+		
+	/**
+	 * Updates the window.
+	 * 
+	 * \param _bSelchanged If true, thew newly focused sequencer page will receive a notification to tell it that it has just become active, which it will use
+	 *	to gather the text from all the pages it affects to decide how to fill in its own edit texts.
+	 **/
+	void CWavEditorWindow::Update( bool _bSelchanged ) {
 		
 		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
@@ -424,7 +588,7 @@ namespace lsn {
 						}
 					}
 					else {
-						wsGroupSeq = LSN_LSTR( LSN_WE_SEQUENCING );
+						wsGroupSeq = LSN_LSTR( LSN_WE_SEQUENCING_ALL );
 					}
 					pwGroup->SetTextW( wsGroupSeq.c_str() );
 				}
@@ -453,7 +617,7 @@ namespace lsn {
 						}
 					}
 					else {
-						wsGroupSeq = LSN_LSTR( LSN_WE_FILE_SETTINGS );
+						wsGroupSeq = LSN_LSTR( LSN_WE_FILE_SETTINGS_ALL );
 					}
 					pwGroup->SetTextW( wsGroupSeq.c_str() );
 				}
@@ -461,11 +625,17 @@ namespace lsn {
 
 				for ( auto I = m_vSequencePages.size(); I--; ) {
 					if ( m_vSequencePages[I]->Visible() ) {
+						if ( _bSelchanged && m_vSequencePages[I]->UniqueId() == 0 ) {
+							m_vSequencePages[I]->Activate();
+						}
 						m_vSequencePages[I]->Update();
 					}
 				}
 				for ( auto I = m_vSettingsPages.size(); I--; ) {
 					if ( m_vSettingsPages[I]->Visible() ) {
+						if ( _bSelchanged && m_vSettingsPages[I]->UniqueId() == 0 ) {
+							m_vSettingsPages[I]->Activate();
+						}
 						m_vSettingsPages[I]->Update();
 					}
 				}

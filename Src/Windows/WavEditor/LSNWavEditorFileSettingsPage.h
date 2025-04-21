@@ -89,6 +89,11 @@ namespace lsn {
 		 **/
 		void												Update();
 
+		/**
+		 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+		 **/
+		void												Activate();
+
 
 	protected :
 		// == Members.
@@ -100,6 +105,17 @@ namespace lsn {
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 		/** The files page. */
 		CWavEditorFilesPage *								m_pwefpFiles = nullptr;
+		/** Settings edits and checks internally. */
+		bool												m_bInternalUpdate = false;
+
+
+		// == Functions.
+		/**
+		 * Gets an array of pages to update on text-editing for the 0th page.
+		 * 
+		 * \param _vPages Holds the returned array of pages to update.
+		 **/
+		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages );
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;

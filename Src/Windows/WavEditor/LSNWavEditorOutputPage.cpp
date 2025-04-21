@@ -166,7 +166,7 @@ namespace lsn {
 	pwWidget = FindChild( Layout::ID );											\
 	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
 		_wsMsg = MSG;															\
-		return pwWidget;														\
+		return pwWidget ? pwWidget : this;										\
 	} }
 
 		bool bChecked;

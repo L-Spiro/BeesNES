@@ -92,6 +92,11 @@ namespace lsn {
 		void												Update();
 
 		/**
+		 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+		 **/
+		void												Activate();
+
+		/**
 		 * Fills combo boxes with metadata or removes metadata from them.
 		 **/
 		void												FillCombos();
@@ -107,6 +112,8 @@ namespace lsn {
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 		/** The files page. */
 		CWavEditorFilesPage *								m_pwefpFiles = nullptr;
+		/** Settings edits and checks internally. */
+		bool												m_bInternalUpdate = false;
 
 
 		// == Functions.

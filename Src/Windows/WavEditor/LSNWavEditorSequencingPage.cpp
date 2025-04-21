@@ -40,7 +40,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CWavEditorSequencingPage::InitDialog() {
 		Parent::InitDialog();
-
+		m_bInternalUpdate = true;
 		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_WE_OPERATIONS ), 0 );
@@ -72,7 +72,11 @@ namespace lsn {
 
 		auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
 		if ( pwWarning ) {
+			/*pwWarning->SetIcons( NULL,
+				reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WARNING_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT | LR_DEFAULTSIZE | LR_SHARED )) );*/
+			::SendMessageW( pwWarning->Wnd(), STM_SETIMAGE, IMAGE_ICON, reinterpret_cast<LPARAM>(reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WARNING_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT | LR_DEFAULTSIZE | LR_SHARED ))) );
 		}
+		m_bInternalUpdate = false;
 		Update();
 		return LSW_H_CONTINUE;
 	}
@@ -161,7 +165,7 @@ namespace lsn {
 			case Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT : {}	LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
-					if ( UniqueId() == 0 ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
 						// Update all or update selected.
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
@@ -174,7 +178,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_LOOP_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -187,7 +191,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -220,7 +224,7 @@ namespace lsn {
 	pwWidget = FindChild( Layout::ID );											\
 	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
 		_wsMsg = MSG;															\
-		return pwWidget;														\
+		return pwWidget ? pwWidget : this;										\
 	} }
 
 		bool bChecked;
@@ -390,14 +394,10 @@ namespace lsn {
 														double dFullEnd = 0.0;
 														pwEnd = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
 														if ( pwEnd ) {
-															if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
+															if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
 																dFullEnd = rRes.u.dVal;
-																pwEnd = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
-																if ( pwEnd ) {
-																	if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
-																	}
-																}
-																pwWarning->SetVisible( dTotalLen > (dFullEnd - rRes.u.dVal) );
+
+																pwWarning->SetVisible( dTotalLen > (dFullEnd - dStart) );
 															}
 														}
 													}
@@ -430,6 +430,19 @@ namespace lsn {
 									dStart = std::max( dStart, 0.0 );
 									dEnd = std::max( dStart, dEnd );
 									pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_ONE_SHOT_DESC_1_TRACK ), dStart, dEnd ).c_str() );
+
+									auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
+									if ( pwWarning ) {
+										double dFullEnd = 0.0;
+										pwEnd = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+										if ( pwEnd ) {
+											if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
+												dFullEnd = rRes.u.dVal;
+
+												pwWarning->SetVisible( dEnd > (dFullEnd - dStart) );
+											}
+										}
+									}
 									break;
 								}
 							}
@@ -441,6 +454,49 @@ namespace lsn {
 			break;
 		} while ( false );
 
+	}
+
+	/**
+	 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+	 **/
+	void CWavEditorSequencingPage::Activate() {
+		if ( !m_pweEditor ) { return; }
+		if ( UniqueId() != 0 ) { return; }
+		m_bInternalUpdate = true;
+		std::vector<LPARAM> vAffected;
+		GetPagesToUpdate( vAffected );
+		auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_START_EDIT, vAffected ).c_str() );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_END_EDIT, vAffected ).c_str() );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT, vAffected ).c_str() );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, vAffected ).c_str() );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT, vAffected ).c_str() );
+		}
+
+
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_LOOP_RADIO, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO, vAffected ) );
+		}
+
+		m_bInternalUpdate = false;
 	}
 
 	/**
@@ -466,7 +522,7 @@ namespace lsn {
 		if ( pwfsSet ) {
 			auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
 			if ( pwThis ) {
-				pwThis->SetTextW( L"0.0" );
+				pwThis->SetTextW( L"0" );
 			}
 			pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
 			if ( pwThis ) {
@@ -499,14 +555,14 @@ namespace lsn {
 				}
 				else {
 					pcbCombo->SetCurSelByItemData( pwfsSet->vMetadata.size() - 1 );
-					auto aSelected = pcbCombo->GetCurSelItemData();
+					/*auto aSelected = pcbCombo->GetCurSelItemData();
 					if ( aSelected != CB_ERR && size_t( aSelected ) < pwfsSet->vMetadata.size() ) {
 						auto sText = std::format( "{:.35g}", pwfsSet->vMetadata[aSelected].dTime );
 						pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
 						if ( pwThis ) {
 							pwThis->SetTextA( sText.c_str() );
 						}
-					}
+					}*/
 				}
 			}
 			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO ));

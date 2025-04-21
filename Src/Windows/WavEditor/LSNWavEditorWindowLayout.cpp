@@ -22,8 +22,8 @@
 
 
 #define LSN_SEQUE_LABEL_0_W									60
-#define LSN_SEQUE_TIME_EDIT_0								187
-#define LSN_SEQUE_TIME_EDIT_1								125
+#define LSN_SEQUE_TIME_EDIT_0								188
+#define LSN_SEQUE_TIME_EDIT_1								126
 #define LSN_SEQUE_LOOP_SECONDS_W							35
 #define LSN_FALLOFF_W										(LSN_SEQUE_TIME_EDIT_0 - LSN_SEQUE_TIME_EDIT_1 - LSN_LEFT_JUST - LSN_SEQUE_LOOP_SECONDS_W)
 #define LSN_SEQUE_TIME_GROUP_W								((LSN_GROUP_LEFT * 2) + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_1 + (LSN_GROUP_RIGHT * 2))
@@ -526,7 +526,7 @@ namespace lsn {
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																				// iTop
 			(LSN_FSETS_CHAR_BUTTON_W * 2) + LSN_LEFT_JUST,	// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
+			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
 			0,												// sTextLen
@@ -544,7 +544,7 @@ namespace lsn {
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																				// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
+			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_LPF_HZ ),			// pwcText
 			0,												// sTextLen
@@ -642,7 +642,7 @@ namespace lsn {
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																		// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
+			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_1_HZ ),			// pwcText
 			0,												// sTextLen
@@ -740,7 +740,7 @@ namespace lsn {
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 3) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																		// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
+			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_2_HZ ),			// pwcText
 			0,												// sTextLen
@@ -838,7 +838,7 @@ namespace lsn {
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 4) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																		// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
-			LSN_CHECKSTYLE,									// dwStyle
+			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_3_HZ ),			// pwcText
 			0,												// sTextLen
@@ -1495,7 +1495,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			(LSN_INNER_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT) - LSN_LEFT_JUST - (LSN_DEF_STATIC_HEIGHT * 2) + LSN_INNER_GROUP_L + LSN_GROUP_LEFT,																// iLeft
-			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),														// iTop
+			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) - 1,										// iTop
 			LSN_DEF_STATIC_HEIGHT * 2,						// dwWidth
 			LSN_DEF_STATIC_HEIGHT * 2,						// dwHeight
 			LSN_STATICSTYLE | SS_ICON,						// dwStyle
@@ -1660,7 +1660,7 @@ namespace lsn {
 			LSW_LT_BUTTON,									// ltType
 			LSN_WEWI_SEQ_OPS_ADD_BUTTON,					// wId
 			WC_BUTTONW,										// lpwcClass
-			TRUE,											// bEnabled
+			FALSE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_LEFT_JUST + LSN_OPER_TREE_W,																																				// iLeft
 			LSN_OPER_GROUP_T + LSN_GROUP_TOP,				// iTop

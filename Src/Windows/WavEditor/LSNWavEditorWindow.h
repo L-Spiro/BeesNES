@@ -136,9 +136,68 @@ namespace lsn {
 		void												SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Updates the window.
+		 * Sets the combo selections of all settings combos of the given ID.
+		 * 
+		 * \param _wId The ID of the combos to update.
+		 * \param _lpSelection The data to select within each combo box.
+		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 * \param _lpBadSel In the case of conflicting data selections, this selection is returned.
 		 **/
-		void												Update();
+		void												SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
+		 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+		 * 
+		 * \param _wId The ID of the edit controls to inspect on each page.
+		 * \param _vPages The pages to inspect for a string.
+		 * \return Returns the string to set based on the contents of each edit in each page.
+		 **/
+		std::wstring										GetAllSeqEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages );
+
+		/**
+		 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+		 * 
+		 * \param _wId The ID of the edit controls to inspect on each page.
+		 * \param _vPages The pages to inspect for a string.
+		 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+		 **/
+		bool												GetAllSeqCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages );
+
+		/**
+		 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+		 * 
+		 * \param _wId The ID of the edit controls to inspect on each page.
+		 * \param _vPages The pages to inspect for a string.
+		 * \return Returns the string to set based on the contents of each edit in each page.
+		 **/
+		std::wstring										GetAllSettingsEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages );
+
+		/**
+		 * Gets the check state derived from the check states of each check/radio across all pages.
+		 * 
+		 * \param _wId The ID of the edit controls to inspect on each page.
+		 * \param _vPages The pages to inspect for a string.
+		 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+		 **/
+		int													GetAllSettingsCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages );
+
+		/**
+		 * Gets the selected item of each combobox across all pages.  If they are the same, the value is returned, otherwise _lpBad is returned.
+		 * 
+		 * \param _wId The ID of the combobox controls to inspect on each page.
+		 * \param _vPages The pages to inspect for a string.
+		 * \param _lpBad The value to return upon inconsistent combobox selections.
+		 * \return Returns the combobox data selection if all combos match, otherwise _lpBad.
+		 **/
+		LPARAM												GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages, LPARAM _lpBad );
+
+		/**
+		 * Updates the window.
+		 * 
+		 * \param _bSelchanged If true, thew newly focused sequencer page will receive a notification to tell it that it has just become active, which it will use
+		 *	to gather the text from all the pages it affects to decide how to fill in its own edit texts.
+		 **/
+		void												Update( bool _bSelchanged = false );
 
 		/**
 		 * Prepares to create the window.  Creates the atom if necessary.

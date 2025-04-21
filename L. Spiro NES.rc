@@ -68,6 +68,8 @@ IDI_WAV_EDIT_ICON_32    ICON                    "Resources\\icons8-radio-waves-3
 
 IDI_WAV_EDIT_ICON_16    ICON                    "Resources\\icons8-radio-waves-16.ico"
 
+IDI_WARNING_ICON_32     ICON                    "Resources\\icons8-alarm-32.ico"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

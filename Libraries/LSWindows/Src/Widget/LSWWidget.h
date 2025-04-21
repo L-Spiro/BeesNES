@@ -222,6 +222,13 @@ namespace lsw {
 		// Changes the check state of a button control.  Implemented by CCheckButton and CRadioButton.
 		virtual VOID						CheckButton( UINT /*_uCheck*/ ) {}
 
+		/**
+		 * Gets the check state.
+		 * 
+		 * \return Returns the check state.
+		 **/
+		virtual INT							CheckState() const { return BST_INDETERMINATE; }
+
 		// Sets the button state to BST_CHECKED.
 		virtual VOID						Check() { CheckButton( BST_CHECKED ); }
 

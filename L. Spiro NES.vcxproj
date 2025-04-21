@@ -2156,6 +2156,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
+    <Image Include="Resources\icons8-alarm-32.ico" />
     <Image Include="Resources\icons8-bee-16.ico" />
     <Image Include="Resources\icons8-bee-32.ico" />
     <Image Include="Resources\icons8-bee-64.png" />
