@@ -21,7 +21,7 @@ namespace lsn {
 	 * Description: Remembers the last texts, checks, etc., for the WAV Editor window.
 	 */
 	struct LSN_WAV_EDITOR_WINDOW_OPTIONS {
-		/** The last text in Pre-Fade Dur.. */
+		/** The last text in Pre-Fade Dur. */
 		std::wstring												wsPreFadeDur = L"4";
 		/** The last text in Fade Dur. */
 		std::wstring												wsFadeDur = L"10";

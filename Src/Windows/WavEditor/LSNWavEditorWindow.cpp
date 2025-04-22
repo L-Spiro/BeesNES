@@ -187,6 +187,10 @@ namespace lsn {
 				}
 				break;
 			}
+			case Layout::LSN_WEWI_CANCEL : {
+				Close();
+				break;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -480,7 +484,7 @@ namespace lsn {
 	int CWavEditorWindow::GetAllSettingsCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
 		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
 		bool bFoundOne = false;
-		int iValue;
+		int iValue = BST_INDETERMINATE;
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
 			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwCheck = m_vSettingsPages[I]->FindChild( _wId );
@@ -535,7 +539,6 @@ namespace lsn {
 	 *	to gather the text from all the pages it affects to decide how to fill in its own edit texts.
 	 **/
 	void CWavEditorWindow::Update( bool _bSelchanged ) {
-		
 		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
 			std::vector<LPARAM> vSelected;
@@ -672,49 +675,54 @@ namespace lsn {
 	 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
 	 **/
 	bool CWavEditorWindow::Verify() {
-		// TODO: Check for loaded file.
-		CWidget * pwBaddy = nullptr;
-		std::wstring wsError;
-		if ( (pwBaddy = m_pwefFiles->Verify( wsError )) ) {
-			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-			pwBaddy->SetFocus();
-			return false;
-		}
-		if ( (pwBaddy = m_pweopOutput->Verify( wsError )) ) {
-			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-			pwBaddy->SetFocus();
-			return false;
-		}
-		for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
-			if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
-				// TODO: Select file I-1.
+		try {
+			// TODO: Check for loaded file.
+			CWidget * pwBaddy = nullptr;
+			std::wstring wsError;
+			if ( (pwBaddy = m_pwefFiles->Verify( wsError )) ) {
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->UnselectAll();
-					ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
-				}
-				Update();
 				pwBaddy->SetFocus();
 				return false;
 			}
-		}
-
-		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
-			if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
-				// TODO: Select file I-1.
+			if ( (pwBaddy = m_pweopOutput->Verify( wsError )) ) {
 				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->UnselectAll();
-					ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
-				}
-				Update();
 				pwBaddy->SetFocus();
 				return false;
 			}
-		}
+			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
+				if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
+					// TODO: Select file I-1.
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+					auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					if ( ptlTree ) {
+						ptlTree->UnselectAll();
+						ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+					}
+					Update();
+					pwBaddy->SetFocus();
+					return false;
+				}
+			}
 
+			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
+				if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
+					// TODO: Select file I-1.
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+					auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					if ( ptlTree ) {
+						ptlTree->UnselectAll();
+						ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+					}
+					Update();
+					pwBaddy->SetFocus();
+					return false;
+				}
+			}
+		}
+		catch ( ... ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INTERNAL_ERROR ), LSN_LSTR( LSN_ERROR ) );
+			return false;
+		}
 
 		return true;
 	}
@@ -727,21 +735,33 @@ namespace lsn {
 	 * \param _pweEditor The optional execution state to fill out.
 	 **/
 	void CWavEditorWindow::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor ) {
-		CWavEditor::LSN_OUTPUT oOutput;
-		
-		//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
-		m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
-		for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
-			//m_vSequencePages[I]->Save( _wewoWindowState, _pweEditor );
-		}
+		try {
+			std::vector<CWavEditor::LSN_PER_FILE> vPerFile;
+			CWavEditor::LSN_OUTPUT oOutput;
+			vPerFile.resize( std::max( m_vSequencePages.size(), m_vSettingsPages.size() ) );
+			//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
+			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
+			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
+				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
+				//m_vSequencePages[I]->Save( _wewoWindowState, _pweEditor );
+			}
 
-		for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
-			//m_vSettingsPages[I]->Save( _wewoWindowState, _pweEditor );
-		}
+			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
+				CWavEditor::LSN_PER_FILE * pfPerFile = nullptr;
+				for ( auto J = vPerFile.size(); J--; ) {
+					if ( vPerFile[J].ui32Id == m_vSettingsPages[I]->UniqueId() ) {
+						pfPerFile = &vPerFile[J];
+						break;
+					}
+				}
+				m_vSettingsPages[I]->Save( _wewoWindowState, pfPerFile );
+			}
 
-		if ( _pweEditor ) {
-			_pweEditor->SetParms( oOutput );
+			if ( _pweEditor ) {
+				_pweEditor->SetParms( vPerFile, oOutput );
+			}
 		}
+		catch ( ... ) {}
 	}
 
  }	// namespace lsn

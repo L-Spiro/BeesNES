@@ -88,6 +88,46 @@ namespace lsn {
 
 
 		// == Types.
+		/** Per-file data. */
+		struct LSN_PER_FILE {
+			double														dStartTime = 0.0;								/**< The starting point in the file.  Used for clipping and the start of the music. */
+			double														dEndTime = 0.0;									/**< The ending point in the file.  Used for clipping the source WAV. */
+			double														dStopTime = 0.0;								/**< Time for when to stop the music. */
+			double														dDelayTime = 0.0;								/**< How long to continue before fading out. */
+			double														dFadeTime = 0.0;								/**< The fade duration. */
+			double														dActualHz = 0.0;								/**< The actual HZ of the file. */
+			double														dVolume = 1.0;									/**< The characteristics volume. */
+			double														dLpf = 0.0;										/**< The characteristics LPF. */
+			double														dHpf0 = 0.0;									/**< The characteristics HPF 1. */
+			double														dHpf1 = 0.0;									/**< The characteristics HPF 2. */
+			double														dHpf2 = 0.0;									/**< The characteristics HPF 3. */
+			double														dFalloffLpf = 0.0;								/**< The LPF fall-off. */
+			double														dFalloffHpf0 = 0.0;								/**< The HPF 1 fall-off. */
+			double														dFalloffHpf1 = 0.0;								/**< The HPF 2 fall-off. */
+			double														dFalloffHpf2 = 0.0;								/**< The HPF 3 fall-off. */
+			std::wstring												wsName;											/**< The name of the track. */
+			std::wstring												wsArtist;										/**< The artist of the track. */
+			std::wstring												wsAlbum;										/**< The album of the track. */
+			std::wstring												wsYear;											/**< The year of the track. */
+			std::wstring												wsComment;										/**< The comment of the track. */
+			uint32_t													ui32Id = 0;										/**< ID of the associated WAV file. */
+			LSN_FILTER													fLpfType = LSN_F_POLE;							/**< The LPF filter type. */
+			LSN_FILTER													fHpf0Type = LSN_F_POLE;							/**< The HPF 1 filter type. */
+			LSN_FILTER													fHpf1Type = LSN_F_POLE;							/**< The HPF 2 filter type. */
+			LSN_FILTER													fHpf2Type = LSN_F_POLE;							/**< The HPF 3 filter type. */
+			bool														bFade = false;									/**< Whether to fade or not. */
+			bool														bInvert = true;									/**< Whether to invert the waveform or not. */
+			bool														bLpf = false;									/**< Whether to LPF or not. */
+			bool														bHpf0 = false;									/**< Whether to HPF 1 or not. */
+			bool														bHpf1 = false;									/**< Whether to HPF 2 or not. */
+			bool														bHpf2 = false;									/**< Whether to HPF 3 or not. */
+
+			bool														operator < ( const LSN_PER_FILE & _pfOther ) const {
+				return ui32Id < _pfOther.ui32Id;
+			}
+
+		};
+
 		/** The output data. */
 		struct LSN_OUTPUT {
 			double														dAbsoluteVol = 5.0;								/**< Absolute volume. */
@@ -231,11 +271,12 @@ namespace lsn {
 		/**
 		 * Sets the parameters for conversion.
 		 * 
+		 * \param _vpfPerFile The per-file settings.
 		 * \param _oOutput The output parameters.
-		 * \param PARM DESC
-		 * \return DESC
+		 * \return Returns true if the settings were copied.
 		 **/
-		bool															SetParms( const LSN_OUTPUT &_oOutput ) {
+		bool															SetParms( const std::vector<CWavEditor::LSN_PER_FILE> &_vpfPerFile, const LSN_OUTPUT &_oOutput ) {
+			m_sPerFile = std::set<CWavEditor::LSN_PER_FILE>( _vpfPerFile.begin(), _vpfPerFile.end() );
 			m_oOutput = _oOutput;
 			return true;
 		}
@@ -266,6 +307,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** The per-file set. */
+		std::set<LSN_PER_FILE>											m_sPerFile;
 		/** The output state. */
 		LSN_OUTPUT														m_oOutput;
 		/** The map of ID's to files. */

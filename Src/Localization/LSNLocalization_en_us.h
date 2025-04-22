@@ -361,6 +361,7 @@
 #define LSN_WE_OUTPUT_ERR_SET_NO_NAME										The track must be given a name.
 #define LSN_WE_OUTPUT_ERR_SET_BAD_SR										The track\u2019s sample rate must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_SET_SR_NEG										The track\u2019s sample-rate expression must result in a non-negative value.
+#define LSN_WE_OUTPUT_ERR_SET_BAD_VOL										The volume must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_SET_BAD_HZ										The filter cut-off frequency must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_SET_HZ_NEG										The filter-cut\u2013off-frequency expression must result in a non-negative value.
 #define LSN_WE_OUTPUT_ERR_SET_FALLOFF_BAD									The filter fall-off rate must be a valid expression.
@@ -431,6 +432,7 @@
 
 // General.
 #define LSN_ERROR															Error
+#define LSN_INTERNAL_ERROR													Internal error.
 
 
 

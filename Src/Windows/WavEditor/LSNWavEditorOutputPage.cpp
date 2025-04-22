@@ -210,7 +210,7 @@ namespace lsn {
 	 * Saves the current input configuration and closes the dialog.
 	 * 
 	 * \param _wewoOptions The object to which to save the window state.
-	 * \param _poOutput The otuput object to which to transfer all the window settings.
+	 * \param _poOutput The output object to which to transfer all the window settings.
 	 */
 	void CWavEditorOutputPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_OUTPUT * _poOutput ) {
 #define LSN_CHECKED( ID, STORE )		{ STORE = false;						\

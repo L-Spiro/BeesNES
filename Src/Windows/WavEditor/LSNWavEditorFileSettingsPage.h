@@ -81,8 +81,11 @@ namespace lsn {
 
 		/**
 		 * Saves the current input configuration and closes the dialog.
+		 * 
+		 * \param _wewoOptions The object to which to save the window state.
+		 * \param _ppfOutput The output object to which to transfer all the window settings.
 		 */
-		void												Save();
+		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_PER_FILE * _ppfOutput );
 
 		/**
 		 * Updates the dialog.
@@ -114,8 +117,9 @@ namespace lsn {
 		 * Gets an array of pages to update on text-editing for the 0th page.
 		 * 
 		 * \param _vPages Holds the returned array of pages to update.
+		 * \param _bUpdateAll If true, all pages are updated.
 		 **/
-		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages );
+		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages, bool _bUpdateAll = false );
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;
