@@ -296,9 +296,48 @@ namespace lsn {
 
 	/**
 	 * Saves the current input configuration and closes the dialog.
+	 * 
+	 * \param _wewoOptions The object to which to save the window state.
+	 * \param _ppfOutput The output object to which to transfer all the window settings.
 	 */
-	void CWavEditorSequencingPage::Save() {
-		
+	void CWavEditorSequencingPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
+#define LSN_CHECKED( ID, STORE )			{ STORE = false;					\
+	auto wCheckTmp = FindChild( Layout::ID );									\
+	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+
+#define LSN_EDIT_TEXT( ID, STORE )			{									\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( pwWidget ) { STORE = pwWidget->GetTextW(); } }
+
+#define LSN_EDIT_VAL( ID, STORE )			if ( _ppfOutput ) {					\
+	pwWidget = FindChild( Layout::ID );											\
+	if ( pwWidget && pwWidget->GetTextAsDoubleExpression( eTest ) ) { STORE = eTest.u.dVal; } }
+
+		CWidget * pwWidget = nullptr;
+		ee::CExpEvalContainer::EE_RESULT eTest;
+		LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _wewoOptions.bLoop );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, _wewoOptions.wsPreFadeDur );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _wewoOptions.wsFadeDur );
+
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, _wewoOptions.wsOpeningSilence );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _wewoOptions.wsTrailingSilence );
+
+		if ( _ppfOutput ) {
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_START_EDIT, _ppfOutput->dStartTime );
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_END_EDIT, _ppfOutput->dEndTime );
+			LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _ppfOutput->bLoop );
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_END_EDIT, _ppfOutput->dStopTime );
+			if ( _ppfOutput->bLoop ) {
+				LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, _ppfOutput->dDelayTime );
+				LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _ppfOutput->dFadeTime );
+			}
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, _ppfOutput->dOpeningSilence );
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _ppfOutput->dtrailingSilence );
+		}
+
+#undef LSN_EDIT_VAL
+#undef LSN_EDIT_TEXT
+#undef LSN_CHECKED
 	}
 
 	/**

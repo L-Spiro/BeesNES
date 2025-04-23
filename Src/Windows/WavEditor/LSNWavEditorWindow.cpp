@@ -743,7 +743,7 @@ namespace lsn {
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				//m_vSequencePages[I]->Save( _wewoWindowState, _pweEditor );
+				m_vSequencePages[I]->Save( _wewoWindowState, &vPerFile[I] );
 			}
 
 			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {

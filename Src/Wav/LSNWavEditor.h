@@ -95,6 +95,8 @@ namespace lsn {
 			double														dStopTime = 0.0;								/**< Time for when to stop the music. */
 			double														dDelayTime = 0.0;								/**< How long to continue before fading out. */
 			double														dFadeTime = 0.0;								/**< The fade duration. */
+			double														dOpeningSilence = 0.2;							/**< Opening silence. */
+			double														dtrailingSilence = 0.5;							/**< Trailing silence. */
 			double														dActualHz = 0.0;								/**< The actual HZ of the file. */
 			double														dVolume = 1.0;									/**< The characteristics volume. */
 			double														dLpf = 0.0;										/**< The characteristics LPF. */
@@ -115,6 +117,7 @@ namespace lsn {
 			LSN_FILTER													fHpf0Type = LSN_F_POLE;							/**< The HPF 1 filter type. */
 			LSN_FILTER													fHpf1Type = LSN_F_POLE;							/**< The HPF 2 filter type. */
 			LSN_FILTER													fHpf2Type = LSN_F_POLE;							/**< The HPF 3 filter type. */
+			bool														bLoop = false;									/**< Whether to loop or 1-short. */
 			bool														bFade = false;									/**< Whether to fade or not. */
 			bool														bInvert = true;									/**< Whether to invert the waveform or not. */
 			bool														bLpf = false;									/**< Whether to LPF or not. */
