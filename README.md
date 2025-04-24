@@ -3,7 +3,7 @@ A sub–cycle-accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
 ## Description
-A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goal of being as authentic of an experience as possible.  It should look, sound, and _feel_ like real hardware, with convincing visuals, clean and accurate audio, and real-time input response.  No visual or audible delays.  BeesNES also represents the under-served regions with support for a wide range of console variants, currently including NTSC, PAL, Dendy, PAL-M, and PAL-N.
+A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goal of being as authentic of an experience as possible.  It should look, sound, and _feel_ like real hardware, with convincing visuals, clean and accurate audio, and real-time input response.  No visual or audible delays.  BeesNES also represents the under-served regions with support for a wide range of console variants, currently including NTSC, PAL, PAL “Dendy” Famiclone, PAL-M Brazilian Famiclone, and PAL-N Argentinian Famiclone.
 
 ## Visual Samples
 ![image](https://user-images.githubusercontent.com/7362666/215368977-2cec6ea5-c09e-4824-99e5-0afe3b76409f.png)
@@ -35,11 +35,11 @@ HDMI Mod:<br>
 
 PAL (Composite:):<br>
 ![image](https://github.com/user-attachments/assets/68e7131a-437f-47f8-8f35-6b95ebc7cfd4)<br>
-Dendy (Composite):<br>
+PAL-B (“Dendy” Famiclone) (Composite):<br>
 ![image](https://github.com/user-attachments/assets/bf9e8302-88fd-456b-946c-3fd7e772e824)<br>
-PAL-M (Brazil) (Composite):<br>
+PAL-M (Brazilian Famiclone) (Composite):<br>
 ![image](https://github.com/user-attachments/assets/4ee47323-d23d-46e0-91ae-3d52569c2584)<br>
-PAL-N (Argentina) (Composite):<br>
+PAL-N (Argentinian Famiclone) (Composite):<br>
 ![image](https://github.com/user-attachments/assets/89777f31-5b1d-410e-a80c-1347c6114731)<br>
 
 
@@ -55,6 +55,9 @@ Top: Hardware reference; Bottom: BeesNES.  Excluding mains-hum noise and the uns
 
 ![image](https://github.com/user-attachments/assets/c03dde8d-0ed3-4247-9154-c88db2ca8a49)<br>
 Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
+
+![image](https://github.com/user-attachments/assets/1c526347-c891-44e3-8ffd-682966fab346)<br>
+MDFourier.
 
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
 
