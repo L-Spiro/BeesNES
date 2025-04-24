@@ -44,7 +44,7 @@ PAL-N (Argentinian Famiclone) (Composite):<br>
 
 
 ## Audio Accuracy
-![image](https://github.com/user-attachments/assets/6d0287bb-d70c-485e-a778-f8267cc73c2b)<br>
+![image](https://github.com/user-attachments/assets/38cff73e-e3e6-4d3e-81ee-99d7ee0af7a9)<br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
 
 ![image](https://github.com/user-attachments/assets/3b3e5ddd-b1e2-414f-beff-bfdce2ba7891)<br>
