@@ -57,7 +57,7 @@ Top: Hardware reference; Bottom: BeesNES.  Excluding mains-hum noise and the uns
 Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
 
 ![image](https://github.com/user-attachments/assets/1c526347-c891-44e3-8ffd-682966fab346)<br>
-MDFourier.
+MDFourier.  The dip at the end is the anti-aliasing filter.
 
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
 
