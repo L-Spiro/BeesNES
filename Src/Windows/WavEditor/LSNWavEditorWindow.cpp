@@ -181,9 +181,13 @@ namespace lsn {
 			case Layout::LSN_WEWI_OK : {
 				if ( Verify() ) {
 					// Save window settings and export.
-					Save( m_wewoWindowOptions, &m_weEditor );
-					m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
-					Close();
+					if ( Save( m_wewoWindowOptions, &m_weEditor ) ) {
+						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
+						Close();
+					}
+					else {
+						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
+					}
 				}
 				break;
 			}
@@ -733,8 +737,9 @@ namespace lsn {
 	 * 
 	 * \param _wewoWindowState The window state to fill out.
 	 * \param _pweEditor The optional execution state to fill out.
+	 * \return Returns true if the files were all created successfully.
 	 **/
-	void CWavEditorWindow::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor ) {
+	bool CWavEditorWindow::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor ) {
 		try {
 			std::vector<CWavEditor::LSN_PER_FILE> vPerFile;
 			CWavEditor::LSN_OUTPUT oOutput;
@@ -756,12 +761,18 @@ namespace lsn {
 				}
 				m_vSettingsPages[I]->Save( _wewoWindowState, pfPerFile );
 			}
-
+			vPerFile.erase( vPerFile.begin() );
 			if ( _pweEditor ) {
 				_pweEditor->SetParms( vPerFile, oOutput );
+				std::wstring wsError;
+				if ( !_pweEditor->Execute( wsError ) ) {
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+					return false;
+				}
 			}
+			return true;
 		}
-		catch ( ... ) {}
+		catch ( ... ) { return false; }
 	}
 
  }	// namespace lsn

@@ -245,8 +245,9 @@ namespace lsn {
 		 * 
 		 * \param _wewoWindowState The window state to fill out.
 		 * \param _pweEditor The optional execution state to fill out.
+		 * \return Returns true if the files were all created successfully.
 		 **/
-		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor );
+		bool												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor );
 
 
 	private :

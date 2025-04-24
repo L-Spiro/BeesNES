@@ -243,6 +243,14 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Executes the conversion operations.
+		 * 
+		 * \param _wsMsg The error message upon failure.
+		 * \return Returns true if the operation completes successfully.  If false, _wsMsg contains the reason for failure.
+		 **/
+		bool															Execute( std::wstring &_wsMsg );
+
+		/**
 		 * Adds a WAV file.  Automatically detects file sequences and metadata files.
 		 * 
 		 * \param _wsPath The path to the original WAV file to load.  Should be the start of a sequence.
@@ -357,6 +365,18 @@ namespace lsn {
 		 * \return Returns true if the file was successfully loaded and parsed.
 		 **/
 		bool															AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult );
+
+		/**
+		 * Creates a single file.
+		 * 
+		 * \param _wfsSet The file set.
+		 * \param _pfFile The per-file data settings.
+		 * \param _oOutput The output settings.
+		 * \param _stIdx The index of the track being exported.
+		 * \param _wsMsg Error message upon failure.
+		 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
+		 **/
+		bool															DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, std::wstring &_wsMsg );
 	};
 
 }	// namespace lsn

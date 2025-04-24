@@ -430,9 +430,17 @@
 #define LSN_WAV_EXTENSIBLE													Extensible
 #define LSN_AUDACITY_METADATA												Audacity Format: [start time]\\t[end time]\\t[label text]\\r\\n
 
+// WAV Editor.
+#define LSN_WE_FAILED_TO_CREATE_DIR											Failed to create directory \u201C{}\u201D.
+#define LSN_WE_FAILED_TO_LOAD_SAMPLES										Failed to load samples from WAV file \u201C{}\u201D.
+#define LSN_WE_CHANNEL_COUNT_ERROR											WAV file \u201C{}\u201D does not have the same number of channels as \u201C{}\u201D.
+#define LSN_WE_SAMPLE_RATE_ERROR											WAV file \u201C{}\u201D does not have the same sample rate as \u201C{}\u201D.
+
+
 // General.
 #define LSN_ERROR															Error
 #define LSN_INTERNAL_ERROR													Internal error.
+#define LSN_OUT_OF_MEMORY													Out of memory.
 
 
 

@@ -570,8 +570,10 @@ namespace lsn {
 		template <typename _tType = lwaudio>
 		bool															GetAllSamples( _tType &_vResult ) const {
 			try {
-				if ( m_uiNumChannels > _vResult.size() ) {
-					_vResult.resize( m_uiNumChannels );
+				if constexpr ( std::is_same<_tType, std::vector<double>>::value ) {
+					if ( m_uiNumChannels > _vResult.size() ) {
+						_vResult.resize( m_uiNumChannels );
+					}
 				}
 				if ( _vResult.size() != m_uiNumChannels ) { return false; }
 				for ( auto I = m_uiNumChannels; I--; ) {

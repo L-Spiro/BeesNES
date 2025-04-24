@@ -7,9 +7,13 @@
  */
  
 #include "LSNWavEditor.h"
+#include "../Localization/LSNLocalization.h"
+#include "../Utilities/LSNAlignmentAllocator.h"
+#include "../Utilities/LSNLargeVector.h"
 #include "../Utilities/LSNStream.h"
 
 #include <filesystem>
+#include <format>
 #include <utility>
 
 
@@ -24,6 +28,44 @@ namespace lsn {
 	}
 
 	// == Functions.
+	/**
+	 * Executes the conversion operations.
+	 * 
+	 * \param _wsMsg The error message upon failure.
+	 * \return Returns true if the operation completes successfully.  If false, _wsMsg contains the reason for failure.
+	 **/
+	bool CWavEditor::Execute( std::wstring &_wsMsg ) {
+		if ( !m_vFileList.size() ) { return true; }																	// Nothing to do.
+
+		try {
+			std::filesystem::create_directories( m_oOutput.wsFolder );
+		}
+		catch ( ... ) {
+			_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_CREATE_DIR ), m_oOutput.wsFolder );
+			return false;
+		}
+
+		try {
+			size_t sIdx = 0;
+			for ( size_t I = 0; I < m_vFileList.size(); ++I ) {
+				LSN_PER_FILE pfFindMe;
+				pfFindMe.ui32Id = m_vFileList[I];
+				auto aPerFile = m_sPerFile.find( pfFindMe );
+				auto pwfsSet = WavById( pfFindMe.ui32Id );
+				if ( aPerFile == m_sPerFile.end() || !pwfsSet ) {
+					_wsMsg = LSN_LSTR( LSN_INTERNAL_ERROR );
+					return false;
+				}
+				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, _wsMsg ) ) { return false; }
+			}
+		}
+		catch ( ... ) {
+			_wsMsg = LSN_LSTR( LSN_INTERNAL_ERROR );
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Adds a WAV file.  Automatically detects file sequences and metadata files.
 	 * 
@@ -256,11 +298,89 @@ namespace lsn {
 					"%lf%*[\t ]%lf%*[\t ][%u: %[^]]",
 					&mdMeta.dTime, &dTime2, &mdMeta.ui32Idx, szBuffer );
 				if ( iConveretd != 4 ) { return false; }
+				szBuffer[511] = '\0';
 				mdMeta.sText = szBuffer;
 				_vResult.push_back( std::move( mdMeta ) );
 			}
 		}
 		catch ( ... ) { return false; }
+
+		return true;
+	}
+
+	/**
+	 * Creates a single file.
+	 * 
+	 * \param _wfsSet The file set.
+	 * \param _pfFile The per-file data settings.
+	 * \param _oOutput The output settings.
+	 * \param _stIdx The index of the track being exported.
+	 * \param _wsMsg Error message upon failure.
+	 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
+	 **/
+	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &/*_stIdx*/, std::wstring &_wsMsg ) {
+		// Determine the sample range to load.
+		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
+		int64_t i64EndSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dEndTime ) );
+		std::vector<large_vector<double, CAlignmentAllocator<double, 64>>> vSamples;
+		for ( size_t I = 0; I < _wfsSet.wfFile.fcFormat.uiNumChannels; ++I ) {
+			try {
+				// Keep 32 megabytes in RAM at a time.
+				vSamples.push_back( large_vector<double, CAlignmentAllocator<double, 64>>( 32 * 1024 * 1024 / sizeof( double ), 0 ) );
+			}
+			catch ( ... ) {
+				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+				return false;
+			}
+		}
+		{
+			lsn::CWavFile wfWav;
+			if ( uint64_t( i64StartSample ) < _wfsSet.wfFile.ui64Samples ) {
+				uint32_t ui32End = uint32_t( std::min<uint64_t>( i64EndSample, _wfsSet.wfFile.ui64Samples ) );
+				
+				if ( !wfWav.Open( CUtilities::XStringToU16String( _wfsSet.wfFile.wsPath.c_str(), _wfsSet.wfFile.wsPath.size() ).c_str(), lsn::CWavFile::LSN_LF_DATA, uint32_t( i64StartSample ), ui32End ) ) {
+					_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_LOAD_SAMPLES ), _wfsSet.wfFile.wsPath );
+					return false;
+				}
+				if ( !wfWav.GetAllSamples( vSamples ) ) {
+					_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+					return false;
+				}
+			}
+			i64StartSample -= _wfsSet.wfFile.ui64Samples;
+			i64EndSample -= _wfsSet.wfFile.ui64Samples;
+			for ( size_t I = 0; I < _wfsSet.vExtensions.size(); ++I ) {
+				if ( i64EndSample <= 0 ) { break; }
+				int64_t i64Start = std::max( i64StartSample, 0LL );
+				if ( uint64_t( i64Start ) < _wfsSet.wfFile.ui64Samples ) {
+					uint32_t ui32End = uint32_t( std::min<uint64_t>( i64EndSample, _wfsSet.vExtensions[I].ui64Samples ) );
+					lsn::CWavFile wfThisFile;
+					if ( !wfThisFile.Open( CUtilities::XStringToU16String( _wfsSet.vExtensions[I].wsPath.c_str(), _wfsSet.vExtensions[I].wsPath.size() ).c_str(), lsn::CWavFile::LSN_LF_DATA, uint32_t( i64Start ), ui32End ) ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_LOAD_SAMPLES ), _wfsSet.vExtensions[I].wsPath );
+						return false;
+					}
+					if ( wfThisFile.Channels() != vSamples.size() ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_CHANNEL_COUNT_ERROR ), _wfsSet.vExtensions[I].wsPath, _wfsSet.wfFile.wsPath );
+						return false;
+					}
+					if ( wfThisFile.Hz() != wfWav.Hz() ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_SAMPLE_RATE_ERROR ), _wfsSet.vExtensions[I].wsPath, _wfsSet.wfFile.wsPath );
+						return false;
+					}
+					if ( !wfThisFile.GetAllSamples( vSamples ) ) {
+						_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+						return false;
+					}
+				}
+				i64StartSample -= _wfsSet.vExtensions[I].ui64Samples;
+				i64EndSample -= _wfsSet.vExtensions[I].ui64Samples;
+			}
+		}
+
+		// For each channel.
+		for ( size_t J = 0; J < vSamples.size(); ++J ) {
+			// Apply anti-aliasing.
+		}
 
 		return true;
 	}

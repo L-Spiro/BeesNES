@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#pragma optimize( "gt", on )
 
 namespace lsn {
 
@@ -46,7 +47,11 @@ namespace lsn {
 	 */
 	template <typename T, typename Allocator = std::allocator<T>>
 	class large_vector : protected std::vector<T, Allocator> {
-	public:
+	public :
+		// --- Disable Copy ---
+		large_vector( const large_vector & ) = delete;
+		large_vector &											operator = ( const large_vector & ) = delete;
+
 		/**
 		 * \brief Constructs a large_vector.
 		 *
@@ -61,12 +66,10 @@ namespace lsn {
 			m_nTotalSize( _nTotalSize ),
 			m_nCurrentSectionStart( 0 ),
 			m_bDirty( false ) {
-			
+			// Directory management.
 			{
-				// Lock the static mutex for directory management.
 				std::lock_guard<std::mutex> lgLock( s_mMutex );
 				if ( s_nInstanceCount == 0 ) {
-					// Set the base directory to "<current_path>/lvec" and create it.
 					s_pBaseDirectory = std::filesystem::current_path() / "lvec";
 					std::error_code ecErr;
 					if ( !std::filesystem::create_directories( s_pBaseDirectory, ecErr ) && ecErr ) {
@@ -76,24 +79,49 @@ namespace lsn {
 				++s_nInstanceCount;
 			}
 
-			// Generate a unique disk file path.
-			uint64_t uID = s_uID.fetch_add( 1, std::memory_order_relaxed );
-			m_pPathDiskFile = std::filesystem::current_path() / ("lvec" + std::to_string( uID ));
+			try {
+				// Generate unique file path.
+				uint64_t uID = s_uID.fetch_add( 1, std::memory_order_relaxed );
+				m_pPathDiskFile = s_pBaseDirectory / ( "lvec" + std::to_string( uID ) + ".dat" );
 
-			// Create (or truncate) the file and initialize it with default-initialized elements.
-			{
-				std::ofstream ofs( m_pPathDiskFile, std::ios::binary | std::ios::trunc );
-				if ( !ofs ) { throw std::runtime_error( "Failed to create disk file." ); }
-				T tDefVal{};
-				for ( size_t i = 0; i < m_nTotalSize; ++i ) {
-					ofs.write( reinterpret_cast<const char *>(&tDefVal), sizeof( T ) );
+				// Create/truncate and initialize.
+				{
+					std::ofstream ofs( m_pPathDiskFile, std::ios::binary | std::ios::trunc );
+					if ( !ofs ) { throw std::runtime_error( "Failed to create disk file." ); }
+					T tDefVal{};
+					for ( size_t i = 0; i < m_nTotalSize; ++i ) {
+						ofs.write( reinterpret_cast<const char *>( &tDefVal ), sizeof( T ) );
+					}
 				}
+
+				m_ofsDisk.open( m_pPathDiskFile,
+								std::ios::in | std::ios::out | std::ios::binary );
+				if ( !m_ofsDisk ) {
+					throw std::runtime_error( "Failed to open disk file for large_vector." );
+				}
+
+				std::vector<T, Allocator>::resize( std::min( m_nMaxRamItems, m_nTotalSize ) );
+				loadSection( m_nCurrentSectionStart );
 			}
-         
-			// Resize the inherited vector to hold the initial section.
-			std::vector<T, Allocator>::resize( std::min( m_nMaxRamItems, m_nTotalSize ) );
-			// Load the first section from disk.
-			loadSection( m_nCurrentSectionStart );
+			catch ( ... ) {
+				--s_nInstanceCount;
+				throw;
+			}
+		}
+		large_vector( large_vector && _lvOther ) noexcept :
+			std::vector<T, Allocator>( std::move( _lvOther ) ),
+			m_nMaxRamItems( _lvOther.m_nMaxRamItems ),
+			m_nTotalSize( _lvOther.m_nTotalSize ),
+			m_nCurrentSectionStart( _lvOther.m_nCurrentSectionStart ),
+			m_bDirty( _lvOther.m_bDirty ) {
+			std::lock_guard<std::mutex> lgLock( s_mMutex );
+			++s_nInstanceCount;
+
+			m_pPathDiskFile = std::move( _lvOther.m_pPathDiskFile );
+			_lvOther.m_pPathDiskFile.clear();
+			_lvOther.m_nTotalSize = 0;
+
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 		}
 
 		/**
@@ -103,23 +131,51 @@ namespace lsn {
 		 */
 		~large_vector() {
 			try {
-				// Optional flush if needed; ignoring any errors.
-				try { flushCurrentSection(); } catch ( ... ) { /* Ignore errors during flush. */ }
+				try { flushCurrentSection(); } catch ( ... ) {}
+				if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
 				std::filesystem::remove( m_pPathDiskFile );
-			} catch ( ... ) {
-				// Suppress all exceptions in destructor.
-			}
+			} catch ( ... ) {}
+
 			{
 				std::lock_guard<std::mutex> lgLock( s_mMutex );
-				// Decrement the instance counter.
 				--s_nInstanceCount;
 				if ( s_nInstanceCount == 0 ) {
-					// When the last instance is removed, delete the base directory and reset the unique ID counter.
 					std::error_code ecErr;
-					std::filesystem::remove_all( s_pBaseDirectory, ecErr ); // Remove the entire "lvec" folder.
+					std::filesystem::remove_all( s_pBaseDirectory, ecErr );
 					s_uID.store( 0, std::memory_order_relaxed );
 				}
 			}
+		}
+
+		// --- move assignment ---
+		large_vector &											operator = ( large_vector && _lvOther ) noexcept {
+			if ( this != &_lvOther ) {
+				// 1) Cleanup our old file
+				try {
+					flushCurrentSection();
+					if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
+					std::filesystem::remove( m_pPathDiskFile );
+				} catch ( ... ) {}
+
+				// 2) Steal base state
+				std::vector<T, Allocator>::operator=( std::move( _lvOther ) );
+
+				// 3) Steal our fields
+				m_nMaxRamItems         = _lvOther.m_nMaxRamItems;
+				m_nTotalSize           = _lvOther.m_nTotalSize;
+				m_nCurrentSectionStart = _lvOther.m_nCurrentSectionStart;
+				m_bDirty               = _lvOther.m_bDirty;
+
+				// 4) Steal file path
+				m_pPathDiskFile = std::move( _lvOther.m_pPathDiskFile );
+				_lvOther.m_pPathDiskFile.clear();
+				_lvOther.m_nTotalSize = 0;
+
+				// 5) Reopen append handle on our new path
+				if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
+				m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+			}
+			return (*this);
 		}
 
 		//-------------------------------------------------------------------------
@@ -261,11 +317,8 @@ namespace lsn {
 		 */
 		void													push_back( const T & _tElem ) {
 			flushCurrentSection();
-			std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
-			if ( !fs ) { throw std::runtime_error( "Failed to open file for push_back." ); }
-			fs.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
-			fs.write( reinterpret_cast<const char *>(&_tElem), sizeof( T ) );
-			fs.close();
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+			m_ofsDisk.write( reinterpret_cast<const char *>( &_tElem ), sizeof( T ) );
 			++m_nTotalSize;
 		}
 
@@ -280,11 +333,8 @@ namespace lsn {
 		 */
 		void													push_back( const T * _pArray, size_t _nCount ) {
 			flushCurrentSection();
-			std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
-			if ( !fs ) { throw std::runtime_error( "Failed to open file for push_back (bulk)." ); }
-			fs.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
-			fs.write( reinterpret_cast<const char *>(_pArray), _nCount * sizeof( T ) );
-			fs.close();
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+			m_ofsDisk.write( reinterpret_cast<const char *>( _pArray ), _nCount * sizeof( T ) );
 			m_nTotalSize += _nCount;
 		}
     
@@ -301,9 +351,12 @@ namespace lsn {
 			--m_nTotalSize;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
 			if ( m_nCurrentSectionStart >= m_nTotalSize ) {
-				m_nCurrentSectionStart = (m_nTotalSize > 0) ? (((m_nTotalSize - 1) / m_nMaxRamItems) * m_nMaxRamItems) : 0;
+				m_nCurrentSectionStart = ( m_nTotalSize > 0 )
+					? ( ( ( m_nTotalSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+					: 0;
 				loadSection( m_nCurrentSectionStart );
 			}
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
 
 		/**
@@ -321,9 +374,12 @@ namespace lsn {
 			m_nTotalSize -= _nCount;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
 			if ( m_nCurrentSectionStart >= m_nTotalSize ) {
-				m_nCurrentSectionStart = (m_nTotalSize > 0) ? (((m_nTotalSize - 1) / m_nMaxRamItems) * m_nMaxRamItems) : 0;
+				m_nCurrentSectionStart = ( m_nTotalSize > 0 )
+					? ( ( ( m_nTotalSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+					: 0;
 				loadSection( m_nCurrentSectionStart );
 			}
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
     
 		/**
@@ -339,32 +395,36 @@ namespace lsn {
 		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													insert( size_t _nIndex, const T & _tElem ) {
-			if ( _nIndex > m_nTotalSize ) { throw std::out_of_range( "Insert index out of range." ); }
+			if ( _nIndex > m_nTotalSize ) {
+				throw std::out_of_range( "Insert index out of range." );
+			}
+
 			flushCurrentSection();
+
 			size_t sNewSize = m_nTotalSize + 1;
-			std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
-			if ( !fs ) { throw std::runtime_error( "Failed to open file for insert." ); }
-			
-			// Increase file size.
 			std::filesystem::resize_file( m_pPathDiskFile, sNewSize * sizeof( T ) );
-			
-			// Shift elements rightward starting from the end down to _nIndex.
+
 			T tTmp;
 			for ( size_t i = m_nTotalSize; i > _nIndex; --i ) {
-				fs.seekg( (i - 1) * sizeof( T ), std::ios::beg );
-				fs.read( reinterpret_cast<char *>(&tTmp), sizeof( T ) );
-				fs.seekp( i * sizeof( T ), std::ios::beg );
-				fs.write( reinterpret_cast<const char *>(&tTmp), sizeof( T ) );
+
+				m_ofsDisk.seekg( (i - 1) * sizeof( T ), std::ios::beg );
+				m_ofsDisk.read( reinterpret_cast<char *>( &tTmp ), sizeof( T ) );
+
+				m_ofsDisk.seekp( i * sizeof( T ), std::ios::beg );
+				m_ofsDisk.write( reinterpret_cast<const char *>( &tTmp ), sizeof( T ) );
 			}
-			// Write the new element at _nIndex.
-			fs.seekp( _nIndex * sizeof( T ), std::ios::beg );
-			fs.write( reinterpret_cast<const char *>(&_tElem), sizeof( T ) );
-			fs.close();
+
+			m_ofsDisk.seekp( _nIndex * sizeof( T ), std::ios::beg );
+			m_ofsDisk.write( reinterpret_cast<const char *>( &_tElem ), sizeof( T ) );
+
 			m_nTotalSize = sNewSize;
 			if ( _nIndex >= m_nCurrentSectionStart &&
-				_nIndex < m_nCurrentSectionStart + std::vector<T, Allocator>::size() ) {
+					_nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() )
+			{
 				loadSection( m_nCurrentSectionStart );
 			}
+
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
     
 		//-------------------------------------------------------------------------
@@ -383,31 +443,36 @@ namespace lsn {
 		 */
 		void													resize( size_t _nNewSize ) {
 			flushCurrentSection();
+
 			if ( _nNewSize > m_nTotalSize ) {
-				// Expand file: append default-initialized elements.
-				std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
-				if ( !fs ) {
-					throw std::runtime_error( "Failed to open file for resize (expanding)." );
-				}
-				fs.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
-				T default_val{};
+				// Expand file: append default-initialized elements via our open append handle.
+				m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+				T tDef{};
 				for ( size_t i = m_nTotalSize; i < _nNewSize; ++i ) {
-					fs.write( reinterpret_cast<const char *>(&default_val), sizeof( T ) );
+					m_ofsDisk.write( reinterpret_cast<const char *>( &tDef ), sizeof( T ) );
 				}
-				fs.close();
 			}
 			else if ( _nNewSize < m_nTotalSize ) {
-				// Truncate the file.
+				// Truncate the file on disk
 				std::filesystem::resize_file( m_pPathDiskFile, _nNewSize * sizeof( T ) );
+				// If our cache start is now past EOF, reload the last block
 				if ( m_nCurrentSectionStart >= _nNewSize ) {
-					m_nCurrentSectionStart = (_nNewSize > 0) ? (((_nNewSize - 1) / m_nMaxRamItems) * m_nMaxRamItems) : 0;
+					m_nCurrentSectionStart = ( _nNewSize > 0 )
+						? ( ( ( _nNewSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+						: 0;
 					loadSection( m_nCurrentSectionStart );
 				}
 			}
+
+			// Update size and resize the RAM cache
 			m_nTotalSize = _nNewSize;
-			size_t nItemsToLoad = (m_nTotalSize > m_nCurrentSectionStart) ?
-				std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart ) : 0;
-			std::vector<T, Allocator>::resize( nItemsToLoad );
+			size_t nLoad = ( m_nTotalSize > m_nCurrentSectionStart )
+				? std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart )
+				: 0;
+			std::vector<T,Allocator>::resize( nLoad );
+
+			// Reposition append pointer to new EOF
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
     
 		/**
@@ -422,48 +487,61 @@ namespace lsn {
 		//-------------------------------------------------------------------------
 		// Disk I/O: Flushing and Loading Sections
 		//-------------------------------------------------------------------------
-
+	
 		/**
 		 * \brief Flushes the current in–RAM section to disk.
 		 *
-		 * If the current section has been modified, its contents are written to the disk file at the proper offset.
-		 *
-		 * \throws std::runtime_error if the file fails to open for writing.
+		 * If the current section has been modified, its contents are written
+		 * to the disk file at the proper offset using the persistent fstream.
 		 */
 		void													flushCurrentSection() {
 			if ( m_bDirty ) {
-				std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
-				if ( !fs ) { throw std::runtime_error( "Failed to open file for writing." ); }
-				fs.seekp( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
-				fs.write( reinterpret_cast<const char *>(std::vector<T, Allocator>::data()),
-					std::vector<T, Allocator>::size() * sizeof( T ) );
-				fs.close();
+				m_ofsDisk.seekp( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
+				if ( !m_ofsDisk ) {
+					throw std::runtime_error( "Failed to seek for flushCurrentSection()." );
+				}
+				m_ofsDisk.write(
+					reinterpret_cast<const char *>( std::vector<T,Allocator>::data() ),
+					std::vector<T,Allocator>::size() * sizeof( T )
+				);
+				if ( !m_ofsDisk ) {
+					throw std::runtime_error( "Failed to write in flushCurrentSection()." );
+				}
 				m_bDirty = false;
 			}
 		}
-    
+
 		/**
 		 * \brief Loads a section from disk into the in–RAM cache.
 		 *
-		 * The cache is populated with the section starting at _nSectionStart. The number of items loaded
-		 * is the minimum of m_nMaxRamItems and the remaining elements (m_nTotalSize - _nSectionStart).
+		 * The cache is populated with the section starting at _nSectionStart,
+		 * by seeking and reading directly from the persistent fstream.
 		 *
 		 * \param _nSectionStart The starting global index of the section to load.
-		 * \throws std::runtime_error if the file cannot be opened for reading.
 		 */
 		void													loadSection( size_t _nSectionStart ) {
 			m_nCurrentSectionStart = _nSectionStart;
 			size_t nItemsToLoad = std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart );
-			std::vector<T, Allocator>::resize(	nItemsToLoad );
-			std::fstream fs( m_pPathDiskFile, std::ios::in | std::ios::binary );
-			if ( !fs ) { throw std::runtime_error( "Failed to open file for reading." ); }
-			fs.seekg( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
-			fs.read( reinterpret_cast<char *>(std::vector<T, Allocator>::data()), nItemsToLoad * sizeof( T ) );
-			fs.close();
+			std::vector<T,Allocator>::resize( nItemsToLoad );
+			m_ofsDisk.seekg( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
+			if ( !m_ofsDisk ) {
+				throw std::runtime_error( "Failed to seek for loadSection()." );
+			}
+			m_ofsDisk.read(
+				reinterpret_cast<char *>( std::vector<T,Allocator>::data() ),
+				nItemsToLoad * sizeof( T )
+			);
+			if ( !m_ofsDisk ) {
+				throw std::runtime_error( "Failed to read in loadSection()." );
+			}
+
 			m_bDirty = false;
 		}
+
     
-	private:
+	private :
+		mutable std::fstream									m_ofsDisk;				/**< Single handle for fast append. */
+		std::vector<T>											m_vWriteBuffer;			/**< Buffered push_back() elements. */
 		std::filesystem::path									m_pPathDiskFile;		/**< Generated disk file path based on the current directory, "lvec", and a unique ID. */
 		size_t													m_nMaxRamItems;         /**< Maximum number of items to keep in RAM. */
 		size_t													m_nTotalSize;           /**< Total number of elements stored. */
@@ -480,3 +558,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
+
+#pragma optimize( "", on )
