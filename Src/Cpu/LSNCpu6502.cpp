@@ -1444,38 +1444,6 @@ namespace lsn {
 			}
 		}
 
-//		if constexpr ( _i8SOff == -2 ) {
-//#ifdef LSN_CPU_VERIFY
-//			m_fsState.vBrkVector = LSN_V_IRQ_BRK;
-//			m_fsState.bPushB = true;
-//#else
-//			// Select vector to use.
-//			if ( m_bIsReset ) {
-//				m_fsState.vBrkVector = LSN_V_RESET;
-//				m_fsState.bPushB = false;
-//				m_bIsReset = false;
-//			}
-//			else if ( m_bDetectedNmi ) {
-//				m_fsState.vBrkVector = LSN_V_NMI;
-//				m_fsState.bPushB = false;
-//			}
-//			else if ( m_bHandleIrq ) {
-//				m_fsState.vBrkVector = LSN_V_IRQ_BRK;
-//				m_fsState.bPushB = false;
-//			}
-//			else {
-//				m_fsState.vBrkVector = LSN_V_IRQ_BRK;
-//				m_fsState.bPushB = true;
-//			}
-//
-//			if ( m_bDetectedNmi ) {
-//				m_bHandleNmi = m_bDetectedNmi = false;
-//				m_bNmiStatusLine = false;
-//			}
-//			m_bHandleIrq = false;
-//#endif	// #ifdef LSN_CPU_VERIFY
-//		}
-
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;

@@ -346,6 +346,7 @@ namespace lsn {
 					_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
 					return false;
 				}
+				wfWav.FreeSamples();
 			}
 			i64StartSample -= _wfsSet.wfFile.ui64Samples;
 			i64EndSample -= _wfsSet.wfFile.ui64Samples;

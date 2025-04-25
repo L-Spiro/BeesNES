@@ -14,6 +14,10 @@
 #include "../../Wav/LSNWavFile.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
+#include <commdlg.h>
+#include <filesystem>
+#include <shlobj.h>
+
 
 namespace lsn {
 
@@ -94,56 +98,41 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CWavEditorOutputPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
-			/*case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
+			case Layout::LSN_WEWI_OUTPUT_MASTER_PATH_BUTTON : {
+				std::wstring wsDisplayName;
+				wsDisplayName.resize( 0xFFFF + 2 );
 
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
+				BROWSEINFOW biBrowseInfo = {};
+				biBrowseInfo.hwndOwner = Wnd();
+				biBrowseInfo.pidlRoot = nullptr;													// Root folder (nullptr = "My Computer")
+				biBrowseInfo.pszDisplayName = wsDisplayName.data();									// Out buffer for display name
+				biBrowseInfo.lpszTitle = LSN_LSTR( LSN_WE_BROWSE_OUTPUT_FOLDER );					// Title text in the dialog
+				biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
+				biBrowseInfo.iImage = 0;
+				biBrowseInfo.lpfn = BrowseCallbackProc;
+				biBrowseInfo.lParam = reinterpret_cast<LPARAM>(m_pwewoOptions->wsOutputFolder.c_str());
+				bool bOlInit = OleInitialize();
+				if ( bOlInit ) {
+					biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
+				}
 
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+				PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
+				if ( pidlSelected ) {
+					std::wstring szFileName;
+					szFileName.resize( 0xFFFF + 2 );
+
+					if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
+						m_pwewoOptions->wsOutputFolder = szFileName.c_str();
+						auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+						if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }
 					}
-					auto pwWidget = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( pwWidget ) { pwWidget->SetTextW( pPath.generic_wstring().c_str() ); }
+					::CoTaskMemFree( pidlSelected );
+				}
+				if ( bOlInit ) {
+					::OleUninitialize();
 				}
 				break;
 			}
-			case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
-
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
-
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
-					}
-					auto pwWidget = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-					if ( pwWidget ) { pwWidget->SetTextW( pPath.generic_wstring().c_str() ); }
-				}
-				break;
-			}*/
-
-			
 		}
 		Update();
 		return LSW_H_CONTINUE;
@@ -310,6 +299,34 @@ namespace lsn {
 	 **/
 	void CWavEditorOutputPage::Update() {
 		
+	}
+
+	/**
+	 * Callback procedure for the folder browser dialog.
+	 *
+	 * \param _hWnd   The dialog window handle.
+	 * \param _uMsg   The message.
+	 * \param _lParam The message parameter.
+	 * \param _lpData The application-defined data (initial path pointer).
+	 * \return Returns 0 to continue default processing.
+	 */
+	int CALLBACK CWavEditorOutputPage::BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData ) {
+		if ( uMsg == BFFM_INITIALIZED && lpData ) {
+			// lpData is a pointer to the initial folder path
+			::SendMessageW( hwnd, BFFM_SETSELECTIONW, TRUE, lpData );
+		}
+		return 0;
+	}
+
+	/**
+	 * Initializes OLE for the current thread.
+	 * 
+	 * \param _pvReserved Reserved; must be nullptr.
+	 * \return Returns true if OLE was initialized successfully, false otherwise.
+	 */
+	bool CWavEditorOutputPage::OleInitialize( LPVOID _pvReserved ) {
+		HRESULT hrResult = ::OleInitialize( _pvReserved );
+		return (hrResult == S_OK || hrResult == S_FALSE);
 	}
 
 }	// namespace lsn

@@ -609,6 +609,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Releases all samples from memory.  Used to conserve RAM.
+		 **/
+		void															FreeSamples() {
+			m_vSamples.clear();
+		}
+
+		/**
 		 * Gets the Hz.
 		 *
 		 * \return Returns the Hz.
@@ -645,7 +652,7 @@ namespace lsn {
 		 * \param _uiBitsPerPixel The number of bits per sample.
 		 * \return Returns the size of a buffer needed to hold the given number of samples on the given number of channels in te given format.
 		 */
-		inline uint32_t													CalcSize( LSN_FORMAT _fFormat, uint32_t _uiSamples, uint16_t _uiChannels, uint16_t _uiBitsPerPixel ) const {
+		static inline uint32_t											CalcSize( LSN_FORMAT _fFormat, uint32_t _uiSamples, uint16_t _uiChannels, uint16_t _uiBitsPerPixel ) {
 			switch ( _fFormat ) {
 				case LSN_F_PCM : {
 					return uint32_t( uint64_t( _uiSamples ) * _uiChannels * _uiBitsPerPixel / 8 );

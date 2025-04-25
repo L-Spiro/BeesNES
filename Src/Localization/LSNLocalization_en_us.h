@@ -333,6 +333,8 @@
 #define LSN_WE_GAUSSIAN														Gaussian
 #define LSN_WE_UNIFORM														Uniform
 
+#define LSN_WE_BROWSE_OUTPUT_FOLDER											Output Folder
+
 #define LSN_WE_OUTPUT_ERR_MAINSHUM_VOL										Mains Hum volume must be a valid expression.  Typical results will be between 0 and 1.
 #define LSN_WE_OUTPUT_ERR_WHITE_NOISE_VOL									White Noise volume must be a valid expression.  Typical results will be between 0 and 1.
 #define LSN_WE_OUTPUT_ERR_ABSOLUTE_VOL										Absolute volume must be a valid expression.  Typical results will be between 0 and 10.

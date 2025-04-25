@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cinttypes>
 #include <numbers>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #ifdef _WIN32
@@ -86,19 +87,35 @@ namespace ee {
 		template <typename _tT>
 		static inline _tT				Max( const _tT &_tA, const _tT &_tB ) { return _tA > _tB ? _tA : _tB; }
 
-		// Is the given character valid hex character?
+		/**
+		 * Is the given character valid binary character?
+		 * 
+		 * \param _cValue The value to test.
+		 * \return Returns true if _cValue is '0' or '1'. 
+		 **/
 		static inline bool				ValidBin( char _cValue ) {
 			return (_cValue >= '0' && _cValue <= '1');
 		}
 
-		// Is the given character valid hex character?
+		/**
+		 * Is the given character valid hex character?
+		 * 
+		 * \param _cValue The value to test.
+		 * \return Returns true if _cValue is a valid hexadecimal character (0-9, a-f, A-F). 
+
+		 **/
 		static inline bool				ValidHex( char _cValue ) {
 			return ((_cValue >= '0' && _cValue <= '9') ||
 				(_cValue >= 'a' && _cValue <= 'f') ||
 				(_cValue >= 'A' && _cValue <= 'F'));
 		}
 
-		// Is the given string valid hex?
+		/**
+		 * Is the given string valid hex?
+		 * 
+		 * \param _pcValue The string to test.
+		 * \return Returns true if all characters in the string are valid hexadecimal characters.
+		 **/
 		static inline bool				ValidHex( const char * _pcValue ) {
 			while ( (*_pcValue++) ) {
 				if ( ((*_pcValue) == ' ' || (*_pcValue) == '\t') ||
@@ -108,12 +125,22 @@ namespace ee {
 			return true;
 		}
 
-		// Is the given character valid octal character?
+		/**
+		 * Is the given character valid octal character?
+		 * 
+		 * \param _cValue The value to test.
+		 * \return Returns true if _cValue is a valid octal character (0-7).
+		 **/
 		static inline bool				ValidOctal( char _cValue ) {
 			return (_cValue >= '0' && _cValue <= '7');
 		}
 
-		// Converts a hex character to an integer.
+		/**
+		 * Converts a hex character to an integer.
+		 * 
+		 * \param _cVal The character to convert.
+		 * \return Returns the converted character between 0 and 15 inclusive.
+		 **/
 		static inline uint32_t			HexToUint32( char _cVal ) {
 			if ( _cVal >= '0' && _cVal <= '9' ) { return _cVal - '0'; }
 			if ( _cVal >= 'A' && _cVal <= 'F' ) { return _cVal - 'A' + 10; }
@@ -121,13 +148,23 @@ namespace ee {
 			return 0;
 		}
 
-		// Converts an octal character to an integer.
+		/**
+		 * Converts an octal character to an integer.
+		 * 
+		 * \param _cVal The character to convert.
+		 * \return Returns the converted character between 0 and 7 inclusive.
+		 **/
 		static inline uint32_t			OctalToUint32( char _cVal ) {
 			if ( _cVal >= '0' && _cVal <= '7' ) { return _cVal - '0'; }
 			return 0;
 		}
 
-		// Checks for whitespace without throwing exceptions.
+		/**
+		 * Checks for whitespace without throwing exceptions.
+		 * 
+		 * \param _cVal The character to test.
+		 * \return Returns true if _cVal is ' ', '\r', '\n', '\t', '\f', or '\v'.
+		 **/
 		static inline bool				IsWhiteSpace( char _cVal ) {
 			return _cVal == ' ' ||
 				_cVal == '\r' ||
@@ -137,18 +174,34 @@ namespace ee {
 				_cVal == '\v';
 		}
 
-		// Checks for digits (0-9) without throwing exceptions.
+		/**
+		 * Checks for digits (0-9) without throwing exceptions.
+		 * 
+		 * \param _cVal The character to test.
+		 * \return Returns true if _cVal is between 0 and 9 inclusive.
+		 **/
 		static inline bool				IsDigit( char _cVal ) {
 			return _cVal >= '0' && _cVal <= '9';
 		}
 
-		// Checks for alpha characters (a-z, A-Z) without throwing exceptions.
+		/**
+		 * Checks for alpha characters (a-z, A-Z) without throwing exceptions.
+		 * 
+		 * \param _cVal The character to test.
+		 * \return Returns true if _cVal is an alpha character (a-z, A-Z).
+		 **/
 		static inline bool				IsAlpha( char _cVal ) {
 			return (_cVal >= 'A' && _cVal <= 'Z') ||
 				(_cVal >= 'a' && _cVal <= 'z');
 		}
 
-		// Determines if a character is an identifier character.  Sets _bIsFirst to false internally.
+		/**
+		 * Determines if a character is an identifier character.  Sets _bIsFirst to false internally.
+		 * 
+		 * \param _cVal DESC
+		 * \param _bIsFirst Indicates that _cVal is the first character in the string being tested.
+		 * \return If _bIsFirst, true is returned if _cVal is an alpha character or '_', otherwise true is returned if _cVal is an alpha character, a digit, or '_'.
+		 **/
 		static inline bool				IsIdentifier( char _cVal, bool &_bIsFirst ) {
 			if ( _bIsFirst ) {
 				_bIsFirst = false;
@@ -157,7 +210,13 @@ namespace ee {
 			return IsAlpha( _cVal ) || IsDigit( _cVal ) || _cVal == '_';
 		}
 
-		// Determines if the given string is an identifier.
+		/**
+		 * Determines if the given string is an identifier.
+		 * 
+		 * \param _sIdent The string to test.
+		 * \tparam _tStringType The type of string (std::string, std::wstring, std:u8string, etc.)
+		 * \return Returns true if the whole string is a valid identifier.
+		 **/
 		template <typename _tStringType = std::string>
 		static bool						IsIdentifier( const _tStringType &_sIdent ) {
 			if ( !_sIdent.size() ) { return false; }
@@ -1313,6 +1372,9 @@ namespace ee {
 		// Pulls any preprocessing directives out of a single line.
 		static bool						PreprocessingDirectives( const std::string &_sInput, std::string &_sDirective, std::string &_sParms );
 
+		template <typename _tType = double>
+		using							PfWindowFunc = bool (*)( size_t _sN, std::vector<_tType> &_vRet );
+
 		/**
 		 * Creates a Hann window.
 		 * 
@@ -1613,6 +1675,112 @@ namespace ee {
 			}
 
 			return std::sin( _dX ) / _dX;
+		}
+
+		#include <cmath>
+
+		/**
+		 * \brief Calculates the exponent M for a SINC^M filter to achieve a desired fallÅ]off slope in dB per octave.
+		 * 
+		 * \param _dSlopeDbPerOctave Desired slope in decibels per octave.
+		 * \return The exponent M to use in the SINC^M filter.
+		 */
+		static inline double			GetSincFilterM( double _dSlopeDbPerOctave ) {
+			//                             6.0205999132796239042747778944899
+			constexpr double cdSlopePerM = 6.02059991327962418239394537522457540035247802734375;	// = 6.0205999132796239042747778944899 dB/octave per unit M (rounded to nearest actual double value).
+			double dM = _dSlopeDbPerOctave / cdSlopePerM;
+			return dM;
+		}
+
+
+		/**
+		 * Creates a windowed sinc low-pass filter.  Call within a try/catch block.
+		 * 
+		 * \tparam _tType			The type of the filter coefficients.
+		 * \param _dHz				The input Hz.
+		 * \param _dFc				The cut-off frequency.
+		 * \param _sM				The size of the coefficient table to create.  On output, it contains the midpoint value for the created coefficient buffer.
+		 * \param _pfWindowFunc		The window function.
+		 * \return					Returns the created sinc-filter coefficients.
+		 * \throws					std::runtime_error on allocation or window error.
+		 **/
+		template <typename _tType = double>
+		static inline std::vector<_tType>
+										SincFilterLpf( double _dHz, double _dFc, size_t &_sM, PfWindowFunc<_tType> _pfWindowFunc = &HammingWindow<_tType> ) {
+			std::vector<_tType> vFilter;
+			if ( _dFc > _dHz / 2.0 || _dHz <= 0.0 ) {
+				vFilter.push_back( _tType( 1.0 ) );
+				_sM = 0;
+				return vFilter;
+			}
+			if ( !(_sM & 1) ) { ++_sM; }
+			_dFc /= _dHz;
+			
+			vFilter.resize( _sM );				// Can throw.
+			if ( !_pfWindowFunc( _sM, vFilter ) ) { throw std::runtime_error( "SincFilter(): Failed to apply windowing function." ); }
+
+			size_t sL = _sM / 2;
+			double dFc2 = 2.0 * _dFc;
+			int64_t i64SignedL = int64_t( sL );
+			for ( auto I = _sM; I--; ) {
+				int64_t N = int64_t( I ) - i64SignedL;
+				vFilter[I] = _tType( vFilter[I] * dFc2 * Sinc( dFc2 * N ) );
+			}
+
+			// Normalize.
+			double dSum = 0.0;
+			for ( auto & I : vFilter ) { dSum += double( I ); }
+			for ( auto & I : vFilter ) { I = _tType( I / dSum ); }
+			_sM = sL;
+			return vFilter;
+		}
+
+		/**
+		 * Creates a windowed sinc high-pass filter.  Call within a try/catch block.
+		 *
+		 * \tparam _tType			The type of the filter coefficients.
+		 * \param  _dHz				The sample rate in Hz.
+		 * \param  _dFc				The cutoff frequency in Hz.
+		 * \param  _sM				On input, the filter width (may be adjusted to odd); on output, set to half-width.
+		 * \param  _pfWindowFunc	The window function pointer (defaults to Hamming).
+		 * \return					Returns the created filter coefficients.
+		 * \throws					std::runtime_error on allocation or window error.
+		 */
+		template <typename _tType = double>
+		static inline std::vector<_tType>
+										SincFilterHpf( double _dHz, double _dFc, size_t &_sM, PfWindowFunc<_tType> _pfWindowFunc = &HammingWindow<_tType> ) {
+			std::vector<_tType> vFilter;
+			if ( _dFc > _dHz / 2.0 || _dHz <= 0.0 ) {
+				vFilter.push_back( _tType( 1.0 ) );
+				_sM = 0;
+				return vFilter;
+			}
+			if ( !(_sM & 1) ) { ++_sM; }
+			_dFc /= _dHz;
+
+			vFilter.resize( _sM );
+			if ( !_pfWindowFunc( _sM, vFilter ) ) { throw std::runtime_error( "SincFilterHpf(): Failed to apply windowing function." ); }
+
+			size_t sL = _sM / 2;
+			double dFc2 = 2.0 * _dFc;
+			int64_t i64SignedL = int64_t( sL );
+			for ( auto I = _sM; I--; ) {
+				int64_t N = int64_t( I ) - i64SignedL;
+				if ( N == 0 ) {
+					// Center tap for HPF
+					vFilter[I] = _tType( vFilter[I] * (1.0 - dFc2) );
+				}
+				else {
+					vFilter[I] = _tType( vFilter[I] * (-dFc2 * Sinc( dFc2 * N )) );
+				}
+			}
+
+			// Normalize.
+			double dSum = 0.0;
+			for ( auto & I : vFilter ) { dSum += double( I ); }
+			for ( auto & I : vFilter ) { I = _tType( I / dSum ); }
+			_sM = sL;
+			return vFilter;
 		}
 	};
 

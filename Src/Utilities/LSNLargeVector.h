@@ -122,6 +122,9 @@ namespace lsn {
 			_lvOther.m_nTotalSize = 0;
 
 			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+
+			m_vWriteBuffer = std::move( _lvOther.m_vWriteBuffer );
+			_lvOther.m_vWriteBuffer.clear();
 		}
 
 		/**
@@ -131,6 +134,9 @@ namespace lsn {
 		 */
 		~large_vector() {
 			try {
+				// 1) flush buffered appends.
+				flushWriteBuffer();
+				// 2) flush any dirty cached section.
 				try { flushCurrentSection(); } catch ( ... ) {}
 				if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
 				std::filesystem::remove( m_pPathDiskFile );
@@ -150,30 +156,35 @@ namespace lsn {
 		// --- move assignment ---
 		large_vector &											operator = ( large_vector && _lvOther ) noexcept {
 			if ( this != &_lvOther ) {
-				// 1) Cleanup our old file
+				// 1) Cleanup our old file.
 				try {
+					flushWriteBuffer();
 					flushCurrentSection();
 					if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
 					std::filesystem::remove( m_pPathDiskFile );
 				} catch ( ... ) {}
 
-				// 2) Steal base state
+				// 2) Steal base state.
 				std::vector<T, Allocator>::operator=( std::move( _lvOther ) );
 
-				// 3) Steal our fields
+				// 3) Steal our fields.
 				m_nMaxRamItems         = _lvOther.m_nMaxRamItems;
 				m_nTotalSize           = _lvOther.m_nTotalSize;
 				m_nCurrentSectionStart = _lvOther.m_nCurrentSectionStart;
 				m_bDirty               = _lvOther.m_bDirty;
 
-				// 4) Steal file path
+				// 4) Steal file path.
 				m_pPathDiskFile = std::move( _lvOther.m_pPathDiskFile );
 				_lvOther.m_pPathDiskFile.clear();
 				_lvOther.m_nTotalSize = 0;
 
-				// 5) Reopen append handle on our new path
+				// 5) Reopen append handle on our new path.
 				if ( m_ofsDisk.is_open() ) { m_ofsDisk.close(); }
 				m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+
+				// 6) Steal the write buffer.
+				m_vWriteBuffer = std::move( _lvOther.m_vWriteBuffer );
+				_lvOther.m_vWriteBuffer.clear();
 			}
 			return (*this);
 		}
@@ -271,6 +282,7 @@ namespace lsn {
 			// If _nIndex is outside the currently loaded section, flush and load the appropriate section.
 			if ( _nIndex < m_nCurrentSectionStart ||
 				_nIndex >= m_nCurrentSectionStart + std::vector<T, Allocator>::size() ) {
+				flushWriteBuffer();
 				flushCurrentSection();
 				size_t nNewSectionStart = (_nIndex / m_nMaxRamItems) * m_nMaxRamItems;
 				loadSection( nNewSectionStart );
@@ -316,10 +328,16 @@ namespace lsn {
 		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													push_back( const T & _tElem ) {
+			// Ensure cache integrity before we buffer.
 			flushCurrentSection();
-			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
-			m_ofsDisk.write( reinterpret_cast<const char *>( &_tElem ), sizeof( T ) );
+
+			// Buffer the element.
+			m_vWriteBuffer.push_back( _tElem );
 			++m_nTotalSize;
+			// Flush in bulk when buffer fills.
+			if ( m_vWriteBuffer.size() >= m_nMaxRamItems ) {
+				flushWriteBuffer();
+			}
 		}
 
 		/**
@@ -333,9 +351,28 @@ namespace lsn {
 		 */
 		void													push_back( const T * _pArray, size_t _nCount ) {
 			flushCurrentSection();
-			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
-			m_ofsDisk.write( reinterpret_cast<const char *>( _pArray ), _nCount * sizeof( T ) );
-			m_nTotalSize += _nCount;
+
+			// if it all fits in the buffer, accumulate.
+			size_t sSpace = m_nMaxRamItems - m_vWriteBuffer.size();
+			if ( _nCount <= sSpace ) {
+				m_vWriteBuffer.insert( m_vWriteBuffer.end(),
+					_pArray, _pArray + _nCount );
+				m_nTotalSize += _nCount;
+				if ( m_vWriteBuffer.size() >= m_nMaxRamItems ) {
+					flushWriteBuffer();
+				}
+			}
+			else {
+				// Flush existing buffer.
+				flushWriteBuffer();
+				// Write large block directly.
+				m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+				m_ofsDisk.write(
+					reinterpret_cast<const char *>( _pArray ),
+					_nCount * sizeof( T )
+				);
+				m_nTotalSize += _nCount;
+			}
 		}
     
 		/**
@@ -347,6 +384,7 @@ namespace lsn {
 		 */
 		void													pop_back() {
 			if ( m_nTotalSize == 0 ) { throw std::runtime_error( "pop_back called on empty vector." ); }
+			flushWriteBuffer();
 			flushCurrentSection();
 			--m_nTotalSize;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
@@ -370,6 +408,7 @@ namespace lsn {
 		 */
 		void													pop_back( size_t _nCount ) {
 			if ( _nCount > m_nTotalSize ) { throw std::runtime_error( "pop_back called with too many items." ); }
+			flushWriteBuffer();
 			flushCurrentSection();
 			m_nTotalSize -= _nCount;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
@@ -399,6 +438,7 @@ namespace lsn {
 				throw std::out_of_range( "Insert index out of range." );
 			}
 
+			flushWriteBuffer();
 			flushCurrentSection();
 
 			size_t sNewSize = m_nTotalSize + 1;
@@ -442,6 +482,7 @@ namespace lsn {
 		 * \param _nNewSize The new total number of elements.
 		 */
 		void													resize( size_t _nNewSize ) {
+			flushWriteBuffer();
 			flushCurrentSection();
 
 			if ( _nNewSize > m_nTotalSize ) {
@@ -483,7 +524,27 @@ namespace lsn {
 		void													reserve( size_t /*_nNewCapacity*/ ) {
 			// Do nothing.
 		}
+
     
+	private :
+		mutable std::fstream									m_ofsDisk;				/**< Single handle for fast append. */
+		std::vector<T>											m_vWriteBuffer;			/**< Buffered push_back() elements. */
+		std::filesystem::path									m_pPathDiskFile;		/**< Generated disk file path based on the current directory, "lvec", and a unique ID. */
+		size_t													m_nMaxRamItems;         /**< Maximum number of items to keep in RAM. */
+		size_t													m_nTotalSize;           /**< Total number of elements stored. */
+		size_t													m_nCurrentSectionStart; /**< Global index marking the start of the current RAM section. */
+		bool													m_bDirty;               /**< True if the current section has been modified. */
+    
+		/** A static atomic counter for generating unique IDs for each instance. */
+		inline static std::atomic<uint64_t>						s_uID{ 0 };
+
+		// Static variables for instance counting and directory management.
+		inline static std::atomic<size_t>						s_nInstanceCount{ 0 };
+		inline static std::mutex								s_mMutex;
+		inline static std::filesystem::path						s_pBaseDirectory;
+
+
+		// == Functions.
 		//-------------------------------------------------------------------------
 		// Disk I/O: Flushing and Loading Sections
 		//-------------------------------------------------------------------------
@@ -538,23 +599,27 @@ namespace lsn {
 			m_bDirty = false;
 		}
 
-    
-	private :
-		mutable std::fstream									m_ofsDisk;				/**< Single handle for fast append. */
-		std::vector<T>											m_vWriteBuffer;			/**< Buffered push_back() elements. */
-		std::filesystem::path									m_pPathDiskFile;		/**< Generated disk file path based on the current directory, "lvec", and a unique ID. */
-		size_t													m_nMaxRamItems;         /**< Maximum number of items to keep in RAM. */
-		size_t													m_nTotalSize;           /**< Total number of elements stored. */
-		size_t													m_nCurrentSectionStart; /**< Global index marking the start of the current RAM section. */
-		bool													m_bDirty;               /**< True if the current section has been modified. */
-    
-		/** A static atomic counter for generating unique IDs for each instance. */
-		inline static std::atomic<uint64_t>						s_uID{ 0 };
-
-		// Static variables for instance counting and directory management.
-		inline static std::atomic<size_t>						s_nInstanceCount{ 0 };
-		inline static std::mutex								s_mMutex;
-		inline static std::filesystem::path						s_pBaseDirectory;
+		/**
+		 * \brief Flushes any buffered push_back() operations to disk.
+		 *
+		 * Writes the entire buffer in one go, then clears it.
+		 */
+		void													flushWriteBuffer() {
+			if ( !m_vWriteBuffer.empty() ) {
+				// write buffered data at its proper offset
+				m_ofsDisk.seekp(
+					( m_nTotalSize - m_vWriteBuffer.size() ) * sizeof( T ),
+					std::ios::beg
+				);
+				m_ofsDisk.write(
+					reinterpret_cast<const char *>( m_vWriteBuffer.data() ),
+					m_vWriteBuffer.size() * sizeof( T )
+				);
+				m_vWriteBuffer.clear();
+				// reposition at EOF for future appends
+				m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+			}
+		}
 	};
 
 }	// namespace lsn
