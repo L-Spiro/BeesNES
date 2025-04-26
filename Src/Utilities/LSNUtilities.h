@@ -1353,7 +1353,17 @@ namespace lsn {
 		 * \param _mReg The register containing all of the values to sum.
 		 * \return Returns the sum of all the floats in the given register.
 		 **/
-		static inline float									HorizontalSum( __m512 _mReg ) {
+		static inline double								HorizontalSum( const __m512d &_mReg ) {
+			return _mm512_reduce_add_pd( _mReg );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given AVX-512 register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( const __m512 &_mReg ) {
 			return _mm512_reduce_add_ps( _mReg );
 		}
 
@@ -1445,7 +1455,20 @@ namespace lsn {
 		 * \param _mReg The register containing all of the values to sum.
 		 * \return Returns the sum of all the floats in the given register.
 		 **/
-		static inline float									HorizontalSum( __m256 &_mReg ) {
+		static inline double								HorizontalSum( const __m256d &_mReg ) {
+			__m256d mT1 = _mm256_hadd_pd( _mReg, _mReg );
+			__m128d mT2 = _mm256_extractf128_pd( mT1, 1 );
+			__m128d mT3 = _mm256_castpd256_pd128( mT1 );
+			return _mm_cvtsd_f64( _mm_add_pd( mT2, mT3 ) );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given AVX register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( const __m256 &_mReg ) {
 			__m256 mTmp = _mm256_add_ps( _mReg, _mm256_permute2f128_ps( _mReg, _mReg, 1 ) );
 			mTmp = _mm256_hadd_ps( mTmp, mTmp );
 			mTmp = _mm256_hadd_ps( mTmp, mTmp );
@@ -1540,7 +1563,19 @@ namespace lsn {
 		 * \param _mReg The register containing all of the values to sum.
 		 * \return Returns the sum of all the floats in the given register.
 		 **/
-		static inline float									HorizontalSum( __m128 &_mReg ) {
+		static inline double								HorizontalSum( const __m128d &_mReg ) {
+			__m128d mAddH1 = _mm_shuffle_pd( _mReg, _mReg, 0x1 );
+			__m128d mAddH2 = _mm_add_pd( _mReg, mAddH1 );
+			return _mm_cvtsd_f64( mAddH2 );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given SSE register.
+		 * 
+		 * \param _mReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( const __m128 &_mReg ) {
 			__m128 mAddH1 = _mm_hadd_ps( _mReg, _mReg );
 			__m128 mAddH2 = _mm_hadd_ps( mAddH1, mAddH1 );
 			return _mm_cvtss_f32( mAddH2 );
@@ -1661,6 +1696,67 @@ namespace lsn {
 			// Finish the rest.
 			for ( size_t I = 0; I < _sTotal; ++I ) {
 				_pfOut[I] = _pfOp0[I] + _pfOp1[I];
+			}
+		}
+
+		/**
+		 * Convolvinate.
+		 *
+		 * \param _pdWeights The convolution weights.
+		 * \param _pdValues The values to be convolved.
+		 * \param _sTotal The total values to which _pdValues and _pdWeights point.
+		 * \return Returns the summed weights * values.
+		 **/
+		static double										ConvolveAligned( const double * _pdWeights, const double * _pdValues, size_t _sTotal );
+
+		/**
+		 * Convolvinate using unaligned reads.
+		 *
+		 * \param _pdWeights The convolution weights.
+		 * \param _pdValues The values to be convolved.
+		 * \param _sTotal The total values to which _pdValues and _pdWeights point.
+		 * \return Returns the summed weights * values.
+		 **/
+		static double										ConvolveUnaligned( const double * _pdWeights, const double * _pdValues, size_t _sTotal );
+
+		/**
+		 * Convoles a buffer of values in-place with the given coefficients.  Call within a try/catch block.
+		 * 
+		 * \tparam _tVecSrc The source/destination vector type.
+		 * \tparam _tVecSinc The coefficients.
+		 * \param _vSrc The input/output vector.
+		 * \param _vFilter The coefficients to apply to _vSrc.
+		 * \param _vtLeftPad The value to use to fill the empty space before the start of _vSrc.
+		 * \param _vtRightPad The value to use to fill the empty space after the end of _vSrc.
+		 * \throws std::runtime_error on allocation error.
+		 **/
+		template <typename _tVecSrc, typename _tVecSinc>
+		static inline void									ApplySincFilterInPlace( _tVecSrc &_vSrc, const _tVecSinc &_vFilter, _tVecSinc::value_type _vtLeftPad, _tVecSinc::value_type _vtRightPad ) {
+			size_t sFilterSize = _vFilter.size();
+			size_t sM = sFilterSize / 2;
+
+			std::vector<typename _tVecSinc::value_type> vRingBuffer;
+			vRingBuffer.resize( sFilterSize );
+			for ( auto & I : vRingBuffer ) { I = _vtLeftPad; }
+
+			size_t sFilterSizeM1 = sFilterSize - 1;
+			size_t sTotalSize = _vSrc.size() + sFilterSizeM1;
+			
+			for ( size_t I = sM; I < sTotalSize; ++I ) {
+				size_t sRingIdx = I % sFilterSize;
+				size_t sSrcIdx = I - sM;
+				vRingBuffer[sRingIdx] = sSrcIdx < _vSrc.size() ? _vSrc[sSrcIdx] : _vtRightPad;
+
+				if LSN_LIKELY( I >= sFilterSizeM1 ) {
+					sRingIdx = (I - sFilterSizeM1) % sFilterSize;
+					// Convolve the ring buffer.
+					double dSum = 0.0;
+					for ( size_t J = 0; J < sFilterSize; ++J ) {
+						size_t sIdx = (sRingIdx + J) % sFilterSize;
+						dSum += vRingBuffer[sIdx] * _vFilter[J];
+					}
+					_vSrc[I-sFilterSizeM1] = dSum;
+				}
 			}
 		}
 
@@ -2194,7 +2290,6 @@ namespace lsn {
 			_mm512_store_si512( reinterpret_cast<__m512i *>( _pi32Dst ), vInt32Vals );
 		}
 #endif	// #ifdef __AVX512F__
-
 
 		/**
 		 * Gets a decay multiplier given a starting point, a target point, the duration to reach the target point in seconds, and the number of iterations per second to take.

@@ -12,6 +12,8 @@
 #include "../Utilities/LSNLargeVector.h"
 #include "../Utilities/LSNStream.h"
 
+#include <EEExpEval.h>
+
 #include <filesystem>
 #include <format>
 #include <utility>
@@ -381,6 +383,20 @@ namespace lsn {
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
 			// Apply anti-aliasing.
+			try {
+				//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 0.75257498915995324484384809693438000977039337158203125 );
+				//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
+				//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
+				size_t sM = 500;
+				std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, sM );
+				CUtilities::ApplySincFilterInPlace<large_vector<double, CAlignmentAllocator<double, 64>>, std::vector<double>>( vSamples[J], vSincFilter, vSamples[J][0], vSamples[J][vSamples[J].size()-1] );
+
+				if ( vSincFilter.size() == 0 ) { return false; }
+			}
+			catch ( ... ) {
+				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+				return false;
+			}
 		}
 
 		return true;

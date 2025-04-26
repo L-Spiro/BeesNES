@@ -351,4 +351,136 @@ namespace lsn {
 		_u16Path.insert( _u16Path.begin(), u'\u2026' );
 	}
 
+	/**
+	 * Convolvinate.
+	 *
+	 * \param _pdWeights The convolution weights.
+	 * \param _pdValues The values to be convolved.
+	 * \param _sTotal The total values to which _pdValues and _pdWeights point.
+	 * \return Returns the summed weights * values.
+	 **/
+	double CUtilities::ConvolveAligned( const double * _pdWeights, const double * _pdValues, size_t _sTotal ) {
+		LSN_ALIGN( 64 )
+		double dSum = 0.0;
+#ifdef __AVX512F__
+		if ( CUtilities::IsAvx512FSupported() ) {
+			constexpr size_t sRegSize = sizeof( __m512d ) / sizeof( double );
+			__m512d mAcc = _mm512_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m512d mW = _mm512_load_pd( _pdWeights );
+				__m512d dT = _mm512_load_pd( _pdValues );
+				mAcc = _mm512_fmadd_pd( mW, dT, mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum = CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __AVX512F__
+
+#ifdef __AVX__
+		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			constexpr size_t sRegSize = sizeof( __m256d ) / sizeof( double );
+			__m256d mAcc = _mm256_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m256d mW = _mm256_load_pd( _pdWeights );
+				__m256d dT = _mm256_load_pd( _pdValues );
+				mAcc = _mm256_add_pd( _mm256_mul_pd( mW, dT ), mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum += CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __AVX__
+
+#ifdef __SSE4_1__
+		if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+			constexpr size_t sRegSize = sizeof( __m128d ) / sizeof( double );
+			__m128d mAcc = _mm_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m128d mW = _mm_load_pd( _pdWeights );
+				__m128d dT = _mm_load_pd( _pdValues );
+				mAcc = _mm_add_pd( _mm_mul_pd( mW, dT ), mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum += CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __SSE4_1__
+
+		while ( _sTotal >= 1 ) {
+			dSum += (*_pdWeights++) * (*_pdValues++);
+			--_sTotal;
+		}
+		return dSum;
+	}
+
+	/**
+	 * Convolvinate using unaligned reads.
+	 *
+	 * \param _pdWeights The convolution weights.
+	 * \param _pdValues The values to be convolved.
+	 * \param _sTotal The total values to which _pdValues and _pdWeights point.
+	 * \return Returns the summed weights * values.
+	 **/
+	double CUtilities::ConvolveUnaligned( const double * _pdWeights, const double * _pdValues, size_t _sTotal ) {
+		LSN_ALIGN( 64 )
+		double dSum = 0.0;
+#ifdef __AVX512F__
+		if ( CUtilities::IsAvx512FSupported() ) {
+			constexpr size_t sRegSize = sizeof( __m512d ) / sizeof( double );
+			__m512d mAcc = _mm512_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m512d mW = _mm512_load_pd( _pdWeights );
+				__m512d dT = _mm512_loadu_pd( _pdValues );
+				mAcc = _mm512_fmadd_pd( mW, dT, mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum = CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __AVX512F__
+
+#ifdef __AVX__
+		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			constexpr size_t sRegSize = sizeof( __m256d ) / sizeof( double );
+			__m256d mAcc = _mm256_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m256d mW = _mm256_load_pd( _pdWeights );
+				__m256d dT = _mm256_loadu_pd( _pdValues );
+				mAcc = _mm256_add_pd( _mm256_mul_pd( mW, dT ), mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum += CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __AVX__
+
+#ifdef __SSE4_1__
+		if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+			constexpr size_t sRegSize = sizeof( __m128d ) / sizeof( double );
+			__m128d mAcc = _mm_setzero_pd();
+			while ( _sTotal >= sRegSize ) {
+				__m128d mW = _mm_load_pd( _pdWeights );
+				__m128d dT = _mm_loadu_pd( _pdValues );
+				mAcc = _mm_add_pd( _mm_mul_pd( mW, dT ), mAcc );
+				_pdWeights += sRegSize;
+				_pdValues += sRegSize;
+				_sTotal -= sRegSize;
+			}
+			dSum += CUtilities::HorizontalSum( mAcc );
+		}
+#endif	// #ifdef __SSE4_1__
+
+		while ( _sTotal >= 1 ) {
+			dSum += (*_pdWeights++) * (*_pdValues++);
+			--_sTotal;
+		}
+		return dSum;
+	}
+
 }	// namespace lsn

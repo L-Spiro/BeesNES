@@ -98,7 +98,7 @@ namespace lsn {
 		 * \param _lpData The application-defined data (initial path pointer).
 		 * \return Returns 0 to continue default processing.
 		 */
-		static int CALLBACK									BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData );
+		static int CALLBACK									BrowseCallbackProc( HWND _hWnd, UINT _uMsg, LPARAM /*_lParam*/, LPARAM lpData );
 
 		/**
 		 * Initializes OLE for the current thread.

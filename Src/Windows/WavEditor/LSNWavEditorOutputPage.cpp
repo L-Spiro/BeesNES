@@ -310,10 +310,10 @@ namespace lsn {
 	 * \param _lpData The application-defined data (initial path pointer).
 	 * \return Returns 0 to continue default processing.
 	 */
-	int CALLBACK CWavEditorOutputPage::BrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData ) {
-		if ( uMsg == BFFM_INITIALIZED && lpData ) {
+	int CALLBACK CWavEditorOutputPage::BrowseCallbackProc( HWND _hWnd, UINT _uMsg, LPARAM /*_lParam*/, LPARAM lpData ) {
+		if ( _uMsg == BFFM_INITIALIZED && lpData ) {
 			// lpData is a pointer to the initial folder path
-			::SendMessageW( hwnd, BFFM_SETSELECTIONW, TRUE, lpData );
+			::SendMessageW( _hWnd, BFFM_SETSELECTIONW, TRUE, lpData );
 		}
 		return 0;
 	}
