@@ -456,8 +456,8 @@ namespace lsn {
 			flushCurrentSection();
 
 			m_ofsDisk.close();
-			size_t nNewSize = m_nTotalSize + 1;
-			std::filesystem::resize_file( m_pPathDiskFile, nNewSize * sizeof( T ) );
+			size_t sNewSize = m_nTotalSize + 1;
+			std::filesystem::resize_file( m_pPathDiskFile, sNewSize * sizeof( T ) );
 			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 
 			std::vector<T> vBlock;
@@ -479,7 +479,7 @@ namespace lsn {
 			m_ofsDisk.seekp( _nIndex * sizeof( T ), std::ios::beg );
 			m_ofsDisk.write( reinterpret_cast<const char *>(&_tElem), sizeof( T ) );
 
-			m_nTotalSize = nNewSize;
+			m_nTotalSize = sNewSize;
 			if ( _nIndex >= m_nCurrentSectionStart &&
 				 _nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() ) {
 				loadSection( m_nCurrentSectionStart );
@@ -506,8 +506,8 @@ namespace lsn {
 			flushCurrentSection();
 
 			m_ofsDisk.close();
-			size_t nNewSize = m_nTotalSize + _nCount;
-			std::filesystem::resize_file( m_pPathDiskFile, nNewSize * sizeof( T ) );
+			size_t sNewSize = m_nTotalSize + _nCount;
+			std::filesystem::resize_file( m_pPathDiskFile, sNewSize * sizeof( T ) );
 			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 
 			std::vector<T> vBlock;
@@ -528,7 +528,7 @@ namespace lsn {
 			m_ofsDisk.seekp( _nIndex * sizeof( T ), std::ios::beg );
 			m_ofsDisk.write( reinterpret_cast<const char *>(_pArray), _nCount * sizeof( T ) );
 
-			m_nTotalSize = nNewSize;
+			m_nTotalSize = sNewSize;
 			if ( _nIndex >= m_nCurrentSectionStart &&
 				 _nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() ) {
 				loadSection( m_nCurrentSectionStart );
