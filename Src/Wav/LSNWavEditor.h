@@ -96,7 +96,7 @@ namespace lsn {
 			double														dDelayTime = 0.0;								/**< How long to continue before fading out. */
 			double														dFadeTime = 0.0;								/**< The fade duration. */
 			double														dOpeningSilence = 0.2;							/**< Opening silence. */
-			double														dtrailingSilence = 0.5;							/**< Trailing silence. */
+			double														dTrailingSilence = 0.5;							/**< Trailing silence. */
 			double														dActualHz = 0.0;								/**< The actual HZ of the file. */
 			double														dVolume = 1.0;									/**< The characteristics volume. */
 			double														dLpf = 0.0;										/**< The characteristics LPF. */

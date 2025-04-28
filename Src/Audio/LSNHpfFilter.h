@@ -42,7 +42,7 @@ namespace lsn {
 				m_dPreviousOutput = m_dOutput;
 				m_dPrevInput = 0.0;
 				m_dDelta = 0.0;
-				if ( _fFc >= _fSampleRate / 2.0f ) { m_bEnabled = false; }
+				if ( _fFc >= _fSampleRate / 2.0f || _fFc < 0.0f ) { m_bEnabled = false; }
 			}
 			return true;
 		}
@@ -64,6 +64,13 @@ namespace lsn {
 			}
 			return _dSample;
 		}
+
+		/**
+		 * Gets the Enabled flag.
+		 * 
+		 * \return Returns true if the HPF is enabled.
+		 **/
+		inline bool					Enabled() const { return m_bEnabled; }
 
 
 	protected :

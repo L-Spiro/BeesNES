@@ -7,6 +7,9 @@
  */
  
 #include "LSNWavEditor.h"
+#include "../Audio/LSNAudio.h"
+#include "../Audio/LSNHpfFilter.h"
+#include "../Audio/LSNPoleFilter.h"
 #include "../Localization/LSNLocalization.h"
 #include "../Utilities/LSNAlignmentAllocator.h"
 #include "../Utilities/LSNLargeVector.h"
@@ -335,6 +338,7 @@ namespace lsn {
 				return false;
 			}
 		}
+		uint32_t ui32FileSampleRate = 0;
 		{
 			lsn::CWavFile wfWav;
 			if ( uint64_t( i64StartSample ) < _wfsSet.wfFile.ui64Samples ) {
@@ -349,6 +353,7 @@ namespace lsn {
 					return false;
 				}
 				wfWav.FreeSamples();
+				ui32FileSampleRate = wfWav.Hz();
 			}
 			i64StartSample -= _wfsSet.wfFile.ui64Samples;
 			i64EndSample -= _wfsSet.wfFile.ui64Samples;
@@ -380,18 +385,266 @@ namespace lsn {
 			}
 		}
 
+		double dLen = (_pfFile.dStopTime - _pfFile.dStartTime);
+		double dFadeStart = 0.0;
+		if ( _pfFile.bLoop ) {
+			dFadeStart = dLen + _pfFile.dDelayTime;
+			dLen += _pfFile.dDelayTime + _pfFile.dFadeTime;
+		}
+		size_t sEndSample = size_t( std::round( dLen * ui32FileSampleRate ) );
+		dLen += _pfFile.dOpeningSilence;
+		dFadeStart += _pfFile.dOpeningSilence;
+		//dLen += _pfFile.dTrailingSilence;
+		
+
+		//std::vector<std::vector<double>> vFinalTracks;
+		//vFinalTracks.resize( vSamples.size() );
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
+			vSamples[J].resize( sEndSample );
 			// Apply anti-aliasing.
+			large_vector<double, CAlignmentAllocator<double, 64>> & vThis = vSamples[J];
 			try {
-				//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 0.75257498915995324484384809693438000977039337158203125 );
-				//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
-				//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
-				size_t sM = 500;
-				std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, sM );
-				CUtilities::ApplySincFilterInPlace<large_vector<double, CAlignmentAllocator<double, 64>>, std::vector<double>>( vSamples[J], vSincFilter, vSamples[J][0], vSamples[J][vSamples[J].size()-1] );
+				// Add the opening and trailing silences.
+				{
+					size_t sOpening = size_t( std::round( _pfFile.dActualHz * _pfFile.dOpeningSilence ) );
+					if ( sOpening ) {
+						std::vector<double> vTmp;
+						vTmp.resize( sOpening );
+						double dVal = vThis.size() ? vThis[0] : 0.0;
+						for ( auto I = vTmp.size(); I--; ) {
+							vTmp[I] = dVal;
+						}
+						vThis.insert( 0, vTmp.data(), vTmp.size() );
+					}
 
-				if ( vSincFilter.size() == 0 ) { return false; }
+					size_t sTrailing = size_t( std::round( _pfFile.dActualHz * _pfFile.dTrailingSilence ) );
+					if ( sTrailing ) {
+						std::vector<double> vTmp;
+						vTmp.resize( sTrailing );
+						double dVal = vThis.size() ? vThis[vThis.size()-1] : 0.0;
+						for ( auto I = vTmp.size(); I--; ) {
+							vTmp[I] = dVal;
+						}
+						vThis.push_back( vTmp.data(), vTmp.size() );
+					}
+				}
+				{
+					//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
+					//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
+					// Apply anti-aliasing.
+					size_t sM = 300;
+					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0 * 1.0095, sM );
+					CUtilities::ApplySincFilterInPlace<large_vector<double, CAlignmentAllocator<double, 64>>, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
+				}
+
+				// Apply the LPF if any.
+				if ( _pfFile.bLpf && _pfFile.dLpf < _pfFile.dActualHz / 2.0 && vThis.size() ) {
+					CPoleFilter pfLpf;
+					pfLpf.CreateLpf( float( _pfFile.dLpf ), float( _pfFile.dActualHz ) );
+					// Prime the LPF.
+					double dLeft = vThis[0];
+					double dLpf = pfLpf.Process( dLeft );
+					double dLastLpf = 0.0;
+					size_t sCnt = 0;
+					while ( dLpf != dLeft ) {
+						dLpf = pfLpf.Process( dLeft );
+						if ( dLastLpf == dLpf ) {
+							if ( ++sCnt == 1024 ) { break; }
+						}
+						else { sCnt = 0; }
+						dLastLpf = dLpf;
+					}
+					// LPF is primed.
+					size_t sTotal = vThis.size();
+					for ( size_t I = 0; I < sTotal; ++I ) {
+						vThis[I] = pfLpf.Process( vThis[I] );
+					}
+				}
+				// Apply HPF 0.
+				if ( _pfFile.dHpf0 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					hfHpf.CreateHpf( float( _pfFile.bHpf0 ), float( _pfFile.dActualHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+				// Apply HPF 1.
+				if ( _pfFile.dHpf1 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					hfHpf.CreateHpf( float( _pfFile.bHpf1 ), float( _pfFile.dActualHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+				// Apply HPF 2.
+				if ( _pfFile.dHpf2 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					hfHpf.CreateHpf( float( _pfFile.bHpf2 ), float( _pfFile.dActualHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+
+				// Down-sample to OUT*4.
+				std::vector<double> vDownSampled;
+				size_t sOutHz = _oOutput.ui32Hz * 4;
+				if ( vThis.size() ) {
+					size_t sSrcMax = vThis.size();
+					size_t sNewSize = size_t( std::round( sSrcMax / _pfFile.dActualHz * sOutHz ) );
+					vDownSampled.resize( sNewSize );
+					double dSampleMe[6];
+					double dLeft = vThis[0], dRight = vThis[sSrcMax-1];
+					
+					for ( size_t I = 0; I < sNewSize; ++I ) {
+						double dSample = I / double( sOutHz ) * _pfFile.dActualHz;
+						int64_t i64Idx = int64_t( std::floor( dSample ) );
+						dSampleMe[0] = (i64Idx - 2) < 0 ? dLeft : vThis[(i64Idx-2)];
+						dSampleMe[1] = (i64Idx - 1) < 0 ? dLeft : vThis[(i64Idx-1)];
+						dSampleMe[2] = (i64Idx + 0) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+0)];
+						dSampleMe[3] = (i64Idx + 1) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+1)];
+						dSampleMe[4] = (i64Idx + 2) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+2)];
+						dSampleMe[5] = (i64Idx + 3) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+3)];
+						vDownSampled[I] = CAudio::Sample_6Point_5thOrder_Hermite_X( dSampleMe, dSample - double( i64Idx ) );
+					}
+				}
+
+				// Anti-alias again.
+				if ( vDownSampled.size() ) {
+					size_t sM = 1200;
+					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( double( sOutHz ), double( _oOutput.ui32Hz ) / 2.0 * 1.0/*0.9909*/, sM );
+					CUtilities::ApplySincFilterInPlace<std::vector<double>, std::vector<double>>( vDownSampled, vSincFilter, vDownSampled[0], vDownSampled[vDownSampled.size()-1] );
+				}
+				
+				// Down-sample to OUT * 2.
+				if ( vDownSampled.size() ) {
+					std::vector<double> vDownSampled_2;
+					size_t sSrcMax = vDownSampled.size();
+					size_t sNewSize = size_t( std::round( sSrcMax / double( sOutHz ) * _oOutput.ui32Hz * 2.0 ) );
+					vDownSampled_2.resize( sNewSize );
+					double dRight = vDownSampled[sSrcMax-1];
+					
+					for ( size_t I = 0; I < sNewSize; ++I ) {
+						size_t sIds = I * 2;
+						vDownSampled_2[I] = sIds < sSrcMax ? vDownSampled[sIds] : dRight;
+					}
+					sOutHz = _oOutput.ui32Hz * 2;
+					vDownSampled = std::move( vDownSampled_2 );
+				}
+
+				// Anti-alias again.
+				if ( vDownSampled.size() ) {
+					size_t sM = 1200;
+					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( double( sOutHz ), double( _oOutput.ui32Hz ) / 2.0 * 1.0/*0.9909*/, sM );
+					CUtilities::ApplySincFilterInPlace<std::vector<double>, std::vector<double>>( vDownSampled, vSincFilter, vDownSampled[0], vDownSampled[vDownSampled.size()-1] );
+				}
+				
+				// Down-sample to OUT and apply opening and trailing silence.
+				if ( vDownSampled.size() ) {
+					size_t sSrcMax = vDownSampled.size();
+					size_t sNewSize = size_t( std::round( sSrcMax / double( sOutHz ) * _oOutput.ui32Hz ) );
+					vThis.resize( sNewSize );
+					double dRight = vDownSampled[sSrcMax-1];
+
+					double dLast = 0.0;
+					for ( size_t I = 0; I < sNewSize; ++I ) {
+						size_t sIds = I * 2;
+						dLast = sIds < sSrcMax ? vDownSampled[sIds] : dRight;
+						vThis[I] = dLast;
+					}
+
+					sOutHz = _oOutput.ui32Hz;
+				}
+
+				{
+					// Apply any fading.
+					if ( _pfFile.bLoop && vThis.size() ) {
+						size_t sFadeStart = size_t( std::round( dFadeStart * sOutHz ) );
+						size_t sFadeEnd = size_t( std::round( (dFadeStart + _pfFile.dFadeTime) * sOutHz ) );
+						size_t sMax = vThis.size();
+
+						vDownSampled.resize( sFadeEnd - sFadeStart );
+						double dRight = vThis[sMax-1];
+						for ( size_t I = 0; I < vDownSampled.size(); ++I ) {
+							size_t sIdx = I + sFadeStart;
+							vDownSampled[I] = sIdx < sMax ? vThis[sIdx] : dRight;
+						}
+						if ( sOutHz > 200 && vDownSampled.size() ) {
+							size_t sM = 1500;
+							std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( double( sOutHz ), 100.0, sM );
+							CUtilities::ApplySincFilterInPlace<std::vector<double>, std::vector<double>>( vDownSampled, vSincFilter, vDownSampled[0], vDownSampled[vDownSampled.size()-1] );
+						}
+
+						for ( size_t I = 0; I < sMax; ++I ) {
+							if LSN_LIKELY( I <= sFadeStart ) {
+								//vThis[I] = vThis[I];
+							}
+							else if ( I >= sFadeEnd ) {
+								vThis[I] = 0.0;
+							}
+							else {
+								double dFrac = (I - sFadeStart) / double( sFadeEnd - sFadeStart );
+								dFrac = CUtilities::StudioFadeOut( dFrac );
+								double dSin, dCos;
+								//::sincos( dFrac * (EE_PI / 2.0), &dSin, &dCos );
+								dCos = dFrac;
+								dSin = 1.0 - dFrac;
+								vThis[I] = ((vThis[I] * dCos) + (vDownSampled[I-sFadeStart] * dSin)) * dFrac;
+								//vThis[I] *= CUtilities::StudioFadeOut( dFrac );
+							}
+						}
+					}
+					else {
+						// Fade out the trailing silence.
+						size_t sTrailStart = size_t( std::round( dLen * sOutHz ) );
+						size_t sTrailEnd = size_t( std::round( (dLen + _pfFile.dTrailingSilence) * sOutHz ) );
+						size_t sMax = vThis.size();
+						/*if ( vThis.size() > sTrailEnd ) {
+							
+						}*/
+						for ( size_t I = sTrailStart; I < sMax; ++I ) {
+							double dFrac = double( I - sTrailStart ) / double( sTrailEnd - sTrailStart );
+							dFrac = std::min( dFrac, 1.0 );
+							vThis[I] = vThis[I] * (1.0 - dFrac);
+						}
+					}
+				}
+
+				size_t sMax = vThis.size();
+				double dVol = _pfFile.dVolume * _oOutput.dAbsoluteVol;
+				if ( _pfFile.bInvert ) {
+					dVol *= -1.0;
+				}
+				for ( size_t I = 0; I < sMax; ++I ) {
+					vThis[I] *= dVol;
+				}
+				vThis.flushCurrentSection();
+				vThis.flushWriteBuffer();
+				if ( vSamples.size() == 0 ) { return false; }
 			}
 			catch ( ... ) {
 				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );

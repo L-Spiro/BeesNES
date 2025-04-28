@@ -294,7 +294,7 @@ namespace lsn {
 		LSN_COMBO_ENTRY ceEnries[] = {
 			//pwcName													lpParm
 			{ LSN_LSTR( LSN_WE_POLE ),									LPARAM( CWavEditor::LSN_F_POLE ),					},
-			{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( CWavEditor::LSN_F_SINC ),					},
+			//{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( CWavEditor::LSN_F_SINC ),					},
 		};
 		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_F_POLE );
 	}

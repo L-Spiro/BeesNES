@@ -132,6 +132,15 @@ namespace lsn {
 		 */
 		static inline float									Sample_6Point_5thOrder_Hermite_X( const float * _pfsSamples, float _fFrac );
 
+		/**
+		 *  6-point, 5th-order Hermite X-form sampling.
+		 *
+		 * \param _pdsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+		 * \param _dFrac The interpolation amount.
+		 * \return Returns the interpolated point.
+		 */
+		static inline double								Sample_6Point_5thOrder_Hermite_X( const double * _pdsSamples, double _dFrac );
+
 #ifdef __AVX__
 		/**
 		 * 6-point, 5th-order Hermite X-form sampling.
@@ -368,6 +377,31 @@ namespace lsn {
 		float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
 			5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
 		return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+	}
+
+	/**
+	 *  6-point, 5th-order Hermite X-form sampling.
+	 *
+	 * \param _pdsSamples The array of 6 input samples, indices -2, -1, 0, 1, 2, and 3.
+	 * \param _dFrac The interpolation amount.
+	 * \return Returns the interpolated point.
+	 */
+	inline double CAudio::Sample_6Point_5thOrder_Hermite_X( const double * _pdsSamples, double _dFrac ) {
+		// 6-point, 5th-order Hermite (X-form).
+		double dEightThym2 = 1.0 / 8.0 * _pdsSamples[-2+2];
+		double dElevenTwentyFourThy2 = 11.0 / 24.0 * _pdsSamples[2+2];
+		double dTwelvThy3 = 1.0 / 12.0 * _pdsSamples[3+2];
+		double dC0 = _pdsSamples[0+2];
+		double dC1 = 1.0 / 12.0 * (_pdsSamples[-2+2] - _pdsSamples[2+2]) + 2.0 / 3.0 * (_pdsSamples[1+2] - _pdsSamples[-1+2]);
+		double dC2 = 13.0 / 12.0 * _pdsSamples[-1+2] - 25.0 / 12.0 * _pdsSamples[0+2] + 3.0 / 2.0 * _pdsSamples[1+2] -
+			dElevenTwentyFourThy2 + dTwelvThy3 - dEightThym2;
+		double dC3 = 5.0 / 12.0 * _pdsSamples[0+2] - 7.0 / 12.0 * _pdsSamples[1+2] + 7.0 / 24.0 * _pdsSamples[2+2] -
+			1.0 / 24.0 * (_pdsSamples[-2+2] + _pdsSamples[-1+2] + _pdsSamples[3+2]);
+		double dC4 = dEightThym2 - 7.0 / 12.0 * _pdsSamples[-1+2] + 13.0 / 12.0 * _pdsSamples[0+2] - _pdsSamples[1+2] +
+			dElevenTwentyFourThy2 - dTwelvThy3;
+		double dC5 = 1.0 / 24.0 * (_pdsSamples[3+2] - _pdsSamples[-2+2]) + 5.0 / 24.0 * (_pdsSamples[-1+2] - _pdsSamples[2+2]) +
+			5.0 / 12.0 * (_pdsSamples[1+2] - _pdsSamples[0+2]);
+		return ((((dC5 * _dFrac + dC4) * _dFrac + dC3) * _dFrac + dC2) * _dFrac + dC1) * _dFrac + dC0;
 	}
 
 #ifdef __AVX__

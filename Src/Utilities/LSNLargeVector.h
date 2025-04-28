@@ -24,6 +24,18 @@
 #include <string>
 #include <vector>
 
+#if defined( _MSC_VER )
+    // Microsoft Visual Studio Compiler.
+    #define LGV_LIKELY( x )						( x ) [[likely]]
+    #define LGV_UNLIKELY( x )					( x ) [[unlikely]]
+#elif defined( __GNUC__ ) || defined( __clang__ )
+    // GNU Compiler Collection (GCC) or Clang.
+    #define LGV_LIKELY( x )						( __builtin_expect( !!(x), 1 ) )
+    #define LGV_UNLIKELY( x )					( __builtin_expect( !!(x), 0 ) )
+#else
+    #error "Unsupported compiler"
+#endif
+
 #pragma optimize( "gt", on )
 
 namespace lsn {
@@ -278,7 +290,7 @@ namespace lsn {
 		 * \throws std::runtime_error if file I/O fails.
 		 */
 		T &														operator [] ( size_t _nIndex ) {
-			if ( _nIndex >= m_nTotalSize ) { throw std::out_of_range( "Index out of range in operator[]." ); }
+			if LGV_UNLIKELY( _nIndex >= m_nTotalSize ) { throw std::out_of_range( "Index out of range in operator[]." ); }
 			// If _nIndex is outside the currently loaded section, flush and load the appropriate section.
 			if ( _nIndex < m_nCurrentSectionStart ||
 				_nIndex >= m_nCurrentSectionStart + std::vector<T, Allocator>::size() ) {
@@ -386,14 +398,16 @@ namespace lsn {
 			if ( m_nTotalSize == 0 ) { throw std::runtime_error( "pop_back called on empty vector." ); }
 			flushWriteBuffer();
 			flushCurrentSection();
+			m_ofsDisk.close();
 			--m_nTotalSize;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 			if ( m_nCurrentSectionStart >= m_nTotalSize ) {
-				m_nCurrentSectionStart = ( m_nTotalSize > 0 )
-					? ( ( ( m_nTotalSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+				m_nCurrentSectionStart = (m_nTotalSize > 0)
+					? (((m_nTotalSize - 1) / m_nMaxRamItems) * m_nMaxRamItems)
 					: 0;
-				loadSection( m_nCurrentSectionStart );
 			}
+			loadSection( m_nCurrentSectionStart );
 			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
 
@@ -410,14 +424,16 @@ namespace lsn {
 			if ( _nCount > m_nTotalSize ) { throw std::runtime_error( "pop_back called with too many items." ); }
 			flushWriteBuffer();
 			flushCurrentSection();
+			m_ofsDisk.close();
 			m_nTotalSize -= _nCount;
 			std::filesystem::resize_file( m_pPathDiskFile, m_nTotalSize * sizeof( T ) );
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 			if ( m_nCurrentSectionStart >= m_nTotalSize ) {
-				m_nCurrentSectionStart = ( m_nTotalSize > 0 )
-					? ( ( ( m_nTotalSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+				m_nCurrentSectionStart = (m_nTotalSize > 0)
+					? (((m_nTotalSize - 1) / m_nMaxRamItems) * m_nMaxRamItems)
 					: 0;
-				loadSection( m_nCurrentSectionStart );
 			}
+			loadSection( m_nCurrentSectionStart );
 			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
     
@@ -434,38 +450,93 @@ namespace lsn {
 		 * \throws std::runtime_error if file I/O fails.
 		 */
 		void													insert( size_t _nIndex, const T & _tElem ) {
-			if ( _nIndex > m_nTotalSize ) {
-				throw std::out_of_range( "Insert index out of range." );
-			}
+			if ( _nIndex > m_nTotalSize ) { throw std::out_of_range( "Insert index out of range." ); }
 
 			flushWriteBuffer();
 			flushCurrentSection();
 
-			size_t sNewSize = m_nTotalSize + 1;
-			std::filesystem::resize_file( m_pPathDiskFile, sNewSize * sizeof( T ) );
+			m_ofsDisk.close();
+			size_t nNewSize = m_nTotalSize + 1;
+			std::filesystem::resize_file( m_pPathDiskFile, nNewSize * sizeof( T ) );
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
 
-			T tTmp;
-			for ( size_t i = m_nTotalSize; i > _nIndex; --i ) {
+			std::vector<T> vBlock;
+			vBlock.reserve( m_nMaxRamItems );
+			for ( size_t nShiftStart = _nIndex; nShiftStart < m_nTotalSize; nShiftStart += m_nMaxRamItems ) {
+				size_t nChunk = std::min( m_nMaxRamItems, m_nTotalSize - nShiftStart );
+				size_t nReadPos = m_nTotalSize - nShiftStart - nChunk;
 
-				m_ofsDisk.seekg( (i - 1) * sizeof( T ), std::ios::beg );
-				m_ofsDisk.read( reinterpret_cast<char *>( &tTmp ), sizeof( T ) );
+				// Read chunk.
+				m_ofsDisk.seekg( nReadPos * sizeof( T ), std::ios::beg );
+				vBlock.resize( nChunk );
+				m_ofsDisk.read( reinterpret_cast<char *>(vBlock.data()), nChunk * sizeof( T ) );
 
-				m_ofsDisk.seekp( i * sizeof( T ), std::ios::beg );
-				m_ofsDisk.write( reinterpret_cast<const char *>( &tTmp ), sizeof( T ) );
+				// Write chunk shifted +1.
+				m_ofsDisk.seekp( (nReadPos + 1) * sizeof( T ), std::ios::beg );
+				m_ofsDisk.write( reinterpret_cast<const char *>(vBlock.data()), nChunk * sizeof( T ) );
 			}
 
 			m_ofsDisk.seekp( _nIndex * sizeof( T ), std::ios::beg );
-			m_ofsDisk.write( reinterpret_cast<const char *>( &_tElem ), sizeof( T ) );
+			m_ofsDisk.write( reinterpret_cast<const char *>(&_tElem), sizeof( T ) );
 
-			m_nTotalSize = sNewSize;
+			m_nTotalSize = nNewSize;
 			if ( _nIndex >= m_nCurrentSectionStart &&
-					_nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() )
-			{
+				 _nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() ) {
 				loadSection( m_nCurrentSectionStart );
 			}
 
 			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
+
+		/**
+		 * \brief Inserts an array of elements at the specified index.
+		 *
+		 * Flushes buffered push_back(), resizes the file, shifts the tail in blocks,
+		 * then writes the new range in one go.
+		 *
+		 * \param _nIndex The global index at which to insert.
+		 * \param _pArray Pointer to the first element to insert.
+		 * \param _nCount Number of elements to insert.
+		 * \throws std::out_of_range if _nIndex is greater than the current size.
+		 */
+		void													insert( size_t _nIndex, const T * _pArray, size_t _nCount ) {
+			if ( _nIndex > m_nTotalSize ) { throw std::out_of_range( "Insert index out of range." ); }
+
+			flushWriteBuffer();
+			flushCurrentSection();
+
+			m_ofsDisk.close();
+			size_t nNewSize = m_nTotalSize + _nCount;
+			std::filesystem::resize_file( m_pPathDiskFile, nNewSize * sizeof( T ) );
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+
+			std::vector<T> vBlock;
+			vBlock.reserve( m_nMaxRamItems );
+			for ( size_t nShiftStart = _nIndex; nShiftStart < m_nTotalSize; nShiftStart += m_nMaxRamItems ) {
+				size_t nChunk = std::min( m_nMaxRamItems, m_nTotalSize - nShiftStart );
+				size_t nReadPos = m_nTotalSize - nShiftStart - nChunk;
+
+				m_ofsDisk.seekg( nReadPos * sizeof( T ), std::ios::beg );
+				vBlock.resize( nChunk );
+				m_ofsDisk.read( reinterpret_cast<char *>(vBlock.data()), nChunk * sizeof( T ) );
+
+				m_ofsDisk.seekp( ( nReadPos + _nCount ) * sizeof( T ), std::ios::beg );
+				m_ofsDisk.write( reinterpret_cast<const char *>(vBlock.data()), nChunk * sizeof( T ) );
+			}
+
+			// Write new block.
+			m_ofsDisk.seekp( _nIndex * sizeof( T ), std::ios::beg );
+			m_ofsDisk.write( reinterpret_cast<const char *>(_pArray), _nCount * sizeof( T ) );
+
+			m_nTotalSize = nNewSize;
+			if ( _nIndex >= m_nCurrentSectionStart &&
+				 _nIndex < m_nCurrentSectionStart + std::vector<T,Allocator>::size() ) {
+				loadSection( m_nCurrentSectionStart );
+			}
+
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+		}
+
     
 		//-------------------------------------------------------------------------
 		// Custom Member Functions: resize() and reserve()
@@ -495,22 +566,27 @@ namespace lsn {
 			}
 			else if ( _nNewSize < m_nTotalSize ) {
 				// Truncate the file on disk
+				m_ofsDisk.close();
 				std::filesystem::resize_file( m_pPathDiskFile, _nNewSize * sizeof( T ) );
+				
+				m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+
 				// If our cache start is now past EOF, reload the last block
 				if ( m_nCurrentSectionStart >= _nNewSize ) {
-					m_nCurrentSectionStart = ( _nNewSize > 0 )
-						? ( ( ( _nNewSize - 1 ) / m_nMaxRamItems ) * m_nMaxRamItems )
+					m_nCurrentSectionStart = (_nNewSize > 0)
+						? (((_nNewSize - 1) / m_nMaxRamItems) * m_nMaxRamItems)
 						: 0;
-					loadSection( m_nCurrentSectionStart );
 				}
 			}
 
 			// Update size and resize the RAM cache
 			m_nTotalSize = _nNewSize;
-			size_t nLoad = ( m_nTotalSize > m_nCurrentSectionStart )
+			size_t nLoad = (m_nTotalSize > m_nCurrentSectionStart)
 				? std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart )
 				: 0;
-			std::vector<T,Allocator>::resize( nLoad );
+			std::vector<T, Allocator>::resize( nLoad );
+
+			loadSection( m_nCurrentSectionStart );
 
 			// Reposition append pointer to new EOF
 			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
@@ -525,26 +601,6 @@ namespace lsn {
 			// Do nothing.
 		}
 
-    
-	private :
-		mutable std::fstream									m_ofsDisk;				/**< Single handle for fast append. */
-		std::vector<T>											m_vWriteBuffer;			/**< Buffered push_back() elements. */
-		std::filesystem::path									m_pPathDiskFile;		/**< Generated disk file path based on the current directory, "lvec", and a unique ID. */
-		size_t													m_nMaxRamItems;         /**< Maximum number of items to keep in RAM. */
-		size_t													m_nTotalSize;           /**< Total number of elements stored. */
-		size_t													m_nCurrentSectionStart; /**< Global index marking the start of the current RAM section. */
-		bool													m_bDirty;               /**< True if the current section has been modified. */
-    
-		/** A static atomic counter for generating unique IDs for each instance. */
-		inline static std::atomic<uint64_t>						s_uID{ 0 };
-
-		// Static variables for instance counting and directory management.
-		inline static std::atomic<size_t>						s_nInstanceCount{ 0 };
-		inline static std::mutex								s_mMutex;
-		inline static std::filesystem::path						s_pBaseDirectory;
-
-
-		// == Functions.
 		//-------------------------------------------------------------------------
 		// Disk I/O: Flushing and Loading Sections
 		//-------------------------------------------------------------------------
@@ -557,17 +613,15 @@ namespace lsn {
 		 */
 		void													flushCurrentSection() {
 			if ( m_bDirty ) {
+				m_ofsDisk.clear();
 				m_ofsDisk.seekp( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
-				if ( !m_ofsDisk ) {
-					throw std::runtime_error( "Failed to seek for flushCurrentSection()." );
-				}
+				if ( !m_ofsDisk ) { throw std::runtime_error( "Failed to seek for flushCurrentSection()." ); }
+				size_t sWriteLen = std::vector<T, Allocator>::size() * sizeof( T );
 				m_ofsDisk.write(
-					reinterpret_cast<const char *>( std::vector<T,Allocator>::data() ),
-					std::vector<T,Allocator>::size() * sizeof( T )
+					reinterpret_cast<const char *>( std::vector<T, Allocator>::data() ),
+					sWriteLen
 				);
-				if ( !m_ofsDisk ) {
-					throw std::runtime_error( "Failed to write in flushCurrentSection()." );
-				}
+				if ( !m_ofsDisk ) { throw std::runtime_error( "Failed to write in flushCurrentSection()." ); }
 				m_bDirty = false;
 			}
 		}
@@ -583,13 +637,13 @@ namespace lsn {
 		void													loadSection( size_t _nSectionStart ) {
 			m_nCurrentSectionStart = _nSectionStart;
 			size_t nItemsToLoad = std::min( m_nMaxRamItems, m_nTotalSize - m_nCurrentSectionStart );
-			std::vector<T,Allocator>::resize( nItemsToLoad );
+			std::vector<T, Allocator>::resize( nItemsToLoad );
 			m_ofsDisk.seekg( m_nCurrentSectionStart * sizeof( T ), std::ios::beg );
 			if ( !m_ofsDisk ) {
 				throw std::runtime_error( "Failed to seek for loadSection()." );
 			}
 			m_ofsDisk.read(
-				reinterpret_cast<char *>( std::vector<T,Allocator>::data() ),
+				reinterpret_cast<char *>( std::vector<T, Allocator>::data() ),
 				nItemsToLoad * sizeof( T )
 			);
 			if ( !m_ofsDisk ) {
@@ -620,6 +674,28 @@ namespace lsn {
 				m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 			}
 		}
+
+    
+	private :
+		mutable std::fstream									m_ofsDisk;				/**< Single handle for fast append. */
+		std::vector<T>											m_vWriteBuffer;			/**< Buffered push_back() elements. */
+		std::filesystem::path									m_pPathDiskFile;		/**< Generated disk file path based on the current directory, "lvec", and a unique ID. */
+		size_t													m_nMaxRamItems;         /**< Maximum number of items to keep in RAM. */
+		size_t													m_nTotalSize;           /**< Total number of elements stored. */
+		size_t													m_nCurrentSectionStart; /**< Global index marking the start of the current RAM section. */
+		bool													m_bDirty;               /**< True if the current section has been modified. */
+    
+		/** A static atomic counter for generating unique IDs for each instance. */
+		inline static std::atomic<uint64_t>						s_uID{ 0 };
+
+		// Static variables for instance counting and directory management.
+		inline static std::atomic<size_t>						s_nInstanceCount{ 0 };
+		inline static std::mutex								s_mMutex;
+		inline static std::filesystem::path						s_pBaseDirectory;
+
+
+		// == Functions.
+		
 	};
 
 }	// namespace lsn

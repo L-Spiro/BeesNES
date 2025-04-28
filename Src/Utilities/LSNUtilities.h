@@ -1346,6 +1346,19 @@ namespace lsn {
 		 **/
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 
+		/**
+		 * Gets the volume of a sample using Audacity's Studio Fade Out routine.
+		 * 
+		 * \param _tFraction The amount of fade to apply from 0 to 1.
+		 * \return Returns the fade amount from 1 to 0 as _tFraction goes from 0 to 1.
+		 **/
+		template <typename _tType = float>
+		static inline _tType								StudioFadeOut( _tType _tFraction ) {
+			if LSN_UNLIKELY( _tFraction <= _tType( 0.0 ) ) { return _tType( 1.0 ); }
+			if LSN_UNLIKELY( _tFraction >= _tType( 1.0 ) || std::isnan<_tType>( _tFraction ) ) { return _tType( 0.0 ); }
+			return _tType( 1.0 ) - (_tType( 3.0 ) * _tFraction * _tFraction - _tType( 2.0 ) * _tFraction * _tFraction * _tFraction);
+		}
+
 #ifdef __AVX512F__
 		/**
 		 * Horizontally adds all the floats in a given AVX-512 register.

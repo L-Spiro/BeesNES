@@ -332,7 +332,7 @@ namespace lsn {
 				LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _ppfOutput->dFadeTime );
 			}
 			LSN_EDIT_VAL( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, _ppfOutput->dOpeningSilence );
-			LSN_EDIT_VAL( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _ppfOutput->dtrailingSilence );
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _ppfOutput->dTrailingSilence );
 		}
 
 #undef LSN_EDIT_VAL
