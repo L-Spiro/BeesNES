@@ -125,13 +125,16 @@ namespace lsn {
 
 		/** The save data. */
 		struct LSN_SAVE_DATA {
-			uint32_t													uiHz;					// Only overrides if not 0.
-			uint16_t													uiBitsPerSample;		// Only overrides if not 0.
+			LSN_FORMAT													fFormat = LSN_F_PCM;
+			uint32_t													uiHz = 0;					// Only overrides if not 0.
+			uint16_t													uiBitsPerSample = 0;		// Only overrides if not 0.
 
 			LSN_SAVE_DATA() :
+				fFormat( LSN_F_PCM ),
 				uiHz( 0 ),
 				uiBitsPerSample( 0 ) {}
 			LSN_SAVE_DATA( uint32_t _ui32Hz, uint16_t _ui16Bits ) :
+				fFormat( LSN_F_PCM ),
 				uiHz( _ui32Hz ),
 				uiBitsPerSample( _ui16Bits ) {}
 		};
@@ -390,20 +393,98 @@ namespace lsn {
 		 * \param _psdSaveSettings Settings to override this class's settings.
 		 * \return Returns true if the file was created and saved.
 		 */
-		bool															SaveAsPcm( const char8_t * _pcPath, const lwaudio &_vSamples,
-			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const;
-
-		/**
-		 * Saves as a PCM WAV file.
-		 *
-		 * \param _pcPath The path to where the file will be saved.
-		 * \param _vSamples The samples to convert and write to the file.
-		 * \param _psdSaveSettings Settings to override this class's settings.
-		 * \return Returns true if the file was created and saved.
-		 */
-		bool															SaveAsPcm( const char16_t * _pcPath, const lwaudio &_vSamples,
+		template <typename _tType = lwaudio>
+		bool															SaveAsPcm( const char8_t * _pcPath, const _tType &_vSamples,
 			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const {
-			return SaveAsPcm( CUtilities::Utf16ToUtf8( _pcPath ).c_str(), _vSamples, _psdSaveSettings );
+			if ( !_vSamples.size() ) { return false; }
+
+			auto sPath = FixFileName( _pcPath );
+
+			CStdFile sfFile;
+			if ( !sfFile.Create( sPath.c_str() ) ) {
+				std::wprintf( L"Failed to create PCM file: %s.\r\n", reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( sPath.c_str() ).c_str()) );
+				return false;
+			}
+			LSN_FMT_CHUNK fcChunk = CreateFmt( LSN_F_PCM, static_cast<uint16_t>(_vSamples.size()),
+				_psdSaveSettings );
+			std::vector<uint8_t> vLoops, vList;
+			if ( m_vLoops.size() ) {
+				vLoops = CreateSmpl();
+			}
+			if ( m_vListEntries.size() ) {
+				vList = CreateList();
+			}
+		
+
+			uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
+			uint32_t ui32DataSize = CalcSize( static_cast<LSN_FORMAT>(fcChunk.uiAudioFormat), static_cast<uint32_t>(_vSamples[0].size()), static_cast<uint16_t>(_vSamples.size()), fcChunk.uiBitsPerSample );
+
+			uint32_t ui32Size = 4 +							// "WAVE".
+				uiFmtSize +									// "fmt " chunk.
+				ui32DataSize + 8 +							// "data" chunk.
+				static_cast<uint32_t>(vLoops.size()) +		// "smpl" chunk.
+				static_cast<uint32_t>(vList.size()) +		// "LIST" chunk.
+				0;
+
+			std::vector<uint8_t> vRet;
+			vRet.reserve( ui32Size + 8 );
+#define LSN_PUSH32( VAL )		vRet.push_back( static_cast<uint8_t>((VAL) >> 0) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 8) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 16) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 24) )
+			LSN_PUSH32( LSN_C_RIFF );						// "RIFF"
+		
+			LSN_PUSH32( ui32Size );
+			LSN_PUSH32( LSN_C_WAVE );
+		
+			// Append the "fmt " chunk.
+			for ( size_t I = 0; I < uiFmtSize; ++I ) {
+				vRet.push_back( reinterpret_cast<const uint8_t *>(&fcChunk)[I] );
+			}
+
+			// Append the "data" chunk.
+			LSN_PUSH32( LSN_C_DATA );
+			LSN_PUSH32( ui32DataSize );
+			switch ( fcChunk.uiAudioFormat ) {
+				case LSN_F_PCM : {
+					switch ( fcChunk.uiBitsPerSample ) {
+						case 8 : {
+							if ( !BatchF64ToPcm8( _vSamples, vRet ) ) { return false; }
+							break;
+						}
+						case 16 : {
+							if ( !BatchF64ToPcm16( _vSamples, vRet ) ) { return false; }
+							break;
+						}
+						case 24 : {
+							if ( !BatchF64ToPcm24( _vSamples, vRet ) ) { return false; }
+							break;
+						}
+						case 32 : {
+							if ( !BatchF64ToPcm32( _vSamples, vRet ) ) { return false; }
+							break;
+						}
+						default : { return false; }
+					}
+					break;
+				}
+				case LSN_F_IEEE_FLOAT : {
+					if ( !BatchF64ToF32( _vSamples, vRet ) ) { return false; }
+					break;
+				}
+				default : { return false; }
+			}
+
+			// Append "smpl" chunk.
+			for ( size_t I = 0; I < vLoops.size(); ++I ) {
+				vRet.push_back( vLoops[I] );
+			}
+
+			// Append "LIST" chunk.
+			for ( size_t I = 0; I < vList.size(); ++I ) {
+				vRet.push_back( vList[I] );
+			}
+			if ( !sfFile.WriteToFile( vRet ) ) { return false; }
+
+#undef LSN_PUSH32
+			return true;
 		}
 
 		/**
@@ -414,11 +495,26 @@ namespace lsn {
 		 * \param _psdSaveSettings Settings to override this class's settings.
 		 * \return Returns true if the file was created and saved.
 		 */
+		template <typename _tType = lwaudio>
+		bool															SaveAsPcm( const char16_t * _pcPath, const lwaudio &_vSamples,
+			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const {
+			return SaveAsPcm<_tType>( CUtilities::Utf16ToUtf8( _pcPath ).c_str(), _vSamples, _psdSaveSettings );
+		}
+
+		/**
+		 * Saves as a PCM WAV file.
+		 *
+		 * \param _pcPath The path to where the file will be saved.
+		 * \param _vSamples The samples to convert and write to the file.
+		 * \param _psdSaveSettings Settings to override this class's settings.
+		 * \return Returns true if the file was created and saved.
+		 */
+		template <typename _tType = lwaudio>
 		bool															SaveAsPcm( const char8_t * _pcPath, const lwtrack &_vSamples,
 			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const {
 			lwaudio aAudio;
 			aAudio.push_back( _vSamples );
-			return SaveAsPcm( _pcPath, aAudio,
+			return SaveAsPcm<_tType>( _pcPath, aAudio,
 				_psdSaveSettings );
 		}
 
@@ -430,9 +526,10 @@ namespace lsn {
 		 * \param _psdSaveSettings Settings to override this class's settings.
 		 * \return Returns true if the file was created and saved.
 		 */
+		template <typename _tType = lwaudio>
 		bool															SaveAsPcm( const char16_t * _pcPath, const lwtrack &_vSamples,
 			const LSN_SAVE_DATA * _psdSaveSettings = nullptr ) const {
-			return SaveAsPcm( CUtilities::Utf16ToUtf8( _pcPath ).c_str(), _vSamples, _psdSaveSettings );
+			return SaveAsPcm<_tType>( CUtilities::Utf16ToUtf8( _pcPath ).c_str(), _vSamples, _psdSaveSettings );
 		}
 
 		/**
@@ -734,13 +831,13 @@ namespace lsn {
 
 		/** An INST entry. */
 		struct LSN_INST_ENTRY {
-			uint8_t														ui8UnshiftedNote;
-			uint8_t														ui8FineTune;
-			uint8_t														ui8Gain;
-			uint8_t														ui8LowNote;
-			uint8_t														ui8HiNote;
-			uint8_t														ui8LowVel;
-			uint8_t														ui8HiVel;
+			uint8_t														ui8UnshiftedNote = 0;
+			uint8_t														ui8FineTune = 0;
+			uint8_t														ui8Gain = 0;
+			uint8_t														ui8LowNote = 0;
+			uint8_t														ui8HiNote = 0;
+			uint8_t														ui8LowVel = 0;
+			uint8_t														ui8HiVel = 0;
 		};
 
 		
@@ -970,7 +1067,16 @@ namespace lsn {
 		 * \param _vDst The buffer to which to convert the samples.
 		 * \return Returns trye if all samples were added to the buffer.
 		 */
-		static bool														BatchF64ToPcm8( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst );
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToPcm8( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+				for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+					int8_t iSample = static_cast<int8_t>(std::round( std::clamp<double>( _vSrc[J][I], -1.0, 1.0 ) * 127.0 + 128.0 ));
+					_vDst.push_back( static_cast<uint8_t>(iSample) );
+				}
+			}
+			return true;
+		}
 
 		/**
 		 * Converts a batch of F64 samples to PCM samples.
@@ -979,7 +1085,76 @@ namespace lsn {
 		 * \param _vDst The buffer to which to convert the samples.
 		 * \return Returns trye if all samples were added to the buffer.
 		 */
-		static bool														BatchF64ToPcm16( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst );
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToPcm16( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			try {
+				const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
+				auto stNumSamples = _vSrc[0].size();
+				auto stNumChannels = _vSrc.size();
+				auto aSize = _vDst.size();
+				_vDst.reserve( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
+				int16_t * pi16Dst = reinterpret_cast<int16_t *>(_vDst.data() + aSize);
+
+#ifdef __AVX512BW__
+				if ( CUtilities::IsAvx512BWSupported() ) {
+					// Constants for AVX-512 operations
+					__m512d vdFactor = _mm512_set1_pd( dFactor );
+					__m512d vdMin = _mm512_set1_pd( -1.0 );
+					__m512d vdMax = _mm512_set1_pd( 1.0 );
+					std::vector<std::vector<uint16_t>, CAlignmentAllocator<std::vector<uint16_t>, 64>> vSamples;
+					vSamples.resize( stNumChannels );
+					for ( auto I = stNumChannels; I--; ) {
+						vSamples[I].resize( stNumSamples );
+					}
+				
+					for ( auto C = stNumChannels; C--; ) {
+						lwaudio::size_type stIdx = 0;
+						while ( stIdx < stNumSamples - (8 - 1) ) {
+							__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
+
+							// Clamp samples between -1.0 and 1.0.
+							vdSamples = _mm512_max_pd( vdSamples, vdMin );
+							vdSamples = _mm512_min_pd( vdSamples, vdMax );
+
+							// Multiply by scaling factor.
+							vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
+
+							// Round to nearest integer and convert to int32_t
+							__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+							// Convert int32_t to int16_t with saturation
+							__m128i viInt16 = _mm256_cvtsepi32_epi16( viInt32 );
+
+							_mm_store_si128( reinterpret_cast<__m128i *>(&vSamples[C][stIdx]), viInt16 );
+
+
+							stIdx += sizeof( __m512d ) / sizeof( double );
+						}
+
+						while ( stIdx < stNumSamples ) {
+							vSamples[C][stIdx++] = static_cast<int16_t>(std::round( std::clamp( _vSrc[C][stIdx], -1.0, 1.0 ) * dFactor ));
+						}
+					}
+
+					for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+						for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+							(*pi16Dst++) = vSamples[J][I];
+						}
+					}
+
+					return true;
+				}
+#endif	// #ifdef __AVX512BW__
+
+				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+						(*pi16Dst++) = static_cast<int16_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
+					}
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
 
 		/**
 		 * Converts a batch of F64 samples to PCM samples.
@@ -988,7 +1163,31 @@ namespace lsn {
 		 * \param _vDst The buffer to which to convert the samples.
 		 * \return Returns trye if all samples were added to the buffer.
 		 */
-		static bool														BatchF64ToPcm24( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst );
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToPcm24( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			try {
+				const double dFactor = std::pow( 2.0, 24.0 - 1.0 ) - 1.0;
+				auto stNumSamples = _vSrc[0].size();
+				auto stNumChannels = _vSrc.size();
+				auto aSize = _vDst.size();
+				_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * 3 );
+				int8_t * pi8Dst = reinterpret_cast<int8_t *>(_vDst.data() + aSize);
+
+				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+						int32_t iSample = static_cast<int32_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
+						(*pi8Dst++) = static_cast<uint8_t>(iSample);
+						(*pi8Dst++) = static_cast<uint8_t>(iSample >> 8);
+						(*pi8Dst++) = static_cast<uint8_t>(iSample >> 16);
+						/*_vDst.push_back( static_cast<uint8_t>(iSample) );
+						_vDst.push_back( static_cast<uint8_t>(iSample >> 8) );
+						_vDst.push_back( static_cast<uint8_t>(iSample >> 16) );*/
+					}
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
 
 		/**
 		 * Converts a batch of F64 samples to PCM samples.
@@ -997,7 +1196,100 @@ namespace lsn {
 		 * \param _vDst The buffer to which to convert the samples.
 		 * \return Returns trye if all samples were added to the buffer.
 		 */
-		static bool														BatchF64ToPcm32( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst );
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToPcm32( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			try {
+				const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
+				auto stNumSamples = _vSrc[0].size();
+				auto stNumChannels = _vSrc.size();
+				auto aSize = _vDst.size();
+				_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * sizeof( int32_t ) );
+				int32_t * pi32Dst = reinterpret_cast<int32_t *>(_vDst.data() + aSize);
+
+#ifdef __AVX512BW__
+				if ( CUtilities::IsAvx512BWSupported() ) {
+					// Constants for AVX-512 operations
+					__m512d vdFactor = _mm512_set1_pd( dFactor );
+					__m512d vdMin = _mm512_set1_pd( -1.0 );
+					__m512d vdMax = _mm512_set1_pd( 1.0 );
+					std::vector<std::vector<uint32_t>, CAlignmentAllocator<std::vector<uint32_t>, 64>> vSamples;
+					vSamples.resize( stNumChannels );
+					for ( auto I = stNumChannels; I--; ) {
+						vSamples[I].resize( stNumSamples );
+					}
+				
+					for ( auto C = stNumChannels; C--; ) {
+						lwaudio::size_type stIdx = 0;
+						while ( stIdx < stNumSamples - (8 - 1) ) {
+							__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
+
+							// Clamp samples between -1.0 and 1.0.
+							vdSamples = _mm512_max_pd( vdSamples, vdMin );
+							vdSamples = _mm512_min_pd( vdSamples, vdMax );
+
+							// Multiply by scaling factor.
+							vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
+
+							// Round to nearest integer and convert to int32_t
+							__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+
+							// Store the int32_t samples.
+							_mm256_store_si256( reinterpret_cast<__m256i*>(&vSamples[C][stIdx]), viInt32 );
+
+
+							stIdx += sizeof( __m512d ) / sizeof( double );
+						}
+
+						while ( stIdx < stNumSamples ) {
+							vSamples[C][stIdx++] = static_cast<int32_t>(std::round( std::clamp( _vSrc[C][stIdx], -1.0, 1.0 ) * dFactor ));
+						}
+					}
+
+					for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+						for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+							(*pi32Dst++) = vSamples[J][I];
+						}
+					}
+
+					return true;
+				}
+#endif	// #ifdef __AVX512BW__
+
+				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+						(*pi32Dst++) = static_cast<int32_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
+					}
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Converts a batch of F64 samples to F32 samples.
+		 *
+		 * \param _vSrc The samples to convert.
+		 * \param _vDst The buffer to which to convert the samples.
+		 * \return Returns trye if all samples were added to the buffer.
+		 */
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToF32( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			try {
+				auto stNumSamples = _vSrc[0].size();
+				auto stNumChannels = _vSrc.size();
+				auto aSize = _vDst.size();
+				_vDst.resize( aSize + stNumSamples * stNumChannels * sizeof( float ) );
+				float * pfDst = reinterpret_cast<float *>(_vDst.data() + aSize);
+
+				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+						(*pfDst++) = static_cast<float>(_vSrc[J][I]);
+					}
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
 
 		/**
 		 * Gets the byte indices of PCM data given an offset and channel.
@@ -1040,6 +1332,14 @@ namespace lsn {
 		 * \return Returns the bytes that represent the "LIST" chunk in a file.
 		 */
 		std::vector<uint8_t>											CreateList() const;
+
+		/**
+		 * Fixes the output file name of a given full path.
+		 * 
+		 * \param _pcFullpath The full path whose file name is to fix.
+		 * \return Returns the fixed file path.
+		 **/
+		static std::u8string											FixFileName( const char8_t * _pcFullpath );
 
 		/**
 		 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
@@ -1529,7 +1829,7 @@ namespace lsn {
 				}
 				
 			}
-			if LSN_UNLIKELY( sSize ) {	// Unlikely because almost always we will be passing in buffers that are a size divisible by 8 (sRegSize).
+			if LSN_UNLIKELY( sSize > I ) {	// Unlikely because almost always we will be passing in buffers that are a size divisible by 8 (sRegSize).
 				--sSize;
 				for ( ; I < sSize; ++I ) {
 					int32_t i32Tmp = CUtilities::SampleToI24( _vSrc[I] );

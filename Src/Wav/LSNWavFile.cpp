@@ -24,6 +24,7 @@
 namespace lsn {
 
 	CWavFile::CWavFile() :
+		m_fFormat( LSN_F_PCM ),
 		m_ui32OriginalSampleCount( 0 ),
 		m_uiNumChannels( 0 ),
 		m_uiSampleRate( 0 ),
@@ -311,138 +312,6 @@ namespace lsn {
 #undef LSN_PTR
 		return true;
 #endif
-	}
-
-	/**
-	 * Saves as a PCM WAV file.
-	 *
-	 * \param _pcPath The path to where the file will be saved.
-	 * \param _vSamples The samples to convert and write to the file.
-	 * \param _psdSaveSettings Settings to override this class's settings.
-	 * \return Returns true if the file was created and saved.
-	 */
-	bool CWavFile::SaveAsPcm( const char8_t * _pcPath, const lwaudio &_vSamples,
-		const LSN_SAVE_DATA * _psdSaveSettings ) const {
-		if ( !_vSamples.size() ) { return false; }
-		std::u8string sPath = _pcPath;
-		std::u8string sFolder = CFileBase::GetFilePath( sPath );
-		std::u8string sName = CFileBase::GetFileName( sPath );
-		
-
-		std::u8string sCopy = sName;
-		const struct LSN_TABLE {
-			const char8_t *					pcReplaceMe;
-			const char8_t *					pcWithMe;
-		} tTable[] = {
-			{ u8"?", u8"-" },
-			{ u8"*", u8"˙" },
-			{ u8":", u8" -" },
-			{ u8"\\", u8"-" },
-			{ u8"/", u8"∕" },
-			{ u8"<", u8"‹" },
-			{ u8">", u8"›" },
-			{ u8"|", u8"¦" },
-			{ u8"\"", u8"‟" },
-		};
-		for ( auto I = sizeof( tTable ) / sizeof( tTable[0] ); I--; ) {
-			sCopy = CUtilities::Replace<std::u8string>( sCopy, reinterpret_cast<const char8_t *>(tTable[I].pcReplaceMe), reinterpret_cast<const char8_t *>(tTable[I].pcWithMe) );
-		};
-
-		sPath = sFolder + sCopy;
-
-		CStdFile sfFile;
-		if ( !sfFile.Create( sPath.c_str() ) ) {
-			std::wprintf( L"Failed to create PCM file: %s.\r\n", reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( sPath.c_str() ).c_str()) );
-			return false;
-		}
-		LSN_FMT_CHUNK fcChunk = CreateFmt( LSN_F_PCM, static_cast<uint16_t>(_vSamples.size()),
-			_psdSaveSettings );
-		std::vector<uint8_t> vLoops, vList;
-		if ( m_vLoops.size() ) {
-			vLoops = CreateSmpl();
-		}
-		if ( m_vListEntries.size() ) {
-			vList = CreateList();
-		}
-		
-
-		uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
-		uint32_t ui32DataSize = CalcSize( static_cast<LSN_FORMAT>(fcChunk.uiAudioFormat), static_cast<uint32_t>(_vSamples[0].size()), static_cast<uint16_t>(_vSamples.size()), fcChunk.uiBitsPerSample );
-
-		uint32_t ui32Size = 4 +							// "WAVE".
-			uiFmtSize +									// "fmt " chunk.
-			ui32DataSize + 8 +							// "data" chunk.
-			static_cast<uint32_t>(vLoops.size()) +		// "smpl" chunk.
-			static_cast<uint32_t>(vList.size()) +		// "LIST" chunk.
-			0;
-
-		std::vector<uint8_t> vRet;
-		vRet.reserve( ui32Size + 8 );
-#define LSN_PUSH32( VAL )		vRet.push_back( static_cast<uint8_t>((VAL) >> 0) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 8) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 16) ); vRet.push_back( static_cast<uint8_t>((VAL) >> 24) )
-		LSN_PUSH32( LSN_C_RIFF );						// "RIFF"
-		
-		LSN_PUSH32( ui32Size );
-		LSN_PUSH32( LSN_C_WAVE );
-		
-		// Append the "fmt " chunk.
-		for ( size_t I = 0; I < uiFmtSize; ++I ) {
-			vRet.push_back( reinterpret_cast<const uint8_t *>(&fcChunk)[I] );
-		}
-
-		// Append the "data" chunk.
-		LSN_PUSH32( LSN_C_DATA );
-		LSN_PUSH32( ui32DataSize );
-		switch ( fcChunk.uiAudioFormat ) {
-			case LSN_F_PCM : {
-				switch ( fcChunk.uiBitsPerSample ) {
-					case 8 : {
-						if ( !BatchF64ToPcm8( _vSamples, vRet ) ) {
-							return false;
-						}
-						break;
-					}
-					case 16 : {
-						if ( !BatchF64ToPcm16( _vSamples, vRet ) ) {
-							return false;
-						}
-						break;
-					}
-					case 24 : {
-						if ( !BatchF64ToPcm24( _vSamples, vRet ) ) {
-							return false;
-						}
-						break;
-					}
-					case 32 : {
-						if ( !BatchF64ToPcm32( _vSamples, vRet ) ) {
-							return false;
-						}
-						break;
-					}
-					default : {
-						return false;
-					}
-				}
-				break;
-			}
-			default : {
-				return false;
-			}
-		}
-
-		// Append "smpl" chunk.
-		for ( size_t I = 0; I < vLoops.size(); ++I ) {
-			vRet.push_back( vLoops[I] );
-		}
-
-		// Append "LIST" chunk.
-		for ( size_t I = 0; I < vList.size(); ++I ) {
-			vRet.push_back( vList[I] );
-		}
-		if ( !sfFile.WriteToFile( vRet ) ) { return false; }
-
-#undef LSN_PUSH32
-		return true;
 	}
 
 	/**
@@ -810,191 +679,192 @@ namespace lsn {
 	bool CWavFile::AddListEntry( uint32_t _uiId, const std::u8string &_sVal ) {
 		try {
 			std::u8string sCopy = _sVal;
-			const struct LSN_TABLE {
-				const char8_t *					pcReplaceMe;
-				const char8_t *					pcWithMe;
-			} tTable[] = {
-				{ u8"\u2019", u8"'" },			// ’
-				{ u8"\u2018", u8"'" },			// ‘
-				{ u8"\u2026", u8"..." },		// …
-				{ u8"\u014C", u8"O" },			// Ō
-				{ u8"\u00A0", u8" " },
-				{ u8"\u00E9", u8"e" },			// é
-				{ u8"\u201C", u8"\"" },			// “
-				{ u8"\u201D", u8"\"" },			// ”
-				{ u8"\u2153", u8"(1/3rd)" },	// ⅓
-				{ u8"\u016B", u8"u" },			// ū
-				{ u8"\u014D", u8"o" },			// ō
+			{
+			//const struct LSN_TABLE {
+			//	const char8_t *					pcReplaceMe;
+			//	const char8_t *					pcWithMe;
+			//} tTable[] = {
+			//	{ u8"\u2019", u8"'" },			// ’
+			//	{ u8"\u2018", u8"'" },			// ‘
+			//	{ u8"\u2026", u8"..." },		// …
+			//	{ u8"\u014C", u8"O" },			// Ō
+			//	{ u8"\u00A0", u8" " },
+			//	{ u8"\u00E9", u8"e" },			// é
+			//	{ u8"\u201C", u8"\"" },			// “
+			//	{ u8"\u201D", u8"\"" },			// ”
+			//	{ u8"\u2153", u8"(1/3rd)" },	// ⅓
+			//	{ u8"\u016B", u8"u" },			// ū
+				//	{ u8"\u014D", u8"o" },			// ō
 
-				/*{ u8"ぁ", "a" },
-				{ u8"あ", "A" },
+				//	/*{ u8"ぁ", "a" },
+				//	{ u8"あ", "A" },
 
-				{ u8"ぃ", "i" },
-				{ u8"い", "I" },
+				//	{ u8"ぃ", "i" },
+				//	{ u8"い", "I" },
 
-				{ u8"ぅ", "u" },
-				{ u8"う", "U" },
+				//	{ u8"ぅ", "u" },
+				//	{ u8"う", "U" },
 
-				{ u8"ぇ", "e" },
-				{ u8"え", "E" },
+				//	{ u8"ぇ", "e" },
+				//	{ u8"え", "E" },
 
-				{ u8"ぉ", "o" },
-				{ u8"お", "O" },
+				//	{ u8"ぉ", "o" },
+				//	{ u8"お", "O" },
 
-				{ u8"か", "Ka" },
-				{ u8"が", "Ga" },
+				//	{ u8"か", "Ka" },
+				//	{ u8"が", "Ga" },
 
-				{ u8"き", "Ki" },
-				{ u8"ぎ", "Gi" },
+				//	{ u8"き", "Ki" },
+				//	{ u8"ぎ", "Gi" },
 
-				{ u8"く", "Ku" },
-				{ u8"ぐ", "Gu" },
+				//	{ u8"く", "Ku" },
+				//	{ u8"ぐ", "Gu" },
 
-				{ u8"け", "Ke" },
-				{ u8"げ", "Ge" },
+				//	{ u8"け", "Ke" },
+				//	{ u8"げ", "Ge" },
 
-				{ u8"こ", "Ko" },
-				{ u8"ご", "Go" },
+				//	{ u8"こ", "Ko" },
+				//	{ u8"ご", "Go" },
 
-				{ u8"さ", "Sa" },
-				{ u8"ざ", "Za" },
+				//	{ u8"さ", "Sa" },
+				//	{ u8"ざ", "Za" },
 
-				{ u8"し", "Shi" },
-				{ u8"じ", "Ji" },
+				//	{ u8"し", "Shi" },
+				//	{ u8"じ", "Ji" },
 
-				{ u8"す", "Su" },
-				{ u8"ず", "Zu" },
+				//	{ u8"す", "Su" },
+				//	{ u8"ず", "Zu" },
 
-				{ u8"せ", "Se" },
-				{ u8"ぜ", "Ze" },
+				//	{ u8"せ", "Se" },
+				//	{ u8"ぜ", "Ze" },
 
-				{ u8"そ", "So" },
-				{ u8"ぞ", "Zo" },
+				//	{ u8"そ", "So" },
+				//	{ u8"ぞ", "Zo" },
 
-				{ u8"た", "Ta" },
-				{ u8"だ", "Da" },
+				//	{ u8"た", "Ta" },
+				//	{ u8"だ", "Da" },
 
-				{ u8"ち", "Chi" },
-				{ u8"ぢ", "Ji" },
+				//	{ u8"ち", "Chi" },
+				//	{ u8"ぢ", "Ji" },
 
-				{ u8"っ", "-" },
-				{ u8"つ", "Tsu" },
-				{ u8"づ", "Zu" },
+				//	{ u8"っ", "-" },
+				//	{ u8"つ", "Tsu" },
+				//	{ u8"づ", "Zu" },
 
-				{ u8"て", "Te" },
-				{ u8"で", "De" },
+				//	{ u8"て", "Te" },
+				//	{ u8"で", "De" },
 
-				{ u8"と", "To" },
-				{ u8"ど", "Do" },
+				//	{ u8"と", "To" },
+				//	{ u8"ど", "Do" },
 
-				{ u8"な", "Na" },
-				{ u8"に", "Ni" },
-				{ u8"ぬ", "Nu" },
-				{ u8"ね", "Ne" },
-				{ u8"の", "No" },
+				//	{ u8"な", "Na" },
+				//	{ u8"に", "Ni" },
+				//	{ u8"ぬ", "Nu" },
+				//	{ u8"ね", "Ne" },
+				//	{ u8"の", "No" },
 
-				{ u8"は", "Ha" },
-				{ u8"ば", "Ba" },
-				{ u8"ぱ", "Pa" },
+				//	{ u8"は", "Ha" },
+				//	{ u8"ば", "Ba" },
+				//	{ u8"ぱ", "Pa" },
 
-				{ u8"ひ", "Hi" },
-				{ u8"び", "Bi" },
-				{ u8"ぴ", "Pi" },
+				//	{ u8"ひ", "Hi" },
+				//	{ u8"び", "Bi" },
+				//	{ u8"ぴ", "Pi" },
 
-				{ u8"ふ", "Hu" },
-				{ u8"ぶ", "Bu" },
-				{ u8"ぷ", "Pu" },
+				//	{ u8"ふ", "Hu" },
+				//	{ u8"ぶ", "Bu" },
+				//	{ u8"ぷ", "Pu" },
 
-				{ u8"へ", "He" },
-				{ u8"べ", "Be" },
-				{ u8"ぺ", "Pe" },
+				//	{ u8"へ", "He" },
+				//	{ u8"べ", "Be" },
+				//	{ u8"ぺ", "Pe" },
 
-				{ u8"ほ", "Ho" },
-				{ u8"ぼ", "Bo" },
-				{ u8"ぽ", "Po" },
+				//	{ u8"ほ", "Ho" },
+				//	{ u8"ぼ", "Bo" },
+				//	{ u8"ぽ", "Po" },
 
-				{ u8"ま", "Ma" },
-				{ u8"み", "Mi" },
-				{ u8"む", "Mu" },
-				{ u8"め", "Me" },
-				{ u8"も", "Mo" },
+				//	{ u8"ま", "Ma" },
+				//	{ u8"み", "Mi" },
+				//	{ u8"む", "Mu" },
+				//	{ u8"め", "Me" },
+				//	{ u8"も", "Mo" },
 
-				{ u8"ゃ", "ya" },
-				{ u8"や", "Ya" },
+				//	{ u8"ゃ", "ya" },
+				//	{ u8"や", "Ya" },
 
-				{ u8"ゅ", "yu" },
-				{ u8"ゆ", "Yu" },
+				//	{ u8"ゅ", "yu" },
+				//	{ u8"ゆ", "Yu" },
 
-				{ u8"ょ", "yo" },
-				{ u8"よ", "Yo" },
+				//	{ u8"ょ", "yo" },
+				//	{ u8"よ", "Yo" },
 
-				{ u8"ら", "Ra" },
-				{ u8"り", "Ri" },
-				{ u8"る", "Ru" },
-				{ u8"れ", "Re" },
-				{ u8"ろ", "Ro" },
+				//	{ u8"ら", "Ra" },
+				//	{ u8"り", "Ri" },
+				//	{ u8"る", "Ru" },
+				//	{ u8"れ", "Re" },
+				//	{ u8"ろ", "Ro" },
 
-				{ u8"ゎ", "wa" },
-				{ u8"わ", "Wa" },
+				//	{ u8"ゎ", "wa" },
+				//	{ u8"わ", "Wa" },
 
-				{ u8"ゐ", "Wi" },
+				//	{ u8"ゐ", "Wi" },
 
-				{ u8"ゑ", "We" },
+				//	{ u8"ゑ", "We" },
 
-				{ u8"を", "Wo" },
+				//	{ u8"を", "Wo" },
 
-				{ u8"ん", "N" },
+				//	{ u8"ん", "N" },
 
-				{ u8"ゔ", "Vu" },
+				//	{ u8"ゔ", "Vu" },
 
-				{ u8"ゕ", "ka" },
-				{ u8"ゖ", "ke" },			
+				//	{ u8"ゕ", "ka" },
+				//	{ u8"ゖ", "ke" },			
 
-				{ u8"ぷ", "Pu" },
-				{ u8"よ", "Yo" },
+				//	{ u8"ぷ", "Pu" },
+				//	{ u8"よ", "Yo" },
 
 
-				{ u8"ワ", "Wa" },
-				{ u8"ン", "N" },
-				{ u8"ダ", "Da" },
-				{ u8"ー", "-" },
-				{ u8"プ", "Pu" },
-				{ u8"ロ", "Ro" },
-				{ u8"ジ", "Ji" },
-				{ u8"ェ", "e" },
+				//	{ u8"ワ", "Wa" },
+				//	{ u8"ン", "N" },
+				//	{ u8"ダ", "Da" },
+				//	{ u8"ー", "-" },
+				//	{ u8"プ", "Pu" },
+				//	{ u8"ロ", "Ro" },
+				//	{ u8"ジ", "Ji" },
+				//	{ u8"ェ", "e" },
 
-				{ u8"ジェ", "Je" },
+				//	{ u8"ジェ", "Je" },
 
-				{ u8"ク", "Ku" },
-				{ u8"ト", "To" },
-				{ u8"コ", "Ko" },
-				{ u8"ル", "Ru" },
-				{ u8"ジョ", "Jo" },
-				{ u8"ゼ", "Ze" },
-				{ u8"ゼ", "Ze" },
-				{ u8"ゼッ", "Ze" },
-				{ u8"ゼッ", "Ze" },
-				{ u8"ズ", "Zu" },
+				//	{ u8"ク", "Ku" },
+				//	{ u8"ト", "To" },
+				//	{ u8"コ", "Ko" },
+				//	{ u8"ル", "Ru" },
+				//	{ u8"ジョ", "Jo" },
+				//	{ u8"ゼ", "Ze" },
+				//	{ u8"ゼ", "Ze" },
+				//	{ u8"ゼッ", "Ze" },
+				//	{ u8"ゼッ", "Ze" },
+				//	{ u8"ズ", "Zu" },
 
-				{ u8"森", "Mori" },
-				{ u8"彰", "Aki" },
-				{ u8"彦", "Hiko" },
-				{ u8"彰彦", "Akihiko" },
-				{ u8"魔獣使い伝説", "Maju Tsukai Densetsu" },
-				{ u8"一郎", "Ichiro" },
-				{ u8"根本", "Nemoto" },
+				//	{ u8"森", "Mori" },
+				//	{ u8"彰", "Aki" },
+				//	{ u8"彦", "Hiko" },
+				//	{ u8"彰彦", "Akihiko" },
+				//	{ u8"魔獣使い伝説", "Maju Tsukai Densetsu" },
+				//	{ u8"一郎", "Ichiro" },
+				//	{ u8"根本", "Nemoto" },
 
-				{ u8"Ｒ", "R" },
-				{ u8"Ｅ", "E" },
-				{ u8"Ｓ", "S" },
-				{ u8"Ｕ", "U" },
-				{ u8"Ｌ", "L" },
-				{ u8"Ｔ", "T" },*/
-			};
-			for ( auto I = sizeof( tTable ) / sizeof( tTable[0] ); I--; ) {
-				sCopy = CUtilities::Replace<std::u8string>( sCopy, tTable[I].pcReplaceMe, tTable[I].pcWithMe );
-			};
-
+				//	{ u8"Ｒ", "R" },
+				//	{ u8"Ｅ", "E" },
+				//	{ u8"Ｓ", "S" },
+				//	{ u8"Ｕ", "U" },
+				//	{ u8"Ｌ", "L" },
+				//	{ u8"Ｔ", "T" },*/
+				//};
+				//for ( auto I = sizeof( tTable ) / sizeof( tTable[0] ); I--; ) {
+				//	sCopy = CUtilities::Replace<std::u8string>( sCopy, tTable[I].pcReplaceMe, tTable[I].pcWithMe );
+				//};
+			}
 			LSN_LIST_ENTRY lsEntry;
 			lsEntry.u.uiIfoId = _uiId;
 			lsEntry.sText = sCopy;
@@ -1179,336 +1049,6 @@ namespace lsn {
 	}
 
 	/**
-	 * Converts a bunch of 8-bit PCM samples to double.
-	 *
-	 * \param _ui32From Starting sample index.
-	 * \param _ui32To Ending sample index.
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to hold all of the values.
-	 */
-	/*bool CWavFile::Pcm8ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
-		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
-		_vResult.reserve( sFinalSize );
-		uint32_t uiStride;
-		size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-		const int8_t * pi8Samples = reinterpret_cast<const int8_t *>(&m_vSamples.data()[sIdx]);
-		while ( _ui32From < _ui32To ) {
-			_vResult.push_back( (static_cast<int32_t>((*pi8Samples)) - 128) / 127.0 );
-
-			pi8Samples += m_uiNumChannels;
-			++_ui32From;
-		}
-		return true;
-	}*/
-
-	/**
-	 * Converts a bunch of 16-bit PCM samples to double.
-	 *
-	 * \param _ui32From Starting sample index.
-	 * \param _ui32To Ending sample index.
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to hold all of the values.
-	 */
-	/*bool CWavFile::Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
-		const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
-		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
-		_vResult.reserve( sFinalSize );
-		uint32_t uiStride;
-		size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-		const int16_t * pi16Samples = reinterpret_cast<const int16_t *>(&m_vSamples.data()[sIdx]);
-		while ( _ui32From < _ui32To ) {
-			_vResult.push_back( (*pi16Samples) / dFactor );
-
-			pi16Samples += m_uiNumChannels;
-			++_ui32From;
-		}
-		return true;
-	}*/
-
-	/**
-	 * Converts a bunch of 24-bit PCM samples to double.
-	 *
-	 * \param _ui32From Starting sample index.
-	 * \param _ui32To Ending sample index.
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to hold all of the values.
-	 */
-	/*bool CWavFile::Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
-		const double dFactor = (std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
-		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
-		_vResult.reserve( sFinalSize );
-		uint32_t uiStride;
-		size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-		while ( _ui32From < _ui32To ) {
-			if ( sIdx >= m_vSamples.size() ) {
-				_vResult.push_back( 0.0 );
-			}
-			else {
-				const int32_t * pi32Samples = reinterpret_cast<const int32_t *>(&m_vSamples.data()[sIdx]);
-
-				_vResult.push_back( ((*pi32Samples) << 8) / dFactor );
-			}
-
-			sIdx += uiStride;
-			++_ui32From;
-		}
-		return true;
-	}*/
-
-	/**
-	 * Converts a bunch of 32-bit PCM samples to double.
-	 *
-	 * \param _ui32From Starting sample index.
-	 * \param _ui32To Ending sample index.
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to hold all of the values.
-	 */
-	/*bool CWavFile::Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
-		const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
-		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
-		_vResult.reserve( sFinalSize );
-		uint32_t uiStride;
-		size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-		const int32_t * pi32Samples = reinterpret_cast<const int32_t *>(&m_vSamples.data()[sIdx]);
-		while ( _ui32From < _ui32To ) {
-			_vResult.push_back( (*pi32Samples) / dFactor );
-
-			pi32Samples += m_uiNumChannels;
-			++_ui32From;
-		}
-		return true;
-	}*/
-
-	/**
-	 * Converts a bunch of 32-bit float samples to double.
-	 *
-	 * \param _ui32From Starting sample index.
-	 * \param _ui32To Ending sample index.
-	 * \param _uiChan The channel whose sample data is to be obtained.
-	 * \param _vResult The vector containing the samples.
-	 * \return Returns true if the vector was able to hold all of the values.
-	 */
-	/*bool CWavFile::F32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, lwtrack &_vResult ) const {
-		size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
-		_vResult.reserve( sFinalSize );
-		uint32_t uiStride;
-		size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-		const float * pfSamples = reinterpret_cast<const float *>(&m_vSamples.data()[sIdx]);
-		while ( _ui32From < _ui32To ) {
-			_vResult.push_back( (*pfSamples) );
-
-			pfSamples += m_uiNumChannels;
-			++_ui32From;
-		}
-		return true;
-	}*/
-
-	/**
-	 * Converts a batch of F64 samples to PCM samples.
-	 *
-	 * \param _vSrc The samples to convert.
-	 * \param _vDst The buffer to which to convert the samples.
-	 * \return Returns trye if all samples were added to the buffer.
-	 */
-	bool CWavFile::BatchF64ToPcm8( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst ) {
-		for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-			for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-				int8_t iSample = static_cast<int8_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * 127.0 + 128.0 ));
-				_vDst.push_back( static_cast<uint8_t>(iSample) );
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Converts a batch of F64 samples to PCM samples.
-	 *
-	 * \param _vSrc The samples to convert.
-	 * \param _vDst The buffer to which to convert the samples.
-	 * \return Returns trye if all samples were added to the buffer.
-	 */
-	bool CWavFile::BatchF64ToPcm16( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst ) {
-		try {
-			const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
-			auto stNumSamples = _vSrc[0].size();
-			auto stNumChannels = _vSrc.size();
-			auto aSize = _vDst.size();
-			_vDst.reserve( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
-			int16_t * pi16Dst = reinterpret_cast<int16_t *>(_vDst.data() + aSize);
-
-#ifdef __AVX512BW__
-			if ( CUtilities::IsAvx512BWSupported() ) {
-				// Constants for AVX-512 operations
-				__m512d vdFactor = _mm512_set1_pd( dFactor );
-				__m512d vdMin = _mm512_set1_pd( -1.0 );
-				__m512d vdMax = _mm512_set1_pd( 1.0 );
-				std::vector<std::vector<uint16_t>, CAlignmentAllocator<std::vector<uint16_t>, 64>> vSamples;
-				vSamples.resize( stNumChannels );
-				for ( auto I = stNumChannels; I--; ) {
-					vSamples[I].resize( stNumSamples );
-				}
-				
-				for ( auto C = stNumChannels; C--; ) {
-					lwaudio::size_type stIdx = 0;
-					while ( stIdx < stNumSamples - (8 - 1) ) {
-						__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
-
-						// Clamp samples between -1.0 and 1.0.
-						vdSamples = _mm512_max_pd( vdSamples, vdMin );
-						vdSamples = _mm512_min_pd( vdSamples, vdMax );
-
-						// Multiply by scaling factor.
-						vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
-
-						// Round to nearest integer and convert to int32_t
-						__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-
-						// Convert int32_t to int16_t with saturation
-						__m128i viInt16 = _mm256_cvtsepi32_epi16( viInt32 );
-
-						_mm_store_si128( reinterpret_cast<__m128i *>(&vSamples[C][stIdx]), viInt16 );
-
-
-						stIdx += sizeof( __m512d ) / sizeof( double );
-					}
-
-					while ( stIdx < stNumSamples ) {
-						vSamples[C][stIdx++] = static_cast<int16_t>(std::round( std::clamp( _vSrc[C][stIdx], -1.0, 1.0 ) * dFactor ));
-					}
-				}
-
-				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-						(*pi16Dst++) = vSamples[J][I];
-					}
-				}
-
-				return true;
-			}
-#endif	// #ifdef __AVX512BW__
-
-			for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-				for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-					(*pi16Dst++) = static_cast<int16_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
-				}
-			}
-			return true;
-		}
-		catch ( ... ) { return false; }
-	}
-
-	/**
-	 * Converts a batch of F64 samples to PCM samples.
-	 *
-	 * \param _vSrc The samples to convert.
-	 * \param _vDst The buffer to which to convert the samples.
-	 * \return Returns trye if all samples were added to the buffer.
-	 */
-	bool CWavFile::BatchF64ToPcm24( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst ) {
-		try {
-			const double dFactor = std::pow( 2.0, 24.0 - 1.0 ) - 1.0;
-			auto stNumSamples = _vSrc[0].size();
-			auto stNumChannels = _vSrc.size();
-			auto aSize = _vDst.size();
-			_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * 3 );
-			int8_t * pi8Dst = reinterpret_cast<int8_t *>(_vDst.data() + aSize);
-
-			for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-				for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-					int32_t iSample = static_cast<int32_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
-					(*pi8Dst++) = static_cast<uint8_t>(iSample);
-					(*pi8Dst++) = static_cast<uint8_t>(iSample >> 8);
-					(*pi8Dst++) = static_cast<uint8_t>(iSample >> 16);
-					/*_vDst.push_back( static_cast<uint8_t>(iSample) );
-					_vDst.push_back( static_cast<uint8_t>(iSample >> 8) );
-					_vDst.push_back( static_cast<uint8_t>(iSample >> 16) );*/
-				}
-			}
-			return true;
-		}
-		catch ( ... ) { return false; }
-	}
-
-	/**
-	 * Converts a batch of F64 samples to PCM samples.
-	 *
-	 * \param _vSrc The samples to convert.
-	 * \param _vDst The buffer to which to convert the samples.
-	 * \return Returns trye if all samples were added to the buffer.
-	 */
-	bool CWavFile::BatchF64ToPcm32( const lwaudio &_vSrc, std::vector<uint8_t> &_vDst ) {
-		try {
-			const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
-			auto stNumSamples = _vSrc[0].size();
-			auto stNumChannels = _vSrc.size();
-			auto aSize = _vDst.size();
-			_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * sizeof( int32_t ) );
-			int32_t * pi32Dst = reinterpret_cast<int32_t *>(_vDst.data() + aSize);
-
-#ifdef __AVX512BW__
-			if ( CUtilities::IsAvx512BWSupported() ) {
-				// Constants for AVX-512 operations
-				__m512d vdFactor = _mm512_set1_pd( dFactor );
-				__m512d vdMin = _mm512_set1_pd( -1.0 );
-				__m512d vdMax = _mm512_set1_pd( 1.0 );
-				std::vector<std::vector<uint32_t>, CAlignmentAllocator<std::vector<uint32_t>, 64>> vSamples;
-				vSamples.resize( stNumChannels );
-				for ( auto I = stNumChannels; I--; ) {
-					vSamples[I].resize( stNumSamples );
-				}
-				
-				for ( auto C = stNumChannels; C--; ) {
-					lwaudio::size_type stIdx = 0;
-					while ( stIdx < stNumSamples - (8 - 1) ) {
-						__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
-
-						// Clamp samples between -1.0 and 1.0.
-						vdSamples = _mm512_max_pd( vdSamples, vdMin );
-						vdSamples = _mm512_min_pd( vdSamples, vdMax );
-
-						// Multiply by scaling factor.
-						vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
-
-						// Round to nearest integer and convert to int32_t
-						__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-
-						// Store the int32_t samples.
-						_mm256_store_si256( reinterpret_cast<__m256i*>(&vSamples[C][stIdx]), viInt32 );
-
-
-						stIdx += sizeof( __m512d ) / sizeof( double );
-					}
-
-					while ( stIdx < stNumSamples ) {
-						vSamples[C][stIdx++] = static_cast<int32_t>(std::round( std::clamp( _vSrc[C][stIdx], -1.0, 1.0 ) * dFactor ));
-					}
-				}
-
-				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-						(*pi32Dst++) = vSamples[J][I];
-					}
-				}
-
-				return true;
-			}
-#endif	// #ifdef __AVX512BW__
-
-			for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
-				for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-					(*pi32Dst++) = static_cast<int32_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
-				}
-			}
-			return true;
-		}
-		catch ( ... ) { return false; }
-	}
-
-	/**
 	 * Gets the byte indices of PCM data given an offset and channel.
 	 *
 	 * \param _uiChan The channel.
@@ -1546,13 +1086,14 @@ namespace lsn {
 		LSN_FMT_CHUNK fcChunk = { 0 };
 		fcChunk.chHeader.u.uiId = LSN_C_FMT_;
 		fcChunk.chHeader.uiSize = 16;
-		fcChunk.uiAudioFormat = _fFormat;
+		fcChunk.uiAudioFormat = _psdSaveSettings ? _psdSaveSettings->fFormat : _fFormat;
 		fcChunk.uiBitsPerSample = (_psdSaveSettings && _psdSaveSettings->uiBitsPerSample) ? _psdSaveSettings->uiBitsPerSample : BitsPerSample();
+		if ( LSN_F_IEEE_FLOAT == fcChunk.uiAudioFormat ) { fcChunk.uiBitsPerSample = 32; }
 		fcChunk.uiNumChannels = _uiChannels;
 		fcChunk.uiSampleRate = (_psdSaveSettings && _psdSaveSettings->uiHz) ? _psdSaveSettings->uiHz : Hz();
 		fcChunk.uiBlockAlign = fcChunk.uiBitsPerSample * fcChunk.uiNumChannels / 8;
 		fcChunk.uiByteRate = fcChunk.uiBlockAlign * fcChunk.uiSampleRate;
-
+		
 		return fcChunk;
 	}
 
@@ -1622,6 +1163,40 @@ namespace lsn {
 	}
 
 	/**
+	 * Fixes the output file name of a given full path.
+	 * 
+	 * \param _pcFullpath The full path whose file name is to fix.
+	 * \return Returns the fixed file path.
+	 **/
+	std::u8string CWavFile::FixFileName( const char8_t * _pcFullpath ) {
+		std::u8string sPath = _pcFullpath;
+		std::u8string sFolder = CFileBase::GetFilePath( sPath );
+		std::u8string sName = CFileBase::GetFileName( sPath );
+		
+
+		std::u8string sCopy = sName;
+		const struct LSN_TABLE {
+			const char8_t *					pcReplaceMe;
+			const char8_t *					pcWithMe;
+		} tTable[] = {
+			{ u8"?", u8"-" },
+			{ u8"*", u8"˙" },
+			{ u8":", u8" -" },
+			{ u8"\\", u8"-" },
+			{ u8"/", u8"∕" },
+			{ u8"<", u8"‹" },
+			{ u8">", u8"›" },
+			{ u8"|", u8"¦" },
+			{ u8"\"", u8"‟" },
+		};
+		for ( auto I = sizeof( tTable ) / sizeof( tTable[0] ); I--; ) {
+			sCopy = CUtilities::Replace<std::u8string>( sCopy, reinterpret_cast<const char8_t *>(tTable[I].pcReplaceMe), reinterpret_cast<const char8_t *>(tTable[I].pcWithMe) );
+		};
+
+		return sFolder + sCopy;
+	}
+
+	/**
 	 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
 	 * 
 	 * \param _pcPath Uses data loaded into m_sStream to create a new file.
@@ -1629,6 +1204,7 @@ namespace lsn {
 	 **/
 	bool CWavFile::CreateStreamFile( const char8_t * _pcPath ) {
 		LSN_SAVE_DATA sdSaveSettings( m_sStream.ui32Hz, m_sStream.ui16Bits );
+		sdSaveSettings.fFormat = m_sStream.fFormat;
 		
 		if ( !m_sStream.sfFile.Create( _pcPath ) ) {
 			std::wprintf( L"Failed to create stream file: %s.\r\n", reinterpret_cast<const wchar_t *>(CUtilities::Utf8ToUtf16( _pcPath ).c_str()) );

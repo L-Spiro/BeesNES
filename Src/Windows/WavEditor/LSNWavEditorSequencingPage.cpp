@@ -468,7 +468,7 @@ namespace lsn {
 
 									dStart = std::max( dStart, 0.0 );
 									dEnd = std::max( dStart, dEnd );
-									pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_ONE_SHOT_DESC_1_TRACK ), dStart, dEnd ).c_str() );
+									pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_ONE_SHOT_DESC_1_TRACK ), dStart, dEnd - dStart ).c_str() );
 
 									auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
 									if ( pwWarning ) {
@@ -478,7 +478,7 @@ namespace lsn {
 											if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
 												dFullEnd = rRes.u.dVal;
 
-												pwWarning->SetVisible( dEnd > (dFullEnd - dStart) );
+												pwWarning->SetVisible( dEnd > dFullEnd );
 											}
 										}
 									}

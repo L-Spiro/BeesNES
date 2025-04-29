@@ -293,10 +293,11 @@ namespace lsn {
 			CStream sStream( vFile );
 
 			std::string sTmp;
-			LSN_METADATA mdMeta;
+			
 			double dTime2;
 			while ( sStream.ReadLine( sTmp ) ) {
 				if ( sTmp.size() >= 511 ) { return false; }
+				LSN_METADATA mdMeta;
 				char szBuffer[512];
 				auto iConveretd = std::sscanf(
 					sTmp.c_str(),
@@ -324,14 +325,15 @@ namespace lsn {
 	 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
 	 **/
 	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &/*_stIdx*/, std::wstring &_wsMsg ) {
+		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
 		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
 		int64_t i64EndSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dEndTime ) );
-		std::vector<large_vector<double, CAlignmentAllocator<double, 64>>> vSamples;
+		std::vector<large_vec> vSamples;
 		for ( size_t I = 0; I < _wfsSet.wfFile.fcFormat.uiNumChannels; ++I ) {
 			try {
 				// Keep 32 megabytes in RAM at a time.
-				vSamples.push_back( large_vector<double, CAlignmentAllocator<double, 64>>( 32 * 1024 * 1024 / sizeof( double ), 0 ) );
+				vSamples.push_back( large_vec( 32 * 1024 * 1024 / sizeof( double ), 0 ) );
 			}
 			catch ( ... ) {
 				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
@@ -403,7 +405,7 @@ namespace lsn {
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
 			vSamples[J].resize( sEndSample );
 			// Apply anti-aliasing.
-			large_vector<double, CAlignmentAllocator<double, 64>> & vThis = vSamples[J];
+			large_vec & vThis = vSamples[J];
 			try {
 				// Add the opening and trailing silences.
 				{
@@ -435,7 +437,7 @@ namespace lsn {
 					// Apply anti-aliasing.
 					size_t sM = 300;
 					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0 * 1.0095, sM );
-					CUtilities::ApplySincFilterInPlace<large_vector<double, CAlignmentAllocator<double, 64>>, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
+					CUtilities::ApplySincFilterInPlace<large_vec, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
 				}
 
 				// Apply the LPF if any.
@@ -525,10 +527,10 @@ namespace lsn {
 						int64_t i64Idx = int64_t( std::floor( dSample ) );
 						dSampleMe[0] = (i64Idx - 2) < 0 ? dLeft : vThis[(i64Idx-2)];
 						dSampleMe[1] = (i64Idx - 1) < 0 ? dLeft : vThis[(i64Idx-1)];
-						dSampleMe[2] = (i64Idx + 0) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+0)];
-						dSampleMe[3] = (i64Idx + 1) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+1)];
-						dSampleMe[4] = (i64Idx + 2) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+2)];
-						dSampleMe[5] = (i64Idx + 3) > int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+3)];
+						dSampleMe[2] = (i64Idx + 0) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+0)];
+						dSampleMe[3] = (i64Idx + 1) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+1)];
+						dSampleMe[4] = (i64Idx + 2) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+2)];
+						dSampleMe[5] = (i64Idx + 3) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+3)];
 						vDownSampled[I] = CAudio::Sample_6Point_5thOrder_Hermite_X( dSampleMe, dSample - double( i64Idx ) );
 					}
 				}
@@ -635,23 +637,137 @@ namespace lsn {
 				}
 
 				size_t sMax = vThis.size();
-				double dVol = _pfFile.dVolume * _oOutput.dAbsoluteVol;
+				double dVol = _pfFile.dVolume;
 				if ( _pfFile.bInvert ) {
 					dVol *= -1.0;
 				}
 				for ( size_t I = 0; I < sMax; ++I ) {
 					vThis[I] *= dVol;
 				}
-				vThis.flushCurrentSection();
-				vThis.flushWriteBuffer();
-				if ( vSamples.size() == 0 ) { return false; }
 			}
 			catch ( ... ) {
 				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
 				return false;
 			}
 		}
+		
 
+		switch ( _oOutput.i32Channels ) {
+			case 2 : {}			LSN_FALLTHROUGH
+			case 3 : {
+				// Make stereo.  Only works if we have 1 or 2 channels.
+				switch ( vSamples.size() ) {
+					case 1 : {
+						try {
+							vSamples.push_back( large_vec( 32 * 1024 * 1024 / sizeof( double ), 0 ) );
+							vSamples[1].resize( vSamples[0].size() );
+							size_t sSamples = vSamples[0].size();
+							for ( size_t I = 0; I < sSamples; ++I ) {
+								vSamples[1][I] = vSamples[0][I];
+							}
+						}
+						catch ( ... ) {
+							_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+							return false;
+						}
+						break;
+					}
+					case 2 : { break; }
+					default : {
+						_wsMsg = LSN_LSTR( LSN_WE_BAD_CHANNEL_MIX );
+						return false;
+					}
+				}
+			}
+			default : {
+				// Anything else is a ono mix-down.
+				if ( vSamples.size() > 1 ) {
+					size_t sSamples = vSamples[0].size();
+					double dChans = double( vSamples.size() );
+					for ( size_t I = 0; I < sSamples; ++I ) {
+						double dThis = vSamples[0][I];
+						for ( size_t J = 1; J < vSamples.size(); ++J ) {
+							dThis += vSamples[J][I];
+						}
+						vSamples[0][I] = dThis / dChans;
+					}
+					while ( vSamples.size() != 1 ) { vSamples.pop_back(); }
+					//vSamples.resize( 1 );
+				}
+			}
+		}
+
+		
+		// Apply volume.
+		switch ( _oOutput.i32VolType ) {
+			case LSN_VT_ABS : {
+				for ( auto J = vSamples.size(); J--; ) {
+					for ( auto I = vSamples[J].size(); I--; ) {
+						vSamples[J][I] *= _oOutput.dAbsoluteVol;
+					}
+				}
+				break;
+			}
+			case LSN_VT_NORM : {
+				double dMax = 0.0;
+				for ( auto J = vSamples.size(); J--; ) {
+					double dChannelMax = ee::CExpEval::MaxVec<large_vec>( vSamples[J] );
+
+					dMax = std::max( dMax, dChannelMax );
+				}
+				if ( dMax != 0.0 ) {
+					for ( auto J = vSamples.size(); J--; ) {
+						for ( auto I = vSamples[J].size(); I--; ) {
+							vSamples[J][I] = vSamples[J][I] / dMax * _oOutput.dNormalizeTo;
+						}
+					}
+				}
+				break;
+			}
+			case LSN_VT_LOUDNESS : {
+				double dMax = 0.0;
+				for ( auto J = vSamples.size(); J--; ) {
+					double dChannelMax = ee::CExpEval::CalcRmsGated<large_vec>( vSamples[J], 0.1 );
+
+					dMax = std::max( dMax, dChannelMax );
+				}
+				if ( dMax != 0.0 ) {
+					for ( auto J = vSamples.size(); J--; ) {
+						for ( auto I = vSamples[J].size(); I--; ) {
+							vSamples[J][I] = vSamples[J][I] / dMax * _oOutput.dLoudness;
+						}
+					}
+				}
+				break;
+			}
+		}
+
+		// Create a file path.
+		std::filesystem::path pPath( _oOutput.wsFolder );
+		pPath = pPath / (_pfFile.wsName + L".wav");
+		CWavFile wfFile;
+		wfFile.AddListEntry( CWavFile::LSN_M_INAM, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsName.c_str(), _pfFile.wsName.size() ).c_str() ) );
+		if ( _pfFile.wsArtist.size() ) {
+			wfFile.AddListEntry( CWavFile::LSN_M_IART, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsArtist.c_str(), _pfFile.wsArtist.size() ).c_str() ) );
+		}
+		if ( _pfFile.wsAlbum.size() ) {
+			wfFile.AddListEntry( CWavFile::LSN_M_IPRD, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsAlbum.c_str(), _pfFile.wsAlbum.size() ).c_str() ) );
+		}
+		if ( _pfFile.wsYear.size() ) {
+			wfFile.AddListEntry( CWavFile::LSN_M_ICRD, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsYear.c_str(), _pfFile.wsYear.size() ).c_str() ) );
+		}
+		if ( _pfFile.wsComment.size() ) {
+			wfFile.AddListEntry( CWavFile::LSN_M_ICMT, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsComment.c_str(), _pfFile.wsComment.size() ).c_str() ) );
+		}
+		CWavFile::LSN_SAVE_DATA sdData;
+		sdData.fFormat = static_cast<CWavFile::LSN_FORMAT>(_oOutput.i32Format);
+		sdData.uiBitsPerSample = _oOutput.ui16Bits;
+		sdData.uiHz = _oOutput.ui32Hz;
+		if ( !wfFile.SaveAsPcm( pPath.generic_u8string().c_str(), vSamples, &sdData ) ) {
+			_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_SAVE_WAV ), _wfsSet.wfFile.wsPath );
+			return false;
+		}
+		
 		return true;
 	}
 

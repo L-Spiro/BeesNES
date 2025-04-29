@@ -60,6 +60,16 @@ namespace lsn {
 	template <typename T, typename Allocator = std::allocator<T>>
 	class large_vector : protected std::vector<T, Allocator> {
 	public :
+		// Expose std::vector’s key types:
+		using value_type										= typename std::vector<T, Allocator>::value_type;
+		using allocator_type	 								= typename std::vector<T, Allocator>::allocator_type;
+		using size_type											= typename std::vector<T, Allocator>::size_type;
+		using difference_type									= typename std::vector<T, Allocator>::difference_type;
+		using reference											= typename std::vector<T, Allocator>::reference;
+		using const_reference									= typename std::vector<T, Allocator>::const_reference;
+		using pointer											= typename std::vector<T, Allocator>::pointer;
+		using const_pointer										= typename std::vector<T, Allocator>::const_pointer;
+
 		// --- Disable Copy ---
 		large_vector( const large_vector & ) = delete;
 		large_vector &											operator = ( const large_vector & ) = delete;
@@ -290,7 +300,9 @@ namespace lsn {
 		 * \throws std::runtime_error if file I/O fails.
 		 */
 		T &														operator [] ( size_t _nIndex ) {
-			if LGV_UNLIKELY( _nIndex >= m_nTotalSize ) { throw std::out_of_range( "Index out of range in operator[]." ); }
+			if LGV_UNLIKELY( _nIndex >= m_nTotalSize ) {
+				throw std::out_of_range( "Index out of range in operator[]." );
+			}
 			// If _nIndex is outside the currently loaded section, flush and load the appropriate section.
 			if ( _nIndex < m_nCurrentSectionStart ||
 				_nIndex >= m_nCurrentSectionStart + std::vector<T, Allocator>::size() ) {

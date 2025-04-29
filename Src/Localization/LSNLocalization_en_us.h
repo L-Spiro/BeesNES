@@ -437,6 +437,8 @@
 #define LSN_WE_FAILED_TO_LOAD_SAMPLES										Failed to load samples from WAV file \u201C{}\u201D.
 #define LSN_WE_CHANNEL_COUNT_ERROR											WAV file \u201C{}\u201D does not have the same number of channels as \u201C{}\u201D.
 #define LSN_WE_SAMPLE_RATE_ERROR											WAV file \u201C{}\u201D does not have the same sample rate as \u201C{}\u201D.
+#define LSN_WE_BAD_CHANNEL_MIX												Can only create stereo/surround WAV files using sources that are either 1 or 2 channels.
+#define LSN_WE_FAILED_TO_SAVE_WAV											Failed to create WAV file: \u201C{}\u201D.
 
 
 // General.

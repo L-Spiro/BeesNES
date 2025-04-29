@@ -93,6 +93,24 @@ namespace ee {
 		static inline _tT				Max( const _tT &_tA, const _tT &_tB ) { return _tA > _tB ? _tA : _tB; }
 
 		/**
+		 * Gets the largest absolute value in the given vector.
+		 * 
+		 * \param _tA The vector to find the max() of.
+		 * \return Returns the maximum absolute value in the given vector.
+		 **/
+		template <typename _tType = std::vector<double>>
+		static inline typename _tType::value_type
+										MaxVec( const _tType &_tA ) {
+			typename _tType::value_type dRet = _tType::value_type( 0 );
+			for ( auto I = _tA.size(); I--; ) {
+				typename _tType::value_type dTmp = _tA[I];
+				dTmp = dTmp < _tType::value_type( 0 ) ? -dTmp : dTmp;
+				dRet = Max( dRet, dTmp );
+			}
+			return dRet;
+		}
+
+		/**
 		 * Is the given character valid binary character?
 		 * 
 		 * \param _cValue The value to test.
@@ -2009,6 +2027,44 @@ namespace ee {
 
 			_sM = sL;
 			return vFilter;
+		}
+
+		/**
+		 * \brief  Calculates a “gated” AC-RMS: subtracts DC and only counts samples above a threshold.
+		 *
+		 * \param  _vSamples    The input samples.
+		 * \param  _dThreshold  The absolute amplitude gate; samples with |x–mean| < _dThreshold are ignored.
+		 * \return              The computed gated RMS; zero if no samples exceed threshold.
+		 * \throws std::runtime_error if _vSamples is empty.
+		 */
+		template <typename _tType = std::vector<double>>
+		static inline double			CalcRmsGated( const _tType &_vSamples, double _dThreshold ) {
+			if ( _vSamples.empty() ) { return 0.0; }
+
+			// Remove DC.
+			double dMean = 0.0;
+			for ( auto I = _vSamples.size(); I--; ) {
+				dMean += double( _vSamples[I] );
+			}
+			/*for ( double dSample : _vSamples ) {
+				dMean += dSample;
+			}*/
+			dMean /= static_cast<double>(_vSamples.size());
+
+			// Accumulate only above threshold.
+			double dSumSq    = 0.0;
+			size_t sCount    = 0;
+			for ( auto I = _vSamples.size(); I--; ) {
+				double dCentered = double( _vSamples[I] ) - dMean;
+				if ( std::abs( dCentered ) >= _dThreshold ) {
+					dSumSq += dCentered * dCentered;
+					++sCount;
+				}
+			}
+			if ( sCount == 0 ) { return 0.0; }
+
+			double dMeanSq = dSumSq / static_cast<double>(sCount);
+			return std::sqrt( dMeanSq );
 		}
 
 	};
