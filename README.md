@@ -101,8 +101,8 @@ This means that multi-byte writes are correctly partitioned across cycles and pa
 Additional options/features to facilitate accurate emulation:  
 * Start-Up: Start from known state or from random state.  Helps the random seed in some games.  
 * Hardware bugs will be emulated in both their buggy and fixed states (OAMADDR bugs (writing fewer than 8 bytes on the 2C02G) are examples of this).  
-* Unofficial opcodes used by games will be optionally supported.  
-* The bus will be open and correctly maintain the last floating read.  
+* Unofficial opcodes used by games will be supported.  
+* The bus will be open and correctly maintain the last floating read/write.  
 * Etc.  
 
 If behavior differes from the actual hardware result, it is considered a bug.  Hacks are to be avoided as much as possible.
