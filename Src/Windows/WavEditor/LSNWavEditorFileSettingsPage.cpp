@@ -719,6 +719,51 @@ namespace lsn {
 		}
 	}
 
+	/**
+	 * Selects an initial Actual Hz value based off the Hz detected in the WAV file assigned to us.
+	 **/
+	void CWavEditorFileSettingsPage::InitialUpdate() {
+		if ( !m_pweEditor ) { return; }
+		if ( UniqueId() == 0 ) { return; }
+
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
+		if ( !pwfsSet ) { return; }
+
+		m_bInternalUpdate = true;
+
+		auto pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
+		if ( pwThis ) {
+			switch ( pwfsSet->wfFile.fcFormat.uiSampleRate ) {
+				case 1789773 : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_NTSC ) );
+					break;
+				}
+				case 1662608 : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PAL ) );
+					break;
+				}
+				case 1773448 : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_DENDY ) );
+					break;
+				}
+				case 1787806 : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PALM ) );
+					break;
+				}
+				case 1791029 : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PALN ) );
+					break;
+				}
+				default : {
+					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_BY_FILE ) );
+				}
+			}
+			
+		}
+
+		m_bInternalUpdate = false;
+	}
+
 }	// namespace lsn
 
 #endif	// #ifdef LSN_USE_WINDOWS

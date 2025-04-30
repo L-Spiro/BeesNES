@@ -61,7 +61,7 @@ namespace lsn {
 					_wsMsg = LSN_LSTR( LSN_INTERNAL_ERROR );
 					return false;
 				}
-				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, _wsMsg ) ) { return false; }
+				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, m_vFileList.size(), _wsMsg ) ) { return false; }
 			}
 		}
 		catch ( ... ) {
@@ -321,10 +321,11 @@ namespace lsn {
 	 * \param _pfFile The per-file data settings.
 	 * \param _oOutput The output settings.
 	 * \param _stIdx The index of the track being exported.
+	 * \param _sTotal The total number fo tracks being exported.
 	 * \param _wsMsg Error message upon failure.
 	 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
 	 **/
-	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &/*_stIdx*/, std::wstring &_wsMsg ) {
+	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg ) {
 		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
 		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
@@ -744,7 +745,16 @@ namespace lsn {
 
 		// Create a file path.
 		std::filesystem::path pPath( _oOutput.wsFolder );
-		pPath = pPath / (_pfFile.wsName + L".wav");
+		if ( _oOutput.bNumbered ) {
+			size_t sDigits = size_t( std::ceil( std::log10( _sTotal + 1 ) ) );
+			std::ostringstream ossTmp;
+			ossTmp << std::setw( sDigits ) << std::setfill( '0' ) << (_stIdx + 1) << " ";
+			pPath /= ossTmp.str();
+			pPath += (_pfFile.wsName + L".wav");
+		}
+		else {
+			pPath /= (_pfFile.wsName + L".wav");
+		}
 		CWavFile wfFile;
 		wfFile.AddListEntry( CWavFile::LSN_M_INAM, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsName.c_str(), _pfFile.wsName.size() ).c_str() ) );
 		if ( _pfFile.wsArtist.size() ) {
@@ -759,6 +769,10 @@ namespace lsn {
 		if ( _pfFile.wsComment.size() ) {
 			wfFile.AddListEntry( CWavFile::LSN_M_ICMT, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsComment.c_str(), _pfFile.wsComment.size() ).c_str() ) );
 		}
+		if ( _oOutput.bNumbered ) {
+			auto sNumber = std::to_string( _stIdx );
+			wfFile.AddListEntry( CWavFile::LSN_M_ITRK, CUtilities::XStringToU8String( sNumber.c_str(), sNumber.size() ) );
+		}
 		CWavFile::LSN_SAVE_DATA sdData;
 		sdData.fFormat = static_cast<CWavFile::LSN_FORMAT>(_oOutput.i32Format);
 		sdData.uiBitsPerSample = _oOutput.ui16Bits;
@@ -767,7 +781,7 @@ namespace lsn {
 			_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_SAVE_WAV ), _wfsSet.wfFile.wsPath );
 			return false;
 		}
-		
+		++_stIdx;
 		return true;
 	}
 

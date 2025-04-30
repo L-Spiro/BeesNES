@@ -373,10 +373,11 @@ namespace lsn {
 		 * \param _pfFile The per-file data settings.
 		 * \param _oOutput The output settings.
 		 * \param _stIdx The index of the track being exported.
+		 * \param _sTotal The total number fo tracks being exported.
 		 * \param _wsMsg Error message upon failure.
 		 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
 		 **/
-		bool															DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, std::wstring &_wsMsg );
+		bool															DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg );
 	};
 
 }	// namespace lsn

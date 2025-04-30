@@ -52,6 +52,7 @@ namespace lsn {
 			m_pweEditor = &_weEditor;
 			m_ui32Id = _ui32Id;
 			m_pwefpFiles = _pwefpFiles;
+			InitialUpdate();
 		}
 
 		/**
@@ -120,6 +121,11 @@ namespace lsn {
 		 * \param _bUpdateAll If true, all pages are updated.
 		 **/
 		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages, bool _bUpdateAll = false );
+
+		/**
+		 * Selects an initial Actual Hz value based off the Hz detected in the WAV file assigned to us.
+		 **/
+		void												InitialUpdate();
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;

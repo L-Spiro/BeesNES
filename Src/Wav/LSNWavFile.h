@@ -441,6 +441,9 @@ namespace lsn {
 
 			// Append the "data" chunk.
 			LSN_PUSH32( LSN_C_DATA );
+			if ( ui32DataSize & 1 ) {
+				++ui32DataSize;
+			}
 			LSN_PUSH32( ui32DataSize );
 			switch ( fcChunk.uiAudioFormat ) {
 				case LSN_F_PCM : {
@@ -470,6 +473,9 @@ namespace lsn {
 					break;
 				}
 				default : { return false; }
+			}
+			if ( vRet.size() & 1 ) {
+				vRet.push_back( 0 );
 			}
 
 			// Append "smpl" chunk.

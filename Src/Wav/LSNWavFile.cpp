@@ -107,6 +107,7 @@ namespace lsn {
 
 				ceChunks.push_back( ceThis );
 				//stOffset += ceThis.uiSize;
+				if ( ceThis.uiSize & 1 ) { ++ceThis.uiSize; }
 				_sbStream.MovePointerBy( ceThis.uiSize );
 			}
 
@@ -870,7 +871,7 @@ namespace lsn {
 			lsEntry.sText = sCopy;
 			lsEntry.sText.push_back( '\0' );
 			if ( lsEntry.sText.size() & 1 ) {
-				// Make it an odd number of characters because a hard-coded 0 will be printed into the file.
+				// Make it an even number of characters because a hard-coded 0 will be printed into the file.
 				lsEntry.sText.push_back( '\0' );
 			}
 			for ( auto I = m_vListEntries.size(); I--; ) {
@@ -1149,7 +1150,7 @@ namespace lsn {
 		for ( auto I = m_vListEntries.size(); I--; ) {
 			ui32Size += static_cast<uint32_t>(m_vListEntries[I].sText.size()) + 8;
 		}
-		LSN_PUSH32( ui32Size );			// Size.
+		LSN_PUSH32( ui32Size );				// Size.
 		LSN_PUSH32( LSN_C_INFO );			// "INFO"
 		for ( size_t I = 0; I < m_vListEntries.size(); ++I ) {
 			LSN_PUSH32( m_vListEntries[I].u.uiIfoId );
@@ -1254,6 +1255,10 @@ namespace lsn {
 		if LSN_LIKELY( m_sStream.sfFile.IsOpen() ) {
 			if LSN_LIKELY( m_sStream.bStreaming ) {
 				uint32_t ui32Size = uint32_t( m_sStream.ui32WavFile_DSize * uint64_t( m_sStream.ui16Bits ) / (sizeof( float ) * 8) );
+				if ( ui32Size & 1 ) {
+					m_sStream.sfFile.Write<uint8_t>( 0 );
+					++ui32Size;
+				}
 
 				m_sStream.sfFile.MovePointerTo( m_sStream.ui64WavFileOffset_Size );
 				m_sStream.sfFile.Write( m_sStream.ui32WavFile_Size + ui32Size );
