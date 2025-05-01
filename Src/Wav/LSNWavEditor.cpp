@@ -770,7 +770,7 @@ namespace lsn {
 			wfFile.AddListEntry( CWavFile::LSN_M_ICMT, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsComment.c_str(), _pfFile.wsComment.size() ).c_str() ) );
 		}
 		if ( _oOutput.bNumbered ) {
-			auto sNumber = std::to_string( _stIdx );
+			auto sNumber = std::to_string( _stIdx + 1 );
 			wfFile.AddListEntry( CWavFile::LSN_M_ITRK, CUtilities::XStringToU8String( sNumber.c_str(), sNumber.size() ) );
 		}
 		CWavFile::LSN_SAVE_DATA sdData;

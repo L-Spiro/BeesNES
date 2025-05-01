@@ -183,7 +183,7 @@ namespace lsn {
 					// Save window settings and export.
 					if ( Save( m_wewoWindowOptions, &m_weEditor ) ) {
 						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
-						Close();
+						//Close();
 					}
 					else {
 						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
