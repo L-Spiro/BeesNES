@@ -518,13 +518,29 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_INV_CHECK,					// wId
+			LSN_WEWI_FSETS_CHAR_LOCK_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
 			LSN_FSETS_CHAR_BUTTON_L,						// iLeft
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																				// iTop
-			(LSN_FSETS_CHAR_BUTTON_W * 2) + LSN_LEFT_JUST,	// dwWidth
+			LSN_FSETS_CHAR_BUTTON_W,						// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_AUTOCHECKSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_AUDIO_OPTIONS_LOCK_VOL ),			// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_WEWI_FSETS_CHAR_INV_CHECK,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			TRUE,											// bActive
+			LSN_FSETS_CHAR_BUTTON_L + LSN_FSETS_CHAR_BUTTON_W + LSN_LEFT_JUST,																																					// iLeft
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																				// iTop
+			LSN_FSETS_CHAR_BUTTON_W,						// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_AUTOCHECKSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -1324,7 +1340,7 @@ namespace lsn {
 		// End Time.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_END_LABEL,					// wId
+			LSN_WEWI_SEQ_LOOPS_STOP_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1340,7 +1356,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_SEQ_LOOPS_END_COMBO,					// wId
+			LSN_WEWI_SEQ_LOOPS_STOP_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1356,7 +1372,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_LOOPS_END_EDIT,					// wId
+			LSN_WEWI_SEQ_LOOPS_STOP_EDIT,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2273,7 +2289,7 @@ namespace lsn {
 			LSN_DEF_BUTTON_HEIGHT_PXL,						// dwHeight
 			LSN_BUTTONSTYLE,								// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
-			LSN_LSTR( LSN_CANCEL ),							// pwcText
+			LSN_LSTR( LSN_CLOSE ),							// pwcText
 			0,												// sTextLen
 			LSN_WEWI_MAINWINDOW,							// dwParentId
 

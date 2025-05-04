@@ -52,22 +52,24 @@ namespace lsn {
 		}
 
 		// Last texts.
-		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsPreFadeDur.c_str() ); }
+		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsPreFadeDur.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsPreFadeDur.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsFadeDur.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsFadeDur.c_str() ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsOpeningSilence.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsOpeningSilence.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsTrailingSilence.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsTrailingSilence.c_str() ); }
 
 
 		// Last checks.
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bLoop ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLoop ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->bLoop ); }
+		if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->pfPerFileOptions.bLoop ); }
 
 
 		auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
@@ -135,7 +137,7 @@ namespace lsn {
 				}
 				break;
 			}
-			case Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO : {
+			case Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO : {
 				switch ( _wCtrlCode ) {
 					case CBN_SELCHANGE : {
 						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
@@ -145,7 +147,7 @@ namespace lsn {
 								auto pwsSet = m_pweEditor->WavById( UniqueId() );
 								if ( pwsSet && size_t( aSelected ) < pwsSet->vMetadata.size() ) {
 									auto sText = std::format( "{:.35g}", pwsSet->vMetadata[aSelected].dTime );
-									auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+									auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 									if ( pwThis ) {
 										pwThis->SetTextA( sText.c_str() );
 									}
@@ -159,7 +161,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_START_EDIT : {}
 			case Layout::LSN_WEWI_SEQ_END_EDIT : {}
-			case Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT : {}	LSN_FALLTHROUGH
@@ -245,7 +247,7 @@ namespace lsn {
 		double dMaxDur = dFullEndTime - dStartTime;
 
 
-		LSN_CHECK_EDIT( LSN_WEWI_SEQ_LOOPS_END_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_END_TIME ) );
+		LSN_CHECK_EDIT( LSN_WEWI_SEQ_LOOPS_STOP_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_END_TIME ) );
 		if ( eTest.u.dVal < 0.0 ) {
 			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_END_TIME_NEG );
 			return pwWidget;
@@ -272,7 +274,7 @@ namespace lsn {
 		}
 
 		if ( dFinalDur - dMaxDur > DBL_EPSILON ) {
-			pwWidget = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+			pwWidget = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 			_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SEQ_TOO_LONG );
 			return pwWidget;
 		}
@@ -297,10 +299,10 @@ namespace lsn {
 	/**
 	 * Saves the current input configuration and closes the dialog.
 	 * 
-	 * \param _wewoOptions The object to which to save the window state.
+	 * \param _pfPerFileOptions The object to which to save the window state.
 	 * \param _ppfOutput The output object to which to transfer all the window settings.
 	 */
-	void CWavEditorSequencingPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
+	void CWavEditorSequencingPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
 #define LSN_CHECKED( ID, STORE )			{ STORE = false;					\
 	auto wCheckTmp = FindChild( Layout::ID );									\
 	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
@@ -315,18 +317,21 @@ namespace lsn {
 
 		CWidget * pwWidget = nullptr;
 		ee::CExpEvalContainer::EE_RESULT eTest;
-		LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _wewoOptions.bLoop );
-		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, _wewoOptions.wsPreFadeDur );
-		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _wewoOptions.wsFadeDur );
+		LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _pfPerFileOptions.bLoop );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_START_EDIT, _pfPerFileOptions.wsStartTime );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_END_EDIT, _pfPerFileOptions.wsEndTime );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_STOP_EDIT, _pfPerFileOptions.wsStopTime );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, _pfPerFileOptions.wsPreFadeDur );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _pfPerFileOptions.wsFadeDur );
 
-		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, _wewoOptions.wsOpeningSilence );
-		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _wewoOptions.wsTrailingSilence );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT, _pfPerFileOptions.wsOpeningSilence );
+		LSN_EDIT_TEXT( LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT, _pfPerFileOptions.wsTrailingSilence );
 
 		if ( _ppfOutput ) {
 			LSN_EDIT_VAL( LSN_WEWI_SEQ_START_EDIT, _ppfOutput->dStartTime );
 			LSN_EDIT_VAL( LSN_WEWI_SEQ_END_EDIT, _ppfOutput->dEndTime );
 			LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _ppfOutput->bLoop );
-			LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_END_EDIT, _ppfOutput->dStopTime );
+			LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_STOP_EDIT, _ppfOutput->dStopTime );
 			if ( _ppfOutput->bLoop ) {
 				LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, _ppfOutput->dDelayTime );
 				LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_FADE_EDIT, _ppfOutput->dFadeTime );
@@ -370,7 +375,7 @@ namespace lsn {
 		} cControls[] = {
 			{ Layout::LSN_WEWI_SEQ_START_COMBO,						bHasMeta },
 			{ Layout::LSN_WEWI_SEQ_END_COMBO,						bHasMeta },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO,					bHasMeta },
+			{ Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,				bHasMeta },
 
 			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,				bLooping },
 			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,				bLooping },
@@ -406,7 +411,7 @@ namespace lsn {
 						if ( pwStart->GetTextAsDoubleExpression( rRes ) ) {
 							dStart = rRes.u.dVal;
 
-							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 							if ( pwEnd ) {
 								if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
 									dEnd = rRes.u.dVal;
@@ -461,7 +466,7 @@ namespace lsn {
 						if ( pwStart->GetTextAsDoubleExpression( rRes ) ) {
 							dStart = rRes.u.dVal;
 
-							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+							auto pwEnd = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 							if ( pwEnd ) {
 								if ( pwEnd->GetTextAsDoubleExpression( rRes ) ) {
 									dEnd = rRes.u.dVal;
@@ -512,9 +517,9 @@ namespace lsn {
 		if ( pwThis ) {
 			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_END_EDIT, vAffected ).c_str() );
 		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT );
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_END_EDIT, vAffected ).c_str() );
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT, vAffected ).c_str() );
 		}
 		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
 		if ( pwThis ) {
@@ -553,7 +558,7 @@ namespace lsn {
 			if ( pcbCombo ) {
 				pcbCombo->ResetContent();
 			}
-			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO ));
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ));
 			if ( pcbCombo ) {
 				pcbCombo->ResetContent();
 			}
@@ -604,7 +609,7 @@ namespace lsn {
 					}*/
 				}
 			}
-			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_END_COMBO ));
+			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ));
 			if ( pcbCombo ) {
 				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
 					pcbCombo->ResetContent();

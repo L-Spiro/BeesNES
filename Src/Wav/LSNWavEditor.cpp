@@ -467,11 +467,11 @@ namespace lsn {
 				// Apply HPF 0.
 				if ( _pfFile.dHpf0 && vThis.size() ) {
 					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.bHpf0 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf0 ), float( _pfFile.dActualHz ) );
 					if ( hfHpf.Enabled() ) {
 						// Prime the HPF.
 						double dLeft = vThis[0];
-						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
 
 						// HPF is primed.
 						size_t sTotal = vThis.size();
@@ -483,11 +483,11 @@ namespace lsn {
 				// Apply HPF 1.
 				if ( _pfFile.dHpf1 && vThis.size() ) {
 					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.bHpf1 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf1 ), float( _pfFile.dActualHz ) );
 					if ( hfHpf.Enabled() ) {
 						// Prime the HPF.
 						double dLeft = vThis[0];
-						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
 
 						// HPF is primed.
 						size_t sTotal = vThis.size();
@@ -499,11 +499,11 @@ namespace lsn {
 				// Apply HPF 2.
 				if ( _pfFile.dHpf2 && vThis.size() ) {
 					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.bHpf2 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf2 ), float( _pfFile.dActualHz ) );
 					if ( hfHpf.Enabled() ) {
 						// Prime the HPF.
 						double dLeft = vThis[0];
-						while ( hfHpf.Process( dLeft ) >= DBL_EPSILON ) {}
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
 
 						// HPF is primed.
 						size_t sTotal = vThis.size();
@@ -679,6 +679,14 @@ namespace lsn {
 						return false;
 					}
 				}
+				if ( _oOutput.i32Channels == 3 ) {
+					// Surround.  Invert the right side.
+					size_t sSamples = vSamples[1].size();
+					for ( size_t I = 0; I < sSamples; ++I ) {
+						vSamples[1][I] = -vSamples[1][I];
+					}
+				}
+				break;
 			}
 			default : {
 				// Anything else is a ono mix-down.
@@ -755,6 +763,7 @@ namespace lsn {
 		else {
 			pPath /= (_pfFile.wsName + L".wav");
 		}
+
 		CWavFile wfFile;
 		wfFile.AddListEntry( CWavFile::LSN_M_INAM, CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _pfFile.wsName.c_str(), _pfFile.wsName.size() ).c_str() ) );
 		if ( _pfFile.wsArtist.size() ) {
@@ -773,10 +782,12 @@ namespace lsn {
 			auto sNumber = std::to_string( _stIdx + 1 );
 			wfFile.AddListEntry( CWavFile::LSN_M_ITRK, CUtilities::XStringToU8String( sNumber.c_str(), sNumber.size() ) );
 		}
+
 		CWavFile::LSN_SAVE_DATA sdData;
 		sdData.fFormat = static_cast<CWavFile::LSN_FORMAT>(_oOutput.i32Format);
 		sdData.uiBitsPerSample = _oOutput.ui16Bits;
 		sdData.uiHz = _oOutput.ui32Hz;
+		sdData.bDither = _oOutput.bDither;
 		if ( !wfFile.SaveAsPcm( pPath.generic_u8string().c_str(), vSamples, &sdData ) ) {
 			_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_SAVE_WAV ), _wfsSet.wfFile.wsPath );
 			return false;

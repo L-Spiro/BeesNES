@@ -440,6 +440,7 @@ namespace lsn {
 							}
 						}
 					}
+					break;
 				}
 			}
 			Update();

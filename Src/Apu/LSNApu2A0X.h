@@ -1525,7 +1525,7 @@ namespace lsn {
 		}
 
 		/**
-		 *  Applies a 2nd HPD to the output.
+		 *  Applies a 2nd HPF to the output.
 		 *
 		 * \param _pvThis The this pointer.
 		 * \param _fSample The input sample.

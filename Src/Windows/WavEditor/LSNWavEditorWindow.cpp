@@ -179,7 +179,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			case Layout::LSN_WEWI_OK : {
-				if ( Verify() ) {
+				if ( Verify( true ) ) {
 					// Save window settings and export.
 					if ( Save( m_wewoWindowOptions, &m_weEditor ) ) {
 						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
@@ -192,6 +192,10 @@ namespace lsn {
 				break;
 			}
 			case Layout::LSN_WEWI_CANCEL : {
+				//if ( Verify( false ) ) {
+					Save( m_wewoWindowOptions, nullptr );
+					m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
+				//}
 				Close();
 				break;
 			}
@@ -676,49 +680,56 @@ namespace lsn {
 	/**
 	 * Verifies each of the dialog contents.
 	 *
+	 * \param _bSilent If true, errors are not reported.
 	 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
 	 **/
-	bool CWavEditorWindow::Verify() {
+	bool CWavEditorWindow::Verify( bool _bSilent ) {
 		try {
 			// TODO: Check for loaded file.
 			CWidget * pwBaddy = nullptr;
 			std::wstring wsError;
 			if ( (pwBaddy = m_pwefFiles->Verify( wsError )) ) {
-				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-				pwBaddy->SetFocus();
+				if ( !_bSilent ) {
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+					pwBaddy->SetFocus();
+				}
 				return false;
 			}
 			if ( (pwBaddy = m_pweopOutput->Verify( wsError )) ) {
-				lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-				pwBaddy->SetFocus();
+				if ( !_bSilent ) {
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+					pwBaddy->SetFocus();
+				}
 				return false;
 			}
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
-					// TODO: Select file I-1.
-					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-					auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-					if ( ptlTree ) {
-						ptlTree->UnselectAll();
-						ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+					if ( !_bSilent ) {
+						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+						auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+						if ( ptlTree ) {
+							ptlTree->UnselectAll();
+							ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+						}
+						Update();
+						pwBaddy->SetFocus();
 					}
-					Update();
-					pwBaddy->SetFocus();
 					return false;
 				}
 			}
 
 			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
 				if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
-					// TODO: Select file I-1.
-					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-					auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-					if ( ptlTree ) {
-						ptlTree->UnselectAll();
-						ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+					if ( !_bSilent ) {
+						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
+						auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+						if ( ptlTree ) {
+							ptlTree->UnselectAll();
+							ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+						}
+						Update();
+						pwBaddy->SetFocus();
 					}
-					Update();
-					pwBaddy->SetFocus();
 					return false;
 				}
 			}
@@ -748,7 +759,10 @@ namespace lsn {
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				m_vSequencePages[I]->Save( _wewoWindowState, &vPerFile[I] );
+				m_vSequencePages[I]->Save( _wewoWindowState.pfPerFileOptions, &vPerFile[I] );
+			}
+			if ( m_vSequencePages.size() == 1 ) {
+				m_vSequencePages[0]->Save( _wewoWindowState.pfPerFileOptions, nullptr );
 			}
 
 			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
@@ -759,8 +773,12 @@ namespace lsn {
 						break;
 					}
 				}
-				m_vSettingsPages[I]->Save( _wewoWindowState, pfPerFile );
+				m_vSettingsPages[I]->Save( _wewoWindowState.pfPerFileOptions, pfPerFile );
 			}
+			if ( m_vSettingsPages.size() == 1 ) {
+				m_vSettingsPages[0]->Save( _wewoWindowState.pfPerFileOptions, nullptr );
+			}
+
 			vPerFile.erase( vPerFile.begin() );
 			if ( _pweEditor ) {
 				_pweEditor->SetParms( vPerFile, oOutput );

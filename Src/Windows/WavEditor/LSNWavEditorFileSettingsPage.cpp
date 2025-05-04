@@ -40,60 +40,84 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorFileSettingsPage::InitDialog() {
 		Parent::InitDialog();
 		m_bInternalUpdate = true;
+
 		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, m_pwewoOptions->ui32ActualHz ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, m_pwewoOptions->pfPerFileOptions.ui32ActualHz ); }
+
+		/*aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO );
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, m_pwewoOptions->pfPerFileOptions.ui32ActualHz ); }*/
+		{
+			auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
+			if ( pcbCombo ) {
+				std::vector<CWinUtilities::LSN_COMBO_ENTRY> vPresets;
+				for ( size_t I = 0; I < LSN_AUDIO_OPTIONS::PresetTotal(); ++I ) {
+					CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = LSN_AUDIO_OPTIONS::s_apProfiles[I].wsName.c_str(), .lpParm = LPARAM( I ) };
+					vPresets.push_back( ceTmp );
+				}
+				CWinUtilities::LSN_COMBO_ENTRY ceTmp = { .pwcName = LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ), .lpParm = LPARAM( -1 ) };
+				vPresets.push_back( ceTmp );
+				lsn::CWinUtilities::FillComboBox( pcbCombo, vPresets.data(), vPresets.size(), 0, -1 );
+			}
+		}
+
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8LpfType ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8LpfType ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf0Type ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf0Type ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf1Type ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf1Type ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->ui8Hpf2Type ); }
+		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf2Type ); }
 
 
 		// Last texts.
+		//aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
+		//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsTitle.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsActualHz.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharVolume.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharVolume.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharLpfHz.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharLpfHz.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf0Hz.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf0Hz.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf1Hz.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf1Hz.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf2Hz.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf2Hz.c_str() ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharLpfFall.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharLpfFall.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf0Fall.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf0Fall.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf1Fall.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf1Fall.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsCharHpf2Fall.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf2Fall.c_str() ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsArtist.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsArtist.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsAlbum.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsAlbum.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsYear.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsYear.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->wsComment.c_str() ); }
+		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsComment.c_str() ); }
 
 
 		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLockVol ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bInvert ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bInvert ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bLpf ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLpf ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf0 ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf0 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf1 ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf1 ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->bHpf2 ); }
+		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf2 ); }
 
 
 		// Last combo selections.
@@ -156,6 +180,7 @@ namespace lsn {
 
 				// Checks.
 				static const WORD wCheckIds[] = {
+					Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,
@@ -172,7 +197,7 @@ namespace lsn {
 				break;
 			}
 			case Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO : {}				LSN_FALLTHROUGH
-			case Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO : {}			LSN_FALLTHROUGH
+			//case Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO : {}		LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO : {}		LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO : {}		LSN_FALLTHROUGH
@@ -216,6 +241,7 @@ namespace lsn {
 				}
 				break;
 			}
+			case Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK : {}				LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK : {}				LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK : {}			LSN_FALLTHROUGH
@@ -236,6 +262,73 @@ namespace lsn {
 						auto pwThis = FindChild( _wId );
 						bool bChecked = pwThis ? pwThis->IsChecked() : false;
 						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( _wId, bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+
+
+			case Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO : {
+				if ( _wCtrlCode == CBN_SELCHANGE ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						// Update all or update selected.
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						auto lpParm = pwThis ? pwThis->GetCurSelItemData() : -50;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, lpParm, vUpdateMe );
+					}
+				}
+				if ( _wCtrlCode == CBN_SELENDOK ) {
+					auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
+					if ( pcbCombo ) {
+						auto lpSel = pcbCombo->GetCurSelItemData();
+						if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
+							
+
+							auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+
+							aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
+							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
+
+							aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
+							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf1 ).c_str() ); }
+
+							aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf2 ).c_str() ); }
+
+							bool bLockVolume = false;
+							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK ));
+							if ( pcbCheck ) { bLockVolume = pcbCheck->IsChecked(); }
+							if ( !bLockVolume ) {
+								aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
+								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fVolume ).c_str() ); }
+							}
+
+
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable );
+							}
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf0Enable );
+							}
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf1Enable );
+							}
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable );
+							}
+
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert );
+							}
+						}
 					}
 				}
 				break;
@@ -370,10 +463,10 @@ namespace lsn {
 	/**
 	 * Saves the current input configuration and closes the dialog.
 	 * 
-	 * \param _wewoOptions The object to which to save the window state.
+	 * \param _pfPerFileOptions The object to which to save the window state.
 	 * \param _ppfOutput The output object to which to transfer all the window settings.
 	 */
-	void CWavEditorFileSettingsPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
+	void CWavEditorFileSettingsPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
 #define LSN_CHECKED( ID, STORE )			{ STORE = false;					\
 	auto wCheckTmp = FindChild( Layout::ID );									\
 	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
@@ -394,36 +487,39 @@ namespace lsn {
 		CWidget * pwWidget = nullptr;
 		
 		ee::CExpEvalContainer::EE_RESULT eTest;
-
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_VOL_EDIT, _wewoOptions.wsCharVolume );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_NAME_EDIT, _pfPerFileOptions.wsTitle );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_HZ_EDIT, _pfPerFileOptions.wsActualHz );
+		LSN_COMBO_VAL( LSN_WEWI_FSETS_FDATA_HZ_COMBO, _pfPerFileOptions.ui32ActualHz, uint32_t );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_VOL_EDIT, _pfPerFileOptions.wsCharVolume );
 		
-		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_INV_CHECK, _wewoOptions.bInvert );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_LOCK_CHECK, _pfPerFileOptions.bLockVol );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_INV_CHECK, _pfPerFileOptions.bInvert );
 
-		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_LPF_CHECK, _wewoOptions.bLpf );
-		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF0_CHECK, _wewoOptions.bHpf0 );
-		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF1_CHECK, _wewoOptions.bHpf1 );
-		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _wewoOptions.bHpf2 );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_LPF_CHECK, _pfPerFileOptions.bLpf );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF0_CHECK, _pfPerFileOptions.bHpf0 );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF1_CHECK, _pfPerFileOptions.bHpf1 );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _pfPerFileOptions.bHpf2 );
 
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _wewoOptions.wsCharLpfHz );
-		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _wewoOptions.ui8LpfType, uint8_t );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, _wewoOptions.wsCharLpfFall );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _pfPerFileOptions.wsCharLpfHz );
+		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _pfPerFileOptions.ui8LpfType, uint8_t );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, _pfPerFileOptions.wsCharLpfFall );
 
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF0_EDIT, _wewoOptions.wsCharHpf0Hz );
-		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO, _wewoOptions.ui8Hpf0Type, uint8_t );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT, _wewoOptions.wsCharHpf0Fall );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF0_EDIT, _pfPerFileOptions.wsCharHpf0Hz );
+		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO, _pfPerFileOptions.ui8Hpf0Type, uint8_t );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT, _pfPerFileOptions.wsCharHpf0Fall );
 
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF1_EDIT, _wewoOptions.wsCharHpf1Hz );
-		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO, _wewoOptions.ui8Hpf1Type, uint8_t );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT, _wewoOptions.wsCharHpf1Fall );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF1_EDIT, _pfPerFileOptions.wsCharHpf1Hz );
+		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO, _pfPerFileOptions.ui8Hpf1Type, uint8_t );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT, _pfPerFileOptions.wsCharHpf1Fall );
 
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF2_EDIT, _wewoOptions.wsCharHpf2Hz );
-		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO, _wewoOptions.ui8Hpf2Type, uint8_t );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT, _wewoOptions.wsCharHpf2Fall );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF2_EDIT, _pfPerFileOptions.wsCharHpf2Hz );
+		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO, _pfPerFileOptions.ui8Hpf2Type, uint8_t );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT, _pfPerFileOptions.wsCharHpf2Fall );
 
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ARTIST_EDIT, _wewoOptions.wsArtist );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ALBUM_EDIT, _wewoOptions.wsAlbum );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_YEAR_EDIT, _wewoOptions.wsYear );
-		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT, _wewoOptions.wsComment );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ARTIST_EDIT, _pfPerFileOptions.wsArtist );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ALBUM_EDIT, _pfPerFileOptions.wsAlbum );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_YEAR_EDIT, _pfPerFileOptions.wsYear );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT, _pfPerFileOptions.wsComment );
 
 		if ( _ppfOutput ) {
 			LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_NAME_EDIT, _ppfOutput->wsName );
@@ -468,28 +564,28 @@ namespace lsn {
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF0_CHECK, _ppfOutput->bHpf0 );
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF1_CHECK, _ppfOutput->bHpf1 );
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _ppfOutput->bHpf2 );
-			if ( _wewoOptions.bLpf ) {
+			if ( _pfPerFileOptions.bLpf ) {
 				LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _ppfOutput->dLpf );
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _ppfOutput->fLpfType, CWavEditor::LSN_FILTER );
 				if ( _ppfOutput->fLpfType == CWavEditor::LSN_F_SINC ) {
 					LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, _ppfOutput->dFalloffLpf );
 				}
 			}
-			if ( _wewoOptions.bHpf0 ) {
+			if ( _pfPerFileOptions.bHpf0 ) {
 				LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_HPF0_EDIT, _ppfOutput->dHpf0 );
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO, _ppfOutput->fHpf0Type, CWavEditor::LSN_FILTER );
 				if ( _ppfOutput->fHpf0Type == CWavEditor::LSN_F_SINC ) {
 					LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT, _ppfOutput->dFalloffHpf0 );
 				}
 			}
-			if ( _wewoOptions.bHpf1 ) {
+			if ( _pfPerFileOptions.bHpf1 ) {
 				LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_HPF1_EDIT, _ppfOutput->dHpf1 );
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO, _ppfOutput->fHpf1Type, CWavEditor::LSN_FILTER );
 				if ( _ppfOutput->fHpf0Type == CWavEditor::LSN_F_SINC ) {
 					LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT, _ppfOutput->dFalloffHpf1 );
 				}
 			}
-			if ( _wewoOptions.bHpf2 ) {
+			if ( _pfPerFileOptions.bHpf2 ) {
 				LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_HPF2_EDIT, _ppfOutput->dHpf2 );
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO, _ppfOutput->fHpf2Type, CWavEditor::LSN_FILTER );
 				if ( _ppfOutput->fHpf0Type == CWavEditor::LSN_F_SINC ) {
@@ -513,44 +609,118 @@ namespace lsn {
 	 * Updates the dialog.
 	 **/
 	void CWavEditorFileSettingsPage::Update() {
-		bool bHasMeta = true;
-		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
-		if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 ) {
-			bHasMeta = false;
+		{
+			bool bHasMeta = true;
+			auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
+			if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 ) {
+				bHasMeta = false;
+			}
+			LPARAM lpHzData = 0;
+			auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO ));
+			if ( pcbCombo ) { lpHzData = pcbCombo->GetCurSelItemData(); }
+
+			LPARAM lpLpfPole = 0;
+			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO ));
+			if ( pcbCombo ) { lpLpfPole = pcbCombo->GetCurSelItemData(); }
+			LPARAM lpHpfPole0 = 0;
+			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO ));
+			if ( pcbCombo ) { lpHpfPole0 = pcbCombo->GetCurSelItemData(); }
+			LPARAM lpHpfPole1 = 0;
+			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO ));
+			if ( pcbCombo ) { lpHpfPole1 = pcbCombo->GetCurSelItemData(); }
+			LPARAM lpHpfPole2 = 0;
+			pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO ));
+			if ( pcbCombo ) { lpHpfPole2 = pcbCombo->GetCurSelItemData(); }
+
+
+
+			struct LSN_CONTROLS {
+				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				bool													bEnable;
+			} cControls[] = {
+				{ Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT,					lpHzData == LPARAM( CWavEditor::LSN_AH_CUSTOM ) },
+				{ Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,			lpLpfPole == LPARAM( CWavEditor::LSN_F_SINC ) },
+				{ Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,		lpHpfPole0 == LPARAM( CWavEditor::LSN_F_SINC ) },
+				{ Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,		lpHpfPole1 == LPARAM( CWavEditor::LSN_F_SINC ) },
+				{ Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,		lpHpfPole2 == LPARAM( CWavEditor::LSN_F_SINC ) },
+			};
+			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+				auto pwThis = FindChild( cControls[I].wId );
+				if ( pwThis ) {
+					pwThis->SetEnabled( cControls[I].bEnable );
+				}
+			}
 		}
-		LPARAM lpHzData = 0;
-		auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO ));
-		if ( pcbCombo ) { lpHzData = pcbCombo->GetCurSelItemData(); }
 
-		LPARAM lpLpfPole = 0;
-		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO ));
-		if ( pcbCombo ) { lpLpfPole = pcbCombo->GetCurSelItemData(); }
-		LPARAM lpHpfPole0 = 0;
-		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO ));
-		if ( pcbCombo ) { lpHpfPole0 = pcbCombo->GetCurSelItemData(); }
-		LPARAM lpHpfPole1 = 0;
-		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO ));
-		if ( pcbCombo ) { lpHpfPole1 = pcbCombo->GetCurSelItemData(); }
-		LPARAM lpHpfPole2 = 0;
-		pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO ));
-		if ( pcbCombo ) { lpHpfPole2 = pcbCombo->GetCurSelItemData(); }
+		bool bLockVolume = false;
 
-
-
-		struct LSN_CONTROLS {
-			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
-			bool													bEnable;
-		} cControls[] = {
-			{ Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT,					lpHzData == LPARAM( CWavEditor::LSN_AH_CUSTOM ) },
-			{ Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,			lpLpfPole == LPARAM( CWavEditor::LSN_F_SINC ) },
-			{ Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,		lpHpfPole0 == LPARAM( CWavEditor::LSN_F_SINC ) },
-			{ Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,		lpHpfPole1 == LPARAM( CWavEditor::LSN_F_SINC ) },
-			{ Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,		lpHpfPole2 == LPARAM( CWavEditor::LSN_F_SINC ) },
-		};
-		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
-			auto pwThis = FindChild( cControls[I].wId );
-			if ( pwThis ) {
-				pwThis->SetEnabled( cControls[I].bEnable );
+		auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK ));
+		if ( pcbCheck ) {
+			bLockVolume = pcbCheck->IsChecked();
+		}
+		auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
+		if ( pcbCombo ) {
+			LSN_AUDIO_PROFILE apProfile;
+			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK ));
+			if ( pcbCheck ) {
+				apProfile.bLpfEnable = pcbCheck->IsChecked();
+				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK ));
+				if ( pcbCheck ) {
+					apProfile.bHpf0Enable = pcbCheck->IsChecked();
+					pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK ));
+					if ( pcbCheck ) {
+						apProfile.bHpf1Enable = pcbCheck->IsChecked();
+						pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK ));
+						if ( pcbCheck ) {
+							apProfile.bHpf2Enable = pcbCheck->IsChecked();
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK ));
+							if ( pcbCheck ) {
+								apProfile.bInvert = pcbCheck->IsChecked();
+								auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
+								ee::CExpEvalContainer::EE_RESULT rRes;
+								if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+									apProfile.fVolume = float( rRes.u.dVal );
+									aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+									if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+										apProfile.fLpf = float( rRes.u.dVal );
+										aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
+										if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+											apProfile.fHpf0 = float( rRes.u.dVal );
+											aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
+											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+												apProfile.fHpf1 = float( rRes.u.dVal );
+												aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+												if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+													apProfile.fHpf2 = float( rRes.u.dVal );
+													LPARAM lpSel = -1;
+													for ( auto I = LSN_AUDIO_OPTIONS::PresetTotal(); I--; ) {
+														auto aThis = LSN_AUDIO_OPTIONS::s_apProfiles[I];
+													
+														if ( aThis.bLpfEnable == apProfile.bLpfEnable &&
+															aThis.bHpf0Enable == apProfile.bHpf0Enable &&
+															aThis.bHpf1Enable == apProfile.bHpf1Enable &&
+															aThis.bHpf2Enable == apProfile.bHpf2Enable &&
+															aThis.bInvert == apProfile.bInvert &&
+															(!apProfile.bLpfEnable || aThis.fLpf == apProfile.fLpf) &&
+															(!apProfile.bHpf0Enable || aThis.fHpf0 == apProfile.fHpf0) &&
+															(!apProfile.bHpf1Enable || aThis.fHpf1 == apProfile.fHpf1) &&
+															(!apProfile.bHpf2Enable || aThis.fHpf2 == apProfile.fHpf2) &&
+															(bLockVolume || aThis.fVolume == apProfile.fVolume) ) {
+															lpSel = I;
+															break;
+														}
+													}
+													// Search custom presets.
+													pcbCombo->SetCurSelByItemData( lpSel );
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -653,7 +823,10 @@ namespace lsn {
 		}
 
 
-
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
+		if ( pwThis ) {
+			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK, vAffected ) );
+		}
 		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
 		if ( pwThis ) {
 			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK, vAffected ) );

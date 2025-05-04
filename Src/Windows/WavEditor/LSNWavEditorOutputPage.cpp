@@ -298,7 +298,43 @@ namespace lsn {
 	 * Updates the dialog.
 	 **/
 	void CWavEditorOutputPage::Update() {
-		
+		bool bIsMainsHum = false;
+		auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_CHECK );
+		if ( pwWidget ) { bIsMainsHum = pwWidget->IsChecked(); }
+		bool bIsWhiteNoise = false;
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_CHECK );
+		if ( pwWidget ) { bIsWhiteNoise = pwWidget->IsChecked(); }
+
+		bool bIsPcm = false;
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
+		if ( pwWidget ) { bIsPcm = pwWidget->GetCurSelItemData() == CWavFile::LSN_F_PCM; }
+
+		bool b16Bit = false;
+		pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
+		if ( pwWidget ) { b16Bit = pwWidget->GetCurSelItemData() == 16; }
+
+
+		struct LSN_CONTROLS {
+			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+			bool													bCloseCondition0;
+		} cControls[] = {
+			{ Layout::LSN_WEWI_OUTPUT_MAINS_COMBO,					bIsMainsHum },
+			{ Layout::LSN_WEWI_OUTPUT_MAINS_VOL_LABEL,				bIsMainsHum },
+			{ Layout::LSN_WEWI_OUTPUT_MAINS_VOL_EDIT,				bIsMainsHum },
+
+			{ Layout::LSN_WEWI_OUTPUT_NOISE_COMBO,					bIsWhiteNoise },
+			{ Layout::LSN_WEWI_OUTPUT_NOISE_VOL_LABEL,				bIsWhiteNoise },
+			{ Layout::LSN_WEWI_OUTPUT_NOISE_VOL_EDIT,				bIsWhiteNoise },
+
+			{ Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK,	bIsPcm && b16Bit },
+			{ Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO,		bIsPcm },
+		};
+		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			auto pwThis = FindChild( cControls[I].wId );
+			if ( pwThis ) {
+				pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+			}
+		}
 	}
 
 	/**

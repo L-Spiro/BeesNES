@@ -128,6 +128,7 @@ namespace lsn {
 			LSN_FORMAT													fFormat = LSN_F_PCM;
 			uint32_t													uiHz = 0;					// Only overrides if not 0.
 			uint16_t													uiBitsPerSample = 0;		// Only overrides if not 0.
+			bool														bDither = false;
 
 			LSN_SAVE_DATA() :
 				fFormat( LSN_F_PCM ),
@@ -453,7 +454,11 @@ namespace lsn {
 							break;
 						}
 						case 16 : {
-							if ( !BatchF64ToPcm16( _vSamples, vRet ) ) { return false; }
+							if ( _psdSaveSettings && _psdSaveSettings->bDither ) {
+							}
+							else {
+								if ( !BatchF64ToPcm16( _vSamples, vRet ) ) { return false; }
+							}
 							break;
 						}
 						case 24 : {
@@ -1155,6 +1160,34 @@ namespace lsn {
 				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
 					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
 						(*pi16Dst++) = static_cast<int16_t>(std::round( std::clamp( _vSrc[J][I], -1.0, 1.0 ) * dFactor ));
+					}
+				}
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
+		 * Converts a batch of F64 samples to PCM samples.
+		 *
+		 * \param _vSrc The samples to convert.
+		 * \param _vDst The buffer to which to convert the samples.
+		 * \return Returns trye if all samples were added to the buffer.
+		 */
+		template <typename _tType = lwtrack>
+		static bool														BatchF64ToPcm16_Dither( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
+			try {
+				const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
+				auto stNumSamples = _vSrc[0].size();
+				auto stNumChannels = _vSrc.size();
+				auto aSize = _vDst.size();
+				_vDst.reserve( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
+				int16_t * pi16Dst = reinterpret_cast<int16_t *>(_vDst.data() + aSize);
+				double dError = 0.0;
+
+				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
+					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
+						(*pi16Dst++) = CUtilities::SampleToI16_Dither( _vSrc[J][I], dError );
 					}
 				}
 				return true;

@@ -235,9 +235,10 @@ namespace lsn {
 		/**
 		 * Verifies each of the dialog contents.
 		 *
+		 * \param _bSilent If true, errors are not reported.
 		 * \return Returns true if no dialog failed verification and there is at least one loaded WAV file.
 		 **/
-		bool												Verify();
+		bool												Verify( bool _bSilent );
 
 		/**
 		 * Saves the window state and optionally filled out the structures to use for actually performing the operations.  Verify() SHOULD be called if only filling out the window state, but

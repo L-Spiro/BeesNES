@@ -80,6 +80,7 @@
 #define LSN_SEARCH_															Search:
 #define LSN_OK																OK
 #define LSN_CANCEL															Cancel
+#define LSN_CLOSE															Close
 
 // Input dialog.
 #define LSN_INPUT_GLOBAL_SETTINGS											Global Settings
@@ -174,6 +175,7 @@
 #define LSN_AUDIO_OPTIONS_TRI_VOLUME										Triangle Vol:
 #define LSN_AUDIO_OPTIONS_NOISE_VOLUME										Noise Vol:
 #define LSN_AUDIO_OPTIONS_DMC_VOLUME										DMC Vol:
+#define LSN_AUDIO_OPTIONS_LOCK_VOL											Lock Volume
 #define LSN_AUDIO_OPTIONS_INVERT											Invert
 #define LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM									Noise/Mains Hum
 #define LSN_AUDIO_OPTIONS_RP2A03_4B2_40										RP2A03 (Original Console)
