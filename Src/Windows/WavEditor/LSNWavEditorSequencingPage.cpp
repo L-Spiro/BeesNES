@@ -53,7 +53,7 @@ namespace lsn {
 
 		// Last texts.
 		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsPreFadeDur.c_str() ); }
+		//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsStopTime.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsPreFadeDur.c_str() ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
