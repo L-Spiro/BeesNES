@@ -81,7 +81,7 @@ namespace lsw {
 
 	protected :
 		// == Members.
-		// The bitmap handle.
+		/** The bitmap handle. */
 		HANDLE							m_hHandle;
 	};
 
