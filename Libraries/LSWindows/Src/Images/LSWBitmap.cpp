@@ -81,7 +81,7 @@ namespace lsw {
 	 * \param _cPlanes The number of color planes used by the device.
 	 * \param _cBitsPerPel The number of bits required to identify the color of a single pixel.
 	 * \param _lpvBits A pointer to an array of color data used to set the colors in a rectangle of pixels. Each scan line in the rectangle must be word aligned (scan lines that are not word aligned must be padded with zeros). The buffer size expected, cj, can be calculated using the formula:
-	 *		cj = (((nWidth * nPlanes * nBitCount + 15) >> 4) << 1) * nHeight;
+	 *		cj = (((_nWidth * _cPlanes * _cBitsPerPel + 15) >> 4) << 1) * _nHeight;
 	 *	If this parameter is NULL, then the contents of the new bitmap are undefined.
 	 * \return Returns TRUE if the creation succeeds.
 	 **/
