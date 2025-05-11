@@ -14,6 +14,8 @@
 #include "../WinUtilities/LSNWinUtilities.h"
 
 #include <Base/LSWWndClassEx.h>
+#include <Rebar/LSWRebar.h>
+#include <ToolBar/LSWToolBar.h>
 #include <TreeListView/LSWTreeListView.h>
 
 #include <filesystem>
@@ -55,6 +57,9 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorWindow::InitDialog() {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+
+		//CToolBar * plvToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
+		//CRebar * plvRebar = static_cast<CRebar *>(FindChild( Layout::LSN_WEWI_REBAR0 ));
 
 		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }

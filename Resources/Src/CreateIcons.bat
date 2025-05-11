@@ -22,6 +22,10 @@ SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-48.ico" -f
 SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
