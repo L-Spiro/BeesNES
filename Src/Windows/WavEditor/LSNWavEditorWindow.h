@@ -37,6 +37,7 @@ namespace lsn {
 		enum LSN_IMAGES {
 			LSN_I_SAVE,
 			LSN_I_LOAD,
+			LSN_I_EXIT,
 
 			LSN_I_TOTAL
 		};

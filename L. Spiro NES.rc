@@ -84,6 +84,8 @@ IDB_SAVE_BITMAP_24      BITMAP                  "Resources\\icons8-file-24.bmp"
 
 IDB_OPEN_BITMAP_24      BITMAP                  "Resources\\icons8-folder-open-24.bmp"
 
+IDB_EXIT_BITMAP_24      BITMAP                  "Resources\\icons8-exit-24.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

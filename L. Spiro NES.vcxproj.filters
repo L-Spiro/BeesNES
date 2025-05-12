@@ -1417,6 +1417,9 @@
     <Image Include="Resources\icons8-folder-open-24.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-exit-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">

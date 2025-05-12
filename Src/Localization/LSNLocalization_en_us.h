@@ -285,6 +285,7 @@
 #define LSN_WE_PRESETS														Presets:
 #define LSN_WE_SAVE															Save
 #define LSN_WE_LOAD															Load
+#define LSN_WE_EXIT															Exit
 #define LSN_WE_FALLOFF														Falloff:
 #define LSN_WE_DB_PER_OCTAVE												dB/Octave
 #define LSN_WE_METADATA														Metadata

@@ -18,6 +18,10 @@ SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-48.ico" -f
 SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-exit-60.png" -outfile "..\icons8-exit-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
 SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-fail-96.png" -outfile "..\icons8-fail-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb

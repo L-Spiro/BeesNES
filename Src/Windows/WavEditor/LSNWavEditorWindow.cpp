@@ -41,6 +41,7 @@ namespace lsn {
 		} sImages[] = {
 			{ IDB_SAVE_BITMAP_24, LSN_I_SAVE },
 			{ IDB_OPEN_BITMAP_24, LSN_I_LOAD },
+			{ IDB_EXIT_BITMAP_24, LSN_I_EXIT },
 		};
 		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
 
@@ -86,8 +87,8 @@ namespace lsn {
 				// iBitmap									idCommand									fsState				fsStyle			bReserved	dwData	iString
 				{ m_iImageMap[LSN_I_LOAD],					Layout::LSN_WEWI_LOAD,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_LOAD ) ) },
 				{ m_iImageMap[LSN_I_SAVE],					Layout::LSN_WEWI_SAVE,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_SAVE ) ) },
-				/*{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-				{ m_iImageMap[LSN_I_SCIENTIFIC_NOTATION],	CExpressionEvaluatorLayout::LSN_BC_SCINOT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Scientific" ) },*/
+				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ m_iImageMap[LSN_I_EXIT],					Layout::LSN_WEWI_CANCEL,					TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_EXIT ) ) },
 				//{ m_iImageMap[LSN_I_EXT_OUTPUT],				CExpressionEvaluatorLayout::LSN_BC_EXTOUT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Ext. Output" ) },
 			};
 #undef LSN_TOOL_STR
