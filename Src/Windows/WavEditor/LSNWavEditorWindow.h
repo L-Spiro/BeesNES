@@ -18,6 +18,8 @@
 #include "LSNWavEditorOutputPage.h"
 #include "LSNWavEditorWindowLayout.h"
 
+#include <ImageList/LSWImageList.h>
+#include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -28,6 +30,16 @@ namespace lsn {
 	public :
 		CWavEditorWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 		~CWavEditorWindow();
+
+
+		// == Enumerations.
+		// Images.
+		enum LSN_IMAGES {
+			LSN_I_SAVE,
+			LSN_I_LOAD,
+
+			LSN_I_TOTAL
+		};
 
 
 		// == Functions.
@@ -200,6 +212,14 @@ namespace lsn {
 		void												Update( bool _bSelchanged = false );
 
 		/**
+		 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+		 * 
+		 * \param _pwChild The child whose virtual client is to be obtained or nullptr to obtain this window's.
+		 * \return Returns the selected virtual client.
+		 **/
+		const LSW_RECT										VirtualClientRect( const CWidget * _pwChild ) const;
+
+		/**
 		 * Prepares to create the window.  Creates the atom if necessary.
 		 **/
 		static void											PrepareWavEditor();
@@ -227,6 +247,12 @@ namespace lsn {
 		LSW_RECT											m_rSeqRect;
 		/** The settings rectangle. */
 		LSW_RECT											m_rSetRect;
+		/** the image list for the toolbar. */
+		CImageList											m_iImages;
+		/** Images for the toolbar. */
+		CBitmap												m_bBitmaps[LSN_I_TOTAL];
+		/** Toolbar image mapping. */
+		INT													m_iImageMap[LSN_I_TOTAL];
 		/** The main window class. */
 		static ATOM											m_aAtom;
 

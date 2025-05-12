@@ -33,6 +33,21 @@ namespace lsn {
 		lsw::CMainWindow( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(m_aAtom) ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_poOptions( reinterpret_cast<LSN_OPTIONS *>(_ui64Data) ) {
 		m_wewoWindowOptions = m_poOptions->wewoWavEditorWindow;
+
+
+		static const struct {
+			WORD				wImageName;
+			DWORD				dwConst;
+		} sImages[] = {
+			{ IDB_SAVE_BITMAP_24, LSN_I_SAVE },
+			{ IDB_OPEN_BITMAP_24, LSN_I_LOAD },
+		};
+		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
+
+		for ( size_t I = 0; I < LSN_ELEMENTS( sImages ); ++I ) {
+			m_bBitmaps[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
+			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
+		}
 	}
 	CWavEditorWindow::~CWavEditorWindow() {
 		for ( auto J = m_vSequencePages.size(); J--; ) {
@@ -58,8 +73,51 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
-		//CToolBar * plvToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
-		//CRebar * plvRebar = static_cast<CRebar *>(FindChild( Layout::LSN_WEWI_REBAR0 ));
+		CToolBar * plvToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
+		CRebar * plvRebar = static_cast<CRebar *>(FindChild( Layout::LSN_WEWI_REBAR0 ));
+
+		// ==== TOOL BAR ==== //
+		if ( plvToolBar ) {
+			plvToolBar->SetImageList( 0, m_iImages );
+
+#define LSN_TOOL_STR( TXT )					reinterpret_cast<INT_PTR>(TXT)
+//#define LSN_TOOL_STR( TXT )					0
+			const TBBUTTON bButtons[] = {
+				// iBitmap									idCommand									fsState				fsStyle			bReserved	dwData	iString
+				{ m_iImageMap[LSN_I_LOAD],					Layout::LSN_WEWI_LOAD,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_LOAD ) ) },
+				{ m_iImageMap[LSN_I_SAVE],					Layout::LSN_WEWI_SAVE,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_SAVE ) ) },
+				/*{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ m_iImageMap[LSN_I_SCIENTIFIC_NOTATION],	CExpressionEvaluatorLayout::LSN_BC_SCINOT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Scientific" ) },*/
+				//{ m_iImageMap[LSN_I_EXT_OUTPUT],				CExpressionEvaluatorLayout::LSN_BC_EXTOUT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Ext. Output" ) },
+			};
+#undef LSN_TOOL_STR
+
+			plvToolBar->AddButtons( bButtons, LSN_ELEMENTS( bButtons ) );
+
+			if ( plvRebar ) {
+				plvRebar->SetImageList( m_iImages );
+				{
+					LSW_REBARBANDINFO riRebarInfo;
+					riRebarInfo.SetColors( ::GetSysColor( COLOR_BTNTEXT ), ::GetSysColor( COLOR_BTNFACE ) );
+					riRebarInfo.SetStyle( RBBS_CHILDEDGE |
+						RBBS_FIXEDBMP );
+					riRebarInfo.SetChild( plvToolBar->Wnd() );
+					riRebarInfo.SetChildSize( plvToolBar->GetMinBoundingRect().Width(), plvToolBar->GetMinBoundingRect().Height() );
+					riRebarInfo.SetId( Layout::LSN_WEWI_TOOLBAR0 );
+					plvRebar->InsertBand( -1, riRebarInfo );
+				}
+			}
+		}
+
+		LSW_RECT rRebarRect = LSW_RECT().Zero();
+		if ( plvRebar ) {
+			rRebarRect = ClientRect( this );
+			::MoveWindow( plvRebar->Wnd(), 0, 0, rRebarRect.Width(), plvRebar->WindowRect( this ).Height(), FALSE );
+
+			plvRebar->UpdateRects();
+
+			rRebarRect = plvRebar->ClientRect( this );
+		}
 
 		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
@@ -79,6 +137,12 @@ namespace lsn {
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
 		m_pweopOutput->SetWavEditor( m_weEditor );
 
+		{
+			auto rFilesRect = m_pwefFiles->WindowRect().ScreenToClient( Wnd() );
+			rFilesRect.MoveBy( 0, rRebarRect.Height() );
+			::MoveWindow( m_pwefFiles->Wnd(), rFilesRect.left, rFilesRect.top, rFilesRect.Width(), rFilesRect.Height(), TRUE );
+		}
+
 		auto * pwGroup = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_GROUP );
 		if ( pwGroup ) {
 			LONG lMaxHeight = 0;
@@ -86,13 +150,14 @@ namespace lsn {
 			auto aFileSettingsRect = pwSettingsPage->WindowRect().ScreenToClient( Wnd() );
 			auto aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
 			auto aOutputRect = m_pweopOutput->WindowRect().ScreenToClient( Wnd() );
+
 			::MoveWindow( pwSeqPage->Wnd(), aGroupRect.left, aGroupRect.bottom, aSeqRect.Width(), aSeqRect.Height(), TRUE );
 			::MoveWindow( pwSettingsPage->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top, aFileSettingsRect.Width(), aFileSettingsRect.Height(), TRUE );
 			::MoveWindow( m_pweopOutput->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top + aFileSettingsRect.Height(), aOutputRect.Width(), aOutputRect.Height(), TRUE );
 
 			
 
-			auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_RANGE_GROUP );
+			/*auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_RANGE_GROUP );
 			if ( pwSeqGroup ) {
 				auto rTmpGrpRect = pwSeqGroup->WindowRect().ScreenToClient( Wnd() );
 
@@ -122,7 +187,7 @@ namespace lsn {
 					
 					::MoveWindow( pwTree->Wnd(), rTmpGrpRect.left, rTmpTreeRect.top, lTreeRight - rTmpGrpRect.left, rTmpTreeRect.Height(), TRUE );
 				}
-			}
+			}*/
 
 
 			aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
@@ -664,6 +729,22 @@ namespace lsn {
 		if ( m_pweopOutput ) {
 			m_pweopOutput->Update();
 		}
+	}
+
+	/**
+	 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+	 * 
+	 * \param _pwChild The child whose virtual client is to be obtained or nullptr to obtain this window's.
+	 * \return Returns the selected virtual client.
+	 **/
+	const LSW_RECT CWavEditorWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
+		LSW_RECT rTemp = ClientRect( this );
+		const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( Layout::LSN_WEWI_REBAR0 ));
+		if ( plvRebar ) {
+			LSW_RECT rRebar = plvRebar->ClientRect( this );
+			rTemp.top += rRebar.Height();
+		}
+		return rTemp;
 	}
 
 	/**

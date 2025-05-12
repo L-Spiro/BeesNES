@@ -88,7 +88,7 @@ namespace lsn {
 		}
 #endif
 		
-		static const struct {
+		/*static const struct {
 			LPCWSTR				lpwsImageName;
 			DWORD				dwConst;
 		} sImages[] = {
@@ -96,7 +96,7 @@ namespace lsn {
 
 			{ L"73", LSN_I_OPTIONS },
 		};
-		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
+		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );*/
 		//WCHAR szBuffer[MAX_PATH];
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
@@ -108,14 +108,14 @@ namespace lsn {
 		m_bnEmulator.SetFolder( wsRoot.c_str() );
 		m_bnEmulator.LoadSettings();
 
-		for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
+		/*for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
 			std::wstring wsTemp = wsRoot + L"Resources\\";
 			wsTemp += sImages[I].lpwsImageName;
 			wsTemp += L".bmp";
 
 			m_bBitmaps[sImages[I].dwConst].LoadFromFile( wsTemp.c_str(), 0, 0, LR_CREATEDIBSECTION );
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
-		}
+		}*/
 
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-48.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
 		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );

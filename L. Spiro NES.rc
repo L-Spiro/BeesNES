@@ -70,6 +70,20 @@ IDI_WAV_EDIT_ICON_16    ICON                    "Resources\\icons8-radio-waves-1
 
 IDI_WARNING_ICON_32     ICON                    "Resources\\icons8-alarm-32.ico"
 
+IDI_OPEN_ICON_48        ICON                    "Resources\\icons8-folder-open-48.ico"
+
+IDI_SAVE_ICON_48        ICON                    "Resources\\icons8-file-48.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_SAVE_BITMAP_24      BITMAP                  "Resources\\icons8-file-24.bmp"
+
+IDB_OPEN_BITMAP_24      BITMAP                  "Resources\\icons8-folder-open-24.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

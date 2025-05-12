@@ -26,9 +26,17 @@ SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-48.ico" -f
 SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-file-60.png" -outfile "..\icons8-file-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
+SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-folder-60 (1).png" -outfile "..\icons8-folder-open-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
 
 SurfaceLevel2.exe -file "icons8-folder-60.png" -outfile "..\icons8-information-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-folder-60.png" -outfile "..\icons8-information-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb

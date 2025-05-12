@@ -1402,6 +1402,21 @@
     <Image Include="Resources\icons8-alarm-32.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-folder-open-48.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-file-48.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-file-48.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-file-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-folder-open-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">
