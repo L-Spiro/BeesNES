@@ -39,9 +39,13 @@ namespace lsn {
 			WORD				wImageName;
 			DWORD				dwConst;
 		} sImages[] = {
-			{ IDB_SAVE_BITMAP_24, LSN_I_SAVE },
-			{ IDB_OPEN_BITMAP_24, LSN_I_LOAD },
-			{ IDB_EXIT_BITMAP_24, LSN_I_EXIT },
+			{ IDB_SAVE_BITMAP_24,			LSN_I_SAVE },
+			{ IDB_OPEN_BITMAP_24,			LSN_I_LOAD },
+			{ IDB_ADD_WAV_BITMAP_24,		LSN_I_ADD_WAV },
+			{ IDB_REMOVE_WAV_BITMAP_24,		LSN_I_REM_WAV },
+			{ IDB_UP_WAV_BITMAP_24,			LSN_I_UP_WAV },
+			{ IDB_DOWN_WAV_BITMAP_24,		LSN_I_DOWN_WAV },
+			{ IDB_EXIT_BITMAP_24,			LSN_I_EXIT },
 		};
 		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
 
@@ -71,8 +75,8 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CWavEditorWindow::InitDialog() {
-		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
-			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WAV_EDIT_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_SOUND_MIXER_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_SOUND_MIXER_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
 		CToolBar * plvToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
 		CRebar * plvRebar = static_cast<CRebar *>(FindChild( Layout::LSN_WEWI_REBAR0 ));
@@ -87,6 +91,11 @@ namespace lsn {
 				// iBitmap									idCommand									fsState				fsStyle			bReserved	dwData	iString
 				{ m_iImageMap[LSN_I_LOAD],					Layout::LSN_WEWI_LOAD,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_LOAD ) ) },
 				{ m_iImageMap[LSN_I_SAVE],					Layout::LSN_WEWI_SAVE,						TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_SAVE ) ) },
+				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ m_iImageMap[LSN_I_ADD_WAV],				Layout::LSN_WEWI_FILES_ADD_BUTTON,			TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_ADD_WAV ) ) },
+				{ m_iImageMap[LSN_I_REM_WAV],				Layout::LSN_WEWI_FILES_REMOVE_BUTTON,		TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_REMOVE ) ) },
+				{ m_iImageMap[LSN_I_UP_WAV],				Layout::LSN_WEWI_FILES_UP_BUTTON,			TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_MOVE_UP ) ) },
+				{ m_iImageMap[LSN_I_DOWN_WAV],				Layout::LSN_WEWI_FILES_DOWN_BUTTON,			TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_MOVE_DOWN ) ) },
 				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 				{ m_iImageMap[LSN_I_EXIT],					Layout::LSN_WEWI_CANCEL,					TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_EXIT ) ) },
 				//{ m_iImageMap[LSN_I_EXT_OUTPUT],				CExpressionEvaluatorLayout::LSN_BC_EXTOUT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Ext. Output" ) },
@@ -247,7 +256,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
 			case Layout::LSN_WEWI_OK : {
 				if ( Verify( true ) ) {
@@ -268,6 +277,14 @@ namespace lsn {
 					m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
 				//}
 				Close();
+				break;
+			}
+
+			case Layout::LSN_WEWI_FILES_ADD_BUTTON : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_FILES_REMOVE_BUTTON : {}		LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_FILES_UP_BUTTON : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_FILES_DOWN_BUTTON : {
+				return m_pwefFiles->Command( _wCtrlCode, _wId, _pwSrc );
 				break;
 			}
 		}

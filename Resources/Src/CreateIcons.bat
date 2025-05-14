@@ -142,9 +142,33 @@ SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-48.ico
 SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-puzzle-60.png" -outfile "..\icons8-puzzle-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
 
+SurfaceLevel2.exe -file "icons8-puzzle-60 (1).png" -outfile "..\icons8-puzzle-x-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-puzzle-60 (1).png" -outfile "..\icons8-puzzle-x-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-puzzle-60 (1).png" -outfile "..\icons8-puzzle-x-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-add-puzzle-60.png" -outfile "..\icons8-puzzle-+-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-add-puzzle-60.png" -outfile "..\icons8-puzzle-+-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-add-puzzle-60.png" -outfile "..\icons8-puzzle-+-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
 SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-radio-waves-60.png" -outfile "..\icons8-radio-waves-16.ico" -filter cardinal -filtera bilinear -prescale 16 16 -nomips -target_srgb
+
+SurfaceLevel2.exe -file "icons8-add-radio-waves-60.png" -outfile "..\icons8-add-radio-waves-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-add-radio-waves-60.png" -outfile "..\icons8-add-radio-waves-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-add-radio-waves-60.png" -outfile "..\icons8-add-radio-waves-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (1).png" -outfile "..\icons8-minus-radio-waves-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (1).png" -outfile "..\icons8-minus-radio-waves-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (1).png" -outfile "..\icons8-minus-radio-waves-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (3).png" -outfile "..\icons8-up-radio-waves-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (3).png" -outfile "..\icons8-up-radio-waves-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (3).png" -outfile "..\icons8-up-radio-waves-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
+
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (2).png" -outfile "..\icons8-down-radio-waves-48.bmp" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (2).png" -outfile "..\icons8-down-radio-waves-32.bmp" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
+SurfaceLevel2.exe -file "icons8-radio-waves-60 (2).png" -outfile "..\icons8-down-radio-waves-24.bmp" -filter cardinal -filtera bilinear -prescale 24 24 -nomips -target_srgb -bmp_format R8G8B8A8 -bmp_nomask -rot270
 
 SurfaceLevel2.exe -file "icons8-refresh-96.png" -outfile "..\icons8-refresh-48.ico" -filter cardinal -filtera bilinear -prescale 48 48 -nomips -target_srgb
 SurfaceLevel2.exe -file "icons8-refresh-96.png" -outfile "..\icons8-refresh-32.ico" -filter cardinal -filtera bilinear -prescale 32 32 -nomips -target_srgb

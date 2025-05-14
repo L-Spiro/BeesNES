@@ -39,6 +39,11 @@ namespace lsn {
 			LSN_I_LOAD,
 			LSN_I_EXIT,
 
+			LSN_I_ADD_WAV,
+			LSN_I_REM_WAV,
+			LSN_I_UP_WAV,
+			LSN_I_DOWN_WAV,
+
 			LSN_I_TOTAL
 		};
 

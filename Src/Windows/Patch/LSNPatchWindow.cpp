@@ -44,8 +44,8 @@ namespace lsn {
 	CWidget::LSW_HANDLED CPatchWindow::InitDialog() {
 		Parent::InitDialog();
 
-		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PUZZLE_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
-			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PUZZLE_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PATCH_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_PATCH_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
 		LSW_RECT rClient = ClientRect( nullptr );
 

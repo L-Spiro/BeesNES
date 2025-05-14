@@ -1420,6 +1420,30 @@
     <Image Include="Resources\icons8-exit-24.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-add-radio-waves-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-minus-radio-waves-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-up-radio-waves-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-down-radio-waves-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-patch-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-patch-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-sound-mixer-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-sound-mixer-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">

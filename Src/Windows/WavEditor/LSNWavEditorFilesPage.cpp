@@ -14,6 +14,7 @@
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
 
+#include <ToolBar/LSWToolBar.h>
 #include <TreeListView/LSWTreeListView.h>
 
 #include <commdlg.h>
@@ -41,8 +42,8 @@ namespace lsn {
 		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_WE_FILES ), 0 );
-			ptlTree->SetColumnWidth( 0, 284 );
-			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 240, -1 );
+			ptlTree->SetColumnWidth( 0, 287 );
+			ptlTree->InsertColumn( LSN_LSTR( LSN_PATCH_DETAILS ), 242, -1 );
 			//ptlTree->SetColumnWidth( 1, 246 );
 		}
 
@@ -293,19 +294,38 @@ namespace lsn {
 			ptlTree->GatherSelected( vSelected );
 			bSelected = vSelected.size() != 0;
 		}
-		struct LSN_CONTROLS {
-			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
-			bool													bCloseCondition0;
-		} cControls[] = {
-			{ Layout::LSN_WEWI_FILES_ADD_META_BUTTON,				bSelected },
-			{ Layout::LSN_WEWI_FILES_REMOVE_BUTTON,					bSelected },
-			{ Layout::LSN_WEWI_FILES_UP_BUTTON,						bSelected },
-			{ Layout::LSN_WEWI_FILES_DOWN_BUTTON,					bSelected },
-		};
-		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
-			auto pwThis = FindChild( cControls[I].wId );
-			if ( pwThis ) {
-				pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+		{
+			struct LSN_CONTROLS {
+				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				bool													bCloseCondition0;
+			} cControls[] = {
+				{ Layout::LSN_WEWI_FILES_ADD_META_BUTTON,				bSelected },
+				{ Layout::LSN_WEWI_FILES_REMOVE_BUTTON,					bSelected },
+				{ Layout::LSN_WEWI_FILES_UP_BUTTON,						bSelected },
+				{ Layout::LSN_WEWI_FILES_DOWN_BUTTON,					bSelected },
+			};
+			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+				auto pwThis = FindChild( cControls[I].wId );
+				if ( pwThis ) {
+					pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+				}
+			}
+		}
+		if ( m_pwParent ) {
+			CToolBar * plvToolBar = static_cast<CToolBar *>(m_pwParent->FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
+			if ( plvToolBar ) {
+				struct LSN_CONTROLS {
+					Layout::LSN_WAV_EDITOR_WINDOW_IDS					wId;
+					bool												bCloseCondition0;
+				} cControls[] = {
+					//{ Layout::LSN_WEWI_FILES_ADD_BUTTON,				bSelected },
+					{ Layout::LSN_WEWI_FILES_REMOVE_BUTTON,				bSelected },
+					{ Layout::LSN_WEWI_FILES_UP_BUTTON,					bSelected },
+					{ Layout::LSN_WEWI_FILES_DOWN_BUTTON,				bSelected },
+				};
+				for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+					plvToolBar->EnableButton( WORD( cControls[I].wId ), cControls[I].bCloseCondition0 );
+				}
 			}
 		}
 	}

@@ -74,6 +74,14 @@ IDI_OPEN_ICON_48        ICON                    "Resources\\icons8-folder-open-4
 
 IDI_SAVE_ICON_48        ICON                    "Resources\\icons8-file-48.ico"
 
+IDI_PATCH_ICON_16       ICON                    "Resources\\icons8-patch-16.ico"
+
+IDI_PATCH_ICON_32       ICON                    "Resources\\icons8-patch-32.ico"
+
+IDI_SOUND_MIXER_ICON_16 ICON                    "Resources\\icons8-sound-mixer-16.ico"
+
+IDI_SOUND_MIXER_ICON_32 ICON                    "Resources\\icons8-sound-mixer-32.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -85,6 +93,14 @@ IDB_SAVE_BITMAP_24      BITMAP                  "Resources\\icons8-file-24.bmp"
 IDB_OPEN_BITMAP_24      BITMAP                  "Resources\\icons8-folder-open-24.bmp"
 
 IDB_EXIT_BITMAP_24      BITMAP                  "Resources\\icons8-exit-24.bmp"
+
+IDB_ADD_WAV_BITMAP_24   BITMAP                  "Resources\\icons8-add-radio-waves-24.bmp"
+
+IDB_REMOVE_WAV_BITMAP_24 BITMAP                  "Resources\\icons8-minus-radio-waves-24.bmp"
+
+IDB_UP_WAV_BITMAP_24    BITMAP                  "Resources\\icons8-up-radio-waves-24.bmp"
+
+IDB_DOWN_WAV_BITMAP_24  BITMAP                  "Resources\\icons8-down-radio-waves-24.bmp"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

@@ -48,10 +48,6 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 
 	std::atomic_bool abIsAlive = false;
 	lsn::CMainWindow * pwMainWindow = static_cast<lsn::CMainWindow *>(lsn::CMainWindowLayout::CreateMainWindow( &abIsAlive ));
-	{
-		lsn::CWavFile wfFile;
-		wfFile.Open( u"C:\\My Projects\\BeesNES\\Research\\MDFourierRefs\\mdf4kv9_dc\\mdf4kv9_dc.wav", 0xFFFFFFFF/*, 199408534 - 52*/ );
-	}
 
 	//auto mMat =
 	//lsn::CColorSpace::ComputeRgbToXyzMatrix( 0.630f, 0.340f,
