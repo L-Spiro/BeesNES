@@ -98,7 +98,6 @@ namespace lsn {
 				{ m_iImageMap[LSN_I_DOWN_WAV],				Layout::LSN_WEWI_FILES_DOWN_BUTTON,			TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_MOVE_DOWN ) ) },
 				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 				{ m_iImageMap[LSN_I_EXIT],					Layout::LSN_WEWI_CANCEL,					TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_WE_EXIT ) ) },
-				//{ m_iImageMap[LSN_I_EXT_OUTPUT],				CExpressionEvaluatorLayout::LSN_BC_EXTOUT,	TBSTATE_ENABLED,	BTNS_CHECK,		{ 0 },		0,		LSN_TOOL_STR( L"Ext. Output" ) },
 			};
 #undef LSN_TOOL_STR
 

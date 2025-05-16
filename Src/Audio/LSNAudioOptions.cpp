@@ -32,7 +32,7 @@ namespace lsn {
 
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_TL_NN101255729 ),				0.0f,			98.41125f,		20.0f,		30.0f,		0.957f,		1.0f,		1.0f,		0.731f,		0.693f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true },
 		/*7872.899902f*/
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),				7050.0f,		200.0f,			34.5f,		34.5f,		0.402f,		0.938f,		0.938f,		1.0f,		0.869f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),				7000.0f,		200.0f,			34.5f,		34.5f,		0.402f,		0.938f,		0.938f,		1.0f,		0.869f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true },
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART ),			0.0f,			300.0f,			20.0f,		20.0f,		0.735f,		0.975f,		1.0f,		0.841f,		0.827f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true },
 
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_V7 ),						18000.0f,		89.6676f,		9.75f,		9.25f,		1.57f,		1.0f,		1.0f,		0.957f,		1.0f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true },
