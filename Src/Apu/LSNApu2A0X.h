@@ -568,6 +568,10 @@ namespace lsn {
 			m_fTVol = _aoOptions.apCharacteristics.fTVolume;
 			m_fNVol = _aoOptions.apCharacteristics.fNVolume;
 			m_fDmcVol = _aoOptions.apCharacteristics.fDmcVolume;
+			m_bLetterless = _aoOptions.apCharacteristics.bRp2A02;
+			if ( m_bLetterless ) {
+				m_nNoise.SetModeFlag( false );
+			}
 		}
 
 		/**
@@ -1331,11 +1335,13 @@ namespace lsn {
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
 			if LSN_UNLIKELY( paApu->m_bLetterless ) {
 				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<0>( (_ui8Val & 0b00001111) ) );
+				paApu->m_nNoise.SetModeFlag( false );
 			}
 			else {
 				paApu->m_nNoise.SetTimer( CApuUnit::NoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
+				paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
 			}
-			paApu->m_nNoise.SetModeFlag( (_ui8Val & 0b10000000) != 0 );
+			
 			paApu->m_bRegModified = true;
 		}
 

@@ -23,6 +23,11 @@ namespace lsn {
 	struct LSN_WAV_EDITOR_WINDOW_OPTIONS {
 		/** Per-file options. */
 		struct LSN_PER_FILE {
+			/** The file path. */
+			std::wstring											wsWavPath;
+			/** The metadada path. */
+			std::wstring											wsMetaPath;
+
 			/** The last text in Start Time. */
 			std::wstring											wsStartTime = L"0";
 			/** The last text in End Time. */

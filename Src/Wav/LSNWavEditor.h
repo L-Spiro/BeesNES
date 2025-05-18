@@ -192,6 +192,7 @@ namespace lsn {
 		/** A single WAV file. */
 		struct LSN_WAV_FILE {
 			std::wstring												wsPath;											/**< Path to the file. */
+			std::wstring												wsInputPath;									/**< Original input path to the file. */
 			CWavFile::LSN_FMT_CHUNK										fcFormat;										/**< The WAV-file format. */
 			uint64_t													ui64Samples = 0;								/**< Total samples per channel. */
 

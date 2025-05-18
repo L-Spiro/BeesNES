@@ -222,6 +222,7 @@ namespace lsn {
 			_wfData.fcFormat.uiSampleRate = wfFile.Hz();
 			_wfData.fcFormat.uiByteRate = uint64_t( _wfData.fcFormat.uiSampleRate ) * _wfData.fcFormat.uiNumChannels * _wfData.fcFormat.uiBitsPerSample / 8;
 			_wfData.wsPath = pPath.generic_wstring();
+			_wfData.wsInputPath = _wsPath;
 			_wfData.ui64Samples = wfFile.FileSampleCnt();
 			return true;
 		}
