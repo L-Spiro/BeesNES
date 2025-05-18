@@ -24,7 +24,7 @@ namespace lsn {
 
 	LSN_AUDIO_PROFILE LSN_AUDIO_OPTIONS::s_apProfiles[] = {
 		//wsDevice														fLpf			fHpf0			fHpf1		fHpf2		fVolume		fP1Volume	fP2Volume	fTVolume	fNVolume	fDmcVolume	fmFilterMode	bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise	bRp2A02
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N0260073 ),				19000.0f,		108.0f,			72.5f,		18.0f,		2.601f,		1.0f,		1.0f,		0.931f,		0.741f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	true },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N0260073 ),				18000.0f,		108.0f,			72.5f,		18.0f,		2.601f,		1.0f,		1.0f,		0.933f,		0.744f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	true },
 
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N1151667 ),				17000.0f,		102.5f,			18.0f,		18.0f,		0.360f,		1.0f,		1.0f,		0.924f,		0.883f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N34169630 ),				17000.0f,		310.0f,			67.0f,		7.5f,		0.395f,		1.0f,		1.0f,		1.0f,		0.934f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
