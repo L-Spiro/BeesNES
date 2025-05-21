@@ -42,10 +42,10 @@ namespace lsn {
 		m_bInternalUpdate = true;
 
 		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavActialHz( aTmp, m_pwewoOptions->pfPerFileOptions.ui32ActualHz ); }
+		if ( aTmp && m_pwewoOptions->vPerFileOptions.size() ) { CWinUtilities::FillComboWithWavActialHz( aTmp, m_pwewoOptions->vPerFileOptions[0].ui32ActualHz ); }
 
 		/*aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, m_pwewoOptions->pfPerFileOptions.ui32ActualHz ); }*/
+		if ( aTmp ) { CWinUtilities::FillComboWithWavNoiseColor( aTmp, m_pwewoOptions->vPerFileOptions[0].ui32ActualHz ); }*/
 		{
 			auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
 			if ( pcbCombo ) {
@@ -60,65 +60,66 @@ namespace lsn {
 			}
 		}
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8LpfType ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf0Type ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf1Type ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->pfPerFileOptions.ui8Hpf2Type ); }
+		if ( m_pwewoOptions->vPerFileOptions.size() ) {
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
+			if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->vPerFileOptions[0].ui8LpfType ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
+			if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->vPerFileOptions[0].ui8Hpf0Type ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
+			if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->vPerFileOptions[0].ui8Hpf1Type ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
+			if ( aTmp ) { CWinUtilities::FillComboWithWavFilterType( aTmp, m_pwewoOptions->vPerFileOptions[0].ui8Hpf2Type ); }
 
 
-		// Last texts.
-		//aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
-		//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsTitle.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsActualHz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharVolume.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharLpfHz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf0Hz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf1Hz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf2Hz.c_str() ); }
+			// Last texts.
+			//aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
+			//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsTitle.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsActualHz.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharVolume.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharLpfHz.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf0Hz.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf1Hz.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf2Hz.c_str() ); }
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharLpfFall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf0Fall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf1Fall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsCharHpf2Fall.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharLpfFall.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf0Fall.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf1Fall.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsCharHpf2Fall.c_str() ); }
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsArtist.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsAlbum.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsYear.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsComment.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsArtist.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsAlbum.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsYear.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsComment.c_str() ); }
 
 
-		// Last checks.
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLockVol ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bInvert ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLpf ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf0 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf1 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bHpf2 ); }
-
+			// Last checks.
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bLockVol ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bInvert ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bLpf ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bHpf0 ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bHpf1 ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bHpf2 ); }
+		}
 
 		// Last combo selections.
 		m_bInternalUpdate = false;

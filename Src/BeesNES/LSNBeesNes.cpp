@@ -887,47 +887,51 @@ namespace lsn {
 	 */
 	bool CBeesNes::LoadWavEditorWindowSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
 		_wewoOptions = LSN_WAV_EDITOR_WINDOW_OPTIONS();
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsPreFadeDur ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsFadeDur ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsOpeningSilence ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsTrailingSilence ) ) { return false; }
+		try {
+			_wewoOptions.vPerFileOptions.resize( 1 );
+		}
+		catch ( ... ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsPreFadeDur ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsFadeDur ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsOpeningSilence ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsTrailingSilence ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsMainsHumVolume ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsWhiteNoiseVolume ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsGuassianNoiseBandwidth ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsGuassianNoiseTemperature ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsGuassianNoiseResistance ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsActualHz ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharVolume ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharLpfHz ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf0Hz ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf1Hz ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf2Hz ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharLpfFall ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf0Fall ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf1Fall ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf2Fall ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsArtist ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsAlbum ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsYear ) ) { return false; }
-		if ( !_sFile.ReadStringU16( _wewoOptions.pfPerFileOptions.wsComment ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsActualHz ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharVolume ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharLpfHz ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf0Hz ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf1Hz ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf2Hz ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharLpfFall ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf0Fall ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf1Fall ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsCharHpf2Fall ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsArtist ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsAlbum ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsYear ) ) { return false; }
+		if ( !_sFile.ReadStringU16( _wewoOptions.vPerFileOptions[0].wsComment ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsAbsoluteVolume ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsNormalizeVolume ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsLoudnessVolume ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsOutputHz ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsOutputFolder ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bLoop ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui32ActualHz ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui32CharPreset ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bInvert ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bLpf ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bHpf0 ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bHpf1 ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bHpf2 ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bLoop ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui32ActualHz ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui32CharPreset ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bInvert ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bLpf ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bHpf0 ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bHpf1 ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bHpf2 ) ) { return false; }
 
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui8LpfType ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui8Hpf0Type ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui8Hpf1Type ) ) { return false; }
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.ui8Hpf2Type ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui8LpfType ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui8Hpf0Type ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui8Hpf1Type ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].ui8Hpf2Type ) ) { return false; }
 
 		if ( !_sFile.Read( _wewoOptions.bMainsHum ) ) { return false; }
 		if ( !_sFile.Read( _wewoOptions.bWhiteNoise ) ) { return false; }
@@ -948,7 +952,7 @@ namespace lsn {
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsLastWavFolder ) ) { return false; }
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsLastMetaFolder ) ) { return false; }
 
-		if ( !_sFile.Read( _wewoOptions.pfPerFileOptions.bLockVol ) ) { return false; }
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bLockVol ) ) { return false; }
 		return true;
 	}
 
@@ -960,47 +964,51 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SaveWavEditorWindowSettings( CStream &_sFile, const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsPreFadeDur ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsFadeDur ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsOpeningSilence ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsTrailingSilence ) ) { return false; }
+		LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE pfTmp = LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE();
+		if ( _wewoOptions.vPerFileOptions.size() ) {
+			pfTmp = _wewoOptions.vPerFileOptions[0];
+		}
+		if ( !_sFile.WriteStringU16( pfTmp.wsPreFadeDur ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsFadeDur ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsOpeningSilence ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsTrailingSilence ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsMainsHumVolume ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsWhiteNoiseVolume ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsGuassianNoiseBandwidth ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsGuassianNoiseTemperature ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsGuassianNoiseResistance ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsActualHz ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharVolume ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharLpfHz ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf0Hz ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf1Hz ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf2Hz ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharLpfFall ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf0Fall ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf1Fall ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsCharHpf2Fall ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsArtist ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsAlbum ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsYear ) ) { return false; }
-		if ( !_sFile.WriteStringU16( _wewoOptions.pfPerFileOptions.wsComment ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsActualHz ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharVolume ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharLpfHz ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf0Hz ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf1Hz ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf2Hz ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharLpfFall ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf0Fall ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf1Fall ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsCharHpf2Fall ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsArtist ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsAlbum ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsYear ) ) { return false; }
+		if ( !_sFile.WriteStringU16( pfTmp.wsComment ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsAbsoluteVolume ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsNormalizeVolume ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsLoudnessVolume ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsOutputHz ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsOutputFolder ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bLoop ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui32ActualHz ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui32CharPreset ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bInvert ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bLpf ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bHpf0 ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bHpf1 ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bHpf2 ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bLoop ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui32ActualHz ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui32CharPreset ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bInvert ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bLpf ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bHpf0 ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bHpf1 ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bHpf2 ) ) { return false; }
 
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui8LpfType ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui8Hpf0Type ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui8Hpf1Type ) ) { return false; }
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.ui8Hpf2Type ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui8LpfType ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui8Hpf0Type ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui8Hpf1Type ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.ui8Hpf2Type ) ) { return false; }
 
 		if ( !_sFile.Write( _wewoOptions.bMainsHum ) ) { return false; }
 		if ( !_sFile.Write( _wewoOptions.bWhiteNoise ) ) { return false; }
@@ -1021,7 +1029,7 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastWavFolder ) ) { return false; }
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastMetaFolder ) ) { return false; }
 
-		if ( !_sFile.Write( _wewoOptions.pfPerFileOptions.bLockVol ) ) { return false; }
+		if ( !_sFile.Write( pfTmp.bLockVol ) ) { return false; }
 		return true;
 	}
 

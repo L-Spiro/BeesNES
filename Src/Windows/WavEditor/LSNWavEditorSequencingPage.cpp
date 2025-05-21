@@ -53,24 +53,25 @@ namespace lsn {
 
 		// Last texts.
 		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
-		//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsStopTime.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsPreFadeDur.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsFadeDur.c_str() ); }
+		if ( m_pwewoOptions->vPerFileOptions.size() ) {
+			//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsStopTime.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsPreFadeDur.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsFadeDur.c_str() ); }
 
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsOpeningSilence.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->pfPerFileOptions.wsTrailingSilence.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsOpeningSilence.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsTrailingSilence.c_str() ); }
 
 
-		// Last checks.
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->pfPerFileOptions.bLoop ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->pfPerFileOptions.bLoop ); }
-
+			// Last checks.
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bLoop ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( !m_pwewoOptions->vPerFileOptions[0].bLoop ); }
+		}
 
 		auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
 		if ( pwWarning ) {

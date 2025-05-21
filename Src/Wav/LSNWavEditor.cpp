@@ -205,6 +205,32 @@ namespace lsn {
 	}
 
 	/**
+	 * Saves the file paths to the given structure in the order they are inside this class.
+	 * 
+	 * \param _wewoOptions The file to which to save the file paths.
+	 * \return Returns true if all the paths could be copied.  False always indicates a memory error.
+	 **/
+	bool CWavEditor::SaveToStruct( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
+		try {
+			_wewoOptions.vPerFileOptions.resize( m_vFileList.size() );
+			for ( size_t I = 0; I < m_vFileList.size(); ++I ) {
+				auto ppfPerFile = WavByIdx( I );
+				if ( !ppfPerFile ) { return false; }
+				_wewoOptions.vPerFileOptions[I].wsMetaPath = ppfPerFile->wsMetaPath;
+				_wewoOptions.vPerFileOptions[I].vWavPaths.resize( 1 + ppfPerFile->vExtensions.size() );
+				_wewoOptions.vPerFileOptions[I].vWavPaths[0] = ppfPerFile->wfFile.wsPath;
+				_wewoOptions.vPerFileOptions[I].vWavInputPaths[0] = ppfPerFile->wfFile.wsInputPath;
+				for ( size_t J = 0; J < ppfPerFile->vExtensions.size(); ++J ) {
+					_wewoOptions.vPerFileOptions[I].vWavPaths[J+1] = ppfPerFile->vExtensions[J].wsPath;
+					_wewoOptions.vPerFileOptions[I].vWavInputPaths[J+1] = ppfPerFile->vExtensions[J].wsInputPath;
+				}
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
 	 * Opens a WAV file and fills out its data.
 	 * 
 	 * \param _wsPath The path to the file to load.

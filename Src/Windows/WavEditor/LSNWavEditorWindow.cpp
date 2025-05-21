@@ -862,10 +862,10 @@ namespace lsn {
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				m_vSequencePages[I]->Save( _wewoWindowState.pfPerFileOptions, &vPerFile[I] );
+				m_vSequencePages[I]->Save( _wewoWindowState.vPerFileOptions[I], &vPerFile[I] );
 			}
 			if ( m_vSequencePages.size() == 1 ) {
-				m_vSequencePages[0]->Save( _wewoWindowState.pfPerFileOptions, nullptr );
+				m_vSequencePages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
 			}
 
 			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
@@ -876,10 +876,10 @@ namespace lsn {
 						break;
 					}
 				}
-				m_vSettingsPages[I]->Save( _wewoWindowState.pfPerFileOptions, pfPerFile );
+				m_vSettingsPages[I]->Save( _wewoWindowState.vPerFileOptions[I], pfPerFile );
 			}
 			if ( m_vSettingsPages.size() == 1 ) {
-				m_vSettingsPages[0]->Save( _wewoWindowState.pfPerFileOptions, nullptr );
+				m_vSettingsPages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
 			}
 
 			vPerFile.erase( vPerFile.begin() );

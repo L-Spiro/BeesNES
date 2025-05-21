@@ -434,6 +434,7 @@ namespace lsn {
 			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
 			m_pPulse2.SetEnvelopeVolume( LSN_PULSE2_ENV_DIVIDER( this ) );
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
+			Write4015( this, 0, 0, 0 );
 			m_i64TicksToLenCntr = _tM0S0;
 			if ( !m_bLetterless || _tType != LSN_AT_NTSC ) {
 				m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
@@ -1480,6 +1481,9 @@ namespace lsn {
 			if ( !LSN_NOISE_ENABLED( paApu ) ) {
 				paApu->m_nNoise.SetLengthCounter( 0 );
 				//paApu->m_dvNoiseLengthCounter.WriteWithDelay( 0 );
+			}
+			if LSN_LIKELY( paApu->m_piIrqTarget ) {
+				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU_DMC );
 			}
 			paApu->m_bRegModified = true;
 		}

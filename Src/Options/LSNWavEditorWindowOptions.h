@@ -9,8 +9,10 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Wav/LSNWavFile.h"
 
 #include <string>
+#include <vector>
 
 namespace lsn {
 
@@ -23,8 +25,10 @@ namespace lsn {
 	struct LSN_WAV_EDITOR_WINDOW_OPTIONS {
 		/** Per-file options. */
 		struct LSN_PER_FILE {
-			/** The file path. */
-			std::wstring											wsWavPath;
+			/** The file paths. */
+			std::vector<std::wstring>								vWavPaths;
+			/** The original input paths. */
+			std::vector<std::wstring>								vWavInputPaths;
 			/** The metadada path. */
 			std::wstring											wsMetaPath;
 
@@ -109,7 +113,7 @@ namespace lsn {
 
 
 		/** Per-file options. */
-		LSN_PER_FILE												pfPerFileOptions;
+		std::vector<LSN_PER_FILE>									vPerFileOptions;
 		/** The last text in Mains Hum Volume. */
 		std::wstring												wsMainsHumVolume = L"1.0";
 		/** The last text in White Noise Volume. */
@@ -161,8 +165,6 @@ namespace lsn {
 		uint32_t													ui32OutBits = 32;
 		/** The last Stereo combo selection. */
 		uint32_t													ui32Stereo = 1;
-
-
 
 		/** The last WAV-file folder. */
 		std::wstring												wsLastWavFolder = L"";

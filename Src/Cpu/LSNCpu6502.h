@@ -593,7 +593,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			_ui8Ret = (pcThis->m_ui8InputsState[0] & 0x80) != 0;
+			_ui8Ret = _ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[0] & 0x80) != 0);
 			pcThis->m_ui8InputsState[0] <<= 1;
 		}
 
@@ -631,7 +631,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			_ui8Ret = (pcThis->m_ui8InputsState[1] & 0x80) != 0;
+			_ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[1] & 0x80) != 0);
 			pcThis->m_ui8InputsState[1] <<= 1;
 		}
 

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Options/LSNWavEditorWindowOptions.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNWavFile.h"
 
@@ -315,6 +316,14 @@ namespace lsn {
 			if LSN_UNLIKELY( _sIdx >= m_vFileList.size() ) { return nullptr; }
 			return WavById( m_vFileList[_sIdx] );
 		}
+
+		/**
+		 * Saves the file paths to the given structure in the order they are inside this class.
+		 * 
+		 * \param _wewoOptions The file to which to save the file paths.
+		 * \return Returns true if all the paths could be copied.  False always indicates a memory error.
+		 **/
+		bool															SaveToStruct( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
 
 
 	protected :
