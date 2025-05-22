@@ -282,6 +282,40 @@ namespace lsn {
 		 **/
 		bool												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState, CWavEditor * _pweEditor );
 
+		/**
+		 * Saves the project.
+		 * 
+		 * \param _wewoWindowState The window state to fill out.
+		 * \return Returns true if there are no weird memory errors.
+		 **/
+		bool												SaveProject( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState );
+
+		/**
+		 * Finds a sequencer page by unique ID.
+		 * 
+		 * \param _ui32Id The ID of the page to find.
+		 * \return Returns a pointer to the desired page or nullptr;
+		 **/
+		CWavEditorSequencingPage *							SequencePageById( uint32_t _ui32Id ) const {
+			for ( auto I = m_vSequencePages.size(); I--; ) {
+				if ( m_vSequencePages[I]->UniqueId() == _ui32Id ) { return m_vSequencePages[I]; }
+			}
+			return nullptr;
+		}
+
+		/**
+		 * Finds a settings page by unique ID.
+		 * 
+		 * \param _ui32Id The ID of the page to find.
+		 * \return Returns a pointer to the desired page or nullptr;
+		 **/
+		CWavEditorFileSettingsPage *						SettingsPageById( uint32_t _ui32Id ) const {
+			for ( auto I = m_vSettingsPages.size(); I--; ) {
+				if ( m_vSettingsPages[I]->UniqueId() == _ui32Id ) { return m_vSettingsPages[I]; }
+			}
+			return nullptr;
+		}
+
 
 	private :
 		typedef CWavEditorWindowLayout						Layout;

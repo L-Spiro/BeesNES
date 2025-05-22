@@ -862,7 +862,7 @@ namespace lsn {
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				m_vSequencePages[I]->Save( _wewoWindowState.vPerFileOptions[I], &vPerFile[I] );
+				m_vSequencePages[I]->Save( _wewoWindowState.vPerFileOptions[0], &vPerFile[I] );
 			}
 			if ( m_vSequencePages.size() == 1 ) {
 				m_vSequencePages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
@@ -876,7 +876,7 @@ namespace lsn {
 						break;
 					}
 				}
-				m_vSettingsPages[I]->Save( _wewoWindowState.vPerFileOptions[I], pfPerFile );
+				m_vSettingsPages[I]->Save( _wewoWindowState.vPerFileOptions[0], pfPerFile );
 			}
 			if ( m_vSettingsPages.size() == 1 ) {
 				m_vSettingsPages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
@@ -891,6 +891,33 @@ namespace lsn {
 					return false;
 				}
 			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Saves the project.
+	 * 
+	 * \param _wewoWindowState The window state to fill out.
+	 * \return Returns true if there are no weird memory errors.
+	 **/
+	bool CWavEditorWindow::SaveProject( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState ) {
+		try {
+			if ( !m_weEditor.SaveToStruct( _wewoWindowState ) ) { return false; }
+
+			for ( size_t I = 0; I < _wewoWindowState.vPerFileOptions.size(); ++I ) {
+				auto ppfThis = m_weEditor.WavByIdx( I );
+				if ( !ppfThis ) { return false; }
+				auto pwespSeqPage = SequencePageById( ppfThis->ui32Id );
+				auto pwespSetPage = SettingsPageById( ppfThis->ui32Id );
+				if ( !pwespSeqPage || !pwespSetPage ) { return false; }
+
+				pwespSeqPage->Save( _wewoWindowState.vPerFileOptions[I], nullptr );
+				pwespSetPage->Save( _wewoWindowState.vPerFileOptions[I], nullptr );
+			}
+			//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
+			m_pweopOutput->Save( _wewoWindowState, nullptr );
 			return true;
 		}
 		catch ( ... ) { return false; }
