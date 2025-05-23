@@ -107,7 +107,7 @@ namespace lsn {
 			if ( _sLen ) {
 				u16Tmp.reserve( _sLen );
 			}
-			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+			for ( size_t I = 0; (_sLen && I < _sLen) || (_sLen == 0 && _pwcStr[I]); ++I ) {
 				u16Tmp.push_back( static_cast<wchar_t>(_pwcStr[I]) );
 			}
 			return u16Tmp;
@@ -126,7 +126,7 @@ namespace lsn {
 			if ( _sLen ) {
 				u16Tmp.reserve( _sLen );
 			}
-			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+			for ( size_t I = 0; (_sLen && I < _sLen) || (_sLen == 0 && _pwcStr[I]); ++I ) {
 				u16Tmp.push_back( static_cast<char16_t>(_pwcStr[I]) );
 			}
 			return u16Tmp;
@@ -145,7 +145,7 @@ namespace lsn {
 			if ( _sLen ) {
 				u16Tmp.reserve( _sLen );
 			}
-			for ( size_t I = 0; (I < _sLen) || (_sLen == 0 && !_pwcStr[I]); ++I ) {
+			for ( size_t I = 0; (_sLen && I < _sLen) || (_sLen == 0 && _pwcStr[I]); ++I ) {
 				u16Tmp.push_back( static_cast<char8_t>(_pwcStr[I]) );
 			}
 			return u16Tmp;

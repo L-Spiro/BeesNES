@@ -9,6 +9,7 @@
  */
 
 #include "LSNWavEditorWindow.h"
+#include "../../File/LSNFileStream.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../WinUtilities/LSNWinUtilities.h"
@@ -18,6 +19,7 @@
 #include <ToolBar/LSWToolBar.h>
 #include <TreeListView/LSWTreeListView.h>
 
+#include <commdlg.h>
 #include <filesystem>
 
 #include "../../../resource.h"
@@ -279,12 +281,19 @@ namespace lsn {
 				break;
 			}
 
+			case Layout::LSN_WEWI_LOAD : {
+				break;
+			}
+			case Layout::LSN_WEWI_SAVE : {
+				SaveProject();
+				break;
+			}
+
 			case Layout::LSN_WEWI_FILES_ADD_BUTTON : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FILES_REMOVE_BUTTON : {}		LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FILES_UP_BUTTON : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FILES_DOWN_BUTTON : {
 				return m_pwefFiles->Command( _wCtrlCode, _wId, _pwSrc );
-				break;
 			}
 		}
 		return LSW_H_CONTINUE;
@@ -762,6 +771,155 @@ namespace lsn {
 			rTemp.top += rRebar.Height();
 		}
 		return rTemp;
+	}
+
+	/**
+	 * Saves the project.
+	 **/
+	void CWavEditorWindow::SaveProject() {
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_BWAV_FILES____BWAV____BWAV_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
+
+		OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+		std::u16string szFileName;
+		szFileName.resize( 0xFFFF + 2 );
+
+		ofnOpenFile.hwndOwner = Wnd();
+		ofnOpenFile.lpstrFilter = LSN_FILE_OPEN_FORMAT;
+		ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
+		ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+		ofnOpenFile.nFilterIndex = 1;
+		ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+		ofnOpenFile.lpstrInitialDir = m_wewoWindowOptions.wsLastProjectsFolder.c_str();
+	
+		std::u16string u16Path, u16FileName;
+		if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+			m_wewoWindowOptions.wsLastProjectsFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+			auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+			if ( !pPath.has_extension() ) {
+				pPath += ".bwav";
+			}
+
+			LSN_WAV_EDITOR_WINDOW_OPTIONS wewoSaveMe;
+			if ( !SaveProject( wewoSaveMe ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INTERNAL_ERROR ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			std::error_code ecErr;
+			if ( !std::filesystem::create_directories( m_wewoWindowOptions.wsLastProjectsFolder, ecErr ) && ecErr ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_CREATE_DIRECTORIES ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			CStdFile sfFile;
+			if ( !sfFile.Create( pPath.generic_u16string().c_str() ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_CREATE_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			CFileStream sStream( sfFile );
+
+			// Header.
+			if ( !sStream.WriteUi8( 'B' ) || !sStream.WriteUi8( 'W' ) || !sStream.WriteUi8( 'A' ) || !sStream.WriteUi8( 'V' ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			// Version.
+			if ( !sStream.WriteUi8( 0 ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( !wewoSaveMe.Save( sStream ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+		}
+#undef LSN_FILE_OPEN_FORMAT
+	}
+
+	/**
+	 * Loads a project.
+	 **/
+	void CWavEditorWindow::LoadProject() {
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_BWAV_FILES____BWAV____BWAV_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
+
+		OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+		std::u16string szFileName;
+		szFileName.resize( 0xFFFF + 2 );
+
+		ofnOpenFile.hwndOwner = Wnd();
+		ofnOpenFile.lpstrFilter = LSN_FILE_OPEN_FORMAT;
+		ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
+		ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+		ofnOpenFile.nFilterIndex = 1;
+		ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+		ofnOpenFile.lpstrInitialDir = m_wewoWindowOptions.wsLastProjectsFolder.c_str();
+	
+		std::u16string u16Path, u16FileName;
+		if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+			m_wewoWindowOptions.wsLastProjectsFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+
+			auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+			CStdFile sfFile;
+			if ( !sfFile.Open( pPath.generic_u16string().c_str() ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_OPEN_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			CFileStream sStream( sfFile );
+			uint8_t ui8Tmp;
+			if ( !sStream.ReadUi8( ui8Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( ui8Tmp != 'B' ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			if ( !sStream.ReadUi8( ui8Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( ui8Tmp != 'W' ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			if ( !sStream.ReadUi8( ui8Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( ui8Tmp != 'A' ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			if ( !sStream.ReadUi8( ui8Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( ui8Tmp != 'V' ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+
+
+			uint32_t ui32Tmp;
+			if ( !sStream.ReadUi32( ui32Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			if ( ui32Tmp > 0 ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			LSN_WAV_EDITOR_WINDOW_OPTIONS wewoLoadMe;
+			if ( !wewoLoadMe.Load( sStream, ui32Tmp ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+		}
+#undef LSN_FILE_OPEN_FORMAT
 	}
 
 	/**

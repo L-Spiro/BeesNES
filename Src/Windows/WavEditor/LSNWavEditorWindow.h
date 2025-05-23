@@ -226,6 +226,16 @@ namespace lsn {
 		const LSW_RECT										VirtualClientRect( const CWidget * _pwChild ) const;
 
 		/**
+		 * Saves the project.
+		 **/
+		void												SaveProject();
+
+		/**
+		 * Loads a project.
+		 **/
+		void												LoadProject();
+
+		/**
 		 * Prepares to create the window.  Creates the atom if necessary.
 		 **/
 		static void											PrepareWavEditor();

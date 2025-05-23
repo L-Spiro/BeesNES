@@ -18,6 +18,7 @@
 #define LSN_NES_FILES____NES____NES_										NES Files (*.nes)\0*.nes\0
 #define LSN_ZIP_FILES____ZIP____ZIP_										ZIP Files (*.zip)\0*.zip\0
 #define LSN_ALL_FILES___________											All Files (*.*)\0*.*\0
+#define LSN_BWAV_FILES____BWAV____BWAV_										BWAV Projects (*.bwav)\0*.bwav\0
 #define LSN__FILE															&File
 #define LSN__GAME															&Game
 #define LSN__OPTIONS														&Options
@@ -449,6 +450,12 @@
 #define LSN_ERROR															Error
 #define LSN_INTERNAL_ERROR													Internal error.
 #define LSN_OUT_OF_MEMORY													Out of memory.
+#define LSN_FAILED_TO_CREATE_DIRECTORIES									Failed to create directories.
+#define LSN_FAILED_TO_OPEN_FILE												Failed to open file.
+#define LSN_FAILED_TO_CREATE_FILE											Failed to create file.
+#define LSN_FAILED_TO_WRITE_TO_FILE											Failed to write to file.
+#define LSN_FAILED_TO_READ_FROM_FILE										Failed to read from file.
+#define LSN_INVALID_FILE_FORMAT												Invalid file format.
 
 
 

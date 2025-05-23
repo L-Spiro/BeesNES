@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Utilities/LSNStreamBase.h"
 #include "../Wav/LSNWavFile.h"
 
 #include <string>
@@ -109,6 +110,147 @@ namespace lsn {
 
 			/** The last Loop check. */
 			bool													bLoop = false;
+
+
+
+			// == Functions.
+			/**
+			 * Saves the structure to a stream.
+			 * 
+			 * \param _sbStream The stream to which to save the structure data.
+			 * \return Returns true if all writes were successful.  A return of false could indicate a memory failure or a not enough space on disk.
+			 **/
+			bool													Save( CStreamBase &_sbStream ) const {
+				if ( vWavPaths.size() > UINT_MAX ) { return false; }
+				if ( vWavInputPaths.size() > UINT_MAX ) { return false; }
+
+				if ( !_sbStream.WriteUi32( uint32_t( vWavPaths.size() ) ) ) { return false; }
+				for ( size_t I = 0; I < vWavPaths.size(); ++I ) {
+					if ( !_sbStream.WriteStringU16( vWavPaths[I] ) ) { return false; }
+				}
+				if ( !_sbStream.WriteUi32( uint32_t( vWavInputPaths.size() ) ) ) { return false; }
+				for ( size_t I = 0; I < vWavInputPaths.size(); ++I ) {
+					if ( !_sbStream.WriteStringU16( vWavInputPaths[I] ) ) { return false; }
+				}
+
+				if ( !_sbStream.WriteStringU16( wsMetaPath ) ) { return false; }
+
+				if ( !_sbStream.WriteStringU16( wsStartTime ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsEndTime ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsStopTime ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsPreFadeDur ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsFadeDur ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsOpeningSilence ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsTrailingSilence ) ) { return false; }
+
+				if ( !_sbStream.WriteStringU16( wsTitle ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsActualHz ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharVolume ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharLpfHz ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf0Hz ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf1Hz ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf2Hz ) ) { return false; }
+
+				if ( !_sbStream.WriteStringU16( wsCharLpfFall ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf0Fall ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf1Fall ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsCharHpf2Fall ) ) { return false; }
+
+				if ( !_sbStream.WriteStringU16( wsArtist ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsAlbum ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsYear ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsComment ) ) { return false; }
+
+				if ( !_sbStream.WriteUi32( ui32ActualHz ) ) { return false; }
+				if ( !_sbStream.WriteUi32( ui32CharPreset ) ) { return false; }
+
+				if ( !_sbStream.WriteUi8( ui8LpfType ) ) { return false; }
+				if ( !_sbStream.WriteUi8( ui8Hpf0Type ) ) { return false; }
+				if ( !_sbStream.WriteUi8( ui8Hpf1Type ) ) { return false; }
+				if ( !_sbStream.WriteUi8( ui8Hpf2Type ) ) { return false; }
+
+				if ( !_sbStream.WriteBool( bLockVol ) ) { return false; }
+				if ( !_sbStream.WriteBool( bInvert ) ) { return false; }
+				if ( !_sbStream.WriteBool( bLpf ) ) { return false; }
+				if ( !_sbStream.WriteBool( bHpf0 ) ) { return false; }
+				if ( !_sbStream.WriteBool( bHpf1 ) ) { return false; }
+				if ( !_sbStream.WriteBool( bHpf2 ) ) { return false; }
+				if ( !_sbStream.WriteBool( bLoop ) ) { return false; }
+
+				return true;
+			}
+
+			/**
+			 * Loads from the given stream into the structure.
+			 * 
+			 * \param _sbStream The stream from which to load the data.
+			 * \param _ui32Version The version of the file.
+			 * \return Returns true if the file format is expected and memory is able to be allocated for each string in the structure.
+			 **/
+			bool													Load( const CStreamBase &_sbStream, uint32_t /*_ui32Version*/ ) {
+				try {
+					(*this) = LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE();
+
+					uint32_t ui32Total = 0;
+					if ( !_sbStream.ReadUi32( ui32Total ) ) { return false; }
+					vWavPaths.resize( ui32Total );
+					for ( size_t I = 0; I < vWavPaths.size(); ++I ) {
+						if ( !_sbStream.ReadStringU16( vWavPaths[I] ) ) { return false; }
+					}
+					ui32Total = 0;
+					if ( !_sbStream.ReadUi32( ui32Total ) ) { return false; }
+					vWavInputPaths.resize( ui32Total );
+					for ( size_t I = 0; I < vWavInputPaths.size(); ++I ) {
+						if ( !_sbStream.ReadStringU16( vWavInputPaths[I] ) ) { return false; }
+					}
+
+					if ( !_sbStream.ReadStringU16( wsMetaPath ) ) { return false; }
+
+					if ( !_sbStream.ReadStringU16( wsStartTime ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsEndTime ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsStopTime ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsPreFadeDur ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsFadeDur ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsOpeningSilence ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsTrailingSilence ) ) { return false; }
+
+					if ( !_sbStream.ReadStringU16( wsTitle ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsActualHz ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharVolume ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharLpfHz ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf0Hz ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf1Hz ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf2Hz ) ) { return false; }
+
+					if ( !_sbStream.ReadStringU16( wsCharLpfFall ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf0Fall ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf1Fall ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsCharHpf2Fall ) ) { return false; }
+
+					if ( !_sbStream.ReadStringU16( wsArtist ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsAlbum ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsYear ) ) { return false; }
+					if ( !_sbStream.ReadStringU16( wsComment ) ) { return false; }
+
+					if ( !_sbStream.ReadUi32( ui32ActualHz ) ) { return false; }
+					if ( !_sbStream.ReadUi32( ui32CharPreset ) ) { return false; }
+
+					if ( !_sbStream.ReadUi8( ui8LpfType ) ) { return false; }
+					if ( !_sbStream.ReadUi8( ui8Hpf0Type ) ) { return false; }
+					if ( !_sbStream.ReadUi8( ui8Hpf1Type ) ) { return false; }
+					if ( !_sbStream.ReadUi8( ui8Hpf2Type ) ) { return false; }
+
+					if ( !_sbStream.ReadBool( bLockVol ) ) { return false; }
+					if ( !_sbStream.ReadBool( bInvert ) ) { return false; }
+					if ( !_sbStream.ReadBool( bLpf ) ) { return false; }
+					if ( !_sbStream.ReadBool( bHpf0 ) ) { return false; }
+					if ( !_sbStream.ReadBool( bHpf1 ) ) { return false; }
+					if ( !_sbStream.ReadBool( bHpf2 ) ) { return false; }
+					if ( !_sbStream.ReadBool( bLoop ) ) { return false; }
+				}
+				catch ( ... ) { return false; }
+				return true;
+			}
 		};
 
 
@@ -170,7 +312,96 @@ namespace lsn {
 		std::wstring												wsLastWavFolder = L"";
 		/** The last Meta-file folder. */
 		std::wstring												wsLastMetaFolder = L"";
+		/** The last Projects folder. */
+		std::wstring												wsLastProjectsFolder = L"";
 
+		// == Functions.
+		/**
+		 * Saves the structure to a stream.
+		 * 
+		 * \param _sbStream The stream to which to save the structure data.
+		 * \return Returns true if all writes were successful.  A return of false could indicate a memory failure or a not enough space on disk.
+		 **/
+		bool														Save( CStreamBase &_sbStream ) const {
+			if ( !_sbStream.WriteStringU16( wsMainsHumVolume ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsWhiteNoiseVolume ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsGuassianNoiseBandwidth ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsGuassianNoiseTemperature ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsGuassianNoiseResistance ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsAbsoluteVolume ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsNormalizeVolume ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsLoudnessVolume ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsOutputHz ) ) { return false; }
+			if ( !_sbStream.WriteStringU16( wsOutputFolder ) ) { return false; }
+			
+			if ( !_sbStream.WriteUi32( ui32MainsHum ) ) { return false; }
+			if ( !_sbStream.WriteUi32( ui32WhiteNoise ) ) { return false; }
+			if ( !_sbStream.WriteUi32( ui32OutFormat ) ) { return false; }
+			if ( !_sbStream.WriteUi32( ui32OutBits ) ) { return false; }
+			if ( !_sbStream.WriteUi32( ui32Stereo ) ) { return false; }
+
+			if ( !_sbStream.WriteBool( bMainsHum ) ) { return false; }
+			if ( !_sbStream.WriteBool( bWhiteNoise ) ) { return false; }
+			if ( !_sbStream.WriteBool( bDither ) ) { return false; }
+			if ( !_sbStream.WriteBool( bAbsolute ) ) { return false; }
+			if ( !_sbStream.WriteBool( bNormalize ) ) { return false; }
+			if ( !_sbStream.WriteBool( bLoudness ) ) { return false; }
+			if ( !_sbStream.WriteBool( bNumbered ) ) { return false; }
+
+			if ( vPerFileOptions.size() > UINT_MAX ) { return false; }
+			if ( !_sbStream.WriteUi32( uint32_t( vPerFileOptions.size() ) ) ) { return false; }
+			for ( size_t I = 0; I < vPerFileOptions.size(); ++I ) {
+				vPerFileOptions[I].Save( _sbStream );
+			}
+			return true;
+		}
+
+		/**
+		 * Loads from the given stream into the structure.
+		 * 
+		 * \param _sbStream The stream from which to load the data.
+		 * \param _ui32Version The version of the file.
+		 * \return Returns true if the file format is expected and memory is able to be allocated for each string in the structure.
+		 **/
+		bool														Load( const CStreamBase &_sbStream, uint32_t _ui32Version ) {
+			try { 
+				(*this) = LSN_WAV_EDITOR_WINDOW_OPTIONS();
+
+				if ( !_sbStream.ReadStringU16( wsMainsHumVolume ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsWhiteNoiseVolume ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsGuassianNoiseBandwidth ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsGuassianNoiseTemperature ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsGuassianNoiseResistance ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsAbsoluteVolume ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsNormalizeVolume ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsLoudnessVolume ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsOutputHz ) ) { return false; }
+				if ( !_sbStream.ReadStringU16( wsOutputFolder ) ) { return false; }
+			
+				if ( !_sbStream.ReadUi32( ui32MainsHum ) ) { return false; }
+				if ( !_sbStream.ReadUi32( ui32WhiteNoise ) ) { return false; }
+				if ( !_sbStream.ReadUi32( ui32OutFormat ) ) { return false; }
+				if ( !_sbStream.ReadUi32( ui32OutBits ) ) { return false; }
+				if ( !_sbStream.ReadUi32( ui32Stereo ) ) { return false; }
+
+				if ( !_sbStream.ReadBool( bMainsHum ) ) { return false; }
+				if ( !_sbStream.ReadBool( bWhiteNoise ) ) { return false; }
+				if ( !_sbStream.ReadBool( bDither ) ) { return false; }
+				if ( !_sbStream.ReadBool( bAbsolute ) ) { return false; }
+				if ( !_sbStream.ReadBool( bNormalize ) ) { return false; }
+				if ( !_sbStream.ReadBool( bLoudness ) ) { return false; }
+				if ( !_sbStream.ReadBool( bNumbered ) ) { return false; }
+
+				uint32_t ui32Total = 0;
+				if ( !_sbStream.ReadUi32( ui32Total ) ) { return false; }
+				vPerFileOptions.resize( ui32Total );
+				for ( size_t I = 0; I < vPerFileOptions.size(); ++I ) {
+					if ( !vPerFileOptions[I].Load( _sbStream, _ui32Version ) ) { return false; }
+				}
+			}
+			catch ( ... ) { return false; }
+			return true;
+		}
 	};
 
 }	// namespace lsn
