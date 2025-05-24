@@ -1770,6 +1770,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Audio\LSNHpfFilter.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilterLeaky.h" />
+    <ClInclude Include="Src\Audio\LSNRfWhiteNoiseGenerator.h" />
     <ClInclude Include="Src\Audio\LSNSampleBox.h" />
     <ClInclude Include="Src\Audio\LSNSincFilter.h" />
     <ClInclude Include="Src\Audio\OpenAL\LSNOpenAl.h" />

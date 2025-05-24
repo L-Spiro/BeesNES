@@ -792,7 +792,7 @@ namespace lsn {
 		ofnOpenFile.lpstrInitialDir = m_wewoWindowOptions.wsLastProjectsFolder.c_str();
 	
 		std::u16string u16Path, u16FileName;
-		if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+		if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
 			m_wewoWindowOptions.wsLastProjectsFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 			auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
 			if ( !pPath.has_extension() ) {

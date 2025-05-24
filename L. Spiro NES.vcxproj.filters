@@ -939,6 +939,9 @@
     <ClInclude Include="Src\Utilities\LSNStreamBase.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNRfWhiteNoiseGenerator.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

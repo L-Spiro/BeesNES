@@ -218,6 +218,7 @@ namespace lsn {
 				if ( !ppfPerFile ) { return false; }
 				_wewoOptions.vPerFileOptions[I].wsMetaPath = ppfPerFile->wsMetaPath;
 				_wewoOptions.vPerFileOptions[I].vWavPaths.resize( 1 + ppfPerFile->vExtensions.size() );
+				_wewoOptions.vPerFileOptions[I].vWavInputPaths.resize( 1 + ppfPerFile->vExtensions.size() );
 				_wewoOptions.vPerFileOptions[I].vWavPaths[0] = ppfPerFile->wfFile.wsPath;
 				_wewoOptions.vPerFileOptions[I].vWavInputPaths[0] = ppfPerFile->wfFile.wsInputPath;
 				for ( size_t J = 0; J < ppfPerFile->vExtensions.size(); ++J ) {
@@ -415,7 +416,9 @@ namespace lsn {
 			}
 		}
 
-		double dLen = (_pfFile.dStopTime - _pfFile.dStartTime);
+		double dAdjustedStopTime = _pfFile.dStopTime / double( ui32FileSampleRate ) * _pfFile.dActualHz;
+
+		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
 		double dFadeStart = 0.0;
 		if ( _pfFile.bLoop ) {
 			dFadeStart = dLen + _pfFile.dDelayTime;
