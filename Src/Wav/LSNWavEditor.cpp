@@ -418,13 +418,15 @@ namespace lsn {
 
 		double dAdjustedStopTime = _pfFile.dStopTime / double( ui32FileSampleRate ) * _pfFile.dActualHz;
 
+		double dFileLen = (_pfFile.dStopTime - _pfFile.dStartTime);
 		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
 		double dFadeStart = 0.0;
 		if ( _pfFile.bLoop ) {
-			dFadeStart = dLen + _pfFile.dDelayTime;
+			dFadeStart = (dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dDelayTime;
+			dFileLen += (_pfFile.dDelayTime + _pfFile.dFadeTime) / double( ui32FileSampleRate ) * _pfFile.dActualHz;
 			dLen += _pfFile.dDelayTime + _pfFile.dFadeTime;
 		}
-		size_t sEndSample = size_t( std::round( dLen * ui32FileSampleRate ) );
+		size_t sEndSample = size_t( std::round( dFileLen * ui32FileSampleRate ) );
 		dLen += _pfFile.dOpeningSilence;
 		dFadeStart += _pfFile.dOpeningSilence;
 		//dLen += _pfFile.dTrailingSilence;
@@ -494,54 +496,7 @@ namespace lsn {
 						vThis[I] = pfLpf.Process( vThis[I] );
 					}
 				}
-				// Apply HPF 0.
-				if ( _pfFile.dHpf0 && vThis.size() ) {
-					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.dHpf0 ), float( _pfFile.dActualHz ) );
-					if ( hfHpf.Enabled() ) {
-						// Prime the HPF.
-						double dLeft = vThis[0];
-						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
-
-						// HPF is primed.
-						size_t sTotal = vThis.size();
-						for ( size_t I = 0; I < sTotal; ++I ) {
-							vThis[I] = hfHpf.Process( vThis[I] );
-						}
-					}
-				}
-				// Apply HPF 1.
-				if ( _pfFile.dHpf1 && vThis.size() ) {
-					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.dHpf1 ), float( _pfFile.dActualHz ) );
-					if ( hfHpf.Enabled() ) {
-						// Prime the HPF.
-						double dLeft = vThis[0];
-						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
-
-						// HPF is primed.
-						size_t sTotal = vThis.size();
-						for ( size_t I = 0; I < sTotal; ++I ) {
-							vThis[I] = hfHpf.Process( vThis[I] );
-						}
-					}
-				}
-				// Apply HPF 2.
-				if ( _pfFile.dHpf2 && vThis.size() ) {
-					CHpfFilter hfHpf;
-					hfHpf.CreateHpf( float( _pfFile.dHpf2 ), float( _pfFile.dActualHz ) );
-					if ( hfHpf.Enabled() ) {
-						// Prime the HPF.
-						double dLeft = vThis[0];
-						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
-
-						// HPF is primed.
-						size_t sTotal = vThis.size();
-						for ( size_t I = 0; I < sTotal; ++I ) {
-							vThis[I] = hfHpf.Process( vThis[I] );
-						}
-					}
-				}
+				
 
 				// Down-sample to OUT*4.
 				std::vector<double> vDownSampled;
@@ -596,7 +551,7 @@ namespace lsn {
 					CUtilities::ApplySincFilterInPlace<std::vector<double>, std::vector<double>>( vDownSampled, vSincFilter, vDownSampled[0], vDownSampled[vDownSampled.size()-1] );
 				}
 				
-				// Down-sample to OUT and apply opening and trailing silence.
+				// Down-sample to OUT.
 				if ( vDownSampled.size() ) {
 					size_t sSrcMax = vDownSampled.size();
 					size_t sNewSize = size_t( std::round( sSrcMax / double( sOutHz ) * _oOutput.ui32Hz ) );
@@ -612,6 +567,60 @@ namespace lsn {
 
 					sOutHz = _oOutput.ui32Hz;
 				}
+
+
+				// Apply HPF 0.
+				if ( _pfFile.dHpf0 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					//hfHpf.CreateHpf( float( _pfFile.dHpf0 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf0 ), float( sOutHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+				// Apply HPF 1.
+				if ( _pfFile.dHpf1 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					//hfHpf.CreateHpf( float( _pfFile.dHpf1 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf1 ), float( sOutHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+				// Apply HPF 2.
+				if ( _pfFile.dHpf2 && vThis.size() ) {
+					CHpfFilter hfHpf;
+					//hfHpf.CreateHpf( float( _pfFile.dHpf2 ), float( _pfFile.dActualHz ) );
+					hfHpf.CreateHpf( float( _pfFile.dHpf2 ), float( sOutHz ) );
+					if ( hfHpf.Enabled() ) {
+						// Prime the HPF.
+						double dLeft = vThis[0];
+						while ( std::fabs( hfHpf.Process( dLeft ) ) >= DBL_EPSILON ) {}
+
+						// HPF is primed.
+						size_t sTotal = vThis.size();
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							vThis[I] = hfHpf.Process( vThis[I] );
+						}
+					}
+				}
+
 
 				{
 					// Apply any fading.
