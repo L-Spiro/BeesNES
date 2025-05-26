@@ -50,6 +50,10 @@ namespace lsn {
 
 			/** The last text in Title. */
 			std::wstring											wsTitle = L"";
+			/** The last text in Title Prefix. */
+			std::wstring											wsTitlePreFix = L"";
+			/** The last text in Title Postfix. */
+			std::wstring											wsTitlePostFix = L"";
 			/** The last text in Actual Hz. */
 			std::wstring											wsActualHz = L"";
 			/** The last text in Characteristics/Volume. */
@@ -144,6 +148,8 @@ namespace lsn {
 				if ( !_sbStream.WriteStringU16( wsTrailingSilence ) ) { return false; }
 
 				if ( !_sbStream.WriteStringU16( wsTitle ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsTitlePreFix ) ) { return false; }
+				if ( !_sbStream.WriteStringU16( wsTitlePostFix ) ) { return false; }
 				if ( !_sbStream.WriteStringU16( wsActualHz ) ) { return false; }
 				if ( !_sbStream.WriteStringU16( wsCharVolume ) ) { return false; }
 				if ( !_sbStream.WriteStringU16( wsCharLpfHz ) ) { return false; }
@@ -187,7 +193,7 @@ namespace lsn {
 			 * \param _ui32Version The version of the file.
 			 * \return Returns true if the file format is expected and memory is able to be allocated for each string in the structure.
 			 **/
-			bool													Load( const CStreamBase &_sbStream, uint32_t /*_ui32Version*/ ) {
+			bool													Load( const CStreamBase &_sbStream, uint32_t _ui32Version ) {
 				try {
 					(*this) = LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE();
 
@@ -215,6 +221,10 @@ namespace lsn {
 					if ( !_sbStream.ReadStringU16( wsTrailingSilence ) ) { return false; }
 
 					if ( !_sbStream.ReadStringU16( wsTitle ) ) { return false; }
+					if ( _ui32Version >= 1 ) {
+						if ( !_sbStream.ReadStringU16( wsTitlePreFix ) ) { return false; }
+						if ( !_sbStream.ReadStringU16( wsTitlePostFix ) ) { return false; }
+					}
 					if ( !_sbStream.ReadStringU16( wsActualHz ) ) { return false; }
 					if ( !_sbStream.ReadStringU16( wsCharVolume ) ) { return false; }
 					if ( !_sbStream.ReadStringU16( wsCharLpfHz ) ) { return false; }

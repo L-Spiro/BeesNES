@@ -21,6 +21,9 @@
 #include <vector>
 
 
+#define LSN_WAV_EDITOR_VERSION											1
+
+
 namespace lsn {
 
 	/**
@@ -108,6 +111,8 @@ namespace lsn {
 			double														dFalloffHpf0 = 0.0;								/**< The HPF 1 fall-off. */
 			double														dFalloffHpf1 = 0.0;								/**< The HPF 2 fall-off. */
 			double														dFalloffHpf2 = 0.0;								/**< The HPF 3 fall-off. */
+			std::wstring												wsFilePrefix;									/**< The file name prefix. */
+			std::wstring												wsFilePostFix;									/**< The file name postfix. */
 			std::wstring												wsName;											/**< The name of the track. */
 			std::wstring												wsArtist;										/**< The artist of the track. */
 			std::wstring												wsAlbum;										/**< The album of the track. */
@@ -256,9 +261,10 @@ namespace lsn {
 		 * Adds a WAV file.  Automatically detects file sequences and metadata files.
 		 * 
 		 * \param _wsPath The path to the original WAV file to load.  Should be the start of a sequence.
+		 * \param _wsMetaPath Optional path to metadata.
 		 * \return Returns ID of the added file set or 0.
 		 **/
-		uint32_t														AddWavFileSet( const std::wstring &_wsPath );
+		uint32_t														AddWavFileSet( const std::wstring &_wsPath, const std::wstring &_wsMetaPath = L"" );
 
 		/**
 		 * Removes a WAV file or Metadata file by ID.
@@ -320,10 +326,18 @@ namespace lsn {
 		/**
 		 * Saves the file paths to the given structure in the order they are inside this class.
 		 * 
-		 * \param _wewoOptions The file to which to save the file paths.
+		 * \param _wewoOptions The structure to which to save the file paths.
 		 * \return Returns true if all the paths could be copied.  False always indicates a memory error.
 		 **/
 		bool															SaveToStruct( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
+
+		/**
+		 * Clears the current data and loads from a structure.
+		 * 
+		 * \param _wewoOptions The structure from which to load WAV/metadata files.
+		 * \return Returns true if all files could be loaded.
+		 **/
+		bool															LoadFromStruct( const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
 
 
 	protected :

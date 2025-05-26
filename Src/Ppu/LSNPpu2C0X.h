@@ -266,11 +266,6 @@ namespace lsn {
 			m_ui8VAddrUpdateCounter = 0xFF;
 			m_bVAddrPending = false;
 
-			/*m_bRendering = Rendering();
-			m_bShowBg = !!m_dvPpuMaskDelay.Value().s.ui8ShowBackground;
-			m_bShowSprites = !!m_dvPpuMaskDelay.Value().s.ui8ShowSprites;*/
-			//m_dvPpuMaskDelay.SetValue( m_pmPpuMask );
-
 			m_bSuppressNmi = false;
 			m_bUpdateVramAddr = false;
 		}
@@ -1273,7 +1268,7 @@ namespace lsn {
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left* /red/green bits). */
+		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left*, show*, red, green bits). */
 		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register (the rest of the bits). */
 		
 #ifndef LSN_INT_OAM_DECAY

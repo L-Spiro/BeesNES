@@ -90,6 +90,13 @@ namespace lsn {
 		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput );
 
 		/**
+		 * Fills out the page with saved values from a project.
+		 * 
+		 * \param _pfPerFileOptions The per-file settings to load.
+		 **/
+		void												Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions );
+
+		/**
 		 * Updates the dialog.
 		 **/
 		void												Update();

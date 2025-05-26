@@ -75,6 +75,13 @@ namespace lsn {
 		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions, CWavEditor::LSN_OUTPUT * _poOutput );
 
 		/**
+		 * Fills out the page with saved values from a project.
+		 * 
+		 * \param _pwewoPerFileOptions The output settings to load.
+		 **/
+		void												Load( LSN_WAV_EDITOR_WINDOW_OPTIONS &_pwewoPerFileOptions );
+
+		/**
 		 * Updates the dialog.
 		 **/
 		void												Update();

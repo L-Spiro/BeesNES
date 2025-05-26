@@ -282,6 +282,7 @@ namespace lsn {
 			}
 
 			case Layout::LSN_WEWI_LOAD : {
+				LoadProject();
 				break;
 			}
 			case Layout::LSN_WEWI_SAVE : {
@@ -320,10 +321,11 @@ namespace lsn {
 	 * Load a .WAV file via the Add .WAV Files button.
 	 * 
 	 * \param _wsPath The path to the WAV file to load.  Spliced WAV files and associated metadata are also automatically loaded.
+	 * \param _ui32Id The ID of the already-loaded file data.  If 0, the file will be added to the tree.
 	 * \return Returns true if all given files are valid (exist and of the appropriate type).
 	 **/
-	bool CWavEditorWindow::AddWavFiles( const std::wstring &_wsPath ) {
-		auto ui32Id = m_weEditor.AddWavFileSet( _wsPath );
+	bool CWavEditorWindow::AddWavFiles( const std::wstring &_wsPath, uint32_t _ui32Id ) {
+		auto ui32Id = _ui32Id == 0 ? m_weEditor.AddWavFileSet( _wsPath ) : _ui32Id;
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
 		if ( m_pwefFiles->AddToTree( ui32Id ) ) {
 			CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
@@ -822,7 +824,7 @@ namespace lsn {
 				return;
 			}
 			// Version.
-			if ( !sStream.WriteUi8( 0 ) ) {
+			if ( !sStream.WriteUi8( LSN_WAV_EDITOR_VERSION ) ) {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
@@ -902,22 +904,65 @@ namespace lsn {
 			}
 
 
-
-			uint32_t ui32Tmp;
-			if ( !sStream.ReadUi32( ui32Tmp ) ) {
+			if ( !sStream.ReadUi8( ui8Tmp ) ) {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
-			if ( ui32Tmp > 0 ) {
-				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+			if ( ui8Tmp > LSN_WAV_EDITOR_VERSION ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_UNSUPPORTED_VERSION ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
 
 			LSN_WAV_EDITOR_WINDOW_OPTIONS wewoLoadMe;
-			if ( !wewoLoadMe.Load( sStream, ui32Tmp ) ) {
+			if ( !wewoLoadMe.Load( sStream, ui8Tmp ) ) {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
+
+			// TODO: Try to fix paths.
+			if ( !m_weEditor.LoadFromStruct( wewoLoadMe ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_WE_FAILED_TO_LOAD_PROJECT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+
+			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
+				delete m_vSequencePages[I];
+				m_vSequencePages[I] = nullptr;
+			}
+			m_vSequencePages.resize( 1 );
+			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
+				delete m_vSettingsPages[I];
+				m_vSettingsPages[I] = nullptr;
+			}
+			m_vSettingsPages.resize( 1 );
+
+			// AddWavFiles
+			//for ( wewoLoadMe.vPerFileOptions
+			if ( !wewoLoadMe.vPerFileOptions.size() ) { return; }
+
+			for ( size_t I = 0; I < wewoLoadMe.vPerFileOptions.size(); ++I ) {
+				auto pwfsSet = m_weEditor.WavByIdx( I );
+				if ( !pwfsSet ) { return; }
+				uint32_t ui32Id = pwfsSet->ui32Id;
+				if ( wewoLoadMe.vPerFileOptions[I].vWavPaths.size() ) {
+					AddWavFiles( wewoLoadMe.vPerFileOptions[I].vWavPaths[0], ui32Id );
+					auto pwespSeqPage = SequencePageById( ui32Id );
+					auto pwespSetPage = SettingsPageById( ui32Id );
+					if ( pwespSeqPage ) {
+						pwespSeqPage->Load( wewoLoadMe.vPerFileOptions[I] );
+						pwespSeqPage->Update();
+					}
+					if ( pwespSetPage ) {
+						pwespSetPage->Load( wewoLoadMe.vPerFileOptions[I] );
+						pwespSetPage->Update();
+					}
+				}
+			}
+			if ( m_pweopOutput ) {
+				m_pweopOutput->Load( wewoLoadMe );
+			}
+			Update();
 		}
 #undef LSN_FILE_OPEN_FORMAT
 	}

@@ -75,9 +75,10 @@ namespace lsn {
 	 * Adds a WAV file.  Automatically detects file sequences and metadata files.
 	 * 
 	 * \param _wsPath The path to the original WAV file to load.  Should be the start of a sequence.
+	 * \param _wsMetaPath Optional path to metadata.
 	 * \return Returns ID of the added file set or 0.
 	 **/
-	uint32_t CWavEditor::AddWavFileSet( const std::wstring &_wsPath ) {
+	uint32_t CWavEditor::AddWavFileSet( const std::wstring &_wsPath, const std::wstring &_wsMetaPath ) {
 		try {
 			LSN_WAV_FILE_SET wfsSet;
 			if ( !CreateWavFile( _wsPath, wfsSet.wfFile ) ) { return 0; }
@@ -99,6 +100,9 @@ namespace lsn {
 			}
 			auto pMetaPath = pPath;
 			pMetaPath += ".txt";
+			if ( _wsMetaPath.size() ) {
+				pMetaPath = _wsMetaPath;
+			}
 			std::error_code ecErr;
 			if ( std::filesystem::exists( pMetaPath, ecErr ) ) {
 				wfsSet.wsMetaPath = pMetaPath.generic_wstring();
@@ -207,7 +211,7 @@ namespace lsn {
 	/**
 	 * Saves the file paths to the given structure in the order they are inside this class.
 	 * 
-	 * \param _wewoOptions The file to which to save the file paths.
+	 * \param _wewoOptions The structure to which to save the file paths.
 	 * \return Returns true if all the paths could be copied.  False always indicates a memory error.
 	 **/
 	bool CWavEditor::SaveToStruct( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
@@ -224,6 +228,45 @@ namespace lsn {
 				for ( size_t J = 0; J < ppfPerFile->vExtensions.size(); ++J ) {
 					_wewoOptions.vPerFileOptions[I].vWavPaths[J+1] = ppfPerFile->vExtensions[J].wsPath;
 					_wewoOptions.vPerFileOptions[I].vWavInputPaths[J+1] = ppfPerFile->vExtensions[J].wsInputPath;
+				}
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Clears the current data and loads from a structure.
+	 * 
+	 * \param _wewoOptions The structure from which to load WAV/metadata files.
+	 * \return Returns true if all files could be loaded.
+	 **/
+	bool CWavEditor::LoadFromStruct( const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions ) {
+		try {
+			m_vFileList.clear();
+			m_sPerFile.clear();
+			m_mFileMapping.clear();
+
+			for ( size_t I = 0; I < _wewoOptions.vPerFileOptions.size(); ++I ) {
+				if ( !_wewoOptions.vPerFileOptions[I].vWavPaths.size() ) { return true; }
+				if ( !_wewoOptions.vPerFileOptions[I].vWavInputPaths.size() ) { return true; }
+
+
+				uint32_t ui32Id = AddWavFileSet( _wewoOptions.vPerFileOptions[I].vWavInputPaths[0], _wewoOptions.vPerFileOptions[I].wsMetaPath );
+				if ( !ui32Id ) {
+					ui32Id = AddWavFileSet( _wewoOptions.vPerFileOptions[I].vWavPaths[0], _wewoOptions.vPerFileOptions[I].wsMetaPath );
+					if ( !ui32Id ) { return false; }
+				}
+				auto pwfsSet = WavById( ui32Id );
+				pwfsSet->wfFile.wsInputPath = _wewoOptions.vPerFileOptions[I].vWavInputPaths[0];
+
+				pwfsSet->vExtensions.resize( _wewoOptions.vPerFileOptions[I].vWavPaths.size() - 1 );
+				for ( size_t J = 0; J < pwfsSet->vExtensions.size(); ++J ) {
+					if ( !CreateWavFile( _wewoOptions.vPerFileOptions[I].vWavInputPaths[J+1], pwfsSet->vExtensions[J] ) ) {
+						if ( !CreateWavFile( _wewoOptions.vPerFileOptions[I].vWavPaths[J+1], pwfsSet->vExtensions[J] ) ) {
+							return false;
+						}
+					}
 				}
 			}
 			return true;
@@ -792,15 +835,16 @@ namespace lsn {
 
 		// Create a file path.
 		std::filesystem::path pPath( _oOutput.wsFolder );
+		std::wstring wsFileName = _pfFile.wsFilePrefix + _pfFile.wsName + _pfFile.wsFilePostFix + L".wav";
 		if ( _oOutput.bNumbered ) {
 			size_t sDigits = size_t( std::ceil( std::log10( _sTotal + 1 ) ) );
 			std::ostringstream ossTmp;
 			ossTmp << std::setw( sDigits ) << std::setfill( '0' ) << (_stIdx + 1) << " ";
 			pPath /= ossTmp.str();
-			pPath += (_pfFile.wsName + L".wav");
+			pPath += wsFileName;
 		}
 		else {
-			pPath /= (_pfFile.wsName + L".wav");
+			pPath /= wsFileName;
 		}
 
 		CWavFile wfFile;

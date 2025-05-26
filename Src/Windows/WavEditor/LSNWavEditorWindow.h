@@ -85,9 +85,10 @@ namespace lsn {
 		 * Load a .WAV file via the Add .WAV Files button.
 		 * 
 		 * \param _wsPath The path to the WAV file to load.  Spliced WAV files and associated metadata are also automatically loaded.
+		 * \param _ui32Id The ID of the already-loaded file data.  If 0, the file will be added to the tree.
 		 * \return Returns true if all given files are valid (exist and of the appropriate type).
 		 **/
-		virtual bool										AddWavFiles( const std::wstring &_wsPath );
+		virtual bool										AddWavFiles( const std::wstring &_wsPath, uint32_t _ui32Id = 0 );
 
 		/**
 		 * Removes files by unique ID.

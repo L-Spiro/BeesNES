@@ -347,6 +347,38 @@ namespace lsn {
 	}
 
 	/**
+	 * Fills out the page with saved values from a project.
+	 * 
+	 * \param _pfPerFileOptions The per-file settings to load.
+	 **/
+	void CWavEditorSequencingPage::Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions ) {
+		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStopTime.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStartTime.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsEndTime.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsPreFadeDur.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsFadeDur.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsOpeningSilence.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTrailingSilence.c_str() ); }
+
+
+		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLoop ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( !_pfPerFileOptions.bLoop ); }
+	}
+
+	/**
 	 * Updates the dialog.
 	 **/
 	void CWavEditorSequencingPage::Update() {

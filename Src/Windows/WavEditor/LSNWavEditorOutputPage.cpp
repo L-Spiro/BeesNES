@@ -295,6 +295,64 @@ namespace lsn {
 	}
 
 	/**
+	 * Fills out the page with saved values from a project.
+	 * 
+	 * \param _pwewoPerFileOptions The output settings to load.
+	 **/
+	void CWavEditorOutputPage::Load( LSN_WAV_EDITOR_WINDOW_OPTIONS &_pwewoPerFileOptions ) {
+		// Texts.
+		auto aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_VOL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsMainsHumVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_VOL_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsWhiteNoiseVolume.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsAbsoluteVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsNormalizeVolume.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsLoudnessVolume.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsOutputHz.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pwewoPerFileOptions.wsOutputFolder.c_str() ); }
+
+
+		// Checks.
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bMainsHum ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bWhiteNoise ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bDither ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bNumbered ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bAbsolute ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bNormalize ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pwewoPerFileOptions.bLoudness ); }
+
+
+		// Combos.
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MAINS_COMBO );
+		if ( aTmp ) { aTmp->SetCurSelByItemData( _pwewoPerFileOptions.ui32MainsHum ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_NOISE_COMBO );
+		if ( aTmp ) { aTmp->SetCurSelByItemData( _pwewoPerFileOptions.ui32WhiteNoise ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO );
+		if ( aTmp ) { aTmp->SetCurSelByItemData( _pwewoPerFileOptions.ui32OutBits ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO );
+		if ( aTmp ) { aTmp->SetCurSelByItemData( _pwewoPerFileOptions.ui32OutFormat ); }
+		aTmp = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO );
+		if ( aTmp ) { aTmp->SetCurSelByItemData( _pwewoPerFileOptions.ui32Stereo ); }
+	}
+
+	/**
 	 * Updates the dialog.
 	 **/
 	void CWavEditorOutputPage::Update() {
