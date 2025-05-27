@@ -419,6 +419,9 @@ namespace lsn {
 
 			uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
 			uint32_t ui32DataSize = CalcSize( static_cast<LSN_FORMAT>(fcChunk.uiAudioFormat), static_cast<uint32_t>(_vSamples[0].size()), static_cast<uint16_t>(_vSamples.size()), fcChunk.uiBitsPerSample );
+			if ( ui32DataSize & 1 ) {
+				++ui32DataSize;
+			}
 
 			uint32_t ui32Size = 4 +							// "WAVE".
 				uiFmtSize +									// "fmt " chunk.
@@ -442,9 +445,6 @@ namespace lsn {
 
 			// Append the "data" chunk.
 			LSN_PUSH32( LSN_C_DATA );
-			if ( ui32DataSize & 1 ) {
-				++ui32DataSize;
-			}
 			LSN_PUSH32( ui32DataSize );
 			switch ( fcChunk.uiAudioFormat ) {
 				case LSN_F_PCM : {

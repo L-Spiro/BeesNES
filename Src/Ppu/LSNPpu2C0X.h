@@ -1813,12 +1813,16 @@ namespace lsn {
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
 					if constexpr ( _tRegCode == LSN_PM_NTSC ) {
-						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 6);
-						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 7);
+						/*ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 6);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 7);*/
+						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8RedEmph << 6);
+						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8GreenEmph << 7);
 					}
 					else {
-						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 7);
-						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 6);
+						/*ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 7);
+						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 6);*/
+						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8RedEmph << 7);
+						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8GreenEmph << 6);
 					}
 					ui16Val |= (m_dvPpuMaskDelay.MostRecentValue().s.ui8BlueEmph << 8);
 
