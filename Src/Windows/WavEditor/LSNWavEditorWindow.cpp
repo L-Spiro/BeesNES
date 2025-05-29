@@ -1071,7 +1071,13 @@ namespace lsn {
 				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 				if ( ptlTree ) {
 					std::vector<LPARAM> vSelected;
-					if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
+					if ( ptlTree->GatherAllLParam( vSelected, true ) ) {
+						// Remove extra WAVS and metadata.
+						for ( auto I = vSelected.size(); I--; ) {
+							if ( (vSelected[I] & 0x80000000) ) {
+								vSelected.erase( vSelected.begin() + I );
+							}
+						}
 						std::vector<uint32_t> vU32;
 						vU32.reserve( vSelected.size() );
 
@@ -1137,7 +1143,13 @@ namespace lsn {
 				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 				if ( ptlTree ) {
 					std::vector<LPARAM> vSelected;
-					if ( ptlTree->GatherSelectedLParam( vSelected, true ) ) {
+					if ( ptlTree->GatherAllLParam( vSelected, true ) ) {
+						// Remove extra WAVS and metadata.
+						for ( auto I = vSelected.size(); I--; ) {
+							if ( (vSelected[I] & 0x80000000) ) {
+								vSelected.erase( vSelected.begin() + I );
+							}
+						}
 						std::vector<uint32_t> vU32;
 						vU32.reserve( vSelected.size() );
 

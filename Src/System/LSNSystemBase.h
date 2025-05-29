@@ -35,6 +35,7 @@ namespace lsn {
 			m_ui64AccumTime( 0 ),
 			m_ui64LastRealTime( 0 ),
 			m_ui64MasterCounter( 0 ),
+			m_ui64CurMasterCounter( 0 ),
 			m_bPaused( false ) {
 		}
 		virtual ~CSystemBase() {
@@ -130,6 +131,16 @@ namespace lsn {
 		 * \return Returns the master counter.
 		 */
 		inline uint64_t									GetMasterCounter() const { return m_ui64MasterCounter; }
+
+		/**
+		 * Gets the current master counter.  During a Tick(), the components are marched toward GetMasterCounter().  The Tick() doesn't end until all of the components have ticked up to GetMasterCounter().
+		 *	But during the Tick(), GetCurMasterCounter() provides the time of the last-updated component.  Typically only components access this, and it tells the component the actual time of its update.
+		 * 
+		 * \param PARM DESC
+		 * \param PARM DESC
+		 * \return If accessed by the currently updating component, the update time of that component is returned.  If accessed by the outside, the returned value represents the last time any component was updated.
+		 **/
+		inline uint64_t									GetCurMasterCounter() const { return m_ui64CurMasterCounter; }
 
 		/**
 		 * Gets the clock resolution.
@@ -279,6 +290,7 @@ namespace lsn {
 		uint64_t										m_ui64AccumTime;					/**< The master accumulated real time. */
 		uint64_t										m_ui64LastRealTime;					/**< The last real time value read from the clock. */
 		uint64_t										m_ui64MasterCounter;				/**< Keeps track of how many master virtual cycles have accumulated. */
+		uint64_t										m_ui64CurMasterCounter;				/**< The time of the last component's update, or the time of the current component being updated if accessed by the CPU, PPU, or APU. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
 		bool											m_bPaused;							/**< Pause flag. */

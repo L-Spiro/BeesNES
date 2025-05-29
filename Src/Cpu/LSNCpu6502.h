@@ -204,10 +204,10 @@ namespace lsn {
 			
 #ifdef LSN_CPU_VERIFY
 			m_fsState.bAllowWritingToPc = true;
-			m_bIsReset = false;
+			m_bIsReset = m_bBrkIsReset = false;
 #else
 			m_fsState.bAllowWritingToPc = false;
-			m_bIsReset = true;
+			m_bIsReset = m_bBrkIsReset = true;
 #endif	// #ifdef LSN_CPU_VERIFY
 
 			m_fsState.pfCurInstruction = m_iInstructionSet[m_fsState.ui16OpCode].pfHandler;
@@ -219,7 +219,7 @@ namespace lsn {
 		 * Sets m_bIsReset to true.
 		 **/
 		void												Reset() {
-			m_bIsReset = true;
+			m_bIsReset = m_bBrkIsReset = true;
 		}
 
 		/**
@@ -369,6 +369,7 @@ namespace lsn {
 		bool												m_bIrqStatusPhi1Flag = false;														/**< Set on Phi1 if m_bIrqSeenLowPhi2 was set. */
 		bool												m_bHandleIrq = false;																/**< Once the IRQ status line is detected as having triggered, this tells us to handle an IRQ on the next instruction. */
 		bool												m_bIsReset = true;																	/**< Are we resetting? */
+		bool												m_bBrkIsReset = true;																/**< Shadows m_bIsReset, but m_bIsReset gets unset in the middle of BRK, while this lasts the whole BRK. */
 		
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
 		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */

@@ -717,7 +717,8 @@ namespace lsn {
 	/** Final touches to BRK (copies m_fsState.ui16Address to m_fsState.rRegs.ui16Pc) and first cycle of the next instruction. */
 	void CCpu6502::Brk_BeginInst() {
 		BeginInst();
-
+		
+		m_bBrkIsReset = false;
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
 	}
 
@@ -1396,7 +1397,7 @@ namespace lsn {
 	/** Pushes PCh with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_H_Phi2() {
-		if LSN_UNLIKELY( m_bIsReset ) {
+		if LSN_UNLIKELY( m_bBrkIsReset ) {
 			uint8_t ui8Tmp;
 			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
 			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );
@@ -1413,7 +1414,7 @@ namespace lsn {
 	/** Pushes PCl with the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_Pc_L_Phi2() {
-		if LSN_UNLIKELY( m_bIsReset ) {
+		if LSN_UNLIKELY( m_bBrkIsReset ) {
 			uint8_t ui8Tmp;
 			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
 			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );
@@ -1430,7 +1431,7 @@ namespace lsn {
 	/** Pushes Status with or without B/X to the given S offset. */
 	template <int8_t _i8SOff>
 	void CCpu6502::Push_S_Phi2() {
-		if LSN_UNLIKELY( m_bIsReset ) {
+		if LSN_UNLIKELY( m_bBrkIsReset ) {
 			uint8_t ui8Tmp;
 			LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), ui8Tmp );
 			m_fsState.ui8SModify = uint8_t( -1L + _i8SOff );

@@ -134,6 +134,7 @@ namespace lsn {
 				m_ui64TickCount = 0;
 				m_ui64AccumTime = 0;
 				m_ui64MasterCounter = 0;
+				m_ui64CurMasterCounter = 0;
 				m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
 				m_hsSlots[LSN_PPU_SLOT].ui64Counter = (_tPpuDiv / 2) + _tPpuDiv;
 				m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
@@ -168,7 +169,7 @@ namespace lsn {
 				do {
 					phsSlot = nullptr;
 					uint64_t ui64Low = ~0ULL;
-#if 1
+
 					size_t sCheckedSlot;
 					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
 					// PPU slot.
@@ -194,58 +195,21 @@ namespace lsn {
 						//	0.68499566 cycles-per-tick.
 						// Switching to function pointers inside the CPU Tick() function brought it
 						//	down to 0.63103939.
+						m_ui64CurMasterCounter = m_hsSlots[LSN_APU_SLOT].ui64Counter;
 						(m_hsSlots[LSN_APU_SLOT].ptHw->*m_hsSlots[LSN_APU_SLOT].pfTick)();
 						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
 						//m_hsSlots[LSN_APU_SLOT].ptHw->Tick();
 						//(*m_hsSlots[LSN_APU_SLOT].pfTick)();
 					}
 					else if ( phsSlot != nullptr ) {
+						m_ui64CurMasterCounter = phsSlot->ui64Counter;
 						(phsSlot->ptHw->*phsSlot->pfTick)();
 						phsSlot->ui64Counter += phsSlot->ui64Inc;
 						m_sSlotsToCheck[sCheckedSlot] = phsSlot->sPartnerSlot;
 						//phsSlot->ptHw->Tick();
 					}
 					else { break; }
-#else
-					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
-					if ( m_hsSlots[LSN_CPU_SLOT].ui64Counter <= m_ui64MasterCounter /*&& m_hsSlots[LSN_CPU_SLOT].ui64Counter <= ui64Low*/ ) {
-						phsSlot = &m_hsSlots[LSN_CPU_SLOT];
-						ui64Low = phsSlot->ui64Counter;
-					}
-					if ( m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter <= ui64Low ) {
-						phsSlot = &m_hsSlots[LSN_CPU_PHI2_SLOT];
-						ui64Low = phsSlot->ui64Counter;
-					}
-					if ( m_hsSlots[LSN_PPU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_SLOT].ui64Counter < ui64Low ) {
-						phsSlot = &m_hsSlots[LSN_PPU_SLOT];
-						ui64Low = phsSlot->ui64Counter;
-					}
-#ifdef LSN_USE_PHI2
-					if ( m_hsSlots[LSN_PPU_PHI2_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_PPU_PHI2_SLOT].ui64Counter < ui64Low ) {
-						phsSlot = &m_hsSlots[LSN_PPU_PHI2_SLOT];
-						ui64Low = phsSlot->ui64Counter;
-					}
-#endif	// #ifdef LSN_USE_PHI2
-					if ( m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter && m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low ) {
-						// If we come in here then we know that the APU will be the one to tick.
-						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
-						//	as well as the pointer-access ("phsSlot").
-						// Testing showed this took the loop down from 0.71834220 cycles-per-tick to
-						//	0.68499566 cycles-per-tick.
-						// Switching to function pointers inside the CPU Tick() function brought it
-						//	down to 0.63103939.
-						(m_hsSlots[LSN_APU_SLOT].ptHw->*m_hsSlots[LSN_APU_SLOT].pfTick)();
-						m_hsSlots[LSN_APU_SLOT].ui64Counter += m_hsSlots[LSN_APU_SLOT].ui64Inc;
-						//m_hsSlots[LSN_APU_SLOT].ptHw->Tick();
-						//(*m_hsSlots[LSN_APU_SLOT].pfTick)();
-					}
-					else if ( phsSlot != nullptr ) {
-						(phsSlot->ptHw->*phsSlot->pfTick)();
-						phsSlot->ui64Counter += phsSlot->ui64Inc;
-						//phsSlot->ptHw->Tick();
-					}
-					else { break; }
-#endif
+
 				} while ( true );
 
 			}
