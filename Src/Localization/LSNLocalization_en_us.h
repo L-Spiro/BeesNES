@@ -282,6 +282,8 @@
 #define LSN_WE_DESC															Description
 #define LSN_WE_FILE_DATA													File Data
 #define LSN_WE_TRACK_TITLE													Track Title:
+#define LSN_WE_FILE_NAME_PREFIX												File Name Prefix:
+#define LSN_WE_FILE_NAME_POSTFIX											File Name Postfix:
 #define LSN_WE_ACTUAL_HZ													Actual Hz:
 #define LSN_WE_CHARACTERISTICS												Characteristics
 #define LSN_WE_PRESETS														Presets:

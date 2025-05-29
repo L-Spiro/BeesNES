@@ -50,7 +50,7 @@ namespace lsn {
 
 			/** The last text in Title. */
 			std::wstring											wsTitle = L"";
-			/** The last text in Title Prefix. */
+			/** The last text in File Name Prefix. */
 			std::wstring											wsTitlePreFix = L"";
 			/** The last text in Title Postfix. */
 			std::wstring											wsTitlePostFix = L"";

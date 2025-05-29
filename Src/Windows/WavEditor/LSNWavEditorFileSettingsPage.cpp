@@ -74,6 +74,13 @@ namespace lsn {
 			// Last texts.
 			//aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
 			//if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsTitle.c_str() ); }
+
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsTitlePreFix.c_str() ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT );
+			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsTitlePostFix.c_str() ); }
+			
+
 			aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
 			if ( aTmp ) { aTmp->SetTextW( m_pwewoOptions->vPerFileOptions[0].wsActualHz.c_str() ); }
 			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
@@ -158,6 +165,8 @@ namespace lsn {
 
 				// Edits.
 				static const WORD wTextIds[] = {
+					Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT,
+					Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT,
 					Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT,
 					Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT,
 					Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,
@@ -216,6 +225,8 @@ namespace lsn {
 				break;
 			}
 			case Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT : {}			LSN_FALLTHROUGH
+			case Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT : {}				LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT : {}				LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT : {}				LSN_FALLTHROUGH
@@ -285,8 +296,6 @@ namespace lsn {
 					if ( pcbCombo ) {
 						auto lpSel = pcbCombo->GetCurSelItemData();
 						if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
-							
-
 							auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
 							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
 
@@ -489,6 +498,9 @@ namespace lsn {
 		
 		ee::CExpEvalContainer::EE_RESULT eTest;
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_NAME_EDIT, _pfPerFileOptions.wsTitle );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_PREFIX_EDIT, _pfPerFileOptions.wsTitlePreFix );
+		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT, _pfPerFileOptions.wsTitlePostFix );
+
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_HZ_EDIT, _pfPerFileOptions.wsActualHz );
 		LSN_COMBO_VAL( LSN_WEWI_FSETS_FDATA_HZ_COMBO, _pfPerFileOptions.ui32ActualHz, uint32_t );
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_VOL_EDIT, _pfPerFileOptions.wsCharVolume );
@@ -524,6 +536,9 @@ namespace lsn {
 
 		if ( _ppfOutput ) {
 			LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_NAME_EDIT, _ppfOutput->wsName );
+			LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_PREFIX_EDIT, _ppfOutput->wsFilePrefix );
+			LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT, _ppfOutput->wsFilePostFix );
+
 			LPARAM lpHz = CWavEditor::LSN_AH_CUSTOM;
 			LSN_COMBO_VAL( LSN_WEWI_FSETS_FDATA_HZ_COMBO, lpHz, LPARAM );
 			switch ( lpHz ) {
@@ -614,6 +629,11 @@ namespace lsn {
 	void CWavEditorFileSettingsPage::Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions ) {
 		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitle.c_str() ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitlePreFix.c_str() ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT );
+		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitlePostFix.c_str() ); }
 
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsActualHz.c_str() ); }
@@ -834,6 +854,15 @@ namespace lsn {
 		if ( pwThis ) {
 			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT, vAffected ).c_str() );
 		}
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT, vAffected ).c_str() );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT );
+		if ( pwThis ) {
+			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT, vAffected ).c_str() );
+		}
+
 		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
 		if ( pwThis ) {
 			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT, vAffected ).c_str() );
@@ -951,7 +980,7 @@ namespace lsn {
 				ptlTree->GatherAllLParam( _vPages, true );
 				// Remove extra WAVS and metadata.
 				for ( auto I = _vPages.size(); I--; ) {
-					if ( (_vPages[I] & 0x80000000) || _vPages[I] == UniqueId() ) {
+					if ( (_vPages[I] & 0x80000000) || uint32_t( _vPages[I] ) == UniqueId() ) {
 						_vPages.erase( _vPages.begin() + I );
 					}
 				}
@@ -973,7 +1002,14 @@ namespace lsn {
 
 		m_bInternalUpdate = true;
 
-		auto pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
+		auto pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
+		if ( pwThis ) {
+			std::filesystem::path pPath = pwfsSet->wfFile.wsPath;
+			pPath = pPath.filename().replace_extension( "" );
+			pwThis->SetTextW( pPath.generic_wstring().c_str() );
+		}
+
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
 		if ( pwThis ) {
 			switch ( pwfsSet->wfFile.fcFormat.uiSampleRate ) {
 				case 1789773 : {

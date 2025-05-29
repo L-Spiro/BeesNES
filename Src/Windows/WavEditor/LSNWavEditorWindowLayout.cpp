@@ -59,7 +59,7 @@
 
 
 #define LSN_FSETS_FDATA_GROUP_T								(LSN_GROUP_TOP)
-#define LSN_FSETS_FDATA_GROUP_H								(LSN_GROUP_TOP + LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT + LSN_GROUP_BOTTOM)
+#define LSN_FSETS_FDATA_GROUP_H								(LSN_GROUP_TOP + ((LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) * 2) + LSN_DEF_COMBO_HEIGHT + LSN_GROUP_BOTTOM)
 
 #define LSN_FSETS_CHAR_GROUP_T								(LSN_FSETS_FDATA_GROUP_T + LSN_FSETS_FDATA_GROUP_H)
 #define LSN_FSETS_CHAR_GROUP_H								(LSN_GROUP_TOP + LSN_DEF_COMBO_HEIGHT + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 4) + LSN_GROUP_BOTTOM)
@@ -349,6 +349,72 @@ namespace lsn {
 			LSN_WEWI_SEQ,									// dwParentId
 		},
 
+		// Prefix/Postfix.
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_FSETS_FDATA_PREFIX_LABEL,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_OUTPUT_FORMAT_L( 0 ),						// iLeft
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),									// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_FILE_NAME_PREFIX ),			// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_FSETS_FDATA_PREFIX_EDIT,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_OUTPUT_FORMAT_L( 0 ) + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																											// iLeft
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),																							// iTop
+			LSN_OUTPUT_FORMAT_W( 0 ) - LSN_SEQUE_LABEL_0_W - LSN_LEFT_JUST,																											// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_WEWI_FSETS_FDATA_POSTFIX_LABEL,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_OUTPUT_FORMAT_L( 1 ),						// iLeft
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),									// iTop
+			LSN_SEQUE_LABEL_0_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_FILE_NAME_POSTFIX ),			// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_OUTPUT_FORMAT_L( 1 ) + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																											// iLeft
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),																							// iTop
+			LSN_OUTPUT_FORMAT_W( 1 ) - LSN_SEQUE_LABEL_0_W - LSN_LEFT_JUST,																											// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE,									// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+		},
+
 		// Actual Hz.
 		{
 			LSW_LT_LABEL,									// ltType
@@ -357,7 +423,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT,				// iLeft
-			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),									// iTop
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + ((LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),							// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
@@ -373,7 +439,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																								// iLeft
-			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT),																							// iTop
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + ((LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 2),																					// iTop
 			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_COMBO_HEIGHT,							// dwHeight
 			LSN_COMBOSTYLE_LIST,							// dwStyle
@@ -389,7 +455,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,														// iLeft
-			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),									// iTop
+			LSN_FSETS_FDATA_GROUP_T + LSN_GROUP_TOP + ((LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),									// iTop
 			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle

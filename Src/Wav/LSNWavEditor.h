@@ -274,18 +274,12 @@ namespace lsn {
 		void															RemoveFile( uint32_t _ui32Id );
 
 		/**
-		 * Moves items up 1 based on their unique ID's.
+		 * Sets the order of the WAV files by ID.
 		 * 
-		 * \param _vItems The items to move up one.
+		 * \param _vOrder An array of valid ID's in the order to be set internally.
+		 * \return Returns true if every unique ID is in the given vector and all ID's are valid and part of this CWavEditor instance.
 		 **/
-		void															MoveUp( const std::vector<LPARAM> &_vItems );
-
-		/**
-		 * Moves items down 1 based on their unique ID's.
-		 * 
-		 * \param _vItems The items to move down one.
-		 **/
-		void															MoveDown( const std::vector<LPARAM> &_vItems );
+		bool															Order( const std::vector<uint32_t> &_vOrder );
 
 		/**
 		 * Sets the parameters for conversion.
@@ -364,22 +358,6 @@ namespace lsn {
 		 * \return Returns false if the file does not exist or could not be accessed or is not a WAV file.
 		 **/
 		bool															CreateWavFile( const std::wstring &_wsPath, LSN_WAV_FILE &_wfData );
-
-		/**
-		 * Moves up 1 any selected children in the given WAV set.
-		 * 
-		 * \param _wfsSet The WAV set to modify.
-		 * \param _sItems The list of children to move up by 1.
-		 **/
-		void															MoveUp( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
-
-		/**
-		 * Moves down 1 any selected children in the given WAV set.
-		 * 
-		 * \param _wfsSet The WAV set to modify.
-		 * \param _sItems The list of children to move down by 1.
-		 **/
-		void															MoveDown( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems );
 
 		/**
 		 * Loads and parses a metadata file.

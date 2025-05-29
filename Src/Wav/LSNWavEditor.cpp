@@ -155,57 +155,33 @@ namespace lsn {
 	}
 
 	/**
-	 * Moves items up 1 based on their unique ID's.
+	 * Sets the order of the WAV files by ID.
 	 * 
-	 * \param _vItems The items to move up one.
+	 * \param _vOrder An array of valid ID's in the order to be set internally.
+	 * \return Returns true if every unique ID is in the given vector and all ID's are valid and part of this CWavEditor instance.
 	 **/
-	void CWavEditor::MoveUp( const std::vector<LPARAM> &_vItems ) {
-		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
+	bool CWavEditor::Order( const std::vector<uint32_t> &_vOrder ) {
+		try {
+			if ( _vOrder.size() != m_vFileList.size() ) { return false; }
+			// Correct number of entries.
 
-		int64_t i64Idx = -2;
-		int64_t i64ThisIdx = 0;
-		for ( size_t I = 0; I < m_vFileList.size(); ++I ) {
-			auto ptThis = WavByIdx( I );
-			if ( ptThis ) {
-				MoveUp( (*ptThis), sSet );
-				if ( std::find( sSet.begin(), sSet.end(), ptThis->ui32Id ) != sSet.end() ) {
-					// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
-					if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
-						std::swap( m_vFileList[I], m_vFileList[I-1] );
-					}
-					i64Idx = i64ThisIdx;
-				}
-
-				++i64ThisIdx;
+			{
+				auto sSet = std::set<uint32_t>( _vOrder.begin(), _vOrder.end() );
+				if ( _vOrder.size() != sSet.size() ) { return false; }
+				// No duplicates.
 			}
-		}
-	}
 
-	/**
-	 * Moves items down 1 based on their unique ID's.
-	 * 
-	 * \param _vItems The items to move down one.
-	 **/
-	void CWavEditor::MoveDown( const std::vector<LPARAM> &_vItems ) {
-		auto sSet = std::set<LPARAM>( _vItems.begin(), _vItems.end() );
-
-		int64_t i64Idx = -2;
-		int64_t i64ThisIdx = 0;
-		for ( auto I = m_vFileList.size(); I--; ) {
-			auto ptThis = WavByIdx( I );
-			if ( ptThis ) {
-				MoveDown( (*ptThis), sSet );
-				if ( std::find( sSet.begin(), sSet.end(), ptThis->ui32Id ) != sSet.end() ) {
-					// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
-					if ( I != m_vFileList.size() - 1 && i64ThisIdx - i64Idx > 1 ) {
-						std::swap( m_vFileList[I], m_vFileList[I+1] );
-					}
-					i64Idx = i64ThisIdx;
-				}
-
-				++i64ThisIdx;
+			// Check each ID for being valid.
+			for ( auto & I : _vOrder ) {
+				auto pwfsSet = WavById( I );
+				if ( !pwfsSet ) { return false; }
 			}
+
+			// Correct nummber of entries, no duplicate entries, and all entry is valid.
+			m_vFileList = _vOrder;
+			return true;
 		}
+		catch ( ... ) { return false; }
 	}
 
 	/**
@@ -297,52 +273,6 @@ namespace lsn {
 			return true;
 		}
 		catch ( ... ) { return false; }
-	}
-
-	/**
-	 * Moves up 1 any selected children in the given WAV set.
-	 * 
-	 * \param _wfsSet The WAV set to modify.
-	 * \param _sItems The list of children to move up by 1.
-	 **/
-	void CWavEditor::MoveUp( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems ) {
-		int64_t i64Idx = -2;
-		int64_t i64ThisIdx = 0;
-		for ( size_t I = 0; I < _wfsSet.vExtensions.size(); ++I ) {
-			
-			uint32_t ui32ThisId = uint32_t( (_wfsSet.ui32Id & 0xFFFF) | (I << 16) | 0x80000000 );
-			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
-				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
-				if ( I != 0 && i64ThisIdx - i64Idx > 1 ) {
-					_wfsSet.vExtensions[I].swap( _wfsSet.vExtensions[I-1] );
-				}
-				i64Idx = i64ThisIdx;
-			}
-
-			++i64ThisIdx;
-		}
-	}
-
-	/**
-	 * Moves down 1 any selected children in the given WAV set.
-	 * 
-	 * \param _wfsSet The WAV set to modify.
-	 * \param _sItems The list of children to move down by 1.
-	 **/
-	void CWavEditor::MoveDown( LSN_WAV_FILE_SET &_wfsSet, const std::set<LPARAM> &_sItems ) {
-		int64_t i64Idx = -2;
-		int64_t i64ThisIdx = 0;
-		for ( size_t I = _wfsSet.vExtensions.size(); I--; ) {
-			uint32_t ui32ThisId = uint32_t( (_wfsSet.ui32Id & 0xFFFF) | (I << 16) | 0x80000000 );
-			if ( std::find( _sItems.begin(), _sItems.end(), ui32ThisId ) != _sItems.end() ) {
-				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canft be moved.
-				if ( I != _wfsSet.vExtensions.size() -1 && i64ThisIdx - i64Idx > 1 ) {
-					_wfsSet.vExtensions[I].swap( _wfsSet.vExtensions[I+1] );
-				}
-				i64Idx = i64ThisIdx;
-			}
-			++i64ThisIdx;
-		}
 	}
 
 	/**
