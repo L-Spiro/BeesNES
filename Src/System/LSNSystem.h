@@ -266,6 +266,27 @@ namespace lsn {
 		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.FrameCount(); }
 
 		/**
+		 * Gets the current counter for the CPU.
+		 * 
+		 * \return Returns the CPU's current counter.
+		 **/
+		virtual uint64_t								GetCpuCounter() const { return m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter; }
+
+		/**
+		 * Gets the current counter for the APU.
+		 * 
+		 * \return Returns the APU's current counter.
+		 **/
+		virtual uint64_t								GetApuCounter() const { return m_hsSlots[LSN_APU_SLOT].ui64Counter; }
+
+		/**
+		 * Gets the current counter for the PPU.
+		 * 
+		 * \return Returns the PPU's current counter.
+		 **/
+		virtual uint64_t								GetPpuCounter() const { return m_hsSlots[LSN_PPU_SLOT].ui64Counter; }
+
+		/**
 		 * Loads a ROM image.
 		 *
 		 * \param _vRom The ROM image to load.

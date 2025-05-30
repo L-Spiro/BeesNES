@@ -143,6 +143,27 @@ namespace lsn {
 		inline uint64_t									GetCurMasterCounter() const { return m_ui64CurMasterCounter; }
 
 		/**
+		 * Gets the current counter for the CPU.
+		 * 
+		 * \return Returns the CPU's current counter.
+		 **/
+		virtual uint64_t								GetCpuCounter() const { return 0; }
+
+		/**
+		 * Gets the current counter for the APU.
+		 * 
+		 * \return Returns the APU's current counter.
+		 **/
+		virtual uint64_t								GetApuCounter() const { return 0; }
+
+		/**
+		 * Gets the current counter for the PPU.
+		 * 
+		 * \return Returns the PPU's current counter.
+		 **/
+		virtual uint64_t								GetPpuCounter() const { return 0; }
+
+		/**
 		 * Gets the clock resolution.
 		 *
 		 * \return Returns the clock resolution.

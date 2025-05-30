@@ -80,6 +80,16 @@ namespace lsn {
 			LSN_PC_SXROM,
 			LSN_PC_SZROM,
 
+			LSN_PC_VRC2a,
+			LSN_PC_VRC2b,
+			LSN_PC_VRC2c,
+
+			LSN_PC_VRC4a,
+			LSN_PC_VRC4b,
+			LSN_PC_VRC4c,
+			LSN_PC_VRC4d,
+			LSN_PC_VRC4e,
+			LSN_PC_VRC4f,
 		};
 
 
