@@ -82,7 +82,7 @@ namespace lsn {
 		try {
 			LSN_WAV_FILE_SET wfsSet;
 			if ( !CreateWavFile( _wsPath, wfsSet.wfFile ) ) { return 0; }
-
+			wfsSet.ui64FullSampleCnt += wfsSet.wfFile.ui64Samples;
 			std::filesystem::path pPath = std::filesystem::absolute( std::filesystem::path( _wsPath ) );
 			auto aFileName = pPath.filename().replace_extension( "" );
 			for ( size_t I = 1; true; ++I ) {
@@ -95,6 +95,7 @@ namespace lsn {
 					LSN_WAV_FILE wfThis;
 					if ( !CreateWavFile( pFinalNewPath.generic_wstring(), wfThis ) ) { return 0; }
 					wfsSet.vExtensions.push_back( wfThis );
+					wfsSet.ui64FullSampleCnt += wfThis.ui64Samples;
 				}
 				else { break; }
 			}
@@ -330,7 +331,21 @@ namespace lsn {
 		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
 		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
-		int64_t i64EndSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dEndTime ) );
+
+		double dAdjustedStopTime = _pfFile.dStopTime / double( _wfsSet.wfFile.fcFormat.uiSampleRate ) * _pfFile.dActualHz;
+
+		double dFileLen = (_pfFile.dStopTime - _pfFile.dStartTime);
+		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
+		double dFadeStart = 0.0;
+		if ( _pfFile.bLoop ) {
+			dFadeStart = (dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dDelayTime;
+			dFileLen += (_pfFile.dDelayTime + _pfFile.dFadeTime) / double( _wfsSet.wfFile.fcFormat.uiSampleRate ) * _pfFile.dActualHz;
+			dLen += _pfFile.dDelayTime + _pfFile.dFadeTime;
+		}
+		size_t sEndSample = size_t( std::round( dFileLen * _wfsSet.wfFile.fcFormat.uiSampleRate ) );
+
+		//int64_t i64EndSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dEndTime ) );
+		int64_t i64EndSample = int64_t( sEndSample );
 		std::vector<large_vec> vSamples;
 		for ( size_t I = 0; I < _wfsSet.wfFile.fcFormat.uiNumChannels; ++I ) {
 			try {
@@ -389,27 +404,12 @@ namespace lsn {
 			}
 		}
 
-		double dAdjustedStopTime = _pfFile.dStopTime / double( ui32FileSampleRate ) * _pfFile.dActualHz;
-
-		double dFileLen = (_pfFile.dStopTime - _pfFile.dStartTime);
-		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
-		double dFadeStart = 0.0;
-		if ( _pfFile.bLoop ) {
-			dFadeStart = (dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dDelayTime;
-			dFileLen += (_pfFile.dDelayTime + _pfFile.dFadeTime) / double( ui32FileSampleRate ) * _pfFile.dActualHz;
-			dLen += _pfFile.dDelayTime + _pfFile.dFadeTime;
-		}
-		size_t sEndSample = size_t( std::round( dFileLen * ui32FileSampleRate ) );
 		dLen += _pfFile.dOpeningSilence;
 		dFadeStart += _pfFile.dOpeningSilence;
-		//dLen += _pfFile.dTrailingSilence;
-		
 
-		//std::vector<std::vector<double>> vFinalTracks;
-		//vFinalTracks.resize( vSamples.size() );
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
-			vSamples[J].resize( sEndSample );
+			vSamples[J].resize( size_t( sEndSample ) );
 			// Apply anti-aliasing.
 			large_vec & vThis = vSamples[J];
 			try {
@@ -484,12 +484,12 @@ namespace lsn {
 					for ( size_t I = 0; I < sNewSize; ++I ) {
 						double dSample = I / double( sOutHz ) * _pfFile.dActualHz;
 						int64_t i64Idx = int64_t( std::floor( dSample ) );
-						dSampleMe[0] = (i64Idx - 2) < 0 ? dLeft : vThis[(i64Idx-2)];
-						dSampleMe[1] = (i64Idx - 1) < 0 ? dLeft : vThis[(i64Idx-1)];
-						dSampleMe[2] = (i64Idx + 0) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+0)];
-						dSampleMe[3] = (i64Idx + 1) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+1)];
-						dSampleMe[4] = (i64Idx + 2) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+2)];
-						dSampleMe[5] = (i64Idx + 3) >= int64_t( sSrcMax ) ? dRight : vThis[(i64Idx+3)];
+						dSampleMe[0] = (i64Idx - 2) < 0 ? dLeft : vThis[size_t(i64Idx-2)];
+						dSampleMe[1] = (i64Idx - 1) < 0 ? dLeft : vThis[size_t(i64Idx-1)];
+						dSampleMe[2] = (i64Idx + 0) >= int64_t( sSrcMax ) ? dRight : vThis[size_t(i64Idx+0)];
+						dSampleMe[3] = (i64Idx + 1) >= int64_t( sSrcMax ) ? dRight : vThis[size_t(i64Idx+1)];
+						dSampleMe[4] = (i64Idx + 2) >= int64_t( sSrcMax ) ? dRight : vThis[size_t(i64Idx+2)];
+						dSampleMe[5] = (i64Idx + 3) >= int64_t( sSrcMax ) ? dRight : vThis[size_t(i64Idx+3)];
 						vDownSampled[I] = CAudio::Sample_6Point_5thOrder_Hermite_X( dSampleMe, dSample - double( i64Idx ) );
 					}
 				}

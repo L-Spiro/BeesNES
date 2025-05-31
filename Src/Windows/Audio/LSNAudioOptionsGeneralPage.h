@@ -515,7 +515,7 @@ namespace lsn {
 				auto lpCode = pcbCombo->GetCurSelItemData();
 				auto sfFormat = static_cast<LSN_SAMPLE_FORMAT>((lpCode >> 24) & 0x0F);
 				
-				if ( sfFormat < LSN_AUDIO_OPTIONS::FormatTotal() && LSN_AUDIO_OPTIONS::s_afFormats[sfFormat].ui16BitsPerChannel == 16 ) {
+				if ( size_t( sfFormat ) < LSN_AUDIO_OPTIONS::FormatTotal() && LSN_AUDIO_OPTIONS::s_afFormats[sfFormat].ui16BitsPerChannel == 16 ) {
 					bDitherEnabled = true;
 				}
 			}

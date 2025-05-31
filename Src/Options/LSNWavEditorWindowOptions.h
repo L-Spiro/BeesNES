@@ -85,10 +85,15 @@ namespace lsn {
 			/** The last text in Comment. */
 			std::wstring											wsComment = L"Created with BeesNES";
 
+			/** The last Start Time combo selection. */
+			int32_t													i32StartSelection = 0;
+			/** The last End Time combo selection. */
+			int32_t													i32EndSelection = -1;
 			/** The last Actual Hz combo selection. */
 			uint32_t												ui32ActualHz = uint32_t( -LSN_PM_NTSC );
 			/** The last Preset combo selection. */
 			uint32_t												ui32CharPreset = uint32_t( -1 );
+			
 
 			/** The last LPF Type combo selection. */
 			uint8_t													ui8LpfType = uint8_t( 0 );
@@ -167,6 +172,9 @@ namespace lsn {
 				if ( !_sbStream.WriteStringU16( wsYear ) ) { return false; }
 				if ( !_sbStream.WriteStringU16( wsComment ) ) { return false; }
 
+				if ( !_sbStream.WriteI32( i32StartSelection ) ) { return false; }
+				if ( !_sbStream.WriteI32( i32EndSelection ) ) { return false; }
+
 				if ( !_sbStream.WriteUi32( ui32ActualHz ) ) { return false; }
 				if ( !_sbStream.WriteUi32( ui32CharPreset ) ) { return false; }
 
@@ -241,6 +249,11 @@ namespace lsn {
 					if ( !_sbStream.ReadStringU16( wsAlbum ) ) { return false; }
 					if ( !_sbStream.ReadStringU16( wsYear ) ) { return false; }
 					if ( !_sbStream.ReadStringU16( wsComment ) ) { return false; }
+
+					if ( _ui32Version >= 2 ) {
+						if ( !_sbStream.ReadI32( i32StartSelection ) ) { return false; }
+						if ( !_sbStream.ReadI32( i32EndSelection ) ) { return false; }
+					}
 
 					if ( !_sbStream.ReadUi32( ui32ActualHz ) ) { return false; }
 					if ( !_sbStream.ReadUi32( ui32CharPreset ) ) { return false; }

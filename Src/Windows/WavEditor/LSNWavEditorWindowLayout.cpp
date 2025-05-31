@@ -1286,54 +1286,54 @@ namespace lsn {
 		},
 
 		// End Time.
-		{
-			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_END_LABEL,							// wId
-			nullptr,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_INNER_GROUP_L + LSN_GROUP_LEFT,				// iLeft
-			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
-			LSN_SEQUE_LABEL_0_W,							// dwWidth
-			LSN_DEF_STATIC_HEIGHT,							// dwHeight
-			LSN_STATICSTYLE,								// dwStyle
-			0,												// dwStyleEx
-			LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
-			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
-		},
-		{
-			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_SEQ_END_COMBO,							// wId
-			WC_COMBOBOXW,									// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																							// iLeft
-			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
-			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
-			LSN_DEF_COMBO_HEIGHT,							// dwHeight
-			LSN_COMBOSTYLE_LIST,							// dwStyle
-			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
-			nullptr,										// pwcText
-			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
-		},
-		{
-			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_END_EDIT,							// wId
-			nullptr,										// lpwcClass
-			TRUE,											// bEnabled
-			FALSE,											// bActive
-			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,				// iLeft
-			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
-			LSN_DEF_EDIT_HEIGHT,							// dwHeight
-			LSN_EDITSTYLE,									// dwStyle
-			WS_EX_CLIENTEDGE,								// dwStyleEx
-			nullptr,										// pwcText
-			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
-		},
+		//{
+		//	LSW_LT_LABEL,									// ltType
+		//	LSN_WEWI_SEQ_END_LABEL,							// wId
+		//	nullptr,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_INNER_GROUP_L + LSN_GROUP_LEFT,				// iLeft
+		//	LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_STATIC_HEIGHT) >> 1),								// iTop
+		//	LSN_SEQUE_LABEL_0_W,							// dwWidth
+		//	LSN_DEF_STATIC_HEIGHT,							// dwHeight
+		//	LSN_STATICSTYLE,								// dwStyle
+		//	0,												// dwStyleEx
+		//	LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
+		//	0,												// sTextLen
+		//	LSN_WEWI_SEQ,									// dwParentId
+		//},
+		//{
+		//	LSW_LT_COMBOBOX,								// ltType
+		//	LSN_WEWI_SEQ_END_COMBO,							// wId
+		//	WC_COMBOBOXW,									// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																							// iLeft
+		//	LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
+		//	LSN_SEQUE_TIME_EDIT_0,							// dwWidth
+		//	LSN_DEF_COMBO_HEIGHT,							// dwHeight
+		//	LSN_COMBOSTYLE_LIST,							// dwStyle
+		//	LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
+		//	nullptr,										// pwcText
+		//	0,												// sTextLen
+		//	LSN_WEWI_SEQ,									// dwParentId
+		//},
+		//{
+		//	LSW_LT_EDIT,									// ltType
+		//	LSN_WEWI_SEQ_END_EDIT,							// wId
+		//	nullptr,										// lpwcClass
+		//	TRUE,											// bEnabled
+		//	FALSE,											// bActive
+		//	LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST + LSN_SEQUE_TIME_EDIT_0 + LSN_LEFT_JUST,				// iLeft
+		//	LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT),																						// iTop
+		//	LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+		//	LSN_DEF_EDIT_HEIGHT,							// dwHeight
+		//	LSN_EDITSTYLE,									// dwStyle
+		//	WS_EX_CLIENTEDGE,								// dwStyleEx
+		//	nullptr,										// pwcText
+		//	0,												// sTextLen
+		//	LSN_WEWI_SEQ,									// dwParentId
+		//},
 
 		// Looping.
 		{

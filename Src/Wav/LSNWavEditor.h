@@ -21,7 +21,7 @@
 #include <vector>
 
 
-#define LSN_WAV_EDITOR_VERSION											1
+#define LSN_WAV_EDITOR_VERSION											2
 
 
 namespace lsn {
@@ -95,7 +95,7 @@ namespace lsn {
 		/** Per-file data. */
 		struct LSN_PER_FILE {
 			double														dStartTime = 0.0;								/**< The starting point in the file.  Used for clipping and the start of the music. */
-			double														dEndTime = 0.0;									/**< The ending point in the file.  Used for clipping the source WAV. */
+			//double														dEndTime = 0.0;									/**< The ending point in the file.  Used for clipping the source WAV. */
 			double														dStopTime = 0.0;								/**< Time for when to stop the music. */
 			double														dDelayTime = 0.0;								/**< How long to continue before fading out. */
 			double														dFadeTime = 0.0;								/**< The fade duration. */
@@ -233,12 +233,14 @@ namespace lsn {
 			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
 			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
 			std::vector<LSN_METADATA>									vMetadata;										/**< Associated metadata. */
+			uint64_t													ui64FullSampleCnt = 0;							/**< The total samples across all loaded files. */
 			uint32_t													ui32Id = 0;										/**< The unique ID assigned to this set. */
 
 
 			// == Operators.
 			LSN_WAV_FILE_SET &											operator = ( LSN_WAV_FILE_SET &&_wfsOther ) noexcept {
 				ui32Id = _wfsOther.ui32Id;
+				ui64FullSampleCnt = _wfsOther.ui64FullSampleCnt;
 				wfFile = std::move( _wfsOther.wfFile );
 				vExtensions = std::move( _wfsOther.vExtensions );
 				wsMetaPath = std::move( _wfsOther.wsMetaPath );
