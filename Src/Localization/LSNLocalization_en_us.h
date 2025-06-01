@@ -220,6 +220,13 @@
 #define LSN_AUDIO_OPTIONS_METADATA_DMC										DMC ($4010-$4013)
 #define LSN_AUDIO_OPTIONS_METADATA_STATUS									Status ($4015)
 #define LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER							Frame Counter ($4017)
+
+#define LSN_AUDIO_OPTIONS_METADATA_PULSE1_ON_OFF							Pulse 1 On/Off
+#define LSN_AUDIO_OPTIONS_METADATA_PULSE2_ON_OFF							Pulse 2 On/Off
+#define LSN_AUDIO_OPTIONS_METADATA_TRIANGLE_ON_OFF							Triangle On/Off
+#define LSN_AUDIO_OPTIONS_METADATA_NOISE_ON_OFF								Noise On/Off
+#define LSN_AUDIO_OPTIONS_METADATA_DMC_SET									DMC Written
+
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
 #define LSN_AUDIO_OPTIONS_ERR_SAME_PATHS									Cannot output 2 streams to the same path at once.
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND							The selected starting condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C2\u201D, \u201C56.2\u201D, \u201C360.0f\u201D, etc.) or as equations (\u201C2*60+13.5\u201D, \u201Cpow( 10, 6 / 20.0 )\u201D, etc.)

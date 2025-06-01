@@ -379,7 +379,7 @@ namespace lsn {
 				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
 			}
 			for ( auto I = LSN_ELEMENTS( m_psbSystems ); I--; ) {
-				if ( I != m_pmSystem ) {
+				if ( I != size_t( m_pmSystem ) ) {
 					m_psbSystems[I]->SetAsInactive();
 				}
 			}

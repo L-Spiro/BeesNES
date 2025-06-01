@@ -140,6 +140,15 @@ namespace lsn {
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK ));
 		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsOutCapture.ui64MetaParm & LSN_RF_FRAME_COUNTER ); }
 
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK ));
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.ui64MetaParm & LSN_RF_PULSE1_ON_OFF ); }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK ));
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.ui64MetaParm & LSN_RF_PULSE2_ON_OFF ); }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK ));
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.ui64MetaParm & LSN_RF_TRIANGKE_ON_OFF ); }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK ));
+		if ( pcbCheck ) { pcbCheck->SetCheck( m_poOptions->stfStreamOptionsRaw.ui64MetaParm & LSN_RF_NOISE_ON_OFF ); }
+
 		Update();
 		return LSW_H_CONTINUE;
 	}
@@ -214,6 +223,11 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 						};
 						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
@@ -224,7 +238,7 @@ namespace lsn {
 				}
 				break;
 			}
-			case Layout::LSN_AOWI_PAGE_OUT_META_ALL_CHECK : {
+			/*case Layout::LSN_AOWI_PAGE_OUT_META_ALL_CHECK : {
 				switch ( _wCtrlCode ) {
 					case STN_CLICKED : {
 						WORD wCheckMe[] = {
@@ -244,7 +258,7 @@ namespace lsn {
 					}
 				}
 				break;
-			}
+			}*/
 
 			case Layout::LSN_AOWI_PAGE_RAW_META_NONE_CHECK : {
 				switch ( _wCtrlCode ) {
@@ -257,6 +271,11 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
+							Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 						};
 						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
@@ -267,7 +286,7 @@ namespace lsn {
 				}
 				break;
 			}
-			case Layout::LSN_AOWI_PAGE_OUT_META_NONE_CHECK : {
+			/*case Layout::LSN_AOWI_PAGE_OUT_META_NONE_CHECK : {
 				switch ( _wCtrlCode ) {
 					case STN_CLICKED : {
 						WORD wCheckMe[] = {
@@ -287,7 +306,7 @@ namespace lsn {
 					}
 				}
 				break;
-			}
+			}*/
 		}
 		Update();
 		return LSW_H_CONTINUE;
@@ -667,6 +686,15 @@ namespace lsn {
 		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsRaw.ui64MetaParm |= LSN_RF_FRAME_COUNTER; }
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK ));
 		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsOutCapture.ui64MetaParm |= LSN_RF_FRAME_COUNTER; }
+
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK ));
+		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsRaw.ui64MetaParm |= LSN_RF_PULSE1_ON_OFF; }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK ));
+		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsRaw.ui64MetaParm |= LSN_RF_PULSE2_ON_OFF; }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK ));
+		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsRaw.ui64MetaParm |= LSN_RF_TRIANGKE_ON_OFF; }
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK ));
+		if ( pcbCheck && pcbCheck->IsChecked() ) { m_poOptions->stfStreamOptionsRaw.ui64MetaParm |= LSN_RF_NOISE_ON_OFF; }
 	}
 
 	/**
@@ -726,6 +754,11 @@ namespace lsn {
 			{ Layout::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,				bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,			bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,		bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,		bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK,		bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,	bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,			bEnabled,				bMetaEnabled },
 		};
 		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
@@ -771,7 +804,7 @@ namespace lsn {
 			{ Layout::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,		bEnabled,				bEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_START_COMBO,				bEnabled,				lStartCond != CWavFile::LSN_SC_NONE && lStartCond != CWavFile::LSN_SC_FIRST_NON_ZERO },
 			{ Layout::LSN_AOWI_PAGE_OUT_STOP_COMBO,					bEnabled,				lEndCond != CWavFile::LSN_EC_NONE },
-			{ Layout::LSN_AOWI_PAGE_OUT_META_CHECK,					bEnabled,				bEnabled },
+			/*{ Layout::LSN_AOWI_PAGE_OUT_META_CHECK,					bEnabled,				bEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_COMBO,					bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_NONE_CHECK,			bEnabled,				bMetaEnabled },
@@ -781,7 +814,7 @@ namespace lsn {
 			{ Layout::LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,			bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			bEnabled,				bMetaEnabled },
-			{ Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },
+			{ Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },*/
 		};
 		for ( auto I = LSN_ELEMENTS( cOutControls ); I--; ) {
 			auto pwThis = FindChild( cOutControls[I].wId );
@@ -802,6 +835,12 @@ namespace lsn {
 				Layout::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,
 				Layout::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,
 				Layout::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,
+
+				Layout::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,
+				Layout::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,
+				//Layout::LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK,
+				Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
+				//Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 			};
 			for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
 				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
@@ -816,7 +855,7 @@ namespace lsn {
 				pcbCheck->SetCheck( sCnt == 0 );
 			}
 		}
-		{
+		/*{
 			size_t sCnt = 0;
 			WORD wCheckMe[] = {
 				Layout::LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,
@@ -839,7 +878,7 @@ namespace lsn {
 			if ( pcbCheck ) {
 				pcbCheck->SetCheck( sCnt == 0 );
 			}
-		}
+		}*/
 	}
 
 	/**

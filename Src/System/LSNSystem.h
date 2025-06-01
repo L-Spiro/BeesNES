@@ -637,7 +637,7 @@ namespace lsn {
 		virtual void									SetMetaDataStreamParms( void * &_pvParm, CWavFile::PfAddMetaDataFunc &_pfAddMetaFunc, CWavFile::PfAddMetaDataFunc &_pfAddMetaFuncRaw,
 			CWavFile::PfMetaDataThreadFunc &_pfMetaThreadFunc ) {
 			_pvParm = &m_aApu;
-			_pfAddMetaFunc = &m_aApu.AddMetaDataFunc_RingBuffer;
+			_pfAddMetaFunc = nullptr;
 			_pfAddMetaFuncRaw = &m_aApu.AddMetaDataFunc_Raw;
 			_pfMetaThreadFunc = &m_aApu.MetaDataThreadFunc;
 		}

@@ -487,7 +487,7 @@ namespace lsn {
 													pwThis->SetTextW( std::format( LSN_LSTR( LSN_WE_LOOP_DESC_1_TRACK ), dStart, dEnd - dStart, dDelay, dFade, dTotalLen ).c_str() );
 
 													auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
-													if ( pwWarning ) {
+													if ( pwWarning && pwfsSet ) {
 														double dFullEnd = double( pwfsSet->ui64FullSampleCnt ) / pwfsSet->wfFile.fcFormat.uiSampleRate;
 
 														pwWarning->SetVisible( dTotalLen > (dFullEnd - dStart) );

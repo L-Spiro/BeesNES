@@ -45,6 +45,14 @@ namespace lsn {
 		 **/
 		inline bool								ProducingSound( bool _bEnabled ) const;
 
+		/**
+		 * Determines if the pulse channel is basically on or not.  IE, evn if it is spitting out a 0 value, it may still technically be "on".
+		 * 
+		 * \param _bEnabled The status of the pulse channel.
+		 * \return Returns true if the channel is basically on.
+		 **/
+		inline bool								BasicallyOn( bool _bEnabled ) const;
+
 
 	protected :
 		// == Members.
@@ -86,6 +94,27 @@ namespace lsn {
 			GetTimerReload() >= 8 &&
 			Output() &&
 			!SweeperMuted();
+	}
+
+	/**
+	 * Determines if the pulse channel is basically on or not.  IE, evn if it is spitting out a 0 value, it may still technically be "on".
+	 * 
+	 * \param _bEnabled The status of the pulse channel.
+	 * \return Returns true if the channel is basically on.
+	 **/
+	inline bool CPulse::BasicallyOn( bool _bEnabled ) const {
+		bool bRet = _bEnabled &&
+			GetLengthCounter() > 0 &&
+			GetTimerReload() >= 8 &&
+			//Output() &&
+			!SweeperMuted();
+		/*if ( bRet ) {
+			volatile int gjhggh = 0;
+		}
+		else {
+			volatile int gjhggh = 0;
+		}*/
+		return bRet;
 	}
 
 }	// namespace lsn
