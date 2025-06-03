@@ -505,7 +505,7 @@ namespace lsn {
 					break;
 				}
 				else {
-					if ( m_pweEditor ) {
+					if ( m_pweEditor && pwfsSet ) {
 						ee::CExpEvalContainer::EE_RESULT rRes;
 						double dStart = 0.0;
 						double dEnd = 0.0;
