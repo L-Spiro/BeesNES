@@ -475,7 +475,7 @@ namespace lsn {
 
 											auto pwFade = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
 											if ( pwFade ) {
-												if ( pwFade->GetTextAsDoubleExpression( rRes ) ) {
+												if ( pwFade->GetTextAsDoubleExpression( rRes ) && pwfsSet ) {
 													dFade = rRes.u.dVal;
 
 													dStart = std::max( dStart, 0.0 );
