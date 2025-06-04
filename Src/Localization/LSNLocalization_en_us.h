@@ -266,8 +266,8 @@
 #define LSN_WE_MOVE_UP														Move Up
 #define LSN_WE_MOVE_DOWN													Move Down
 #define LSN_WE_SELECT_ALL													Select &All
-#define LSN_WE_RANGE														Full Track Range (Section of the File Fully Containing This Track)
-#define LSN_WE_RANGES														Full Track Ranges (Sections of the Files Fully Containing These Tracks)
+#define LSN_WE_RANGE														Track Start
+#define LSN_WE_RANGES														Track Starts
 #define LSN_WE_LOOPS														Looping/One-Shot
 #define LSN_WE_START_TIME													Start Time:
 #define LSN_WE_END_TIME														End Time:
