@@ -320,6 +320,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets the number of WAV sets loaded.
+		 * 
+		 * \return Returns the number of WAV sets loaded.
+		 **/
+		size_t															Total() const { return m_vFileList.size(); }
+
+		/**
 		 * Saves the file paths to the given structure in the order they are inside this class.
 		 * 
 		 * \param _wewoOptions The structure to which to save the file paths.

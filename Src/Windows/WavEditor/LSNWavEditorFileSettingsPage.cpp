@@ -338,6 +338,26 @@ namespace lsn {
 							if ( pcbCheck ) {
 								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert );
 							}
+
+
+							std::vector<LPARAM> vUpdateUs;
+							GetPagesToUpdate( vUpdateUs, true );
+
+							// Checks.
+							static const WORD wCheckIds[] = {
+								Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,	WORD( bLockVolume ),
+								Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert ),
+								Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf0Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf1Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable ),
+							};
+							for ( size_t I = 0; I < LSN_ELEMENTS( wCheckIds ); I += 2 ) {
+								auto pwThis = FindChild( wCheckIds[I] );
+								if ( pwThis ) {
+									static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], bool( wCheckIds[I+1] ), vUpdateUs );
+								}
+							}
 						}
 					}
 				}

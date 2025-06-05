@@ -416,10 +416,11 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetTextW( _wsText.c_str() );
+					m_vSequencePages[I]->Update();
 				}
 			}
 		}
@@ -435,10 +436,11 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetCheck( _bChecked );
+					m_vSequencePages[I]->Update();
 				}
 			}
 		}
@@ -454,10 +456,11 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetTextW( _wsText.c_str() );
+					m_vSettingsPages[I]->Update();
 				}
 			}
 		}
@@ -473,10 +476,11 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetCheck( _bChecked );
+					m_vSettingsPages[I]->Update();
 				}
 			}
 		}
@@ -493,10 +497,11 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
 				auto pwCombo = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwCombo ) {
 					pwCombo->SetCurSelByItemData( _lpSelection );
+					m_vSettingsPages[I]->Update();
 				}
 			}
 		}
@@ -844,6 +849,8 @@ namespace lsn {
 	 * Loads a project.
 	 **/
 	void CWavEditorWindow::LoadProject() {
+		
+
 #define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_BWAV_FILES____BWAV____BWAV_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
 
 		OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
@@ -923,12 +930,21 @@ namespace lsn {
 				return;
 			}
 
+			if ( m_weEditor.Total() ) {
+				if ( !lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_WE_LOAD_VERIFY ), LSN_LSTR( LSN_CONTINUE ) ) ) {
+					return;
+				}
+			}
+
+
 			// TODO: Try to fix paths.
 			if ( !m_weEditor.LoadFromStruct( wewoLoadMe ) ) {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_WE_FAILED_TO_LOAD_PROJECT ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
 
+
+			
 
 			if ( m_pwefFiles ) {
 				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
@@ -946,7 +962,6 @@ namespace lsn {
 			m_vSettingsPages.resize( 1 );
 
 			// AddWavFiles
-			//for ( wewoLoadMe.vPerFileOptions
 			if ( !wewoLoadMe.vPerFileOptions.size() ) { return; }
 
 			for ( size_t I = 0; I < wewoLoadMe.vPerFileOptions.size(); ++I ) {
@@ -970,7 +985,7 @@ namespace lsn {
 			if ( m_pweopOutput ) {
 				m_pweopOutput->Load( wewoLoadMe );
 			}
-			Update();
+			Update( true );
 		}
 #undef LSN_FILE_OPEN_FORMAT
 	}
@@ -1096,7 +1111,8 @@ namespace lsn {
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
 			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
 				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				m_vSequencePages[I]->Save( _wewoWindowState.vPerFileOptions[0], &vPerFile[I] );
+				auto aTmp = _wewoWindowState.vPerFileOptions[0];
+				m_vSequencePages[I]->Save( (m_vSequencePages[I]->Visible() ? _wewoWindowState.vPerFileOptions[0] : aTmp), &vPerFile[I] );
 			}
 			if ( m_vSequencePages.size() == 1 ) {
 				m_vSequencePages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
@@ -1110,7 +1126,8 @@ namespace lsn {
 						break;
 					}
 				}
-				m_vSettingsPages[I]->Save( _wewoWindowState.vPerFileOptions[0], pfPerFile );
+				auto aTmp = _wewoWindowState.vPerFileOptions[0];
+				m_vSettingsPages[I]->Save( (m_vSequencePages[I]->Visible() ? _wewoWindowState.vPerFileOptions[0] : aTmp), pfPerFile );
 			}
 			if ( m_vSettingsPages.size() == 1 ) {
 				m_vSettingsPages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );

@@ -227,6 +227,8 @@
 #define LSN_AUDIO_OPTIONS_METADATA_NOISE_ON_OFF								Noise On/Off
 #define LSN_AUDIO_OPTIONS_METADATA_DMC_SET									DMC Written
 
+#define LSN_AUDIO_OPTIONS_CAPTUE_ALL										Capture Redundant
+
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
 #define LSN_AUDIO_OPTIONS_ERR_SAME_PATHS									Cannot output 2 streams to the same path at once.
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_START_COND							The selected starting condition requires a valid numeric input.  This can be in the form of raw numbers (\u201C2\u201D, \u201C56.2\u201D, \u201C360.0f\u201D, etc.) or as equations (\u201C2*60+13.5\u201D, \u201Cpow( 10, 6 / 20.0 )\u201D, etc.)
@@ -316,8 +318,8 @@
 #define LSN_WE_NUMBERED														Numbered
 #define LSN_WE_EXPORT_ALL													Export All
 
-#define LSN_WE_LOOP_DESC_1_TRACK											Track will start at {:.5g} seconds, play for {:.5g} seconds, continue for another {:.5g} seconds, and then fade out for {:.5g} seconds.  Total duration: {:.5g} seconds.
-#define LSN_WE_ONE_SHOT_DESC_1_TRACK										Track will start at {:.5g} seconds and play for {:.5g} seconds.
+#define LSN_WE_LOOP_DESC_1_TRACK											Track will start at {:.5g} seconds, play for {:.5g} seconds, continue for another {:.5g} seconds, and then fade out for {:.5g} seconds.  Total duration: {:.7g} seconds.
+#define LSN_WE_ONE_SHOT_DESC_1_TRACK										Track will start at {:.5g} seconds and play for {:.7g} seconds.
 
 #define LSN_WE_NTSC_HZ														NTSC (1,789,772.7272727272727272727272727 Hz)
 #define LSN_WE_PAL_HZ														PAL (1,662,607.03125 Hz)
@@ -382,6 +384,8 @@
 #define LSN_WE_OUTPUT_ERR_SET_HZ_NEG										The filter-cut\u2013off-frequency expression must result in a non-negative value.
 #define LSN_WE_OUTPUT_ERR_SET_FALLOFF_BAD									The filter fall-off rate must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_SET_FALLOFF_POS									The filter-fall\u2013off-rate expression must result in a negative value.
+
+#define LSN_WE_LOAD_VERIFY													All currently loaded files will be removed.\r\nContinue?
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.
@@ -467,7 +471,7 @@
 #define LSN_FAILED_TO_READ_FROM_FILE										Failed to read from file.
 #define LSN_INVALID_FILE_FORMAT												Invalid file format.
 #define LSN_UNSUPPORTED_VERSION												Unsupported versiom.
-
+#define LSN_CONTINUE														Continue?
 
 
 

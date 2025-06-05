@@ -391,24 +391,30 @@ namespace lsn {
 				CAudio::SampleBox().SetOutputCallback( PostHpf, this );
 			
 
-				bool bPulse1 = m_pPulse1.BasicallyOn( LSN_PULSE1_ENABLED( this ) );
+				/*bool bPulse1 = m_pPulse1.BasicallyOn( LSN_PULSE1_ENABLED( this ) );
 				m_ChannelOutputting[LSN_C_PULSE_0] = bPulse1 != m_ChannelOutputtingStatus[LSN_C_PULSE_0];
 				m_ChannelOutputtingStatus[LSN_C_PULSE_0] = bPulse1;
+				bool bPulse2 = m_pPulse2.BasicallyOn( LSN_PULSE2_ENABLED( this ) );
+				m_ChannelOutputting[LSN_C_PULSE_1] = bPulse2 != m_ChannelOutputtingStatus[LSN_C_PULSE_1];
+				m_ChannelOutputtingStatus[LSN_C_PULSE_1] = bPulse2;*/
+				bool bNoise = m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) );
+				m_ChannelOutputting[LSN_C_NOISE] = bNoise != m_ChannelOutputtingStatus[LSN_C_NOISE];
+				m_ChannelOutputtingStatus[LSN_C_NOISE] = bNoise;
+				bool bTriangle = m_tTriangle.ProducingSound( false );
+				m_ChannelOutputting[LSN_C_TRIANGLE] = bTriangle != m_ChannelOutputtingStatus[LSN_C_TRIANGLE];
+				m_ChannelOutputtingStatus[LSN_C_TRIANGLE] = bTriangle;
+
 				float fPulse1 = (m_pPulse1.ProducingSound( LSN_PULSE1_ENABLED( this ) ) ? m_pPulse1.GetEnvelopeOutput( LSN_PULSE1_USE_VOLUME ) : 0.0f) * m_fP1Vol;
 				// DEBUG.
 				//fPulse1 = 0.0f;
-				bool bPulse2 = m_pPulse2.BasicallyOn( LSN_PULSE2_ENABLED( this ) );
-				m_ChannelOutputting[LSN_C_PULSE_1] = bPulse2 != m_ChannelOutputtingStatus[LSN_C_PULSE_1];
-				m_ChannelOutputtingStatus[LSN_C_PULSE_1] = bPulse2;
+				
 				float fPulse2 = (m_pPulse2.ProducingSound( LSN_PULSE2_ENABLED( this ) ) ? m_pPulse2.GetEnvelopeOutput( LSN_PULSE2_USE_VOLUME ) : 0.0f) * m_fP2Vol;
 				//fPulse2 = 0.0f;
 				float fFinalPulse = fPulse1 + fPulse2;
 				if ( fFinalPulse ) {
 					fFinalPulse = 95.88f / ((8128.0f / fFinalPulse) + 100.0f);
 				}
-				bool bNoise = m_nNoise.ProducingSound( LSN_NOISE_ENABLED( this ) );
-				m_ChannelOutputting[LSN_C_NOISE] = bNoise != m_ChannelOutputtingStatus[LSN_C_NOISE];
-				m_ChannelOutputtingStatus[LSN_C_NOISE] = bNoise;
+				
 				float fNoise = (bNoise ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f) * m_fNVol;
 				float fTriangle = m_tTriangle.Output() * m_fTVol;
 				float fDmc = m_fDmcRegVol * m_fDmcVol;
