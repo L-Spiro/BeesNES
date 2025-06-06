@@ -712,6 +712,8 @@ namespace lsn {
 		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8Hpf1Type ); }
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
 		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8Hpf2Type ); }
+
+		Update();
 	}
 
 	/**

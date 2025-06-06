@@ -395,6 +395,8 @@ namespace lsn {
 		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLoop ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
 		if ( aTmp ) { aTmp->SetCheck( !_pfPerFileOptions.bLoop ); }
+
+		Update();
 	}
 
 	/**

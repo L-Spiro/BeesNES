@@ -43,14 +43,14 @@
 #define LSN_VIDEO															&Video
 #define LSN_AUDIO															&Audio
 // Video sizes.
-#define LSN_VIDEO_SIZE_1X													1×
-#define LSN_VIDEO_SIZE_2X													2×
-#define LSN_VIDEO_SIZE_3X													3×
-#define LSN_VIDEO_SIZE_4X													4×
-#define LSN_VIDEO_SIZE_5X													5×
-#define LSN_VIDEO_SIZE_6X													6×
-#define LSN_VIDEO_SIZE_7X													7×
-#define LSN_VIDEO_SIZE_8X													8×
+#define LSN_VIDEO_SIZE_1X													1\u00D7
+#define LSN_VIDEO_SIZE_2X													2\u00D7
+#define LSN_VIDEO_SIZE_3X													3\u00D7
+#define LSN_VIDEO_SIZE_4X													4\u00D7
+#define LSN_VIDEO_SIZE_5X													5\u00D7
+#define LSN_VIDEO_SIZE_6X													6\u00D7
+#define LSN_VIDEO_SIZE_7X													7\u00D7
+#define LSN_VIDEO_SIZE_8X													8\u00D7
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												N&one
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
@@ -67,7 +67,7 @@
 #define LSN_REGION_AUTO														&Automatic
 #define LSN_REGION_NTSC														&NTSC
 #define LSN_REGION_PAL														&PAL
-#define LSN_REGION_DENDY													PAL “&Dendy” Famiclone
+#define LSN_REGION_DENDY													PAL \u201C&Dendy\u201D Famiclone
 #define LSN_REGION_PALM														&Brazil Famiclone
 #define LSN_REGION_PALN														Ar&gentina Famiclone
 
@@ -323,7 +323,7 @@
 
 #define LSN_WE_NTSC_HZ														NTSC (1,789,772.7272727272727272727272727 Hz)
 #define LSN_WE_PAL_HZ														PAL (1,662,607.03125 Hz)
-#define LSN_WE_DENDY_HZ														PAL “Dendy” Famiclone (1,773,447.5 Hz)
+#define LSN_WE_DENDY_HZ														PAL \u201CDendy\u201D Famiclone (1,773,447.5 Hz)
 #define LSN_WE_PAL_M_HZ														PAL-M Brazil Famiclone (1,787,805.9440559440559440559440559 Hz)
 #define LSN_WE_PAL_N_HZ														PAL-N Argentina Famiclone (1,791,028.125 Hz)
 #define LSN_WE_SET_BY_FILE													Set by File
@@ -354,8 +354,8 @@
 #define LSN_WE_OUTPUT_ERR_MAINSHUM_VOL										Mains Hum volume must be a valid expression.  Typical results will be between 0 and 1.
 #define LSN_WE_OUTPUT_ERR_WHITE_NOISE_VOL									White Noise volume must be a valid expression.  Typical results will be between 0 and 1.
 #define LSN_WE_OUTPUT_ERR_ABSOLUTE_VOL										Absolute volume must be a valid expression.  Typical results will be between 0 and 10.
-#define LSN_WE_OUTPUT_ERR_NORMALIZE_LEVEL									Normalize level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -0.1 / 20.0 )” (normalizes to -0.1 dB).
-#define LSN_WE_OUTPUT_ERR_LOUDNESS_LEVEL									Loudness level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: “pow( 10, -5.5 / 20.0 )” (set average loudness to -5.5 dB).
+#define LSN_WE_OUTPUT_ERR_NORMALIZE_LEVEL									Normalize level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: \u201Cpow( 10, -0.1 / 20.0 )\u201D (normalizes to -0.1 dB).
+#define LSN_WE_OUTPUT_ERR_LOUDNESS_LEVEL									Loudness level must be a valid expression.  Typical results will be between 0 and 1.  Example expression: \u201Cpow( 10, -5.5 / 20.0 )\u201D (set average loudness to -5.5 dB).
 #define LSN_WE_OUTPUT_ERR_OUT_HZ											The output Hz must be a valid expression.
 #define LSN_WE_OUTPUT_ERR_OUT_HZ_NEGATIVE									The output Hz expression must result in a value between 1 and 4,294,967,295 inclusively.
 #define LSN_WE_OUTPUT_ERR_OUT_PATH_EMPTY									No output folder provided.
