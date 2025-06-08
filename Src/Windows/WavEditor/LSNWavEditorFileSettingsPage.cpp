@@ -969,6 +969,8 @@ namespace lsn {
 		}
 
 		m_bInternalUpdate = false;
+
+		Update();
 	}
 
 	/**

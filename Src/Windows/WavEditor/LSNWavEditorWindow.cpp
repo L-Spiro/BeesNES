@@ -416,7 +416,8 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
+			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetTextW( _wsText.c_str() );
@@ -436,7 +437,8 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
+			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetCheck( _bChecked );
@@ -663,10 +665,10 @@ namespace lsn {
 			if ( vSelected.size() == 1 ) {
 				// Select a specific WAV file.
 				for ( auto I = m_vSequencePages.size(); I--; ) {
-					m_vSequencePages[I]->SetVisible( m_vSequencePages[I]->UniqueId() == vSelected[0] );
+					m_vSequencePages[I]->SetVisible( m_vSequencePages[I]->UniqueId() == uint32_t( vSelected[0] ) );
 				}
 				for ( auto I = m_vSettingsPages.size(); I--; ) {
-					m_vSettingsPages[I]->SetVisible( m_vSettingsPages[I]->UniqueId() == vSelected[0] );
+					m_vSettingsPages[I]->SetVisible( m_vSettingsPages[I]->UniqueId() == uint32_t( vSelected[0] ) );
 				}
 			}
 			else {

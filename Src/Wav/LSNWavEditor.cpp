@@ -10,15 +10,12 @@
 #include "../Audio/LSNAudio.h"
 #include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
-#include "../Localization/LSNLocalization.h"
 #include "../Utilities/LSNAlignmentAllocator.h"
 #include "../Utilities/LSNLargeVector.h"
 #include "../Utilities/LSNStream.h"
 
 #include <EEExpEval.h>
 
-#include <filesystem>
-#include <format>
 #include <utility>
 
 
@@ -51,6 +48,8 @@ namespace lsn {
 		}
 
 		try {
+			std::wstring wsMeta, wsBatFile;
+			std::wstring wsBatName;
 			size_t sIdx = 0;
 			for ( size_t I = 0; I < m_vFileList.size(); ++I ) {
 				LSN_PER_FILE pfFindMe;
@@ -61,7 +60,37 @@ namespace lsn {
 					_wsMsg = LSN_LSTR( LSN_INTERNAL_ERROR );
 					return false;
 				}
-				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, m_vFileList.size(), _wsMsg ) ) { return false; }
+				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, m_vFileList.size(), _wsMsg, wsBatFile, wsMeta ) ) { return false; }
+				if ( wsBatName.empty() ) {
+					if ( aPerFile->wsAlbum.size() ) {
+						wsBatName = aPerFile->wsAlbum;
+					}
+				}
+				if ( m_oOutput.bNumbered && !wsBatFile.empty() ) {
+					WriteBat( L"Tmp.bat", wsBatFile, _wsMsg );
+				}
+				if ( !wsMeta.empty() ) {
+					WriteMetadata( L"Tmp.txt", wsMeta, _wsMsg );
+				}
+			}
+
+			if ( m_oOutput.bNumbered && !wsBatFile.empty() ) {
+				if ( !WriteBat( wsBatName, wsBatFile, _wsMsg ) ) { return false; }
+				try {
+					auto pDeleteMe = std::filesystem::path( m_oOutput.wsFolder );
+					pDeleteMe /= L"Tmp.bat.bat";
+					std::filesystem::remove( pDeleteMe );
+				}
+				catch ( ... ) {}
+			}
+			if ( !wsMeta.empty() ) {
+				if ( !WriteMetadata( L"Tracks.txt", wsMeta, _wsMsg ) ) { return false; }
+				try {
+					auto pDeleteMe = std::filesystem::path( m_oOutput.wsFolder );
+					pDeleteMe /= L"Tmp.txt";
+					std::filesystem::remove( pDeleteMe );
+				}
+				catch ( ... ) {}
 			}
 		}
 		catch ( ... ) {
@@ -325,9 +354,12 @@ namespace lsn {
 	 * \param _stIdx The index of the track being exported.
 	 * \param _sTotal The total number fo tracks being exported.
 	 * \param _wsMsg Error message upon failure.
+	 * \param _wsBatFile The contents of a .BAT file for creating videos.
+	 * \param _wsMetadata The contents of a .TXT file containing information about each track.
 	 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
 	 **/
-	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg ) {
+	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg,
+		std::wstring &_wsBatFile, std::wstring &_wsMetadata ) {
 		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
 		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
@@ -407,6 +439,7 @@ namespace lsn {
 		dLen += _pfFile.dOpeningSilence;
 		dFadeStart += _pfFile.dOpeningSilence;
 
+		double dFileVol = 1.0;
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
 			vSamples[J].resize( size_t( sEndSample ) );
@@ -441,7 +474,7 @@ namespace lsn {
 					//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
 					//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
 					// Apply anti-aliasing.
-					size_t sM = 300;
+					size_t sM = 150;
 					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0 * 1.0095, sM );
 					CUtilities::ApplySincFilterInPlace<large_vec, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
 				}
@@ -650,12 +683,12 @@ namespace lsn {
 				}
 
 				size_t sMax = vThis.size();
-				double dVol = _pfFile.dVolume;
+				dFileVol = _pfFile.dVolume;
 				if ( _pfFile.bInvert ) {
-					dVol *= -1.0;
+					dFileVol *= -1.0;
 				}
 				for ( size_t I = 0; I < sMax; ++I ) {
-					vThis[I] *= dVol;
+					vThis[I] *= dFileVol;
 				}
 			}
 			catch ( ... ) {
@@ -720,13 +753,10 @@ namespace lsn {
 
 		
 		// Apply volume.
+		double dApplyVol = 1.0;
 		switch ( _oOutput.i32VolType ) {
 			case LSN_VT_ABS : {
-				for ( auto J = vSamples.size(); J--; ) {
-					for ( auto I = vSamples[J].size(); I--; ) {
-						vSamples[J][I] *= _oOutput.dAbsoluteVol;
-					}
-				}
+				dApplyVol = _oOutput.dAbsoluteVol;
 				break;
 			}
 			case LSN_VT_NORM : {
@@ -737,11 +767,7 @@ namespace lsn {
 					dMax = std::max( dMax, dChannelMax );
 				}
 				if ( dMax != 0.0 ) {
-					for ( auto J = vSamples.size(); J--; ) {
-						for ( auto I = vSamples[J].size(); I--; ) {
-							vSamples[J][I] = vSamples[J][I] / dMax * _oOutput.dNormalizeTo;
-						}
-					}
+					dApplyVol = 1.0 / dMax * _oOutput.dNormalizeTo;
 				}
 				break;
 			}
@@ -752,14 +778,16 @@ namespace lsn {
 
 					dMax = std::max( dMax, dChannelMax );
 				}
+				
 				if ( dMax != 0.0 ) {
-					for ( auto J = vSamples.size(); J--; ) {
-						for ( auto I = vSamples[J].size(); I--; ) {
-							vSamples[J][I] = vSamples[J][I] / dMax * _oOutput.dLoudness;
-						}
-					}
+					dApplyVol = 1.0 / dMax * _oOutput.dLoudness;
 				}
 				break;
+			}
+		}
+		for ( auto J = vSamples.size(); J--; ) {
+			for ( auto I = vSamples[J].size(); I--; ) {
+				vSamples[J][I] *= dApplyVol;
 			}
 		}
 
@@ -806,6 +834,51 @@ namespace lsn {
 			return false;
 		}
 		++_stIdx;
+
+
+		//ffmpeg -r 1 -f image2 -loop 1 -i "C:\Tmp\New folder\Pac Man\1 Game Start.png" -i "C:\Tmp\New folder\Pac Man\1 Game Start (NES, Famicom).wav" -vcodec mpeg4 -qscale 2 -acodec copy -shortest "C:\Tmp\New folder\Pac Man\1 Game Start (NES, Famicom).avi"
+		// ffmpeg -r 1 -f image2 -loop 1 -i \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start.png\" -i \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start (NES, Famicom).wav\" -vcodec mpeg4 -qscale 2 -acodec copy -shortest \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start (NES, Famicom).avi\"
+		{
+			pPath = CUtilities::Replace( pPath.generic_u16string(), std::u16string( u"\"" ), std::u16string( u"\\\"" ) );
+			std::filesystem::path pImage = pPath;
+			pImage.replace_extension( ".png" );
+			std::filesystem::path pMovie = pPath;
+			pMovie.replace_extension( ".avi" );
+
+			// Remove the number part from the movie name and replace it with the album name.
+			std::wstring wsOldStem = pMovie.stem().wstring();
+			size_t sIdx = 0;
+			while ( sIdx < wsOldStem.size() && std::iswdigit( wsOldStem[sIdx] ) ) { ++sIdx; }
+
+			std::wstring wsNewStem	= _pfFile.wsAlbum + wsOldStem.substr( sIdx );
+			auto pNewFilename		= std::filesystem::path( wsNewStem + pMovie.extension().wstring() );
+			pMovie					= pMovie.parent_path() / pNewFilename;
+
+
+			_wsBatFile += std::format( L"ffmpeg -r 1 -f image2 -loop 1 -i \"{}\" -i \"{}\" -vcodec mpeg4 -qscale:v 1 -acodec copy -shortest \"{}\"\r\n",
+				pImage.generic_wstring(), pPath.generic_wstring(), pMovie.generic_wstring() );
+		}
+		
+		{
+			std::filesystem::path pImage = wsFileName;
+			_wsMetadata += std::format( L"{}\r\n{}\r\nVolumes (Track, Global, Final): {:.27g} ({}{:.27f} dB), {:.27g} ({}{:.27f} dB), {:.27g} ({}{:.27f} dB)\r\nTrack Start/Stop: {:.27f} - {:.27f} ({} - {}) ({:.27f} seconds, {} samples)\r\n",
+				pImage.replace_extension( "" ).generic_wstring(),
+				_pfFile.wsName,
+
+				dFileVol, (dFileVol < 0.0 ? L"Invert " : L""), std::log10( std::abs( dFileVol ) ) * 20.0,
+				dApplyVol, (dApplyVol < 0.0 ? L"Invert " : L""), std::log10( std::abs( dApplyVol ) ) * 20.0,
+				dFileVol * dApplyVol, (dFileVol * dApplyVol < 0.0 ? L"Invert " : L""), std::log10( std::abs( dFileVol * dApplyVol ) ) * 20.0,
+
+				(_pfFile.dOpeningSilence * _oOutput.ui32Hz) / _oOutput.ui32Hz, (dLen * _oOutput.ui32Hz) / _oOutput.ui32Hz,
+				uint64_t( std::round( _pfFile.dOpeningSilence * _oOutput.ui32Hz ) ), uint64_t( std::round( dLen * _oOutput.ui32Hz ) ),
+				((dLen * _oOutput.ui32Hz) / _oOutput.ui32Hz) - ((_pfFile.dOpeningSilence * _oOutput.ui32Hz) / _oOutput.ui32Hz), uint64_t( std::round( dLen * _oOutput.ui32Hz ) ) - uint64_t( std::round( _pfFile.dOpeningSilence * _oOutput.ui32Hz ) ) );
+			if ( _pfFile.bLoop ) {
+				_wsMetadata += std::format( L"Prefade Start: {:.27f} ({})\r\nFade Start: {:.27f} ({})\r\n",
+					(((dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz) / _oOutput.ui32Hz, uint64_t( std::round( ((dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz ) ),
+					(dFadeStart * _oOutput.ui32Hz) / _oOutput.ui32Hz, uint64_t( std::round( dFadeStart * _oOutput.ui32Hz ) ) );
+			}
+			_wsMetadata += L"\r\n\r\n";
+		}
 		return true;
 	}
 

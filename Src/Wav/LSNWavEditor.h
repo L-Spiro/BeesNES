@@ -10,11 +10,14 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Localization/LSNLocalization.h"
 #include "../Options/LSNWavEditorWindowOptions.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNWavFile.h"
 
 #include <atomic>
+#include <filesystem>
+#include <format>
 #include <map>
 #include <set>
 #include <string>
@@ -386,9 +389,93 @@ namespace lsn {
 		 * \param _stIdx The index of the track being exported.
 		 * \param _sTotal The total number fo tracks being exported.
 		 * \param _wsMsg Error message upon failure.
+		 * \param _wsBatFile The contents of a .BAT file for creating videos.
+		 * \param _wsMetadata The contents of a .TXT file containing information about each track.
 		 * \return Returns true if the file was created.  If false is returned, _wsMsg will be filled with error text.
 		 **/
-		bool															DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg );
+		bool															DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg,
+			std::wstring &_wsBatFile, std::wstring &_wsMetadata );
+
+		/**
+		 * Writes the BAT data to a given file.
+		 * 
+		 * \param _wsBatPath The file where to write the .BAT data.
+		 * \param _wsBatFile The .BAT file contents to write.
+		 * \param _wsMsg Error message upon failure.
+		 * \return Returns true if there were no failures writing the file.
+		 **/
+		bool															WriteBat( std::wstring _wsBatPath, const std::wstring &_wsBatFile, std::wstring &_wsMsg ) {
+			try {
+				if ( !_wsBatPath.size() ) {
+					_wsBatPath = m_oOutput.wsFolder;
+					while ( _wsBatPath.size() && _wsBatPath[_wsBatPath.size()-1] == L'\\' || _wsBatPath[_wsBatPath.size()-1] == L'/' ) {
+						_wsBatPath.pop_back();
+					}
+					_wsBatPath = std::filesystem::path( _wsBatPath ).filename().generic_wstring();
+				}
+				_wsBatPath += L".bat";
+				std::filesystem::path pBatFile = m_oOutput.wsFolder;
+				pBatFile /= _wsBatPath;
+				{
+					CStdFile sfBatFile;
+					if ( !sfBatFile.Create( pBatFile.generic_u16string().c_str() ) ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_CREATE_BAT ), pBatFile.generic_wstring() );
+						return false;
+					}
+					if ( !sfBatFile.Write<uint16_t>( 0xFEFF ) ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_BAT ), pBatFile.generic_wstring() );
+						return false;
+					}
+					for ( size_t I = 0; I < _wsBatFile.size(); ++I ) {
+						if ( !sfBatFile.Write<wchar_t>( _wsBatFile[I] ) ) {
+							_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_BAT ), pBatFile.generic_wstring() );
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+			catch ( ... ) {
+				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+				return false;
+			}
+		}
+
+		/**
+		 * Writes the metadata file to a given path.
+		 * 
+		 * \param _wsFileName The file where to write the metadata.
+		 * \param _wsMetadata The file contents to write.
+		 * \param _wsMsg Error message upon failure.
+		 * \return Returns true if there were no failures writing the file.
+		 **/
+		bool															WriteMetadata( std::wstring _wsFileName, const std::wstring &_wsMetadata, std::wstring &_wsMsg ) {
+			try {
+				std::filesystem::path pfMetaFile = m_oOutput.wsFolder;
+				pfMetaFile /= _wsFileName;
+
+				CStdFile sfMetaFile;
+				if ( !sfMetaFile.Create( pfMetaFile.generic_u16string().c_str() ) ) {
+					_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_CREATE_METADATA ), pfMetaFile.generic_wstring() );
+					return false;
+				}
+				if ( !sfMetaFile.Write<uint16_t>( 0xFEFF ) ) {
+					_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_METADATA ), pfMetaFile.generic_wstring() );
+					return false;
+				}
+				for ( size_t I = 0; I < _wsMetadata.size(); ++I ) {
+					if ( !sfMetaFile.Write<wchar_t>( _wsMetadata[I] ) ) {
+						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_METADATA ), pfMetaFile.generic_wstring() );
+						return false;
+					}
+				}
+				return true;
+			}
+			catch ( ... ) {
+				_wsMsg = LSN_LSTR( LSN_OUT_OF_MEMORY );
+				return false;
+			}
+		}
 	};
 
 }	// namespace lsn
