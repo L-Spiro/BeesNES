@@ -64,7 +64,8 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
-			switch ( iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper ) ) {
+			auto pcPcb = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
+			switch ( pcPcb ) {
 				case CDatabase::LSN_PC_VRC4b : {}			LSN_FALLTHROUGH
 				case CDatabase::LSN_PC_VRC2c : {}			LSN_FALLTHROUGH
 				case CDatabase::LSN_PC_VRC2a : {
@@ -90,6 +91,13 @@ namespace lsn {
 				}
 				case CDatabase::LSN_PC_VRC4e : {
 					m_pfSwizzleFunc = Swizzle_VRC4e_A2_A3;
+					break;
+				}
+			}
+
+			switch ( ClassifyVrc( pcPcb ) ) {
+				case 2 : {
+					ApplyMap_Vrc2( _pbCpuBus, _pbPpuBus );
 					break;
 				}
 			}
@@ -144,6 +152,36 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Applies VRC2 mapping to the CPU and PPU busses.
+		 *
+		 * \param _pbCpuBus A pointer to the CPU bus.
+		 * \param _pbPpuBus A pointer to the PPU bus.
+		 **/
+		void											ApplyMap_Vrc2( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+		}
+
+		/**
+		 * Classifies a RVC PCB as 2, 4, 6, or 7.
+		 * 
+		 * \param _pcVrc The PCB type to classify.
+		 * \return Returns the VRC* number.
+		 **/
+		static uint8_t									ClassifyVrc( CDatabase::LSN_PCB_CLASS _pcVrc ) {
+			switch ( _pcVrc ) {
+				case CDatabase::LSN_PC_VRC2c : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC2b : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC2a : { return 2; }
+				case CDatabase::LSN_PC_VRC4f : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC4e : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC4d : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC4c : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC4b : {}			LSN_FALLTHROUGH
+				case CDatabase::LSN_PC_VRC4a : { return 4; }
+			}
+			return 0;
+		}
+
 		/**
 		 * Swizzles A1 A0 to A0 A1.
 		 * 
