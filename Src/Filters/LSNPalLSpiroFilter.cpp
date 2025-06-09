@@ -291,7 +291,7 @@ namespace lsn {
 #ifdef __AVX__
 		if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
 			while ( pfSignals < pfSignalEnd ) {
-				size_t sIdx = LSN_NOISE_BUFFER(CUtilities::Rand());
+				size_t sIdx = LSN_NOISE_BUFFER( CUtilities::Rand() );
 				__m256 vNoise = _mm256_load_ps( CUtilities::m_fNoiseBuffers[sIdx] );
 				__m256 vSig = _mm256_loadu_ps( pfSignals );
 				vSig = _mm256_add_ps( vSig, vNoise );

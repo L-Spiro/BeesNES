@@ -291,7 +291,7 @@ namespace lsn {
 						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, lpParm, vUpdateMe );
 					}
 				}
-				if ( _wCtrlCode == CBN_SELENDOK ) {
+				else if ( _wCtrlCode == CBN_SELENDOK ) {
 					auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
 					if ( pcbCombo ) {
 						auto lpSel = pcbCombo->GetCurSelItemData();
@@ -316,7 +316,6 @@ namespace lsn {
 								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fVolume ).c_str() ); }
 							}
 
-
 							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK ));
 							if ( pcbCheck ) {
 								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable );
@@ -338,13 +337,11 @@ namespace lsn {
 							if ( pcbCheck ) {
 								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert );
 							}
-
-
 							std::vector<LPARAM> vUpdateUs;
-							GetPagesToUpdate( vUpdateUs, true );
+							GetPagesToUpdate( vUpdateUs );
 
 							// Checks.
-							static const WORD wCheckIds[] = {
+							const WORD wCheckIds[] = {
 								Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,	WORD( bLockVolume ),
 								Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert ),
 								Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable ),
@@ -353,10 +350,7 @@ namespace lsn {
 								Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable ),
 							};
 							for ( size_t I = 0; I < LSN_ELEMENTS( wCheckIds ); I += 2 ) {
-								auto pwThis = FindChild( wCheckIds[I] );
-								if ( pwThis ) {
-									static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], bool( wCheckIds[I+1] ), vUpdateUs );
-								}
+								static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], bool( wCheckIds[I+1] ), vUpdateUs );
 							}
 						}
 					}
@@ -1064,6 +1058,7 @@ namespace lsn {
 		}
 
 		m_bInternalUpdate = false;
+		Update();
 	}
 
 }	// namespace lsn

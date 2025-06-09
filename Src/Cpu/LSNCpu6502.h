@@ -30,11 +30,9 @@
 #include "LSONJson.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
-#define LSN_DMA_EX_AT_END
 
-#ifdef LSN_DMA_EX_AT_END
 #define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } }
-#define LSN_INSTR_END_PHI1
+#define LSN_INSTR_END_PHI1									
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
 															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
 																m_bDmaGo = true;																							\
@@ -42,18 +40,7 @@
 																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
 																return; }
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
-#define LSN_INSTR_END_PHI2
-#else
-#define LSN_INSTR_START_PHI1( ISREAD )						
-#define LSN_INSTR_END_PHI1
-#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
-															if LSN_UNLIKELY( m_bRdyLow ) { m_ui16DmaCpuAddress = uint16_t( ADDR );											\
-																m_bDmaGo = true;																							\
-																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
-															}
-#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
-#define LSN_INSTR_END_PHI2
-#endif	// #ifdef LSN_DMA_EX_AT_END
+#define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
 
 #define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
@@ -185,6 +172,7 @@ namespace lsn {
 			m_bIrqStatusPhi1Flag = false;
 			m_bHandleIrq = false;
 			m_bRdyLow = false;
+			m_ui8RdyOffCnt = 0;
 
 			std::memset( m_ui8Inputs, 0, sizeof( m_ui8Inputs ) );
 			std::memset( m_ui8InputsState, 0, sizeof( m_ui8InputsState ) );
@@ -359,6 +347,8 @@ namespace lsn {
 
 		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
 		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
+
+		uint8_t												m_ui8RdyOffCnt = 0;																	/**< Keeps track of on which cycle the RDY flag goes low, relative to the start of an instruction. */
 		
 		bool												m_bNmiStatusLine = false;															/**< The status line for NMI. */
 		bool												m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
@@ -512,11 +502,7 @@ namespace lsn {
 							if ( --m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
-#ifdef LSN_DMA_EX_AT_END
 								m_pfTickFunc = m_pfTickFuncCopy;
-#else
-								m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_END, !_bPhi2>;
-#endif	// #ifdef LSN_DMA_EX_AT_END
 							}
 							else {
 								++m_ui8DmaPos;
@@ -536,21 +522,6 @@ namespace lsn {
 				}
 			}
 			if constexpr ( _uState == LSN_DS_END ) {
-#ifdef LSN_DMA_EX_AT_END
-#else
-				// "Replay" the halting cycle by just performing the Phi2 read it made.
-				// This is an adjustment from real hardware because actually going back and replaying the cycle again for
-				//	real is extremely tricky and could incur a permanent performance cost to do properly.
-				// Instead, that cycle already executed during the LSN_DS_IDLE, and rather than actually playing it back
-				//	we simply have a do-nothing Phi1 and a repeat of that cycle's Phi2 read.
-				if constexpr ( _bPhi2 ) {
-					m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
-					m_pfTickFunc = m_pfTickFuncCopy;
-				}
-				else {
-					m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_END, !_bPhi2>;
-				}
-#endif	// #ifdef LSN_DMA_EX_AT_END
 			}
 #undef LSN_PUT
 #undef LSN_GET
@@ -562,6 +533,7 @@ namespace lsn {
 		inline void											BackupState() {
 			std::memcpy( &m_fsStateBackup, &m_fsState, sizeof( m_fsState ) );
 			m_fsStateBackup.bCopiedState = true;
+			m_ui8RdyOffCnt = m_fsState.ui8FuncIndex;
 		}
 
 		/**
@@ -1003,7 +975,7 @@ namespace lsn {
 		void												SetBrkFlags();
 
 		/** Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address. */
-		template <bool _bToAddr>
+		template <bool _bToAddr, unsigned _uRdyCnt>
 		void												Sha_Phi2();
 
 		/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
@@ -1127,7 +1099,7 @@ namespace lsn {
 		// TODO: Move this to Tick_NextInstructionStd().
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
 		m_fsState.bBoundaryCrossed = false;
-
+		m_ui8RdyOffCnt = 0;
 		LSN_INSTR_END_PHI1;
 	}
 

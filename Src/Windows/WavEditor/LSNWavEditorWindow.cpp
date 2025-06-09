@@ -458,7 +458,8 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetTextW( _wsText.c_str() );
@@ -478,7 +479,8 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					pwEdit->SetCheck( _bChecked );
@@ -499,7 +501,8 @@ namespace lsn {
 	void CWavEditorWindow::SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe ) {
 		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwCombo = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwCombo ) {
 					pwCombo->SetCurSelByItemData( _lpSelection );
@@ -521,7 +524,8 @@ namespace lsn {
 		bool bFoundOne = false;
 		std::wstring wsOut;
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
+			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					if ( !bFoundOne ) {
@@ -548,7 +552,8 @@ namespace lsn {
 	bool CWavEditorWindow::GetAllSeqCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
 		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
 		for ( auto I = m_vSequencePages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSequencePages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
+			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwCheck = m_vSequencePages[I]->FindChild( _wId );
 				if ( pwCheck ) {
 					if ( pwCheck->IsChecked() ) { return true; }
@@ -570,7 +575,8 @@ namespace lsn {
 		bool bFoundOne = false;
 		std::wstring wsOut;
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwEdit ) {
 					if ( !bFoundOne ) {
@@ -599,7 +605,8 @@ namespace lsn {
 		bool bFoundOne = false;
 		int iValue = BST_INDETERMINATE;
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwCheck = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwCheck ) {
 					if ( !bFoundOne ) {
@@ -629,7 +636,8 @@ namespace lsn {
 		bool bFoundOne = false;
 		LPARAM lpValue = _lpBad;
 		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			if ( std::find( sSet.begin(), sSet.end(), m_vSettingsPages[I]->UniqueId() ) != sSet.end() ) {
+			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
+			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
 				auto pwComboBox = m_vSettingsPages[I]->FindChild( _wId );
 				if ( pwComboBox ) {
 					if ( !bFoundOne ) {
@@ -695,7 +703,7 @@ namespace lsn {
 								wsGroupSeq += std::filesystem::path( ptWavSet->wfFile.wsPath ).filename().generic_wstring();
 							}
 							else {
-								wsGroupSeq += L"Error";
+								wsGroupSeq += LSN_LSTR( LSN_ERROR );
 							}
 						}
 						
@@ -724,7 +732,7 @@ namespace lsn {
 								wsGroupSeq += std::filesystem::path( ptWavSet->wfFile.wsPath ).filename().generic_wstring();
 							}
 							else {
-								wsGroupSeq += L"Error";
+								wsGroupSeq += LSN_LSTR( LSN_ERROR );
 							}
 						}
 						

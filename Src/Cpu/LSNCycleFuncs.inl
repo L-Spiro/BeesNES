@@ -737,7 +737,9 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		3, LSN_AM_IMPLIED, 2, LSN_I_JAM,
 	},
 	{	// 93
-		LSN_INDIRECT_Y_W( SHA, Sha_Phi2<LSN_TO_P> )
+#define LSN_SHA	LSN_TO_P, 5
+		LSN_INDIRECT_Y_W( SHA, Sha_Phi2<LSN_SHA> )
+#undef LSN_SHA
 	},
 	{	// 94
 		LSN_ZERO_PAGE_X_W( STY, Write_Y_To_AddrOrPtr_Phi2<LSN_TO_A> )
@@ -814,7 +816,9 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		LSN_ABSOLUTE_Y_W( SHX, Shx_Phi2<LSN_TO_A> )
 	},
 	{	// 9F
-		LSN_ABSOLUTE_Y_W( SHA, Sha_Phi2<LSN_TO_A> )
+#define LSN_SHA	LSN_TO_A, 4
+		LSN_ABSOLUTE_Y_W( SHA, Sha_Phi2<LSN_SHA> )
+#undef LSN_SHA
 	},
 
 	/** A0-A7 */

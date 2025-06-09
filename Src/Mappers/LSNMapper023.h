@@ -53,6 +53,7 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			std::memset( m_ui8ChrBanksVrc, 0, sizeof( m_ui8ChrBanksVrc ) );
 		}
 
 		/**
@@ -64,8 +65,8 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
-			auto pcPcb = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
-			switch ( pcPcb ) {
+			m_pcPcbClass = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
+			switch ( m_pcPcbClass ) {
 				case CDatabase::LSN_PC_VRC4b : {}			LSN_FALLTHROUGH
 				case CDatabase::LSN_PC_VRC2c : {}			LSN_FALLTHROUGH
 				case CDatabase::LSN_PC_VRC2a : {
@@ -95,10 +96,48 @@ namespace lsn {
 				}
 			}
 
-			switch ( ClassifyVrc( pcPcb ) ) {
+
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
+			/*for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
+			}*/
+			// PPU.
+			for ( uint32_t I = 0x0000; I < 0x0400; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+			}
+			for ( uint32_t I = 0x0400; I < 0x0800; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<1, ChrBankSize()>, this, uint16_t( I - 0x0400 ) );
+			}
+			for ( uint32_t I = 0x0800; I < 0x0C00; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<2, ChrBankSize()>, this, uint16_t( I - 0x0800 ) );
+			}
+			for ( uint32_t I = 0x0C00; I < 0x1000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<3, ChrBankSize()>, this, uint16_t( I - 0x0C00 ) );
+			}
+			for ( uint32_t I = 0x1000; I < 0x1400; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<4, ChrBankSize()>, this, uint16_t( I - 0x1000 ) );
+			}
+			for ( uint32_t I = 0x1400; I < 0x1800; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<5, ChrBankSize()>, this, uint16_t( I - 0x1400 ) );
+			}
+			for ( uint32_t I = 0x1800; I < 0x1C00; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<6, ChrBankSize()>, this, uint16_t( I - 0x1800 ) );
+			}
+			for ( uint32_t I = 0x1C00; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<7, ChrBankSize()>, this, uint16_t( I - 0x1C00 ) );
+			}
+
+			switch ( ClassifyVrc( m_pcPcbClass ) ) {
 				case 2 : {
 					ApplyMap_Vrc2( _pbCpuBus, _pbPpuBus );
-					break;
+					return;
+				}
+				case 4 : {
+					ApplyMap_Vrc4( _pbCpuBus, _pbPpuBus );
+					return;
 				}
 			}
 
@@ -149,6 +188,10 @@ namespace lsn {
 		// == Members.
 		/** The swizzle function. */
 		PfSwizzle										m_pfSwizzleFunc = nullptr;
+		/** CHR banks. */
+		uint8_t											m_ui8ChrBanksVrc[16];
+		/** The PCB class. */
+		CDatabase::LSN_PCB_CLASS						m_pcPcbClass;
 
 
 		// == Functions.
@@ -158,7 +201,56 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 **/
-		void											ApplyMap_Vrc2( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+		void											ApplyMap_Vrc2( CCpuBus * _pbCpuBus, CPpuBus * /*_pbPpuBus*/ ) {
+			// ================
+			// SWAPPABLE BANKS
+			// ================
+			// CPU.
+			/*for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
+			}*/
+
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
+			for ( uint32_t I = 0xB000; I < 0xB0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<0>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xC000; I < 0xC0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<2>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xD000; I < 0xD0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<4>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xE000; I < 0xF0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<6>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+		}
+
+		/**
+		 * Applies VRC4 mapping to the CPU and PPU busses.
+		 *
+		 * \param _pbCpuBus A pointer to the CPU bus.
+		 * \param _pbPpuBus A pointer to the PPU bus.
+		 **/
+		void											ApplyMap_Vrc4( CCpuBus * _pbCpuBus, CPpuBus * /*_pbPpuBus*/ ) {
+			// ================
+			// BANK-SELECT
+			// ================
+			// PGM bank-select.
+			for ( uint32_t I = 0xB000; I < 0xB0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<0>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xC000; I < 0xC0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<2>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xD000; I < 0xD0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<4>, this, uint16_t( I ) );	// Treated as ROM.
+			}
+			for ( uint32_t I = 0xE000; I < 0xF0FF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<6>, this, uint16_t( I ) );	// Treated as ROM.
+			}
 		}
 
 		/**
@@ -291,6 +383,84 @@ namespace lsn {
 		static void LSN_FASTCALL						SelectBankY000_YFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
 			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
+		}
+
+		/**
+		 * Selects a CHR bank for VRC2.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		template <unsigned _uBnkIdx>
+		static void LSN_FASTCALL						SelectChrBank_VRC2( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
+			if ( (ui16ddr & 0x0FFF) == 0x0000 || (ui16ddr & 0x0FFF) == 0x0001 ) {
+				if ( (ui16ddr & 0x0FFF) == 0x0000 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b1111;
+				}
+				else if ( (ui16ddr & 0x0FFF) == 0x0001 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] = _ui8Val & 0b1111;
+				}
+				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] << 4);
+				if ( pmThis->m_pcPcbClass == CDatabase::LSN_PC_VRC2a ) {
+					pmThis->SetChrBank<_uBnkIdx, ChrBankSize()>( ui8Tmp >> 1 );
+				}
+				else {
+					pmThis->SetChrBank<_uBnkIdx, ChrBankSize()>( ui8Tmp );
+				}
+			}
+			else if ( (ui16ddr & 0x0FFF) == 0x0002 || (ui16ddr & 0x0FFF) == 0x0003 ) {
+				if ( (ui16ddr & 0x0FFF) == 0x0002 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b1111;
+				}
+				else if ( (ui16ddr & 0x0FFF) == 0x0003 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] = _ui8Val & 0b1111;
+				}
+				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] << 4);
+				if ( pmThis->m_pcPcbClass == CDatabase::LSN_PC_VRC2a ) {
+					pmThis->SetChrBank<_uBnkIdx+1, ChrBankSize()>( ui8Tmp >> 1 );
+				}
+				else {
+					pmThis->SetChrBank<_uBnkIdx+1, ChrBankSize()>( ui8Tmp );
+				}
+			}
+		}
+
+		/**
+		 * Selects a CHR bank for VRC2.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		template <unsigned _uBnkIdx>
+		static void LSN_FASTCALL						SelectChrBank_VRC4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
+			if ( (ui16ddr & 0x0FFF) == 0x0000 || (ui16ddr & 0x0FFF) == 0x0001 ) {
+				if ( (ui16ddr & 0x0FFF) == 0x0000 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b1111;
+				}
+				else if ( (ui16ddr & 0x0FFF) == 0x0001 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] = _ui8Val & 0b11111;
+				}
+				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] << 4);
+				pmThis->SetChrBank<_uBnkIdx, ChrBankSize()>( ui8Tmp );
+			}
+			else if ( (ui16ddr & 0x0FFF) == 0x0002 || (ui16ddr & 0x0FFF) == 0x0003 ) {
+				if ( (ui16ddr & 0x0FFF) == 0x0002 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b1111;
+				}
+				else if ( (ui16ddr & 0x0FFF) == 0x0003 ) {
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] = _ui8Val & 0b11111;
+				}
+				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] << 4);
+				pmThis->SetChrBank<_uBnkIdx+1, ChrBankSize()>( ui8Tmp );
+			}
 		}
 	};
 

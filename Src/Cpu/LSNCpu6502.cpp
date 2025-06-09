@@ -1857,25 +1857,39 @@ namespace lsn {
 	}
 
 	/** Illegal. Stores A & X & (high-byte of address + 1) at either m_fsState.ui16Pointer or m_fsState.ui16Address. */
-	template <bool _bToAddr>
-	void CCpu6502::Sha_Phi2() {
+	template <bool _bToAddr, unsigned _uRdyCnt>
+	void CCpu6502::Sha_Phi2() {		
 		if constexpr ( _bToAddr ) {
+			uint16_t ui16High = m_fsState.ui8Address[1];
+			if ( !m_fsState.bBoundaryCrossed ) {
+				++ui16High;
+			}
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 0 ) {
+				ui16High = 0xFFFF;
+			}
 			if ( m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = m_fsState.ui8Address[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_fsState.ui8Address[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 		}
 		else {
+			uint16_t ui16High = m_fsState.ui8Pointer[1];
+			if ( !m_fsState.bBoundaryCrossed ) {
+				++ui16High;
+			}
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 0 ) {
+				ui16High = 0xFFFF;
+			}
 			if ( m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = m_fsState.ui8Pointer[1] & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
 			}
 			else {
-				uint16_t ui16Val = (m_fsState.ui8Pointer[1] + 1) & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 		}
