@@ -308,7 +308,7 @@
 #define LSN_WE_COMMENTS														Comments:
 #define LSN_WE_APPLY_TO_ALL													Apply to All
 #define LSN_WE_OUTPUT														Output
-#define LSN_WE_NOISE														Noise (Mains Hum/White Noise)
+#define LSN_WE_NOISE														Noise (PPU Interference/White Noise)
 #define LSN_WE_MASTER_VOLUME												Master Volume
 #define LSN_WE_ABSOLUTE														Absolute:
 #define LSN_WE_NORMALIZE													Normalize to:
@@ -386,6 +386,76 @@
 #define LSN_WE_OUTPUT_ERR_SET_FALLOFF_POS									The filter-fall\u2013off-rate expression must result in a negative value.
 
 #define LSN_WE_LOAD_VERIFY													All currently loaded files will be removed.\r\nContinue?
+
+#define LSN_WE_TT_TREEVIEW													The list of .WAV files, along with any metadata, to process and export.
+#define LSN_WE_TT_LOAD_WAV													Load a single .WAV file or a string of connected .WAV files, along with auto-detected metadata.
+#define LSN_WE_TT_LOAD_META													Assigns a metadata file to the selected .WAV file sets.
+#define LSN_WE_TT_REMOVE													Removes selected .WAV-file sets.
+#define LSN_WE_TT_MOVE_UP													Moves selected .WAV-file sets up one index.
+#define LSN_WE_TT_MOVE_DOWN													Moves selected .WAV-file sets down one index.
+
+#define LSN_WE_TT_TITLE														The title will be used in the output file\u2019s metadata and file name ([prefix][title][postfix]).
+#define LSN_WE_TT_PREFIX													The prefix will be used in the file name ([prefix][title][postfix]).
+#define LSN_WE_TT_POSTFIX													The postfix will be used in the file name ([prefix][title][postfix]).
+#define LSN_WE_TT_ACTUAL_HZ													Real consoles output audio at sample rates with fractions (IE 1,662,607.03125 Hz), but .WAV files can only have sample rates that are whole numbers.  Use this option to assign the correct Hz to the data in the .WAV file.
+#define LSN_WE_TT_ACTUAL_HZ_EDIT											Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the ideal Hz due to temperature, age, and natural clock variance.//Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the idea Hz due to temperature, age, and natural clock variance.  Some measured hardware Hz are:\r\n1662607.03125 \x2F 19.9972 * 19.9971 \x2F\x2F PAL: 1662598.71705085574649274349212646484375\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09812); \x2F\x2F N34169630: 1789762.00623316341079771518707275390625\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09857); \x2F\x2F N1151667: 1789775.40753261814825236797332763671875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09965); \x2F\x2F N0260073: 1789807.57065131026320159435272216796875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09813); \x2F\x2F Twin Famicom RCA 475711: 1789762.30403981753624975681304931640625\r\n\r\nNote that all numerical edit boxes in BeesNES allow typing of actual equations, such as \u201C1662607.03125 \x2F 19.9972 * 19.9971\u201D.
+#define LSN_WE_TT_PRESETS													Measured hardware presets.
+#define LSN_WE_TT_PRESETS_SAVE												Save your own custom preset.
+#define LSN_WE_TT_PRESETS_LOAD												Load your own custom preset(s).
+#define LSN_WE_TT_CHAR_VOL													The output volume for a given console.  This can be locked to a specific value in order to create OST\u2019s with consistent volumes.
+#define LSN_WE_TT_CHAR_LOCK													Locks the console volume.  Useful for making OST\u2019s with consistent volumes between each other.
+#define LSN_WE_TT_CHAR_INVERT												Inverts the waveform.  Commonly set.
+#define LSN_WE_TT_CHAR_LPF_CHECK											Enables or disables the LPF.
+#define LSN_WE_TT_CHAR_HPF0_CHECK											Enables or disables the first HPF.
+#define LSN_WE_TT_CHAR_HPF1_CHECK											Enables or disables the second HPF.
+#define LSN_WE_TT_CHAR_HPF2_CHECK											Enables or disables the third HPF.
+#define LSN_WE_TT_CHAR_LPF													The LPF cut-off frequency.
+#define LSN_WE_TT_CHAR_HPF0													The first HPF cut-off frequency.
+#define LSN_WE_TT_CHAR_HPF1													The second HPF cut-off frequency.
+#define LSN_WE_TT_CHAR_HPF2													The third HPF cut-off frequency.
+#define LSN_WE_TT_ARTIST													List the composer(s) to be added to the output file\u2019s metadata.
+#define LSN_WE_TT_ALBUM														The name of the album (to be added to the output file\u2019s metadata).
+#define LSN_WE_TT_YEAR														The year of the game release (to be added to the output file\u2019s metadata).
+#define LSN_WE_TT_COMMENT													Additional comments (to be added to the output file\u2019s metadata).
+#define LSN_WE_TT_APPLY_TO_ALL												Applies the current frequency response (LPF + HPF\u2019s), volume, lock, invert, artist, album, year, comment, prefix, and postfix to all .WAV-file sets.
+
+#define LSN_WE_TT_START_TIME												Selects the time, in the file\u2019s native Hz, when the audio for the current track begins.
+#define LSN_WE_TT_END_TIME													If one-shot, selects the time when the audio ends, otherwise it represents the time at which the pre-fade (and then fade) begins.  All times are in the file\u2019s native Hz.
+#define LSN_WE_TT_TIME_COMBO												If metadata is included with the source .WAV file, its events are listed for easy time selection.  All times are in the file\u2019s native Hz.
+#define LSN_WE_TT_ONE_SHOT													If checked, the audio will play from start to end, and include the opening and trailing silence.
+#define LSN_WE_TT_LOOPING													If checked, the audio will play from start to end, then continue playing for the pre-fade duration, and then continue playing during the fade-out, and include the opening and trailing silence.  The End Time will usually be set to the time the track loops (typically the exact time of the 2nd loop, in the file\u2019s native Hz).
+#define LSN_WE_TT_PREFADE													In a looping track, this is tne number of seconds to continue playing before beginning the fade-out.
+#define LSN_WE_TT_FADE														In a looping track, this is the duration, in seconds, of the studio fade-out that will be applied.
+#define LSN_WE_TT_OPENING_SILENCE											The duration of opening silence to prepend to the output file.
+#define LSN_WE_TT_TRAILING_SILENCE											The duration of trailing silence to append to the output file.
+
+#define LSN_WE_TT_MAINS_HUM													If checked interference from the PPU is applied.
+#define LSN_WE_TT_MAINS_COLOR												The most prominent color on the screen during audio output.  The PPU will output different volates based on the colors it is displaying, which create different-sounding buzzes and hums in the audio,
+#define LSN_WE_TT_MAINS_VOLUME												The volume of the interference hum to apply.
+#define LSN_WE_TT_MAINS_OFFSET												The offset of the interference to apply, in seconds.
+#define LSN_WE_TT_WHITE_NOISE												If checked, physically based (Gaussian) or fake (Uniform) white noise is applied.
+#define LSN_WE_TT_WHITE_NOISE_VOLUME										Volume of the white noise to apply.
+#define LSN_WE_TT_WHITE_NOISE_COMBO											Gaussian produces physically realistic white noise.  Uniform white noise can be found in synthesis routines and in some DSP routines.
+#define LSN_WE_TT_WHITE_NOISE_BANDWIDTH										The noise bandwidth.  Typically 100-200 kHz.
+#define LSN_WE_TT_WHITE_NOISE_OHM											The system resistance in Ohms (\u03A9).  Fifty is a typical value for an RF system.
+#define LSN_WE_TT_WHITE_NOISE_TEMP											The room temperature in Kelvin (290 for a standard room).
+
+#define LSN_WE_TT_VOL_ABS													The audio will be multiplied by a constant value on output.
+#define LSN_WE_TT_VOL_EDIT													The amount by which to multiple the final audio.
+#define LSN_WE_TT_VOL_NORMAL												The audio will be normalized to a given level.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+#define LSN_WE_TT_VOL_NORMAL_EDIT											The level to which to normalize the final audio.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+#define LSN_WE_TT_VOL_LOUDNESS												Uses a gated RMS evaluation to set the audio to the given loudness level.
+#define LSN_WE_TT_VOL_LOUDNESS_EDIT											The level to which to set the loudness.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+
+#define LSN_WE_TT_OUTPUT_HZ													The output .WAV file Hz.
+#define LSN_WE_TT_OUTPUT_FMT												The output .WAV file format.
+#define LSN_WE_TT_OUTPUT_BITS												The output .WAV file PCM bit depth.
+#define LSN_WE_TT_OUTPUT_DITHER												If the PCM bit depth is 16, error-diffusion dithering can be applied.
+#define LSN_WE_TT_OUTPUT_CHANS												Mono: All input channels will be mixed to mono.  Stereo: Mono inputs will remain mono, but noise will be stereo.  Stereo inputs will remain stereo.  Surround: Same rules as Stereo, but a quasi-surround effect will be applied.
+
+#define LSN_WE_TT_FOLDER													The output folder to which each .WAV file will be saved.
+#define LSN_WE_TT_BROWSE													Browse for an output folder.
+#define LSN_WE_TT_NUMBERED													If checked,, file names will be numbered and the number will be added to each file\u2019s metadata.
 
 // OpenAL.
 #define LSN_OPENAL_AL_NO_ERROR_DESC											There is not currently an error.

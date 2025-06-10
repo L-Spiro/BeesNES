@@ -43,7 +43,14 @@ namespace lsw {
 		m_dwExtendedStyles = _wlLayout.dwStyleEx;
 
 		if ( _wlLayout.pcToolTip ) {
-			m_sTooltipText.assign( _wlLayout.pcToolTip, _wlLayout.sToolTipLen );
+			auto sLen = _wlLayout.sToolTipLen;
+			if ( !sLen ) {
+				try {
+					sLen = std::strlen( _wlLayout.pcToolTip );
+				}
+				catch ( ... ) { sLen = 0; }
+			}
+			m_sTooltipText.assign( _wlLayout.pcToolTip, sLen );
 		}
 
 		if ( _bCreateWidget ) {
@@ -563,6 +570,8 @@ namespace lsw {
 				CBase::GetThisHandle(),
 				NULL );
 			if ( m_hTooltip ) {
+				::SendMessageW( m_hTooltip, TTM_SETMAXTIPWIDTH, 0, static_cast<LPARAM>(300) );
+
 				::SetWindowPos( m_hTooltip, HWND_TOPMOST, 0, 0, 0, 0,
 					SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE );
 

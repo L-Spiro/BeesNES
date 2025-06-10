@@ -31,7 +31,7 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } }
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } } if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
 															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
@@ -533,7 +533,7 @@ namespace lsn {
 		inline void											BackupState() {
 			std::memcpy( &m_fsStateBackup, &m_fsState, sizeof( m_fsState ) );
 			m_fsStateBackup.bCopiedState = true;
-			m_ui8RdyOffCnt = m_fsState.ui8FuncIndex;
+			//m_ui8RdyOffCnt = m_fsState.ui8FuncIndex;
 		}
 
 		/**

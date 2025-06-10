@@ -364,7 +364,7 @@ namespace lsn {
 		// Determine the sample range to load.
 		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
 
-		double dAdjustedStopTime = _pfFile.dStopTime / double( _wfsSet.wfFile.fcFormat.uiSampleRate ) * _pfFile.dActualHz;
+		double dAdjustedStopTime = _pfFile.dStopTime * double( _wfsSet.wfFile.fcFormat.uiSampleRate ) / _pfFile.dActualHz;
 
 		double dFileLen = (_pfFile.dStopTime - _pfFile.dStartTime);
 		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
@@ -474,7 +474,7 @@ namespace lsn {
 					//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
 					//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
 					// Apply anti-aliasing.
-					size_t sM = 150;
+					size_t sM = 100;
 					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0 * 1.0095, sM );
 					CUtilities::ApplySincFilterInPlace<large_vec, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
 				}
