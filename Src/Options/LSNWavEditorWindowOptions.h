@@ -17,6 +17,13 @@
 
 namespace lsn {
 
+	/** Start/stop time. */
+	enum LSN_START_STOP_TIME {
+		LSN_SST_EXACT,
+		LSN_SST_MINUS_ONE,
+		LSN_SST_SNAP,
+	};
+
 	/**
 	 * Class LSN_WAV_EDITOR_WINDOW_OPTIONS
 	 * \brief Remembers the last texts, checks, etc., for the WAV Editor window.
@@ -89,6 +96,10 @@ namespace lsn {
 			int32_t													i32StartSelection = 0;
 			/** The last End Time combo selection. */
 			int32_t													i32EndSelection = -1;
+			/** The Start Time modifier. */
+			int32_t													i32StartMod = int32_t( LSN_SST_EXACT );
+			/** The End Time modifier. */
+			int32_t													i32StopMod = int32_t( LSN_SST_EXACT );
 			/** The last Actual Hz combo selection. */
 			uint32_t												ui32ActualHz = uint32_t( -LSN_PM_NTSC );
 			/** The last Preset combo selection. */
@@ -175,6 +186,9 @@ namespace lsn {
 				if ( !_sbStream.WriteI32( i32StartSelection ) ) { return false; }
 				if ( !_sbStream.WriteI32( i32EndSelection ) ) { return false; }
 
+				if ( !_sbStream.WriteI32( i32StartMod ) ) { return false; }
+				if ( !_sbStream.WriteI32( i32StopMod ) ) { return false; }
+
 				if ( !_sbStream.WriteUi32( ui32ActualHz ) ) { return false; }
 				if ( !_sbStream.WriteUi32( ui32CharPreset ) ) { return false; }
 
@@ -253,6 +267,11 @@ namespace lsn {
 					if ( _ui32Version >= 2 ) {
 						if ( !_sbStream.ReadI32( i32StartSelection ) ) { return false; }
 						if ( !_sbStream.ReadI32( i32EndSelection ) ) { return false; }
+
+						if ( _ui32Version >= 3 ) {
+							if ( !_sbStream.ReadI32( i32StartMod ) ) { return false; }
+							if ( !_sbStream.ReadI32( i32StopMod ) ) { return false; }
+						}
 					}
 
 					if ( !_sbStream.ReadUi32( ui32ActualHz ) ) { return false; }

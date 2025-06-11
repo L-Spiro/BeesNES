@@ -277,6 +277,11 @@
 #define LSN_WE_OPENING_SIL													Opening Silence:
 #define LSN_WE_TRAIL														Trailing Silence:
 #define LSN_WE_SECONDS														Seconds
+#define LSN_WE_EXACT_TIME													Exact Time
+#define LSN_WE_MINUS_ONE													One Sample Back
+#define LSN_WE_PLUS_ONE														One Sample After
+#define LSN_WE_START_SNAP													Snap to One Sample Before First Different Sample
+#define LSN_WE_STOP_SNAP													Snap to One Sample After First Different Sample
 #define LSN_WE_LOOP															Loop
 #define LSN_WE_ONE_SHOT														One-Shot
 #define LSN_WE_FIND_LOOPS													Find Loop Points
@@ -422,6 +427,11 @@
 #define LSN_WE_TT_START_TIME												Selects the time, in the file\u2019s native Hz, when the audio for the current track begins.
 #define LSN_WE_TT_END_TIME													If one-shot, selects the time when the audio ends, otherwise it represents the time at which the pre-fade (and then fade) begins.  All times are in the file\u2019s native Hz.
 #define LSN_WE_TT_TIME_COMBO												If metadata is included with the source .WAV file, its events are listed for easy time selection.  All times are in the file\u2019s native Hz.
+#define LSN_WE_TT_EXACT_TIME												Start/stop at the exact specified time.
+#define LSN_WE_TT_START_MINUS_ONE											Start one sample before the specified time.
+#define LSN_WE_TT_STOP_PLUS_ONE												Stop one sample after the specified time.
+#define LSN_WE_TT_START_SNAP												Start at the sample just before the first sample that is different from the one at the specified time.
+#define LSN_WE_TT_STOP_SNAP													Stop at the sample just after the first sample that is different from the one at the specified time.
 #define LSN_WE_TT_ONE_SHOT													If checked, the audio will play from start to end, and include the opening and trailing silence.
 #define LSN_WE_TT_LOOPING													If checked, the audio will play from start to end, then continue playing for the pre-fade duration, and then continue playing during the fade-out, and include the opening and trailing silence.  The End Time will usually be set to the time the track loops (typically the exact time of the 2nd loop, in the file\u2019s native Hz).
 #define LSN_WE_TT_PREFADE													In a looping track, this is tne number of seconds to continue playing before beginning the fade-out.

@@ -362,15 +362,27 @@ namespace lsn {
 		std::wstring &_wsBatFile, std::wstring &_wsMetadata ) {
 		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
-		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * _pfFile.dStartTime ) );
+		double dStartTime = _pfFile.dStartTime;
+		double dStopTime = _pfFile.dStopTime;
+		if ( _pfFile.sstStartMod == LSN_SST_MINUS_ONE ) {
+			dStartTime = std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * dStartTime );	// To samples.
+			dStartTime = std::max( dStartTime - 1.0, 0.0 );
+			dStartTime /= double( _wfsSet.wfFile.fcFormat.uiSampleRate );
+		}
+		if ( _pfFile.sstStopMod == LSN_SST_MINUS_ONE && !_pfFile.bLoop ) {
+			dStopTime = std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * dStopTime );	// To samples.
+			dStopTime = dStopTime + 1.0;
+			dStopTime /= double( _wfsSet.wfFile.fcFormat.uiSampleRate );
+		}
+		int64_t i64StartSample = int64_t( std::round( _wfsSet.wfFile.fcFormat.uiSampleRate * dStartTime ) );
 
-		double dAdjustedStopTime = _pfFile.dStopTime * double( _wfsSet.wfFile.fcFormat.uiSampleRate ) / _pfFile.dActualHz;
+		double dAdjustedStopTime = dStopTime * double( _wfsSet.wfFile.fcFormat.uiSampleRate ) / _pfFile.dActualHz;
 
-		double dFileLen = (_pfFile.dStopTime - _pfFile.dStartTime);
-		double dLen = (dAdjustedStopTime - _pfFile.dStartTime);
+		double dFileLen = (dStopTime - dStartTime);
+		double dLen = (dAdjustedStopTime - dStartTime);
 		double dFadeStart = 0.0;
 		if ( _pfFile.bLoop ) {
-			dFadeStart = (dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dDelayTime;
+			dFadeStart = (dAdjustedStopTime - dStartTime) + _pfFile.dDelayTime;
 			dFileLen += (_pfFile.dDelayTime + _pfFile.dFadeTime) / double( _wfsSet.wfFile.fcFormat.uiSampleRate ) * _pfFile.dActualHz;
 			dLen += _pfFile.dDelayTime + _pfFile.dFadeTime;
 		}
@@ -443,6 +455,41 @@ namespace lsn {
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
 			vSamples[J].resize( size_t( sEndSample ) );
+
+			if ( _pfFile.sstStartMod == LSN_SST_SNAP && vSamples[J].size() >= 2 ) {
+				auto aLeftSample = vSamples[J][0];
+				int64_t i64EraseMe = 0;
+				for ( int64_t I = 0; I < int64_t( vSamples[J].size() ) && vSamples[J][I] == aLeftSample; ++I ) {
+					++i64EraseMe;
+				}
+				--i64EraseMe;
+				vSamples[J].erase_front( size_t( i64EraseMe ) );
+				dLen = (std::round( dLen * _pfFile.dActualHz ) - double( i64EraseMe )) / _pfFile.dActualHz;
+				dFadeStart = (std::round( dFadeStart * _pfFile.dActualHz ) - double( i64EraseMe )) / _pfFile.dActualHz;
+			}
+			if ( !_pfFile.bLoop ) {
+				if ( _pfFile.sstStopMod == LSN_SST_SNAP && vSamples[J].size() >= 2 ) {
+					auto aRightSample = vSamples[J][vSamples[J].size()-1];
+					int64_t i64EraseMe = 0;
+					for ( int64_t I = vSamples[J].size() - 1; I >= 0 && vSamples[J][I] == aRightSample; --I ) {
+						++i64EraseMe;
+					}
+					i64EraseMe -= 1;
+					// The LPF and HPF's smudge the waveform, so remove fewer samples depending on how many are set.
+					int32_t i32FilterCnt = 0;
+					if ( _pfFile.bLpf && _pfFile.dLpf < _pfFile.dActualHz / 2.0 ) { ++i32FilterCnt; }
+					if ( _pfFile.dHpf0 ) { ++i32FilterCnt; }
+					if ( _pfFile.dHpf1 ) { ++i32FilterCnt; }
+					if ( _pfFile.dHpf2 ) { ++i32FilterCnt; }
+					i64EraseMe -= int64_t( std::round( i32FilterCnt * (_pfFile.dActualHz / _oOutput.ui32Hz) / 2.0 ) );
+					if ( i64EraseMe > 0 ) {
+						vSamples[J].pop_back( size_t( i64EraseMe ) );
+						//dLen = (std::round( dLen * _pfFile.dActualHz ) - double( i64EraseMe )) / _pfFile.dActualHz;
+						dLen = _pfFile.dOpeningSilence + (vSamples[J].size() / _pfFile.dActualHz);
+					}
+				}
+			}
+
 			// Apply anti-aliasing.
 			large_vec & vThis = vSamples[J];
 			try {
@@ -855,7 +902,7 @@ namespace lsn {
 			pMovie					= pMovie.parent_path() / pNewFilename;
 
 
-			_wsBatFile += std::format( L"ffmpeg -r 1 -f image2 -loop 1 -i \"{}\" -i \"{}\" -vcodec mpeg4 -qscale:v 1 -acodec copy -shortest \"{}\"\r\n",
+			_wsBatFile += std::format( L"ffmpeg -r 1 -f image2 -loop 1 -i \"{}\" -i \"{}\" -vcodec mpeg4 -qscale:v 1 -acodec copy -shortest \"{} HD\"\r\n",
 				pImage.generic_wstring(), pPath.generic_wstring(), pMovie.generic_wstring() );
 		}
 		
@@ -874,7 +921,7 @@ namespace lsn {
 				((dLen * _oOutput.ui32Hz) / _oOutput.ui32Hz) - ((_pfFile.dOpeningSilence * _oOutput.ui32Hz) / _oOutput.ui32Hz), uint64_t( std::round( dLen * _oOutput.ui32Hz ) ) - uint64_t( std::round( _pfFile.dOpeningSilence * _oOutput.ui32Hz ) ) );
 			if ( _pfFile.bLoop ) {
 				_wsMetadata += std::format( L"Prefade Start: {:.27f} ({})\r\nFade Start: {:.27f} ({})\r\n",
-					(((dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz) / _oOutput.ui32Hz, uint64_t( std::round( ((dAdjustedStopTime - _pfFile.dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz ) ),
+					(((dAdjustedStopTime - dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz) / _oOutput.ui32Hz, uint64_t( std::round( ((dAdjustedStopTime - dStartTime) + _pfFile.dOpeningSilence) * _oOutput.ui32Hz ) ),
 					(dFadeStart * _oOutput.ui32Hz) / _oOutput.ui32Hz, uint64_t( std::round( dFadeStart * _oOutput.ui32Hz ) ) );
 			}
 			_wsMetadata += L"\r\n\r\n";

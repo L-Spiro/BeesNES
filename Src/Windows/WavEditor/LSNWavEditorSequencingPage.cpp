@@ -67,6 +67,20 @@ namespace lsn {
 
 
 			// Last checks.
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StartMod == LSN_SST_EXACT ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StartMod == LSN_SST_MINUS_ONE ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StartMod == LSN_SST_SNAP ); }
+
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StopMod == LSN_SST_EXACT ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StopMod == LSN_SST_MINUS_ONE ); }
+			aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].i32StopMod == LSN_SST_SNAP ); }
+
 			aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
 			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bLoop ); }
 			aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
@@ -179,6 +193,92 @@ namespace lsn {
 				}
 				break;
 			}
+			case Layout::LSN_WEWI_SEQ_START_EXACT_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_START_SNAP_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+
+			case Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+						std::vector<LPARAM> vUpdateMe;
+						GetPagesToUpdate( vUpdateMe );
+						auto pwThis = FindChild( _wId );
+						bool bChecked = pwThis ? pwThis->IsChecked() : false;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( _wId, bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO, !bChecked, vUpdateMe );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, !bChecked, vUpdateMe );
+					}
+				}
+				break;
+			}
+
 			case Layout::LSN_WEWI_SEQ_LOOP_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
 					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
@@ -330,6 +430,21 @@ namespace lsn {
 
 		CWidget * pwWidget = nullptr;
 		ee::CExpEvalContainer::EE_RESULT eTest;
+		bool bChecked;
+		LSN_CHECKED( LSN_WEWI_SEQ_START_EXACT_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StartMod = LSN_SST_EXACT; }
+		LSN_CHECKED( LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StartMod = LSN_SST_MINUS_ONE; }
+		LSN_CHECKED( LSN_WEWI_SEQ_START_SNAP_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StartMod = LSN_SST_SNAP; }
+
+		LSN_CHECKED( LSN_WEWI_SEQ_STOP_EXACT_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StopMod = LSN_SST_EXACT; }
+		LSN_CHECKED( LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StopMod = LSN_SST_MINUS_ONE; }
+		LSN_CHECKED( LSN_WEWI_SEQ_STOP_SNAP_RADIO, bChecked );
+		if ( bChecked ) { _pfPerFileOptions.i32StopMod = LSN_SST_SNAP; }
+
 		LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _pfPerFileOptions.bLoop );
 		LSN_EDIT_TEXT( LSN_WEWI_SEQ_START_EDIT, _pfPerFileOptions.wsStartTime );
 		LSN_COMBO_VAL( LSN_WEWI_SEQ_START_COMBO, _pfPerFileOptions.i32StartSelection, int32_t );
@@ -343,6 +458,20 @@ namespace lsn {
 
 		if ( _ppfOutput ) {
 			LSN_EDIT_VAL( LSN_WEWI_SEQ_START_EDIT, _ppfOutput->dStartTime );
+			LSN_CHECKED( LSN_WEWI_SEQ_START_EXACT_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStartMod = LSN_SST_EXACT; }
+			LSN_CHECKED( LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStartMod = LSN_SST_MINUS_ONE; }
+			LSN_CHECKED( LSN_WEWI_SEQ_START_SNAP_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStartMod = LSN_SST_SNAP; }
+
+			LSN_CHECKED( LSN_WEWI_SEQ_STOP_EXACT_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStopMod = LSN_SST_EXACT; }
+			LSN_CHECKED( LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStopMod = LSN_SST_MINUS_ONE; }
+			LSN_CHECKED( LSN_WEWI_SEQ_STOP_SNAP_RADIO, bChecked );
+			if ( bChecked ) { _ppfOutput->sstStopMod = LSN_SST_SNAP; }
+
 			//LSN_EDIT_VAL( LSN_WEWI_SEQ_END_EDIT, _ppfOutput->dEndTime );
 			LSN_CHECKED( LSN_WEWI_SEQ_LOOP_RADIO, _ppfOutput->bLoop );
 			LSN_EDIT_VAL( LSN_WEWI_SEQ_LOOPS_STOP_EDIT, _ppfOutput->dStopTime );
@@ -391,6 +520,20 @@ namespace lsn {
 
 
 		// Last checks.
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_EXACT ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_MINUS_ONE ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_SNAP ); }
+
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_EXACT ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_MINUS_ONE ); }
+		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_SNAP ); }
+
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
 		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLoop ); }
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
@@ -422,31 +565,48 @@ namespace lsn {
 			ptlTree->GatherSelected( vSelected );
 			bSelected = vSelected.size() != 0;
 		}
-		
-		struct LSN_CONTROLS {
-			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
-			bool													bCloseCondition0;
-		} cControls[] = {
-			{ Layout::LSN_WEWI_SEQ_START_COMBO,						bHasMeta },
-			//{ Layout::LSN_WEWI_SEQ_END_COMBO,						bHasMeta },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,				bHasMeta },
+		{
+			struct LSN_CONTROLS {
+				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				bool													bCloseCondition0;
+			} cControls[] = {
+				{ Layout::LSN_WEWI_SEQ_START_COMBO,						bHasMeta },
+				//{ Layout::LSN_WEWI_SEQ_END_COMBO,						bHasMeta },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,				bHasMeta },
 
-			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,				bLooping },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,				bLooping },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,		bLooping },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_LABEL,				bLooping },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					bLooping },
-			{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,		bLooping },
+				//{ Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW,					bHasItems },
+				{ Layout::LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,				bSelected },
+				{ Layout::LSN_WEWI_SEQ_OPS_UP_BUTTON,					bSelected },
+				{ Layout::LSN_WEWI_SEQ_OPS_DOWN_BUTTON,					bSelected },
+			};
+			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+				auto pwThis = FindChild( cControls[I].wId );
+				if ( pwThis ) {
+					pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+				}
+			}
+		}
+		{
+			struct LSN_CONTROLS {
+				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				bool													bCloseCondition0;
+			} cControls[] = {
+				{ Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO,				!bLooping },
+				{ Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO,			!bLooping },
+				{ Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO,					!bLooping },
 
-			//{ Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW,					bHasItems },
-			{ Layout::LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,				bSelected },
-			{ Layout::LSN_WEWI_SEQ_OPS_UP_BUTTON,					bSelected },
-			{ Layout::LSN_WEWI_SEQ_OPS_DOWN_BUTTON,					bSelected },
-		};
-		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
-			auto pwThis = FindChild( cControls[I].wId );
-			if ( pwThis ) {
-				pwThis->SetEnabled( cControls[I].bCloseCondition0 );
+				{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,				bLooping },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,				bLooping },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,		bLooping },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_LABEL,				bLooping },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					bLooping },
+				{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,		bLooping },
+			};
+			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+				auto pwThis = FindChild( cControls[I].wId );
+				if ( pwThis ) {
+					pwThis->SetVisible( cControls[I].bCloseCondition0 );
+				}
 			}
 		}
 
@@ -572,6 +732,34 @@ namespace lsn {
 		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
 		if ( pwThis ) {
 			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT, vAffected ).c_str() );
+		}
+
+
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO, vAffected ) );
+		}
+
+
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO );
+		if ( pwThis ) {
+			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO, vAffected ) );
 		}
 
 

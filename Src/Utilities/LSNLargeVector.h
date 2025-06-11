@@ -532,7 +532,7 @@ namespace lsn {
 				vBlock.resize( nChunk );
 				m_ofsDisk.read( reinterpret_cast<char *>(vBlock.data()), nChunk * sizeof( T ) );
 
-				m_ofsDisk.seekp( ( nReadPos + _nCount ) * sizeof( T ), std::ios::beg );
+				m_ofsDisk.seekp( (nReadPos + _nCount) * sizeof( T ), std::ios::beg );
 				m_ofsDisk.write( reinterpret_cast<const char *>(vBlock.data()), nChunk * sizeof( T ) );
 			}
 
@@ -548,6 +548,55 @@ namespace lsn {
 
 			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
 		}
+
+		/**
+		 * \brief Erases a number of elements from the front of the vector.
+		 *
+		 * Flushes any buffered push_back() data and the dirty cache, shifts the remaining
+		 * elements in blocks down to index 0, truncates the file, resets the cache, and
+		 * repositions the disk handle for future appends.
+		 *
+		 * \param _nCount The number of elements to remove from the front.
+		 * \throws std::runtime_error if _nCount exceeds the current size.
+		 */
+		void													erase_front( size_t _nCount ) {
+			if ( _nCount > m_nTotalSize ) { throw std::runtime_error( "erase_front count too large." ); }
+
+			flushWriteBuffer();
+			flushCurrentSection();
+
+			// 2) Compute new size
+			size_t sNewSize = m_nTotalSize - _nCount;
+
+			// 3) Shift tail in blocks
+			std::vector<T>	vBlock;
+			vBlock.reserve( m_nMaxRamItems );
+			for ( size_t nSrc = _nCount; nSrc < m_nTotalSize; nSrc += m_nMaxRamItems ) {
+				size_t sChunk = std::min( m_nMaxRamItems, m_nTotalSize - nSrc );
+
+				m_ofsDisk.seekg( nSrc * sizeof( T ), std::ios::beg );
+				vBlock.resize( sChunk );
+				m_ofsDisk.read( reinterpret_cast<char *>( vBlock.data() ), sChunk * sizeof( T ) );
+
+				m_ofsDisk.seekp( (nSrc - _nCount) * sizeof( T ), std::ios::beg );
+				m_ofsDisk.write( reinterpret_cast<const char *>( vBlock.data() ), sChunk * sizeof( T ) );
+			}
+
+			m_ofsDisk.close();
+			std::filesystem::resize_file( m_pPathDiskFile, sNewSize * sizeof( T ) );
+			m_ofsDisk.open( m_pPathDiskFile, std::ios::in | std::ios::out | std::ios::binary );
+
+			m_nCurrentSectionStart = 0;
+			m_nTotalSize           = sNewSize;
+			size_t sLoad           = std::min( m_nMaxRamItems, m_nTotalSize );
+			std::vector<T,Allocator>::resize( sLoad );
+			if ( sLoad ) {
+				loadSection( 0 );
+			}
+
+			m_ofsDisk.seekp( m_nTotalSize * sizeof( T ), std::ios::beg );
+		}
+
 
     
 		//-------------------------------------------------------------------------

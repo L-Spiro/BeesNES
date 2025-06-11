@@ -24,7 +24,7 @@
 #include <vector>
 
 
-#define LSN_WAV_EDITOR_VERSION											2
+#define LSN_WAV_EDITOR_VERSION											3
 
 
 namespace lsn {
@@ -126,6 +126,8 @@ namespace lsn {
 			LSN_FILTER													fHpf0Type = LSN_F_POLE;							/**< The HPF 1 filter type. */
 			LSN_FILTER													fHpf1Type = LSN_F_POLE;							/**< The HPF 2 filter type. */
 			LSN_FILTER													fHpf2Type = LSN_F_POLE;							/**< The HPF 3 filter type. */
+			LSN_START_STOP_TIME											sstStartMod = LSN_SST_EXACT;					/**< The start-time modifier. */
+			LSN_START_STOP_TIME											sstStopMod = LSN_SST_EXACT;						/**< The stop-time modifier. */
 			bool														bLoop = false;									/**< Whether to loop or 1-short. */
 			bool														bFade = false;									/**< Whether to fade or not. */
 			bool														bInvert = true;									/**< Whether to invert the waveform or not. */
