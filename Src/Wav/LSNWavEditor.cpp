@@ -360,6 +360,8 @@ namespace lsn {
 	 **/
 	bool CWavEditor::DoFile( const LSN_WAV_FILE_SET &_wfsSet, const LSN_PER_FILE &_pfFile, const LSN_OUTPUT &_oOutput, size_t &_stIdx, size_t _sTotal, std::wstring &_wsMsg,
 		std::wstring &_wsBatFile, std::wstring &_wsMetadata ) {
+		CUtilities::LSN_FEROUNDMODE frmMode( FE_TONEAREST );
+
 		using large_vec = large_vector<double, CAlignmentAllocator<double, 64>>;
 		// Determine the sample range to load.
 		double dStartTime = _pfFile.dStartTime;
@@ -484,7 +486,6 @@ namespace lsn {
 					i64EraseMe -= int64_t( std::round( i32FilterCnt * (_pfFile.dActualHz / _oOutput.ui32Hz) / 2.0 ) );
 					if ( i64EraseMe > 0 ) {
 						vSamples[J].pop_back( size_t( i64EraseMe ) );
-						//dLen = (std::round( dLen * _pfFile.dActualHz ) - double( i64EraseMe )) / _pfFile.dActualHz;
 						dLen = _pfFile.dOpeningSilence + (vSamples[J].size() / _pfFile.dActualHz);
 					}
 				}

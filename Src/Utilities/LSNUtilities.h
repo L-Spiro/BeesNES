@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cwctype>
+#include <fenv.h>
 //#include <intrin.h>
 #include <numbers>
 #include <random>
@@ -55,6 +56,19 @@ namespace lsn {
 			std::u16string u16sFullPath;					/**< The full file path. */
 			std::u16string u16sPath;						/**< Path to the file without the file name. */
 			std::u16string u16sFile;						/**< The file name. */
+		};
+
+		/** Temporarily setting the floating-point rounding mode. */
+		struct LSN_FEROUNDMODE {
+			LSN_FEROUNDMODE( int _iNewMode ) :
+				iPrevMode( ::fegetround() ) {
+				::fesetround( _iNewMode );
+			}
+			~LSN_FEROUNDMODE() {
+				::fesetround( iPrevMode );
+			}
+
+			int							iPrevMode;					/**< The previous rounding mode. */
 		};
 
 
