@@ -70,7 +70,7 @@ namespace lsn {
 			// Set the reads of the fixed bank at the start.		
 			m_stFixedOffset = 0;
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0x8000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
 			
 

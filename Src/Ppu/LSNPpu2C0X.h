@@ -1602,7 +1602,7 @@ namespace lsn {
 #endif	// 0
 #ifdef LSN_INT_OAM_DECAY
 			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
-			if ( m_ui64Cycle >= (*pui64Decay) ) {
+			if LSN_UNLIKELY( m_ui64Cycle >= (*pui64Decay) ) {
 				(*pui8Val) = 0x00;
 			}
 			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
@@ -1610,7 +1610,7 @@ namespace lsn {
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
 				uint16_t ui16Dot = m_ui16CurX;
 				// During the OAM-clear phase.
-				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
+				if LSN_UNLIKELY( ui16Dot >= 1 && ui16Dot <= 64 && m_bRendering ) {
 					//(*pui8Val) = 0xFF;
 					return 0xFF;
 				}

@@ -65,7 +65,7 @@ namespace lsn {
 			// Last 3 banks are fixed 8-kilobyte banks.
 			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() * 3 ) - PgmBankSize() * 3;
 			for ( uint32_t I = 0xA000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xA000) % m_prRom->vPrgRom.size() ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xA000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
 
 			// ================

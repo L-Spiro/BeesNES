@@ -155,6 +155,8 @@ namespace lsn {
 		CDatabase::LSN_PCB_CLASS						m_pcPcbClass;
 		/** Microwire. */
 		uint8_t											m_ui8MicroWire;
+		/** Swap mode/WRAM contrl. */
+		uint8_t											m_ui8SwapWram;
 
 
 
@@ -211,7 +213,7 @@ namespace lsn {
 			}
 			// Mirroring.
 			for ( uint32_t I = 0x9000; I <= 0x9FFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectMirror9000_9FFF, this, uint16_t( I ) );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectMirror9000_9FFF<true>, this, uint16_t( I ) );
 			}
 			// $A000-$BFFF bank-select.
 			for ( uint32_t I = 0xA000; I <= 0xAFFF; ++I ) {
@@ -227,7 +229,7 @@ namespace lsn {
 			for ( uint32_t I = 0xD000; I <= 0xDFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<4>, this, uint16_t( I ) );
 			}
-			for ( uint32_t I = 0xE000; I <= 0xFFFF; ++I ) {
+			for ( uint32_t I = 0xE000; I <= 0xEFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC2<6>, this, uint16_t( I ) );
 			}
 
@@ -244,7 +246,6 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 **/
 		void											ApplyMap_Vrc4( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
-			::OutputDebugStringA( "VRC4\r\n" );
 			// ================
 			// FIXED BANKS
 			// ================
@@ -254,16 +255,16 @@ namespace lsn {
 			for ( uint32_t I = 0xE000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
-			if ( m_prRom->i32SaveRamSize ) {
+			if ( m_prRom->i32SaveRamSize == 8 * 1024 ) {
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::DefaultChrRamRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::DefaultChrRamRead, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( I - 0x6000 ) );
 				}
 			}
 			else {
 				for ( uint32_t I = 0x6000; I < 0x7000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::DefaultChrRamRead, this, uint16_t( (I - 0x6000) & 0x7FFF ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( (I - 0x6000) & 0x7FFF ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::DefaultChrRamRead, this, uint16_t( (I - 0x6000) & 0x7FF ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( (I - 0x6000) & 0x7FF ) );
 				}
 				for ( uint32_t I = 0x7000; I < 0x8000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CCpuBus::NoRead, this, uint16_t( I - 0x7000 ) );
@@ -275,11 +276,14 @@ namespace lsn {
 			// SWAPPABLE BANKS
 			// ================
 			// CPU.
-			/*for ( uint32_t I = 0x8000; I <= 0x9FFF; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
-			}*/
+			for ( uint32_t I = 0x8000; I <= 0x9FFF; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::Read8000_9FFF_or_C000_DFFF<0b00>, this, uint16_t( I - 0x8000 ) );
+			}
 			for ( uint32_t I = 0xA000; I <= 0xBFFF; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<1, PgmBankSize()>, this, uint16_t( I - 0xA000 ) );
+			}
+			for ( uint32_t I = 0xC000; I <= 0xDFFF; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::Read8000_9FFF_or_C000_DFFF<0b10>, this, uint16_t( I - 0xC000 ) );
 			}
 
 			// ================
@@ -287,11 +291,15 @@ namespace lsn {
 			// ================
 			// Mirroring.
 			for ( uint32_t I = 0x9000; I <= 0x9FFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectMirror9000_9FFF, this, uint16_t( I ) );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectMirror9000_9FFF<false>, this, uint16_t( I ) );
 			}
 			// $A000-$BFFF bank-select.
 			for ( uint32_t I = 0xA000; I <= 0xAFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectBankA000_AFFF, this, uint16_t( I ) );
+			}
+			// $F000-$FFFF IRQ.
+			for ( uint32_t I = 0xF000; I <= 0xFFFF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteIrqF000_FFFF, this, uint16_t( I ) );
 			}
 			// CHR bank-select.
 			for ( uint32_t I = 0xB000; I < 0xBFFF; ++I ) {
@@ -303,7 +311,7 @@ namespace lsn {
 			for ( uint32_t I = 0xD000; I < 0xDFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<4>, this, uint16_t( I ) );	// Treated as ROM.
 			}
-			for ( uint32_t I = 0xE000; I < 0xFFFF; ++I ) {
+			for ( uint32_t I = 0xE000; I < 0xEFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<6>, this, uint16_t( I ) );	// Treated as ROM.
 			}
 
@@ -545,32 +553,61 @@ namespace lsn {
 		/**
 		 * Selects a mirroring mode.
 		 * 
+		 * \tparam _bVrc2 If VRC4, $9002 becomes a Swap Mode/WRAM controller and mirroring is only on $9000. 
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 **/
+		template <bool _bVrc2>
 		static void LSN_FASTCALL						SelectMirror9000_9FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
 			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
-			if ( ui16ddr == 0x9000 || ui16ddr == 0x9001 || ui16ddr == 0x9002 || ui16ddr == 0x9003 ) {
-				switch ( _ui8Val & 0b11 ) {
-					case 0b00 : {
-						pmThis->m_mmMirror = LSN_MM_VERTICAL;
-						break;
+			if constexpr ( _bVrc2 ) {
+				if ( ui16ddr == 0x9000 || ui16ddr == 0x9001 || ui16ddr == 0x9002 || ui16ddr == 0x9003 ) {
+					switch ( _ui8Val & 0b11 ) {
+						case 0b00 : {
+							pmThis->m_mmMirror = LSN_MM_VERTICAL;
+							break;
+						}
+						case 0b01 : {
+							pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+							break;
+						}
+						case 0b10 : {
+							pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
+							break;
+						}
+						case 0b11 : {
+							pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
+							break;
+						}
 					}
-					case 0b01 : {
-						pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
-						break;
+				}
+			}
+			else {
+				if ( ui16ddr == 0x9000 ) {
+					switch ( _ui8Val & 0b11 ) {
+						case 0b00 : {
+							pmThis->m_mmMirror = LSN_MM_VERTICAL;
+							break;
+						}
+						case 0b01 : {
+							pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+							break;
+						}
+						case 0b10 : {
+							pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
+							break;
+						}
+						case 0b11 : {
+							pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
+							break;
+						}
 					}
-					case 0b10 : {
-						pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
-						break;
-					}
-					case 0b11 : {
-						pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
-						break;
-					}
+				}
+				else if ( ui16ddr == 0x9002 ) {
+					pmThis->m_ui8SwapWram = _ui8Val;
 				}
 			}
 		}
@@ -599,6 +636,47 @@ namespace lsn {
 		static void LSN_FASTCALL						WriteMicroWire6000_6FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
 			pmThis->m_ui8MicroWire = _ui8Val;
+		}
+
+		/**
+		 * Reads from the swappable $8000-$9FFF/$C000-$DFFF bank (VRC4).  If the M bit matches the _uM value, the $8000 bank is read, otherwise the second-to-last fixed bank is used.
+		 *
+		 * \tparam _uM Matched against the M bit to decide on what to read.
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		template <unsigned _uM>
+		static void LSN_FASTCALL						Read8000_9FFF_or_C000_DFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			if ( (pmThis->m_ui8SwapWram & 0b10) == _uM ) {
+				CMapperBase::PgmBankRead<0, PgmBankSize()>( _pvParm0, _ui16Parm1, _pui8Data, _ui8Ret );
+			}
+			else {
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[_ui16Parm1+pmThis->m_s2ndToLast];
+			}
+		}
+
+		/**
+		 * Writes to the IRQ registers (VRC4).
+		 * 
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 **/
+		static void LSN_FASTCALL						WriteIrqF000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
+			if ( ui16ddr == 0xF000 ) {
+			}
+			else if ( ui16ddr == 0xF001 ) {
+			}
+			else if ( ui16ddr == 0xF002 ) {
+			}
+			else if ( ui16ddr == 0xF003 ) {
+			}
 		}
 	};
 

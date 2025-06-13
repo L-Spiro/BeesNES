@@ -1847,7 +1847,7 @@ namespace lsn {
 	void CCpu6502::SetBrkFlags() {
 		LSN_INSTR_START_PHI1( true );
 
-		SetBit<I(), true>( m_fsState.rRegs.ui8Status );
+		SetBit<I() | M(), true>( m_fsState.rRegs.ui8Status );
 		SetBit<X(), false>( m_fsState.rRegs.ui8Status );
 		m_fsState.bAllowWritingToPc = true;
 
