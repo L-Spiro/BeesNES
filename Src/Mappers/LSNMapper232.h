@@ -49,8 +49,8 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8Bank = 0;
 			SetPgmBank<0, PgmBankSize()>( (m_ui8Bank & 0b1100) | 0x3 );

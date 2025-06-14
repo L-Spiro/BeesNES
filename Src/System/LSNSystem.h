@@ -298,8 +298,12 @@ namespace lsn {
 			m_cCpu.SetMapper( nullptr );
 			m_rRom = std::move( _rRom );
 
-			m_bBus.DGB_FillMemory( 0x00 );
-			m_pPpu.GetPpuBus().DGB_FillMemory( 0x00 );
+			//m_bBus.DGB_FillMemoryUi32( 0xFFFFFF00 );
+			m_bBus.DGB_Randomize();
+			m_pPpu.GetPpuBus().DGB_Randomize();
+
+			/*m_bBus.DGB_FillMemory( 0x00 );
+			m_pPpu.GetPpuBus().DGB_FillMemory( 0x00 );*/
 
 			uint16_t ui16Addr = 0x8000;
 			uint16_t ui16Size = uint16_t( 0x10000 - ui16Addr );
@@ -353,7 +357,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper013>();
 					break;
 				}
-				
+				case 21 : {
+					m_pmbMapper = std::make_unique<CMapper023>();
+					break;
+				}
 				case 22 : {
 					m_pmbMapper = std::make_unique<CMapper023>();
 					break;
@@ -507,7 +514,7 @@ namespace lsn {
 #endif	// #ifdef LSN_WINDOWS
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
-				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu, &m_pPpu );
+				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu, &m_cCpu, &m_pPpu );
 			}
 
 			return true;

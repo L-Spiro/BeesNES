@@ -1796,7 +1796,7 @@ namespace lsn {
 		static inline double								Sinc( double _dX ) {
 			_dX *= std::numbers::pi;
 			if ( _dX < 0.01 && _dX > -0.01 ) {
-				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * (1.0 / 120.0));
 			}
 
 			return std::sin( _dX ) / _dX;

@@ -50,10 +50,13 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _pbPpuBus );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			std::memset( m_ui8ChrBanksVrc, 0, sizeof( m_ui8ChrBanksVrc ) );
+			std::memset( m_ui8DefaultChrRam, 0, sizeof( m_ui8DefaultChrRam ) );
+			std::memset( m_ui8ChrBanks, 0, sizeof( m_ui8ChrBanks ) );
+			std::memset( m_ui8PgmBanks, 0, sizeof( m_ui8PgmBanks ) );
 		}
 
 		/**
@@ -138,6 +141,12 @@ namespace lsn {
 			}
 		}
 
+		/**
+		 * Ticks with the CPU.
+		 */
+		virtual void									Tick() {
+			m_viIrq.Tick( m_pInterruptable );
+		}
 
 	protected :
 		// == Types.
@@ -145,6 +154,10 @@ namespace lsn {
 
 		
 		// == Members.
+		/** WRAM. */
+		std::vector<uint8_t>							m_vWram;
+		/** VRC4 IRQ. */
+		CVrcIrq											m_viIrq;
 		/** The swizzle function. */
 		PfSwizzle										m_pfSwizzleFunc = nullptr;
 		/** The 2nd-to-last bank (VRC4). */
@@ -156,7 +169,7 @@ namespace lsn {
 		/** Microwire. */
 		uint8_t											m_ui8MicroWire;
 		/** Swap mode/WRAM contrl. */
-		uint8_t											m_ui8SwapWram;
+		uint8_t											m_ui8SwapWram = 0;
 
 
 
@@ -172,14 +185,15 @@ namespace lsn {
 			// FIXED BANKS
 			// ================
 			// Set the reads of the fixed bank at the end.
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize() * 2;
+			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() * 2 ) - PgmBankSize() * 2;
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xC000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
 			if ( m_prRom->i32SaveRamSize ) {
+				m_vWram.resize( 0x8000 - 0x6000 );
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::DefaultChrRamRead, this, uint16_t( I - 0x6000 ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<false>, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<false>, this, uint16_t( I - 0x6000 ) );
 				}
 			}
 			else {
@@ -251,24 +265,25 @@ namespace lsn {
 			// ================
 			// Set the reads of the fixed bank at the end.
 			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize() * 1;
-			m_s2ndToLast = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize() * 2;
+			m_s2ndToLast = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() * 2 ) - PgmBankSize() * 2;
 			for ( uint32_t I = 0xE000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
+			m_vWram.resize( 0x8000 - 0x6000 );
 			if ( m_prRom->i32SaveRamSize == 8 * 1024 ) {
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::DefaultChrRamRead, this, uint16_t( I - 0x6000 ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<true>, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<true>, this, uint16_t( I - 0x6000 ) );
 				}
 			}
 			else {
 				for ( uint32_t I = 0x6000; I < 0x7000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::DefaultChrRamRead, this, uint16_t( (I - 0x6000) & 0x7FF ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::DefaultChrRamWrite, this, uint16_t( (I - 0x6000) & 0x7FF ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<true>, this, uint16_t( (I - 0x6000) & 0x7FF ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<true>, this, uint16_t( (I - 0x6000) & 0x7FF ) );
 				}
 				for ( uint32_t I = 0x7000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CCpuBus::NoRead, this, uint16_t( I - 0x7000 ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, this, uint16_t( I - 0x7000 ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CCpuBus::NoRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, this, uint16_t( I - 0x6000 ) );
 				}
 			}
 
@@ -303,16 +318,16 @@ namespace lsn {
 			}
 			// CHR bank-select.
 			for ( uint32_t I = 0xB000; I < 0xBFFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<0>, this, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<0>, this, uint16_t( I ) );
 			}
 			for ( uint32_t I = 0xC000; I < 0xCFFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<2>, this, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<2>, this, uint16_t( I ) );
 			}
 			for ( uint32_t I = 0xD000; I < 0xDFFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<4>, this, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<4>, this, uint16_t( I ) );
 			}
 			for ( uint32_t I = 0xE000; I < 0xEFFF; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<6>, this, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<6>, this, uint16_t( I ) );
 			}
 
 			// ================
@@ -666,16 +681,63 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 **/
-		static void LSN_FASTCALL						WriteIrqF000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
+		static void LSN_FASTCALL						WriteIrqF000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
 			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
 			if ( ui16ddr == 0xF000 ) {
+				pmThis->m_viIrq.SetLatch_Lo4( _ui8Val );
 			}
 			else if ( ui16ddr == 0xF001 ) {
+				pmThis->m_viIrq.SetLatch_Hi4( _ui8Val );
 			}
 			else if ( ui16ddr == 0xF002 ) {
+				pmThis->m_viIrq.SetControl( _ui8Val, pmThis->m_pInterruptable );
 			}
 			else if ( ui16ddr == 0xF003 ) {
+				pmThis->m_viIrq.AcknowledgeIrq( pmThis->m_pInterruptable );
+			}
+		}
+
+		/**
+		 * Reads WRAM $6000-$7FFF/$C000-$DFFF bank (VRC4).  If the M bit matches the _uM value, the $8000 bank is read, otherwise the second-to-last fixed bank is used.
+		 *
+		 * \tparam _uM Matched against the M bit to decide on what to read.
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		template <bool _bVrc4>
+		static void LSN_FASTCALL						ReadWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			if constexpr ( _bVrc4 ) {
+				if ( pmThis->m_ui8SwapWram & 0b01 ) {
+					_ui8Ret = pmThis->m_vWram[_ui16Parm1];
+				}
+			}
+			else {
+				_ui8Ret = pmThis->m_vWram[_ui16Parm1];
+			}
+		}
+
+		/**
+		 * Writes to WRAM (VRC4).
+		 * 
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 **/
+		template <bool _bVrc4>
+		static void LSN_FASTCALL						WriteWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
+			if constexpr ( _bVrc4 ) {
+				if ( pmThis->m_ui8SwapWram & 0b01 ) {
+					pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+				}
+			}
+			else {
+				pmThis->m_vWram[_ui16Parm1] = _ui8Val;
 			}
 		}
 	};

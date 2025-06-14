@@ -36,12 +36,6 @@ namespace lsn {
 		 */
 		inline uint64_t						GetCycleCount() const { return m_ui64CycleCount; }
 
-		/**
-		 * Signals an IRQ to be handled before the next instruction.
-		 *
-		 * \param _ui8Source The source of the IRQ.
-		 */
-		virtual void						Irq( uint8_t /*_ui8Source*/ ) {}
 
 	protected :
 		// == Enumerations.

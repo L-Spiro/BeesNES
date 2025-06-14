@@ -40,6 +40,9 @@
 
 #include "../LSNLSpiroNes.h"
 
+#include <algorithm>
+#include <cmath>
+#include <random>
 #ifdef LSN_CPU_VERIFY
 #include <vector>
 #endif	// #ifdef LSN_CPU_VERIFY
@@ -346,6 +349,16 @@ namespace lsn {
 		}
 
 		/**
+		 * Writes a single value to a RAM location for debug purposes.
+		 * 
+		 * \param _u16Address The address to which to write.
+		 * \param _ui8Val The value to write to the given addres.
+		 **/
+		inline void							DBG_Write( uint16_t _ui16Address, uint8_t _ui8Val ) {
+			m_ui8Ram[_ui16Address] = _ui8Val;
+		}
+
+		/**
 		 * Fills the memory with a value.
 		 *
 		 * \param _ui8Val the value with which to fill the memory.
@@ -353,6 +366,31 @@ namespace lsn {
 		void								DGB_FillMemory( uint8_t _ui8Val ) {
 			for ( auto I = _uSize; I--; ) {
 				m_ui8Ram[I] = _ui8Val;
+			}
+		}
+
+		/**
+		 * Fills the memory with a 4-byte value.
+		 *
+		 * \param _ui32Val the value with which to fill the memory.
+		 */
+		void								DGB_FillMemoryUi32( uint32_t _ui32Val ) {
+			uint32_t * pui32This = reinterpret_cast<uint32_t *>(m_ui8Ram);
+			for ( auto I = _uSize / sizeof( uint32_t ); I--; ) {
+				pui32This[I] = _ui32Val;
+			}
+		}
+
+		/**
+		 * Randomizes the entire block of memory.
+		 **/
+		void								DGB_Randomize() {
+			std::random_device rdDev;
+			std::mt19937 mGen( rdDev() );
+			std::normal_distribution<double> urdDist( 128.0, 20.0 );
+
+			for ( auto I = _uSize; I--; ) {
+				m_ui8Ram[I] = static_cast<uint8_t>(std::round( std::clamp( urdDist( mGen ), 0.0, 255.0 ) ));
 			}
 		}
 

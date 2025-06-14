@@ -14,6 +14,7 @@
 #include "../Cpu/LSNCpuBase.h"
 #include "../Roms/LSNRom.h"
 #include "../System/LSNBussable.h"
+#include "../System/LSNInterruptable.h"
 
 namespace lsn {
 
@@ -38,6 +39,121 @@ namespace lsn {
 		}
 
 
+		// == Types.
+		/**
+		 * Class CVrcIrq
+		 * \brief The VRC IRQ handler.
+		 *
+		 * Description: The VRC IRQ handler.
+		 */
+		class CVrcIrq {
+		public :
+			CVrcIrq() {
+			}
+			~CVrcIrq() {
+			}
+
+
+			// == Functions.
+			/**
+			 * Sets the low 4 bits of the latch.
+			 * 
+			 * \param _ui8Val The low 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_Lo4( uint8_t _ui8Val ) {
+				m_i16Prescaler = (m_i16Prescaler & 0xF0) | (_ui8Val & 0x0F);
+			}
+
+			/**
+			 * Sets the height 4 bits of the latch.
+			 * 
+			 * \param _ui8Val The high 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_Hi4( uint8_t _ui8Val ) {
+				m_i16Prescaler = (m_i16Prescaler & 0x0F) | ((_ui8Val & 0x0F) << 4);
+			}
+
+			/**
+			 * Sets the latch.
+			 * 
+			 * \param _ui8Val The value  to set as the latch (reload) value.
+			 **/
+			inline void									SetLatch( uint8_t _ui8Val ) {
+				m_i16Prescaler = _ui8Val;
+			}
+
+			/**
+			 * Sets the control register.
+			 * 
+			 * \param _ui8Val The heigh 4 bits to set as the low 4 bits of the latch (reload) value.
+			 * \param _pcbCpu A pointer to the CPU.
+			 **/
+			inline void									SetControl( uint8_t _ui8Val, CInterruptable * _piCpu ) {
+				m_ui8Control = _ui8Val;
+
+				m_i16Prescaler = 341;
+				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				if ( _ui8Val & 0b00000010 ) {	// E.
+					m_ui8Counter = m_ui8Reload;
+				}
+			}
+
+			/**
+			 * Acknowledges IRQ's.
+			 * 
+			 * \param _piCpu The IRQ handler.
+			 **/
+			inline void									AcknowledgeIrq( CInterruptable * _piCpu ) {
+				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
+			}
+
+			/**
+			 * Performs a tick.
+			 * 
+			 * \param _piCpu The IRQ handler.
+			 **/
+			inline void									Tick( CInterruptable * _piCpu ) {
+				if ( m_ui8Control & 0b00000010 ) {			// E bit set.
+					bool bClockCounter = false;
+					if ( !(m_ui8Control & 0b00000100) ) {	// M bit clear.
+						m_i16Prescaler -= 3;
+						if ( m_i16Prescaler <= 0 ) {
+							m_i16Prescaler += 341;
+							bClockCounter = true;
+						}
+					}
+					else {									// M bit set.
+						bClockCounter = true;
+					}
+					if ( bClockCounter ) {
+						if LSN_UNLIKELY( m_ui8Counter == 0xFF ) {
+							m_ui8Counter = m_ui8Reload;
+							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+						}
+						else {
+							++m_ui8Counter;
+						}
+					}
+				}
+			}
+
+
+		protected :
+			// == Members.
+			/** The prescaler. */
+			int16_t										m_i16Prescaler = 341;
+			/** The reload value. */
+			uint8_t										m_ui8Reload = 0;
+			/** The counter. */
+			uint8_t										m_ui8Counter = 0;
+			/** The control value. */
+			uint8_t										m_ui8Control = 0;
+			/** One-shot IRQ? */
+			bool										m_bOneShot = true;
+		};
+
+
 		// == Functions.
 		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
@@ -45,10 +161,11 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CBussable * _pbPpuBus ) {
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			m_prRom = &_rRom;
 			m_pcbCpu = _pcbCpuBase;
 			m_pbPpuBus = _pbPpuBus;
+			m_pInterruptable = _piInter;
 		}
 
 		/**
@@ -124,6 +241,8 @@ namespace lsn {
 		LSN_ROM *										m_prRom;
 		/** The CPU, for reading information such as cycle counts and for sending IRQ's. */
 		CCpuBase *										m_pcbCpu;
+		/** The interruptable object. */
+		CInterruptable *								m_pInterruptable = nullptr;
 		/** The PPU pointer, for accessing the PPU address bus. */
 		CBussable *										m_pbPpuBus;
 		/** The offset of the fixed bank. */
@@ -133,7 +252,7 @@ namespace lsn {
 		/** The CHR ROM bank. */
 		uint8_t &										m_ui8ChrBank;
 		/** The mirroring mode. */
-		LSN_MIRROR_MODE									m_mmMirror;
+		LSN_MIRROR_MODE									m_mmMirror = LSN_MM_VERTICAL;
 
 
 		// == Functions.
