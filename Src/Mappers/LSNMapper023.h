@@ -317,16 +317,16 @@ namespace lsn {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteIrqF000_FFFF, this, uint16_t( I ) );
 			}
 			// CHR bank-select.
-			for ( uint32_t I = 0xB000; I < 0xBFFF; ++I ) {
+			for ( uint32_t I = 0xB000; I <= 0xBFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<0>, this, uint16_t( I ) );
 			}
-			for ( uint32_t I = 0xC000; I < 0xCFFF; ++I ) {
+			for ( uint32_t I = 0xC000; I <= 0xCFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<2>, this, uint16_t( I ) );
 			}
-			for ( uint32_t I = 0xD000; I < 0xDFFF; ++I ) {
+			for ( uint32_t I = 0xD000; I <= 0xDFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<4>, this, uint16_t( I ) );
 			}
-			for ( uint32_t I = 0xE000; I < 0xEFFF; ++I ) {
+			for ( uint32_t I = 0xE000; I <= 0xEFFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectChrBank_VRC4<6>, this, uint16_t( I ) );
 			}
 
@@ -466,12 +466,12 @@ namespace lsn {
 		template <unsigned _uBnkIdx>
 		static void LSN_FASTCALL						SelectChrBank_VRC2( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
-			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
-			if ( (ui16ddr & 0x0FFF) == 0x0000 || (ui16ddr & 0x0FFF) == 0x0001 ) {
-				if ( (ui16ddr & 0x0FFF) == 0x0000 ) {
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 ) & 0x0FFF;
+			if ( ui16ddr == 0x0000 || ui16ddr == 0x0001 ) {
+				if ( ui16ddr == 0x0000 ) {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b1111;
 				}
-				else if ( (ui16ddr & 0x0FFF) == 0x0001 ) {
+				else /*if ( ui16ddr == 0x0001 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] = _ui8Val & 0b1111;
 				}
 				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] << 4);
@@ -482,11 +482,11 @@ namespace lsn {
 					pmThis->SetChrBank<_uBnkIdx, ChrBankSize()>( ui8Tmp );
 				}
 			}
-			else if ( (ui16ddr & 0x0FFF) == 0x0002 || (ui16ddr & 0x0FFF) == 0x0003 ) {
-				if ( (ui16ddr & 0x0FFF) == 0x0002 ) {
+			else if ( ui16ddr == 0x0002 || ui16ddr == 0x0003 ) {
+				if ( ui16ddr == 0x0002 ) {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b1111;
 				}
-				else if ( (ui16ddr & 0x0FFF) == 0x0003 ) {
+				else /*if ( ui16ddr == 0x0003 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] = _ui8Val & 0b1111;
 				}
 				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] << 4);
@@ -510,22 +510,22 @@ namespace lsn {
 		template <unsigned _uBnkIdx>
 		static void LSN_FASTCALL						SelectChrBank_VRC4( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper023 * pmThis = reinterpret_cast<CMapper023 *>(_pvParm0);
-			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
-			if ( (ui16ddr & 0x0FFF) == 0x0000 || (ui16ddr & 0x0FFF) == 0x0001 ) {
-				if ( (ui16ddr & 0x0FFF) == 0x0000 ) {
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 ) & 0x0FFF;
+			if ( ui16ddr == 0x0000 || ui16ddr == 0x0001 ) {
+				if ( ui16ddr == 0x0000 ) {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b1111;
 				}
-				else if ( (ui16ddr & 0x0FFF) == 0x0001 ) {
+				else /*if ( ui16ddr == 0x0001 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] = _ui8Val & 0b11111;
 				}
 				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] << 4);
 				pmThis->SetChrBank<_uBnkIdx, ChrBankSize()>( ui8Tmp );
 			}
-			else if ( (ui16ddr & 0x0FFF) == 0x0002 || (ui16ddr & 0x0FFF) == 0x0003 ) {
-				if ( (ui16ddr & 0x0FFF) == 0x0002 ) {
+			else if ( ui16ddr == 0x0002 || ui16ddr == 0x0003 ) {
+				if ( ui16ddr == 0x0002 ) {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b1111;
 				}
-				else if ( (ui16ddr & 0x0FFF) == 0x0003 ) {
+				else /*if ( ui16ddr == 0x0003 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] = _ui8Val & 0b11111;
 				}
 				uint8_t ui8Tmp = pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] | (pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] << 4);
