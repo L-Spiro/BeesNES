@@ -61,16 +61,16 @@ namespace lsn {
 			 * \param _ui8Val The low 4 bits to set as the low 4 bits of the latch (reload) value.
 			 **/
 			inline void									SetLatch_Lo4( uint8_t _ui8Val ) {
-				m_i16Prescaler = (m_i16Prescaler & 0xF0) | (_ui8Val & 0x0F);
+				m_ui8Reload = (m_ui8Reload & 0xF0) | (_ui8Val & 0x0F);
 			}
 
 			/**
-			 * Sets the height 4 bits of the latch.
+			 * Sets the high 4 bits of the latch.
 			 * 
 			 * \param _ui8Val The high 4 bits to set as the low 4 bits of the latch (reload) value.
 			 **/
 			inline void									SetLatch_Hi4( uint8_t _ui8Val ) {
-				m_i16Prescaler = (m_i16Prescaler & 0x0F) | ((_ui8Val & 0x0F) << 4);
+				m_ui8Reload = (m_ui8Reload & 0x0F) | ((_ui8Val & 0x0F) << 4);
 			}
 
 			/**
@@ -79,7 +79,7 @@ namespace lsn {
 			 * \param _ui8Val The value  to set as the latch (reload) value.
 			 **/
 			inline void									SetLatch( uint8_t _ui8Val ) {
-				m_i16Prescaler = _ui8Val;
+				m_ui8Reload = _ui8Val;
 			}
 
 			/**
@@ -149,8 +149,131 @@ namespace lsn {
 			uint8_t										m_ui8Counter = 0;
 			/** The control value. */
 			uint8_t										m_ui8Control = 0;
-			/** One-shot IRQ? */
-			bool										m_bOneShot = true;
+		};
+
+		/**
+		 * Class CVrcIrq3
+		 * \brief The VRC IRQ handler.
+		 *
+		 * Description: The VRC IRQ handler.
+		 */
+		class CVrcIrq3 {
+		public :
+			CVrcIrq3() {
+				m_ui16Reload = 0;
+				m_ui16Counter = 0;
+			}
+			~CVrcIrq3() {
+			}
+
+
+			// == Functions.
+			/**
+			 * Sets bits 0-3 of the reload value.
+			 * 
+			 * \param _ui8Val The low 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_0_3( uint8_t _ui8Val ) {
+				m_ui16Reload = (m_ui16Reload & 0xFFF0) | (_ui8Val & 0x0F);
+			}
+
+			/**
+			 * Sets bits 4-7 of the reload value.
+			 * 
+			 * \param _ui8Val The high 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_4_7( uint8_t _ui8Val ) {
+				m_ui16Reload = (m_ui16Reload & 0xFF0F) | ((_ui8Val & 0x0F) << 4);
+			}
+
+			/**
+			 * Sets bits 8-11 of the reload value.
+			 * 
+			 * \param _ui8Val The high 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_8_11( uint8_t _ui8Val ) {
+				m_ui16Reload = uint16_t( (m_ui16Reload & 0xF0FF) | (uint16_t( _ui8Val & 0x0F ) << 8) );
+			}
+
+			/**
+			 * Sets bits 12-15 of the reload value.
+			 * 
+			 * \param _ui8Val The high 4 bits to set as the low 4 bits of the latch (reload) value.
+			 **/
+			inline void									SetLatch_12_15( uint8_t _ui8Val ) {
+				m_ui16Reload = uint16_t( (m_ui16Reload & 0x0FFF) | (uint16_t( _ui8Val & 0x0F ) << 12) );
+			}
+
+			/**
+			 * Sets the control register.
+			 * 
+			 * \param _ui8Val The heigh 4 bits to set as the low 4 bits of the latch (reload) value.
+			 * \param _pcbCpu A pointer to the CPU.
+			 **/
+			inline void									SetControl( uint8_t _ui8Val, CInterruptable * _piCpu ) {
+				m_ui8Control = _ui8Val;
+
+				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				if ( _ui8Val & 0b00000010 ) {				// E.
+					m_ui16Counter = m_ui16Reload;
+				}
+			}
+
+			/**
+			 * Acknowledges IRQ's.
+			 * 
+			 * \param _piCpu The IRQ handler.
+			 **/
+			inline void									AcknowledgeIrq( CInterruptable * _piCpu ) {
+				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
+			}
+
+			/**
+			 * Performs a tick.
+			 * 
+			 * \param _piCpu The IRQ handler.
+			 **/
+			inline void									Tick( CInterruptable * _piCpu ) {
+				if ( m_ui8Control & 0b00000010 ) {			// E bit set.
+					if ( m_ui8Control & 0b00000100 ) {		// M bit set.
+						//if LSN_UNLIKELY( m_ui8Counter[0] == 0xFF ) {
+						if LSN_UNLIKELY( ++m_ui8Counter[0] == 0x00 ) {
+							m_ui8Counter[0] = m_ui8Reload[0];
+							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+						}
+						/*else {
+							++m_ui8Counter[0];
+						}*/
+					}
+					else {
+						//if LSN_UNLIKELY( m_ui16Counter == 0xFFFF ) {
+						if LSN_UNLIKELY( ++m_ui16Counter == 0x0000 ) {
+							m_ui16Counter = m_ui16Reload;
+							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+						}
+						/*else {
+							++m_ui16Counter;
+						}*/
+					}
+				}
+			}
+
+
+		protected :
+			// == Members.
+			/** The reload value. */
+			union {
+				uint16_t								m_ui16Reload;
+				uint8_t									m_ui8Reload[2];
+			};
+			/** The counter. */
+			union {
+				uint16_t								m_ui16Counter;
+				uint8_t									m_ui8Counter[2];
+			};
+			/** The control value. */
+			uint8_t										m_ui8Control = 0;
 		};
 
 

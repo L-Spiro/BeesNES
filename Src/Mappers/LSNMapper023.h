@@ -68,6 +68,11 @@ namespace lsn {
 		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
+			/*for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &DefaultChrRamRead, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), &DefaultChrRamWrite, this, uint16_t( I - 0x0000 ) );
+			}*/
+
 			m_pcPcbClass = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
 			switch ( m_pcPcbClass ) {
 				case CDatabase::LSN_PC_VRC4b : {}			LSN_FALLTHROUGH
@@ -270,7 +275,11 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
 			m_vWram.resize( 0x8000 - 0x6000 );
-			if ( m_prRom->i32SaveRamSize == 8 * 1024 ) {
+			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<true>, this, uint16_t( I - 0x6000 ) );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<true>, this, uint16_t( I - 0x6000 ) );
+			}
+			/*if ( m_prRom->i32SaveRamSize == 8 * 1024 ) {
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<true>, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<true>, this, uint16_t( I - 0x6000 ) );
@@ -285,7 +294,7 @@ namespace lsn {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CCpuBus::NoRead, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, this, uint16_t( I - 0x6000 ) );
 				}
-			}
+			}*/
 
 			// ================
 			// SWAPPABLE BANKS
@@ -304,6 +313,10 @@ namespace lsn {
 			// ================
 			// BANK-SELECT
 			// ================
+			// $8000-$9FFF bank-select.
+			for ( uint32_t I = 0x8000; I <= 0x8FFF; ++I ) {
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectBank8000_8FFF, this, uint16_t( I ) );
+			}
 			// Mirroring.
 			for ( uint32_t I = 0x9000; I <= 0x9FFF; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::SelectMirror9000_9FFF<false>, this, uint16_t( I ) );
@@ -513,7 +526,7 @@ namespace lsn {
 			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 ) & 0x0FFF;
 			if ( ui16ddr == 0x0000 || ui16ddr == 0x0001 ) {
 				if ( ui16ddr == 0x0000 ) {
-					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b1111;
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+0] = _ui8Val & 0b01111;
 				}
 				else /*if ( ui16ddr == 0x0001 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+1] = _ui8Val & 0b11111;
@@ -523,7 +536,7 @@ namespace lsn {
 			}
 			else if ( ui16ddr == 0x0002 || ui16ddr == 0x0003 ) {
 				if ( ui16ddr == 0x0002 ) {
-					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b1111;
+					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+2] = _ui8Val & 0b01111;
 				}
 				else /*if ( ui16ddr == 0x0003 )*/ {
 					pmThis->m_ui8ChrBanksVrc[_uBnkIdx*2+3] = _ui8Val & 0b11111;
@@ -580,21 +593,13 @@ namespace lsn {
 			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
 			if constexpr ( _bVrc2 ) {
 				if ( ui16ddr == 0x9000 || ui16ddr == 0x9001 || ui16ddr == 0x9002 || ui16ddr == 0x9003 ) {
-					switch ( _ui8Val & 0b11 ) {
+					switch ( _ui8Val & 0b01 ) {
 						case 0b00 : {
 							pmThis->m_mmMirror = LSN_MM_VERTICAL;
 							break;
 						}
 						case 0b01 : {
 							pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
-							break;
-						}
-						case 0b10 : {
-							pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
-							break;
-						}
-						case 0b11 : {
-							pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
 							break;
 						}
 					}
