@@ -80,13 +80,13 @@ namespace lsn {
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
-			if ( m_prRom->i32SaveRamSize ) {
-				m_vWram.resize( 0x8000 - 0x6000 );
+			//if ( m_prRom->i32SaveRamSize ) {
+				m_vPrgRam.resize( 0x8000 - 0x6000 );
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper073::ReadWram, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper073::WriteWram, this, uint16_t( I - 0x6000 ) );
 				}
-			}
+			//}
 			// PPU.
 			/*for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
 				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
@@ -127,11 +127,18 @@ namespace lsn {
 			//ApplyControllableMirrorMap( _pbPpuBus );
 		}
 
+		/**
+		 * Ticks with the CPU.
+		 */
+		virtual void									Tick() {
+			m_viIrq.Tick( m_pInterruptable );
+		}
+
 
 	protected :
 		// == Members.
 		/** WRAM. */
-		std::vector<uint8_t>							m_vWram;
+		std::vector<uint8_t>							m_vPrgRam;
 		/** VRC3 IRQ. */
 		CVrcIrq3										m_viIrq;
 
@@ -161,7 +168,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						ReadWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper073 * pmThis = reinterpret_cast<CMapper073 *>(_pvParm0);
-			_ui8Ret = pmThis->m_vWram[_ui16Parm1];
+			_ui8Ret = pmThis->m_vPrgRam[_ui16Parm1];
 		}
 
 		/**
@@ -174,7 +181,7 @@ namespace lsn {
 		 **/
 		static void LSN_FASTCALL						WriteWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper073 * pmThis = reinterpret_cast<CMapper073 *>(_pvParm0);
-			pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+			pmThis->m_vPrgRam[_ui16Parm1] = _ui8Val;
 		}
 
 		/**
