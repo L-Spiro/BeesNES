@@ -1877,7 +1877,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Mappers\LSNMapper036.h" />
     <ClInclude Include="Src\Mappers\LSNMapper038.h" />
     <ClInclude Include="Src\Mappers\LSNMapper041.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper065.h" />
     <ClInclude Include="Src\Mappers\LSNMapper066.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper067.h" />
     <ClInclude Include="Src\Mappers\LSNMapper068.h" />
     <ClInclude Include="Src\Mappers\LSNMapper069.h" />
     <ClInclude Include="Src\Mappers\LSNMapper071.h" />
@@ -1900,6 +1902,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Mappers\LSNMapper113.h" />
     <ClInclude Include="Src\Mappers\LSNMapper132.h" />
     <ClInclude Include="Src\Mappers\LSNMapper136.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper157.h" />
     <ClInclude Include="Src\Mappers\LSNMapper184.h" />
     <ClInclude Include="Src\Mappers\LSNMapper232.h" />
     <ClInclude Include="Src\Mappers\LSNMapper234.h" />

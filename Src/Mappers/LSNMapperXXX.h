@@ -1,5 +1,5 @@
 /**
- * Copyright L. Spiro 2024
+ * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
@@ -115,9 +115,24 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
+		template <unsigned _uBank = 0>
 		static void LSN_FASTCALL						SelectBankY000_YFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapperXXX * pmThis = reinterpret_cast<CMapperXXX *>(_pvParm0);
-			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
+			pmThis->SetPgmBank<_uBank, PgmBankSize()>( _ui8Val & 0b1111 );
+		}
+
+		/**
+		 * Selects a CHR bank.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		template <unsigned _uBank = 0>
+		static void LSN_FASTCALL						SelectChrBankX000_XFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapperXXX * pmThis = reinterpret_cast<CMapperXXX *>(_pvParm0);
+			pmThis->SetChrBank<_uBank, ChrBankSize()>( _ui8Val );
 		}
 	};
 

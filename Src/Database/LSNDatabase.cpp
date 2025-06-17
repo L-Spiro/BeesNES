@@ -807,6 +807,8 @@ namespace lsn {
 			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
 			// Quattro Sports (Aladdin) (U)
 			{ .ui32Crc = 0x62EF6C79, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
+			// Teenage Mutant Ninja Turtles (Japan)
+			{ .ui32Crc = 0xEA74C587, .ui16Mapper = 25, .ui16SubMapper = 2, },
 			// Ultimate Stuntman (U)
 			{ .ui32Crc = 0x892434DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Wrecking Crew (JUE)

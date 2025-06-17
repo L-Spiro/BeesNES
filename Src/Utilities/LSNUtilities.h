@@ -2010,10 +2010,10 @@ namespace lsn {
 		 * \param _fWidth The size of the filter kernel.
 		 * \return Returns the filtered value.
 		 **/
-		template <unsigned _uNotchW, unsigned _uPowTimes100>
+		template <unsigned _uNotchWTime100, unsigned _uPowTimes100>
 		static inline float									CrtHumpFunc( float _fT, float _fWidth ) {
 			_fT = std::fabsf( _fT );
-			constexpr double dNotchW = double( _uNotchW ) / 2.0;
+			constexpr double dNotchW = double( _uNotchWTime100 ) / (2.0 * 100.0);
 			if ( _fT <= dNotchW ) { return 1.0f; }
 			double dTmp = _fT - dNotchW;
 			double dNorm = dTmp / (_fWidth - dNotchW);

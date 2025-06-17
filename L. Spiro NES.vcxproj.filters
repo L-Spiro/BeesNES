@@ -951,6 +951,15 @@
     <ClInclude Include="Src\Mappers\LSNMapper069.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper065.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper067.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper157.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
