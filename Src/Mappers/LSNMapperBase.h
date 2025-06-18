@@ -92,7 +92,7 @@ namespace lsn {
 				m_ui8Control = _ui8Val;
 
 				m_i16Prescaler = 341;
-				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				_piCpu->ClearIrq( LSN_IS_MAPPER );
 				if ( _ui8Val & 0b00000010 ) {	// E.
 					m_ui8Counter = m_ui8Reload;
 				}
@@ -104,7 +104,7 @@ namespace lsn {
 			 * \param _piCpu The IRQ handler.
 			 **/
 			inline void									AcknowledgeIrq( CInterruptable * _piCpu ) {
-				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				_piCpu->ClearIrq( LSN_IS_MAPPER );
 				m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
 			}
 
@@ -129,7 +129,7 @@ namespace lsn {
 					if ( bClockCounter ) {
 						if LSN_UNLIKELY( m_ui8Counter == 0xFF ) {
 							m_ui8Counter = m_ui8Reload;
-							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+							_piCpu->Irq( LSN_IS_MAPPER );
 						}
 						else {
 							++m_ui8Counter;
@@ -213,7 +213,7 @@ namespace lsn {
 			inline void									SetControl( uint8_t _ui8Val, CInterruptable * _piCpu ) {
 				m_ui8Control = _ui8Val;
 
-				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				_piCpu->ClearIrq( LSN_IS_MAPPER );
 				if ( _ui8Val & 0b00000010 ) {				// E.
 					m_ui16Counter = m_ui16Reload;
 				}
@@ -225,7 +225,7 @@ namespace lsn {
 			 * \param _piCpu The IRQ handler.
 			 **/
 			inline void									AcknowledgeIrq( CInterruptable * _piCpu ) {
-				_piCpu->ClearIrq( LSN_IS_VRC4_5_6 );
+				_piCpu->ClearIrq( LSN_IS_MAPPER );
 				m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
 			}
 
@@ -240,7 +240,7 @@ namespace lsn {
 						//if LSN_UNLIKELY( m_ui8Counter[0] == 0xFF ) {
 						if LSN_UNLIKELY( ++m_ui8Counter[0] == 0x00 ) {
 							m_ui8Counter[0] = m_ui8Reload[0];
-							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+							_piCpu->Irq( LSN_IS_MAPPER );
 						}
 						/*else {
 							++m_ui8Counter[0];
@@ -250,7 +250,7 @@ namespace lsn {
 						//if LSN_UNLIKELY( m_ui16Counter == 0xFFFF ) {
 						if LSN_UNLIKELY( ++m_ui16Counter == 0x0000 ) {
 							m_ui16Counter = m_ui16Reload;
-							_piCpu->Irq( LSN_IS_VRC4_5_6 );
+							_piCpu->Irq( LSN_IS_MAPPER );
 						}
 						/*else {
 							++m_ui16Counter;

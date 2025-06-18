@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 157 implementation.
+ * Description: Mapper 157 implementation.  TODO: EEPROM.
  */
 
 
@@ -121,7 +121,7 @@ namespace lsn {
 					--m_ui16Counter;
 				}
 				if ( m_ui16Counter == 0 ) {
-					m_pInterruptable->Irq( LSN_IS_VRC4_5_6 );
+					m_pInterruptable->Irq( LSN_IS_MAPPER );
 				}
 			}
 		}
@@ -209,10 +209,10 @@ namespace lsn {
 			CMapper157 * pmThis = reinterpret_cast<CMapper157 *>(_pvParm0);
 
 			pmThis->m_ui8Control = _ui8Val;
-			pmThis->m_pInterruptable->ClearIrq( LSN_IS_VRC4_5_6 );
+			pmThis->m_pInterruptable->ClearIrq( LSN_IS_MAPPER );
 			if ( pmThis->m_ui8Control & 0b00000001 ) {
 				if ( pmThis->m_ui16Counter == 0 ) {
-					pmThis->m_pInterruptable->Irq( LSN_IS_VRC4_5_6 );
+					pmThis->m_pInterruptable->Irq( LSN_IS_MAPPER );
 				}
 			}
 			pmThis->m_ui16Counter = pmThis->m_ui16Reload;

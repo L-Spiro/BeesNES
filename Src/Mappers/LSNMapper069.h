@@ -146,7 +146,7 @@ namespace lsn {
 					--m_ui16Counter;
 				}
 				if ( m_ui16Counter == 0xFFFF ) {
-					m_pInterruptable->Irq( LSN_IS_VRC4_5_6 );
+					m_pInterruptable->Irq( LSN_IS_MAPPER );
 				}
 			}
 		}
@@ -228,7 +228,7 @@ namespace lsn {
 			}
 			if ( pmThis->m_ui8CmdReg == 0xD ) {
 				pmThis->m_ui8Control = _ui8Val;
-				pmThis->m_pInterruptable->ClearIrq( LSN_IS_VRC4_5_6 );
+				pmThis->m_pInterruptable->ClearIrq( LSN_IS_MAPPER );
 				return;
 			}
 			if ( pmThis->m_ui8CmdReg == 0xE ) {

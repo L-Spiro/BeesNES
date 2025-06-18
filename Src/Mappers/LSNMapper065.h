@@ -161,7 +161,7 @@ namespace lsn {
 			if ( m_ui8Control & 0b10000000 ) {
 				if ( m_ui16Counter != 0 ) {
 					if ( --m_ui16Counter == 0 ) {
-						m_pInterruptable->Irq( LSN_IS_VRC4_5_6 );
+						m_pInterruptable->Irq( LSN_IS_MAPPER );
 					}
 				}
 			}
@@ -293,7 +293,7 @@ namespace lsn {
 		static void LSN_FASTCALL						SetIrqControl9003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper065 * pmThis = reinterpret_cast<CMapper065 *>(_pvParm0);
 			pmThis->m_ui8Control = _ui8Val;
-			pmThis->m_pInterruptable->ClearIrq( LSN_IS_VRC4_5_6 );
+			pmThis->m_pInterruptable->ClearIrq( LSN_IS_MAPPER );
 		}
 
 		/**
@@ -307,7 +307,7 @@ namespace lsn {
 		static void LSN_FASTCALL						IrqReload9004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
 			CMapper065 * pmThis = reinterpret_cast<CMapper065 *>(_pvParm0);
 			pmThis->m_ui16Counter = pmThis->m_ui16Reload;
-			pmThis->m_pInterruptable->ClearIrq( LSN_IS_VRC4_5_6 );
+			pmThis->m_pInterruptable->ClearIrq( LSN_IS_MAPPER );
 		}
 
 		/**
