@@ -1871,7 +1871,7 @@ namespace lsn {
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
 #ifdef LSN_WINDOWS
-		::SetThreadAffinityMask( ::GetCurrentThread(), 1 );
+		//::SetThreadAffinityMask( ::GetCurrentThread(), 2 );
 #endif	// #ifdef LSN_WINDOWS
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
