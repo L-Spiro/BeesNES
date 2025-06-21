@@ -1,9 +1,9 @@
 /**
- * Copyright L. Spiro 2022
+ * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 003 implementation.
+ * Description: Mapper 185 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper003
-	 * \brief Mapper 003 implementation.
+	 * Class CMapper185
+	 * \brief Mapper 185 implementation.
 	 *
-	 * Description: Mapper 003 implementation.
+	 * Description: Mapper 185 implementation.
 	 */
-	class CMapper003 : public CMapperBase {
+	class CMapper185 : public CMapperBase {
 	public :
-		CMapper003() {
+		CMapper185() {
 		}
-		virtual ~CMapper003() {
+		virtual ~CMapper185() {
 		}
 
 
@@ -53,10 +53,24 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 
-			if ( _rRom.i32ChrRamSize == 128 * 1024 || _rRom.vChrRom.size() == 128 * 1024 ) {
-				m_ui8ChrBankMask = 0b00001111;
+			switch ( _rRom.riInfo.ui16SubMapper ) {
+				case 4 : {
+					m_ui8ChrMagic = 0;
+					break;
+				}
+				case 5 : {
+					m_ui8ChrMagic = 1;
+					break;
+				}
+				case 6 : {
+					m_ui8ChrMagic = 2;
+					break;
+				}
+				case 7 : {
+					m_ui8ChrMagic = 3;
+					break;
+				}
 			}
-			m_bAndConflicts = _rRom.riInfo.ui16SubMapper == 2;
 		}
 
 		/**
@@ -80,8 +94,8 @@ namespace lsn {
 			if ( m_prRom->i32WorkRamSize ) {
 				m_vPrgRam.resize( m_prRom->i32WorkRamSize );
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper003::ReadWRam, this, uint16_t( (I - 0x6000) % m_prRom->i32WorkRamSize ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper003::WriteWRam, this, uint16_t( (I - 0x6000) % m_prRom->i32WorkRamSize ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper185::ReadWRam, this, uint16_t( (I - 0x6000) % m_prRom->i32WorkRamSize ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper185::WriteWRam, this, uint16_t( (I - 0x6000) % m_prRom->i32WorkRamSize ) );
 				}
 			}
 
@@ -91,7 +105,7 @@ namespace lsn {
 			// ================
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I ) );
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper185::ReadChrRom, this, uint16_t( I % m_prRom->vChrRom.size() ) );
 			}
 
 
@@ -99,7 +113,7 @@ namespace lsn {
 			// BANK-SELECT
 			// ================
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &Mapper003CpuWrite, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper185::Mapper185CpuWrite, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 		}
 
@@ -107,8 +121,8 @@ namespace lsn {
 	protected :
 		// == Members.
 		std::vector<uint8_t>							m_vPrgRam;										/**< PRG RAM. */
-		uint8_t											m_ui8ChrBankMask = 0b00000011;					/**< CHR banking mask. */
-		bool											m_bAndConflicts = false;						/**< AND-type bus conflicts. */
+		uint8_t											m_ui8Chip = 0;									/**< Chip-select. */
+		uint8_t											m_ui8ChrMagic = 0;								/**< The chip select needed for CHR ROM to work. */
 
 
 		// == Functions.
@@ -120,12 +134,10 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
-			if ( pmThis->m_bAndConflicts ) {
-				_ui8Val &= pmThis->m_prRom->vPrgRom.data()[_ui16Parm1];
-			}
-			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & pmThis->m_ui8ChrBankMask );
+		static void LSN_FASTCALL						Mapper185CpuWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper185 * pmThis = reinterpret_cast<CMapper185 *>(_pvParm0);
+			_ui8Val &= pmThis->m_prRom->vPrgRom.data()[_ui16Parm1];
+			pmThis->m_ui8Chip = _ui8Val;
 		}
 
 		/**
@@ -138,7 +150,7 @@ namespace lsn {
 		 * \param _ui8Ret The read value.
 		 */
 		static void LSN_FASTCALL						ReadWRam( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
-			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
+			CMapper185 * pmThis = reinterpret_cast<CMapper185 *>(_pvParm0);
 			_ui8Ret = pmThis->m_vPrgRam[_ui16Parm1];
 		}
 
@@ -151,8 +163,29 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 **/
 		static void LSN_FASTCALL						WriteWRam( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
+			CMapper185 * pmThis = reinterpret_cast<CMapper185 *>(_pvParm0);
 			pmThis->m_vPrgRam[_ui16Parm1] = _ui8Val;
+		}
+
+		/**
+		 * Reads CHR ROM (PPU $0000-$1FFF).
+		 *
+		 * \tparam _uM Matched against the M bit to decide on what to read.
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						ReadChrRom( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper185 * pmThis = reinterpret_cast<CMapper185 *>(_pvParm0);
+			if ( (pmThis->m_ui8Chip & 0b11) == pmThis->m_ui8ChrMagic ) {
+				_ui8Ret = pmThis->m_prRom->vChrRom[_ui16Parm1];
+			}
+			else {
+				if ( !_ui16Parm1 ) {
+					_ui8Ret = 1;
+				}
+			}
 		}
 		
 	};

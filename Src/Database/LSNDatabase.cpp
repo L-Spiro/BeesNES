@@ -223,6 +223,8 @@ namespace lsn {
 			{ .ui32Crc = 0xA435A17F, .pmRegion = LSN_PM_PAL },
 			// Crime Busters (Unknown) (Unl)
 			{ .ui32Crc = 0x1A8B558E, .pmRegion = LSN_PM_PAL },
+			// Cybernoid - The Fighting Machine (U)
+			{ .ui32Crc = 0x34D5FC6E, .pmRegion = LSN_PM_NTSC },
 			// Darkman (Europe)
 			{ .ui32Crc = 0x6D84EEE3, .pmRegion = LSN_PM_PAL },
 			// Darkwing Duck (Europe)
