@@ -132,10 +132,10 @@ namespace lsn {
 			//m_nbfLSpiroNtscFilter.SetKernelSize( 64 );
 			/*m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
 			m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-			m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<100, 40> );
+			m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 			//m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-			//m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-			//m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<2350, 1> );
+			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+			//m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::CrtHumpFunc<2300, 10> );
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 61 );
 			m_nbfLSpiroNtscFilter.SetFilterFunc( &CUtilities::LanczosXFilterFunc<14, 4> );*/
 			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
