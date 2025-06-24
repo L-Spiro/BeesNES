@@ -278,7 +278,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reads the address bus and stores the value into
+		 * Reads the address bus and stores the value into the low byte of the address bus.
 		 **/
 		inline void										ReadAddressBus() {
 			uint16_t ui16Addr = (m_ui8AddressBus[0] | (m_paPpuAddrV.ui8Bytes[1] << 8));

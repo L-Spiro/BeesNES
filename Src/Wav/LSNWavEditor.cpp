@@ -461,7 +461,7 @@ namespace lsn {
 			if ( _pfFile.sstStartMod == LSN_SST_SNAP && vSamples[J].size() >= 2 ) {
 				auto aLeftSample = vSamples[J][0];
 				int64_t i64EraseMe = 0;
-				for ( int64_t I = 0; I < int64_t( vSamples[J].size() ) && vSamples[J][I] == aLeftSample; ++I ) {
+				for ( int64_t I = 0; I < int64_t( vSamples[J].size() ) && vSamples[J][size_t(I)] == aLeftSample; ++I ) {
 					++i64EraseMe;
 				}
 				--i64EraseMe;
@@ -473,7 +473,7 @@ namespace lsn {
 				if ( _pfFile.sstStopMod == LSN_SST_SNAP && vSamples[J].size() >= 2 ) {
 					auto aRightSample = vSamples[J][vSamples[J].size()-1];
 					int64_t i64EraseMe = 0;
-					for ( int64_t I = vSamples[J].size() - 1; I >= 0 && vSamples[J][I] == aRightSample; --I ) {
+					for ( int64_t I = vSamples[J].size() - 1; I >= 0 && vSamples[J][size_t(I)] == aRightSample; --I ) {
 						++i64EraseMe;
 					}
 					i64EraseMe -= 1;
