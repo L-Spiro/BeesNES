@@ -963,6 +963,12 @@
     <ClInclude Include="Src\Mappers\LSNMapper185.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Apu\LSNApuBase.h">
+      <Filter>Header Files\Apu</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNAudio5b.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

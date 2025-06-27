@@ -1749,6 +1749,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
+    <ClInclude Include="Src\Apu\LSNApuBase.h" />
     <ClInclude Include="Src\Apu\LSNApuUnit.h" />
     <ClInclude Include="Src\Apu\LSNEnvelope.h" />
     <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
@@ -1859,6 +1860,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Localization\LSNLocalization_en_us.h" />
     <ClInclude Include="Src\LSNLSpiroNes.h" />
     <ClInclude Include="Src\Mappers\LSNAllMappers.h" />
+    <ClInclude Include="Src\Mappers\LSNAudio5b.h" />
     <ClInclude Include="Src\Mappers\LSNMapper000.h" />
     <ClInclude Include="Src\Mappers\LSNMapper001.h" />
     <ClInclude Include="Src\Mappers\LSNMapper002.h" />
