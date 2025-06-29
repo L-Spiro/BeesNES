@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Mappers/LSNMapperBase.h"
 
 
 namespace lsn {
@@ -30,18 +31,18 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Sets the extension-audio sample.
+		 * Sets the mapper to use for extension audio.
 		 * 
-		 * \param _fSample The sample geneerated by extension audio to be mixed with the standard APU output.
+		 * \param _pmbMapper The pointer to the current mapper or nullptr.
 		 **/
-		virtual void							SetExtSample( float _fSample ) {
-			m_fExtSample = _fSample;
+		void									SetMapper( CMapperBase * _pmbMapper ) {
+			m_pmbMapper = _pmbMapper;
 		}
 
 
 	protected :
 		// == Members.
-		float									m_fExtSample = 0.0f;							/**< Extension-audio sample. */
+		CMapperBase *							m_pmbMapper = nullptr;
 	};
 
 }	// namespace lsn

@@ -20,6 +20,7 @@
 #include "../Wav/LSNWavFile.h"
 #include "../Utilities/LSNDelayedValue.h"
 #include "../Utilities/LSNRingBuffer.h"
+#include "LSNApuBase.h"
 #include "LSNApuUnit.h"
 #include "LSNNoise.h"
 #include "LSNPulse.h"
@@ -161,7 +162,7 @@ namespace lsn {
 		unsigned _tM1S0, unsigned _tM1S1, unsigned _tM1S2, unsigned _tM1S3, unsigned _tM1S4_0, unsigned _tM1S4_1,
 		unsigned _tMasterClock, unsigned _tMasterDiv, unsigned _tApuDiv,
 		bool _bSwapDuty>
-	class CApu2A0X : public CTickable {
+	class CApu2A0X : public CTickable, public CApuBase {
 		typedef CApu2A0X<_tType, _tM0S0, _tM0S1, _tM0S2, _tM0S3_0, _tM0S3_1, _tM0S3_2, _tM1S0, _tM1S1, _tM1S2, _tM1S3, _tM1S4_0, _tM1S4_1, _tMasterClock, _tMasterDiv, _tApuDiv, _bSwapDuty>
 														CThisApu;
 	public :
