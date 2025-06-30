@@ -47,6 +47,9 @@ namespace lsn {
 			LSN_C_UxROM							= 300,
 			LSN_C_UOROM,
 			LSN_C_UxROM_END,
+
+			LSN_C_SUNSOFT_5A					= 400,
+			LSN_C_SUNSOFT_5B
 		};
 
 		/** PCB class. */

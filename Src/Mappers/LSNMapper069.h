@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "LSNAudio5b.h"
 #include "LSNMapperBase.h"
 
 namespace lsn {
@@ -129,6 +130,9 @@ namespace lsn {
 			for ( uint32_t I = 0xA000; I < 0xC000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper069::SetParameter, this, 0 );
 			}
+			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_SUNSOFT_5B ) {
+				m_Audio5b.ApplyMap( _pbCpuBus );
+			}
 
 
 			// ================
@@ -141,6 +145,10 @@ namespace lsn {
 		 * Ticks with the CPU.
 		 */
 		virtual void									Tick() {
+			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_SUNSOFT_5B ) {
+				m_Audio5b.Tick();
+			}
+
 			if ( m_ui8Control & 0b00000001 ) {
 				if ( m_ui8Control & 0b10000000 ) {
 					--m_ui16Counter;
@@ -151,11 +159,20 @@ namespace lsn {
 			}
 		}
 
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() {
+			m_Audio5b.ResetSoft();
+		}
+
 
 	protected :
 		// == Members.
 		/** PRG RAM. */
 		std::vector<uint8_t>							m_vPrgRam;
+		/** The 5B audio chip. */
+		CAudio5b										m_Audio5b;
 		/** Command Register. */
 		uint8_t											m_ui8CmdReg = 0;
 		/** PGM bank 0 parameters. */
