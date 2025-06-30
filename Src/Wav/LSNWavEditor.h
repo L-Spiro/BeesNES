@@ -424,12 +424,14 @@ namespace lsn {
 						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_CREATE_BAT ), pBatFile.generic_wstring() );
 						return false;
 					}
-					if ( !sfBatFile.Write<uint16_t>( 0xFEFF ) ) {
+					/*if ( !sfBatFile.Write<uint16_t>( 0xFEFF ) ) {
 						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_BAT ), pBatFile.generic_wstring() );
 						return false;
-					}
-					for ( size_t I = 0; I < _wsBatFile.size(); ++I ) {
-						if ( !sfBatFile.Write<wchar_t>( _wsBatFile[I] ) ) {
+					}*/
+					auto u16Tmp = CUtilities::XStringToU16String( _wsBatFile.data(), _wsBatFile.size() );
+					auto sUtf8 = CUtilities::Utf16ToUtf8( u16Tmp.data() );
+					for ( size_t I = 0; I < sUtf8.size(); ++I ) {
+						if ( !sfBatFile.Write<char>( sUtf8[I] ) ) {
 							_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_WRITE_BAT ), pBatFile.generic_wstring() );
 							return false;
 						}

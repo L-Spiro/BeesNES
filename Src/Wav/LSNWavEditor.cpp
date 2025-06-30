@@ -891,7 +891,7 @@ namespace lsn {
 			std::filesystem::path pImage = pPath;
 			pImage.replace_extension( ".png" );
 			std::filesystem::path pMovie = pPath;
-			pMovie.replace_extension( ".avi" );
+			pMovie.replace_extension( " HD.avi" );
 
 			// Remove the number part from the movie name and replace it with the album name.
 			std::wstring wsOldStem = pMovie.stem().wstring();
@@ -903,7 +903,7 @@ namespace lsn {
 			pMovie					= pMovie.parent_path() / pNewFilename;
 
 
-			_wsBatFile += std::format( L"ffmpeg -r 1 -f image2 -loop 1 -i \"{}\" -i \"{}\" -vcodec mpeg4 -qscale:v 1 -acodec copy -shortest \"{} HD\"\r\n",
+			_wsBatFile += std::format( L"ffmpeg -r 1 -f image2 -loop 1 -i \"{}\" -i \"{}\" -vcodec mpeg4 -qscale:v 1 -acodec copy -shortest \"{}\"\r\n",
 				pImage.generic_wstring(), pPath.generic_wstring(), pMovie.generic_wstring() );
 		}
 		

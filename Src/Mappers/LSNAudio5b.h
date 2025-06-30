@@ -75,7 +75,8 @@ namespace lsn {
 		void											ResetFull( bool _bToKnown = false ) {
 			if ( _bToKnown ) {
 				std::memset( m_ui8Registers, 0, sizeof( m_ui8Registers ) );
-				m_ui16Counter = 0;
+				std::memset( m_tTones, 0, sizeof( m_tTones ) );
+				//m_ui16Counter = 0;
 				m_ui8Reg = 0;
 			}
 			m_rRegs.ui16Tone[0] &= 0x0FFF;
@@ -94,8 +95,28 @@ namespace lsn {
 
 
 	protected :
-		// == Members.
+		// == Types.
+		/** The tone channels. */
+		struct LSN_TONE {
+			uint16_t									ui16Counter;							/**< The channel counter. */
+			uint8_t										u8Divisor;								/**< The count to 16
+			bool										bOnnOff;								/**< Whether the pulse is 0 or non-0. */
 
+
+			// == Functions.
+			/**
+			 * Advances the tone state by 1 cycle.
+			 * 
+			 * \param _ui1Period The tone period.
+			 **/
+			void										Tick( uint16_t _ui1Period ) {
+				
+			}
+		};
+
+
+		// == Members.
+		LSN_TONE										m_tTones[3];							/**< The tone channels. */
 		union {
 			uint8_t										m_ui8Registers[16];						/**< Each register. */
 			LSN_5B_REGS									m_rRegs;								/**< Alternate names for registers. */
@@ -104,7 +125,7 @@ namespace lsn {
 		static_assert( offsetof( lsn::LSN_5B_REGS, ui16EnvPeriod ) == 11, "ui16EnvPeriod must be at offset 11." );
 		static_assert( offsetof( lsn::LSN_5B_REGS, ui8Io ) == 14, "ui8Io must be at offset 14." );
 
-		uint16_t										m_ui16Counter = 0;						/**< The counter. */
+		//uint16_t										m_ui16Counter = 0;						/**< The counter. */
 		uint8_t											m_ui8Reg = 0;							/**< The register to which to write. */
 
 
