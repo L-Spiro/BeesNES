@@ -67,6 +67,11 @@ namespace lsn {
 		 * Ticks with the CPU.
 		 */
 		virtual void									Tick() {
+			// Easy to unwind loop.
+			m_tTones[0].Tick( m_rRegs.ui16Tone[0] );
+			m_tTones[1].Tick( m_rRegs.ui16Tone[1] );
+			m_tTones[2].Tick( m_rRegs.ui16Tone[2] );
+
 		}
 
 		/**
@@ -93,14 +98,33 @@ namespace lsn {
 			m_ui8Reg = 0;*/
 		}
 
+		/**
+		 * Gets the extended-audio sample.
+		 * 
+		 * \return Returns the current sample.
+		 **/
+		inline float									Sample() {
+			float fRet = 0.0f;
+			if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
+				fRet += float( m_tTones[0].bOnOff ) * (m_rRegs.ui8EnvAndVol[0] & 0xF);
+			}
+			if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
+				fRet += float( m_tTones[1].bOnOff ) * (m_rRegs.ui8EnvAndVol[1] & 0xF);
+			}
+			if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
+				fRet += float( m_tTones[2].bOnOff ) * (m_rRegs.ui8EnvAndVol[2] & 0xF);
+			}
+
+			return fRet * (1.0f / 63.0f);
+		}
 
 	protected :
 		// == Types.
 		/** The tone channels. */
 		struct LSN_TONE {
 			uint16_t									ui16Counter;							/**< The channel counter. */
-			uint8_t										u8Divisor;								/**< The count to 16
-			bool										bOnnOff;								/**< Whether the pulse is 0 or non-0. */
+			uint8_t										u8Divisor;								/**< The count to 16. */
+			bool										bOnOff;									/**< Whether the pulse is 0 or non-0. */
 
 
 			// == Functions.
@@ -110,7 +134,12 @@ namespace lsn {
 			 * \param _ui1Period The tone period.
 			 **/
 			void										Tick( uint16_t _ui1Period ) {
-				
+				if LSN_UNLIKELY( (++u8Divisor & 0xF) == 0 ) {
+					if LSN_UNLIKELY( ++ui16Counter >= _ui1Period ) {
+						ui16Counter = 0;
+						bOnOff = !bOnOff;
+					}
+				}
 			}
 		};
 

@@ -328,6 +328,11 @@ namespace lsn {
 		virtual void									Reset() {}
 
 		/**
+		 * Gets the extended audio sample.
+		 **/
+		virtual float									GetExtAudio() { return 0.0f; }
+
+		/**
 		 * Applies a mirroring mode to a PPU bus.
 		 *
 		 * \param _ui16Mirror The mirroring mode to apply (a LSN_MIRROR_MODE value).

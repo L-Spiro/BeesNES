@@ -166,6 +166,16 @@ namespace lsn {
 			m_Audio5b.ResetSoft();
 		}
 
+		/**
+		 * Gets the extended audio sample.
+		 **/
+		virtual float									GetExtAudio() {
+			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_SUNSOFT_5B ) {
+				return m_Audio5b.Sample();
+			}
+			return 0.0f;
+		}
+
 
 	protected :
 		// == Members.

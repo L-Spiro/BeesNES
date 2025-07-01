@@ -471,6 +471,9 @@ namespace lsn {
 				}
 			
 				double dFinal = fFinalPulse + fFinalTnd;
+				if LSN_LIKELY( m_pmbMapper ) {
+					dFinal += m_pmbMapper->GetExtAudio();
+				}
 
 				if LSN_UNLIKELY( m_pwfRawStream ) {
 					m_pwfRawStream->AddStreamSample( float( dFinal ) );
