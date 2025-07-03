@@ -67,11 +67,12 @@ namespace lsn {
 		 * Ticks with the CPU.
 		 */
 		virtual void									Tick() {
-			// Easy to unwind loop.
-			m_tTones[0].Tick( m_rRegs.ui16Tone[0] );
-			m_tTones[1].Tick( m_rRegs.ui16Tone[1] );
-			m_tTones[2].Tick( m_rRegs.ui16Tone[2] );
-
+			if LSN_UNLIKELY( (++m_ui8Divider & 0xF) == 0 ) {
+				// Easy to unroll loop.
+				m_tTones[0].Tick( m_rRegs.ui16Tone[0] );
+				m_tTones[1].Tick( m_rRegs.ui16Tone[1] );
+				m_tTones[2].Tick( m_rRegs.ui16Tone[2] );
+			}
 		}
 
 		/**
@@ -134,12 +135,13 @@ namespace lsn {
 			 * \param _ui1Period The tone period.
 			 **/
 			void										Tick( uint16_t _ui1Period ) {
-				if LSN_UNLIKELY( (++u8Divisor & 0xF) == 0 ) {
+				//if LSN_UNLIKELY( (++u8Divisor & 0xF) == 0 ) {
+				//	u8Divisor = 0;
 					if LSN_UNLIKELY( ++ui16Counter >= _ui1Period ) {
 						ui16Counter = 0;
 						bOnOff = !bOnOff;
 					}
-				}
+				//}
 			}
 		};
 
@@ -154,8 +156,8 @@ namespace lsn {
 		static_assert( offsetof( lsn::LSN_5B_REGS, ui16EnvPeriod ) == 11, "ui16EnvPeriod must be at offset 11." );
 		static_assert( offsetof( lsn::LSN_5B_REGS, ui8Io ) == 14, "ui8Io must be at offset 14." );
 
-		//uint16_t										m_ui16Counter = 0;						/**< The counter. */
-		uint8_t											m_ui8Reg = 0;							/**< The register to which to write. */
+		uint8_t											m_ui8Divider;							/**< The divider. */
+		uint8_t											m_ui8Reg;								/**< The register to which to write. */
 
 
 		// == Functions.

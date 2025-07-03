@@ -906,10 +906,20 @@ namespace lsn {
 			{ .ui32Crc = 0x3F56A392, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Casino Derby (Japan)
 			{ .ui32Crc = 0xE44001D8, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
+
+			// clip_5b
+			{ .ui32Crc = 0x666EBBF1, .cChip = LSN_C_SUNSOFT_5B, },
+			// clip_5b
+			{ .ui32Crc = 0x2F871AA5, .cChip = LSN_C_SUNSOFT_5B, },
+
 			// Daisenryaku (Japan)
 			{ .ui32Crc = 0x53A94738, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SJROM },
 			// Dance Aerobics (U)
 			{ .ui32Crc = 0xD836A90B, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SBROM },
+
+			// db_5b
+			{ .ui32Crc = 0xEC0A7E75, .cChip = LSN_C_SUNSOFT_5B, },
+
 			// Defender of the Crown (U)
 			{ .ui32Crc = 0x28FB71AE, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Destiny of an Emperor (U)
@@ -1178,6 +1188,10 @@ namespace lsn {
 			{ .ui32Crc = 0xD4F018F5, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SFROM },
 			// Super Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x09FFDF45, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
+
+			// sweep_5b
+			{ .ui32Crc = 0x7CE1BD4F, .cChip = LSN_C_SUNSOFT_5B, },
+
 			// Sweet Home (Japan)
 			{ .ui32Crc = 0x252FFD12, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Taboo - The Sixth Sense (U)
