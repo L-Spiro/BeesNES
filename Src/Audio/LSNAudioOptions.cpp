@@ -23,21 +23,21 @@ namespace lsn {
 	};
 
 	LSN_AUDIO_PROFILE LSN_AUDIO_OPTIONS::s_apProfiles[] = {
-		//wsDevice														fLpf			fHpf0			fHpf1		fHpf2		fVolume		fP1Volume	fP2Volume	fTVolume	fNVolume	fDmcVolume	fmFilterMode	bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise	bRp2A02
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N0260073 ),				18000.0f,		108.0f,			72.5f,		18.0f,		2.601f,		1.0f,		1.0f,		0.933f,		0.744f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	true },
+		//wsDevice														fLpf			fHpf0						fHpf1						fHpf2					fVolume		fP1Volume	fP2Volume	fTVolume	fNVolume	fDmcVolume	fmFilterMode	bLpfEnable	bHpf0Enable	bHpf1Enable	bHpf2Enable	bInvert	bNoise	bRp2A02
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N0260073 ),				18000.0f,		119.01335153588215f,		39.629543326166626f,		39.600337986929674f,	2.601f,		1.0f,		1.0f,		0.933f,		0.744f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	true },
 
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N1151667 ),				17000.0f,		102.5f,			18.0f,		18.0f,		0.360f,		1.0f,		1.0f,		0.924f,		0.883f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N34169630 ),				17000.0f,		310.0f,			67.0f,		7.5f,		0.395f,		1.0f,		1.0f,		1.0f,		0.934f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N1151667 ),				17000.0f,		91.670577848853171f,		37.490016890980982f,		7.9671720814703768f,	0.360f,		1.0f,		1.0f,		0.924f,		0.883f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N34169630 ),				17000.0f,		285.17092929859564f,		85.509330674952423f,		7.3617262313390981f,	0.395f,		1.0f,		1.0f,		1.0f,		0.934f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
 
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725 ),				26243.0f,		125.9664f,		20.0f,		20.0f,		0.446f,		1.0f,		1.0f,		0.966f,		0.924f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725_RCA ),			0.0f,			100.0f,			20.0f,		20.0f,		0.344f,		1.0f,		1.0f,		0.892f,		0.855f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725 ),				26243.0f,		83.459640336709199f,		55.985366776125886f,		8.5714225234124299f,	0.446f,		1.0f,		1.0f,		0.966f,		0.924f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_FL_N8869725_RCA ),			0.0f,			96.678039344736646f,		36.696956603852406f,		8.3012408410527119f,	0.344f,		1.0f,		1.0f,		0.892f,		0.855f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
 
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_TL_NN101255729 ),				0.0f,			98.41125f,		20.0f,		30.0f,		0.957f,		1.0f,		1.0f,		0.731f,		0.693f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_TL_NN101255729 ),				0.0f,			80.308463849114986f,		52.357757591613563f,		7.9206051188443904f,	0.957f,		1.0f,		1.0f,		0.731f,		0.693f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
 		/*7872.899902f*/
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),				7000.0f,		200.0f,			34.5f,		34.5f,		0.402f,		0.938f,		0.938f,		1.0f,		0.869f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART ),			0.0f,			300.0f,			20.0f,		20.0f,		0.735f,		0.975f,		1.0f,		0.841f,		0.827f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711 ),				7000.0f,		172.03311180028109f,		38.037422049578915f,		38.037208628936021f,	0.402f,		0.938f,		0.938f,		1.0f,		0.869f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_TWIN_FAMI_475711_SCART ),			0.0f,			302.96765178343128f,		30.586358931812008f,		4.0903076481735425f,	0.735f,		0.975f,		1.0f,		0.841f,		0.827f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
 
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_V7 ),						18000.0f,		89.6676f,		9.75f,		9.25f,		1.57f,		1.0f,		1.0f,		0.957f,		1.0f,		1.0f,		LSN_FM_NORMAL,	false,		true,		true,		true,		true,	true,	false },
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_V7 ),						64000.0f,		94.986785805568559f,		8.851913371856071f,			8.8518991011365298f,	1.57f,		1.0f,		1.0f,		0.957f,		1.0f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false },
 	};
 
 

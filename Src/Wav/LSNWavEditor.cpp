@@ -426,7 +426,7 @@ namespace lsn {
 				if ( i64EndSample <= 0 ) { break; }
 				int64_t i64Start = std::max( i64StartSample, 0LL );
 				if ( uint64_t( i64Start ) < _wfsSet.wfFile.ui64Samples ) {
-					uint32_t ui32End = uint32_t( std::min<uint64_t>( i64EndSample, _wfsSet.vExtensions[I].ui64Samples ) );
+					uint32_t ui32End = uint32_t( std::min<uint64_t>( i64EndSample + i64Start, _wfsSet.wfFile.ui64Samples ) );
 					lsn::CWavFile wfThisFile;
 					if ( !wfThisFile.Open( CUtilities::XStringToU16String( _wfsSet.vExtensions[I].wsPath.c_str(), _wfsSet.vExtensions[I].wsPath.size() ).c_str(), lsn::CWavFile::LSN_LF_DATA, uint32_t( i64Start ), ui32End ) ) {
 						_wsMsg = std::format( LSN_LSTR( LSN_WE_FAILED_TO_LOAD_SAMPLES ), _wfsSet.vExtensions[I].wsPath );

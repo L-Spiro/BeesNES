@@ -42,6 +42,7 @@ namespace lsn {
 	class CAudio5b {
 	public :
 		CAudio5b() {
+			GenVolTable();
 			ResetFull();
 		}
 		virtual ~CAudio5b() {
@@ -105,18 +106,34 @@ namespace lsn {
 		 * \return Returns the current sample.
 		 **/
 		inline float									Sample() {
-			float fRet = 0.0f;
+			/*uint32_t ui32Idx = 0;
 			if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
-				fRet += float( m_tTones[0].bOnOff ) * (m_rRegs.ui8EnvAndVol[0] & 0xF);
+				ui32Idx += m_tTones[0].bOnOff * (((m_rRegs.ui8EnvAndVol[0]&0xF) + 1) * 2 - 1);
 			}
 			if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
-				fRet += float( m_tTones[1].bOnOff ) * (m_rRegs.ui8EnvAndVol[1] & 0xF);
+				ui32Idx += m_tTones[1].bOnOff * (((m_rRegs.ui8EnvAndVol[1]&0xF) + 1) * 2 - 1);
 			}
 			if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
-				fRet += float( m_tTones[2].bOnOff ) * (m_rRegs.ui8EnvAndVol[2] & 0xF);
+				ui32Idx += m_tTones[2].bOnOff * (((m_rRegs.ui8EnvAndVol[2]&0xF) + 1) * 2 - 1);
+			}
+			return m_fVolTable[ui32Idx] / 8.0f;*/
+			float fRet = 0.0f;
+			if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*m_tTones[0].bOnOff];
+			}
+			if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)*m_tTones[1].bOnOff];
+			}
+			if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*m_tTones[2].bOnOff];
 			}
 
-			return fRet * (1.0f / 63.0f);
+			float fVal = fRet;
+			if LSN_UNLIKELY( fVal > 1.0f ) {
+				fVal = std::pow( (fVal - 1.0f) * 0.30153973347855700382069699116982519626617431640625f, 0.30153973347855700382069699116982519626617431640625f ) * 0.69442225515597388874056150598335079848766326904296875f + 1.0f;
+			}
+			return fVal / 2.0f;
+			
 		}
 
 	protected :
@@ -148,6 +165,8 @@ namespace lsn {
 
 		// == Members.
 		LSN_TONE										m_tTones[3];							/**< The tone channels. */
+		float											m_fVolTable[31*3+1];					/**< The volume look-up table. */
+		float											m_fToneVolTable[16];					/**< Standard volume tables. */
 		union {
 			uint8_t										m_ui8Registers[16];						/**< Each register. */
 			LSN_5B_REGS									m_rRegs;								/**< Alternate names for registers. */
@@ -161,6 +180,141 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Generates the volume table.
+		 **/
+		void											GenVolTable() {
+			std::vector<double> vX( 16 ), vY( 16 ), vY2;
+			for ( size_t I = 0; I < 16; ++I ){ vX[I] = double( I ); }
+			for ( size_t I = 0; I < 16; ++I ){ vY[I] = double( m_fToneVolTable[I] = PolynomialVol( I ) ); }
+			vY[0] = 0.0;
+
+			PrepareNaturalCubicSpline( vX, vY, vY2 );
+
+			for ( size_t I = 0; I <= ((14 + 1) * 2 - 1); ++I ) {
+				m_fVolTable[I] = float( EvaluateSpline( vX, vY, vY2, (I + 1.0) / 2.0 - 1.0 ) );
+			}
+			m_fVolTable[0] = m_fVolTable[1] = m_fToneVolTable[0] = m_fToneVolTable[1] = 0.0f;
+			m_fToneVolTable[15] = 2.0f;//1.236461423950310223318638236378319561481475830078125;
+
+			for ( size_t I = ((14 + 1) * 2 - 1) + 1; I < LSN_ELEMENTS( m_fVolTable ); ++I ) {
+				double dVal = double( I ) - ((14 + 1) * 2 - 1);
+				m_fVolTable[I] = float( std::pow( dVal / 2.0, 0.236461423950310223318638236378319561481475830078125 ) * 0.236461423950310223318638236378319561481475830078125 + 1.0 );
+			}
+			return;
+		}
+
+		/**
+		 * Gets the volume at a given level for indices 0-29 of the volume table.
+		 * 
+		 * \param _sIdx The index of the volume to get.
+		 * \return Returns the volume of the given index.
+		 **/
+		static float									PolynomialVol( size_t _sIdx ) {
+			static const double adP[] = {
+				-6.8560006831366094e-09,   // p0
+				-1.6670136239606261e+00,   // p1
+				 5.2884291057830275e+00,   // p2
+				-7.0221945870618967e+00,   // p3
+				 5.2770778907577878e+00,   // p4
+				-2.5333104540253575e+00,   // p5
+				 8.2738435415533151e-01,   // p6
+				-1.9038549217499176e-01,   // p7
+				 3.1416961081884964e-02,   // p8
+				-3.7342408373029520e-03,   // p9
+				 3.1692330066205568e-04,   // p10
+				-1.8726135942948538e-05,   // p11
+				 7.3146194848386232e-07,   // p12
+				-1.6968901013101078e-08,   // p13
+				 1.7693493519638962e-10    // p14
+			};
+			double fX = double( _sIdx );
+			// Evaluate via Horner's method from highest degree down.
+			double fY = adP[14];
+			for ( int32_t I = 13; I >= 0; --I ) {
+				fY = fY * fX + adP[I];
+			}
+			return float( fY );
+		}
+
+		/**
+		 * \brief Prepare secondÅ]derivatives for a natural cubic spline.
+		 * 
+		 * \param _rvX   Strictly increasing knot abscissas (x-coords).
+		 * \param _rvY   Knot ordinates (y-values).
+		 * \param _rvY2  [out] Computed secondÅ]derivatives at each knot.
+		 */
+		static void										PrepareNaturalCubicSpline( const std::vector<double> &_rvX,
+			const std::vector<double> &_rvY,
+			std::vector<double> &_rvY2 ) {
+			size_t sN = _rvX.size();
+			if ( sN < 2 || _rvY.size() != sN ) {
+				throw std::runtime_error( "PrepareNaturalCubicSpline: invalid input sizes" );
+			}
+			_rvY2.assign( sN, 0.0 );
+			if ( sN < 3 ) {
+				return; // no internal knots to enforce
+			}
+
+			std::vector<double> vU( sN - 1, 0.0 );
+			// Natural boundary: second derivative zero at ends
+			for ( size_t I = 1; I < sN - 1; ++I ) {
+				double dSig		= (_rvX[I] - _rvX[I-1]) / (_rvX[I+1] - _rvX[I-1]);
+				double dP		= dSig * _rvY2[I-1] + 2.0;
+				_rvY2[I]		= (dSig - 1.0) / dP;
+
+				double dDy1		= (_rvY[I]   - _rvY[I-1]) / (_rvX[I]   - _rvX[I-1]);
+				double dDy2		= (_rvY[I+1] - _rvY[I]  ) / (_rvX[I+1] - _rvX[I]  );
+				vU[I]			= (6.0 * (dDy2 - dDy1) / (_rvX[I+1] - _rvX[I-1])
+									- dSig * vU[I-1]) / dP;
+			}
+			// BackÅ]substitute for second derivatives
+			for ( size_t I = sN - 2; I-- > 0; ) {
+				_rvY2[I] = _rvY2[I] * _rvY2[I+1] + vU[I];
+			}
+		}
+
+		/**
+		 * \brief Evaluate the natural cubic spline at a given x.
+		 * 
+		 * \param _rvX   Knot abscissas (x-coords), same as used in PrepareNaturalCubicSpline.
+		 * \param _rvY   Knot ordinates (y-values).
+		 * \param _rvY2  Second derivatives from PrepareNaturalCubicSpline.
+		 * \param _dX    Query x-value (must lie between _rvX.front() and _rvX.back()).
+		 * \returns      Interpolated y-value.
+		 */
+		static double									EvaluateSpline( const std::vector<double> &_rvX,
+			const std::vector<double> &_rvY,
+			const std::vector<double> &_rvY2,
+			double _dX ) {
+			size_t sN = _rvX.size();
+			if ( sN == 0 || _rvY.size() != sN || _rvY2.size() != sN ) {
+				throw std::runtime_error( "EvaluateSpline: Invalid input sizes." );
+			}
+			// clamp to interval
+			if ( _dX <= _rvX.front() ) { return _rvY.front(); }
+			if ( _dX >= _rvX.back() ) { return _rvY.back(); }
+
+			// binary search for right interval
+			size_t sLo = 0, sHi = sN - 1;
+			while ( sHi - sLo > 1 ) {
+				size_t sMid = (sLo + sHi) >> 1;
+				if ( _rvX[sMid] > _dX ) { sHi = sMid; }
+				else { sLo = sMid; }
+			}
+
+			double dH = _rvX[sHi]  - _rvX[sLo];
+			if ( dH <= 0.0 ) { throw std::runtime_error( "EvaluateSpline: Zero interval length." ); }
+			double dA = (_rvX[sHi] - _dX) / dH;
+			double dB = (_dX       - _rvX[sLo]) / dH;
+
+			// cubic spline polynomial formula
+			return dA * _rvY[sLo]
+				 + dB * _rvY[sHi]
+				 + ( (dA * dA * dA - dA) * _rvY2[sLo]
+				   + (dB * dB * dB - dB) * _rvY2[sHi]) * (dH * dH) / 6.0;
+		}
+
 		/**
 		 * Selects an audio register.
 		 *
