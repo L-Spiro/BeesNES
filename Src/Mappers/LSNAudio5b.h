@@ -1,4 +1,4 @@
-/**
+Ôªø/**
  * Copyright L. Spiro 2025
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -118,22 +118,46 @@ namespace lsn {
 			}
 			return m_fVolTable[ui32Idx] / 8.0f;*/
 			float fRet = 0.0f;
-			if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
+			if ( (m_rRegs.ui8Disable & 0b00001001) == 0b00001001 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)];
+			}
+			else if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*m_tTones[0].bOnOff];
 			}
-			if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
+			if ( (m_rRegs.ui8Disable & 0b00010010) == 0b00010010 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)];
+			}
+			else if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)*m_tTones[1].bOnOff];
 			}
-			if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
+			if ( (m_rRegs.ui8Disable & 0b00100100) == 0b00100100 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)];
+			}
+			else if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*m_tTones[2].bOnOff];
 			}
 
-			float fVal = fRet;
-			if LSN_UNLIKELY( fVal > 1.0f ) {
-				fVal = std::pow( (fVal - 1.0f) * 0.30153973347855700382069699116982519626617431640625f, 0.30153973347855700382069699116982519626617431640625f ) * 0.69442225515597388874056150598335079848766326904296875f + 1.0f;
+			return fRet / 2.0f;
+		}
+
+		/**
+		 * Post-process an output sample.  Applies the volume crunch.
+		 * 
+		 * \param _fSample The sample to modify.
+		 * \return Returns the volume-crunched sample.
+		 **/
+		inline float									PostProcessSample( float _fSample ) {
+			constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 / 2.0 * 0.875;		// ‚Äì3 dB linear cutoff.
+			constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 / 2.0;					// Output at _dIn = 1.0.
+			// Exponent g solves dThreshold^(1-g) = dOutputEnd  =>  g = 1 - ln(dOutputEnd)/ln(dThreshold)
+			constexpr double dG = 0.2947235156340253237061688196263276040554046630859375;								// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
+
+			double dAbsVal = std::abs( _fSample );
+			if ( dAbsVal <= dThreshold ) {
+				return _fSample;
 			}
-			return fVal / 2.0f;
-			
+			// Continuous power-law compression beyond threshold.
+			return float( dOutputEnd * std::pow( dAbsVal, dG ) * (_fSample / dAbsVal) );
 		}
 
 	protected :
@@ -194,8 +218,8 @@ namespace lsn {
 			for ( size_t I = 0; I <= ((14 + 1) * 2 - 1); ++I ) {
 				m_fVolTable[I] = float( EvaluateSpline( vX, vY, vY2, (I + 1.0) / 2.0 - 1.0 ) );
 			}
-			m_fVolTable[0] = m_fVolTable[1] = m_fToneVolTable[0] = m_fToneVolTable[1] = 0.0f;
-			m_fToneVolTable[15] = 2.0f;//1.236461423950310223318638236378319561481475830078125;
+			m_fVolTable[0] = m_fVolTable[1] = 0.0f;
+			//m_fToneVolTable[15] = 2.0f;//1.236461423950310223318638236378319561481475830078125;
 
 			for ( size_t I = ((14 + 1) * 2 - 1) + 1; I < LSN_ELEMENTS( m_fVolTable ); ++I ) {
 				double dVal = double( I ) - ((14 + 1) * 2 - 1);
@@ -211,6 +235,8 @@ namespace lsn {
 		 * \return Returns the volume of the given index.
 		 **/
 		static float									PolynomialVol( size_t _sIdx ) {
+			if ( _sIdx == 0 ) { return 0.0f; }
+			if ( _sIdx == 15 ) { return 1.0f; }
 			static const double adP[] = {
 				-6.8560006831366094e-09,   // p0
 				-1.6670136239606261e+00,   // p1
@@ -234,15 +260,15 @@ namespace lsn {
 			for ( int32_t I = 13; I >= 0; --I ) {
 				fY = fY * fX + adP[I];
 			}
-			return float( fY );
+			return float( fY ) * 0.707106769084930419921875f;
 		}
 
 		/**
-		 * \brief Prepare secondÅ]derivatives for a natural cubic spline.
+		 * \brief Prepare second‚Äêderivatives for a natural cubic spline.
 		 * 
 		 * \param _rvX   Strictly increasing knot abscissas (x-coords).
 		 * \param _rvY   Knot ordinates (y-values).
-		 * \param _rvY2  [out] Computed secondÅ]derivatives at each knot.
+		 * \param _rvY2  [out] Computed second‚Äêderivatives at each knot.
 		 */
 		static void										PrepareNaturalCubicSpline( const std::vector<double> &_rvX,
 			const std::vector<double> &_rvY,
@@ -253,22 +279,22 @@ namespace lsn {
 			}
 			_rvY2.assign( sN, 0.0 );
 			if ( sN < 3 ) {
-				return; // no internal knots to enforce
+				return; // No internal knots to enforce.
 			}
 
 			std::vector<double> vU( sN - 1, 0.0 );
-			// Natural boundary: second derivative zero at ends
+			// Natural boundary: second derivative zero at ends.
 			for ( size_t I = 1; I < sN - 1; ++I ) {
 				double dSig		= (_rvX[I] - _rvX[I-1]) / (_rvX[I+1] - _rvX[I-1]);
 				double dP		= dSig * _rvY2[I-1] + 2.0;
 				_rvY2[I]		= (dSig - 1.0) / dP;
 
 				double dDy1		= (_rvY[I]   - _rvY[I-1]) / (_rvX[I]   - _rvX[I-1]);
-				double dDy2		= (_rvY[I+1] - _rvY[I]  ) / (_rvX[I+1] - _rvX[I]  );
-				vU[I]			= (6.0 * (dDy2 - dDy1) / (_rvX[I+1] - _rvX[I-1])
+				double dDy2		= (_rvY[I+1] - _rvY[I]) / (_rvX[I+1]   - _rvX[I]);
+				vU[I]			= (6.0 * (dDy2 - dDy1) / (_rvX[I+1]    - _rvX[I-1])
 									- dSig * vU[I-1]) / dP;
 			}
-			// BackÅ]substitute for second derivatives
+			// Back‚Äêsubstitute for second derivatives.
 			for ( size_t I = sN - 2; I-- > 0; ) {
 				_rvY2[I] = _rvY2[I] * _rvY2[I+1] + vU[I];
 			}
@@ -291,11 +317,11 @@ namespace lsn {
 			if ( sN == 0 || _rvY.size() != sN || _rvY2.size() != sN ) {
 				throw std::runtime_error( "EvaluateSpline: Invalid input sizes." );
 			}
-			// clamp to interval
+			// Clamp to interval.
 			if ( _dX <= _rvX.front() ) { return _rvY.front(); }
 			if ( _dX >= _rvX.back() ) { return _rvY.back(); }
 
-			// binary search for right interval
+			// Binary search for right interval.
 			size_t sLo = 0, sHi = sN - 1;
 			while ( sHi - sLo > 1 ) {
 				size_t sMid = (sLo + sHi) >> 1;
@@ -308,7 +334,7 @@ namespace lsn {
 			double dA = (_rvX[sHi] - _dX) / dH;
 			double dB = (_dX       - _rvX[sLo]) / dH;
 
-			// cubic spline polynomial formula
+			// Cubic spline polynomial formula.
 			return dA * _rvY[sLo]
 				 + dB * _rvY[sHi]
 				 + ( (dA * dA * dA - dA) * _rvY2[sLo]

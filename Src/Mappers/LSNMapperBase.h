@@ -329,8 +329,19 @@ namespace lsn {
 
 		/**
 		 * Gets the extended audio sample.
+		 * 
+		 * \param _fApuSample The APU sample to mix with the extended-audio sample.
 		 **/
-		virtual float									GetExtAudio() { return 0.0f; }
+		virtual float									GetExtAudio( float _fApuSample ) { return _fApuSample; }
+
+		/**
+		 * Applies any post affects to the audio sample.  The sample has been filtered and down-sampled to the output Hz by this point in the pipeline.
+		 * 
+		 * \param _fSample The sample to potentially modify.
+		 * \param _fHz The output Hz.
+		 * \return Returns the potentially modified sample.
+		 **/
+		virtual float									PostProcessAudioSample( float _fSample, float /*_fHz*/ ) { return _fSample; }
 
 		/**
 		 * Applies a mirroring mode to a PPU bus.

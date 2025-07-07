@@ -466,27 +466,28 @@ namespace lsn {
 				fTriangle /= 8227.0f;
 				fDmc /= 22638.0f;
 				float fFinalTnd = 0.0f;
-				if ( fNoise != 0.0f || fTriangle != 0.0f || fDmc != 0.0f ) {
-					fFinalTnd = 159.79f / (1.0f / (fNoise + fTriangle + fDmc) + 100.0f);
+				float fDenom = fNoise + fTriangle + fDmc;
+				if ( fDenom ) {
+					fFinalTnd = 159.79f / (1.0f / fDenom + 100.0f);
 				}
 			
-				double dFinal = fFinalPulse + fFinalTnd;
+				float fFinal = fFinalPulse + fFinalTnd;
 				if LSN_LIKELY( m_pmbMapper ) {
-					dFinal += m_pmbMapper->GetExtAudio();
+					fFinal = m_pmbMapper->GetExtAudio( fFinal );
 				}
 
 				if LSN_UNLIKELY( m_pwfRawStream ) {
-					m_pwfRawStream->AddStreamSample( float( dFinal ) );
+					m_pwfRawStream->AddStreamSample( fFinal );
 				}
 
-				dFinal = m_pfLpf.Process( dFinal );
+				fFinal = float( m_pfLpf.Process( fFinal ) );
 				{
 					for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
-						dFinal = m_pfOutputPole[I].Process( dFinal );
+						fFinal = float( m_pfOutputPole[I].Process( fFinal ) );
 					}
 				}
 
-				CAudio::AddSample( static_cast<float>(dFinal * m_fVolume) );
+				CAudio::AddSample( fFinal );
 			}
 
 
@@ -1691,16 +1692,23 @@ namespace lsn {
 		 */
 		static float									PostHpf( void * _pvThis, float _fSample, uint32_t _ui32Hz ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvThis);
-			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, float( _ui32Hz ) ) ) {
-				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, float( _ui32Hz ) ) ) {
+			auto fHz = float( _ui32Hz );
+			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, fHz ) ) {
+				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, fHz ) ) {
 					auto fSample = float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
+
+					if LSN_LIKELY( paApu->m_pmbMapper ) {
+						fSample = paApu->m_pmbMapper->PostProcessAudioSample( fSample, fHz );
+					}
+
+					fSample *= paApu->m_fVolume;
 					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
 						paApu->m_pwfOutStream->AddStreamSample( fSample );
 					}
 					return fSample;
 				}
 			}
-			return _fSample;
+			return _fSample * paApu->m_fVolume;
 		}
 
 		/**
