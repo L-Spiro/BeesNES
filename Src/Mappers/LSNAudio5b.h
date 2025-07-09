@@ -137,7 +137,7 @@ namespace lsn {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*m_tTones[2].bOnOff];
 			}
 
-			return fRet / 2.0f;
+			return fRet * 0.36758463101626792646214880733168683946132659912109375f;
 		}
 
 		/**
@@ -147,10 +147,10 @@ namespace lsn {
 		 * \return Returns the volume-crunched sample.
 		 **/
 		inline float									PostProcessSample( float _fSample ) {
-			constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 / 2.0 * 0.875;		// –3 dB linear cutoff.
-			constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 / 2.0;					// Output at _dIn = 1.0.
+			constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 * 0.36758463101626792646214880733168683946132659912109375 * 0.875;		// –3 dB linear cutoff.
+			constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 * 0.36758463101626792646214880733168683946132659912109375;					// Output at _dIn = 1.0.
 			// Exponent g solves dThreshold^(1-g) = dOutputEnd  =>  g = 1 - ln(dOutputEnd)/ln(dThreshold)
-			constexpr double dG = 0.2947235156340253237061688196263276040554046630859375;								// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
+			constexpr double dG = 0.2334954705219927095782850301475264132022857666015625;																					// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
 
 			double dAbsVal = std::abs( _fSample );
 			if ( dAbsVal <= dThreshold ) {

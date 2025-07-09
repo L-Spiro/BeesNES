@@ -2429,6 +2429,38 @@ namespace lsn {
 			return ui32Ret;
 		}
 
+		/**
+		 * \brief Update a running average of the last N samples without a buffer.
+		 *        Implements: avg_{k} = avg_{k-1} + (newSample - avg_{k-1})/N
+		 * 
+		 * \param _fPrevAvg  Previous average value.
+		 * \param _fNew      New sample value.
+		 * \param _sWindow   Number of items to average (N).  Must not be 0.
+		 * \returns          Updated average over the implicit last N samples.
+		 *
+		 * This exponential‐style update approximates a moving average of window N
+		 * without storing all samples.
+		 */
+		static float										UpdateRunningAvg( float _fPrevAvg, float _fNew, size_t _sWindow ) {
+			return _fPrevAvg + (_fNew - _fPrevAvg) / float( _sWindow );
+		}
+
+		/**
+		 * \brief Update a running average of the last N samples without a buffer.
+		 *        Implements: avg_{k} = avg_{k-1} + (newSample - avg_{k-1})/N
+		 * 
+		 * \param _dPrevAvg  Previous average value.
+		 * \param _dNew      New sample value.
+		 * \param _sWindow   Number of items to average (N).  Must not be 0.
+		 * \returns          Updated average over the implicit last N samples.
+		 *
+		 * This exponential‐style update approximates a moving average of window N
+		 * without storing all samples.
+		 */
+		static double										UpdateRunningAvg( double _dPrevAvg, double _dNew, size_t _sWindow ) {
+			return _dPrevAvg + (_dNew - _dPrevAvg) / double( _sWindow );
+		}
+
 
 		// == Members.
 		LSN_ALIGN( 64 )

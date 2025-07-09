@@ -25,6 +25,7 @@
 
 #define LSN_SLIDER_PRES_VOL						1000
 #define LSN_SLIDER_PRES_VOLF					static_cast<float>(LSN_SLIDER_PRES_VOL)
+#define LSN_VOL_SLIDER_MULT						5
 
 using namespace lsw;
 
@@ -101,8 +102,8 @@ namespace lsn {
 			}
 			ptbTrackBar = reinterpret_cast<lsw::CTrackBar *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR ));
 			if ( ptbTrackBar ) {
-				ptbTrackBar->SetRange( TRUE, 0, LSN_SLIDER_PRES_VOL * 3 );
-				ptbTrackBar->SetTicFreq( LSN_SLIDER_PRES_VOL * 3 / 20 );
+				ptbTrackBar->SetRange( TRUE, 0, LSN_SLIDER_PRES_VOL * LSN_VOL_SLIDER_MULT );
+				ptbTrackBar->SetTicFreq( LSN_SLIDER_PRES_VOL * LSN_VOL_SLIDER_MULT / 20 );
 				ptbTrackBar->SetPos( TRUE, LPARAM( std::round( aoOptions.apCharacteristics.fVolume * LSN_SLIDER_PRES_VOLF ) ) );
 
 				auto aEdit = FindChild( CAudioOptionsWindowLayout::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT );
@@ -274,7 +275,7 @@ namespace lsn {
 						if ( ptbTrackBar ) {
 							ee::CExpEvalContainer::EE_RESULT rRes;
 							if ( _pwSrc->GetTextAsDoubleExpression( rRes ) ) {
-								rRes.u.ui64Val = std::clamp<uint64_t>( uint64_t( std::round( rRes.u.dVal * LSN_SLIDER_PRES_VOLF ) ), 0, LSN_SLIDER_PRES_VOL * 3 );
+								rRes.u.ui64Val = std::clamp<uint64_t>( uint64_t( std::round( rRes.u.dVal * LSN_SLIDER_PRES_VOLF ) ), 0, LSN_SLIDER_PRES_VOL * LSN_VOL_SLIDER_MULT );
 								ptbTrackBar->SetPos( TRUE, LPARAM( rRes.u.ui64Val ) );
 							}
 						}
