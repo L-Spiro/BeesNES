@@ -640,6 +640,7 @@ namespace lsn {
 						}
 					}
 				}
+
 				// Apply HPF 1.
 				if ( _pfFile.dHpf1 && vThis.size() ) {
 					CHpfFilter hfHpf;
@@ -657,6 +658,21 @@ namespace lsn {
 						}
 					}
 				}
+
+				// Sunsoft 5B volume curve.
+				if ( _pfFile.bSunsoft5b ) {
+					size_t sTotal = vThis.size();
+					for ( size_t I = 0; I < sTotal; ++I ) {
+						double dAbs = std::abs( vThis[I] );
+						auto fThis = dAbs * (1.7519834041595458984375 * 2.0);
+						double fXsqr = fThis * fThis;
+						double fX1 = -0.1712609231472015380859375 * fXsqr * fThis - 0.0505211390554904937744140625 * fXsqr + 0.9762413501739501953125 * fThis;
+						double fX2 = (1.0 - std::exp( -1.399 * fThis ));
+						double fF = std::clamp( (fThis -0.5) / (1.28 - 0.5), 0.0, 1.0 );
+						vThis[I] = (fX1 * (1.0f - fF) + fX2 * fF) * (0.570781648159027099609375 / 2.0) * (dAbs / vThis[I]);
+					}
+				}
+
 				// Apply HPF 2.
 				if ( _pfFile.dHpf2 && vThis.size() ) {
 					CHpfFilter hfHpf;

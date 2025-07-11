@@ -323,6 +323,9 @@
 #define LSN_WE_OUTPUT_FOLDER												Output Folder
 #define LSN_WE_NUMBERED														Numbered
 #define LSN_WE_EXPORT_ALL													Export All
+#define LSN_WE_RF1															RF Cables 1
+#define LSN_WE_RF2															RF Cables 2
+#define LSN_WE_SUNSOFT_5B													Apply Sunsoft 5B volume curve.
 
 #define LSN_WE_LOOP_DESC_1_TRACK											Track will start at {:.5g} seconds, play for {:.5g} seconds, continue for another {:.5g} seconds, and then fade out for {:.5g} seconds.  Total duration: {:.7g} seconds.
 #define LSN_WE_ONE_SHOT_DESC_1_TRACK										Track will start at {:.5g} seconds and play for {:.7g} seconds.

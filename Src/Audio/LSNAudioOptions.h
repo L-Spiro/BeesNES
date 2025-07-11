@@ -28,6 +28,7 @@ namespace lsn {
 		LSN_FM_NORMAL,									/**< Standard filtering with LPFfs and HPFfs. */
 		LSN_FM_NONE,									/**< No filtering.  Crappy down-sampling with lots of aliasing.  May never be used. */
 		LSN_FM_RF_1,									/**< One known RF result. */
+		LSN_FM_RF_2,									/**< One as-yet unknown RF result. */
 	};
 
 
@@ -85,6 +86,7 @@ namespace lsn {
 		bool											bInvert = true;
 		bool											bNoise = true;
 		bool											bRp2A02 = false;
+		bool											bSunsoft5b = false;
 	};
 
 	/** Audio-related options. */

@@ -126,6 +126,14 @@ namespace lsn {
 			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bHpf1 ); }
 			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
 			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bHpf2 ); }
+
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bRf1 ); }
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bRf2 ); }
+
+			aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK );
+			if ( aTmp ) { aTmp->SetCheck( m_pwewoOptions->vPerFileOptions[0].bSunsoft5b ); }
 		}
 
 		// Last combo selections.
@@ -196,6 +204,9 @@ namespace lsn {
 					Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,
+					Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK,
+					Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,
+					Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,
 				};
 				for ( auto I = LSN_ELEMENTS( wCheckIds ); I--; ) {
 					auto pwThis = FindChild( wCheckIds[I] );
@@ -258,7 +269,10 @@ namespace lsn {
 			case Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK : {}				LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK : {}			LSN_FALLTHROUGH
-			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK : {
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK : {}
+			case Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK : {}
+			case Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK : {}
+			case Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK : {
 				if ( _wCtrlCode == BN_CLICKED ) {
 					if ( !m_bInternalUpdate ) {
 						auto pwThis = FindChild( _wId );
@@ -333,6 +347,19 @@ namespace lsn {
 								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable );
 							}
 
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fmFilterMode == LSN_FM_RF_1 );
+							}
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fmFilterMode == LSN_FM_RF_2 );
+							}
+							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK ));
+							if ( pcbCheck ) {
+								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bSunsoft5b );
+							}
+
 							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK ));
 							if ( pcbCheck ) {
 								pcbCheck->SetCheck( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert );
@@ -342,12 +369,15 @@ namespace lsn {
 
 							// Checks.
 							const WORD wCheckIds[] = {
-								Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,	WORD( bLockVolume ),
-								Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert ),
-								Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable ),
-								Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf0Enable ),
-								Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf1Enable ),
-								Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,			WORD( bLockVolume ),
+								Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bInvert ),
+								Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bLpfEnable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf0Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf1Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bHpf2Enable ),
+								Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fmFilterMode == LSN_FM_RF_1 ),
+								Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fmFilterMode == LSN_FM_RF_2 ),
+								Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bSunsoft5b ),
 							};
 							for ( size_t I = 0; I < LSN_ELEMENTS( wCheckIds ); I += 2 ) {
 								static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], bool( wCheckIds[I+1] ), vUpdateUs );
@@ -527,6 +557,10 @@ namespace lsn {
 		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF1_CHECK, _pfPerFileOptions.bHpf1 );
 		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _pfPerFileOptions.bHpf2 );
 
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_RF_1_CHECK, _pfPerFileOptions.bRf1 );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_RF_2_CHECK, _pfPerFileOptions.bRf2 );
+		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK, _pfPerFileOptions.bSunsoft5b );
+
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _pfPerFileOptions.wsCharLpfHz );
 		LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _pfPerFileOptions.ui8LpfType, uint8_t );
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, _pfPerFileOptions.wsCharLpfFall );
@@ -623,6 +657,10 @@ namespace lsn {
 				}
 			}
 
+			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_RF_1_CHECK, _ppfOutput->bRf1 );
+			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_RF_2_CHECK, _ppfOutput->bRf2 );
+			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK, _ppfOutput->bSunsoft5b );
+
 			LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ARTIST_EDIT, _ppfOutput->wsArtist );
 			LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_ALBUM_EDIT, _ppfOutput->wsAlbum );
 			LSN_EDIT_TEXT( LSN_WEWI_FSETS_MDATA_YEAR_EDIT, _ppfOutput->wsYear );
@@ -695,6 +733,13 @@ namespace lsn {
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
 		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bHpf2 ); }
 
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bRf1 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bRf2 ); }
+		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK );
+		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bSunsoft5b ); }
+
 		// Last combo-box selections.
 		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
 		if ( aTmp ) { aTmp->SetCurSelByItemData( LPARAM( int32_t( _pfPerFileOptions.ui32ActualHz ) ) ); }
@@ -763,6 +808,27 @@ namespace lsn {
 		if ( pcbCheck ) {
 			bLockVolume = pcbCheck->IsChecked();
 		}
+
+		bool bChecked;
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK ));
+		if ( pcbCheck ) {
+			if ( pcbCheck->IsChecked() ) {
+				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK ));
+				if ( pcbCheck ) {
+					pcbCheck->SetCheck( FALSE );
+				}
+			}
+		}
+		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK ));
+		if ( pcbCheck ) {
+			if ( pcbCheck->IsChecked() ) {
+				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK ));
+				if ( pcbCheck ) {
+					pcbCheck->SetCheck( FALSE );
+				}
+			}
+		}
+
 		auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
 		if ( pcbCombo ) {
 			LSN_AUDIO_PROFILE apProfile;
@@ -781,42 +847,47 @@ namespace lsn {
 							pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK ));
 							if ( pcbCheck ) {
 								apProfile.bInvert = pcbCheck->IsChecked();
-								auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
-								ee::CExpEvalContainer::EE_RESULT rRes;
-								if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-									apProfile.fVolume = float( rRes.u.dVal );
-									aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+								pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK ));
+								if ( pcbCheck ) {
+									apProfile.bSunsoft5b = pcbCheck->IsChecked();
+									auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
+									ee::CExpEvalContainer::EE_RESULT rRes;
 									if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-										apProfile.fLpf = float( rRes.u.dVal );
-										aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
+										apProfile.fVolume = float( rRes.u.dVal );
+										aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
 										if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-											apProfile.fHpf0 = float( rRes.u.dVal );
-											aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
+											apProfile.fLpf = float( rRes.u.dVal );
+											aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
 											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-												apProfile.fHpf1 = float( rRes.u.dVal );
-												aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+												apProfile.fHpf0 = float( rRes.u.dVal );
+												aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
 												if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-													apProfile.fHpf2 = float( rRes.u.dVal );
-													LPARAM lpSel = -1;
-													for ( auto I = LSN_AUDIO_OPTIONS::PresetTotal(); I--; ) {
-														auto aThis = LSN_AUDIO_OPTIONS::s_apProfiles[I];
+													apProfile.fHpf1 = float( rRes.u.dVal );
+													aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
+													if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
+														apProfile.fHpf2 = float( rRes.u.dVal );
+														LPARAM lpSel = -1;
+														for ( auto I = LSN_AUDIO_OPTIONS::PresetTotal(); I--; ) {
+															auto aThis = LSN_AUDIO_OPTIONS::s_apProfiles[I];
 													
-														if ( aThis.bLpfEnable == apProfile.bLpfEnable &&
-															aThis.bHpf0Enable == apProfile.bHpf0Enable &&
-															aThis.bHpf1Enable == apProfile.bHpf1Enable &&
-															aThis.bHpf2Enable == apProfile.bHpf2Enable &&
-															aThis.bInvert == apProfile.bInvert &&
-															(!apProfile.bLpfEnable || aThis.fLpf == apProfile.fLpf) &&
-															(!apProfile.bHpf0Enable || aThis.fHpf0 == apProfile.fHpf0) &&
-															(!apProfile.bHpf1Enable || aThis.fHpf1 == apProfile.fHpf1) &&
-															(!apProfile.bHpf2Enable || aThis.fHpf2 == apProfile.fHpf2) &&
-															(bLockVolume || aThis.fVolume == apProfile.fVolume) ) {
-															lpSel = I;
-															break;
+															if ( aThis.bLpfEnable == apProfile.bLpfEnable &&
+																aThis.bHpf0Enable == apProfile.bHpf0Enable &&
+																aThis.bHpf1Enable == apProfile.bHpf1Enable &&
+																aThis.bHpf2Enable == apProfile.bHpf2Enable &&
+																aThis.bInvert == apProfile.bInvert &&
+																aThis.bSunsoft5b == apProfile.bSunsoft5b &&
+																(!apProfile.bLpfEnable || aThis.fLpf == apProfile.fLpf) &&
+																(!apProfile.bHpf0Enable || aThis.fHpf0 == apProfile.fHpf0) &&
+																(!apProfile.bHpf1Enable || aThis.fHpf1 == apProfile.fHpf1) &&
+																(!apProfile.bHpf2Enable || aThis.fHpf2 == apProfile.fHpf2) &&
+																(bLockVolume || aThis.fVolume == apProfile.fVolume) ) {
+																lpSel = I;
+																break;
+															}
 														}
+														// Search custom presets.
+														pcbCombo->SetCurSelByItemData( lpSel );
 													}
-													// Search custom presets.
-													pcbCombo->SetCurSelByItemData( lpSel );
 												}
 											}
 										}
@@ -960,6 +1031,18 @@ namespace lsn {
 		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
 		if ( pwThis ) {
 			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK );
+		if ( pwThis ) {
+			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK );
+		if ( pwThis ) {
+			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK, vAffected ) );
+		}
+		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK );
+		if ( pwThis ) {
+			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK, vAffected ) );
 		}
 
 		m_bInternalUpdate = false;

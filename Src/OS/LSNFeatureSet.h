@@ -70,65 +70,65 @@ namespace lsn {
         static std::string              Vendor() { return m_iiCpuRep.m_sVendor; }
         static std::string              Brand() { return m_iiCpuRep.m_sBrand; }
 
-        static bool                     SSE3() { return m_iiCpuRep.m_bEcx1[0]; }
-        static bool                     PCLMULQDQ() { return m_iiCpuRep.m_bEcx1[1]; }
-        static bool                     MONITOR() { return m_iiCpuRep.m_bEcx1[3]; }
-        static bool                     SSSE3() { return m_iiCpuRep.m_bEcx1[9]; }
-        static bool                     FMA() { return m_iiCpuRep.m_bEcx1[12]; }
-        static bool                     CMPXCHG16B() { return m_iiCpuRep.m_bEcx1[13]; }
-        static bool                     SSE41() { return m_iiCpuRep.m_bEcx1[19]; }
-        static bool                     SSE42() { return m_iiCpuRep.m_bEcx1[20]; }
-        static bool                     MOVBE() { return m_iiCpuRep.m_bEcx1[22]; }
-        static bool                     POPCNT() { return m_iiCpuRep.m_bEcx1[23]; }
-        static bool                     AES() { return m_iiCpuRep.m_bEcx1[25]; }
-        static bool                     XSAVE() { return m_iiCpuRep.m_bEcx1[26]; }
-        static bool                     OSXSAVE() { return m_iiCpuRep.m_bEcx1[27]; }
-        static bool                     AVX() { return m_iiCpuRep.m_bEcx1[28]; }
-        static bool                     F16C() { return m_iiCpuRep.m_bEcx1[29]; }
-        static bool                     RDRAND() { return m_iiCpuRep.m_bEcx1[30]; }
+        static inline bool              SSE3() { return m_iiCpuRep.m_bEcx1[0]; }
+        static inline bool              PCLMULQDQ() { return m_iiCpuRep.m_bEcx1[1]; }
+        static inline bool              MONITOR() { return m_iiCpuRep.m_bEcx1[3]; }
+        static inline bool              SSSE3() { return m_iiCpuRep.m_bEcx1[9]; }
+        static inline bool              FMA() { return m_iiCpuRep.m_bEcx1[12]; }
+        static inline bool              CMPXCHG16B() { return m_iiCpuRep.m_bEcx1[13]; }
+        static inline bool              SSE41() { return m_iiCpuRep.m_bEcx1[19]; }
+        static inline bool              SSE42() { return m_iiCpuRep.m_bEcx1[20]; }
+        static inline bool              MOVBE() { return m_iiCpuRep.m_bEcx1[22]; }
+        static inline bool              POPCNT() { return m_iiCpuRep.m_bEcx1[23]; }
+        static inline bool              AES() { return m_iiCpuRep.m_bEcx1[25]; }
+        static inline bool              XSAVE() { return m_iiCpuRep.m_bEcx1[26]; }
+        static inline bool              OSXSAVE() { return m_iiCpuRep.m_bEcx1[27]; }
+        static inline bool              AVX() { return m_iiCpuRep.m_bEcx1[28]; }
+        static inline bool              F16C() { return m_iiCpuRep.m_bEcx1[29]; }
+        static inline bool              RDRAND() { return m_iiCpuRep.m_bEcx1[30]; }
 
-        static bool                     MSR() { return m_iiCpuRep.m_bEdx1[5]; }
-        static bool                     CX8() { return m_iiCpuRep.m_bEdx1[8]; }
-        static bool                     SEP() { return m_iiCpuRep.m_bEdx1[11]; }
-        static bool                     CMOV() { return m_iiCpuRep.m_bEdx1[15]; }
-        static bool                     CLFSH() { return m_iiCpuRep.m_bEdx1[19]; }
-        static bool                     MMX() { return m_iiCpuRep.m_bEdx1[23]; }
-        static bool                     FXSR() { return m_iiCpuRep.m_bEdx1[24]; }
-        static bool                     SSE() { return m_iiCpuRep.m_bEdx1[25]; }
-        static bool                     SSE2() { return m_iiCpuRep.m_bEdx1[26]; }
+        static inline bool              MSR() { return m_iiCpuRep.m_bEdx1[5]; }
+        static inline bool              CX8() { return m_iiCpuRep.m_bEdx1[8]; }
+        static inline bool              SEP() { return m_iiCpuRep.m_bEdx1[11]; }
+        static inline bool              CMOV() { return m_iiCpuRep.m_bEdx1[15]; }
+        static inline bool              CLFSH() { return m_iiCpuRep.m_bEdx1[19]; }
+        static inline bool              MMX() { return m_iiCpuRep.m_bEdx1[23]; }
+        static inline bool              FXSR() { return m_iiCpuRep.m_bEdx1[24]; }
+        static inline bool              SSE() { return m_iiCpuRep.m_bEdx1[25]; }
+        static inline bool              SSE2() { return m_iiCpuRep.m_bEdx1[26]; }
 
-        static bool                     FSGSBASE() { return m_iiCpuRep.m_bEbx7[0]; }
-        static bool                     BMI1() { return m_iiCpuRep.m_bEbx7[3]; }
-        static bool                     HLE() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEbx7[4]; }
-        static bool                     AVX2() { return m_iiCpuRep.m_bEbx7[5]; }
-        static bool                     BMI2() { return m_iiCpuRep.m_bEbx7[8]; }
-        static bool                     ERMS() { return m_iiCpuRep.m_bEbx7[9]; }
-        static bool                     INVPCID() { return m_iiCpuRep.m_bEbx7[10]; }
-        static bool                     RTM() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEbx7[11]; }
-        static bool                     AVX512F() { return m_iiCpuRep.m_bEbx7[16]; }
-        static bool                     RDSEED() { return m_iiCpuRep.m_bEbx7[18]; }
-        static bool                     ADX() { return m_iiCpuRep.m_bEbx7[19]; }
-        static bool                     AVX512PF() { return m_iiCpuRep.m_bEbx7[26]; }
-        static bool                     AVX512ER() { return m_iiCpuRep.m_bEbx7[27]; }
-        static bool                     AVX512CD() { return m_iiCpuRep.m_bEbx7[28]; }
-        static bool                     SHA() { return m_iiCpuRep.m_bEbx7[29]; }
-        static bool                     AVX512BW() { return m_iiCpuRep.m_bEbx7[30]; }
-        static bool                     AVX512VL() { return m_iiCpuRep.m_bEbx7[31]; }
+        static inline bool              FSGSBASE() { return m_iiCpuRep.m_bEbx7[0]; }
+        static inline bool              BMI1() { return m_iiCpuRep.m_bEbx7[3]; }
+        static inline bool              HLE() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEbx7[4]; }
+        static inline bool              AVX2() { return m_iiCpuRep.m_bEbx7[5]; }
+        static inline bool              BMI2() { return m_iiCpuRep.m_bEbx7[8]; }
+        static inline bool              ERMS() { return m_iiCpuRep.m_bEbx7[9]; }
+        static inline bool              INVPCID() { return m_iiCpuRep.m_bEbx7[10]; }
+        static inline bool              RTM() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEbx7[11]; }
+        static inline bool              AVX512F() { return m_iiCpuRep.m_bEbx7[16]; }
+        static inline bool              RDSEED() { return m_iiCpuRep.m_bEbx7[18]; }
+        static inline bool              ADX() { return m_iiCpuRep.m_bEbx7[19]; }
+        static inline bool              AVX512PF() { return m_iiCpuRep.m_bEbx7[26]; }
+        static inline bool              AVX512ER() { return m_iiCpuRep.m_bEbx7[27]; }
+        static inline bool              AVX512CD() { return m_iiCpuRep.m_bEbx7[28]; }
+        static inline bool              SHA() { return m_iiCpuRep.m_bEbx7[29]; }
+        static inline bool              AVX512BW() { return m_iiCpuRep.m_bEbx7[30]; }
+        static inline bool              AVX512VL() { return m_iiCpuRep.m_bEbx7[31]; }
 
-        static bool                     PREFETCHWT1() { return m_iiCpuRep.m_bEcx7[0]; }
+        static inline bool              PREFETCHWT1() { return m_iiCpuRep.m_bEcx7[0]; }
 
-        static bool                     LAHF() { return m_iiCpuRep.m_bEcx81[0]; }
-        static bool                     LZCNT() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEcx81[5]; }
-        static bool                     ABM() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[5]; }
-        static bool                     SSE4a() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[6]; }
-        static bool                     XOP() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[11]; }
-        static bool                     TBM() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[21]; }
+        static inline bool              LAHF() { return m_iiCpuRep.m_bEcx81[0]; }
+        static inline bool              LZCNT() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEcx81[5]; }
+        static inline bool              ABM() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[5]; }
+        static inline bool              SSE4a() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[6]; }
+        static inline bool              XOP() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[11]; }
+        static inline bool              TBM() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEcx81[21]; }
 
-        static bool                     SYSCALL() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEdx81[11]; }
-        static bool                     MMXEXT() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[22]; }
-        static bool                     RDTSCP() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEdx81[27]; }
-        static bool                     _3DNOWEXT() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[30]; }
-        static bool                     _3DNOW() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[31]; }
+        static inline bool              SYSCALL() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEdx81[11]; }
+        static inline bool              MMXEXT() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[22]; }
+        static inline bool              RDTSCP() { return m_iiCpuRep.m_bIsIntel && m_iiCpuRep.m_bEdx81[27]; }
+        static inline bool              _3DNOWEXT() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[30]; }
+        static inline bool              _3DNOW() { return m_iiCpuRep.m_bIsAmd && m_iiCpuRep.m_bEdx81[31]; }
 
     private :
         // == Members.
@@ -155,7 +155,7 @@ namespace lsn {
                 std::array<int, 4> aCpuI;
 
                 // Calling __cpuid with 0x0 as the function_id argument
-                // gets the number of the highest valid function ID.
+                //	gets the number of the highest valid function ID.
                 __cpuid( aCpuI.data(), 0 );
                 m_iNumIds = aCpuI[0];
 
@@ -164,7 +164,7 @@ namespace lsn {
                     m_vData.push_back( aCpuI );
                 }
 
-                // Capture cVendor string
+                // Capture vendor string.
                 char cVendor[0x20];
                 ::memset( cVendor, 0, sizeof( cVendor ) );
                 (*reinterpret_cast<int*>(cVendor)) = m_vData[0][1];
@@ -178,20 +178,20 @@ namespace lsn {
                     m_bIsAmd = true;
                 }
 
-                // load bitset with flags for function 0x00000001
+                // Load bitset with flags for function 0x00000001.
                 if ( m_iNumIds >= 1 ) {
                     m_bEcx1 = m_vData[1][2];
                     m_bEdx1 = m_vData[1][3];
                 }
 
-                // load bitset with flags for function 0x00000007
+                // Load bitset with flags for function 0x00000007.
                 if ( m_iNumIds >= 7 ) {
                     m_bEbx7 = m_vData[7][1];
                     m_bEcx7 = m_vData[7][2];
                 }
 
                 // Calling __cpuid with 0x80000000 as the function_id argument
-                // gets the number of the highest valid extended ID.
+                //	gets the number of the highest valid extended ID.
                 __cpuid( aCpuI.data(), 0x80000000 );
                 m_iNumExIds = aCpuI[0];
 
@@ -203,13 +203,13 @@ namespace lsn {
                     m_vExtData.push_back( aCpuI );
                 }
 
-                // load bitset with flags for function 0x80000001
+                // Load bitset with flags for function 0x80000001.
                 if ( m_iNumExIds >= 0x80000001 ) {
                     m_bEcx81 = m_vExtData[1][2];
                     m_bEdx81 = m_vExtData[1][3];
                 }
 
-                // Interpret CPU cBrand string if reported
+                // Interpret CPU cBrand string if reported.
                 if ( m_iNumExIds >= 0x80000004 ) {
                     ::memcpy( cBrand, m_vExtData[2].data(), sizeof( aCpuI ) );
                     ::memcpy( cBrand + 16, m_vExtData[3].data(), sizeof( aCpuI ) );

@@ -184,10 +184,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_FILES,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TREEVIEW )), 0,		// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TREEVIEW )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -205,10 +205,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_FILES,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_WAV )), 0,		// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_WAV )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -226,10 +226,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_FILES,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_META )), 0,		// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_META )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
@@ -649,7 +649,7 @@ namespace lsn {
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																			// iLeft
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),																				// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -735,7 +735,7 @@ namespace lsn {
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																			// iLeft
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),										// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -749,7 +749,7 @@ namespace lsn {
 			WS_EX_TOPMOST,									// dwToolTipStyleEx
 			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
-		{
+		/*{
 			LSW_LT_COMBOBOX,								// ltType
 			LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO,				// wId
 			WC_COMBOBOXW,									// lpwcClass
@@ -812,7 +812,7 @@ namespace lsn {
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
-		},
+		},*/
 
 		// HPF0.
 		{
@@ -822,7 +822,7 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT,				// iLeft
-			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),																		// iTop
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),									// iTop
 			LSN_SEQUE_LABEL_0_W,							// dwWidth
 			LSN_DEF_CHECK_HEIGHT,							// dwHeight
 			LSN_AUTOCHECKSTYLE,								// dwStyle
@@ -843,8 +843,8 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																			// iLeft
-			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),																			// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),									// iTop
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -857,7 +857,7 @@ namespace lsn {
 			WS_EX_TOPMOST,									// dwToolTipStyleEx
 			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
-		{
+		/*{
 			LSW_LT_COMBOBOX,								// ltType
 			LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
@@ -920,7 +920,7 @@ namespace lsn {
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
-		},
+		},*/
 
 		// HPF1.
 		{
@@ -952,7 +952,7 @@ namespace lsn {
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																			// iLeft
 			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 3) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),																			// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -965,7 +965,7 @@ namespace lsn {
 			WS_EX_TOPMOST,									// dwToolTipStyleEx
 			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
-		{
+		/*{
 			LSW_LT_COMBOBOX,								// ltType
 			LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
@@ -1028,7 +1028,7 @@ namespace lsn {
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
-		},
+		},*/
 
 		// HPF2.
 		{
@@ -1059,8 +1059,8 @@ namespace lsn {
 			TRUE,											// bEnabled
 			FALSE,											// bActive
 			LSN_INNER_GROUP_L + LSN_GROUP_LEFT + LSN_SEQUE_LABEL_0_W + LSN_LEFT_JUST,																																			// iLeft
-			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 4) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),																			// iTop
-			LSN_SEQUE_TIME_EDIT_1,							// dwWidth
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 4) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_EDIT_HEIGHT) >> 1),									// iTop
+			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -1073,7 +1073,7 @@ namespace lsn {
 			WS_EX_TOPMOST,									// dwToolTipStyleEx
 			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
-		{
+		/*{
 			LSW_LT_COMBOBOX,								// ltType
 			LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
@@ -1136,6 +1136,73 @@ namespace lsn {
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
+		},*/
+
+		// RF Cables.
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_WEWI_FSETS_CHAR_RF_1_CHECK,					// wId
+			WC_BUTTONW,										// lpwcClass
+			FALSE,											// bEnabled
+			TRUE,											// bActive
+			LSN_FSETS_CHAR_BUTTON_L,						// iLeft
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),										// iTop
+			LSN_FSETS_CHAR_BUTTON_W * 2 + LSN_LEFT_JUST,	// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_AUTOCHECKSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_RF1 ),							// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+		},
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_WEWI_FSETS_CHAR_RF_2_CHECK,					// wId
+			WC_BUTTONW,										// lpwcClass
+			FALSE,											// bEnabled
+			TRUE,											// bActive
+			LSN_FSETS_CHAR_BUTTON_L + LSN_FSETS_CHAR_BUTTON_W + LSN_LEFT_JUST,																																					// iLeft
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + (LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),										// iTop
+			LSN_FSETS_CHAR_BUTTON_W * 2 + LSN_LEFT_JUST,	// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_AUTOCHECKSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_RF2 ),							// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+		},
+
+		// Sunsoft 5B.
+		{
+			LSW_LT_CHECK,									// ltType
+			LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,			// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			TRUE,											// bActive
+			LSN_FSETS_CHAR_BUTTON_L,						// iLeft
+			LSN_FSETS_CHAR_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_EDIT_HEIGHT) + ((LSN_TOP_JUST + LSN_DEF_COMBO_HEIGHT) * 2) + ((LSN_DEF_COMBO_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),									// iTop
+			LSN_FSETS_CHAR_BUTTON_W * 2 + LSN_LEFT_JUST,	// dwWidth
+			LSN_DEF_CHECK_HEIGHT,							// dwHeight
+			LSN_AUTOCHECKSTYLE,								// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_WE_SUNSOFT_5B ),					// pwcText
+			0,												// sTextLen
+			LSN_WEWI_SEQ,									// dwParentId
+
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 
 		// Meta Data.
@@ -1429,10 +1496,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TIME_COMBO )), 0,																									// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TIME_COMBO )), 0,																									// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 		{
 			LSW_LT_EDIT,									// ltType
@@ -1450,10 +1517,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_START_TIME )), 0,																									// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_START_TIME )), 0,																									// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 
 		// Exact/Minus One/Snap.
@@ -1648,10 +1715,10 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_WEWI_SEQ,									// dwParentId
 
-			LSW_NO_SIZE_EXP,
-			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_END_TIME )), 0,		// pcToolTip, sToolTipLen
-			WS_EX_TOPMOST,									// dwToolTipStyleEx
-			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+			//LSW_NO_SIZE_EXP,
+			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_END_TIME )), 0,		// pcToolTip, sToolTipLen
+			//WS_EX_TOPMOST,									// dwToolTipStyleEx
+			//LSN_TOOLTIP_STYLE,								// dwToolTipStyle
 		},
 
 		// End Time.

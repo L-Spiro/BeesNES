@@ -24,7 +24,7 @@
 #include <vector>
 
 
-#define LSN_WAV_EDITOR_VERSION											3
+#define LSN_WAV_EDITOR_VERSION											4
 
 
 namespace lsn {
@@ -135,6 +135,9 @@ namespace lsn {
 			bool														bHpf0 = false;									/**< Whether to HPF 1 or not. */
 			bool														bHpf1 = false;									/**< Whether to HPF 2 or not. */
 			bool														bHpf2 = false;									/**< Whether to HPF 3 or not. */
+			bool														bRf1 = false;									/**< RF 1. */
+			bool														bRf2 = false;									/**< RF 2. */
+			bool														bSunsoft5b = false;								/**< Apply the Sunsoft 5B volume curve. */
 
 			bool														operator < ( const LSN_PER_FILE & _pfOther ) const {
 				return ui32Id < _pfOther.ui32Id;

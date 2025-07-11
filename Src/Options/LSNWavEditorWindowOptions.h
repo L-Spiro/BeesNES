@@ -128,6 +128,13 @@ namespace lsn {
 			/** The last HPF 2 Hz check. */
 			bool													bHpf2 = true;
 
+			/** RF 1. */
+			bool													bRf1 = false;
+			/** RF 2. */
+			bool													bRf2 = false;
+			/** The Sunsoft 5B volume-crunch. */
+			bool													bSunsoft5b = false;
+
 			/** The last Loop check. */
 			bool													bLoop = false;
 
@@ -205,6 +212,9 @@ namespace lsn {
 				if ( !_sbStream.WriteBool( bHpf2 ) ) { return false; }
 				if ( !_sbStream.WriteBool( bLoop ) ) { return false; }
 
+				if ( !_sbStream.WriteBool( bSunsoft5b ) ) { return false; }
+				if ( !_sbStream.WriteBool( bRf1 ) ) { return false; }
+				if ( !_sbStream.WriteBool( bRf2 ) ) { return false; }
 				return true;
 			}
 
@@ -289,6 +299,12 @@ namespace lsn {
 					if ( !_sbStream.ReadBool( bHpf1 ) ) { return false; }
 					if ( !_sbStream.ReadBool( bHpf2 ) ) { return false; }
 					if ( !_sbStream.ReadBool( bLoop ) ) { return false; }
+
+					if ( _ui32Version >= 4 ) {
+						if ( !_sbStream.ReadBool( bSunsoft5b ) ) { return false; }
+						if ( !_sbStream.ReadBool( bRf1 ) ) { return false; }
+						if ( !_sbStream.ReadBool( bRf2 ) ) { return false; }
+					}
 				}
 				catch ( ... ) { return false; }
 				return true;

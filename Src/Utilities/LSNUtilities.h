@@ -2030,7 +2030,7 @@ namespace lsn {
 			return CFeatureSet::AVX();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 
 		/**
@@ -2043,7 +2043,7 @@ namespace lsn {
 			return CFeatureSet::AVX2();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 
 		/**
@@ -2056,7 +2056,7 @@ namespace lsn {
 			return CFeatureSet::FMA();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 
 		/**
@@ -2069,7 +2069,7 @@ namespace lsn {
 			return CFeatureSet::AVX512F();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 
 		/**
@@ -2082,7 +2082,7 @@ namespace lsn {
 			return CFeatureSet::AVX512BW();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 
 		/**
@@ -2095,7 +2095,7 @@ namespace lsn {
 			return CFeatureSet::SSE41();
 #else
 			return false;
-#endif	// #if defined( __i386__ ) || defined( __x86_64__ )
+#endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 		}
 		
 		/**
@@ -2459,6 +2459,22 @@ namespace lsn {
 		 */
 		static double										UpdateRunningAvg( double _dPrevAvg, double _dNew, size_t _sWindow ) {
 			return _dPrevAvg + (_dNew - _dPrevAvg) / double( _sWindow );
+		}
+
+		/**
+		 * \brief Update a running average of the last N samples without a buffer.
+		 *        Implements: avg_{k} = avg_{k-1} + (newSample - avg_{k-1})/N
+		 * 
+		 * \param _fPrevAvg  Previous average value.
+		 * \param _fNew      New sample value.
+		 * \param _fWindow   Number of items to average (N).  Must not be 0.
+		 * \returns          Updated average over the implicit last N samples.
+		 *
+		 * This exponential‐style update approximates a moving average of window N
+		 * without storing all samples.
+		 */
+		static float										UpdateRunningAvg( float _fPrevAvg, float _fNew, float _fWindow ) {
+			return _fPrevAvg + (_fNew - _fPrevAvg) / _fWindow;
 		}
 
 

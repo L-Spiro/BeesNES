@@ -147,17 +147,22 @@ namespace lsn {
 		 * \return Returns the volume-crunched sample.
 		 **/
 		inline float									PostProcessSample( float _fSample ) {
-			constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 * 0.36758463101626792646214880733168683946132659912109375 * 0.875;		// –3 dB linear cutoff.
-			constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 * 0.36758463101626792646214880733168683946132659912109375;					// Output at _dIn = 1.0.
-			// Exponent g solves dThreshold^(1-g) = dOutputEnd  =>  g = 1 - ln(dOutputEnd)/ln(dThreshold)
-			constexpr double dG = 0.2334954705219927095782850301475264132022857666015625;																					// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
+			//constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 * 0.36758463101626792646214880733168683946132659912109375 * 0.875;		// –3 dB linear cutoff.
+			//constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 * 0.36758463101626792646214880733168683946132659912109375;					// Output at _dIn = 1.0.
+			//// Exponent g solves dThreshold^(1-g) = dOutputEnd  =>  g = 1 - ln(dOutputEnd)/ln(dThreshold)
+			//constexpr double dG = 0.2334954705219927095782850301475264132022857666015625;																					// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
 
-			double dAbsVal = std::abs( _fSample );
-			if ( dAbsVal <= dThreshold ) {
-				return _fSample;
-			}
-			// Continuous power-law compression beyond threshold.
-			return float( dOutputEnd * std::pow( dAbsVal, dG ) * (_fSample / dAbsVal) );
+			//double dAbsVal = std::abs( _fSample );
+			//if ( dAbsVal <= dThreshold ) {
+			//	return _fSample;
+			//}
+			//// Continuous power-law compression beyond threshold.
+			//return float( dOutputEnd * std::pow( dAbsVal, dG ) * (_fSample / dAbsVal) );
+			float fAbs = std::abs( _fSample );
+			fAbs *= 1.7519834041595458984375f;
+			float fSq = fAbs * fAbs;
+			return (-0.1712609231472015380859375f * fSq * fAbs - 0.0505211390554904937744140625f * fSq + 0.9762413501739501953125f * fAbs
+				* 0.570781648159027099609375f) * (_fSample / fAbs);
 		}
 
 	protected :
@@ -210,7 +215,7 @@ namespace lsn {
 		void											GenVolTable() {
 			std::vector<double> vX( 16 ), vY( 16 ), vY2;
 			for ( size_t I = 0; I < 16; ++I ){ vX[I] = double( I ); }
-			for ( size_t I = 0; I < 16; ++I ){ vY[I] = double( m_fToneVolTable[I] = PolynomialVol( I ) ); }
+			for ( size_t I = 0; I < 16; ++I ){ vY[I] = double( m_fToneVolTable[I] = Ideal4Bit( I ) ); }
 			vY[0] = 0.0;
 
 			PrepareNaturalCubicSpline( vX, vY, vY2 );
@@ -261,6 +266,16 @@ namespace lsn {
 				fY = fY * fX + adP[I];
 			}
 			return float( fY ) * 0.707106769084930419921875f;
+		}
+
+		/**
+		 * Gets the ideal volume at a given level for the 4-bit volume.
+		 * 
+		 * \param _sIdx The index of the volume to get.
+		 * \return Returns the volume of the given index.
+		 **/
+		static float									Ideal4Bit( size_t _sIdx ) {
+			return std::powf( 10.0f, (std::log10f( std::sqrtf( 0.5f ) ) * 20.0f * float( 15 - _sIdx )) / 20.0f );
 		}
 
 		/**

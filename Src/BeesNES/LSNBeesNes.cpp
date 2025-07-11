@@ -958,6 +958,8 @@ namespace lsn {
 		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bLockVol ) ) { return false; }
 
 		if ( !_sFile.ReadStringU16( _wewoOptions.wsLastProjectsFolder ) ) { return false; }
+
+		if ( !_sFile.Read( _wewoOptions.vPerFileOptions[0].bSunsoft5b ) ) { return false; }
 		return true;
 	}
 
@@ -1037,6 +1039,8 @@ namespace lsn {
 		if ( !_sFile.Write( pfTmp.bLockVol ) ) { return false; }
 
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastProjectsFolder ) ) { return false; }
+
+		if ( !_sFile.Write( pfTmp.bSunsoft5b ) ) { return false; }
 		return true;
 	}
 
