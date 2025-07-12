@@ -185,8 +185,8 @@ namespace lsn {
 		 * \param _fHz The output Hz.
 		 * \return Returns the potentially modified sample.
 		 **/
-		virtual float									PostProcessAudioSample( float _fSample, float /*_fHz*/ ) {
-			return m_Audio5b.PostProcessSample( _fSample );
+		virtual float									PostProcessAudioSample( float _fSample, float _fHz ) {
+			return m_Audio5b.PostProcessSample( _fSample, _fHz );
 		}
 
 

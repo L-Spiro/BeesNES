@@ -809,7 +809,6 @@ namespace lsn {
 			bLockVolume = pcbCheck->IsChecked();
 		}
 
-		bool bChecked;
 		pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK ));
 		if ( pcbCheck ) {
 			if ( pcbCheck->IsChecked() ) {

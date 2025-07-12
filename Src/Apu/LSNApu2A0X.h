@@ -1695,12 +1695,12 @@ namespace lsn {
 			auto fHz = float( _ui32Hz );
 			if LSN_LIKELY ( paApu->m_hfHpfFilter1.CreateHpf( paApu->m_fHpf1, fHz ) ) {
 				if LSN_LIKELY( paApu->m_hfHpfFilter2.CreateHpf( paApu->m_fHpf2, fHz ) ) {
-					auto fSample = float( paApu->m_hfHpfFilter1.Process( paApu->m_hfHpfFilter2.Process( _fSample ) ) );
+					auto fSample = float( paApu->m_hfHpfFilter1.Process( _fSample ) );
 
 					if LSN_LIKELY( paApu->m_pmbMapper ) {
 						fSample = paApu->m_pmbMapper->PostProcessAudioSample( fSample, fHz );
 					}
-
+					fSample = float( paApu->m_hfHpfFilter2.Process( fSample ) );
 					fSample *= paApu->m_fVolume;
 					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
 						paApu->m_pwfOutStream->AddStreamSample( fSample );

@@ -232,6 +232,46 @@ namespace lsn {
 		}
 
 		/**
+		 * Fixes the file name.  Replaces invalid file-name characters with logical alternatives.
+		 * 
+		 * \param _u16File The file name to replace.
+		 * \return Returns the replaced file name.
+		 **/
+		static std::u16string								FixFile( const std::u16string &_u16File ) {
+			std::u16string u16Fixed( _u16File );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"<"  ), std::u16string( u"("  ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u">"  ), std::u16string( u")"  ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u":"  ), std::u16string( u" -" ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"\"" ), std::u16string( u"\'" ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"/"  ), std::u16string( u"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"\\" ), std::u16string( u"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"|"  ), std::u16string( u"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"?"  ), std::u16string( u"？" ) );
+			u16Fixed = Replace( u16Fixed, std::u16string( u"*"  ), std::u16string( u"×"  ) );
+			return u16Fixed;
+		}
+
+		/**
+		 * Fixes the file name.  Replaces invalid file-name characters with logical alternatives.
+		 * 
+		 * \param _u16File The file name to replace.
+		 * \return Returns the replaced file name.
+		 **/
+		static std::wstring									FixFile( const std::wstring &_u16File ) {
+			std::wstring u16Fixed( _u16File );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"<"  ), std::wstring( L"("  ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L">"  ), std::wstring( L")"  ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L":"  ), std::wstring( L" -" ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"\"" ), std::wstring( L"\'" ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"/"  ), std::wstring( L"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"\\" ), std::wstring( L"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"|"  ), std::wstring( L"-"  ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"?"  ), std::wstring( L"？" ) );
+			u16Fixed = Replace( u16Fixed, std::wstring( L"*"  ), std::wstring( L"×"  ) );
+			return u16Fixed;
+		}
+
+		/**
 		 * Performs ::towlower() on the given input.
 		 * 
 		 * \param _pcStr The string to convert to lower-case
@@ -2475,6 +2515,22 @@ namespace lsn {
 		 */
 		static float										UpdateRunningAvg( float _fPrevAvg, float _fNew, float _fWindow ) {
 			return _fPrevAvg + (_fNew - _fPrevAvg) / _fWindow;
+		}
+
+		/**
+		 * \brief Update a running average of the last N samples without a buffer.
+		 *        Implements: avg_{k} = avg_{k-1} + (newSample - avg_{k-1})/N
+		 * 
+		 * \param _dPrevAvg  Previous average value.
+		 * \param _dNew      New sample value.
+		 * \param _dWindow   Number of items to average (N).  Must not be 0.
+		 * \returns          Updated average over the implicit last N samples.
+		 *
+		 * This exponential‐style update approximates a moving average of window N
+		 * without storing all samples.
+		 */
+		static double										UpdateRunningAvg( double _dPrevAvg, double _dNew, double _dWindow ) {
+			return _dPrevAvg + (_dNew - _dPrevAvg) / _dWindow;
 		}
 
 

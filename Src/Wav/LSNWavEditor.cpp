@@ -63,7 +63,7 @@ namespace lsn {
 				if ( !DoFile( (*pwfsSet), (*aPerFile), m_oOutput, sIdx, m_vFileList.size(), _wsMsg, wsBatFile, wsMeta ) ) { return false; }
 				if ( wsBatName.empty() ) {
 					if ( aPerFile->wsAlbum.size() ) {
-						wsBatName = aPerFile->wsAlbum;
+						wsBatName = CUtilities::FixFile( aPerFile->wsAlbum );
 					}
 				}
 				if ( m_oOutput.bNumbered && !wsBatFile.empty() ) {
@@ -661,17 +661,29 @@ namespace lsn {
 
 				// Sunsoft 5B volume curve.
 				if ( _pfFile.bSunsoft5b ) {
+					double dRunAvg = 1.0;
+					double dTime = 0.03125 * double( sOutHz );
 					size_t sTotal = vThis.size();
 					for ( size_t I = 0; I < sTotal; ++I ) {
-						constexpr double dReNorm = 1.288004346329223448464063039864413440227508544921875 * (1.0 / 0.36758463101626792646214880733168683946132659912109375);
-						constexpr double dInvReNorm = 1.0 / dReNorm;
+						constexpr double dReNorm = 1.5 * (1.0 / 0.36758463101626792646214880733168683946132659912109375);
+						//constexpr double dInvReNorm = 1.0 / dReNorm;
 						double dAbs = std::abs( vThis[I] );
-						auto fThis = dAbs * (dReNorm);
-						double fXsqr = fThis * fThis;
-						double fX1 = -0.1712609231472015380859375 * fXsqr * fThis - 0.0505211390554904937744140625 * fXsqr + 0.9762413501739501953125 * fThis;
-						double fX2 = (1.0 - std::exp( -1.399 * fThis ));
-						double fF = std::clamp( (fThis - 0.5) / (1.28 - 0.5), 0.0, 1.0 );
-						vThis[I] = (fX1 * (1.0f - fF) + fX2 * fF) * (dInvReNorm) * (dAbs / vThis[I]);
+						if ( dAbs > 0.0 ) {
+							auto fThis = dAbs * (dReNorm);
+							double fXsqr = fThis * fThis;
+							double fX1 = -0.1712609231472015380859375 * fXsqr * fThis - 0.0505211390554904937744140625 * fXsqr + 0.9762413501739501953125 * fThis;
+							double fX2 = (1.0 - std::exp( -1.399 * fThis ));
+							double fF = std::clamp( (fThis - 0.5) / (1.28 - 0.5), 0.0, 1.0 );
+							double dThisScale = (fX1 * (1.0f - fF) + fX2 * fF);
+							dThisScale = dThisScale / fThis;
+							//dRunAvg = dThisScale;//CUtilities::UpdateRunningAvg( dRunAvg, dThisScale, dTime );
+							dRunAvg = std::min( dThisScale, CUtilities::UpdateRunningAvg( dRunAvg, dThisScale, dTime ) );
+							vThis[I] *= dRunAvg /** (dInvReNorm) * (dAbs / vThis[I])*/;
+//							vThis[I] *= dThisScale /** (dInvReNorm) * (dAbs / vThis[I])*/;
+						}
+						else {
+							dRunAvg = CUtilities::UpdateRunningAvg( dRunAvg, 1.0, dTime );
+						}
 					}
 				}
 
@@ -859,7 +871,7 @@ namespace lsn {
 
 		// Create a file path.
 		std::filesystem::path pPath( _oOutput.wsFolder );
-		std::wstring wsFileName = _pfFile.wsFilePrefix + _pfFile.wsName + _pfFile.wsFilePostFix + L".wav";
+		std::wstring wsFileName = CUtilities::FixFile( _pfFile.wsFilePrefix + _pfFile.wsName + _pfFile.wsFilePostFix + L".wav" );
 		if ( _oOutput.bNumbered ) {
 			size_t sDigits = size_t( std::ceil( std::log10( _sTotal + 1 ) ) );
 			std::ostringstream ossTmp;

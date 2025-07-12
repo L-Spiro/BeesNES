@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
+#include "../Utilities/LSNUtilities.h"
 
 #include <cassert>
 
@@ -74,6 +75,9 @@ namespace lsn {
 				m_tTones[1].Tick( m_rRegs.ui16Tone[1] );
 				m_tTones[2].Tick( m_rRegs.ui16Tone[2] );
 			}
+			if LSN_UNLIKELY( (m_ui8Divider & 0x1F) == 0 ) {
+				m_nNoise[0].Tick( m_rRegs.ui8NoisePeriod );
+			}
 		}
 
 		/**
@@ -89,6 +93,7 @@ namespace lsn {
 			m_rRegs.ui16Tone[0] &= 0x0FFF;
 			m_rRegs.ui16Tone[1] &= 0x0FFF;
 			m_rRegs.ui16Tone[2] &= 0x0FFF;
+
 		}
 
 		/**
@@ -106,23 +111,15 @@ namespace lsn {
 		 * \return Returns the current sample.
 		 **/
 		inline float									Sample() {
-			/*uint32_t ui32Idx = 0;
-			if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
-				ui32Idx += m_tTones[0].bOnOff * (((m_rRegs.ui8EnvAndVol[0]&0xF) + 1) * 2 - 1);
-			}
-			if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
-				ui32Idx += m_tTones[1].bOnOff * (((m_rRegs.ui8EnvAndVol[1]&0xF) + 1) * 2 - 1);
-			}
-			if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
-				ui32Idx += m_tTones[2].bOnOff * (((m_rRegs.ui8EnvAndVol[2]&0xF) + 1) * 2 - 1);
-			}
-			return m_fVolTable[ui32Idx] / 8.0f;*/
 			float fRet = 0.0f;
 			if ( (m_rRegs.ui8Disable & 0b00001001) == 0b00001001 ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)];
 			}
 			else if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*m_tTones[0].bOnOff];
+			}
+			else if ( !(m_rRegs.ui8Disable & 0b00001000) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*(m_nNoise[0].Value())];
 			}
 			if ( (m_rRegs.ui8Disable & 0b00010010) == 0b00010010 ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)];
@@ -146,23 +143,25 @@ namespace lsn {
 		 * \param _fSample The sample to modify.
 		 * \return Returns the volume-crunched sample.
 		 **/
-		inline float									PostProcessSample( float _fSample ) {
-			//constexpr double dThreshold = 0.70710678118654757273731092936941422522068023681640625 * 0.36758463101626792646214880733168683946132659912109375 * 0.875;		// –3 dB linear cutoff.
-			//constexpr double dOutputEnd = 0.8743102575508390206238118480541743338108062744140625 * 0.36758463101626792646214880733168683946132659912109375;					// Output at _dIn = 1.0.
-			//// Exponent g solves dThreshold^(1-g) = dOutputEnd  =>  g = 1 - ln(dOutputEnd)/ln(dThreshold)
-			//constexpr double dG = 0.2334954705219927095782850301475264132022857666015625;																					// 1.0 - std::log( dOutputEnd ) / std::log( dThreshold );	
-
-			//double dAbsVal = std::abs( _fSample );
-			//if ( dAbsVal <= dThreshold ) {
-			//	return _fSample;
-			//}
-			//// Continuous power-law compression beyond threshold.
-			//return float( dOutputEnd * std::pow( dAbsVal, dG ) * (_fSample / dAbsVal) );
-			float fAbs = std::abs( _fSample );
-			fAbs *= 1.7519834041595458984375f;
-			float fSq = fAbs * fAbs;
-			return (-0.1712609231472015380859375f * fSq * fAbs - 0.0505211390554904937744140625f * fSq + 0.9762413501739501953125f * fAbs
-				* 0.570781648159027099609375f) * (_fSample / fAbs);
+		inline float									PostProcessSample( float _fSample, float _fHz ) {
+			constexpr float fReNorm = 1.5f * (1.0f / 0.36758463101626792646214880733168683946132659912109375f);
+			//constexpr double dInvReNorm = 1.0 / fReNorm;
+			float dAbs = std::abs( _fSample );
+			if ( dAbs > 0.0 ) {
+				auto fThis = dAbs * (fReNorm);
+				float fXsqr = fThis * fThis;
+				float fX1 = -0.1712609231472015380859375f * fXsqr * fThis - 0.0505211390554904937744140625f * fXsqr + 0.9762413501739501953125f * fThis;
+				float fX2 = (1.0f - std::expf( -1.399f * fThis ));
+				float fF = std::clamp( (fThis - 0.5f) / (1.28f - 0.5f), 0.0f, 1.0f );
+				float fThisScale = (fX1 * (1.0f - fF) + fX2 * fF);
+				fThisScale = fThisScale / fThis;
+				m_fVolAvg = std::min( fThisScale, CUtilities::UpdateRunningAvg( m_fVolAvg, fThisScale, 0.03125f * _fHz ) );
+				_fSample *= m_fVolAvg;
+			}
+			else {
+				m_fVolAvg = CUtilities::UpdateRunningAvg( m_fVolAvg, 1.0f, 0.03125f * _fHz );
+			}
+			return _fSample;
 		}
 
 	protected :
@@ -170,7 +169,7 @@ namespace lsn {
 		/** The tone channels. */
 		struct LSN_TONE {
 			uint16_t									ui16Counter;							/**< The channel counter. */
-			uint8_t										u8Divisor;								/**< The count to 16. */
+			//uint8_t										u8Divisor;								/**< The count to 16. */
 			bool										bOnOff;									/**< Whether the pulse is 0 or non-0. */
 
 
@@ -180,7 +179,7 @@ namespace lsn {
 			 * 
 			 * \param _ui1Period The tone period.
 			 **/
-			void										Tick( uint16_t _ui1Period ) {
+			inline void									Tick( uint16_t _ui1Period ) {
 				//if LSN_UNLIKELY( (++u8Divisor & 0xF) == 0 ) {
 				//	u8Divisor = 0;
 					if LSN_UNLIKELY( ++ui16Counter >= _ui1Period ) {
@@ -191,11 +190,45 @@ namespace lsn {
 			}
 		};
 
+		/** The noise channels. */
+		struct LSN_NOISE {
+			uint32_t									ui32Noise = 1;							/**< The noise register. */
+			uint16_t									ui16Counter;							/**< The channel counter. */
+
+
+			// == Functions.
+			/**
+			 * Advances the tone state by 1 cycle.
+			 * 
+			 * \param _ui1Period The tone period.
+			 **/
+			inline void									Tick( uint16_t _ui1Period ) {
+				//if LSN_UNLIKELY( (++u8Divisor & 0xF) == 0 ) {
+				//	u8Divisor = 0;
+					if LSN_UNLIKELY( ++ui16Counter >= _ui1Period ) {
+						ui16Counter = 0;
+						ui32Noise ^= (((ui32Noise & 1) ^ ((ui32Noise >> 3) & 1)) << 17);
+						ui32Noise >>= 1;
+					}
+				//}
+			}
+
+			/**
+			 * Gets the current noise value.
+			 * 
+			 * \return Gets the current noise value.
+			 **/
+			inline uint32_t								Value() const { return ui32Noise & 1; }
+		};
+
 
 		// == Members.
 		LSN_TONE										m_tTones[3];							/**< The tone channels. */
 		float											m_fVolTable[31*3+1];					/**< The volume look-up table. */
 		float											m_fToneVolTable[16];					/**< Standard volume tables. */
+		float											m_fVolAvg = 1.0f;						/**< Running-average volume. */
+		LSN_NOISE										m_nNoise[3];							/**< The current noise shift values. */
+
 		union {
 			uint8_t										m_ui8Registers[16];						/**< Each register. */
 			LSN_5B_REGS									m_rRegs;								/**< Alternate names for registers. */
@@ -206,7 +239,7 @@ namespace lsn {
 
 		uint8_t											m_ui8Divider;							/**< The divider. */
 		uint8_t											m_ui8Reg;								/**< The register to which to write. */
-
+		
 
 		// == Functions.
 		/**
