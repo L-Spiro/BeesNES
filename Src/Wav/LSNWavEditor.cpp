@@ -663,13 +663,15 @@ namespace lsn {
 				if ( _pfFile.bSunsoft5b ) {
 					size_t sTotal = vThis.size();
 					for ( size_t I = 0; I < sTotal; ++I ) {
+						constexpr double dReNorm = 1.288004346329223448464063039864413440227508544921875 * (1.0 / 0.36758463101626792646214880733168683946132659912109375);
+						constexpr double dInvReNorm = 1.0 / dReNorm;
 						double dAbs = std::abs( vThis[I] );
-						auto fThis = dAbs * (1.7519834041595458984375 * 2.0);
+						auto fThis = dAbs * (dReNorm);
 						double fXsqr = fThis * fThis;
 						double fX1 = -0.1712609231472015380859375 * fXsqr * fThis - 0.0505211390554904937744140625 * fXsqr + 0.9762413501739501953125 * fThis;
 						double fX2 = (1.0 - std::exp( -1.399 * fThis ));
-						double fF = std::clamp( (fThis -0.5) / (1.28 - 0.5), 0.0, 1.0 );
-						vThis[I] = (fX1 * (1.0f - fF) + fX2 * fF) * (0.570781648159027099609375 / 2.0) * (dAbs / vThis[I]);
+						double fF = std::clamp( (fThis - 0.5) / (1.28 - 0.5), 0.0, 1.0 );
+						vThis[I] = (fX1 * (1.0f - fF) + fX2 * fF) * (dInvReNorm) * (dAbs / vThis[I]);
 					}
 				}
 
