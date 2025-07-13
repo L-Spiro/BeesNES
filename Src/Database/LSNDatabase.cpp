@@ -1114,6 +1114,10 @@ namespace lsn {
 			{ .ui32Crc = 0x2B11E0B0, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SOROM },			
 			// Nobunaga's Ambition (U)
 			{ .ui32Crc = 0x4642DDA6, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SOROM },
+
+			// noise_5b
+			{ .ui32Crc = 0x6DDDA0C7, .cChip = LSN_C_SUNSOFT_5B, },
+
 			// Orb 3D (U)
 			{ .ui32Crc = 0x84B930A9, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SCROM },
 			// Overlord (U)

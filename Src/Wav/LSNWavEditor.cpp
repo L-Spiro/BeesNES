@@ -665,17 +665,17 @@ namespace lsn {
 					double dTime = 0.03125 * double( sOutHz );
 					size_t sTotal = vThis.size();
 					for ( size_t I = 0; I < sTotal; ++I ) {
-						constexpr double dReNorm = 1.5 * (1.0 / 0.36758463101626792646214880733168683946132659912109375);
+						constexpr double dReNorm = 1.5 * (1.0 / 0.417751808638574306797863755491562187671661376953125);
 						//constexpr double dInvReNorm = 1.0 / dReNorm;
 						double dAbs = std::abs( vThis[I] );
 						if ( dAbs > 0.0 ) {
-							auto fThis = dAbs * (dReNorm);
-							double fXsqr = fThis * fThis;
-							double fX1 = -0.1712609231472015380859375 * fXsqr * fThis - 0.0505211390554904937744140625 * fXsqr + 0.9762413501739501953125 * fThis;
-							double fX2 = (1.0 - std::exp( -1.399 * fThis ));
-							double fF = std::clamp( (fThis - 0.5) / (1.28 - 0.5), 0.0, 1.0 );
-							double dThisScale = (fX1 * (1.0f - fF) + fX2 * fF);
-							dThisScale = dThisScale / fThis;
+							auto dThis = dAbs * (dReNorm);
+							double dXsqr = dThis * dThis;
+							double dX1 = -0.1712609231472015380859375 * dXsqr * dThis - 0.0505211390554904937744140625 * dXsqr + 0.9762413501739501953125 * dThis;
+							double dX2 = (1.0 - std::exp( -1.399 * dThis ));
+							double dF = std::clamp( (dThis - 0.5) / (1.28 - 0.5), 0.0, 1.0 );
+							double dThisScale = (dX1 * (1.0f - dF) + dX2 * dF);
+							dThisScale = dThisScale / dThis;
 							//dRunAvg = dThisScale;//CUtilities::UpdateRunningAvg( dRunAvg, dThisScale, dTime );
 							dRunAvg = std::min( dThisScale, CUtilities::UpdateRunningAvg( dRunAvg, dThisScale, dTime ) );
 							vThis[I] *= dRunAvg /** (dInvReNorm) * (dAbs / vThis[I])*/;
@@ -749,9 +749,6 @@ namespace lsn {
 						size_t sTrailStart = size_t( std::round( dLen * sOutHz ) );
 						size_t sTrailEnd = size_t( std::round( (dLen + _pfFile.dTrailingSilence) * sOutHz ) );
 						size_t sMax = vThis.size();
-						/*if ( vThis.size() > sTrailEnd ) {
-							
-						}*/
 						for ( size_t I = sTrailStart; I < sMax; ++I ) {
 							double dFrac = double( I - sTrailStart ) / double( sTrailEnd - sTrailStart );
 							dFrac = std::min( dFrac, 1.0 );
@@ -812,7 +809,7 @@ namespace lsn {
 				break;
 			}
 			default : {
-				// Anything else is a ono mix-down.
+				// Anything else is a mono mix-down.
 				if ( vSamples.size() > 1 ) {
 					size_t sSamples = vSamples[0].size();
 					double dChans = double( vSamples.size() );
@@ -856,7 +853,6 @@ namespace lsn {
 
 					dMax = std::max( dMax, dChannelMax );
 				}
-				
 				if ( dMax != 0.0 ) {
 					dApplyVol = 1.0 / dMax * _oOutput.dLoudness;
 				}
@@ -914,8 +910,6 @@ namespace lsn {
 		++_stIdx;
 
 
-		//ffmpeg -r 1 -f image2 -loop 1 -i "C:\Tmp\New folder\Pac Man\1 Game Start.png" -i "C:\Tmp\New folder\Pac Man\1 Game Start (NES, Famicom).wav" -vcodec mpeg4 -qscale 2 -acodec copy -shortest "C:\Tmp\New folder\Pac Man\1 Game Start (NES, Famicom).avi"
-		// ffmpeg -r 1 -f image2 -loop 1 -i \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start.png\" -i \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start (NES, Famicom).wav\" -vcodec mpeg4 -qscale 2 -acodec copy -shortest \"C:\\Tmp\\New folder\\Pac Man\\1 Game Start (NES, Famicom).avi\"
 		{
 			pPath = CUtilities::Replace( pPath.generic_u16string(), std::u16string( u"\"" ), std::u16string( u"\\\"" ) );
 			std::filesystem::path pImage = pPath;
@@ -924,7 +918,7 @@ namespace lsn {
 			pMovie.replace_extension( " HD.avi" );
 
 			// Remove the number part from the movie name and replace it with the album name.
-			std::wstring wsOldStem = pMovie.stem().wstring();
+			std::wstring wsOldStem	= pMovie.stem().wstring();
 			size_t sIdx = 0;
 			while ( sIdx < wsOldStem.size() && std::iswdigit( wsOldStem[sIdx] ) ) { ++sIdx; }
 

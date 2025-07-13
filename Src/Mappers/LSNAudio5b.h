@@ -19,6 +19,8 @@
 #pragma warning( push )
 #pragma warning( disable : 4201 )	// warning C4201: nonstandard extension used: nameless struct/union
 
+#define LSN_SUNSOFT_5B_REL_VOL							0.4177518188953399658203125f	// 0.36758463101626792646214880733168683946132659912109375f
+
 
 namespace lsn {
 
@@ -76,7 +78,7 @@ namespace lsn {
 				m_tTones[2].Tick( m_rRegs.ui16Tone[2] );
 			}
 			if LSN_UNLIKELY( (m_ui8Divider & 0x1F) == 0 ) {
-				m_nNoise[0].Tick( m_rRegs.ui8NoisePeriod );
+				m_nNoise.Tick( m_rRegs.ui8NoisePeriod );
 			}
 		}
 
@@ -115,26 +117,43 @@ namespace lsn {
 			if ( (m_rRegs.ui8Disable & 0b00001001) == 0b00001001 ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)];
 			}
+			else if ( (m_rRegs.ui8Disable & 0b00001001) == 0b00000000 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*(uint8_t(m_tTones[0].bOnOff)&m_nNoise.Value())];
+			}
 			else if ( !(m_rRegs.ui8Disable & 0b00000001) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*m_tTones[0].bOnOff];
 			}
 			else if ( !(m_rRegs.ui8Disable & 0b00001000) ) {
-				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*(m_nNoise[0].Value())];
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[0]&0xF)*m_nNoise.Value()];
 			}
+
 			if ( (m_rRegs.ui8Disable & 0b00010010) == 0b00010010 ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)];
+			}
+			else if ( (m_rRegs.ui8Disable & 0b00010010) == 0b00000000 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)*(uint8_t(m_tTones[1].bOnOff)&m_nNoise.Value())];
 			}
 			else if ( !(m_rRegs.ui8Disable & 0b00000010) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)*m_tTones[1].bOnOff];
 			}
+			else if ( !(m_rRegs.ui8Disable & 0b00010000) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[1]&0xF)*m_nNoise.Value()];
+			}
+
 			if ( (m_rRegs.ui8Disable & 0b00100100) == 0b00100100 ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)];
+			}
+			else if ( (m_rRegs.ui8Disable & 0b00100100) == 0b00000000 ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*(uint8_t(m_tTones[2].bOnOff)&m_nNoise.Value())];
 			}
 			else if ( !(m_rRegs.ui8Disable & 0b00000100) ) {
 				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*m_tTones[2].bOnOff];
 			}
+			else if ( !(m_rRegs.ui8Disable & 0b00100000) ) {
+				fRet += m_fToneVolTable[(m_rRegs.ui8EnvAndVol[2]&0xF)*m_nNoise.Value()];
+			}
 
-			return fRet * 0.36758463101626792646214880733168683946132659912109375f;
+			return fRet * -LSN_SUNSOFT_5B_REL_VOL;
 		}
 
 		/**
@@ -144,7 +163,7 @@ namespace lsn {
 		 * \return Returns the volume-crunched sample.
 		 **/
 		inline float									PostProcessSample( float _fSample, float _fHz ) {
-			constexpr float fReNorm = 1.5f * (1.0f / 0.36758463101626792646214880733168683946132659912109375f);
+			constexpr float fReNorm = 1.5f * (1.0f / LSN_SUNSOFT_5B_REL_VOL);
 			//constexpr double dInvReNorm = 1.0 / fReNorm;
 			float dAbs = std::abs( _fSample );
 			if ( dAbs > 0.0 ) {
@@ -227,7 +246,7 @@ namespace lsn {
 		float											m_fVolTable[31*3+1];					/**< The volume look-up table. */
 		float											m_fToneVolTable[16];					/**< Standard volume tables. */
 		float											m_fVolAvg = 1.0f;						/**< Running-average volume. */
-		LSN_NOISE										m_nNoise[3];							/**< The current noise shift values. */
+		LSN_NOISE										m_nNoise;								/**< The current noise shift values. */
 
 		union {
 			uint8_t										m_ui8Registers[16];						/**< Each register. */
