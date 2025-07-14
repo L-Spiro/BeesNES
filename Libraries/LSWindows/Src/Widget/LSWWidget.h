@@ -489,7 +489,10 @@ namespace lsw {
 		/** Custom ID. */
 		WORD								m_wId;
 		/** Tracks whether the control has focus or not. */
-		bool								m_bHasFocus;				
+		bool								m_bHasFocus;
+
+		/** The tooltip buffer. */
+		static WCHAR						m_wcToolTipBuffer[1024*2];
 
 
 		// == Message Handlers.

@@ -14,6 +14,9 @@
 
 namespace lsw {
 
+	/** The tooltip buffer. */
+	WCHAR CWidget::m_wcToolTipBuffer[1024*2];
+
 	CWidget::CWidget( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t /*_ui64Data*/ ) :
 		m_ui64UserData( 0 ),
 		m_hWnd( NULL ),
@@ -1408,7 +1411,13 @@ namespace lsw {
 							std::wstring wsText = pmwThis->TranslateTooltip( pmwTemp->m_sTooltipText );
 							::wcsncpy_s( pdiInfo->szText, wsText.c_str(), _TRUNCATE );
 							pdiInfo->szText[LSW_ELEMENTS( pdiInfo->szText )-1] = L'\0';
-					}
+
+							::wcsncpy_s( m_wcToolTipBuffer, wsText.c_str(), _TRUNCATE );
+							m_wcToolTipBuffer[LSW_ELEMENTS( m_wcToolTipBuffer )-1] = L'\0';
+							pdiInfo->lpszText = &m_wcToolTipBuffer[0];
+							pdiInfo->uFlags |= TTF_DI_SETITEM;
+							
+						}
 						LSW_RET( 1, TRUE );
 					}
 				}

@@ -266,9 +266,10 @@ namespace lsn {
 		 **/
 		void											GenVolTable() {
 			std::vector<double> vX( 16 ), vY( 16 ), vY2;
-			for ( size_t I = 0; I < 16; ++I ){ vX[I] = double( I ); }
-			for ( size_t I = 0; I < 16; ++I ){ vY[I] = double( m_fToneVolTable[I] = Ideal4Bit( I ) ); }
-			vY[0] = 0.0;
+			for ( size_t I = 0; I < 16; ++I ) { vX[I] = double( I ); }
+			for ( size_t I = 0; I < 16; ++I ) {
+				vY[I] = double( m_fToneVolTable[I] = PolynomialVol( I ) );
+			}
 
 			PrepareNaturalCubicSpline( vX, vY, vY2 );
 
@@ -276,7 +277,6 @@ namespace lsn {
 				m_fVolTable[I] = float( EvaluateSpline( vX, vY, vY2, (I + 1.0) / 2.0 - 1.0 ) );
 			}
 			m_fVolTable[0] = m_fVolTable[1] = 0.0f;
-			//m_fToneVolTable[15] = 2.0f;//1.236461423950310223318638236378319561481475830078125;
 
 			for ( size_t I = ((14 + 1) * 2 - 1) + 1; I < LSN_ELEMENTS( m_fVolTable ); ++I ) {
 				double dVal = double( I ) - ((14 + 1) * 2 - 1);
@@ -293,7 +293,7 @@ namespace lsn {
 		 **/
 		static float									PolynomialVol( size_t _sIdx ) {
 			if ( _sIdx == 0 ) { return 0.0f; }
-			if ( _sIdx == 15 ) { return 1.0f; }
+			if ( _sIdx == 15 ) { return 0.924697458744049072265625f; }
 			static const double adP[] = {
 				-6.8560006831366094e-09,   // p0
 				-1.6670136239606261e+00,   // p1
@@ -327,6 +327,7 @@ namespace lsn {
 		 * \return Returns the volume of the given index.
 		 **/
 		static float									Ideal4Bit( size_t _sIdx ) {
+			if ( _sIdx == 0 ) { return 0.0f; }
 			return std::powf( 10.0f, (std::log10f( std::sqrtf( 0.5f ) ) * 20.0f * float( 15 - _sIdx )) / 20.0f );
 		}
 
