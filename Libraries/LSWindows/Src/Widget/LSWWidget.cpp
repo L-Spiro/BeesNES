@@ -1409,8 +1409,8 @@ namespace lsw {
 						CWidget * pmwTemp = LSW_WIN2CLASS( hFrom );
 						if ( pmwTemp && pmwTemp->m_sTooltipText.size() ) {
 							std::wstring wsText = pmwThis->TranslateTooltip( pmwTemp->m_sTooltipText );
-							::wcsncpy_s( pdiInfo->szText, wsText.c_str(), _TRUNCATE );
-							pdiInfo->szText[LSW_ELEMENTS( pdiInfo->szText )-1] = L'\0';
+							/*::wcsncpy_s( pdiInfo->szText, wsText.c_str(), _TRUNCATE );
+							pdiInfo->szText[LSW_ELEMENTS( pdiInfo->szText )-1] = L'\0';*/
 
 							::wcsncpy_s( m_wcToolTipBuffer, wsText.c_str(), _TRUNCATE );
 							m_wcToolTipBuffer[LSW_ELEMENTS( m_wcToolTipBuffer )-1] = L'\0';

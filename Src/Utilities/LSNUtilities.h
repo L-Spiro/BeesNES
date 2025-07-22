@@ -670,7 +670,7 @@ namespace lsn {
 		 * The inverse of CrtProper2ToLinear().
 		 *
 		 * \param _dVal The value to convert.
-		 * \return Returns the value converted to SMPTE 240M space.
+		 * \return Returns the corresponding value along a decent CRT curve.
 		 */
 		static inline double LSN_FASTCALL					LinearToCrtProper2( double _dVal ) {
 			constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
