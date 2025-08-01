@@ -21,9 +21,11 @@
 #include "LSNSystemBase.h"
 
 #include <algorithm>
+#include <chrono>
 #ifdef LSN_WINDOWS
 #include <immintrin.h>
 #endif	// #ifdef LSN_WINDOWS
+#include <thread>
 
 // Slots are sorted for performance.  Since the PPU is fastest, checking for it first makes the other cases less likely, because their times then not only have to be less than the global tick count but also less than the PPU's tick count.
 // Because the other cases become less likely, we can add meaningful branch-prediction signals to the compiler.
@@ -212,6 +214,10 @@ namespace lsn {
 
 				} while ( true );
 
+			}
+			else {
+				//std::this_thread::yield();
+				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 			}
 			m_ui64LastRealTime = ui64CurRealTime;
 		}
