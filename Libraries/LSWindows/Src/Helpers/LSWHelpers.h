@@ -20,6 +20,9 @@
 
 namespace lsw {
 
+	class CTabPageBase;
+	class CWidget;
+
 	struct LSW_RECT : public RECT {
 		LSW_RECT() {}
 		LSW_RECT( const RECT &_rRect ) { 
@@ -40,6 +43,7 @@ namespace lsw {
 		LONG								Width() const { return right - left; }
 		LONG								Height() const { return bottom - top; }
 		LSW_RECT &							Zero() { left = right = top = bottom = 0; return (*this ); }
+		LSW_RECT &							PrepareConsume() { left = top = LONG_MAX; right = bottom = LONG_MIN; return (*this ); }
 		VOID								SetWidth( LONG _lW ) { right = left + _lW; }
 		VOID								SetHeight( LONG _lH ) { bottom = top + _lH; }
 		POINT								UpperLeft() const { return { left, top }; }
@@ -133,6 +137,13 @@ namespace lsw {
 			top = std::max( top, _rRect.top );
 			right = std::min( right, _rRect.right );
 			bottom = std::min( bottom, _rRect.bottom );
+		}
+		// Consumes the given rectangle (this rectangle is adjusted to fit the given rectangle inside it).
+		void								Consume( const LSW_RECT &_rRect ) {
+			left = std::min( left, _rRect.left );
+			top = std::min( top, _rRect.top );
+			right = std::max( right, _rRect.right );
+			bottom = std::max( bottom, _rRect.bottom );
 		}
 	};
 
@@ -834,22 +845,34 @@ namespace lsw {
 		 * \param _bA Operand 1.
 		 * \param _bB Operand 2.
 		 * \param _dAmnt The amount to interpolate between the operands.
-		 * \return RETURN
+		 * \return Returns the mixed value.
 		 */
 		static BYTE							Mix( BYTE _bA, BYTE _bB, double _dAmnt ) {
 			return static_cast<BYTE>(std::round( (_bB - _bA) * _dAmnt + _bA ));
 		}
 
 		/**
-		 * Interpolates between 2 bytes.
+		 * Interpolates between 2 values.
 		 *
 		 * \param _dA Operand 1.
 		 * \param _dB Operand 2.
 		 * \param _dAmnt The amount to interpolate between the operands.
-		 * \return RETURN
+		 * \return Returns the mixed value.
 		 */
 		static double						Mix( double _dA, double _dB, double _dAmnt ) {
 			return (_dB - _dA) * _dAmnt + _dA;
+		}
+
+		/**
+		 * Interpolates between 2 values.
+		 *
+		 * \param _fA Operand 1.
+		 * \param _fB Operand 2.
+		 * \param _fAmnt The amount to interpolate between the operands.
+		 * \return Returns the mixed value.
+		 */
+		static float						Mix( float _fA, float _fB, float _fAmnt ) {
+			return (_fB - _fA) * _fAmnt + _fA;
 		}
 
 		/**
@@ -877,6 +900,30 @@ namespace lsw {
 		}
 
 		/**
+		 * Converts from sRGB to linear.
+		 *
+		 * \param _fVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 */
+		static float						sRGBtoLinear( float _fVal ) {
+			return _fVal <= 0.04045f ?
+				_fVal * (1.0f / 12.92f) :
+				std::pow( (_fVal + 0.055f) * (1.0f / 1.055f), 2.4f );
+		}
+
+		/**
+		 * Converts from linear to sRGB.
+		 *
+		 * \param _fVal The value to convert.
+		 * \return Returns the value converted to sRGB space.
+		 */
+		static float						LinearTosRGB( float _fVal ) {
+			return _fVal <= 0.0031308f ?
+				_fVal * 12.92f :
+				1.055f * std::pow( _fVal, 1.0f / 2.4f ) - 0.055f;
+		}
+
+		/**
 		 * Mixes between 2 24-bit RGB values.
 		 *
 		 * \param _dwColorA Operand 1.
@@ -894,6 +941,33 @@ namespace lsw {
 			dA = sRGBtoLinear( GetBValue( _dwColorA ) / 255.0 );
 			dB = sRGBtoLinear( GetBValue( _dwColorB ) / 255.0 );
 			BYTE bB = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _dAmnt ) ) * 255.0 ));
+			return RGB( bR, bG, bB );
+		}
+
+		/**
+		 * Mixes between 2 24-bit RGB values.
+		 *
+		 * \param _bRedA Operand 1 (red).
+		 * \param _bRedB Operand 2 (red).
+		 * \param _bGreenA Operand 1 (green).
+		 * \param _bGreenB Operand 2 (green).
+		 * \param _bBlueA Operand 1 (blue).
+		 * \param _bBlueB Operand 2 (blue).
+		 * \param _fAmnt The amount to interpolate between the operands.
+		 * \return Returns the interpolated 24-bit RGB value.
+		 */
+		static DWORD						MixColorRef( BYTE _bRedA, BYTE _bRedB,
+			BYTE _bGreenA, BYTE _bGreenB,
+			BYTE _bBlueA, BYTE _bBlueB, float _fAmnt ) {
+			float dA = sRGBtoLinear( _bRedA / 255.0f );
+			float dB = sRGBtoLinear( _bRedB / 255.0f );
+			BYTE bR = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _fAmnt ) ) * 255.0f ));
+			dA = sRGBtoLinear( _bGreenA / 255.0f );
+			dB = sRGBtoLinear( _bGreenB / 255.0f );
+			BYTE bG = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _fAmnt ) ) * 255.0f ));
+			dA = sRGBtoLinear( _bBlueA / 255.0f );
+			dB = sRGBtoLinear( _bBlueB / 255.0f );
+			BYTE bB = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _fAmnt ) ) * 255.0f ));
 			return RGB( bR, bG, bB );
 		}
 
@@ -1306,6 +1380,17 @@ namespace lsw {
 		static LSW_RECT						TaskBarRect() {
 			return LSW_RECT( TaskBarLeft(), TaskBarTop(), TaskBarRight(), TaskBarBottom() );
 		}
+
+		/**
+		 * Takes an array of CTabPageBase's and fits them into a CTab control, additionally resizing the parent window by the same amount as the tab control is resized.  The tabs are named according to the return value of each CTabPageBase's GetName() method.
+		 * 
+		 * \param _pptpbPages The pages to insert into the tab control.
+		 * \param _stTotal The number of pages to which to _pptpbPages points.
+		 * \param _pwTab The tab control into which to insert the pages.
+		 * \param _pwParent The parent to resize along with the tab control.
+		 * \param _bFitWindow If TRUE, the window is resized to fit the tab control snuggly, otherwise it is reized by the same amount as the tab control, which leaves any extra space around the tab control as-is.
+		 **/
+		static void							FillTabAndFitWindow( CTabPageBase ** _pptpbPages, size_t _stTotal, CWidget * _pwTab, CWidget * _pwParent, bool _bFitWindow );
 
 	protected :
 		// == Types.

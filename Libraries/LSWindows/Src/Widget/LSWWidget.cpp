@@ -1246,10 +1246,10 @@ namespace lsw {
 						LSW_RET( bRet, bRet );
 					}
 					case LVN_GETDISPINFOW : {
-						LPNMLISTVIEW plvListView = reinterpret_cast<LPNMLISTVIEW>(_lParam);
 						NMLVDISPINFOW * plvdiInfo = reinterpret_cast<NMLVDISPINFOW *>(_lParam);
-						HWND hFrom = plvListView->hdr.hwndFrom;
+						HWND hFrom = plvdiInfo->hdr.hwndFrom;
 						CWidget * pmwTemp = LSW_WIN2CLASS( hFrom );
+						std::memset( plvdiInfo->item.pszText, 0, sizeof( plvdiInfo->item.pszText[0] ) * plvdiInfo->item.cchTextMax );
 						if ( pmwTemp ) {
 							CListView * plvView = static_cast<CListView *>(pmwTemp);
 							plvView->GetDispInfoNotify( plvdiInfo );
@@ -1318,9 +1318,9 @@ namespace lsw {
 						HWND hFrom = lpHdr->hwndFrom;
 						CWidget * pmwTemp = LSW_WIN2CLASS( hFrom );
 						if ( pmwTemp ) {
-							if ( pmwTemp->DblClk( lpHdr ) == LSW_HANDLED::LSW_H_HANDLED ) { LSW_RET( 1, TRUE ); }
+							if ( pmwTemp->DblClk( reinterpret_cast<const LPNMITEMACTIVATE>(lpHdr) ) == LSW_HANDLED::LSW_H_HANDLED ) { LSW_RET( 1, TRUE ); }
 						}
-						pmwThis->DblClk( lpHdr, static_cast<WORD>(lpHdr->idFrom), pmwTemp );
+						pmwThis->DblClk( reinterpret_cast<const LPNMITEMACTIVATE>(lpHdr), static_cast<WORD>(lpHdr->idFrom), pmwTemp );
 						LSW_RET( 1, TRUE );
 					}
 					case TBN_QUERYINSERT : {
