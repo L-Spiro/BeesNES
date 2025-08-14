@@ -1,4 +1,5 @@
 #include "LSNLSpiroNes.h"
+#include "Utilities/LSNScopedNoSubnormals.h"
 
 #ifdef LSN_WINDOWS
 #include "Input/LSNDirectInput8.h"
@@ -167,20 +168,22 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	ee::CExpEval::InitializeExpressionEvaluatorLibrary();
 	MSG mMsg = {};
 	::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_NOREMOVE );
-
-	while ( mMsg.message != WM_QUIT ) {
-		// Use ::PeekMessage() so we can use idle time to render the scene.
-		while ( (::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_REMOVE ) != 0) ) {
-			// Translate and dispatch the message.
-			if ( !abIsAlive ) { break; }
-			if ( ::TranslateAcceleratorW( pwMainWindow->Wnd(), NULL, &mMsg ) == 0 ) {
-				::TranslateMessage( &mMsg );
-				::DispatchMessageW( &mMsg );
+	{
+		lsn::CScopedNoSubnormals snsNoSubnormals;
+		while ( mMsg.message != WM_QUIT ) {
+			// Use ::PeekMessage() so we can use idle time to render the scene.
+			while ( (::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_REMOVE ) != 0) ) {
+				// Translate and dispatch the message.
+				if ( !abIsAlive ) { break; }
+				if ( ::TranslateAcceleratorW( pwMainWindow->Wnd(), NULL, &mMsg ) == 0 ) {
+					::TranslateMessage( &mMsg );
+					::DispatchMessageW( &mMsg );
+				}
 			}
-		}
-		if ( !abIsAlive ) { break; }
-		if ( mMsg.message != WM_QUIT ) {
-			pwMainWindow->Tick();
+			if ( !abIsAlive ) { break; }
+			if ( mMsg.message != WM_QUIT ) {
+				pwMainWindow->Tick();
+			}
 		}
 	}
 

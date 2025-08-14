@@ -8,6 +8,8 @@
 
 #include "LSNNtscLSpiroFilter.h"
 
+#include "../Utilities/LSNScopedNoSubnormals.h"
+
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -1059,6 +1061,7 @@ namespace lsn {
 	 **/
 	void CNtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
 		::SetThreadHighPriority();
+		lsn::CScopedNoSubnormals snsNoSubnormals;
 		while ( !_ptdData->bEndThread ) {
 			_ptdData->pnlsfThis->m_eDone.Signal();
 			_ptdData->pnlsfThis->m_eGo.WaitForSignal();

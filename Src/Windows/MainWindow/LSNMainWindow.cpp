@@ -21,8 +21,9 @@
 #include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Input/LSNDirectInput8.h"
-#include "../../Utilities/LSNUtilities.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Utilities/LSNScopedNoSubnormals.h"
+#include "../../Utilities/LSNUtilities.h"
 #include "../Audio/LSNAudioOptionsWindowLayout.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -1871,6 +1872,7 @@ namespace lsn {
 		}
 		_pmwWindow->m_aiThreadState = LSN_TS_ACTIVE;
 
+		lsn::CScopedNoSubnormals snsNoSubnormals;
 		//::SetThreadAffinity( 1 );
 
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {

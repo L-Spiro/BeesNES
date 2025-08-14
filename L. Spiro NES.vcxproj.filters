@@ -274,6 +274,12 @@
     <Filter Include="Source Files\Windows\WavEditor">
       <UniqueIdentifier>{d557fbb8-73fe-45ad-89c1-a828eab36038}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\EEPROM">
+      <UniqueIdentifier>{d547ff8b-d5d8-4eda-8789-0a9bb8ddaa2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EEPROM">
+      <UniqueIdentifier>{1af4dc4f-6ef2-42bf-96c5-5186377e59e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -968,6 +974,12 @@
     </ClInclude>
     <ClInclude Include="Src\Mappers\LSNAudio5b.h">
       <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EEPROM\LSNI2cEeprom157.h">
+      <Filter>Header Files\EEPROM</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNScopedNoSubnormals.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

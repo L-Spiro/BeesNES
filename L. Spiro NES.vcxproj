@@ -1790,6 +1790,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Database\LSNDatabase.h" />
     <ClInclude Include="Src\Display\LSNDisplayClient.h" />
     <ClInclude Include="Src\Display\LSNDisplayHost.h" />
+    <ClInclude Include="Src\EEPROM\LSNI2cEeprom157.h" />
     <ClInclude Include="Src\Event\LSNEvent.h" />
     <ClInclude Include="Src\File\LSNFileBase.h" />
     <ClInclude Include="Src\File\LSNFileMap.h" />
@@ -1941,6 +1942,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Utilities\LSNLargeVector.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNRingBuffer.h" />
+    <ClInclude Include="Src\Utilities\LSNScopedNoSubnormals.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNStreamBase.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
