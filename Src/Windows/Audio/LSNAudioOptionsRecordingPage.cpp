@@ -164,51 +164,57 @@ namespace lsn {
 	CWidget::LSW_HANDLED CAudioOptionsRecordingPage::Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
 		switch ( _wId ) {
 			case Layout::LSN_AOWI_PAGE_RAW_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
+				try {
+					OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+					std::wstring szFileName;
+					szFileName.resize( 0xFFFF + 2 );
 
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					ofnOpenFile.hwndOwner = Wnd();
+					ofnOpenFile.lpstrFilter = wsFilter.c_str();
+					ofnOpenFile.lpstrFile = szFileName.data();
+					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+					ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+					ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
 
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+					if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+						m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+						if ( !pPath.has_extension() ) {
+							pPath += ".wav";
+						}
+						auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
+						if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_RAW_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
+				catch ( ... ) {}
 				break;
 			}
 			case Layout::LSN_AOWI_PAGE_OUT_PATH_BUTTON : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
+				try {
+					OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+					std::wstring szFileName;
+					szFileName.resize( 0xFFFF + 2 );
 
-				std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					ofnOpenFile.hwndOwner = Wnd();
+					ofnOpenFile.lpstrFilter = wsFilter.c_str();
+					ofnOpenFile.lpstrFile = szFileName.data();
+					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+					ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+					ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
 
-				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-					if ( !pPath.has_extension() ) {
-						pPath += ".wav";
+					if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+						m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+						if ( !pPath.has_extension() ) {
+							pPath += ".wav";
+						}
+						auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
+						if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 					}
-					auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_OUT_PATH_EDIT );
-					if ( aEdit ) { aEdit->SetTextW( pPath.generic_wstring().c_str() ); }
 				}
+				catch ( ... ) {}
 				break;
 			}
 

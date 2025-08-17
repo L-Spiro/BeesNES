@@ -293,71 +293,74 @@ namespace lsn {
 		}
 		switch ( _wId ) {
 			case CMainWindowLayout::LSN_MWMI_OPENROM : {
-				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-				std::wstring szFileName;
-				szFileName.resize( 0xFFFF + 2 );
+				try {
+					OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+					std::wstring szFileName;
+					szFileName.resize( 0xFFFF + 2 );
 
 #define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_ ) LSN_LSTR( LSN_NES_FILES____NES____NES_ ) LSN_LSTR( LSN_ZIP_FILES____ZIP____ZIP_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0" //LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
-				std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
-				ofnOpenFile.hwndOwner = Wnd();
-				ofnOpenFile.lpstrFilter = wsFilter.c_str();
-				ofnOpenFile.lpstrFile = szFileName.data();
-				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_bnEmulator.Options().wDefaultRomPath.c_str();
+					std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
+					ofnOpenFile.hwndOwner = Wnd();
+					ofnOpenFile.lpstrFilter = wsFilter.c_str();
+					ofnOpenFile.lpstrFile = szFileName.data();
+					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+					ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+					ofnOpenFile.lpstrInitialDir = m_bnEmulator.Options().wDefaultRomPath.c_str();
 
-				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_bnEmulator.Options().wDefaultRomPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-					const LPWSTR lpstrExt = &ofnOpenFile.lpstrFile[ofnOpenFile.nFileExtension];
-					if ( lpstrExt ) {
-						if ( ::StrCmpIW( lpstrExt, L"zip" ) == 0 ) {
-							lsn::CZipFile zfFile;
-							if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
-								std::vector<std::u16string> vFiles;
-								if ( zfFile.GatherArchiveFiles( vFiles ) ) {
-									std::vector<std::u16string> vFinalFiles;
-									for ( size_t I = 0; I < vFiles.size(); ++I ) {
-										std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
-										if ( ::StrCmpIW( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"nes" ) == 0 ) {
-											vFinalFiles.push_back( vFiles[I] );
+					if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+						m_bnEmulator.Options().wDefaultRomPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						const LPWSTR lpstrExt = &ofnOpenFile.lpstrFile[ofnOpenFile.nFileExtension];
+						if ( lpstrExt ) {
+							if ( ::StrCmpIW( lpstrExt, L"zip" ) == 0 ) {
+								lsn::CZipFile zfFile;
+								if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) ) {
+									std::vector<std::u16string> vFiles;
+									if ( zfFile.GatherArchiveFiles( vFiles ) ) {
+										std::vector<std::u16string> vFinalFiles;
+										for ( size_t I = 0; I < vFiles.size(); ++I ) {
+											std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
+											if ( ::StrCmpIW( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"nes" ) == 0 ) {
+												vFinalFiles.push_back( vFiles[I] );
+											}
 										}
-									}
-									std::vector<uint8_t> vExtracted;
-									DWORD dwIdx;
-									if ( vFinalFiles.size() == 1 ) {
-										dwIdx = 0;
-										zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
-									}
-									else {
-										dwIdx = CSelectRomDialogLayout::CreateSelectRomDialog( this, &vFinalFiles );
-										if ( dwIdx < DWORD( vFinalFiles.size() ) ) {
+										std::vector<uint8_t> vExtracted;
+										DWORD dwIdx;
+										if ( vFinalFiles.size() == 1 ) {
+											dwIdx = 0;
 											zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
 										}
-										else { return LSW_H_CONTINUE; }
+										else {
+											dwIdx = CSelectRomDialogLayout::CreateSelectRomDialog( this, &vFinalFiles );
+											if ( dwIdx < DWORD( vFinalFiles.size() ) ) {
+												zfFile.ExtractToMemory( vFinalFiles[dwIdx], vExtracted );
+											}
+											else { return LSW_H_CONTINUE; }
+										}
+										std::u16string u16sPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+										u16sPath += u"{";
+										u16sPath.append( vFinalFiles[dwIdx].c_str() );
+										u16sPath += u"}";
+										LoadRom( vExtracted, u16sPath );
+										return LSW_H_CONTINUE;
 									}
-									std::u16string u16sPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
-									u16sPath += u"{";
-									u16sPath.append( vFinalFiles[dwIdx].c_str() );
-									u16sPath += u"}";
-									LoadRom( vExtracted, u16sPath );
-									return LSW_H_CONTINUE;
 								}
+								return LSW_H_CONTINUE;
 							}
-							return LSW_H_CONTINUE;
-						}
-						else {
-							lsn::CStdFile sfFile;
-							std::u16string s16File = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
-							if ( sfFile.Open( s16File.c_str() ) ) {
-								std::vector<uint8_t> vExtracted;
-								if ( sfFile.LoadToMemory( vExtracted ) ) {
-									LoadRom( vExtracted, s16File );
-									return LSW_H_CONTINUE;
+							else {
+								lsn::CStdFile sfFile;
+								std::u16string s16File = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+								if ( sfFile.Open( s16File.c_str() ) ) {
+									std::vector<uint8_t> vExtracted;
+									if ( sfFile.LoadToMemory( vExtracted ) ) {
+										LoadRom( vExtracted, s16File );
+										return LSW_H_CONTINUE;
+									}
 								}
 							}
 						}
 					}
 				}
+				catch ( ... ) {}
 #undef LSN_FILE_OPEN_FORMAT
 				break;
 			}
