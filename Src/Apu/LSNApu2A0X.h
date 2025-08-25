@@ -380,6 +380,8 @@ namespace lsn {
 			m_dvNoiseLengthCounterHalt.Tick();
 
 			(this->*m_pftTick)();
+			m_pPulse1.UpdateSweeperState<1>();
+			m_pPulse2.UpdateSweeperState<0>();
 			
 			
 
@@ -489,8 +491,6 @@ namespace lsn {
 				CAudio::AddSample( fFinal );
 			}
 
-			m_pPulse1.UpdateSweeperState<1>();
-			m_pPulse2.UpdateSweeperState<0>();
 			m_bRegModified = false;
 			++m_ui64Cycles;
 		}

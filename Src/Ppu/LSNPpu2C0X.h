@@ -2371,33 +2371,36 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 4, 3>														CNtscPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 128, 105>													CNtscPpu;
 
 	/**
 	 * A PAL PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 3717000000, 2543123715
+	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 355, 240
+		/*3717000000, 2543123715*/
 		/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CPalPpu;
 
 	/**
 	 * A Dendy PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 3717000000, 2543123715
-/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 355, 240
+		/*3717000000, 2543123715*/
+		/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CDendyPpu;
 
 	/**
 	 * A PAL-M PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 4, 3>
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 128, 105>
 																											CPalMPpu;
 
 	/**
 	 * A PAL-N PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), true, 3717000000, 2543123715
-/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
+	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), true, 355, 240
+		/*3717000000, 2543123715*/
+		/*(7375000.0 / 5320342.5 * 252.0 / 239.0)*//*350.5 / 239.0*/ /*7375000.0 / 5320342.5*/>
 																											CPalNPpu;
 
 #undef LSN_PPU_TYPE
