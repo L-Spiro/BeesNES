@@ -110,7 +110,7 @@ namespace lsn {
 			_rRom.riInfo.ui16SubMapper = pnhHeader->GetSubMapper();
 			_rRom.riInfo.mmMirroring = pnhHeader->GetMirrorMode();
 			_rRom.riInfo.pmConsoleRegion = pnhHeader->GetGameRegion();
-			_rRom.i32ChrRamSize = pnhHeader->GetChrRomSize();
+			_rRom.i32ChrRamSize = pnhHeader->GetChrRamSize();
 			_rRom.i32SaveChrRamSize = pnhHeader->GetSaveChrRamSize();
 			_rRom.i32WorkRamSize = pnhHeader->GetWorkRamSize();
 			_rRom.i32SaveRamSize = pnhHeader->GetSaveRamSize();

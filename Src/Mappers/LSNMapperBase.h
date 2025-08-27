@@ -820,7 +820,8 @@ namespace lsn {
 				}
 				case LSN_MM_4_SCREENS : {}
 				default : {
-					return _ui16Addr | LSN_PPU_NAMETABLES_SCREEN;
+					//return _ui16Addr | LSN_PPU_NAMETABLES_SCREEN;
+					return _ui16Addr | LSN_PPU_NAMETABLES;
 				}
 			}
 		}

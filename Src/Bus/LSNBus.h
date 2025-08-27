@@ -463,6 +463,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		LSN_ALIGN( 0x100 )
 		uint8_t								m_ui8OpenBusMask[_uSize];		/**< The open-bus update mask.  Usually 0xFF to update all bits, but $4015 is set to 0x00 to update no floating-bus bits. */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */

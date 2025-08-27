@@ -167,7 +167,8 @@ namespace lsn {
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
 				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper001::Read_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
-				_pbPpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+				//_pbPpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), m_prRom->vChrRom.size() ? &CPpuBus::NoWrite : &CMapper001::Write_CHR_0000_1FFF, this, uint16_t( I - 0x0000 ) );
 			}
 			// RAM.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
@@ -196,6 +197,7 @@ namespace lsn {
 			uint32_t ui32Reg = ibIsSxROM ? 0xE000 : 0x10000;
 			for ( uint32_t I = 0x8000; I < ui32Reg; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper001::Write_PGM_8000_FFFF, this, uint16_t( I ) );
+				//_pbCpuBus->SetWriteFunc( uint16_t( I ), &CPpuBus::NoWrite, this, uint16_t( I ) );
 			}
 
 
@@ -499,7 +501,8 @@ namespace lsn {
 			}*/
 
 			uint64_t ui64Cycle = pmThis->m_pcbCpu->GetCycleCount();
-			if ( pmThis->m_ui64LastWriteCycle + 1 == ui64Cycle ) {
+			//if ( pmThis->m_ui64LastWriteCycle + 1 == ui64Cycle ) {
+			if ( (ui64Cycle - pmThis->m_ui64LastWriteCycle) <= 1 && !(_ui8Val & 0x80) ) {
 				if ( !(_ui8Val & 0x80) ) { pmThis->m_ui64LastWriteCycle = ui64Cycle; return; }
 			}
 			pmThis->m_ui64LastWriteCycle = ui64Cycle;
