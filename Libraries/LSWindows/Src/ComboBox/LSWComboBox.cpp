@@ -66,12 +66,15 @@ namespace lsw {
 		if ( !iLen ) { return CB_ERR; }
 
 		LPWSTR lpszBuffer = new( std::nothrow ) WCHAR[iLen+1];
-		INT iRet = static_cast<INT>(static_cast<DWORD>(::SendMessageW( Wnd(), CB_GETLBTEXT, static_cast<WPARAM>(_iIndex), reinterpret_cast<LPARAM>(lpszBuffer) )));
-		if ( iRet != CB_ERR ) {
-			_wString = lpszBuffer;
+		if ( lpszBuffer ) {
+			INT iRet = static_cast<INT>(static_cast<DWORD>(::SendMessageW( Wnd(), CB_GETLBTEXT, static_cast<WPARAM>(_iIndex), reinterpret_cast<LPARAM>(lpszBuffer) )));
+			if ( iRet != CB_ERR ) {
+				_wString = lpszBuffer;
+			}
+			delete [] lpszBuffer;
+			return iRet;
 		}
-		delete [] lpszBuffer;
-		return iRet;
+		return CB_ERR;
 	}
 
 	// Copies the text of the specified window's title bar (if it has one) into a buffer. If the specified window is a control, the text of the control is copied.
@@ -291,6 +294,18 @@ namespace lsw {
 		COMBOBOXINFO cbiInfo = { sizeof( cbiInfo ) };
 		if ( Wnd() && ::GetComboBoxInfo( Wnd(), &cbiInfo ) ) {
 			::SendMessageW( cbiInfo.hwndItem, EM_REPLACESEL, _bCanUndo, reinterpret_cast<LPARAM>(_pwcText) );
+		}
+	}
+
+	/**
+	 * Sets the text limit for the control.
+	 * 
+	 * \param _iLen The maximum number of TCHARs the user can enter, not including the terminating null character. If this parameter is zero, the text length is limited to 0x7FFFFFFE characters.
+	 **/
+	void CComboBox::LimitText( int _iLen ) {
+		if ( Wnd() ) {
+			_iLen = std::clamp( _iLen, 0, 0x7FFFFFFE );
+			::SendMessageW( Wnd(), EM_REPLACESEL, static_cast<LPARAM>(_iLen), 0 );
 		}
 	}
 

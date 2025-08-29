@@ -139,6 +139,35 @@ namespace lsw {
 	}
 
 	/**
+	 * Sets an itemÅfs color.
+	 * 
+	 * \param _tiItem The item whose color is to be updated.
+	 * \param _rgbColor The color to apply to the item (alpha respected).
+	 * \return Returns TRUE if the itemÅfs color was set.  FALSE indicates that the item was invalid.
+	 **/
+	BOOL CTreeListView::SetItemColor( HTREEITEM _tiItem, RGBQUAD _rgbColor ) {
+		ee::CTree<LSW_TREE_ROW> * pntItem = TreeItemToPointer( _tiItem );
+		if ( !pntItem ) { return FALSE; }
+		pntItem->Value().rgbColor = _rgbColor;
+		return TRUE;
+	}
+
+	/**
+	 * Gets an item given an LPARAM.  Only the first item with the given LPARAM is returned.
+	 * 
+	 * \param _lpValue The LPARAM value to find on an item.
+	 * \return Returns the item with the given LPARAM value or NULL.
+	 **/
+	HTREEITEM CTreeListView::GetByLParam( LPARAM _lpValue ) {
+		for ( auto I = m_tRoot.Size(); I--; ) {
+			if ( m_tRoot.GetChild( I )->Value().lpParam == _lpValue ) {
+				return PointerToTreeItem( m_tRoot.GetChild( I ) );
+			}
+		}
+		return NULL;
+	}
+
+	/**
 	 * Counts the total number of expanded items.
 	 *
 	 * \return Returns the total number of items, accounting for expandedness.
@@ -545,8 +574,10 @@ namespace lsw {
 					}
 				}
 				if ( iMax ) {
-					std::wstring wsTmp;
-					auto pwsSrc = CWidget::Parent() ? CWidget::Parent()->TreeListView_ItemText( this, _plvdiInfo->item.iItem, _plvdiInfo->item.iSubItem, m_ptIndexCache->Value().lpParam, wsTmp ) : nullptr;
+					std::wstring wsTmp = GetCellText( _plvdiInfo->item.iItem, _plvdiInfo->item.iSubItem, m_ptIndexCache );
+					std::wcsncpy( strCopy, wsTmp.c_str(), iMax );
+					strCopy[iMax-1] = L'\0';
+					/*auto pwsSrc = CWidget::Parent() ? CWidget::Parent()->TreeListView_ItemText( this, _plvdiInfo->item.iItem, _plvdiInfo->item.iSubItem, m_ptIndexCache->Value().lpParam, wsTmp ) : nullptr;
 					if ( !pwsSrc && size_t( _plvdiInfo->item.iSubItem ) < m_ptIndexCache->Value().vStrings.size() ) {
 						pwsSrc = &m_ptIndexCache->Value().vStrings[_plvdiInfo->item.iSubItem];
 					}
@@ -556,7 +587,7 @@ namespace lsw {
 					else {
 						std::wcsncpy( strCopy, (*pwsSrc).c_str(), iMax );
 						strCopy[iMax-1] = L'\0';
-					}
+					}*/
 				}
 			}
 			if ( iMask & LVIF_INDENT ) {
@@ -568,6 +599,27 @@ namespace lsw {
 			/*if ( iMask & LVIF_STATE ) {
 				_plvdiInfo->item.state = 2;
 			}*/
+			return TRUE;
+		}
+		catch ( ... ) { return FALSE; }
+	}
+
+	/**
+	 * Sorts items.
+	 * 
+	 * \param _iSubItem The index of the sub-item.
+	 * \return Returns TRUE if successful, or FALSE otherwise.
+	 **/
+	BOOL CTreeListView::SortItems( INT _iSubItem ) {
+		if ( !m_bSort ) { return FALSE; }
+		try {
+			if ( _iSubItem >= m_tRoot.Value().vSortAscNext.size() ) {
+				m_tRoot.Value().vSortAscNext.resize( _iSubItem + 1 );
+			}
+			auto eSortMethod = (_iSubItem < m_vSortMethod.size()) ? m_vSortMethod[_iSubItem] : ee::EE_TP_ORDINAL_CI;
+			SortChildren( &m_tRoot, _iSubItem, m_tRoot.Value().vSortAscNext[_iSubItem], eSortMethod );
+			m_tRoot.Value().vSortAscNext[_iSubItem] = !m_tRoot.Value().vSortAscNext[_iSubItem];
+			UpdateListView();
 			return TRUE;
 		}
 		catch ( ... ) { return FALSE; }
@@ -737,6 +789,47 @@ namespace lsw {
 	}
 
 	/**
+	 * Deletes a column from the given element and all of its children.
+	 * 
+	 * \param PARM The element from which to delete a column.
+	 * \param PARM the column to delete.
+	 **/
+	void CTreeListView::DeleteColumn( ee::CTree<CTreeListView::LSW_TREE_ROW> * _ptThis, INT _iCol ) {
+		if ( _ptThis ) {
+			if ( _iCol < _ptThis->Value().vSortAscNext.size() ) {
+				_ptThis->Value().vSortAscNext.erase( _ptThis->Value().vSortAscNext.begin() + _iCol );
+			}
+			if ( _iCol < _ptThis->Value().vStrings.size() ) {
+				_ptThis->Value().vStrings.erase( _ptThis->Value().vStrings.begin() + _iCol );
+			}
+			for ( auto I = _ptThis->Size(); I--; ) {
+				DeleteColumn( _ptThis->GetChild( I ), _iCol );
+			}
+		}
+	}
+
+	/**
+	 * Gets the text for a given item.  The row is counted by skipping over collapsed items, and can refer to different items depending on the collapsed/expanded state of the tree.
+	 * 
+	 * \param _sRow The index of the item.
+	 * \param _Column The column of the item.
+	 * \param _ptrRow A pointer to the _sRow'th item.
+	 * \return Returns the text of the given cell.
+	 **/
+	std::wstring CTreeListView::GetCellText( size_t _sRow, size_t _Column, ee::CTree<LSW_TREE_ROW> * _ptrRow ) {
+		if ( !_ptrRow ) { return std::wstring(); }
+		if ( _sRow > INT_MAX || _Column > INT_MAX ) { return std::wstring(); }
+
+		std::wstring wsTmp;
+		auto pwsSrc = CWidget::Parent() ? CWidget::Parent()->TreeListView_ItemText( this, int( _sRow ), int( _Column ), _ptrRow->Value().lpParam, wsTmp ) : nullptr;
+		if ( !pwsSrc && size_t( _Column ) < _ptrRow->Value().vStrings.size() ) {
+			pwsSrc = &_ptrRow->Value().vStrings[_Column];
+		}
+		if ( !pwsSrc ) { return std::wstring(); }
+		return (*pwsSrc);
+	}
+
+	/**
 	 * Gets the indentation level for an item.
 	 *
 	 * \param _ptThis The item whose indentation level is to be obtained.
@@ -846,6 +939,26 @@ namespace lsw {
 			_ptThis = _ptThis->Prev();
 			++i64ThisIdx;
 		}
+	}
+
+	/**
+	 * Sorts the children of a given item.
+	 * 
+	 * \param _ptObj The object whose children are to be sorted.
+	 * \param _sColumn The column by which to sort rows.
+	 * \param _bAsc Ascending or descending sort.
+	 * \param _tpCmpPolicy The text-compare policy.
+	 **/
+	void CTreeListView::SortChildren( ee::CTree<LSW_TREE_ROW> * _ptObj, size_t _sColumn, bool _bAsc, ee::EE_TEXTPOLICY _tpCmpPolicy ) {
+		if ( !_ptObj ) { return; }
+		if ( !_ptObj->Size() ) { return; }
+
+		auto GetItemText = [this]( size_t _sRow, size_t _sColumn )->const std::wstring {
+            return GetCellText( _sRow, _sColumn );
+        };
+
+		auto vOrder = BuildOrderByColumnGeneric( _ptObj->Size(), GetItemText, _sColumn, _bAsc, _tpCmpPolicy );
+		_ptObj->ArrangeChildren( vOrder );
 	}
 
 	/**
@@ -1161,13 +1274,16 @@ namespace lsw {
 					rgbColor.rgbBlue = bDefB;
 				}
 				else {
-					rgbColor.rgbRed = GetRValue( _lpcdParm->clrTextBk );
-					rgbColor.rgbGreen = GetGValue( _lpcdParm->clrTextBk );
-					rgbColor.rgbBlue = GetBValue( _lpcdParm->clrTextBk );
+					auto aBg = ::GetSysColor( COLOR_WINDOW );
+					rgbColor.rgbRed = GetRValue( aBg );
+					rgbColor.rgbGreen = GetGValue( aBg );
+					rgbColor.rgbBlue = GetBValue( aBg );
 				}
 
-				_lpcdParm->clrTextBk = CHelpers::MixColorRef( ptiItem->Value().rgbColor.rgbRed, ptiItem->Value().rgbColor.rgbGreen, ptiItem->Value().rgbColor.rgbBlue,
-					rgbColor.rgbRed, rgbColor.rgbGreen, rgbColor.rgbBlue, ptiItem->Value().rgbColor.rgbReserved / 255.0f );
+				_lpcdParm->clrTextBk = CHelpers::MixColorRef( rgbColor.rgbRed, ptiItem->Value().rgbColor.rgbRed,
+					rgbColor.rgbGreen, ptiItem->Value().rgbColor.rgbGreen,
+					rgbColor.rgbBlue, ptiItem->Value().rgbColor.rgbBlue,
+					ptiItem->Value().rgbColor.rgbReserved / 255.0f );
 			}
 		}
 		return (CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT);

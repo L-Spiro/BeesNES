@@ -172,7 +172,6 @@ namespace lsw {
 		 **/
 		inline bool							HasMenu() { return Wnd() && (::GetMenu( Wnd() ) != nullptr); }
 
-
 		// Copies the text of the specified window's title bar (if it has one) into a buffer. If the specified window is a control, the text of the control is copied.
 		virtual INT							GetTextA( LPSTR _lpString, INT _nMaxCount ) const { return ::GetWindowTextA( Wnd(), _lpString, _nMaxCount ); }
 
@@ -215,6 +214,13 @@ namespace lsw {
 		// Get the value of the text as a double expression.
 		BOOL								GetTextAsDoubleExpression( ee::CExpEvalContainer::EE_RESULT &_eResult ) const;
 
+		/**
+		 * Sets the text limit for the control.
+		 * 
+		 * \param _iLen The maximum number of TCHARs the user can enter, not including the terminating null character. If this parameter is zero, the text length is limited to 0x7FFFFFFE characters.
+		 **/
+		virtual void						LimitText( int _iLen = 0 ) { static_cast<void>(_iLen); }
+
 		// If the function succeeds, the return value is the pointer to the window that previously had the keyboard focus.
 		CWidget *							SetFocus() const;
 
@@ -251,6 +257,9 @@ namespace lsw {
 
 		// Gets the currently selected item's data.
 		virtual LPARAM						GetCurSelItemData() const { return LPARAM( -1 ); }
+
+		// Gets the index of the currently selected item in a combo box.
+		virtual INT							GetCurSel() const { return -1; }
 
 		/**
 		 * Informs the control that a child tab control has just had a check toggled.
