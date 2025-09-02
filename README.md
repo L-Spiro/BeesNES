@@ -15,7 +15,9 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 ![image](https://user-images.githubusercontent.com/7362666/215371867-63a951cb-303a-4222-8094-6a20b5b9999b.png)
 ![image](https://user-images.githubusercontent.com/7362666/215371958-b742960a-ec5f-47f8-8b8a-7dc55162ffb5.png)
 ![image](https://github.com/L-Spiro/BeesNES/assets/7362666/0b615d51-0bde-419f-bf91-76e7c91ae991)
-![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)<br>
+![image](https://user-images.githubusercontent.com/7362666/216515134-d5c67d0a-eb4b-4571-84a0-df58dd4a0659.png)
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/a1ce1de5-7c26-48b3-acbb-ce845792a355" />
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/b11cfb08-0d7d-4176-9fc2-d8e96e550c43" /><br>
 Authentic Phospher Decay:
 ![image](https://github.com/user-attachments/assets/1d0e8df2-2f8d-4363-aa55-4ba60d0f5743)
 ![image](https://github.com/user-attachments/assets/7afa4747-34f2-44a6-b266-4a47393fb6a8)
