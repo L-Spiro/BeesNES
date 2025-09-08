@@ -1,9 +1,13 @@
 ﻿#pragma once
 
 #include "SinCos/EESinCos.h"
+
 #include <cmath>
 #include <cinttypes>
+#include <cwctype>
+#include <iomanip>
 #include <numbers>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -42,7 +46,7 @@
 #endif	// EE_MAX_ITERATION_COUNT
 
 #ifndef EE_PI
-#define EE_PI							3.1415926535897932384626433832795
+#define EE_PI							3.14159265358979323846264338327950288419716939937510	// You can tell how cool a programmer is by how many digits she puts in the PI macro.
 #endif // #ifndef EE_PI
 
 #if defined( _MSC_VER )
@@ -55,13 +59,24 @@
 namespace ee {
 
 	// == Enumerations.
-	// String numeric classifications.
+	/** String numeric classifications. */
 	enum EE_STRING_NUMBER_CLASS {
 		EE_SNC_UNSIGNED,
 		EE_SNC_SIGNED,
 		EE_SNC_FLOAT,
 		EE_SNC_INVALID
 	};
+
+	/**
+	 * Kind of sort to apply to a text column (no Win32 APIs used).
+	 * 
+	 * Enumerants select the comparison policy for strings. See CmpTextNoWin32().
+	 **/
+	enum EE_TEXTPOLICY {
+		EE_TP_ORDINAL_CI = 0,			/**< \brief Case-insensitive ordinal (basic Unicode fold). */
+		EE_TP_NATURAL_CI				/**< \brief Natural order: numeric runs compare by value, case-insensitive. */
+	};
+
 	class CExpEval {
 	public :
 		// == Types.
@@ -172,6 +187,20 @@ namespace ee {
 		}
 
 		/**
+		 * Converts an ASCII or fullwidth decimal digit to its numeric value.
+		 * 
+		 * Accepts U+0030..U+0039 ('0'..'9') and U+FF10..U+FF19 ('０'..'９'). Non-digits are rejected.
+		 * 
+		 * \param _wcVal Input wide character.
+		 * \return Returns the digit value in the range 0..9 on success; otherwise -1.
+		 **/
+		static inline int32_t			DigitValWide( wchar_t _wcVal ) {
+			if( _wcVal >= L'0' && _wcVal <= L'9' ) { return static_cast<int32_t>(_wcVal - L'0'); }
+			if( _wcVal >= L'\uFF10' && _wcVal <= L'\uFF19' ) { return static_cast<int32_t>(_wcVal - L'\uFF10'); }
+			return -1;
+		}
+
+		/**
 		 * Converts an octal character to an integer.
 		 * 
 		 * \param _cVal The character to convert.
@@ -205,6 +234,17 @@ namespace ee {
 		 **/
 		static inline bool				IsDigit( char _cVal ) {
 			return _cVal >= '0' && _cVal <= '9';
+		}
+
+		/**
+		 * Checks for digits (0-9) without throwing exceptions.
+		 * 
+		 * \param _wcVal The character to test.
+		 * \return Returns true if _cVal is between 0 and 9 inclusive.
+		 **/
+		static inline bool				IsDigit( wchar_t _wcVal ) {
+			return (_wcVal >= L'0' && _wcVal <= L'9') ||
+				(_wcVal >= L'\uFF10' && _wcVal <= L'\uFF19');
 		}
 
 		/**
@@ -248,6 +288,143 @@ namespace ee {
 				if ( !IsIdentifier( static_cast<char>(_sIdent[I]), bStart ) ) { return false; }
 			}
 			return true;
+		}
+
+		/**
+		 * Folds a wide character for portable, case-insensitive comparison.
+		 * 
+		 * Converts the following before comparison: fullwidth space to ASCII space, fullwidth ASCII
+		 * (U+FF01..U+FF5E) to ASCII (U+0021..U+007E), Hiragana (U+3041..U+3096) to Katakana
+		 * (U+30A1..U+30F6), then applies towlower(). This is a lightweight normalization to reduce
+		 * width, kana-type, and case differences without using Win32 collation.
+		 * 
+		 * \param _wcVal Input wide character.
+		 * \return Returns the folded wide character suitable for ordinal comparisons.
+		 **/
+		static inline wchar_t			FoldCharBasicJa( wchar_t _wcVal ) {
+			// Fullwidth space -> space.
+			if ( _wcVal == 0x3000 ) { _wcVal = L' '; }
+
+			// Fullwidth ASCII (FF01..FF5E) -> ASCII (0021..007E).
+			if ( _wcVal >= 0xFF01 && _wcVal <= 0xFF5E ) {
+				_wcVal = static_cast<wchar_t>(_wcVal - 0xFEE0);
+			}
+
+			// Hiragana (3041..3096) -> Katakana (30A1..30F6).
+			if ( _wcVal >= 0x3041 && _wcVal <= 0x3096 ) {
+				_wcVal = static_cast<wchar_t>(_wcVal + 0x0060);
+			}
+
+			// Case-fold (basic).
+			_wcVal = static_cast<wchar_t>(::towlower( _wcVal ));
+			return _wcVal;
+		}
+
+		/**
+		 * Case-insensitive ordinal comparison using a lightweight Unicode fold.
+		 * 
+		 * Converts fullwidth ASCII to ASCII, normalizes Hiragana to Katakana, and applies towlower().
+		 * 
+		 * \param _wsA Left string.
+		 * \param _wsB Right string.
+		 * \return Returns -1 if _wsA < _wsB, 1 if _wsA > _wsB, or 0 if equal.
+		 **/
+		static inline int32_t			CmpOrdinalCi( const std::wstring &_wsA, const std::wstring &_wsB ) {
+			size_t sA = 0, sB = 0;
+			const size_t sNa = _wsA.size(), sNb = _wsB.size();
+			while ( sA < sNa && sB < sNb ) {
+				wchar_t wcA = FoldCharBasicJa( _wsA[sA] );
+				wchar_t wcB = FoldCharBasicJa( _wsB[sB] );
+				if ( wcA < wcB ) { return -1; }
+				if ( wcA > wcB ) { return 1; }
+				++sA; ++sB;
+			}
+			if ( sA < sNa ) { return 1; }
+			if ( sB < sNb ) { return -1; }
+			return 0;
+		}
+
+		/**
+		 * Natural-order comparison (case-insensitive).
+		 * 
+		 * Numeric runs (ASCII and fullwidth digits) are compared by numeric value with a tie-break on
+		 * leading zeros. Non-numeric segments compare via CmpOrdinalCi().
+		 * 
+		 * \param _wsA Left string.
+		 * \param _wsB Right string.
+		 * \return Returns -1 if _wsA < _wsB, 1 if _wsA > _wsB, or 0 if equal.
+		 **/
+		static inline int32_t			CmpNaturalCi( const std::wstring &_wsA, const std::wstring &_wsB ) {
+			size_t sA = 0, sB = 0;
+			const size_t sNa = _wsA.size(), sNb = _wsB.size();
+
+			while ( sA < sNa && sB < sNb ) {
+				wchar_t wcA = FoldCharBasicJa( _wsA[sA] );
+				wchar_t wcB = FoldCharBasicJa( _wsB[sB] );
+
+				const bool bDa = IsDigit( wcA );
+				const bool bDb = IsDigit( wcB );
+
+				if ( bDa && bDb ) {
+					// Scan digit runs.
+					size_t sSa = sA, sSb = sB;
+					while ( sA < sNa && IsDigit( FoldCharBasicJa( _wsA[sA] ) ) ) { ++sA; }
+					while ( sB < sNb && IsDigit( FoldCharBasicJa( _wsB[sB] ) ) ) { ++sB; }
+
+					// Strip leading zeros.
+					size_t sZa = sSa;
+					while ( sZa < sA && DigitValWide( FoldCharBasicJa( _wsA[sZa] ) ) == 0 ) { ++sZa; }
+					size_t sZb = sSb;
+					while ( sZb < sB && DigitValWide( FoldCharBasicJa( _wsB[sZb] ) ) == 0 ) { ++sZb; }
+
+					const size_t sLenA = sA - sZa;
+					const size_t sLenB = sB - sZb;
+
+					if ( sLenA != sLenB ) {
+						return (sLenA < sLenB) ? -1 : 1;
+					}
+
+					// Same effective length: compare digit-by-digit.
+					for( size_t i = 0; i < sLenA; ++i ) {
+						const int32_t i32A = DigitValWide( FoldCharBasicJa( _wsA[sZa + i] ) );
+						const int32_t i32B = DigitValWide( FoldCharBasicJa( _wsB[sZb + i] ) );
+						if ( i32A < i32B ) { return -1; }
+						if ( i32A > i32B ) { return 1; }
+					}
+
+					// Numeric value equal: fewer leading zeros wins (e.g., "2" < "02").
+					const size_t sLzA = sZa - sSa;
+					const size_t sLzB = sZb - sSb;
+					if ( sLzA != sLzB ) { return (sLzA < sLzB) ? -1 : 1; }
+
+					// Equal numeric tokens; continue.
+					continue;
+				}
+
+				// Non-numeric path: ordinal folded compare of single code units.
+				if ( wcA < wcB ) { return -1; }
+				if ( wcA > wcB ) { return 1; }
+				++sA; ++sB;
+			}
+
+			if ( sA < sNa ) { return 1; }
+			if ( sB < sNb ) { return -1; }
+			return 0;
+		}
+
+		/**
+		 * Unified text comparison entry point.
+		 * 
+		 * Selects either ordinal case-insensitive or natural-order comparison based on _tpPolicy.
+		 * 
+		 * \param _wsA Left string.
+		 * \param _wsB Right string.
+		 * \param _tpPolicy Text comparison policy (see LSN_TEXTPOLICY).
+		 * \return Returns -1 if _a < _b, 1 if _a > _b, or 0 if equal.
+		 **/
+		static inline uint32_t			CmpText( const std::wstring &_wsA, const std::wstring &_wsB, EE_TEXTPOLICY _tpPolicy ) {
+			if ( _tpPolicy == EE_TP_NATURAL_CI ) { return CmpNaturalCi( _wsA, _wsB ); }
+			else { return CmpOrdinalCi( _wsA, _wsB ); }
 		}
 
 		/**
@@ -938,6 +1115,80 @@ namespace ee {
 		 * \return				Returns the printed value.
 		 **/
 		static std::string				ToBinary( uint64_t _ui64Val, int32_t _i32Digits );
+
+		/**
+		 * Takes an input array of bytes, converts each value to a 2-digit hexadecimal value, and outputs the converted string with optional spaces between each value.
+		 * 
+		 * \tparam _tType The vector/string type.  The contained type must be 1 byte in size.
+		 * \param _tIn The input array of bytes.
+		 * \param _bSpaces If true, spaces will be added between each output hex value.
+		 * \param _pbSuccess An optional pointer to receive the success/failure status.  Failure always means there was a memory failure.
+		 * \return Returns the array of bytes as a string of hexadecimal bytes.
+		 **/
+		template <typename _tType>
+		static inline std::string		ToHexString( const _tType &_tIn, bool _bSpaces = true, bool * _pbSuccess = nullptr ) {
+			static_assert( sizeof( typename _tType::value_type ) == 1U, "*::value_type must be 1 byte." );
+			using _tVal = typename _tType::value_type;
+
+			std::string sStr;
+			if ( _pbSuccess ) { (*_pbSuccess) = false; }
+			try {
+				std::stringstream ssStream;
+				ssStream.setf( std::ios::hex, std::ios::basefield );
+				ssStream.setf( std::ios::uppercase );
+				ssStream.setf( std::ios::fmtflags( 0 ), std::ios::showbase ); // Ensure no 0x.
+				ssStream.fill( '0' );
+
+				for ( size_t I = 0; I < _tIn.size(); ++I ) {
+					if ( _bSpaces && I ) { ssStream << ' '; }
+					const unsigned int uiVal = static_cast<unsigned int>(static_cast<uint8_t>(_tIn[I]));
+					ssStream << std::setw( 2 ) << uiVal;
+				}
+
+				sStr = ssStream.str();
+			}
+			catch ( ... ) { return sStr; }
+			if ( _pbSuccess ) { (*_pbSuccess) = true; }
+			return sStr;
+		}
+
+		/**
+		 * Takes a hex string (created by ToHexString()) and creates a container of a 1-byte type.
+		 * 
+		 * \param _sString The input hex string.
+		 * \param _pbSuccess An optional pointer to receive the success/failure status.  Failure always means there was a memory failure.
+		 * \return Returns the raw bytes encoded into the string.
+		 **/
+		template <typename _tOutType, typename _tStrType>
+		static inline _tOutType			FromHexString( const _tStrType &_sString, bool * _pbSuccess = nullptr ) {
+			static_assert( sizeof( typename _tOutType::value_type ) == 1U, "*::value_type must be 1 byte." );
+			using _tInVal = typename _tStrType::value_type;
+
+			_tOutType otOutput;
+			if ( _pbSuccess ) { (*_pbSuccess) = false; }
+			try {
+				uint8_t ui8Byte = 0;
+				bool bCnt = false;
+				for ( size_t I = 0; I < _sString.size(); ++I ) {
+					if constexpr ( sizeof( _tInVal ) != 1U ) {
+						if ( _sString[I] > UINT8_MAX ) { continue; }
+					}
+					char cThis = char( _sString[I] );
+					if ( ValidHex( cThis ) ) {
+						ui8Byte <<= 4;
+						ui8Byte = ui8Byte & 0xF0;
+						ui8Byte |= HexToUint32( cThis );
+						bCnt = !bCnt;
+						if ( !bCnt ) {
+							otOutput.push_back( _tOutType::value_type( ui8Byte ) );
+						}
+					}
+				}
+			}
+			catch ( ... ) { return otOutput; }
+			if ( _pbSuccess ) { (*_pbSuccess) = true; }
+			return otOutput;
+		}
 
 		/**
 		 * Represents a value in hexadecimal notation.

@@ -293,15 +293,16 @@ namespace lsw {
 	};
 
 	struct LSW_SELECTOBJECT {
-		LSW_SELECTOBJECT( HDC _hDc, HGDIOBJ _hgdiobj, bool _bDeleteNewObjAfter = false ) :
+		LSW_SELECTOBJECT( HDC _hDc, HGDIOBJ _hgdioObj, bool _bDeleteNewObjAfter = false ) :
 			hDc( _hDc ),
-			hCur( _hgdiobj ),
-			hPrev( ::SelectObject( _hDc, _hgdiobj ) ),
+			hCur( _hgdioObj ),
+			hPrev( ::SelectObject( _hDc, _hgdioObj ) ),
 			bDeleteAfter( _bDeleteNewObjAfter ) {
 		}
 		~LSW_SELECTOBJECT() {
 			if ( bDeleteAfter ) {
-				::DeleteObject( ::SelectObject( hDc, hPrev ) );
+				::SelectObject( hDc, hPrev );
+				::DeleteObject( hCur );
 			}
 			else {
 				::SelectObject( hDc, hPrev );
@@ -969,6 +970,19 @@ namespace lsw {
 			dB = sRGBtoLinear( _bBlueB / 255.0f );
 			BYTE bB = static_cast<BYTE>(std::round( LinearTosRGB( Mix( dA, dB, _fAmnt ) ) * 255.0f ));
 			return RGB( bR, bG, bB );
+		}
+
+		
+
+		/**
+		 * \brief Chooses black or white text for best contrast against a given background color.
+		 *
+		 * \param _crBack Background color to evaluate.
+		 * \return Returns RGB( 0, 0, 0 ) or RGB( 255, 255, 255 ) for best legibility.
+		 */
+		static inline COLORREF				ContrastingTextColor( COLORREF _crBack ) {
+			const int iY = ( (GetRValue( _crBack ) * 299) + (GetGValue( _crBack ) * 587) + (GetBValue( _crBack ) * 114) ) / 1000;
+			return iY >= 140 ? RGB( 0, 0, 0 ) : RGB( 255, 255, 255 );
 		}
 
 		/**

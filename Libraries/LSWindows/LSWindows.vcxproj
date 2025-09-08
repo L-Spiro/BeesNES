@@ -187,6 +187,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -208,6 +209,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -229,6 +231,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -250,6 +253,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -273,6 +277,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -298,6 +303,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -324,6 +330,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -349,6 +356,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -374,6 +382,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -400,6 +409,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -417,6 +427,7 @@
     <ClCompile Include="Src\Base\LSWBase.cpp" />
     <ClCompile Include="Src\Brush\LSWBrush.cpp" />
     <ClCompile Include="Src\Button\LSWButton.cpp" />
+    <ClCompile Include="Src\Button\LSWColorButton.cpp" />
     <ClCompile Include="Src\CheckButton\LSWCheckButton.cpp" />
     <ClCompile Include="Src\ComboBox\LSWComboBox.cpp" />
     <ClCompile Include="Src\ComboBox\LSWComboBoxEx.cpp" />
@@ -458,6 +469,7 @@
     <ClInclude Include="Src\Base\LSWWndClassEx.h" />
     <ClInclude Include="Src\Brush\LSWBrush.h" />
     <ClInclude Include="Src\Button\LSWButton.h" />
+    <ClInclude Include="Src\Button\LSWColorButton.h" />
     <ClInclude Include="Src\CheckButton\LSWCheckButton.h" />
     <ClInclude Include="Src\ChildWindow\LSWChildWindow.h" />
     <ClInclude Include="Src\ComboBox\LSWComboBox.h" />

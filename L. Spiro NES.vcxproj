@@ -725,7 +725,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -753,7 +753,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -781,7 +781,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -809,7 +809,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -837,7 +837,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -865,7 +865,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_NON_CONFORMING_SWPRINTFS;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;LSN_CPU_VERIFY;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -893,7 +893,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -921,7 +921,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -949,7 +949,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -977,7 +977,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -1005,7 +1005,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -1033,7 +1033,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_NON_CONFORMING_SWPRINTFS;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;LSN_CPU_VERIFY;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -1063,7 +1063,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1094,7 +1094,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1125,7 +1125,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1156,7 +1156,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1187,7 +1187,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1218,7 +1218,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_NON_CONFORMING_SWPRINTFS;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;LSN_CPU_VERIFY;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1249,7 +1249,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1281,7 +1281,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1313,7 +1313,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1345,7 +1345,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1377,7 +1377,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1409,7 +1409,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1440,7 +1440,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1471,7 +1471,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1502,7 +1502,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1533,7 +1533,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1564,7 +1564,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_NON_CONFORMING_SWPRINTFS;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;LSN_CPU_VERIFY;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1595,7 +1595,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1627,7 +1627,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;LSN_DX9;LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1659,7 +1659,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_VULKAN1;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1691,7 +1691,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX12;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1723,7 +1723,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>LSN_DX9;__AVX512BW__=1;__AVX512F__=1;__AVX2__=1;__AVX__=1;__SSE4_1__=1;_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;LSN_EN_US;LSN_USE_WINDOWS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;.\Libraries\ExpressionEvaluator\Src;.\Libraries\LSWindows\Src;.\Libraries\LSon\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

@@ -12,6 +12,7 @@
 
 
 namespace lsn {
+
 	/**
 	 * Class CCrc
 	 * \brief A standard 32-bit cyclic redundancy check calculator.
@@ -81,4 +82,5 @@ namespace lsn {
 		 */
 		static void 					GetCrc( uint32_t * _pui32Table, uint8_t _ui8Val, uint32_t &_ui32Crc );
 	};
+
 }	// namespace lsn
