@@ -31,11 +31,12 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow ) { BackupState(); } } if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow || m_bDmcDma ) { BackupState(); } } if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
 															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
-																m_bDmaGo = true;																							\
+																m_bDmaGo = m_bRdyLow;																						\
+																m_bDmcGo = m_bDmcDma;																						\
 																RestoreState();																								\
 																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
 																return; }
@@ -226,11 +227,16 @@ namespace lsn {
 		void												ApplyMemoryMap();
 
 		/**
-		 * Begins a DMA transfer.
+		 * Begins an OAM DMA transfer.
 		 * 
 		 * \param _ui8Val The value written to 0x4014.
 		 */
-		void												BeginDma( uint8_t _ui8Val );
+		void												BeginOamDma( uint8_t _ui8Val );
+
+		/**
+		 * Begins a DMC DMA transfer.
+		 */
+		void												BeginDmcDma();
 
 		/**
 		 * Notifies the class that an NMI has occurred.
@@ -333,6 +339,7 @@ namespace lsn {
 		// == Members.
 		PfTicks												m_pfTickFunc = nullptr;																/**< The current tick function (called by Tick()). */
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
+		PfTicks												m_pfOamDmaFuncs[2]{};																/**< OAM DMA function backups when DMC DMA is detected. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
 
@@ -362,7 +369,9 @@ namespace lsn {
 		bool												m_bBrkIsReset = true;																/**< Shadows m_bIsReset, but m_bIsReset gets unset in the middle of BRK, while this lasts the whole BRK. */
 		
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
+		bool												m_bDmcDma = false;																	/**< Halts the CPU for DMC DMA. */
 		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
+		bool												m_bDmcGo = false;																	/**> Signals DMC DMA to begin.  Set on the next read cycle after m_bDmcDma is set to true. */
 		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
 
 
@@ -453,8 +462,13 @@ namespace lsn {
 			// (m_ui64CycleCount & 0x1) == LSN_GET is a "get" cycle.
 			// (m_ui64CycleCount & 0x1) == LSN_PUT is a "put" cycle.
 			//	When neither a get nor a put can happen, dummy read the address that allowed halting of the CPU for DMA.
+			m_bRdyLow = true;
+			//if LSN_UNLIKELY( m_bDmcDma ) {
+				m_pfOamDmaFuncs[0] = &CCpu6502::Tick_Dma<_uState, false>;
+				m_pfOamDmaFuncs[1] = &CCpu6502::Tick_Dma<_uState, true>;
+			//}
+
 			if constexpr ( _uState == LSN_DS_IDLE ) {
-				m_bRdyLow = true;
 				(this->*m_pfTickFuncCopy)();
 				if ( m_bDmaGo ) {
 					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
@@ -476,11 +490,6 @@ namespace lsn {
 							// Read (get).
 							m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmaAddress + m_ui8DmaPos ) );
 							m_bDmaRead = false;
-							/*{
-								char szBuffer[64];
-								::sprintf( szBuffer, "Read: %.4X, %u\r\n", uint16_t( m_ui16DmaAddress + m_ui8DmaPos ), m_ui8DmaPos );
-								::OutputDebugStringA( szBuffer );
-							}*/
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
@@ -492,13 +501,6 @@ namespace lsn {
 						if ( (m_ui64CycleCount & 0x1) == LSN_PUT ) {
 							// Write (put).
 							m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
-
-							/*{
-								char szBuffer[64];
-								::sprintf( szBuffer, "Write: %.2X\r\n", m_ui8DmaValue );
-								::OutputDebugStringA( szBuffer );
-							}*/
-
 							if ( --m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
@@ -553,7 +555,7 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL							Write4014( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			reinterpret_cast<CCpu6502 *>(_pvParm0)->BeginDma( _ui8Val );
+			reinterpret_cast<CCpu6502 *>(_pvParm0)->BeginOamDma( _ui8Val );
 		}
 
 		/**
