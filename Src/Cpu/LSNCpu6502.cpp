@@ -103,7 +103,7 @@ namespace lsn {
 	 * \param _ui8Val The value written to 0x4014.
 	 */
 	void CCpu6502::BeginOamDma( uint8_t _ui8Val ) {
-		m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_IDLE, false>;
+		m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false>;
 		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
 		m_bDmaGo = false;
 		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
@@ -113,6 +113,7 @@ namespace lsn {
 	 * Begins a DMC DMA transfer.
 	 */
 	void CCpu6502::BeginDmcDma() {
+		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
 	}
 
 	/**

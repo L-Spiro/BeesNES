@@ -340,6 +340,7 @@ namespace lsn {
 		PfTicks												m_pfTickFunc = nullptr;																/**< The current tick function (called by Tick()). */
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
 		PfTicks												m_pfOamDmaFuncs[2]{};																/**< OAM DMA function backups when DMC DMA is detected. */
+		PfTicks												m_pfDmcDmaFuncs[2]{};																/**< DMC DMA function backups. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
 
@@ -440,9 +441,9 @@ namespace lsn {
 		/** Performs a cycle inside an instruction. */
 		inline void											Tick_InstructionCycleStd();
 
-		/** The DMA cycles. */
-		template <unsigned _uState, bool _bPhi2>
-		void												Tick_Dma() {
+		/** The OAM DMA cycles. */
+		template <unsigned _uState, bool _bPhi2, bool _bCalledFromDmc = false, bool _bDmcAccess = false>
+		void												Tick_OamDma() {
 #define LSN_GET									0
 #define LSN_PUT									(LSN_GET ^ 1)
 			/*if constexpr ( _uState == LSN_DS_IDLE && _bPhi2 == false ) {
@@ -462,14 +463,21 @@ namespace lsn {
 			// (m_ui64CycleCount & 0x1) == LSN_GET is a "get" cycle.
 			// (m_ui64CycleCount & 0x1) == LSN_PUT is a "put" cycle.
 			//	When neither a get nor a put can happen, dummy read the address that allowed halting of the CPU for DMA.
-			m_bRdyLow = true;
-			//if LSN_UNLIKELY( m_bDmcDma ) {
-				m_pfOamDmaFuncs[0] = &CCpu6502::Tick_Dma<_uState, false>;
-				m_pfOamDmaFuncs[1] = &CCpu6502::Tick_Dma<_uState, true>;
-			//}
+			
+			if constexpr ( !_bCalledFromDmc ) {
+				if LSN_UNLIKELY( m_bDmcDma ) {
+					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<_uState, false>;
+					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<_uState, true>;
+
+					// Call the DMC DMA function.
+				}
+			}
 
 			if constexpr ( _uState == LSN_DS_IDLE ) {
-				(this->*m_pfTickFuncCopy)();
+				// If this was called from the DMC DMA function, that function will have exevuted the normal Tick pointer.
+				if constexpr ( !_bCalledFromDmc ) {
+					(this->*m_pfTickFuncCopy)();
+				}
 				if ( m_bDmaGo ) {
 					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
 					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
@@ -477,14 +485,22 @@ namespace lsn {
 					m_ui16DmaCounter = 256;
 					m_ui8DmaPos = 0;
 					m_bDmaRead = true;
-					m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_READ_WRITE, false>;
+					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+
+					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true>;
 				}
 				else {
-					m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_IDLE, !_bPhi2>;
+					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, !_bPhi2>;
+
+					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false>;
+					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true>;
 				}
 			}
 			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
-				if constexpr ( _bPhi2 ) {
+				// If _bDmcAccess, that means this is being called from the DMC DMA routine, and the DMC DMA routine performed a memory access,
+				//	consuming the single available read/write for this cycle.  We have to skip our read/write, re-align, and try again.
+				if constexpr ( _bPhi2 && !_bDmcAccess ) {
 					if ( m_bDmaRead ) {
 						if ( (m_ui64CycleCount & 0x1) == LSN_GET ) {
 							// Read (get).
@@ -495,7 +511,10 @@ namespace lsn {
 							// Have to wait for alignment.  Perform the dummy read.
 							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
 						}
-						m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_READ_WRITE, !_bPhi2>;
+						m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
+
+						m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+						m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true>;
 					}
 					else {
 						if ( (m_ui64CycleCount & 0x1) == LSN_PUT ) {
@@ -504,29 +523,47 @@ namespace lsn {
 							if ( --m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
-								m_pfTickFunc = m_pfTickFuncCopy;
+								m_pfTickFunc = m_pfTickFuncCopy;	// TODO: Possibly return to DMC DMA instead of normal execution.
+
+								m_pfOamDmaFuncs[0] = nullptr;
+								m_pfOamDmaFuncs[1] = nullptr;
 							}
 							else {
 								++m_ui8DmaPos;
 								m_bDmaRead = true;
-								m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_READ_WRITE, !_bPhi2>;
+								m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
+
+								m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+								m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true>;
 							}
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
 							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
-							m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_READ_WRITE, !_bPhi2>;
+							m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
+
+							m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+							m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true>;
 						}
 					}
 				}
 				else {
-					m_pfTickFunc = &CCpu6502::Tick_Dma<LSN_DS_READ_WRITE, !_bPhi2>;
+					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
+
+					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false>;
+					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true>;
 				}
 			}
-			if constexpr ( _uState == LSN_DS_END ) {
-			}
+			/*if constexpr ( _uState == LSN_DS_END ) {
+			}*/
 #undef LSN_PUT
 #undef LSN_GET
+		}
+
+		/** The DMC DMA cycles. */
+		template <unsigned _uState, bool _bPhi2>
+		void												Tick_DmcDma() {
+			//m_pfDmcDmaFuncs[0] = Tick_DmcDma
 		}
 
 		/**
