@@ -106,6 +106,7 @@ namespace lsn {
 		m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false>;
 		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
 		m_bDmaGo = false;
+		m_bRdyLow = true;
 		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
 
