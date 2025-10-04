@@ -135,21 +135,78 @@ inline unsigned int                             CountLeadingZeros( uint64_t _ui6
         #include <intrin.h>
         #pragma intrinsic( _udiv128 )
     #else
+		#include <bit>
         inline uint64_t                         _udiv128( uint64_t _ui64High, uint64_t _ui64Low, uint64_t _ui64Divisor, uint64_t * _pui64Remainder ) {
-            if ( _ui64Divisor == 0 ) {
-		        throw std::overflow_error( "Division by zero is not allowed." );
-	        }
-
-	        if ( _ui64High >= _ui64Divisor ) {
-		        throw std::overflow_error( "The division would overflow the 64-bit quotient." );
-	        }
-
+            if ( _ui64Divisor == 0 ) [[unlikely]] { throw std::overflow_error( "Division by zero is not allowed." ); }
+			if ( _ui64High >= _ui64Divisor ) [[unlikely]] { throw std::overflow_error( "The division would overflow the 64-bit quotient." ); }
 	        if ( _ui64High == 0 ) {
 		        if ( _pui64Remainder ) { (*_pui64Remainder) = _ui64Low % _ui64Divisor; }
 		        return _ui64Low / _ui64Divisor;
 	        }
 
-	        uint64_t ui64Q = 0;
+            // == Knuth-style division in base b = 2^32.
+            constexpr uint64_t ui64BitsPerWord = sizeof( uint64_t ) * 8;
+            constexpr uint64_t ui64Base = 1ULL << (ui64BitsPerWord / 2);	// b = 2^32
+
+            uint64_t ui64V = _ui64Divisor;
+            uint64_t ui64Un64;												// High "digit" after normalization step.
+            uint64_t ui64Un10;												// Low 64 after normalization step.
+
+            // Normalize: shift left so that the top bit of ui64V is set.
+            unsigned int uiShift = static_cast<unsigned int>(std::countl_zero( ui64V ));
+            if ( uiShift > 0 ) {
+                ui64V = ui64V << uiShift;
+                ui64Un64 = (_ui64High << uiShift) | (_ui64Low >> (ui64BitsPerWord - uiShift));
+                ui64Un10 = _ui64Low << uiShift;
+            }
+            else {
+                // Avoid (x >> 64) UB for uiShift==0.
+                ui64Un64 = _ui64High;
+                ui64Un10 = _ui64Low;
+            }
+
+            // Split divisor into two 32-bit digits.
+            const uint64_t ui64Vn1 = ui64V >> (ui64BitsPerWord / 2);
+            const uint64_t ui64Vn0 = ui64V & 0xFFFFFFFFULL;
+
+            // Split the low (normalized) 64 into two 32-bit digits.
+            uint64_t ui64Un1 = ui64Un10 >> (ui64BitsPerWord / 2);
+            uint64_t ui64Un0 = ui64Un10 & 0xFFFFFFFFULL;
+
+            // First quotient digit q1.
+            uint64_t ui64Q1 = ui64Un64 / ui64Vn1;
+            uint64_t ui64Rhat = ui64Un64 - ui64Q1 * ui64Vn1;
+
+            // Correct q1 (at most 2 decrements).
+            while ( ui64Q1 >= ui64Base || ui64Q1 * ui64Vn0 > ui64Base * ui64Rhat + ui64Un1 ) {
+                ui64Q1 -= 1;
+                ui64Rhat += ui64Vn1;
+                if ( ui64Rhat >= ui64Base ) { break; }
+            }
+
+            // Combine and subtract q1 * v.
+            uint64_t ui64Un21 = ui64Un64 * ui64Base + ui64Un1 - ui64Q1 * ui64V;
+
+            // Second quotient digit q0.
+            uint64_t ui64Q0 = ui64Un21 / ui64Vn1;
+            ui64Rhat = ui64Un21 - ui64Q0 * ui64Vn1;
+
+            // Correct q0 (at most 2 decrements).
+            while ( ui64Q0 >= ui64Base || ui64Q0 * ui64Vn0 > ui64Base * ui64Rhat + ui64Un0 ) {
+                ui64Q0 -= 1;
+                ui64Rhat += ui64Vn1;
+                if ( ui64Rhat >= ui64Base ) { break; }
+            }
+
+            // Remainder (denormalize back).
+            if ( _pui64Remainder ) {
+                (*_pui64Remainder) = ((ui64Un21 * ui64Base + ui64Un0) - ui64Q0 * ui64V) >> uiShift;
+            }
+
+            // Quotient.
+            return ui64Q1 * ui64Base + ui64Q0;
+
+	        /*uint64_t ui64Q = 0;
 	        uint64_t ui64R = _ui64High;
 
 	        for ( int I = 63; I >= 0; --I ) {
@@ -162,7 +219,7 @@ inline unsigned int                             CountLeadingZeros( uint64_t _ui6
 	        }
 
 	        if ( _pui64Remainder ) { (*_pui64Remainder) = ui64R; }
-	        return ui64Q;
+	        return ui64Q;*/
         }
     #endif  // #ifdef _WIN64
 #elif defined( __x86_64__ ) || defined( _M_X64 )
