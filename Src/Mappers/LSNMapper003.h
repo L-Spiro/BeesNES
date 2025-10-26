@@ -53,9 +53,21 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 
-			if ( _rRom.i32ChrRamSize == 128 * 1024 || _rRom.vChrRom.size() == 128 * 1024 ) {
+			/*if ( _rRom.i32ChrRamSize == 128 * 1024 || _rRom.vChrRom.size() == 128 * 1024 ) {
 				m_ui8ChrBankMask = 0b00001111;
+			}*/
+
+			const uint32_t ui32Banks = uint32_t( std::max<size_t>( 1, _rRom.vChrRom.size() / ChrBankSize() ) );
+			if ( (ui32Banks & (ui32Banks - 1)) == 0 ) {
+				m_ui8ChrBankMask = uint8_t( ui32Banks - 1 );
 			}
+			else {
+				uint32_t ui32Np2 = 1U;
+				while ( ui32Np2 < ui32Banks ) { ui32Np2 <<= 1; }
+				m_ui8ChrBankMask = uint8_t( ui32Np2 - 1 );
+			}
+
+
 			m_bAndConflicts = _rRom.riInfo.ui16SubMapper == 2;
 		}
 
@@ -90,8 +102,10 @@ namespace lsn {
 			// SWAPPABLE BANKS
 			// ================
 			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I ) );
+			if ( !m_prRom->vChrRom.empty() ) {
+				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I ) );
+				}
 			}
 
 
@@ -122,6 +136,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Mapper003CpuWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper003 * pmThis = reinterpret_cast<CMapper003 *>(_pvParm0);
+			if ( pmThis->m_prRom->vChrRom.empty() ) { return; }
 			if ( pmThis->m_bAndConflicts ) {
 				_ui8Val &= pmThis->m_prRom->vPrgRom.data()[_ui16Parm1];
 			}

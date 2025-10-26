@@ -567,7 +567,7 @@ namespace lsn {
 			 *	|+-------- Write protection (0: allow writes; 1: deny writes)
 			 *	+--------- PRG RAM chip enable (0: disable; 1: enable)
 			 */
-			if ( (pmThis->m_ui8Reg1 & 0b11000000) == 0b11000000 ) {
+			if ( (pmThis->m_ui8Reg1 & 0b11000000) == 0b10000000 ) {
 				pmThis->m_ui8PrgRam[_ui16Parm1] = _ui8Val;
 			}
 			

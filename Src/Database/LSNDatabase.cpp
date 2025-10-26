@@ -224,7 +224,7 @@ namespace lsn {
 			// Crime Busters (Unknown) (Unl)
 			{ .ui32Crc = 0x1A8B558E, .pmRegion = LSN_PM_PAL },
 			// Cybernoid - The Fighting Machine (U)
-			{ .ui32Crc = 0x34D5FC6E, .pmRegion = LSN_PM_NTSC },
+			{ .ui32Crc = 0x34D5FC6E, .pmRegion = LSN_PM_NTSC, .ui16SubMapper = 2 },
 			// Darkman (Europe)
 			{ .ui32Crc = 0x6D84EEE3, .pmRegion = LSN_PM_PAL },
 			// Darkwing Duck (Europe)
@@ -451,6 +451,8 @@ namespace lsn {
 			{ .ui32Crc = 0xF5C527B7, .pmRegion = LSN_PM_PAL },
 			// Mega Man (Europe)
 			{ .ui32Crc = 0x94476A70, .pmRegion = LSN_PM_PAL },
+			// Mega Man (U)
+			{ .ui32Crc = 0x6EE4BB0A, .pmRegion = LSN_PM_NTSC },
 			// Mega Man 2 (E) [!]
 			{ .ui32Crc = 0xA6638CBA, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SGROM },
 			// Mega Man 4 (E)

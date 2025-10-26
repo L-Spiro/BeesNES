@@ -52,9 +52,12 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
 			m_ui8PgmBank = 0;
-			m_ui8Mask = 0b0111;
-			if ( _rRom.riInfo.ui16Chip == CDatabase::LSN_C_UOROM ) {
-				m_ui8Mask = 0b1111;
+			m_bBusConflicts = _rRom.riInfo.ui16SubMapper != 1;
+			{
+				uint32_t ui32Banks = uint32_t( std::max<size_t>( 1, _rRom.vPrgRom.size() / PgmBankSize() ) );
+				uint32_t ui32Bits  = 0;
+				while ( (1U << ui32Bits) < ui32Banks ) { ++ui32Bits; }
+				m_ui8Mask = uint8_t( (ui32Bits ? ((1U << ui32Bits) - 1U) : 0U) );
 			}
 		}
 
@@ -93,7 +96,7 @@ namespace lsn {
 			// PGM bank-select.
 			// Writes to the whole area are used to select a bank.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, uint16_t( I ) );	// Treated as ROM.
 			}
 		}
 
@@ -102,6 +105,8 @@ namespace lsn {
 		// == Members.
 		/** The bank-select mask. */
 		uint8_t											m_ui8Mask;
+		/** Bus conflicts? */
+		bool											m_bBusConflicts = true;
 
 
 		// == Functions.
@@ -113,8 +118,19 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBank( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						SelectBank( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper002 * pmThis = reinterpret_cast<CMapper002 *>(_pvParm0);
+			if LSN_LIKELY( pmThis->m_bBusConflicts ) {
+				size_t sIdx;
+				if ( _ui16Parm1 < 0xC000 ) {
+					sIdx = size_t( _ui16Parm1 - 0x8000 ) + size_t( pmThis->m_ui8PgmBanks[0] ) * PgmBankSize();
+				}
+				else {
+					sIdx = size_t( _ui16Parm1 - 0xC000 ) + pmThis->m_stFixedOffset;
+				}
+				sIdx %= pmThis->m_prRom->vPrgRom.size();
+				_ui8Val &= pmThis->m_prRom->vPrgRom[sIdx];		// Conflict = AND.
+			}
 			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val & pmThis->m_ui8Mask) );
 		}
 	};
