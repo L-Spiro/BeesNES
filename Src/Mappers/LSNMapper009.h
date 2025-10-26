@@ -22,7 +22,11 @@ namespace lsn {
 	 */
 	class CMapper009 : public CMapperBase {
 	public :
-		CMapper009() {
+		CMapper009() :
+			m_ui8ChrBankLatch0_FD( m_ui8ChrBanks[0] ),
+			m_ui8ChrBankLatch0_FE( m_ui8ChrBanks[1] ),
+			m_ui8ChrBankLatch1_FD( m_ui8ChrBanks[2] ),
+			m_ui8ChrBankLatch1_FE( m_ui8ChrBanks[3] ) {
 		}
 		virtual ~CMapper009() {
 		}
@@ -36,6 +40,13 @@ namespace lsn {
 		static constexpr uint16_t						PgmBankSize() { return 8 * 1024; }
 
 		/**
+		 * Gets the CHR bank size.
+		 *
+		 * \return Returns the size of the CHR banks.
+		 */
+		static constexpr uint16_t						ChrBankSize() { return 4 * 1024; }
+
+		/**
 		 * Initializes the mapper with the ROM data.  This is usually to allow the mapper to extract information such as the number of banks it has, as well as make copies of any data it needs to run.
 		 *
 		 * \param _rRom The ROM data.
@@ -43,11 +54,11 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
+			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8PgmBank = 0;
 			m_ui8Latch0 = 0xFD;
 			m_ui8Latch1 = 0xFD;
 
-			m_ui8ChrBankLatch0_FD = m_ui8ChrBankLatch0_FE = m_ui8ChrBankLatch1_FD = m_ui8ChrBankLatch1_FE = 0;
 		}
 
 		/**
@@ -149,13 +160,13 @@ namespace lsn {
 		/** RAM. */
 		uint8_t											m_ui8PgmRam[8*1024];
 		/** The 0000 CHR ROM bank used when m_ui8Latch0 == 0xFD. */
-		uint8_t											m_ui8ChrBankLatch0_FD;
+		const uint8_t &									m_ui8ChrBankLatch0_FD;
 		/** The 0000 CHR ROM bank used when m_ui8Latch0 == 0xFE. */
-		uint8_t											m_ui8ChrBankLatch0_FE;
+		const uint8_t &									m_ui8ChrBankLatch0_FE;
 		/** The 1000 CHR ROM bank used when m_ui8Latch1 == 0xFD. */
-		uint8_t											m_ui8ChrBankLatch1_FD;
+		const uint8_t &									m_ui8ChrBankLatch1_FD;
 		/** The 1000 CHR ROM bank used when m_ui8Latch1 == 0xFE. */
-		uint8_t											m_ui8ChrBankLatch1_FE;
+		const uint8_t &									m_ui8ChrBankLatch1_FE;
 		/** Latch 0. */
 		uint8_t											m_ui8Latch0;
 		/** Latch 1. */
@@ -197,7 +208,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Mapper009ChrBankRead_0000_0FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Mapper009ChrBankRead_0000_0FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			CMapper009 * pmThis = reinterpret_cast<CMapper009 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch0 ) {
 				case 0xFD : {
@@ -208,7 +219,12 @@ namespace lsn {
 					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FE*(4*1024)+_ui16Parm1];
 					break;
 				}
-				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
+				default : {
+					// Open-bus: leave the backing value (what the bus already has).
+					_ui8Ret = _pui8Data[_ui16Parm1];
+					break;
+				}
+
 			}
 		}
 
@@ -220,7 +236,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Mapper009ChrBankRead_1000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Mapper009ChrBankRead_1000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			CMapper009 * pmThis = reinterpret_cast<CMapper009 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch1 ) {
 				case 0xFD : {
@@ -231,7 +247,11 @@ namespace lsn {
 					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch1_FE*(4*1024)+_ui16Parm1];
 					break;
 				}
-				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
+				default : {
+					// Open-bus: leave the backing value (what the bus already has).
+					_ui8Ret = _pui8Data[_ui16Parm1+0x1000];
+					break;
+				}
 			}
 		}
 
@@ -252,7 +272,7 @@ namespace lsn {
 			 *		 ||||
 			 *		 ++++- Select 8 KB PRG ROM bank for CPU $8000-$9FFF
 			 */
-			pmThis->m_ui8PgmBank = (_ui8Val & 0b1111) % (pmThis->m_prRom->vPrgRom.size() / (8 * 1024));
+			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1111 );
 		}
 
 		/**
@@ -273,7 +293,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $0000-$0FFF
 			 *			   used when latch 0 = $FD
 			 */
-			pmThis->m_ui8ChrBankLatch0_FD = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -294,7 +314,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $0000-$0FFF
 			 *			   used when latch 0 = $FE
 			 */
-			pmThis->m_ui8ChrBankLatch0_FE = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<1, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -315,7 +335,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $1000-$1FFF
 			 *			   used when latch 1 = $FD
 			 */
-			pmThis->m_ui8ChrBankLatch1_FD = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<2, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**
@@ -336,7 +356,7 @@ namespace lsn {
 			 *	   +-++++- Select 4 KB CHR ROM bank for PPU $1000-$1FFF
 			 *			   used when latch 1 = $FE
 			 */
-			pmThis->m_ui8ChrBankLatch1_FE = (_ui8Val & 0b11111) % (pmThis->m_prRom->vChrRom.size() / (4 * 1024));
+			pmThis->SetChrBank<3, ChrBankSize()>( _ui8Val & 0b11111 );
 		}
 
 		/**

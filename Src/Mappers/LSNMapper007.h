@@ -69,7 +69,7 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 
 
@@ -78,7 +78,7 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper007::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper007::SelectBank8000_FFFF, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 
 			// ================
@@ -101,8 +101,11 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper007 * pmThis = reinterpret_cast<CMapper007 *>(_pvParm0);
+			uint8_t ui8Rom = pmThis->m_prRom->vPrgRom.data()[size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize()+size_t(_ui16Parm1)];
+			_ui8Val &= ui8Rom;
+
 			/*
 			 *	7  bit  0
 			 *	---- ----
