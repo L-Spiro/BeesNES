@@ -52,8 +52,8 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8PgmBank = 0;
 			m_ui8Latch0 = 0xFD;
@@ -88,10 +88,20 @@ namespace lsn {
 			}
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x1000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper009::Mapper009ChrBankRead_0000_0FFF, this, uint16_t( I - 0x0000 ) );
+				if LSN_UNLIKELY( m_prRom->vChrRom.empty() ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CPpuBus::StdRead, this, uint16_t( I ) );
+				}
+				else {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper009::Mapper009ChrBankRead_0000_0FFF, this, uint16_t( I - 0x0000 ) );
+				}
 			}
 			for ( uint32_t I = 0x1000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper009::Mapper009ChrBankRead_1000_1FFF, this, uint16_t( I - 0x1000 ) );
+				if LSN_UNLIKELY( m_prRom->vChrRom.empty() ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CPpuBus::StdRead, this, uint16_t( I ) );
+				}
+				else {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper009::Mapper009ChrBankRead_1000_1FFF, this, uint16_t( I - 0x1000 ) );
+				}
 			}
 
 			// ================
@@ -220,9 +230,7 @@ namespace lsn {
 					break;
 				}
 				default : {
-					// Open-bus: leave the backing value (what the bus already has).
 					_ui8Ret = _pui8Data[_ui16Parm1];
-					break;
 				}
 
 			}
@@ -248,9 +256,7 @@ namespace lsn {
 					break;
 				}
 				default : {
-					// Open-bus: leave the backing value (what the bus already has).
 					_ui8Ret = _pui8Data[_ui16Parm1+0x1000];
-					break;
 				}
 			}
 		}

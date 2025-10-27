@@ -981,6 +981,9 @@
     <ClInclude Include="Src\Utilities\LSNScopedNoSubnormals.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Ppu\LSNPpuBase.h">
+      <Filter>Header Files\Ppu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

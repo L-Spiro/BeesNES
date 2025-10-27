@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpuBase.h"
+#include "../Ppu/LSNPpuBase.h"
 #include "../Roms/LSNRom.h"
 #include "../System/LSNBussable.h"
 #include "../System/LSNInterruptable.h"
@@ -27,11 +28,6 @@ namespace lsn {
 	class CMapperBase {
 	public :
 		CMapperBase() :
-			m_prRom( nullptr ),
-			m_pcbCpu( nullptr ),
-			m_pbPpuBus( nullptr ),
-			m_stFixedOffset( 0 ),
-			m_mmMirror( LSN_MM_HORIZONTAL ),
 			m_ui8PgmBank( m_ui8PgmBanks[0] ),
 			m_ui8ChrBank( m_ui8ChrBanks[0] ) {
 		}
@@ -284,9 +280,10 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			m_prRom = &_rRom;
 			m_pcbCpu = _pcbCpuBase;
+			m_ppbPpu = _ppbPpuBase;
 			m_pbPpuBus = _pbPpuBus;
 			m_pInterruptable = _piInter;
 		}
@@ -377,21 +374,23 @@ namespace lsn {
 		/** If the ROM CHR size is 0, it uses CHR RAM instead. */
 		uint8_t											m_ui8DefaultChrRam[8*1024];
 		/** The ROM used to initialize this mapper. */
-		LSN_ROM *										m_prRom;
+		LSN_ROM *										m_prRom = nullptr;
 		/** The CPU, for reading information such as cycle counts and for sending IRQ's. */
-		CCpuBase *										m_pcbCpu;
+		CCpuBase *										m_pcbCpu = nullptr;
+		/** The PPU, for A12 counting etc. */
+		CPpuBase *										m_ppbPpu = nullptr;
 		/** The interruptable object. */
 		CInterruptable *								m_pInterruptable = nullptr;
 		/** The PPU pointer, for accessing the PPU address bus. */
-		CBussable *										m_pbPpuBus;
+		CBussable *										m_pbPpuBus = nullptr;
 		/** The offset of the fixed bank. */
-		size_t											m_stFixedOffset;
+		size_t											m_stFixedOffset = 0;
 		/** The PGM bank. */
 		uint8_t &										m_ui8PgmBank;
 		/** The CHR ROM bank. */
 		uint8_t &										m_ui8ChrBank;
 		/** The mirroring mode. */
-		LSN_MIRROR_MODE									m_mmMirror = LSN_MM_VERTICAL;
+		LSN_MIRROR_MODE									m_mmMirror = LSN_MM_HORIZONTAL;
 
 
 		// == Functions.

@@ -549,7 +549,7 @@ namespace lsn {
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			m_aApu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
-				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu, &m_cCpu, &m_pPpu );
+				m_pmbMapper->InitWithRom( m_rRom, &m_cCpu, &m_pPpu, &m_cCpu, &m_pPpu );
 			}
 
 			return true;

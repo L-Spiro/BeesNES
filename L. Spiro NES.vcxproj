@@ -1926,6 +1926,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Palette\LSNPalette.h" />
     <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
+    <ClInclude Include="Src\Ppu\LSNPpuBase.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />

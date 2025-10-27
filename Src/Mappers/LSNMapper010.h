@@ -53,8 +53,8 @@ namespace lsn {
 		 * \param _rRom The ROM data.
 		 * \param _pcbCpuBase A pointer to the CPU.
 		 */
-		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
-			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _piInter, _pbPpuBus );
+		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
+			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8Latch0 = 0xFE;
 			m_ui8Latch1 = 0xFE;
@@ -89,19 +89,31 @@ namespace lsn {
 			}
 			// PPU.
 			for ( uint32_t I = 0x0000; I < 0x1000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010ChrBankRead_0000_0FFF, this, uint16_t( I - 0x0000 ) );
+				if LSN_UNLIKELY( m_prRom->vChrRom.empty() ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CPpuBus::StdRead, this, uint16_t( I ) );
+				}
+				else {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010ChrBankRead_0000_0FFF, this, uint16_t( I - 0x0000 ) );
+				}
 			}
 			for ( uint32_t I = 0x1000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010ChrBankRead_1000_1FFF, this, uint16_t( I - 0x1000 ) );
+				if LSN_UNLIKELY( m_prRom->vChrRom.empty() ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CPpuBus::StdRead, this, uint16_t( I ) );
+				}
+				else {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010ChrBankRead_1000_1FFF, this, uint16_t( I - 0x1000 ) );
+				}
 			}
 
 			// ================
 			// RAM
 			// ================
 			// Set the reads and writes of the RAM.
-			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamRead, this, uint16_t( I - 0x6000 ) );
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamWrite, this, uint16_t( I - 0x6000 ) );
+			if ( m_prRom->i32WorkRamSize > 0 ) {
+				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamWrite, this, uint16_t( I - 0x6000 ) );
+				}
 			}
 
 			// ================
@@ -211,7 +223,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Mapper010ChrBankRead_0000_0FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Mapper010ChrBankRead_0000_0FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			CMapper010 * pmThis = reinterpret_cast<CMapper010 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch0 ) {
 				case 0xFD : {
@@ -222,7 +234,9 @@ namespace lsn {
 					_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBankLatch0_FE*(ChrBankSize())+_ui16Parm1];
 					break;
 				}
-				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
+				default : {
+					_ui8Ret = _pui8Data[_ui16Parm1];
+				}
 			}
 		}
 
@@ -234,7 +248,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Mapper010ChrBankRead_1000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Mapper010ChrBankRead_1000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
 			CMapper010 * pmThis = reinterpret_cast<CMapper010 *>(_pvParm0);
 			switch ( pmThis->m_ui8Latch1 ) {
 				case 0xFD : {
@@ -246,10 +260,8 @@ namespace lsn {
 					break;
 				}
 				default : {
-					_ui8Ret = 0xFF;
-					return;
+					_ui8Ret = _pui8Data[_ui16Parm1+0x1000];
 				}
-				// I guess if the latch is invalid then return the open bus by doing nothing?  Read the value in _pui8Data? 
 			}
 		}
 

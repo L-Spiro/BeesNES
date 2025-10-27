@@ -19,6 +19,7 @@
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
 #include "../Utilities/LSNDelayedValue.h"
+#include "LSNPpuBase.h"
 
 #include <cmath>
 #ifdef LSN_WINDOWS
@@ -53,13 +54,13 @@ namespace lsn {
 		unsigned _tPreRender, unsigned _tRender, unsigned _tPostRender,
 		unsigned _tRenderW, unsigned _tBorderW,
 		bool _bOddFrameShenanigans, /*double _dPerferredRatio*/ unsigned _uRatioNumer, unsigned _uRatioDenom>
-	class CPpu2C0X : public CTickable, public CDisplayClient, public CBussable {
+	class CPpu2C0X : public CTickable, public CDisplayClient, public CBussable, public CPpuBase {
 	public :
 		CPpu2C0X( CCpuBus * _pbBus, CInterruptable * _pnNmiTarget ) :
-			m_pbBus( _pbBus ),
+			CPpuBase( _pbBus ),
 			m_pnNmiTarget( _pnNmiTarget ),
 			m_ui64Frame( 0 ),
-			m_ui64Cycle( 0 ),
+			//m_ui64Cycle( 0 ),
 			m_stCurCycle( 0 ),
 			m_ui16ShiftPatternLo( 0 ),
 			m_ui16ShiftPatternHi( 0 ),
@@ -421,13 +422,6 @@ namespace lsn {
 		 * \return Returns the PPU region.
 		 */
 		virtual LSN_PPU_METRICS							PpuRegion() const { return static_cast<LSN_PPU_METRICS>(_tRegCode); }
-
-		/**
-		 * Gets the cycle count.
-		 *
-		 * \return Returns the cycle count.
-		 */
-		inline uint64_t									GetCycleCount() const { return m_ui64Cycle; }
 
 		/**
 		 * Gets the current row position.
@@ -1252,9 +1246,9 @@ namespace lsn {
 #endif	// #ifdef LSN_INT_OAM_DECAY
 		LSN_PALETTE										m_pPalette;										/**< The 9-bit palette. */
 		uint64_t										m_ui64Frame;									/**< The frame counter. */
-		uint64_t										m_ui64Cycle;									/**< The cycle counter. */
+		//uint64_t										m_ui64Cycle;									/**< The cycle counter. */
 		LSN_ACTIVE_SPRITE								m_asActiveSprites;								/**< The active sprites. */
-		CCpuBus *										m_pbBus;										/**< Pointer to the bus. */
+		
 		CInterruptable *								m_pnNmiTarget;									/**< The target object of NMI notifications. */
 		uint8_t											m_ui8PaletteRam[LSN_PPU_PALETTE_MEMORY_SIZE];	/**< Dedicated palette RAM. */
 		PfCycles										m_cCycle[_tDotWidth*_tDotHeight];				/**< The cycle function. */
