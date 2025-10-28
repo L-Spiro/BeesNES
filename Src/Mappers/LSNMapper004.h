@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * Copyright L. Spiro 2023
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
@@ -180,6 +180,26 @@ namespace lsn {
 			}
 		}
 
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			CMapperBase::Reset();
+			m_ui8IrqLatch = 0;
+			m_ui8IrqCounter = 0;
+			m_bIrqEnabled = false;
+			m_bIrqReloadPending = false;
+
+			m_ui64LastA12LowCpu = 0;
+			m_bA12PrevRaw = false;
+			m_bA12FilteredHigh = false;
+
+			// Clear any mapper IRQ line.
+			if ( m_pInterruptable ) {
+				m_pInterruptable->ClearIrq( LSN_IS_MAPPER );
+			}
+		}
+
 
 	protected :
 		// == Members.
@@ -207,29 +227,22 @@ namespace lsn {
 		/** Reload pending flag (set by $C001, consumed on next qualified rise). */
 		bool											m_bIrqReloadPending = false;
 
-		/** Selects galternate/oldh behavior (NEC) vs gnewh (Sharp). */
-		bool											m_bAltIrqBehavior = false;   // false = Sharp/new; true = NEC/old.
+		/** Selects alternate/old behavior (NEC) vs new (Sharp).  false = Sharp/new; true = NEC/old. */
+		bool											m_bAltIrqBehavior = false;
 
 		/**
-		 * A12 must be low for at least this many **PPU dots** before a rising edge
-		 * is considered "filtered" (equivalent to 3 M2 falling edges).
+		 * A12 must be low for at least this many **CPU cycles** before a rising edge
+		 * is considered "filtered" (empirically ~3 M2 falling edges).
 		 */
 		static constexpr uint32_t						LSN_MMC3_A12_LOW_CPU = 3;
 
-		/** Last CPU cycle at which A12 was observed low (resets the low window). */
+		/** Last CPU cycle at which A12 was observed low (anchors the low window). */
 		uint64_t										m_ui64LastA12LowCpu = 0;
-
-		/** Last RAW A12 level we observed (false = low, true = high). */
+		/** Last RAW A12 level observed (false = low, true = high). */
 		bool											m_bA12PrevRaw = false;
-
-		/** Whether the **filtered** A12 is currently considered high. */
+		/** Whether the **filtered** A12 is currently considered high (disarmed). */
 		bool											m_bA12FilteredHigh = false;
 
-		/** Accumulated CPU cycles that A12 has been low since the last high->low transition. */
-		uint64_t                                        m_ui64A12LowAccumCpu = 0;
-
-		/** Last CPU cycle stamp seen by the A12 sampler (to accumulate deltas). */
-		uint64_t                                        m_ui64A12LastCpuStamp = 0;
 
 
 
@@ -416,9 +429,7 @@ namespace lsn {
 			 * 
 			 * Writing any value to this register clears the MMC3 IRQ counter immediately, and then reloads it at the NEXT rising edge of the PPU address, presumably at PPU cycle 260 of the current scanline.
 			 */
-			pmThis->m_ui8IrqCounter = 0;
 			pmThis->m_bIrqReloadPending = true;
-			pmThis->m_bA12FilteredHigh = false;
 		}
 
 		/**
@@ -725,13 +736,10 @@ namespace lsn {
 		 * Debounce is measured in **CPU cycles** so PAL/NTSC differences are handled exactly as on hardware.
 		 *
 		 * Arming/Disarming Rules:
-		 *  - We "arm" the edge detector when A12 has been LOW for >= 3 CPU cycles. This arming happens either
-		 *    (a) on a true HIGH->LOW transition, or (b) if we observe LOW long enough even without seeing an
-		 *    immediate transition (covers entering a scanline already LOW).
-		 *  - When armed, the first qualified LOW->HIGH clocks the counter and disarms.
-		 *  - Writing $C001 (reload request) also forces arming so the very next qualified edge will take effect.
+		 * - We "arm" the edge detector when A12 has been LOW for >= LSN_MMC3_A12_LOW_CPU cycles.
+		 * - When armed, the first qualified LOW->HIGH clocks the counter and disarms the filter.
 		 *
-		 * Call from **every** PPU access to $0000-$1FFF (your CHR read handlers already do this).
+		 * Call from **every** PPU access to $0000-$1FFF.
 		 *
 		 * @param _ui16PpuAddr The absolute PPU address being accessed (0x0000-0x1FFF).
 		 */
@@ -739,60 +747,45 @@ namespace lsn {
 			const bool bA12Raw = ((_ui16PpuAddr & 0x1000) != 0);
 			const uint64_t ui64CpuNow = m_pcbCpu->GetCycleCount();
 
-			// Track first observation to avoid bogus early clocks.
-			static bool s_bInit = false;
-			if ( !s_bInit ) {
-				s_bInit = true;
-				m_bA12PrevRaw = bA12Raw;
-				m_ui64LastA12LowCpu = ui64CpuNow - LSN_MMC3_A12_LOW_CPU;	// so a currently-LOW bus can arm immediately after 3 cycles
-				m_bA12FilteredHigh = !bA12Raw;								// if we start LOW, consider "disarmed" until we arm below
-			}
-
 			if ( !bA12Raw ) {
-				// RAW LOW
+				// RAW A12 is LOW: record the time and potentially arm the filter.
 				if ( m_bA12PrevRaw ) {
-					// True HIGH->LOW transition: start the low window now and disarm.
+					// High->Low edge: start a new low window.
 					m_ui64LastA12LowCpu = ui64CpuNow;
-					m_bA12FilteredHigh = false;
 				}
 				else {
-					// Staying LOW: if we've been LOW long enough, arm even without a detected transition.
-					const uint64_t ui64LowCycles = (ui64CpuNow - m_ui64LastA12LowCpu);
-					if ( ui64LowCycles >= static_cast<uint64_t>( LSN_MMC3_A12_LOW_CPU ) ) {
-						m_bA12FilteredHigh = false;		// "armed" (ready to accept next qualified rise)
+					// Stayed LOW: if enough low time has accumulated, arm the filter (filtered = LOW).
+					if ( (ui64CpuNow - m_ui64LastA12LowCpu) >= LSN_MMC3_A12_LOW_CPU ) {
+						m_bA12FilteredHigh = false;	// Armed.
 					}
 				}
-				m_bA12PrevRaw = false;
-				return;
 			}
-
-			// RAW HIGH
-			if ( !m_bA12PrevRaw ) {
-				// Candidate LOW->HIGH transition. Check that the low period met the >= 3 CPU-cycle requirement.
-				const uint64_t ui64LowCycles = (ui64CpuNow - m_ui64LastA12LowCpu);
-				if ( !m_bA12FilteredHigh && ui64LowCycles >= static_cast<uint64_t>( LSN_MMC3_A12_LOW_CPU ) ) {
-					// Qualified filtered 0->1 edge ¨ clock exactly once, then disarm until we go LOW again.
-					Mmc3_ClockIrqCounter();
-					m_bA12FilteredHigh = true;
+			else {
+				// RAW A12 is HIGH: check for a qualified LOW->HIGH transition.
+				if ( !m_bA12PrevRaw ) { // Rising edge.
+					if ( !m_bA12FilteredHigh && (ui64CpuNow - m_ui64LastA12LowCpu) >= LSN_MMC3_A12_LOW_CPU ) {
+						// Qualified filtered 0->1 rise: clock once, then disarm until we go LOW again.
+						Mmc3_ClockIrqCounter();
+						m_bA12FilteredHigh = true; // Disarmed.
+					}
 				}
 			}
-			m_bA12PrevRaw = true;
+			m_bA12PrevRaw = bA12Raw;
 		}
 
 		/**
-		 * Clocks the MMC3 scanline counter on a *filtered* A12 rising edge.
-		 * 
+		 * \brief Clocks the MMC3 scanline counter on a *filtered* A12 rising edge.
+		 *
 		 * Rules:
 		 *  - If reload-pending is set or the counter is 0, load counter := latch; else decrement.
-		 *  - Sharp/new asserts when (counter == 0).
-		 *  - NEC/alternate asserts on (1 -> 0) transition (by decrement or reload).
-		 *  - $C000 == 0 Ë Sharp fires every scanline; NEC fires once until $C001 forces a reload.
-		 *  - $E000 disables/acks output only; $E001 enables; the counter always runs.
+		 *  - Sharp/new behavior asserts when (counter == 0) after the update.
+		 *  - NEC/old behavior asserts on the 1->0 transition (kept via m_bAltIrqBehavior).
 		 */
-		inline void										Mmc3_ClockIrqCounter() {
+		inline void Mmc3_ClockIrqCounter() {
 			bool bAssert = false;
 
 			if ( m_bAltIrqBehavior ) {
+				// NEC/old behavior: assert on the 1->0 transition.
 				const bool bReload = m_bIrqReloadPending || (m_ui8IrqCounter == 0);
 				if ( bReload ) {
 					const uint8_t ui8Prev = m_ui8IrqCounter;
@@ -807,6 +800,7 @@ namespace lsn {
 				}
 			}
 			else {
+				// Sharp/new behavior: assert when counter == 0 (after update).
 				if ( m_bIrqReloadPending || (m_ui8IrqCounter == 0) ) {
 					m_ui8IrqCounter = m_ui8IrqLatch;
 					m_bIrqReloadPending = false;
@@ -821,33 +815,6 @@ namespace lsn {
 				m_pInterruptable->Irq( LSN_IS_MAPPER );
 			}
 		}
-
-		///**
-		// * Must be called on every PPU access to $0000-$1FFF (CHR space): pattern fetches during rendering
-		// * and any CPU-driven CHR access via $2006/$2007 that targets $1000-$1FFF.  This function applies
-		// * the A12 filter ("A12 remained low for >= 3 M2 falling edges") and, upon a qualified 0->1 filtered
-		// * transition, clocks the MMC3 scanline counter.
-		// * 
-		// * @param _ui16PpuAddr The absolute PPU address being accessed (0x0000-0x1FFF).
-		// */
-		//inline void										Mmc3_OnPpuChrAccess( uint16_t _ui16PpuAddr ) {
-		//	const bool bA12Raw = ((_ui16PpuAddr & 0x1000) != 0);
-
-		//	if ( !bA12Raw ) {
-		//		// Raw-low: filtered is forced low; low-time accumulation happens in Mmc3_OnM2Falling().
-		//		m_bA12PrevFiltered = false;
-		//		return;
-		//	}
-
-		//	// Raw-high: check for *filtered* 0->1 rise (requires filtered was low AND low-time >= 3).
-		//	if ( !m_bA12PrevFiltered && (m_ui8M2LowCnt >= 3) ) {
-		//		// Qualified filtered rising edge: clock the counter.
-		//		Mmc3_ClockIrqCounter();
-		//		m_bA12PrevFiltered = true;
-		//		// Do not clear m_ui8M2LowCnt here; it is rebuilt while A12 is low.
-		//	}
-		//	// Else: remain filtered-low (insufficient low-time), or stay filtered-high (already high).
-		//}
 
 	};
 
