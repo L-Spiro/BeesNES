@@ -38,7 +38,7 @@ namespace lsn {
 		 *
 		 * \return Returns the size of the buffer in bytes.
 		 **/
-		inline uint32_t											Size() const { m_ui32Size; }
+		inline uint32_t											Size() const { return m_ui32Size; }
 
 		/**
 		 * Stores the given parameters and optionally allocates space for a copy of the vertices.

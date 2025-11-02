@@ -15,6 +15,13 @@
 #include "../../Input/LSNDirectInput8Controller.h"
 #include "../../Input/LSNInputPoller.h"
 #include "../../Options/LSNWindowOptions.h"
+
+#ifdef LSN_DX9
+#include "../../GPU/DirectX9/LSNDirectX9.h"
+#include "../../GPU/DirectX9/LSNDirectX9Device.h"
+#include "../../GPU/DirectX9/LSNDirectX9NesPresenter.h"
+#endif	// #ifdef LSN_DX9
+
 #include <CriticalSection/LSWCriticalSection.h>
 #include <ImageList/LSWImageList.h>
 #include <Images/LSWBitmap.h>
@@ -70,7 +77,13 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
-		// WM_COMMAND from menu.
+		/**
+		 * Handles WM_COMMAND from a menu.
+		 * \brief Invoked for menu command selections.
+		 *
+		 * \param _Id The menu command identifier.
+		 * \return Returns a LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED						MenuCommand( WORD _wId ) { return Command( 0, _wId, nullptr ); }
 
 		/**
@@ -83,16 +96,44 @@ namespace lsn {
 		 **/
 		virtual LSW_HANDLED						CustomPrivateMsg( UINT _uMsg, WPARAM /*_wParam*/, LPARAM /*_lParam*/ );
 
-		// WM_NCDESTROY.
+		/**
+		 * Handles WM_NCDESTROY.
+		 * \brief Final cleanup after the non-client area is destroyed.
+		 *
+		 * This is the last message a window receives. Use to clear pointers stored in GWLP_USERDATA
+		 * and to finalize per-window allocations.
+		 *
+		 * \return Returns LSW_H_CONTINUE to allow default processing; return LSW_H_HANDLED to stop it.
+		 */
 		virtual LSW_HANDLED						NcDestroy();
 
-		// WM_GETMINMAXINFO.
+		/**
+		 * Handles WM_GETMINMAXINFO.
+		 * \brief Provides minimum/maximum tracking sizes.
+		 *
+		 * Override to fill *(_pmmiInfo) with size constraints.
+		 *
+		 * \param _pmmiInfo Pointer to a MINMAXINFO structure to populate.
+		 * \return Returns a LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED						GetMinMaxInfo( MINMAXINFO * _pmmiInfo );
 
-		// WM_PAINT.
+		/**
+		 * Handles WM_PAINT.
+		 * \brief Performs painting for the client area.
+		 *
+		 * \return Returns a LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED						Paint();
 
-		// WM_MOVE.
+		/**
+		 * Handles WM_MOVE.
+		 * \brief Notified when the window is moved.
+		 *
+		 * \param _lX New x-position of the window (screen coordinates).
+		 * \param _lY New y-position of the window (screen coordinates).
+		 * \return Returns a LSW_HANDLED code.
+		 */
 		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
 
 		/**
@@ -131,6 +172,13 @@ namespace lsn {
 		 * \return Returns a LSW_HANDLED enumeration.
 		 */
 		virtual LSW_HANDLED						Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight );
+
+		/**
+		 * The WM_EXITSIZEMOVE handler.
+		 * 
+		 * \return Returns a LSW_HANDLED enumeration.
+		 **/
+		virtual LSW_HANDLED						ExitSizeMove();
 
 		/**
 		 * The WM_SIZING handler.
@@ -266,6 +314,38 @@ namespace lsn {
 		 */
 		const lsw::CStatusBar *					StatusBar() const;
 
+#ifdef LSN_DX9
+		/**
+		 * \brief Initializes the DirectX 9 device for this window.
+		 * 
+		 * Dynamically loads d3d9.dll via the DX9 wrapper and creates a device bound to this HWND.
+		 * Call once (e.g., after the window is created) and, if successful, the Paint() path will
+		 * render using DirectX 9 instead of the software blitter.
+		 *
+		 * \return Returns true if the DX9 device was created and is ready.
+		 **/
+		bool									CreateDx9();
+
+		/**
+		 * Destroys the DirectX 9 device and all filters.
+		 **/
+		void									DestroyDx9();
+
+		/**
+		 * \brief Resizes the DX9 backbuffer and reinitializes size-dependent presenter resources.
+		 *
+		 * Updates cached D3DPRESENT_PARAMETERS with the new client size and resets the device.
+		 * Then re-initializes the presenter so its DEFAULT-pool resources (index/LUT targets, VBs)
+		 * are recreated against the new device state.
+		 *
+		 * \param _ui32ClientW New client width in pixels.
+		 * \param _ui32ClientH New client height in pixels.
+		 * \return True on success; false if the DX9 path is disabled or reset failed.
+		 */
+		bool									OnSizeDx9( uint32_t _ui32ClientW, uint32_t _ui32ClientH );
+
+#endif	// #ifdef LSN_DX9
+
 
 	protected :
 		// == Enumerations.
@@ -279,7 +359,6 @@ namespace lsn {
 
 		// == Types.
 		typedef lsw::CMainWindow				Parent;
-		typedef struct { double x[3]; }			Double3;
 
 
 		// == Members.
@@ -328,6 +407,20 @@ namespace lsn {
 		lsw::CStatusBar *						m_psbCachedBar;
 		/** Cached statuc-bar rectangle. */
 		LSW_RECT								m_rStatusBarRect;
+		/** Palettes. */
+		LSN_PALETTE_OPTIONS						m_poPalettes[LSN_PM_CONSOLE_TOTAL];
+
+
+#ifdef LSN_DX9
+		/** DirectX 9 device (created on demand). */
+		CDirectX9Device							m_dx9Device;
+		/** The palette renderer. */
+		std::unique_ptr<CDirectX9NesPresenter>	m_upDx9PaletteRender;
+		/** If true, Paint() renders via DX9 instead of software. */
+		bool									m_bUseDx9 = false;
+		/** Small counter for flashing clear color. */
+		uint8_t									m_ui8Flash = 0;
+#endif	// #ifdef LSN_DX9
 		
 
 
@@ -346,15 +439,6 @@ namespace lsn {
 		void									UpdateRatio();
 
 		/**
-		 * Sends a given palette to the console.
-		 *
-		 * \param _vPalette The loaded palette file.
-		 * \param _bIsProbablyFloat When the size alone is not enough to determine the palette type, this is used to make the decision.
-		 * \param _bApplySrgb If true, an sRGB curve is applied to the loaded palette.
-		 */
-		void									SetPalette( const std::vector<uint8_t> &_vPalette, bool _bIsProbablyFloat, bool _bApplySrgb );
-
-		/**
 		 * Loads a ROM given its in-memory image and its file name.
 		 *
 		 * \param _vRom The in-memory ROM file.
@@ -371,63 +455,6 @@ namespace lsn {
 		 * \return Returns true if the file was loaded.
 		 **/
 		bool									LoadZipRom( const std::u16string &_s16ZipPath, const std::u16string &_s16File );
-
-		/**
-		 * Loads a 64- or 512- entry 8-bit palette into a 512-entry floating-point palette.
-		 * 
-		 * \param _vPalFile The loaded palette file raw bytes.
-		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-		 **/
-		std::vector<Double3>					Load8bitPalette_64_512( const std::vector<uint8_t> &_vPalFile );
-
-		/**
-		 * Loads a 64- or 512- entry 32-bit float palette into a 512-entry floating-point palette.
-		 * 
-		 * \param _vPalFile The loaded palette file raw bytes.
-		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-		 **/
-		template <typename _tSrcType>
-		std::vector<Double3>					Load32_64bitPalette_64_512( const std::vector<uint8_t> &_vPalFile ) {
-			std::vector<Double3> vRet;
-			try {
-				vRet.resize( 512 );
-				if ( !_vPalFile.size() ) { return vRet; }
-				for ( size_t I = 0; I < 512; ++I ) {
-					const _tSrcType * ptThisSrc = reinterpret_cast<const _tSrcType *>(&_vPalFile[(I*sizeof(_tSrcType)*3)%_vPalFile.size()]);
-					vRet[I].x[0] = static_cast<double>(ptThisSrc[0]);
-					vRet[I].x[1] = static_cast<double>(ptThisSrc[1]);
-					vRet[I].x[2] = static_cast<double>(ptThisSrc[2]);
-				}
-			}
-			catch ( ... ) {
-				return std::vector<Double3>();
-			}
-			return vRet;
-		}
-
-		/**
-		 * Loads a 512-entry 32-bit float palette into a 512-entry floating-point palette.
-		 * 
-		 * \param _vPalFile The loaded palette file raw bytes.
-		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-		 **/
-		//std::vector<Double3>					Load32bitPalette_512( const std::vector<uint8_t> &_vPalFile );
-
-		/**
-		 * Loads a 64-entry 32-bit float palette into a 512-entry floating-point palette.
-		 * 
-		 * \param _vPalFile The loaded palette file raw bytes.
-		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-		 **/
-		//std::vector<Double3>					Load64bitPalette_64( const std::vector<uint8_t> &_vPalFile );
-
-		/**
-		 * Loads a 512-entry 32-bit float palette into a 512-entry floating-point palette.
-		 * 
-		 * \param _vPalFile The loaded palette file raw bytes.
-		 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-		 **/
-		//std::vector<Double3>					Load64bitPalette_512( const std::vector<uint8_t> &_vPalFile );
 
 		/**
 		 * Call when changing the m_psbSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
@@ -464,7 +491,7 @@ namespace lsn {
 		 * 
 		 * \param _pwChild The child being removed.
 		 **/
-		virtual void						ChildWasRemoved( const CWidget * _pwChild );
+		virtual void							ChildWasRemoved( const CWidget * _pwChild );
 
 		/**
 		 * The WM_DEVICECHANGE handler.

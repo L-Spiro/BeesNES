@@ -15,7 +15,8 @@ namespace lsn {
 
 	CDirectX9RenderTarget::CDirectX9RenderTarget( CDirectX9Device * _pdx9dDevice ) :
 		m_pdx9dDevice( _pdx9dDevice ),
-		m_d3ds9Surface( nullptr ) {
+		m_d3ds9Surface( nullptr ),
+		m_ptColorTex( nullptr ) {
 	}
 	CDirectX9RenderTarget::~CDirectX9RenderTarget() {
 		Reset();
@@ -48,8 +49,60 @@ namespace lsn {
 	void CDirectX9RenderTarget::Reset() {
 		CDirectX9::SafeRelease( m_d3ds9Surface );
 
+		if ( m_ptColorTex ) {
+			m_ptColorTex->Reset();
+			m_ptColorTex.reset();
+		}
+
+
 		m_bResourceCanBeLost = false;
 		Parent::Reset();
+	}
+
+	/**
+	 * \brief Returns the underlying level-0 surface (AddRef()'d). Caller must Release().
+	 * 
+	 * \return Returns a valid IDirect3DSurface9* on success, or nullptr.
+	 */
+	IDirect3DSurface9 * CDirectX9RenderTarget::GetSurface() const {
+		if LSN_UNLIKELY( !m_d3ds9Surface ) { return nullptr; }
+		m_d3ds9Surface->AddRef();
+		return m_d3ds9Surface;
+	}
+
+	/**
+	 * \brief Creates a color render target as a 2-D texture (level 0), storing both the surface and the texture.
+	 *
+	 * \param _uiWidth Width in pixels.
+	 * \param _uiHeight Height in pixels.
+	 * \param _fFormat Floating-point or RGBA format (e.g., LSN_D3DFMT_A16B16G16R16F).
+	 * \return Returns true on success.
+	 */
+	bool CDirectX9RenderTarget::CreateColorTarget( UINT _uiWidth, UINT _uiHeight, D3DFORMAT _fFormat ) {
+		Reset();
+		if LSN_UNLIKELY( !m_pdx9dDevice || !m_pdx9dDevice->GetDirectX9Device() ) { return false; }
+
+		// Create a render-target texture (level 0 only).
+		m_ptColorTex = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
+		if LSN_UNLIKELY( !m_ptColorTex->CreateTexture( _uiWidth, _uiHeight, 1,
+			D3DUSAGE_RENDERTARGET,
+			_fFormat, D3DPOOL_DEFAULT ) ) {
+			m_ptColorTex.reset();
+			return false;
+		}
+
+		// Get its level-0 surface for SetRenderTarget().
+		IDirect3DSurface9 * pSurf = nullptr;
+		if LSN_UNLIKELY( FAILED( m_ptColorTex->Get()->GetSurfaceLevel( 0, &pSurf ) ) || !pSurf ) {
+			Reset();
+			return false;
+		}
+		m_d3ds9Surface = pSurf; // Already AddRef()'d by GetSurfaceLevel.
+
+		// Store size in the common base.
+		SetSurface( _uiWidth, _uiHeight, 1 );
+		m_bResourceCanBeLost = true;
+		return true;
 	}
 
 	/**
@@ -73,6 +126,7 @@ namespace lsn {
 		Reset();
 		if ( SUCCEEDED( m_pdx9dDevice->GetDirectX9Device()->CreateRenderTarget( _uiWidth, _uiHeight, _fFormat, _mtMultiSample, _dwMultisampleQuality, _bLockable,
 			&m_d3ds9Surface, nullptr ) ) ) {
+			m_bResourceCanBeLost = true;
 			SetSurface( _uiWidth, _uiHeight, 1 );
 			return true;
 		}
@@ -100,6 +154,7 @@ namespace lsn {
 		Reset();
 		if ( SUCCEEDED( m_pdx9dDevice->GetDirectX9Device()->CreateDepthStencilSurface( _uiWidth, _uiHeight, _fFormat, _mtMultiSample, _dwMultisampleQuality, _bDiscard,
 			&m_d3ds9Surface, nullptr ) ) ) {
+			m_bResourceCanBeLost = true;
 			SetSurface( _uiWidth, _uiHeight, 1 );
 			return true;
 		}

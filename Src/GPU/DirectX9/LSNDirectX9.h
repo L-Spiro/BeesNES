@@ -16,6 +16,7 @@
 #include "../LSNGpuBase.h"
 
 #include <d3d9.h>
+#include <d3dx9shader.h>
 #include <vector>
 
 namespace lsn {

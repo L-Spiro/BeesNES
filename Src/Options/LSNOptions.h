@@ -14,6 +14,7 @@
 #include "../Filters/LSNFilterBase.h"
 #include "../Wav/LSNWavFile.h"
 #include "LSNInputOptions.h"
+#include "LSNPaletteOptions.h"
 #include "LSNWavEditorWindowOptions.h"
 
 
@@ -41,6 +42,9 @@ namespace lsn {
 
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
 		CFilterBase::LSN_FILTERS							fFilter = CFilterBase::LSN_F_AUTO_CRT_FULL;					/**< The current filter ID. */
+
+		LSN_PALETTE_OPTIONS									poGlobalPalettes[LSN_PM_CONSOLE_TOTAL];						/**< Global palette options. */
+		LSN_PALETTE_OPTIONS									poThisGamePalette[LSN_PM_CONSOLE_TOTAL];					/**< This game's palette options. */
 
 #ifdef LSN_WINDOWS
 		WINDOWPLACEMENT										wpMainWindowPlacement = { 0 };								/**< The main window's placement. */

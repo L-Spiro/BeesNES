@@ -71,13 +71,44 @@ namespace lsn {
 		D3DFORMAT _fFormat,
 		D3DPOOL _pPool ) {
 		Reset();
+		if LSN_UNLIKELY( !m_pdx9dDevice ) { return false; }
 		if ( SUCCEEDED( m_pdx9dDevice->GetDirectX9Device()->CreateTexture( _uiWidth, _uiHeight, _uiLevels, _dwUsage, _fFormat, _pPool,
 			&m_pd3dtTexture, nullptr ) ) ) {
+			m_bResourceCanBeLost = (_pPool == D3DPOOL_DEFAULT);
 			if ( Alloc( _uiWidth, _uiHeight, 1, _uiLevels, 1, 1, uint32_t( _pPool ), uint32_t( _dwUsage ), uint32_t( _fFormat ) ) ) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * \brief Locks a 2-D texture level for CPU access.
+	 *
+	 * \param _uiLevel The mip level to lock (0 = base level).
+	 * \param _lrLocked On success receives the pitch and pointer to the texel data.
+	 * \param _prRect Optional sub-rectangle to lock; nullptr locks the whole level.
+	 * \param _dwFlags Combination of LSN_D3DLOCK flags (e.g., LSN_D3DLOCK_DISCARD).
+	 * \return Returns true on success.
+	 */
+	bool CDirectX9Texture::LockRect( UINT _uiLevel, D3DLOCKED_RECT &_lrLocked, const RECT * _prRect, DWORD _dwFlags ) {
+		if LSN_UNLIKELY( !m_pd3dtTexture ) { return false; }
+		D3DLOCKED_RECT lr{};
+		if LSN_UNLIKELY( FAILED( m_pd3dtTexture->LockRect( _uiLevel, &lr, _prRect, _dwFlags ) ) ) { return false; }
+		_lrLocked.Pitch = lr.Pitch;
+		_lrLocked.pBits = lr.pBits;
+		return true;
+	}
+
+	/**
+	 * \brief Unlocks a previously locked 2-D texture level.
+	 *
+	 * \param _uiLevel The mip level to unlock (0 = base level).
+	 */
+	void CDirectX9Texture::UnlockRect( UINT _uiLevel ) {
+		if LSN_LIKELY( m_pd3dtTexture ) {
+			m_pd3dtTexture->UnlockRect( _uiLevel );
+		}
 	}
 
 }	// namespace lsn

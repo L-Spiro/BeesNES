@@ -1800,6 +1800,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
+    <ClInclude Include="Src\Filters\LSNNesPalette.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscLSpiroFilter.h" />
@@ -1838,9 +1839,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9IndexBuffer.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Texture.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexShader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.h" />
     <ClInclude Include="Src\GPU\LSNGpuBase.h" />
     <ClInclude Include="Src\GPU\LSNIndexBufferBase.h" />
@@ -1919,6 +1923,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Options\LSNGenericOption.h" />
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
+    <ClInclude Include="Src\Options\LSNPaletteOptions.h" />
     <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />
     <ClInclude Include="Src\OS\LSNFeatureSet.h" />
@@ -2016,6 +2021,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
+    <ClCompile Include="Src\Filters\LSNNesPalette.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscLSpiroFilter.cpp" />
@@ -2050,9 +2056,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9IndexBuffer.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Texture.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexShader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.cpp" />
     <ClCompile Include="Src\GPU\LSNGpuBase.cpp" />
     <ClCompile Include="Src\GPU\LSNIndexBufferBase.cpp" />
@@ -2108,6 +2117,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Windows\WinUtilities\LSNWinUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Src\Cpu\LSNCycleFuncs.inl" />
     <None Include="Src\Cpu\LSNInstMetaData.inl" />
     <MASM Include="Src\OS\LSNSinCos.asm">
@@ -2200,5 +2210,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+    <Import Project="packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\Microsoft.DXSDK.D3DX.targets" Condition="Exists('packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\Microsoft.DXSDK.D3DX.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\Microsoft.DXSDK.D3DX.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\Microsoft.DXSDK.D3DX.targets'))" />
+  </Target>
 </Project>

@@ -72,6 +72,37 @@ namespace lsn {
 		 **/
 		inline IDirect3DVertexBuffer9 *							Get() { return m_pd3dvb9Buffer; }
 
+		/**
+		 * \brief Determines whether this vertex buffer currently wraps a valid D3D9 buffer.
+		 * 
+		 * \return Returns true if the vertex buffer exists.
+		 */
+		inline bool												Valid() const { return m_pd3dvb9Buffer != nullptr; }
+
+		/**
+		 * \brief Locks the vertex buffer.
+		 *
+		 * \param _uiOffset Offset in bytes from the start of the buffer to the range to lock.
+		 * \param _uiSize Size (in bytes) of the range to lock; 0 locks to end.
+		 * \param _ppvData Returns a pointer to the locked memory.
+		 * \param _dwFlags Combination of LSN_D3DLOCK flags (e.g., LSN_D3DLOCK_DISCARD).
+		 * \return Returns true on success.
+		 */
+		inline bool												Lock( UINT _uiOffset, UINT _uiSize, void ** _ppvData, DWORD _dwFlags ) {
+			if LSN_UNLIKELY( !m_pd3dvb9Buffer ) { return false; }
+			return SUCCEEDED( m_pd3dvb9Buffer->Lock( _uiOffset, _uiSize, _ppvData, _dwFlags ) );
+		}
+
+		/**
+		 * \brief Unlocks the vertex buffer.
+		 */
+		inline void												Unlock() {
+			if LSN_UNLIKELY( m_pd3dvb9Buffer ) {
+				m_pd3dvb9Buffer->Unlock();
+			}
+		}
+
+
 
 	protected :
 		// == Members.

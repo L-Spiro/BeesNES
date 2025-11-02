@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
+#include "../Filters/LSNNesPalette.h"
 #include "../Filters/LSNNtscBlarggFilter.h"
 //#include "../Filters/LSNNtscCrtFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
@@ -314,6 +315,45 @@ namespace lsn {
 		 **/
 		void									ApplyAudioOptions();
 
+		/**
+		 * Applies the current palette.
+		 **/
+		void									ApplyPaletteOptions();
+
+		/**
+		 * Gets the default folder for palettes.
+		 * 
+		 * \return Returns the default folder where default palettes can be found.
+		 **/
+		std::wstring							DefaultPaletteFolder() const;
+
+		/**
+		 * Gets the default NTSC palette path.
+		 * 
+		 * \return Return the default NTSC palette path.
+		 **/
+		std::wstring							DefaultNtscPalette() const {
+			return DefaultPaletteFolder() + L"2C02G_wiki.pal";
+		}
+
+		/**
+		 * Gets the default PAL palette path.
+		 * 
+		 * \return Return the default PAL palette path.
+		 **/
+		std::wstring							DefaultPalPalette() const {
+			return DefaultPaletteFolder() + L"2C07_wiki.pal";
+		}
+
+		/**
+		 * Gets the default NTSC-J palette path.
+		 * 
+		 * \return Return the default NTSC-J palette path.
+		 **/
+		std::wstring							DefaultNtscJPalette() const {
+			return DefaultPaletteFolder() + L"2C02G_phs_aps_ela_applysrgb_NTSC-J.pal";
+		}
+
 
 	protected :
 		// == Members.
@@ -340,8 +380,6 @@ namespace lsn {
 		/** Blargg's NTSC filter. */
 		CNtscBlarggFilter						m_nbfBlarggNtscFilter;
 		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
-		//CNtscCrtFilter							m_ncfEmmirNtscFilter;
-		/** EMMIR (LMP88959)'s NTSC-CRT filter. */
 		CNtscCrtFullFilter						m_ncfEmmirNtscFullFilter;
 		/** EMMIR (LMP88959)'s PAL-CRT filter. */
 		CPalCrtFullFilter						m_ncfEmmirPalFullFilter;
@@ -349,6 +387,10 @@ namespace lsn {
 		CPalBlarggFilter						m_nbfBlarggPalFilter;
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
+		/** The default palettes for each system. */
+		CNesPalette								m_npPalette;
+		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL];
+
 		/** "NONE" post-processing. */
 		CPostProcessBase						m_ppbNoPostProcessing;
 		/** Bleed post-processing. */
@@ -573,6 +615,25 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SaveWavEditorWindowSettings( CStream &_sFile, const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
+
+		/**
+		 * Loads palette settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _poOptions The palette settings into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions );
+
+		/**
+		 * Saves palette settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _poOptions The palette settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SavePaletteSettings( CStream &_sFile, const LSN_PALETTE_OPTIONS &_poOptions );
 
 		/**
 		 * Adds or move to the top a given file path.

@@ -75,6 +75,7 @@ namespace lsn {
 		Reset();
 		if ( SUCCEEDED( m_pdx9dDevice->GetDirectX9Device()->CreateVolumeTexture( _uiWidth, _uiHeight, _uiDepth, _uiLevels, _dwUsage, _fFormat, _pPool,
 			&m_pd3dvtTexture, nullptr ) ) ) {
+			m_bResourceCanBeLost = (_pPool == D3DPOOL_DEFAULT);
 			if ( Alloc( _uiWidth, _uiHeight, _uiDepth, _uiLevels, 1, 1, uint32_t( _pPool ), uint32_t( _dwUsage ), uint32_t( _fFormat ) ) ) {
 				return true;
 			}

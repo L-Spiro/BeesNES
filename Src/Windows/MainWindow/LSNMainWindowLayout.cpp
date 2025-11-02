@@ -327,8 +327,12 @@ namespace lsn {
 	 */
 	BOOL CMainWindowLayout::CreateMenu( CWidget * _pwMainWindow ) {
 		if ( !_pwMainWindow ) { return FALSE; }
-		HMENU hMenu = lsw::CBase::LayoutManager()->CreateMenu( m_miMenus, LSN_ELEMENTS( m_miMenus ) );
+		std::vector<ACCEL> vHotkeys;
+		HMENU hMenu = lsw::CBase::LayoutManager()->CreateMenu( m_miMenus, LSN_ELEMENTS( m_miMenus ), vHotkeys );
 		if ( !hMenu ) { return FALSE; }
+		if ( vHotkeys.size() ) {
+			CBase::GetAccelHandler().CreateAndRegister( _pwMainWindow->Wnd(), vHotkeys.data(), int( vHotkeys.size() ) );
+		}
 		return ::SetMenu( _pwMainWindow->Wnd(), hMenu );
 	}
 

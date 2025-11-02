@@ -3,11 +3,12 @@
 #include "../LSWWin.h"
 #include "../Base/LSWBase.h"
 #include "../Layout/LSWWidgetLayout.h"
+
+#include <EEExpEval.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <EEExpEval.h>
-
 #include <string>
 #include <Uxtheme.h>
 #include <vector>
@@ -179,6 +180,84 @@ namespace lsw {
 		HANDLE								hHandle;
 	};
 
+	struct LSW_FONT {
+		LSW_FONT() : hFont( NULL ), bDeleteIt( false ) {}
+		LSW_FONT( HFONT _hFont ) : hFont( _hFont ), bDeleteIt( false ) {}
+		~LSW_FONT() {
+			Reset();
+		}
+
+		LSW_FONT &							operator = ( HFONT _hFont ) {
+			Reset();
+			hFont = _hFont;
+			bDeleteIt = false;
+			return (*this);
+		}
+
+
+		// == Functions.
+		HFONT								CreateFontIndirectW( const LOGFONTW * _lplfFont ) {
+			Reset();
+			hFont = ::CreateFontIndirectW( _lplfFont );
+			bDeleteIt = true;
+			return hFont;
+		}
+
+		VOID								Reset() {
+			if ( Valid() && bDeleteIt ) {
+				::DeleteObject( hFont );
+			}
+			bDeleteIt = false;
+			hFont = NULL;
+		}
+
+		inline BOOL							Valid() const { return Valid( hFont ); }
+
+		static inline  BOOL					Valid( HFONT _hFont ) { return _hFont != NULL; }
+
+
+		// == Members.
+		HFONT								hFont = NULL;
+		bool								bDeleteIt = false;
+	};
+
+	struct LSW_HPEN {
+		LSW_HPEN( int _iStyle, int _cWidth, COLORREF _cColor ) : hPen( ::CreatePen( _iStyle, _cWidth, _cColor & RGB( 0xFF, 0xFF, 0xFF ) ) ) {}
+		~LSW_HPEN() {
+			Reset();
+		}
+
+		LSW_HPEN &							operator = ( HPEN &_hFont ) {
+			Reset();
+			hPen = _hFont;
+			_hFont = NULL;
+			return (*this);
+		}
+
+
+		// == Functions.
+		HPEN								CreatePen( int _iStyle, int _cWidth, COLORREF _cColor ) {
+			Reset();
+			hPen = ::CreatePen( _iStyle, _cWidth, _cColor & RGB( 0xFF, 0xFF, 0xFF ) );
+			return hPen;
+		}
+
+		VOID								Reset() {
+			if ( Valid() ) {
+				::DeleteObject( hPen );
+				hPen = NULL;
+			}
+		}
+
+		inline BOOL							Valid() const { return Valid( hPen ); }
+
+		static inline  BOOL					Valid( HPEN _hPen ) { return _hPen != NULL; }
+
+
+		// == Members.
+		HPEN								hPen = NULL;
+	};
+
 	struct LSW_HMODULE {
 		LSW_HMODULE() : hHandle( NULL ) {}
 		LSW_HMODULE( LPCSTR _sPath ) :
@@ -192,6 +271,17 @@ namespace lsw {
 		}
 		~LSW_HMODULE() {
 			Reset();
+		}
+
+
+		// == Operators.
+		LSW_HMODULE &						operator = ( LSW_HMODULE && _hOther ) {
+			if ( this != &_hOther ) {
+				Reset();
+				hHandle = _hOther.hHandle;
+				_hOther.hHandle = NULL;
+			}
+			return (*this);
 		}
 
 
@@ -296,16 +386,19 @@ namespace lsw {
 		LSW_SELECTOBJECT( HDC _hDc, HGDIOBJ _hgdioObj, bool _bDeleteNewObjAfter = false ) :
 			hDc( _hDc ),
 			hCur( _hgdioObj ),
-			hPrev( ::SelectObject( _hDc, _hgdioObj ) ),
+			hPrev( NULL ),
 			bDeleteAfter( _bDeleteNewObjAfter ) {
+
+			if ( _hgdioObj ) {
+				hPrev = ::SelectObject( _hDc, _hgdioObj );
+			}
 		}
 		~LSW_SELECTOBJECT() {
-			if ( bDeleteAfter ) {
+			if ( hPrev ) {
 				::SelectObject( hDc, hPrev );
-				::DeleteObject( hCur );
 			}
-			else {
-				::SelectObject( hDc, hPrev );
+			if ( bDeleteAfter && NULL != hCur ) {
+				::DeleteObject( hCur );
 			}
 		}
 
@@ -313,6 +406,19 @@ namespace lsw {
 		HGDIOBJ								hCur;
 		HGDIOBJ								hPrev;
 		bool								bDeleteAfter;
+	};
+
+	struct LSW_HDC {
+		LSW_HDC( HWND _hWnd ) :
+			hWnd( _hWnd ),
+			hDc( ::GetDC( _hWnd ) ) {
+		}
+		~LSW_HDC() {
+			if ( hDc ) { ::ReleaseDC( hWnd, hDc ); }
+		}
+
+		HWND								hWnd;
+		HDC									hDc;
 	};
 
 	struct LSW_BEGINPAINT {
@@ -770,6 +876,24 @@ namespace lsw {
 
 	class CHelpers {
 	public :
+		// == Enumerations.
+		/** Mask for DrawRectOutlineMasked(). */
+		enum LSW_RECT_SIDE {
+			LSW_RS_TOP		= 1U << 0,
+			LSW_RS_LEFT		= 1U << 1,
+			LSW_RS_BOTTOM	= 1U << 2,
+			LSW_RS_RIGHT	= 1U << 3,
+		};
+
+
+		// == Types.
+		/** Location of a found menu item. */
+		struct LSW_MENU_LOC {
+			HMENU							hMenu;					/**< The HMENU that directly owns the item. */
+			UINT							uPos;					/*< The zero-based position within hMenu. */
+		};
+
+		// == Functions.
 		/**
 		 * Aligns a WORD pointer to a 4-byte address.
 		 *
@@ -972,8 +1096,6 @@ namespace lsw {
 			return RGB( bR, bG, bB );
 		}
 
-		
-
 		/**
 		 * \brief Chooses black or white text for best contrast against a given background color.
 		 *
@@ -984,6 +1106,66 @@ namespace lsw {
 			const int iY = ( (GetRValue( _crBack ) * 299) + (GetGValue( _crBack ) * 587) + (GetBValue( _crBack ) * 114) ) / 1000;
 			return iY >= 140 ? RGB( 0, 0, 0 ) : RGB( 255, 255, 255 );
 		}
+
+		/**
+		 * Draw a 1-pixel outline around a rectangle according to a side mask.
+		 *
+		 * \brief
+		 * Renders individual 1-pixel strokes for the rectangle's top, left, bottom, and/or right
+		 * edges based on a 4-bit mask. Each bit enables one side: bit 0 = top, bit 1 = left,
+		 * bit 2 = bottom, bit 3 = right. Uses FillRect with a solid brush for pixel-exact lines.
+		 *
+		 * \param _hDc The destination device context.
+		 * \param _rcRect The target rectangle in client coordinates.
+		 * \param _uiMask The side mask: LSW_RS_TOP(1), LSW_RS_LEFT(2), LSW_RS_BOTTOM(4), LSW_RS_RIGHT(8).
+		 * \param _crColor The outline color (COLORREF).
+		 */
+		static void							DrawRectOutlineMasked( HDC _hDc, const RECT &_rcRect, UINT _uiMask, COLORREF _crColor ) {
+			// Nothing to draw if empty.
+			if ( _rcRect.right <= _rcRect.left || _rcRect.bottom <= _rcRect.top || !_uiMask ) { return; }
+			
+
+			RECT rTmp;
+			auto hBrush = lsw::CBase::BrushCache().Brush( static_cast<COLORREF>((_crColor) & RGB( 0xFF, 0xFF, 0xFF )) );
+			if ( !hBrush ) { return; }
+
+			// Top: [left, top, right, top+1).
+			if ( _uiMask & LSW_RS_TOP ) {
+				rTmp.left = _rcRect.left;
+				rTmp.top = _rcRect.top;
+				rTmp.right = _rcRect.right;
+				rTmp.bottom = _rcRect.top + 1;
+				::FillRect( _hDc, &rTmp, hBrush );
+			}
+
+			// Left: [left, top, left+1, bottom).
+			if ( _uiMask & LSW_RS_LEFT ) {
+				rTmp.left = _rcRect.left;
+				rTmp.top = _rcRect.top;
+				rTmp.right = _rcRect.left + 1;
+				rTmp.bottom = _rcRect.bottom;
+				::FillRect( _hDc, &rTmp, hBrush );
+			}
+
+			// Bottom: [left, bottom-1, right, bottom).
+			if ( _uiMask & LSW_RS_BOTTOM ) {
+				rTmp.left = _rcRect.left;
+				rTmp.top = _rcRect.bottom - 1;
+				rTmp.right = _rcRect.right;
+				rTmp.bottom = _rcRect.bottom;
+				::FillRect( _hDc, &rTmp, hBrush );
+			}
+
+			// Right: [right-1, top, right, bottom).
+			if ( _uiMask & LSW_RS_RIGHT ) {
+				rTmp.left = _rcRect.right - 1;
+				rTmp.top = _rcRect.top;
+				rTmp.right = _rcRect.right;
+				rTmp.bottom = _rcRect.bottom;
+				::FillRect( _hDc, &rTmp, hBrush );
+			}
+		}
+
 
 		/**
 		 * Gets the average character width for the font set on the given HDC.
@@ -1015,6 +1197,23 @@ namespace lsw {
 			std::memset( const_cast<strtype::value_type *>(wBuffer.data()), 0, wBuffer.size() * sizeof( strtype::value_type ) );
 
 			return sResult;
+		}
+
+		/**
+		 * Measure a set of characters and return the maximum advance width.
+		 *
+		 * \param _hDc The HDC on which to measure the characters. The caller is responsible for selecting the desired font.
+		 * \param _pwszChars A null-terminated string containing the characters to measure.
+		 * \return Returns the maximum pixel width among all characters in the string when rendered to the given HDC.
+		 */
+		static int							MeasureMax( HDC _hDc, const wchar_t * _pwszChars ) {
+			SIZE sThis {};
+			int iMax = 0;
+			for ( const wchar_t * pwcP = _pwszChars; *pwcP; ++pwcP ) {
+				::GetTextExtentPoint32W( _hDc, pwcP, 1, &sThis );
+				if ( sThis.cx > iMax ) { iMax = sThis.cx; }
+			}
+			return iMax;
 		}
 
 		/**
@@ -1055,6 +1254,18 @@ namespace lsw {
 			if ( ::GetKeyNameTextW( _uiKey, szBufText, LSW_ELEMENTS( szBufText ) ) ) {
 				wsRet += szBufText;
 			}
+			else {
+				// Fallbacks: function keys or hex VK.
+				if ( _uiKey >= VK_F1 && _uiKey <= VK_F24 ) {
+					wsRet = L"F" + std::to_wstring( _uiKey - VK_F1 + 1 );
+				}
+				else {
+					wchar_t wfb[16] = {};
+					::wsprintfW( wfb, L"VK_%02X", static_cast<unsigned>(_uiKey) );
+					wsRet = wfb;
+				}
+			}
+
 			return wsRet;
 		}
 
@@ -1100,6 +1311,47 @@ namespace lsw {
 		}
 
 		/**
+		 * \brief Converts an ACCEL into a printable shortcut using ScanCodeToString() and ModifierToString().
+		 *
+		 * Handles both FVIRTKEY (VK-based) and character accelerators. Modifiers come from fVirt.
+		 */
+		static std::wstring					AccelToPrintable( const ACCEL &_aAccelerator, bool _bIgnoreLeftRight = true ) {
+			std::wstring wsOut;
+
+			if ( _aAccelerator.fVirt & FCONTROL ) {
+				if ( !wsOut.empty() ) { wsOut += L"+"; }
+				ModifierToString( VK_CONTROL, wsOut, _bIgnoreLeftRight );
+			}
+			if ( _aAccelerator.fVirt & FALT ) {
+				if ( !wsOut.empty() ) { wsOut += L"+"; }
+				ModifierToString( VK_MENU, wsOut, _bIgnoreLeftRight );
+			}
+			if ( _aAccelerator.fVirt & FSHIFT ) {
+				if ( !wsOut.empty() ) { wsOut += L"+"; }
+				ModifierToString( VK_SHIFT, wsOut, _bIgnoreLeftRight );
+			}
+
+			if ( !wsOut.empty() ) { wsOut += L"+"; }
+
+			if ( _aAccelerator.fVirt & FVIRTKEY ) {
+				UINT uiScan = ::MapVirtualKeyW( _aAccelerator.key, MAPVK_VK_TO_VSC_EX );
+				UINT uiExt  = (uiScan & 0x0100) ? KF_EXTENDED : 0;
+				std::wstring wsKey = ScanCodeToString( (uiScan | uiExt) << 16 );
+				wsOut += wsKey;
+			}
+			else {
+				// Character accelerator (ASCII). Show the character itself.
+				wchar_t wcTmp = static_cast<wchar_t>(_aAccelerator.key);
+				// Win32, locale-aware:
+				::CharUpperBuffW( &wcTmp, 1 );
+				wchar_t wszTmpBuffer[2] = { wcTmp, 0 };
+				wsOut += wcTmp;
+			}
+
+			return wsOut;
+		}
+
+		/**
 		 * Gathers the menu ID's into an array.
 		 *
 		 * \param _hMenu The menu whose ID's are to be gathered.
@@ -1135,6 +1387,33 @@ namespace lsw {
 					}
 				}
 			}
+		}
+
+		/**
+		 * \brief Recursively find a menu item by command ID anywhere under _hMenu.
+		 *
+		 * \param _hMenu The root to search (e.g., GetMenu( hWnd )).
+		 * \param _uId The command ID to find.
+		 * \param _mlOut Locates the owning HMENU and position on success.
+		 * \return Returns true if found.
+		 */
+		static bool							FindMenuItemById( HMENU _hMenu, UINT _uId, LSW_MENU_LOC &_mlOut ) {
+			const int iCount = ::GetMenuItemCount( _hMenu );
+			for ( int I = 0; I < iCount; ++I ) {
+				const UINT uId = ::GetMenuItemID( _hMenu, I );
+				if ( uId == _uId ) {
+					_mlOut.hMenu = _hMenu;
+					_mlOut.uPos = static_cast<UINT>(I);
+					return true;
+				}
+				// If this position is a popup, recurse.
+				if ( uId == static_cast<UINT>(-1) ) {
+					if ( HMENU hSub = ::GetSubMenu( _hMenu, I ) ) {
+						if ( FindMenuItemById( hSub, _uId, _mlOut ) ) { return true; }
+					}
+				}
+			}
+			return false;
 		}
 
 		/**

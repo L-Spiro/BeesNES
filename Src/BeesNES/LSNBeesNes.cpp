@@ -182,6 +182,10 @@ namespace lsn {
 		m_psbSystems[LSN_PM_PALM] = &m_nsPalMSystem;
 		m_psbSystems[LSN_PM_PALN] = &m_nsPalNSystem;
 
+		for ( uint32_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
+		}
+		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL]
+
 
 		m_psbSystem = m_psbSystems[m_pmSystem];
 
@@ -261,6 +265,12 @@ namespace lsn {
 					uint32_t ui32Version = 0;
 					if ( !sStream.Read( ui32Version ) ) { return false; }
 					if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
+
+					for ( size_t I = 0; I < LSN_ELEMENTS( Options().poThisGamePalette ); ++I ) {
+						Options().poThisGamePalette[I] = Options().poGlobalPalettes[I];
+						Options().poThisGamePalette[I].bUseGlobal = true;
+						if ( !LoadPaletteSettings( ui32Version, sStream, Options().poThisGamePalette[I] ) ) { return false; }
+					}
 					return true;
 				}
 			}
@@ -280,6 +290,10 @@ namespace lsn {
 		uint32_t ui32Version = 0;
 		if ( !sStream.Write( ui32Version ) ) { return false; }
 		if ( !SaveAudioSettings( sStream, Options().aoThisGameAudioOptions ) ) { return false; }
+
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poThisGamePalette ); ++I ) {
+			if ( !SavePaletteSettings( sStream, Options().poThisGamePalette[I] ) ) { return false; }
+		}
 
 		CStdFile sfFile;
 		if ( !sfFile.Create( _u16Path.c_str() ) ) { return false; }
@@ -494,12 +508,36 @@ namespace lsn {
 
 			m_psbSystem->SetRawStream( Options().stfStreamOptionsRaw.bEnabled ? &m_wfRawStream : nullptr );
 			m_psbSystem->SetOutStream( Options().stfStreamOptionsOutCapture.bEnabled ? &m_wfOutStream : nullptr );
-			
 		}
 
 		if ( m_u16PerGameSettings.size() ) {
 			SavePerGameSettings( m_u16PerGameSettings );
 		}
+	}
+
+	/**
+	 * Applies the current palette.
+	 **/
+	void CBeesNes::ApplyPaletteOptions() {
+		LSN_PALETTE_OPTIONS poOptions = Options().poThisGamePalette[m_pmSystem].bUseGlobal ? Options().poGlobalPalettes[m_pmSystem] : Options().poThisGamePalette[m_pmSystem];
+
+		if ( m_psbSystem ) {
+		}
+	}
+
+	/**
+	 * Gets the default folder for palettes.
+	 * 
+	 * \return Returns the default folder where default palettes can be found.
+	 **/
+	std::wstring CBeesNes::DefaultPaletteFolder() const {
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 ); 
+		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+		return wsRoot + L"Palettes\\";
 	}
 
 	/**
@@ -605,6 +643,10 @@ namespace lsn {
 		
 		if ( !LoadWavEditorWindowSettings( ui32Version, _sFile, m_oOptions.wewoWavEditorWindow ) ) { return false; }
 
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poGlobalPalettes ); ++I ) {
+			if ( !LoadPaletteSettings( ui32Version, _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
+		}
+
 		return true;
 	}
 
@@ -658,6 +700,11 @@ namespace lsn {
 #endif	// #ifdef LSN_WINDOWS
 		
 		if ( !SaveWavEditorWindowSettings( _sFile, m_oOptions.wewoWavEditorWindow ) ) { return false; }
+
+		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poGlobalPalettes ); ++I ) {
+			if ( !SavePaletteSettings( _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
+		}
+		
 		return true;
 	}
 
@@ -1041,6 +1088,41 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( _wewoOptions.wsLastProjectsFolder ) ) { return false; }
 
 		if ( !_sFile.Write( pfTmp.bSunsoft5b ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads palette settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _poOptions The palette settings into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions ) {
+		_poOptions = LSN_PALETTE_OPTIONS();
+
+		if ( !_sFile.ReadStringU16( _poOptions.wsPath ) ) { return false; }
+		if ( !_sFile.Read( _poOptions.gCrtGamma ) ) { return false; }
+		if ( !_sFile.Read( _poOptions.gMonitorGamma ) ) { return false; }
+		if ( !_sFile.Read( _poOptions.bUseGlobal ) ) { return false; }
+		return false;
+	}
+
+	/**
+	 * Saves palette settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _poOptions The palette settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SavePaletteSettings( CStream &_sFile, const LSN_PALETTE_OPTIONS &_poOptions ) {
+		LSN_PALETTE_OPTIONS poTmp = LSN_PALETTE_OPTIONS();
+
+		if ( !_sFile.WriteStringU16( poTmp.wsPath ) ) { return false; }
+		if ( !_sFile.Write( poTmp.gCrtGamma ) ) { return false; }
+		if ( !_sFile.Write( poTmp.gMonitorGamma ) ) { return false; }
+		if ( !_sFile.Write( poTmp.bUseGlobal ) ) { return false; }
 		return true;
 	}
 

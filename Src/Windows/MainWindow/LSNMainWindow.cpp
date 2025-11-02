@@ -88,6 +88,25 @@ namespace lsn {
 			//bool bLoaded = dx9dDevice.Create( Wnd(), "" );
 		}
 #endif
+
+		// Palettes.
+		//LSN_PALETTE_OPTIONS poPalettes[LSN_PM_CONSOLE_TOTAL] = {
+		//	//wsPath						gCrtGamma							gMonitorGamma
+		//	{ std::wstring(),				CNesPalette::LSN_G_CRT1,			CNesPalette::LSN_G_sRGB },				// LSN_PM_NTSC
+		//	{ std::wstring(),				CNesPalette::LSN_G_CRT1,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PAL
+		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_DENDY
+		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PALM
+		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PALN
+		//};
+		//std::memcpy( m_poPalettes, poPalettes, sizeof( poPalettes ) );
+		/*m_poPalettes[LSN_PM_NTSC].wsPath = DefaultNtscPalette();
+		m_poPalettes[LSN_PM_PAL].wsPath = DefaultPalPalette();
+		m_poPalettes[LSN_PM_DENDY].wsPath = DefaultPalPalette();
+		m_poPalettes[LSN_PM_DENDY].gCrtGamma = CNesPalette::LSN_G_CRT2;
+		m_poPalettes[LSN_PM_PALM].wsPath = DefaultPalPalette();
+		m_poPalettes[LSN_PM_PALM].gCrtGamma = CNesPalette::LSN_G_CRT2;
+		m_poPalettes[LSN_PM_PALN].wsPath = DefaultPalPalette();
+		m_poPalettes[LSN_PM_PALN].gCrtGamma = CNesPalette::LSN_G_CRT2;*/
 		
 		/*static const struct {
 			LPCWSTR				lpwsImageName;
@@ -254,6 +273,12 @@ namespace lsn {
 			LSW_RECT rScreen = FinalWindowRect();
 			::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 		}
+
+
+		// TEST.
+#ifdef LSN_DX9
+		CreateDx9();
+#endif	// #ifdef LSN_DX9
 
 		return LSW_H_CONTINUE;
 	}
@@ -567,7 +592,15 @@ namespace lsn {
 		return LSW_H_CONTINUE;
 	}
 
-	// WM_NCDESTROY.
+	/**
+	 * Handles WM_NCDESTROY.
+	 * \brief Final cleanup after the non-client area is destroyed.
+	 *
+	 * This is the last message a window receives. Use to clear pointers stored in GWLP_USERDATA
+	 * and to finalize per-window allocations.
+	 *
+	 * \return Returns LSW_H_CONTINUE to allow default processing; return LSW_H_HANDLED to stop it.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
 		StopThread();
 		if ( m_bnEmulator.GetSystem()->IsRomLoaded() ) {
@@ -588,11 +621,22 @@ namespace lsn {
 		if ( !m_wpPlacement.bInBorderless ) {
 			::GetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
 		}
+#ifdef LSN_DX9
+		DestroyDx9();
+#endif	// #ifdef LSN_DX9
 		::PostQuitMessage( 0 );
 		return LSW_H_CONTINUE;
 	}
 
-	// WM_GETMINMAXINFO.
+	/**
+	 * Handles WM_GETMINMAXINFO.
+	 * \brief Provides minimum/maximum tracking sizes.
+	 *
+	 * Override to fill *(_pmmiInfo) with size constraints.
+	 *
+	 * \param _pmmiInfo Pointer to a MINMAXINFO structure to populate.
+	 * \return Returns a LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::GetMinMaxInfo( MINMAXINFO * _pmmiInfo ) {
 		{
 			// Minimum.
@@ -616,9 +660,53 @@ namespace lsn {
 		return LSW_H_HANDLED;
 	}
 
-	// WM_PAINT.
+	/**
+	 * Handles WM_PAINT.
+	 * \brief Performs painting for the client area.
+	 *
+	 * \return Returns a LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
+
+#ifdef LSN_DX9
+		// ==== DX9 path (if initialized) ==== //
+		if ( m_bUseDx9 ) {
+			// If the device is lost, try to recover (non-blocking).
+			if ( !m_dx9Device.HandleDeviceLoss( this ) ) {
+				return LSW_H_HANDLED;   // Skip this frame.
+			}
+			LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
+
+			// Simple flashing clear (change every call; tie to Swap()/Redraw cadence).
+			m_ui8Flash++;
+			// Rotate through RGB a bit for visual confirmation.
+			const uint8_t ui8R = static_cast<uint8_t>(m_ui8Flash * 7U);
+			const uint8_t ui8G = static_cast<uint8_t>(m_ui8Flash * 3U);
+			const uint8_t ui8B = static_cast<uint8_t>(m_ui8Flash * 11U);
+			const DWORD dwColor = D3DCOLOR_XRGB( ui8R, ui8G, ui8B );
+
+			// Prefer wrapper helpers if present; otherwise fall back to raw device.
+			if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
+				// Clear backbuffer (and Z if attached).
+				pd3d->Clear( 0, nullptr, D3DCLEAR_TARGET /*| D3DCLEAR_ZBUFFER*/, dwColor, 1.0f, 0 );
+				const HRESULT hrBegin = pd3d->BeginScene();
+				if ( SUCCEEDED( hrBegin ) ) {
+					// No geometry; just show the clear.
+					pd3d->EndScene();
+				}
+				// Present to the main window. Handle device loss on failure.
+				LSW_RECT rRect = VirtualClientRect( nullptr );
+				const HRESULT hrPresent = pd3d->Present( nullptr, &rRect, nullptr, nullptr );
+				if ( FAILED( hrPresent ) ) {
+					m_dx9Device.HandleDeviceLoss( this );
+				}
+			}
+			return LSW_H_HANDLED;
+		}
+#endif	// #ifdef LSN_DX9
+
+
 		//::SetThreadHighPriority();
 
 		LSW_BEGINPAINT bpPaint( Wnd() );
@@ -717,7 +805,14 @@ namespace lsn {
 		return LSW_H_HANDLED;
 	}
 
-	// WM_MOVE.
+	/**
+	 * Handles WM_MOVE.
+	 * \brief Notified when the window is moved.
+	 *
+	 * \param _lX New x-position of the window (screen coordinates).
+	 * \param _lY New y-position of the window (screen coordinates).
+	 * \return Returns a LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
 		Tick();
 		return LSW_H_CONTINUE;
@@ -942,6 +1037,8 @@ namespace lsn {
 		//}
 		
 
+
+
 		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
@@ -952,6 +1049,27 @@ namespace lsn {
 			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );*/
 		}
 
+#ifdef LSN_DX9
+		if ( m_bUseDx9 ) {
+			if ( !m_bInLiveResize ) {
+				OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
+			}
+		}
+#endif  // LSN_DX9
+		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * The WM_EXITSIZEMOVE handler.
+	 * 
+	 * \return Returns a LSW_HANDLED enumeration.
+	 **/
+	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
+#ifdef LSN_DX9
+		if ( m_bInLiveResize ) {
+			OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
+		}
+#endif	// #ifdef LSN_DX9
 		return LSW_H_HANDLED;
 	}
 
@@ -1396,14 +1514,19 @@ namespace lsn {
 	 * \return Returns the virtual client rectangle of this object or of the optional child object.
 	 */
 	const lsw::LSW_RECT CMainWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
-		LSW_RECT rTemp = ClientRect( this );
-		const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
-		if ( plvRebar ) {
-			LSW_RECT rRebar = plvRebar->ClientRect( this );
-			rTemp.top += rRebar.Height();
-		}
+		if ( !m_bMaximized ) {
+			LSW_RECT rTemp = ClientRect( this );
+			const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+			if ( plvRebar ) {
+				LSW_RECT rRebar = plvRebar->ClientRect( this );
+				rTemp.top += rRebar.Height();
+			}
 
-		rTemp.bottom -= m_rStatusBarRect.Height();
+			rTemp.bottom -= m_rStatusBarRect.Height();
+			return rTemp;
+		}
+		LSW_RECT rTemp = WindowRect( this );
+		rTemp.MoveBy( -rTemp.left, -rTemp.top );
 		return rTemp;
 	}
 
@@ -1424,6 +1547,83 @@ namespace lsn {
 	const lsw::CStatusBar * CMainWindow::StatusBar() const {
 		return static_cast<const lsw::CStatusBar *>(FindChild( CMainWindowLayout::LSN_MWI_STATUSBAR ));
 	}
+
+#ifdef LSN_DX9
+	/**
+	 * \brief Initializes the DirectX 9 device for this window.
+	 * 
+	 * Dynamically loads d3d9.dll via the DX9 wrapper and creates a device bound to this HWND.
+	 * Call once (e.g., after the window is created) and, if successful, the Paint() path will
+	 * render using DirectX 9 instead of the software blitter.
+	 *
+	 * \return Returns true if the DX9 device was created and is ready.
+	 **/
+	bool CMainWindow::CreateDx9() {
+		// Let the wrapper decide dynamic availability; Supported() will check for d3d9.dll.
+		if ( !CDirectX9::Supported() ) {
+			m_bUseDx9 = false;
+			return false;
+		}
+		// Create with default adapter and no special device string.
+		m_bUseDx9 = m_dx9Device.Create( this, "" );
+		// Optional: seed the flash so first Paint() shows a change.
+		m_ui8Flash = 0;
+
+		if ( m_bUseDx9 ) {
+			m_upDx9PaletteRender = std::make_unique<CDirectX9NesPresenter>( &m_dx9Device );
+			if ( !m_upDx9PaletteRender.get() ) {
+				DestroyDx9();
+				return false;
+			}
+			auto rWinSize = VirtualClientRect( nullptr );
+			m_upDx9PaletteRender->SetScanlineFactor( 2 );
+			if ( !m_upDx9PaletteRender->Init( uint32_t( rWinSize.Width() ), uint32_t( rWinSize.Height() ), true ) ) {
+				DestroyDx9();
+				return false;
+			}
+		}
+		return m_bUseDx9;
+	}
+
+	/**
+	 * Destroys the DirectX 9 device and all filters.
+	 **/
+	void CMainWindow::DestroyDx9() {
+		m_bUseDx9 = false;
+		m_upDx9PaletteRender.reset();
+		m_dx9Device.Reset();
+	}
+
+	/**
+	 * \brief Resizes the DX9 backbuffer and reinitializes size-dependent presenter resources.
+	 *
+	 * Updates cached D3DPRESENT_PARAMETERS with the new client size and resets the device.
+	 * Then re-initializes the presenter so its DEFAULT-pool resources (index/LUT targets, VBs)
+	 * are recreated against the new device state.
+	 *
+	 * \param _ui32ClientW New client width in pixels.
+	 * \param _ui32ClientH New client height in pixels.
+	 * \return True on success; false if the DX9 path is disabled or reset failed.
+	 */
+	bool CMainWindow::OnSizeDx9( uint32_t /*_ui32ClientW*/, uint32_t /*_ui32ClientH*/ ) {
+		if ( !m_bUseDx9 ) { return false; }
+
+		if ( !m_dx9Device.ResetForWindowSize( this ) ) {
+			// Disable DX9; Paint() will fall back to software.
+			m_bUseDx9 = false;
+			return false;
+		}
+
+		// Rebuild presenter size-dependent resources.
+		if ( m_upDx9PaletteRender ) {
+			// Use your NES source dims here (examples: 256x240). Keep them as members if dynamic.
+			const uint32_t ui32SrcW = 256;
+			const uint32_t ui32SrcH = 240;
+			m_upDx9PaletteRender->Init( ui32SrcW, ui32SrcH, /*use16f=*/true );
+		}
+		return true;
+	}
+#endif	// #ifdef LSN_DX9
 
 	/**
 	 * Gets the window rectangle for correct output at a given scale and ratio.
@@ -1472,6 +1672,7 @@ namespace lsn {
 	 * \param _bIsProbablyFloat When the size alone is not enough to determine the palette type, this is used to make the decision.
 	 * \param _bApplySrgb If true, an sRGB curve is applied to the loaded palette.
 	 */
+#if 0
 	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette, bool _bIsProbablyFloat, bool _bApplySrgb ) {
 #if 1
 		if ( !m_bnEmulator.GetSystem() ) { return; }
@@ -1549,6 +1750,7 @@ namespace lsn {
 		}
 #endif	// 1
 	}
+#endif		// #if 0
 
 	/**
 	 * Loads a ROM given its in-memory image and its file name.
@@ -1647,30 +1849,6 @@ namespace lsn {
 	}
 
 	/**
-	 * Loads a 64- or 512- entry 8-bit palette into a 512-entry floating-point palette.
-	 * 
-	 * \param _vPalFile The loaded palette file raw bytes.
-	 * \return Returns a vector of 512 RGB 64-floats representing the colors of a palette.
-	 **/
-	std::vector<CMainWindow::Double3> CMainWindow::Load8bitPalette_64_512( const std::vector<uint8_t> &_vPalFile ) {
-		std::vector<Double3> vRet;
-		try {
-			vRet.resize( 512 );
-			if ( !_vPalFile.size() ) { return vRet; }
-			for ( size_t I = 0; I < 512; ++I ) {
-				const uint8_t * pui8ThisSrc = reinterpret_cast<const uint8_t *>(&_vPalFile[(I*sizeof(uint8_t)*3)%_vPalFile.size()]);
-				vRet[I].x[0] = pui8ThisSrc[0] / 255.0;
-				vRet[I].x[1] = pui8ThisSrc[1] / 255.0;
-				vRet[I].x[2] = pui8ThisSrc[2] / 255.0;
-			}
-		}
-		catch ( ... ) {
-			return std::vector<Double3>();
-		}
-		return vRet;
-	}
-
-	/**
 	 * Call when changing the m_psbSystem pointer to hook everything (display client, input polling, etc.) back up to the new system.
 	 * 
 	 * \param _bMoveWindow If true, te window is resized.
@@ -1680,41 +1858,44 @@ namespace lsn {
 			m_pdcClient = m_bnEmulator.GetDisplayClient();
 
 			UpdateRatio();
-
 			{
-				std::wstring wsBuffer;
-				const DWORD dwSize = 0xFFFF;
-				wsBuffer.resize( dwSize + 1 ); 
-				::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
-				PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
-				std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
-				//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
-				//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
-				std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
-					//wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
-					wsRoot + L"Palettes\\2C07_wiki.pal" :
-					//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
-					//wsRoot + L"Palettes\\savtool_replica_float.pal";
-					wsRoot + L"Palettes\\2C02G_wiki.pal";
-				lsn::CStdFile sfFile;
-				if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
-					bool bTheyMightBeGiantFloats = false;
-					bool bTheyMightNeedBeSrgb = false;
-					std::u16string s16Tmp = CUtilities::ToLower( CUtilities::GetFileName( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) );
-
-					if ( CUtilities::ToLower( CUtilities::GetFileExtension( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) == u"fpal" || s16Tmp.find( u"float", 0 ) < s16Tmp.size() ) {
-						bTheyMightBeGiantFloats = true;
-					}
-
-					if ( s16Tmp.find( u"applysrgb", 0 ) < s16Tmp.size() ) {
-						bTheyMightNeedBeSrgb = true;
-					}
-					std::vector<uint8_t> vPal;
-					if ( sfFile.LoadToMemory( vPal ) ) {
-						SetPalette( vPal, bTheyMightBeGiantFloats, bTheyMightNeedBeSrgb );
-					}
-				}
+				// Set the desired palette.
 			}
+
+			//{
+			//	std::wstring wsBuffer;
+			//	const DWORD dwSize = 0xFFFF;
+			//	wsBuffer.resize( dwSize + 1 ); 
+			//	::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+			//	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+			//	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+			//	//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
+			//	//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
+			//	std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
+			//		//wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
+			//		wsRoot + L"Palettes\\2C07_wiki.pal" :
+			//		//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
+			//		//wsRoot + L"Palettes\\savtool_replica_float.pal";
+			//		wsRoot + L"Palettes\\2C02G_wiki.pal";
+			//	lsn::CStdFile sfFile;
+			//	if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
+			//		bool bTheyMightBeGiantFloats = false;
+			//		bool bTheyMightNeedBeSrgb = false;
+			//		std::u16string s16Tmp = CUtilities::ToLower( CUtilities::GetFileName( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) );
+
+			//		if ( CUtilities::ToLower( CUtilities::GetFileExtension( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) == u"fpal" || s16Tmp.find( u"float", 0 ) < s16Tmp.size() ) {
+			//			bTheyMightBeGiantFloats = true;
+			//		}
+
+			//		if ( s16Tmp.find( u"applysrgb", 0 ) < s16Tmp.size() ) {
+			//			bTheyMightNeedBeSrgb = true;
+			//		}
+			//		std::vector<uint8_t> vPal;
+			//		if ( sfFile.LoadToMemory( vPal ) ) {
+			//			SetPalette( vPal, bTheyMightBeGiantFloats, bTheyMightNeedBeSrgb );
+			//		}
+			//	}
+			//}
 
 
 			if ( _bMoveWindow && !m_bMaximized ) {
@@ -1763,12 +1944,16 @@ namespace lsn {
 				vMenu.size(),
 				vMenu.data()
 			};
-			HMENU hThis = lsw::CBase::LayoutManager()->CreateMenu( &miMenus, 1 );
+			std::vector<ACCEL> vHotkeys;
+			HMENU hThis = lsw::CBase::LayoutManager()->CreateMenu( &miMenus, 1, vHotkeys );
 			//if ( !::ModifyMenuW( hMenu, CMainWindowLayout::LSN_MWMI_OPENRECENT, MF_BYCOMMAND | MF_POPUP | MF_STRING,
 			//	reinterpret_cast<UINT_PTR>(hThis), LSN_LSTR( LSN_OPEN_REC_ENT ) ) ) {
 			if ( ::InsertMenuW( hMenu, 1, MF_BYPOSITION | MF_POPUP | MF_STRING,
 				reinterpret_cast<UINT_PTR>(hThis), LSN_LSTR( LSN_OPEN_REC_ENT ) ) ) {
 				::DestroyMenu( hThis );
+				if ( vHotkeys.size() ) {
+					CBase::GetAccelHandler().CreateAndRegister( Wnd(), vHotkeys.data(), int( vHotkeys.size() ) );
+				}
 			}
 			return;
 		}

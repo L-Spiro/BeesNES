@@ -213,6 +213,12 @@
     <Filter Include="Source Files\TrackBar">
       <UniqueIdentifier>{41d97d56-826d-44e3-8fd6-71913660be64}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Fonts">
+      <UniqueIdentifier>{bd4a2964-0424-48e4-97b8-2663468359e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Fonts">
+      <UniqueIdentifier>{54d16667-5f8a-443f-a181-01c7c1dd1a8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -356,6 +362,15 @@
     <ClInclude Include="Src\Button\LSWColorButton.h">
       <Filter>Header Files\Button</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Brush\LSWBrushCache.h">
+      <Filter>Header Files\Brush</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Fonts\LSWFonts.h">
+      <Filter>Header Files\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Base\LSWAccelRouter.h">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Base\LSWBase.cpp">
@@ -471,6 +486,9 @@
     </ClCompile>
     <ClCompile Include="Src\Button\LSWColorButton.cpp">
       <Filter>Source Files\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Fonts\LSWFonts.cpp">
+      <Filter>Source Files\Fonts</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

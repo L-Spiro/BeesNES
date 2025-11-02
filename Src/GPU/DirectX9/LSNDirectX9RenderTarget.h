@@ -16,6 +16,9 @@
 #include "LSNDirectX9.h"
 #include "LSNDirectX9Device.h"
 #include "LSNDirectX9LosableResource.h"
+#include "LSNDirectX9Texture.h"
+
+#include <memory>
 
 namespace lsn {
 
@@ -49,6 +52,30 @@ namespace lsn {
 		 * Resets everything to scratch.
 		 */
 		void													Reset();
+
+		/**
+		 * \brief Returns the underlying level-0 surface (AddRef()'d). Caller must Release().
+		 * 
+		 * \return Returns a valid IDirect3DSurface9* on success, or nullptr.
+		 */
+		IDirect3DSurface9 *										GetSurface() const;
+
+		/**
+		 * \brief Gets the texture wrapper if this render target was created as a texture RT.
+		 * 
+		 * \return Returns the color target texture wrapper, or nullptr if not a texture RT.
+		 */
+		inline CDirectX9Texture *								Texture() { return m_ptColorTex.get(); }
+
+		/**
+		 * \brief Creates a color render target as a 2-D texture (level 0), storing both the surface and the texture.
+		 *
+		 * \param _uiWidth Width in pixels.
+		 * \param _uiHeight Height in pixels.
+		 * \param _fFormat Floating-point or RGBA format (e.g., LSN_D3DFMT_A16B16G16R16F).
+		 * \return Returns true on success.
+		 */
+		bool													CreateColorTarget( UINT _uiWidth, UINT _uiHeight, D3DFORMAT _fFormat );
 
 		/**
 		 * Creates a render target.
@@ -95,13 +122,22 @@ namespace lsn {
 		 **/
 		inline IDirect3DSurface9 *								Get() { return m_d3ds9Surface; }
 
+		/**
+		 * \brief Determines whether this render target currently wraps a valid surface.
+		 * 
+		 * \return Returns true if a surface exists.
+		 */
+		inline bool												Valid() const { return m_d3ds9Surface != nullptr; }
+
 
 	protected :
 		// == Members.
 		/** The actual DirectX 9 texture. */
-		IDirect3DSurface9 *										m_d3ds9Surface;
+		IDirect3DSurface9 *										m_d3ds9Surface = nullptr;
 		/** A pointer to the Direct3D 9 device. */
-		CDirectX9Device *										m_pdx9dDevice;
+		CDirectX9Device *										m_pdx9dDevice = nullptr;
+		/** If created as a texture RT, we keep the texture wrapper for later sampling. */
+		std::unique_ptr<CDirectX9Texture>						m_ptColorTex;
 
 	private :
 		typedef CSurface										Parent;

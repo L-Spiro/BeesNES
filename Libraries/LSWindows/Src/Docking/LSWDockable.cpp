@@ -404,7 +404,7 @@ namespace lsw {
 
 
 
-		LOGFONTW lf =  { 0 };
+		LOGFONTW lf = { 0 };
 		lf.lfCharSet = SYMBOL_CHARSET;
 		// Avoiding searchable strings.
 		//::wcscpy_s( lf.lfFaceName, LSW_COUNT_OF( lf.lfFaceName ), L"Webdings" );
@@ -427,10 +427,10 @@ namespace lsw {
 		lf.lfStrikeOut = FALSE;
 		lf.lfUnderline = FALSE;
 		lf.lfPitchAndFamily = VARIABLE_PITCH | FF_ROMAN;
-		HFONT hFont = ::CreateFontIndirectW( &lf );
-
+		lsw::LSW_FONT hFont;// = ::CreateFontIndirectW( &lf );
+		hFont.CreateFontIndirectW( &lf );
 		{
-			LSW_SELECTOBJECT soBrushOrig( bpPaint.hDc, hFont );	// Destructor sets the original brush back.
+			LSW_SELECTOBJECT soBrushOrig( bpPaint.hDc, hFont.hFont );	// Destructor sets the original brush back.
 			ABCFLOAT abcfWidth;
 			::GetCharABCWidthsFloatA( bpPaint.hDc, 'r', 'r', &abcfWidth );
 			INT iCharWidth = static_cast<INT>(abcfWidth.abcfA + abcfWidth.abcfB + abcfWidth.abcfC);
@@ -463,7 +463,7 @@ namespace lsw {
 			rChar.right = rCliRight;
 			::ExtTextOutA( bpPaint.hDc, rChar.left, rChar.top, ETO_OPAQUE | ETO_CLIPPED, &rChar, "", 0, NULL );
 		}
-		::DeleteObject( hFont );
+		//::DeleteObject( hFont );
 
 		return LSW_H_HANDLED;
 	}
@@ -779,7 +779,8 @@ namespace lsw {
 		static const WORD wDotPatternBmp2[] = {
 			0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF
 		};
-		HDC hDc = ::GetDC( NULL );
+
+		lsw::LSW_HDC hDc( NULL );
 		const WORD * pwBitmap = (m_ddrtDragRectType == CDockable::LSW_DDRT_CHECKERED) ? wDotPatternBmp2 : wDotPatternBmp1;
 		INT iBorder = (m_ddrtDragRectType == CDockable::LSW_DDRT_CHECKERED) ? 1 : 3;
 
@@ -787,18 +788,16 @@ namespace lsw {
 		bBitmap.CreateBitmap( 8, 8, 1, 1, pwBitmap );
 		CBrush bBrush;
 		bBrush.CreatePatternBrush( bBitmap );
-		::SetBrushOrgEx( hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top, NULL );
+		::SetBrushOrgEx( hDc.hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top, NULL );
 
-		LSW_SELECTOBJECT soBrushOrig( hDc, bBrush.Handle() );	// Destructor sets the original brush back.
+		LSW_SELECTOBJECT soBrushOrig( hDc.hDc, bBrush.Handle() );	// Destructor sets the original brush back.
 
 		LONG lWidth = m_rDragPlacementRect.right - m_rDragPlacementRect.left;
 		LONG lHeight = m_rDragPlacementRect.bottom - m_rDragPlacementRect.top;
-		::PatBlt( hDc, m_rDragPlacementRect.left + iBorder, m_rDragPlacementRect.top, lWidth - iBorder, iBorder, PATINVERT );
-		::PatBlt( hDc, m_rDragPlacementRect.left + lWidth - iBorder, m_rDragPlacementRect.top + iBorder, iBorder, lHeight - iBorder, PATINVERT );
-		::PatBlt( hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top + lHeight - iBorder, lWidth - iBorder,  iBorder, PATINVERT );
-		::PatBlt( hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top, iBorder, lHeight - iBorder, PATINVERT );
-
-		::ReleaseDC( 0, hDc );
+		::PatBlt( hDc.hDc, m_rDragPlacementRect.left + iBorder, m_rDragPlacementRect.top, lWidth - iBorder, iBorder, PATINVERT );
+		::PatBlt( hDc.hDc, m_rDragPlacementRect.left + lWidth - iBorder, m_rDragPlacementRect.top + iBorder, iBorder, lHeight - iBorder, PATINVERT );
+		::PatBlt( hDc.hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top + lHeight - iBorder, lWidth - iBorder,  iBorder, PATINVERT );
+		::PatBlt( hDc.hDc, m_rDragPlacementRect.left, m_rDragPlacementRect.top, iBorder, lHeight - iBorder, PATINVERT );
 	}
 
 }	// namespace lsw

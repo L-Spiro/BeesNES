@@ -26,11 +26,16 @@ namespace lsw {
 	// Non-client metrics.
 	NONCLIENTMETRICSW CBase::m_ncmNonClientMetrics = { sizeof( m_ncmNonClientMetrics ) };
 
+	// The accelerator handler.
+	CAccelRouter CBase::m_arAccelRouter;
+
 	// Message-box font.
 	HFONT CBase::m_hMessageFont = NULL;
 
 	// Status font.
 	HFONT CBase::m_hStatusFont = NULL;
+
+	CBrushCache CBase::m_bcBrushes;													/**< Cache of brushes not created via CBrush.  These are intended to be created once and then remain alive throughout the life of the program, being destroyed only at shut-down. */
 
 	// The dockable class.
 	ATOM CBase::m_aDockable = 0;
@@ -54,7 +59,22 @@ namespace lsw {
 	std::wstring CBase::m_wsTreeListViewName;
 
 	// == Functions.
-	// Initialize.
+	/**
+	 * Initializes process-wide UI helpers and registers framework window classes.
+	 * \brief Sets up class atoms, stores the HINSTANCE and layout manager, and registers optional custom classes.
+	 *
+	 * Registers the dockable, splitter, multi-splitter, tree view, tree-list view, and child-window classes
+	 * if names are provided. Safe to call once at startup before any windows are created.
+	 *
+	 * \param _hInst The module instance for this process.
+	 * \param _plmLayoutMan Pointer to the layout manager used by the framework.
+	 * \param _pwcDockableClassName Optional registered class name for dockable windows (nullptr to skip).
+	 * \param _pwcSplitterClassName Optional registered class name for splitter windows (nullptr to skip).
+	 * \param _pwcMultiSplitterClassName Optional registered class name for multi-splitter windows (nullptr to skip).
+	 * \param _pwcTreeViewClassName Optional registered class name for tree-view windows (nullptr to skip).
+	 * \param _pwcTreeListViewClassName Optional registered class name for tree-list view windows (nullptr to skip).
+	 * \param _pwcChildWindowClassName Optional registered class name for generic child windows (nullptr to skip).
+	 */
 	VOID CBase::Initialize( HINSTANCE _hInst, CLayoutManager * _plmLayoutMan,
 		const WCHAR * _pwcDockableClassName,
 		const WCHAR * _pwcSplitterClassName,
@@ -157,7 +177,12 @@ namespace lsw {
 		}
 	}
 
-	// Shut down (frees memory).
+	/**
+	 * Shuts down the UI helpers.
+	 * \brief Frees allocated resources and unregisters state created by Initialize().
+	 *
+	 * Safe to call once during process shutdown after all framework windows are destroyed.
+	 */
 	VOID CBase::ShutDown() {
 		for ( auto it = m_mClasses.begin(); it != m_mClasses.end(); ++it ) {
 			::UnregisterClassW( (*it).second.lpszClassName, (*it).second.hInstance );
@@ -170,9 +195,18 @@ namespace lsw {
 
 		::DeleteObject( m_hStatusFont );
 		::DeleteObject( m_hMessageFont );
+
+		m_bcBrushes.Reset();
+		m_arAccelRouter.Reset();
 	}
 
-	// Wrapper for ::RegisterClassEx().
+	/**
+	 * Registers a window class.
+	 * \brief Thin wrapper around ::RegisterClassExW().
+	 *
+	 * \param _wceClss The WNDCLASSEXW structure describing the class to register.
+	 * \return Returns the ATOM identifying the registered class, or 0 on failure.
+	 */
 	ATOM CBase::RegisterClassExW( const WNDCLASSEXW &_wceClss ) {
 		std::wstring wTemp = _wceClss.lpszClassName;
 		ATOM aPrev = GetRegisteredClassAtom( wTemp );
@@ -186,13 +220,25 @@ namespace lsw {
 		return wceTemp.aAtom;
 	}
 
-	// Gets the ATOM associated with a class registered via RegisterClassExW().
+	/**
+	 * Looks up a class ATOM by its Unicode name.
+	 * \brief Retrieves the atom for a class previously registered via RegisterClassExW().
+	 *
+	 * \param _lpwcClass The Unicode class name to query.
+	 * \return Returns the ATOM for the class, or 0 if not found.
+	 */
 	ATOM CBase::GetRegisteredClassAtom( LPCWSTR _lpwcClass ) {
 		std::wstring wTemp = _lpwcClass;
 		return GetRegisteredClassAtom( wTemp );
 	}
 
-	// Gets the ATOM associated with a class registered via RegisterClassExW().
+	/**
+	 * Looks up a class ATOM by its Unicode name.
+	 * \brief std::wstring overload for GetRegisteredClassAtom().
+	 *
+	 * \param _wsClass The Unicode class name to query.
+	 * \return Returns the ATOM for the class, or 0 if not found.
+	 */
 	ATOM CBase::GetRegisteredClassAtom( const std::wstring &_wsClass ) {
 		auto aThis = m_mClasses.find( _wsClass );
 		if ( aThis != m_mClasses.end() ) {
@@ -201,24 +247,178 @@ namespace lsw {
 		return 0;
 	}
 
-	// Wrapper for ::GetModuleHandleW().
+	/**
+	 * \brief Set 64-bit scrollbar info (wrapper that scales into Win32 SCROLLINFO).
+	 *
+	 * Description: Maintains a virtual 64-bit scroll range [0.._ui64Max] and position _ui64Pos,
+	 *  scaling them to a smaller physical range for Win32 scrollbars. For ÅgnormalÅh ranges
+	 *  (<= 0x7FFFFFFF) it passes values straight through. For larger ranges it maps into a
+	 *  0..0x7FFF space and computes nPos proportionally.
+	 *
+	 * \param _hWnd The window owning the scrollbar.
+	 * \param _iBar SB_VERT or SB_HORZ.
+	 * \param _uiMask Standard SIF_* mask (e.g., SIF_ALL).
+	 * \param _ui64Max The virtual 64-bit maximum (inclusive end position).
+	 * \param _ui64Pos The virtual 64-bit current position.
+	 * \param _iPage The page size in Ågvirtual unitsÅh (commonly rows visible).
+	 * \param _bRedraw TRUE to redraw the scrollbar.
+	 * \return Returns non-zero on success.
+	 */
+	BOOL CBase::SetScrollInfo64( HWND _hWnd, int _iBar, UINT _uiMask,
+		uint64_t _ui64Max, uint64_t _ui64Pos, int _iPage, BOOL _bRedraw ) {
+
+		SCROLLINFO siInfo{ sizeof( siInfo ) };
+		siInfo.fMask = _uiMask;
+
+		// Normalize page.
+		if ( _iPage < 0 ) { _iPage = 0; }
+
+		// Trivial case: empty range.
+		if ( _ui64Max == 0ULL ) {
+			siInfo.nMin  = 0;
+			siInfo.nMax  = 0;
+			siInfo.nPage = static_cast<UINT>(_iPage);
+			siInfo.nPos  = 0;
+			return ::SetScrollInfo( _hWnd, _iBar, &siInfo, _bRedraw );
+		}
+
+		// If the virtual maximum fits in a 32-bit signed range, use the native API directly.
+		if ( _ui64Max <= static_cast<uint64_t>(LSW_WIN32_SCROLLBAR_MAX) ) {
+			const int iMax32 = static_cast<int>(_ui64Max);
+			int iPos32 = static_cast<int>((_ui64Pos <= _ui64Max) ? _ui64Pos : _ui64Max);
+
+			siInfo.nMin		= 0;
+			siInfo.nMax		= iMax32;
+			siInfo.nPage	= static_cast<UINT>(_iPage);
+			siInfo.nPos		= iPos32;
+			return ::SetScrollInfo( _hWnd, _iBar, &siInfo, _bRedraw );
+		}
+
+		// Large range: scale into 0..0x7FFF.
+		// pos32 = pos64 / (max64 / MAX16)
+		const int iMax16 = LSW_WIN16_SCROLLBAR_MAX;
+		const uint64_t ui64Div = (_ui64Max / static_cast<uint64_t>(iMax16));
+
+		int iPos32		= 0;
+		if ( ui64Div != 0ULL ) {
+			iPos32 = static_cast<int>(_ui64Pos / ui64Div);
+			if ( iPos32 < 0 ) { iPos32 = 0; }
+			if ( iPos32 > iMax16 ) { iPos32 = iMax16; }
+		}
+
+		siInfo.nMin		= 0;
+		siInfo.nMax		= iMax16;
+		siInfo.nPage	= static_cast<UINT>(_iPage);
+		siInfo.nPos		= iPos32;
+		return ::SetScrollInfo( _hWnd, _iBar, &siInfo, _bRedraw );
+	}
+
+	/**
+	 * \brief Get 64-bit scrollbar position (wrapper around GetScrollInfo).
+	 *
+	 * Description: Converts the physical 32/16-bit thumb position back into the virtual
+	 *  64-bit space. Handles both SIF_POS and SIF_TRACKPOS. Special-cases the end of range
+	 *  to compensate for integer division truncation.
+	 *
+	 * \param _hWnd The window owning the scrollbar.
+	 * \param _iBar SB_VERT or SB_HORZ.
+	 * \param _uiMask Either SIF_POS or SIF_TRACKPOS (optionally OR with SIF_PAGE; we add it).
+	 * \param _ui64Max The virtual 64-bit maximum (inclusive end position).
+	 * \return Returns the virtual 64-bit position.
+	 */
+	uint64_t CBase::GetScrollPos64( HWND _hWnd, int _iBar, UINT _uiMask, uint64_t _ui64Max ) {
+		// Always fetch PAGE so we can fix the Ågat endÅh case.
+		SCROLLINFO siInfo{ sizeof( siInfo ) };
+		siInfo.fMask = (_uiMask | SIF_PAGE | SIF_POS | SIF_TRACKPOS);
+
+		if ( !::GetScrollInfo( _hWnd, _iBar, &siInfo ) ) {
+			return 0ULL;
+		}
+
+		// Trivial/empty.
+		if ( _ui64Max == 0ULL ) {
+			return 0ULL;
+		}
+
+		// Select physical position source.
+		uint64_t ui64Pos32 = 0ULL;
+		if ( (_uiMask & SIF_TRACKPOS) != 0 ) {
+			ui64Pos32 = static_cast<uint64_t>(static_cast<uint32_t>(siInfo.nTrackPos));
+		}
+		else {
+			ui64Pos32 = static_cast<uint64_t>(static_cast<uint32_t>(siInfo.nPos));
+		}
+
+		// If the virtual maximum fits in 32-bit, no scaling required.
+		if ( _ui64Max <= static_cast<uint64_t>(LSW_WIN32_SCROLLBAR_MAX) ) {
+			if ( ui64Pos32 > _ui64Max ) { ui64Pos32 = _ui64Max; }
+			return ui64Pos32;
+		}
+
+		// Large range: invert scaling.
+		// pos64 = pos32 * (max64 / MAX16)
+		const uint64_t ui64Max16 = static_cast<uint64_t>(LSW_WIN16_SCROLLBAR_MAX);
+		const uint64_t ui64Step  = (_ui64Max / ui64Max16);
+
+		// End-of-range compensation:
+		// when the thumb is at the last pixel, integer math may otherwise produce pos64 < max64.
+		const uint64_t ui64PhysEnd = static_cast<uint64_t>(LSW_WIN16_SCROLLBAR_MAX) - static_cast<uint64_t>(siInfo.nPage) + 1ULL;
+		if ( ui64Pos32 == ui64PhysEnd ) {
+			const uint64_t ui64End = _ui64Max - static_cast<uint64_t>(siInfo.nPage) + 1ULL;
+			return ui64End;
+		}
+
+		return ui64Pos32 * (ui64Step ? ui64Step : 1ULL);
+	}
+
+	/**
+	 * Gets a module handle by name (Unicode).
+	 * \brief Thin wrapper around ::GetModuleHandleW().
+	 *
+	 * \param _lpModuleName The Unicode module name, or nullptr for the calling process.
+	 * \return Returns the module handle on success, or nullptr on failure.
+	 */
 	HMODULE CBase::GetModuleHandleW( LPCWSTR _lpModuleName ) {
 		return _lpModuleName ? ::GetModuleHandleW( _lpModuleName ) : m_hInstance;
 	}
 
-	// Wrapper for ::GetModuleHandleA().
+	/**
+	 * Gets a module handle by name (ANSI).
+	 * \brief Thin wrapper around ::GetModuleHandleA().
+	 *
+	 * \param _lpModuleName The ANSI module name, or nullptr for the calling process.
+	 * \return Returns the module handle on success, or nullptr on failure.
+	 */
 	HMODULE CBase::GetModuleHandleA( LPCSTR _lpModuleName ) {
 		return _lpModuleName ? ::GetModuleHandleA( _lpModuleName ) : m_hInstance;
 	}
 
-	// Prints the current error (from ::GetLastError()).
+	/**
+	 * Prints a formatted error message.
+	 * \brief Logs a message with the provided text and Win32 error code.
+	 *
+	 * If _dwError is UINT_MAX, the current ::GetLastError() value is used.
+	 *
+	 * \param _pwcText A brief description of the failing operation.
+	 * \param _dwError The Win32 error code to print, or UINT_MAX to query ::GetLastError().
+	 */
 	VOID CBase::PrintError( LPCWSTR _pwcText, DWORD _dwError ) {
 		std::wstring swText;
 		AppendError( _pwcText, swText, _dwError );
 		::MessageBoxW( NULL, swText.c_str(), L"Error", MB_OK );
 	}
 
-	// Appends error text to a string.
+	/**
+	 * Appends formatted error text to a string.
+	 * \brief Extends _wsRet with _pwcText and the given Win32 error description.
+	 *
+	 * If _dwError is UINT_MAX, the current ::GetLastError() value is used.
+	 *
+	 * \param _pwcText A brief description of the failing operation.
+	 * \param _wsRet Destination string to which the formatted error is appended.
+	 * \param _dwError The Win32 error code to append, or UINT_MAX to query ::GetLastError().
+	 * \return Returns the reference to _wsRet for chaining.
+	 */
 	std::wstring CBase::AppendError( LPCWSTR _pwcText, std::wstring &_wsRet, DWORD _dwError ) {
 		DWORD dwError = (_dwError == UINT_MAX) ? ::GetLastError() : _dwError;
 		LPVOID lpMsgBuf;
@@ -251,36 +451,91 @@ namespace lsw {
 		return _wsRet;
 	}
 
-	// Displays a message box with the given title and message.
+	/**
+	 * Displays an error message box (Unicode).
+	 * \brief Shows a message box with MB_ICONERROR using a Unicode title and message.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pwcMsg The Unicode message to display.
+	 * \param _pwcTitle The Unicode title (defaults to L"Error").
+	 */
 	VOID CBase::MessageBoxError( HWND _hWnd, LPCWSTR _pwcMsg, LPCWSTR _pwcTitle ) {
 		::MessageBoxW( _hWnd, _pwcMsg, _pwcTitle, MB_ICONERROR );
 	}
 
-	// Displays a message box with the given title and message.
+	/**
+	 * Displays an error message box (ANSI).
+	 * \brief Shows a message box with MB_ICONERROR using an ANSI title and message.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pcMsg The ANSI message to display.
+	 * \param _pcTitle The ANSI title (defaults to "Error").
+	 */
 	VOID CBase::MessageBoxError( HWND _hWnd, LPCSTR _pcMsg, LPCSTR _pcTitle ) {
 		::MessageBoxA( _hWnd, _pcMsg, _pcTitle, MB_ICONERROR );
 	}
 
-	// Prompts with MB_ICONINFORMATION and IDOK.
+	/**
+	 * Shows an informational OK prompt (ANSI).
+	 * \brief Displays MB_ICONINFORMATION with OK, or OK/Cancel if requested.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pcMsg The ANSI message to display.
+	 * \param _pcTitle The ANSI title to display.
+	 * \param _bIncludeCancel True to show OK/Cancel, false for OK only.
+	 * \return Returns true if the user accepted (IDOK), otherwise false.
+	 */
 	bool CBase::PromptOk( HWND _hWnd, LPCSTR _pcMsg, LPCSTR _pcTitle, bool _bIncludeCancel ) {
 		return ::MessageBoxA( _hWnd, _pcMsg, _pcTitle, MB_ICONINFORMATION | (_bIncludeCancel ? MB_OKCANCEL : 0)) == IDOK;
 	}
 
-	// Prompts with MB_ICONINFORMATION and IDOK.
+	/**
+	 * Shows an informational OK prompt (Unicode).
+	 * \brief Displays MB_ICONINFORMATION with OK, or OK/Cancel if requested.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pwcMsg The Unicode message to display.
+	 * \param _pwcTitle The Unicode title to display.
+	 * \param _bIncludeCancel True to show OK/Cancel, false for OK only.
+	 * \return Returns true if the user accepted (IDOK), otherwise false.
+	 */
 	bool CBase::PromptOk( HWND _hWnd, LPCWSTR _pwcMsg, LPCWSTR _pwcTitle, bool _bIncludeCancel ) {
 		return ::MessageBoxW( _hWnd, _pwcMsg, _pwcTitle, MB_ICONINFORMATION | (_bIncludeCancel ? MB_OKCANCEL : 0)) == IDOK;
 	}
 
-	// Prompts with MB_ICONQUESTION and IDYES.
+	/**
+	 * Shows a Yes/No question prompt (ANSI).
+	 * \brief Displays MB_ICONQUESTION with Yes and No buttons.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pcMsg The ANSI question text.
+	 * \param _pcTitle The ANSI title to display.
+	 * \return Returns true if the user chose Yes (IDYES), otherwise false.
+	 */
 	bool CBase::PromptYesNo( HWND _hWnd, LPCSTR _pcMsg, LPCSTR _pcTitle ) {
 		return ::MessageBoxA( _hWnd, _pcMsg, _pcTitle, MB_ICONQUESTION | MB_YESNO ) == IDYES;
 	}
 
-	// Prompts with MB_ICONQUESTION and IDYES.
+	/**
+	 * Shows a Yes/No question prompt (Unicode).
+	 * \brief Displays MB_ICONQUESTION with Yes and No buttons.
+	 *
+	 * \param _hWnd Owner window handle (may be nullptr).
+	 * \param _pwcMsg The Unicode question text.
+	 * \param _pwcTitle The Unicode title to display.
+	 * \return Returns true if the user chose Yes (IDYES), otherwise false.
+	 */
 	bool CBase::PromptYesNo( HWND _hWnd, LPCWSTR _pwcMsg, LPCWSTR _pwcTitle ) {
 		return ::MessageBoxW( _hWnd, _pwcMsg, _pwcTitle, MB_ICONQUESTION | MB_YESNO ) == IDYES;
 	}
-
+	
+	/**
+	 * Converts a message ID to its textual name.
+	 * \brief Writes a human-readable symbolic name for a WM_* message into _sName.
+	 *
+	 * \param _wMessage The message ID (e.g., WM_PAINT).
+	 * \param _sName Output string receiving the message name.
+	 */
 #ifdef _DEBUG
 	VOID CBase::MessageToText( WORD _wMessage, std::string &_sName ) {
 		static const struct {

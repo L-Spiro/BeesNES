@@ -1,4 +1,4 @@
-#include "LSWHelpers.h"
+﻿#include "LSWHelpers.h"
 #include "../Tab/LSWTab.h"
 #include "../Tab/LSWTabPageBase.h"
 #include "../Widget/LSWWidget.h"

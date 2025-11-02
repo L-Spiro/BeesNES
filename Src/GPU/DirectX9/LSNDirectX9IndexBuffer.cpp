@@ -71,6 +71,7 @@ namespace lsn {
 			&m_pd3dib9Buffer, nullptr ) ) ) {
 			UINT uiTotal = _uiLength /
 				((D3DFMT_INDEX16 == _fFormat) ? sizeof( uint16_t ) : sizeof( uint32_t ));
+			m_bResourceCanBeLost = (_pPool == D3DPOOL_DEFAULT);
 			if ( Alloc( uiTotal, uint32_t( _pPool ), uint32_t( _dwUsage ), uint32_t( _fFormat ) ) ) {
 				return true;
 			}

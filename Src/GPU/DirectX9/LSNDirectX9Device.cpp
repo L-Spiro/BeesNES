@@ -10,30 +10,26 @@
 #ifdef LSN_DX9
 
 #include "LSNDirectX9Device.h"
+#include "LSNDirectX9LosableResourceManager.h"
 
 namespace lsn {
 
 	CDirectX9Device::CDirectX9Device() {
 	}
 	CDirectX9Device::~CDirectX9Device() {
-		m_pd3dDevice.Reset();
-		m_pdD3d.Reset();
-		m_hLib.Reset();
+		Reset();
 	}
 
 	// == Functions.
 	/**
 	 * Creates a Direct3D 9 device.
 	 *
-	 * \param _hWnd The window to which to attach.
+	 * \param _pwWnd The window to which to attach.
 	 * \param _sAdapter The adapter to use.
 	 * \return Returns true if the device was created.
 	 **/
-	bool CDirectX9Device::Create( HWND _hWnd, const std::string &_sAdapter ) {
-		m_pd3dDevice.Reset();
-		m_pdD3d.Reset();
-		m_hLib.Reset();
-		m_dwFlags = 0;
+	bool CDirectX9Device::Create( lsw::CWidget * _pwWnd, const std::string &_sAdapter ) {
+		Reset();
 
 		lsw::LSW_HMODULE hLib( "d3d9.dll" );
 		if ( !hLib.Valid() ) { return false; }
@@ -57,8 +53,7 @@ namespace lsn {
 
 			try {
 				if ( std::string( aiAdapterInfo.Description ) == _sAdapter || !_sAdapter.size() ) {
-					RECT rClient;
-					::GetClientRect( _hWnd, &rClient );
+					lsw::LSW_RECT rClient = _pwWnd->VirtualClientRect( nullptr );
 					D3DPRESENT_PARAMETERS ppPresent = {
 						.BackBufferWidth					= static_cast<UINT>(rClient.right - rClient.left),
 						.BackBufferHeight					= static_cast<UINT>(rClient.bottom - rClient.top),
@@ -69,7 +64,7 @@ namespace lsn {
 						.MultiSampleQuality					= 0,
 
 						.SwapEffect							= D3DSWAPEFFECT_DISCARD,
-						.hDeviceWindow						= _hWnd,
+						.hDeviceWindow						= _pwWnd->Wnd(),
 						.Windowed							= TRUE,
 						.EnableAutoDepthStencil				= TRUE,
 						.AutoDepthStencilFormat				= D3DFMT_D24S8,
@@ -94,6 +89,7 @@ namespace lsn {
 						m_pdD3d = std::move( pdD3d );
 						m_dwFlags = dwFlags;
 						m_ppPresentParms = ppPresent;
+						m_pwWnd = _pwWnd;
 						return true;
 					}
 					return false;
@@ -102,6 +98,67 @@ namespace lsn {
 			catch ( ... ) {}
 		}
 		return false;
+	}
+
+	/**
+	 * Resets the device back to scratch.  Everything that depends on it must already be reset.
+	 **/
+	void CDirectX9Device::Reset() {
+		if ( m_pd3dDevice ) { m_pd3dDevice.Reset(); }
+		if ( m_pdD3d ) { m_pdD3d.Reset(); }
+		m_hLib.Reset();
+		m_dwFlags = 0;
+	}
+
+	/**
+	 * \brief Reset the device to match the current client-area size of a window.
+	 *
+	 * Updates \c m_ppPresentParms (backbuffer size, \c hDeviceWindow) from the given window,
+	 * calls \c CDirectX9LosableResourceManager::OnLostDevice(), performs \c Reset(&m_ppPresentParms),
+	 * then calls \c CDirectX9LosableResourceManager::OnResetDevice().
+	 *
+	 * \param _pwWnd The target window whose client-area size determines the new backbuffer size.
+	 *              If \c nullptr, the cached \c m_pwWnd is used.
+	 * \return Returns \c true on success; \c false if the device is still lost or \c Reset() failed.
+	 **/
+	bool CDirectX9Device::ResetForWindowSize( lsw::CWidget * _pwWnd ) {
+		if ( !m_pd3dDevice ) { return false; }
+		if ( _pwWnd ) { m_pwWnd = _pwWnd; }
+
+		lsw::LSW_RECT rRect = _pwWnd->VirtualClientRect( nullptr );
+		const UINT uiW = std::max<LONG>( 1, rRect.Width() );
+		const UINT uiH = std::max<LONG>( 1, rRect.Height() );
+
+		m_ppPresentParms.hDeviceWindow		= m_pwWnd->Wnd();
+		m_ppPresentParms.BackBufferWidth	= uiW;
+		m_ppPresentParms.BackBufferHeight	= uiH;
+
+		CDirectX9LosableResourceManager::OnLostDevice();
+		const HRESULT hRes = m_pd3dDevice->Reset( &m_ppPresentParms );
+		if ( FAILED( hRes ) ) { return false; }
+		CDirectX9LosableResourceManager::OnResetDevice();
+		return true;
+	}
+
+	/**
+	 * \brief Check cooperative level and recover from device loss when possible.
+	 *
+	 * When \c TestCooperativeLevel() returns \c D3DERR_DEVICENOTRESET, this attempts a \c Reset()
+	 * using the current client-area size (via \c ResetForWindowSize()).
+	 *
+	 * \param _pwWnd The window used to refresh \c m_ppPresentParms on reset. If \c nullptr,
+	 *              the cached \c m_pwWnd is used.
+	 * \return Returns \c true if the device is usable for this frame (OK or reset succeeded);
+	 *         \c false if still lost and rendering should be skipped this frame.
+	 **/
+	bool CDirectX9Device::HandleDeviceLoss( lsw::CWidget * _pwWnd ) {
+		if ( !m_pd3dDevice ) { return false; }
+		const HRESULT hRes = m_pd3dDevice->TestCooperativeLevel();
+		if ( hRes == D3DERR_DEVICELOST ) { return false; }
+		if ( hRes == D3DERR_DEVICENOTRESET ) {
+			return ResetForWindowSize( _pwWnd ? _pwWnd : m_pwWnd );
+		}
+		return true;
 	}
 
 }	// namespace lsn

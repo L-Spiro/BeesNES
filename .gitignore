@@ -103,6 +103,8 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+packages/
+*.nupkg
 
 # CocoaPods
 #

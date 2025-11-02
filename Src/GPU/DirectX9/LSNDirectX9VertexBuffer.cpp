@@ -69,6 +69,7 @@ namespace lsn {
 		Reset();
 		if ( SUCCEEDED( m_pdx9dDevice->GetDirectX9Device()->CreateVertexBuffer( _uiLength, _dwUsage, _dwFVF, _pPool,
 			&m_pd3dvb9Buffer, nullptr ) ) ) {
+			m_bResourceCanBeLost = (_pPool == D3DPOOL_DEFAULT);
 			if ( Alloc( _uiLength, uint32_t( _pPool ), uint32_t( _dwUsage ), uint32_t( _dwFVF ) ) ) {
 				return true;
 			}

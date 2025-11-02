@@ -23,7 +23,13 @@ namespace lsw {
 	}
 
 	// == Functions.
-	// Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
+	/**
+	 * Gets the virtual client rectangle.
+	 * \brief Allows parents to adjust available space for toolbars, status bars, or splitters.
+	 *
+	 * \param pwChild Optional child for which the virtual rect is requested.
+	 * \return Returns the virtual client rectangle.
+	 */
 	const LSW_RECT CTab::VirtualClientRect( const CWidget * /*pwChild*/ ) const {
 		LSW_RECT rRect = ClientRect();
 		AdjustRect( FALSE, &rRect );
@@ -105,14 +111,70 @@ namespace lsw {
 	// Selects a tab in a tab control.  Returns the index of the previously selected tab if successful, or -1 otherwise.
 	int CTab::SetCurSel( int _iItem ) {
 		if ( !Wnd() ) { return -1; }
-		int iRet = static_cast<int>(::SendMessageW( Wnd(), TCM_SETCURSEL, static_cast<WPARAM>(_iItem), 0L ));
-		// Do not check iRet for -1.
-		for ( size_t I = 0; I < m_vTabs.size(); ++I ) {
+		int iPrev = static_cast<int>(::SendMessageW( Wnd(), TCM_SETCURSEL, static_cast<WPARAM>(_iItem), 0L ));
+
+		// Gather target + count.
+		size_t stCount = m_vTabs.size();
+		if ( _iItem < 0 || static_cast<size_t>(_iItem) >= stCount ) { return iPrev; }
+
+		HWND hParent = ::GetParent( Wnd() );
+		HWND hTarget = m_vTabs[static_cast<size_t>(_iItem)].pwWidget ? m_vTabs[static_cast<size_t>(_iItem)].pwWidget->Wnd() : nullptr;
+
+		// Disable redraw on parent to avoid intermediate paints.
+		::SendMessageW( hParent, WM_SETREDRAW, FALSE, 0 );
+		::SendMessageW( Wnd(), WM_SETREDRAW, FALSE, 0 );
+
+		// Batch Z-order + visibility changes.
+		HDWP hDwp = ::BeginDeferWindowPos( static_cast<int>(stCount) );
+
+		// 1) Bring the target to the top and show it.
+		if ( hTarget ) {
+			hDwp = ::DeferWindowPos(
+				hDwp,
+				hTarget,
+				HWND_TOP,						// ensure it is above siblings so WS_CLIPSIBLINGS wonÅft occlude it
+				0, 0, 0, 0,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW
+			);
+		}
+
+		// 2) Hide all other pages.
+		for ( size_t I = 0; I < stCount; ++I ) {
+			if ( I == static_cast<size_t>(_iItem) ) { continue; }
 			if ( m_vTabs[I].pwWidget ) {
-				m_vTabs[I].pwWidget->SetVisible( I == static_cast<size_t>(_iItem) );
+				hDwp = ::DeferWindowPos(
+					hDwp,
+					m_vTabs[I].pwWidget->Wnd(),
+					nullptr,
+					0, 0, 0, 0,
+					SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE | SWP_HIDEWINDOW
+				);
 			}
 		}
-		return iRet;
+
+		if ( hDwp ) { ::EndDeferWindowPos( hDwp ); }
+
+		// Re-enable redraw.
+		::SendMessageW( Wnd(), WM_SETREDRAW, TRUE, 0 );
+		::SendMessageW( hParent, WM_SETREDRAW, TRUE, 0 );
+
+		// *** Critical: explicitly repaint the selected page now. ***
+		if ( hTarget ) {
+			::RedrawWindow(
+				hTarget,
+				nullptr, nullptr,
+				RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW
+			);
+		}
+
+		// Also refresh the container frame once (no NOERASE to avoid stale buffer).
+		::RedrawWindow(
+			hParent,
+			nullptr, nullptr,
+			RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_UPDATENOW | RDW_FRAME
+		);
+
+		return iPrev;
 	}
 
 	// Determines the currently selected tab in a tab control.
@@ -204,7 +266,12 @@ namespace lsw {
 		return sTemp;
 	}
 
-	// Setting the HWND after the control has been created.
+	/**
+	 * Attaches an HWND to this widget after creation.
+	 * \brief Finalizes control initialization once the window handle exists.
+	 *
+	 * \param _hWnd The created window handle.
+	 */
 	void CTab::InitControl( HWND _hWnd ) {
 		CWidget::InitControl( _hWnd );
 		m_lpOriginProc = ::GetWindowLongPtrW( Wnd(), GWLP_WNDPROC );
@@ -301,7 +368,18 @@ namespace lsw {
 	}
 
 	// == Functions.
-	// WM_SIZE.
+	/**
+	 * Handles WM_SIZE.
+	 * \brief Responds to client-area size changes.
+	 *
+	 * Called after the window's client size changes. Override to update layouts,
+	 * reposition children, or cache new sizes.
+	 *
+	 * \param _wParam The requested sizing type (e.g., SIZE_RESTORED, SIZE_MINIMIZED).
+	 * \param _lWidth The new client width, in pixels.
+	 * \param _lHeight The new client height, in pixels.
+	 * \return Returns a LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CTab::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		CWidget::Size( _wParam, _lWidth, _lHeight );
 		//::ShowScrollBar( Wnd(), SB_VERT, FALSE );
@@ -314,7 +392,14 @@ namespace lsw {
 		return LSW_H_CONTINUE;
 	}
 
-	// WM_MOVE.
+	/**
+	 * Handles WM_MOVE.
+	 * \brief Notified when the window is moved.
+	 *
+	 * \param _lX New x-position of the window (screen coordinates).
+	 * \param _lY New y-position of the window (screen coordinates).
+	 * \return Returns a LSW_HANDLED code.
+	 */
 	CWidget::LSW_HANDLED CTab::Move( LONG _lX, LONG _lY ) {
 		CWidget::Move( _lX, _lY );
 		//ResizeControls( VirtualClientRect( nullptr ) );
@@ -324,6 +409,15 @@ namespace lsw {
 
 		return LSW_H_CONTINUE;
 	}
+
+	/**
+	 * Handles WM_ERASEBKGND.
+	 * \brief Allows custom background erasing.
+	 *
+	 * \param _hDc Device context provided for erasing.
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	//CWidget::LSW_HANDLED CTab::EraseBkgnd( HDC /*_hDc*/ ) { return LSW_H_HANDLED; }
 
 	// Determines the close rectangle.
 	LSW_RECT CTab::GetCloseRect( const LSW_RECT &_rTabRect, bool _bHasFocus ) {
