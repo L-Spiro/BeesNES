@@ -343,8 +343,12 @@ namespace lsn {
 		 * \return True on success; false if the DX9 path is disabled or reset failed.
 		 */
 		bool									OnSizeDx9( uint32_t _ui32ClientW, uint32_t _ui32ClientH );
-
 #endif	// #ifdef LSN_DX9
+
+		/**
+		 * Updates the GPU palette for GPU-enabled palette rendering.
+		 **/
+		void									UpdateGpuPalette();
 
 
 	protected :

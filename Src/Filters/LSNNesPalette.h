@@ -59,6 +59,9 @@ namespace lsn {
 		typedef struct { double x[3]; }				Float64_3;
 		typedef struct { float x[3]; }				Float32_3;
 		typedef struct { ee::CFloat16 x[3]; }		Float16_3;
+		typedef struct { double x[4]; }				Float64_4;
+		typedef struct { float x[4]; }				Float32_4;
+		typedef struct { ee::CFloat16 x[4]; }		Float16_4;
 		typedef std::vector<Float64_3>				PaletteF64;
 		typedef std::vector<Float32_3>				PaletteF32;
 		typedef std::vector<Float16_3>				PaletteF16;
@@ -98,6 +101,16 @@ namespace lsn {
 		const PaletteF64 &							Palette() const { return m_p64Palette; }
 
 		/**
+		 * Applies modifications to a single palette entry.
+		 * 
+		 * \param _fEntry The entry to modify.
+		 * \param _gCrtGamma The CRT gamma curve to apply.
+		 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+		 * \return Returns the modified entry.
+		 **/
+		Float64_3									UpdateEntry( const Float64_3 &_fEntry, LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma );
+
+		/**
 		 * Fills the software palette with the loaded palette.
 		 * 
 		 * \param _ppSoftPal The software emulator palette to fill.
@@ -106,6 +119,33 @@ namespace lsn {
 		 * \return Returns true if the internal palette is not empty.
 		 **/
 		bool										FillSoftwarePalette( lsn::LSN_PALETTE * _ppSoftPal, LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma );
+
+		/**
+		 * Converts from a 64-bit palette to a 64-bit palette.
+		 * 
+		 * \param _gCrtGamma The CRT gamma curve to apply.
+		 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+		 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+		 **/
+		std::vector<Float64_4>						PaletteToF64( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma );
+
+		/**
+		 * Converts from a 64-bit palette to a 32-bit palette.
+		 * 
+		 * \param _gCrtGamma The CRT gamma curve to apply.
+		 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+		 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+		 **/
+		std::vector<Float32_4>						PaletteToF32( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma );
+
+		/**
+		 * Converts from a 64-bit palette to a 16-bit palette.
+		 * 
+		 * \param _gCrtGamma The CRT gamma curve to apply.
+		 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+		 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+		 **/
+		std::vector<Float16_4>						PaletteToF16( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma );
 
 		/**
 		 * Loads a 64- or 512- entry 8-bit palette into a 512-entry floating-point palette.
@@ -139,22 +179,6 @@ namespace lsn {
 			}
 			return vRet;
 		}
-
-		/**
-		 * Converts from a 64-bit palette to a 32-bit palette.
-		 * 
-		 * \param _p64Src the paletter to convert.
-		 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
-		 **/
-		static PaletteF32							PaletteToF32( const PaletteF64 &_p64Src );
-
-		/**
-		 * Converts from a 64-bit palette to a 16-bit palette.
-		 * 
-		 * \param _p64Src the paletter to convert.
-		 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
-		 **/
-		static PaletteF16							PaletteToF16( const PaletteF64 &_p64Src );
 
 	protected :
 		// == Members.

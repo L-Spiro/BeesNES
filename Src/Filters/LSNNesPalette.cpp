@@ -81,9 +81,226 @@ namespace lsn {
 			}
 		}
 		if ( !vTmp.size() ) { return; }
-
+		m_p64Palette = std::move( vTmp );
 		m_pPath = _pPath;
 		m_bApplySrgb = _bApplySrgb;
+	}
+
+	/**
+	 * Applies modifications to a single palette entry.
+	 * 
+	 * \param _fEntry The entry to modify.
+	 * \param _gCrtGamma The CRT gamma curve to apply.
+	 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+	 * \return Returns the modified entry.
+	 **/
+	CNesPalette::Float64_3 CNesPalette::UpdateEntry( const Float64_3 &_fEntry, LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
+		Float64_3 fDst;
+		switch ( _gCrtGamma ) {
+			case LSN_G_NONE : { break; }
+			case LSN_G_AUTO : {
+				if ( m_bApplySrgb ) {
+					fDst.x[0] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[0] );
+					fDst.x[1] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[1] );
+					fDst.x[2] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[2] );
+				}
+				break;
+			}
+			case LSN_G_CRT1 : {
+				fDst.x[0] = CUtilities::CrtProperToLinear( _fEntry.x[0], 1.0 );
+				fDst.x[1] = CUtilities::CrtProperToLinear( _fEntry.x[1], 1.0, 0.0181 * 0.5 );
+				fDst.x[2] = CUtilities::CrtProperToLinear( _fEntry.x[2], 1.0 );
+				break;
+			}
+			case LSN_G_CRT2 : {
+				fDst.x[0] = CUtilities::CrtProper2ToLinear( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::CrtProper2ToLinear( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::CrtProper2ToLinear( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_sRGB : {
+				fDst.x[0] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_SMPTE170M : {
+				fDst.x[0] = CUtilities::SMPTE170MtoLinear_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::SMPTE170MtoLinear_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::SMPTE170MtoLinear_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_DCIP3 : {
+				fDst.x[0] = CUtilities::DCIP3toLinear( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::DCIP3toLinear( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::DCIP3toLinear( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_ADOBERGB : {
+				fDst.x[0] = CUtilities::AdobeRGBtoLinear( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::AdobeRGBtoLinear( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::AdobeRGBtoLinear( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_SMPTE240M : {
+				fDst.x[0] = CUtilities::SMPTE240MtoLinear_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::SMPTE240MtoLinear_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::SMPTE240MtoLinear_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_POW_1_96 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.96 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.96 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.96 );
+				break;
+			}
+			case LSN_G_POW_2_0 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.0 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.0 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.0 );
+				break;
+			}
+			case LSN_G_POW_2_2 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.22222222222222232090871330001391470432281494140625 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.22222222222222232090871330001391470432281494140625 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.22222222222222232090871330001391470432281494140625 );
+				break;
+			}
+			case LSN_G_POW_2_35 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.35 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.35 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.35 );
+				break;
+			}
+			case LSN_G_POW_2_4 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.4 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.4 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.4 );
+				break;
+			}
+			case LSN_G_POW_2_5 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.5 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.5 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.5 );
+				break;
+			}
+			case LSN_G_POW_2_7 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.7 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.7 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.7 );
+				break;
+			}
+			case LSN_G_POW_2_8 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 2.8 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 2.8 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 2.8 );
+				break;
+			}
+		}
+
+		switch ( _gMonitorGamma ) {
+			case LSN_G_NONE : { break; }
+			case LSN_G_AUTO : {
+				/*if ( m_bApplySrgb ) {
+					fDst.x[0] = CUtilities::LinearTosRGB_Precise( _fEntry.x[0] );
+					fDst.x[1] = CUtilities::LinearTosRGB_Precise( _fEntry.x[1] );
+					fDst.x[2] = CUtilities::LinearTosRGB_Precise( _fEntry.x[2] );
+				}*/
+				break;
+			}
+			case LSN_G_CRT1 : {
+				fDst.x[0] = CUtilities::LinearToCrtProper( _fEntry.x[0], 1.0 );
+				fDst.x[1] = CUtilities::LinearToCrtProper( _fEntry.x[1], 1.0, 0.0181 * 0.5 );
+				fDst.x[2] = CUtilities::LinearToCrtProper( _fEntry.x[2], 1.0 );
+				break;
+			}
+			case LSN_G_CRT2 : {
+				fDst.x[0] = CUtilities::LinearToCrtProper2( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearToCrtProper2( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearToCrtProper2( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_sRGB : {
+				fDst.x[0] = CUtilities::LinearTosRGB_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearTosRGB_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearTosRGB_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_SMPTE170M : {
+				fDst.x[0] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_DCIP3 : {
+				fDst.x[0] = CUtilities::LinearToDCIP3( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearToDCIP3( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearToDCIP3( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_ADOBERGB : {
+				fDst.x[0] = CUtilities::LinearToAdobeRGB( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearToAdobeRGB( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearToAdobeRGB( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_SMPTE240M : {
+				fDst.x[0] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[2] );
+				break;
+			}
+			case LSN_G_POW_1_96 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 1.96 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 1.96 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 1.96 );
+				break;
+			}
+			case LSN_G_POW_2_0 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.0 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.0 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.0 );
+				break;
+			}
+			case LSN_G_POW_2_2 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 0.45 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 0.45 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 0.45 );
+				break;
+			}
+			case LSN_G_POW_2_35 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.35 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.35 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.35 );
+				break;
+			}
+			case LSN_G_POW_2_4 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.4 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.4 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.4 );
+				break;
+			}
+			case LSN_G_POW_2_5 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.5 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.5 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.5 );
+				break;
+			}
+			case LSN_G_POW_2_7 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.7 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.7 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.7 );
+				break;
+			}
+			case LSN_G_POW_2_8 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.8 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.8 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.8 );
+				break;
+			}
+		}
+
+		return fDst;
 	}
 
 	/**
@@ -97,210 +314,97 @@ namespace lsn {
 	bool CNesPalette::FillSoftwarePalette( lsn::LSN_PALETTE * _ppSoftPal, LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
 		if LSN_UNLIKELY( m_p64Palette.empty() ) { return false; }
 		for ( size_t I = 0; I < 512; ++I ) {
-			Float64_3 fSrc = m_p64Palette[I%m_p64Palette.size()];
-
-			switch ( _gCrtGamma ) {
-				case LSN_G_NONE : { break; }
-				case LSN_G_AUTO : { break; }
-				case LSN_G_CRT1 : {
-					fSrc.x[0] = CUtilities::CrtProperToLinear( fSrc.x[0], 1.0 );
-					fSrc.x[1] = CUtilities::CrtProperToLinear( fSrc.x[1], 1.0, 0.0181 * 0.5 );
-					fSrc.x[2] = CUtilities::CrtProperToLinear( fSrc.x[2], 1.0 );
-					break;
-				}
-				case LSN_G_CRT2 : {
-					fSrc.x[0] = CUtilities::CrtProper2ToLinear( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::CrtProper2ToLinear( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::CrtProper2ToLinear( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_sRGB : {
-					fSrc.x[0] = CUtilities::sRGBtoLinear_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::sRGBtoLinear_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::sRGBtoLinear_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_SMPTE170M : {
-					fSrc.x[0] = CUtilities::SMPTE170MtoLinear_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::SMPTE170MtoLinear_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::SMPTE170MtoLinear_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_DCIP3 : {
-					fSrc.x[0] = CUtilities::DCIP3toLinear( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::DCIP3toLinear( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::DCIP3toLinear( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_ADOBERGB : {
-					fSrc.x[0] = CUtilities::AdobeRGBtoLinear( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::AdobeRGBtoLinear( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::AdobeRGBtoLinear( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_SMPTE240M : {
-					fSrc.x[0] = CUtilities::SMPTE240MtoLinear_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::SMPTE240MtoLinear_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::SMPTE240MtoLinear_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_POW_1_96 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.96 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.96 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.96 );
-					break;
-				}
-				case LSN_G_POW_2_0 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.0 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.0 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.0 );
-					break;
-				}
-				case LSN_G_POW_2_2 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.22222222222222232090871330001391470432281494140625 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.22222222222222232090871330001391470432281494140625 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.22222222222222232090871330001391470432281494140625 );
-					break;
-				}
-				case LSN_G_POW_2_35 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.35 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.35 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.35 );
-					break;
-				}
-				case LSN_G_POW_2_4 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.4 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.4 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.4 );
-					break;
-				}
-				case LSN_G_POW_2_5 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.5 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.5 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.5 );
-					break;
-				}
-				case LSN_G_POW_2_7 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.7 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.7 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.7 );
-					break;
-				}
-				case LSN_G_POW_2_8 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 2.8 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 2.8 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 2.8 );
-					break;
-				}
-			}
-
-			switch ( _gMonitorGamma ) {
-				case LSN_G_NONE : { break; }
-				case LSN_G_AUTO : {
-					if ( m_bApplySrgb ) {
-						fSrc.x[0] = CUtilities::LinearTosRGB_Precise( fSrc.x[0] );
-						fSrc.x[1] = CUtilities::LinearTosRGB_Precise( fSrc.x[1] );
-						fSrc.x[2] = CUtilities::LinearTosRGB_Precise( fSrc.x[2] );
-					}
-					break;
-				}
-				case LSN_G_CRT1 : {
-					fSrc.x[0] = CUtilities::LinearToCrtProper( fSrc.x[0], 1.0 );
-					fSrc.x[1] = CUtilities::LinearToCrtProper( fSrc.x[1], 1.0, 0.0181 * 0.5 );
-					fSrc.x[2] = CUtilities::LinearToCrtProper( fSrc.x[2], 1.0 );
-					break;
-				}
-				case LSN_G_CRT2 : {
-					fSrc.x[0] = CUtilities::LinearToCrtProper2( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearToCrtProper2( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearToCrtProper2( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_sRGB : {
-					fSrc.x[0] = CUtilities::LinearTosRGB_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearTosRGB_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearTosRGB_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_SMPTE170M : {
-					fSrc.x[0] = CUtilities::LinearToSMPTE170M_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearToSMPTE170M_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearToSMPTE170M_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_DCIP3 : {
-					fSrc.x[0] = CUtilities::LinearToDCIP3( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearToDCIP3( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearToDCIP3( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_ADOBERGB : {
-					fSrc.x[0] = CUtilities::LinearToAdobeRGB( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearToAdobeRGB( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearToAdobeRGB( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_SMPTE240M : {
-					fSrc.x[0] = CUtilities::LinearToSMPTE240M_Precise( fSrc.x[0] );
-					fSrc.x[1] = CUtilities::LinearToSMPTE240M_Precise( fSrc.x[1] );
-					fSrc.x[2] = CUtilities::LinearToSMPTE240M_Precise( fSrc.x[2] );
-					break;
-				}
-				case LSN_G_POW_1_96 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 1.96 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 1.96 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 1.96 );
-					break;
-				}
-				case LSN_G_POW_2_0 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.0 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.0 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.0 );
-					break;
-				}
-				case LSN_G_POW_2_2 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 0.45 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 0.45 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 0.45 );
-					break;
-				}
-				case LSN_G_POW_2_35 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.35 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.35 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.35 );
-					break;
-				}
-				case LSN_G_POW_2_4 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.4 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.4 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.4 );
-					break;
-				}
-				case LSN_G_POW_2_5 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.5 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.5 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.5 );
-					break;
-				}
-				case LSN_G_POW_2_7 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.7 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.7 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.7 );
-					break;
-				}
-				case LSN_G_POW_2_8 : {
-					fSrc.x[0] = std::pow( fSrc.x[0], 1.0 / 2.8 );
-					fSrc.x[1] = std::pow( fSrc.x[1], 1.0 / 2.8 );
-					fSrc.x[2] = std::pow( fSrc.x[2], 1.0 / 2.8 );
-					break;
-				}
-			}
+			Float64_3 fSrc = UpdateEntry( m_p64Palette[I%m_p64Palette.size()], _gCrtGamma, _gMonitorGamma );
 
 			_ppSoftPal->uVals[I].sRgb.ui8R = uint8_t( std::round( fSrc.x[2] * 255.0 ) );
 			_ppSoftPal->uVals[I].sRgb.ui8G = uint8_t( std::round( fSrc.x[1] * 255.0 ) );
 			_ppSoftPal->uVals[I].sRgb.ui8B = uint8_t( std::round( fSrc.x[0] * 255.0 ) );
 		}
 		return true;
+	}
+
+	/**
+	 * Converts from a 64-bit palette to a 64-bit palette.
+	 * 
+	 * \param _gCrtGamma The CRT gamma curve to apply.
+	 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+	 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+	 **/
+	std::vector<CNesPalette::Float64_4> CNesPalette::PaletteToF64( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
+		std::vector<CNesPalette::Float64_4> vRet;
+		if ( m_p64Palette.size() ) {
+			try {
+				vRet.resize( 512 );
+				for ( size_t I = 0; I < 512; ++I ) {
+					auto fSrc = UpdateEntry( m_p64Palette[I%m_p64Palette.size()], _gCrtGamma, _gMonitorGamma );
+
+					vRet[I].x[0] = fSrc.x[0];
+					vRet[I].x[1] = fSrc.x[1];
+					vRet[I].x[2] = fSrc.x[2];
+					vRet[I].x[3] = 1.0;
+				}
+			}
+			catch ( ... ) {
+				return std::vector<CNesPalette::Float64_4>();
+			}
+		}
+		return vRet;
+	}
+
+	/**
+	 * Converts from a 64-bit palette to a 32-bit palette.
+	 * 
+	 * \param _gCrtGamma The CRT gamma curve to apply.
+	 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+	 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+	 **/
+	std::vector<CNesPalette::Float32_4>  CNesPalette::PaletteToF32( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
+		std::vector<CNesPalette::Float32_4> vRet;
+		if ( m_p64Palette.size() ) {
+			try {
+				vRet.resize( 512 );
+				for ( size_t I = 0; I < 512; ++I ) {
+					const Float64_3 fSrc = UpdateEntry( m_p64Palette[I%m_p64Palette.size()], _gCrtGamma, _gMonitorGamma );
+
+					vRet[I].x[0] = float( fSrc.x[0] );
+					vRet[I].x[1] = float( fSrc.x[1] );
+					vRet[I].x[2] = float( fSrc.x[2] );
+					vRet[I].x[3] = 1.0f;
+				}
+			}
+			catch ( ... ) {
+				return std::vector<CNesPalette::Float32_4>();
+			}
+		}
+		return vRet;
+	}
+
+	/**
+	 * Converts from a 64-bit palette to a 16-bit palette.
+	 * 
+	 * \param _gCrtGamma The CRT gamma curve to apply.
+	 * \param _gMonitorGamma The monitor/display gamma curve to apply.
+	 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
+	 **/
+	std::vector<CNesPalette::Float16_4> CNesPalette::PaletteToF16( LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
+		std::vector<CNesPalette::Float16_4> vRet;
+		if ( m_p64Palette.size() ) {
+			try {
+				vRet.resize( 512 );
+				for ( size_t I = 0; I < 512; ++I ) {
+					const Float64_3 fSrc = UpdateEntry( m_p64Palette[I%m_p64Palette.size()], _gCrtGamma, _gMonitorGamma );
+
+					vRet[I].x[0] = fSrc.x[0];
+					vRet[I].x[1] = fSrc.x[1];
+					vRet[I].x[2] = fSrc.x[2];
+					vRet[I].x[3] = 1.0f;
+				}
+			}
+			catch ( ... ) {
+				return std::vector<CNesPalette::Float16_4>();
+			}
+		}
+		return vRet;
 	}
 
 	/**
@@ -323,54 +427,6 @@ namespace lsn {
 		}
 		catch ( ... ) {
 			return PaletteF64();
-		}
-		return vRet;
-	}
-
-	/**
-	 * Converts from a 64-bit palette to a 32-bit palette.
-	 * 
-	 * \param _p64Src the paletter to convert.
-	 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
-	 **/
-	CNesPalette::PaletteF32 CNesPalette::PaletteToF32( const PaletteF64 &_p64Src ) {
-		PaletteF32 vRet;
-		try {
-			vRet.resize( 512 );
-			for ( size_t I = 0; I < 512; ++I ) {
-				const Float64_3 & fSrc = _p64Src[I%_p64Src.size()];
-
-				vRet[I].x[0] = float( fSrc.x[0] );
-				vRet[I].x[1] = float( fSrc.x[1] );
-				vRet[I].x[2] = float( fSrc.x[2] );
-			}
-		}
-		catch ( ... ) {
-			return PaletteF32();
-		}
-		return vRet;
-	}
-
-	/**
-	 * Converts from a 64-bit palette to a 16-bit palette.
-	 * 
-	 * \param _p64Src the paletter to convert.
-	 * \return Returns the converted palette.  If the size of the palette is not 512, there was an allocation error.
-	 **/
-	CNesPalette::PaletteF16 CNesPalette::PaletteToF16( const PaletteF64 &_p64Src ) {
-		PaletteF16 vRet;
-		try {
-			vRet.resize( 512 );
-			for ( size_t I = 0; I < 512; ++I ) {
-				const Float64_3 & fSrc = _p64Src[I%_p64Src.size()];
-
-				vRet[I].x[0] = fSrc.x[0];
-				vRet[I].x[1] = fSrc.x[1];
-				vRet[I].x[2] = fSrc.x[2];
-			}
-		}
-		catch ( ... ) {
-			return PaletteF16();
 		}
 		return vRet;
 	}

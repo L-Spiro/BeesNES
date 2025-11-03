@@ -317,8 +317,10 @@ namespace lsn {
 
 		/**
 		 * Applies the current palette.
+		 * 
+		 * \return Returns true if a palette was opened.
 		 **/
-		void									ApplyPaletteOptions();
+		bool									ApplyPaletteOptions();
 
 		/**
 		 * Gets the default folder for palettes.
@@ -353,6 +355,34 @@ namespace lsn {
 		std::wstring							DefaultNtscJPalette() const {
 			return DefaultPaletteFolder() + L"2C02G_phs_aps_ela_applysrgb_NTSC-J.pal";
 		}
+
+		/**
+		 * Gets a reference to the current palette.
+		 * 
+		 * \return Returns a reference to the current palette.
+		 **/
+		CNesPalette &							Palette() { return m_npPalette; }
+
+		/**
+		 * Gets a constant reference to the current palette.
+		 * 
+		 * \return Returns a constant reference to the current palette.
+		 **/
+		const CNesPalette &						Palette() const { return m_npPalette; }
+
+		/**
+		 * Gets the CRT palette gamma.
+		 * 
+		 * \return Returns the CRT palette gamma.
+		 **/
+		CNesPalette::LSN_GAMMA					PaletteCrtGamma() const { return m_gCrtGamma; }
+
+		/**
+		 * Gets the monitor palette gamma.
+		 * 
+		 * \return Returns the monitor palette gamma.
+		 **/
+		CNesPalette::LSN_GAMMA					PaletteMonitorGamma() const { return m_gMonitorGamma; }
 
 
 	protected :
@@ -389,8 +419,10 @@ namespace lsn {
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** The default palettes for each system. */
 		CNesPalette								m_npPalette;
-		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL];
-
+		/** CRT gamma. */
+		CNesPalette::LSN_GAMMA					m_gCrtGamma;
+		/** Monitor gamma. */
+		CNesPalette::LSN_GAMMA					m_gMonitorGamma;
 		/** "NONE" post-processing. */
 		CPostProcessBase						m_ppbNoPostProcessing;
 		/** Bleed post-processing. */

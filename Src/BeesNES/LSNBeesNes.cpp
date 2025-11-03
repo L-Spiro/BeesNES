@@ -517,12 +517,64 @@ namespace lsn {
 
 	/**
 	 * Applies the current palette.
+	 * 
+	 * \return Returns true if a palette was opened.
 	 **/
-	void CBeesNes::ApplyPaletteOptions() {
+	bool CBeesNes::ApplyPaletteOptions() {
 		LSN_PALETTE_OPTIONS poOptions = Options().poThisGamePalette[m_pmSystem].bUseGlobal ? Options().poGlobalPalettes[m_pmSystem] : Options().poThisGamePalette[m_pmSystem];
 
 		if ( m_psbSystem ) {
+			std::wstring wsPath = poOptions.wsPath;
+			if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
+				wsPath.clear();
+				switch ( m_pmSystem ) {
+					case LSN_PM_NTSC : {
+						wsPath = DefaultNtscPalette();
+						break;
+					}
+					case LSN_PM_PAL : {
+						wsPath = DefaultPalPalette();
+						break;
+					}
+					case LSN_PM_DENDY : {
+						wsPath = DefaultPalPalette();
+						break;
+					}
+					case LSN_PM_PALM : {
+						wsPath = DefaultPalPalette();
+						break;
+					}
+					case LSN_PM_PALN : {
+						wsPath = DefaultPalPalette();
+						break;
+					}
+				}
+				if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
+					// If this is a per-game option, try the global option.
+					if ( Options().poThisGamePalette[m_pmSystem].bUseGlobal ) {
+						poOptions = Options().poGlobalPalettes[m_pmSystem];
+						wsPath = poOptions.wsPath;
+						if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
+							// Defaults were already attempted.  Nothing we can do.
+							return false;
+						}
+					}
+					else { return false; }
+				}
+			}
+			// Success path.  Put the palette where it needs to go.
+			m_gCrtGamma = poOptions.gCrtGamma;
+			m_gMonitorGamma = poOptions.gMonitorGamma;
+
+			lsn::LSN_PALETTE * ppPal = m_psbSystem->Palette();
+			bool bRet = true;
+			if ( ppPal ) {
+				if ( !m_npPalette.FillSoftwarePalette( ppPal, m_gCrtGamma, m_gMonitorGamma ) ) { bRet = false; }
+			}
+
+			return bRet;
 		}
+		return false;
 	}
 
 	/**
@@ -574,6 +626,7 @@ namespace lsn {
 		m_psbSystem->SetInputPoller( m_pipPoller );
 
 		ApplyAudioOptions();
+		ApplyPaletteOptions();
 	}
 
 	/**
@@ -1099,7 +1152,7 @@ namespace lsn {
 	 * \param _poOptions The palette settings into which to load the settings data.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions ) {
+	bool CBeesNes::LoadPaletteSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions ) {
 		_poOptions = LSN_PALETTE_OPTIONS();
 
 		if ( !_sFile.ReadStringU16( _poOptions.wsPath ) ) { return false; }
@@ -1117,12 +1170,10 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SavePaletteSettings( CStream &_sFile, const LSN_PALETTE_OPTIONS &_poOptions ) {
-		LSN_PALETTE_OPTIONS poTmp = LSN_PALETTE_OPTIONS();
-
-		if ( !_sFile.WriteStringU16( poTmp.wsPath ) ) { return false; }
-		if ( !_sFile.Write( poTmp.gCrtGamma ) ) { return false; }
-		if ( !_sFile.Write( poTmp.gMonitorGamma ) ) { return false; }
-		if ( !_sFile.Write( poTmp.bUseGlobal ) ) { return false; }
+		if ( !_sFile.WriteStringU16( _poOptions.wsPath ) ) { return false; }
+		if ( !_sFile.Write( _poOptions.gCrtGamma ) ) { return false; }
+		if ( !_sFile.Write( _poOptions.gMonitorGamma ) ) { return false; }
+		if ( !_sFile.Write( _poOptions.bUseGlobal ) ) { return false; }
 		return true;
 	}
 

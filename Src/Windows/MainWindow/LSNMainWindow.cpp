@@ -1626,6 +1626,18 @@ namespace lsn {
 #endif	// #ifdef LSN_DX9
 
 	/**
+	 * Updates the GPU palette for GPU-enabled palette rendering.
+	 **/
+	void CMainWindow::UpdateGpuPalette() {
+#ifdef LSN_DX9
+		if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
+			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), m_bnEmulator.PaletteMonitorGamma() );
+			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
+		}
+#endif	// #ifdef LSN_DX9
+	}
+
+	/**
 	 * Gets the window rectangle for correct output at a given scale and ratio.
 	 *
 	 * \param _dScale A scale override or -1.0 to use m_dScale.
@@ -1763,6 +1775,7 @@ namespace lsn {
 		StopThread();
 		if ( m_bnEmulator.LoadRom( _vRom, _s16Path, m_bnEmulator.Options().pmRegion ) ) {
 			UpdatedConsolePointer();
+
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
 				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
 				uint16_t ui16Mapper = m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper;
@@ -1775,47 +1788,12 @@ namespace lsn {
 				::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
 				UpdateOpenRecent();
 			}
+
 			m_bnEmulator.GetSystem()->ResetState( false );
 			m_cClock.SetStartingTick();
 			StartThread();
 			return true;
 		}
-#if 0
-		LSN_ROM rTmp;
-		if ( CSystemBase::LoadRom( _vRom, rTmp, _s16Path ) ) {
-			m_psbSystem.reset();
-			/*m_psbSystem = std::make_unique<CRegionalSystem>();*/
-			switch ( rTmp.riInfo.pmConsoleRegion ) {
-				case LSN_PPU_METRICS::LSN_PM_NTSC : {
-					m_psbSystem = std::make_unique<CNtscSystem>();
-					break;
-				}
-				case LSN_PPU_METRICS::LSN_PM_PAL : {
-					m_psbSystem = std::make_unique<CPalSystem>();
-					break;
-				}
-				case LSN_PPU_METRICS::LSN_PM_DENDY : {
-					m_psbSystem = std::make_unique<CDendySystem>();
-					break;
-				}
-				default : { m_psbSystem = std::make_unique<CNtscSystem>(); }
-			}
-			UpdatedConsolePointer();
-			if ( m_psbSystem->LoadRom( rTmp ) ) {
-				if ( m_psbSystem->GetRom() ) {
-					std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( m_psbSystem->GetRom()->riInfo.s16RomName );
-					if ( m_psbSystem->GetRom()->riInfo.ui16Mapper == 4 ) {
-						u16Name += u" (Partial Support)";
-					}
-					::SetWindowTextW( Wnd(), reinterpret_cast<LPCWSTR>(u16Name.c_str()) );
-				}
-				m_psbSystem->ResetState( false );
-				m_cClock.SetStartingTick();
-				StartThread();
-				return true;
-			}
-		}
-#endif
 		::SetWindowTextW( Wnd(), L"BeesNES" );
 		return false;
 	}
@@ -1858,45 +1836,8 @@ namespace lsn {
 			m_pdcClient = m_bnEmulator.GetDisplayClient();
 
 			UpdateRatio();
-			{
-				// Set the desired palette.
-			}
 
-			//{
-			//	std::wstring wsBuffer;
-			//	const DWORD dwSize = 0xFFFF;
-			//	wsBuffer.resize( dwSize + 1 ); 
-			//	::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
-			//	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
-			//	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
-			//	//std::wstring wsTemp = wsRoot + L"Palettes\\nespalette.pal";
-			//	//std::wstring wsTemp = wsRoot + L"Palettes\\ntscpalette.saturation1.2.pal";
-			//	std::wstring wsTemp = (m_bnEmulator.GetSystem()->GetRom() && m_bnEmulator.GetSystem()->GetRom()->riInfo.pmConsoleRegion == LSN_PM_PAL) ?
-			//		//wsRoot + L"Palettes\\2C07_aps_ela_PAL.fpal" :
-			//		wsRoot + L"Palettes\\2C07_wiki.pal" :
-			//		//wsRoot + L"Palettes\\2C02-2C07_aps_ela_persune_neutral_noEO.pal";
-			//		//wsRoot + L"Palettes\\savtool_replica_float.pal";
-			//		wsRoot + L"Palettes\\2C02G_wiki.pal";
-			//	lsn::CStdFile sfFile;
-			//	if ( sfFile.Open( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) {
-			//		bool bTheyMightBeGiantFloats = false;
-			//		bool bTheyMightNeedBeSrgb = false;
-			//		std::u16string s16Tmp = CUtilities::ToLower( CUtilities::GetFileName( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) );
-
-			//		if ( CUtilities::ToLower( CUtilities::GetFileExtension( reinterpret_cast<const char16_t *>(wsTemp.c_str()) ) ) == u"fpal" || s16Tmp.find( u"float", 0 ) < s16Tmp.size() ) {
-			//			bTheyMightBeGiantFloats = true;
-			//		}
-
-			//		if ( s16Tmp.find( u"applysrgb", 0 ) < s16Tmp.size() ) {
-			//			bTheyMightNeedBeSrgb = true;
-			//		}
-			//		std::vector<uint8_t> vPal;
-			//		if ( sfFile.LoadToMemory( vPal ) ) {
-			//			SetPalette( vPal, bTheyMightBeGiantFloats, bTheyMightNeedBeSrgb );
-			//		}
-			//	}
-			//}
-
+			UpdateGpuPalette();
 
 			if ( _bMoveWindow && !m_bMaximized ) {
 				// Update the window (size only).
