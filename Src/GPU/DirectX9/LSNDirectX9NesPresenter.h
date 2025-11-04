@@ -17,6 +17,8 @@
 #include "LSNDirectX9Texture.h"
 #include "LSNDirectX9VertexBuffer.h"
 
+#include <Helpers/LSWHelpers.h>
+
 #include <vector>
 
 namespace lsn {
@@ -109,7 +111,7 @@ namespace lsn {
 		 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
 		 * \return Returns true if the draw succeeded; false on failure.
 		 */
-		bool											Render( const RECT & _rOutput );
+		bool											Render( const lsw::LSW_RECT &_rOutput );
 
 
 	private :
@@ -197,6 +199,31 @@ namespace lsn {
 		 * \return Returns true on success.
 		 */
 		bool											FillQuad( float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 );
+
+		/**
+		 * \brief Computes half-texel-correct UVs for a WÅ~H texture in D3D9.
+		 *
+		 * Centers sampling on texels by offsetting UV edges by 0.5/W and 0.5/H.
+		 * Required when using POINT sampling with pre-transformed XYZRHW quads,
+		 * otherwise you'll hit the gaps between texels (black columns/rows).
+		 *
+		 * \param _uiW Texture width in texels.
+		 * \param _uiH Texture height in texels.
+		 * \param _fU0 Receives the left U (with half-texel offset applied).
+		 * \param _fV0 Receives the top V (with half-texel offset applied).
+		 * \param _fU1 Receives the right U (with half-texel offset applied).
+		 * \param _fV1 Receives the bottom V (with half-texel offset applied).
+		 */
+		static inline void								HalfTexelUv( uint32_t _uiW, uint32_t _uiH,
+			float &_fU0, float &_fV0, float &_fU1, float &_fV1 ) {
+			const float fInvW = 1.0f / static_cast<float>(_uiW);
+			const float fInvH = 1.0f / static_cast<float>(_uiH);
+			_fU0 = 0.5f * fInvW;
+			_fV0 = 0.5f * fInvH;
+			_fU1 = 1.0f - _fU0;
+			_fV1 = 1.0f - _fV0;
+		}
+
 		
 	};
 

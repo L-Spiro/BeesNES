@@ -44,7 +44,7 @@ namespace lsn {
 		 *
 		 * \return Returns the output format from the PPU/input format for this filter.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_RGB32; }
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_9BIT_PALETTE/*LSN_POF_RGB32*/; }
 
 		/**
 		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.

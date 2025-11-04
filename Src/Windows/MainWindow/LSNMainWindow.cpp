@@ -89,25 +89,6 @@ namespace lsn {
 		}
 #endif
 
-		// Palettes.
-		//LSN_PALETTE_OPTIONS poPalettes[LSN_PM_CONSOLE_TOTAL] = {
-		//	//wsPath						gCrtGamma							gMonitorGamma
-		//	{ std::wstring(),				CNesPalette::LSN_G_CRT1,			CNesPalette::LSN_G_sRGB },				// LSN_PM_NTSC
-		//	{ std::wstring(),				CNesPalette::LSN_G_CRT1,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PAL
-		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_DENDY
-		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PALM
-		//	{ std::wstring(),				CNesPalette::LSN_G_CRT2,			CNesPalette::LSN_G_sRGB },				// LSN_PM_PALN
-		//};
-		//std::memcpy( m_poPalettes, poPalettes, sizeof( poPalettes ) );
-		/*m_poPalettes[LSN_PM_NTSC].wsPath = DefaultNtscPalette();
-		m_poPalettes[LSN_PM_PAL].wsPath = DefaultPalPalette();
-		m_poPalettes[LSN_PM_DENDY].wsPath = DefaultPalPalette();
-		m_poPalettes[LSN_PM_DENDY].gCrtGamma = CNesPalette::LSN_G_CRT2;
-		m_poPalettes[LSN_PM_PALM].wsPath = DefaultPalPalette();
-		m_poPalettes[LSN_PM_PALM].gCrtGamma = CNesPalette::LSN_G_CRT2;
-		m_poPalettes[LSN_PM_PALN].wsPath = DefaultPalPalette();
-		m_poPalettes[LSN_PM_PALN].gCrtGamma = CNesPalette::LSN_G_CRT2;*/
-		
 		/*static const struct {
 			LPCWSTR				lpwsImageName;
 			DWORD				dwConst;
@@ -668,6 +649,19 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Paint() {
 		if ( !m_pdcClient ) { return LSW_H_CONTINUE; }
+		DWORD dwFinalW = FinalWidth();
+		DWORD dwFinalH = FinalHeight();
+		bool bMirrored = false;
+		const uint8_t * puiBuffer = nullptr;
+		
+
+		LONG lWidth = m_rMaxRect.Width();
+		LONG lHeight = m_rMaxRect.Height();
+		//int iDestX = m_bMaximized ? ((lWidth - dwFinalW) >> 1) : 0;
+		int iDestX = (lWidth - int( dwFinalW )) >> 1;
+		int iDestY = (lHeight - int( dwFinalH )) >> 1;
+		
+
 
 #ifdef LSN_DX9
 		// ==== DX9 path (if initialized) ==== //
@@ -678,26 +672,26 @@ namespace lsn {
 			}
 			LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
 
-			// Simple flashing clear (change every call; tie to Swap()/Redraw cadence).
-			m_ui8Flash++;
-			// Rotate through RGB a bit for visual confirmation.
-			const uint8_t ui8R = static_cast<uint8_t>(m_ui8Flash * 7U);
-			const uint8_t ui8G = static_cast<uint8_t>(m_ui8Flash * 3U);
-			const uint8_t ui8B = static_cast<uint8_t>(m_ui8Flash * 11U);
-			const DWORD dwColor = D3DCOLOR_XRGB( ui8R, ui8G, ui8B );
 
 			// Prefer wrapper helpers if present; otherwise fall back to raw device.
 			if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
-				// Clear backbuffer (and Z if attached).
-				pd3d->Clear( 0, nullptr, D3DCLEAR_TARGET /*| D3DCLEAR_ZBUFFER*/, dwColor, 1.0f, 0 );
 				const HRESULT hrBegin = pd3d->BeginScene();
 				if ( SUCCEEDED( hrBegin ) ) {
-					// No geometry; just show the clear.
+					
+					m_upDx9PaletteRender->UploadIndices( reinterpret_cast<const uint16_t *>(m_bnEmulator.RenderInfo().pui8CurRenderTarget),
+						m_bnEmulator.RenderInfo().ui32Width, m_bnEmulator.RenderInfo().ui32Height, m_bnEmulator.RenderInfo().ui32Stride );
+					lsw::LSW_RECT rRect;
+					rRect.left = iDestX;
+					rRect.top = iDestY;
+					rRect.right = rRect.left + int( dwFinalW );
+					rRect.bottom = rRect.top + int( dwFinalH );
+					m_upDx9PaletteRender->Render( rRect );
+
 					pd3d->EndScene();
 				}
 				// Present to the main window. Handle device loss on failure.
-				LSW_RECT rRect = VirtualClientRect( nullptr );
-				const HRESULT hrPresent = pd3d->Present( nullptr, &rRect, nullptr, nullptr );
+				LSW_RECT rRect = m_rMaxRect;//VirtualClientRect( nullptr );
+				const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
 				if ( FAILED( hrPresent ) ) {
 					m_dx9Device.HandleDeviceLoss( this );
 				}
@@ -711,11 +705,9 @@ namespace lsn {
 
 		LSW_BEGINPAINT bpPaint( Wnd() );
 		::SetStretchBltMode( bpPaint.hDc, COLORONCOLOR );
+		int iBarDestX = int( iDestX + int( dwFinalW ) );
+		int iBarDestY = int( iDestY + int( dwFinalH ) );
 
-		DWORD dwFinalW = FinalWidth();
-		DWORD dwFinalH = FinalHeight();
-		bool bMirrored = false;
-		const uint8_t * puiBuffer = nullptr;
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 			m_bnEmulator.Render( dwFinalW, dwFinalH );
@@ -727,13 +719,6 @@ namespace lsn {
 			puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 		}
 
-		LONG lWidth = m_rMaxRect.Width();
-		LONG lHeight = m_rMaxRect.Height();
-		//int iDestX = m_bMaximized ? ((lWidth - dwFinalW) >> 1) : 0;
-		int iDestX = (lWidth - int( dwFinalW )) >> 1;
-		int iDestY = (lHeight - int( dwFinalH )) >> 1;
-		int iBarDestX = int( iDestX + int( dwFinalW ) );
-		int iBarDestY = int( iDestY + int( dwFinalH ) );
 		if ( iDestX ) {
 			::StretchDIBits( bpPaint.hDc,
 				0, 0,
@@ -850,6 +835,7 @@ namespace lsn {
 							m_psbCachedBar->SetVisible( TRUE );
 							m_rStatusBarRect = m_psbCachedBar->WindowRect();
 						}
+						m_bMaximized = false;
 						m_rMaxRect = VirtualClientRect( this );
 					}
 				}
@@ -1067,6 +1053,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
 #ifdef LSN_DX9
 		if ( m_bInLiveResize ) {
+			m_rMaxRect = VirtualClientRect( this );
 			OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
 		}
 #endif	// #ifdef LSN_DX9
@@ -1514,7 +1501,7 @@ namespace lsn {
 	 * \return Returns the virtual client rectangle of this object or of the optional child object.
 	 */
 	const lsw::LSW_RECT CMainWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
-		if ( !m_bMaximized ) {
+		//if ( !m_bMaximized ) {
 			LSW_RECT rTemp = ClientRect( this );
 			const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
 			if ( plvRebar ) {
@@ -1524,10 +1511,10 @@ namespace lsn {
 
 			rTemp.bottom -= m_rStatusBarRect.Height();
 			return rTemp;
-		}
-		LSW_RECT rTemp = WindowRect( this );
-		rTemp.MoveBy( -rTemp.left, -rTemp.top );
-		return rTemp;
+		//}
+		//LSW_RECT rTemp = WindowRect( this );
+		//rTemp.MoveBy( -rTemp.left, -rTemp.top );
+		//return rTemp;
 	}
 
 	/**
@@ -1576,8 +1563,8 @@ namespace lsn {
 				return false;
 			}
 			auto rWinSize = VirtualClientRect( nullptr );
-			m_upDx9PaletteRender->SetScanlineFactor( 2 );
-			if ( !m_upDx9PaletteRender->Init( uint32_t( rWinSize.Width() ), uint32_t( rWinSize.Height() ), true ) ) {
+			m_upDx9PaletteRender->SetScanlineFactor( 4 );
+			if ( !m_upDx9PaletteRender->Init( m_bnEmulator.GetDisplayClient()->DisplayWidth(), m_bnEmulator.GetDisplayClient()->DisplayHeight(), false ) ) {
 				DestroyDx9();
 				return false;
 			}
@@ -1616,10 +1603,7 @@ namespace lsn {
 
 		// Rebuild presenter size-dependent resources.
 		if ( m_upDx9PaletteRender ) {
-			// Use your NES source dims here (examples: 256x240). Keep them as members if dynamic.
-			const uint32_t ui32SrcW = 256;
-			const uint32_t ui32SrcH = 240;
-			m_upDx9PaletteRender->Init( ui32SrcW, ui32SrcH, /*use16f=*/true );
+			m_upDx9PaletteRender->Init( m_bnEmulator.GetDisplayClient()->DisplayWidth(), m_bnEmulator.GetDisplayClient()->DisplayHeight(), /*use16f=*/false );
 		}
 		return true;
 	}
@@ -1631,7 +1615,7 @@ namespace lsn {
 	void CMainWindow::UpdateGpuPalette() {
 #ifdef LSN_DX9
 		if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
-			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), m_bnEmulator.PaletteMonitorGamma() );
+			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
 		}
 #endif	// #ifdef LSN_DX9

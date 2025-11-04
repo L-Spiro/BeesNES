@@ -104,16 +104,19 @@ namespace lsn {
 		D3DLOCKED_RECT lrRect{};
 		if ( !m_tIndex.LockRect( 0, lrRect, nullptr, D3DLOCK_DISCARD ) ) { return false; }
 
+		
+
 		for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
 			const uint8_t * pSrcRow = reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch;
-			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + Y * lrRect.Pitch;
+			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + (_ui32H - Y - 1) * lrRect.Pitch;
 			const uint16_t * pSrc = reinterpret_cast<const uint16_t *>(pSrcRow);
 			uint16_t * pDst = reinterpret_cast<uint16_t *>(pDstRow);
-			for ( uint32_t X = 0; X < _ui32W; ++X ) {
-				const uint32_t I = pSrc[X] & 0x01FFU;
-				const uint32_t V = (I * 65535U + 255U) / 511U;	// rounded
-				pDst[X] = static_cast<uint16_t>(V);
-			}
+			std::memcpy( pDst, pSrc, _ui32W * sizeof( uint16_t ) );
+			//for ( uint32_t X = 0; X < _ui32W; ++X ) {
+			//	const uint32_t I = pSrc[X] & 0x01FFU;
+			//	const uint32_t V = (I * 65535U + 255U) / 511U;
+			//	//pDst[X] = static_cast<uint16_t>(I);
+			//}
 		}
 		m_tIndex.UnlockRect( 0 );
 		return true;
@@ -132,7 +135,7 @@ namespace lsn {
 	 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
 	 * \return Returns true if the draw succeeded; false on failure.
 	 */
-	bool CDirectX9NesPresenter::Render( const RECT & _rOutput ) {
+	bool CDirectX9NesPresenter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_pdx9dDevice || !m_tIndex.Valid() || !m_tLut.Valid() || !m_rtInitial.Valid() || !m_rtScanlined.Valid() || !m_psIdxToColor.Valid() || !m_psVerticalNN.Valid() || !m_psCopy.Valid() ) {
 			return false;
 		}
@@ -233,15 +236,26 @@ namespace lsn {
 			pd3d9dDevice->SetViewport( &vpViewport );
 
 			pd3d9dDevice->SetTexture( 0, m_rtScanlined.Texture()->Get() );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
+			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 			pd3d9dDevice->SetTexture( 1, nullptr );
 
 			pd3d9dDevice->SetPixelShader( m_psCopy.Get() );
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
+
+			/*float fU0, fV0, fU1, fV1;
+			const uint32_t uiSrcW = m_ui32SrcW;
+			const uint32_t uiSrcH = m_ui32SrcH * m_ui32ScanFactor;
+			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
+			if LSN_UNLIKELY( !FillQuad( static_cast<float>(_rOutput.left),  static_cast<float>(_rOutput.top),
+				static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom),
+				fU0, fV0, fU1, fV1 ) ) { return false; }*/
 			if LSN_UNLIKELY( !FillQuad( float( _rOutput.left ), float( _rOutput.top ), float( _rOutput.right ), float( _rOutput.bottom ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
+
+
+
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad.Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 			pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
 		}
@@ -260,7 +274,7 @@ namespace lsn {
 	 * \return Returns true on success.
 	 */
 	bool CDirectX9NesPresenter::EnsureSizeAndResources( uint32_t _ui32W, uint32_t _ui32H, bool _bUse16f ) {
-		const uint32_t ui32ScanH = _ui32H * std::max<uint32_t>( 2U, std::min<uint32_t>( 3U, m_ui32ScanFactor ) );
+		const uint32_t ui32ScanH = _ui32H * m_ui32ScanFactor;
 
 		const bool bOk =
 			(m_ui32SrcW == _ui32W) &&
@@ -309,30 +323,47 @@ namespace lsn {
 	 * \return Returns true if all shaders are ready.
 	 */
 	bool CDirectX9NesPresenter::EnsureShaders() {
-		// Pass 1: indices + LUT -> RGBA (ps_2_0).
+		// Pass 1: indices + LUT -> RGBA (ps_2_0). L16 is normalized to 0..1; un-normalize to 0..65535 then clamp to 0..511.
 		static const char * kPsIdxToColorHlsl =
-			"sampler2D sIdx : register(s0);\n"
-			"sampler2D sLut : register(s1);\n"
-			"float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
-			"    float idx = tex2D(sIdx, uv).r * 511.0 + 0.5;\n"
-			"    float u   = (floor(idx) + 0.5) / 512.0;\n"
-			"    return tex2D(sLut, float2(u, 0.5));\n"
+			"sampler2D sIdx : register( s0 );\n"
+			"sampler2D sLut : register( s1 );\n"
+			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
+			"    float raw = tex2D( sIdx, uv ).r * 65535.0;\n"
+			"    float idx = clamp( floor( raw + 0.5 ), 0.0, 511.0 );\n"
+			"    float u   = (idx + 0.5) / 512.0;\n"
+			"    return tex2D( sLut, float2( u, 0.5 ) );\n"
 			"}\n";
+
+
+		/*static const char* kPsShowIndex =
+			"sampler2D sIdx:register(s0);\n"
+			"float4 main(float2 uv:TEXCOORD0):COLOR {\n"
+			"  float r = tex2D(sIdx, uv).r; // L16 normalized 0..1\n"
+			"  return float4(r,r,r,1);\n"
+			"}\n";*/
 
 		// Pass 2: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0]
 		static const char * kPsVerticalNNHlsl =
-			"sampler2D sSrc : register(s0);\n"
-			"float4 c0 : register(c0);\n" // x=srcH, y=1/srcH, z=0.5
-			"float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
-			"    float v = (floor(uv.y * c0.x) + c0.z) * c0.y; \n"
-			"    return tex2D(sSrc, float2(uv.x, v));\n"
+			"sampler2D sSrc : register( s0 );\n"
+			"float4 c0 : register( c0 );\n" // x=srcH, y=1/srcH, z=0.5
+			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
+			"    float v = (floor( uv.y * c0.x ) + c0.z) * c0.y; \n"
+			"    return tex2D( sSrc, float2( uv.x, v ) );\n"
 			"}\n";
 
 		// Pass 3: simple copy (ps_2_0).
 		static const char * kPsCopyHlsl =
-			"sampler2D sSrc : register(s0);\n"
-			"float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
-			"    return tex2D(sSrc, uv);\n"
+			"sampler2D sSrc : register( s0 );\n"
+			"float3 LinearToSrgb( float3 c ) {\n"
+			"  float3 lo = 12.92321018078785499483274179510772228240966796875 * c;\n"
+			"  float3 hi = 1.055 * pow( c, 1.0 / 2.4 ) - 0.055;\n"
+			"  float3 t = step( float3( 0.003039934639778431833823102437008856213651597499847412109375, 0.003039934639778431833823102437008856213651597499847412109375, 0.003039934639778431833823102437008856213651597499847412109375 ), c );\n"
+			"  return lerp( lo, hi, t );\n"
+			"}\n"
+			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
+			"  float4 c = tex2D( sSrc, uv );\n"
+			"  c.rgb = saturate( LinearToSrgb( saturate( c.rgb ) ) );\n"
+			"  return c;\n"
 			"}\n";
 
 		if ( !m_psIdxToColor.Valid() ) {
@@ -435,11 +466,12 @@ namespace lsn {
 	 * \return Returns true on success.
 	 */
 	bool CDirectX9NesPresenter::FillQuad( float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 ) {
+		constexpr float fOff = 0.5f;
 		LSN_XYZRHWTEX1 vVerts[4] = {
-			{ _fL - 0.5f, _fT - 0.5f, 0.0f, 1.0f, _fU0, _fV0 },
-			{ _fR - 0.5f, _fT - 0.5f, 0.0f, 1.0f, _fU1, _fV0 },
-			{ _fL - 0.5f, _fB - 0.5f, 0.0f, 1.0f, _fU0, _fV1 },
-			{ _fR - 0.5f, _fB - 0.5f, 0.0f, 1.0f, _fU1, _fV1 },
+			{ _fL - fOff, _fT - fOff, 0.0f, 1.0f, _fU0, _fV0 },
+			{ _fR - fOff, _fT - fOff, 0.0f, 1.0f, _fU1, _fV0 },
+			{ _fL - fOff, _fB - fOff, 0.0f, 1.0f, _fU0, _fV1 },
+			{ _fR - fOff, _fB - fOff, 0.0f, 1.0f, _fU1, _fV1 },
 		};
 		void * pvP = nullptr;
 		if LSN_UNLIKELY( !m_vbQuad.Lock( 0, 0, &pvP, D3DLOCK_DISCARD ) ) { return false; }

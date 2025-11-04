@@ -97,13 +97,17 @@ namespace lsn {
 	CNesPalette::Float64_3 CNesPalette::UpdateEntry( const Float64_3 &_fEntry, LSN_GAMMA _gCrtGamma, LSN_GAMMA _gMonitorGamma ) {
 		Float64_3 fDst;
 		switch ( _gCrtGamma ) {
-			case LSN_G_NONE : { break; }
+			case LSN_G_NONE : {
+				fDst = _fEntry;
+				break;
+			}
 			case LSN_G_AUTO : {
 				if ( m_bApplySrgb ) {
 					fDst.x[0] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[0] );
 					fDst.x[1] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[1] );
 					fDst.x[2] = CUtilities::sRGBtoLinear_Precise( _fEntry.x[2] );
 				}
+				else { fDst = _fEntry; }
 				break;
 			}
 			case LSN_G_CRT1 : {
@@ -202,100 +206,100 @@ namespace lsn {
 			case LSN_G_NONE : { break; }
 			case LSN_G_AUTO : {
 				/*if ( m_bApplySrgb ) {
-					fDst.x[0] = CUtilities::LinearTosRGB_Precise( _fEntry.x[0] );
-					fDst.x[1] = CUtilities::LinearTosRGB_Precise( _fEntry.x[1] );
-					fDst.x[2] = CUtilities::LinearTosRGB_Precise( _fEntry.x[2] );
+					fDst.x[0] = CUtilities::LinearTosRGB_Precise( fDst.x[0] );
+					fDst.x[1] = CUtilities::LinearTosRGB_Precise( fDst.x[1] );
+					fDst.x[2] = CUtilities::LinearTosRGB_Precise( fDst.x[2] );
 				}*/
 				break;
 			}
 			case LSN_G_CRT1 : {
-				fDst.x[0] = CUtilities::LinearToCrtProper( _fEntry.x[0], 1.0 );
-				fDst.x[1] = CUtilities::LinearToCrtProper( _fEntry.x[1], 1.0, 0.0181 * 0.5 );
-				fDst.x[2] = CUtilities::LinearToCrtProper( _fEntry.x[2], 1.0 );
+				fDst.x[0] = CUtilities::LinearToCrtProper( fDst.x[0], 1.0 );
+				fDst.x[1] = CUtilities::LinearToCrtProper( fDst.x[1], 1.0, 0.0181 * 0.5 );
+				fDst.x[2] = CUtilities::LinearToCrtProper( fDst.x[2], 1.0 );
 				break;
 			}
 			case LSN_G_CRT2 : {
-				fDst.x[0] = CUtilities::LinearToCrtProper2( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearToCrtProper2( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearToCrtProper2( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearToCrtProper2( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToCrtProper2( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToCrtProper2( fDst.x[2] );
 				break;
 			}
 			case LSN_G_sRGB : {
-				fDst.x[0] = CUtilities::LinearTosRGB_Precise( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearTosRGB_Precise( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearTosRGB_Precise( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearTosRGB_Precise( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearTosRGB_Precise( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearTosRGB_Precise( fDst.x[2] );
 				break;
 			}
 			case LSN_G_SMPTE170M : {
-				fDst.x[0] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearToSMPTE170M_Precise( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearToSMPTE170M_Precise( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToSMPTE170M_Precise( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToSMPTE170M_Precise( fDst.x[2] );
 				break;
 			}
 			case LSN_G_DCIP3 : {
-				fDst.x[0] = CUtilities::LinearToDCIP3( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearToDCIP3( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearToDCIP3( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearToDCIP3( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToDCIP3( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToDCIP3( fDst.x[2] );
 				break;
 			}
 			case LSN_G_ADOBERGB : {
-				fDst.x[0] = CUtilities::LinearToAdobeRGB( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearToAdobeRGB( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearToAdobeRGB( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearToAdobeRGB( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToAdobeRGB( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToAdobeRGB( fDst.x[2] );
 				break;
 			}
 			case LSN_G_SMPTE240M : {
-				fDst.x[0] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[0] );
-				fDst.x[1] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[1] );
-				fDst.x[2] = CUtilities::LinearToSMPTE240M_Precise( _fEntry.x[2] );
+				fDst.x[0] = CUtilities::LinearToSMPTE240M_Precise( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToSMPTE240M_Precise( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToSMPTE240M_Precise( fDst.x[2] );
 				break;
 			}
 			case LSN_G_POW_1_96 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 1.96 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 1.96 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 1.96 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 1.96 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 1.96 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 1.96 );
 				break;
 			}
 			case LSN_G_POW_2_0 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.0 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.0 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.0 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.0 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.0 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.0 );
 				break;
 			}
 			case LSN_G_POW_2_2 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 0.45 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 0.45 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 0.45 );
+				fDst.x[0] = std::pow( fDst.x[0], 0.45 );
+				fDst.x[1] = std::pow( fDst.x[1], 0.45 );
+				fDst.x[2] = std::pow( fDst.x[2], 0.45 );
 				break;
 			}
 			case LSN_G_POW_2_35 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.35 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.35 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.35 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.35 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.35 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.35 );
 				break;
 			}
 			case LSN_G_POW_2_4 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.4 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.4 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.4 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.4 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.4 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.4 );
 				break;
 			}
 			case LSN_G_POW_2_5 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.5 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.5 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.5 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.5 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.5 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.5 );
 				break;
 			}
 			case LSN_G_POW_2_7 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.7 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.7 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.7 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.7 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.7 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.7 );
 				break;
 			}
 			case LSN_G_POW_2_8 : {
-				fDst.x[0] = std::pow( _fEntry.x[0], 1.0 / 2.8 );
-				fDst.x[1] = std::pow( _fEntry.x[1], 1.0 / 2.8 );
-				fDst.x[2] = std::pow( _fEntry.x[2], 1.0 / 2.8 );
+				fDst.x[0] = std::pow( fDst.x[0], 1.0 / 2.8 );
+				fDst.x[1] = std::pow( fDst.x[1], 1.0 / 2.8 );
+				fDst.x[2] = std::pow( fDst.x[2], 1.0 / 2.8 );
 				break;
 			}
 		}
