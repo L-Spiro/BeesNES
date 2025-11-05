@@ -34,7 +34,6 @@ namespace lsn {
 		enum LSN_FILTERS {
 			LSN_F_RGB24,									/**< Standard RGB24. No filter. */
 			LSN_F_NTSC_BLARGG,								/**< Blargg's NTSC filter. */
-			LSN_F_PAL_BLARGG,								/**< Blargg's NTSC filter adjusted for PAL. */
 			LSN_F_NTSC_LSPIRO,								/**< L. Spiro's NTSC filter. */
 			LSN_F_PAL_LSPIRO,								/**< L. Spiro's PAL filter. */
 			LSN_F_DENDY_LSPIRO,								/**< L. Spiro's Dendy filter. */
@@ -42,10 +41,12 @@ namespace lsn {
 			LSN_F_PALN_LSPIRO,								/**< L. Spiro's PAL-N filter. */
 			LSN_F_NTSC_CRT_FULL,							/**< EMMIR (LMP88959)'s NTSC-CRT (full) filter. */
 			LSN_F_PAL_CRT_FULL,								/**< EMMIR (LMP88959)'s PAL-CRT (full) filter. */
-			LSN_F_AUTO_BLARGG,								/**< Either NTSC or PAL Blargg. */
-			//LSN_F_AUTO_CRT,									/**< NTSC-CRT for NTSC, Blargg PAL for PAL and Dendy. */
 			LSN_F_AUTO_CRT_FULL,							/**< NTSC-CRT (full) for NTSC and PAL. */
 			LSN_F_AUTO_LSPIRO,								/**< L. Spiro's NTSC/PAL filter. */
+
+#ifdef LSN_DX9
+			LSN_F_INDEXEDDX9,								/**< Basic paletted Direct3D 9. */
+#endif	// #ifdef LSN_DX9
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */
 		};
@@ -150,6 +151,11 @@ namespace lsn {
 		 * Called when the filter is about to become active.
 		 */
 		virtual void										Activate() {}
+
+		/**
+		 * Called when the filter is about to become inactive.
+		 */
+		virtual void										DeActivate() {}
 
 		/**
 		 * Gets a BITMAP stride given its row width in bytes.

@@ -247,7 +247,7 @@ namespace lsn {
 		
 		LSW_RECT rPlacement = m_bnEmulator.Options().wpMainWindowPlacement.rcNormalPosition;
 		if ( rPlacement.Width() && rPlacement.Height() ) {
-			::SetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
+			//::SetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
 			::MoveWindow( Wnd(), rPlacement.left, rPlacement.top, rPlacement.Width(), rPlacement.Height(), TRUE );
 		}
 		else {
@@ -438,14 +438,14 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
 			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
+			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_BLARGG );
 				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
+			}*/
+			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_BLARGG );
 				break;
-			}
+			}*/
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_LSPIRO : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_LSPIRO );
 				break;
@@ -830,19 +830,21 @@ namespace lsn {
 		if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
 			if ( m_bMaximized ) {
 				if ( m_wpPlacement.bInBorderless ) {
-					if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
+					LeaveBorderless();
+					/*if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
 						if ( m_psbCachedBar ) {
 							m_psbCachedBar->SetVisible( TRUE );
 							m_rStatusBarRect = m_psbCachedBar->WindowRect();
 						}
 						m_bMaximized = false;
 						m_rMaxRect = VirtualClientRect( this );
-					}
+					}*/
 				}
 			}
 			else {
 				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
-					if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
+					EnterBorderless();
+					/*if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
 						m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
 						if ( m_psbCachedBar ) {
 							m_psbCachedBar->SetVisible( FALSE );
@@ -850,7 +852,7 @@ namespace lsn {
 						m_rStatusBarRect.Zero();
 						m_bMaximized = true;
 						m_rMaxRect = VirtualClientRect( this );
-					}
+					}*/
 				}
 			}
 		}
@@ -1004,23 +1006,24 @@ namespace lsn {
 		Parent::Size( _wParam, _lWidth, _lHeight );
 		m_bMaximized = _wParam == SIZE_MAXIMIZED;
 		if ( m_bMaximized && m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
-			m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu );
+			EnterBorderless();
+			/*m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu );
 			m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
 			if ( m_psbCachedBar ) {
 				m_psbCachedBar->SetVisible( FALSE );
 			}
-			m_rStatusBarRect.Zero();
+			m_rStatusBarRect.Zero();*/
 		}
 		else if ( !m_bMaximized && m_wpPlacement.bInBorderless && !m_wpPlacement.bIsSizing ) {
-			m_wpPlacement.LeaveBorderless( Wnd() );
+			LeaveBorderless();
+			/*m_wpPlacement.LeaveBorderless( Wnd() );
 			if ( m_psbCachedBar ) {
 				m_psbCachedBar->SetVisible( TRUE );
 				m_rStatusBarRect = m_psbCachedBar->WindowRect();
-			}
+			}*/
 		}
-		//if ( m_bMaximized ) {
-			m_rMaxRect = VirtualClientRect( this );
-		//}
+		
+		m_rMaxRect = VirtualClientRect( this );
 		
 
 
@@ -1185,11 +1188,11 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
-				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
+				/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
-				}
+				}*/
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_LSPIRO : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_LSPIRO ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1257,11 +1260,11 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
-				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
+				/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
-				}
+				}*/
 				/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_CRT ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1971,6 +1974,35 @@ namespace lsn {
 			}
 		}
 		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Enter borderless mode.
+	 **/
+	void CMainWindow::EnterBorderless() {
+		if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
+			m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
+			if ( m_psbCachedBar ) {
+				m_psbCachedBar->SetVisible( FALSE );
+			}
+			m_rStatusBarRect.Zero();
+			m_bMaximized = true;
+			m_rMaxRect = VirtualClientRect( this );
+		}
+	}
+
+	/**
+	 * Leave borderless mode.
+	 **/
+	void CMainWindow::LeaveBorderless() {
+		if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
+			if ( m_psbCachedBar ) {
+				m_psbCachedBar->SetVisible( TRUE );
+				m_rStatusBarRect = m_psbCachedBar->WindowRect();
+			}
+			m_bMaximized = false;
+			m_rMaxRect = VirtualClientRect( this );
+		}
 	}
 
 	/**

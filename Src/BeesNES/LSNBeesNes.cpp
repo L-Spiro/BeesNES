@@ -40,7 +40,7 @@ namespace lsn {
 			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY					LSN_PM_PALM						LSN_PM_PALN
 			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter },				// LSN_F_RGB24
 			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG
-			{ &m_nbfBlarggPalFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_PAL_BLARGG
+			//{ &m_nbfBlarggPalFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_PAL_BLARGG
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter },			// LSN_F_NTSC_LSPIRO
 			{ &m_nbfLSpiroPalFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter },			// LSN_F_PAL_LSPIRO
 			{ &m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter },			// LSN_F_DENDY_LSPIRO
@@ -48,7 +48,7 @@ namespace lsn {
 			{ &m_nbfLSpiroPalNFilter,		&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_PALN_LSPIRO
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL
 			{ &m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_PAL_CRT_FULL
-			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_AUTO_BLARGG
+			//{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_AUTO_BLARGG
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_AUTO_CRT_FULL
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 		};
@@ -311,7 +311,12 @@ namespace lsn {
 			m_oOptions.fFilter = _fFilter;
 			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 			if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
-				m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
+				if ( m_cfartCurFilterAndTargets.pfbNextFilter ) {
+					m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
+				}
+				if ( pfbPrev ) {
+					pfbPrev->DeActivate();
+				}
 			}
 		}
 	}

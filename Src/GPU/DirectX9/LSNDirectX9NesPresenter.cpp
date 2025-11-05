@@ -104,19 +104,19 @@ namespace lsn {
 		D3DLOCKED_RECT lrRect{};
 		if ( !m_tIndex.LockRect( 0, lrRect, nullptr, D3DLOCK_DISCARD ) ) { return false; }
 
-		
+		if LSN_LIKELY( lrRect.Pitch == INT( _ui32SrcPitch ) ) {
+			// Just copy it all at once.
+			std::memcpy( lrRect.pBits, _pui16Idx, _ui32H * _ui32SrcPitch );
+			m_tIndex.UnlockRect( 0 );
+			return true;
+		}
 
 		for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
 			const uint8_t * pSrcRow = reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch;
-			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + (_ui32H - Y - 1) * lrRect.Pitch;
+			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + Y * lrRect.Pitch;
 			const uint16_t * pSrc = reinterpret_cast<const uint16_t *>(pSrcRow);
 			uint16_t * pDst = reinterpret_cast<uint16_t *>(pDstRow);
 			std::memcpy( pDst, pSrc, _ui32W * sizeof( uint16_t ) );
-			//for ( uint32_t X = 0; X < _ui32W; ++X ) {
-			//	const uint32_t I = pSrc[X] & 0x01FFU;
-			//	const uint32_t V = (I * 65535U + 255U) / 511U;
-			//	//pDst[X] = static_cast<uint16_t>(I);
-			//}
 		}
 		m_tIndex.UnlockRect( 0 );
 		return true;
@@ -148,6 +148,7 @@ namespace lsn {
 			if LSN_UNLIKELY( !pd3ds9Surf ) { return false; }
 			pd3d9dDevice->SetRenderTarget( 0, pd3ds9Surf );
 			pd3ds9Surf->Release();
+			pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 
 			D3DVIEWPORT9 vpViewport{};
 			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = m_ui32SrcW; vpViewport.Height = m_ui32SrcH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
@@ -158,7 +159,13 @@ namespace lsn {
 			pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
-			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
+			float fU0, fV0, fU1, fV1;
+			const uint32_t uiSrcW = m_ui32SrcW;
+			const uint32_t uiSrcH = m_ui32SrcH;
+			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
+			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ),
+				fU0, fV0, fU1, fV1 ) ) { return false; }
+			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad.Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 
 			// s0 = index, s1 = LUT (both POINT/CLAMP)
@@ -196,7 +203,13 @@ namespace lsn {
 			pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
-			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( ui32DstH ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
+			float fU0, fV0, fU1, fV1;
+			const uint32_t uiSrcW = m_ui32SrcW;
+			const uint32_t uiSrcH = ui32DstH;
+			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
+			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( ui32DstH ),
+				fU0, fV1, fU1, fV0 ) ) { return false; }
+			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( ui32DstH ), 0.0f, 1.0f, 1.0f, 0.0f ) ) { return false; }
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad.Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 
 			// s0 = initial FP RT (POINT/CLAMP).
@@ -242,17 +255,19 @@ namespace lsn {
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 			pd3d9dDevice->SetTexture( 1, nullptr );
 
+			//pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+
 			pd3d9dDevice->SetPixelShader( m_psCopy.Get() );
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
 
-			/*float fU0, fV0, fU1, fV1;
+			float fU0, fV0, fU1, fV1;
 			const uint32_t uiSrcW = m_ui32SrcW;
 			const uint32_t uiSrcH = m_ui32SrcH * m_ui32ScanFactor;
 			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
 			if LSN_UNLIKELY( !FillQuad( static_cast<float>(_rOutput.left),  static_cast<float>(_rOutput.top),
 				static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom),
-				fU0, fV0, fU1, fV1 ) ) { return false; }*/
-			if LSN_UNLIKELY( !FillQuad( float( _rOutput.left ), float( _rOutput.top ), float( _rOutput.right ), float( _rOutput.bottom ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
+				fU0, fV0, fU1, fV1 ) ) { return false; }
+			//if LSN_UNLIKELY( !FillQuad( float( _rOutput.left ), float( _rOutput.top ), float( _rOutput.right ), float( _rOutput.bottom ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
 
 
 
@@ -334,7 +349,6 @@ namespace lsn {
 			"    return tex2D( sLut, float2( u, 0.5 ) );\n"
 			"}\n";
 
-
 		/*static const char* kPsShowIndex =
 			"sampler2D sIdx:register(s0);\n"
 			"float4 main(float2 uv:TEXCOORD0):COLOR {\n"
@@ -342,12 +356,12 @@ namespace lsn {
 			"  return float4(r,r,r,1);\n"
 			"}\n";*/
 
-		// Pass 2: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0]
+		// Pass 2: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
 		static const char * kPsVerticalNNHlsl =
 			"sampler2D sSrc : register( s0 );\n"
 			"float4 c0 : register( c0 );\n" // x=srcH, y=1/srcH, z=0.5
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
-			"    float v = (floor( uv.y * c0.x ) + c0.z) * c0.y; \n"
+			"    float v = (floor( uv.y * c0.x ) + c0.z ) * c0.y; \n"
 			"    return tex2D( sSrc, float2( uv.x, v ) );\n"
 			"}\n";
 
@@ -362,9 +376,47 @@ namespace lsn {
 			"}\n"
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"  float4 c = tex2D( sSrc, uv );\n"
-			"  c.rgb = saturate( LinearToSrgb( saturate( c.rgb ) ) );\n"
+			"  c.rgb = LinearToSrgb( saturate( saturate( c.rgb ) ) );\n"
+			//"  c.rgb = c.rgb += (0.5 / 255.0);\n"
 			"  return c;\n"
 			"}\n";
+		// c0 = [srcW, srcH, 1/srcW, 1/srcH]
+		//static const char * kPsCopyHlsl =
+		//	"sampler2D sSrc : register(s0);\n"
+		//	"float4 c0 : register(c0);\n" // x=srcW, y=srcH, z=1/srcW, w=1/srcH
+		//	"float w_cubic(float x){\n"
+		//	"  x = abs(x);\n"
+		//	"  if (x < 1.0) return (1.5*x - 2.5)*x*x + 1.0;\n"
+		//	"  if (x < 2.0) return ((-0.5*x + 2.5)*x - 4.0)*x + 2.0;\n"
+		//	"  return 0.0;\n"
+		//	"}\n"
+		//	"float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
+		//	"  float2 texSz   = c0.xy;\n"
+		//	"  float2 invTex  = c0.zw;\n"
+		//	"  // Map uv to source texel space (center-based)\n"
+		//	"  float2 coord   = uv * texSz - 0.5;\n"
+		//	"  float2 base    = floor(coord);\n"
+		//	"  float2 f       = coord - base;\n"
+		//	"  float4 sum     = 0;\n"
+		//	"  float  wsum    = 0;\n"
+		//	"  // 4x4 taps around base\n"
+		//	"  [unroll] for (int j = -1; j <= 2; ++j){\n"
+		//	"    float wy = w_cubic(j - f.y);\n"
+		//	"    float v  = (base.y + j + 0.5) * invTex.y;\n"
+		//	"    [unroll] for (int i = -1; i <= 2; ++i){\n"
+		//	"      float wx = w_cubic(i - f.x);\n"
+		//	"      float u  = (base.x + i + 0.5) * invTex.x;\n"
+		//	"      float2 tuv = float2(u,v);\n"
+		//	"      // Clamp at edges.\n"
+		//	"      tuv = saturate(tuv);\n"
+		//	"      float w = wx * wy;\n"
+		//	"      sum  += tex2D(sSrc, tuv) * w;\n"
+		//	"      wsum += w;\n"
+		//	"    }\n"
+		//	"  }\n"
+		//	"  float4 c = sum / wsum;\n"
+		//	"  return c;\n"
+		//	"}\n";
 
 		if ( !m_psIdxToColor.Valid() ) {
 			std::vector<DWORD> vBc;
@@ -416,27 +468,27 @@ namespace lsn {
 		}
 		if ( !pfnCompile ) { return false; }
 
-		ID3DXBuffer * pCode = nullptr;
-		ID3DXBuffer * pErrs = nullptr;
-		HRESULT hr = pfnCompile(
+		ID3DXBuffer * pbCode = nullptr;
+		ID3DXBuffer * pbErrs = nullptr;
+		HRESULT hRes = pfnCompile(
 			_pcszSource,
 			static_cast<UINT>(std::strlen( _pcszSource )),
 			nullptr, nullptr,
 			_pcszEntry, _pcszProfile,
 			0,
-			&pCode, &pErrs, nullptr );
-		if ( FAILED( hr ) || !pCode ) {
-			if ( pErrs ) { pErrs->Release(); }
+			&pbCode, &pbErrs, nullptr );
+		if ( FAILED( hRes ) || !pbCode ) {
+			if ( pbErrs ) { pbErrs->Release(); }
 			return false;
 		}
 
-		const size_t stBytes = pCode->GetBufferSize();
+		const size_t stBytes = pbCode->GetBufferSize();
 		const size_t stDwords = stBytes / sizeof( DWORD );
 		_vOutByteCode.resize( stDwords );
-		std::memcpy( _vOutByteCode.data(), pCode->GetBufferPointer(), stBytes );
+		std::memcpy( _vOutByteCode.data(), pbCode->GetBufferPointer(), stBytes );
 
-		pCode->Release();
-		if ( pErrs ) { pErrs->Release(); }
+		pbCode->Release();
+		if ( pbErrs ) { pbErrs->Release(); }
 		return true;
 	}
 

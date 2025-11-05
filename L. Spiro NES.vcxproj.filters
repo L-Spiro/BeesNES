@@ -999,6 +999,9 @@
     <ClInclude Include="Src\Options\LSNPaletteOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNGpuFilterBase.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1380,6 +1383,9 @@
       <Filter>Source Files\GPU\DirectX9</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNNesPalette.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNGpuFilterBase.cpp">
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>

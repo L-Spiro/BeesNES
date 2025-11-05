@@ -1800,6 +1800,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
+    <ClInclude Include="Src\Filters\LSNGpuFilterBase.h" />
     <ClInclude Include="Src\Filters\LSNNesPalette.h" />
     <ClInclude Include="Src\Filters\LSNNtscBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNNtscCrtFullFilter.h" />
@@ -2021,6 +2022,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />
+    <ClCompile Include="Src\Filters\LSNGpuFilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNNesPalette.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNNtscCrtFullFilter.cpp" />

@@ -507,6 +507,16 @@ namespace lsn {
 		virtual LSW_HANDLED						DeviceChange( WORD _wDbtEvent, LPARAM _lParam );
 
 		/**
+		 * Enter borderless mode.
+		 **/
+		void									EnterBorderless();
+
+		/**
+		 * Leave borderless mode.
+		 **/
+		void									LeaveBorderless();
+
+		/**
 		 * Opens an HID device by its ID string.
 		 *
 		 * \param PARM The ID string of the device to open.
