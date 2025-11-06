@@ -192,10 +192,12 @@ namespace lsn {
 			pd3d9dDevice->SetRenderTarget( 0, pd3ds9Surf );
 			pd3ds9Surf->Release();
 
-			const UINT ui32DstH = m_ui32SrcH * m_ui32ScanFactor;
+
+			const UINT ui32DstW = m_ui32SrcW * m_ui32HorSharness;
+			const UINT ui32DstH = m_ui32SrcH * m_ui32VertSharpness;
 
 			D3DVIEWPORT9 vpViewport{};
-			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = m_ui32SrcW; vpViewport.Height = ui32DstH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
+			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = ui32DstW; vpViewport.Height = ui32DstH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
 			pd3d9dDevice->SetViewport( &vpViewport );
 
 			pd3d9dDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
@@ -204,12 +206,12 @@ namespace lsn {
 
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
 			float fU0, fV0, fU1, fV1;
-			const uint32_t uiSrcW = m_ui32SrcW;
+			const uint32_t uiSrcW = ui32DstW;
 			const uint32_t uiSrcH = ui32DstH;
 			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
-			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( ui32DstH ),
+			if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( ui32DstW ), float( ui32DstH ),
 				fU0, fV1, fU1, fV0 ) ) { return false; }
-			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( ui32DstH ), 0.0f, 1.0f, 1.0f, 0.0f ) ) { return false; }
+			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( ui32DstW ), float( ui32DstH ), 0.0f, 1.0f, 1.0f, 0.0f ) ) { return false; }
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad.Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 
 			// s0 = initial FP RT (POINT/CLAMP).
@@ -255,14 +257,14 @@ namespace lsn {
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 			pd3d9dDevice->SetTexture( 1, nullptr );
 
-			//pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
+			pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, TRUE );
 
 			pd3d9dDevice->SetPixelShader( m_psCopy.Get() );
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
 
 			float fU0, fV0, fU1, fV1;
-			const uint32_t uiSrcW = m_ui32SrcW;
-			const uint32_t uiSrcH = m_ui32SrcH * m_ui32ScanFactor;
+			const uint32_t uiSrcW = m_ui32SrcW * m_ui32HorSharness;
+			const uint32_t uiSrcH = m_ui32SrcH * m_ui32VertSharpness;
 			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
 			if LSN_UNLIKELY( !FillQuad( static_cast<float>(_rOutput.left),  static_cast<float>(_rOutput.top),
 				static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom),
@@ -289,7 +291,8 @@ namespace lsn {
 	 * \return Returns true on success.
 	 */
 	bool CDirectX9NesPresenter::EnsureSizeAndResources( uint32_t _ui32W, uint32_t _ui32H, bool _bUse16f ) {
-		const uint32_t ui32ScanH = _ui32H * m_ui32ScanFactor;
+		const uint32_t ui32ScanW = _ui32W * m_ui32HorSharness;
+		const uint32_t ui32ScanH = _ui32H * m_ui32VertSharpness;
 
 		const bool bOk =
 			(m_ui32SrcW == _ui32W) &&
@@ -317,7 +320,7 @@ namespace lsn {
 		}
 
 		// Scanlined FP RT: height scaled by factor.
-		if ( !m_rtScanlined.CreateColorTarget( m_ui32SrcW, ui32ScanH, fmtRt ) ) {
+		if ( !m_rtScanlined.CreateColorTarget( ui32ScanW, ui32ScanH, fmtRt ) ) {
 			return false;
 		}
 
@@ -369,15 +372,14 @@ namespace lsn {
 		static const char * kPsCopyHlsl =
 			"sampler2D sSrc : register( s0 );\n"
 			"float3 LinearToSrgb( float3 c ) {\n"
-			"  float3 lo = 12.92321018078785499483274179510772228240966796875 * c;\n"
+			"  float3 lo = 12.92 * c;\n"
 			"  float3 hi = 1.055 * pow( c, 1.0 / 2.4 ) - 0.055;\n"
-			"  float3 t = step( float3( 0.003039934639778431833823102437008856213651597499847412109375, 0.003039934639778431833823102437008856213651597499847412109375, 0.003039934639778431833823102437008856213651597499847412109375 ), c );\n"
+			"  float3 t = step( float3( 0.0031308, 0.0031308, 0.0031308 ), c );\n"
 			"  return lerp( lo, hi, t );\n"
 			"}\n"
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"  float4 c = tex2D( sSrc, uv );\n"
-			"  c.rgb = LinearToSrgb( saturate( saturate( c.rgb ) ) );\n"
-			//"  c.rgb = c.rgb += (0.5 / 255.0);\n"
+			"  c.rgb = saturate( saturate( c.rgb ) );\n"
 			"  return c;\n"
 			"}\n";
 		// c0 = [srcW, srcH, 1/srcW, 1/srcH]

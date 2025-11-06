@@ -61,19 +61,36 @@ namespace lsn {
 		bool											Init( uint32_t _ui32SrcW, uint32_t _ui32SrcH, bool _bUse16f = true );
 
 		/**
-		 * \brief Updates the vertical ÅgscanlineÅh factor (integer scale).
+		 * \brief Updates the vertical sharpness factor (integer scale).
 		 *
-		 * Valid values are 2 or 3. Changing this triggers size-dependent reallocation on the next Init().
+		 * Changing this triggers size-dependent reallocation on the next Init().
 		 *
-		 * \param _ui32Factor The vertical scale (2 or 3).
+		 * \param _ui32Factor The vertical sharpness.
 		 */
-		void											SetScanlineFactor( uint32_t _ui32Factor ) { m_ui32ScanFactor = _ui32Factor; }
+		void											SetVertSharpness( uint32_t _ui32Factor ) { m_ui32VertSharpness = _ui32Factor; }
 
 		/**
-		 * \brief Gets the current vertical scanline factor.
-		 * \return Returns 2 or 3.
+		 * \brief Gets the current vertical sharpness factor.
+		 * 
+		 * \return Returns the vertical sharpness factor.
 		 */
-		inline uint32_t									GetScanlineFactor() const { return m_ui32ScanFactor; }
+		inline uint32_t									GetVertSharpness() const { return m_ui32VertSharpness; }
+
+		/**
+		 * \brief Updates the horizontal sharpness factor (integer scale).
+		 *
+		 * Changing this triggers size-dependent reallocation on the next Init().
+		 *
+		 * \param _ui32Factor The horizontal sharpness.
+		 */
+		void											SetHorSharpness( uint32_t _ui32Factor ) { m_ui32HorSharness = _ui32Factor; }
+
+		/**
+		 * \brief Gets the current horizontal sharpness factor.
+		 * 
+		 * \return Returns the horizontal sharpness factor.
+		 */
+		inline uint32_t									GetHorSharpness() const { return m_ui32HorSharness; }
 
 		/**
 		 * \brief Updates the 512-entry float RGBA LUT.
@@ -116,32 +133,34 @@ namespace lsn {
 
 	private :
 		// == Members.
-		/** \brief The DirectX 9 device wrapper (non-owning). */
+		/** The DirectX 9 device wrapper (non-owning). */
 		CDirectX9Device *								m_pdx9dDevice = nullptr;
-		/** \brief Index texture (L16, DEFAULT|DYNAMIC). */
+		/** Index texture (L16, DEFAULT|DYNAMIC). */
 		CDirectX9Texture								m_tIndex;
-		/** \brief 512Å~1 LUT texture (A32B32G32R32F, MANAGED). */
+		/** 512Å~1 LUT texture (A32B32G32R32F, MANAGED). */
 		CDirectX9Texture								m_tLut;
-		/** \brief Initial floating-point render target (same size as indices). */
+		/** Initial floating-point render target (same size as indices). */
 		CDirectX9RenderTarget							m_rtInitial;
-		/** \brief Scanlined floating-point render target (height = source height Å~ factor). */
+		/** Scanlined floating-point render target (height = source height Å~ factor). */
 		CDirectX9RenderTarget							m_rtScanlined;
-		/** \brief Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
+		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		CDirectX9VertexBuffer							m_vbQuad;
-		/** \brief Pixel shader: indices + LUT Å® RGBA (pass 1). */
+		/** Pixel shader: indices + LUT Å® RGBA (pass 1). */
 		CDirectX9PixelShader							m_psIdxToColor;
-		/** \brief Pixel shader: vertical nearest-neighbor upscale (pass 2). */
+		/** Pixel shader: vertical nearest-neighbor upscale (pass 2). */
 		CDirectX9PixelShader							m_psVerticalNN;
-		/** \brief Pixel shader: copy pass (pass 3). */
+		/** Pixel shader: copy pass (pass 3). */
 		CDirectX9PixelShader							m_psCopy;
-		/** \brief Source width in pixels. */
+		/** Source width in pixels. */
 		uint32_t										m_ui32SrcW = 0;
-		/** \brief Source height in pixels. */
+		/** Source height in pixels. */
 		uint32_t										m_ui32SrcH = 0;
-		/** \brief True to use A16B16G16R16F for FP RTs; false for A32B32G32R32F. */
+		/** True to use A16B16G16R16F for FP RTs; false for A32B32G32R32F. */
 		bool											m_bUse16f = true;
-		/** \brief Vertical scanline factor (2 or 3). */
-		uint32_t										m_ui32ScanFactor = 2;
+		/** Vertical sharpness factor. */
+		uint32_t										m_ui32VertSharpness = 2;
+		/** Horizontal sharpness factor. */
+		uint32_t										m_ui32HorSharness = 2;
 
 
 		// == Functions.

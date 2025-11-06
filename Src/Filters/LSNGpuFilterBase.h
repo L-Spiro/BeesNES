@@ -17,9 +17,9 @@ namespace lsn {
 
 	/**
 	 * Class CGpuFilterBase
-	 * \brief A standard 24-bit RGB filter.
+	 * \brief The base class for GPU filters.
 	 *
-	 * Description: A standard 24-bit RGB filter.
+	 * Description: The base class for GPU filters.
 	 */
 	class CGpuFilterBase : public CFilterBase {
 	public :
@@ -60,19 +60,11 @@ namespace lsn {
 		virtual uint8_t *									OutputBuffer() { return CurTarget(); }
 
 		/**
-		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
-		 *	its width, height, bit-depth, and stride, are returned.
-		 *
-		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
-		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
-		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
-		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
-		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
-		 * \param _ui64PpuFrame The PPU frame associated with the input data.
-		 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
-		 * \return Returns a pointer to the filtered output buffer.
-		 */
-		//virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &/*_ui32Width*/, uint32_t &/*_ui32Height*/, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/ );
+		 * If this is a GPU filter, some of the pipeline is different, and extra steps to manage the filter are needed.
+		 * 
+		 * \return Returns true.
+		 **/
+		virtual bool										IsGpuFilter() const { return true; }
 
 	protected :
 		// == Members.

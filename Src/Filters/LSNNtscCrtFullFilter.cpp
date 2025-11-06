@@ -171,6 +171,7 @@ namespace lsn {
 	 */
 	void CNtscCrtFullFilter::Activate() {
 		std::memset( m_vFilteredOutput.data(), 0, m_vFilteredOutput.size() );
+		CFilterBase::Activate();
 	}
 
 	/**

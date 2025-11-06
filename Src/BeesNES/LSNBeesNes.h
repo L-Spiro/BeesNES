@@ -53,6 +53,7 @@ namespace lsn {
 			CFilterBase *						pfbCurFilter = nullptr;						/**< The current filter. */
 			CFilterBase *						pfbNextFilter = nullptr;					/**< The next filter. */
 			CFilterBase *						pfbPrevFilter = nullptr;					/**< The previous filter. */
+			mutable CFilterBase *				pfbDeactivateMe = nullptr;					/**< Needs DeActivate() called after the next render. */
 			uint8_t *							pui8CurRenderTarget = nullptr;				/**< The current render target. */
 			uint8_t *							pui8LastFilteredResult = nullptr;			/**< The last filtered result. */
 			uint32_t							ui32Width = 0;								/**< The current render target's width in pixels. */
@@ -61,6 +62,33 @@ namespace lsn {
 			uint16_t							ui16Bits = 0;								/**< The current render target's bit depth. */
 			bool								bDirty = true;								/**< The dirty flag. */
 			bool								bMirrored = false;							/**< If true, the image was rendered up-side down and does not need to be flipped by ::StretchDIBits() or ::SetDIBitsToDevice() to render properly. */
+
+
+			~LSN_CUR_FILTER_AND_RENDER_TARGET() {
+				if ( pfbNextFilter && pfbNextFilter != pfbCurFilter ) {
+					// It was set but no Swap() took place to make it current.  Very rare case.
+					pfbNextFilter->DeActivate();
+					pfbNextFilter = nullptr;
+				}
+				else if ( pfbCurFilter && pfbCurFilter != pfbDeactivateMe ) {
+					// It was already made current.  Check against pfbDeactivateMe should never return true but just in case.
+					pfbCurFilter->DeActivate();
+					pfbCurFilter = nullptr;
+				}
+				DeActivate();
+			}
+
+
+			// == Functions.
+			/**
+			 * Safely performs deactivation.
+			 **/
+			void								DeActivate() const {
+				if ( pfbDeactivateMe ) {
+					pfbDeactivateMe->DeActivate();
+					pfbDeactivateMe = nullptr;
+				}
+			}
 		};
 
 

@@ -315,7 +315,8 @@ namespace lsn {
 					m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
 				}
 				if ( pfbPrev ) {
-					pfbPrev->DeActivate();
+					m_cfartCurFilterAndTargets.DeActivate();
+					m_cfartCurFilterAndTargets.pfbDeactivateMe = pfbPrev;
 				}
 			}
 		}
@@ -608,7 +609,13 @@ namespace lsn {
 		m_dRatioActual = GetDisplayClient()->DisplayRatio();
 
 		// Prepare filters.
+		m_cfartCurFilterAndTargets.DeActivate();
+
+		bool bActivate = m_cfartCurFilterAndTargets.pfbCurFilter == nullptr;
 		m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_oOptions.fFilter][GetDisplayClient()->PpuRegion()];
+		if ( bActivate ) {
+			m_cfartCurFilterAndTargets.pfbCurFilter->Activate();
+		}
 					
 		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
@@ -632,6 +639,8 @@ namespace lsn {
 
 		ApplyAudioOptions();
 		ApplyPaletteOptions();
+
+		
 	}
 
 	/**

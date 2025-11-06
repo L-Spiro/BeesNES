@@ -668,6 +668,7 @@ namespace lsn {
 		if ( m_bUseDx9 ) {
 			// If the device is lost, try to recover (non-blocking).
 			if ( !m_dx9Device.HandleDeviceLoss( this ) ) {
+				m_bnEmulator.RenderInfo().DeActivate();
 				return LSW_H_HANDLED;   // Skip this frame.
 			}
 			LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
@@ -696,6 +697,7 @@ namespace lsn {
 					m_dx9Device.HandleDeviceLoss( this );
 				}
 			}
+			m_bnEmulator.RenderInfo().DeActivate();
 			return LSW_H_HANDLED;
 		}
 #endif	// #ifdef LSN_DX9
@@ -786,7 +788,7 @@ namespace lsn {
 				DIB_RGB_COLORS );
 		}
 
-		//::SetThreadNormalPriority();
+		m_bnEmulator.RenderInfo().DeActivate();
 		return LSW_H_HANDLED;
 	}
 
@@ -1556,8 +1558,6 @@ namespace lsn {
 		}
 		// Create with default adapter and no special device string.
 		m_bUseDx9 = m_dx9Device.Create( this, "" );
-		// Optional: seed the flash so first Paint() shows a change.
-		m_ui8Flash = 0;
 
 		if ( m_bUseDx9 ) {
 			m_upDx9PaletteRender = std::make_unique<CDirectX9NesPresenter>( &m_dx9Device );
@@ -1566,7 +1566,7 @@ namespace lsn {
 				return false;
 			}
 			auto rWinSize = VirtualClientRect( nullptr );
-			m_upDx9PaletteRender->SetScanlineFactor( 4 );
+			m_upDx9PaletteRender->SetVertSharpness( 4 );
 			if ( !m_upDx9PaletteRender->Init( m_bnEmulator.GetDisplayClient()->DisplayWidth(), m_bnEmulator.GetDisplayClient()->DisplayHeight(), false ) ) {
 				DestroyDx9();
 				return false;

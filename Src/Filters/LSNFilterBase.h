@@ -148,6 +148,13 @@ namespace lsn {
 		virtual uint8_t *									OutputBuffer() { return nullptr; }
 
 		/**
+		 * If this is a GPU filter, some of the pipeline is different, and extra steps to manage the filter are needed.
+		 * 
+		 * \return Returns false.
+		 **/
+		virtual bool										IsGpuFilter() const { return false; }
+
+		/**
 		 * Called when the filter is about to become active.
 		 */
 		virtual void										Activate() {}

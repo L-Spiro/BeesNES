@@ -1,3 +1,5 @@
+#ifdef LSN_DX9
+
 /**
  * Copyright L. Spiro 2023
  *
@@ -6,15 +8,15 @@
  * Description: The base class for GPU filters.
  */
 
-#include "LSNGpuFilterBase.h"
+#include "LSNDx9FilterBase.h"
 #include "../Utilities/LSNUtilities.h"
 
 
 namespace lsn {
 
-	CGpuFilterBase::CGpuFilterBase() {
+	CDx9FilterBase::CDx9FilterBase() {
 	}
-	CGpuFilterBase::~CGpuFilterBase() {
+	CDx9FilterBase::~CDx9FilterBase() {
 	}
 
 	/**
@@ -25,7 +27,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CGpuFilterBase::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9FilterBase::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_vBasicRenderTarget.resize( _stBuffers );
 
 		m_ui32OutputWidth = _ui16Width;
@@ -41,4 +43,18 @@ namespace lsn {
 		return InputFormat();
 	}
 
+	/**
+	 * Called when the filter is about to become active.
+	 */
+	void CDx9FilterBase::Activate() {
+	}
+		
+	/**
+	 * Called when the filter is about to become inactive.
+	 */
+	void CDx9FilterBase::DeActivate() {
+	}
+
 }	// namespace lsn
+
+#endif	// #ifdef LSN_DX9

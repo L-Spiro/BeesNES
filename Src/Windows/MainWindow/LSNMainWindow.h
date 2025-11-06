@@ -422,8 +422,6 @@ namespace lsn {
 		std::unique_ptr<CDirectX9NesPresenter>	m_upDx9PaletteRender;
 		/** If true, Paint() renders via DX9 instead of software. */
 		bool									m_bUseDx9 = false;
-		/** Small counter for flashing clear color. */
-		uint8_t									m_ui8Flash = 0;
 #endif	// #ifdef LSN_DX9
 		
 
