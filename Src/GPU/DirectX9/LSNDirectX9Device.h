@@ -37,11 +37,11 @@ namespace lsn {
 		/**
 		 * Creates a Direct3D 9 device.
 		 *
-		 * \param _pwWnd The window to which to attach.
+		 * \param _hWnd The window to which to attach.
 		 * \param _sAdapter The adapter to use.
 		 * \return Returns true if the device was created.
 		 **/
-		virtual bool											Create( lsw::CWidget * _pwWnd, const std::string &_sAdapter );
+		virtual bool											Create( HWND _hWnd, const std::string &_sAdapter );
 
 		/**
 		 * Resets the device back to scratch.  Everything that depends on it must already be reset.
@@ -76,11 +76,11 @@ namespace lsn {
 		 * calls \c CDirectX9LosableResourceManager::OnLostDevice(), performs \c Reset(&m_ppPresentParms),
 		 * then calls \c CDirectX9LosableResourceManager::OnResetDevice().
 		 *
-		 * \param _pwWnd The target window whose client-area size determines the new backbuffer size.
-		 *              If \c nullptr, the cached \c m_pwWnd is used.
+		 * \param _hWnd The target window whose client-area size determines the new backbuffer size.
+		 *              If \c nullptr, the cached \c m_hWnd is used.
 		 * \return Returns \c true on success; \c false if the device is still lost or \c Reset() failed.
 		 **/
-		bool													ResetForWindowSize( lsw::CWidget * _pwWnd );
+		bool													ResetForWindowSize( HWND _hWnd );
 
 		/**
 		 * \brief Check cooperative level and recover from device loss when possible.
@@ -88,19 +88,19 @@ namespace lsn {
 		 * When \c TestCooperativeLevel() returns \c D3DERR_DEVICENOTRESET, this attempts a \c Reset()
 		 * using the current client-area size (via \c ResetForWindowSize()).
 		 *
-		 * \param _pwWnd The window used to refresh \c m_ppPresentParms on reset. If \c nullptr,
-		 *              the cached \c m_pwWnd is used.
+		 * \param _hWnd The window used to refresh \c m_ppPresentParms on reset. If \c nullptr,
+		 *              the cached \c m_hWnd is used.
 		 * \return Returns \c true if the device is usable for this frame (OK or reset succeeded);
 		 *         \c false if still lost and rendering should be skipped this frame.
 		 **/
-		bool													HandleDeviceLoss( lsw::CWidget * _pwWnd );
+		bool													HandleDeviceLoss( HWND _hWnd );
 
 
 	protected :
 		// == Members.
 		Microsoft::WRL::ComPtr<IDirect3D9>						m_pdD3d;								/**< The Direct3D 9 COM interface. */
 		Microsoft::WRL::ComPtr<IDirect3DDevice9>				m_pd3dDevice;							/**< The Direct3D 9 device. */
-		lsw::CWidget *											m_pwWnd = nullptr;						/**< The window to which we are attached. */
+		HWND													m_hWnd = NULL;							/**< The window to which we are attached. */
 		DWORD													m_dwFlags = 0;							/**< Flags used to create the device. */
 		D3DPRESENT_PARAMETERS									m_ppPresentParms;						/**< The present parameters used to create the device. */
 

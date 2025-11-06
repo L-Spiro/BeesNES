@@ -11,8 +11,15 @@
 #include "LSNDx9FilterBase.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <Base/LSWBase.h>
+#include <Base/LSWWndClassEx.h>
+
 
 namespace lsn {
+
+	// == Members.
+	/** Global: window class name for the DX9 child target. */
+	const wchar_t * CDx9FilterBase::LSN_DX9_TARGET_CLASS = L"LSN_DX9_TARGET";
 
 	CDx9FilterBase::CDx9FilterBase() {
 	}
@@ -36,7 +43,6 @@ namespace lsn {
 		const uint16_t wBitDepth = uint16_t( OutputBits() );
 		const uint32_t dwStride = uint32_t( m_stStride = RowStride( _ui16Width, wBitDepth ) );
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
-			size_t szPrevSize = m_vBasicRenderTarget[I].size();
 			m_vBasicRenderTarget[I].resize( dwStride * _ui16Height );	
 		}
 
@@ -54,6 +60,37 @@ namespace lsn {
 	 */
 	void CDx9FilterBase::DeActivate() {
 	}
+
+	/**
+	 * \brief Registers the DX9 child target window class (no background erase).
+	 * 
+	 * \return Returns true if the class is registered or already existed.
+	 */
+	bool LSN_FASTCALL CDx9FilterBase::RegisterDx9TargetClass() {
+		lsw::CWndClassEx wceEx(
+			[]( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam )->LRESULT {
+				switch ( _uMsg ) {
+					case WM_ERASEBKGND : {
+						// Never erase; avoids flicker.
+						return 1;
+					}
+					case WM_PAINT : {
+						// Validate only. Rendering is driven externally.
+						PAINTSTRUCT ps;
+						::BeginPaint( _hWnd, &ps );
+						::EndPaint( _hWnd, &ps );
+						return 0;
+					}
+					case WM_PRINTCLIENT : {
+						// Nothing to draw via GDI.
+						return 0;
+					}
+				}
+				return ::DefWindowProcW( _hWnd, _uMsg, _wParam, _lParam );
+			}, LSN_DX9_TARGET_CLASS, CS_DBLCLKS, lsw::CBase::GetThisHandle(), NULL, ::LoadCursorW( NULL, IDC_ARROW ), NULL );
+		return lsw::CBase::RegisterClassExW( wceEx.Obj() ) != 0;
+	}
+
 
 }	// namespace lsn
 

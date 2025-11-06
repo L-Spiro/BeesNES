@@ -24,11 +24,11 @@ namespace lsn {
 	/**
 	 * Creates a Direct3D 9 device.
 	 *
-	 * \param _pwWnd The window to which to attach.
+	 * \param _hWnd The window to which to attach.
 	 * \param _sAdapter The adapter to use.
 	 * \return Returns true if the device was created.
 	 **/
-	bool CDirectX9Device::Create( lsw::CWidget * _pwWnd, const std::string &_sAdapter ) {
+	bool CDirectX9Device::Create( HWND _hWnd, const std::string &_sAdapter ) {
 		Reset();
 
 		lsw::LSW_HMODULE hLib( "d3d9.dll" );
@@ -53,10 +53,11 @@ namespace lsn {
 
 			try {
 				if ( std::string( aiAdapterInfo.Description ) == _sAdapter || !_sAdapter.size() ) {
-					lsw::LSW_RECT rClient = _pwWnd->VirtualClientRect( nullptr );
+					lsw::LSW_RECT rClient;
+					::GetClientRect( _hWnd, &rClient );
 					D3DPRESENT_PARAMETERS ppPresent = {
-						.BackBufferWidth					= static_cast<UINT>(rClient.right - rClient.left),
-						.BackBufferHeight					= static_cast<UINT>(rClient.bottom - rClient.top),
+						.BackBufferWidth					= static_cast<UINT>(rClient.Width()),
+						.BackBufferHeight					= static_cast<UINT>(rClient.Height()),
 						.BackBufferFormat					= D3DFMT_X8R8G8B8,
 						.BackBufferCount					= 1,
 
@@ -64,7 +65,7 @@ namespace lsn {
 						.MultiSampleQuality					= 0,
 
 						.SwapEffect							= D3DSWAPEFFECT_DISCARD,
-						.hDeviceWindow						= _pwWnd->Wnd(),
+						.hDeviceWindow						= _hWnd,
 						.Windowed							= TRUE,
 						.EnableAutoDepthStencil				= TRUE,
 						.AutoDepthStencilFormat				= D3DFMT_D24S8,
@@ -89,7 +90,7 @@ namespace lsn {
 						m_pdD3d = std::move( pdD3d );
 						m_dwFlags = dwFlags;
 						m_ppPresentParms = ppPresent;
-						m_pwWnd = _pwWnd;
+						m_hWnd = _hWnd;
 						return true;
 					}
 					return false;
@@ -117,19 +118,21 @@ namespace lsn {
 	 * calls \c CDirectX9LosableResourceManager::OnLostDevice(), performs \c Reset(&m_ppPresentParms),
 	 * then calls \c CDirectX9LosableResourceManager::OnResetDevice().
 	 *
-	 * \param _pwWnd The target window whose client-area size determines the new backbuffer size.
-	 *              If \c nullptr, the cached \c m_pwWnd is used.
+	 * \param _hWnd The target window whose client-area size determines the new backbuffer size.
+	 *              If \c nullptr, the cached \c m_hWnd is used.
 	 * \return Returns \c true on success; \c false if the device is still lost or \c Reset() failed.
 	 **/
-	bool CDirectX9Device::ResetForWindowSize( lsw::CWidget * _pwWnd ) {
+	bool CDirectX9Device::ResetForWindowSize( HWND _hWnd ) {
 		if ( !m_pd3dDevice ) { return false; }
-		if ( _pwWnd ) { m_pwWnd = _pwWnd; }
+		if ( _hWnd ) { m_hWnd = _hWnd; }
 
-		lsw::LSW_RECT rRect = _pwWnd->VirtualClientRect( nullptr );
+		lsw::LSW_RECT rRect;
+		::GetClientRect( _hWnd, &rRect );
+
 		const UINT uiW = std::max<LONG>( 1, rRect.Width() );
 		const UINT uiH = std::max<LONG>( 1, rRect.Height() );
 
-		m_ppPresentParms.hDeviceWindow		= m_pwWnd->Wnd();
+		m_ppPresentParms.hDeviceWindow		= m_hWnd;
 		m_ppPresentParms.BackBufferWidth	= uiW;
 		m_ppPresentParms.BackBufferHeight	= uiH;
 
@@ -146,17 +149,17 @@ namespace lsn {
 	 * When \c TestCooperativeLevel() returns \c D3DERR_DEVICENOTRESET, this attempts a \c Reset()
 	 * using the current client-area size (via \c ResetForWindowSize()).
 	 *
-	 * \param _pwWnd The window used to refresh \c m_ppPresentParms on reset. If \c nullptr,
-	 *              the cached \c m_pwWnd is used.
+	 * \param _hWnd The window used to refresh \c m_ppPresentParms on reset. If \c nullptr,
+	 *              the cached \c m_hWnd is used.
 	 * \return Returns \c true if the device is usable for this frame (OK or reset succeeded);
 	 *         \c false if still lost and rendering should be skipped this frame.
 	 **/
-	bool CDirectX9Device::HandleDeviceLoss( lsw::CWidget * _pwWnd ) {
+	bool CDirectX9Device::HandleDeviceLoss( HWND _hWnd ) {
 		if ( !m_pd3dDevice ) { return false; }
 		const HRESULT hRes = m_pd3dDevice->TestCooperativeLevel();
 		if ( hRes == D3DERR_DEVICELOST ) { return false; }
 		if ( hRes == D3DERR_DEVICENOTRESET ) {
-			return ResetForWindowSize( _pwWnd ? _pwWnd : m_pwWnd );
+			return ResetForWindowSize( _hWnd ? _hWnd : m_hWnd );
 		}
 		return true;
 	}

@@ -31,7 +31,7 @@ namespace lsn {
 			64,										// iTop
 			LSN_MAIN_WINDOW_W,						// dwWidth
 			LSN_MAIN_WINDOW_H,						// dwHeight
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS,							// dwStyle
+			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,							// dwStyle
 			0,										// dwStyleEx
 			L"BeesNES",								// pwcText
 			0,										// sTextLen
@@ -300,7 +300,8 @@ namespace lsn {
 		if ( !m_aMainClass ) {
 			// Register the window classes we need.
 			lsw::CWndClassEx wceEx( lsw::CWidget::WindowProc, L"LSNMAIN" );
-			wceEx.SetBackgroundBrush( reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1) );
+			//wceEx.SetBackgroundBrush( reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1) );
+			wceEx.SetBackgroundBrush( NULL );
 			m_aMainClass = lsw::CBase::RegisterClassExW( wceEx.Obj() );	
 		}
 

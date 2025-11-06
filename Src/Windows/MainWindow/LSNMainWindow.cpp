@@ -36,6 +36,10 @@
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 
+#ifdef LSN_DX9
+#include "../../Filters/LSNDx9FilterBase.h"
+#endif	// #ifdef LSN_DX9
+
 #include <commdlg.h>
 #include <dbt.h>
 #include <filesystem>
@@ -667,12 +671,12 @@ namespace lsn {
 		// ==== DX9 path (if initialized) ==== //
 		if ( m_bUseDx9 ) {
 			// If the device is lost, try to recover (non-blocking).
-			if ( !m_dx9Device.HandleDeviceLoss( this ) ) {
+			if ( !m_dx9Device.HandleDeviceLoss( m_hWndDx9Target ) ) {
 				m_bnEmulator.RenderInfo().DeActivate();
 				return LSW_H_HANDLED;   // Skip this frame.
 			}
-			LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
-
+			//LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
+			::ValidateRect( Wnd(), NULL );
 
 			// Prefer wrapper helpers if present; otherwise fall back to raw device.
 			if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
@@ -689,12 +693,13 @@ namespace lsn {
 					m_upDx9PaletteRender->Render( rRect );
 
 					pd3d->EndScene();
+					//::ValidateRect( m_hWndDx9Target, NULL );
 				}
 				// Present to the main window. Handle device loss on failure.
 				LSW_RECT rRect = m_rMaxRect;//VirtualClientRect( nullptr );
 				const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
 				if ( FAILED( hrPresent ) ) {
-					m_dx9Device.HandleDeviceLoss( this );
+					m_dx9Device.HandleDeviceLoss( m_hWndDx9Target );
 				}
 			}
 			m_bnEmulator.RenderInfo().DeActivate();
@@ -793,6 +798,17 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles WM_ERASEBKGND.
+	 * \brief Allows custom background erasing.
+	 *
+	 * \param _hDc Device context provided for erasing.
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::EraseBkgnd( HDC /*_hDc*/ ) {
+		return LSW_H_HANDLED;
+	}
+
+	/**
 	 * Handles WM_MOVE.
 	 * \brief Notified when the window is moved.
 	 *
@@ -833,28 +849,11 @@ namespace lsn {
 			if ( m_bMaximized ) {
 				if ( m_wpPlacement.bInBorderless ) {
 					LeaveBorderless();
-					/*if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
-						if ( m_psbCachedBar ) {
-							m_psbCachedBar->SetVisible( TRUE );
-							m_rStatusBarRect = m_psbCachedBar->WindowRect();
-						}
-						m_bMaximized = false;
-						m_rMaxRect = VirtualClientRect( this );
-					}*/
 				}
 			}
 			else {
 				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
 					EnterBorderless();
-					/*if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
-						m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
-						if ( m_psbCachedBar ) {
-							m_psbCachedBar->SetVisible( FALSE );
-						}
-						m_rStatusBarRect.Zero();
-						m_bMaximized = true;
-						m_rMaxRect = VirtualClientRect( this );
-					}*/
 				}
 			}
 		}
@@ -1006,31 +1005,22 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
-		m_bMaximized = _wParam == SIZE_MAXIMIZED;
-		if ( m_bMaximized && m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
-			EnterBorderless();
-			/*m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu );
-			m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
-			if ( m_psbCachedBar ) {
-				m_psbCachedBar->SetVisible( FALSE );
+		bool bMax = _wParam == SIZE_MAXIMIZED;
+		if ( !m_wpPlacement.bIsSizing ) {
+			m_bMaximized = bMax;
+
+			if ( bMax && m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
+				EnterBorderless();
 			}
-			m_rStatusBarRect.Zero();*/
+			else if ( !bMax && m_wpPlacement.bInBorderless && !m_wpPlacement.bIsSizing ) {
+				LeaveBorderless();
+			}
 		}
-		else if ( !m_bMaximized && m_wpPlacement.bInBorderless && !m_wpPlacement.bIsSizing ) {
-			LeaveBorderless();
-			/*m_wpPlacement.LeaveBorderless( Wnd() );
-			if ( m_psbCachedBar ) {
-				m_psbCachedBar->SetVisible( TRUE );
-				m_rStatusBarRect = m_psbCachedBar->WindowRect();
-			}*/
-		}
+		
 		
 		m_rMaxRect = VirtualClientRect( this );
-		
 
-
-
-		if ( _wParam == SIZE_MAXIMIZED || _wParam == SIZE_RESTORED ) {
+		if ( m_bMaximized || _wParam == SIZE_RESTORED ) {
 			LSW_RECT rWindowArea = FinalWindowRect( 0.0 );
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
@@ -1042,9 +1032,11 @@ namespace lsn {
 
 #ifdef LSN_DX9
 		if ( m_bUseDx9 ) {
+			
 			if ( !m_bInLiveResize ) {
 				OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
 			}
+			//else { LayoutDx9TargetChild(); }
 		}
 #endif  // LSN_DX9
 		return LSW_H_HANDLED;
@@ -1556,8 +1548,14 @@ namespace lsn {
 			m_bUseDx9 = false;
 			return false;
 		}
+
+		CDx9FilterBase::RegisterDx9TargetClass();
+
+		CreateDx9TargetChild();
+		LayoutDx9TargetChild();
+
 		// Create with default adapter and no special device string.
-		m_bUseDx9 = m_dx9Device.Create( this, "" );
+		m_bUseDx9 = m_dx9Device.Create( m_hWndDx9Target, "" );
 
 		if ( m_bUseDx9 ) {
 			m_upDx9PaletteRender = std::make_unique<CDirectX9NesPresenter>( &m_dx9Device );
@@ -1576,12 +1574,35 @@ namespace lsn {
 	}
 
 	/**
+	 * \brief Creates the child target window used for DX9 presentation.
+	 * \return Returns true if created or already exists.
+	 */
+	bool CMainWindow::CreateDx9TargetChild() {
+		if ( m_hWndDx9Target && ::IsWindow( m_hWndDx9Target ) ) { return true; }
+		// Simple STATIC child; no background erase to avoid flicker.
+		DWORD dwStyle   = WS_CHILD | WS_VISIBLE;
+		DWORD dwExStyle = WS_EX_NOPARENTNOTIFY;
+		RECT rc = VirtualClientRect( nullptr );	// This already excludes status bar in your app.
+		m_hWndDx9Target = ::CreateWindowExW(
+			dwExStyle, CDx9FilterBase::LSN_DX9_TARGET_CLASS, L"", dwStyle,
+			rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
+			Wnd(), NULL, ::GetModuleHandleW( NULL ), NULL );
+		// Prevent background erasing.
+		::SetClassLongPtrW( m_hWndDx9Target, GCLP_HBRBACKGROUND, reinterpret_cast<LONG_PTR>(nullptr) );
+		return m_hWndDx9Target != nullptr;
+	}
+
+	/**
 	 * Destroys the DirectX 9 device and all filters.
 	 **/
 	void CMainWindow::DestroyDx9() {
 		m_bUseDx9 = false;
 		m_upDx9PaletteRender.reset();
 		m_dx9Device.Reset();
+		if ( m_hWndDx9Target ) {
+			::DestroyWindow( m_hWndDx9Target );
+			m_hWndDx9Target = NULL;
+		}
 	}
 
 	/**
@@ -1598,7 +1619,8 @@ namespace lsn {
 	bool CMainWindow::OnSizeDx9( uint32_t /*_ui32ClientW*/, uint32_t /*_ui32ClientH*/ ) {
 		if ( !m_bUseDx9 ) { return false; }
 
-		if ( !m_dx9Device.ResetForWindowSize( this ) ) {
+		LayoutDx9TargetChild();
+		if ( !m_dx9Device.ResetForWindowSize( m_hWndDx9Target ) ) {
 			// Disable DX9; Paint() will fall back to software.
 			m_bUseDx9 = false;
 			return false;
@@ -1980,14 +2002,21 @@ namespace lsn {
 	 * Enter borderless mode.
 	 **/
 	void CMainWindow::EnterBorderless() {
+		bool bMaxCopy = m_bMaximized;
+		m_bMaximized = true;
+		auto rRectCopy = m_rStatusBarRect;
+		m_rStatusBarRect.Zero();
 		if ( m_wpPlacement.EnterBorderless( Wnd(), m_woWindowOptions.bBorderlessHidesMenu ) ) {
 			m_bnEmulator.Options().wpMainWindowPlacement = m_wpPlacement.wpPlacement;
 			if ( m_psbCachedBar ) {
 				m_psbCachedBar->SetVisible( FALSE );
 			}
-			m_rStatusBarRect.Zero();
-			m_bMaximized = true;
+			
 			m_rMaxRect = VirtualClientRect( this );
+		}
+		else {
+			m_bMaximized = bMaxCopy;
+			m_rStatusBarRect = rRectCopy;
 		}
 	}
 
@@ -1995,13 +2024,19 @@ namespace lsn {
 	 * Leave borderless mode.
 	 **/
 	void CMainWindow::LeaveBorderless() {
+		bool bMaxCopy = m_bMaximized;
+		m_bMaximized = false;
+		auto rRectCopy = m_rStatusBarRect;
+		if ( m_psbCachedBar ) { m_rStatusBarRect = m_psbCachedBar->WindowRect(); }
 		if ( m_wpPlacement.LeaveBorderless( Wnd() ) ) {
 			if ( m_psbCachedBar ) {
 				m_psbCachedBar->SetVisible( TRUE );
-				m_rStatusBarRect = m_psbCachedBar->WindowRect();
 			}
-			m_bMaximized = false;
 			m_rMaxRect = VirtualClientRect( this );
+		}
+		else {
+			m_bMaximized = bMaxCopy;
+			m_rStatusBarRect = rRectCopy;
 		}
 	}
 

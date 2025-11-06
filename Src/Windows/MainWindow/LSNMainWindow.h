@@ -127,6 +127,15 @@ namespace lsn {
 		virtual LSW_HANDLED						Paint();
 
 		/**
+		 * Handles WM_ERASEBKGND.
+		 * \brief Allows custom background erasing.
+		 *
+		 * \param _hDc Device context provided for erasing.
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						EraseBkgnd( HDC /*_hDc*/ );
+
+		/**
 		 * Handles WM_MOVE.
 		 * \brief Notified when the window is moved.
 		 *
@@ -327,9 +336,29 @@ namespace lsn {
 		bool									CreateDx9();
 
 		/**
+		 * \brief Creates the child target window used for DX9 presentation.
+		 * \return Returns true if created or already exists.
+		 */
+		bool									CreateDx9TargetChild();
+
+		/**
 		 * Destroys the DirectX 9 device and all filters.
 		 **/
 		void									DestroyDx9();
+
+		/**
+		 * \brief Lays out the DX9 child target to cover the drawable client region.
+		 * \return Returns true on success.
+		 */
+		bool									LayoutDx9TargetChild() {
+			if ( !m_hWndDx9Target || !::IsWindow( m_hWndDx9Target ) ) { return false; }
+			lsw::LSW_RECT rcRect = VirtualClientRect( nullptr );
+			const int iW = std::max<LONG>( 1, rcRect.Width() );
+			const int iH = std::max<LONG>( 1, rcRect.Height() );
+			::SetWindowPos( m_hWndDx9Target, nullptr, rcRect.left, rcRect.top, iW, iH,
+				SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOCOPYBITS );
+			return true;
+		}
 
 		/**
 		 * \brief Resizes the DX9 backbuffer and reinitializes size-dependent presenter resources.
@@ -422,6 +451,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9NesPresenter>	m_upDx9PaletteRender;
 		/** If true, Paint() renders via DX9 instead of software. */
 		bool									m_bUseDx9 = false;
+		/** Render window. */
+		HWND									m_hWndDx9Target = NULL;
 #endif	// #ifdef LSN_DX9
 		
 

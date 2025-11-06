@@ -56,6 +56,17 @@ namespace lsn {
 		virtual void										DeActivate();
 
 		/**
+		 * \brief Registers the DX9 child target window class (no background erase).
+		 * 
+		 * \return Returns true if the class is registered or already existed.
+		 */
+		static bool LSN_FASTCALL							RegisterDx9TargetClass();
+
+		// == Members.
+		/** Global: window class name for the DX9 child target. */
+		static const wchar_t *								LSN_DX9_TARGET_CLASS;
+
+		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *
