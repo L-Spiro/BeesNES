@@ -239,6 +239,7 @@ namespace lsn {
 		 *
 		 * Applies a -0.5f XY bias to align texel centers with pixel centers in D3D9 when using XYZRHW.
 		 *
+		 * \param _dx9vbBuffer The vertex buffer to arrange.
 		 * \param _fL Left X in pixels.
 		 * \param _fT Top Y in pixels.
 		 * \param _fR Right X in pixels.
@@ -249,7 +250,7 @@ namespace lsn {
 		 * \param _fV1 Bottom V coordinate.
 		 * \return Returns true on success.
 		 */
-		bool												FillQuad( float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 );
+		bool												FillQuad( CDirectX9VertexBuffer &_dx9vbBuffer, float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 );
 
 		/**
 		 * \brief Computes half-texel-correct UVs for a WÅ~H texture in D3D9.

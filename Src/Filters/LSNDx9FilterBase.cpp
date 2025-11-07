@@ -87,6 +87,7 @@ namespace lsn {
 	 *
 	 * Applies a -0.5f XY bias to align texel centers with pixel centers in D3D9 when using XYZRHW.
 	 *
+	 * \param _dx9vbBuffer The vertex buffer to arrange.
 	 * \param _fL Left X in pixels.
 	 * \param _fT Top Y in pixels.
 	 * \param _fR Right X in pixels.
@@ -97,18 +98,26 @@ namespace lsn {
 	 * \param _fV1 Bottom V coordinate.
 	 * \return Returns true on success.
 	 */
-	bool CDx9FilterBase::FillQuad( float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 ) {
+	bool CDx9FilterBase::FillQuad( CDirectX9VertexBuffer &_dx9vbBuffer, float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 ) {
 		constexpr float fOff = 0.5f;
-		LSN_XYZRHWTEX1 vVerts[4] = {
+		LSN_XYZRHWTEX1 * pvP = nullptr;
+		if LSN_UNLIKELY( !_dx9vbBuffer.Lock( 0, 0, reinterpret_cast<void **>(&pvP), D3DLOCK_DISCARD ) ) { return false; }
+		pvP[0] = { _fL - fOff, _fT - fOff, 0.0f, 1.0f, _fU0, _fV0 };
+		pvP[1] = { _fR - fOff, _fT - fOff, 0.0f, 1.0f, _fU1, _fV0 };
+		pvP[2] = { _fL - fOff, _fB - fOff, 0.0f, 1.0f, _fU0, _fV1 };
+		pvP[3] = { _fR - fOff, _fB - fOff, 0.0f, 1.0f, _fU1, _fV1 };
+		_dx9vbBuffer.Unlock();
+
+		/*LSN_XYZRHWTEX1 vVerts[4] = {
 			{ _fL - fOff, _fT - fOff, 0.0f, 1.0f, _fU0, _fV0 },
 			{ _fR - fOff, _fT - fOff, 0.0f, 1.0f, _fU1, _fV0 },
 			{ _fL - fOff, _fB - fOff, 0.0f, 1.0f, _fU0, _fV1 },
 			{ _fR - fOff, _fB - fOff, 0.0f, 1.0f, _fU1, _fV1 },
 		};
 		void * pvP = nullptr;
-		if LSN_UNLIKELY( !m_vbQuad.Lock( 0, 0, &pvP, D3DLOCK_DISCARD ) ) { return false; }
+		if LSN_UNLIKELY( !_dx9vbBuffer.Lock( 0, 0, &pvP, D3DLOCK_DISCARD ) ) { return false; }
 		std::memcpy( pvP, vVerts, sizeof( vVerts ) );
-		m_vbQuad.Unlock();
+		_dx9vbBuffer.Unlock();*/
 		return true;
 	}
 
