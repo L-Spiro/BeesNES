@@ -40,7 +40,6 @@ namespace lsn {
 			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY					LSN_PM_PALM						LSN_PM_PALN
 			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter },				// LSN_F_RGB24
 			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG
-			//{ &m_nbfBlarggPalFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_PAL_BLARGG
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter },			// LSN_F_NTSC_LSPIRO
 			{ &m_nbfLSpiroPalFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter },			// LSN_F_PAL_LSPIRO
 			{ &m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter },			// LSN_F_DENDY_LSPIRO
@@ -48,9 +47,11 @@ namespace lsn {
 			{ &m_nbfLSpiroPalNFilter,		&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_PALN_LSPIRO
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL
 			{ &m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_PAL_CRT_FULL
-			//{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter,			&m_nbfBlarggPalFilter },			// LSN_F_AUTO_BLARGG
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_AUTO_CRT_FULL
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
+#ifdef LSN_DX9
+			{ &m_d9pfDx9Pallete,			&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete },				// LSN_F_INDEXEDDX9
+#endif	// #ifdef LSN_DX9
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
@@ -58,6 +59,9 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
+
+		m_d9pfDx9Pallete.SetVertSharpness( 4 );
+		m_d9pfDx9Pallete.SetHorSharpness( 3 );
 
 		// FPS settings.
 		m_nbfLSpiroNtscFilter.SetFps( 60.098813897440515529533511098629f );
@@ -201,6 +205,10 @@ namespace lsn {
 		m_nbfBlarggPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+
+#ifdef LSN_DX9
+		m_d9pfDx9Pallete.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+#endif	// #ifdef LSN_DX9
 
 		UpdateCurrentSystem();
 	}
@@ -596,6 +604,20 @@ namespace lsn {
 		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 		return wsRoot + L"Palettes\\";
+	}
+
+	/**
+	 * Updates the GPU palette for GPU-enabled palette rendering.
+	 **/
+	void CBeesNes::UpdateGpuPalette() {
+#ifdef LSN_DX9
+		std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
+		m_d9pfDx9Pallete.SetLut( vTmp[0].x );
+		/*if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
+			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
+			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
+		}*/
+#endif	// #ifdef LSN_DX9
 	}
 
 	/**

@@ -11,11 +11,12 @@
 #include "../LSNLSpiroNes.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
+#ifdef LSN_DX9
+#include "../Filters/LSNDx9PaletteFilter.h"
+#endif	// #ifdef LSN_DX9
 #include "../Filters/LSNNesPalette.h"
 #include "../Filters/LSNNtscBlarggFilter.h"
-//#include "../Filters/LSNNtscCrtFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
-//#include "../Filters/LSNNtscBisqwitFilter.h"
 #include "../Filters/LSNNtscLSpiroFilter.h"
 #include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNPalCrtFullFilter.h"
@@ -412,6 +413,11 @@ namespace lsn {
 		 **/
 		CNesPalette::LSN_GAMMA					PaletteMonitorGamma() const { return m_gMonitorGamma; }
 
+		/**
+		 * Updates the GPU palette for GPU-enabled palette rendering.
+		 **/
+		void									UpdateGpuPalette();
+
 
 	protected :
 		// == Members.
@@ -443,6 +449,10 @@ namespace lsn {
 		CPalCrtFullFilter						m_ncfEmmirPalFullFilter;
 		/** Blargg's NTSC filter (ad-hoc PAL-inated). */
 		CPalBlarggFilter						m_nbfBlarggPalFilter;
+#ifdef LSN_DX9
+		/** Direct3D 9 palette filter. */
+		CDx9PaletteFilter						m_d9pfDx9Pallete;
+#endif	// #ifdef LSN_DX9
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** The default palettes for each system. */

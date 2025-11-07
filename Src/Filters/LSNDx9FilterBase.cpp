@@ -21,6 +21,9 @@ namespace lsn {
 	/** Global: window class name for the DX9 child target. */
 	const wchar_t * CDx9FilterBase::LSN_DX9_TARGET_CLASS = L"LSN_DX9_TARGET";
 
+	/** The global Direct3D 9 state. */
+	CDx9FilterBase::LSN_DX9_GLOBAL_STATE CDx9FilterBase::s_dgsState;
+
 	CDx9FilterBase::CDx9FilterBase() {
 	}
 	CDx9FilterBase::~CDx9FilterBase() {
@@ -47,18 +50,6 @@ namespace lsn {
 		}
 
 		return InputFormat();
-	}
-
-	/**
-	 * Called when the filter is about to become active.
-	 */
-	void CDx9FilterBase::Activate() {
-	}
-		
-	/**
-	 * Called when the filter is about to become inactive.
-	 */
-	void CDx9FilterBase::DeActivate() {
 	}
 
 	/**
@@ -91,6 +82,35 @@ namespace lsn {
 		return lsw::CBase::RegisterClassExW( wceEx.Obj() ) != 0;
 	}
 
+	/**
+	 * \brief Fills the screen-space quad vertex buffer with an XYZRHW|TEX1 quad.
+	 *
+	 * Applies a -0.5f XY bias to align texel centers with pixel centers in D3D9 when using XYZRHW.
+	 *
+	 * \param _fL Left X in pixels.
+	 * \param _fT Top Y in pixels.
+	 * \param _fR Right X in pixels.
+	 * \param _fB Bottom Y in pixels.
+	 * \param _fU0 Left U coordinate.
+	 * \param _fV0 Top V coordinate.
+	 * \param _fU1 Right U coordinate.
+	 * \param _fV1 Bottom V coordinate.
+	 * \return Returns true on success.
+	 */
+	bool CDx9FilterBase::FillQuad( float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 ) {
+		constexpr float fOff = 0.5f;
+		LSN_XYZRHWTEX1 vVerts[4] = {
+			{ _fL - fOff, _fT - fOff, 0.0f, 1.0f, _fU0, _fV0 },
+			{ _fR - fOff, _fT - fOff, 0.0f, 1.0f, _fU1, _fV0 },
+			{ _fL - fOff, _fB - fOff, 0.0f, 1.0f, _fU0, _fV1 },
+			{ _fR - fOff, _fB - fOff, 0.0f, 1.0f, _fU1, _fV1 },
+		};
+		void * pvP = nullptr;
+		if LSN_UNLIKELY( !m_vbQuad.Lock( 0, 0, &pvP, D3DLOCK_DISCARD ) ) { return false; }
+		std::memcpy( pvP, vVerts, sizeof( vVerts ) );
+		m_vbQuad.Unlock();
+		return true;
+	}
 
 }	// namespace lsn
 

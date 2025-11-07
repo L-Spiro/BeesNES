@@ -178,6 +178,13 @@ namespace lsn {
 		DestroyControllers();
 		m_bnEmulator.SaveSettings();
 		(*m_pabIsAlive) = false;
+
+#ifdef LSN_DX9
+		// Technically unnecessary, but it helps us find bugs related to resource management.  This should never fail.
+		if ( !CDx9FilterBase::SetRenderWindowParent( NULL ) ) {
+			::OutputDebugStringA( "\r\n* * * * * CDx9FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
+		}
+#endif	// #ifdef LSN_DX9
 	}
 
 	// == Functions.
@@ -260,8 +267,9 @@ namespace lsn {
 		}
 
 
-		// TEST.
+		
 #ifdef LSN_DX9
+		CDx9FilterBase::SetRenderWindowParent( this );
 		CreateDx9();
 #endif	// #ifdef LSN_DX9
 
@@ -438,6 +446,12 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_RGB24 );
 				break;
 			}
+#ifdef LSN_DX9
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDDX9 );
+				break;
+			}
+#endif	// #ifdef LSN_DX9
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
@@ -1177,6 +1191,13 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
+#ifdef LSN_DX9
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDDX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+#endif	// #ifdef LSN_DX9
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1565,6 +1586,7 @@ namespace lsn {
 			}
 			auto rWinSize = VirtualClientRect( nullptr );
 			m_upDx9PaletteRender->SetVertSharpness( 4 );
+			m_upDx9PaletteRender->SetHorSharpness( 2 );
 			if ( !m_upDx9PaletteRender->Init( m_bnEmulator.GetDisplayClient()->DisplayWidth(), m_bnEmulator.GetDisplayClient()->DisplayHeight(), false ) ) {
 				DestroyDx9();
 				return false;
@@ -1575,6 +1597,7 @@ namespace lsn {
 
 	/**
 	 * \brief Creates the child target window used for DX9 presentation.
+	 * 
 	 * \return Returns true if created or already exists.
 	 */
 	bool CMainWindow::CreateDx9TargetChild() {
@@ -1638,6 +1661,7 @@ namespace lsn {
 	 * Updates the GPU palette for GPU-enabled palette rendering.
 	 **/
 	void CMainWindow::UpdateGpuPalette() {
+		m_bnEmulator.UpdateGpuPalette();
 #ifdef LSN_DX9
 		if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
 			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
