@@ -69,6 +69,11 @@ namespace lsn {
 		m_psbCachedBar( nullptr ) {
 		(*m_pabIsAlive) = true;
 
+#ifdef LSN_DX9
+		CDx9FilterBase::SetRenderWindowParent( this );
+		//CreateDx9();
+#endif	// #ifdef LSN_DX9
+
 #if 0
 		bool bDx9 = CDirectX9::Supported();
 		bool bDx12 = CDirectX12::Supported();
@@ -265,13 +270,6 @@ namespace lsn {
 			LSW_RECT rScreen = FinalWindowRect();
 			::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 		}
-
-
-		
-#ifdef LSN_DX9
-		CDx9FilterBase::SetRenderWindowParent( this );
-		CreateDx9();
-#endif	// #ifdef LSN_DX9
 
 		return LSW_H_CONTINUE;
 	}
@@ -621,7 +619,7 @@ namespace lsn {
 			::GetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
 		}
 #ifdef LSN_DX9
-		DestroyDx9();
+		//DestroyDx9();
 #endif	// #ifdef LSN_DX9
 		::PostQuitMessage( 0 );
 		return LSW_H_CONTINUE;
@@ -683,42 +681,73 @@ namespace lsn {
 
 #ifdef LSN_DX9
 		// ==== DX9 path (if initialized) ==== //
-		if ( m_bUseDx9 ) {
+		if ( m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter() ) {
 			// If the device is lost, try to recover (non-blocking).
-			if ( !m_dx9Device.HandleDeviceLoss( m_hWndDx9Target ) ) {
+			if ( !CDx9FilterBase::HandleDeviceLoss() ) {
 				m_bnEmulator.RenderInfo().DeActivate();
 				return LSW_H_HANDLED;   // Skip this frame.
 			}
-			//LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
 			::ValidateRect( Wnd(), NULL );
 
-			// Prefer wrapper helpers if present; otherwise fall back to raw device.
-			if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
+			if ( IDirect3DDevice9 * pd3d = CDx9FilterBase::Device().GetDirectX9Device() ) {
 				const HRESULT hrBegin = pd3d->BeginScene();
 				if ( SUCCEEDED( hrBegin ) ) {
-					
-					m_upDx9PaletteRender->UploadIndices( reinterpret_cast<const uint16_t *>(m_bnEmulator.RenderInfo().pui8CurRenderTarget),
-						m_bnEmulator.RenderInfo().ui32Width, m_bnEmulator.RenderInfo().ui32Height, m_bnEmulator.RenderInfo().ui32Stride );
-					lsw::LSW_RECT rRect;
-					rRect.left = iDestX;
-					rRect.top = iDestY;
-					rRect.right = rRect.left + int( dwFinalW );
-					rRect.bottom = rRect.top + int( dwFinalH );
-					m_upDx9PaletteRender->Render( rRect );
+					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+					m_bnEmulator.Render( dwFinalW, dwFinalH );
+					m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+					m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+					m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+					m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+					bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+					puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 
 					pd3d->EndScene();
-					//::ValidateRect( m_hWndDx9Target, NULL );
 				}
-				// Present to the main window. Handle device loss on failure.
-				LSW_RECT rRect = m_rMaxRect;//VirtualClientRect( nullptr );
 				const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
 				if ( FAILED( hrPresent ) ) {
-					m_dx9Device.HandleDeviceLoss( m_hWndDx9Target );
+					CDx9FilterBase::HandleDeviceLoss();
 				}
 			}
+
 			m_bnEmulator.RenderInfo().DeActivate();
 			return LSW_H_HANDLED;
 		}
+		//if ( m_bUseDx9 ) {
+		//	// If the device is lost, try to recover (non-blocking).
+		//	if ( !m_dx9Device.HandleDeviceLoss( m_hWndDx9Target ) ) {
+		//		m_bnEmulator.RenderInfo().DeActivate();
+		//		return LSW_H_HANDLED;   // Skip this frame.
+		//	}
+		//	//LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
+		//	::ValidateRect( Wnd(), NULL );
+
+		//	// Prefer wrapper helpers if present; otherwise fall back to raw device.
+		//	if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
+		//		const HRESULT hrBegin = pd3d->BeginScene();
+		//		if ( SUCCEEDED( hrBegin ) ) {
+		//			
+		//			m_upDx9PaletteRender->UploadIndices( reinterpret_cast<const uint16_t *>(m_bnEmulator.RenderInfo().pui8CurRenderTarget),
+		//				m_bnEmulator.RenderInfo().ui32Width, m_bnEmulator.RenderInfo().ui32Height, m_bnEmulator.RenderInfo().ui32Stride );
+		//			lsw::LSW_RECT rRect;
+		//			rRect.left = iDestX;
+		//			rRect.top = iDestY;
+		//			rRect.right = rRect.left + int( dwFinalW );
+		//			rRect.bottom = rRect.top + int( dwFinalH );
+		//			m_upDx9PaletteRender->Render( rRect );
+
+		//			pd3d->EndScene();
+		//			//::ValidateRect( m_hWndDx9Target, NULL );
+		//		}
+		//		// Present to the main window. Handle device loss on failure.
+		//		LSW_RECT rRect = m_rMaxRect;//VirtualClientRect( nullptr );
+		//		const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
+		//		if ( FAILED( hrPresent ) ) {
+		//			m_dx9Device.HandleDeviceLoss( m_hWndDx9Target );
+		//		}
+		//	}
+		//	m_bnEmulator.RenderInfo().DeActivate();
+		//	return LSW_H_HANDLED;
+		//}
 #endif	// #ifdef LSN_DX9
 
 
@@ -1045,13 +1074,13 @@ namespace lsn {
 		}
 
 #ifdef LSN_DX9
-		if ( m_bUseDx9 ) {
-			
-			if ( !m_bInLiveResize ) {
-				OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
-			}
-			//else { LayoutDx9TargetChild(); }
-		}
+		//if ( m_bUseDx9 ) {
+		//	
+		//	if ( !m_bInLiveResize ) {
+		//		OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
+		//	}
+		//	//else { LayoutDx9TargetChild(); }
+		//}
 #endif  // LSN_DX9
 		return LSW_H_HANDLED;
 	}
@@ -1063,10 +1092,10 @@ namespace lsn {
 	 **/
 	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
 #ifdef LSN_DX9
-		if ( m_bInLiveResize ) {
+		/*if ( m_bInLiveResize ) {
 			m_rMaxRect = VirtualClientRect( this );
 			OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
-		}
+		}*/
 #endif	// #ifdef LSN_DX9
 		return LSW_H_HANDLED;
 	}
@@ -1570,7 +1599,7 @@ namespace lsn {
 			return false;
 		}
 
-		CDx9FilterBase::RegisterDx9TargetClass();
+		//CDx9FilterBase::RegisterDx9TargetClass();
 
 		CreateDx9TargetChild();
 		LayoutDx9TargetChild();
@@ -1663,10 +1692,10 @@ namespace lsn {
 	void CMainWindow::UpdateGpuPalette() {
 		m_bnEmulator.UpdateGpuPalette();
 #ifdef LSN_DX9
-		if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
+		/*if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
 			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
-		}
+		}*/
 #endif	// #ifdef LSN_DX9
 	}
 

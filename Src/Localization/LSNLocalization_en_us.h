@@ -52,8 +52,8 @@
 #define LSN_VIDEO_SIZE_7X													7\u00D7
 #define LSN_VIDEO_SIZE_8X													8\u00D7
 // Video filters.
-#define LSN_VIDEO_FILTER_NONE												N&one
-#define LSN_VIDEO_FILTER_DX9_PALETTE										Microsoft® Direct3D® 9 Palette
+#define LSN_VIDEO_FILTER_NONE												Pale&tte (Software)
+#define LSN_VIDEO_FILTER_DX9_PALETTE										Palette (Mi&crosoft® Direct3D® 9)
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
 #define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-&B/B1/G/H/I/K (L. Spiro)

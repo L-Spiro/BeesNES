@@ -60,8 +60,10 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetFilterFunc( CUtilities::BoxFilterFunc );
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
 
+#ifdef LSN_DX9
 		m_d9pfDx9Pallete.SetVertSharpness( 4 );
 		m_d9pfDx9Pallete.SetHorSharpness( 3 );
+#endif	// #ifdef LSN_DX9
 
 		// FPS settings.
 		m_nbfLSpiroNtscFilter.SetFps( 60.098813897440515529533511098629f );
@@ -319,11 +321,16 @@ namespace lsn {
 			m_oOptions.fFilter = _fFilter;
 			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 			if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
+				// If the new filter is the same as what has been queued up for deactivation, deactivate first and then activate.
+				if ( m_cfartCurFilterAndTargets.pfbDeactivateMe == m_cfartCurFilterAndTargets.pfbNextFilter ) {
+					m_cfartCurFilterAndTargets.DeActivate();
+				}
+				
 				if ( m_cfartCurFilterAndTargets.pfbNextFilter ) {
 					m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
 				}
 				if ( pfbPrev ) {
-					m_cfartCurFilterAndTargets.DeActivate();
+					m_cfartCurFilterAndTargets.DeActivate();				// Won't cause a 2nd deactivation if it
 					m_cfartCurFilterAndTargets.pfbDeactivateMe = pfbPrev;
 				}
 			}
@@ -353,11 +360,13 @@ namespace lsn {
 				m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 				m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 
-			for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
-					_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
-					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+			if ( !m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
+				for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
+					m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+						_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
+						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+				}
 			}
 		}
 	}
@@ -613,10 +622,6 @@ namespace lsn {
 #ifdef LSN_DX9
 		std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 		m_d9pfDx9Pallete.SetLut( vTmp[0].x );
-		/*if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
-			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
-			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
-		}*/
 #endif	// #ifdef LSN_DX9
 	}
 
@@ -724,7 +729,9 @@ namespace lsn {
 		}
 		catch ( ... ) { return false; }
 
-		if ( !_sFile.Read( m_oOptions.fFilter ) ) { return false; }
+		auto fFilter = m_oOptions.fFilter;
+		if ( !_sFile.Read( fFilter ) ) { return false; }
+		SetCurFilter( fFilter );
 
 #ifdef LSN_WINDOWS
 		if ( !_sFile.Read( m_oOptions.wpMainWindowPlacement ) ) { return false; }

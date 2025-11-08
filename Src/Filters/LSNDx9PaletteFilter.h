@@ -54,7 +54,7 @@ namespace lsn {
 		 *
 		 * \param _ui32Factor The vertical sharpness.
 		 */
-		void												SetVertSharpness( uint32_t _ui32Factor ) { m_ui32VertSharpness = _ui32Factor; }
+		void												SetVertSharpness( uint32_t _ui32Factor ) { m_ui32VertSharpness = std::max<uint32_t>( 1, _ui32Factor ); }
 
 		/**
 		 * \brief Gets the current vertical sharpness factor.
@@ -70,7 +70,7 @@ namespace lsn {
 		 *
 		 * \param _ui32Factor The horizontal sharpness.
 		 */
-		void												SetHorSharpness( uint32_t _ui32Factor ) { m_ui32HorSharness = _ui32Factor; }
+		void												SetHorSharpness( uint32_t _ui32Factor ) { m_ui32HorSharness = std::max<uint32_t>( 1, _ui32Factor ); }
 
 		/**
 		 * \brief Gets the current horizontal sharpness factor.
@@ -78,6 +78,13 @@ namespace lsn {
 		 * \return Returns the horizontal sharpness factor.
 		 */
 		inline uint32_t										GetHorSharpness() const { return m_ui32HorSharness; }
+
+		/**
+		 * Sets whether to use a 16-bit render target for the initial pass.  Must be called before the filter is actually used.
+		 * 
+		 * \param _bUse16Bit If true, a 16-bit target is used, otherwise a 32-bit target is used.
+		 **/
+		inline void											Use16Target( bool _bUse16Bit ) { m_bUse16BitInitialTarget = _bUse16Bit; }
 
 		/**
 		 * Sets the palette.
@@ -135,17 +142,38 @@ namespace lsn {
 		std::unique_ptr<CDirectX9PixelShader>				m_psCopy;
 		/** The palette look-up table. */
 		std::vector<float>									m_vLut;
+		/** The output buffer.  Not actually used, but provides a safe buffer for reading in some edges cases after filters are swapped. Also can be used for storing screenshots. */
+		std::vector<uint8_t>								m_vOutputBuffer;
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
 		/** Source height in pixels. */
 		uint32_t											m_ui32SrcH = 0;
+		/** Created resource width. */
+		uint32_t											m_ui32RsrcW = 0;
+		/** Created resource height. */
+		uint32_t											m_ui32RsrcH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 2;
 		/** Horizontal sharpness factor. */
 		uint32_t											m_ui32HorSharness = 2;
-
+		/** Use a 16-bit initial render target? */
+		bool												m_bUse16BitInitialTarget = true;
+		/** Are we in a valid state? */
+		bool												m_bValidState = false;
+		/** Does the palette need to be uploaded? */
+		bool												m_bUpdatePalette = true;
+			
 
 		// == Functions.
+		/**
+		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
+		 *
+		 * Releases/creates the index texture, both FP render targets, and quad vertex buffer as needed.
+		 *
+		 * \return Returns true on success.
+		 */
+		bool												EnsureSizeAndResources();
+
 		/**
 		 * \brief Updates the 512-entry float RGBA LUT.
 		 *
@@ -154,6 +182,60 @@ namespace lsn {
 		 * \return Returns true on success.
 		 */
 		bool												UpdateLut();
+
+		/**
+		 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
+		 *
+		 * Values are mapped to L16 in [0..65535] so that sampling.r*511 + 0.5 floors back to the exact index in the shader.
+		 *
+		 * \param _pui16Idx Source pointer to the index image (row-major).
+		 * \param _ui32W Image width in pixels (must equal the Init size).
+		 * \param _ui32H Image height in pixels (must equal the Init size).
+		 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed (= _ui32W * 2).
+		 * \return Returns true on success.
+		 */
+		bool												UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch = 0 );
+
+		/**
+		 * \brief Ensures pixel shaders (indexÅ®color, vertical NN, copy) are created.
+		 *
+		 * Compiles the HLSL entry points with D3DX at runtime and creates pixel shaders from bytecode.
+		 * If D3DX cannot be loaded, this function returns false.
+		 *
+		 * \return Returns true if all shaders are ready.
+		 */
+		bool												EnsureShaders();
+
+		/**
+		 * \brief Compiles an HLSL pixel shader using dynamically loaded D3DX.
+		 *
+		 * \param _pcszSource Null-terminated HLSL source code.
+		 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").
+		 * \param _pcszProfile Null-terminated profile (e.g., "ps_2_0").
+		 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
+		 * \return Returns true if compilation succeeded and bytecode was produced.
+		 */
+		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode );
+
+		/**
+		 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
+		 */
+		void												ReleaseSizeDependents();
+
+		/**
+		 * \brief Renders the three-pass pipeline to the backbuffer with a black border outside _rOutput.
+		 *
+		 * Precondition: The caller must have already called BeginScene() on the device.
+		 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
+		 *
+		 * Pass 1 renders indexÅ®color into the FP RT with a 1:1 viewport.
+		 * Pass 2 renders the FP RT into the scanlined RT (heightÅ~factor) using nearest-neighbor vertically.
+		 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
+		 *
+		 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
+		 * \return Returns true if the draw succeeded; false on failure.
+		 */
+		bool												Render( const lsw::LSW_RECT &_rOutput );
 
 	private :
 		typedef CDx9FilterBase								CParent;

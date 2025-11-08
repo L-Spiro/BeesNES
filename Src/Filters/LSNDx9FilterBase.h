@@ -51,13 +51,6 @@ namespace lsn {
 		 */
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height );
 
-		/**
-		 * \brief Registers the DX9 child target window class (no background erase).
-		 * 
-		 * \return Returns true if the class is registered or already existed.
-		 */
-		static bool LSN_FASTCALL							RegisterDx9TargetClass();
-
 		// == Members.
 		/** Global: window class name for the DX9 child target. */
 		static const wchar_t *								LSN_DX9_TARGET_CLASS;
@@ -83,10 +76,17 @@ namespace lsn {
 		 * \return Returns \c true if the device is usable for this frame (OK or reset succeeded);
 		 *         \c false if still lost and rendering should be skipped this frame.
 		 **/
-		bool												HandleDeviceLoss() {
+		static bool											HandleDeviceLoss() {
 			if ( !s_dgsState.i32RefCnt || !s_dgsState.hWndDx9Target ) { return false; }
 			return s_dgsState.dx9Device.HandleDeviceLoss( s_dgsState.hWndDx9Target );
 		}
+
+		/**
+		 * Gets a reference to the shared global device.
+		 * 
+		 * \return Returns a reference to the shared global device.
+		 **/
+		static CDirectX9Device &							Device() { return s_dgsState.dx9Device; }
 
 	protected :
 		// == Types.
@@ -234,6 +234,24 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * \brief Registers the DX9 child target window class (no background erase).
+		 * 
+		 * \return Returns true if the class is registered or already existed.
+		 */
+		static bool LSN_FASTCALL							RegisterDx9TargetClass();
+
+		/**
+		 * \brief Resizes the DX9 backbuffer and reinitializes size-dependent presenter resources.
+		 *
+		 * Updates cached D3DPRESENT_PARAMETERS with the new client size and resets the device.
+		 * Then re-initializes the presenter so its DEFAULT-pool resources (index/LUT targets, VBs)
+		 * are recreated against the new device state.
+		 *
+		 * \return True on success; false if the DX9 path is disabled or reset failed.
+		 */
+		static bool											OnSizeDx9();
+
 		/**
 		 * \brief Fills the screen-space quad vertex buffer with an XYZRHW|TEX1 quad.
 		 *
