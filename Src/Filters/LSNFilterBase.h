@@ -157,12 +157,16 @@ namespace lsn {
 		/**
 		 * Called when the filter is about to become active.
 		 */
-		virtual void										Activate() {}
+		virtual void										Activate() {
+			//::OutputDebugStringA( "\r\n* * * * * Activate() * * * * *\r\n\r\n" );
+		}
 
 		/**
 		 * Called when the filter is about to become inactive.
 		 */
-		virtual void										DeActivate() {}
+		virtual void										DeActivate() {
+			//::OutputDebugStringA( "\r\n* * * * * DeActivate() * * * * *\r\n\r\n" );
+		}
 
 		/**
 		 * Gets a BITMAP stride given its row width in bytes.

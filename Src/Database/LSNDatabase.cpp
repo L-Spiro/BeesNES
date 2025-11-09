@@ -488,7 +488,7 @@ namespace lsn {
 			// Moulin Rouge Senki - Melville no Honoo (Japan)
 			{ .ui32Crc = 0x005682D5, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SKROM },
 			// Mr. Gimmick (E) [!]
-			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0xDF496FDF, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_SUNSOFT_5A, },
 			// M.U.L.E. (U)
 			{ .ui32Crc = 0x0939852F, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SNROM },
 			// Magic of Scheherazade, The (U)
@@ -1098,8 +1098,6 @@ namespace lsn {
 			{ .ui32Crc = 0xFB1C0551, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SNROM },
 			// Morita Shougi (Japan)
 			{ .ui32Crc = 0xEC47296D, .cChip = LSN_C_MMC1, .pcPcbClass = LSN_PC_SNROM },
-			// Mr. Gimmick (E) [!]
-			{ .ui32Crc = 0xDF496FDF, .cChip = LSN_C_SUNSOFT_5A, },
 			// Mutant Virus, The (U)
 			{ .ui32Crc = 0xA139009C, .cChip = LSN_C_MMC1B3, .pcPcbClass = LSN_PC_SLROM },
 			// Navy Blue (Japan)

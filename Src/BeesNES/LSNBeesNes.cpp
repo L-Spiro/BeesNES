@@ -649,6 +649,18 @@ namespace lsn {
 	}
 
 	/**
+	 * Shuts down the emulator.  Needs to happen outside of the destructor in order for some inheritance parts to work properly.
+	 **/
+	void CBeesNes::ShutDown() {
+		auto pfbThis = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
+		// If something was queued for deactivation, destroy it.
+		m_cfartCurFilterAndTargets.DeActivate();
+
+		// Deactivate the current filter.
+		pfbThis->DeActivate();
+	}
+
+	/**
 	 * Updates the current system with render information, display hosts, etc.
 	 */
 	void CBeesNes::UpdateCurrentSystem() {

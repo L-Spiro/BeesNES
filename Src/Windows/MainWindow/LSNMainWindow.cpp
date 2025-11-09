@@ -182,6 +182,7 @@ namespace lsn {
 		StopThread();
 		DestroyControllers();
 		m_bnEmulator.SaveSettings();
+		m_bnEmulator.ShutDown();
 		(*m_pabIsAlive) = false;
 
 #ifdef LSN_DX9

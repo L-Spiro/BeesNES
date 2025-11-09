@@ -425,6 +425,11 @@ namespace lsn {
 		 **/
 		void									UpdateGpuPalette();
 
+		/**
+		 * Shuts down the emulator.  Needs to happen outside of the destructor in order for some inheritance parts to work properly.
+		 **/
+		void									ShutDown();
+
 
 	protected :
 		// == Members.
