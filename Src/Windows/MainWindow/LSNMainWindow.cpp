@@ -693,7 +693,7 @@ namespace lsn {
 				const HRESULT hrBegin = pd3d->BeginScene();
 				if ( SUCCEEDED( hrBegin ) ) {
 					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-					m_bnEmulator.Render( dwFinalW, dwFinalH );
+					m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
 					m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
 					m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
 					m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
@@ -760,7 +760,7 @@ namespace lsn {
 
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-			m_bnEmulator.Render( dwFinalW, dwFinalH );
+			m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
 			m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
 			m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
 			m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
@@ -1073,15 +1073,9 @@ namespace lsn {
 			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );*/
 		}
 
-#ifdef LSN_DX9
-		//if ( m_bUseDx9 ) {
-		//	
-		//	if ( !m_bInLiveResize ) {
-		//		OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
-		//	}
-		//	//else { LayoutDx9TargetChild(); }
-		//}
-#endif  // LSN_DX9
+		if ( !m_bInLiveResize ) {
+			m_bnEmulator.WindowResized();
+		}
 		return LSW_H_HANDLED;
 	}
 
@@ -1091,12 +1085,7 @@ namespace lsn {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 **/
 	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
-#ifdef LSN_DX9
-		/*if ( m_bInLiveResize ) {
-			m_rMaxRect = VirtualClientRect( this );
-			OnSizeDx9( uint32_t( m_rMaxRect.Width() ), uint32_t( m_rMaxRect.Height() ) );
-		}*/
-#endif	// #ifdef LSN_DX9
+		m_bnEmulator.WindowResized();
 		return LSW_H_HANDLED;
 	}
 

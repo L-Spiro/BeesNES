@@ -229,6 +229,11 @@ namespace lsn {
 		}
 
 		/**
+		 * Informs the current filter of a window resize.  Only sent to GPU filters.
+		 **/
+		void									WindowResized();
+
+		/**
 		 * Gets the current system.
 		 *
 		 * \return Returns a pointer to the current console system.
@@ -253,10 +258,12 @@ namespace lsn {
 		 * If the render buffer is dirty, a render is performed (PPU buffer -> Filters -> Post-Processing).
 		 *	This should be called inside the same critical section/mutex that calls Swap().
 		 *
+		 * \param _i32Left The left of the display region (GPU only).
+		 * \param _i32Top The top of the display region (GPU only).
 		 * \param _ui32FinalW The final display width.
 		 * \param _ui32FinalH The final display height.
 		 */
-		void									Render( uint32_t _ui32FinalW, uint32_t _ui32FinalH );
+		void									Render( int32_t _i32Left, int32_t _i32Top, uint32_t _ui32FinalW, uint32_t _ui32FinalH );
 
 		/**
 		 * Swaps PPU render targets and switches to the next filter if a new filter has been set.

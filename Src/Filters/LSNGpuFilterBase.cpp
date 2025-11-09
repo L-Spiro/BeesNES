@@ -34,7 +34,6 @@ namespace lsn {
 		const uint16_t wBitDepth = uint16_t( OutputBits() );
 		const uint32_t dwStride = uint32_t( m_stStride = RowStride( _ui16Width, wBitDepth ) );
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
-			size_t szPrevSize = m_vBasicRenderTarget[I].size();
 			m_vBasicRenderTarget[I].resize( dwStride * _ui16Height );	
 		}
 

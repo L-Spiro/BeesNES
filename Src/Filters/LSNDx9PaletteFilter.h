@@ -45,7 +45,7 @@ namespace lsn {
 		 * \param _ui16Height The console screen height.  Typically 240.
 		 * \return Returns the input format requested of the PPU.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height );
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
 
 		/**
 		 * \brief Updates the vertical sharpness factor (integer scale).
@@ -97,12 +97,12 @@ namespace lsn {
 		/**
 		 * Called when the filter is about to become active.
 		 */
-		virtual void										Activate();
+		virtual void										Activate() override;
 
 		/**
 		 * Called when the filter is about to become inactive.
 		 */
-		virtual void										DeActivate();
+		virtual void										DeActivate() override;
 
 		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
@@ -115,9 +115,19 @@ namespace lsn {
 		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
 		 * \param _ui64PpuFrame The PPU frame associated with the input data.
 		 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
+		 * \param _i32DispLeft The display area left.
+		 * \param _i32DispTop The display area top.
+		 * \param _ui32DispWidth The display area width.
+		 * \param _ui32DispHeight The display area height
 		 * \return Returns a pointer to the filtered output buffer.
 		 */
-		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &/*_ui32Width*/, uint32_t &/*_ui32Height*/, uint16_t &/*_ui16BitDepth*/, uint32_t &/*_ui32Stride*/, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/ );
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
+			int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) override;
+
+		/**
+		 * Informs the filter of a window resize.
+		 **/
+		virtual void										FrameResize() override;
 
 
 	protected :

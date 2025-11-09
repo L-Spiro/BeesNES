@@ -347,20 +347,43 @@ namespace lsn {
 	}
 
 	/**
+	 * Informs the current filter of a window resize.  Only sent to GPU filters.
+	 **/
+	void CBeesNes::WindowResized() {
+		CFilterBase * pfbCur = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
+		if ( pfbCur->IsGpuFilter() ) {
+			CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(pfbCur);
+			pgfbThis->FrameResize();
+		}
+	}
+
+	/**
 	 * If the render buffer is dirty, a render is performed (PPU buffer -> Filters -> Post-Processing).
 	 *	This should be called inside the same critical section/mutex that calls Swap().
 	 *
+	 * \param _i32Left The left of the display region (GPU only).
+	 * \param _i32Top The top of the display region (GPU only).
 	 * \param _ui32FinalW The final display width.
 	 * \param _ui32FinalH The final display height.
 	 */
-	void CBeesNes::Render( uint32_t _ui32FinalW, uint32_t _ui32FinalH ) {
+	void CBeesNes::Render( int32_t _i32Left, int32_t _i32Top, uint32_t _ui32FinalW, uint32_t _ui32FinalH ) {
 		if ( m_cfartCurFilterAndTargets.bDirty && m_cfartCurFilterAndTargets.pfbPrevFilter ) {
 			m_cfartCurFilterAndTargets.bDirty = false;
-			m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
-				m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-				m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 
-			if ( !m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
+			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
+				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
+
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = pgfbThis->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle,
+					_i32Left, _i32Top, _ui32FinalW, _ui32FinalH );
+			}
+			else {
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+
+			
 				for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
 					m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
 						_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,

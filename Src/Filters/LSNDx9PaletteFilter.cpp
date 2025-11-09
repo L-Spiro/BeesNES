@@ -92,9 +92,14 @@ namespace lsn {
 	 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
 	 * \param _ui64PpuFrame The PPU frame associated with the input data.
 	 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
+	 * \param _i32DispLeft The display area left.
+	 * \param _i32DispTop The display area top.
+	 * \param _ui32DispWidth The display area width.
+	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx9PaletteFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/ ) {
+	uint8_t * CDx9PaletteFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
+		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 			m_ui32SrcW = _ui32Width;
 			m_ui32SrcH = _ui32Height;
@@ -109,16 +114,27 @@ namespace lsn {
 			m_bValidState = false;
 		}
 
-		if ( m_pdx9dDevice ) {
-			m_pdx9dDevice->GetDirectX9Device()->Clear( 0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 255, 0, 0 ), 1.0f, 0 );
-		}
-
-		Render( s_dgsState.rScreenRect );
+		lsw::LSW_RECT rRect;
+		rRect.left = LONG( _i32DispLeft );
+		rRect.top = LONG( _i32DispTop );
+		rRect.right = rRect.left + LONG( _ui32DispWidth );
+		rRect.bottom = rRect.top + LONG( _ui32DispHeight );
+		Render( rRect );
 
 		_ui32Width = uint32_t( s_dgsState.rScreenRect.Width() );
 		_ui32Height = uint32_t( s_dgsState.rScreenRect.Height() );
 		_ui32Stride = _ui32Width * sizeof( uint32_t );
 		return m_vOutputBuffer.data();		// Unused except in edge cases; we present to the screen directly.
+	}
+
+	/**
+	 * Informs the filter of a window resize.
+	 **/
+	void CDx9PaletteFilter::FrameResize() {
+		s_dgsState.OnSizeDx9();
+
+		EnsureSizeAndResources();
+		EnsureShaders();
 	}
 
 	/**
