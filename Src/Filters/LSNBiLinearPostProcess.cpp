@@ -74,7 +74,7 @@ namespace lsn {
 			m_vFactorsX = std::vector<uint32_t>();
 			m_vFactorsX.resize( _ui32ScreenWidth );
 			for ( uint32_t X = _ui32ScreenWidth; X--; ) {
-				m_vFactorsX[X] = CUtilities::SamplingFactor_BiLinear( _ui32Width, _ui32ScreenWidth, X );
+				m_vFactorsX[X] = CUtilities::SamplingFactor_BiLinear( _ui32Width - 1, _ui32ScreenWidth - 1, X );
 			}
 			m_ui32SourceFactorX = _ui32Width;
 		}
@@ -83,7 +83,7 @@ namespace lsn {
 			m_vFactorsY = std::vector<uint32_t>();
 			m_vFactorsY.resize( _ui32ScreenHeight );
 			for ( uint32_t Y = _ui32ScreenHeight; Y--; ) {
-				m_vFactorsY[Y] = CUtilities::SamplingFactor_Scanline_Sharp( _ui32Height, _ui32ScreenHeight, Y );
+				m_vFactorsY[Y] = CUtilities::SamplingFactor_Scanline_Sharp( _ui32Height - 1, _ui32ScreenHeight - 1, Y );
 			}
 			m_ui32SourceFactorY = _ui32Height;
 		}

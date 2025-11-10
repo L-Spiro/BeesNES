@@ -1538,20 +1538,15 @@ namespace lsn {
 	 * \return Returns the virtual client rectangle of this object or of the optional child object.
 	 */
 	const lsw::LSW_RECT CMainWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
-		//if ( !m_bMaximized ) {
-			LSW_RECT rTemp = ClientRect( this );
-			const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
-			if ( plvRebar ) {
-				LSW_RECT rRebar = plvRebar->ClientRect( this );
-				rTemp.top += rRebar.Height();
-			}
+		LSW_RECT rTemp = ClientRect( this );
+		/*const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+		if ( plvRebar ) {
+			LSW_RECT rRebar = plvRebar->ClientRect( this );
+			rTemp.top += rRebar.Height();
+		}*/
 
-			rTemp.bottom -= m_rStatusBarRect.Height();
-			return rTemp;
-		//}
-		//LSW_RECT rTemp = WindowRect( this );
-		//rTemp.MoveBy( -rTemp.left, -rTemp.top );
-		//return rTemp;
+		rTemp.bottom -= m_rStatusBarRect.Height();
+		return rTemp;
 	}
 
 	/**

@@ -215,8 +215,7 @@ namespace lsn {
 		UpdateCurrentSystem();
 	}
 	CBeesNes::~CBeesNes() {
-		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
-		}
+		
 	}
 
 	// == Functions.
@@ -652,6 +651,8 @@ namespace lsn {
 	 * Shuts down the emulator.  Needs to happen outside of the destructor in order for some inheritance parts to work properly.
 	 **/
 	void CBeesNes::ShutDown() {
+		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
+		}
 		auto pfbThis = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 		// If something was queued for deactivation, destroy it.
 		m_cfartCurFilterAndTargets.DeActivate();

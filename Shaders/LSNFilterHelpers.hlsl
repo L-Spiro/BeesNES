@@ -68,7 +68,7 @@ float blackman_filter_func( float x ) {
     return 0.0;
 }
 
-// Gaussian “sharp” variant: exp( -2 t^2 ) * sqrt(2/pi) windowed by Blackman over radius 1.25.
+// Gaussian “sharp” variant: exp(-2 t^2) * sqrt(2/pi) windowed by Blackman over radius 1.25.
 // sqrt(2/pi) ≈ 0.7978845608.
 float gaussian_sharp_filter_func( float x ) {
     x = abs( x );
@@ -99,7 +99,7 @@ float gaussian_filter_func( float x ) {
 // ------------------------- Kaiser window & Bessel I0 -------------------------
 
 // Modified Bessel function of the first kind, order 0: I0(x).
-// Series: I0(x) = sum_{k=0..∞} ( (x/2)^(2k) / (k!)^2 ).
+// Series: I0(x) = sum_{k=0..∞} ((x/2)^(2k) / (k!)^2).
 // We implement a ps_2_0-friendly loop with early-out tolerance and a hard cap.
 float bessel_i0( float x ) {
     const float eps         = 1.0e-6;       // Tolerance (relative).
