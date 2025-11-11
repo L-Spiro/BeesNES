@@ -12,22 +12,25 @@
 #include "Windows/MainWindow/LSNMainWindowLayout.h"
 #endif	// #ifdef LSN_USE_WINDOWS
 
-#ifdef LSN_DX9
-#include "GPU/DirectX9/LSNDirectX9.h"
-#endif	// #ifdef LSN_DX9
-#ifdef LSN_DX12
-#include "GPU/DirectX12/LSNDirectX12.h"
-#endif	// #ifdef LSN_DX12
-#ifdef LSN_VULKAN1
-#include "GPU/Vulkan/LSNVulkan.h"
-#endif	// #ifdef LSN_VULKAN1
+//#ifdef LSN_DX9
+//#include "GPU/DirectX9/LSNDirectX9.h"
+//#endif	// #ifdef LSN_DX9
+//#ifdef LSN_DX12
+//#include "GPU/DirectX12/LSNDirectX12.h"
+//#endif	// #ifdef LSN_DX12
+//#ifdef LSN_VULKAN1
+//#include "GPU/Vulkan/LSNVulkan.h"
+//#endif	// #ifdef LSN_VULKAN1
 
 #ifdef LSN_CPU_VERIFY
 #include "File/LSNStdFile.h"
 #endif	// #ifdef LSN_CPU_VERIFY
 
-#include "ColorSpace/LSNColorSpace.h"
-#include "Time/LSNTimer.h"
+//#include "ColorSpace/LSNColorSpace.h"
+//#include "Time/LSNTimer.h"
+
+#pragma comment( lib, "winmm.lib" )
+
 
 int main() {
 	return 0;
@@ -165,6 +168,8 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	//	takes place (clock() returns the time since the EXE actually started (before main() is even called), so we don't need more tickers from that
 	//	time).
 	// In a way, this allows (clock() - milliseconds_since_start()) to print the time it takes to initialize.
+
+	bool bTimePeriod = ::timeBeginPeriod( 1 );
 	ee::CExpEval::InitializeExpressionEvaluatorLibrary();
 	MSG mMsg = {};
 	::PeekMessageW( &mMsg, NULL, 0U, 0U, PM_NOREMOVE );
@@ -201,6 +206,10 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	lsw::CBase::ShutDown();
 	lsn::CDatabase::Reset();
 	lsn::CDirectInput8::Release();
+
+	if ( bTimePeriod ) {
+		::timeEndPeriod( 1 );
+	}
 	return static_cast<int>(mMsg.wParam);
 }
 #else	// #if !defined( LSN_CPU_VERIFY )

@@ -112,7 +112,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_GAME,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__GAME ) },
 		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__OPTIONS ) },
 		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
-		{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
+		//{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
 		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 
@@ -120,11 +120,11 @@ namespace lsn {
 	LSW_MENU_ITEM CMainWindowLayout::m_miFileMenu[] {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_OPENROM,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN__ROM ) },
-		{ FALSE,		LSN_MWMI_OPENRECENT,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN_REC_ENT ) },
+		{ FALSE,		LSN_MWMI_OPENRECENT,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_OPEN_REC_ENT ) },/*
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
 		{ FALSE,		LSN_MWMI_OPENSAVEFILE,		FALSE,		FALSE,		TRUE,		L"Dummy &0" },
 		{ FALSE,		LSN_MWMI_SAVE,				FALSE,		FALSE,		TRUE,		L"Dummy &1" },
-		{ FALSE,		LSN_MWMI_SAVEAS,			FALSE,		FALSE,		TRUE,		L"Dummy &2" },
+		{ FALSE,		LSN_MWMI_SAVEAS,			FALSE,		FALSE,		TRUE,		L"Dummy &2" },*/
 	};
 
 	/** Game menu. */
@@ -159,14 +159,14 @@ namespace lsn {
 	};
 
 	/** Windows menu. */
-	LSW_MENU_ITEM CMainWindowLayout::m_miWindowsMenu[] = {
-		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
-		{ FALSE,		LSN_MWMI_DELETE,			FALSE,		FALSE,		TRUE,		L"Dummy &0" },
-		{ FALSE,		LSN_MWMI_SHOWFOUNDADDR,		TRUE,		FALSE,		TRUE,		L"Dummy &1" },
-		{ FALSE,		LSN_MWMI_SHOW_CONVERTER,	TRUE,		FALSE,		TRUE,		L"Dummy &2" },
-		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
-		{ FALSE,		LSN_MWMI_SHOW_ALL,			TRUE,		FALSE,		TRUE,		L"Dummy &3" },
-	};
+	//LSW_MENU_ITEM CMainWindowLayout::m_miWindowsMenu[] = {
+	//	//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
+	//	{ FALSE,		LSN_MWMI_DELETE,			FALSE,		FALSE,		TRUE,		L"Dummy &0" },
+	//	{ FALSE,		LSN_MWMI_SHOWFOUNDADDR,		TRUE,		FALSE,		TRUE,		L"Dummy &1" },
+	//	{ FALSE,		LSN_MWMI_SHOW_CONVERTER,	TRUE,		FALSE,		TRUE,		L"Dummy &2" },
+	//	{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
+	//	{ FALSE,		LSN_MWMI_SHOW_ALL,			TRUE,		FALSE,		TRUE,		L"Dummy &3" },
+	//};
 
 	/** Video-size sub-menu. */
 	LSW_MENU_ITEM CMainWindowLayout::m_miVideoSizeMenu[] = {
@@ -248,13 +248,13 @@ namespace lsn {
 			LSN_ELEMENTS( m_miToolsMenu ),
 			m_miToolsMenu
 		},
-		{
+		/*{
 			LSN_MWMI_MENU_WINDOW,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_WINDOW,
 			LSN_ELEMENTS( m_miWindowsMenu ),
 			m_miWindowsMenu
-		},
+		},*/
 
 		// Video Sizes.
 		{

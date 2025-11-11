@@ -19,6 +19,7 @@
 
 #include <Helpers/LSWHelpers.h>
 
+#include <algorithm>
 #include <memory>
 
 
@@ -78,6 +79,24 @@ namespace lsn {
 		 * \return Returns the horizontal sharpness factor.
 		 */
 		inline uint32_t										GetHorSharpness() const { return m_ui32HorSharness; }
+
+		/**
+		 * Gets the actual vertical sharpness.  Mipmaps are used when the display image is small enough.
+		 * 
+		 * \return Returns the image scale to use, accounting for mipmaps.
+		 **/
+		inline uint32_t										GetActualVertSharpness() const {
+			return m_ui32SrcH ? std::min<uint32_t>( s_dgsState.rScreenRect.Height() / m_ui32SrcH, GetVertSharpness() ) : 1;
+		}
+
+		/**
+		 * Gets the actual horizontal sharpness.  Mipmaps are used when the display image is small enough.
+		 * 
+		 * \return Returns the image scale to use, accounting for mipmaps.
+		 **/
+		inline uint32_t										GetActualHorSharpness() const {
+			return m_ui32SrcW ? std::min<uint32_t>( s_dgsState.rScreenRect.Width() / m_ui32SrcW, GetHorSharpness() ) : 1;
+		}
 
 		/**
 		 * Sets whether to use a 16-bit render target for the initial pass.  Must be called before the filter is actually used.

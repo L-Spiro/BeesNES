@@ -168,8 +168,8 @@ namespace lsn {
 			if ( !m_vbQuad.get() ) { return false; }
 		}
 		
-		const uint32_t ui32ScanW = m_ui32SrcW * m_ui32HorSharness;
-		const uint32_t ui32ScanH = m_ui32SrcH * m_ui32VertSharpness;
+		const uint32_t ui32ScanW = m_ui32SrcW * GetActualHorSharpness();
+		const uint32_t ui32ScanH = m_ui32SrcH * GetActualVertSharpness();
 		if ( !ui32ScanW || !ui32ScanH ) { return false; }
 		const bool bOk =
 			(m_ui32RsrcW == m_ui32SrcW) &&
@@ -534,8 +534,8 @@ namespace lsn {
 			pd3ds9Surf->Release();
 
 
-			const UINT ui32DstW = m_ui32SrcW * m_ui32HorSharness;
-			const UINT ui32DstH = m_ui32SrcH * m_ui32VertSharpness;
+			const UINT ui32DstW = m_ui32SrcW * GetActualHorSharpness();
+			const UINT ui32DstH = m_ui32SrcH * GetActualVertSharpness();
 
 			D3DVIEWPORT9 vpViewport{};
 			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = ui32DstW; vpViewport.Height = ui32DstH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
@@ -604,8 +604,8 @@ namespace lsn {
 			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
 
 			float fU0, fV0, fU1, fV1;
-			const uint32_t uiSrcW = m_ui32SrcW * m_ui32HorSharness;
-			const uint32_t uiSrcH = m_ui32SrcH * m_ui32VertSharpness;
+			const uint32_t uiSrcW = m_ui32SrcW * GetActualHorSharpness();
+			const uint32_t uiSrcH = m_ui32SrcH * GetActualVertSharpness();
 			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
 			if LSN_UNLIKELY( !FillQuad( (*m_vbQuad), static_cast<float>(_rOutput.left),  static_cast<float>(_rOutput.top),
 				static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom),

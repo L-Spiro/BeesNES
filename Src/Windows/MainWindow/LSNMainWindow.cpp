@@ -551,7 +551,7 @@ namespace lsn {
 			}
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
-				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
+				//CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_AUDIO : {
