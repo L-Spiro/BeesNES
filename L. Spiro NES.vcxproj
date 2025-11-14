@@ -1912,6 +1912,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Mappers\LSNMapper113.h" />
     <ClInclude Include="Src\Mappers\LSNMapper132.h" />
     <ClInclude Include="Src\Mappers\LSNMapper136.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper142.h" />
     <ClInclude Include="Src\Mappers\LSNMapper157.h" />
     <ClInclude Include="Src\Mappers\LSNMapper184.h" />
     <ClInclude Include="Src\Mappers\LSNMapper185.h" />

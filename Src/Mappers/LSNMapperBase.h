@@ -153,6 +153,7 @@ namespace lsn {
 		 *
 		 * Description: The VRC IRQ handler.
 		 */
+		template <bool _bCopyBit0 = true>
 		class CVrcIrq3 {
 		public :
 			CVrcIrq3() {
@@ -222,7 +223,9 @@ namespace lsn {
 			 **/
 			inline void									AcknowledgeIrq( CInterruptable * _piCpu ) {
 				_piCpu->ClearIrq( LSN_IS_MAPPER );
-				m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
+				if constexpr ( _bCopyBit0 ) {
+					m_ui8Control = (m_ui8Control & 0b00000101) | ((m_ui8Control & 0b00000001) << 1);
+				}
 			}
 
 			/**
