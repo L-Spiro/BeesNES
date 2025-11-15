@@ -37,6 +37,8 @@
 
 #include "../Mappers/LSNMapper041.h"
 
+#include "../Mappers/LSNMapper056.h"
+
 #include "../Mappers/LSNMapper065.h"
 #include "../Mappers/LSNMapper066.h"
 #include "../Mappers/LSNMapper067.h"
@@ -77,6 +79,8 @@
 
 #include "../Mappers/LSNMapper184.h"
 #include "../Mappers/LSNMapper185.h"
+
+#include "../Mappers/LSNMapper206.h"
 
 #include "../Mappers/LSNMapper232.h"
 

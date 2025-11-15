@@ -794,7 +794,18 @@ namespace lsn {
 			// Don Doko Don 2 (Japan)
 			{ .ui32Crc = 0x49C84B4E, .ui16Mapper = 48 },
 			// Fantastic Adventures of Dizzy, The (Aladdin) (UE)	// Duplicated as Quattro Adventure (Aladdin) (U)?
-			//{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },
+			//{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },			
+			// Fantasy Zone (U)
+			{ .ui32Crc = 0x3D96A1D8, .ui16Mapper = 206 },
+			// Gauntlet (U)
+			{ .ui32Crc = 0x834D1924, .ui16Mapper = 206 },
+			// Indiana Jones and the Temple of Doom (Tengen) (U)
+			{ .ui32Crc = 0x651700A5, .ui16Mapper = 206 },
+			// Indiana Jones and the Temple of Doom (U)
+			{ .ui32Crc = 0x5CEB1256, .ui16Mapper = 206 },
+			// Karnov (U)
+			{ .ui32Crc = 0xA37B0EE3, .ui16Mapper = 206 },
+
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Micro Machines (U)
@@ -805,16 +816,37 @@ namespace lsn {
 			{ .ui32Crc = 0x24BA12DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, .ui16SubMapper = 1 },
 			// Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
+			// Pacmania (U)
+			{ .ui32Crc = 0x02ED6298, .ui16Mapper = 206 },
+
 			// Pipe Dream (U)
 			{ .ui32Crc = 0xDB70A67C, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 3, },
 			// Quattro Adventure (Aladdin) (U)
 			{ .ui32Crc = 0x6C040686, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
 			// Quattro Sports (Aladdin) (U)
 			{ .ui32Crc = 0x62EF6C79, .ui16Mapper = 232, .ui16SubMapper = 1, },		// 232: 1 Aladdin Deck Enhancer
+			
+			// RBI Baseball (U)
+			{ .ui32Crc = 0x42607A97, .ui16Mapper = 206 },
+			// RBI Baseball 2 (U)
+			{ .ui32Crc = 0x093311AA, .ui16Mapper = 206 },
+			// RBI Baseball 3 (U)
+			{ .ui32Crc = 0x5F30FCD8, .ui16Mapper = 206 },
+			// Ring King (U)
+			{ .ui32Crc = 0x4EBE8A31, .ui16Mapper = 206 },
+			// Super Sprint (U)
+			{ .ui32Crc = 0xD5883D6B, .ui16Mapper = 206 },
+
 			// Teenage Mutant Ninja Turtles (Japan)
 			{ .ui32Crc = 0xEA74C587, .ui16Mapper = 25, .ui16SubMapper = 2, },
+			// Toobin (U)
+			{ .ui32Crc = 0x05D70600, .ui16Mapper = 206 },
+			// Toobin (U) [a1]
+			{ .ui32Crc = 0x028912BA, .ui16Mapper = 206 },
 			// Ultimate Stuntman (U)
 			{ .ui32Crc = 0x892434DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+			// Vindicators (JUE)
+			{ .ui32Crc = 0x6E72B8FF, .ui16Mapper = 206 },
 			// Wrecking Crew (JUE)
 			{ .ui32Crc = 0x4328B273, .ui16Mapper = 0 },
 
