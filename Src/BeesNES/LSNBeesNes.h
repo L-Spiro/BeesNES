@@ -272,6 +272,17 @@ namespace lsn {
 		void									Swap();
 
 		/**
+		 * Dirties the render flag.  Allow re-rendering of the last frame.
+		 **/
+		void									DirtyRender() {
+			m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
+			m_cfartCurFilterAndTargets.ui32Width = m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth();
+			m_cfartCurFilterAndTargets.ui32Height = m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight();
+			m_cfartCurFilterAndTargets.ui32Stride = uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() );
+			m_cfartCurFilterAndTargets.bDirty = true;
+		}
+
+		/**
 		 * Loads a ROM.
 		 *
 		 * \param _vRom The in-memory ROM file.

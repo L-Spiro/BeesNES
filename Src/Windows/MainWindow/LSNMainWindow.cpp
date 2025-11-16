@@ -1049,6 +1049,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		Parent::Size( _wParam, _lWidth, _lHeight );
+		
 		bool bMax = _wParam == SIZE_MAXIMIZED;
 		if ( !m_wpPlacement.bIsSizing ) {
 			m_bMaximized = bMax;
@@ -1069,14 +1070,12 @@ namespace lsn {
 			double dScaleW = double( _lWidth - rWindowArea.Width() ) / FinalWidth( 1.0 );
 			double dScaleH = double( _lHeight - rWindowArea.Height() ) / FinalHeight( 1.0 );
 			m_bnEmulator.SetScale( std::round( std::min( dScaleW, dScaleH ) * LSN_SCALE_RESOLUTION ) / LSN_SCALE_RESOLUTION );
-			/*LSW_RECT rCur = WindowRect();
-			LSW_RECT rNew = FinalWindowRect();
-			::MoveWindow( Wnd(), rCur.left, rCur.top, rNew.Width(), rNew.Height(), TRUE );*/
 		}
 
 		if ( !m_bInLiveResize ) {
 			m_bnEmulator.WindowResized();
 		}
+		m_bnEmulator.DirtyRender();
 		return LSW_H_HANDLED;
 	}
 
@@ -1087,6 +1086,7 @@ namespace lsn {
 	 **/
 	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
 		m_bnEmulator.WindowResized();
+		m_bnEmulator.DirtyRender();
 		return LSW_H_HANDLED;
 	}
 

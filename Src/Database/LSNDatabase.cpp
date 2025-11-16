@@ -782,6 +782,8 @@ namespace lsn {
 			{ .ui32Crc = 0x3ACD4BF1, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Ms. Pac Man.
 			{ .ui32Crc = 0x4B2DCE64, .mmMirrorOverride = LSN_MM_HORIZONTAL },
+			// Pacmania (U)
+			{ .ui32Crc = 0x02ED6298, .mmMirrorOverride = LSN_MM_VERTICAL, .ui16Mapper = 206 },
 			// Zippy Race.
 			{ .ui32Crc = 0xE16BB5FE, .mmMirrorOverride = LSN_MM_HORIZONTAL },
 
@@ -797,6 +799,10 @@ namespace lsn {
 			//{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },			
 			// Fantasy Zone (U)
 			{ .ui32Crc = 0x3D96A1D8, .ui16Mapper = 206 },
+
+			// Family Jockey (Japan)
+			{ .ui32Crc = 0xAC75F8CD, .ui16Mapper = 206, .ui16SubMapper = 1 },
+
 			// Gauntlet (U)
 			{ .ui32Crc = 0x834D1924, .ui16Mapper = 206 },
 			// Indiana Jones and the Temple of Doom (Tengen) (U)
@@ -808,6 +814,10 @@ namespace lsn {
 
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
+
+			// Metro-Cross (Japan)
+			{ .ui32Crc = 0xBDABC4A6, .ui16Mapper = 206, .ui16SubMapper = 1 },
+
 			// Micro Machines (U)
 			{ .ui32Crc = 0x6B523BD7, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
 			// Micro Machines (U)
@@ -816,8 +826,6 @@ namespace lsn {
 			{ .ui32Crc = 0x24BA12DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, .ui16SubMapper = 1 },
 			// Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
-			// Pacmania (U)
-			{ .ui32Crc = 0x02ED6298, .ui16Mapper = 206 },
 
 			// Pipe Dream (U)
 			{ .ui32Crc = 0xDB70A67C, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 3, },
@@ -834,6 +842,11 @@ namespace lsn {
 			{ .ui32Crc = 0x5F30FCD8, .ui16Mapper = 206 },
 			// Ring King (U)
 			{ .ui32Crc = 0x4EBE8A31, .ui16Mapper = 206 },
+			
+			// Sky Kid (Japan) (En)
+			{ .ui32Crc = 0x90FAA618, .ui16Mapper = 206, .ui16SubMapper = 1 },
+			// Super Chinese (Japan)
+			{ .ui32Crc = 0x51C7C66A, .ui16Mapper = 206, .ui16SubMapper = 1 },
 			// Super Sprint (U)
 			{ .ui32Crc = 0xD5883D6B, .ui16Mapper = 206 },
 
@@ -845,6 +858,10 @@ namespace lsn {
 			{ .ui32Crc = 0x028912BA, .ui16Mapper = 206 },
 			// Ultimate Stuntman (U)
 			{ .ui32Crc = 0x892434DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, },
+
+			// Valkyrie no Bouken - Toki no Kagi Densetsu (Japan)
+			{ .ui32Crc = 0x7C7AB58E, .ui16Mapper = 206, .ui16SubMapper = 1 },
+
 			// Vindicators (JUE)
 			{ .ui32Crc = 0x6E72B8FF, .ui16Mapper = 206 },
 			// Wrecking Crew (JUE)

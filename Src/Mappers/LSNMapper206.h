@@ -52,8 +52,6 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
-			// Used when $8000.D6 == 1.
-			SetPgmBank<2, PgmBankSize()>( -2 );
 
 			m_ui8Reg0 = 0;
 		}
@@ -70,7 +68,7 @@ namespace lsn {
 			// ================
 			// FIXED BANKS
 			// ================
-			// Submapper 1 does not allow swicthing of PGM banks.
+			// Submapper 1 does not allow switching of PGM banks.
 			if ( m_prRom->riInfo.ui16SubMapper == 1 ) {
 				m_stFixedOffset = 0;
 				for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
@@ -90,7 +88,7 @@ namespace lsn {
 			// SWAPPABLE BANKS
 			// ================
 			// CPU.
-			// Submapper 1 does not allow swicthing of PGM banks.
+			// Submapper 1 does not allow switching of PGM banks.
 			if ( m_prRom->riInfo.ui16SubMapper != 1 ) {
 				for ( uint32_t I = 0x8000; I < 0xA000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
@@ -133,13 +131,11 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0xA000; ++I ) {
-				if ( (I & 0xE001) == I ) {
-					if ( (I & 1) == 0 ) {
-						_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper206::SelectBank8000_9FFE, this, 0 );
-					}
-					else {
-						_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper206::SelectBank8001_9FFF, this, 0 );
-					}
+				if ( (I & 0xE001) == 0x8000 ) {
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper206::SelectBank8000_9FFE, this, 0 );
+				}
+				else if ( (I & 0xE001) == 0x8001 ) {
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper206::SelectBank8001_9FFF, this, 0 );
 				}
 			}
 
@@ -204,42 +200,42 @@ namespace lsn {
 			 */
 			switch ( pmThis->m_ui8Reg0 & 0b111 ) {
 				case 0b000 : {
-					// 000: R0: Select 2 KB CHR bank at PPU $0000-$07FF (or $1000-$17FF)
+					// 0: Select 2 KB CHR bank at PPU $0000-$07FF
 					pmThis->SetChrBank2x<0, ChrBankSize()>( _ui8Val & 0b11111110 );
 					break;
 				}
 				case 0b001 : {
-					// 001: R1: Select 2 KB CHR bank at PPU $0800-$0FFF (or $1800-$1FFF)
+					// 1: Select 2 KB CHR bank at PPU $0800-$0FFF
 					pmThis->SetChrBank2x<2, ChrBankSize()>( _ui8Val & 0b11111110 );
 					break;
 				}
 				case 0b010 : {
-					// 010: R2: Select 1 KB CHR bank at PPU $1000-$13FF (or $0000-$03FF)
+					// 2: Select 1 KB CHR bank at PPU $1000-$13FF
 					pmThis->SetChrBank<4, ChrBankSize()>( _ui8Val );
 					break;
 				}
 				case 0b011 : {
-					// 011: R3: Select 1 KB CHR bank at PPU $1400-$17FF (or $0400-$07FF)
+					// 3: Select 1 KB CHR bank at PPU $1400-$17FF
 					pmThis->SetChrBank<5, ChrBankSize()>( _ui8Val );
 					break;
 				}
 				case 0b100 : {
-					// 100: R4: Select 1 KB CHR bank at PPU $1800-$1BFF (or $0800-$0BFF)
+					// 4: Select 1 KB CHR bank at PPU $1800-$1BFF
 					pmThis->SetChrBank<6, ChrBankSize()>( _ui8Val );
 					break;
 				}
 				case 0b101 : {
-					// 101: R5: Select 1 KB CHR bank at PPU $1C00-$1FFF (or $0C00-$0FFF)
+					// 5: Select 1 KB CHR bank at PPU $1C00-$1FFF
 					pmThis->SetChrBank<7, ChrBankSize()>( _ui8Val );
 					break;
 				}
 				case 0b110 : {
-					// 110: R6: Select 8 KB PRG ROM bank at $8000-$9FFF (or $C000-$DFFF)
+					// 6: Select 8 KB PRG ROM bank at $8000-$9FFF
 					pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b00001111 );
 					break;
 				}
 				case 0b111 : {
-					// 111: R7: Select 8 KB PRG ROM bank at $A000-$BFFF)
+					// 7: Select 8 KB PRG ROM bank at $A000-$BFFF
 					pmThis->SetPgmBank<1, PgmBankSize()>( _ui8Val & 0b00001111 );
 					break;
 				}
