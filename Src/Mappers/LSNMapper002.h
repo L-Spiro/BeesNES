@@ -96,7 +96,7 @@ namespace lsn {
 			// PGM bank-select.
 			// Writes to the whole area are used to select a bank.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper002::SelectBank, this, uint16_t( I ) );
 			}
 		}
 

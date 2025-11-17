@@ -633,16 +633,6 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 81
 		LSN_INDIRECT_X_W( STA, Write_A_To_AddrOrPtr_Phi2<LSN_TO_A> )
-
-		//{
-		//	/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-		//	&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_IncPc_Phi2,
-		//	&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Read_Operand_Discard_Phi2,
-		//	&CCpu6502::Add_XAndOperand_To_AddrOrPntr_8bit<LSN_TO_P, LSN_R>,				&CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_L_Phi2<LSN_FROM_P>,
-		//	&CCpu6502::Null<LSN_R>,														&CCpu6502::Read_PtrOrAddr_To_AddrOrPtr_H_8Bit_Phi2<LSN_FROM_P>,
-		//	&CCpu6502::Null<LSN_W>,														&CCpu6502::Write_A_To_AddrOrPtr_Phi2<LSN_TO_A, true>,
-		//	&CCpu6502::BeginInst,
-		//}, 6, LSN_AM_INDIRECT_X, 2, LSN_I_STA,
 	},
 	{	// 82
 		LSN_IMMEDIATE( NOP, BeginInst<true> )
