@@ -20,7 +20,7 @@
 #include <vector>
 
 
-#include <format>	// TMP
+//#include <format>	// TMP
 
 #if defined( _MSC_VER )
     // Microsoft Visual Studio Compiler.
@@ -44,6 +44,20 @@
 #else
     #error "Unsupported compiler."
 #endif
+
+#if !defined( LSN_PPC_VMX )
+#	if defined( __VEC__ ) || defined( __ALTIVEC__ )
+#		define LSN_PPC_VMX 1
+#	else
+#		define LSN_PPC_VMX 0
+#	endif
+#endif
+
+#if LSN_PPC_VMX
+#include <altivec.h>
+typedef __vector float							vmx_vecf;
+#endif	// #if LSN_PPC_VMX
+
 
 #pragma warning( push )
 #pragma warning( disable : 4324 )	// warning C4324: 'lsn::CSampleBox': structure was padded due to alignment specifier
@@ -137,9 +151,9 @@ namespace lsn {
 				m_gGen.ui32OutputHz == _ui32OutputRate &&
 				m_sSinc.vCeof.size() - 1 == _sM ) { return true; }
 			
-#ifdef _WIN32
-			::OutputDebugStringA( std::format( "Kernel size: {}\r\n", _sM ).c_str() );
-#endif	// #ifdef _WIN32
+//#ifdef _WIN32
+//			::OutputDebugStringA( std::format( "Kernel size: {}\r\n", _sM ).c_str() );
+//#endif	// #ifdef _WIN32
 			double dFc = _dLpf / (_ui32OutputRate * 3.0);	// Cut-off ratio.  The sinc is applied to the buffer that is (_ui32OutputRate * 3).
 
 			try {
@@ -286,14 +300,27 @@ namespace lsn {
 		 * \param _bSse4 Specifies whether the SSE 4.1 feature set is available.
 		 * \param _bFma Specifies whether the FMA (fused multiply-add) feature set is available.
 		 **/
-		void												SetFeatureSet( bool _bAvx512, bool _bAvx, bool _bSse4, bool _bFma ) {
+		void												SetFeatureSet( bool _bAvx512 = false, bool _bAvx = false, bool _bSse4 = false, bool _bFma = false, bool _bVmx = false ) {
 			m_gGen.pfStoreSample = &CSampleBox::StoreSample;
 			m_gGen.pfConvolve = &CSampleBox::Convolve;
+			static_cast<void>(_bAvx512);
+			static_cast<void>(_bAvx);
+			static_cast<void>(_bSse4);
+			static_cast<void>(_bFma);
+			static_cast<void>(_bVmx);
+
+#if LSN_PPC_VMX
+			if ( _bVmx ) {
+				m_gGen.pfSample = &CSampleBox::Sample_6Point_5thOrder_Hermite_X_VMX;
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SIMD<vmx_vecf>;
+				m_gGen.pfConvolve = &CSampleBox::Convolve_VMX;
+			}
+#endif	// #if LSN_PPC_VMX
 			
 #ifdef __SSE4_1__
 			if ( _bSse4 ) {
-				m_gGen.pfSample = &CSampleBox::Sample_6Point_5thOrder_Hermite_X_SSE;
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SSE;
+				m_gGen.pfSample = _bFma ? &CSampleBox::Sample_6Point_5thOrder_Hermite_X_SSE_FMA : &CSampleBox::Sample_6Point_5thOrder_Hermite_X_SSE;
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SIMD<__m128>;
 				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_SSE_FMA : &CSampleBox::Convolve_SSE;
 			}
 #endif  // #ifdef __SSE4_1__
@@ -301,7 +328,7 @@ namespace lsn {
 #ifdef __AVX__
 			if ( _bAvx ) {
 				m_gGen.pfSample = _bFma ? &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX_FMA : &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX;
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX;
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SIMD<__m256>;
 				m_gGen.pfConvolve = _bFma ? &CSampleBox::Convolve_AVX_FMA : &CSampleBox::Convolve_AVX;
 			}
 #endif  // #ifdef __AVX__
@@ -309,7 +336,7 @@ namespace lsn {
 #ifdef __AVX512F__
 			if ( _bAvx512 ) {
 				m_gGen.pfSample = _bFma ? &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX512_FMA : &CSampleBox::Sample_6Point_5thOrder_Hermite_X_AVX512;
-				m_gGen.pfStoreSample = &CSampleBox::StoreSample_AVX512;
+				m_gGen.pfStoreSample = &CSampleBox::StoreSample_SIMD<__m512>;
 				m_gGen.pfConvolve = _bFma ? static_cast<PfConvolve>(&CSampleBox::Convolve_AVX512_FMA) : static_cast<PfConvolve>(&CSampleBox::Convolve_AVX512);
 			}
 #endif  // #ifdef __AVX512F__
@@ -549,125 +576,36 @@ namespace lsn {
 			AddSampleToIntermediateBuffer( fSample );
 		}
 
-#ifdef __SSE4_1__
 		/**
-		 * Interpolates and stores 4 samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
+		 * Interpolates and stores X samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
 		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
 		 * 
 		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
 		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
 		 **/
-		void												StoreSample_SSE( size_t _sBufferIdx, float _fFrac ) {
+		template <typename _VecType>
+		void												StoreSample_SIMD( size_t _sBufferIdx, float _fFrac ) {
 			// Copy the 6 samples to the next row in the SIMD buffer.
 			int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
 			for ( int32_t I = 0; I < 6; ++I ) {
 				m_pPoints.fSimdSamples[I].fStack[m_pPoints.sSimdStackSize] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
 			}
 			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
-			m_pPoints.sSimdStackSize &= (sizeof( __m128 ) / sizeof( float ) - 1);
+			m_pPoints.sSimdStackSize &= (sizeof( _VecType ) / sizeof( float ) - 1);
 			++m_gGen.ui64SamplesBuffered;
 			if ( 0 == m_pPoints.sSimdStackSize ) {
 				// The counter overflowed, so the stack is full.
 				LSN_ALN
-				float fTmp[sizeof(__m128)/sizeof(float)];
+				float fTmp[sizeof(_VecType)/sizeof(float)];
 				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
 					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
 					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
 					m_pPoints.fFractions, fTmp );
-				/*Sample_6Point_5thOrder_Hermite_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				/*Sample_4Point_2ndOrder_Parabolic_2X_X_SSE( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				for ( size_t I = 0; I < (sizeof( __m128 ) / sizeof( float )); ++I ) {
+				for ( size_t I = 0; I < (sizeof( _VecType ) / sizeof( float )); ++I ) {
 					AddSampleToIntermediateBuffer( fTmp[I] );
 				}
 			}
 		}
-#endif  // #ifdef __SSE4_1__
-        
-#ifdef __AVX__
-		/**
-		 * Interpolates and stores 8 samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
-		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
-		 * 
-		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
-		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
-		 **/
-		void												StoreSample_AVX( size_t _sBufferIdx, float _fFrac ) {
-			// Copy the 6 samples to the next row in the SIMD buffer.
-			int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
-			for ( int32_t I = 0; I < 6; ++I ) {
-				m_pPoints.fSimdSamples[I].fStack[m_pPoints.sSimdStackSize] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
-			}
-			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
-			m_pPoints.sSimdStackSize &= (sizeof( __m256 ) / sizeof( float ) - 1);
-			++m_gGen.ui64SamplesBuffered;
-			if LSN_UNLIKELY( 0 == m_pPoints.sSimdStackSize ) {
-				// The counter overflowed, so the stack is full.
-				LSN_ALN
-				float fTmp[sizeof(__m256)/sizeof(float)];
-				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );
-				/*Sample_6Point_5thOrder_Hermite_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				for ( size_t I = 0; I < (sizeof( __m256 ) / sizeof( float )); ++I ) {
-					AddSampleToIntermediateBuffer( fTmp[I] );
-				}
-			}
-		}
-#endif  // #ifdef __AVX__
-
-#ifdef __AVX512F__
-		/**
-		 * Interpolates and stores 16 samples.  Called at (Output Hz * 3).  Samples get stored into the intermediate buffer
-		 *	where sinc filtering will happen.  Every 3rd of these samples gets pushed to the final output.
-		 * 
-		 * \param _sBufferIdx The index inside the main input buffer where the sample to add lies.
-		 * \param _fFrac The interpolation amount between the _sBufferIdx'th sample and the next sample.
-		 **/
-		void												StoreSample_AVX512( size_t _sBufferIdx, float _fFrac ) {
-			// Copy the 6 samples to the next row in the SIMD buffer.
-			int32_t i32AddMe = int32_t( m_gGen.vBuffer.size() ) - 2;
-			for ( int32_t I = 0; I < 6; ++I ) {
-				m_pPoints.fSimdSamples[I].fStack[m_pPoints.sSimdStackSize] = m_gGen.vBuffer[(int32_t(_sBufferIdx+i32AddMe)+I)%m_gGen.vBuffer.size()];
-			}
-			m_pPoints.fFractions[m_pPoints.sSimdStackSize++] = _fFrac;
-			m_pPoints.sSimdStackSize &= (sizeof( __m512 ) / sizeof( float ) - 1);
-			++m_gGen.ui64SamplesBuffered;
-			if LSN_UNLIKELY( 0 == m_pPoints.sSimdStackSize ) {
-				// The counter overflowed, so the stack is full.
-				LSN_ALN
-				float fTmp[sizeof(__m512)/sizeof(float)];
-				(*m_gGen.pfSample)( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );
-				/*Sample_6Point_5thOrder_Hermite_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				/*Sample_4Point_2ndOrder_Parabolic_2X_X_AVX512( &m_pPoints.fSimdSamples[0].fStack[0], &m_pPoints.fSimdSamples[1].fStack[0],
-					&m_pPoints.fSimdSamples[2].fStack[0], &m_pPoints.fSimdSamples[3].fStack[0],
-					&m_pPoints.fSimdSamples[4].fStack[0], &m_pPoints.fSimdSamples[5].fStack[0],
-					m_pPoints.fFractions, fTmp );*/
-				for ( size_t I = 0; I < (sizeof( __m512 ) / sizeof( float )); ++I ) {
-					AddSampleToIntermediateBuffer( fTmp[I] );
-				}
-			}
-		}
-#endif  // #ifdef __AVX512F__
 
 		/**
 		 * Passes an interpolated sample down the pipeline.  Every 3rd sample sent here gets sent to the final output buffer.
@@ -1855,6 +1793,260 @@ namespace lsn {
 			return _mm512_reduce_add_ps( _mReg );
         }
 #endif  // #ifdef __AVX512F__
+
+#if LSN_PPC_VMX
+		/**
+		 * Performs convolution on the given sample (indexed into m_sSinc.vRing) using VMX.
+		 * 
+		 * \param _sIdx The index of the sample to convolvify.
+		 * \return Returns the convolved sample.
+		 **/
+		float												Convolve_VMX( size_t _sIdx ) {
+			const float * pfFilter = m_sSinc.vCeof.data();
+			const float * pfSamples = m_sSinc.vRing.data();
+			vmx_vecf vSum = vec_splats( 0.0f );
+			size_t sMod = m_sSinc.vRing.size();
+			_sIdx += sMod * 2 - m_sSinc.sM;
+			size_t sTotal = m_sSinc.vCeof.size() - 1;
+			for( size_t I = 0; I < sTotal; ) {
+				size_t sIdx = (_sIdx + I) % sMod;
+				if LSN_UNLIKELY( (sMod - sIdx) < (sizeof( vmx_vecf ) / sizeof( float )) ) {
+					// Copy into a temporary when wrapping near the end of the ring buffer.
+					LSN_ALN
+					float fTmp[(sizeof(vmx_vecf)/sizeof(float))];
+					for( size_t J = 0; J < (sizeof( vmx_vecf ) / sizeof( float )); ++J ) {
+						fTmp[J] = pfSamples[(_sIdx+I+J)%sMod];
+					}
+					Convolve_VMX_Single( &pfFilter[I], fTmp, vSum );
+				}
+				else {
+					Convolve_VMX_Single( &pfFilter[I], &pfSamples[sIdx], vSum );
+				}
+				I += (sizeof( vmx_vecf ) / sizeof( float ));
+			}
+			return HorizontalSum( vSum );
+		}
+
+		/**
+		 * Convolves the given weights with the given samples.
+		 * The weights (_pfWeights) should be aligned to a 16-byte boundary for optimal performance.
+		 *
+		 * \param _pfWeights The pointer to the 16-byte-aligned 4 weights.
+		 * \param _pfSamples Pointer to the samples to convolve (may be unaligned).
+		 * \param _vSum Maintains the sum of convolution over many iterations.
+		 **/
+		static inline void									Convolve_VMX_Single( const float * _pfWeights, const float * _pfSamples, vmx_vecf &_vSum ) {
+			// Aligned load for the weights (32-byte is fine for 16-byte VMX).
+			vmx_vecf vWeights = vec_ld( 0, _pfWeights );
+			// Safe for unaligned samples: build the vector explicitly.
+			vmx_vecf vSamples = (vmx_vecf){ _pfSamples[0], _pfSamples[1], _pfSamples[2], _pfSamples[3] };
+			_vSum = vec_madd( vWeights, vSamples, _vSum );
+		}
+
+		/**
+		 * 4-point, 2nd-order parabolic 2x x-form sampling (VMX).
+		 *
+		 * \param _pfsSamples0 The 16-byte-aligned pointer to the 4 1st points.
+		 * \param _pfsSamples1 The 16-byte-aligned pointer to the 4 2nd points.
+		 * \param _pfsSamples2 The 16-byte-aligned pointer to the 4 3rd points.
+		 * \param _pfsSamples3 The 16-byte-aligned pointer to the 4 4th points.
+		 * \param _pfsSamples4 The 16-byte-aligned pointer to the 4 5th points.
+		 * \param _pfsSamples5 The 16-byte-aligned pointer to the 4 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 4 fractions).  Must be aligned to 16 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		static inline void									Sample_4Point_2ndOrder_Parabolic_2X_X_VMX( const float * /*_pfsSamples0*/, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * /*_pfsSamples5*/,
+			const float * _pfFrac,
+			float * _pfOut ) {
+			// _pfsSamples[1+2] = _pfsSamples3.
+			// _pfsSamples[-1+2] = _pfsSamples1.
+			// _pfsSamples[0+2] = _pfsSamples2.
+			// _pfsSamples[2+2] = _pfsSamples4.
+
+			// Load the inputs/constants.
+			vmx_vecf vS_1p2 = vec_ld( 0, _pfsSamples3 );
+			vmx_vecf v1o2 = vec_splats( 1.0f / 2.0f );
+			vmx_vecf vS_n1p2 = vec_ld( 0, _pfsSamples1 );
+			vmx_vecf v1o4 = vec_splats( 1.0f / 4.0f );
+
+			// float fY1mM1 = _pfsSamples[1+2] - _pfsSamples[-1+2];
+			vmx_vecf vY1mM1 = vec_sub( vS_1p2, vS_n1p2 );
+
+			// Load the inputs.
+			vmx_vecf vS_0p2 = vec_ld( 0, _pfsSamples2 );
+
+			// float fC0 = (1.0f / 2.0f) * _pfsSamples[0+2] + (1.0f / 4.0f) * (_pfsSamples[-1+2] + _pfsSamples[1+2]);
+			vmx_vecf vC0 = vec_add( vec_mul( v1o2, vS_0p2 ), vec_mul( v1o4, vec_add( vS_n1p2, vS_1p2 ) ) );
+
+			// Load the inputs.
+			vmx_vecf vS_2p2 = vec_ld( 0, _pfsSamples4 );
+
+			// float fC1 = (1.0f / 2.0f) * fY1mM1;
+			vmx_vecf vC1 = vec_mul( v1o2, vY1mM1 );
+
+			// Load the inputs.
+			vmx_vecf vFrac = vec_ld( 0, _pfFrac );
+
+			// float fC2 = (1.0f / 4.0f) * (_pfsSamples[2+2] - _pfsSamples[0+2] - fY1mM1);
+			vmx_vecf vC2 = vec_mul( v1o4, vec_sub( vec_sub( vS_2p2, vS_0p2 ), vY1mM1 ) );
+
+			// return (fC2 * _fFrac + fC1) * _fFrac + fC0;
+			vmx_vecf vRet = vec_madd( vC2, vFrac, vC1 );
+			vRet = vec_madd( vRet, vFrac, vC0 );
+			vec_st( vRet, 0, _pfOut );
+		}
+
+
+		/**
+		 * 6-point, 5th-order Hermite X-form sampling (VMX).
+		 *
+		 * \param _pfsSamples0 The 16-byte-aligned pointer to the 8 1st points.
+		 * \param _pfsSamples1 The 16-byte-aligned pointer to the 8 2nd points.
+		 * \param _pfsSamples2 The 16-byte-aligned pointer to the 8 3rd points.
+		 * \param _pfsSamples3 The 16-byte-aligned pointer to the 8 4th points.
+		 * \param _pfsSamples4 The 16-byte-aligned pointer to the 8 5th points.
+		 * \param _pfsSamples5 The 16-byte-aligned pointer to the 8 6th points.
+		 * \param _pfFrac The interpolation amounts (array of 8 fractions).  Must be aligned to 32 bytes.
+		 * \param _pfOut The output pointer.
+		 */
+		static inline void									Sample_6Point_5thOrder_Hermite_X_VMX( const float * _pfsSamples0, const float * _pfsSamples1,
+			const float * _pfsSamples2, const float * _pfsSamples3,
+			const float * _pfsSamples4, const float * _pfsSamples5,
+			const float * _pfFrac,
+			float * _pfOut ) {
+			// 6-point, 5th-order Hermite (X-form).
+			// _pfsSamples[-2+2] = _pfsSamples0.
+			// _pfsSamples[-1+2] = _pfsSamples1.
+			// _pfsSamples[0+2] = _pfsSamples2.
+			// _pfsSamples[1+2] = _pfsSamples3.
+			// _pfsSamples[2+2] = _pfsSamples4.
+			// _pfsSamples[3+2] = _pfsSamples5.
+
+			// Load the inputs/constants.
+			vmx_vecf vS_n2p2 = vec_ld( 0, _pfsSamples0 );
+			vmx_vecf v1o8 = vec_splats( 1.0f / 8.0f );
+			vmx_vecf vS_2p2 = vec_ld( 0, _pfsSamples4 );
+			vmx_vecf v11o24 = vec_splats( 11.0f / 24.0f );
+
+			// float fEightThym2 = 1.0f / 8.0f * _pfsSamples[-2+2];
+			vmx_vecf vEightThym2 = vec_mul( v1o8, vS_n2p2 );
+
+			// Load the inputs/constants.
+			vmx_vecf vS_3p2 = vec_ld( 0, _pfsSamples5 );
+			vmx_vecf v1o12 = vec_splats( 1.0f / 12.0f );
+
+			// float fElevenTwentyFourThy2 = 11.0f / 24.0f * _pfsSamples[2+2];
+			vmx_vecf vElevenTwentyFourThy2 = vec_mul( v11o24, vS_2p2 );
+
+			// float fTwelvThy3 = 1.0f / 12.0f * _pfsSamples[3+2];
+			vmx_vecf vTwelvThy3 = vec_mul( v1o12, vS_3p2 );
+
+			// float fC0 = _pfsSamples[0+2];
+			vmx_vecf vC0 = vec_ld( 0, _pfsSamples2 );
+
+			// float fC1 = 1.0f / 12.0f * (_pfsSamples[-2+2] - _pfsSamples[2+2]) + 2.0f / 3.0f * (_pfsSamples[1+2] - _pfsSamples[-1+2]);
+			vmx_vecf vS_1p2 = vec_ld( 0, _pfsSamples3 );
+			vmx_vecf vS_n1p2 = vec_ld( 0, _pfsSamples1 );
+			vmx_vecf vC1 = vec_add(
+				vec_mul( v1o12, vec_sub( vS_n2p2, vS_2p2 ) ),
+				vec_mul( vec_splats( 2.0f / 3.0f ), vec_sub( vS_1p2, vS_n1p2 ) )
+			);
+
+			// float fC2 = 13.0f / 12.0f * _pfsSamples[-1+2] - 25.0f / 12.0f * _pfsSamples[0+2] + 3.0f / 2.0f * _pfsSamples[1+2] -
+			//    fElevenTwentyFourThy2 + fTwelvThy3 - fEightThym2;
+			vmx_vecf v13o12 = vec_splats( 13.0f / 12.0f );
+			vmx_vecf vC2 = vec_sub(
+				vec_add(
+					vec_sub(
+						vec_add(
+							vec_sub(
+								vec_mul( v13o12, vS_n1p2 ),
+								vec_mul( vec_splats( 25.0f / 12.0f ), vC0 )
+							),
+							vec_mul( vec_splats( 3.0f / 2.0f ), vS_1p2 )
+						),
+						vElevenTwentyFourThy2
+					),
+					vTwelvThy3
+				),
+				vEightThym2
+			);
+
+			// float fC3 = 5.0f / 12.0f * _pfsSamples[0+2] - 7.0f / 12.0f * _pfsSamples[1+2] + 7.0f / 24.0f * _pfsSamples[2+2] -
+			//    1.0f / 24.0f * (_pfsSamples[-2+2] + _pfsSamples[-1+2] + _pfsSamples[3+2]);
+			vmx_vecf v5o12 = vec_splats( 5.0f / 12.0f );
+			vmx_vecf v7o12 = vec_splats( 7.0f / 12.0f );
+			vmx_vecf v1o24 = vec_splats( 1.0f / 24.0f );
+			vmx_vecf vC3 = vec_sub(
+				vec_add(
+					vec_sub(
+						vec_mul( v5o12, vC0 ),
+						vec_mul( v7o12, vS_1p2 )
+					),
+					vec_mul( vec_splats( 7.0f / 24.0f ), vS_2p2 )
+				),
+				vec_mul( v1o24, vec_add( vec_add( vS_n2p2, vS_n1p2 ), vS_3p2 ) )
+			);
+
+			// float fC4 = fEightThym2 - 7.0f / 12.0f * _pfsSamples[-1+2] + 13.0f / 12.0f * _pfsSamples[0+2] - _pfsSamples[1+2] +
+			//    fElevenTwentyFourThy2 - fTwelvThy3;
+			vmx_vecf vC4 = vec_sub(
+				vec_add(
+					vec_sub(
+						vec_add(
+							vec_sub(
+								vEightThym2,
+								vec_mul( v7o12, vS_n1p2 )
+							),
+							vec_mul( v13o12, vC0 )
+						),
+						vS_1p2
+					),
+					vElevenTwentyFourThy2
+				),
+				vTwelvThy3
+			);
+
+			// Load the inputs.
+			vmx_vecf vFrac = vec_ld( 0, _pfFrac );
+
+			// float fC5 = 1.0f / 24.0f * (_pfsSamples[3+2] - _pfsSamples[-2+2]) + 5.0f / 24.0f * (_pfsSamples[-1+2] - _pfsSamples[2+2]) +
+			//    5.0f / 12.0f * (_pfsSamples[1+2] - _pfsSamples[0+2]);
+			vmx_vecf vC5 = vec_add(
+				vec_add(
+					vec_mul( v1o24, vec_sub( vS_3p2, vS_n2p2 ) ),
+					vec_mul( vec_splats( 5.0f / 24.0f ), vec_sub( vS_n1p2, vS_2p2 ) )
+				),
+				vec_mul( v5o12, vec_sub( vS_1p2, vC0 ) )
+			);
+
+			// return ((((fC5 * _fFrac + fC4) * _fFrac + fC3) * _fFrac + fC2) * _fFrac + fC1) * _fFrac + fC0;
+			vmx_vecf vRet = vec_madd( vC5, vFrac, vC4 );
+			vRet = vec_madd( vRet, vFrac, vC3 );
+			vRet = vec_madd( vRet, vFrac, vC2 );
+			vRet = vec_madd( vRet, vFrac, vC1 );
+			vRet = vec_madd( vRet, vFrac, vC0 );
+			vec_st( vRet, 0, _pfOut );
+		}
+
+		/**
+		 * Horizontally adds all the floats in a given VMX register.
+		 *
+		 * \param _vReg The register containing all of the values to sum.
+		 * \return Returns the sum of all the floats in the given register.
+		 **/
+		static inline float									HorizontalSum( const vmx_vecf &_vReg ) {
+			// vTmp0 = [x0 + x2, x1 + x3, x2 + x0, x3 + x1]
+			vmx_vecf vTmp0 = vec_add( _vReg, vec_sld( _vReg, _vReg, 8 ) );
+			// vTmp1 = [ (x0 + x2) + (x1 + x3), ..., ..., ... ]
+			vmx_vecf vTmp1 = vec_add( vTmp0, vec_sld( vTmp0, vTmp0, 4 ) );
+			float fRet;
+			vec_ste( vTmp1, 0, &fRet );
+			return fRet;
+		}
+#endif	// #if LSN_PPC_VMX
 
 		/**
 		 * 4-point, 2nd-order parabolic 2x x-form sampling.
