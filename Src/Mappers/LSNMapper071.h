@@ -51,6 +51,11 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
+
+			m_cChip = static_cast<CDatabase::LSN_CHIP>(m_prRom->riInfo.ui16Chip);
+			if ( m_prRom->riInfo.ui16SubMapper == 1 ) {
+				m_cChip = CDatabase::LSN_C_BF9097;
+			}
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8Bank = 0;
 			SetPgmBank<0, PgmBankSize()>( (m_ui8Bank & 0b1100) | 0b11 );
@@ -94,9 +99,14 @@ namespace lsn {
 			// BANK-SELECT
 			// ================
 			// PGM bank-select.
-			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_BF9096 ) {
+			if ( m_cChip == CDatabase::LSN_C_BF9096 ) {
 				for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper071::SelectBank8000_BFFF, this, 0 );
+				}
+			}
+			else if ( m_cChip == CDatabase::LSN_C_BF9097 ) {
+				for ( uint32_t I = 0x8000; I < 0xA000; ++I ) {
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper071::SelectMirror9000_9FFF, this, 0 );
 				}
 			}
 			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
@@ -107,8 +117,9 @@ namespace lsn {
 			// ================
 			// MIRRORING
 			// ================
-			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_BF9097 ) {
+			if ( m_cChip == CDatabase::LSN_C_BF9097 ) {
 				ApplyControllableMirrorMap( _pbPpuBus );
+				m_mmMirror = LSN_MM_1_SCREEN_A;
 			}
 		}
 
@@ -117,6 +128,8 @@ namespace lsn {
 		// == Members.
 		/** The block and page. */
 		uint8_t											m_ui8Bank;
+		/** Which Chip is being used? */
+		CDatabase::LSN_CHIP								m_cChip;
 
 
 		// == Functions.
@@ -153,10 +166,10 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBankC000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper071 * pmThis = reinterpret_cast<CMapper071 *>(_pvParm0);
-			if ( pmThis->m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_BF9096 ) {
+			if ( pmThis->m_cChip == CDatabase::LSN_C_BF9096 ) {
 				pmThis->m_ui8Bank = (pmThis->m_ui8Bank & 0b1100) | (_ui8Val & 0b0011);
 			}
-			else if ( pmThis->m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_BF9097 ) {
+			else if ( pmThis->m_cChip == CDatabase::LSN_C_BF9097 ) {
 				pmThis->m_ui8Bank = (_ui8Val & 0b0111);
 			}
 			else {
@@ -165,6 +178,26 @@ namespace lsn {
 			
 			pmThis->SetPgmBank<0, PgmBankSize()>( (pmThis->m_ui8Bank & 0b1100) | 0b11 );
 			pmThis->SetPgmBank<1, PgmBankSize()>( pmThis->m_ui8Bank );
+		}
+
+		/**
+		 * Mirroring (CDatabase::LSN_C_BF9097 only).
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						SelectMirror9000_9FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper071 * pmThis = reinterpret_cast<CMapper071 *>( _pvParm0 );
+
+			// Fire Hawk uses a single bit wired to CIRAM A10. Treat 0/1 as 1-screen A/B.
+			if ( _ui8Val & 0x10 ) {
+				pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
+			}
+			else {
+				pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
+			}
 		}
 	};
 
