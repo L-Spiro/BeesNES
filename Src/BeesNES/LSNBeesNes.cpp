@@ -61,8 +61,8 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
 
 #ifdef LSN_DX9
-		m_d9pfDx9Pallete.SetVertSharpness( 5 );
-		m_d9pfDx9Pallete.SetHorSharpness( 5 );
+		m_d9pfDx9Pallete.SetVertSharpness( 4 );
+		m_d9pfDx9Pallete.SetHorSharpness( 4 );
 #endif	// #ifdef LSN_DX9
 
 		// FPS settings.

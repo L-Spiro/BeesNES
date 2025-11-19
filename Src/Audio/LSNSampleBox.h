@@ -56,6 +56,19 @@
 #if LSN_PPC_VMX
 #include <altivec.h>
 typedef __vector float							vmx_vecf;
+
+#if !defined( __APPLE_ALTIVEC__ )
+/* You are allowed to undef these for C++ compatibility.  */
+#ifdef vector
+#undef vector
+#endif	// #ifdef vector
+#ifdef pixel
+#undef pixel
+#endif	// #ifdef pixel
+#ifdef bool
+#undef bool
+#endif	// #ifdef bool
+#endif	// #if !defined( __APPLE_ALTIVEC__ )
 #endif	// #if LSN_PPC_VMX
 
 
@@ -475,7 +488,6 @@ namespace lsn {
 
 			return std::sin( _dX ) / _dX;
 		}
-
 
 
 	protected :

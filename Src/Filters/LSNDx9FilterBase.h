@@ -284,14 +284,19 @@ namespace lsn {
 		 * \param _fU1 Receives the right U (with half-texel offset applied).
 		 * \param _fV1 Receives the bottom V (with half-texel offset applied).
 		 */
-		static inline void									HalfTexelUv( uint32_t _uiW, uint32_t _uiH,
+		static inline void									HalfTexelUv( uint32_t /*_uiW*/, uint32_t /*_uiH*/,
 			float &_fU0, float &_fV0, float &_fU1, float &_fV1 ) {
-			const float fInvW = 1.0f / static_cast<float>(_uiW);
-			const float fInvH = 1.0f / static_cast<float>(_uiH);
-			_fU0 = 0.5f * fInvW;
-			_fV0 = 0.5f * fInvH;
-			_fU1 = 1.0f - _fU0;
-			_fV1 = 1.0f - _fV0;
+			/*const float fInvW = 0.5f / static_cast<float>(_uiW);
+			const float fInvH = 0.5f / static_cast<float>(_uiH);
+			_fU0 = -fInvW;
+			_fV0 = -fInvH;
+			_fU1 = 1.0f - fInvW;
+			_fV1 = 1.0f - fInvH;*/
+
+			_fU0 = 0.0f;
+			_fV0 = 0.0f;
+			_fU1 = 1.0f;
+			_fV1 = 1.0f;
 		}
 	};
 

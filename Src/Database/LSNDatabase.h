@@ -93,6 +93,9 @@ namespace lsn {
 			LSN_PC_VRC4d,
 			LSN_PC_VRC4e,
 			LSN_PC_VRC4f,
+
+			LSN_PC_VRC6a,
+			LSN_PC_VRC6b,
 		};
 
 

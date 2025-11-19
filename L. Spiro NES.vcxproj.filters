@@ -1032,6 +1032,9 @@
     <ClInclude Include="Src\Mappers\LSNMapper152.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapper024.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
