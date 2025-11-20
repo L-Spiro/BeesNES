@@ -11,6 +11,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Database/LSNDatabase.h"
+#include "LSNAudioVrc6.h"
 #include "LSNMapperBase.h"
 
 namespace lsn {
@@ -23,7 +24,8 @@ namespace lsn {
 	 */
 	class CMapper024 : public CMapperBase {
 	public :
-		CMapper024() {
+		CMapper024() :
+			m_avAudio( m_pfSwizzleFunc ) {
 		}
 		virtual ~CMapper024() {
 		}
@@ -143,13 +145,29 @@ namespace lsn {
 				else if ( ui16ddr == 0xC000 || ui16ddr == 0xC001 || ui16ddr == 0xC002 || ui16ddr == 0xC003 ) {
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper024::SelectBankC000_DFFF, this, uint16_t( I ) );
 				}
+				else if ( ui16ddr == 0xD000 || ui16ddr == 0xD001 || ui16ddr == 0xD002 || ui16ddr == 0xD003 ||
+					ui16ddr == 0xE000 || ui16ddr == 0xE001 || ui16ddr == 0xE002 || ui16ddr == 0xE003 ) {
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper024::SelectChrBank0000_1FFF, this, uint16_t( I ) );
+				}
+				else if ( ui16ddr == 0xF000 || ui16ddr == 0xF001 || ui16ddr == 0xF002 ) {
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper024::WriteIrqF000_FFFF, this, uint16_t( I ) );
+				}
 			}
+			// Expansion audio.
+			m_avAudio.ApplyMap( _pbCpuBus );
 
 
 			// ================
 			// MIRRORING
 			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
+		}
+
+		/**
+		 * Ticks with the CPU.
+		 */
+		virtual void									Tick() {
+			m_viIrq.Tick( m_pInterruptable );
 		}
 
 
@@ -163,10 +181,15 @@ namespace lsn {
 		std::vector<uint8_t>							m_vWram;
 		/** The swizzle function. */
 		PfSwizzle										m_pfSwizzleFunc = Swizzle_VRC6a_A0_A1;
+		/** VRC6 IRQ. */
+		CVrcIrq											m_viIrq;
+		/** Expansion audio. */
+		CAudioVrc6										m_avAudio;
 		/** The PCB class. */
 		CDatabase::LSN_PCB_CLASS						m_pcPcbClass;
 		/** PPU banking style/nametable control register ($B003). */
 		uint8_t											m_ui8B003;
+		
 
 
 		// == Functions.
@@ -241,6 +264,52 @@ namespace lsn {
 		}
 
 		/**
+		 * Selects CHR banks for $0000-$1FFF.
+		 * 
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 **/
+		static void LSN_FASTCALL						SelectChrBank0000_1FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper024 * pmThis = reinterpret_cast<CMapper024 *>(_pvParm0);
+			switch ( pmThis->m_pfSwizzleFunc( _ui16Parm1 ) ) {
+				case 0xD000 : {
+					pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xD001 : {
+					pmThis->SetChrBank<1, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xD002 : {
+					pmThis->SetChrBank<2, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xD003 : {
+					pmThis->SetChrBank<3, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xE000 : {
+					pmThis->SetChrBank<4, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xE001 : {
+					pmThis->SetChrBank<5, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xE002 : {
+					pmThis->SetChrBank<6, ChrBankSize()>( _ui8Val );
+					break;
+				}
+				case 0xE003 : {
+					pmThis->SetChrBank<7, ChrBankSize()>( _ui8Val );
+					break;
+				}
+			}
+		}
+
+		/**
 		 * Selects the banking style.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -251,6 +320,124 @@ namespace lsn {
 		static void LSN_FASTCALL						SelectStyle( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper024 * pmThis = reinterpret_cast<CMapper024 *>(_pvParm0);
 			pmThis->m_ui8B003 = _ui8Val;
+			if LSN_LIKELY( pmThis->m_ui8B003 & 0b00100000 ) {
+				switch ( _ui8Val & 0b00000011 ) {
+					case 0 : {
+						switch ( _ui8Val & 0b00001111 ) {
+							case 0x00 : {
+								pmThis->m_mmMirror = LSN_MM_VERTICAL;
+								break;
+							}
+							case 0x04 : {
+								pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+								break;
+							}
+							case 0x08 : {
+								pmThis->m_mmMirror = LSN_MM_1_SCREEN_A;
+								break;
+							}
+							case 0x0C : {
+								pmThis->m_mmMirror = LSN_MM_1_SCREEN_B;
+								break;
+							}
+						}
+						break;
+					}
+					case 1 : {
+						pmThis->m_mmMirror = LSN_MM_4_SCREENS;
+						break;
+					}
+					case 2 : {
+						switch ( _ui8Val & 0b00001111 ) {
+							case 0x02 : {
+								pmThis->m_mmMirror = LSN_MM_VERTICAL;
+								break;
+							}
+							case 0x06 : {
+								pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+								break;
+							}
+							case 0x0A : {
+								pmThis->m_mmMirror = LSN_MM_VERTICAL;
+								break;
+							}
+							case 0x0E : {
+								pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+								break;
+							}
+						}
+						break;
+					}
+					case 3 : {
+						switch ( _ui8Val & 0b00001111 ) {
+							case 0x03 : {
+								pmThis->m_mmMirror = LSN_MM_VERTICAL;
+								break;
+							}
+							case 0x07 : {
+								pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+								break;
+							}
+							case 0x0B : {
+								pmThis->m_mmMirror = LSN_MM_VERTICAL;
+								break;
+							}
+							case 0x0F : {
+								pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+			else {
+				switch ( _ui8Val & 0b00001111 ) {
+					case 0x00 : {
+						pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+						break;
+					}
+					case 0x01 : {
+						pmThis->m_mmMirror = LSN_MM_4_SCREENS;
+						break;
+					}
+					case 0x02 : {}				LSN_FALLTHROUGH
+					case 0x03 : {}				LSN_FALLTHROUGH
+					case 0x04 : {
+						pmThis->m_mmMirror = LSN_MM_VERTICAL;
+						break;
+					}
+					case 0x05 : {
+						pmThis->m_mmMirror = LSN_MM_4_SCREENS;
+						break;
+					}
+					case 0x06 : {}				LSN_FALLTHROUGH
+					case 0x07 : {}				LSN_FALLTHROUGH
+					case 0x08 : {
+						pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+						break;
+					}
+					case 0x09 : {
+						pmThis->m_mmMirror = LSN_MM_4_SCREENS;
+						break;
+					}
+					case 0x0A : {}				LSN_FALLTHROUGH
+					case 0x0B : {}				LSN_FALLTHROUGH
+					case 0x0C : {
+						pmThis->m_mmMirror = LSN_MM_VERTICAL;
+						break;
+					}
+					case 0x0D : {
+						pmThis->m_mmMirror = LSN_MM_4_SCREENS;
+						break;
+					}
+					case 0x0E : {}				LSN_FALLTHROUGH
+					case 0x0F : {
+						pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
+						break;
+					}
+				}
+			}
 		}
 
 		/**
@@ -297,7 +484,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						ReadWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper024 * pmThis = reinterpret_cast<CMapper024 *>(_pvParm0);
-			_ui8Ret = pmThis->m_vWram[_ui16Parm1];
+			if LSN_LIKELY( pmThis->m_ui8B003 & 0b10000000 ) {
+				_ui8Ret = pmThis->m_vWram[_ui16Parm1];
+			}
 		}
 
 		/**
@@ -310,8 +499,33 @@ namespace lsn {
 		 **/
 		static void LSN_FASTCALL						WriteWram( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper024 * pmThis = reinterpret_cast<CMapper024 *>(_pvParm0);
-			pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+			if LSN_LIKELY( pmThis->m_ui8B003 & 0b10000000 ) {
+				pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+			}
 		}
+
+		/**
+		 * Writes to the IRQ registers (VRC6).
+		 * 
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 **/
+		static void LSN_FASTCALL						WriteIrqF000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper024 * pmThis = reinterpret_cast<CMapper024 *>(_pvParm0);
+			uint16_t ui16ddr = pmThis->m_pfSwizzleFunc( _ui16Parm1 );
+			if ( ui16ddr == 0xF000 ) {
+				pmThis->m_viIrq.SetLatch( _ui8Val );
+			}
+			else if ( ui16ddr == 0xF001 ) {
+				pmThis->m_viIrq.SetControl( _ui8Val, pmThis->m_pInterruptable );
+			}
+			else if ( ui16ddr == 0xF002 ) {
+				pmThis->m_viIrq.AcknowledgeIrq( pmThis->m_pInterruptable );
+			}
+		}
+
 	};
 
 }	// namespace lsn

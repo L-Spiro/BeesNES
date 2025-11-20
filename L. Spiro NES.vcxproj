@@ -1869,6 +1869,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\LSNLSpiroNes.h" />
     <ClInclude Include="Src\Mappers\LSNAllMappers.h" />
     <ClInclude Include="Src\Mappers\LSNAudio5b.h" />
+    <ClInclude Include="Src\Mappers\LSNAudioVrc6.h" />
     <ClInclude Include="Src\Mappers\LSNMapper000.h" />
     <ClInclude Include="Src\Mappers\LSNMapper001.h" />
     <ClInclude Include="Src\Mappers\LSNMapper002.h" />
