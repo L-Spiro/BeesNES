@@ -168,6 +168,16 @@ namespace lsn {
 		 */
 		virtual void									Tick() {
 			m_viIrq.Tick( m_pInterruptable );
+			m_avAudio.Tick();
+		}
+
+		/**
+		 * Gets the extended audio sample.
+		 * 
+		 * \param _fApuSample The APU sample to mix with the extended-audio sample.
+		 **/
+		virtual float									GetExtAudio( float _fApuSample ) {
+			return m_avAudio.Sample() + _fApuSample;
 		}
 
 

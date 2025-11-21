@@ -382,7 +382,7 @@ namespace lsn {
 		 * \return Return the default NTSC palette path.
 		 **/
 		std::wstring							DefaultNtscPalette() const {
-			return DefaultPaletteFolder() + L"2C02G_wiki.pal";
+			return DefaultPaletteFolder() + L"2C02G_wiki.fpal";
 		}
 
 		/**
@@ -391,7 +391,7 @@ namespace lsn {
 		 * \return Return the default PAL palette path.
 		 **/
 		std::wstring							DefaultPalPalette() const {
-			return DefaultPaletteFolder() + L"2C07_wiki.pal";
+			return DefaultPaletteFolder() + L"2C07_wiki.fpal";
 		}
 
 		/**
@@ -400,7 +400,7 @@ namespace lsn {
 		 * \return Return the default NTSC-J palette path.
 		 **/
 		std::wstring							DefaultNtscJPalette() const {
-			return DefaultPaletteFolder() + L"2C02G_phs_aps_ela_applysrgb_NTSC-J.pal";
+			return DefaultPaletteFolder() + L"2C02G_phs_aps_ela_applysrgb_NTSC-J.fpal";
 		}
 
 		/**
