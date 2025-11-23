@@ -8,6 +8,8 @@
 
 #include "LSNBeesNes.h"
 #include "../File/LSNStdFile.h"
+#include "../Filters/LSNGpuFilterBase.h"
+
 #include <filesystem>
 
 

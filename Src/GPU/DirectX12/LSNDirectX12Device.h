@@ -46,7 +46,7 @@ namespace lsn {
 		 *
 		 * \return Returns a pointer to the device.
 		 **/
-		ID3D12Device *											Get() { return m_pd3dDevice.Get(); }
+		ID3D12Device *											GetDevice() { return m_pd3dDevice.Get(); }
 
 		/**
 		 * Gets a pointer to the command queue.
@@ -61,6 +61,11 @@ namespace lsn {
 		 * \return Returns a pointer to the swap chain.
 		 **/
 		IDXGISwapChain4 *										GetSwapChain() { return m_scSwapChain.Get(); }
+		
+		/**
+		 * Frees all resources used by this object and leaves the object in a valid reusable state.
+		 **/
+		virtual void											Reset();
 
 	protected :
 		// == Members.
@@ -69,14 +74,6 @@ namespace lsn {
 		Microsoft::WRL::ComPtr<ID3D12Device>					m_pd3dDevice;							/**< The direct3D 12 device. */
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue>				m_cqCommandQueue;						/**< The primary command queue. */
 		Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_scSwapChain;							/**< The swapchain. */
-
-
-
-		// == Functions.
-		/**
-		 * Frees all resources used by this object and leaves the object in a valid reusable state.
-		 **/
-		virtual void											Reset();
 
 	};
 

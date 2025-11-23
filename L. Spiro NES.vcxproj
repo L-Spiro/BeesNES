@@ -1799,6 +1799,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\File\LSNZipFile.h" />
     <ClInclude Include="Src\Filters\LSNBiLinearPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNBleedPostProcess.h" />
+    <ClInclude Include="Src\Filters\LSNDx12FilterBase.h" />
     <ClInclude Include="Src\Filters\LSNDx9FilterBase.h" />
     <ClInclude Include="Src\Filters\LSNDx9PaletteFilter.h" />
     <ClInclude Include="Src\Filters\LSNFilterBase.h" />
@@ -2033,6 +2034,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\File\LSNZipFile.cpp" />
     <ClCompile Include="Src\Filters\LSNBiLinearPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNBleedPostProcess.cpp" />
+    <ClCompile Include="Src\Filters\LSNDx12FilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9FilterBase.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9PaletteFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNFilterBase.cpp" />

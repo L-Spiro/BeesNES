@@ -12,15 +12,15 @@
 #include "Windows/MainWindow/LSNMainWindowLayout.h"
 #endif	// #ifdef LSN_USE_WINDOWS
 
-//#ifdef LSN_DX9
-//#include "GPU/DirectX9/LSNDirectX9.h"
-//#endif	// #ifdef LSN_DX9
-//#ifdef LSN_DX12
-//#include "GPU/DirectX12/LSNDirectX12.h"
-//#endif	// #ifdef LSN_DX12
-//#ifdef LSN_VULKAN1
-//#include "GPU/Vulkan/LSNVulkan.h"
-//#endif	// #ifdef LSN_VULKAN1
+#ifdef LSN_DX9
+#include "GPU/DirectX9/LSNDirectX9.h"
+#endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+#include "GPU/DirectX12/LSNDirectX12.h"
+#endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+#include "GPU/Vulkan/LSNVulkan.h"
+#endif	// #ifdef LSN_VULKAN1
 
 #ifdef LSN_CPU_VERIFY
 #include "File/LSNStdFile.h"
@@ -195,7 +195,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 #ifdef LSN_DX9
 	lsn::CDirectX9::ShutDown();
 #endif	// #ifdef LSN_DX9
-	#ifdef LSN_DX12
+#ifdef LSN_DX12
 	lsn::CDirectX12::ShutDown();
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
