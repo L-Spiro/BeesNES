@@ -57,7 +57,7 @@ namespace lsn {
 	class CSystem : public CSystemBase {
 	public :
 		CSystem() :
-			m_cCpu( &m_bBus ),
+			m_cCpu( &m_bBus, this ),
 			m_pPpu( &m_bBus, &m_cCpu ),
 			m_aApu( &m_bBus, &m_cCpu ) {
 			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
@@ -696,6 +696,27 @@ namespace lsn {
 		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
 			m_aApu.SetOptions( _aoOptions );
 		}
+
+		/**
+		 * Gets the $4010 register value.
+		 * 
+		 * \return Returns the $4010 register value.
+		 **/
+		virtual uint8_t									Get4010() const { return m_aApu.Get4010(); }
+
+		/**
+		 * Gets the $4012 register value.
+		 * 
+		 * \return Returns the $4012 register value.
+		 **/
+		virtual uint8_t									Get4012() const { return m_aApu.Get4012(); }
+
+		/**
+		 * Gets the $4013 register value.
+		 * 
+		 * \return Returns the $4013 register value.
+		 **/
+		virtual uint8_t									Get4013() const { return m_aApu.Get4013(); }
 
 		/**
 		 * Sets the raw stream-to-file pointer.

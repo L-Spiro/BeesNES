@@ -693,6 +693,27 @@ namespace lsn {
 		const bool *									GetChannelOnOff() const { return m_ChannelOutputting; }
 
 		/**
+		 * Gets the $4010 register value.
+		 * 
+		 * \return Returns the $4010 register value.
+		 **/
+		inline uint8_t									Get4010() const { return m_ui8Registers[0x10]; }
+
+		/**
+		 * Gets the $4012 register value.
+		 * 
+		 * \return Returns the $4012 register value.
+		 **/
+		inline uint8_t									Get4012() const { return m_ui8Registers[0x12]; }
+
+		/**
+		 * Gets the $4013 register value.
+		 * 
+		 * \return Returns the $4013 register value.
+		 **/
+		inline uint8_t									Get4013() const { return m_ui8Registers[0x13]; }
+
+		/**
 		 * The add-metadata function.  Fetches the current registers from a ring buffer (because the associated samples may be out-of-date).
 		 * 
 		 * \param _pvParm A pointer to an object of this class.

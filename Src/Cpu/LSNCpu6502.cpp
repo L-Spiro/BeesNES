@@ -26,8 +26,9 @@ namespace lsn {
 	// == Members.
 #include "LSNCycleFuncs.inl"
 
-	CCpu6502::CCpu6502( CCpuBus * _pbBus ) :
-		CCpuBase( _pbBus ) {
+	CCpu6502::CCpu6502( CCpuBus * _pbBus, CSystemBase * _psbSystem ) :
+		CCpuBase( _pbBus ),
+		m_psbSystem( _psbSystem ) {
 
 		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd;
 	}
@@ -104,9 +105,13 @@ namespace lsn {
 	 */
 	void CCpu6502::BeginOamDma( uint8_t _ui8Val ) {
 		m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false>;
+
+		m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true>;
+		m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true>;
+
 		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
 		m_bDmaGo = false;
-		m_bRdyLow = true;
+		m_bRdyLow = true;		// The key to actually stopping the CPU.
 		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
 
@@ -115,6 +120,12 @@ namespace lsn {
 	 */
 	void CCpu6502::BeginDmcDma() {
 		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
+
+		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
+		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true>;
+
+		m_bDmcGo = false;
+		// m_bDmcDma = true;	// The key to actually stopping the CPU.
 	}
 
 	/**

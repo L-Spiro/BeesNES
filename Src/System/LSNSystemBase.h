@@ -264,6 +264,27 @@ namespace lsn {
 		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &/*_aoOptions*/ ) {}
 
 		/**
+		 * Gets the $4010 register value.
+		 * 
+		 * \return Returns the $4010 register value.
+		 **/
+		virtual uint8_t									Get4010() const { return 0; }
+
+		/**
+		 * Gets the $4012 register value.
+		 * 
+		 * \return Returns the $4012 register value.
+		 **/
+		virtual uint8_t									Get4012() const { return 0; }
+
+		/**
+		 * Gets the $4013 register value.
+		 * 
+		 * \return Returns the $4013 register value.
+		 **/
+		virtual uint8_t									Get4013() const { return 0; }
+
+		/**
 		 * Sets the raw stream-to-file pointer.
 		 * 
 		 * \param _pfStream The stream-to-file pointer to set.
