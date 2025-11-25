@@ -2127,7 +2127,7 @@ namespace ee {
 		}
 
 		/**
-		 * Creates a FLat-Top window.
+		 * Creates a Flat-Top window.
 		 * 
 		 * \param _sN	Number of samples.  Generally an odd number.
 		 * \param _vRet	The returned vector.
@@ -2160,6 +2160,31 @@ namespace ee {
 		}
 
 		/**
+		 * Creates a Lanczos window.
+		 * 
+		 * \param _sN		Number of samples.  Generally an odd number.
+		 * \param _tBeta	The beta parameter.
+		 * \param _vRet		The returned vector.
+		 * \return			Returns true if there was enough memory to resize the vector.
+		 **/
+		template <typename _tType = double>
+		static bool						LanczosWindow( size_t _sN, _tType _tBeta, std::vector<_tType> &_vRet ) {
+			try {
+				_vRet.resize( _sN );
+
+				const double dNMinus1  = _sN ? (_sN - 1.0) : 0.0;
+				const double dHalf     = dNMinus1 / 2.0;
+				for ( auto I = _vRet.size(); I--; ) {
+
+					_vRet[I] = _tType( Sinc( (((I -dHalf) * 2.0) / dNMinus1) - 1.0 ) );
+				}
+
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
+
+		/**
 		 * Standard sinc() function.
 		 * 
 		 * \param _dX	The operand.
@@ -2168,7 +2193,8 @@ namespace ee {
 		static inline double			Sinc( double _dX ) {
 			_dX *= std::numbers::pi;
 			if ( _dX < 0.01 && _dX > -0.01 ) {
-				return 1.0 + _dX * _dX * (-1.0 / 6.0 + _dX * _dX * 1.0 / 120.0);
+				double dXsq = _dX * _dX;
+				return 1.0 + dXsq * ((-1.0 / 6.0) + dXsq * (1.0 / 120.0));
 			}
 
 			return std::sin( _dX ) / _dX;
