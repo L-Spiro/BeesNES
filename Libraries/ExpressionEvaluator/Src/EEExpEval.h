@@ -1127,7 +1127,7 @@ namespace ee {
 		 **/
 		template <typename _tType>
 		static inline std::string		ToHexString( const _tType &_tIn, bool _bSpaces = true, bool * _pbSuccess = nullptr ) {
-			static_assert( sizeof( typename _tType::value_type ) == 1U, "*::value_type must be 1 byte." );
+			static_assert( sizeof( typename _tType::value_type ) == 1U, "_tType::value_type must be 1 byte." );
 			using _tVal = typename _tType::value_type;
 
 			std::string sStr;
@@ -1161,7 +1161,7 @@ namespace ee {
 		 **/
 		template <typename _tOutType, typename _tStrType>
 		static inline _tOutType			FromHexString( const _tStrType &_sString, bool * _pbSuccess = nullptr ) {
-			static_assert( sizeof( typename _tOutType::value_type ) == 1U, "*::value_type must be 1 byte." );
+			static_assert( sizeof( typename _tOutType::value_type ) == 1U, "_tOutType::value_type must be 1 byte." );
 			using _tInVal = typename _tStrType::value_type;
 
 			_tOutType otOutput;
@@ -2163,20 +2163,19 @@ namespace ee {
 		 * Creates a Lanczos window.
 		 * 
 		 * \param _sN		Number of samples.  Generally an odd number.
-		 * \param _tBeta	The beta parameter.
 		 * \param _vRet		The returned vector.
 		 * \return			Returns true if there was enough memory to resize the vector.
 		 **/
 		template <typename _tType = double>
-		static bool						LanczosWindow( size_t _sN, _tType _tBeta, std::vector<_tType> &_vRet ) {
+		static bool						LanczosWindow( size_t _sN, std::vector<_tType> &_vRet ) {
 			try {
 				_vRet.resize( _sN );
 
 				const double dNMinus1  = _sN ? (_sN - 1.0) : 0.0;
-				const double dHalf     = dNMinus1 / 2.0;
+				const double dHalf = dNMinus1 / 2.0;
 				for ( auto I = _vRet.size(); I--; ) {
-
-					_vRet[I] = _tType( Sinc( (((I -dHalf) * 2.0) / dNMinus1) - 1.0 ) );
+					_vRet[I] = _tType( Sinc( ((std::fabs( I - dHalf ) * 2.0) / dNMinus1) ) );	// Refactored to produce fully symmetrical values.
+					//_vRet[I] = _tType( Sinc( ((I * 2.0) / dNMinus1) - 1.0 ) );
 				}
 
 				return true;
@@ -2191,8 +2190,8 @@ namespace ee {
 		 * \return		Returns sin(x*PI) / x*PI.
 		 **/
 		static inline double			Sinc( double _dX ) {
-			_dX *= std::numbers::pi;
-			if ( _dX < 0.01 && _dX > -0.01 ) {
+			_dX = std::fabs( _dX * std::numbers::pi );
+			if ( _dX < 0.01 ) {
 				double dXsq = _dX * _dX;
 				return 1.0 + dXsq * ((-1.0 / 6.0) + dXsq * (1.0 / 120.0));
 			}

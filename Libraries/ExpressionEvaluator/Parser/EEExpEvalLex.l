@@ -582,6 +582,7 @@ RS1_S								[rR]{CS1}
 "hann"								{ return yy::CExpEvalParser::token::EE_HANN; }
 "hanning"							{ return yy::CExpEvalParser::token::EE_HANN; }
 "kaiser"							{ return yy::CExpEvalParser::token::EE_KAISER; }
+"lanczos"							{ return yy::CExpEvalParser::token::EE_LANCZOS; }
 "nuttal"							{ return yy::CExpEvalParser::token::EE_NUTTAL; }
 "sinc"								{ return yy::CExpEvalParser::token::EE_SINC; }
 
