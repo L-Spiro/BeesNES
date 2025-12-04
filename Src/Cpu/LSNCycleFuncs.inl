@@ -642,12 +642,6 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 	},
 	{	// 84
 		LSN_ZERO_PAGE_W( STY, Write_Y_To_AddrOrPtr_Phi2<LSN_TO_A> )
-		
-		//{
-		//	/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
-		//	&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_To_AddrOrPtr_IncPc_Phi2<LSN_TO_A>,
-		//	&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Write_Y_To_AddrOrPtr_Phi2<LSN_TO_A>,
-		//	&CCpu6502::BeginInst, }, 3, LSN_AM_ZERO_PAGE, 2, LSN_I_STY,
 	},
 	{	// 85
 		LSN_ZERO_PAGE_W( STA, Write_A_To_AddrOrPtr_Phi2<LSN_TO_A> )

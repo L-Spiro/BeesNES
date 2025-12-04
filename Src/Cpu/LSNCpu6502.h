@@ -453,6 +453,10 @@ namespace lsn {
 		void												Tick_OamDma() {
 #define LSN_GET												0
 #define LSN_PUT												(LSN_GET ^ 1)
+#define LSN_SET_PTRS( STATE )															\
+	m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
+	m_pfOamDmaFuncs[false] = &CCpu6502::Tick_OamDma<STATE, false, _bCalledFromDmc>;		\
+	m_pfOamDmaFuncs[true] = &CCpu6502::Tick_OamDma<STATE, true, _bCalledFromDmc>
 			/*if constexpr ( _uState == LSN_DS_IDLE && _bPhi2 == false ) {
 				::OutputDebugStringA( "\r\n" );
 			}
@@ -470,7 +474,6 @@ namespace lsn {
 			// (m_ui64CycleCount & 0x1) == LSN_GET is a "get" cycle.
 			// (m_ui64CycleCount & 0x1) == LSN_PUT is a "put" cycle.
 			//	When neither a get nor a put can happen, dummy read the address that allowed halting of the CPU for DMA.
-			m_bDmcBusAccess = false;
 			if constexpr ( !_bCalledFromDmc ) {
 				if LSN_UNLIKELY( m_pfDmcDmaFuncs[0] ) {
 					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<_uState, false, true>;
@@ -492,18 +495,13 @@ namespace lsn {
 					m_ui16DmaCounter = 256;
 					m_ui8DmaPos = 0;
 					m_bDmaRead = true;
-					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
 
-					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>;
-					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>;
+					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 
 					// This is the halt cycle.
 				}
 				else {
-					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, !_bPhi2>;
-
-					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true>;
-					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true>;
+					LSN_SET_PTRS( LSN_DS_IDLE );
 				}
 			}
 			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
@@ -514,7 +512,7 @@ namespace lsn {
 					bAccessBus = false;
 				}
 				else {
-					bAccessBus = !m_bDmcBusAccess;
+					bAccessBus = !(m_bDmcBusAccess && m_pfDmcDmaFuncs[0] == nullptr);
 				}
 				if LSN_LIKELY( bAccessBus ) {
 					if ( m_bDmaRead ) {
@@ -527,10 +525,7 @@ namespace lsn {
 							// Have to wait for alignment.  Perform the dummy read.
 							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
 						}
-						m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-						m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>;
-						m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>;
+						LSN_SET_PTRS( LSN_DS_READ_WRITE );
 					}
 					else {
 						if ( (m_ui64CycleCount & 0x1) == LSN_PUT ) {
@@ -540,7 +535,12 @@ namespace lsn {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
 								m_bRdyLow = false;
 								m_bDmaGo = false;
-								m_pfTickFunc = m_pfTickFuncCopy;
+								if ( m_pfDmcDmaFuncs[0] ) {		// Still DMC DMA going?
+									m_pfTickFunc = m_pfDmcDmaFuncs[!_bPhi2];
+								}
+								else {
+									m_pfTickFunc = m_pfTickFuncCopy;
+								}
 
 								m_pfOamDmaFuncs[0] = nullptr;
 								m_pfOamDmaFuncs[1] = nullptr;
@@ -548,40 +548,35 @@ namespace lsn {
 							else {
 								++m_ui8DmaPos;
 								m_bDmaRead = true;
-								m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-								m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>;
-								m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>;
+								LSN_SET_PTRS( LSN_DS_READ_WRITE );
 							}
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
 							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
-							m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-							m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>;
-							m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>;
+							LSN_SET_PTRS( LSN_DS_READ_WRITE );
 						}
 					}
 				}
 				else {
-					m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>;
-					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>;
+					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 				}
 			}
-			/*if constexpr ( _uState == LSN_DS_END ) {
-			}*/
+
+#undef LSN_SET_PTRS
 #undef LSN_PUT
 #undef LSN_GET
 		}
 
 		/** The DMC DMA cycles. */
-		template <unsigned _uState, bool _bPhi2>
+		template <unsigned _uState, bool _bPhi2, bool _bIsReload>
 		void												Tick_DmcDma() {
 #define LSN_GET												0
 #define LSN_PUT												(LSN_GET ^ 1)
+#define LSN_SET_PTRS( STATE )															\
+	m_pfTickFunc = &CCpu6502::Tick_DmcDma<STATE, !_bPhi2, _bIsReload>;					\
+	m_pfDmcDmaFuncs[false] = &CCpu6502::Tick_DmcDma<STATE, false, _bIsReload>;			\
+	m_pfDmcDmaFuncs[true] = &CCpu6502::Tick_DmcDma<STATE, true, _bIsReload>
 			
 			m_bDmcBusAccess = false;
 			if constexpr ( _uState == LSN_DS_IDLE ) {
@@ -595,18 +590,14 @@ namespace lsn {
 					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
 					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
 					// The CPU is now stalled.  Begin the transfer.
-					m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, !_bPhi2>;
+					LSN_SET_PTRS( LSN_DS_DUMMY );
 
-					m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false>;
-					m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true>;
-
-					LoadDmcDmaAddressAndSize();
+					if constexpr ( !_bIsReload ) {
+						LoadDmcDmaAddressAndSize();
+					}
 				}
 				else {
-					m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, !_bPhi2>;
-
-					m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
-					m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true>;
+					LSN_SET_PTRS( LSN_DS_IDLE );
 				}
 			}
 			if constexpr ( _uState == LSN_DS_DUMMY ) {
@@ -619,69 +610,76 @@ namespace lsn {
 
 				if constexpr ( _bPhi2 ) {
 					// Finished the cycle.  Move to the copy state.
-					m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-					m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false>;
-					m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true>;
+					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 
 					// We are trying to read.
 					m_bDmcRead = true;
+				}
+				else {
+					LSN_SET_PTRS( LSN_DS_DUMMY );
 				}
 			}
 			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
 				if constexpr ( _bPhi2 ) {
 					if ( m_bDmcRead && (m_ui64CycleCount & 0x1) == LSN_GET ) {
+						m_bDmcBusAccess = true;
 						m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmcAddress ) );
-					}
-					else {
-						// Not a GET cycle.
-					}
+						
+						m_pfDmcDmaFuncs[0] = nullptr;
+						m_pfDmcDmaFuncs[1] = nullptr;
 
-					if ( m_pfOamDmaFuncs[0] ) {
-						(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
-					}
-					else {
-						m_pfTickFunc = m_pfTickFuncCopy;
-					}
-					m_pfDmcDmaFuncs[0] = nullptr;
-					m_pfDmcDmaFuncs[1] = nullptr;
+						m_bDmcGo = false;
+						m_bDmcDma = false;
+						m_bDmcRead = false;
 
-					m_bDmcGo = false;
-					m_bDmcDma = false;
-					m_bDmcRead = false;
-
-
-
-					// Increment and wrap.
-					m_ui16DmcAddress = (m_ui16DmcAddress + 1) | 0x8000;
-
-					// Decrement remaining.
-					--m_ui16DmcBytesRemain;
-					if ( m_ui16DmcBytesRemain == 0 ) {
-						auto ui84010 = m_psbSystem->Get4010();
-						if ( (ui84010 & 0x40) != 0 ) {
-							// Loop.
-							LoadDmcDmaAddressAndSize();
+						if ( m_pfOamDmaFuncs[0] ) {
+							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
 						}
 						else {
-							// Raise IRQ if enabled.
-							if ( (ui84010 & 0x80) != 0 ) {
-								Irq( LSN_IS_APU_DMC );
+							m_pfTickFunc = m_pfTickFuncCopy;
+						}
+
+
+
+						// Increment and wrap.
+						m_ui16DmcAddress = (m_ui16DmcAddress + 1) | 0x8000;
+
+						// Decrement remaining.
+						--m_ui16DmcBytesRemain;
+						if ( m_ui16DmcBytesRemain == 0 ) {
+							auto ui84010 = m_psbSystem->Get4010();
+							if ( (ui84010 & 0x40) != 0 ) {
+								// Loop.
+								LoadDmcDmaAddressAndSize();
+							}
+							else {
+								// Raise IRQ if enabled.
+								if ( (ui84010 & 0x80) != 0 ) {
+									Irq( LSN_IS_APU_DMC );
+								}
 							}
 						}
 					}
+					else {
+						// Not a GET cycle.
+						if ( m_pfOamDmaFuncs[0] ) {
+							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
+						}
+						LSN_SET_PTRS( LSN_DS_READ_WRITE );
+					}
+
+					
 				}
 				else {
 					// Nothing for us to do.
 					if ( m_pfOamDmaFuncs[0] ) {
 						(this->*m_pfOamDmaFuncs[_bPhi2])();
 					}
-					m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, !_bPhi2>;
-
-					m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false>;
-					m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true>;
+					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 				}
 			}
+
+#undef LSN_SET_PTRS
 #undef LSN_PUT
 #undef LSN_GET
 		}

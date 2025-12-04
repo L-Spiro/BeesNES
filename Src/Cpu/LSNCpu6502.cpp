@@ -119,10 +119,19 @@ namespace lsn {
 	 * Begins a DMC DMA transfer.
 	 */
 	void CCpu6502::BeginDmcDma() {
-		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
+		if ( true /** Is start of a new sample? */ ) {
+			m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
 
-		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false>;
-		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true>;
+			m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
+			m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
+		}
+		else {
+			// Reload.
+			m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+
+			m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+			m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
+		}
 
 		m_bDmcGo = false;
 		// m_bDmcDma = true;	// The key to actually stopping the CPU.

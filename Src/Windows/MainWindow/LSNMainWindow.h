@@ -399,6 +399,9 @@ namespace lsn {
 		CBeesNes								m_bnEmulator;
 		/** DirectInput 8 controller inputs. */
 		std::vector<CUsbControllerBase *>		m_pdi8cControllers;
+
+		/*std::vector<CUsbControllerBase::LSN_MAPPING>
+												m_vButtonMap;*/
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
 		/** A clock. */

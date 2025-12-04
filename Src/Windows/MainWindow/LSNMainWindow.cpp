@@ -1420,12 +1420,13 @@ namespace lsn {
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					m_pdi8cControllers[0]->Poll();
 				}
+				auto & mMap = m_pdi8cControllers[0]->ButtonMap();
 				bool bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->PollButton( 3 ) ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
+					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_B] ) ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
 					else {
 						m_bnEmulator.RapidFire()[0] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 2 ) ) { ui8Ret |= LSN_IB_B; bFoundInput = true; }
+						if ( m_pdi8cControllers[0]->PollButton( mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_B] ) ) { ui8Ret |= LSN_IB_B; bFoundInput = true; }
 					}
 				}
 				if ( !bFoundInput ) {
@@ -1434,10 +1435,10 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->PollButton( 1 ) ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
+					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] ) ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
 					else {
 						m_bnEmulator.RapidFire()[1] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 0 ) ) { ui8Ret |= LSN_IB_A; bFoundInput = true; }
+						if ( m_pdi8cControllers[0]->PollButton( mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] ) ) { ui8Ret |= LSN_IB_A; bFoundInput = true; }
 					}
 				}
 				if ( !bFoundInput ) {
@@ -1446,10 +1447,10 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->PollButton( 8 ) ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
+					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] ) ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
 					else {
 						m_bnEmulator.RapidFire()[2] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 6 ) ) { ui8Ret |= LSN_IB_SELECT; bFoundInput = true; }
+						if ( m_pdi8cControllers[0]->PollButton( mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_SELECT] ) ) { ui8Ret |= LSN_IB_SELECT; bFoundInput = true; }
 					}
 				}
 				if ( !bFoundInput ) {
@@ -1458,10 +1459,10 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
-					if ( m_pdi8cControllers[0]->PollButton( 9 ) ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
+					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] ) ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
 					else {
 						m_bnEmulator.RapidFire()[3] = 0b11110000;
-						if ( m_pdi8cControllers[0]->PollButton( 7 ) ) { ui8Ret |= LSN_IB_START; bFoundInput = true; }
+						if ( m_pdi8cControllers[0]->PollButton( mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] ) ) { ui8Ret |= LSN_IB_START; bFoundInput = true; }
 					}
 				}
 				if ( !bFoundInput ) {
@@ -1469,10 +1470,11 @@ namespace lsn {
 				}
 
 				bFoundInput = false;
+				auto ui16Pov0 = static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 ));
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) < -250 ||
-						((static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 0 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 4500) ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 31500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 36000)) ) { ui8Ret |= LSN_IB_UP; bFoundInput = true; }
+						((ui16Pov0 >= 0 && ui16Pov0 <= 4500) ||
+						(ui16Pov0 >= 31500 && ui16Pov0 <= 36000)) ) { ui8Ret |= LSN_IB_UP; bFoundInput = true; }
 				}
 				if ( !bFoundInput ) {
 					LSN_CKECK( 'W', '2', 4, LSN_IB_UP );
@@ -1481,8 +1483,8 @@ namespace lsn {
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) > 250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 13500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 22500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; bFoundInput = true; }
+						(ui16Pov0 >= 13500 && ui16Pov0 <= 22500)
+						/*ui16Pov0 == 18000*/ ) { ui8Ret |= LSN_IB_DOWN; bFoundInput = true; }
 				}
 				if ( !bFoundInput ) {
 					LSN_CKECK( 'S', 'X', 5, LSN_IB_DOWN );
@@ -1491,8 +1493,8 @@ namespace lsn {
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) < -250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 22500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 31500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; bFoundInput = true; }
+						(ui16Pov0 >= 22500 && ui16Pov0 <= 31500)
+						/*ui16Pov0 == 27000*/ ) { ui8Ret |= LSN_IB_LEFT; bFoundInput = true; }
 				}
 				if ( !bFoundInput ) {
 					LSN_CKECK( 'A', 'Q', 6, LSN_IB_LEFT );
@@ -1501,8 +1503,8 @@ namespace lsn {
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisX()) > 250 ||
-						(static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) >= 4500 && static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) <= 13500)
-						/*static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; bFoundInput = true; }
+						(ui16Pov0 >= 4500 && ui16Pov0 <= 13500)
+						/*ui16Pov0 == 9000*/ ) { ui8Ret |= LSN_IB_RIGHT; bFoundInput = true; }
 				}
 				if ( !bFoundInput ) {
 					LSN_CKECK( 'D', 'E', 7, LSN_IB_RIGHT );
@@ -1988,6 +1990,37 @@ namespace lsn {
 			}
 			else {
 				m_pdi8cControllers.push_back( pdi8cController );
+				uint32_t ui32Buttons = pdi8cController->TotalButtons();
+				// Map buttons.
+				auto & mMap = pdi8cController->ButtonMap();
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 0;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] = 1;
+				
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_B] = 2;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_B] = 3;
+
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_SELECT] = 6;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] = 8;
+
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 7;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 9;
+
+
+				// My USB NES controller.
+				if ( ui32Buttons == 10 ) {
+					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 1;
+					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] = 127;
+
+					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_B] = 2;
+					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_B] = 127;
+
+					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_SELECT] = 8;
+					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] = 127;
+
+					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 9;
+					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 127;
+				}
+				
 			}
 		}
 		return;

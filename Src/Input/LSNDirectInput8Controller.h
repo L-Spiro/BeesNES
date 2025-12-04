@@ -41,6 +41,13 @@ namespace lsn {
 		bool													CreateController( const DIDEVICEINSTANCEW &_diInstance, void * _pvData );
 
 		/**
+		 * Gets the number of buttons on the controller.
+		 * 
+		 * \return Returns the number of buttons on the controller.
+		 **/
+		virtual uint32_t										TotalButtons() const { return m_dcCaps.dwButtons; }
+
+		/**
 		 * Tells the controller to poll its device.  The polled data should not be inspected yet to determine which keys are held, it simply
 		 *	tells the object to poll the controller for its data to then be gathered immediately after.
 		 *
