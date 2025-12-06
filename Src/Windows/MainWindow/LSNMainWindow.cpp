@@ -1420,9 +1420,10 @@ namespace lsn {
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					m_pdi8cControllers[0]->Poll();
 				}
-				auto & mMap = m_pdi8cControllers[0]->ButtonMap();
+				
 				bool bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
+					auto & mMap = m_pdi8cControllers[0]->ButtonMap();
 					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_B] ) ) { LSN_TICK_RAPID( 0, LSN_IB_B ); }
 					else {
 						m_bnEmulator.RapidFire()[0] = 0b11110000;
@@ -1435,6 +1436,7 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
+					auto & mMap = m_pdi8cControllers[0]->ButtonMap();
 					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] ) ) { LSN_TICK_RAPID( 1, LSN_IB_A ); }
 					else {
 						m_bnEmulator.RapidFire()[1] = 0b11110000;
@@ -1447,6 +1449,7 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
+					auto & mMap = m_pdi8cControllers[0]->ButtonMap();
 					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] ) ) { LSN_TICK_RAPID( 2, LSN_IB_SELECT ); }
 					else {
 						m_bnEmulator.RapidFire()[2] = 0b11110000;
@@ -1459,6 +1462,7 @@ namespace lsn {
 
 				bFoundInput = false;
 				if ( m_pdi8cControllers.size() >= 1 ) {
+					auto & mMap = m_pdi8cControllers[0]->ButtonMap();
 					if ( m_pdi8cControllers[0]->PollButton( mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] ) ) { LSN_TICK_RAPID( 3, LSN_IB_START ); }
 					else {
 						m_bnEmulator.RapidFire()[3] = 0b11110000;
@@ -1470,7 +1474,7 @@ namespace lsn {
 				}
 
 				bFoundInput = false;
-				auto ui16Pov0 = static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 ));
+				auto ui16Pov0 = m_pdi8cControllers.size() >= 1 ? static_cast<int16_t>(m_pdi8cControllers[0]->PollPov( 0 )) : 0xFFFF;
 				if ( m_pdi8cControllers.size() >= 1 ) {
 					if ( static_cast<int16_t>(m_pdi8cControllers[0]->AxisY()) < -250 ||
 						((ui16Pov0 >= 0 && ui16Pov0 <= 4500) ||
