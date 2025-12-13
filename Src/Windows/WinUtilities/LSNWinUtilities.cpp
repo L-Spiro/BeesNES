@@ -28,7 +28,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_NES ),										LSN_CT_NES,					},
 			{ LSN_LSTR( LSN_FAMICOM ),									LSN_CT_FAMICOM,				},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, LSN_CT_NES );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, LSN_CT_NES );
 	}
 
 	/**
@@ -42,7 +42,7 @@ namespace lsn {
 			//pwcName													lpParm
 			{ LSN_LSTR( LSN_INPUT_STANDARD_CONTROLLER ),				LSN_CT_STANDARD,			},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), LSN_CT_STANDARD );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), LSN_CT_STANDARD );
 	}
 
 	/**
@@ -59,7 +59,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_INPUT_NONE ),								LSN_CT_NONE,				},
 			{ LSN_LSTR( LSN_INPUT_STANDARD_CONTROLLER ),				LSN_CT_STANDARD,			},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, _lpSelectBackup );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, _lpSelectBackup );
 	}
 
 	/**
@@ -78,7 +78,7 @@ namespace lsn {
 			/*{ LSN_LSTR( LSN_INPUT_SNES_MOUSE ),							LSN_CT_SNES_MOUSE,			},
 			{ LSN_LSTR( LSN_INPUT_SUBOR_MOUSE ),						LSN_CT_SUBOR_MOUSE,			},*/
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, _lpSelectBackup );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, _lpSelectBackup );
 	}
 
 	/**
@@ -111,7 +111,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_INPUT_TURBO_FILE ),							LSN_CT_TURBO_FILE,							},
 			{ LSN_LSTR( LSN_INPUT_ZAPPER ),								LSN_CT_ZAPPER,								},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, LSN_CT_NONE );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, LSN_CT_NONE );
 	}
 
 	/**
@@ -135,7 +135,7 @@ namespace lsn {
 			//{ LSN_LSTR( LSN_WAV_ITU_G_721_ADPCM ),						CWavFile::LSN_F_ITU_G_721_ADPCM,					},
 			//{ LSN_LSTR( LSN_WAV_MPEG ),									CWavFile::LSN_F_MPEG,								},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_F_PCM );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavFile::LSN_F_PCM );
 	}
 
 	/**
@@ -153,7 +153,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_AUDIO_OPTIONS_NON_SILENT ),					CWavFile::LSN_SC_FIRST_NON_ZERO,					},
 			{ LSN_LSTR( LSN_AUDIO_OPTIONS_SILENCE_FOR ),				CWavFile::LSN_SC_ZERO_FOR_DURATION,					},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
 	}
 
 	/**
@@ -171,7 +171,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_AUDIO_OPTIONS_SILENCE_FOR ),				CWavFile::LSN_EC_ZERO_FOR_DURATION,					},
 			{ LSN_LSTR( LSN_AUDIO_OPTIONS_DURATION ),					CWavFile::LSN_EC_DURATION,							},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavFile::LSN_SC_NONE );
 	}
 
 	/**
@@ -191,7 +191,7 @@ namespace lsn {
 				{ L"24",													24,													},
 				{ L"32",													32,													},
 			};
-			return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
+			return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, 16 );
 		}
 		else {
 			LSN_COMBO_ENTRY ceEnries[] = {
@@ -200,7 +200,7 @@ namespace lsn {
 				{ L"16",													16,													},
 				{ L"24",													24,													},
 			};
-			return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, 16 );
+			return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, 16 );
 		}
 	}
 
@@ -217,7 +217,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_AUDACITY_METADATA ),						CWavFile::LSN_MF_AUDACITY,							},
 			//{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						-1,													},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavFile::LSN_MF_AUDACITY );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavFile::LSN_MF_AUDACITY );
 	}
 
 	/**
@@ -238,7 +238,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_WE_SET_BY_FILE ),							LPARAM( CWavEditor::LSN_AH_BY_FILE ),				},
 			{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),						LPARAM( CWavEditor::LSN_AH_CUSTOM ),				},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_AH_NTSC );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_AH_NTSC );
 	}
 
 	/**
@@ -263,7 +263,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_WE_BLUE ),									LPARAM( CWavEditor::LSN_MH_BLUE ),					},
 			
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_MH_BLACK );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_MH_BLACK );
 	}
 
 	/**
@@ -280,7 +280,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_WE_UNIFORM ),								LPARAM( CWavEditor::LSN_WN_UNIFORM ),				},
 			
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_WN_GAUSSIAN );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_WN_GAUSSIAN );
 	}
 
 	/**
@@ -296,7 +296,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_WE_POLE ),									LPARAM( CWavEditor::LSN_F_POLE ),					},
 			//{ LSN_LSTR( LSN_WE_SINC ),									LPARAM( CWavEditor::LSN_F_SINC ),					},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_F_POLE );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_F_POLE );
 	}
 
 	/**
@@ -313,7 +313,7 @@ namespace lsn {
 			{ LSN_LSTR( LSN_WE_STEREO ),								LPARAM( CWavEditor::LSN_C_STEREO ),					},
 			{ LSN_LSTR( LSN_WE_SURROUND ),								LPARAM( CWavEditor::LSN_C_SURROUND ),				},
 		};
-		return FillComboBox( _pwComboBox, ceEnries, LSN_ELEMENTS( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_C_MONO );
+		return FillComboBox( _pwComboBox, ceEnries, std::size( ceEnries ), _lpDefaultSelect, CWavEditor::LSN_C_MONO );
 	}
 
 	/**

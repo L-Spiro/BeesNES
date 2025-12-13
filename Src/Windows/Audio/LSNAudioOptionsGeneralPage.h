@@ -594,7 +594,7 @@ namespace lsn {
 					if ( bDitherEnabled ) {
 						bDitherEnabled = bEnabled;
 					}
-					for ( auto I = LSN_ELEMENTS( wId ); I--; ) {
+					for ( auto I = std::size( wId ); I--; ) {
 						auto aTmp = FindChild( wId[I] );
 						if ( aTmp ) {
 							aTmp->SetEnabled( bEnabled );

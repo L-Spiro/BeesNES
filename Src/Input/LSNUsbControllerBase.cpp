@@ -71,12 +71,12 @@ namespace lsn {
 		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Poll();
 		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &_ptThread->m_pucbThis->m_jsState );
 		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Unacquire();
-		//	for ( auto I = LSN_ELEMENTS( _ptThread->m_pucbThis->m_jsState.rgbButtons ); I--; ) {
+		//	for ( auto I = std::size( _ptThread->m_pucbThis->m_jsState.rgbButtons ); I--; ) {
 		//		if ( _ptThread->m_pucbThis->m_jsState.rgbButtons[I] ) {
 		//			//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
 		//		}
 		//	}
-		//	for ( auto I = LSN_ELEMENTS( _ptThread->m_pucbThis->m_jsState.rgdwPOV ); I--; ) {
+		//	for ( auto I = std::size( _ptThread->m_pucbThis->m_jsState.rgdwPOV ); I--; ) {
 		//		if ( _ptThread->m_pucbThis->m_jsState.rgdwPOV[I] != -1 ) {
 		//			lsw::CBase::MessageBoxError( NULL, L"Pressed", L"D-PAD" );
 		//		}

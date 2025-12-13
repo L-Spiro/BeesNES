@@ -88,7 +88,7 @@ namespace lsn {
 					std::wstring szFileName;
 					szFileName.resize( 0x1FFFF + 2 );
 
-					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), std::size( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
 					ofnOpenFile.hwndOwner = Wnd();
 					ofnOpenFile.lpstrFilter = wsFilter.c_str();
 					ofnOpenFile.nFilterIndex = 1;
@@ -217,12 +217,12 @@ namespace lsn {
 					LSN_M_CONTEXT_MENU,
 					0,
 					0,
-					LSN_ELEMENTS( miMenuBar ),
+					std::size( miMenuBar ),
 					miMenuBar
 				},
 			};
 			lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, LSN_ELEMENTS( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
+			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, std::size( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
 			return LSW_H_HANDLED;
 		}
 		return Parent::ContextMenu( _pwControl, _iX, _iY );
@@ -304,7 +304,7 @@ namespace lsn {
 				{ Layout::LSN_WEWI_FILES_UP_BUTTON,						bSelected },
 				{ Layout::LSN_WEWI_FILES_DOWN_BUTTON,					bSelected },
 			};
-			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			for ( auto I = std::size( cControls ); I--; ) {
 				auto pwThis = FindChild( cControls[I].wId );
 				if ( pwThis ) {
 					pwThis->SetEnabled( cControls[I].bCloseCondition0 );
@@ -323,7 +323,7 @@ namespace lsn {
 					{ Layout::LSN_WEWI_FILES_UP_BUTTON,					bSelected },
 					{ Layout::LSN_WEWI_FILES_DOWN_BUTTON,				bSelected },
 				};
-				for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+				for ( auto I = std::size( cControls ); I--; ) {
 					plvToolBar->EnableButton( WORD( cControls[I].wId ), cControls[I].bCloseCondition0 );
 				}
 			}

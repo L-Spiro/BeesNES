@@ -169,7 +169,7 @@ namespace lsn {
 					std::wstring szFileName;
 					szFileName.resize( 0xFFFF + 2 );
 
-					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), std::size( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
 					ofnOpenFile.hwndOwner = Wnd();
 					ofnOpenFile.lpstrFilter = wsFilter.c_str();
 					ofnOpenFile.lpstrFile = szFileName.data();
@@ -196,7 +196,7 @@ namespace lsn {
 					std::wstring szFileName;
 					szFileName.resize( 0xFFFF + 2 );
 
-					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), LSN_ELEMENTS( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
+					std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ), std::size( LSN_LSTR( LSN_AUDIO_OPTIONS_WAV_TYPES ) ) - 1 );
 					ofnOpenFile.hwndOwner = Wnd();
 					ofnOpenFile.lpstrFilter = wsFilter.c_str();
 					ofnOpenFile.lpstrFile = szFileName.data();
@@ -235,7 +235,7 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 						};
-						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+						for ( auto I = std::size( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 							if ( pcbCheck ) { pcbCheck->SetCheck( TRUE ); }
 						}
@@ -256,7 +256,7 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,
 							Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,
 						};
-						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+						for ( auto I = std::size( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 							if ( pcbCheck ) { pcbCheck->SetCheck( TRUE ); }
 						}
@@ -283,7 +283,7 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
 							Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 						};
-						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+						for ( auto I = std::size( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 							if ( pcbCheck ) { pcbCheck->SetCheck( FALSE ); }
 						}
@@ -304,7 +304,7 @@ namespace lsn {
 							Layout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,
 							Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,
 						};
-						for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+						for ( auto I = std::size( wCheckMe ); I--; ) {
 							auto pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 							if ( pcbCheck ) { pcbCheck->SetCheck( FALSE ); }
 						}
@@ -766,7 +766,7 @@ namespace lsn {
 			{ Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,	bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,			bEnabled,				bMetaEnabled },
 		};
-		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+		for ( auto I = std::size( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
 			if ( pwThis ) {
 				pwThis->SetEnabled( cControls[I].bCloseCondition0 && cControls[I].bCloseCondition1 );
@@ -822,7 +822,7 @@ namespace lsn {
 			{ Layout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			bEnabled,				bMetaEnabled },
 			{ Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,			bEnabled,				bMetaEnabled },*/
 		};
-		for ( auto I = LSN_ELEMENTS( cOutControls ); I--; ) {
+		for ( auto I = std::size( cOutControls ); I--; ) {
 			auto pwThis = FindChild( cOutControls[I].wId );
 			if ( pwThis ) {
 				pwThis->SetEnabled( cOutControls[I].bCloseCondition0 && cOutControls[I].bCloseCondition1 );
@@ -848,13 +848,13 @@ namespace lsn {
 				Layout::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
 				//Layout::LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 			};
-			for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+			for ( auto I = std::size( wCheckMe ); I--; ) {
 				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 				if ( pcbCheck && pcbCheck->IsChecked() ) { ++sCnt; }
 			}
 			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_ALL_CHECK ));
 			if ( pcbCheck ) {
-				pcbCheck->SetCheck( sCnt == LSN_ELEMENTS( wCheckMe ) );
+				pcbCheck->SetCheck( sCnt == std::size( wCheckMe ) );
 			}
 			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_RAW_META_NONE_CHECK ));
 			if ( pcbCheck ) {
@@ -872,13 +872,13 @@ namespace lsn {
 				Layout::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,
 				Layout::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,
 			};
-			for ( auto I = LSN_ELEMENTS( wCheckMe ); I--; ) {
+			for ( auto I = std::size( wCheckMe ); I--; ) {
 				pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( wCheckMe[I] ));
 				if ( pcbCheck && pcbCheck->IsChecked() ) { ++sCnt; }
 			}
 			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_OUT_META_ALL_CHECK ));
 			if ( pcbCheck ) {
-				pcbCheck->SetCheck( sCnt == LSN_ELEMENTS( wCheckMe ) );
+				pcbCheck->SetCheck( sCnt == std::size( wCheckMe ) );
 			}
 			pcbCheck = reinterpret_cast<lsw::CCheckButton *>(FindChild( Layout::LSN_AOWI_PAGE_OUT_META_NONE_CHECK ));
 			if ( pcbCheck ) {

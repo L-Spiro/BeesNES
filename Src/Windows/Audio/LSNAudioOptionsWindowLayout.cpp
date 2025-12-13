@@ -2985,7 +2985,7 @@ namespace lsn {
 			.poOptions = &_oOptions,
 			.pmwMainWindow = _pmwMainWindow,
 		};*/
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlWindow, LSN_ELEMENTS( m_wlWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlWindow, std::size( m_wlWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;
@@ -3001,7 +3001,7 @@ namespace lsn {
 	 * \return Returns the created page.
 	 */
 	CWidget * CAudioOptionsWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlGlobalPage, LSN_ELEMENTS( m_wlGlobalPage ), _oOptions );
+		return CreatePage( _pwParent, m_wlGlobalPage, std::size( m_wlGlobalPage ), _oOptions );
 	}
 
 	/**
@@ -3012,7 +3012,7 @@ namespace lsn {
 	 * \return Returns the created page.
 	 */
 	CWidget * CAudioOptionsWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlPerGamePage, LSN_ELEMENTS( m_wlPerGamePage ), _oOptions );
+		return CreatePage( _pwParent, m_wlPerGamePage, std::size( m_wlPerGamePage ), _oOptions );
 	}
 
 	/**
@@ -3023,7 +3023,7 @@ namespace lsn {
 	 * \return Returns the created page.
 	 */
 	CWidget * CAudioOptionsWindowLayout::CreateRecordingPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlRecordingPage, LSN_ELEMENTS( m_wlRecordingPage ), _oOptions );
+		return CreatePage( _pwParent, m_wlRecordingPage, std::size( m_wlRecordingPage ), _oOptions );
 	}
 
 	/**

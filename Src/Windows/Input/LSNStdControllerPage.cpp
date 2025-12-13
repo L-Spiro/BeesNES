@@ -44,10 +44,10 @@ namespace lsn {
 		std::memset( m_ieTurboButtons, 0, sizeof( m_ieTurboButtons ) );
 
 		if ( m_pioOptions ) {
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieMainButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( m_ieMainButtons ); ++I ) {
 				m_ieMainButtons[I] = m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I];
 			}
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 				m_ieTurboButtons[I] = m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I];
 			}
 		}
@@ -75,7 +75,7 @@ namespace lsn {
 				//pwcName																					lpParm
 				{ L"Std: 1010101010101010101010101010101010101010101010101010101010101010",					-1,		},
 			};
-			CWinUtilities::FillComboBox( vTurboCombos[I], ceEnries, LSN_ELEMENTS( ceEnries ), -1 );
+			CWinUtilities::FillComboBox( vTurboCombos[I], ceEnries, std::size( ceEnries ), -1 );
 		}
 		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
 			vDeadzoneTracks[I]->SetTicFreq( 5 );
@@ -156,7 +156,7 @@ namespace lsn {
 		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();*/
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+		for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 			bool bKeySet = (m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0);
 			vTurboCombos[I]->SetEnabled( bKeySet );
 		}
@@ -186,7 +186,7 @@ namespace lsn {
 		
 		try {
 			std::vector<lsw::CButton *> vRet;
-			for ( size_t I = 0; I < LSN_ELEMENTS( wButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( wButtons ); ++I ) {
 				vRet.push_back( static_cast<lsw::CButton *>(FindChild( wButtons[I] )) );
 			}
 			return vRet;
@@ -212,7 +212,7 @@ namespace lsn {
 		};
 		try {
 			std::vector<lsw::CButton *> vRet;
-			for ( size_t I = 0; I < LSN_ELEMENTS( wButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( wButtons ); ++I ) {
 				vRet.push_back( static_cast<lsw::CButton *>(FindChild( wButtons[I] )) );
 			}
 			return vRet;
@@ -238,7 +238,7 @@ namespace lsn {
 		};
 		try {
 			std::vector<lsw::CComboBox *> vRet;
-			for ( size_t I = 0; I < LSN_ELEMENTS( wCombos ); ++I ) {
+			for ( size_t I = 0; I < std::size( wCombos ); ++I ) {
 				vRet.push_back( static_cast<lsw::CComboBox *>(FindChild( wCombos[I] )) );
 			}
 			return vRet;
@@ -264,7 +264,7 @@ namespace lsn {
 		};
 		try {
 			std::vector<lsw::CTrackBar *> vRet;
-			for ( size_t I = 0; I < LSN_ELEMENTS( wTrackBars ); ++I ) {
+			for ( size_t I = 0; I < std::size( wTrackBars ); ++I ) {
 				vRet.push_back( static_cast<lsw::CTrackBar *>(FindChild( wTrackBars[I] )) );
 			}
 			return vRet;
@@ -277,10 +277,10 @@ namespace lsn {
 	 */
 	void CStdControllerPage::Save() {
 		if ( m_pioOptions ) {
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieMainButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( m_ieMainButtons ); ++I ) {
 				m_pioOptions->ieButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieMainButtons[I];
 			}
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_ieTurboButtons ); ++I ) {
+			for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 				m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieTurboButtons[I];
 			}
 		}

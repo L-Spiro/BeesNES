@@ -41,7 +41,7 @@ namespace lsn {
 	 **/
 	uint8_t CTriangle::WeDoBeTicknTho() {
 		uint8_t ui8Idx = m_ui8Triangle[m_ui8SeqOff++];
-		m_ui8SeqOff %= LSN_ELEMENTS( m_ui8Triangle );
+		m_ui8SeqOff %= std::size( m_ui8Triangle );
 		return ui8Idx;
 	}
 

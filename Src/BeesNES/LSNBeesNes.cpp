@@ -277,7 +277,7 @@ namespace lsn {
 					if ( !sStream.Read( ui32Version ) ) { return false; }
 					if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
 
-					for ( size_t I = 0; I < LSN_ELEMENTS( Options().poThisGamePalette ); ++I ) {
+					for ( size_t I = 0; I < std::size( Options().poThisGamePalette ); ++I ) {
 						Options().poThisGamePalette[I] = Options().poGlobalPalettes[I];
 						Options().poThisGamePalette[I].bUseGlobal = true;
 						if ( !LoadPaletteSettings( ui32Version, sStream, Options().poThisGamePalette[I] ) ) { return false; }
@@ -302,7 +302,7 @@ namespace lsn {
 		if ( !sStream.Write( ui32Version ) ) { return false; }
 		if ( !SaveAudioSettings( sStream, Options().aoThisGameAudioOptions ) ) { return false; }
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poThisGamePalette ); ++I ) {
+		for ( size_t I = 0; I < std::size( m_oOptions.poThisGamePalette ); ++I ) {
 			if ( !SavePaletteSettings( sStream, Options().poThisGamePalette[I] ) ) { return false; }
 		}
 
@@ -442,7 +442,7 @@ namespace lsn {
 			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
 				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
 			}
-			for ( auto I = LSN_ELEMENTS( m_psbSystems ); I--; ) {
+			for ( auto I = std::size( m_psbSystems ); I--; ) {
 				if ( I != size_t( m_pmSystem ) ) {
 					m_psbSystems[I]->SetAsInactive();
 				}
@@ -777,7 +777,7 @@ namespace lsn {
 		
 		if ( !LoadWavEditorWindowSettings( ui32Version, _sFile, m_oOptions.wewoWavEditorWindow ) ) { return false; }
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poGlobalPalettes ); ++I ) {
+		for ( size_t I = 0; I < std::size( m_oOptions.poGlobalPalettes ); ++I ) {
 			if ( !LoadPaletteSettings( ui32Version, _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
 		}
 
@@ -835,7 +835,7 @@ namespace lsn {
 		
 		if ( !SaveWavEditorWindowSettings( _sFile, m_oOptions.wewoWavEditorWindow ) ) { return false; }
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( m_oOptions.poGlobalPalettes ); ++I ) {
+		for ( size_t I = 0; I < std::size( m_oOptions.poGlobalPalettes ); ++I ) {
 			if ( !SavePaletteSettings( _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
 		}
 		

@@ -50,7 +50,7 @@ namespace lsn {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2 )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
 			};
-			for ( size_t I = LSN_ELEMENTS( lpwstrTabTitles ); I--; ) {
+			for ( size_t I = std::size( lpwstrTabTitles ); I--; ) {
 				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this, (*m_pioOptions), m_pmwMainWindow, (m_stPlayerIdx << 16) | (I & 0xFFFF) ));
 				if ( pscpPage ) {
 					TCITEMW tciItem = { 0 };

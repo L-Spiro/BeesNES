@@ -877,7 +877,7 @@ namespace lsn {
 			.poOptions = &_oOptions,
 			.pmwMainWindow = _pmwMainWindow,
 		};
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, std::size( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;
@@ -893,7 +893,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 */
 	CWidget * CInputWindowLayout::CreateGlobalPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
-		return CreatePage( _pwParent, m_wlGlobalPanel, LSN_ELEMENTS( m_wlGlobalPanel ), _oOptions, _pmwMainWindow );
+		return CreatePage( _pwParent, m_wlGlobalPanel, std::size( m_wlGlobalPanel ), _oOptions, _pmwMainWindow );
 	}
 
 	/**
@@ -904,7 +904,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 */
 	CWidget * CInputWindowLayout::CreatePerGamePage( CWidget * _pwParent, LSN_OPTIONS &_oOptions, lsn::CMainWindow * _pmwMainWindow ) {
-		return CreatePage( _pwParent, m_wlPerGamePanel, LSN_ELEMENTS( m_wlPerGamePanel ), _oOptions, _pmwMainWindow );
+		return CreatePage( _pwParent, m_wlPerGamePanel, std::size( m_wlPerGamePanel ), _oOptions, _pmwMainWindow );
 	}
 
 	/**

@@ -26,8 +26,8 @@ namespace lsn {
 				_dVal * 12.92 :
 				1.055 * std::pow( _dVal, 1.0 / 2.4 ) - 0.055;
 		};
-		for ( auto I = LSN_ELEMENTS( m_ui8Table ); I--; ) {
-			double dFract = LinearTosRGB( double( I ) / (LSN_ELEMENTS( m_ui8Table ) - 1) );
+		for ( auto I = std::size( m_ui8Table ); I--; ) {
+			double dFract = LinearTosRGB( double( I ) / (std::size( m_ui8Table ) - 1) );
 			m_ui8Table[I] = uint8_t( std::round( dFract * 255.0 ) );
 		}
 

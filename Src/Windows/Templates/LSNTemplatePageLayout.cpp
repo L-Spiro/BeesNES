@@ -60,7 +60,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 */
 	CWidget * CTemplatePageLayout::CreatePage( CWidget * _pwParent ) {
-		return CreatePage( _pwParent, m_wlPage, LSN_ELEMENTS( m_wlPage ) );
+		return CreatePage( _pwParent, m_wlPage, std::size( m_wlPage ) );
 	}
 
 	/**

@@ -1310,7 +1310,7 @@ namespace lsn {
 			// Galaxian (Japan).
 			{ .ui32Crc = 0x084F61CD, .ui32PgmRomSize = 8 * 1024 },
 		};
-		for ( auto I = LSN_ELEMENTS( eEntries ); I--; ) {
+		for ( auto I = std::size( eEntries ); I--; ) {
 			if ( m_mDatabase.end() != m_mDatabase.find( eEntries[I].ui32Crc ) ) {
 				char szBuffer[128];
 				std::sprintf( szBuffer, "************ Duplicate Entry in Database: 0x%.8X.\r\n", eEntries[I].ui32Crc );

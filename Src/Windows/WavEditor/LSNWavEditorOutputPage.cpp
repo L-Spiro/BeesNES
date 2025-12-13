@@ -387,7 +387,7 @@ namespace lsn {
 			{ Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK,	bIsPcm && b16Bit },
 			{ Layout::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO,		bIsPcm },
 		};
-		for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+		for ( auto I = std::size( cControls ); I--; ) {
 			auto pwThis = FindChild( cControls[I].wId );
 			if ( pwThis ) {
 				pwThis->SetEnabled( cControls[I].bCloseCondition0 );

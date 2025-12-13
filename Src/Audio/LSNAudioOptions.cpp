@@ -52,7 +52,7 @@ namespace lsn {
 	 * \return Returns a pointer to the specified format or nullptr.
 	 **/
 	const LSN_AUDIO_FORMATS * LSN_AUDIO_OPTIONS::FormatByEnum( LSN_SAMPLE_FORMAT _sfFormat ) {
-		for ( auto I = LSN_ELEMENTS( s_afFormats ); I--; ) {
+		for ( auto I = std::size( s_afFormats ); I--; ) {
 			if ( s_afFormats[I].sfFormat == _sfFormat ) { return &s_afFormats[I]; }
 		}
 		return nullptr;
@@ -63,13 +63,13 @@ namespace lsn {
 	 * 
 	 * \return Returns the total values in s_afFormats.
 	 **/
-	size_t LSN_AUDIO_OPTIONS::FormatTotal() { return LSN_ELEMENTS( s_afFormats ); }
+	size_t LSN_AUDIO_OPTIONS::FormatTotal() { return std::size( s_afFormats ); }
 
 	/**
 	 * Gets total presets.
 	 * 
 	 * \return Returns the total values in s_apProfiles.
 	 **/
-	size_t LSN_AUDIO_OPTIONS::PresetTotal() { return LSN_ELEMENTS( s_apProfiles ); }
+	size_t LSN_AUDIO_OPTIONS::PresetTotal() { return std::size( s_apProfiles ); }
  
 }	// namespace lsn

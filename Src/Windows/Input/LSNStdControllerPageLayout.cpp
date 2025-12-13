@@ -167,7 +167,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 */
 	CWidget * CStdControllerPageLayout::CreatePage( CWidget * _pwParent, LSN_INPUT_OPTIONS &_ioOptions, lsn::CMainWindow * _pmwMainWindow, size_t _stIdx ) {
-		return CreatePage( _pwParent, _ioOptions, _pmwMainWindow, _stIdx, m_wlPage, LSN_ELEMENTS( m_wlPage ) );
+		return CreatePage( _pwParent, _ioOptions, _pmwMainWindow, _stIdx, m_wlPage, std::size( m_wlPage ) );
 	}
 
 	/**

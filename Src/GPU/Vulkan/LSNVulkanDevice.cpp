@@ -94,7 +94,7 @@ namespace lsn {
 			VkDeviceQueueCreateInfo dqciQueueCreateInfo = {};
 			dqciQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			dqciQueueCreateInfo.queueFamilyIndex = 0;
-			dqciQueueCreateInfo.queueCount = LSN_ELEMENTS( fQueuePriority );
+			dqciQueueCreateInfo.queueCount = std::size( fQueuePriority );
 			dqciQueueCreateInfo.pQueuePriorities = fQueuePriority;
 
 			VkDeviceCreateInfo dciDeviceCreateInfo = {};

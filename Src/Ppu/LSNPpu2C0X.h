@@ -83,7 +83,7 @@ namespace lsn {
 			m_bAddresLatch( false ) {
 
 #ifdef LSN_INT_OAM_DECAY
-			for ( auto I = LSN_ELEMENTS( m_ui64OamDecay ); I--; ) {
+			for ( auto I = std::size( m_ui64OamDecay ); I--; ) {
 				m_ui64OamDecay[I] = 0ULL;
 			}
 			m_ui64OamDecayTime = OamDecayRate();

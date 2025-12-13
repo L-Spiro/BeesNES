@@ -579,7 +579,7 @@ namespace lsn {
 				{ Layout::LSN_WEWI_SEQ_OPS_UP_BUTTON,					bSelected },
 				{ Layout::LSN_WEWI_SEQ_OPS_DOWN_BUTTON,					bSelected },
 			};
-			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			for ( auto I = std::size( cControls ); I--; ) {
 				auto pwThis = FindChild( cControls[I].wId );
 				if ( pwThis ) {
 					pwThis->SetEnabled( cControls[I].bCloseCondition0 );
@@ -602,7 +602,7 @@ namespace lsn {
 				{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					bLooping },
 				{ Layout::LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,		bLooping },
 			};
-			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			for ( auto I = std::size( cControls ); I--; ) {
 				auto pwThis = FindChild( cControls[I].wId );
 				if ( pwThis ) {
 					pwThis->SetVisible( cControls[I].bCloseCondition0 );

@@ -672,10 +672,10 @@ namespace lsn {
 		void											SanitizeRegs() {
 			if ( m_prRom ) {
 				// Sanitize all register ranges.
-				for ( auto I = LSN_ELEMENTS( m_ui8PgmBanks ); I--; ) {
+				for ( auto I = std::size( m_ui8PgmBanks ); I--; ) {
 					SetPgmBank<_uPgmBankSize>( uint16_t( I ), m_ui8PgmBanks[I] );
 				}
-				for ( auto I = LSN_ELEMENTS( m_ui8ChrBanks ); I--; ) {
+				for ( auto I = std::size( m_ui8ChrBanks ); I--; ) {
 					SetChrBank<_uChrBankSize>( uint16_t( I ), m_ui8ChrBanks[I] );
 				}
 			}

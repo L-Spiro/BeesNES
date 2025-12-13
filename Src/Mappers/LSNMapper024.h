@@ -241,7 +241,7 @@ namespace lsn {
 				{ 24,	CDatabase::LSN_PC_VRC6a },
 				{ 26,	CDatabase::LSN_PC_VRC6b },
 			};
-			for ( auto I = LSN_ELEMENTS( mMappering ); I--; ) {
+			for ( auto I = std::size( mMappering ); I--; ) {
 				if ( mMappering[I].ui16Mapper == _ui16Mapper ) { return mMappering[I].pcClass; }
 			}
 			return CDatabase::LSN_PC_VRC6b;

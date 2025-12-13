@@ -118,7 +118,7 @@ namespace lsn {
 			.pmwMainWindow = _pmwMainWindow,
 			.stIdx = _stPlayerIdx
 		};
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, LSN_ELEMENTS( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlInputWindow, std::size( m_wlInputWindow ), _pwParent, reinterpret_cast<uint64_t>(&csdData) );
 		if ( ipProc != 0 ) {
 			// Success.  Do stuff.
 			return TRUE;

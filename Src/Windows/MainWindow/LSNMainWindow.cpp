@@ -217,7 +217,7 @@ namespace lsn {
 			};
 #undef LSN_TOOL_STR
 
-			plvToolBar->AddButtons( bButtons, LSN_ELEMENTS( bButtons ) );
+			plvToolBar->AddButtons( bButtons, std::size( bButtons ) );
 		}
 
 		LSW_RECT rRebarRect = ClientRect( this );
@@ -251,7 +251,7 @@ namespace lsn {
 				{ rRebarRect.Width() - m_psbCachedBar->ClientRect( this ).Height() - 48, TRUE },
 				{ rRebarRect.Width() - m_psbCachedBar->ClientRect( this ).Height(), TRUE },
 			};
-			m_psbCachedBar->SetParts( spParts, LSN_ELEMENTS( spParts ) );
+			m_psbCachedBar->SetParts( spParts, std::size( spParts ) );
 			m_rStatusBarRect = m_psbCachedBar->WindowRect();
 		}
 		
@@ -316,7 +316,7 @@ namespace lsn {
 					szFileName.resize( 0xFFFF + 2 );
 
 #define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_ ) LSN_LSTR( LSN_NES_FILES____NES____NES_ ) LSN_LSTR( LSN_ZIP_FILES____ZIP____ZIP_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0" //LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
-					std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, LSN_ELEMENTS( LSN_FILE_OPEN_FORMAT ) - 1 );
+					std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, std::size( LSN_FILE_OPEN_FORMAT ) - 1 );
 					ofnOpenFile.hwndOwner = Wnd();
 					ofnOpenFile.lpstrFilter = wsFilter.c_str();
 					ofnOpenFile.lpstrFile = szFileName.data();

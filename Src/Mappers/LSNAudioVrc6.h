@@ -81,7 +81,7 @@ namespace lsn {
 		void											ResetFull( bool _bToKnown = false ) {
 			if ( _bToKnown ) {
 				m_ui8Vrc6FreqCtrl = 0;
-				for ( size_t I = 0; I < LSN_ELEMENTS( m_vVrc6Pulse ); ++I ) {
+				for ( size_t I = 0; I < std::size( m_vVrc6Pulse ); ++I ) {
 					m_vVrc6Pulse[I].ui8Control = 0;
 					m_vVrc6Pulse[I].ui8FreqLow = 0;
 					m_vVrc6Pulse[I].ui8FreqHigh = 0;

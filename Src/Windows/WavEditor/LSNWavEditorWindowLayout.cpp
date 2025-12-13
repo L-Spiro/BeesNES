@@ -3011,7 +3011,7 @@ namespace lsn {
 		CWavEditorWindow::PrepareWavEditor();
 
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwThis = plmLayout->CreateWindowX( m_wlWindow, LSN_ELEMENTS( m_wlWindow ),
+		CWidget * pwThis = plmLayout->CreateWindowX( m_wlWindow, std::size( m_wlWindow ),
 			nullptr, 0,
 			_pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		return pwThis;
@@ -3025,7 +3025,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 **/
 	CWidget * CWavEditorWindowLayout::CreateFiles( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
-		return CreatePage( _pwParent, m_wlFilesDialog, LSN_ELEMENTS( m_wlFilesDialog ), _wewoOptions );
+		return CreatePage( _pwParent, m_wlFilesDialog, std::size( m_wlFilesDialog ), _wewoOptions );
 	}
 
 	/**
@@ -3036,7 +3036,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 **/
 	CWidget * CWavEditorWindowLayout::CreateSequencer( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
-		return CreatePage( _pwParent, m_wlSequencingDialog, LSN_ELEMENTS( m_wlSequencingDialog ), _wewoOptions );
+		return CreatePage( _pwParent, m_wlSequencingDialog, std::size( m_wlSequencingDialog ), _wewoOptions );
 	}
 
 	/**
@@ -3047,7 +3047,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 **/
 	CWidget * CWavEditorWindowLayout::CreateFileSettings( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
-		return CreatePage( _pwParent, m_wlFileSettingsDialog, LSN_ELEMENTS( m_wlFileSettingsDialog ), _wewoOptions );
+		return CreatePage( _pwParent, m_wlFileSettingsDialog, std::size( m_wlFileSettingsDialog ), _wewoOptions );
 	}
 
 	/**
@@ -3058,7 +3058,7 @@ namespace lsn {
 	 * \return Returns the created widget.
 	 **/
 	CWidget * CWavEditorWindowLayout::CreateOutput( CWidget * _pwParent, LSN_WAV_EDITOR_WINDOW_OPTIONS & _wewoOptions ) {
-		return CreatePage( _pwParent, m_wlOutputDialog, LSN_ELEMENTS( m_wlOutputDialog ), _wewoOptions );
+		return CreatePage( _pwParent, m_wlOutputDialog, std::size( m_wlOutputDialog ), _wewoOptions );
 	}
 
 	/**

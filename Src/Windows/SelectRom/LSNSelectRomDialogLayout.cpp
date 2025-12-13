@@ -201,7 +201,7 @@ namespace lsn {
 	// Creates the Select ROM dialog.
 	DWORD CSelectRomDialogLayout::CreateSelectRomDialog( CWidget * _pwParent, const std::vector<std::u16string> * _pvFiles ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlSelectRomDialog, LSN_ELEMENTS( m_wlSelectRomDialog ), _pwParent, reinterpret_cast<uint64_t>(_pvFiles) );
+		INT_PTR ipProc = plmLayout->DialogBoxX( m_wlSelectRomDialog, std::size( m_wlSelectRomDialog ), _pwParent, reinterpret_cast<uint64_t>(_pvFiles) );
 
 		return static_cast<DWORD>(ipProc);
 	}

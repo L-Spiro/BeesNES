@@ -278,7 +278,7 @@ namespace lsn {
 			}
 			m_fVolTable[0] = m_fVolTable[1] = 0.0f;
 
-			for ( size_t I = ((14 + 1) * 2 - 1) + 1; I < LSN_ELEMENTS( m_fVolTable ); ++I ) {
+			for ( size_t I = ((14 + 1) * 2 - 1) + 1; I < std::size( m_fVolTable ); ++I ) {
 				double dVal = double( I ) - ((14 + 1) * 2 - 1);
 				m_fVolTable[I] = float( std::pow( dVal / 2.0, 0.236461423950310223318638236378319561481475830078125 ) * 0.236461423950310223318638236378319561481475830078125 + 1.0 );
 			}

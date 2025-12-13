@@ -462,7 +462,7 @@ namespace lsn {
 				{ 23,	2,	CDatabase::LSN_PC_VRC4e },
 				{ 23,	1,	CDatabase::LSN_PC_VRC4f },
 			};
-			for ( auto I = LSN_ELEMENTS( mMappering ); I--; ) {
+			for ( auto I = std::size( mMappering ); I--; ) {
 				if ( mMappering[I].ui16Mapper == _ui16Mapper && mMappering[I].ui16SubMapper == _ui16SubMapper ) { return mMappering[I].pcClass; }
 			}
 			return CDatabase::LSN_PC_VRC4f;

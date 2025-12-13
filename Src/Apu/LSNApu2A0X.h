@@ -27,6 +27,7 @@
 #include "LSNTriangle.h"
 
 #include <filesystem>
+#include <iterator>
 
 #include <EEExpEval.h>
 
@@ -483,7 +484,7 @@ namespace lsn {
 
 				fFinal = float( m_pfLpf.Process( fFinal ) );
 				{
-					for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+					for ( auto I = std::size( m_pfOutputPole ); I--; ) {
 						fFinal = float( m_pfOutputPole[I].Process( fFinal ) );
 					}
 				}
@@ -639,7 +640,7 @@ namespace lsn {
 			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
 
 			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
-			for ( auto I = LSN_ELEMENTS( m_pfOutputPole ); I--; ) {
+			for ( auto I = std::size( m_pfOutputPole ); I--; ) {
 				//float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
 				float fLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
 				m_pfOutputPole[I].CreateLpf( fLpf, HzAsFloat() );

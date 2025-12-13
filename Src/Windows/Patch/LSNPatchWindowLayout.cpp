@@ -503,7 +503,7 @@ namespace lsn {
 	// Creates the window.
 	CWidget * CPatchWindowLayout::CreatePatchWindow( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
 		lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, LSN_ELEMENTS( m_wlPatchWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
+		CWidget * pwWidget = plmLayout->CreateDialogX( m_wlPatchWindow, std::size( m_wlPatchWindow ), _pwParent, reinterpret_cast<uint64_t>(&_oOptions) );
 		if ( pwWidget ) {
 			// Success.  Do stuff.
 		}
@@ -518,7 +518,7 @@ namespace lsn {
 	 * \return Returns the created page.
 	 */
 	CWidget * CPatchWindowLayout::CreateTopPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlPatchWindowTopPage, LSN_ELEMENTS( m_wlPatchWindowTopPage ), _oOptions );
+		return CreatePage( _pwParent, m_wlPatchWindowTopPage, std::size( m_wlPatchWindowTopPage ), _oOptions );
 	}
 
 	/**
@@ -529,7 +529,7 @@ namespace lsn {
 	 * \return Returns the created page.
 	 */
 	CWidget * CPatchWindowLayout::CreateBottomPage( CWidget * _pwParent, LSN_OPTIONS &_oOptions ) {
-		return CreatePage( _pwParent, m_wlPatchWindowBottomPage, LSN_ELEMENTS( m_wlPatchWindowBottomPage ), _oOptions );
+		return CreatePage( _pwParent, m_wlPatchWindowBottomPage, std::size( m_wlPatchWindowBottomPage ), _oOptions );
 	}
 
 	/**

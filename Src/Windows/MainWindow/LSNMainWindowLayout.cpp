@@ -217,42 +217,42 @@ namespace lsn {
 			LSN_MWMI_MENU_BAR,
 			0,
 			0,
-			LSN_ELEMENTS( m_miMenuBar ),
+			std::size( m_miMenuBar ),
 			m_miMenuBar
 		},
 		{
 			LSN_MWMI_MENU_FILE,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_FILE,
-			LSN_ELEMENTS( m_miFileMenu ),
+			std::size( m_miFileMenu ),
 			m_miFileMenu
 		},
 		{
 			LSN_MWMI_MENU_GAME,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_GAME,
-			LSN_ELEMENTS( m_miGameMenu ),
+			std::size( m_miGameMenu ),
 			m_miGameMenu
 		},
 		{
 			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_OPTIONS,
-			LSN_ELEMENTS( m_miOptionsMenu ),
+			std::size( m_miOptionsMenu ),
 			m_miOptionsMenu
 		},
 		{
 			LSN_MWMI_MENU_TOOLS,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_TOOLS,
-			LSN_ELEMENTS( m_miToolsMenu ),
+			std::size( m_miToolsMenu ),
 			m_miToolsMenu
 		},
 		/*{
 			LSN_MWMI_MENU_WINDOW,
 			LSN_MWMI_MENU_BAR,
 			LSN_MWMI_WINDOW,
-			LSN_ELEMENTS( m_miWindowsMenu ),
+			std::size( m_miWindowsMenu ),
 			m_miWindowsMenu
 		},*/
 
@@ -261,7 +261,7 @@ namespace lsn {
 			LSN_MWMI_VIDEO_SIZES,
 			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_VIDEO_SIZE,
-			LSN_ELEMENTS( m_miVideoSizeMenu ),
+			std::size( m_miVideoSizeMenu ),
 			m_miVideoSizeMenu
 		},
 		// Video Filters.
@@ -269,7 +269,7 @@ namespace lsn {
 			LSN_MWMI_VIDEO_FILTERS,
 			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_VIDEO_FILTER,
-			LSN_ELEMENTS( m_miVideoFilterMenu ),
+			std::size( m_miVideoFilterMenu ),
 			m_miVideoFilterMenu
 		},
 		// Regions.
@@ -277,7 +277,7 @@ namespace lsn {
 			LSN_MWMI_REGIONS,
 			LSN_MWMI_MENU_OPTIONS,
 			LSN_MWMI_REGION,
-			LSN_ELEMENTS( m_miRegionMenu ),
+			std::size( m_miRegionMenu ),
 			m_miRegionMenu
 		},
 	};
@@ -308,11 +308,11 @@ namespace lsn {
 		std::vector<LSW_MENU_LAYOUT> vMenus;
 		std::vector<std::vector<LSW_MENU_ITEM> *> vMenuItems;
 
-		LSW_WIDGET_LAYOUT * _pwMain = CHelpers::FindLayout( m_wlMainWindow, LSN_ELEMENTS( m_wlMainWindow ), LSN_MWI_MAINWINDOW );
+		LSW_WIDGET_LAYOUT * _pwMain = CHelpers::FindLayout( m_wlMainWindow, std::size( m_wlMainWindow ), LSN_MWI_MAINWINDOW );
 
 		_pwMain->lpwcClass = reinterpret_cast<LPCWSTR>(m_aMainClass);
-		m_pwMainWindow = lsw::CBase::LayoutManager()->CreateWindowX( m_wlMainWindow, LSN_ELEMENTS( m_wlMainWindow ),
-			LSN_ELEMENTS( m_miMenus ) ? m_miMenus : nullptr, LSN_ELEMENTS( m_miMenus ),
+		m_pwMainWindow = lsw::CBase::LayoutManager()->CreateWindowX( m_wlMainWindow, std::size( m_wlMainWindow ),
+			std::size( m_miMenus ) ? m_miMenus : nullptr, std::size( m_miMenus ),
 			nullptr,
 			reinterpret_cast<uint64_t>(_pabIsAlive) );
 		_pwMain->lpwcClass = nullptr;
@@ -328,7 +328,7 @@ namespace lsn {
 	BOOL CMainWindowLayout::CreateMenu( CWidget * _pwMainWindow ) {
 		if ( !_pwMainWindow ) { return FALSE; }
 		std::vector<ACCEL> vHotkeys;
-		HMENU hMenu = lsw::CBase::LayoutManager()->CreateMenu( m_miMenus, LSN_ELEMENTS( m_miMenus ), vHotkeys );
+		HMENU hMenu = lsw::CBase::LayoutManager()->CreateMenu( m_miMenus, std::size( m_miMenus ), vHotkeys );
 		if ( !hMenu ) { return FALSE; }
 		if ( vHotkeys.size() ) {
 			CBase::GetAccelHandler().CreateAndRegister( _pwMainWindow->Wnd(), vHotkeys.data(), int( vHotkeys.size() ) );

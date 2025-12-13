@@ -102,7 +102,7 @@ namespace lsn {
 			std::memcpy( m_vChrRam.data(), m_prRom->vChrRom.data(), m_prRom->vChrRom.size() );
 
 
-			for ( size_t I = 0; I < LSN_ELEMENTS( m_crChrBanks ); ++I ) {
+			for ( size_t I = 0; I < std::size( m_crChrBanks ); ++I ) {
 				m_crChrBanks[I].ui8PgmRamBank = GetBank( m_crChrBanks[I].ui8PgmRamBank, m_sPgmRamSize, PgmRamBankSize() );
 			}
 
@@ -114,21 +114,21 @@ namespace lsn {
 				// CDatabase::LSN_PC_SZROM doesn't use m_puiPgmRomOuterBanks but uses m_puiPgmRamOuterBanks.
 				
 				// Outer ROM banks.
-				for ( size_t I = 0; I < LSN_ELEMENTS( m_puiPgmRomOuterBanks ); ++I ) {
+				for ( size_t I = 0; I < std::size( m_puiPgmRomOuterBanks ); ++I ) {
 					m_puiPgmRomOuterBanks[I] = &m_prRom->vPrgRom.data()[GetBank( uint8_t( I ), m_prRom->vPrgRom.size(), 256 * 1024 )*(256 * 1024)];
 				}
 				// Outer RAM banks.
-				for ( size_t I = 0; I < LSN_ELEMENTS( m_puiPgmRamOuterBanks ); ++I ) {
+				for ( size_t I = 0; I < std::size( m_puiPgmRamOuterBanks ); ++I ) {
 					m_puiPgmRamOuterBanks[I] = &m_ui8PgmRam[GetBank( uint8_t( I ), m_sPgmRamSize, PgmRamBankSize() )*PgmRamBankSize()];
 				}
 			}
 			else {
 				// No outer ROM banks.
-				for ( size_t I = 0; I < LSN_ELEMENTS( m_puiPgmRomOuterBanks ); ++I ) {
+				for ( size_t I = 0; I < std::size( m_puiPgmRomOuterBanks ); ++I ) {
 					m_puiPgmRomOuterBanks[I] = m_prRom->vPrgRom.data();
 				}
 				// No outer RAM banks.
-				for ( size_t I = 0; I < LSN_ELEMENTS( m_puiPgmRamOuterBanks ); ++I ) {
+				for ( size_t I = 0; I < std::size( m_puiPgmRamOuterBanks ); ++I ) {
 					m_puiPgmRamOuterBanks[I] = m_ui8PgmRam;
 				}
 			}

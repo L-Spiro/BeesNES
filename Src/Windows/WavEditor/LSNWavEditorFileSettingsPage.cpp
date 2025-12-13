@@ -164,7 +164,7 @@ namespace lsn {
 					Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,
 					Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,
 				};
-				for ( auto I = LSN_ELEMENTS( wComboIds ); I--; ) {
+				for ( auto I = std::size( wComboIds ); I--; ) {
 					auto pwThis = FindChild( wComboIds[I] );
 					if ( pwThis ) {
 						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( wComboIds[I], pwThis->GetCurSelItemData(), vUpdateUs );
@@ -189,7 +189,7 @@ namespace lsn {
 					Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT,
 					Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT,
 				};
-				for ( auto I = LSN_ELEMENTS( wTextIds ); I--; ) {
+				for ( auto I = std::size( wTextIds ); I--; ) {
 					auto pwThis = FindChild( wTextIds[I] );
 					if ( pwThis ) {
 						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsEditTexts( wTextIds[I], pwThis->GetTextW(), vUpdateUs );
@@ -208,7 +208,7 @@ namespace lsn {
 					Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,
 					Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,
 				};
-				for ( auto I = LSN_ELEMENTS( wCheckIds ); I--; ) {
+				for ( auto I = std::size( wCheckIds ); I--; ) {
 					auto pwThis = FindChild( wCheckIds[I] );
 					if ( pwThis ) {
 						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], pwThis->IsChecked(), vUpdateUs );
@@ -379,7 +379,7 @@ namespace lsn {
 								Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,			WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fmFilterMode == LSN_FM_RF_2 ),
 								Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,	WORD( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].bSunsoft5b ),
 							};
-							for ( size_t I = 0; I < LSN_ELEMENTS( wCheckIds ); I += 2 ) {
+							for ( size_t I = 0; I < std::size( wCheckIds ); I += 2 ) {
 								static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsCheckStates( wCheckIds[I], bool( wCheckIds[I+1] ), vUpdateUs );
 							}
 						}
@@ -794,7 +794,7 @@ namespace lsn {
 				{ Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,		lpHpfPole1 == LPARAM( CWavEditor::LSN_F_SINC ) },
 				{ Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,		lpHpfPole2 == LPARAM( CWavEditor::LSN_F_SINC ) },
 			};
-			for ( auto I = LSN_ELEMENTS( cControls ); I--; ) {
+			for ( auto I = std::size( cControls ); I--; ) {
 				auto pwThis = FindChild( cControls[I].wId );
 				if ( pwThis ) {
 					pwThis->SetEnabled( cControls[I].bEnable );

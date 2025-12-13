@@ -93,7 +93,7 @@ namespace lsn {
 	 * \return Returns true if the button indexed by _ui8Idx is pressed, false otherwise.
 	 **/
 	bool CDirectInput8Controller::PollButton( uint8_t _ui8Idx ) const {
-		if ( !m_did8Device.Obj() || _ui8Idx >= LSN_ELEMENTS( JoyState().rgbButtons ) ) { return false; }
+		if ( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgbButtons ) ) { return false; }
 		return JoyState().rgbButtons[_ui8Idx] != 0;
 	}
 
@@ -109,7 +109,7 @@ namespace lsn {
 		if ( _ui8Idx == 1 ) { return JoyState().lY; }
 		if ( _ui8Idx == 2 ) { return JoyState().lZ; }
 		_ui8Idx -= 2;
-		if ( _ui8Idx >= LSN_ELEMENTS( JoyState().rglSlider ) ) { return 0; }
+		if ( _ui8Idx >= std::size( JoyState().rglSlider ) ) { return 0; }
 		return JoyState().rglSlider[_ui8Idx];
 	}
 
@@ -120,7 +120,7 @@ namespace lsn {
 	 * \return Returns the POV value given the POV array index.
 	 **/
 	uint32_t CDirectInput8Controller::PollPov( uint8_t _ui8Idx ) const {
-		if ( !m_did8Device.Obj() || _ui8Idx >= LSN_ELEMENTS( JoyState().rgdwPOV ) ) { return false; }
+		if ( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgdwPOV ) ) { return false; }
 		return JoyState().rgdwPOV[_ui8Idx];
 	}
 
@@ -151,12 +151,12 @@ namespace lsn {
 			hRes = m_did8Device.Obj()->Poll();
 			hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
 			hRes = m_did8Device.Obj()->Unacquire();
-			for ( auto I = LSN_ELEMENTS( m_jsState.rgbButtons ); I--; ) {
+			for ( auto I = std::size( m_jsState.rgbButtons ); I--; ) {
 				if ( m_jsState.rgbButtons[I] ) {
 					//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
 				}
 			}
-			for ( auto I = LSN_ELEMENTS( m_jsState.rgdwPOV ); I--; ) {
+			for ( auto I = std::size( m_jsState.rgdwPOV ); I--; ) {
 				if ( m_jsState.rgdwPOV[I] != -1 ) {
 					lsw::CBase::MessageBoxError( NULL, L"Pressed", L"D-PAD" );
 				}

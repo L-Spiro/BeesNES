@@ -414,12 +414,12 @@ namespace lsn {
 					LSN_M_CONTEXT_MENU,
 					0,
 					0,
-					LSN_ELEMENTS( miMenuBar ),
+					std::size( miMenuBar ),
 					miMenuBar
 				},
 			};
 			lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
-			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, LSN_ELEMENTS( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
+			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, std::size( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
 			return LSW_H_HANDLED;
 		}
 		return Parent::ContextMenu( _pwControl, _iX, _iY );

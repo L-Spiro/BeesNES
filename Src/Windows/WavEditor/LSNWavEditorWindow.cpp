@@ -51,7 +51,7 @@ namespace lsn {
 		};
 		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
 
-		for ( size_t I = 0; I < LSN_ELEMENTS( sImages ); ++I ) {
+		for ( size_t I = 0; I < std::size( sImages ); ++I ) {
 			m_bBitmaps[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
 			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
 		}
@@ -103,7 +103,7 @@ namespace lsn {
 			};
 #undef LSN_TOOL_STR
 
-			plvToolBar->AddButtons( bButtons, LSN_ELEMENTS( bButtons ) );
+			plvToolBar->AddButtons( bButtons, std::size( bButtons ) );
 
 			if ( plvRebar ) {
 				plvRebar->SetImageList( m_iImages );
@@ -182,7 +182,7 @@ namespace lsn {
 					Layout::LSN_WEWI_FILES_UP_BUTTON,
 					Layout::LSN_WEWI_FILES_DOWN_BUTTON,
 				};
-				for ( size_t I = 0; I < LSN_ELEMENTS( dwIds ); ++I ) {
+				for ( size_t I = 0; I < std::size( dwIds ); ++I ) {
 					auto pwButton = m_pwefFiles->FindChild( dwIds[I] );
 					if ( pwButton ) {
 						auto rTmpThisRect = pwButton->WindowRect().ScreenToClient( Wnd() );
@@ -1008,7 +1008,7 @@ namespace lsn {
 			lsw::CWndClassEx wceEx;
 			wceEx.SetInstance( lsw::CBase::GetThisHandle() );
 			WCHAR szStr[23];
-			lsn::CUtilities::RandomString( szStr, LSN_ELEMENTS( szStr ) );
+			lsn::CUtilities::RandomString( szStr, std::size( szStr ) );
 			wceEx.SetClassName( szStr );
 			wceEx.SetBackgroundBrush( reinterpret_cast<HBRUSH>(CTLCOLOR_DLG + 1) );
 			wceEx.SetWindPro( CWidget::WindowProc );

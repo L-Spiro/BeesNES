@@ -25,12 +25,8 @@
 #include <vector>
 
 
-#ifndef LSN_ELEMENTS
-#define LSN_ELEMENTS( x )									((sizeof( x ) / sizeof( 0[x] )) / (static_cast<size_t>(!(sizeof( x ) % sizeof(0[x])))))
-#endif	// #ifndef LSN_ELEMENTS
-
 #ifndef LSN_PI
-#define LSN_PI												3.14159265358979323846264338327950288419716939937510	// You can tell how cool a programmer is by how many digits she puts in the PI macro.
+#define LSN_PI												3.141592653589793115997963468544185161590576171875	// 3.14159265358979323846264338327950288419716939937510 rounded to the nearest representable double.
 #endif	// #ifndef LSN_PI
 
 #ifndef LSN_ROUND_UP
@@ -2437,8 +2433,8 @@ namespace lsn {
 		 **/
 		static void inline									GenUniformNoise( float _fAmplitude = 0.1f ) {
 			if LSN_LIKELY( !m_bNoiseIsGaussian && m_fLastNoiseParm == _fAmplitude ) { return; }
-			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
-				UniformNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fAmplitude );
+			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
+				UniformNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fAmplitude );
 			}
 			m_bNoiseIsGaussian = false;
 			m_fLastNoiseParm = _fAmplitude;
@@ -2451,8 +2447,8 @@ namespace lsn {
 		 **/
 		static void inline									GenGaussianNoise( float _fStdDev = 0.05f ) {
 			if LSN_LIKELY( m_bNoiseIsGaussian && m_fLastNoiseParm == _fStdDev ) { return; }
-			for ( auto I = LSN_ELEMENTS( m_fNoiseBuffers ); I--; ) {
-				GaussianNoise( m_fNoiseBuffers[I], LSN_ELEMENTS( m_fNoiseBuffers[I] ), _fStdDev );
+			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
+				GaussianNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fStdDev );
 			}
 			m_bNoiseIsGaussian = true;
 			m_fLastNoiseParm = _fStdDev;
