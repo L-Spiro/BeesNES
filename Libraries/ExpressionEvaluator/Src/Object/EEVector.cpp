@@ -1,4 +1,4 @@
-﻿#include "EEVector.h"
+#include "EEVector.h"
 
 
 namespace ee {
@@ -40,6 +40,7 @@ namespace ee {
 				}
 				break;
 			}
+			default : {}
 		}
 		return false;
 	}
@@ -199,6 +200,7 @@ namespace ee {
 				}
 				break;
 			}
+			default : {}
 		}
 		return false;
 	}
@@ -215,7 +217,6 @@ namespace ee {
 		if ( !psObj ) { return { .ncType = EE_NC_INVALID }; }
 
 		if ( _rRet.ncType == EE_NC_OBJECT && _rRet.u.poObj ) {
-
 			if ( (_rRet.u.poObj->Type() & CObject::EE_BIT_VECTOR) ) {
 				try {
 					psObj->m_vBacking.reserve( m_vBacking.size() + static_cast<const ee::CVector *>(_rRet.u.poObj)->m_vBacking.size() );
@@ -226,7 +227,7 @@ namespace ee {
 						psObj->m_vBacking.push_back( static_cast<const ee::CVector *>(_rRet.u.poObj)->m_vBacking[I] );
 					}
 				}
-				catch ( ... ) { return { .ncType = EE_NC_INVALID }; }
+				catch ( ... ) { m_peecContainer->DeallocateObject( psObj ); return { .ncType = EE_NC_INVALID }; }
 				_rRet = static_cast<const ee::CVector *>(_rRet.u.poObj)->CreateResult();
 				return psObj->CreateResult();
 			}
@@ -456,7 +457,13 @@ namespace ee {
 		return true;
 	}
 
-	// Sums all elements.
+	/**
+	 * \brief Sums all elements.
+	 *
+	 * Computes and returns the sum of all elements in the vector using the evaluator's numeric rules.
+	 *
+	 * \return Returns the sum result, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Sum() {
 		if ( !m_vBacking.size() ) { return { .ncType = EE_NC_INVALID }; }
 		CExpEvalContainer::EE_RESULT rRet = { .ncType = EE_NC_UNSIGNED };
@@ -470,7 +477,15 @@ namespace ee {
 		return rRet;
 	}
 
-	// Element-wise addition.
+	/**
+	 * \brief Element-wise addition.
+	 *
+	 * Adds this vector to _pvOther element-by-element and writes the result to _pvReturn.
+	 *
+	 * \param _pvOther The other vector to add.
+	 * \param _pvReturn Receives the element-wise sum.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Add( const ee::CVector * _pvOther, ee::CVector * _pvReturn ) {
 		_pvReturn->Clear();
 		
@@ -491,7 +506,15 @@ namespace ee {
 		return _pvReturn->CreateResult();
 	}
 
-	// Element-wise subtraction.
+	/**
+	 * \brief Element-wise subtraction.
+	 *
+	 * Subtracts _pvOther from this vector element-by-element and writes the result to _pvReturn.
+	 *
+	 * \param _pvOther The other vector to subtract.
+	 * \param _pvReturn Receives the element-wise difference.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Sub( const ee::CVector * _pvOther, ee::CVector * _pvReturn ) {
 		_pvReturn->Clear();
 		
@@ -512,7 +535,15 @@ namespace ee {
 		return _pvReturn->CreateResult();
 	}
 
-	// Element-wise multiplication.
+	/**
+	 * \brief Element-wise multiplication.
+	 *
+	 * Multiplies this vector by _pvOther element-by-element and writes the result to _pvReturn.
+	 *
+	 * \param _pvOther The other vector to multiply.
+	 * \param _pvReturn Receives the element-wise product.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Mul( const ee::CVector * _pvOther, ee::CVector * _pvReturn ) {
 		_pvReturn->Clear();
 		
@@ -533,7 +564,15 @@ namespace ee {
 		return _pvReturn->CreateResult();
 	}
 
-	// Scalar multiplication.
+	/**
+	 * \brief Scalar multiplication.
+	 *
+	 * Multiplies each element of this vector by the given scalar and writes the result to _pvReturn.
+	 *
+	 * \param _rScalar The scalar to apply.
+	 * \param _pvReturn Receives the scaled vector.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Mul( const CExpEvalContainer::EE_RESULT &_rScalar, ee::CVector * _pvReturn ) {
 		if ( _rScalar.ncType == EE_NC_INVALID ) { return { .ncType = EE_NC_INVALID }; }
 		_pvReturn->Clear();
@@ -547,7 +586,15 @@ namespace ee {
 		return _pvReturn->CreateResult();
 	}
 
-	// Element-wise division.
+	/**
+	 * \brief Element-wise division.
+	 *
+	 * Divides this vector by _pvOther element-by-element and writes the result to _pvReturn.
+	 *
+	 * \param _pvOther The other vector to divide by.
+	 * \param _pvReturn Receives the element-wise quotient.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Div( const ee::CVector * _pvOther, ee::CVector * _pvReturn ) {
 		try {
 			_pvReturn->Clear();
@@ -571,7 +618,15 @@ namespace ee {
 		catch ( ... ) { return { .ncType = EE_NC_INVALID }; }
 	}
 
-	// Scalar division.
+	/**
+	 * \brief Scalar division.
+	 *
+	 * Divides each element of this vector by the given scalar and writes the result to _pvReturn.
+	 *
+	 * \param _rScalar The scalar divisor to apply.
+	 * \param _pvReturn Receives the scaled vector.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Div( const CExpEvalContainer::EE_RESULT &_rScalar, ee::CVector * _pvReturn ) {
 		if ( _rScalar.ncType == EE_NC_INVALID ) { return { .ncType = EE_NC_INVALID }; }
 		try {
@@ -588,7 +643,14 @@ namespace ee {
 		catch ( ... ) { return { .ncType = EE_NC_INVALID }; }
 	}
 
-	// Dot product.
+	/**
+	 * \brief Dot product.
+	 *
+	 * Computes the dot product of this vector and _pvOther.
+	 *
+	 * \param _pvOther The other vector.
+	 * \return Returns the dot product result, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Dot( const ee::CVector * _pvOther ) {
 		if ( m_vBacking.size() != _pvOther->m_vBacking.size() ) { return { .ncType = EE_NC_INVALID }; }
 
@@ -607,7 +669,15 @@ namespace ee {
 		return rRet;
 	}
 
-	// Cross product.
+	/**
+	 * \brief Cross product.
+	 *
+	 * Computes the cross product of this vector and _pvOther and writes the resulting vector to _pvReturn.
+	 *
+	 * \param _pvOther The other vector.
+	 * \param _pvReturn Receives the cross-product vector.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Cross( const ee::CVector * _pvOther, ee::CVector * _pvReturn ) {
 		if ( m_vBacking.size() != _pvOther->m_vBacking.size() ) { return { .ncType = EE_NC_INVALID }; }
 		//if ( m_vBacking.size() != 2 && m_vBacking.size() != 3 ) { return { .ncType = EE_NC_INVALID }; }
@@ -676,7 +746,11 @@ namespace ee {
 		}
 	}
 
-	// Gets the magnitude of the vector.
+	/**
+	 * \brief Gets the magnitude of the vector.
+	 *
+	 * \return Returns the vector magnitude, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Mag() {
 		CExpEvalContainer::EE_RESULT rRet = CExpEvalContainer::DefaultResult();
 
@@ -694,7 +768,11 @@ namespace ee {
 		return rRet;
 	}
 
-	// Gets the squared magnitude of the vector.
+	/**
+	 * \brief Gets the squared magnitude of the vector.
+	 *
+	 * \return Returns the squared magnitude, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::MagSq() {
 		CExpEvalContainer::EE_RESULT rRet = CExpEvalContainer::DefaultResult();
 
@@ -711,7 +789,14 @@ namespace ee {
 		return rRet;
 	}
 
-	// Return a normalized copy of this vector.
+	/**
+	 * \brief Return a normalized copy of this vector.
+	 *
+	 * Computes a normalized version of this vector and writes it to _pvReturn.
+	 *
+	 * \param _pvReturn Receives the normalized vector.
+	 * \return Returns an EE_RESULT representing _pvReturn, or EE_NC_INVALID on failure.
+	 */
 	CExpEvalContainer::EE_RESULT CVector::Normalize( ee::CVector * _pvReturn ) {
 		return Div( Mag(), _pvReturn );
 	}

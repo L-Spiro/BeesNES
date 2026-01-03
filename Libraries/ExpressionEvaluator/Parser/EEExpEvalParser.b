@@ -4,6 +4,11 @@
 #include "../EEExpEval.h"
 #include "../EEExpEvalContainer.h"
 #include "../EEExpEvalLexer.h"
+
+#if defined( _MSC_VER )
+	#include <corecrt_math_defines.h>
+#endif
+#include <cmath>
 #include <cstdio>
 #include <ctime>
 
@@ -32,6 +37,7 @@ extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, ee::CExpEvalLexer * _peelLexer
 
 
 #include "../EEExpEvalSyntaxNodes.h"
+#include "../Object/EEVector.h"
 
 
 %}
@@ -75,7 +81,9 @@ extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, ee::CExpEvalLexer * _peelLexer
 %token EE_A EE_ALLADI EE_ALPHA EE_B EE_B2 EE_B4 EE_BETA EE_BH EE_C2 EE_CAHEN EE_CATALAN EE_CONWAY EE_DELTA EE_E EE_ERDOS EE_EULER EE_F EE_GR EE_GWK EE_HALFPI EE_HSMC EE_ICE EE_K
 %token EE_LAMBDA EE_LAPLACE EE_LEVY EE_M1 EE_MU EE_NIVEN EE_OMEGA EE_P2 EE_PI_ EE_PLASTIC EE_PORTER EE_PSI EE_RAMAN EE_RAMAMU EE_SIERP EE_THETA EE_VISW EE_Z3 EE_ZETA 
 
-%token EE_CHAR_BIT EE_MB_LEN_MAX EE_CHAR_MIN EE_CHAR_MAX EE_SCHAR_MIN EE_SHRT_MIN EE_INT_MIN EE_LONG_MIN EE_LLONG_MIN EE_SCHAR_MAX EE_SHRT_MAX EE_INT_MAX EE_LONG_MAX EE_LLONG_MAX EE_UCHAR_MAX EE_USHRT_MAX EE_UINT_MAX EE_ULONG_MAX EE_ULLONG_MAX EE_FLT_RADIX EE_DECIMAL_DIG EE_FLT_DECIMAL_DIG EE_DBL_DECIMAL_DIG EE_LDBL_DECIMAL_DIG EE_FLT_MIN EE_DBL_MIN EE_LDBL_MIN EE_FLT_TRUE_MIN EE_DBL_TRUE_MIN EE_LDBL_TRUE_MIN EE_FLT_MAX EE_DBL_MAX EE_LDBL_MAX EE_FLT_EPSILON EE_DBL_EPSILON EE_LDBL_EPSILON EE_FLT_DIG EE_DBL_DIG EE_LDBL_DIG EE_FLT_MANT_DIG EE_DBL_MANT_DIG EE_LDBL_MANT_DIG EE_FLT_MIN_EXP EE_DBL_MIN_EXP EE_LDBL_MIN_EXP EE_FLT_MIN_10_EXP EE_DBL_MIN_10_EXP EE_LDBL_MIN_10_EXP EE_FLT_MAX_EXP EE_DBL_MAX_EXP EE_LDBL_MAX_EXP EE_FLT_MAX_10_EXP EE_DBL_MAX_10_EXP EE_LDBL_MAX_10_EXP EE_INT8_MIN EE_INT16_MIN EE_INT32_MIN EE_INT64_MIN EE_INT8_MAX EE_INT16_MAX EE_INT32_MAX EE_INT64_MAX EE_UINT8_MAX EE_UINT16_MAX EE_UINT32_MAX EE_UINT64_MAX  
+%token EE_M_E EE_M_LOG2E EE_M_LOG10E EE_M_LN2 EE_M_LN10 EE_M_PI EE_M_PI_2 EE_M_PI_4 EE_M_1_PI EE_M_2_PI EE_M_2_SQRTPI EE_M_SQRT2 EE_M_SQRT1_2
+
+%token EE_CHAR_BIT EE_MB_LEN_MAX EE_CHAR_MIN EE_CHAR_MAX EE_SCHAR_MIN EE_SHRT_MIN EE_INT_MIN EE_LONG_MIN EE_LLONG_MIN EE_SCHAR_MAX EE_SHRT_MAX EE_INT_MAX EE_LONG_MAX EE_LLONG_MAX EE_UCHAR_MAX EE_USHRT_MAX EE_UINT_MAX EE_ULONG_MAX EE_ULLONG_MAX EE_FLT_RADIX EE_DECIMAL_DIG EE_FLT_DECIMAL_DIG EE_DBL_DECIMAL_DIG EE_LDBL_DECIMAL_DIG EE_FLT_MIN EE_DBL_MIN EE_LDBL_MIN EE_FLT_TRUE_MIN EE_DBL_TRUE_MIN EE_LDBL_TRUE_MIN EE_FLT_MAX EE_DBL_MAX EE_LDBL_MAX EE_FLT_EPSILON EE_DBL_EPSILON EE_LDBL_EPSILON EE_FLT_DIG EE_DBL_DIG EE_LDBL_DIG EE_FLT_MANT_DIG EE_DBL_MANT_DIG EE_LDBL_MANT_DIG EE_FLT_MIN_EXP EE_DBL_MIN_EXP EE_LDBL_MIN_EXP EE_FLT_MIN_10_EXP EE_DBL_MIN_10_EXP EE_LDBL_MIN_10_EXP EE_FLT_MAX_EXP EE_DBL_MAX_EXP EE_LDBL_MAX_EXP EE_FLT_MAX_10_EXP EE_DBL_MAX_10_EXP EE_LDBL_MAX_10_EXP EE_INT8_MIN EE_INT16_MIN EE_INT32_MIN EE_INT64_MIN EE_INT8_MAX EE_INT16_MAX EE_INT32_MAX EE_INT64_MAX EE_UINT8_MAX EE_UINT16_MAX EE_UINT32_MAX EE_UINT64_MAX EE_INT_FAST8_MIN EE_INT_FAST16_MIN EE_INT_FAST32_MIN EE_INT_FAST64_MIN EE_INT_LEAST8_MIN EE_INT_LEAST16_MIN EE_INT_LEAST32_MIN EE_INT_LEAST64_MIN EE_INT_FAST8_MAX EE_INT_FAST16_MAX EE_INT_FAST32_MAX EE_INT_FAST64_MAX EE_INT_LEAST8_MAX EE_INT_LEAST16_MAX EE_INT_LEAST32_MAX EE_INT_LEAST64_MAX EE_UINT_FAST8_MAX EE_UINT_FAST16_MAX EE_UINT_FAST32_MAX EE_UINT_FAST64_MAX
 %token EE_AS_FLOAT EE_AS_DOUBLE EE_AS_FLOAT24 EE_AS_FLOAT16 EE_AS_FLOAT14 EE_AS_FLOAT11 EE_AS_FLOAT10
 %token EE_AS_FLOAT_MAX EE_AS_FLOAT_MIN EE_AS_FLOAT_TRUE_MIN EE_AS_FLOAT_NAN EE_AS_FLOAT_INF EE_AS_FLOAT_SUBNORM_MAX EE_AS_FLOAT_EPS
 %token EE_TRUE EE_FALSE
@@ -87,7 +95,11 @@ extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, ee::CExpEvalLexer * _peelLexer
 
 %token EE_ADD EE_APPEND EE_ASSIGN EE_AT EE_CAPACITY EE_CLEAR EE_CROSS EE_DOT EE_EMPTY EE_ERASE EE_INSERT EE_MAX_SIZE EE_MAG EE_MAGSQ EE_MUL EE_NORMALIZE EE_RESERVE EE_RESIZE EE_POP_BACK EE_PUSH_BACK EE_SHRINK_TO_FIT EE_SIZE EE_SUB EE_SUM EE_SWAP EE_TOKENIZE
 
-%token EE_BARTLETT EE_BLACKMAN EE_BLACKMANHARRIS EE_BLACKMANNUTTAL EE_FLATTOP EE_HAMMING EE_HANN EE_KAISER EE_LANCZOS EE_NUTTAL
+%token EE_BARTHANN EE_BARTLETT EE_BLACKMAN EE_BLACKMANHARRIS EE_BLACKMANNUTTAL EE_BOHMAN EE_BOXCAR EE_CHEBWIN EE_COSINE EE_EXPONENTIAL EE_FLATTOP EE_GAUSSIAN EE_GENERAL_COSINE EE_GENERAL_GUASSIAN EE_GENERAL_HAMMING EE_HAMMING EE_HANN EE_KAISER EE_KAISER_BESSEL EE_LANCZOS EE_NUTTAL EE_PARZEN EE_TAYLOR EE_TRIANG EE_TUKEY
+
+%token EE_CUM_SIMPSON EE_CUM_TRAPEZOID EE_ROMB EE_SIMPSON EE_TRAPEZOID
+
+%token EE_ARANGE EE_FULL EE_FULL_LIKE EE_GEOMSPACE EE_LINSPACE EE_LOGSPACE EE_ONES EE_ONES_LIKE EE_ZEROS EE_ZEROS_LIKE
 
 %type <sStringIndex>										identifier
 %type <sStringIndex>										string
@@ -250,6 +262,21 @@ basic_expr
 	| EE_LEVY												{ m_peecContainer->CreateDouble( 3.27582291872181115978768188245384386, $$ ); }
 	| EE_PSI												{ m_peecContainer->CreateDouble( 3.35988566624317755317201130291892717, $$ ); }
 	| EE_DELTA												{ m_peecContainer->CreateDouble( 4.66920160910299067185320382046620161, $$ ); }
+	
+	| EE_M_E												{ m_peecContainer->CreateDouble( M_E, $$ ); }
+	| EE_M_LOG2E											{ m_peecContainer->CreateDouble( M_LOG2E, $$ ); }
+	| EE_M_LOG10E											{ m_peecContainer->CreateDouble( M_LOG10E, $$ ); }
+	| EE_M_LN2												{ m_peecContainer->CreateDouble( M_LN2, $$ ); }
+	| EE_M_LN10												{ m_peecContainer->CreateDouble( M_LN10, $$ ); }
+	| EE_M_PI												{ m_peecContainer->CreateDouble( M_PI, $$ ); }
+	| EE_M_PI_2												{ m_peecContainer->CreateDouble( M_PI_2, $$ ); }
+	| EE_M_PI_4												{ m_peecContainer->CreateDouble( M_PI_4, $$ ); }
+	| EE_M_1_PI												{ m_peecContainer->CreateDouble( M_1_PI, $$ ); }
+	| EE_M_2_PI												{ m_peecContainer->CreateDouble( M_2_PI, $$ ); }
+	| EE_M_2_SQRTPI											{ m_peecContainer->CreateDouble( M_2_SQRTPI, $$ ); }
+	| EE_M_SQRT2											{ m_peecContainer->CreateDouble( M_SQRT2, $$ ); }
+	| EE_M_SQRT1_2											{ m_peecContainer->CreateDouble( M_SQRT1_2, $$ ); }
+	
 	| EE_CHAR_BIT											{ m_peecContainer->CreateNumber( CHAR_BIT, $$ ); }
 	| EE_MB_LEN_MAX											{ m_peecContainer->CreateNumber( MB_LEN_MAX, $$ ); }
 	| EE_CHAR_MIN											{ m_peecContainer->CreateNumber( CHAR_MIN, $$ ); }
@@ -541,21 +568,22 @@ assignment_exp
 	| custom_var assignment_op assignment_exp				{ m_peecContainer->CreateReAssignment( $1, $3, $2, $$ ); }
 	| EE_CONST identifier '=' assignment_exp				{ m_peecContainer->CreateAssignment( $2, $4, '=', true, $$ ); }
 	| identifier '=' EE_NEW backing_type '(' exp ')'
-															{ m_peecContainer->CreateRawArray( $1, size_t( $4 ), static_cast<size_t>(token::EE_TEMP), $6, size_t( ~0 ), size_t( ~0 ), $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, uint32_t( $4 ), static_cast<uint32_t>(token::EE_TEMP), $6, size_t( ~0 ), size_t( ~0 ), $$ ); }
 	| identifier '=' EE_NEW backing_type '(' exp ',' backing_persistence ')'
-															{ m_peecContainer->CreateRawArray( $1, size_t( $4 ), $8, $6, size_t( ~0 ), size_t( ~0 ), $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, uint32_t( $4 ), $8, $6, size_t( ~0 ), size_t( ~0 ), $$ ); }
 	| identifier '=' EE_NEW backing_type '(' exp ',' backing_persistence ',' exp ')'
 															{ m_peecContainer->CreateRawArray( $1, $4, $8, $6, $10.sNodeIndex, $10.sNodeIndex, $$ ); }
 	| identifier '=' EE_NEW backing_type '(' exp ',' backing_persistence ',' exp ',' exp ')'
 															{ m_peecContainer->CreateRawArray( $1, $4, $8, $6, $10.sNodeIndex, $12.sNodeIndex, $$ ); }
 	| identifier '=' EE_NEW '(' exp ')'
-															{ m_peecContainer->CreateRawArray( $1, static_cast<size_t>(CExpEvalParser::token::EE_DEFAULT), static_cast<size_t>(token::EE_TEMP), $5, size_t( ~0 ), size_t( ~0 ), $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, static_cast<uint32_t>(CExpEvalParser::token::EE_DEFAULT), static_cast<uint32_t>(token::EE_TEMP), $5, size_t( ~0 ), size_t( ~0 ), $$ ); }
 	| identifier '=' EE_NEW '(' exp ',' backing_persistence ')'
-															{ m_peecContainer->CreateRawArray( $1, static_cast<size_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, size_t( ~0 ), size_t( ~0 ), $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, static_cast<uint32_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, size_t( ~0 ), size_t( ~0 ), $$ ); }
 	| identifier '=' EE_NEW '(' exp ',' backing_persistence ',' exp ')'
-															{ m_peecContainer->CreateRawArray( $1, static_cast<size_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, $9.sNodeIndex, $9.sNodeIndex, $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, static_cast<uint32_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, $9.sNodeIndex, $9.sNodeIndex, $$ ); }
 	| identifier '=' EE_NEW '(' exp ',' backing_persistence ',' exp ',' exp ')'
-															{ m_peecContainer->CreateRawArray( $1, static_cast<size_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, $9.sNodeIndex, $11.sNodeIndex, $$ ); }
+															{ m_peecContainer->CreateRawArray( $1, static_cast<uint32_t>(CExpEvalParser::token::EE_DEFAULT), $7, $5, $9.sNodeIndex, $11.sNodeIndex, $$ ); }
+	| custom_var '[' exp ']' assignment_op assignment_exp	{ m_peecContainer->CreateArrayReAssignmentObj( $1, $3, $6, $5, $$ ); }
 	| array_var '[' exp ']' assignment_op assignment_exp	{ m_peecContainer->CreateArrayReAssignment( $1, $3, $6, $5, $$ ); }
 	//| postfix_exp '[' assignment_exp ']' assignment_op assignment_exp
 	//														{ m_peecContainer->CreateArrayReAssignment( $1, $3, $6, $5, $$ ); }
@@ -794,16 +822,179 @@ intrinsic
 	| EE_TOKENIZE '(' exp ',' exp ',' exp ')'				{ m_peecContainer->CreateStringTokenize( $3, $5, $7, $$ ); }
 	| EE_TOKENIZE '(' string ',' exp ',' exp ')'			{ m_peecContainer->CreateStringTokenize( $3, $5, $7, $$ ); }
 	
-	| EE_BARTLETT '(' exp ')'								{ m_peecContainer->CreateWindowBartlett( $3, $$ ); }
-	| EE_BLACKMAN '(' exp ')'								{ m_peecContainer->CreateWindowBlackman( $3, $$ ); }
-	| EE_BLACKMANHARRIS '(' exp ')'							{ m_peecContainer->CreateWindowBlackmanHarris( $3, $$ ); }
-	| EE_BLACKMANNUTTAL '(' exp ')'							{ m_peecContainer->CreateWindowBlackmanNuttal( $3, $$ ); }
-	| EE_FLATTOP '(' exp ')'								{ m_peecContainer->CreateWindowFlatTop( $3, $$ ); }
-	| EE_HAMMING '(' exp ')'								{ m_peecContainer->CreateWindowHamming( $3, $$ ); }
-	| EE_HANN '(' exp ')'									{ m_peecContainer->CreateWindowHann( $3, $$ ); }
-	| EE_KAISER '(' exp ',' exp ')'							{ m_peecContainer->CreateWindowKaiser( $3, $5, $$ ); }
-	| EE_LANCZOS '(' exp ')'								{ m_peecContainer->CreateWindowLanczos( $3, $$ ); }
-	| EE_NUTTAL '(' exp ')'									{ m_peecContainer->CreateWindowNuttal( $3, $$ ); }
+	| EE_BARTHANN '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BARTHANN, ee::CVector>( $3, $$ ); }
+	| EE_BARTLETT '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BARTLETT, ee::CVector>( $3, $$ ); }
+	| EE_BLACKMAN '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BLACKMAN, ee::CVector>( $3, $$ ); }
+	| EE_BLACKMANHARRIS '(' exp ')'							{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BLACKMANHARRIS, ee::CVector>( $3, $$ ); }
+	| EE_BLACKMANNUTTAL '(' exp ')'							{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BLACKMANNUTTAL, ee::CVector>( $3, $$ ); }
+	| EE_BOHMAN '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BOHMAN, ee::CVector>( $3, $$ ); }
+	| EE_BOXCAR '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_BOXCAR, ee::CVector>( $3, $$ ); }
+	| EE_CHEBWIN '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_CHEBWIN, ee::CVector>( $3, $5, $$ ); }
+	| EE_COSINE '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_COSINE, ee::CVector>( $3, $$ ); }
+	| EE_EXPONENTIAL '(' exp ',' exp ',' exp ')'			{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_EXPONENTIAL, ee::CVector>( $3, $5, $7, $$ ); }
+	| EE_FLATTOP '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_FLATTOP, ee::CVector>( $3, $$ ); }
+	| EE_GAUSSIAN '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_GAUSSIAN, ee::CVector>( $3, $5, $$ ); }
+	| EE_GENERAL_COSINE '(' exp ',' exp ')'					{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_GENERAL_COSINE, ee::CVector>( $3, $5, $$ ); }
+	| EE_GENERAL_GUASSIAN '(' exp ',' exp ',' exp ')'		{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_GENERAL_GAUSSIAN, ee::CVector>( $3, $5, $7, $$ ); }
+	| EE_GENERAL_HAMMING '(' exp ',' exp ')'				{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_GENERAL_HAMMING, ee::CVector>( $3, $5, $$ ); }
+	| EE_HANN '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_HANN, ee::CVector>( $3, $$ ); }
+	| EE_HAMMING '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_HAMMING, ee::CVector>( $3, $$ ); }
+	| EE_KAISER '(' exp ',' exp ')'							{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_KAISER, ee::CVector>( $3, $5, $$ ); }
+	| EE_KAISER_BESSEL '(' exp ',' exp ')'					{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_KAISER_BESSEL, ee::CVector>( $3, $5, $$ ); }
+	| EE_LANCZOS '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_LANCZOS, ee::CVector>( $3, $$ ); }
+	| EE_NUTTAL '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_NUTTAL, ee::CVector>( $3, $$ ); }
+	| EE_PARZEN '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_PARZEN, ee::CVector>( $3, $$ ); }
+	| EE_TAYLOR '(' exp ',' exp ',' exp ',' exp ')'			{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_TAYLOR, ee::CVector>( $3, $5, $7, $9, $$ ); }
+	| EE_TRIANG '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_TRIANG, ee::CVector>( $3, $$ ); }
+	| EE_TUKEY '(' exp ',' exp ')'							{ m_peecContainer->CreateBasicObjectNode<ee::EE_N_TUKEY, ee::CVector>( $3, $5, $$ ); }
+	
+	| EE_TRAPEZOID '(' exp ')'								{ m_peecContainer->CreateBasicNode( $3, $$, ee::EE_N_TRAPEZOID_1 ); }
+	| EE_TRAPEZOID '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicNode( $3, $5, $$, ee::EE_N_TRAPEZOID_2 ); }
+	| EE_TRAPEZOID '(' exp ',' exp ',' exp ',' exp ')'
+															{ m_peecContainer->CreateBasicNode( $3, $5, $7, $9, $$, ee::EE_N_TRAPEZOIDSTRIDED_4 ); }
+	| EE_TRAPEZOID '(' exp ',' exp ',' exp ',' exp ',' exp ')'
+															{ m_peecContainer->CreateBasicNode( $3, $5, $7, $9, $11, $$, ee::EE_N_TRAPEZOIDSTRIDED_5 ); }
+	| EE_SIMPSON '(' exp ')'								{ m_peecContainer->CreateBasicNode( $3,$$, ee::EE_N_SIMPSON_1 ); }
+	| EE_SIMPSON '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicNode( $3, $5, $$, ee::EE_N_SIMPSON_2 ); }
+	| EE_SIMPSON '(' exp ',' exp ',' exp ',' exp ')'
+															{ m_peecContainer->CreateBasicNode( $3, $5, $7, $9, $$, ee::EE_N_SIMPSONSTRIDED_4 ); }
+	| EE_SIMPSON '(' exp ',' exp ',' exp ',' exp ',' exp ')'
+															{ m_peecContainer->CreateBasicNode( $3, $5, $7, $9, $11, $$, ee::EE_N_SIMPSONSTRIDED_5 ); }
+															
+	| EE_LINSPACE '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_2, ee::CVector>( $3, $5, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_LINSPACE '(' exp ',' exp ',' exp ')'				{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_3, ee::CVector>( $3, $5, $7, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_LINSPACE '(' exp ',' exp ',' exp ',' exp ')'		{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_4, ee::CVector>( $3, $5, $7, $9, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_LINSPACE '(' exp ',' exp ',' backing_type ')'		{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_2, ee::CVector>( $3, $5, $7, $$ ); }
+	| EE_LINSPACE '(' exp ',' exp ',' exp ',' backing_type ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_3, ee::CVector>( $3, $5, $7, $9, $$ ); }
+	| EE_LINSPACE '(' exp ',' exp ',' exp ',' exp ',' backing_type ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LINSPACE_4, ee::CVector>( $3, $5, $7, $9, $11, $$ ); }
+															
+	| EE_ARANGE '(' exp ',' exp ',' exp ',' backing_type ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( $3, $5, $7, $9, $$ ); }
+	| EE_ARANGE '(' exp ',' exp ',' exp ')'					{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( $3, $5, $7, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	
+	| EE_ARANGE '(' exp ',' exp ',' backing_type ')'		{
+																YYSTYPE::EE_NODE_DATA ndStep;
+																m_peecContainer->CreateDouble( "1.0", ndStep );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( $3, $5, ndStep, $7, $$ );
+															}
+	| EE_ARANGE '(' exp ',' exp ')'							{
+																YYSTYPE::EE_NODE_DATA ndStep;
+																m_peecContainer->CreateDouble( "1.0", ndStep );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( $3, $5, ndStep, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	| EE_ARANGE '(' exp ',' backing_type ')'				{
+																YYSTYPE::EE_NODE_DATA ndStart;
+																m_peecContainer->CreateDouble( "0.0", ndStart );
+																YYSTYPE::EE_NODE_DATA ndStep;
+																m_peecContainer->CreateDouble( "1.0", ndStep );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( ndStart, $3, ndStep, $5, $$ );
+															}
+	| EE_ARANGE '(' exp ')'									{
+																YYSTYPE::EE_NODE_DATA ndStart;
+																m_peecContainer->CreateDouble( "0.0", ndStart );
+																YYSTYPE::EE_NODE_DATA ndStep;
+																m_peecContainer->CreateDouble( "1.0", ndStep );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ARANGE, ee::CVector>( ndStart, $3, ndStep, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+															
+															
+	| EE_FULL '(' exp ',' exp ',' backing_type ')'			{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_FULL, ee::CVector>( $3, $5, $7, $$ ); }
+	| EE_FULL '(' exp ',' exp ')'							{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_FULL, ee::CVector>( $3, $5, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_FULL_LIKE '(' exp ',' exp ',' backing_type ')'		{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_FULL_LIKE, ee::CVector>( $3, $5, $7, $$ ); }
+	| EE_FULL_LIKE '(' exp ',' exp ')'						{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_FULL_LIKE, ee::CVector>( $3, $5, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	
+	| EE_GEOMSPACE '(' exp ',' exp ',' exp ',' exp ',' backing_type ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, $7, $9, $11, $$ ); }
+	| EE_GEOMSPACE '(' exp ',' exp ',' exp ',' exp ')'		{
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, $7, $9, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	
+	| EE_GEOMSPACE '(' exp ',' exp ',' exp ',' backing_type ')'
+															{
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, $7, ndEndPoint, $9, $$ );
+															}
+	| EE_GEOMSPACE '(' exp ',' exp ',' exp ')'				{
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, $7, ndEndPoint, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	| EE_GEOMSPACE '(' exp ',' exp ',' backing_type ')'		{
+																YYSTYPE::EE_NODE_DATA ndNum;
+																m_peecContainer->CreateNumber( 50, ndNum );
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, ndNum, ndEndPoint, $7, $$ );
+															}
+	| EE_GEOMSPACE '(' exp ',' exp ')'						{
+																YYSTYPE::EE_NODE_DATA ndNum;
+																m_peecContainer->CreateNumber( 50, ndNum );
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_GEOMSPACE, ee::CVector>( $3, $5, ndNum, ndEndPoint, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ',' exp ',' exp ',' backing_type ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, $9, $11, $13, $$ ); }
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ',' exp ',' exp ')'
+															{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, $9, $11, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ',' exp ',' backing_type ')'
+															{
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, $9, ndBase, $11, $$ );
+															}
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ',' exp ')'		{
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, $9, ndBase, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ',' backing_type ')'
+															{
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, ndEndPoint, ndBase, $9, $$ );
+															}
+	| EE_LOGSPACE '(' exp ',' exp ',' exp ')'				{
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, $7, ndEndPoint, ndBase, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	| EE_LOGSPACE '(' exp ',' exp ',' backing_type ')'		{
+																YYSTYPE::EE_NODE_DATA ndNum;
+																m_peecContainer->CreateNumber( 50, ndNum );
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, ndNum, ndEndPoint, ndBase, $7, $$ );
+															}
+	| EE_LOGSPACE '(' exp ',' exp ')'						{
+																YYSTYPE::EE_NODE_DATA ndNum;
+																m_peecContainer->CreateNumber( 50, ndNum );
+																YYSTYPE::EE_NODE_DATA ndEndPoint;
+																m_peecContainer->CreateNumber( 1, ndEndPoint );
+																YYSTYPE::EE_NODE_DATA ndBase;
+																m_peecContainer->CreateNumber( 10.0, ndBase );
+																m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_LOGSPACE, ee::CVector>( $3, $5, ndNum, ndEndPoint, ndBase, CExpEvalParser::token::EE_DEFAULT, $$ );
+															}
+	| EE_ONES '(' exp ',' backing_type ')'					{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ONES, ee::CVector>( $3, $5, $$ ); }
+	| EE_ONES '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ONES, ee::CVector>( $3, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_ONES_LIKE '(' exp ',' backing_type ')'				{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ONES_LIKE, ee::CVector>( $3, $5, $$ ); }
+	| EE_ONES_LIKE '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ONES_LIKE, ee::CVector>( $3, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_ZEROS '(' exp ',' backing_type ')'					{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ZEROS, ee::CVector>( $3, $5, $$ ); }
+	| EE_ZEROS '(' exp ')'									{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ZEROS, ee::CVector>( $3, CExpEvalParser::token::EE_DEFAULT, $$ ); }
+	| EE_ZEROS_LIKE '(' exp ',' backing_type ')'			{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ZEROS_LIKE, ee::CVector>( $3, $5, $$ ); }
+	| EE_ZEROS_LIKE '(' exp ')'								{ m_peecContainer->CreateBasicObjectNode_Ex1<ee::EE_N_ZEROS_LIKE, ee::CVector>( $3, CExpEvalParser::token::EE_DEFAULT, $$ ); }
 	;
 
 exp

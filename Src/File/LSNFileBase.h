@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -30,36 +31,29 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Opens a file.  The path is given in UTF-8.
+		 * Opens a file.
 		 *
-		 * \param _pcPath Path to the file to open.
+		 * \param _pFile Path to the file to open.
 		 * \return Returns true if the file was opened, false otherwise.
 		 */
-		virtual bool										Open( const char8_t * _pcFile );
+		virtual bool										Open( const std::filesystem::path &/*_pFile*/ ) { return false; }
 
 		/**
-		 * Opens a file.  The path is given in UTF-16.
+		 * Creates a file.
 		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char16_t * _pcFile );
-
-		/**
-		 * Creates a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to create.
+		 * \param _pFile Path to the file to create.
 		 * \return Returns true if the file was created, false otherwise.
 		 */
-		virtual bool										Create( const char8_t * _pcFile );
+		virtual bool										Create( const std::filesystem::path &/*_pFile*/ ) { return false; }
 
 		/**
-		 * Creates a file.  The path is given in UTF-16.
+		 * Opens a file for appending.  If it does not exist it is created.
 		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
+		 * \param _pFile Path to the file to open for appending.
+		 * \return Returns true if the given file was opened for appending.
 		 */
-		virtual bool										Create( const char16_t * _pcFile );
+		virtual bool										Append( const std::filesystem::path &/*_pFile*/ ) { return false; }
+
 
 		/**
 		 * Closes the opened file.

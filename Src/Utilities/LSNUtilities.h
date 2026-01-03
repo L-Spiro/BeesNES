@@ -39,6 +39,28 @@
 
 namespace lsn {
 
+	template <typename T>
+	struct IsCharType : std::bool_constant<
+		std::is_same_v<T, char> ||
+		std::is_same_v<T, signed char> ||
+		std::is_same_v<T, unsigned char> ||
+		std::is_same_v<T, wchar_t> ||
+		std::is_same_v<T, char16_t> ||
+		std::is_same_v<T, char32_t>
+#if defined( __cpp_char8_t )
+		|| std::is_same_v<T, char8_t>
+#endif
+		> {};
+
+	template <typename T, typename = void>
+	struct IsVectorLike : std::false_type {};
+
+	template <typename T>
+	struct IsVectorLike<T, std::void_t<
+		typename T::size_type,
+		decltype( std::declval<const T &>().size() ),
+		decltype( std::declval<const T &>()[std::declval<typename T::size_type>()] ) >> : std::true_type {};
+
 	/**
 	 * Class CUtilities
 	 * \brief Useful utility functions.
@@ -48,6 +70,7 @@ namespace lsn {
 	class CUtilities {
 	public :
 		// == Types.
+		/** Full information for a file path, allowing for easy printing of the path without a name or with only the file name. */
 		struct LSN_FILE_PATHS {
 			std::u16string u16sFullPath;					/**< The full file path. */
 			std::u16string u16sPath;						/**< Path to the file without the file name. */
@@ -64,7 +87,7 @@ namespace lsn {
 				::fesetround( iPrevMode );
 			}
 
-			int							iPrevMode;					/**< The previous rounding mode. */
+			int							iPrevMode;			/**< The previous rounding mode. */
 		};
 
 
@@ -367,39 +390,43 @@ namespace lsn {
 		}
 
 		/**
-		 * Appends a char string to a char16_t string.
+		 * Appends a string (NULL-terminated) character-by-character to another string (object).
 		 * 
-		 * \param _sDst The string to which to append the string.
-		 * \param _pcString The string to append to the string.
+		 * \param _tDst The string to which to append the string.
+		 * \param _ptStr The string to append to the string.
 		 * \return Returns the new string.
 		 **/
-		static std::u16string								Append( const std::u16string &_sDst, const char * _pcString ) {
+		template <typename _tInChar = wchar_t, typename _tOutFmt = std::u16string,
+			std::enable_if_t<lsn::IsCharType<_tInChar>::value, int> = 0>
+		static _tOutFmt										Append( const _tOutFmt &_tDst, const _tInChar * _ptStr ) {
 			try {
-				std::u16string sTmp = _sDst;
-				while ( (*_pcString) ) {
-					sTmp.push_back( (*_pcString++) );
+				_tOutFmt sTmp = _tDst;
+				while ( (*_ptStr) ) {
+					sTmp.push_back( (*_ptStr++) );
 				}
 				return sTmp;
 			}
-			catch ( ... ) { return std::u16string(); }
+			catch ( ... ) { return _tOutFmt(); }
 		}
 
 		/**
-		 * Appends a _pwcString string to a char16_t string.
+		 * Appends a string (object) character-by-character to another string (object).
 		 * 
-		 * \param _sDst The string to which to append the string.
-		 * \param _pwcString The string to append to the string.
+		 * \param _tDst The string to which to append the string.
+		 * \param _tStr The string to append to the string.
 		 * \return Returns the new string.
 		 **/
-		static std::u16string								Append( const std::u16string &_sDst, const wchar_t * _pwcString ) {
+		template <typename _tInFmt, typename _tOutFmt,
+			std::enable_if_t<!std::is_pointer_v<_tInFmt> && lsn::IsVectorLike<_tInFmt>::value, int> = 0>
+		static _tOutFmt										Append( const _tOutFmt &_tDst, const _tInFmt &_tStr ) {
 			try {
-				std::u16string sTmp = _sDst;
-				while ( (*_pwcString) ) {
-					sTmp.push_back( (*_pwcString++) );
+				_tOutFmt sTmp = _tDst;
+				for ( typename _tInFmt::size_type I = 0; I < _tStr.size(); ++I ) {
+					sTmp.push_back( _tStr[I] );
 				}
 				return sTmp;
 			}
-			catch ( ... ) { return std::u16string(); }
+			catch ( ... ) { return _tOutFmt(); }
 		}
 
 		/**
@@ -684,33 +711,41 @@ namespace lsn {
 		/**
 		 * Converts XYZ values to chromaticities.
 		 * 
-		 * \param _fX The input X.
-		 * \param _fY The input Y.
-		 * \param _fZ The input Z.
-		 * \param _fChromaX The output chromaticity X.
-		 * \param _fChromaY The output chromaticity Y.
+		 * \param _dX The input X.
+		 * \param _dY The input Y.
+		 * \param _dZ The input Z.
+		 * \param _dChromaX The output chromaticity X.
+		 * \param _dChromaY The output chromaticity Y.
 		 **/
-		static inline void									XYZtoChromaticity( float _fX, float _fY, float _fZ, float &_fChromaX, float &_fChromaY ) {
-			float fX = _fX / _fY;
-			constexpr float dY = 1.0f;
-			float dZ = _fZ / _fY;
-
-			_fChromaX = fX / (fX + dY + dZ);
-			_fChromaY = dY / (fX + dY + dZ);
+		static inline void									XYZtoChromaticity( double _dX, double _dY, double _dZ, double &_dChromaX, double &_dChromaY ) {
+			const double dSum = _dX + _dY + _dZ;
+			if LSN_UNLIKELY( dSum == 0.0 ) {
+				_dChromaX = 0.0;
+				_dChromaY = 0.0;
+				return;
+			}
+			_dChromaX = _dX / dSum;
+			_dChromaY = _dY / dSum;
 		}
 
 		/**
 		 * Converts chromaticities to XYZ values.
 		 * 
-		 * \param _fChromaX The input chromaticity X.
-		 * \param _fChromaY The input chromaticity Y.
-		 * \param _fY0 The input XYZ Y value.
-		 * \param _fX0 The output XYZ Z value.
-		 * \param _fZ0 The output XYZ Z value.
+		 * \param _dChromaX The input chromaticity X.
+		 * \param _dChromaY The input chromaticity Y.
+		 * \param _dY0 The input XYZ Y value.
+		 * \param _dX0 The output XYZ X value.
+		 * \param _dZ0 The output XYZ Z value.
 		 **/
-		static void											ChromaticityToXYZ( float _fChromaX, float _fChromaY, float _fY0, float &_fX0, float &_fZ0 ) {
-			_fX0 = _fChromaX * (_fY0 / _fChromaY);
-			_fZ0 = (1.0f - _fChromaX - _fChromaY) * (_fY0 / _fChromaY);
+		static void											ChromaticityToXYZ( double _dChromaX, double _dChromaY, double _dY0, double &_dX0, double &_dZ0 ) {
+			if LSN_UNLIKELY( _dChromaY == 0.0 ) {
+				_dX0 = 0.0;
+				_dZ0 = 0.0;
+				return;
+			}
+			const double dScale = _dY0 / _dChromaY;
+			_dX0 = _dChromaX * dScale;
+			_dZ0 = (1.0 - _dChromaX - _dChromaY) * dScale;
 		}
 
 		/**

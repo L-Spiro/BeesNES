@@ -971,7 +971,7 @@ namespace lsn {
 		 */
 		template <typename _tType = lwtrack>
 		bool															Pcm16ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
-			const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
+			constexpr double dFactor = 32767.0;					//std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
@@ -998,7 +998,7 @@ namespace lsn {
 		 */
 		template <typename _tType = lwtrack>
 		bool															Pcm24ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
-			const double dFactor = (std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
+			constexpr double dFactor = 2147483392.0;			//(std::pow( 2.0, 24.0 - 1.0 ) - 1.0) * 256.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
@@ -1031,7 +1031,7 @@ namespace lsn {
 		 */
 		template <typename _tType = lwtrack>
 		bool															Pcm32ToF64( uint32_t _ui32From, uint32_t _ui32To, uint16_t _uiChan, _tType &_vResult ) const {
-			const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
+			constexpr double dFactor = 2147483647;				//std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
 			size_t sFinalSize = _vResult.size() + (_ui32To - _ui32From);
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
@@ -1100,7 +1100,7 @@ namespace lsn {
 		template <typename _tType = lwaudio>
 		static bool														BatchF64ToPcm16( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
 			try {
-				const double dFactor = std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
+				constexpr double dFactor = 32767.0;					//std::pow( 2.0, 16.0 - 1.0 ) - 1.0;
 				auto stNumSamples = _vSrc[0].size();
 				auto stNumChannels = _vSrc.size();
 				auto aSize = _vDst.size();
@@ -1206,7 +1206,7 @@ namespace lsn {
 		template <typename _tType = lwaudio>
 		static bool														BatchF64ToPcm24( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
 			try {
-				const double dFactor = std::pow( 2.0, 24.0 - 1.0 ) - 1.0;
+				constexpr double dFactor = 8388607.0;				//std::pow( 2.0, 24.0 - 1.0 ) - 1.0;
 				auto stNumSamples = _vSrc[0].size();
 				auto stNumChannels = _vSrc.size();
 				auto aSize = _vDst.size();
@@ -1239,7 +1239,7 @@ namespace lsn {
 		template <typename _tType = lwaudio>
 		static bool														BatchF64ToPcm32( const _tType &_vSrc, std::vector<uint8_t> &_vDst ) {
 			try {
-				const double dFactor = std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
+				constexpr double dFactor = 2147483647;				//std::pow( 2.0, 32.0 - 1.0 ) - 1.0;
 				auto stNumSamples = _vSrc[0].size();
 				auto stNumChannels = _vSrc.size();
 				auto aSize = _vDst.size();

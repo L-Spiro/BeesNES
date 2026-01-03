@@ -28,16 +28,6 @@ namespace lsn {
 		}
 
 
-		// == Functions.
-		/**
-		 * Gets the current CPU cycle count.
-		 *
-		 * \return Returns the current CPU cycle count.
-		 */
-		inline uint64_t						GetCycleCount() const { return m_ui64CycleCount; }
-
-
-	protected :
 		// == Enumerations.
 		/** Addressing modes. */
 		enum LSN_ADDRESSING_MODES : uint8_t {
@@ -148,7 +138,19 @@ namespace lsn {
 
 			LSN_I_TOTAL
 		};
+		
+		
+		// == Functions.
+		/**
+		 * Gets the current CPU cycle count.
+		 *
+		 * \return Returns the current CPU cycle count.
+		 */
+		inline uint64_t						GetCycleCount() const { return m_ui64CycleCount; }
 
+
+	protected :
+		// == Enumerations.
 		/** Other parameters. */
 		enum LSN_MISC {
 			LSN_M_MAX_INSTR_CYCLE_COUNT		= 8,

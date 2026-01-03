@@ -306,7 +306,6 @@ namespace lsn {
 	protected :
 		// == Types.
 		/** The full state structure for instructions. */
-
 		LSN_ALIGN( 64 )
 		struct LSN_FULL_STATE {
 			const PfCycle *									pfCurInstruction = nullptr;															/**< The current instruction being executed. */

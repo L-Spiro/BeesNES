@@ -282,15 +282,6 @@ RS1_S								[rR]{CS1}
 
 "add"								{ return yy::CExpEvalParser::token::EE_ADD; }
 
-"#"{D}+{IS}?						{ return yy::CExpEvalParser::token::EE_PUREDEC_CONSTANT; }
-0[bB]{B}+{IS}?						{ return yy::CExpEvalParser::token::EE_BIN_CONSTANT; }
-0[oO]{O}+{IS}?						{ return yy::CExpEvalParser::token::EE_OCT_CONSTANT; }
-0[xX]{H}+{IS}?						{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT1; }
-{H}+{IS}?[hH]						{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT2; }
-0{O}+{IS}?							{ return yy::CExpEvalParser::token::EE_OCT_CONSTANT; }
-{D}+{IS}?							{ return yy::CExpEvalParser::token::EE_DEC_CONSTANT; }
-{H}+{IS}?							{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT3; }
-
 (?i:_Pi_)							{ return yy::CExpEvalParser::token::EE_PI_; }
 (?i:_HalfPi_)						{ return yy::CExpEvalParser::token::EE_HALFPI; }
 (?i:_E_)							{ return yy::CExpEvalParser::token::EE_E; }
@@ -533,6 +524,19 @@ RS1_S								[rR]{CS1}
 "__rbitf32"							{ return yy::CExpEvalParser::token::EE_BITSWAPF32; }
 "__rbitf64"							{ return yy::CExpEvalParser::token::EE_BITSWAPF64; }
 "__rbit"							{ return yy::CExpEvalParser::token::EE_BITSWAP32; }
+"M_E"								{ return yy::CExpEvalParser::token::EE_M_E; }
+"M_LOG2E"							{ return yy::CExpEvalParser::token::EE_M_LOG2E; }
+"M_LOG10E"							{ return yy::CExpEvalParser::token::EE_M_LOG10E; }
+"M_LN2"								{ return yy::CExpEvalParser::token::EE_M_LN2; }
+"M_LN10"							{ return yy::CExpEvalParser::token::EE_M_LN10; }
+"M_PI"								{ return yy::CExpEvalParser::token::EE_M_PI; }
+"M_PI_2"							{ return yy::CExpEvalParser::token::EE_M_PI_2; }
+"M_PI_4"							{ return yy::CExpEvalParser::token::EE_M_PI_4; }
+"M_1_PI"							{ return yy::CExpEvalParser::token::EE_M_1_PI; }
+"M_2_PI"							{ return yy::CExpEvalParser::token::EE_M_2_PI; }
+"M_2_SQRTPI"						{ return yy::CExpEvalParser::token::EE_M_2_SQRTPI; }
+"M_SQRT2"							{ return yy::CExpEvalParser::token::EE_M_SQRT2; }
+"M_SQRT1_2"							{ return yy::CExpEvalParser::token::EE_M_SQRT1_2; }
 
 "format"							{ return yy::CExpEvalParser::token::EE_FORMAT; }
 
@@ -573,18 +577,50 @@ RS1_S								[rR]{CS1}
 "swap"								{ return yy::CExpEvalParser::token::EE_SWAP; }
 "tokenize"							{ return yy::CExpEvalParser::token::EE_TOKENIZE; }
 
+"barthann"							{ return yy::CExpEvalParser::token::EE_BARTHANN; }
 "bartlett"							{ return yy::CExpEvalParser::token::EE_BARTLETT; }
 "blackman"							{ return yy::CExpEvalParser::token::EE_BLACKMAN; }
 "blackmanharris"					{ return yy::CExpEvalParser::token::EE_BLACKMANHARRIS; }
-"blackmannuttal"					{ return yy::CExpEvalParser::token::EE_BLACKMANNUTTAL; }
+"blackmannuttall"					{ return yy::CExpEvalParser::token::EE_BLACKMANNUTTAL; }
+"bohman"							{ return yy::CExpEvalParser::token::EE_BOHMAN; }
+"boxcar"							{ return yy::CExpEvalParser::token::EE_BOXCAR; }
+"chebwin"							{ return yy::CExpEvalParser::token::EE_CHEBWIN; }
+"cosine"							{ return yy::CExpEvalParser::token::EE_COSINE; }
+"exponential"						{ return yy::CExpEvalParser::token::EE_EXPONENTIAL; }
 "flattop"							{ return yy::CExpEvalParser::token::EE_FLATTOP; }
+"gaussian"							{ return yy::CExpEvalParser::token::EE_GAUSSIAN; }
+"general_cosine"					{ return yy::CExpEvalParser::token::EE_GENERAL_COSINE; }
+"general_gaussian"					{ return yy::CExpEvalParser::token::EE_GENERAL_GUASSIAN; }
+"general_hamming"					{ return yy::CExpEvalParser::token::EE_GENERAL_HAMMING; }
 "hamming"							{ return yy::CExpEvalParser::token::EE_HAMMING; }
 "hann"								{ return yy::CExpEvalParser::token::EE_HANN; }
 "hanning"							{ return yy::CExpEvalParser::token::EE_HANN; }
 "kaiser"							{ return yy::CExpEvalParser::token::EE_KAISER; }
+"kaiser_bessel_derived"				{ return yy::CExpEvalParser::token::EE_KAISER_BESSEL; }
 "lanczos"							{ return yy::CExpEvalParser::token::EE_LANCZOS; }
-"nuttal"							{ return yy::CExpEvalParser::token::EE_NUTTAL; }
+"nuttall"							{ return yy::CExpEvalParser::token::EE_NUTTAL; }
+"parzen"							{ return yy::CExpEvalParser::token::EE_PARZEN; }
 "sinc"								{ return yy::CExpEvalParser::token::EE_SINC; }
+"taylor"							{ return yy::CExpEvalParser::token::EE_TAYLOR; }
+"triang"							{ return yy::CExpEvalParser::token::EE_TRIANG; }
+"tukey"								{ return yy::CExpEvalParser::token::EE_TUKEY; }
+
+"trapezoid"							{ return yy::CExpEvalParser::token::EE_TRAPEZOID; }
+"cumulative_trapezoid"				{ return yy::CExpEvalParser::token::EE_CUM_TRAPEZOID; }
+"simpson"							{ return yy::CExpEvalParser::token::EE_SIMPSON; }
+"cumulative_simpson"				{ return yy::CExpEvalParser::token::EE_CUM_SIMPSON; }
+"romb"								{ return yy::CExpEvalParser::token::EE_ROMB; }
+
+"arange"							{ return yy::CExpEvalParser::token::EE_ARANGE; }
+"full"								{ return yy::CExpEvalParser::token::EE_FULL; }
+"full_like"							{ return yy::CExpEvalParser::token::EE_FULL_LIKE; }
+"geomspace"							{ return yy::CExpEvalParser::token::EE_GEOMSPACE; }
+"linspace"							{ return yy::CExpEvalParser::token::EE_LINSPACE; }
+"logspace"							{ return yy::CExpEvalParser::token::EE_LOGSPACE; }
+"ones"								{ return yy::CExpEvalParser::token::EE_ONES; }
+"ones_like"							{ return yy::CExpEvalParser::token::EE_ONES_LIKE; }
+"zeros"								{ return yy::CExpEvalParser::token::EE_ZEROS; }
+"zeros_like"						{ return yy::CExpEvalParser::token::EE_ZEROS_LIKE; }
 
 
 "CHAR_BIT"							{ return yy::CExpEvalParser::token::EE_CHAR_BIT; }
@@ -715,6 +751,15 @@ RS1_S								[rR]{CS1}
 "ms_since_start"					{ return yy::CExpEvalParser::token::EE_MILLISECONDS_SINCE_START; }
 "microseconds_since_start"			{ return yy::CExpEvalParser::token::EE_MICROSECONDS_SINCE_START; }
 "micros_since_start"				{ return yy::CExpEvalParser::token::EE_MICROSECONDS_SINCE_START; }
+
+"#"{D}+{IS}?						{ return yy::CExpEvalParser::token::EE_PUREDEC_CONSTANT; }
+0[bB]{B}+{IS}?						{ return yy::CExpEvalParser::token::EE_BIN_CONSTANT; }
+0[oO]{O}+{IS}?						{ return yy::CExpEvalParser::token::EE_OCT_CONSTANT; }
+0[xX]{H}+{IS}?						{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT1; }
+{H}+{IS}?[hH]						{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT2; }
+0{O}+{IS}?							{ return yy::CExpEvalParser::token::EE_OCT_CONSTANT; }
+{D}+{IS}?							{ return yy::CExpEvalParser::token::EE_DEC_CONSTANT; }
+{H}+{IS}?							{ return yy::CExpEvalParser::token::EE_HEX_CONSTANT3; }
 
 {D}+{E}{FS}?						{ return yy::CExpEvalParser::token::EE_FLOAT_CONSTANT; }
 {D}*"."{D}+({E})?{FS}?				{ return yy::CExpEvalParser::token::EE_FLOAT_CONSTANT; }

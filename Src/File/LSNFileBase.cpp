@@ -20,58 +20,6 @@ namespace lsn {
 
 	// == Functions.
 	/**
-	 * Opens a file.  The path is given in UTF-8.
-	 *
-	 * \param _pcFile Path to the file to open.
-	 * \return Returns true if the file was opened, false otherwise.
-	 */
-	bool CFileBase::Open( const char8_t * _pcFile ) {
-		bool bErrored;
-		std::u16string swTmp = CUtilities::Utf8ToUtf16( _pcFile, &bErrored );
-		if ( bErrored ) { return false; }
-		return Open( swTmp.c_str() );
-	}
-
-	/**
-	 * Opens a file.  The path is given in UTF-16.
-	 *
-	 * \param _pcFile Path to the file to open.
-	 * \return Returns true if the file was opened, false otherwise.
-	 */
-	bool CFileBase::Open( const char16_t * _pcFile ) {
-		bool bErrored;
-		std::u8string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
-		if ( bErrored ) { return false; }
-		return Open( sTmp.c_str() );
-	}
-
-	/**
-	 * Creates a file.  The path is given in UTF-8.
-	 *
-	 * \param _pcFile Path to the file to create.
-	 * \return Returns true if the file was created, false otherwise.
-	 */
-	bool CFileBase::Create( const char8_t * _pcFile ) {
-		bool bErrored;
-		std::u16string swTmp = CUtilities::Utf8ToUtf16( _pcFile, &bErrored );
-		if ( bErrored ) { return false; }
-		return Create( swTmp.c_str() );
-	}
-
-	/**
-	 * Creates a file.  The path is given in UTF-16.
-	 *
-	 * \param _pcFile Path to the file to create.
-	 * \return Returns true if the file was created, false otherwise.
-	 */
-	bool CFileBase::Create( const char16_t * _pcFile ) {
-		bool bErrored;
-		std::u8string sTmp = CUtilities::Utf16ToUtf8( _pcFile, &bErrored );
-		if ( bErrored ) { return false; }
-		return Create( sTmp.c_str() );
-	}
-
-	/**
 	 * Closes the opened file.
 	 */
 	void CFileBase::Close() {}

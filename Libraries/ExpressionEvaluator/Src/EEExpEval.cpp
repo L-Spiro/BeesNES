@@ -488,25 +488,28 @@ namespace ee {
 	 * \return				The resulting UTF-8 string.
 	 **/
 	std::string CExpEval::ToUtf8( const std::wstring &_wsString ) {
-		std::string sRet;
-		const wchar_t * pwcInput = _wsString.c_str();
-		size_t sSize = _wsString.size();
+		try {
+			std::string sRet;
+			const wchar_t * pwcInput = _wsString.c_str();
+			size_t sSize = _wsString.size();
 
-		for ( size_t I = 0; I < sSize; ) {
-			size_t sThisSize = 0;
-			uint32_t ui32Char = NextUtf16Char( &pwcInput[I], sSize - I, &sThisSize );
-			if ( ui32Char == EE_UTF_INVALID ) {
-				ui32Char = pwcInput[I];
+			for ( size_t I = 0; I < sSize; ) {
+				size_t sThisSize = 0;
+				uint32_t ui32Char = NextUtf16Char( &pwcInput[I], sSize - I, &sThisSize );
+				if ( ui32Char == EE_UTF_INVALID ) {
+					ui32Char = pwcInput[I];
+				}
+				I += sThisSize;
+				uint32_t ui32Len = 0;
+				uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
+				for ( uint32_t J = 0; J < ui32Len; ++J ) {
+					sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
+					ui32BackToUtf8 >>= 8;
+				}
 			}
-			I += sThisSize;
-			uint32_t ui32Len = 0;
-			uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
-			for ( uint32_t J = 0; J < ui32Len; ++J ) {
-				sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
-				ui32BackToUtf8 >>= 8;
-			}
+			return sRet;
 		}
-		return sRet;
+		catch ( ... ) { return std::string(); }
 	}
 
 	/**
@@ -516,25 +519,28 @@ namespace ee {
 	 * \return				The resulting UTF-8 string.
 	 **/
 	std::string CExpEval::ToUtf8( const std::u16string &_u16String ) {
-		std::string sRet;
-		const char16_t * pc16Input = _u16String.c_str();
-		size_t sSize = _u16String.size();
+		try {
+			std::string sRet;
+			const char16_t * pc16Input = _u16String.c_str();
+			size_t sSize = _u16String.size();
 
-		for ( size_t I = 0; I < sSize; ) {
-			size_t sThisSize = 0;
-			uint32_t ui32Char = NextUtf16Char( reinterpret_cast<const wchar_t *>(&pc16Input[I]), sSize - I, &sThisSize );
-			if ( ui32Char == EE_UTF_INVALID ) {
-				ui32Char = pc16Input[I];
+			for ( size_t I = 0; I < sSize; ) {
+				size_t sThisSize = 0;
+				uint32_t ui32Char = NextUtf16Char( reinterpret_cast<const wchar_t *>(&pc16Input[I]), sSize - I, &sThisSize );
+				if ( ui32Char == EE_UTF_INVALID ) {
+					ui32Char = pc16Input[I];
+				}
+				I += sThisSize;
+				uint32_t ui32Len = 0;
+				uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
+				for ( uint32_t J = 0; J < ui32Len; ++J ) {
+					sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
+					ui32BackToUtf8 >>= 8;
+				}
 			}
-			I += sThisSize;
-			uint32_t ui32Len = 0;
-			uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
-			for ( uint32_t J = 0; J < ui32Len; ++J ) {
-				sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
-				ui32BackToUtf8 >>= 8;
-			}
+			return sRet;
 		}
-		return sRet;
+		catch ( ... ) { return std::string(); }
 	}
 
 	/**
@@ -544,30 +550,33 @@ namespace ee {
 	 * \return				The resulting UTF-8 string.
 	 **/
 	std::string CExpEval::ToUtf8( const std::u32string &_u32String ) {
-		std::string sRet;
-		const char32_t * pc32Input = _u32String.c_str();
-		size_t sSize = _u32String.size();
+		try {
+			std::string sRet;
+			const char32_t * pc32Input = _u32String.c_str();
+			size_t sSize = _u32String.size();
 
-		for ( size_t I = 0; I < sSize; ) {
-			size_t sThisSize = 0;
-			uint32_t ui32Char = NextUtf32Char( reinterpret_cast<const uint32_t *>(&pc32Input[I]), sSize - I, &sThisSize );
-			//if ( ui32Char == EE_UTF_INVALID ) { ui32Char = pc32Input[I]; }
-			if ( ui32Char == EE_UTF_INVALID ) {
-				for ( size_t J = 0; J < sThisSize * sizeof( std::u32string::value_type ); ++J ) {
-					sRet.push_back( reinterpret_cast<const std::string::value_type *>(&_u32String.data()[I])[J] );
+			for ( size_t I = 0; I < sSize; ) {
+				size_t sThisSize = 0;
+				uint32_t ui32Char = NextUtf32Char( reinterpret_cast<const uint32_t *>(&pc32Input[I]), sSize - I, &sThisSize );
+				//if ( ui32Char == EE_UTF_INVALID ) { ui32Char = pc32Input[I]; }
+				if ( ui32Char == EE_UTF_INVALID ) {
+					for ( size_t J = 0; J < sThisSize * sizeof( std::u32string::value_type ); ++J ) {
+						sRet.push_back( reinterpret_cast<const std::string::value_type *>(&_u32String.data()[I])[J] );
+					}
+					I += sThisSize;
+					continue;
 				}
 				I += sThisSize;
-				continue;
+				uint32_t ui32Len = 0;
+				uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
+				for ( uint32_t J = 0; J < ui32Len; ++J ) {
+					sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
+					ui32BackToUtf8 >>= 8;
+				}
 			}
-			I += sThisSize;
-			uint32_t ui32Len = 0;
-			uint32_t ui32BackToUtf8 = Utf32ToUtf8( ui32Char, ui32Len );
-			for ( uint32_t J = 0; J < ui32Len; ++J ) {
-				sRet.push_back( static_cast<uint8_t>(ui32BackToUtf8) );
-				ui32BackToUtf8 >>= 8;
-			}
+			return sRet;
 		}
-		return sRet;
+		catch ( ... ) { return std::string(); }
 	}
 
 	/**
@@ -577,24 +586,27 @@ namespace ee {
 	 * \return				The resulting UTF-32 string.
 	 **/
 	std::u32string CExpEval::ToUtf32( const std::string &_sIn ) {
-		std::u32string u32Return;
-		const char * pcSrc = _sIn.c_str();
-		size_t sSize = _sIn.size();
+		try {
+			std::u32string u32Return;
+			const char * pcSrc = _sIn.c_str();
+			size_t sSize = _sIn.size();
 
-		for ( size_t I = 0; I < sSize; ) {
-			size_t sThisSize = 0;
-			uint32_t ui32This = NextUtf8Char( &pcSrc[I], _sIn.size() - I, &sThisSize );
-			if ( ui32This == EE_UTF_INVALID ) {
-				for ( size_t J = 0; J < sThisSize; ++J ) {
-					u32Return.push_back( static_cast<uint8_t>(pcSrc[I+J]) );
+			for ( size_t I = 0; I < sSize; ) {
+				size_t sThisSize = 0;
+				uint32_t ui32This = NextUtf8Char( &pcSrc[I], _sIn.size() - I, &sThisSize );
+				if ( ui32This == EE_UTF_INVALID ) {
+					for ( size_t J = 0; J < sThisSize; ++J ) {
+						u32Return.push_back( static_cast<uint8_t>(pcSrc[I+J]) );
+					}
+					I += sThisSize;
+					continue;
 				}
 				I += sThisSize;
-				continue;
+				u32Return.push_back( ui32This );
 			}
-			I += sThisSize;
-			u32Return.push_back( ui32This );
+			return u32Return;
 		}
-		return u32Return;
+		catch ( ... ) { return std::u32string(); }
 	}
 
 	/**
@@ -625,7 +637,7 @@ namespace ee {
 						{ 't', '\t' },
 					};
 					bool bFound = false;
-					for ( auto J = EE_COUNT_OF( sEscapes ); J--; ) {
+					for ( auto J = std::size( sEscapes ); J--; ) {
 						if ( ui32BackToUtf8 == static_cast<uint8_t>(sEscapes[J].cValue) ) {
 							sRet.push_back( '\\' );
 							sRet.push_back( sEscapes[J].cEscape );
@@ -733,7 +745,7 @@ namespace ee {
 						{ '\\', '\\' },
 					};
 					bool bFound = false;
-					for ( auto J = EE_COUNT_OF( sEscapes ); J--; ) {
+					for ( auto J = std::size( sEscapes ); J--; ) {
 						if ( ui32BackToUtf8 == static_cast<uint8_t>(sEscapes[J].cValue) ) {
 							sRet.push_back( '\\' );
 							sRet.push_back( sEscapes[J].cEscape );
@@ -1581,22 +1593,68 @@ namespace ee {
 		return bFloat ? float( ::atof( _pcNumberBegins ) ) : ::atof( _pcNumberBegins );
 	}
 
-	// Gets the timer frequency.
+	/**
+	 * \brief Gets the frequency (units per second) for values returned by Time().
+	 *
+	 * Use this to convert a difference of two Time() samples into seconds:
+	 * \code
+	 * uint64_t ui64Start = Time();
+	 * // ... work ...
+	 * uint64_t ui64End = Time();
+	 * double dSeconds = double( ui64End - ui64Start ) / double( TimeFrequency() );
+	 * \endcode
+	 *
+	 * - Windows: Returns QueryPerformanceFrequency() (ticks per second).
+	 * - Apple: Converts mach timebase into an equivalent ticks-per-second value.
+	 * - Other POSIX: Returns 1,000,000,000 because Time() returns nanoseconds.
+	 *
+	 * \return Returns the number of Time() units per second. Guaranteed non-zero on supported
+	 * platforms.
+	 *
+	 * \note The returned value is intended only for converting Time() deltas. Do not assume it
+	 * matches any CPU frequency.
+	 */
 	uint64_t CExpEval::TimerFrequency() {
 		static uint64_t uiFreq = 0;
 		if ( !uiFreq ) {
-#ifdef _WIN32
+#if defined( _WIN32 )
 			::QueryPerformanceFrequency( reinterpret_cast<LARGE_INTEGER *>(&uiFreq) );
-#else
-			if ( !m_mtidInfoData.denom ) {
-				if ( KERN_SUCCESS != ::mach_timebase_info( &m_mtidInfoData ) ) {
-					return 0ULL;
-				}
+#elif defined( __APPLE__ )
+			::mach_timebase_info_data_t mtidInfoData{};
+			if ( KERN_SUCCESS != ::mach_timebase_info( &mtidInfoData ) ) {
+				return 0ULL;
 			}
-			uiFreq = (m_mtidInfoData.denom * 1000000000ULL);
-#endif	// #ifdef _WIN32
+
+			// mach_absolute_time() ticks -> nanoseconds: ticks * numer / denom.
+			// Therefore ticks per second = 1e9 * denom / numer.
+			__uint128_t ui128 = static_cast<__uint128_t>(1000000000ULL) * static_cast<__uint128_t>(mtidInfoData.denom);
+			ui128 /= static_cast<__uint128_t>(mtidInfoData.numer);
+			uiFreq = static_cast<uint64_t>(ui128);
+#else
+			// If ticks are nanoseconds (e.g. CLOCK_MONOTONIC packed as ns), frequency is 1e9.
+			uiFreq = 1000000000ULL;
+#endif	// #if defined( _WIN32 )
 		}
 		return uiFreq;
+	}
+
+	/**
+	 * \brief Converts timer ticks to microseconds using TimerFrequency().
+	 *
+	 * \param _ui64Ticks		The number of timer ticks to convert.
+	 * \return				The equivalent duration in microseconds. Returns 0 if TimerFrequency() is 0.
+	 *
+	 * \note This performs integer conversion (truncating toward zero). It uses an overflow-safe
+	 * multiply/divide path on supported compilers.
+	 */
+	uint64_t CExpEval::TicksToMicroseconds( uint64_t _ui64Ticks ) {
+		const uint64_t ui64Freq = TimerFrequency();
+		if ( !ui64Freq ) { return 0ULL; }
+
+		int64_t i64Rem;
+		return _muldiv128( _ui64Ticks, 1000000ULL, ui64Freq, &i64Rem );
+
+		//return (_ui64Ticks * 1000000ULL) / TimerFrequency();
 	}
 
 	// Pulls any preprocessing directives out of a single line.

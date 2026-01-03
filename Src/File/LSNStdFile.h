@@ -28,76 +28,34 @@ namespace lsn {
 
 
 		// == Functions.
-#ifdef LSN_WINDOWS
 		/**
-		 * Opens a file.  The path is given in UTF-8.
+		 * Opens a file.
 		 *
-		 * \param _pcPath Path to the file to open.
+		 * \param _pFile Path to the file to open.
 		 * \return Returns true if the file was opened, false otherwise.
 		 */
-		virtual bool										Open( const char8_t * _pcFile ) { return CFileBase::Open( _pcFile ); }
+		virtual bool										Open( const std::filesystem::path &_pFile ) override;
 
 		/**
-		 * Opens a file.  The path is given in UTF-16.
+		 * Creates a file.
 		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char16_t * _pcFile );
-
-		/**
-		 * Creates a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to create.
+		 * \param _pFile Path to the file to create.
 		 * \return Returns true if the file was created, false otherwise.
 		 */
-		virtual bool										Create( const char8_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
+		virtual bool										Create( const std::filesystem::path &_pFile ) override;
 
 		/**
-		 * Creates a file.  The path is given in UTF-16.
+		 * Opens a file for appending.  If it does not exist it is created.
 		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
+		 * \param _pFile Path to the file to open for appending.
+		 * \return Returns true if the given file was opened for appending.
 		 */
-		virtual bool										Create( const char16_t * _pcFile );
-#else
-		/**
-		 * Opens a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char8_t * _pcFile );
-
-		/**
-		 * Opens a file.  The path is given in UTF-16.
-		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char16_t * _pcFile ) { return CFileBase::Open( _pcFile ); }
-
-		/**
-		 * Creates a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
-		 */
-		virtual bool										Create( const char8_t * _pcFile );
-
-		/**
-		 * Creates a file.  The path is given in UTF-16.
-		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
-		 */
-		virtual bool										Create( const char16_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
-#endif	// #ifdef LSN_WINDOWS
+		virtual bool										Append( const std::filesystem::path &_pFile ) override;
 
 		/**
 		 * Closes the opened file.
 		 */
-		virtual void										Close();
+		virtual void										Close()override;
 
 		/**
 		 * Determines whether the file is open for read or write or not.
@@ -112,7 +70,7 @@ namespace lsn {
 		 * \param _vResult The location where to store the file in memory.
 		 * \return Returns true if the file was successfully loaded into memory.
 		 */
-		virtual bool										LoadToMemory( std::vector<uint8_t> &_vResult ) const;
+		virtual bool										LoadToMemory( std::vector<uint8_t> &_vResult ) const override;
 
 		/**
 		 * Reads from the file.
@@ -121,7 +79,7 @@ namespace lsn {
 		 * \param _sSize The number of bytes to read.
 		 * \return Returns true if the read succeeded.  The file must be opened for read and the read operation must not extend beyond the end of the file.
 		 **/
-		virtual bool										Read( void * _pvDst, size_t _sSize );
+		virtual bool										Read( void * _pvDst, size_t _sSize ) override;
 
 		/**
 		 * Writes the given data to the created file.  File must have been cerated with Create().
@@ -147,7 +105,7 @@ namespace lsn {
 		 * \param _sSize The number of bytes to write.
 		 * \return Returns true if the write succeeded.  The file must be opened for write and there must be enough room to extend the file size.
 		 **/
-		virtual bool										Write( const void * _pvSrc, size_t _sSize ) { return WriteToFile( static_cast<const uint8_t *>(_pvSrc), _sSize ); }
+		virtual bool										Write( const void * _pvSrc, size_t _sSize ) override { return WriteToFile( static_cast<const uint8_t *>(_pvSrc), _sSize ); }
 
 		/**
 		 * Writes arbitrarily typed data to the created file.
@@ -185,14 +143,14 @@ namespace lsn {
 		 * 
 		 * \return Returns the size of the file.
 		 **/
-		virtual uint64_t									Size() const { return m_ui64Size; }
+		virtual uint64_t									Size() const override { return m_ui64Size; }
 
 		/**
 		 * Gets the current position inside the file.
 		 * 
 		 * \return Returns the current position inside the file.
 		 **/
-		virtual uint64_t									GetPos() const;
+		virtual uint64_t									GetPos() const override;
 
 		/**
 		 * Moves the file pointer from the current position and returns the new position.
@@ -200,7 +158,7 @@ namespace lsn {
 		 * \param _i64Offset Amount by which to move the file pointer.
 		 * \return Returns the new line position.
 		 **/
-		virtual uint64_t									MovePointerBy( int64_t _i64Offset ) const;
+		virtual uint64_t									MovePointerBy( int64_t _i64Offset ) const override;
 
 		/**
 		 * Moves the file pointer to the given file position.
@@ -209,7 +167,7 @@ namespace lsn {
 		 * \param _bFromEnd Whether _ui64Pos is from the end of the file or not. 
 		 * \return Returns the new file position.
 		 **/
-		virtual uint64_t									MovePointerTo( uint64_t _ui64Pos, bool _bFromEnd = false ) const;
+		virtual uint64_t									MovePointerTo( uint64_t _ui64Pos, bool _bFromEnd = false ) const override;
 
 		/**
 		 * Loads the opened file to memory, storing the result in _vResult.

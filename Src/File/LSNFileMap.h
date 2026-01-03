@@ -12,12 +12,9 @@
 #include "../LSNLSpiroNes.h"
 #include "LSNFileBase.h"
 
-#include <string>
-#include <vector>
+#include <filesystem>
+#include <limits>
 
-#ifdef LSN_USE_WINDOWS
-#include <Helpers/LSWHelpers.h>
-#endif	// #ifdef LSN_USE_WINDOWS
 
 namespace lsn {
 
@@ -33,104 +30,56 @@ namespace lsn {
 		virtual ~CFileMap();
 
 
-		// == Functions.
-#ifdef LSN_WINDOWS
-		/**
-		 * Opens a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char8_t * _pcFile ) { return CFileBase::Open( _pcFile ); }
-
-		/**
-		 * Opens a file.  The path is given in UTF-16.
-		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char16_t * _pcFile );
-
-		/**
-		 * Creates a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
-		 */
-		virtual bool										Create( const char8_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
-
-		/**
-		 * Creates a file.  The path is given in UTF-16.
-		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
-		 */
-		virtual bool										Create( const char16_t * _pcFile );
+		// == Types.
+#ifdef _WIN32
+		typedef HANDLE										Handle;
+#define FileMap_Null										INVALID_HANDLE_VALUE
 #else
+		typedef int											Handle;
+#define FileMap_Null										(-1)
+#endif	// #ifdef _WIN32
+
+
+		// == Functions.
 		/**
-		 * Opens a file.  The path is given in UTF-8.
+		 * Opens a file.
 		 *
-		 * \param _pcPath Path to the file to open.
+		 * \param _pFile Path to the file to open.
 		 * \return Returns true if the file was opened, false otherwise.
 		 */
-		virtual bool										Open( const char8_t * _pcFile );
+		virtual bool										Open( const std::filesystem::path &_pFile ) override;
 
 		/**
-		 * Opens a file.  The path is given in UTF-16.
+		 * Creates a file.
 		 *
-		 * \param _pcPath Path to the file to open.
-		 * \return Returns true if the file was opened, false otherwise.
-		 */
-		virtual bool										Open( const char16_t * _pcFile ) { return CFileBase::Open( _pcFile ); }
-
-		/**
-		 * Creates a file.  The path is given in UTF-8.
-		 *
-		 * \param _pcPath Path to the file to create.
+		 * \param _pFile Path to the file to create.
 		 * \return Returns true if the file was created, false otherwise.
 		 */
-		virtual bool										Create( const char8_t * _pcFile );
-
-		/**
-		 * Creates a file.  The path is given in UTF-16.
-		 *
-		 * \param _pcPath Path to the file to create.
-		 * \return Returns true if the file was created, false otherwise.
-		 */
-		virtual bool										Create( const char16_t * _pcFile ) { return CFileBase::Create( _pcFile ); }
-#endif	// #ifdef LSN_WINDOWS
+		virtual bool										Create( const std::filesystem::path &_pFile ) override;
 
 		/**
 		 * Closes the opened file.
 		 */
-		virtual void										Close();
+		virtual void										Close() override;
 
 		/**
 		 * Gets the size of the file.
 		 * 
 		 * \return Returns the size of the file.
 		 **/
-		virtual uint64_t									Size() const;
+		virtual uint64_t									Size() const override;
 
 
 	protected :
 		// == Members.
-#ifdef LSN_WINDOWS
-#ifdef LSN_USE_WINDOWS
-		lsw::LSW_HANDLE										m_hFile;						/**< The file handle. */
-		lsw::LSW_HANDLE										m_hMap;							/**< The file-mapping handle. */
-#else
-		HANDLE												m_hFile = NULL;					/**< The file handle. */
-		HANDLE												m_hMap = NULL;					/**< The file-mapping handle. */
-#endif	// #ifdef SBN_USE_WINDOWS
-		mutable PBYTE										m_pbMapBuffer;					/**< Mapped bytes. */
-		bool												m_bIsEmpty;						/**< Is the file 0-sized? */
-		bool												m_bWritable;					/**< Read-only or read-write? */
-		mutable uint64_t									m_ui64Size;						/**< Size of the file. */
-		mutable uint64_t									m_ui64MapStart;					/**< Map start. */
-		mutable DWORD										m_dwMapSize;					/**< Mapped size. */
-#else
-#endif	// #ifdef LSN_WINDOWS
+		mutable uint64_t									m_ui64Size = 0;												/**< Size of the file. */
+		mutable uint64_t									m_ui64MapStart = std::numeric_limits<uint64_t>::max();		/**< Map start. */
+		mutable uint8_t *									m_pbMapBuffer = nullptr;									/**< Mapped bytes. */
+		Handle												m_hFile = FileMap_Null;										/**< The file handle. */
+		Handle												m_hMap = FileMap_Null;										/**< The file-mapping handle. */
+		mutable uint32_t									m_ui32MapSize = 0;											/**< Mapped size. */
+		bool												m_bIsEmpty = true;											/**< Is the file 0-sized? */
+		bool												m_bWritable = false;										/**< Read-only or read-write? */
 
 
 		// == Functions.

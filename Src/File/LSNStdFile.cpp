@@ -24,14 +24,14 @@ namespace lsn {
 	/**
 	 * Opens a file.  The path is given in UTF-16.
 	 *
-	 * \param _pcPath Path to the file to open.
+	 * \param _pFile Path to the file to open.
 	 * \return Returns true if the file was opened, false otherwise.
 	 */
-	bool CStdFile::Open( const char16_t * _pcFile ) {
+	bool CStdFile::Open( const std::filesystem::path &_pFile ) {
 		Close();
 
 		FILE * pfFile = nullptr;
-		errno_t enOpenResult = ::_wfopen_s( &pfFile, reinterpret_cast<const wchar_t *>(_pcFile), L"rb" );
+		errno_t enOpenResult = ::_wfopen_s( &pfFile, _pFile.generic_wstring().c_str(), L"rb" );
 		if ( nullptr == pfFile || enOpenResult != 0 ) { return false; }
 
 		::_fseeki64( pfFile, 0, SEEK_END );
@@ -46,14 +46,14 @@ namespace lsn {
 	/**
 	 * Creates a file.  The path is given in UTF-16.
 	 *
-	 * \param _pcPath Path to the file to create.
+	 * \param _pFile Path to the file to create.
 	 * \return Returns true if the file was created, false otherwise.
 	 */
-	bool CStdFile::Create( const char16_t * _pcFile ) {
+	bool CStdFile::Create( const std::filesystem::path &_pFile ) {
 		Close();
 
 		FILE * pfFile = nullptr;
-		errno_t enOpenResult = ::_wfopen_s( &pfFile, reinterpret_cast<const wchar_t *>(_pcFile), L"wb" );
+		errno_t enOpenResult = ::_wfopen_s( &pfFile, _pFile.generic_wstring().c_str(), L"wb" );
 		if ( nullptr == pfFile || enOpenResult != 0 ) { return false; }
 
 		m_ui64Size = 0;
@@ -62,15 +62,38 @@ namespace lsn {
 		PostLoad();
 		return true;
 	}
+
+	/**
+	 * Opens a file for appending.  If it does not exist it is created.
+	 *
+	 * \param _pFile Path to the file to open for appending.
+	 * \return Returns true if the given file was opened for appending.
+	 */
+	bool CStdFile::Append( const std::filesystem::path &_pFile ) {
+		Close();
+
+		FILE * pfFile = nullptr;
+		errno_t enOpenResult = ::_wfopen_s( &pfFile, _pFile.generic_wstring().c_str(), L"ab" );
+		if ( nullptr == pfFile || enOpenResult != 0 ) { return false; }
+
+		::_fseeki64( pfFile, 0, SEEK_END );
+		m_ui64Size = ::_ftelli64( pfFile );
+
+		m_pfFile = pfFile;
+		PostLoad();
+		return true;
+	}
 #else
 	/**
-	 * Opens a file.  The path is given in UTF-8.
+	 * Opens a file.
 	 *
-	 * \param _pcPath Path to the file to open.
+	 * \param _pFile Path to the file to open.
 	 * \return Returns true if the file was opened, false otherwise.
 	 */
-	bool CStdFile::Open( const char8_t * _pcFile ) {
-		FILE * pfFile = std::fopen( reinterpret_cast<const char *>(_pcFile), "rb" );
+	bool CStdFile::Open( const std::filesystem::path &_pFile ) {
+		Close();
+
+		FILE * pfFile = std::fopen( _pFile.generic_string().c_str(), "rb" );
 		if ( nullptr == pfFile ) { return false; }
 
 		std::fseek( pfFile, 0, SEEK_END );
@@ -83,16 +106,38 @@ namespace lsn {
 	}
 
 	/**
-	 * Creates a file.  The path is given in UTF-8.
+	 * Creates a file.
 	 *
-	 * \param _pcPath Path to the file to create.
+	 * \param _pFile Path to the file to create.
 	 * \return Returns true if the file was created, false otherwise.
 	 */
-	bool CStdFile::Create( const char8_t * _pcFile ) {
-		FILE * pfFile = std::fopen( reinterpret_cast<const char *>(_pcFile), "wb" );
+	bool CStdFile::Create( const std::filesystem::path &_pFile ) {
+		Close();
+
+		FILE * pfFile = std::fopen( _pFile.generic_string().c_str(), "wb" );
 		if ( nullptr == pfFile ) { return false; }
 
 		m_ui64Size = 0;
+
+		m_pfFile = pfFile;
+		PostLoad();
+		return true;
+	}
+
+	/**
+	 * Opens a file for appending.  If it does not exist it is created.
+	 *
+	 * \param _pFile Path to the file to open for appending.
+	 * \return Returns true if the given file was opened for appending.
+	 */
+	bool CStdFile::Append( const std::filesystem::path &_pFile ) {
+		Close();
+
+		FILE * pfFile = std::fopen( _pFile.generic_string().c_str(), "ab" );
+		if ( nullptr == pfFile ) { return false; }
+
+		::_fseeki64( pfFile, 0, SEEK_END );
+		m_ui64Size = ::_ftelli64( pfFile );
 
 		m_pfFile = pfFile;
 		PostLoad();
