@@ -37,6 +37,13 @@ namespace lsn {
 		virtual ~CNtscLSpiroFilter();
 
 
+		// == Enumerations.
+		/** The resolution of the sRGB table. **/
+		enum : size_t {
+			LSN_SRGB_RES									= 1024,
+		};
+
+
 		// == Types.
 		/**
 		 * A filter function.
@@ -298,10 +305,10 @@ namespace lsn {
 		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
 		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
 
-		uint32_t											m_ui32Gamma[300];									/**< The gamma curve. */
-		uint32_t											m_ui32GammaG[300];									/**< The gamma curve for green. */
-		uint8_t												m_ui8Gamma[300];									/**< The gamma curve. */
-		uint8_t												m_ui8GammaG[300];									/**< The gamma curve for green. */
+		uint32_t											m_ui32Gamma[LSN_SRGB_RES];							/**< The gamma curve. */
+		uint32_t											m_ui32GammaG[LSN_SRGB_RES];							/**< The gamma curve for green. */
+		uint8_t												m_ui8Gamma[LSN_SRGB_RES];							/**< The gamma curve. */
+		uint8_t												m_ui8GammaG[LSN_SRGB_RES];							/**< The gamma curve for green. */
 		float												m_NormalizedLevels[16];								/**< Normalized levels. */
 
 		// ** SETTINGS ** //

@@ -158,23 +158,23 @@ namespace lsn {
 	 **/
 	void CPalLSpiroFilter::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
-		for (size_t I = 0; I < 300; ++I ) {
-			double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0), 1.0, 0.0181 * 0.000005 ) ) * 255.0;
-			//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
+		for (size_t I = 0; I < LSN_SRGB_RES; ++I ) {
+			double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.000005 ) ) * 255.0;
+			//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
 			
-			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
-			//double dVal = (I / 299.0) * 255.0;
+			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
+			//double dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
 
 			dVal = std::min( dVal, 255.0 );
 			dVal = std::max( dVal, 0.0 );
 			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
 			m_ui32Gamma[I] = m_ui8Gamma[I];
 
-			dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / 299.0), 1.0, 0.0181 * 0.0000025 ) ) * 255.0;
-			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / 299.0), m_fGammaSetting ) ) * 255.0;
+			dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.0000025 ) ) * 255.0;
+			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
 			
-			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / 299.0) ) ) * 255.0;
-			//dVal = (I / 299.0) * 255.0;
+			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
+			//dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
 
 			dVal = std::min( dVal, 255.0 );
 			dVal = std::max( dVal, 0.0 );
@@ -635,7 +635,7 @@ namespace lsn {
 #ifdef __AVX512F__
 		if ( CUtilities::IsAvx512BWSupported() ) {
 			__m512 m0 = _mm512_set1_ps( 0.0f );
-			__m512 m299 = _mm512_set1_ps( 299.0f );
+			__m512 m299 = _mm512_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m512 mPhosInitDecay = _mm512_set1_ps( m_fInitPhosphorDecay );
 			__m512 mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRate * 0.9f );
 			__m512 mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRate );
@@ -690,7 +690,7 @@ namespace lsn {
 #endif
 				
 
-				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
 				mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
 				mG = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mG, m299 ), m0 ), m299 );
 				mB = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mB, m299 ), m0 ), m299 );
@@ -821,7 +821,7 @@ namespace lsn {
 #ifdef __AVX2__
 		if ( CUtilities::IsAvx2Supported() ) {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
-			__m256 m299 = _mm256_set1_ps( 299.0f );
+			__m256 m299 = _mm256_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m256 mPhosInitDecay = _mm256_set1_ps( m_fInitPhosphorDecay );
 			__m256 mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRate * 0.9f );
 			__m256 mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRate );
@@ -875,7 +875,7 @@ namespace lsn {
 				pfBlendBuffer += sRegSize;
 #endif
 
-				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
 				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
 				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
 				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
@@ -965,7 +965,7 @@ namespace lsn {
 #ifdef __SSE4_1__
 		if ( CUtilities::IsSse4Supported() ) {
 			__m128 m0 = _mm_set1_ps( 0.0f );
-			__m128 m299 = _mm_set1_ps( 299.0f );
+			__m128 m299 = _mm_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m128 mPhosInitDecay = _mm_set1_ps( m_fInitPhosphorDecay );
 			__m128 mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRate * 0.9f );
 			__m128 mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRate );
@@ -1019,7 +1019,7 @@ namespace lsn {
 				pfBlendBuffer += sRegSize;
 #endif
 
-				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
+				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
 				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m299 ), m0 ), m299 );
 				mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m299 ), m0 ), m299 );
 				mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m299 ), m0 ), m299 );
@@ -1076,10 +1076,10 @@ namespace lsn {
 				float fG = (*pfY) + (-0.394642233974f * (*pfQ)) + (-0.580621847591f * (*pfI));
 				float fB = (*pfY) + (2.032061872219f * (*pfQ));
 
-				// Scale and clamp. clamp( RGB * 299.0, 0, 299 ).
-				fR = std::clamp( fR * 299.0f, 0.0f, 299.0f );
-				fG = std::clamp( fG * 299.0f, 0.0f, 299.0f );
-				fB = std::clamp( fB * 299.0f, 0.0f, 299.0f );
+				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
+				fR = std::clamp( fR * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+				fG = std::clamp( fG * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+				fB = std::clamp( fB * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 
 				fR += m_fPhosphorDecayRate * (*pfBlendBuffer);
 				(*pfBlendBuffer++) = fR;

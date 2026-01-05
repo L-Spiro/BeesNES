@@ -645,6 +645,9 @@ namespace lsn {
 	void CBeesNes::UpdateGpuPalette() {
 #ifdef LSN_DX9
 		std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
+		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_POW_2_2, CNesPalette::LSN_G_NONE );
+		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_SMPTE240M, CNesPalette::LSN_G_NONE );
 		m_d9pfDx9Pallete.SetLut( vTmp[0].x );
 #endif	// #ifdef LSN_DX9
 	}
