@@ -696,16 +696,45 @@ namespace lsn {
 		 * \return Returns the corresponding value along a decent CRT curve.
 		 */
 		static inline double LSN_FASTCALL					LinearToCrtProper2( double _dVal ) {
-			constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
+			
+			if LSN_UNLIKELY( _dVal <= 0.0 ) { return 0.0; }
+			if LSN_UNLIKELY( _dVal >= 1.0 ) { return 1.0; }
+
+			constexpr double dGamma = 2.31;
+			constexpr double dSplitX = 0.36;
+			constexpr double dSplitY = 0.09441886527340710710820559370404225774109363555908203125;	// std::pow( 0.36, 2.31 ).
+
+			if ( _dVal >= dSplitY ) { return std::pow( _dVal, 1.0 / dGamma ); }						// Easily reversible.
+
+			// The X-to-linear can’t be reversed because _dVal is a parameter for both the curves and the blend.  Need an iterative approach.
+			// This is expensive, but luckily this function isn’t actually useful, since you won’t be playing on a monitor/screen that has this curve.  Only
+			//	CrtProper2ToLinear() is actually useful, as it exactly matches the curve some CRT’s applied to their images, which is the part necessary for emulation.
+			// If this function is ever used, it must be for building LUT’s only.
+			double dLo = 0.0;
+			double dHi = dSplitX;
+			
+			for ( int I = 0; I < 48; ++I ) {
+				double dMid = (dLo + dHi) * 0.5;
+				double dY = CrtProper2ToLinear( dMid );
+				if ( dY < _dVal ) {
+					dLo = dMid;
+				}
+				else {
+					dHi = dMid;
+				}
+			}
+
+			return (dLo + dHi) * 0.5;
+			/*constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
 			constexpr double dBeta = 1.1115721959217312875267680283286608755588531494140625;
 			constexpr double dCut = 0.022821585529445027884509755722319823689758777618408203125;
-			if ( _dVal >= 0.36 ) { return std::pow( _dVal, 1.0 / 2.31 ); }
-			double dFrac = _dVal / 0.36;
+			if ( _dVal >= 0.09441886527340710710820559370404225774109363555908203125 ) { return std::pow( _dVal, 1.0 / 2.31 ); }
+			double dFrac = _dVal / 0.09441886527340710710820559370404225774109363555908203125;
 			return ((_dVal <= dCut ?
 				_dVal * 4.0 :
 				dBeta * std::pow( _dVal, 0.45 ) - dAlpha)
 				* (1.0 - dFrac))
-				+ (dFrac * std::pow( _dVal, 1.0 / 2.31 ));
+				+ (dFrac * std::pow( _dVal, 1.0 / 2.31 ));*/
 		}
 
 		/**
