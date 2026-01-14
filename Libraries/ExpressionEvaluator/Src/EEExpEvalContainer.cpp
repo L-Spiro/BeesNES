@@ -324,7 +324,8 @@ namespace ee {
 	 * \param _ui64Options Formatting options.
 	 * \return Returns a formatted string representation of \c _rResult.
 	 */
-	std::wstring CExpEvalContainer::DefaultToString( EE_RESULT &_rResult, uint32_t _ui32Depth, uint64_t /*_ui64Options*/ ) {
+	std::wstring CExpEvalContainer::DefaultToString( EE_RESULT &_rResult, uint32_t _ui32Depth, uint64_t _ui64Options ) {
+		static_cast<void>(_ui64Options);
 		std::wstring wsString;
 		switch ( _rResult.ncType ) {
 			case ee::EE_NC_SIGNED : {
@@ -8755,7 +8756,8 @@ namespace ee {
 	 * \param _stStrIdx Index into the internal string table.
 	 * \return Returns true if the string reference object was created successfully; false otherwise.
 	 */
-	bool CExpEvalContainer::CreateStringRef( size_t /*_stStrIdx*/ ) {
+	bool CExpEvalContainer::CreateStringRef( size_t _stStrIdx ) {
+		static_cast<void>(_stStrIdx);
 		return false;
 		/*if ( m_vStringObjectsU8.size() <= _stStrIdx ) {
 			m_vStringObjectsU8.resize( _stStrIdx + 1 );
@@ -8872,7 +8874,8 @@ namespace ee {
 	 * \param _vArgs Argument list used by the formatter (for indexed/typed selection as supported).
 	 * \return Returns the decoded/expanded formatter text to splice into the final formatted output.
 	 */
-	std::string CExpEvalContainer::EatStringFormatter( const char * &_pcFormat, size_t &_stLen, size_t &_stArgIdx, const std::vector<EE_RESULT> &/*_vArgs*/ ) {
+	std::string CExpEvalContainer::EatStringFormatter( const char * &_pcFormat, size_t &_stLen, size_t &_stArgIdx, const std::vector<EE_RESULT> &_vArgs ) {
+		static_cast<void>(_vArgs);
 		std::string sRet;
 		sRet.push_back( '{' );
 		size_t stNumberEat = 0;
