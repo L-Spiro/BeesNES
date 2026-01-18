@@ -64,6 +64,10 @@
 #define LSN_FROM_A											true
 #define LSN_FROM_P											false
 
+#ifdef LSN_CPU_VERIFY
+#define LSN_CYCLES_DOC													1
+#endif	// #ifdef LSN_CPU_VERIFY
+
 
 namespace lsn {
 

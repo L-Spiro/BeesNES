@@ -339,4 +339,43 @@ namespace lsn {
 		return (_ui8Val & _ui8Bit) ? true : false;
 	}
 
+#ifdef __APPLE__
+	/**
+	 * \brief Writes a C-string to stderr (no newline).
+	 *
+	 * \param _pcStr The null-terminated string to output.
+	 */
+	static inline void						DebugA( const char * _pcStr ) {
+		::fputs( _pcStr, stderr );
+	}
+
+	/**
+	 * \brief Writes a line to stderr.
+	 *
+	 * \param _sStr The string to output.
+	 */
+	static inline void						DebugLine( const std::string &_sStr ) {
+		::fwrite( _sStr.data(), 1, _sStr.size(), stderr );
+		::fputc( '\n', stderr );
+	}
+#elif defined( _WIN32 )
+	/**
+	 * \brief Writes a C-string to the debugger (no newline).
+	 *
+	 * \param _pcStr The null-terminated string to output.
+	 */
+	static inline void						DebugA( const char * _pcStr ) {
+		::OutputDebugStringA( _pcStr );
+	}
+
+	/**
+	 * \brief Writes a line to the debugger.
+	 *
+	 * \param _sStr The string to output.
+	 */
+	static inline void						DebugLine( const std::string &_sStr ) {
+		::OutputDebugStringA( (_sStr + "\r\n").c_str() );
+	}
+#endif	// #ifdef __APPLE__
+
 }	// namespace lsn
