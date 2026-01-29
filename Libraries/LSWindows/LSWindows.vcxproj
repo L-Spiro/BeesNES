@@ -188,6 +188,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -210,6 +211,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -232,6 +234,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -254,6 +257,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -479,6 +483,13 @@
     <ClInclude Include="Src\Button\LSWColorButton.h" />
     <ClInclude Include="Src\CheckButton\LSWCheckButton.h" />
     <ClInclude Include="Src\ChildWindow\LSWChildWindow.h" />
+    <ClInclude Include="Src\Clipboard\LSWDataObject.h" />
+    <ClInclude Include="Src\Clipboard\LSWEnumFormatEtc.h" />
+    <ClInclude Include="Src\Clipboard\LSWOleClipboard.h" />
+    <ClInclude Include="Src\Clipboard\LSWOleClipboardObject.h" />
+    <ClInclude Include="Src\Clipboard\LSWOleInitialize.h" />
+    <ClInclude Include="Src\Clipboard\LSWOleStorage.h" />
+    <ClInclude Include="Src\Clipboard\LSWStgMedium.h" />
     <ClInclude Include="Src\ComboBox\LSWComboBox.h" />
     <ClInclude Include="Src\ComboBox\LSWComboBoxEx.h" />
     <ClInclude Include="Src\CriticalSection\LSWCriticalSection.h" />

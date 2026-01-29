@@ -11,7 +11,7 @@ namespace lsw {
 	DWORD CMultiSplitter::m_dwIds = 0;
 
 	CMultiSplitter::CMultiSplitter( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
-		CWidget( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(CBase::MultiSplitterAtom()) ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
+		CWidget( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(CBase::MultiSplitterAtom()) ).AddStyle( WS_CLIPCHILDREN ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_iBarWidth( 4 ),
 		m_pmlDragLayer( nullptr ),
 		m_sDragBarIndex( 0 ),
@@ -45,11 +45,13 @@ namespace lsw {
 	// == Functions.
 	// Attach a widget.
 	bool CMultiSplitter::Attach( const LSW_DT_ATTACH &_maAttach ) {
+		LSW_SETREDRAW srRedraw( this );
 		return Attach( _maAttach, m_meRoot );
 	}
 
 	// Detaches a widget given its ID.
 	bool CMultiSplitter::Detach( WORD _wId ) {
+		LSW_SETREDRAW srRedraw( this );
 		return Detach( _wId, m_meRoot );
 	}
 
@@ -136,6 +138,45 @@ namespace lsw {
 
 		// Can never get hit.
 		return LONG_MAX;
+	}
+
+	/**
+	 * Handles WM_PAINT.
+	 * \brief Performs painting for the client area.
+	 *
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMultiSplitter::Paint() {
+		lsw::LSW_BEGINPAINT bpPaint( Wnd() );
+
+		// Clip out child windows so we donÅft paint under them.
+		HWND hChild = ::GetWindow( Wnd(), GW_CHILD );
+		while ( hChild ) {
+			if ( !IsGroupBox( hChild ) ) {
+				RECT rcChild{};
+				::GetWindowRect( hChild, &rcChild );
+				::MapWindowPoints( nullptr, Wnd(), reinterpret_cast<POINT *>(&rcChild), 2 );
+
+				::ExcludeClipRect(
+					bpPaint.hDc,
+					rcChild.left,
+					rcChild.top,
+					rcChild.right,
+					rcChild.bottom
+				);
+			}
+
+			hChild = ::GetWindow( hChild, GW_HWNDNEXT );
+		}
+
+		RECT rcClient{};
+		::GetClientRect( Wnd(), &rcClient );
+
+		// Use your splitter background brush here.
+		HBRUSH hbr = ::GetSysColorBrush( COLOR_3DFACE/*COLOR_3DSHADOW*/ );
+		::FillRect( bpPaint.hDc, &rcClient, hbr );
+
+		return CWidget::LSW_H_CONTINUE;
 	}
 
 	// Draw the XOR bar.

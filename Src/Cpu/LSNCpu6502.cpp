@@ -923,7 +923,7 @@ namespace lsn {
 #ifdef LSN_CPU_VERIFY
 		m_fsState.ui16PcModify = 1;
 #else
-		if ( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
+		if LSN_UNLIKELY( m_bHandleNmi || m_bHandleIrq || m_bIsReset ) {
 			ui8Op = 0;
 			m_fsState.bPushB = false;
 			m_fsState.ui16PcModify = 0;

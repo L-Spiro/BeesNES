@@ -64,6 +64,24 @@ namespace lsw {
 			return bPrev;
 		}
 
+		/**
+		 * Handles WM_ERASEBKGND.
+		 * \brief Allows custom background erasing.
+		 *
+		 * \param _hDc Device context provided for erasing.
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					EraseBkgnd( HDC /*_hDc*/ ) { return LSW_H_HANDLED; }
+
+		/**
+		 * Handles WM_PAINT.
+		 * \brief Performs painting for the client area.
+		 *
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Paint();
+
+
 	private :
 		// == Types.
 		// A single rectangle.

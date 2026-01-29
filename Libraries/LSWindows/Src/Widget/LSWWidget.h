@@ -52,6 +52,37 @@ namespace lsw {
 		};
 #pragma pack( pop )
 
+		/** RAII for SetRedraw(). */
+		struct LSW_SETREDRAW {
+			LSW_SETREDRAW( CWidget * _pwWnd, bool _bEnable = false, bool _bRedrawWhenEnabled = true, UINT _uiRedrawFlags = RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN ) :
+				pwWnd( _pwWnd ),
+				bEnable( _bEnable ),
+				bRedrawWhenEnabled( _bRedrawWhenEnabled ),
+				uiRedrawFlags( _uiRedrawFlags ) {
+				if ( pwWnd ) {
+					pwWnd->SetRedraw( bEnable );
+					if ( bEnable && bRedrawWhenEnabled && pwWnd->GetSetRedrawCount() == 0 ) {
+						::RedrawWindow( pwWnd->Wnd(), nullptr, NULL, uiRedrawFlags );
+					}
+				}
+			}
+			~LSW_SETREDRAW() {
+				if ( pwWnd ) {
+					pwWnd->SetRedraw( !bEnable );
+					if ( !bEnable && bRedrawWhenEnabled && pwWnd->GetSetRedrawCount() == 0 ) {
+						::RedrawWindow( pwWnd->Wnd(), nullptr, NULL, uiRedrawFlags );
+					}
+				}
+			}
+
+
+			// == Members.
+			CWidget *						pwWnd = nullptr;
+			UINT							uiRedrawFlags = RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN;
+			bool							bEnable = false;
+			bool							bRedrawWhenEnabled = true;
+		};
+
 
 		// == Functions.
 		/**
@@ -216,6 +247,31 @@ namespace lsw {
 		 * \return Returns non-zero if the window was previously visible; otherwise zero.
 		 */
 		BOOL								SetVisible( BOOL _bVis ) { return ::ShowWindow( Wnd(), _bVis ? SW_SHOW : SW_HIDE ); }
+
+		/**
+		 * Enables or diables redraw.
+		 * 
+		 * \param _bRedraw The redraw state to set.
+		 **/
+		void								SetRedraw( BOOL _bRedraw ) {
+			if ( _bRedraw ) {
+				if ( !--m_iSetRedraw ) {
+					::SendMessageW( Wnd(), WM_SETREDRAW, TRUE, 0 );
+				}
+			}
+			else {
+				if ( !m_iSetRedraw++ ) {
+					::SendMessageW( Wnd(), WM_SETREDRAW, FALSE, 0 );
+				}
+			}
+		}
+
+		/**
+		 * Gets the WM_SETREDRAW count.
+		 * 
+		 * \return Returns the WM_SETREDRAW count.
+		 **/
+		INT									GetSetRedrawCount() const { return m_iSetRedraw; }
 
 		/**
 		 * Gets the current window style.
@@ -522,7 +578,32 @@ namespace lsw {
 		 * \param _pwTab Pointer to the tab control.
 		 * \param _iTab Zero-based tab index that toggled.
 		 */
-		virtual void						TabToggled( CWidget * /*_pwTab*/, int /*_iTab*/ ) {}
+		virtual void						TabToggled( CWidget * _pwTab, int _iTab ) { static_cast<void>(_pwTab); static_cast<void>(_iTab); }
+
+		/**
+		 * Notification for when a child tab changes its selection.
+		 * 
+		 * \param param _pwTab Pointer to the tab control.
+		 * \param _iTab Zero-based tab index that was selected.
+		 * \param _lpnHdr Contains information about the notification message.
+		 */
+		virtual void						TabSelChanged( CWidget * _pwTab, int _iTab, LPNMHDR _lpnHdr ) {
+			if ( m_pwParent ) { m_pwParent->TabSelChanged( _pwTab, _iTab, _lpnHdr ); }
+		}
+
+		/**
+		 * Called when the mouse enters a tab.
+		 * 
+		 * \param _iIdx The tab the mouse began to hover over.
+		 **/
+		virtual void						TabMouseEnterTab( INT _iIdx ) { if ( m_pwParent ) { m_pwParent->TabMouseEnterTab( _iIdx ); }; }
+
+		/**
+		 * Called when the mouse leaves a tab.
+		 * 
+		 * \param _iIdx INdex of the tab the mouse left.
+		 **/
+		virtual void						TabMouseLeftTab( INT _iIdx ) { if ( m_pwParent ) { m_pwParent->TabMouseLeftTab( _iIdx ); } }
 
 		/**
 		 * Sets the logical parent widget.
@@ -779,6 +860,42 @@ namespace lsw {
 		// Converts a point from pixels to dialog units.
 		static POINT						PixelsToDialogUnits( HWND _hWnd, LONG _lX, LONG _lY );
 
+		/**
+		 * Determines if the given HWND is a group box.
+		 * 
+		 * \param _hWnd The handle to test for being that of a group box.
+		 * \return Returns true if the control is of class type Button and has the BS_GROUPBOX style set.
+		 **/
+		static inline bool					IsGroupBox( HWND _hWnd ) {
+			wchar_t szClass[32]{};
+			if ( ::GetClassNameW( _hWnd, szClass, static_cast<int>(std::size( szClass )) ) ) {
+				if ( ::lstrcmpiW( szClass, L"Button" ) == 0 ) {
+					LONG_PTR lpStyle = ::GetWindowLongPtrW( _hWnd, GWL_STYLE );
+					return (lpStyle & BS_GROUPBOX) != 0;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Does the given control have a group box child anywhere?
+		 * 
+		 * \param _hWnd The window/control to check for having a child that is a group box.
+		 * \return Returns true if any nested child is a group box.
+		 **/
+		static inline bool					HasGroupBoxChild( HWND _hWnd ) {
+			HWND hChild = ::GetWindow( _hWnd, GW_CHILD );
+			while ( hChild ) {
+				if ( IsGroupBox( hChild ) ) { return true; }
+
+				HWND hThisChild = ::GetWindow( hChild, GW_CHILD );
+				if ( hThisChild ) { if ( HasGroupBoxChild( hThisChild ) ) { return true; } }
+
+				hChild = ::GetWindow( hChild, GW_HWNDNEXT );
+			}
+			return false;
+		}
+
 
 	protected :
 		// == Members.
@@ -790,14 +907,14 @@ namespace lsw {
 		HWND								m_hTooltip = NULL;
 		/** The address handler. */
 		ee::CExpEvalContainer::PfAddressHandler
-											m_pfahAddressHandler;
+											m_pfahAddressHandler = nullptr;
 		/** The data to be sent to the address handler. */
-		uintptr_t							m_uiptrAddressHandlerData;
+		uintptr_t							m_uiptrAddressHandlerData = 0;
 		/** The address write handler. */
 		ee::CExpEvalContainer::PfAddressHandler
-											m_pfahAddressWriteHandler;
+											m_pfahAddressWriteHandler = nullptr;
 		/** The data to be sent to the address write handler. */
-		uintptr_t							m_uiptrAddressWriteHandlerData;
+		uintptr_t							m_uiptrAddressWriteHandlerData = 0;
 		/** The tooltip text. */
 		std::string							m_sTooltipText;
 		/** Children. */
@@ -811,19 +928,17 @@ namespace lsw {
 		/** This object's starting window rect in relationship with the parent's starting client rect. */
 		LSW_RECT							m_rStartingClientRect;
 		/** Extended styles. */
-		DWORD								m_dwExtendedStyles;
+		DWORD								m_dwExtendedStyles = 0;
 		/** Tooltip styles. */
-		DWORD								m_dwTooltipStyle;
+		DWORD								m_dwTooltipStyle = 0;
 		/** Tooltip extended styles. */
-		DWORD								m_dwTooltipStyleEx;
+		DWORD								m_dwTooltipStyleEx = 0;
 		/** Last hit returned by NcHitTest(). */
-		INT									m_iLastHit;
+		INT									m_iLastHit = 0;
+		/** Redraw counter. */
+		INT									m_iSetRedraw = 0;
 		/** Enabled. */
 		BOOL								m_bEnabled = TRUE;
-		// The window rectangle.
-		//LSW_RECT							m_rRect;
-		// The client rectangle.
-		//LSW_RECT							m_rClientRect;
 		/** Default state.  Depends on the type of control. */
 		BOOL								m_bActive = FALSE;
 		/** Treat text as hex when possible? */
@@ -854,6 +969,11 @@ namespace lsw {
 		bool								m_bHasFocus = false;
 		/** Are we in a live resize? */
 		bool								m_bInLiveResize = false;
+		/** Discard control characters in Char(), UniChar(), and ImeChar(). */
+		bool								m_bDiscardControlChars = false;
+		/** Pending UTF-16 high surrogate (0 if none). */
+		wchar_t								m_wcPendingHighSurrogate = 0;
+
 
 		/** The tooltip buffer. */
 		static WCHAR						m_wcToolTipBuffer[1024*2];
@@ -1190,6 +1310,27 @@ namespace lsw {
 		virtual LSW_HANDLED					CtlColorDlg( HDC /*_hDc*/, CWidget * /*_pwControl*/, HBRUSH &/*_hBrush*/ ) { return LSW_H_CONTINUE; }
 
 		/**
+		 * \brief Handles WM_DRAWITEM for an owner-drawn control.
+		 *
+		 * \param _wControlId The control identifier (DRAWITEMSTRUCT::CtlID).
+		 * \param _disItem The DRAWITEMSTRUCT describing what to draw.
+		 * \return LSW_HANDLED::LSW_H_HANDLED if the message was handled and drawing was performed; otherwise
+		 * returns LSW_HANDLED::LSW_H_NOT_HANDLED to allow default/other handling.
+		 *
+		 * \note This is typically called from the parent window's WM_DRAWITEM handler.
+		 *
+		 * \note For SBT_OWNERDRAW status-bar parts, DRAWITEMSTRUCT::itemID is the zero-based part index.
+		 * The status-bar window handle is in DRAWITEMSTRUCT::hwndItem.
+		 */
+		virtual LSW_HANDLED					DrawItem( WORD _wControlId, const DRAWITEMSTRUCT &_disItem ) {
+			if ( !m_vChildren.size() ) { return LSW_H_CONTINUE; }
+			for ( auto I = m_vChildren.size(); I--; ) {
+				if ( LSW_H_HANDLED == m_vChildren[I]->DrawItem( _wControlId, _disItem ) ) { return LSW_H_HANDLED; }
+			}
+			return LSW_H_CONTINUE;
+		}
+
+		/**
 		 * Handles WM_SETCURSOR.
 		 * \brief Sets the cursor for the window or its child controls.
 		 *
@@ -1333,22 +1474,241 @@ namespace lsw {
 		 */
 		virtual LSW_HANDLED					SysKeyUp( UINT /*_uiKeyCode*/, UINT /*_uiFlags*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_LBUTTONDBLCLK. */
+		/**
+		 * \brief Handles the WM_CHAR message.
+		 *
+		 * \param _uiKeyCode The translated character code (WPARAM). For WM_CHAR this is typically a UTF-16 code unit.
+		 * \param _uiFlags The message flags and repeat/scancode state (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note WM_CHAR is generated after keyboard translation and may be affected by the current keyboard layout,
+		 * accelerator processing, dead keys, and IME behavior.
+		 */
+		virtual LSW_HANDLED					Char( UINT _uiKeyCode, UINT _uiFlags );
+
+		/**
+		 * \brief Handles the WM_UNICHAR message.
+		 *
+		 * \param _uiKeyCode The Unicode character value (WPARAM). May represent a full Unicode code point.
+		 * \param _uiFlags The message flags and repeat/scancode state (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note This message is primarily used to deliver Unicode characters directly. Not all windows will receive it,
+		 * and you may need to respond appropriately to probing values (such as UNICODE_NOCHAR) depending on your design.
+		 */
+		virtual LSW_HANDLED					UniChar( UINT _uiKeyCode, UINT _uiFlags );
+
+		/**
+		 * \brief Handles the WM_IME_CHAR message.
+		 *
+		 * \param _uiKeyCode The translated character code produced by the IME (WPARAM).
+		 * \param _uiFlags The message flags and repeat/scancode state (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note WM_IME_CHAR may be generated by an IME during composition/commit, depending on the IME and message flow.
+		 * Some applications prefer WM_IME_COMPOSITION with ImmGetCompositionString() for richer handling.
+		 */
+		virtual LSW_HANDLED					ImeChar( UINT _uiKeyCode, UINT _uiFlags );
+
+		/**
+		 * \brief Handles the WM_IME_COMPOSITION message.
+		 *
+		 * \param _uiKeyCode A virtual-key code that initiated the composition (WPARAM), when applicable.
+		 * \param _uiFlags Composition state flags (LPARAM) indicating what has changed (result string, comp string, etc.).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Use the composition flags to determine which IME strings/attributes are available, typically queried via
+		 * ImmGetCompositionString(). Handling this message is required for correct IME preedit and commit behavior.
+		 */
+		virtual LSW_HANDLED					ImeComposition( UINT _uiKeyCode, UINT _uiFlags );
+
+		/**
+		 * \brief Handles the WM_IME_COMPOSITIONFULL message.
+		 *
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Indicates that the IME composition window is about to change composition information and may require
+		 * the application to reposition or update composition UI state.
+		 */
+		virtual LSW_HANDLED					ImeCompositionFull() { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_CONTROL message.
+		 *
+		 * \param _uiCommand The IME control command (WPARAM).
+		 * \param _lpData Command-specific data (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note This message is used for IME UI and behavior control. Command semantics depend on the IME and control code.
+		 */
+		virtual LSW_HANDLED					ImeControl( UINT /*_uiCommand*/, LPARAM /*_lpData*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_STARTCOMPOSITION message.
+		 *
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Sent when the IME is about to start composition. Typical uses include initializing composition state
+		 * and positioning a composition window/candidate UI.
+		 */
+		virtual LSW_HANDLED					ImeStartComposition() { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_ENDCOMPOSITION message.
+		 *
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Sent when IME composition ends. This is the time to clear any composition/preedit UI state.
+		 */
+		virtual LSW_HANDLED					ImeEndComposition() { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_KEYDOWN message.
+		 *
+		 * \param _uiKeyCode The virtual-key code (WPARAM).
+		 * \param _uiFlags The message flags and repeat/scancode state (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Key messages routed to the IME may differ from normal WM_KEYDOWN routing. IME key handling is often
+		 * required to properly support composition and candidate navigation.
+		 */
+		virtual LSW_HANDLED					ImeKeyDown( UINT /*_uiKeyCode*/, UINT /*_uiFlags*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_KEYUP message.
+		 *
+		 * \param _uiKeyCode The virtual-key code (WPARAM).
+		 * \param _uiFlags The message flags and repeat/scancode state (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 */
+		virtual LSW_HANDLED					ImeKeyUp( UINT /*_uiKeyCode*/, UINT /*_uiFlags*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_NOTIFY message.
+		 *
+		 * \param _uiCommand The IME notification command (WPARAM).
+		 * \param _lpData Command-specific data (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Notifications include candidate window events, open status changes, and other IME UI updates.
+		 */
+		virtual LSW_HANDLED					ImeNotify( UINT /*_uiCommand*/, LPARAM /*_lpData*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_REQUEST message.
+		 *
+		 * \param _uiCommand The request type (WPARAM).
+		 * \param _lpData Request-specific data (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note The IME uses this message to request information (such as document feed, reconversion, or UI placement).
+		 * Responses are request-dependent and may require IMM API interaction.
+		 */
+		virtual LSW_HANDLED					ImeRequest( UINT /*_uiCommand*/, LPARAM /*_lpData*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_SELECT message.
+		 *
+		 * \param _bIndicator TRUE if the IME is being selected/activated; FALSE if it is being deselected (WPARAM).
+		 * \param _lpLocale A locale identifier or IME-specific data (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Sent when an input method is selected or deselected for the thread/window.
+		 */
+		virtual LSW_HANDLED					ImeSelect( BOOL /*_bIndicator*/, LPARAM /*_lpLocale*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Handles the WM_IME_SETCONTEXT message.
+		 *
+		 * \param _bActive TRUE if the IME is being activated for this window; FALSE if deactivated (WPARAM).
+		 * \param _uiDisplay Display flags controlling IME UI visibility (LPARAM).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Sent when the IME context is associated with or removed from the window. You can use this to manage
+		 * candidate/composition UI visibility and placement.
+		 */
+		virtual LSW_HANDLED					ImeSetContext( BOOL /*_bActive*/, UINT /*_uiDisplay*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Receives committed text input as a Unicode code point.
+		 *
+		 * \param _c32Cp The committed Unicode code point.
+		 * \param _uiRepeat The repeat count (normally 1).
+		 * \return Returns LSW_H_HANDLED if consumed.
+		 */
+		virtual LSW_HANDLED					OnTextInputCodePoint( char32_t _c32Cp, uint32_t _uiRepeat ) { static_cast<void>(_c32Cp); static_cast<void>(_uiRepeat); return LSW_H_CONTINUE; }
+
+		/**
+		 * \brief Receives committed text input as Unicode code points.
+		 *
+		 * \param _pc32Cps Code points.
+		 * \param _sCount Number of code points.
+		 * \return Returns LSW_H_HANDLED if consumed.
+		 */
+		virtual LSW_HANDLED					OnTextInputCodePoints( const char32_t * _pc32Cps, size_t _sCount ) {
+			for ( size_t I = 0; I < _sCount; ++I ) {
+				if ( OnTextInputCodePoint( _pc32Cps[I], 1 ) == LSW_H_HANDLED ) { continue; }
+				return LSW_H_CONTINUE;
+			}
+			return _sCount ? LSW_H_HANDLED : LSW_H_CONTINUE;
+		}
+
+		/**
+		 * \brief Handles the WM_LBUTTONDBLCLK message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 */
 		virtual LSW_HANDLED					LButtonDblClk( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_LBUTTONDOWN. */
+		/**
+		 * \brief Handles the WM_LBUTTONDOWN message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Typical uses include setting focus, starting capture, and beginning selection/drag operations.
+		 */
 		virtual LSW_HANDLED					LButtonDown( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_LBUTTONUP. */
+		/**
+		 * \brief Handles the WM_LBUTTONUP message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 *
+		 * \note Typical uses include releasing capture and completing click/drag operations.
+		 */
 		virtual LSW_HANDLED					LButtonUp( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_MBUTTONDBLCLK. */
+		/**
+		 * \brief Handles the WM_MBUTTONDBLCLK message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 */
 		virtual LSW_HANDLED					MButtonDblClk( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_MBUTTONDOWN. */
+		/**
+		 * \brief Handles the WM_MBUTTONDOWN message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 */
 		virtual LSW_HANDLED					MButtonDown( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
-		/** \brief Handles WM_MBUTTONUP. */
+		/**
+		 * \brief Handles the WM_MBUTTONUP message.
+		 *
+		 * \param _dwVirtKeys Virtual-key flags indicating which modifier keys/buttons are down (WPARAM).
+		 * \param _pCursorPos Cursor position in client coordinates (LPARAM as POINTS).
+		 * \return Returns LSW_H_HANDLED to stop further processing, or LSW_H_CONTINUE to allow default handling/propagation.
+		 */
 		virtual LSW_HANDLED					MButtonUp( DWORD /*_dwVirtKeys*/, const POINTS &/*_pCursorPos*/ ) { return LSW_H_CONTINUE; }
 
 		/**
@@ -1764,6 +2124,17 @@ namespace lsw {
 		 * \return Returns the LRESULT from handling or default processing.
 		 */
 		LRESULT CALLBACK					DockEnable( CWidget * _pwWnd, WPARAM _wParam, LPARAM _lParam, BOOL _bCallDefault );
+
+		/**
+		 * Decides if a character sent through Char(), UniChar(), or ImeComposition() should be discarded before calling OnTextInputCodePoints().
+		 * 
+		 * \param _c32Char The character to test for excluding from the character pipeline.
+		 * \return Returns true if the character should be removed from the pipeline before OnTextInputCodePoints() is called.
+		 **/
+		virtual bool						ExcludeCHaracter( char32_t _c32Char ) const {
+			if ( _c32Char < 0x20U && _c32Char != U'\t' && _c32Char != U'\r' && _c32Char != U'\n' ) { return true; }
+			return false;
+		}
 
 		/**
 		 * EnumChildWindows callback that attaches HWNDs to CWidget instances.

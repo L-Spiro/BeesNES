@@ -354,19 +354,19 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline void COpenAl::SampleToUi8_AVX2( const float * _pfSample, uint8_t * _pui8Dst ) {
-		auto vSamples = _mm256_loadu_ps( _pfSample );
-		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-		auto vScaled = _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
-		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+		auto vSamples	= _mm256_loadu_ps( _pfSample );
+		auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled	= _mm256_mul_ps( _mm256_mul_ps( _mm256_add_ps( vClamped, _mm256_set1_ps( 1.0f ) ), _mm256_set1_ps( 0.5f ) ), _mm256_set1_ps( 255.0f ) );
+		auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 		// Paack into 8-bit PCM values.
-		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+		auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
 
-		auto vLo = _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
-		auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
-		auto vPacked16 = _mm_packus_epi32( vLo, vHi );
+		auto vLo		= _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
+		auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
+		auto vPacked16	= _mm_packus_epi32( vLo, vHi );
 
 		// Finally, pack the 16-bit integers into 8-bit integers.
-		auto vPacked8 = _mm_packus_epi16( vPacked16, vPacked16 );
+		auto vPacked8	= _mm_packus_epi16( vPacked16, vPacked16 );
 		_mm_storeu_epi8( _pui8Dst, vPacked8 );
 	}
 
@@ -380,17 +380,17 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline void COpenAl::SampleToI16_AVX2( const float * _pfSample, int16_t * _pi16Dst ) {
-		auto vSamples = _mm256_loadu_ps( _pfSample );
-		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
-		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+		auto vSamples	= _mm256_loadu_ps( _pfSample );
+		auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled	= _mm256_mul_ps( vClamped, _mm256_set1_ps( 32767.0f ) );
+		auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 
-		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+		auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
     
 		// Extract the lower and upper 128-bit lanes.
-		auto vLo  = _mm256_castsi256_si128( vInt32Vals );				// Lower 4 integers.
-		auto vHi = _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
-		auto vPacked16 = _mm_packs_epi32( vLo, vHi );
+		auto vLo		= _mm256_castsi256_si128( vInt32Vals );					// Lower 4 integers.
+		auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
+		auto vPacked16	= _mm_packs_epi32( vLo, vHi );
     
 		_mm_storeu_epi16( _pi16Dst, vPacked16 );
 	}
@@ -405,12 +405,12 @@ namespace lsn {
 	 * \return Returns the converted sample.
 	 **/
 	inline void COpenAl::SampleToI24_AVX2( const float * _pfSample, int32_t * _pi32Dst ) {
-		auto vSamples = _mm256_loadu_ps( _pfSample );
-		auto vClamped = _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
-		auto vScaled = _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
-		auto vRounded = _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
+		auto vSamples	= _mm256_loadu_ps( _pfSample );
+		auto vClamped	= _mm256_max_ps( _mm256_set1_ps( -1.0f ), _mm256_min_ps( vSamples, _mm256_set1_ps( 1.0f ) ) );
+		auto vScaled	= _mm256_mul_ps( vClamped, _mm256_set1_ps( 8388607.0f ) );
+		auto vRounded	= _mm256_round_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 
-		auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
+		auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
 		_mm256_store_si256( reinterpret_cast<__m256i *>(_pi32Dst), vInt32Vals );
 	}
 #endif	// #ifdef __AVX2__
@@ -441,7 +441,7 @@ namespace lsn {
 		auto vPacked16Lo = _mm256_castsi256_si128( vPacked16 );
 		auto vPacked16Hi = _mm256_extracti128_si256( vPacked16, 1 );
 		auto vPacked8    = _mm_packus_epi16( vPacked16Lo, vPacked16Hi );
-		_mm_storeu_si128( reinterpret_cast<__m128i *>( _pui8Dst ), vPacked8 );
+		_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui8Dst), vPacked8 );
 	}
 
 	/**
@@ -455,17 +455,16 @@ namespace lsn {
 	 **/
 	inline void COpenAl::SampleToI16_AVX512( const float * _pfSample, int16_t * _pi16Dst ) {
 		auto vSamples   = _mm512_loadu_ps( _pfSample );
+
 		auto vClamped   = _mm512_max_ps( _mm512_set1_ps( -1.0f ), _mm512_min_ps( vSamples, _mm512_set1_ps( 1.0f ) ) );
 		auto vScaled    = _mm512_mul_ps( vClamped, _mm512_set1_ps( 32767.0f ) );
 		auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-			
-		auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
-		// Extract lower and upper 256-bit lanes.
-		auto vLo256     = _mm512_castsi512_si256( vInt32Vals );					// Lower 256 bits.
-		auto vHi256     = _mm512_extracti64x4_epi64( vInt32Vals, 1 );			// Upper 256 bits.
-		auto vPacked16  = _mm256_packs_epi32( vLo256, vHi256 );					// 16-bit integers.
-			
-		_mm256_storeu_si256( reinterpret_cast<__m256i *>( _pi16Dst ), vPacked16 );
+
+		auto vInt32Vals = _mm512_cvtps_epi32( vScaled );
+
+		auto vPacked16  = _mm512_cvtepi32_epi16( vInt32Vals );
+    
+		_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pi16Dst), vPacked16 );
 	}
 
 	/**
@@ -484,7 +483,7 @@ namespace lsn {
 		auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 			
 		auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
-		_mm512_store_si512( reinterpret_cast<__m512i *>( _pi32Dst ), vInt32Vals );
+		_mm512_store_si512( reinterpret_cast<__m512i *>(_pi32Dst), vInt32Vals );
 	}
 #endif	// #ifdef __AVX512F__
 

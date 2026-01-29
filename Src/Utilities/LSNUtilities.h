@@ -1133,16 +1133,16 @@ namespace lsn {
 					uint32_t ui32Total = _ui32DstW - ui32RegSize;
 					while ( X <= ui32Total ) {
 						// Load sixteen factors.
-						__m512i vFactors = _mm512_loadu_si512( reinterpret_cast<const __m512i *>( _pui32Factors + X ) );
+						__m512i vFactors = _mm512_loadu_si512( reinterpret_cast<const __m512i *>(_pui32Factors + X) );
 						// Compute source index: ui32SrcX = factor >> 8.
 						__m512i vSrcX = _mm512_srli_epi32( vFactors, 8 );
         
 						// Gather A = _pui32SrcRow[vSrcX].
-						__m512i vA = _mm512_i32gather_epi32( vSrcX, reinterpret_cast<const int *>( _pui32SrcRow ), 4 );
+						__m512i vA = _mm512_i32gather_epi32( vSrcX, reinterpret_cast<const int *>(_pui32SrcRow), 4 );
         
 						// Gather B = _pui32SrcRow[vSrcX + 1].
 						__m512i vSrcXplus = _mm512_add_epi32( vSrcX, _mm512_set1_epi32( 1 ) );
-						__m512i vB = _mm512_i32gather_epi32( vSrcXplus, reinterpret_cast<const int *>( _pui32SrcRow ), 4 );
+						__m512i vB = _mm512_i32gather_epi32( vSrcXplus, reinterpret_cast<const int *>(_pui32SrcRow), 4 );
 						// If vSrcX equals (_ui32SrcW - 1), set B to 0.
 						__m512i vLastIndex = _mm512_set1_epi32( _ui32SrcW - 1 );
 						__mmask16 k = _mm512_cmpeq_epi32_mask( vSrcX, vLastIndex );
@@ -2314,7 +2314,7 @@ namespace lsn {
 			// Paack into 8-bit PCM values.
 			auto vInt32Vals = _mm256_cvtps_epi32( vRounded );
 
-			auto vLo		= _mm256_castsi256_si128( vInt32Vals );				// Lower 128 bits.
+			auto vLo		= _mm256_castsi256_si128( vInt32Vals );					// Lower 128 bits.
 			auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 128 bits.
 			auto vPacked16	= _mm_packus_epi32( vLo, vHi );
 
@@ -2341,7 +2341,7 @@ namespace lsn {
 			auto vInt32Vals	= _mm256_cvtps_epi32( vRounded );
     
 			// Extract the lower and upper 128-bit lanes.
-			auto vLo		= _mm256_castsi256_si128( vInt32Vals );				// Lower 4 integers.
+			auto vLo		= _mm256_castsi256_si128( vInt32Vals );					// Lower 4 integers.
 			auto vHi		= _mm256_extracti128_si256( vInt32Vals, 1 );			// Upper 4 integers.
 			auto vPacked16	= _mm_packs_epi32( vLo, vHi );
     
@@ -2394,7 +2394,7 @@ namespace lsn {
 			auto vPacked16Lo = _mm256_castsi256_si128( vPacked16 );
 			auto vPacked16Hi = _mm256_extracti128_si256( vPacked16, 1 );
 			auto vPacked8    = _mm_packus_epi16( vPacked16Lo, vPacked16Hi );
-			_mm_storeu_si128( reinterpret_cast<__m128i *>( _pui8Dst ), vPacked8 );
+			_mm_storeu_si128( reinterpret_cast<__m128i *>(_pui8Dst), vPacked8 );
 		}
 
 		/**
@@ -2408,17 +2408,16 @@ namespace lsn {
 		 **/
 		static inline void									SampleToI16_AVX512( const float * _pfSample, int16_t * _pi16Dst ) {
 			auto vSamples   = _mm512_loadu_ps( _pfSample );
+
 			auto vClamped   = _mm512_max_ps( _mm512_set1_ps( -1.0f ), _mm512_min_ps( vSamples, _mm512_set1_ps( 1.0f ) ) );
 			auto vScaled    = _mm512_mul_ps( vClamped, _mm512_set1_ps( 32767.0f ) );
 			auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-			
+
 			auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
-			// Extract lower and upper 256-bit lanes.
-			auto vLo256     = _mm512_castsi512_si256( vInt32Vals );					// Lower 256 bits.
-			auto vHi256     = _mm512_extracti64x4_epi64( vInt32Vals, 1 );			// Upper 256 bits.
-			auto vPacked16  = _mm256_packs_epi32( vLo256, vHi256 );					// 16-bit integers.
-			
-			_mm256_storeu_si256( reinterpret_cast<__m256i *>( _pi16Dst ), vPacked16 );
+
+			auto vPacked16  = _mm512_cvtepi32_epi16( vInt32Vals );
+    
+			_mm256_storeu_si256( reinterpret_cast<__m256i *>(_pi16Dst), vPacked16 );
 		}
 
 		/**
@@ -2437,7 +2436,7 @@ namespace lsn {
 			auto vRounded	= _mm512_roundscale_ps( vScaled, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
 			
 			auto vInt32Vals = _mm512_cvtps_epi32( vRounded );
-			_mm512_store_si512( reinterpret_cast<__m512i *>( _pi32Dst ), vInt32Vals );
+			_mm512_store_si512( reinterpret_cast<__m512i *>(_pi32Dst), vInt32Vals );
 		}
 #endif	// #ifdef __AVX512F__
 

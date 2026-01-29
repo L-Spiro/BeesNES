@@ -1426,6 +1426,7 @@ namespace lsw {
 	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).
 	 */
 	void CTreeListView::UpdateListView() {
+		LSW_SETREDRAW srRedraw( this );
 		ClearCache();
 		size_t stTotal = CountExpanded();
 		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );
@@ -1593,6 +1594,9 @@ namespace lsw {
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
 				break;
+			}
+			case WM_ERASEBKGND : {
+				return 1;
 			}
 
 			// =======================================
