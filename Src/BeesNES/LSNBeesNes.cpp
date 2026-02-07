@@ -52,7 +52,8 @@ namespace lsn {
 			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_AUTO_CRT_FULL
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
-			{ &m_d9pfDx9Pallete,			&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete,				&m_d9pfDx9Pallete },				// LSN_F_INDEXEDDX9
+			{ &m_d9pfDx9Palette,			&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette },				// LSN_F_INDEXEDDX9
+			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX9
 #endif	// #ifdef LSN_DX9
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -63,8 +64,21 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
 
 #ifdef LSN_DX9
-		m_d9pfDx9Pallete.SetVertSharpness( 6 );
-		m_d9pfDx9Pallete.SetHorSharpness( 6 );
+		m_d9pfDx9Palette.SetVertSharpness( 6 );
+		m_d9pfDx9Palette.SetHorSharpness( 6 );
+
+		m_p9nlsfDx9LSpiroNtsc.SetFps( 60.098813897440515529533511098629f );
+		m_p9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
+		/*m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
+		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+		m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 48 );
+		//m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 64 );
+		/*m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
+		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
+		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		//m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
 #endif	// #ifdef LSN_DX9
 
 		// FPS settings.
@@ -73,6 +87,7 @@ namespace lsn {
 		m_nbfLSpiroDendyFilter.SetFps( 50.006978908188585607940446650124f );
 		m_nbfLSpiroPalMFilter.SetFps( 60.032435273083568398202053145976f );
 		m_nbfLSpiroPalNFilter.SetFps( 50.502710495150011279043537108053f );
+
 		m_nbfLSpiroDendyFilter.SetPhosphorDecayPeriod( 2.0f );
 		m_nbfLSpiroPalNFilter.SetPhosphorDecayPeriod( 1.9f );
 		
@@ -211,7 +226,8 @@ namespace lsn {
 		m_ncfEmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 #ifdef LSN_DX9
-		m_d9pfDx9Pallete.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9pfDx9Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_DX9
 
 		UpdateCurrentSystem();
@@ -380,6 +396,21 @@ namespace lsn {
 					_i32Left, _i32Top, _ui32FinalW, _ui32FinalH );
 			}
 			else {
+#if defined( LSN_GPU_SUPPORT ) && 0
+				// We can probably do up-scaling on the GPU.
+
+				/**
+				 * Here lies the end of this approach.  It just isn’t very compatible with my idea to support multiple GPU API’s such that switching filters means switching GPU API’s in some cases.
+				 *	The filters are designed so that there is overlap between the end of the current filter and the start of the next filter.  This is to avoid unloading and reloading the same GPU
+				 *	library when switching between them.  It’s probably fine to have existing devices from 2 different GPU API’s, although I wouldn’t try to render from both of them.  Also it might
+				 *	not even be fine to have 2 different-API devices open at the same time.  I haven’t been able to confirm yet.
+				 * To go this route, I would have to make sure the GPU upscaler uses the same API as whatever the current filter is using, if the current filter is a GPU filter, which isn’t terribly
+				 *	hard, it’s just that I don’t want to then also have 2 separate devices open from the same GPU API, nor do I want to give access to the filter’s internal GPU state for the upscaler
+				 *	to hijack and use for this process.  I ALSO do not want to make a global GPU API manager.  I really want to keep the GPU work modular and isolated; I don’t want this project to
+				 *	rely on there being GPU support to run for a few reasons.
+				 * In any case, I realized here that I don’t have great options for continuing this path, and as blah as it is I think now it is best to just make different full instances of the
+				 *	filter classes, one for each GPU API and for software.
+				 */
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
 					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
@@ -391,6 +422,20 @@ namespace lsn {
 						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 				}
+#else
+				// Pure software rendering.
+				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
+					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+
+			
+				for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
+					m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+						_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
+						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
+						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+				}
+#endif	// #ifdef LSN_GPU_SUPPORT
 			}
 		}
 	}
@@ -648,7 +693,7 @@ namespace lsn {
 		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
 		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_POW_2_2, CNesPalette::LSN_G_NONE );
 		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_SMPTE240M, CNesPalette::LSN_G_NONE );
-		m_d9pfDx9Pallete.SetLut( vTmp[0].x );
+		m_d9pfDx9Palette.SetLut( vTmp[0].x );
 #endif	// #ifdef LSN_DX9
 	}
 

@@ -60,6 +60,10 @@
 
 #define LSN_FASTCALL							__fastcall
 
+#if defined( LSN_DX9 ) || defined( LSN_DX12 ) || defined( LSN_VULKAN1 )
+#define LSN_GPU_SUPPORT
+#endif	// #if defined( LSN_DX9 ) || defined( LSN_DX12 ) || defined( LSN_VULKAN1 )
+
 
 extern "C" {
 

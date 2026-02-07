@@ -44,11 +44,11 @@ namespace lsn {
 		m_ui32OutputHeight = _ui16Height;*/
 
 		const uint16_t wBitDepth = uint16_t( OutputBits() );
-		const uint32_t dwStride = uint32_t( m_stStride = RowStride( _ui16Width, wBitDepth ) );
+		const uint32_t dwStride = uint32_t( RowStride( _ui16Width, wBitDepth ) );
 		for ( auto I = m_vBasicRenderTarget.size(); I--; ) {
 			m_vBasicRenderTarget[I].resize( dwStride * _ui16Height );	
 		}
-
+		m_stStride = size_t( _ui16Width * sizeof( uint16_t ) );
 		return InputFormat();
 	}
 

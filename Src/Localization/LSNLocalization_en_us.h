@@ -64,6 +64,7 @@
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-B/B1/D/D1/G/H/I/K (LMP88&959)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL Auto (LMP889&59)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX9_UPSCALE							NTSC-M (&L. Spiro) (Mi&crosoft® Direct3D® 9)
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
 #define LSN_REGION_NTSC														&NTSC

@@ -12,6 +12,7 @@
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX9
+#include "../Filters/LSNDx9NtscLSpiroFilter.h"
 #include "../Filters/LSNDx9PaletteFilter.h"
 #endif	// #ifdef LSN_DX9
 #include "../Filters/LSNNesPalette.h"
@@ -474,7 +475,9 @@ namespace lsn {
 		CPalBlarggFilter						m_nbfBlarggPalFilter;
 #ifdef LSN_DX9
 		/** Direct3D 9 palette filter. */
-		CDx9PaletteFilter						m_d9pfDx9Pallete;
+		CDx9PaletteFilter						m_d9pfDx9Palette;
+		/** Direct3D 9 up-scale L. Spiro NTSC filter. */
+		CDx9NtscLSpiroFilter					m_p9nlsfDx9LSpiroNtsc;
 #endif	// #ifdef LSN_DX9
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];

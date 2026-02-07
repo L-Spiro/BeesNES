@@ -1,13 +1,30 @@
 #ifdef LSN_DX9
 
-#include "LSNDx9PaletteFilter.h"
+/**
+ * Copyright L. Spiro 2026
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: My own implementation of an NTSC filter.
+ */
 
+#include "LSNDx9NtscLSpiroFilter.h"
+
+#include "../Utilities/LSNScopedNoSubnormals.h"
+
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <numbers>
 
 namespace lsn {
 
-	CDx9PaletteFilter::CDx9PaletteFilter() {
+	// == Members.
+	CDx9NtscLSpiroFilter::CDx9NtscLSpiroFilter() {
+		SetMonitorGammaApply( false );
 	}
-	CDx9PaletteFilter::~CDx9PaletteFilter() {
+	CDx9NtscLSpiroFilter::~CDx9NtscLSpiroFilter() {
+		StopThread();
 	}
 
 	// == Functions.
@@ -19,66 +36,29 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9PaletteFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+		StopThread();
+
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
 
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
-		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint32_t ) );
+		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
+		//m_vRgbBuffer.resize( m_ui32SrcW * m_ui32SrcH * sizeof( uint32_t ) );
+		AllocYiqBuffers( _ui16Width, _ui16Height, m_ui16WidthScale );
 
 		ReleaseSizeDependents();
-		return CParent::Init( _stBuffers, _ui16Width, _ui16Height );
-	}
 
-	/**
-	 * Sets the palette.
-	 * 
-	 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
-	 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.  False always indicates a memory failure if _pfRgba512 is not nullptr.
-	 **/
-	bool CDx9PaletteFilter::SetLut( const float * _pfRgba512 ) {
-		if ( !_pfRgba512 ) { return false; }
-		try {
-			m_vLut.resize( 4 * 512 );
-			std::memcpy( m_vLut.data(), _pfRgba512, sizeof( float ) * 4 * 512 );
-			m_bUpdatePalette = true;
-			return true;
-		}
-		catch ( ... ) { return false; }
-	}
-
-	/**
-	 * Called when the filter is about to become active.
-	 */
-	void CDx9PaletteFilter::Activate() {
-		CParent::Activate();
-
-		EnsureSizeAndResources();
-		EnsureShaders();
-	}
-
-	/**
-	 * Called when the filter is about to become inactive.
-	 */
-	void CDx9PaletteFilter::DeActivate() {
-		CParent::DeActivate();
-
-		m_tIndex.reset();
-		m_tLut.reset();
-		m_rtInitial.reset();
-		m_rtScanlined.reset();
-		m_vbQuad.reset();
-		m_psIdxToColor.reset();
-		m_psVerticalNN.reset();
-		m_psCopy.reset();
-
-		m_bUpdatePalette = true;
-
-		if ( m_pdx9dDevice ) {
-			s_dgsState.DestroyDx9();
-			m_pdx9dDevice = nullptr;
-		}
+		
+		/*m_tdThreadData.ui16LinesDone = 0;
+		m_tdThreadData.ui16EndLine = 0;
+		m_tdThreadData.bEndThread = false;
+		m_tdThreadData.pnlsfThis = this;
+		m_ptThread = std::make_unique<std::thread>( WorkThread, &m_tdThreadData );*/
+		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
+		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
+		return pofOut;
 	}
 
 	/**
@@ -98,43 +78,113 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx9PaletteFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
+	uint8_t * CDx9NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 			m_ui32SrcW = _ui32Width;
 			m_ui32SrcH = _ui32Height;
 			EnsureSizeAndResources();
 			EnsureShaders();
-			m_vOutputBuffer.resize( _ui32Width * _ui32Height * sizeof( uint32_t ) );
+			AllocYiqBuffers( uint16_t( m_ui32SrcW ), uint16_t( m_ui32SrcH ), m_ui16WidthScale );
 		}
-		if LSN_UNLIKELY( m_bUpdatePalette ) {
-			UpdateLut();	// Failure isn't technically critical.
-		}
-		if LSN_UNLIKELY( !UploadIndices( reinterpret_cast<const uint16_t *>(_pui8Input), _ui32Width, _ui32Height, _ui32Stride ) ) {
-			m_bValidState = false;
-		}
+		
 
 		lsw::LSW_RECT rRect;
 		rRect.left = LONG( _i32DispLeft );
 		rRect.top = LONG( _i32DispTop );
 		rRect.right = rRect.left + LONG( _ui32DispWidth );
 		rRect.bottom = rRect.top + LONG( _ui32DispHeight );
+		m_lrRect.pBits = nullptr;
+		if LSN_UNLIKELY( !m_tSrc->LockRect( 0, m_lrRect, nullptr, D3DLOCK_DISCARD ) || nullptr == m_lrRect.pBits ) { return nullptr; }
+
+		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
+
+		m_tSrc->UnlockRect( 0 );
+		m_lrRect.pBits = nullptr;
+
 		Render( rRect );
 
 		_ui32Width = uint32_t( s_dgsState.rScreenRect.Width() );
 		_ui32Height = uint32_t( s_dgsState.rScreenRect.Height() );
 		_ui32Stride = _ui32Width * sizeof( uint32_t );
-		return m_vOutputBuffer.data();		// Unused except in edge cases; we present to the screen directly.
+		return m_vBasicRenderTarget[0].data();//m_vRgbBuffer.data();
+	}
+
+	/**
+	 * Called when the filter is about to become active.
+	 */
+	void CDx9NtscLSpiroFilter::Activate() {
+		CParent::Activate();
+
+		EnsureSizeAndResources();
+		EnsureShaders();
+		AllocYiqBuffers( uint16_t( m_ui32SrcW ), uint16_t( m_ui32SrcH ), m_ui16WidthScale );
+	}
+
+	/**
+	 * Called when the filter is about to become inactive.
+	 */
+	void CDx9NtscLSpiroFilter::DeActivate() {
+		CParent::DeActivate();
+
+		m_tSrc.reset();
+		m_rtScanlined.reset();
+		m_vbQuad.reset();
+		m_psVerticalNN.reset();
+		m_psCopy.reset();
+
+		if ( m_pdx9dDevice ) {
+			s_dgsState.DestroyDx9();
+			m_pdx9dDevice = nullptr;
+		}
 	}
 
 	/**
 	 * Informs the filter of a window resize.
 	 **/
-	void CDx9PaletteFilter::FrameResize() {
+	void CDx9NtscLSpiroFilter::FrameResize() {
 		s_dgsState.OnSizeDx9();
 
 		EnsureSizeAndResources();
 		EnsureShaders();
+	}
+
+	/**
+	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
+	 **/
+	void CDx9NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
+		m_tdThreadData.ui16LinesDone = m_ui16Height / 2;
+		m_tdThreadData.ui16EndLine = m_ui16Height;
+		m_tdThreadData.ui64RenderStartCycle = _ui64RenderStartCycle;
+		m_tdThreadData.pui8Pixels = _pui8Pixels;
+		//m_eGo.Signal();
+		RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 1, _ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
+		//RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 1, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+
+		//m_eDone.WaitForSignal();
+	}
+
+	/**
+	 * Allocates the YIQ buffers for a given width and height.
+	 * 
+	 * \param _ui16W The width of the buffers.
+	 * \param _ui16H The height of the buffers.
+	 * \param _ui16Scale The width scale factor.
+	 * \return Returns true if the allocations succeeded.
+	 **/
+	bool CDx9NtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
+		if ( !CLSpiroFilterBase::AllocYiqBuffers( _ui16W, _ui16H, _ui16Scale ) ) { return false; }
+
+		/*size_t sSize = _ui16W * _ui16Scale * _ui16H;
+		if ( !sSize ) { return true; }
+		try {
+			m_vRgbBuffer.resize( sSize * 4 );
+		}
+		catch ( ... ) { return false; }*/
+		return true;
 	}
 
 	/**
@@ -144,21 +194,13 @@ namespace lsn {
 	 *
 	 * \return Returns true on success.
 	 */
-	bool CDx9PaletteFilter::EnsureSizeAndResources() {
+	bool CDx9NtscLSpiroFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
 			m_pdx9dDevice = &s_dgsState.dx9Device;
 		}
 
-		if LSN_UNLIKELY( !m_tIndex.get() ) {
-			m_tIndex = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
-			if ( !m_tIndex.get() ) { return false; }
-		}
-		if LSN_UNLIKELY( !m_rtInitial.get() ) {
-			m_rtInitial = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
-			if ( !m_rtInitial.get() ) { return false; }
-		}
 		if LSN_UNLIKELY( !m_rtScanlined.get() ) {
 			m_rtScanlined = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
 			if ( !m_rtScanlined.get() ) { return false; }
@@ -168,24 +210,22 @@ namespace lsn {
 			if ( !m_vbQuad.get() ) { return false; }
 		}
 		
-		const uint32_t ui32ScanW = m_ui32SrcW * GetActualHorSharpness();
+		const uint32_t ui32ScanW = m_ui16ScaledWidth * GetActualHorSharpness();
 		const uint32_t ui32ScanH = m_ui32SrcH * GetActualVertSharpness();
 		if ( !ui32ScanW || !ui32ScanH ) { return false; }
 		const bool bOk =
 			(m_ui32RsrcW == m_ui32SrcW) &&
 			(m_ui32RsrcH == m_ui32SrcH) &&
-			m_tIndex->Valid() && m_rtInitial->Valid() && m_rtScanlined->Valid() && m_vbQuad->Valid();
+			m_tSrc.get() && m_tSrc->Valid() &&
+			m_rtScanlined->Valid() && m_vbQuad->Valid();
 
 		if ( bOk ) { m_bValidState = true; return true; }
 
 		ReleaseSizeDependents();
 
-		// Index texture: L16, DEFAULT|DYNAMIC.
-		if ( !m_tIndex->Create2D( m_ui32SrcW, m_ui32SrcH, 1, D3DUSAGE_DYNAMIC, D3DFMT_L16, D3DPOOL_DEFAULT ) ) { return false; }
-
 		// Initial FP RT: same size as source.
 		const auto fmtRt = m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
-		if ( !m_rtInitial->CreateColorTarget( m_ui32SrcW, m_ui32SrcH, fmtRt ) ) { return false; }
+		//if ( !m_rtInitial->CreateColorTarget( m_ui32SrcW, m_ui32SrcH, fmtRt ) ) { return false; }
 
 		// Scanlined FP RT: height scaled by factor.
 		if ( !m_rtScanlined->CreateColorTarget( ui32ScanW, ui32ScanH, fmtRt ) ) { return false; }
@@ -193,7 +233,7 @@ namespace lsn {
 		// Dynamic quad VB: 4 vertices XYZRHW|TEX1.
 		if ( !m_vbQuad->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, LSN_FVF_XYZRHWTEX1, D3DPOOL_DEFAULT ) ) { return false; }
 
-		if ( !UpdateLut() ) { return false; }
+		if ( !PrepaerSrcTexture() ) { return false; }
 
 		m_bValidState = true;
 		m_ui32RsrcW = m_ui32SrcW;
@@ -202,74 +242,23 @@ namespace lsn {
 	}
 
 	/**
-	 * \brief Updates the 512-entry float RGBA LUT.
-	 *
-	 * The LUT is a 512Å~1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
-	 *
+	 * Creates the upload texture.
+	 * 
 	 * \return Returns true on success.
-	 */
-	bool CDx9PaletteFilter::UpdateLut() {
+	 **/
+	bool CDx9NtscLSpiroFilter::PrepaerSrcTexture() {
 		if LSN_UNLIKELY( !m_pdx9dDevice || !m_ui32SrcW || !m_ui32SrcH ) { return false; }
-		// Create once: 512x1 A32B32G32R32F MANAGED texture.
-		if LSN_UNLIKELY( !m_tLut.get() ) {
-			m_tLut = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
-			if ( !m_tLut.get() ) { return false; }
+
+		if LSN_UNLIKELY( !m_tSrc.get() ) {
+			m_tSrc = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
+			if ( !m_tSrc.get() ) { return false; }
 		}
-		if LSN_UNLIKELY( !m_tLut->Valid() ) {
-			if ( !m_tLut->Create2D( 512, 1, 1, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED ) ) {
+		if LSN_UNLIKELY( !m_tSrc->Valid() ) {
+			//if ( !m_tSrc->Create2D( m_ui32SrcW * m_ui16ScaledWidth, m_ui32SrcH, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED ) ) {
+			if ( !m_tSrc->Create2D( m_ui16ScaledWidth, m_ui32SrcH, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT ) ) {
 				return false;
 			}
 		}
-		if LSN_UNLIKELY( m_vLut.size() && m_bUpdatePalette ) {
-			D3DLOCKED_RECT lrLocked{};
-			if LSN_UNLIKELY( !m_tLut->LockRect( 0, lrLocked, nullptr, 0 ) ) { return false; }
-			std::memcpy( lrLocked.pBits, m_vLut.data(), sizeof( float ) * 4 * 512 );
-			m_tLut->UnlockRect( 0 );
-			m_bUpdatePalette = false;
-		}
-		return true;
-	}
-
-	/**
-	 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
-	 *
-	 * Values are mapped to L16 in [0..65535] so that sampling.r*511 + 0.5 floors back to the exact index in the shader.
-	 *
-	 * \param _pui16Idx Source pointer to the index image (row-major).
-	 * \param _ui32W Image width in pixels (must equal the Init size).
-	 * \param _ui32H Image height in pixels (must equal the Init size).
-	 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed (= _ui32W * 2).
-	 * \return Returns true on success.
-	 */
-	bool CDx9PaletteFilter::UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch ) {
-		if LSN_UNLIKELY( !m_pdx9dDevice || _ui32W != m_ui32SrcW || _ui32H != m_ui32SrcH ) { return false; }
-
-		if LSN_UNLIKELY( !m_tIndex.get() ) {
-			m_tIndex = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
-			if LSN_UNLIKELY( !m_tIndex.get() ) { return false; }
-		}
-
-		if LSN_UNLIKELY( !m_tIndex->Valid() ) { return false; }
-		if ( !_ui32SrcPitch ) { _ui32SrcPitch = _ui32W * sizeof( uint16_t ); }
-
-		D3DLOCKED_RECT lrRect{};
-		if LSN_UNLIKELY( !m_tIndex->LockRect( 0, lrRect, nullptr, D3DLOCK_DISCARD ) || nullptr == lrRect.pBits ) { return false; }
-
-		if LSN_LIKELY( lrRect.Pitch == INT( _ui32SrcPitch ) ) {
-			// Just copy it all at once.
-			std::memcpy( lrRect.pBits, _pui16Idx, _ui32H * _ui32SrcPitch );
-			m_tIndex->UnlockRect( 0 );
-			return true;
-		}
-
-		for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
-			const uint8_t * pSrcRow = reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch;
-			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + Y * lrRect.Pitch;
-			const uint16_t * pSrc = reinterpret_cast<const uint16_t *>(pSrcRow);
-			uint16_t * pDst = reinterpret_cast<uint16_t *>(pDstRow);
-			std::memcpy( pDst, pSrc, _ui32W * sizeof( uint16_t ) );
-		}
-		m_tIndex->UnlockRect( 0 );
 		return true;
 	}
 
@@ -281,26 +270,8 @@ namespace lsn {
 	 *
 	 * \return Returns true if all shaders are ready.
 	 */
-	bool CDx9PaletteFilter::EnsureShaders() {
-		// Pass 1: indices + LUT -> RGBA (ps_2_0). L16 is normalized to 0..1; un-normalize to 0..65535 then clamp to 0..511.
-		static const char * kPsIdxToColorHlsl =
-			"sampler2D sIdx : register( s0 );\n"
-			"sampler2D sLut : register( s1 );\n"
-			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
-			"    float raw = tex2D( sIdx, uv ).r * 65535.0;\n"
-			"    float idx = clamp( floor( raw + 0.5 ), 0.0, 511.0 );\n"
-			"    float u   = (idx + 0.5) / 512.0;\n"
-			"    return tex2D( sLut, float2( u, 0.5 ) );\n"
-			"}\n";
-
-		/*static const char* kPsShowIndex =
-			"sampler2D sIdx:register(s0);\n"
-			"float4 main(float2 uv:TEXCOORD0):COLOR {\n"
-			"  float r = tex2D(sIdx, uv).r; // L16 normalized 0..1\n"
-			"  return float4(r,r,r,1);\n"
-			"}\n";*/
-
-		// Pass 2: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
+	bool CDx9NtscLSpiroFilter::EnsureShaders() {
+		// Pass 1: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
 		static const char * kPsVerticalNNHlsl =
 			"sampler2D sSrc : register( s0 );\n"
 			"float4 c0 : register( c0 );\n" // x=srcH, y=1/srcH, z=0.5
@@ -309,7 +280,7 @@ namespace lsn {
 			"    return tex2D( sSrc, float2( uv.x, v ) );\n"
 			"}\n";
 
-		// Pass 3: simple copy (ps_2_0).
+		// Pass 2: simple copy (ps_2_0).
 		static const char * kPsCopyHlsl =
 			"sampler2D sSrc : register( s0 );\n"
 			"float3 LinearToSrgb( float3 c ) {\n"
@@ -361,10 +332,10 @@ namespace lsn {
 		//	"  return c;\n"
 		//	"}\n";
 
-		if ( !m_psIdxToColor.get() ) {
+		/*if ( !m_psIdxToColor.get() ) {
 			m_psIdxToColor = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
 			if ( !m_psIdxToColor.get() ) { return false; }
-		}
+		}*/
 		if ( !m_psVerticalNN.get() ) {
 			m_psVerticalNN = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
 			if ( !m_psVerticalNN.get() ) { return false; }
@@ -375,11 +346,11 @@ namespace lsn {
 		}
 
 
-		if ( !m_psIdxToColor->Valid() ) {
+		/*if ( !m_psIdxToColor->Valid() ) {
 			std::vector<DWORD> vBc;
 			if ( !CompileHlslPs( kPsIdxToColorHlsl, "main", "ps_2_0", vBc ) ) { return false; }
 			if ( !m_psIdxToColor->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
-		}
+		}*/
 		if ( !m_psVerticalNN->Valid() ) {
 			std::vector<DWORD> vBc;
 			if ( !CompileHlslPs( kPsVerticalNNHlsl, "main", "ps_2_0", vBc ) ) { return false; }
@@ -402,7 +373,7 @@ namespace lsn {
 	 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
 	 * \return Returns true if compilation succeeded and bytecode was produced.
 	 */
-	bool CDx9PaletteFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode ) {
+	bool CDx9NtscLSpiroFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",
@@ -452,95 +423,41 @@ namespace lsn {
 	/**
 	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
 	 */
-	void CDx9PaletteFilter::ReleaseSizeDependents() {
-		if LSN_LIKELY( m_tIndex.get() ) { m_tIndex->Reset(); }
-		if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
+	void CDx9NtscLSpiroFilter::ReleaseSizeDependents() {
+		if LSN_LIKELY( m_tSrc.get() ) { m_tSrc->Reset(); }
+		//if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
 		if LSN_LIKELY( m_rtScanlined.get() ) { m_rtScanlined->Reset(); }
 		if LSN_LIKELY( m_vbQuad.get() ) { m_vbQuad->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
 	/**
-	 * \brief Renders the three-pass pipeline to the backbuffer with a black border outside _rOutput.
+	 * Renders the final output to the backbuffer.
 	 *
-	 * Precondition: The caller must have already called BeginScene() on the device.
-	 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
-	 *
-	 * Pass 1 renders indexÅ®color into the FP RT with a 1:1 viewport.
-	 * Pass 2 renders the FP RT into the scanlined RT (heightÅ~factor) using nearest-neighbor vertically.
-	 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
-	 *
-	 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
-	 * \return Returns true if the draw succeeded; false on failure.
+	 * \param _rOutput The destination rectangle.
+	 * \return Returns true if rendering succeeded.
 	 */
-	bool CDx9PaletteFilter::Render( const lsw::LSW_RECT &_rOutput ) {
-		if LSN_UNLIKELY( !m_bValidState || !m_tIndex.get() || !m_tLut.get() || !m_rtInitial.get() || !m_rtScanlined.get() || !m_psIdxToColor.get() || !m_psVerticalNN.get() || !m_psCopy.get() || !m_vbQuad.get() ) {
-			return false;
-		}
-		if LSN_UNLIKELY( !m_pdx9dDevice || !m_tIndex->Valid() || !m_tLut->Valid() || !m_rtInitial->Valid() || !m_rtScanlined->Valid() || !m_psIdxToColor->Valid() || !m_psVerticalNN->Valid() || !m_psCopy->Valid() || !m_vbQuad->Valid() ) {
-			return false;
-		}
+	bool CDx9NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
+		if LSN_UNLIKELY( !m_bValidState || !m_tSrc.get() || !m_rtScanlined.get() || !m_psVerticalNN.get() || !m_psCopy.get() || !m_vbQuad.get() ) { return false; }
+		if LSN_UNLIKELY( !m_pdx9dDevice || !m_tSrc->Valid() || !m_rtScanlined->Valid() || !m_psVerticalNN->Valid() || !m_psCopy->Valid() || !m_vbQuad->Valid() ) { return false; }
 		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
 
-		// ----- Pass 1: Indices + LUT Å® Initial FP RT (1:1) -----
-		{
-			IDirect3DSurface9 * pd3ds9Surf = m_rtInitial->GetSurface();
-			if LSN_UNLIKELY( !pd3ds9Surf ) { return false; }
-			pd3d9dDevice->SetRenderTarget( 0, pd3ds9Surf );
-			pd3ds9Surf->Release();
-			pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
-
-			D3DVIEWPORT9 vpViewport{};
-			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = m_ui32SrcW; vpViewport.Height = m_ui32SrcH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
-			pd3d9dDevice->SetViewport( &vpViewport );
-
-			pd3d9dDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-			pd3d9dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-			pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
-
-			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
-			float fU0, fV0, fU1, fV1;
-			const uint32_t uiSrcW = m_ui32SrcW;
-			const uint32_t uiSrcH = m_ui32SrcH;
-			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
-			if LSN_UNLIKELY( !FillQuad( (*m_vbQuad), 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ),
-				fU0, fV0, fU1, fV1 ) ) { return false; }
-			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
-			pd3d9dDevice->SetStreamSource( 0, m_vbQuad->Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
-
-			// s0 = index, s1 = LUT (both POINT/CLAMP)
-			pd3d9dDevice->SetTexture( 0, m_tIndex->Get() );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-
-			pd3d9dDevice->SetTexture( 1, m_tLut->Get() );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-
-			pd3d9dDevice->SetPixelShader( m_psIdxToColor->Get() );
-			pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
-		}
-
-		// ----- Pass 2: Initial FP Å® Scanlined FP (height Å~ factor, nearest vertically) -----
+		// ----- Pass 1: Src -> Scanlined FP (height * factor, nearest vertically) -----
 		{
 			IDirect3DSurface9 * pd3ds9Surf = m_rtScanlined->GetSurface();
 			if LSN_UNLIKELY( !pd3ds9Surf ) { return false; }
 			pd3d9dDevice->SetRenderTarget( 0, pd3ds9Surf );
 			pd3ds9Surf->Release();
 
-
-			const UINT ui32DstW = m_ui32SrcW * GetActualHorSharpness();
+			const UINT ui32DstW = m_ui16ScaledWidth * GetActualHorSharpness();
 			const UINT ui32DstH = m_ui32SrcH * GetActualVertSharpness();
 
 			D3DVIEWPORT9 vpViewport{};
 			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = ui32DstW; vpViewport.Height = ui32DstH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
 			pd3d9dDevice->SetViewport( &vpViewport );
 
+			pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
 			pd3d9dDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
 			pd3d9dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 			pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
@@ -551,16 +468,17 @@ namespace lsn {
 			const uint32_t uiSrcH = ui32DstH;
 			HalfTexelUv( uiSrcW, uiSrcH, fU0, fV0, fU1, fV1 );
 			if LSN_UNLIKELY( !FillQuad( (*m_vbQuad), 0.0f, 0.0f, float( ui32DstW ), float( ui32DstH ),
-				fU0, fV1, fU1, fV0 ) ) { return false; }
-			//if LSN_UNLIKELY( !FillQuad( 0.0f, 0.0f, float( ui32DstW ), float( ui32DstH ), 0.0f, 1.0f, 1.0f, 0.0f ) ) { return false; }
+				fU0, fV0, fU1, fV1 ) ) { return false; }
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad->Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 
-			// s0 = initial FP RT (POINT/CLAMP).
-			pd3d9dDevice->SetTexture( 0, m_rtInitial->Texture()->Get() );
+			// s0 = CPU-updated source texture (POINT/CLAMP).
+			pd3d9dDevice->SetTexture( 0, m_tSrc->Get() );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+
+			pd3d9dDevice->SetTexture( 1, nullptr );
 
 			// Set constants: fC0 = [srcH, 1/srcH, 0.5, 0]
 			const float fC0[4] = { float( m_ui32SrcH ), 1.0f / float( m_ui32SrcH ), 0.5f, 0.0f };
@@ -569,7 +487,7 @@ namespace lsn {
 			pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
 		}
 
-		// ----- Pass 3: Composite to backbuffer inside _rOutput, black elsewhere -----
+		// ----- Pass 2: Composite to backbuffer inside _rOutput, black elsewhere -----
 		{
 			IDirect3DSurface9 * pd3ds9Back = nullptr;
 			if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &pd3ds9Back ) ) ) {
@@ -577,10 +495,8 @@ namespace lsn {
 				pd3ds9Back->Release();
 			}
 
-			// Clear can be issued inside an active scene (caller began it).
 			pd3d9dDevice->Clear( 0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0f, 0 );
 
-			// Full backbuffer viewport; draw pre-transformed quad spanning _rOutput.
 			D3DSURFACE_DESC sdBb{};
 			IDirect3DSurface9 * pBB = nullptr;
 			if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &pBB ) ) ) {
@@ -591,7 +507,7 @@ namespace lsn {
 			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = sdBb.Width; vpViewport.Height = sdBb.Height; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
 			pd3d9dDevice->SetViewport( &vpViewport );
 
-			pd3d9dDevice->SetTexture( 0, m_rtScanlined->Texture()->Get() );
+			pd3d9dDevice->SetTexture( 0, m_rtScanlined->Texture()->Get() /*m_tSrc->Get()*/ );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
 			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
@@ -610,15 +526,48 @@ namespace lsn {
 			if LSN_UNLIKELY( !FillQuad( (*m_vbQuad), static_cast<float>(_rOutput.left),  static_cast<float>(_rOutput.top),
 				static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom),
 				fU0, fV0, fU1, fV1 ) ) { return false; }
-			//if LSN_UNLIKELY( !FillQuad( float( _rOutput.left ), float( _rOutput.top ), float( _rOutput.right ), float( _rOutput.bottom ), 0.0f, 0.0f, 1.0f, 1.0f ) ) { return false; }
-
-
 
 			pd3d9dDevice->SetStreamSource( 0, m_vbQuad->Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
 			pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
 		}
 
 		return true;
+
+	}
+
+
+	/**
+	 * Stops the worker thread.
+	 **/
+	void CDx9NtscLSpiroFilter::StopThread() {
+		/*m_tdThreadData.bEndThread = true;
+		if ( m_ptThread.get() ) {
+			m_eGo.Signal();
+			m_eDone.WaitForSignal();
+			m_ptThread->join();
+			m_ptThread.reset();
+		}
+		m_tdThreadData.bEndThread = false;*/
+	}
+
+	/**
+	 * The worker thread.
+	 * 
+	 * \param _ptdData Parameters passed to the thread.
+	 **/
+	void CDx9NtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+		::SetThreadHighPriority();
+		lsn::CScopedNoSubnormals snsNoSubnormals;
+		auto pnlfThis = _ptdData->pnlsfThis;
+		while ( !_ptdData->bEndThread ) {
+			pnlfThis->m_eDone.Signal();
+			pnlfThis->m_eGo.WaitForSignal();
+			if ( _ptdData->bEndThread ) { break; }
+
+			pnlfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui64RenderStartCycle, reinterpret_cast<uint8_t *>(pnlfThis->m_lrRect.pBits), pnlfThis->m_lrRect.Pitch );
+		}
+
+		pnlfThis->m_eDone.Signal();
 	}
 
 }	// namespace lsn

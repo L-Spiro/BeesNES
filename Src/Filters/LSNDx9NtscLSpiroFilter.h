@@ -1,11 +1,11 @@
 #ifdef LSN_DX9
 
 /**
- * Copyright L. Spiro 2025
+ * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: The base class for Direct3D 9 filters.
+ * Description: My own implementation of an NTSC filter.
  */
 
 #pragma once
@@ -16,27 +16,23 @@
 #include "../GPU/DirectX9/LSNDirectX9Texture.h"
 #include "../GPU/DirectX9/LSNDirectX9VertexBuffer.h"
 #include "LSNDx9FilterBase.h"
-
-#include <Helpers/LSWHelpers.h>
-
-#include <algorithm>
-#include <memory>
+#include "LSNLSpiroFilterBase.h"
 
 
 namespace lsn {
 
 	/**
-	 * Class CDx9PaletteFilter
-	 * \brief A standard 24-bit RGB filter.
+	 * Class CDx9NtscLSpiroFilter
+	 * \brief My own implementation of an NTSC filter.
 	 *
-	 * Description: A standard 24-bit RGB filter.
+	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CDx9PaletteFilter : public CDx9FilterBase {
+	class CDx9NtscLSpiroFilter : public CLSpiroFilterBase, public CDx9FilterBase {
 	public :
-		CDx9PaletteFilter();
-		virtual ~CDx9PaletteFilter();
-
-
+		CDx9NtscLSpiroFilter();
+		virtual ~CDx9NtscLSpiroFilter();
+		
+		
 		// == Functions.
 		/**
 		 * Sets the basic parameters for the filter.
@@ -46,7 +42,7 @@ namespace lsn {
 		 * \param _ui16Height The console screen height.  Typically 240.
 		 * \return Returns the input format requested of the PPU.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height );
 
 		/**
 		 * \brief Updates the vertical sharpness factor (integer scale).
@@ -99,31 +95,6 @@ namespace lsn {
 		}
 
 		/**
-		 * Sets whether to use a 16-bit render target for the initial pass.  Must be called before the filter is actually used.
-		 * 
-		 * \param _bUse16Bit If true, a 16-bit target is used, otherwise a 32-bit target is used.
-		 **/
-		inline void											Use16Target( bool _bUse16Bit ) { m_bUse16BitInitialTarget = _bUse16Bit; }
-
-		/**
-		 * Sets the palette.
-		 * 
-		 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
-		 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.  False always indicates a memory failure if _pfRgba512 is not nullptr.
-		 **/
-		bool												SetLut( const float * _pfRgba512 );
-
-		/**
-		 * Called when the filter is about to become active.
-		 */
-		virtual void										Activate() override;
-
-		/**
-		 * Called when the filter is about to become inactive.
-		 */
-		virtual void										DeActivate() override;
-
-		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *
@@ -144,35 +115,77 @@ namespace lsn {
 			int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) override;
 
 		/**
+		 * Gets the PPU output format.
+		 *
+		 * \return Returns the output format from the PPU/input format for this filter.
+		 */
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
+
+		/**
+		 * If true, the PPU is requested to provide a frame that has been flipped vertically.
+		 *
+		 * \return Returns true to receive a vertically flipped image from the PPU, false to receive an unflipped image.
+		 */
+		virtual bool										FlipInput() const { return false; }
+
+		/**
+		 * Gets a pointer to the output buffer.
+		 *
+		 * \return Returns a pointer to the output buffer.
+		 */
+		virtual uint8_t *									OutputBuffer() { return CurTarget(); }
+
+		/**
+		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.
+		 *
+		 * \return Returns the bits-per-pixel of the final output.
+		 */
+		virtual uint32_t									OutputBits() const { return 32; }
+
+		/**
+		 * Called when the filter is about to become active.
+		 */
+		virtual void										Activate() override;
+
+		/**
+		 * Called when the filter is about to become inactive.
+		 */
+		virtual void										DeActivate() override;
+
+		/**
 		 * Informs the filter of a window resize.
 		 **/
 		virtual void										FrameResize() override;
 
 
 	protected :
+		// == Types.
+		/** Thread data. */
+		struct LSN_THREAD_DATA {
+			uint64_t										ui64RenderStartCycle;								/**< The render cycle at the start of the frame. */
+			CDx9NtscLSpiroFilter *							pnlsfThis;											/**< Point to this object. */
+			const uint8_t *									pui8Pixels;											/**< The input 9-bit pixel array. */
+			uint16_t										ui16LinesDone;										/**< How many lines the thread has done. */
+			uint16_t										ui16EndLine;										/**< Line on which to end work. */
+			std::atomic<bool>								bEndThread;											/**< If true, the thread is ended. */
+		};
+
+
 		// == Members.
 		/** The DirectX 9 device wrapper (non-owning). */
 		CDirectX9Device *									m_pdx9dDevice = nullptr;
-		/** Index texture (L16, DEFAULT|DYNAMIC). */
-		std::unique_ptr<CDirectX9Texture>					m_tIndex;
-		/** 512Å~1 LUT texture (A32B32G32R32F, MANAGED). */
-		std::unique_ptr<CDirectX9Texture>					m_tLut;
 		/** Initial floating-point render target (same size as indices). */
-		std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
+		//std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
+		/** Software target texture (A32B32G32R32F, MANAGED), source for GPU up-scale. */
+		std::unique_ptr<CDirectX9Texture>					m_tSrc;
 		/** Scanlined floating-point render target (height = source height Å~ factor). */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtScanlined;
 		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
-		/** Pixel shader: indices + LUT Å® RGBA (pass 1). */
-		std::unique_ptr<CDirectX9PixelShader>				m_psIdxToColor;
 		/** Pixel shader: vertical nearest-neighbor upscale (pass 2). */
 		std::unique_ptr<CDirectX9PixelShader>				m_psVerticalNN;
 		/** Pixel shader: copy pass (pass 3). */
 		std::unique_ptr<CDirectX9PixelShader>				m_psCopy;
-		/** The palette look-up table. */
-		std::vector<float>									m_vLut;
-		/** The output buffer.  Not actually used, but provides a safe buffer for reading in some edges cases after filters are swapped. Also can be used for storing screenshots. */
-		std::vector<uint8_t>								m_vOutputBuffer;
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
 		/** Source height in pixels. */
@@ -182,18 +195,42 @@ namespace lsn {
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
 		/** Vertical sharpness factor. */
-		uint32_t											m_ui32VertSharpness = 2;
+		uint32_t											m_ui32VertSharpness = 3;
 		/** Horizontal sharpness factor. */
-		uint32_t											m_ui32HorSharness = 2;
+		uint32_t											m_ui32HorSharness = 1;
+		/** The locked rectangle into which the frame is drawn during ths osftware phase. */
+		D3DLOCKED_RECT										m_lrRect{};
 		/** Use a 16-bit initial render target? */
 		bool												m_bUse16BitInitialTarget = true;
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
-		/** Does the palette need to be uploaded? */
-		bool												m_bUpdatePalette = true;
-			
+
+		CEvent												m_eGo;												/**< Signal to tell the thread to go. */
+		CEvent												m_eDone;											/**< Thread to tell the main thread that the 2nd thread is done. */
+		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
+		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
+		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+
 
 		// == Functions.
+		/**
+		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
+		 **/
+		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
+
+		/**
+		 * Allocates the YIQ buffers for a given width and height.
+		 * 
+		 * \param _ui16W The width of the buffers.
+		 * \param _ui16H The height of the buffers.
+		 * \param _ui16Scale The width scale factor.
+		 * \return Returns true if the allocations succeeded.
+		 **/
+		virtual bool										AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) override;
+		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
 		 *
@@ -204,26 +241,11 @@ namespace lsn {
 		bool												EnsureSizeAndResources();
 
 		/**
-		 * \brief Updates the 512-entry float RGBA LUT.
-		 *
-		 * The LUT is a 512Å~1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
-		 *
+		 * Creates the upload texture.
+		 * 
 		 * \return Returns true on success.
-		 */
-		bool												UpdateLut();
-
-		/**
-		 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
-		 *
-		 * Values are mapped to L16 in [0..65535] so that sampling.r*511 + 0.5 floors back to the exact index in the shader.
-		 *
-		 * \param _pui16Idx Source pointer to the index image (row-major).
-		 * \param _ui32W Image width in pixels (must equal the Init size).
-		 * \param _ui32H Image height in pixels (must equal the Init size).
-		 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed (= _ui32W * 2).
-		 * \return Returns true on success.
-		 */
-		bool												UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch = 0 );
+		 **/
+		bool												PrepaerSrcTexture();
 
 		/**
 		 * \brief Ensures pixel shaders (indexÅ®color, vertical NN, copy) are created.
@@ -252,25 +274,36 @@ namespace lsn {
 		void												ReleaseSizeDependents();
 
 		/**
-		 * \brief Renders the three-pass pipeline to the backbuffer with a black border outside _rOutput.
+		 * Renders the final output to the backbuffer.
 		 *
-		 * Precondition: The caller must have already called BeginScene() on the device.
-		 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
-		 *
-		 * Pass 1 renders indexÅ®color into the FP RT with a 1:1 viewport.
-		 * Pass 2 renders the FP RT into the scanlined RT (heightÅ~factor) using nearest-neighbor vertically.
-		 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
-		 *
-		 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
-		 * \return Returns true if the draw succeeded; false on failure.
+		 * \param _rOutput The destination rectangle.
+		 * \return Returns true if rendering succeeded.
 		 */
 		bool												Render( const lsw::LSW_RECT &_rOutput );
+
+		/**
+		 * Stops the worker thread.
+		 **/
+		void												StopThread();
+
+		/**
+		 * The worker thread.
+		 * 
+		 * \param _ptdData Parameters passed to the thread.
+		 **/
+		static void											WorkThread( LSN_THREAD_DATA * _ptdData );
 
 	private :
 		typedef CDx9FilterBase								CParent;
 	};
+	
+
+
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// DEFINITIONS
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// == Functions.
 
 }	// namespace lsn
-
 
 #endif	// #ifdef LSN_DX9
