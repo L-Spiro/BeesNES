@@ -209,7 +209,7 @@ namespace lsn {
 		CEvent												m_eDone;											/**< Thread to tell the main thread that the 2nd thread is done. */
 		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
 		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
-		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		//std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
 
 
 		// == Functions.
