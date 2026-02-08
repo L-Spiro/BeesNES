@@ -12,6 +12,8 @@
 #include "LSNFilterBase.h"
 #include "LSNLSpiroFilterBase.h"
 
+#include <mutex>
+
 namespace lsn {
 
 	/**
@@ -80,26 +82,43 @@ namespace lsn {
 		 */
 		virtual uint32_t									OutputBits() const { return 32; }
 
+		/**
+		 * Sets the number of worker threads used by the filter.
+		 *
+		 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
+		 */
+		void												SetWorkerThreadCount( size_t _stThreads );
+
+		/**
+		 * Gets the number of worker threads used by the filter.
+		 *
+		 * \return Returns the total number of worker threads used by the filter.
+		 */
+		inline size_t										WorkerThreadCount() const { return m_stWorkerThreadCount; }
+
 
 	protected :
 		// == Types.
-		/** Thread data. */
-		struct LSN_THREAD_DATA {
-			uint64_t										ui64RenderStartCycle;								/**< The render cycle at the start of the frame. */
-			CNtscLSpiroFilter *								pnlsfThis;											/**< Point to this object. */
-			const uint8_t *									pui8Pixels;											/**< The input 9-bit pixel array. */
-			uint16_t										ui16LinesDone;										/**< How many lines the thread has done. */
-			uint16_t										ui16EndLine;										/**< Line on which to end work. */
-			std::atomic<bool>								bEndThread;											/**< If true, the thread is ended. */
+		/** A per-frame work package shared by all threads. */
+		struct LSN_JOB {
+			uint64_t										ui64RenderStartCycle = 0;							/**< The render cycle at the start of the frame. */
+			const uint8_t *									pui8Pixels = nullptr;								/**< The input 9-bit pixel array. */
+			size_t											stThreads = 1;										/**< Total number of threads for the job, including the calling thread. */
 		};
 
 
 		// == Members.
-		CEvent												m_eGo;												/**< Signal to tell the thread to go. */
-		CEvent												m_eDone;											/**< Thread to tell the main thread that the 2nd thread is done. */
-		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
-		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
+		std::vector<std::thread>							m_vThreads;											/**< Worker threads. */
+		std::mutex											m_mThreadMutex;										/**< Mutex protecting thread state. */
+		std::condition_variable								m_cvGo;												/**< Signal to tell worker threads to start a job. */
+		std::condition_variable								m_cvDone;											/**< Signal to tell the main thread workers have finished. */
+		std::atomic<uint32_t>								m_ui32WorkersRemaining = 0;							/**< Number of workers still running the current job. */
+		uint64_t											m_ui64JobId = 0;									/**< Incremented to start a new job. */
+		size_t												m_stWorkerThreadCount = 2;							/**< Total number of worker threads. */
 		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		LSN_JOB												m_jJob;												/**< The current job. */
+		bool												m_bThreadsStarted = false;							/**< True if the worker threads have been created. */
+		bool												m_bStopThreads = false;								/**< True if worker threads should exit. */
 
 
 		// == Functions.
@@ -122,16 +141,34 @@ namespace lsn {
 		virtual bool										AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) override;
 
 		/**
-		 * Stops the worker thread.
-		 **/
-		void												StopThread();
+		 * \brief Starts the worker threads.
+		 *
+		 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
+		 * Safe to call multiple times; if threads are already started, this function does nothing.
+		 */
+		void												StartThreads();
 
 		/**
-		 * The worker thread.
-		 * 
-		 * \param _ptdData Parameters passed to the thread.
-		 **/
-		static void											WorkThread( LSN_THREAD_DATA * _ptdData );
+		 * \brief Stops the worker threads.
+		 *
+		 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
+		 * resets thread-control state.  Safe to call multiple times; if threads are not started,
+		 * this function does nothing.
+		 */
+		void												StopThreads();
+
+		/**
+		 * \brief The worker thread entry point.
+		 *
+		 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
+		 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
+		 * finishes the job.
+		 *
+		 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
+		 *	Index 0 is reserved for the calling thread.
+		 */
+		void												WorkerThread( size_t _stThreadIdx );
+
 	};
 	
 

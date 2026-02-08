@@ -677,7 +677,7 @@ namespace lsn {
 	std::wstring CBeesNes::DefaultPaletteFolder() const {
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
-		wsBuffer.resize( dwSize + 1 ); 
+		wsBuffer.resize( dwSize + 1 );
 		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
 		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );

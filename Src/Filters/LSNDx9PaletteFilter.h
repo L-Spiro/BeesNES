@@ -244,7 +244,7 @@ namespace lsn {
 		 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
 		 * \return Returns true if compilation succeeded and bytecode was produced.
 		 */
-		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode );
+		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode );
 
 		/**
 		 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).

@@ -447,7 +447,7 @@ namespace lsn {
 	 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
 	 * \return Returns true if compilation succeeded and bytecode was produced.
 	 */
-	bool CDirectX9NesPresenter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode ) {
+	bool CDirectX9NesPresenter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",

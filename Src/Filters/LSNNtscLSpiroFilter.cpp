@@ -21,7 +21,7 @@ namespace lsn {
 	CNtscLSpiroFilter::CNtscLSpiroFilter() {
 	}
 	CNtscLSpiroFilter::~CNtscLSpiroFilter() {
-		StopThread();
+		StopThreads();
 	}
 
 	// == Functions.
@@ -49,12 +49,9 @@ namespace lsn {
 		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
 
 
-		StopThread();
-		m_tdThreadData.ui16LinesDone = 0;
-		m_tdThreadData.ui16EndLine = 0;
-		m_tdThreadData.bEndThread = false;
-		m_tdThreadData.pnlsfThis = this;
-		m_ptThread = std::make_unique<std::thread>( WorkThread, &m_tdThreadData );
+		StopThreads();
+		StartThreads();
+
 		return InputFormat();
 	}
 
@@ -82,20 +79,52 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the number of worker threads used by the filter.
+	 *
+	 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
+	 */
+	void CNtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
+		if ( _stThreads == m_stWorkerThreadCount ) { return; }
+
+		const bool bRestart = m_bThreadsStarted;
+		if ( bRestart ) { StopThreads(); }
+		m_stWorkerThreadCount = _stThreads;
+		if ( bRestart ) { StartThreads(); }
+	}
+
+	/**
 	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 	 * 
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
 	void CNtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
-		m_tdThreadData.ui16LinesDone = m_ui16Height / 2;
-		m_tdThreadData.ui16EndLine = m_ui16Height;
-		m_tdThreadData.ui64RenderStartCycle = _ui64RenderStartCycle;
-		m_tdThreadData.pui8Pixels = _pui8Pixels;
-		m_eGo.Signal();
-		RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 2, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+		// If there are no worker threads, render the whole frame on the calling thread.
+		if LSN_UNLIKELY( !m_vThreads.size() ) {
+			RenderScanlineRange( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+			return;
+		}
 
-		//m_eDone.WaitForSignal();
+		const size_t stThreads = m_vThreads.size() + 1;
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_jJob.pui8Pixels = _pui8Pixels;
+			m_jJob.ui64RenderStartCycle = _ui64RenderStartCycle;
+			m_jJob.stThreads = stThreads;
+			++m_ui64JobId;
+			m_ui32WorkersRemaining.store( uint32_t( m_vThreads.size() ) );
+		}
+		m_cvGo.notify_all();
+
+		// Render the calling thread's portion.
+		const uint16_t ui16Lines = m_ui16Height;
+		const uint16_t ui16Start = 0;
+		const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * 1U) / uint32_t( stThreads ) );
+		RenderScanlineRange( _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+
+		// Wait for all worker threads.
+		std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
+		m_cvDone.wait( ulLock, [&]() { return m_ui32WorkersRemaining.load() == 0; } );
 	}
 
 	/**
@@ -119,37 +148,103 @@ namespace lsn {
 	}
 
 	/**
-	 * Stops the worker thread.
-	 **/
-	void CNtscLSpiroFilter::StopThread() {
-		m_tdThreadData.bEndThread = true;
-		if ( m_ptThread.get() ) {
-			m_eGo.Signal();
-			m_eDone.WaitForSignal();
-			m_ptThread->join();
-			m_ptThread.reset();
+	 * \brief Starts the worker threads.
+	 *
+	 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
+	 * Safe to call multiple times; if threads are already started, this function does nothing.
+	 */
+	void CNtscLSpiroFilter::StartThreads() {
+		if ( m_bThreadsStarted ) { return; }
+
+		const size_t stWorkers = m_stWorkerThreadCount;
+		m_bStopThreads = false;
+		m_ui64JobId = 0;
+		m_ui32WorkersRemaining.store( 0 );
+		m_vThreads.clear();
+
+		if ( stWorkers ) {
+			m_vThreads.reserve( stWorkers );
+			for ( size_t I = 0; I < stWorkers; ++I ) {
+				m_vThreads.emplace_back( &CNtscLSpiroFilter::WorkerThread, this, I + 1 );
+			}
 		}
-		m_tdThreadData.bEndThread = false;
+
+		m_bThreadsStarted = true;
+
 	}
 
 	/**
-	 * The worker thread.
-	 * 
-	 * \param _ptdData Parameters passed to the thread.
-	 **/
-	void CNtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+	 * \brief Stops the worker threads.
+	 *
+	 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
+	 * resets thread-control state.  Safe to call multiple times; if threads are not started,
+	 * this function does nothing.
+	 */
+	void CNtscLSpiroFilter::StopThreads() {
+		if ( !m_bThreadsStarted ) { return; }
+
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_bStopThreads = true;
+		}
+		m_cvGo.notify_all();
+
+		for ( auto & T : m_vThreads ) {
+			if ( T.joinable() ) {
+				T.join();
+			}
+		}
+		m_vThreads.clear();
+
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_bStopThreads = false;
+		}
+		m_ui32WorkersRemaining.store( 0 );
+		m_bThreadsStarted = false;
+
+	}
+
+	/**
+	 * \brief The worker thread entry point.
+	 *
+	 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
+	 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
+	 * finishes the job.
+	 *
+	 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
+	 *	Index 0 is reserved for the calling thread.
+	 */
+	void CNtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
 		::SetThreadHighPriority();
 		lsn::CScopedNoSubnormals snsNoSubnormals;
-		auto pnlfThis = _ptdData->pnlsfThis;
-		while ( !_ptdData->bEndThread ) {
-			pnlfThis->m_eDone.Signal();
-			pnlfThis->m_eGo.WaitForSignal();
-			if ( _ptdData->bEndThread ) { break; }
 
-			pnlfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui64RenderStartCycle, pnlfThis->m_vRgbBuffer.data(), pnlfThis->m_ui16ScaledWidth * 4 );
+		uint64_t ui64LastJobId = 0;
+
+		for ( ;; ) {
+			LSN_JOB jJob;
+			{
+				std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
+				m_cvGo.wait( ulLock, [&]() { return m_bStopThreads || m_ui64JobId != ui64LastJobId; } );
+				if ( m_bStopThreads ) { break; }
+
+				ui64LastJobId = m_ui64JobId;
+				jJob = m_jJob;
+			}
+
+			const uint16_t ui16Lines = m_ui16Height;
+			const uint16_t ui16Start = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx )) / uint32_t( jJob.stThreads ) );
+			const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx + 1 )) / uint32_t( jJob.stThreads ) );
+			if ( ui16End > ui16Start ) {
+				RenderScanlineRange( jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+			}
+
+			if ( m_ui32WorkersRemaining.fetch_sub( 1 ) == 1 ) {
+				std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+				m_cvDone.notify_one();
+			}
 		}
 
-		pnlfThis->m_eDone.Signal();
 	}
 
 }	// namespace lsn

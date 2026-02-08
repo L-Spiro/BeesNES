@@ -1047,6 +1047,9 @@
     <ClInclude Include="Src\Filters\LSNDx9NtscLSpiroFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9DiskInclude.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

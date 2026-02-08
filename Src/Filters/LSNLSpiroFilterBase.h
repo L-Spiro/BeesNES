@@ -304,6 +304,7 @@ namespace lsn {
 		 * \param _pui8Dst Pointers to the start of the destination buffer.
 		 * \param _sPitch The pitch of the rows in the scanline buffer.
 		 **/
+		template <bool _bStoreToInt = true>
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
 
 		/**
@@ -435,6 +436,35 @@ namespace lsn {
 	inline void CLSpiroFilterBase::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
 		for ( size_t I = 0; I < 8; ++I ) {
 			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
+		}
+	}
+
+	/**
+	 * Renders a range of scanlines.
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End INdex of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	template <bool _bStoreToInt>
+	void CLSpiroFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		float * pfY = reinterpret_cast<float *>(m_vY.data());
+		float * pfI = reinterpret_cast<float *>(m_vI.data());
+		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
+		size_t sYiqStride = m_ui16ScaledWidth; // * (sizeof( simd_4 ) / sizeof( float ));
+		pfY += sYiqStride * _ui16Start;
+		pfI += sYiqStride * _ui16Start;
+		pfQ += sYiqStride * _ui16Start;
+		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_DOTS_X * H) * 8) % 12 ), H );
+			ConvertYiqToBgra<_bStoreToInt>( H, _pui8Dst, _sPitch );
+			pfY += sYiqStride;
+			pfI += sYiqStride;
+			pfQ += sYiqStride;
 		}
 	}
 
@@ -628,124 +658,47 @@ namespace lsn {
 				pfBlendBuffer += sRegSize;
 #endif
 
-				// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
-				mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
-				mG = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mG, m299 ), m0 ), m299 );
-				mB = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mB, m299 ), m0 ), m299 );
+				if constexpr ( _bStoreToInt ) {
 
-				// Convert to integers.
-				__m512i mRi = _mm512_cvtps_epi32( mR );
-				__m512i mGi = _mm512_cvtps_epi32( mG );
-				__m512i mBi = _mm512_cvtps_epi32( mB );
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
+					mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mB, m299 ), m0 ), m299 );
 
-#if 1
-				// Gamma.
-				mRi = _mm512_i32gather_epi32( mRi, m_ui32Gamma, 4 );
-				mGi = _mm512_i32gather_epi32( mGi, m_ui32GammaG, 4 );
-				mBi = _mm512_i32gather_epi32( mBi, m_ui32Gamma, 4 );
+					// Convert to integers.
+					__m512i mRi = _mm512_cvtps_epi32( mR );
+					__m512i mGi = _mm512_cvtps_epi32( mG );
+					__m512i mBi = _mm512_cvtps_epi32( mB );
 
-				// Combine sRGB channels into packed format.
-				__m512i mSrgb = _mm512_or_si512(
-					_mm512_or_si512( mBi, _mm512_slli_epi32( mGi, 8 ) ),
-					_mm512_slli_epi32( mRi, 16 )
-				);
+					// Gamma.
+					mRi = _mm512_i32gather_epi32( mRi, m_ui32Gamma, 4 );
+					mGi = _mm512_i32gather_epi32( mGi, m_ui32GammaG, 4 );
+					mBi = _mm512_i32gather_epi32( mBi, m_ui32Gamma, 4 );
 
-				_mm512_storeu_si512( pui8Bgra, mSrgb );
-				pui8Bgra += 512 / 8;
+					// Combine sRGB channels into packed format.
+					__m512i mSrgb = _mm512_or_si512(
+						_mm512_or_si512( mBi, _mm512_slli_epi32( mGi, 8 ) ),
+						_mm512_slli_epi32( mRi, 16 )
+					);
 
-#else
+					_mm512_storeu_si512( pui8Bgra, mSrgb );
+					pui8Bgra += 512 / 8;
+				}
+				else {
+					// Define scatter indices for stride of 4 floats (16 bytes) per pixel.
+					// Indices: 0, 4, 8, ... 60.
+					static const __m512i vIndices = _mm512_set_epi32(
+						60, 56, 52, 48, 44, 40, 36, 32,
+						28, 24, 20, 16, 12, 8,  4,  0
+					);
 
-				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
-				__m512i mBgi = _mm512_packus_epi32( mBi, mGi );
-				__m512i mRai = _mm512_packus_epi32( mRi, mGi );
+					_mm512_i32scatter_ps( pui8Bgra, vIndices, mR, 4 );
+					_mm512_i32scatter_ps( pui8Bgra + (1 * sizeof( float )), vIndices, mG, 4 );
+					_mm512_i32scatter_ps( pui8Bgra + (2 * sizeof( float )), vIndices, mB, 4 );
 
-				LSN_ALIGN( 64 )
-				uint16_t ui16Tmp0[32];
-				LSN_ALIGN( 64 )
-				uint16_t ui16Tmp1[32];
-				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp0), mBgi );
-				_mm512_store_si512( reinterpret_cast<__m512i *>(ui16Tmp1), mRai );
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
-				(*pui8Bgra++) = 255;							// A0;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
-				(*pui8Bgra++) = 255;							// A1;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
-				(*pui8Bgra++) = 255;							// A2;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
-				(*pui8Bgra++) = 255;							// A3;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4]];	// G4;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
-				(*pui8Bgra++) = 255;							// A4;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4]];	// G5;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
-				(*pui8Bgra++) = 255;							// A5;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4]];	// G6;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
-				(*pui8Bgra++) = 255;							// A6;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4]];	// G7;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
-				(*pui8Bgra++) = 255;							// A7;
-
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4]];	// B8;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4+4+4]];	// G8;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4]];	// R8;
-				(*pui8Bgra++) = 255;								// A8;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4]];	// B9;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4+4+4]];	// G9;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4]];	// R9;
-				(*pui8Bgra++) = 255;								// A9;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4]];	// B10;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4+4+4]];	// G10;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4]];	// R10;
-				(*pui8Bgra++) = 255;								// A10;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4]];	// B11;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4+4+4]];	// G11;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4]];	// R11;
-				(*pui8Bgra++) = 255;								// A11;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4+4+4+4+4]];	// B12;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4+4+4+4+4]];	// G12;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4+4+4+4+4]];	// R12;
-				(*pui8Bgra++) = 255;									// A12;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4+4+4+4+4]];	// B13;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4+4+4+4+4]];	// G13;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4+4+4+4+4]];	// R13;
-				(*pui8Bgra++) = 255;									// A13;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4+4+4+4+4]];	// B14;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4+4+4+4+4]];	// G14;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4+4+4+4+4]];	// R14;
-				(*pui8Bgra++) = 255;									// A14;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4+4+4+4+4]];	// B15;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4+4+4+4+4]];	// G15;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4+4+4+4+4]];	// R15;
-				(*pui8Bgra++) = 255;									// A15;
-#endif	// #if 0
+					_mm512_i32scatter_ps( pui8Bgra + (3 * sizeof( float )), vIndices, _mm512_set1_ps( 1.0f ), 4 );
+					pui8Bgra += (64 * sizeof( float ));
+				}
 
 				pfY += sRegSize;
 				pfI += sRegSize;
@@ -781,18 +734,6 @@ namespace lsn {
 				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
-#if 0
-				// Phosphor decay.
-				mR = _mm256_fmadd_ps( mPhosphorDecayG, mOldR, mR );
-				_mm256_store_ps( pfBlendBuffer, mR );
-				pfBlendBuffer += sRegSize;
-				mG = _mm256_fmadd_ps( mPhosphorDecayG, mOldG, mG );
-				_mm256_store_ps( pfBlendBuffer, mG );
-				pfBlendBuffer += sRegSize;
-				mB = _mm256_fmadd_ps( mPhosphorDecayG, mOldB, mB );
-				_mm256_store_ps( pfBlendBuffer, mB );
-				pfBlendBuffer += sRegSize;
-#else
 				mOldR = _mm256_mul_ps( mPhosphorDecayR, mOldR );
 				__m256 mScaledR = _mm256_mul_ps( mPhosInitDecay, mR );
 				mR = _mm256_max_ps( mOldR, mR );
@@ -810,85 +751,56 @@ namespace lsn {
 				mB = _mm256_max_ps( mOldB, mB );
 				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledB, mOldB ) );
 				pfBlendBuffer += sRegSize;
-#endif
 
-				// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
-				mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
-				mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
-				mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
+				if constexpr ( _bStoreToInt ) {
+
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
+					mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
 
 
-				// Convert to integers.
-				__m256i mRi = _mm256_cvtps_epi32( mR );
-				__m256i mGi = _mm256_cvtps_epi32( mG );
-				__m256i mBi = _mm256_cvtps_epi32( mB );
+					// Convert to integers.
+					__m256i mRi = _mm256_cvtps_epi32( mR );
+					__m256i mGi = _mm256_cvtps_epi32( mG );
+					__m256i mBi = _mm256_cvtps_epi32( mB );
 
-#if 1
-				// Gamma.
-				mRi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mRi, 4 );
-				mGi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32GammaG), mGi, 4 );
-				mBi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mBi, 4 );
+					// Gamma.
+					mRi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mRi, 4 );
+					mGi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32GammaG), mGi, 4 );
+					mBi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mBi, 4 );
 
-				// Combine sRGB channels into packed format.
-				__m256i mSrgb = _mm256_or_si256(
-					_mm256_or_si256( mBi, _mm256_slli_epi32( mGi, 8 ) ),
-					_mm256_slli_epi32( mRi, 16 )
-				);
+					// Combine sRGB channels into packed format.
+					__m256i mSrgb = _mm256_or_si256(
+						_mm256_or_si256( mBi, _mm256_slli_epi32( mGi, 8 ) ),
+						_mm256_slli_epi32( mRi, 16 )
+					);
 
-				_mm256_storeu_si256( reinterpret_cast<__m256i *>(pui8Bgra), mSrgb );
-				pui8Bgra += 256 / 8;
+					_mm256_storeu_si256( reinterpret_cast<__m256i *>(pui8Bgra), mSrgb );
+					pui8Bgra += 256 / 8;
+				}
+				else {
+					__m256 mA = _mm256_set1_ps( 1.0f );
 
-#else
-				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
-				__m256i mBgi = _mm256_packus_epi32( mBi, mGi );
-				__m256i mRai = _mm256_packus_epi32( mRi, mGi );
+					__m256 mT0 = _mm256_unpacklo_ps( mR, mG );
+					__m256 mT1 = _mm256_unpackhi_ps( mR, mG );
+					__m256 mT2 = _mm256_unpacklo_ps( mB, mA );
+					__m256 mT3 = _mm256_unpackhi_ps( mB, mA );
 
-				LSN_ALIGN( 32 )
-				uint16_t ui16Tmp0[16];
-				LSN_ALIGN( 32 )
-				uint16_t ui16Tmp1[16];
-				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp0), mBgi );
-				_mm256_store_si256( reinterpret_cast<__m256i *>(ui16Tmp1), mRai );
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
-				(*pui8Bgra++) = 255;							// A0;
+					__m256 mRow0 = _mm256_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m256 mRow1 = _mm256_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+					__m256 mRow2 = _mm256_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m256 mRow3 = _mm256_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 3, 2, 3, 2 ) );
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
-				(*pui8Bgra++) = 255;							// A1;
+					float * pfDest = reinterpret_cast<float *>(pui8Bgra);
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
-				(*pui8Bgra++) = 255;							// A2;
+					_mm256_storeu_ps( pfDest + 0, _mm256_permute2f128_ps( mRow0, mRow1, 0x20 ) );
+					_mm256_storeu_ps( pfDest + 8, _mm256_permute2f128_ps( mRow2, mRow3, 0x20 ) );
+					_mm256_storeu_ps( pfDest + 16, _mm256_permute2f128_ps( mRow0, mRow1, 0x31 ) );
+					_mm256_storeu_ps( pfDest + 24, _mm256_permute2f128_ps( mRow2, mRow3, 0x31 ) );
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
-				(*pui8Bgra++) = 255;							// A3;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0+4+4]];	// B4;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4+4+4]];	// G4;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0+4+4]];	// R4;
-				(*pui8Bgra++) = 255;							// A4;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1+4+4]];	// B5;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4+4+4]];	// G5;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1+4+4]];	// R5;
-				(*pui8Bgra++) = 255;							// A5;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2+4+4]];	// B6;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4+4+4]];	// G6;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2+4+4]];	// R6;
-				(*pui8Bgra++) = 255;							// A6;
-
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3+4+4]];	// B7;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4+4+4]];	// G7;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3+4+4]];	// R7;
-				(*pui8Bgra++) = 255;							// A7;
-#endif	// #if 0
+					pui8Bgra += (32 * sizeof( float ));
+				}
 
 				pfY += sRegSize;
 				pfI += sRegSize;
@@ -924,18 +836,7 @@ namespace lsn {
 				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, _mm_set1_ps( -0.394642233974f ) ), _mm_mul_ps( mV, _mm_set1_ps( -0.580621847591f ) ) ) );
 				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
 
-#if 0
 				// Phosphor decay.
-				mR = _mm_fmadd_ps( mPhosphorDecayG, mOldR, mR );
-				_mm_store_ps( pfBlendBuffer, mR );
-				pfBlendBuffer += sRegSize;
-				mG = _mm_fmadd_ps( mPhosphorDecayG, mOldG, mG );
-				_mm_store_ps( pfBlendBuffer, mG );
-				pfBlendBuffer += sRegSize;
-				mB = _mm_fmadd_ps( mPhosphorDecayG, mOldB, mB );
-				_mm_store_ps( pfBlendBuffer, mB );
-				pfBlendBuffer += sRegSize;
-#else
 				mOldR = _mm_mul_ps( mPhosphorDecayR, mOldR );
 				__m128 mScaledR = _mm_mul_ps( mPhosInitDecay, mR );
 				mR = _mm_max_ps( mOldR, mR );
@@ -953,47 +854,70 @@ namespace lsn {
 				mB = _mm_max_ps( mOldB, mB );
 				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledB, mOldB ) );
 				pfBlendBuffer += sRegSize;
-#endif
 
-				// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
-				mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m299 ), m0 ), m299 );
-				mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m299 ), m0 ), m299 );
-				mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m299 ), m0 ), m299 );
+				if constexpr ( _bStoreToInt ) {
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
+					mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m299 ), m0 ), m299 );
 
-				// Convert to integers.
-				__m128i mRi = _mm_cvtps_epi32( mR );
-				__m128i mGi = _mm_cvtps_epi32( mG );
-				__m128i mBi = _mm_cvtps_epi32( mB );
+					// Convert to integers.
+					__m128i mRi = _mm_cvtps_epi32( mR );
+					__m128i mGi = _mm_cvtps_epi32( mG );
+					__m128i mBi = _mm_cvtps_epi32( mB );
 
-				// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
-				__m128i mBgi = _mm_packus_epi32( mBi, mGi );
-				__m128i mRai = _mm_packus_epi32( mRi, mGi );
+					// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+					__m128i mBgi = _mm_packus_epi32( mBi, mGi );
+					__m128i mRai = _mm_packus_epi32( mRi, mGi );
 
-				LSN_ALIGN( 32 )
-				uint16_t ui16Tmp0[8];
-				LSN_ALIGN( 32 )
-				uint16_t ui16Tmp1[8];
-				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
-				_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
-				(*pui8Bgra++) = 255;							// A0;
+					LSN_ALIGN( 32 )
+					uint16_t ui16Tmp0[8];
+					LSN_ALIGN( 32 )
+					uint16_t ui16Tmp1[8];
+					_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
+					_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+					(*pui8Bgra++) = 255;							// A0;
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
-				(*pui8Bgra++) = 255;							// A1;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+					(*pui8Bgra++) = 255;							// A1;
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
-				(*pui8Bgra++) = 255;							// A2;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+					(*pui8Bgra++) = 255;							// A2;
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
-				(*pui8Bgra++) = 255;							// A3;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+					(*pui8Bgra++) = 255;							// A3;
+				}
+				else {
+					__m128 mA = _mm_set1_ps( 1.0f );
+
+					__m128 mT0 = _mm_unpacklo_ps( mR, mG );
+					__m128 mT1 = _mm_unpackhi_ps( mR, mG );
+					__m128 mT2 = _mm_unpacklo_ps( mB, mA );
+					__m128 mT3 = _mm_unpackhi_ps( mB, mA );
+
+					__m128 mP0 = _mm_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m128 mP1 = _mm_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+					__m128 mP2 = _mm_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m128 mP3 = _mm_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+
+					float * pfDest = reinterpret_cast<float *>(pui8Bgra);
+
+					_mm_storeu_ps( pfDest + 0, mP0 );
+					_mm_storeu_ps( pfDest + 4, mP1 );
+					_mm_storeu_ps( pfDest + 8, mP2 );
+					_mm_storeu_ps( pfDest + 12, mP3 );
+
+					pui8Bgra += (16 * sizeof( float ));
+				}
 
 				pfY += sRegSize;
 				pfI += sRegSize;
@@ -1019,20 +943,30 @@ namespace lsn {
 				fB += m_fPhosphorDecayRate * (*pfBlendBuffer);
 				(*pfBlendBuffer++) = fB * m_fInitPhosphorDecay;
 
-				// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
-				fR = std::clamp( fR * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
-				fG = std::clamp( fG * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
-				fB = std::clamp( fB * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+				if constexpr ( _bStoreToInt ) {
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
+					fR = std::clamp( fR * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+					fG = std::clamp( fG * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+					fB = std::clamp( fB * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 
-				// Convert to integers.
-				uint16_t ui16Ri = static_cast<uint16_t>(std::round( fR ));
-				uint16_t ui16Gi = static_cast<uint16_t>(std::round( fG ));
-				uint16_t ui16Bi = static_cast<uint16_t>(std::round( fB ));
+					// Convert to integers.
+					uint16_t ui16Ri = static_cast<uint16_t>(std::round( fR ));
+					uint16_t ui16Gi = static_cast<uint16_t>(std::round( fG ));
+					uint16_t ui16Bi = static_cast<uint16_t>(std::round( fB ));
 
-				(*pui8Bgra++) = m_ui8Gamma[ui16Bi];			// B0;
-				(*pui8Bgra++) = m_ui8GammaG[ui16Gi];		// G0;
-				(*pui8Bgra++) = m_ui8Gamma[ui16Ri];			// R0;
-				(*pui8Bgra++) = 255;						// A0;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Bi];			// B0;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Gi];		// G0;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Ri];			// R0;
+					(*pui8Bgra++) = 255;						// A0;
+				}
+				else {
+					reinterpret_cast<float *>(pui8Bgra)[0] = fR;
+					reinterpret_cast<float *>(pui8Bgra)[1] = fG;
+					reinterpret_cast<float *>(pui8Bgra)[2] = fB;
+					reinterpret_cast<float *>(pui8Bgra)[3] = 1.0f;
+
+					pui8Bgra += (4 * sizeof( float ));
+				}
 
 				++pfY;
 				++pfI;

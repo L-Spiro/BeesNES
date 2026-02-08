@@ -37,72 +37,29 @@ namespace lsn {
 			0,										// sTextLen
 			LSN_MWI_NONE,							// dwParentId
 		},
-		{
-			LSW_LT_STATUSBAR,						// ltType
-			LSN_MWI_STATUSBAR,						// wId
-			STATUSCLASSNAMEW,						// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0,										// iLeft
-			0,										// iTop
-			0,										// dwWidth
-			0,										// dwHeight
-			WS_VISIBLE | WS_CHILD | SBARS_SIZEGRIP,	// dwStyle
-			0,										// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_MWI_MAINWINDOW,						// dwParentId
+		//{
+		//	LSW_LT_STATUSBAR,						// ltType
+		//	LSN_MWI_STATUSBAR,						// wId
+		//	STATUSCLASSNAMEW,						// lpwcClass
+		//	TRUE,									// bEnabled
+		//	FALSE,									// bActive
+		//	0,										// iLeft
+		//	0,										// iTop
+		//	0,										// dwWidth
+		//	0,										// dwHeight
+		//	WS_VISIBLE | WS_CHILD | SBARS_SIZEGRIP,	// dwStyle
+		//	0,										// dwStyleEx
+		//	nullptr,								// pwcText
+		//	0,										// sTextLen
+		//	LSN_MWI_MAINWINDOW,						// dwParentId
 
-			nullptr, 0,								// pcLeftSizeExp
-			nullptr, 0,								// pcRightSizeExp
-			nullptr, 0,								// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			nullptr, 0,								// pcHeightSizeExp
-		},
-		/*{
-			LSW_LT_REBAR,							// ltType
-			LSN_MWI_REBAR0,							// wId
-			REBARCLASSNAMEW,						// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0,										// iLeft
-			0,										// iTop
-			m_wlMainWindow[0].dwWidth,				// dwWidth
-			150,									// dwHeight
-			//WS_CHILDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TBSTYLE_TRANSPARENT | TBSTYLE_REGISTERDROP | TBSTYLE_LIST | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_NOMOVEY,
-			WS_VISIBLE | WS_BORDER | WS_CHILD | WS_CLIPCHILDREN |
-				WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NOPARENTALIGN |
-				RBS_VARHEIGHT | RBS_BANDBORDERS,	// dwStyle
-			0,//WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_TOOLWINDOW,// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_MWI_MAINWINDOW,						// dwParentId
-
-			LSN_PARENT_CLEFT,//LSN_LOCK_LEFT,			// pcLeftSizeExp
-			LSN_PARENT_CRIGHT,						// pcRightSizeExp
-			LSN_PARENT_CTOP,							// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			nullptr, 0,								// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
-		},
-		{
-			LSW_LT_TOOLBAR,							// ltType
-			LSN_MWI_TOOLBAR0,						// wId
-			TOOLBARCLASSNAMEW,						// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0,										// iLeft
-			0,										// iTop
-			0,										// dwWidth
-			0,										// dwHeight
-			WS_CHILD | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | WS_CLIPCHILDREN |
-				WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NORESIZE | WS_VISIBLE | CCS_ADJUSTABLE,		// dwStyle
-			0,										// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_MWI_MAINWINDOW,						// dwParentId
-		},*/
+		//	nullptr, 0,								// pcLeftSizeExp
+		//	nullptr, 0,								// pcRightSizeExp
+		//	nullptr, 0,								// pcTopSizeExp
+		//	nullptr, 0,								// pcBottomSizeExp
+		//	nullptr, 0,								// pcWidthSizeExp
+		//	nullptr, 0,								// pcHeightSizeExp
+		//},
 	};
 
 	/** Menu bar items for the main window. */

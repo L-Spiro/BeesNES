@@ -9,7 +9,7 @@
  */
 
 #include "LSNDx9NtscLSpiroFilter.h"
-
+#include "../GPU/DirectX9/LSNDirectX9DiskInclude.h"
 #include "../Utilities/LSNScopedNoSubnormals.h"
 
 #include <algorithm>
@@ -24,7 +24,7 @@ namespace lsn {
 		SetMonitorGammaApply( false );
 	}
 	CDx9NtscLSpiroFilter::~CDx9NtscLSpiroFilter() {
-		StopThread();
+		StopThreads();
 	}
 
 	// == Functions.
@@ -37,27 +37,24 @@ namespace lsn {
 	 * \return Returns the input format requested of the PPU.
 	 */
 	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
-		StopThread();
-
+		StopThreads();
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
 
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
 		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
-		//m_vRgbBuffer.resize( m_ui32SrcW * m_ui32SrcH * sizeof( uint32_t ) );
 		AllocYiqBuffers( _ui16Width, _ui16Height, m_ui16WidthScale );
 
 		ReleaseSizeDependents();
 
 		
-		/*m_tdThreadData.ui16LinesDone = 0;
-		m_tdThreadData.ui16EndLine = 0;
-		m_tdThreadData.bEndThread = false;
-		m_tdThreadData.pnlsfThis = this;
-		m_ptThread = std::make_unique<std::thread>( WorkThread, &m_tdThreadData );*/
+		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
 		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
+
+		
+		StartThreads();
 		return pofOut;
 	}
 
@@ -80,6 +77,7 @@ namespace lsn {
 	 */
 	uint8_t * CDx9NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
+		if LSN_UNLIKELY( !m_pdx9dDevice ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 			m_ui32SrcW = _ui32Width;
 			m_ui32SrcH = _ui32Height;
@@ -95,7 +93,7 @@ namespace lsn {
 		rRect.right = rRect.left + LONG( _ui32DispWidth );
 		rRect.bottom = rRect.top + LONG( _ui32DispHeight );
 		m_lrRect.pBits = nullptr;
-		if LSN_UNLIKELY( !m_tSrc->LockRect( 0, m_lrRect, nullptr, D3DLOCK_DISCARD ) || nullptr == m_lrRect.pBits ) { return nullptr; }
+		if LSN_UNLIKELY( !m_tSrc->LockRect( 0, m_lrRect, nullptr, D3DLOCK_DISCARD ) || nullptr == m_lrRect.pBits ) { return m_vBasicRenderTarget[0].data(); }
 
 		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
 
@@ -107,7 +105,7 @@ namespace lsn {
 		_ui32Width = uint32_t( s_dgsState.rScreenRect.Width() );
 		_ui32Height = uint32_t( s_dgsState.rScreenRect.Height() );
 		_ui32Stride = _ui32Width * sizeof( uint32_t );
-		return m_vBasicRenderTarget[0].data();//m_vRgbBuffer.data();
+		return m_vBasicRenderTarget[0].data();
 	}
 
 	/**
@@ -150,41 +148,52 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the number of worker threads used by the filter.
+	 *
+	 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
+	 */
+	void CDx9NtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
+		if ( _stThreads == m_stWorkerThreadCount ) { return; }
+
+		const bool bRestart = m_bThreadsStarted;
+		if ( bRestart ) { StopThreads(); }
+		m_stWorkerThreadCount = _stThreads;
+		if ( bRestart ) { StartThreads(); }
+	}
+
+	/**
 	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
 	 * 
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
 	void CDx9NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
-		m_tdThreadData.ui16LinesDone = m_ui16Height / 2;
-		m_tdThreadData.ui16EndLine = m_ui16Height;
-		m_tdThreadData.ui64RenderStartCycle = _ui64RenderStartCycle;
-		m_tdThreadData.pui8Pixels = _pui8Pixels;
-		//m_eGo.Signal();
-		RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 1, _ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
-		//RenderScanlineRange( _pui8Pixels, 0, m_ui16Height / 1, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
-
-		//m_eDone.WaitForSignal();
-	}
-
-	/**
-	 * Allocates the YIQ buffers for a given width and height.
-	 * 
-	 * \param _ui16W The width of the buffers.
-	 * \param _ui16H The height of the buffers.
-	 * \param _ui16Scale The width scale factor.
-	 * \return Returns true if the allocations succeeded.
-	 **/
-	bool CDx9NtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
-		if ( !CLSpiroFilterBase::AllocYiqBuffers( _ui16W, _ui16H, _ui16Scale ) ) { return false; }
-
-		/*size_t sSize = _ui16W * _ui16Scale * _ui16H;
-		if ( !sSize ) { return true; }
-		try {
-			m_vRgbBuffer.resize( sSize * 4 );
+		// If there are no worker threads, render the whole frame on the calling thread.
+		if LSN_UNLIKELY( !m_vThreads.size() ) {
+			RenderScanlineRange<false>( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
+			return;
 		}
-		catch ( ... ) { return false; }*/
-		return true;
+
+		const size_t stThreads = m_vThreads.size() + 1;
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_jJob.pui8Pixels = _pui8Pixels;
+			m_jJob.ui64RenderStartCycle = _ui64RenderStartCycle;
+			m_jJob.stThreads = stThreads;
+			++m_ui64JobId;
+			m_ui32WorkersRemaining.store( uint32_t( m_vThreads.size() ) );
+		}
+		m_cvGo.notify_all();
+
+		// Render the calling thread's portion.
+		const uint16_t ui16Lines = m_ui16Height;
+		const uint16_t ui16Start = 0;
+		const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * 1U) / uint32_t( stThreads ) );
+		RenderScanlineRange<false>( _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
+
+		// Wait for all worker threads.
+		std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
+		m_cvDone.wait( ulLock, [&]() { return m_ui32WorkersRemaining.load() == 0; } );
 	}
 
 	/**
@@ -255,7 +264,7 @@ namespace lsn {
 		}
 		if LSN_UNLIKELY( !m_tSrc->Valid() ) {
 			//if ( !m_tSrc->Create2D( m_ui32SrcW * m_ui16ScaledWidth, m_ui32SrcH, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED ) ) {
-			if ( !m_tSrc->Create2D( m_ui16ScaledWidth, m_ui32SrcH, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT ) ) {
+			if ( !m_tSrc->Create2D( m_ui16ScaledWidth, m_ui32SrcH, 1, D3DUSAGE_DYNAMIC, D3DFMT_A32B32G32R32F, D3DPOOL_DEFAULT ) ) {
 				return false;
 			}
 		}
@@ -273,11 +282,13 @@ namespace lsn {
 	bool CDx9NtscLSpiroFilter::EnsureShaders() {
 		// Pass 1: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
 		static const char * kPsVerticalNNHlsl =
+			"#include \"LSNGamma.hlsl\"\n"
 			"sampler2D sSrc : register( s0 );\n"
 			"float4 c0 : register( c0 );\n" // x=srcH, y=1/srcH, z=0.5
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"    float v = (floor( uv.y * c0.x ) + c0.z ) * c0.y; \n"
-			"    return tex2D( sSrc, float2( uv.x, v ) );\n"
+			//"    return tex2D( sSrc, float2( uv.x, v ) );\n"
+			"    return float4( CrtProperToLinear3( tex2D( sSrc, float2( uv.x, v ) ).xyz ), 1.0 );\n"
 			"}\n";
 
 		// Pass 2: simple copy (ps_2_0).
@@ -332,10 +343,6 @@ namespace lsn {
 		//	"  return c;\n"
 		//	"}\n";
 
-		/*if ( !m_psIdxToColor.get() ) {
-			m_psIdxToColor = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
-			if ( !m_psIdxToColor.get() ) { return false; }
-		}*/
 		if ( !m_psVerticalNN.get() ) {
 			m_psVerticalNN = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
 			if ( !m_psVerticalNN.get() ) { return false; }
@@ -345,20 +352,16 @@ namespace lsn {
 			if ( !m_psCopy.get() ) { return false; }
 		}
 
+		CDirectX9DiskInclude diInclude( CDirectX9DiskInclude::GetExeShadersDir() );
 
-		/*if ( !m_psIdxToColor->Valid() ) {
-			std::vector<DWORD> vBc;
-			if ( !CompileHlslPs( kPsIdxToColorHlsl, "main", "ps_2_0", vBc ) ) { return false; }
-			if ( !m_psIdxToColor->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
-		}*/
 		if ( !m_psVerticalNN->Valid() ) {
 			std::vector<DWORD> vBc;
-			if ( !CompileHlslPs( kPsVerticalNNHlsl, "main", "ps_2_0", vBc ) ) { return false; }
+			if ( !CompileHlslPs( kPsVerticalNNHlsl, "main", "ps_2_0", vBc, &diInclude ) ) { return false; }
 			if ( !m_psVerticalNN->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
 		}
 		if ( !m_psCopy->Valid() ) {
 			std::vector<DWORD> vBc;
-			if ( !CompileHlslPs( kPsCopyHlsl, "main", "ps_2_0", vBc ) ) { return false; }
+			if ( !CompileHlslPs( kPsCopyHlsl, "main", "ps_2_0", vBc, &diInclude ) ) { return false; }
 			if ( !m_psCopy->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
 		}
 		return true;
@@ -371,9 +374,10 @@ namespace lsn {
 	 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").
 	 * \param _pcszProfile Null-terminated profile (e.g., "ps_2_0").
 	 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
+	 * \param _piInclude Optional #include handler.
 	 * \return Returns true if compilation succeeded and bytecode was produced.
 	 */
-	bool CDx9NtscLSpiroFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode ) {
+	bool CDx9NtscLSpiroFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",
@@ -401,7 +405,7 @@ namespace lsn {
 		HRESULT hRes = pfnCompile(
 			_pcszSource,
 			static_cast<UINT>(std::strlen( _pcszSource )),
-			nullptr, nullptr,
+			nullptr, _piInclude,
 			_pcszEntry, _pcszProfile,
 			0,
 			&pbCode, &pbErrs, nullptr );
@@ -425,7 +429,6 @@ namespace lsn {
 	 */
 	void CDx9NtscLSpiroFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tSrc.get() ) { m_tSrc->Reset(); }
-		//if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
 		if LSN_LIKELY( m_rtScanlined.get() ) { m_rtScanlined->Reset(); }
 		if LSN_LIKELY( m_vbQuad.get() ) { m_vbQuad->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
@@ -535,39 +538,103 @@ namespace lsn {
 
 	}
 
-
 	/**
-	 * Stops the worker thread.
-	 **/
-	void CDx9NtscLSpiroFilter::StopThread() {
-		/*m_tdThreadData.bEndThread = true;
-		if ( m_ptThread.get() ) {
-			m_eGo.Signal();
-			m_eDone.WaitForSignal();
-			m_ptThread->join();
-			m_ptThread.reset();
+	 * \brief Starts the worker threads.
+	 *
+	 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
+	 * Safe to call multiple times; if threads are already started, this function does nothing.
+	 */
+	void CDx9NtscLSpiroFilter::StartThreads() {
+		if ( m_bThreadsStarted ) { return; }
+
+		const size_t stWorkers = m_stWorkerThreadCount;
+		m_bStopThreads = false;
+		m_ui64JobId = 0;
+		m_ui32WorkersRemaining.store( 0 );
+		m_vThreads.clear();
+
+		if ( stWorkers ) {
+			m_vThreads.reserve( stWorkers );
+			for ( size_t I = 0; I < stWorkers; ++I ) {
+				m_vThreads.emplace_back( &CDx9NtscLSpiroFilter::WorkerThread, this, I + 1 );
+			}
 		}
-		m_tdThreadData.bEndThread = false;*/
+
+		m_bThreadsStarted = true;
+
 	}
 
 	/**
-	 * The worker thread.
-	 * 
-	 * \param _ptdData Parameters passed to the thread.
-	 **/
-	void CDx9NtscLSpiroFilter::WorkThread( LSN_THREAD_DATA * _ptdData ) {
+	 * \brief Stops the worker threads.
+	 *
+	 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
+	 * resets thread-control state.  Safe to call multiple times; if threads are not started,
+	 * this function does nothing.
+	 */
+	void CDx9NtscLSpiroFilter::StopThreads() {
+		if ( !m_bThreadsStarted ) { return; }
+
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_bStopThreads = true;
+		}
+		m_cvGo.notify_all();
+
+		for ( auto & T : m_vThreads ) {
+			if ( T.joinable() ) {
+				T.join();
+			}
+		}
+		m_vThreads.clear();
+
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_bStopThreads = false;
+		}
+		m_ui32WorkersRemaining.store( 0 );
+		m_bThreadsStarted = false;
+
+	}
+
+	/**
+	 * \brief The worker thread entry point.
+	 *
+	 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
+	 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
+	 * finishes the job.
+	 *
+	 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
+	 *	Index 0 is reserved for the calling thread.
+	 */
+	void CDx9NtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
 		::SetThreadHighPriority();
 		lsn::CScopedNoSubnormals snsNoSubnormals;
-		auto pnlfThis = _ptdData->pnlsfThis;
-		while ( !_ptdData->bEndThread ) {
-			pnlfThis->m_eDone.Signal();
-			pnlfThis->m_eGo.WaitForSignal();
-			if ( _ptdData->bEndThread ) { break; }
 
-			pnlfThis->RenderScanlineRange( _ptdData->pui8Pixels, _ptdData->ui16LinesDone, _ptdData->ui16EndLine, _ptdData->ui64RenderStartCycle, reinterpret_cast<uint8_t *>(pnlfThis->m_lrRect.pBits), pnlfThis->m_lrRect.Pitch );
+		uint64_t ui64LastJobId = 0;
+
+		for ( ;; ) {
+			LSN_JOB jJob;
+			{
+				std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
+				m_cvGo.wait( ulLock, [&]() { return m_bStopThreads || m_ui64JobId != ui64LastJobId; } );
+				if ( m_bStopThreads ) { break; }
+
+				ui64LastJobId = m_ui64JobId;
+				jJob = m_jJob;
+			}
+
+			const uint16_t ui16Lines = m_ui16Height;
+			const uint16_t ui16Start = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx )) / uint32_t( jJob.stThreads ) );
+			const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx + 1 )) / uint32_t( jJob.stThreads ) );
+			if ( ui16End > ui16Start ) {
+				RenderScanlineRange<false>( jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
+			}
+
+			if ( m_ui32WorkersRemaining.fetch_sub( 1 ) == 1 ) {
+				std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+				m_cvDone.notify_one();
+			}
 		}
-
-		pnlfThis->m_eDone.Signal();
 	}
 
 }	// namespace lsn

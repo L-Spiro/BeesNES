@@ -110,32 +110,37 @@ namespace lsn {
 	void CLSpiroFilterBase::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < LSN_SRGB_RES; ++I ) {
-			double dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0 :
-				CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) * 255.0;
-			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / (uint32_t( LSN_SRGB_RES ) - 1.0) ) ) * 255;
-			//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
+			if ( m_bHandleMonitorGamma ) {
+				double dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0 :
+					CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) * 255.0;
+				//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / (uint32_t( LSN_SRGB_RES ) - 1.0) ) ) * 255;
+				//double dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
 			
-			//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
-			//double dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
+				//double dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
+				//double dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
 
-			dVal = std::min( dVal, 255.0 );
-			dVal = std::max( dVal, 0.0 );
-			m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
-			m_ui32Gamma[I] = m_ui8Gamma[I];
+				dVal = std::min( dVal, 255.0 );
+				dVal = std::max( dVal, 0.0 );
+				m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
+				m_ui32Gamma[I] = m_ui8Gamma[I];
 
-			dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.5 ) ) * 255.0 :
-				CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.5 ) * 255.0;
-			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / (uint32_t( LSN_SRGB_RES ) - 1.0) ) ) * 255;
-			//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
+				dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.5 ) ) * 255.0 :
+					CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 0.5 ) * 255.0;
+				//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / (uint32_t( LSN_SRGB_RES ) - 1.0) ) ) * 255;
+				//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
 			
-			//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
-			//dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
+				//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) ) ) * 255.0;
+				//dVal = (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0;
 
-			dVal = std::min( dVal, 255.0 );
-			dVal = std::max( dVal, 0.0 );
+				dVal = std::min( dVal, 255.0 );
+				dVal = std::max( dVal, 0.0 );
 
-			m_ui8GammaG[I] = uint8_t( std::round( dVal ) );
-			m_ui32GammaG[I] = m_ui8GammaG[I];
+				m_ui8GammaG[I] = uint8_t( std::round( dVal ) );
+				m_ui32GammaG[I] = m_ui8GammaG[I];
+			}
+			else {
+				m_ui32Gamma[I] = m_ui32GammaG[I] = m_ui8Gamma[I] = m_ui8GammaG[I] = uint8_t( std::round( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)) * 255.0 ) );
+			}
 		}
 	}
 
@@ -314,34 +319,6 @@ namespace lsn {
 			(*_pfDstY++) *= fBrightness;
 			++_pfDstI;
 			++_pfDstQ;
-		}
-	}
-
-	/**
-	 * Renders a range of scanlines.
-	 * 
-	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-	 * \param _ui16Start Index of the first scanline to render.
-	 * \param _ui16End INdex of the end scanline.
-	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
-	 * \param _pui8Dst Pointers to the start of the destination buffer.
-	 * \param _sPitch The pitch of the rows in the scanline buffer.
-	 **/
-	void CLSpiroFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
-		float * pfY = reinterpret_cast<float *>(m_vY.data());
-		float * pfI = reinterpret_cast<float *>(m_vI.data());
-		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
-		size_t sYiqStride = m_ui16ScaledWidth; // * (sizeof( simd_4 ) / sizeof( float ));
-		pfY += sYiqStride * _ui16Start;
-		pfI += sYiqStride * _ui16Start;
-		pfQ += sYiqStride * _ui16Start;
-		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
-			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
-			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_DOTS_X * H) * 8) % 12 ), H );
-			ConvertYiqToBgra( H, _pui8Dst, _sPitch );
-			pfY += sYiqStride;
-			pfI += sYiqStride;
-			pfQ += sYiqStride;
 		}
 	}
 

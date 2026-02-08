@@ -18,6 +18,8 @@
 #include "LSNDx9FilterBase.h"
 #include "LSNLSpiroFilterBase.h"
 
+#include <mutex>
+
 
 namespace lsn {
 
@@ -157,17 +159,28 @@ namespace lsn {
 		 **/
 		virtual void										FrameResize() override;
 
+		/**
+		 * Sets the number of worker threads used by the filter.
+		 *
+		 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
+		 */
+		void												SetWorkerThreadCount( size_t _stThreads );
+
+		/**
+		 * Gets the number of worker threads used by the filter.
+		 *
+		 * \return Returns the total number of worker threads used by the filter.
+		 */
+		inline size_t										WorkerThreadCount() const { return m_stWorkerThreadCount; }
+
 
 	protected :
 		// == Types.
-		/** Thread data. */
-		struct LSN_THREAD_DATA {
-			uint64_t										ui64RenderStartCycle;								/**< The render cycle at the start of the frame. */
-			CDx9NtscLSpiroFilter *							pnlsfThis;											/**< Point to this object. */
-			const uint8_t *									pui8Pixels;											/**< The input 9-bit pixel array. */
-			uint16_t										ui16LinesDone;										/**< How many lines the thread has done. */
-			uint16_t										ui16EndLine;										/**< Line on which to end work. */
-			std::atomic<bool>								bEndThread;											/**< If true, the thread is ended. */
+		/** A per-frame work package shared by all threads. */
+		struct LSN_JOB {
+			const uint8_t *									pui8Pixels = nullptr;								/**< The input 9-bit pixel array. */
+			uint64_t										ui64RenderStartCycle = 0;							/**< The render cycle at the start of the frame. */
+			size_t											stThreads = 1;										/**< Total number of threads for the job, including the calling thread. */
 		};
 
 
@@ -205,11 +218,17 @@ namespace lsn {
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 
-		CEvent												m_eGo;												/**< Signal to tell the thread to go. */
-		CEvent												m_eDone;											/**< Thread to tell the main thread that the 2nd thread is done. */
-		std::unique_ptr<std::thread>						m_ptThread;											/**< The 2nd thread. */
-		LSN_THREAD_DATA										m_tdThreadData;										/**< Thread data. */
-		//std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		std::vector<std::thread>							m_vThreads;											/**< Worker threads. */
+		std::mutex											m_mThreadMutex;										/**< Mutex protecting thread state. */
+		std::condition_variable								m_cvGo;												/**< Signal to tell worker threads to start a job. */
+		std::condition_variable								m_cvDone;											/**< Signal to tell the main thread workers have finished. */
+		std::atomic<uint32_t>								m_ui32WorkersRemaining = 0;							/**< Number of workers still running the current job. */
+		size_t												m_stWorkerThreadCount = 2;							/**< Total number of worker threads. */
+		bool												m_bThreadsStarted = false;							/**< True if the worker threads have been created. */
+		bool												m_bStopThreads = false;								/**< True if worker threads should exit. */
+		uint64_t											m_ui64JobId = 0;									/**< Incremented to start a new job. */
+		LSN_JOB												m_jJob;												/**< The current job. */
+		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
 
 
 		// == Functions.
@@ -220,16 +239,6 @@ namespace lsn {
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
 		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
-
-		/**
-		 * Allocates the YIQ buffers for a given width and height.
-		 * 
-		 * \param _ui16W The width of the buffers.
-		 * \param _ui16H The height of the buffers.
-		 * \param _ui16Scale The width scale factor.
-		 * \return Returns true if the allocations succeeded.
-		 **/
-		virtual bool										AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) override;
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
@@ -264,9 +273,10 @@ namespace lsn {
 		 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").
 		 * \param _pcszProfile Null-terminated profile (e.g., "ps_2_0").
 		 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
+		 * \param _piInclude Optional #include handler.
 		 * \return Returns true if compilation succeeded and bytecode was produced.
 		 */
-		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> & _vOutByteCode );
+		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude );
 
 		/**
 		 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
@@ -282,16 +292,33 @@ namespace lsn {
 		bool												Render( const lsw::LSW_RECT &_rOutput );
 
 		/**
-		 * Stops the worker thread.
-		 **/
-		void												StopThread();
+		 * \brief Starts the worker threads.
+		 *
+		 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
+		 * Safe to call multiple times; if threads are already started, this function does nothing.
+		 */
+		void												StartThreads();
 
 		/**
-		 * The worker thread.
-		 * 
-		 * \param _ptdData Parameters passed to the thread.
-		 **/
-		static void											WorkThread( LSN_THREAD_DATA * _ptdData );
+		 * \brief Stops the worker threads.
+		 *
+		 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
+		 * resets thread-control state.  Safe to call multiple times; if threads are not started,
+		 * this function does nothing.
+		 */
+		void												StopThreads();
+
+		/**
+		 * \brief The worker thread entry point.
+		 *
+		 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
+		 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
+		 * finishes the job.
+		 *
+		 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
+		 *	Index 0 is reserved for the calling thread.
+		 */
+		void												WorkerThread( size_t _stThreadIdx );
 
 	private :
 		typedef CDx9FilterBase								CParent;

@@ -743,6 +743,7 @@
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -771,6 +772,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -799,6 +801,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -827,6 +830,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -855,6 +859,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -883,6 +888,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -911,6 +917,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -939,6 +946,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -967,6 +975,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -995,6 +1004,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1023,6 +1033,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1051,6 +1062,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1082,6 +1094,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1113,6 +1126,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1144,6 +1158,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1175,6 +1190,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1206,6 +1222,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1237,6 +1254,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1269,6 +1287,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1301,6 +1320,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1333,6 +1353,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1365,6 +1386,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1397,6 +1419,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1428,6 +1451,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1459,6 +1483,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1490,6 +1515,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1521,6 +1547,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1552,6 +1579,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1583,6 +1611,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1615,6 +1644,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1647,6 +1677,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1679,6 +1710,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1711,6 +1743,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1743,6 +1776,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
 xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1842,6 +1876,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Device.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9DiskInclude.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9IndexBuffer.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.h" />
