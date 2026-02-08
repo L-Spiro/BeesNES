@@ -19,21 +19,19 @@ A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goa
 <img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/a1ce1de5-7c26-48b3-acbb-ce845792a355" />
 <img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/b11cfb08-0d7d-4176-9fc2-d8e96e550c43" /><br>
 Authentic Phospher Decay:
-![image](https://github.com/user-attachments/assets/1d0e8df2-2f8d-4363-aa55-4ba60d0f5743)
-![image](https://github.com/user-attachments/assets/7afa4747-34f2-44a6-b266-4a47393fb6a8)
-![image](https://github.com/user-attachments/assets/ecdda2bd-585a-4907-9f8f-7080841ce8c6)
-![image](https://github.com/user-attachments/assets/0d14087a-9489-4f74-b1bf-b24fa7afd9c8)
-<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/1c3cd236-1a01-454c-95ad-2e1073528a23" />
-
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7edc9a25-e4d8-4f41-840f-a260e091dc06" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9fc403af-e3f8-42ed-bcbf-78539af24a9d" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7de00297-842c-4901-89af-222974bea010" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/311a5743-c039-4584-b65e-94ec42b206a2" />
 
 RF Cables:<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/3a596c53-168b-48bd-ace4-00b262c8e10f)<br>
+<img width="880" height="772" alt="image" src="https://github.com/user-attachments/assets/0648651b-165f-4f6b-b507-3b12424a057d" /><br>
 Composite:<br>
-![image](https://github.com/user-attachments/assets/6a5adb3b-8400-4b57-943d-1282ab76b222)<br>
+<img width="880" height="772" alt="image" src="https://github.com/user-attachments/assets/e0b32d66-f041-44b9-ac39-c205adf54e1d" /><br>
 HDMI:<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/8732d426-64cc-4c7c-9238-e9f70cf6bf26)<br>
+<img width="880" height="772" alt="image" src="https://github.com/user-attachments/assets/dfc6a3a7-ad20-4fc0-9e08-2aad7473d747" /><br>
 HDMI Mod:<br>
-![image](https://github.com/L-Spiro/BeesNES/assets/7362666/692e989b-ec8a-4266-913a-ebb921e5e60e)<br>
+<img width="880" height="772" alt="image" src="https://github.com/user-attachments/assets/bf9cec41-1a87-4569-adab-9ca429ac136f" /><br>
 
 PAL (Composite:):<br>
 ![image](https://github.com/user-attachments/assets/68e7131a-437f-47f8-8f35-6b95ebc7cfd4)<br>
@@ -46,7 +44,7 @@ PAL-N (Argentinian Famiclone) (Composite):<br>
 
 
 ## Audio Accuracy
-![image](https://github.com/user-attachments/assets/38cff73e-e3e6-4d3e-81ee-99d7ee0af7a9)<br>
+<img width="547" height="744" alt="image" src="https://github.com/user-attachments/assets/321a5ee3-9695-4d9f-9cd5-08b70e9e9236" /><br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
 
 ![image](https://github.com/user-attachments/assets/3b3e5ddd-b1e2-414f-beff-bfdce2ba7891)<br>
