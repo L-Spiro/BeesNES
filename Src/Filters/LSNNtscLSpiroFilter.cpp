@@ -136,7 +136,7 @@ namespace lsn {
 	 * \return Returns true if the allocations succeeded.
 	 **/
 	bool CNtscLSpiroFilter::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
-		if ( !CLSpiroFilterBase::AllocYiqBuffers( _ui16W, _ui16H, _ui16Scale ) ) { return false; }
+		if ( !CLSpiroNtscFilterBase::AllocYiqBuffers( _ui16W, _ui16H, _ui16Scale ) ) { return false; }
 
 		size_t sSize = _ui16W * _ui16Scale * _ui16H;
 		if ( !sSize ) { return true; }
@@ -244,7 +244,6 @@ namespace lsn {
 				m_cvDone.notify_one();
 			}
 		}
-
 	}
 
 }	// namespace lsn

@@ -47,6 +47,13 @@ namespace lsn {
 #ifdef LSN_DX9
 			LSN_F_INDEXEDDX9,								/**< Basic paletted Direct3D 9. */
 			LSN_F_LSPIRONTSC_US_DX9,						/**< L. Spiro NTSC up-scaled Direct3D 9. */
+
+			LSN_F_LSPIROPAL_US_DX9,							/**< L. Spiro PAL up-scaled Direct3D 9. */
+			LSN_F_LSPIRODENDY_US_DX9,						/**< L. Spiro Dendy up-scaled Direct3D 9. */
+			LSN_F_LSPIROPALM_US_DX9,						/**< L. Spiro PAL-M up-scaled Direct3D 9. */
+			LSN_F_LSPIRONPALN_US_DX9,						/**< L. Spiro PAL-N up-scaled Direct3D 9. */
+			
+			LSN_F_LSPIRON_AUTO_US_DX9,						/**< L. Spiro auto up-scaled Direct3D 9. */
 #endif	// #ifdef LSN_DX9
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */

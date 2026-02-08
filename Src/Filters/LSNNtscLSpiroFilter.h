@@ -10,7 +10,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "LSNFilterBase.h"
-#include "LSNLSpiroFilterBase.h"
+#include "LSNLSpiroNtscFilterBase.h"
 
 #include <mutex>
 
@@ -22,7 +22,7 @@ namespace lsn {
 	 *
 	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CNtscLSpiroFilter : public CLSpiroFilterBase, public CFilterBase {
+	class CNtscLSpiroFilter : public CLSpiroNtscFilterBase, public CFilterBase {
 	public :
 		CNtscLSpiroFilter();
 		virtual ~CNtscLSpiroFilter();

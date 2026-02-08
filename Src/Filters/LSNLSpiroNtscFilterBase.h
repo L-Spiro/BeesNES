@@ -21,26 +21,26 @@
 #include <thread>
 
 #pragma warning( push )
-#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CLSpiroFilterBase': structure was padded due to alignment specifier
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CLSpiroNtscFilterBase': structure was padded due to alignment specifier
 
 namespace lsn {
 
 	/**
-	 * Class CLSpiroFilterBase
+	 * Class CLSpiroNtscFilterBase
 	 * \brief My own implementation of an NTSC filter.
 	 *
 	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CLSpiroFilterBase {
+	class CLSpiroNtscFilterBase {
 	public :
-		CLSpiroFilterBase();
-		virtual ~CLSpiroFilterBase();
+		CLSpiroNtscFilterBase();
+		virtual ~CLSpiroNtscFilterBase();
 
 
 		// == Enumerations.
 		/** The resolution of the sRGB table. **/
 		enum : size_t {
-			LSN_SRGB_RES									= 1024,
+			LSN_SRGB_RES									= 512,
 		};
 
 
@@ -402,7 +402,7 @@ namespace lsn {
 	 * \param _ui16Phase The phase counter.
 	 * \return Returns the signal produced by the PPU output index.
 	 **/
-	inline float CLSpiroFilterBase::IndexToNtscSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase ) {
+	inline float CLSpiroNtscFilterBase::IndexToNtscSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase ) {
 		// Decode the NES color.
 		uint16_t ui16Color = (_ui16Pixel & 0x0F);								// 0..15 "cccc".
 		uint16_t ui16Level = (ui16Color >= 0xE) ? 1 : (_ui16Pixel >> 4) & 3;	// 0..3  "ll".  For colors 14..15, level 1 is forced.
@@ -433,7 +433,7 @@ namespace lsn {
 	 * \param _ui16Pixel The PPU output index to convert.
 	 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
 	 **/
-	inline void CLSpiroFilterBase::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
+	inline void CLSpiroNtscFilterBase::PixelToNtscSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle ) {
 		for ( size_t I = 0; I < 8; ++I ) {
 			(*_pfDst++) = IndexToNtscSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ) );
 		}
@@ -450,7 +450,7 @@ namespace lsn {
 	 * \param _sPitch The pitch of the rows in the scanline buffer.
 	 **/
 	template <bool _bStoreToInt>
-	void CLSpiroFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+	void CLSpiroNtscFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -479,7 +479,7 @@ namespace lsn {
 	 * \param _mSin The summed result of sine convolution.
 	 * \param _mSignal The summed result of signal convolution.
 	 **/
-	inline void CLSpiroFilterBase::Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal ) {
+	inline void CLSpiroNtscFilterBase::Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal ) {
 		// Load the signals.
 		__m512 mSignals = _mm512_loadu_ps( _pfSignals );
 		// Load the filter weights.
@@ -516,7 +516,7 @@ namespace lsn {
 	 * \param _mSin The summed result of sine convolution.
 	 * \param _mSignal The summed result of signal convolution.
 	 **/
-	inline void CLSpiroFilterBase::Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal ) {
+	inline void CLSpiroNtscFilterBase::Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal ) {
 		// Load the signals.
 		__m256 mSignals = _mm256_loadu_ps( _pfSignals );
 		// Load the filter weights.
@@ -553,7 +553,7 @@ namespace lsn {
 	 * \param _fSin The summed result of sine convolution.
 	 * \return Returns the sum of the signal convolution.
 	 **/
-	inline void CLSpiroFilterBase::Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal ) {
+	inline void CLSpiroNtscFilterBase::Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal ) {
 		// Load the signals.
 		__m128 mSignals = _mm_loadu_ps( _pfSignals );
 		// Load the filter weights.
@@ -577,7 +577,6 @@ namespace lsn {
 	}
 #endif	// #ifdef __SSE4_1__
 
-
 	/**
 	 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
 	 * 
@@ -586,7 +585,7 @@ namespace lsn {
 	 * \param _sPitch The pitch of the rows in the scanline buffer.
 	 **/
 	template <bool _bStoreToInt>
-	void CLSpiroFilterBase::ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch ) {
+	void CLSpiroNtscFilterBase::ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch ) {
 		//uint8_t * pui8Bgra = m_vRgbBuffer.data() + m_ui16ScaledWidth * 4 * _sScanline;
 		uint8_t * pui8Bgra = _pui8Dst + _sPitch * _sScanline;
 		float * pfBlendBuffer = m_vBlendBuffer.data() + m_ui16ScaledWidth * 3 * _sScanline;
@@ -685,8 +684,6 @@ namespace lsn {
 					pui8Bgra += 512 / 8;
 				}
 				else {
-					// Define scatter indices for stride of 4 floats (16 bytes) per pixel.
-					// Indices: 0, 4, 8, ... 60.
 					static const __m512i vIndices = _mm512_set_epi32(
 						60, 56, 52, 48, 44, 40, 36, 32,
 						28, 24, 20, 16, 12, 8,  4,  0
@@ -753,7 +750,6 @@ namespace lsn {
 				pfBlendBuffer += sRegSize;
 
 				if constexpr ( _bStoreToInt ) {
-
 					// Scale and clamp. clamp( RGB * LSN_SRGB_RES, 0, LSN_SRGB_RES ).
 					mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
 					mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );

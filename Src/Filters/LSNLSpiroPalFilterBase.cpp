@@ -3,10 +3,10 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of an NTSC filter.
+ * Description: My own implementation of an PAL filter.
  */
 
-#include "LSNLSpiroFilterBase.h"
+#include "LSNLSpiroPalFilterBase.h"
 
 #include "../Utilities/LSNScopedNoSubnormals.h"
 
@@ -20,27 +20,21 @@
 namespace lsn {
 
 	// == Members.
-	CLSpiroFilterBase::CLSpiroFilterBase() {
-		m_fHueSetting = 8.0f * std::numbers::pi / 180.0f;														/**< The hue. */
-		m_fGammaSetting = 1.0f / 0.45f;																			/**< The CRT gamma curve. */
-		m_fBrightnessSetting = (1.0f - (0.070710678118654752440084436210485f));									/**< The brightness setting. */
-		m_fSaturationSetting = -0.40f + 1.0f;																	/**< The saturation setting. */
-
-		// RetroTink?
-		//m_fHueSetting = 14.5f * std::numbers::pi / 180.0f;					/**< The hue. */
-		//m_fGammaSetting = 2.5f;					/**< The CRT gamma curve. */
-		//m_fBrightnessSetting = 1.0f - 0.005f;	/**< The brightness setting. */
-		//m_fSaturationSetting = -0.50f + 1.0f;								/**< The saturation setting. */
+	CLSpiroPalFilterBase::CLSpiroPalFilterBase() {
+		m_fHueSetting = (8.0f + 0.0f) * std::numbers::pi / 180.0f;					/**< The hue. */
+		m_fGammaSetting = 2.8f;														/**< The CRT gamma curve. */
+		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;			/**< The brightness setting. */
+		m_fSaturationSetting = -0.40f + 1.0f;										/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
 		GenPhaseTables( m_fHueSetting );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
-		SetWidth( LSN_PM_NTSC_RENDER_WIDTH );		// Allocate buffers.
-		SetHeight( 240 );							// Allocate buffers.		
+		SetWidth( LSN_PM_PAL_RENDER_WIDTH );		// Allocate buffers.
+		SetHeight( 240 );							// Allocate buffers.
 	}
-	CLSpiroFilterBase::~CLSpiroFilterBase() {
+	CLSpiroPalFilterBase::~CLSpiroPalFilterBase() {
 		
 	}
 
@@ -51,7 +45,7 @@ namespace lsn {
 	 * \param _ui32Size The new size of the filter.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CLSpiroFilterBase::SetKernelSize( uint32_t _ui32Size ) {
+	bool CLSpiroPalFilterBase::SetKernelSize( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
 		GenFilterKernel( m_ui32FilterKernelSize );
 		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
@@ -64,7 +58,7 @@ namespace lsn {
 	 * \param _ui16Width The width to set.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CLSpiroFilterBase::SetWidth( uint16_t _ui16Width ) {
+	bool CLSpiroPalFilterBase::SetWidth( uint16_t _ui16Width ) {
 		if ( m_ui16Width != _ui16Width ) {
 			if ( !AllocYiqBuffers( _ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Width = _ui16Width;
@@ -79,7 +73,7 @@ namespace lsn {
 	 * \param _ui16WidthScale The width scale to set.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CLSpiroFilterBase::SetWidthScale( uint16_t _ui16WidthScale ) {
+	bool CLSpiroPalFilterBase::SetWidthScale( uint16_t _ui16WidthScale ) {
 		if ( m_ui16WidthScale != _ui16WidthScale ) {
 			if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, _ui16WidthScale ) ) { return false; }
 			m_ui16WidthScale = _ui16WidthScale;
@@ -94,7 +88,7 @@ namespace lsn {
 	 * \param _ui16Height The height to set.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
-	bool CLSpiroFilterBase::SetHeight( uint16_t _ui16Height ) {
+	bool CLSpiroPalFilterBase::SetHeight( uint16_t _ui16Height ) {
 		if ( m_ui16Height != _ui16Height ) {
 			if ( !AllocYiqBuffers( m_ui16Width, _ui16Height, m_ui16WidthScale ) ) { return false; }
 			m_ui16Height = _ui16Height;
@@ -107,7 +101,7 @@ namespace lsn {
 	 * 
 	 * \param _fGamma The gamma to set.
 	 **/
-	void CLSpiroFilterBase::SetGamma( float _fGamma ) {
+	void CLSpiroPalFilterBase::SetGamma( float _fGamma ) {
 		m_fGammaSetting = _fGamma;
 		for (size_t I = 0; I < LSN_SRGB_RES; ++I ) {
 			if ( m_bHandleMonitorGamma ) {
@@ -149,7 +143,7 @@ namespace lsn {
 	 * 
 	 * \param _bApplyMonitorGamma If true, an sRGB curve to compensate for the monitor is applied to the gamma table.
 	 **/
-	void CLSpiroFilterBase::SetMonitorGammaApply( bool _bApplyMonitorGamma ) {
+	void CLSpiroPalFilterBase::SetMonitorGammaApply( bool _bApplyMonitorGamma ) {
 		m_bHandleMonitorGamma = _bApplyMonitorGamma;
 		SetGamma( m_fGammaSetting );
 	}
@@ -159,7 +153,7 @@ namespace lsn {
 	 * 
 	 * \param _fHue The hue to set.
 	 **/
-	void CLSpiroFilterBase::SetHue( float _fHue ) {
+	void CLSpiroPalFilterBase::SetHue( float _fHue ) {
 		m_fHueSetting = _fHue;
 		GenPhaseTables( _fHue );
 	}
@@ -169,7 +163,7 @@ namespace lsn {
 	 * 
 	 * \param _fBrightness The brightness to set.
 	 **/
-	void CLSpiroFilterBase::SetBrightness( float _fBrightness ) {
+	void CLSpiroPalFilterBase::SetBrightness( float _fBrightness ) {
 		m_fBrightnessSetting = _fBrightness;
 		GenPhaseTables( m_fHueSetting );
 	}
@@ -179,7 +173,7 @@ namespace lsn {
 	 * 
 	 * \param _fSat The saturation to set.
 	 **/
-	void CLSpiroFilterBase::SetSaturation( float _fSat ) {
+	void CLSpiroPalFilterBase::SetSaturation( float _fSat ) {
 		m_fSaturationSetting = _fSat;
 		GenPhaseTables( m_fHueSetting );
 	}
@@ -189,7 +183,7 @@ namespace lsn {
 	 * 
 	 * \param _fBlack The black level to set.
 	 **/
-	void CLSpiroFilterBase::SetBlackLevel( float _fBlack ) {
+	void CLSpiroPalFilterBase::SetBlackLevel( float _fBlack ) {
 		m_fBlackSetting = _fBlack;
 		GenNormalizedSignals();
 	}
@@ -199,9 +193,25 @@ namespace lsn {
 	 * 
 	 * \param _fWhite The white level to set.
 	 **/
-	void CLSpiroFilterBase::SetWhiteLevel( float _fWhite ) {
+	void CLSpiroPalFilterBase::SetWhiteLevel( float _fWhite ) {
 		m_fWhiteSetting = _fWhite;
 		GenNormalizedSignals();
+	}
+
+	/**
+	 * Sets the number of signals per pixel.  10 for PAL, 8 for Dendy.
+	 * 
+	 * \param _ui16Value The value to set.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CLSpiroPalFilterBase::SetPixelToSignal( uint16_t _ui16Value ) {
+		uint16_t ui16Backup = m_ui16PixelToSignal;
+		m_ui16PixelToSignal = _ui16Value;
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) {
+			m_ui16PixelToSignal = ui16Backup;
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -214,19 +224,20 @@ namespace lsn {
 	 * \param _ui16Cycle The cycle count at the start of the scanline.
 	 * \param _sRowIdx The scanline index.
 	 **/
-	void CLSpiroFilterBase::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+	void CLSpiroPalFilterBase::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
 		float * pfSignalStart = m_vSignalStart[_sRowIdx];
 		float * pfSignals = pfSignalStart;
-		for ( uint16_t I = 0; I < LSN_PM_NTSC_RENDER_WIDTH; ++I ) {
-			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
-			pfSignals += 8;
+		for ( uint16_t I = 0; I < m_ui16Width; ++I ) {
+			PixelToPalSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * m_ui16PixelToSignal ), _sRowIdx );
+			
+			pfSignals += m_ui16PixelToSignal;
 		}
 
 		// Add noise.
 		pfSignals = pfSignalStart;
-		float * pfSignalEnd = pfSignals + LSN_PM_NTSC_RENDER_WIDTH * 8;
+		float * pfSignalEnd = pfSignals + m_ui16ScaledWidth;
 		// Prefetch the middle of the buffer.
-		LSN_PREFETCH_LINE( pfSignals + LSN_PM_NTSC_RENDER_WIDTH * 4 );
+		LSN_PREFETCH_LINE( pfSignals + ((m_ui16ScaledWidth) >> 1) );
 #ifdef __AVX512F__
 		if ( CUtilities::IsAvx512FSupported() ) {
 			while ( pfSignals < pfSignalEnd ) {
@@ -258,10 +269,9 @@ namespace lsn {
 #endif	// #ifdef __AVX__
 
 		float fBrightness = LSN_FINAL_BRIGHT;
+		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
-			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
-			int16_t i16Center = int16_t( I * 8 / m_ui16WidthScale ) + 4;
+			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;
 			int16_t i16Start = i16Center - int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
 			int16_t i16End = i16Center + int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
 
@@ -271,8 +281,16 @@ namespace lsn {
 			if ( CUtilities::IsAvx512FSupported() ) {
 				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
 				while ( i16End - J >= 16 ) {
+					uint16_t ui16CosIdx;
+					/*if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 16 at a time.
-					Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+					Convolution16( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 16;
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -281,11 +299,19 @@ namespace lsn {
 			}
 #endif	// #ifdef __AVX512F__
 #ifdef __AVX__
-			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+			if ( CUtilities::IsAvxSupported() ) {
 				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
 				while ( i16End - J >= 8 ) {
+					uint16_t ui16CosIdx;
+					/*if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 8 at a time.
-					Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+					Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 8;
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -297,8 +323,16 @@ namespace lsn {
 			if ( CUtilities::IsSse4Supported() ) {
 				__m128 mSin = _mm_set1_ps( 0.0f ), mCos = _mm_set1_ps( 0.0f ), mSig = _mm_set1_ps( 0.0f );
 				while ( i16End - J >= 4 ) {
+					uint16_t ui16CosIdx;
+					/*if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					// Can do 4 at a time.
-					Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+					Convolution4( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
 					J += 4;
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -308,11 +342,18 @@ namespace lsn {
 #endif	// #ifdef __SSE4_1__
 			{
 				while ( i16End - J >= 1 ) {
-					size_t sIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					uint16_t ui16CosIdx;
+					/*if ( (_sRowIdx & 1) == 0 ) {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+					}
+					else {
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+					}*/
+					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
 					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
 					(*_pfDstY) += pfSignalStart[J] * m_fFilterY[J-i16Start];
-					(*_pfDstI) += m_fPhaseCosTable[sIdx] * fLevel;
-					(*_pfDstQ) += m_fPhaseSinTable[sIdx] * fLevel;
+					(*_pfDstI) += m_fPhaseCosTable[ui16CosIdx] * fLevel;
+					(*_pfDstQ) += m_fPhaseSinTable[(_ui16Cycle+(12*4)+J)%12] * fLevel;
 					++J;
 				}
 			}
@@ -327,7 +368,7 @@ namespace lsn {
 	 * 
 	 * \param _fHue The hue offset.
 	 **/
-	void CLSpiroFilterBase::GenPhaseTables( float _fHue ) {
+	void CLSpiroPalFilterBase::GenPhaseTables( float _fHue ) {
 		for ( size_t I = 0; I < 12; ++I ) {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
@@ -366,9 +407,9 @@ namespace lsn {
 	/**
 	 * Fills the __m128 registers with the black level and (white-black) level.
 	 **/
-	void CLSpiroFilterBase::GenNormalizedSignals() {
+	void CLSpiroPalFilterBase::GenNormalizedSignals() {
 		for ( size_t I = 0; I < 16; ++I ) {
-			m_NormalizedLevels[I] = (CUtilities::m_fNtscLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
+			m_NormalizedLevels[I] = (CUtilities::m_fPalLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
 		}
 	}
 
@@ -377,7 +418,7 @@ namespace lsn {
 	 * 
 	 * \param _ui32Width The width of the kernel.
 	 **/
-	void CLSpiroFilterBase::GenFilterKernel( uint32_t _ui32Width ) {
+	void CLSpiroPalFilterBase::GenFilterKernel( uint32_t _ui32Width ) {
 		double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = m_pfFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
@@ -441,11 +482,11 @@ namespace lsn {
 	 * \param _ui16Scale The width scale factor.
 	 * \return Returns true if the allocations succeeded.
 	 **/
-	bool CLSpiroFilterBase::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
+	bool CLSpiroPalFilterBase::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
 			// Buffer size:
-			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 16;
+			// [m_ui32FilterKernelSize/2][m_ui16Width*m_ui16PixelToSignal][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
+			size_t sRowSize = LSN_PM_PAL_RENDER_WIDTH * m_ui16PixelToSignal + m_ui32FilterKernelSize + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {

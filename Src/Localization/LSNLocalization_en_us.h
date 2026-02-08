@@ -53,7 +53,7 @@
 #define LSN_VIDEO_SIZE_8X													8\u00D7
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												Pale&tte (Software)
-#define LSN_VIDEO_FILTER_DX9_PALETTE										Palette (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_DX9_PALETTE										Pale&tte (Microsoft® Direct3D® 9)
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
 #define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-&B/B1/G/H/I/K (L. Spiro)
@@ -65,6 +65,14 @@
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL Auto (LMP889&59)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX9_UPSCALE							NTSC-M (&L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_DX9_UPSCALE								PAL-&B/B1/G/H/I/K (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_DX9_UPSCALE							PAL-&D/D1 (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_DX9_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_DX9_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX9_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_DIRECT3D_9											Mi&crosoft® Direct3D® 9
+#define LSN_VIDEO_FILTER_DIRECT3D_12										Microso&ft® Direct3D® 12
+#define LSN_VIDEO_FILTER_VULKAN_1											&Vulkan 1
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
 #define LSN_REGION_NTSC														&NTSC

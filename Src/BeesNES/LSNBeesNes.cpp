@@ -54,6 +54,13 @@ namespace lsn {
 #ifdef LSN_DX9
 			{ &m_d9pfDx9Palette,			&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette },				// LSN_F_INDEXEDDX9
 			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX9
+
+			{ &m_p9plsfDx9LSpiroPal,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal },			// LSN_F_LSPIROPAL_US_DX9
+			{ &m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX9
+			{ &m_p9plsfDx9LSpiroPalM,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX9
+			{ &m_p9plsfDx9LSpiroPalN,		&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX9
+
+			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX9
 #endif	// #ifdef LSN_DX9
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -68,6 +75,12 @@ namespace lsn {
 		m_d9pfDx9Palette.SetHorSharpness( 6 );
 
 		m_p9nlsfDx9LSpiroNtsc.SetFps( 60.098813897440515529533511098629f );
+		m_p9plsfDx9LSpiroPal.SetFps( 50.006978908188585607940446650124f );
+		m_p9plsfDx9LSpiroDendy.SetFps( 50.006978908188585607940446650124f );
+		m_p9plsfDx9LSpiroPalM.SetFps( 60.032435273083568398202053145976f );
+		m_p9plsfDx9LSpiroPalN.SetFps( 50.502710495150011279043537108053f );
+
+
 		m_p9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
 		/*m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
@@ -78,6 +91,27 @@ namespace lsn {
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+
+		m_p9plsfDx9LSpiroPal.SetWidthScale( 10 );
+		m_p9plsfDx9LSpiroPal.SetKernelSize( 48 );
+		m_p9plsfDx9LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
+		m_p9plsfDx9LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p9plsfDx9LSpiroDendy.SetWidthScale( 10 );
+		m_p9plsfDx9LSpiroDendy.SetKernelSize( 44 );
+		m_p9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p9plsfDx9LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p9plsfDx9LSpiroPalM.SetWidthScale( 8 );
+		m_p9plsfDx9LSpiroPalM.SetKernelSize( 46 );
+		m_p9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p9plsfDx9LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p9plsfDx9LSpiroPalN.SetWidthScale( 8 );
+		m_p9plsfDx9LSpiroPalN.SetKernelSize( 48 );
+		m_p9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
+		m_p9plsfDx9LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 
 #endif	// #ifdef LSN_DX9
 
@@ -228,6 +262,11 @@ namespace lsn {
 #ifdef LSN_DX9
 		m_d9pfDx9Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_p9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+
+		m_p9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p9plsfDx9LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p9plsfDx9LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p9plsfDx9LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_DX9
 
 		UpdateCurrentSystem();
@@ -347,7 +386,7 @@ namespace lsn {
 					m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
 				}
 				if ( pfbPrev ) {
-					m_cfartCurFilterAndTargets.DeActivate();				// Won't cause a 2nd deactivation if it
+					m_cfartCurFilterAndTargets.DeActivate();
 					m_cfartCurFilterAndTargets.pfbDeactivateMe = pfbPrev;
 				}
 			}
@@ -724,6 +763,13 @@ namespace lsn {
 		// Prepare filters.
 		m_cfartCurFilterAndTargets.DeActivate();
 
+		if ( m_cfartCurFilterAndTargets.pfbCurFilter != m_cfartCurFilterAndTargets.pfbNextFilter ) {
+			if ( m_cfartCurFilterAndTargets.pfbNextFilter ) {
+				m_cfartCurFilterAndTargets.pfbNextFilter->DeActivate();
+				m_cfartCurFilterAndTargets.pfbCurFilter = nullptr;
+			}
+		}
+
 		bool bActivate = m_cfartCurFilterAndTargets.pfbCurFilter == nullptr;
 		m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_oOptions.fFilter][GetDisplayClient()->PpuRegion()];
 		if ( bActivate ) {
@@ -752,8 +798,6 @@ namespace lsn {
 
 		ApplyAudioOptions();
 		ApplyPaletteOptions();
-
-		
 	}
 
 	/**

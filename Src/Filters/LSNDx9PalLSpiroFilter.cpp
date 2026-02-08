@@ -8,7 +8,7 @@
  * Description: My own implementation of an NTSC filter.
  */
 
-#include "LSNDx9NtscLSpiroFilter.h"
+#include "LSNDx9PalLSpiroFilter.h"
 #include "../GPU/DirectX9/LSNDirectX9DiskInclude.h"
 #include "../Utilities/LSNScopedNoSubnormals.h"
 
@@ -20,10 +20,10 @@
 namespace lsn {
 
 	// == Members.
-	CDx9NtscLSpiroFilter::CDx9NtscLSpiroFilter() {
+	CDx9PalLSpiroFilter::CDx9PalLSpiroFilter() {
 		SetMonitorGammaApply( false );
 	}
-	CDx9NtscLSpiroFilter::~CDx9NtscLSpiroFilter() {
+	CDx9PalLSpiroFilter::~CDx9PalLSpiroFilter() {
 		StopThreads();
 	}
 
@@ -36,7 +36,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9PalLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		StopThreads();
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
@@ -75,7 +75,7 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx9NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+	uint8_t * CDx9PalLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( !m_pdx9dDevice ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
@@ -111,7 +111,7 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become active.
 	 */
-	void CDx9NtscLSpiroFilter::Activate() {
+	void CDx9PalLSpiroFilter::Activate() {
 		CParent::Activate();
 
 		EnsureSizeAndResources();
@@ -122,7 +122,7 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become inactive.
 	 */
-	void CDx9NtscLSpiroFilter::DeActivate() {
+	void CDx9PalLSpiroFilter::DeActivate() {
 		CParent::DeActivate();
 
 		m_tSrc.reset();
@@ -140,7 +140,7 @@ namespace lsn {
 	/**
 	 * Informs the filter of a window resize.
 	 **/
-	void CDx9NtscLSpiroFilter::FrameResize() {
+	void CDx9PalLSpiroFilter::FrameResize() {
 		s_dgsState.OnSizeDx9();
 
 		EnsureSizeAndResources();
@@ -152,7 +152,7 @@ namespace lsn {
 	 *
 	 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
 	 */
-	void CDx9NtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
+	void CDx9PalLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
 		if ( _stThreads == m_stWorkerThreadCount ) { return; }
 
 		const bool bRestart = m_bThreadsStarted;
@@ -167,7 +167,7 @@ namespace lsn {
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
-	void CDx9NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
+	void CDx9PalLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
 		// If there are no worker threads, render the whole frame on the calling thread.
 		if LSN_UNLIKELY( !m_vThreads.size() ) {
 			RenderScanlineRange<false>( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, reinterpret_cast<uint8_t *>(m_lrRect.pBits), m_lrRect.Pitch );
@@ -203,7 +203,7 @@ namespace lsn {
 	 *
 	 * \return Returns true on success.
 	 */
-	bool CDx9NtscLSpiroFilter::EnsureSizeAndResources() {
+	bool CDx9PalLSpiroFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
@@ -255,7 +255,7 @@ namespace lsn {
 	 * 
 	 * \return Returns true on success.
 	 **/
-	bool CDx9NtscLSpiroFilter::PrepaerSrcTexture() {
+	bool CDx9PalLSpiroFilter::PrepaerSrcTexture() {
 		if LSN_UNLIKELY( !m_pdx9dDevice || !m_ui32SrcW || !m_ui32SrcH ) { return false; }
 
 		if LSN_UNLIKELY( !m_tSrc.get() ) {
@@ -279,7 +279,7 @@ namespace lsn {
 	 *
 	 * \return Returns true if all shaders are ready.
 	 */
-	bool CDx9NtscLSpiroFilter::EnsureShaders() {
+	bool CDx9PalLSpiroFilter::EnsureShaders() {
 		// Pass 1: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
 		static const char * kPsVerticalNNHlsl =
 			"#include \"LSNGamma.hlsl\"\n"
@@ -294,54 +294,11 @@ namespace lsn {
 		// Pass 2: simple copy (ps_2_0).
 		static const char * kPsCopyHlsl =
 			"sampler2D sSrc : register( s0 );\n"
-			"float3 LinearToSrgb( float3 c ) {\n"
-			"  float3 lo = 12.92 * c;\n"
-			"  float3 hi = 1.055 * pow( c, 1.0 / 2.4 ) - 0.055;\n"
-			"  float3 t = step( float3( 0.0031308, 0.0031308, 0.0031308 ), c );\n"
-			"  return lerp( lo, hi, t );\n"
-			"}\n"
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"  float4 c = tex2D( sSrc, uv );\n"
 			"  c.rgb = saturate( saturate( c.rgb ) );\n"
 			"  return c;\n"
 			"}\n";
-		// c0 = [srcW, srcH, 1/srcW, 1/srcH]
-		//static const char * kPsCopyHlsl =
-		//	"sampler2D sSrc : register(s0);\n"
-		//	"float4 c0 : register(c0);\n" // x=srcW, y=srcH, z=1/srcW, w=1/srcH
-		//	"float w_cubic(float x){\n"
-		//	"  x = abs(x);\n"
-		//	"  if (x < 1.0) return (1.5*x - 2.5)*x*x + 1.0;\n"
-		//	"  if (x < 2.0) return ((-0.5*x + 2.5)*x - 4.0)*x + 2.0;\n"
-		//	"  return 0.0;\n"
-		//	"}\n"
-		//	"float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
-		//	"  float2 texSz   = c0.xy;\n"
-		//	"  float2 invTex  = c0.zw;\n"
-		//	"  // Map uv to source texel space (center-based)\n"
-		//	"  float2 coord   = uv * texSz - 0.5;\n"
-		//	"  float2 base    = floor(coord);\n"
-		//	"  float2 f       = coord - base;\n"
-		//	"  float4 sum     = 0;\n"
-		//	"  float  wsum    = 0;\n"
-		//	"  // 4x4 taps around base\n"
-		//	"  [unroll] for (int j = -1; j <= 2; ++j){\n"
-		//	"    float wy = w_cubic(j - f.y);\n"
-		//	"    float v  = (base.y + j + 0.5) * invTex.y;\n"
-		//	"    [unroll] for (int i = -1; i <= 2; ++i){\n"
-		//	"      float wx = w_cubic(i - f.x);\n"
-		//	"      float u  = (base.x + i + 0.5) * invTex.x;\n"
-		//	"      float2 tuv = float2(u,v);\n"
-		//	"      // Clamp at edges.\n"
-		//	"      tuv = saturate(tuv);\n"
-		//	"      float w = wx * wy;\n"
-		//	"      sum  += tex2D(sSrc, tuv) * w;\n"
-		//	"      wsum += w;\n"
-		//	"    }\n"
-		//	"  }\n"
-		//	"  float4 c = sum / wsum;\n"
-		//	"  return c;\n"
-		//	"}\n";
 
 		if ( !m_psVerticalNN.get() ) {
 			m_psVerticalNN = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
@@ -377,7 +334,7 @@ namespace lsn {
 	 * \param _piInclude Optional #include handler.
 	 * \return Returns true if compilation succeeded and bytecode was produced.
 	 */
-	bool CDx9NtscLSpiroFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude ) {
+	bool CDx9PalLSpiroFilter::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",
@@ -427,7 +384,7 @@ namespace lsn {
 	/**
 	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
 	 */
-	void CDx9NtscLSpiroFilter::ReleaseSizeDependents() {
+	void CDx9PalLSpiroFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tSrc.get() ) { m_tSrc->Reset(); }
 		if LSN_LIKELY( m_rtScanlined.get() ) { m_rtScanlined->Reset(); }
 		if LSN_LIKELY( m_vbQuad.get() ) { m_vbQuad->Reset(); }
@@ -440,7 +397,7 @@ namespace lsn {
 	 * \param _rOutput The destination rectangle.
 	 * \return Returns true if rendering succeeded.
 	 */
-	bool CDx9NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
+	bool CDx9PalLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_bValidState || !m_tSrc.get() || !m_rtScanlined.get() || !m_psVerticalNN.get() || !m_psCopy.get() || !m_vbQuad.get() ) { return false; }
 		if LSN_UNLIKELY( !m_pdx9dDevice || !m_tSrc->Valid() || !m_rtScanlined->Valid() || !m_psVerticalNN->Valid() || !m_psCopy->Valid() || !m_vbQuad->Valid() ) { return false; }
 		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
@@ -544,7 +501,7 @@ namespace lsn {
 	 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
 	 * Safe to call multiple times; if threads are already started, this function does nothing.
 	 */
-	void CDx9NtscLSpiroFilter::StartThreads() {
+	void CDx9PalLSpiroFilter::StartThreads() {
 		if ( m_bThreadsStarted ) { return; }
 
 		const size_t stWorkers = m_stWorkerThreadCount;
@@ -556,7 +513,7 @@ namespace lsn {
 		if ( stWorkers ) {
 			m_vThreads.reserve( stWorkers );
 			for ( size_t I = 0; I < stWorkers; ++I ) {
-				m_vThreads.emplace_back( &CDx9NtscLSpiroFilter::WorkerThread, this, I + 1 );
+				m_vThreads.emplace_back( &CDx9PalLSpiroFilter::WorkerThread, this, I + 1 );
 			}
 		}
 
@@ -571,7 +528,7 @@ namespace lsn {
 	 * resets thread-control state.  Safe to call multiple times; if threads are not started,
 	 * this function does nothing.
 	 */
-	void CDx9NtscLSpiroFilter::StopThreads() {
+	void CDx9PalLSpiroFilter::StopThreads() {
 		if ( !m_bThreadsStarted ) { return; }
 
 		{
@@ -606,7 +563,7 @@ namespace lsn {
 	 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
 	 *	Index 0 is reserved for the calling thread.
 	 */
-	void CDx9NtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
+	void CDx9PalLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
 		::SetThreadHighPriority();
 		lsn::CScopedNoSubnormals snsNoSubnormals;
 

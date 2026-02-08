@@ -16,7 +16,7 @@
 #include "../GPU/DirectX9/LSNDirectX9Texture.h"
 #include "../GPU/DirectX9/LSNDirectX9VertexBuffer.h"
 #include "LSNDx9FilterBase.h"
-#include "LSNLSpiroNtscFilterBase.h"
+#include "LSNLSpiroPalFilterBase.h"
 
 #include <mutex>
 
@@ -24,15 +24,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDx9NtscLSpiroFilter
+	 * Class CDx9PalLSpiroFilter
 	 * \brief My own implementation of an NTSC filter.
 	 *
 	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CDx9NtscLSpiroFilter : public CLSpiroNtscFilterBase, public CDx9FilterBase {
+	class CDx9PalLSpiroFilter : public CLSpiroPalFilterBase, public CDx9FilterBase {
 	public :
-		CDx9NtscLSpiroFilter();
-		virtual ~CDx9NtscLSpiroFilter();
+		CDx9PalLSpiroFilter();
+		virtual ~CDx9PalLSpiroFilter();
 		
 		
 		// == Functions.

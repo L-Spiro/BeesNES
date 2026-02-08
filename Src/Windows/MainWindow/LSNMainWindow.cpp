@@ -454,6 +454,28 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRONTSC_US_DX9 );
 				break;
 			}
+
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PAL_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPAL_US_DX9 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_DENDY_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRODENDY_US_DX9 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALM_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPALM_US_DX9 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALN_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRONPALN_US_DX9 );
+				break;
+			}
+
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_AUTO_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRON_AUTO_US_DX9 );
+				break;
+			}
 #endif	// #ifdef LSN_DX9
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
@@ -1222,6 +1244,33 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_LSPIRO_UPSCALED : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRONTSC_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PAL_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPAL_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_DENDY_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRODENDY_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALM_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPALM_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALN_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRONPALN_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_AUTO_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRON_AUTO_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}

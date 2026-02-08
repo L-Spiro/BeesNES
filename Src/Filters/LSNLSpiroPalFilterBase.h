@@ -1,0 +1,988 @@
+/**
+ * Copyright L. Spiro 2024
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: My own implementation of an PAL filter.
+ */
+
+#pragma once
+
+#include "../LSNLSpiroNes.h"
+#include "../Event/LSNEvent.h"
+#include "../Utilities/LSNAlignmentAllocator.h"
+#include "../Utilities/LSNUtilities.h"
+#include "LSNFilterBase.h"
+
+#if defined( __arm__ ) || defined( __aarch64__ )
+#include <arm_neon.h>
+#endif
+
+#include <thread>
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )	// warning C4324: 'lsn::CLSpiroPalFilterBase': structure was padded due to alignment specifier
+
+namespace lsn {
+
+	/**
+	 * Class CLSpiroPalFilterBase
+	 * \brief My own implementation of an PAL filter.
+	 *
+	 * Description: My own implementation of an PAL filter.
+	 */
+	class CLSpiroPalFilterBase {
+	public :
+		CLSpiroPalFilterBase();
+		virtual ~CLSpiroPalFilterBase();
+
+
+		// == Enumerations.
+		/** The resolution of the sRGB table. **/
+		enum : size_t {
+			LSN_SRGB_RES									= 512,
+		};
+
+
+		// == Types.
+		/**
+		 * A filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \return Returns the filtered value.
+		 */
+		typedef float (*									PfFilterFunc)( float _fT, float _fWidth );
+
+
+		// == Functions.
+		/**
+		 * Sets the filter kernel size.
+		 * 
+		 * \param _ui32Size The new size of the filter.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetKernelSize( uint32_t _ui32Size );
+
+		/**
+		 * Sets the width of the input.
+		 * 
+		 * \param _ui16Width The width to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetWidth( uint16_t _ui16Width );
+
+		/**
+		 * Sets the width scale.
+		 * 
+		 * \param _ui16WidthScale The width scale to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetWidthScale( uint16_t _ui16WidthScale );
+
+		/**
+		 * Sets the height of the input.
+		 * 
+		 * \param _ui16Height The height to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetHeight( uint16_t _ui16Height );
+
+		/**
+		 * Sets the CRT gamma.
+		 * 
+		 * \param _fGamma The gamma to set.
+		 **/
+		void												SetGamma( float _fGamma );
+
+		/**
+		 * Enables or disables baking of monitor gamma into the gamma table.
+		 * 
+		 * \param _bApplyMonitorGamma If true, an sRGB curve to compensate for the monitor is applied to the gamma table.
+		 **/
+		void												SetMonitorGammaApply( bool _bApplyMonitorGamma );
+
+		/**
+		 * Sets the hue.
+		 * 
+		 * \param _fHue The hue to set.
+		 **/
+		void												SetHue( float _fHue );
+
+		/**
+		 * Sets the brightness.
+		 * 
+		 * \param _fBrightness The brightness to set.
+		 **/
+		void												SetBrightness( float _fBrightness );
+
+		/**
+		 * Sets the saturation.
+		 * 
+		 * \param _fSat The saturation to set.
+		 **/
+		void												SetSaturation( float _fSat );
+
+		/**
+		 * Sets the black level.
+		 * 
+		 * \param _fBlack The black level to set.
+		 **/
+		void												SetBlackLevel( float _fBlack );
+
+		/**
+		 * Sets the white level.
+		 * 
+		 * \param _fWhite The white level to set.
+		 **/
+		void												SetWhiteLevel( float _fWhite );
+
+		/**
+		 * Sets the number of signals per pixel.  10 for PAL, 8 for Dendy.
+		 * 
+		 * \param _ui16Value The value to set.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetPixelToSignal( uint16_t _ui16Value );
+
+		/**
+		 * Sets the filter function.
+		 * 
+		 * \param _pfFunc The filter function.
+		 **/
+		void												SetFilterFunc( PfFilterFunc _pfFunc ) {
+			m_pfFilterFunc = _pfFunc;
+			GenFilterKernel( m_ui32FilterKernelSize );
+		}
+
+		/**
+		 * Sets the Y filter function.
+		 * 
+		 * \param _pfFunc The filter function.
+		 **/
+		void												SetFilterFuncY( PfFilterFunc _pfFunc ) {
+			m_pfFilterFuncY = _pfFunc;
+			GenFilterKernel( m_ui32FilterKernelSize );
+		}
+
+		/**
+		 * Sets the phospher decay time.
+		 * 
+		 * \param _fTime The time it takes the phosphors to decay to 0.001.
+		 **/
+		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
+			m_fPhosphorDecayTime = _fTime;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
+		/**
+		 * Sets the FPS of the hardware.
+		 * 
+		 * \param _fFps The FPS to set.
+		 **/
+		void												SetFps( float _fFps  = 60.098812103271484375f ) {
+			m_fFps = _fFps;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
+		/**
+		 * Sets the initial phosphor decay level.
+		 * 
+		 * \param _fLevel The strength of the phosphor decay.
+		 **/
+		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
+			m_fInitPhosphorDecay = _fLevel;
+			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+		}
+
+
+	protected :
+		// == Enumerations.
+		/** Metrics. */
+		enum {
+			LSN_MAX_FILTER_SIZE								= 128,												/**< The maximum size of the gather for generating YIQ values. */
+		};
+
+
+		// == Types.
+		/** A 4-element float vector for mega-SIMD. */
+#ifdef __SSE4_1__
+		typedef __m128										simd_4;
+#elif defined( __arm__ ) || defined( __aarch64__ )
+		typedef float32x4_t									simd_4;
+#endif	// #ifdef __SSE4_1__
+
+
+		// == Members.
+		float												m_fFps = 50.006977081298828125f;					/**< The FPS. */
+		uint16_t											m_ui16Width = 0;									/**< The last input width. */
+		uint16_t											m_ui16Height = 0;									/**< The last input height. */
+		uint32_t											m_ui32FinalStride = 0;								/**< The final stride. */
+
+#ifdef __AVX__
+		__m256												m_mStackedFilterTable[LSN_MAX_FILTER_SIZE];			/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedFilterTableY[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 32 bytes. */
+		__m256												m_mStackedCosTable[12];								/**< 8 elements of the cosine table stacked. */
+		__m256												m_mStackedSinTable[12];								/**< 8 elements of the sine table stacked. */
+#endif	// #ifdef __AVX__
+#ifdef __AVX512F__
+		__m512												m_mStackedFilterTable512[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
+		__m512												m_mStackedFilterTable512Y[LSN_MAX_FILTER_SIZE];		/**< A stack of filter kernels such that each filter index aligns to 64 bytes. */
+		__m512												m_mStackedCosTable512[12];							/**< 16 elements of the cosine table stacked. */
+		__m512												m_mStackedSinTable512[12];							/**< 16 elements of the sine table stacked. */
+#endif	// #ifdef __AVX__
+		
+		LSN_ALIGN( 32 )
+		float												m_fFilter[LSN_MAX_FILTER_SIZE];						/**< The filter kernel. */
+		float												m_fFilterY[LSN_MAX_FILTER_SIZE];					/**< The filter kernel. */
+
+		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;			/**< The filter function for chroma. */
+		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;		/**< The filter function for Y. */
+		uint32_t											m_ui32FilterKernelSize = 12;						/**< The kernel size for the gather during YIQ creation. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;									/**< The intermediate signal buffer for a single scanline. */
+		std::vector<float *>								m_vSignalStart;										/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
+		std::vector<simd_4>									m_vY;												/**< The YIQ Y buffer. */
+		std::vector<simd_4>									m_vI;												/**< The YIQ I buffer. */
+		std::vector<simd_4>									m_vQ;												/**< The YIQ Q buffer. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vBlendBuffer;										/**< The blend buffer. */
+		//std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		uint16_t											m_ui16ScaledWidth = 0;								/**< Output width. */
+		uint16_t											m_ui16PixelToSignal = 10;							/**< How many signals each pixel generates. */
+		uint16_t											m_ui16WidthScale = 10;								/**< Scale factor between input and output width. */
+
+		float												m_fPhaseCosTable[12];								/**< The cosine phase table. */
+		float												m_fPhaseSinTable[12];								/**< The sine phase table. */
+
+		uint32_t											m_ui32Gamma[LSN_SRGB_RES];							/**< The gamma curve. */
+		uint32_t											m_ui32GammaG[LSN_SRGB_RES];							/**< The gamma curve for green. */
+		uint8_t												m_ui8Gamma[LSN_SRGB_RES];							/**< The gamma curve. */
+		uint8_t												m_ui8GammaG[LSN_SRGB_RES];							/**< The gamma curve for green. */
+		float												m_NormalizedLevels[16];								/**< Normalized levels. */
+		bool												m_bHandleMonitorGamma = true;						/**< If true, the monitor is assumed to be sRGB and an sRGB monitor curve is baked into gamma. */
+
+
+		// ** SETTINGS ** //
+		float												m_fHueSetting = 0.0f;								/**< The hue. */
+		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
+		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
+		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
+		float												m_fBlackSetting = 0.0f;								/**< Black level. */
+		float												m_fWhiteSetting = 1.100f;							/**< White level. */
+		float												m_fPhosphorDecayRate = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */
+		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */
+		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
+
+
+		// == Functions.
+		/**
+		 * Converts a 9-bit PPU output index to an PAL signal.
+		 * 
+		 * \param _ui16Pixel The PPU output index to convert.
+		 * \param _ui16Phase The phase counter.
+		 * \return Returns the signal produced by the PPU output index.
+		 * \param _sRowIdx The scanline index.
+		 **/
+		inline float										IndexToPalSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase, size_t _sRowIdx );
+
+		/**
+		 * Converts a 9-bit PPU output palette value to 8 signals.
+		 * 
+		 * \param _pfDst The destination for the 8 signals.
+		 * \param _ui16Pixel The PPU output index to convert.
+		 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
+		 * \param _sRowIdx The scanline index.
+		 **/
+		inline void											PixelToPalSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle, size_t _sRowIdx );
+
+		/**
+		 * Creates a single scanline from 9-bit PPU output to a float buffer of YIQ values.
+		 * 
+		 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstI The destination for where to begin storing the YIQ I values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
+		 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
+		 * \param _ui16Cycle The cycle count at the start of the scanline.
+		 * \param _sRowIdx The scanline index.
+		 **/
+		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx );
+
+		/**
+		 * Renders a range of scanlines.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End INdex of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		template <bool _bStoreToInt = true>
+		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Generates the phase sin/cos tables.
+		 * 
+		 * \param _fHue The hue offset.
+		 **/
+		void												GenPhaseTables( float _fHue );
+
+		/**
+		 * Fills the __m128 registers with the black level and (white-black) level.
+		 **/
+		void												GenNormalizedSignals();
+
+		/**
+		 * Generates the filter kernel.
+		 * 
+		 * \param _ui32Width The width of the kernel.
+		 **/
+		void												GenFilterKernel( uint32_t _ui32Width );
+
+		/**
+		 * Allocates the YIQ buffers for a given width and height.
+		 * 
+		 * \param _ui16W The width of the buffers.
+		 * \param _ui16H The height of the buffers.
+		 * \param _ui16Scale The width scale factor.
+		 * \return Returns true if the allocations succeeded.
+		 **/
+		virtual bool										AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale );
+
+#ifdef __AVX512F__
+		/**
+		 * Performs convolution on 16 values at a time.
+		 * 
+		 * \param _pfSignals The source signals to convolve.
+		 * \param _sFilterIdx The filter table index.
+		 * \param _sCosIdx The cosine/sine table index.
+		 * \param _sSinIdx The sine table index.
+		 * \param _mCos The summed result of cosine convolution.
+		 * \param _mSin The summed result of sine convolution.
+		 * \param _mSignal The summed result of signal convolution.
+		 **/
+		inline void											Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal );
+#endif	// #ifdef __AVX512F__
+
+#ifdef __AVX__
+		/**
+		 * Performs convolution on 8 values at a time.
+		 * 
+		 * \param _pfSignals The source signals to convolve.
+		 * \param _sFilterIdx The filter table index.
+		 * \param _sCosIdx The cosine/sine table index.
+		 * \param _sSinIdx The sine table index.
+		 * \param _mCos The summed result of cosine convolution.
+		 * \param _mSin The summed result of sine convolution.
+		 * \param _mSignal The summed result of signal convolution.
+		 **/
+		inline void											Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal );
+#endif	// #ifdef __AVX__
+
+#ifdef __SSE4_1__
+		/**
+		 * Performs convolution on 4 values at a time.
+		 * 
+		 * \param _pfSignals The source signals to convolve.
+		 * \param _sFilterIdx The filter table index.
+		 * \param _sCosIdx The cosine/sine table index.
+		 * \param _sSinIdx The sine table index.
+		 * \param _mCos The summed result of cosine convolution.
+		 * \param _mSin The summed result of sine convolution.
+		 * \param _mSignal The summed result of signal convolution.
+		 **/
+		inline void											Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal );
+#endif	// #ifdef __SSE4_1__
+
+		/**
+		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
+		 * 
+		 * \param _sScanline The scanline to convert.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		template <bool _bStoreToInt = true>
+		void												ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch );
+	};
+	
+
+
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// DEFINITIONS
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// == Functions.
+	/**
+	 * Converts a 9-bit PPU output index to an PAL signal.
+	 * 
+	 * \param _ui16Pixel The PPU output index to convert.
+	 * \param _ui16Phase The phase counter.
+	 * \return Returns the signal produced by the PPU output index.
+	 * \param _sRowIdx The scanline index.
+	 **/
+	inline float CLSpiroPalFilterBase::IndexToPalSignal( uint16_t _ui16Pixel, uint16_t _ui16Phase, size_t _sRowIdx ) {
+		// Decode the NES color.
+		uint16_t ui16Color = (_ui16Pixel & 0x0F);								// 0..15 "cccc".
+		uint16_t ui16Level = (ui16Color >= 0xE) ? 1 : (_ui16Pixel >> 4) & 3;	// 0..3  "ll".  For colors 14..15, level 1 is forced.
+		uint16_t ui16Emphasis = (_ui16Pixel >> 6);								// 0..7  "eee".
+
+#define LSN_INCOLORPHASE( COLOR )					(((COLOR) + _ui16Phase) % 12 < 6)
+#define LSN_PALCOLOR( COLOR )						((_sRowIdx & 1) == 0) ? (-(COLOR - 5) % 12) : COLOR
+		// When de-emphasis bits are set, some parts of the signal are attenuated:
+		// Colors [14..15] are not affected by de-emphasis.
+		uint16_t ui16Atten = ((ui16Color < 0xE) &&
+			(((ui16Emphasis & 1) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0xC ) )) ||
+			((ui16Emphasis & 2) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0x4 ) )) ||
+			((ui16Emphasis & 4) && LSN_INCOLORPHASE( LSN_PALCOLOR( 0x8 ) )))) ? 8 : 0;
+
+		// The square wave for this color alternates between these two voltages:
+		float fLow  = m_NormalizedLevels[ui16Level+ui16Atten];
+		float fHigh = (&m_NormalizedLevels[4])[ui16Level+ui16Atten];
+		if LSN_UNLIKELY( ui16Color == 0 ) { return fHigh; }						// For color 0, only high level is emitted.
+		if LSN_UNLIKELY( ui16Color > 12 ) { return fLow; }						// For colors 13..15, only low level is emitted.
+
+		// alter phase on every other scanline
+		return LSN_INCOLORPHASE( LSN_PALCOLOR( ui16Color ) ) ? fHigh : fLow;
+#undef LSN_PALCOLOR
+#undef LSN_INCOLORPHASE
+	}
+
+	/**
+	 * Converts a 9-bit PPU output palette value to 8 signals.
+	 * 
+	 * \param _pfDst The destination for the 8 signals.
+	 * \param _ui16Pixel The PPU output index to convert.
+	 * \param _ui16Cycle The cycle count for the pixel (modulo 12).
+	 * \param _sRowIdx The scanline index.
+	 **/
+	inline void CLSpiroPalFilterBase::PixelToPalSignals( float * _pfDst, uint16_t _ui16Pixel, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+		for ( size_t I = 0; I < m_ui16PixelToSignal; ++I ) {
+			(*_pfDst++) = IndexToPalSignal( _ui16Pixel, uint16_t( _ui16Cycle + I ), _sRowIdx );
+		}
+	}
+
+	/**
+	 * Renders a range of scanlines.
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End INdex of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	template <bool _bStoreToInt>
+	void CLSpiroPalFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		float * pfY = reinterpret_cast<float *>(m_vY.data());
+		float * pfI = reinterpret_cast<float *>(m_vI.data());
+		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
+		size_t sYiqStride = m_ui16ScaledWidth; // * (sizeof( simd_4 ) / sizeof( float ));
+		pfY += sYiqStride * _ui16Start;
+		pfI += sYiqStride * _ui16Start;
+		pfQ += sYiqStride * _ui16Start;
+		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_PAL_DOTS_X * H) * 8) % 12 ), H );
+			ConvertYiqToBgra<_bStoreToInt>( H, _pui8Dst, _sPitch );
+			pfY += sYiqStride;
+			pfI += sYiqStride;
+			pfQ += sYiqStride;
+		}
+	}
+
+#ifdef __AVX512F__
+	/**
+	 * Performs convolution on 16 values at a time.
+	 * 
+	 * \param _pfSignals The source signals to convolve.
+	 * \param _sFilterIdx The filter table index.
+	 * \param _sCosIdx The cosine/sine table index.
+	 * \param _sSinIdx The sine table index.
+	 * \param _mCos The summed result of cosine convolution.
+	 * \param _mSin The summed result of sine convolution.
+	 * \param _mSignal The summed result of signal convolution.
+	 **/
+	inline void CLSpiroPalFilterBase::Convolution16( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m512 &_mCos, __m512 &_mSin, __m512 &_mSignal ) {
+		// Load the signals.
+		__m512 mSignals = _mm512_loadu_ps( _pfSignals );
+		// Load the filter weights.
+		__m512 mFilter = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable512[_sFilterIdx] ) );
+		__m512 mFilterY = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable512Y[_sFilterIdx] ) );
+		// Load the cosine values.
+		__m512 mCos = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable512[_sCosIdx] ) );
+
+		// Multiply Signals and weights.
+		__m512 mLevels = _mm512_mul_ps( mSignals, mFilter );
+		__m512 mLevelsY = _mm512_mul_ps( mSignals, mFilterY );
+		// Load the sine values.
+		__m512 mSin = _mm512_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable512[_sSinIdx] ) );
+
+		// Multiply levels and cosines.
+		//_mCos = _mm512_add_ps( _mCos, _mm512_mul_ps( mLevels, mCos ) );
+		_mCos = _mm512_fmadd_ps( mLevels, mCos, _mCos );
+		// Multiply levels and sines.
+		//_mSin = _mm512_add_ps( _mSin, _mm512_mul_ps( mLevels, mSin ) );
+		_mSin = _mm512_fmadd_ps( mLevels, mSin, _mSin );
+		// Accumulate the signals.
+		_mSignal = _mm512_add_ps( _mSignal, mLevelsY );
+	}
+#endif	// #ifdef __AVX512F__
+
+#ifdef __AVX__
+	/**
+	 * Performs convolution on 8 values at a time.
+	 * 
+	 * \param _pfSignals The source signals to convolve.
+	 * \param _sFilterIdx The filter table index.
+	 * \param _sCosIdx The cosine/sine table index.
+	 * \param _sSinIdx The sine table index.
+	 * \param _mCos The summed result of cosine convolution.
+	 * \param _mSin The summed result of sine convolution.
+	 * \param _mSignal The summed result of signal convolution.
+	 **/
+	inline void CLSpiroPalFilterBase::Convolution8( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m256 &_mCos, __m256 &_mSin, __m256 &_mSignal ) {
+		// Load the signals.
+		__m256 mSignals = _mm256_loadu_ps( _pfSignals );
+		// Load the filter weights.
+		__m256 mFilter = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		__m256 mFilterY = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		// Load the cosine values.
+		__m256 mCos = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
+
+		// Multiply Signals and weights.
+		__m256 mLevels = _mm256_mul_ps( mSignals, mFilter );
+		__m256 mLevelsY = _mm256_mul_ps( mSignals, mFilterY );
+		// Load the sine values.
+		__m256 mSin = _mm256_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
+
+		// Multiply levels and cosines.
+		//_mCos = _mm256_add_ps( _mCos, _mm256_mul_ps( mLevels, mCos ) );
+		_mCos = _mm256_fmadd_ps( mLevels, mCos, _mCos );
+		// Multiply levels and sines.
+		//_mSin = _mm256_add_ps( _mSin, _mm256_mul_ps( mLevels, mSin ) );
+		_mSin = _mm256_fmadd_ps( mLevels, mSin, _mSin );
+		// Accumulate the signals.
+		_mSignal = _mm256_add_ps( _mSignal, mLevelsY );
+	}
+#endif	// #ifdef __AVX__
+
+#ifdef __SSE4_1__
+	/**
+	 * Performs convolution on 4 values at a time.
+	 * 
+	 * \param _pfSignals The source signals to convolve.
+	 * \param _sFilterIdx The filter table index.
+	 * \param _sCosIdx The cosine/sine table index.
+	 * \param _sSinIdx The sine table index.
+	 * \param _mCos The summed result of cosine convolution.
+	 * \param _mSin The summed result of sine convolution.
+	 * \param _mSignal The summed result of signal convolution.
+	 **/
+	inline void CLSpiroPalFilterBase::Convolution4( float * _pfSignals, size_t _sFilterIdx, size_t _sCosIdx, size_t _sSinIdx, __m128 &_mCos, __m128 &_mSin, __m128 &_mSignal ) {
+		// Load the signals.
+		__m128 mSignals = _mm_loadu_ps( _pfSignals );
+		// Load the filter weights.
+		__m128 mFilter = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTable[_sFilterIdx] ) );
+		__m128 mFilterY = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedFilterTableY[_sFilterIdx] ) );
+		// Load the cosine values.
+		__m128 mCos = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedCosTable[_sCosIdx] ) );
+
+		// Multiply Signals and weights.
+		__m128 mLevels = _mm_mul_ps( mSignals, mFilter );
+		__m128 mLevelsY = _mm_mul_ps( mSignals, mFilterY );
+		// Load the sine values.
+		__m128 mSin = _mm_load_ps( reinterpret_cast<float *>(&m_mStackedSinTable[_sSinIdx] ) );
+
+		// Multiply levels and cosines.
+		_mCos = _mm_add_ps( _mCos, _mm_mul_ps( mLevels, mCos ) );
+		// Multiply levels and sines.
+		_mSin = _mm_add_ps( _mSin, _mm_mul_ps( mLevels, mSin ) );
+		// Accumulate the signals.
+		_mSignal = _mm_add_ps( _mSignal, mLevelsY );
+	}
+#endif	// #ifdef __SSE4_1__
+
+	/**
+	 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
+	 * 
+	 * \param _sScanline The scanline to convert.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	template <bool _bStoreToInt>
+	void CLSpiroPalFilterBase::ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch ) {
+		uint8_t * pui8Bgra = _pui8Dst + _sPitch * _sScanline;
+		float * pfBlendBuffer = m_vBlendBuffer.data() + m_ui16ScaledWidth * 3 * _sScanline;
+		// Prefetch.
+		//LSN_PREFETCH_LINE( pui8Bgra + m_ui16ScaledWidth * 2 );
+		LSN_PREFETCH_LINE( pfBlendBuffer + ((m_ui16ScaledWidth * 3) >> 1) );
+		
+		size_t sYiqStride = m_ui16ScaledWidth * _sScanline;
+		float * pfY = reinterpret_cast<float *>(m_vY.data());
+		float * pfI = reinterpret_cast<float *>(m_vI.data());
+		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
+		pfY += sYiqStride;
+		pfI += sYiqStride;
+		pfQ += sYiqStride;
+
+		
+#ifdef __AVX512F__
+		if ( CUtilities::IsAvx512BWSupported() ) {
+			__m512 m0 = _mm512_set1_ps( 0.0f );
+			__m512 m299 = _mm512_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+			__m512 mPhosInitDecay = _mm512_set1_ps( m_fInitPhosphorDecay );
+			__m512 mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m512 mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRate );
+			__m512 mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m512 mY = _mm512_load_ps( pfY );
+				__m512 mU = _mm512_load_ps( pfQ );
+				__m512 mV = _mm512_load_ps( pfI );
+				__m512 mOldR = _mm512_load_ps( pfBlendBuffer );
+				__m512 mOldG = _mm512_load_ps( pfBlendBuffer + sRegSize );
+				__m512 mOldB = _mm512_load_ps( pfBlendBuffer + (sRegSize * 2) );
+
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m512 mR = _mm512_add_ps( mY, _mm512_mul_ps( mV, _mm512_set1_ps( 1.139883025203f ) ) );
+				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
+				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
+
+				mOldR = _mm512_mul_ps( mPhosphorDecayR, mOldR );
+				__m512 mScaledR = _mm512_mul_ps( mPhosInitDecay, mR );
+				mR = _mm512_max_ps( mOldR, mR );
+				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledR, mOldR ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldG = _mm512_mul_ps( mPhosphorDecayG, mOldG );
+				__m512 mScaledG = _mm512_mul_ps( mPhosInitDecay, mG );
+				mG = _mm512_max_ps( mOldG, mG );
+				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledG, mOldG ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldB = _mm512_mul_ps( mPhosphorDecayB, mOldB );
+				__m512 mScaledB = _mm512_mul_ps( mPhosInitDecay, mB );
+				mB = _mm512_max_ps( mOldB, mB );
+				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledB, mOldB ) );
+				pfBlendBuffer += sRegSize;
+
+
+				if constexpr ( _bStoreToInt ) {
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
+					mR = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm512_min_ps( _mm512_max_ps( _mm512_mul_ps( mB, m299 ), m0 ), m299 );
+
+					// Convert to integers.
+					__m512i mRi = _mm512_cvtps_epi32( mR );
+					__m512i mGi = _mm512_cvtps_epi32( mG );
+					__m512i mBi = _mm512_cvtps_epi32( mB );
+
+					// Gamma.
+					mRi = _mm512_i32gather_epi32( mRi, m_ui32Gamma, 4 );
+					mGi = _mm512_i32gather_epi32( mGi, m_ui32GammaG, 4 );
+					mBi = _mm512_i32gather_epi32( mBi, m_ui32Gamma, 4 );
+
+					// Combine sRGB channels into packed format.
+					__m512i mSrgb = _mm512_or_si512(
+						_mm512_or_si512( mBi, _mm512_slli_epi32( mGi, 8 ) ),
+						_mm512_slli_epi32( mRi, 16 )
+					);
+
+					_mm512_storeu_si512( pui8Bgra, mSrgb );
+					pui8Bgra += 512 / 8;
+				}
+				else {
+					static const __m512i vIndices = _mm512_set_epi32(
+						60, 56, 52, 48, 44, 40, 36, 32,
+						28, 24, 20, 16, 12, 8,  4,  0
+					);
+
+					_mm512_i32scatter_ps( pui8Bgra, vIndices, mR, 4 );
+					_mm512_i32scatter_ps( pui8Bgra + (1 * sizeof( float )), vIndices, mG, 4 );
+					_mm512_i32scatter_ps( pui8Bgra + (2 * sizeof( float )), vIndices, mB, 4 );
+
+					_mm512_i32scatter_ps( pui8Bgra + (3 * sizeof( float )), vIndices, _mm512_set1_ps( 1.0f ), 4 );
+					pui8Bgra += (64 * sizeof( float ));
+				}
+
+
+				pfY += sRegSize;
+				pfI += sRegSize;
+				pfQ += sRegSize;
+
+			}
+		}
+		else
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX2__
+		if ( CUtilities::IsAvx2Supported() ) {
+			__m256 m0 = _mm256_set1_ps( 0.0f );
+			__m256 m299 = _mm256_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+			__m256 mPhosInitDecay = _mm256_set1_ps( m_fInitPhosphorDecay );
+			__m256 mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m256 mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRate );
+			__m256 mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m256 mY = _mm256_load_ps( pfY );
+				__m256 mU = _mm256_load_ps( pfQ );
+				__m256 mV = _mm256_load_ps( pfI );
+				__m256 mOldR = _mm256_load_ps( pfBlendBuffer );
+				__m256 mOldG = _mm256_load_ps( pfBlendBuffer + sRegSize );
+				__m256 mOldB = _mm256_load_ps( pfBlendBuffer + (sRegSize * 2) );
+
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, _mm256_set1_ps( 1.139883025203f ) ) );
+				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
+				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
+
+				mOldR = _mm256_mul_ps( mPhosphorDecayR, mOldR );
+				__m256 mScaledR = _mm256_mul_ps( mPhosInitDecay, mR );
+				mR = _mm256_max_ps( mOldR, mR );
+				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledR, mOldR ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldG = _mm256_mul_ps( mPhosphorDecayG, mOldG );
+				__m256 mScaledG = _mm256_mul_ps( mPhosInitDecay, mG );
+				mG = _mm256_max_ps( mOldG, mG );
+				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledG, mOldG ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldB = _mm256_mul_ps( mPhosphorDecayB, mOldB );
+				__m256 mScaledB = _mm256_mul_ps( mPhosInitDecay, mB );
+				mB = _mm256_max_ps( mOldB, mB );
+				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledB, mOldB ) );
+				pfBlendBuffer += sRegSize;
+
+
+				if constexpr ( _bStoreToInt ) {
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
+					mR = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm256_min_ps( _mm256_max_ps( _mm256_mul_ps( mB, m299 ), m0 ), m299 );
+
+					// Convert to integers.
+					__m256i mRi = _mm256_cvtps_epi32( mR );
+					__m256i mGi = _mm256_cvtps_epi32( mG );
+					__m256i mBi = _mm256_cvtps_epi32( mB );
+
+					// Gamma.
+					mRi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mRi, 4 );
+					mGi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32GammaG), mGi, 4 );
+					mBi = _mm256_i32gather_epi32( reinterpret_cast<const int *>(m_ui32Gamma), mBi, 4 );
+
+					// Combine sRGB channels into packed format.
+					__m256i mSrgb = _mm256_or_si256(
+						_mm256_or_si256( mBi, _mm256_slli_epi32( mGi, 8 ) ),
+						_mm256_slli_epi32( mRi, 16 )
+					);
+
+					_mm256_storeu_si256( reinterpret_cast<__m256i *>(pui8Bgra), mSrgb );
+					pui8Bgra += 256 / 8;
+				}
+				else {
+					__m256 mA = _mm256_set1_ps( 1.0f );
+
+					__m256 mT0 = _mm256_unpacklo_ps( mR, mG );
+					__m256 mT1 = _mm256_unpackhi_ps( mR, mG );
+					__m256 mT2 = _mm256_unpacklo_ps( mB, mA );
+					__m256 mT3 = _mm256_unpackhi_ps( mB, mA );
+
+					__m256 mRow0 = _mm256_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m256 mRow1 = _mm256_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+					__m256 mRow2 = _mm256_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m256 mRow3 = _mm256_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+
+					float * pfDest = reinterpret_cast<float *>(pui8Bgra);
+
+					_mm256_storeu_ps( pfDest + 0, _mm256_permute2f128_ps( mRow0, mRow1, 0x20 ) );
+					_mm256_storeu_ps( pfDest + 8, _mm256_permute2f128_ps( mRow2, mRow3, 0x20 ) );
+					_mm256_storeu_ps( pfDest + 16, _mm256_permute2f128_ps( mRow0, mRow1, 0x31 ) );
+					_mm256_storeu_ps( pfDest + 24, _mm256_permute2f128_ps( mRow2, mRow3, 0x31 ) );
+
+					pui8Bgra += (32 * sizeof( float ));
+				}
+
+
+				pfY += sRegSize;
+				pfI += sRegSize;
+				pfQ += sRegSize;
+
+			}
+		}
+		else
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+		if ( CUtilities::IsSse4Supported() ) {
+			__m128 m0 = _mm_set1_ps( 0.0f );
+			__m128 m299 = _mm_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+			__m128 mPhosInitDecay = _mm_set1_ps( m_fInitPhosphorDecay );
+			__m128 mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m128 mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRate );
+			__m128 mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			constexpr auto sRegSize = sizeof( __m128 ) / sizeof( float );
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
+				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
+				__m128 mY = _mm_load_ps( pfY );
+				__m128 mU = _mm_load_ps( pfQ );
+				__m128 mV = _mm_load_ps( pfI );
+				__m128 mOldR = _mm_load_ps( pfBlendBuffer );
+				__m128 mOldG = _mm_load_ps( pfBlendBuffer + sRegSize );
+				__m128 mOldB = _mm_load_ps( pfBlendBuffer + (sRegSize * 2) );
+
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, _mm_set1_ps( 1.139883025203f ) ) );
+				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, _mm_set1_ps( -0.394642233974f ) ), _mm_mul_ps( mV, _mm_set1_ps( -0.580621847591f ) ) ) );
+				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
+
+
+				mOldR = _mm_mul_ps( mPhosphorDecayR, mOldR );
+				__m128 mScaledR = _mm_mul_ps( mPhosInitDecay, mR );
+				mR = _mm_max_ps( mOldR, mR );
+				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledR, mOldR ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldG = _mm_mul_ps( mPhosphorDecayG, mOldG );
+				__m128 mScaledG = _mm_mul_ps( mPhosInitDecay, mG );
+				mG = _mm_max_ps( mOldG, mG );
+				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledG, mOldG ) );
+				pfBlendBuffer += sRegSize;
+
+				mOldB = _mm_mul_ps( mPhosphorDecayB, mOldB );
+				__m128 mScaledB = _mm_mul_ps( mPhosInitDecay, mB );
+				mB = _mm_max_ps( mOldB, mB );
+				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledB, mOldB ) );
+				pfBlendBuffer += sRegSize;
+
+				if constexpr ( _bStoreToInt ) {
+					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
+					mR = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mR, m299 ), m0 ), m299 );
+					mG = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mG, m299 ), m0 ), m299 );
+					mB = _mm_min_ps( _mm_max_ps( _mm_mul_ps( mB, m299 ), m0 ), m299 );
+
+					// Convert to integers.
+					__m128i mRi = _mm_cvtps_epi32( mR );
+					__m128i mGi = _mm_cvtps_epi32( mG );
+					__m128i mBi = _mm_cvtps_epi32( mB );
+
+					// Pack 32-bit integers to 16-bit.  BGRA order for Windows.
+					__m128i mBgi = _mm_packus_epi32( mBi, mGi );
+					__m128i mRai = _mm_packus_epi32( mRi, mGi );
+
+					LSN_ALIGN( 32 )
+					uint16_t ui16Tmp0[8];
+					LSN_ALIGN( 32 )
+					uint16_t ui16Tmp1[8];
+					_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp0), mBgi );
+					_mm_store_si128( reinterpret_cast<__m128i *>(ui16Tmp1), mRai );
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[0]];		// B0;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[0+4]];		// G0;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[0]];		// R0;
+					(*pui8Bgra++) = 255;							// A0;
+
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[1]];		// B1;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[1+4]];		// G1;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[1]];		// R1;
+					(*pui8Bgra++) = 255;							// A1;
+
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[2]];		// B2;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[2+4]];		// G2;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[2]];		// R2;
+					(*pui8Bgra++) = 255;							// A2;
+
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp0[3]];		// B3;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Tmp0[3+4]];		// G3;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Tmp1[3]];		// R3;
+					(*pui8Bgra++) = 255;							// A3;
+				}
+				else {
+					__m128 mA = _mm_set1_ps( 1.0f );
+
+					__m128 mT0 = _mm_unpacklo_ps( mR, mG );
+					__m128 mT1 = _mm_unpackhi_ps( mR, mG );
+					__m128 mT2 = _mm_unpacklo_ps( mB, mA );
+					__m128 mT3 = _mm_unpackhi_ps( mB, mA );
+
+					__m128 mP0 = _mm_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m128 mP1 = _mm_shuffle_ps( mT0, mT2, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+					__m128 mP2 = _mm_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 1, 0, 1, 0 ) );
+					__m128 mP3 = _mm_shuffle_ps( mT1, mT3, _MM_SHUFFLE( 3, 2, 3, 2 ) );
+
+					float * pfDest = reinterpret_cast<float *>(pui8Bgra);
+
+					_mm_storeu_ps( pfDest + 0, mP0 );
+					_mm_storeu_ps( pfDest + 4, mP1 );
+					_mm_storeu_ps( pfDest + 8, mP2 );
+					_mm_storeu_ps( pfDest + 12, mP3 );
+
+					pui8Bgra += (16 * sizeof( float ));
+				}
+
+				pfY += sRegSize;
+				pfI += sRegSize;
+				pfQ += sRegSize;
+			}
+		}
+		else
+#endif	// #ifdef __SSE4_1__
+		{
+			for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
+				// Convert YUV to RGB.
+				// R = Y + (1.139883025203f * V)
+				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
+				// B = Y + (2.032061872219f * U)
+				float fR = (*pfY) + (1.139883025203f * (*pfI));
+				float fG = (*pfY) + (-0.394642233974f * (*pfQ)) + (-0.580621847591f * (*pfI));
+				float fB = (*pfY) + (2.032061872219f * (*pfQ));
+
+				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
+				fR = std::clamp( fR * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+				fG = std::clamp( fG * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+				fB = std::clamp( fB * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
+
+				fR += m_fPhosphorDecayRate * (*pfBlendBuffer);
+				(*pfBlendBuffer++) = fR;
+				fG += m_fPhosphorDecayRate * (*pfBlendBuffer);
+				(*pfBlendBuffer++) = fG;
+				fB += m_fPhosphorDecayRate * (*pfBlendBuffer);
+				(*pfBlendBuffer++) = fB;
+
+				if constexpr ( _bStoreToInt ) {
+					// Convert to integers.
+					uint16_t ui16Ri = static_cast<uint16_t>(std::round( fR ));
+					uint16_t ui16Gi = static_cast<uint16_t>(std::round( fG ));
+					uint16_t ui16Bi = static_cast<uint16_t>(std::round( fB ));
+
+					(*pui8Bgra++) = m_ui8Gamma[ui16Bi];			// B0;
+					(*pui8Bgra++) = m_ui8GammaG[ui16Gi];		// G0;
+					(*pui8Bgra++) = m_ui8Gamma[ui16Ri];			// R0;
+					(*pui8Bgra++) = 255;						// A0;
+				}
+				else {
+					reinterpret_cast<float *>(pui8Bgra)[0] = fR;
+					reinterpret_cast<float *>(pui8Bgra)[1] = fG;
+					reinterpret_cast<float *>(pui8Bgra)[2] = fB;
+					reinterpret_cast<float *>(pui8Bgra)[3] = 1.0f;
+
+					pui8Bgra += (4 * sizeof( float ));
+				}
+				++pfY;
+				++pfI;
+				++pfQ;
+			}
+		}
+	}
+
+}	// namespace lsn
+
+#pragma warning( pop )
