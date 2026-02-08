@@ -235,9 +235,9 @@ namespace lsn {
 
 		// Add noise.
 		pfSignals = pfSignalStart;
-		float * pfSignalEnd = pfSignals + m_ui16ScaledWidth;
+		float * pfSignalEnd = pfSignals + m_ui16Width * m_ui16PixelToSignal;
 		// Prefetch the middle of the buffer.
-		LSN_PREFETCH_LINE( pfSignals + ((m_ui16ScaledWidth) >> 1) );
+		LSN_PREFETCH_LINE( pfSignals + ((m_ui16Width * m_ui16PixelToSignal) >> 1) );
 #ifdef __AVX512F__
 		if ( CUtilities::IsAvx512FSupported() ) {
 			while ( pfSignals < pfSignalEnd ) {
