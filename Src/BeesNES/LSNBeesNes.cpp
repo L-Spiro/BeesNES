@@ -770,11 +770,23 @@ namespace lsn {
 			}
 		}
 
-		bool bActivate = m_cfartCurFilterAndTargets.pfbCurFilter == nullptr;
+		CFilterBase * pfbNew = m_pfbFilterTable[m_oOptions.fFilter][GetDisplayClient()->PpuRegion()];
+		if ( m_cfartCurFilterAndTargets.pfbCurFilter != pfbNew ) {
+			if ( m_cfartCurFilterAndTargets.pfbCurFilter ) {
+				m_cfartCurFilterAndTargets.pfbCurFilter->DeActivate();
+			}
+			m_cfartCurFilterAndTargets.pfbCurFilter = pfbNew;
+			if ( m_cfartCurFilterAndTargets.pfbCurFilter ) {
+				m_cfartCurFilterAndTargets.pfbCurFilter->Activate();
+			}
+		}
+
+
+		/*bool bActivate = m_cfartCurFilterAndTargets.pfbCurFilter == nullptr;
 		m_cfartCurFilterAndTargets.pfbCurFilter = m_pfbFilterTable[m_oOptions.fFilter][GetDisplayClient()->PpuRegion()];
 		if ( bActivate ) {
 			m_cfartCurFilterAndTargets.pfbCurFilter->Activate();
-		}
+		}*/
 					
 		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
