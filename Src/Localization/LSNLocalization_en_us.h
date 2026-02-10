@@ -64,12 +64,12 @@
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-B/B1/D/D1/G/H/I/K (LMP88&959)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL Auto (LMP889&59)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
-#define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX9_UPSCALE							NTSC-M (&L. Spiro) (Mi&crosoft® Direct3D® 9)
-#define LSN_VIDEO_FILTER_LSPIRO_PAL_DX9_UPSCALE								PAL-&B/B1/G/H/I/K (L. Spiro) (Mi&crosoft® Direct3D® 9)
-#define LSN_VIDEO_FILTER_LSPIRO_DENDY_DX9_UPSCALE							PAL-&D/D1 (L. Spiro) (Mi&crosoft® Direct3D® 9)
-#define LSN_VIDEO_FILTER_LSPIRO_PALM_DX9_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Mi&crosoft® Direct3D® 9)
-#define LSN_VIDEO_FILTER_LSPIRO_PALN_DX9_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Mi&crosoft® Direct3D® 9)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX9_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Mi&crosoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX9_UPSCALE							NTSC-M (&L. Spiro) (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_DX9_UPSCALE								PAL-&B/B1/G/H/I/K (L. Spiro) (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_DX9_UPSCALE							PAL-&D/D1 (L. Spiro) (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_DX9_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_DX9_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX9_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Microsoft® Direct3D® 9)
 #define LSN_VIDEO_FILTER_DIRECT3D_9											Mi&crosoft® Direct3D® 9
 #define LSN_VIDEO_FILTER_DIRECT3D_12										Microso&ft® Direct3D® 12
 #define LSN_VIDEO_FILTER_VULKAN_1											&Vulkan 1
