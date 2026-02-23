@@ -11,9 +11,11 @@
 #pragma once
 
 #include "LSNPatchWindowLayout.h"
+#include "../../Roms/LSNRom.h"
 
-#include <Widget/LSWWidget.h>
+#include <Helpers/LSWHelpers.h>
 #include <TreeListView/LSWTreeListView.h>
+#include <Widget/LSWWidget.h>
 
 using namespace lsw;
 
@@ -61,6 +63,16 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+
+		/**
+		 * Handles WM_TIMER.
+		 * \brief Notified when a timer elapses.
+		 *
+		 * \param _uiptrId Timer identifier.
+		 * \param _tpProc Optional callback associated with the timer.
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Timer( UINT_PTR _uiptrId, TIMERPROC /*_tpProc*/ );
 
 		/**
 		 * Handles the WM_GETMINMAXINFO message.
@@ -131,7 +143,10 @@ namespace lsn {
 		std::vector<uint8_t>								m_vPatchRomFile;											/**< The ROM to patch. */
 		std::u16string										m_u16RomPath;												/**< Path to the ROM. */
 		std::vector<LSN_PATCH_INFO>							m_vPatchInfo;												/**< The patch information. */
+		LSN_ROM												m_rRomInfo;													/**< ROM information. */
+		uint32_t											m_ui32FullCrc = 0;											/**< The full CRC size. */
 		bool												m_bOutIsAutoFilled;											/**< THe output path was auto-generated. */
+		lsw::LSW_TIMER										m_tUpdateBottomTimer;										/**< Timer for updating the bottom text. */
 
 
 		// == Functions.
@@ -139,6 +154,46 @@ namespace lsn {
 		 * Updates the source ROM information labels.
 		 **/
 		void												UpdateInfo();
+
+		/**
+		 * Updates the colors based on the currently loaded ROM file.
+		 **/
+		void												UpdateColors();
+
+		/**
+		 * Updates the text description on the bottom based on the currently selected items.
+		 **/
+		void												UpdateText();
+
+		/**
+		 * Reveals compatiable ROM hacks.  Finds BPS files with CRC’s matching the loaded ROM file and expands those while collapsing all others.
+		 * 
+		 * \param _bSelect If true, the items are also selected.
+		 **/
+		void												RevealCompatible( bool _bSelect = false );
+
+		/**
+		 * Checks the given tree item for having a child that is a BPS file compatible with the current ROM.
+		 * 
+		 * \param _ptlvTree A pointer to the TreeListView.
+		 * \param _htiItem The item to recursively check for being compatible.
+		 * \return Returns true if the item or any of its children are compatible with the current ROM file.
+		 **/
+		bool												IsCompatible( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const;
+
+		/**
+		 * Checks for a child node that is a checksum patch.
+		 * 
+		 * \param _ptlvTree A pointer to the TreeListView.
+		 * \param _htiItem The item to recursively check for being a checksum patch.
+		 * \return Returns true if the item or any of its children are is a BPS or other checksum-based patch file.
+		 **/
+		bool												HasCheckSumPatch( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const;
+
+		/**
+		 * Reveals all patch files with CRC checks.
+		 **/
+		void												RevealCrcPatches();
 
 		/**
 		 * Adds all the nodes in _vNodes as children of _hParent.

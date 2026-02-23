@@ -258,6 +258,9 @@
 #define LSN_PATCH_SRC_INFO													Source ROM Information
 #define LSN_PATCH_PATCH														Patch
 #define LSN_PATCH_DETAILS													Details
+#define LSN_PATCH_REVEAL_COMPATIBLE											&Reveal Compatible
+#define LSN_PATCH_SELECT_COMPATIBLE											&Select Compatible
+#define LSN_PATCH_REVEAL_BPS												Re&veal BPS
 #define LSN_PATCH_EXPAND_SELECTED											Expand Selec&ted
 #define LSN_PATCH_EXPAND_ALL												E&xpand All
 #define LSN_PATCH_COLLAPSE_SELECTED											C&ollapse Selected

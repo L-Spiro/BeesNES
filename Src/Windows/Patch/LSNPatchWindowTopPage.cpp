@@ -112,7 +112,12 @@ namespace lsn {
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 					}
-					
+					auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+					if ( ptvTree ) {
+						ptvTree->BeginLargeUpdate();
+						UpdateColors();
+						ptvTree->FinishUpdate();
+					}
 				}
 				break;
 			}
@@ -170,6 +175,13 @@ namespace lsn {
 								m_vPatchInfo.clear();
 								m_vPatchInfo.resize( 1 );
 								m_vPatchInfo[0].u16FullPath = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
+								auto wsExt = CUtilities::ToLower( std::filesystem::path( m_vPatchInfo[0].u16FullPath ).extension().wstring() );
+								if ( wsExt == L".bps" ) {
+									sBpsStart = 0;
+								}
+								else if ( wsExt == L".txt" || wsExt == L".md" ) {
+									sTxtStart = 0;
+								}
 							}
 							catch ( ... ) {
 							}
@@ -196,7 +208,7 @@ namespace lsn {
 								m_vPatchInfo[I].bIsText = true;
 							}
 
-							::OutputDebugStringW( reinterpret_cast<const wchar_t *>((m_vPatchInfo[I].u16FullPath + u"\r\n").c_str()) );
+							//::OutputDebugStringW( reinterpret_cast<const wchar_t *>((m_vPatchInfo[I].u16FullPath + u"\r\n").c_str()) );
 						}
 
 
@@ -218,6 +230,7 @@ namespace lsn {
 						ptvTree->DeleteAll();
 						ptvTree->BeginLargeUpdate();
 						AddToTree( aTmp, TVI_ROOT, ptvTree );
+						UpdateColors();
 						ptvTree->FinishUpdate();
 					}
 					catch ( ... ) {
@@ -317,7 +330,18 @@ namespace lsn {
 				break;
 			}*/
 
-
+			case CPatchWindowLayout::LSN_PWI_REVEAL_COMPATIBLE : {
+				RevealCompatible();
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_SELECT_COMPATIBLE : {
+				RevealCompatible( true );
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_REVEAL_CRC : {
+				RevealCrcPatches();
+				break;
+			}
 			case CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED : {
 				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptlTree ) {
@@ -348,6 +372,27 @@ namespace lsn {
 			}
 		}
 		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Handles WM_TIMER.
+	 * \brief Notified when a timer elapses.
+	 *
+	 * \param _uiptrId Timer identifier.
+	 * \param _tpProc Optional callback associated with the timer.
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CPatchWindowTopPage::Timer( UINT_PTR _uiptrId, TIMERPROC /*_tpProc*/ ) {
+		switch ( _uiptrId ) {
+			case CWinUtilities::LSN_UPDATE_PATCHER_DESC : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptlTree ) {
+					//ptlTree->ExpandSelected();
+				}
+				break;
+			}
+		}
+		return LSW_H_HANDLED;
 	}
 
 	/**
@@ -389,24 +434,22 @@ namespace lsn {
 	CWidget::LSW_HANDLED CPatchWindowTopPage::ContextMenu( CWidget * _pwControl, INT _iX, INT _iY ) {
 		if ( _pwControl->Id() == CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ) {
 			auto ptlvTree = static_cast<CTreeListView *>(_pwControl);
+			bool bHasItems = ptlvTree->GetItemCount() ? true : false;
 			bool bExpSel = ptlvTree->AnySelectedHasUnexpandedChildren();
 			bool bExpAll = ptlvTree->AnyHasUnexpandedChildren();
 			bool bColSel = ptlvTree->AnySelectedHasExpandedChildren();
 			bool bColAll = ptlvTree->AnyHasExpandedChildren();
 			LSW_MENU_ITEM miMenuBar[] = {
-				//bIsSeperator	dwId													bCheckable	bChecked	bEnabled	lpwcText, stTextLen												bSkip
-				/*{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_FIELD,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_05239A67_Copy__Field, _LEN_05239A67 ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_VALUE,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_43A1870B_Copy__Value, _LEN_43A1870B ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_OFFSET,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_EF323132_Copy__Offset, _LEN_EF323132 ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_BYTES,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_C928AB0C_Copy__Raw_Bytes, _LEN_C928AB0C ),		FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_DESC,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_03939D2C_Copy__Desc, _LEN_03939D2C ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_ALL,						FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_9B7D368F_Copy_A_ll, _LEN_9B7D368F ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_FIELD_VALUE,				FALSE,		FALSE,		TRUE,		MW_MENU_TXT( _T_E9B5F487_Copy_F_ield__Value, _LEN_E9B5F487 ),	FALSE },
-				{ TRUE,			0,															FALSE,		FALSE,		TRUE,		nullptr,									FALSE },*/
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED,			FALSE,		FALSE,		bExpSel,	LSN_LSTR( LSN_PATCH_EXPAND_SELECTED ),		FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_ALL,				FALSE,		FALSE,		bExpAll,	LSN_LSTR( LSN_PATCH_EXPAND_ALL ),			FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_SELECTED,			FALSE,		FALSE,		bColSel,	LSN_LSTR( LSN_PATCH_COLLAPSE_SELECTED ),	FALSE },
-				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_ALL,				FALSE,		FALSE,		bColAll,	LSN_LSTR( LSN_PATCH_COLLAPSE_ALL ),			FALSE },
+				//bIsSeperator	dwId														bCheckable	bChecked	bEnabled		lpwcText, stTextLen							bSkip
+
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_REVEAL_COMPATIBLE,				FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_REVEAL_COMPATIBLE ),	FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_SELECT_COMPATIBLE,				FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_SELECT_COMPATIBLE ),	FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_REVEAL_CRC,						FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_REVEAL_BPS ),			FALSE },
+				{ TRUE,			0,															FALSE,		FALSE,		TRUE,			nullptr,									FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED,			FALSE,		FALSE,		bExpSel,		LSN_LSTR( LSN_PATCH_EXPAND_SELECTED ),		FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_EXPAND_ALL,				FALSE,		FALSE,		bExpAll,		LSN_LSTR( LSN_PATCH_EXPAND_ALL ),			FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_SELECTED,			FALSE,		FALSE,		bColSel,		LSN_LSTR( LSN_PATCH_COLLAPSE_SELECTED ),	FALSE },
+				{ FALSE,		CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_ALL,				FALSE,		FALSE,		bColAll,		LSN_LSTR( LSN_PATCH_COLLAPSE_ALL ),			FALSE },
 			};
 
 			const LSW_MENU_LAYOUT miMenus[] = {
@@ -431,8 +474,15 @@ namespace lsn {
 	 * \param _lplvParm The notifacation structure.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_ItemChanged( LPNMLISTVIEW _lplvParm ) {
-		::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_ItemChanged:\t{} {} {}\r\n", _lplvParm->iItem, _lplvParm->uOldState, _lplvParm->uNewState ).c_str() );
+	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_ItemChanged( LPNMLISTVIEW /*_lplvParm*/ ) {
+		/*::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_ItemChanged:\t{} {} {}\r\n", _lplvParm->iItem, _lplvParm->uOldState, _lplvParm->uNewState ).c_str() );
+		if ( _lplvParm->iItem == -1 ) {
+		}
+		else {
+			if ( _lplvParm->uNewState & LVIS_SELECTED ) {
+			}
+		}*/
+		m_tUpdateBottomTimer.Start( Wnd(), CWinUtilities::LSN_UPDATE_PATCHER_DESC, 16 );
 		return LSW_H_CONTINUE;
 	}
 
@@ -442,8 +492,9 @@ namespace lsn {
 	 * \param _lposcParm The notifacation structure.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm ) {
-		::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_OdStateChange:\t{} {}\r\n", _lposcParm->iFrom, _lposcParm->iTo ).c_str() );
+	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_OdStateChange( LPNMLVODSTATECHANGE /*_lposcParm*/ ) {
+		//::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_OdStateChange:\t{} {}\r\n", _lposcParm->iFrom, _lposcParm->iTo ).c_str() );
+		m_tUpdateBottomTimer.Start( Wnd(), CWinUtilities::LSN_UPDATE_PATCHER_DESC, 16 );
 		return LSW_H_CONTINUE;
 	}
 
@@ -470,11 +521,12 @@ namespace lsn {
 	void CPatchWindowTopPage::UpdateInfo() {
 		LSN_ROM rRom;
 		if ( m_vPatchRomFile.size() && CSystemBase::LoadRom( m_vPatchRomFile, rRom, m_u16RomPath ) ) {
-			
+			m_rRomInfo = rRom;
+
 			auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_CRC_LABEL );
 			if ( pwPathEdit ) {
-				auto aFullCrc = CCrc::GetCrc( m_vPatchRomFile.data(), m_vPatchRomFile.size() );
-				pwPathEdit->SetTextW( std::format( L"Full CRC32:\t{:08X}", aFullCrc ).c_str() );
+				m_ui32FullCrc = CCrc::GetCrc( m_vPatchRomFile.data(), m_vPatchRomFile.size() );
+				pwPathEdit->SetTextW( std::format( L"Full CRC32:\t{:08X}", m_ui32FullCrc ).c_str() );
 			}
 			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CRC_LABEL );
 			if ( pwPathEdit ) {
@@ -518,6 +570,144 @@ namespace lsn {
 	}
 
 	/**
+	 * Updates the colors based on the currently loaded ROM file.
+	 **/
+	void CPatchWindowTopPage::UpdateColors() {
+		//m_rRomInfo.riInfo.s16File
+		auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		if ( !ptvTree ) { return; }
+		auto hThis = ptvTree->GetNext( TVI_ROOT );
+		while ( hThis ) {
+			LPARAM lpParm = ptvTree->GetItemLParam( hThis );
+			RGBQUAD rgbqColor = { .rgbBlue = 0x00, .rgbGreen = 0x00, .rgbRed = 0x00, .rgbReserved = 0x00 };
+
+			if ( size_t( lpParm ) < m_vPatchInfo.size() ) {
+				if ( !m_vPatchInfo[lpParm].bIsText ) {
+					if ( m_vPatchInfo[lpParm].ui32Crc ) {			// BPS file.
+						if ( m_rRomInfo.riInfo.s16File.size() ) {
+							if ( m_vPatchInfo[lpParm].ui32Crc == m_rRomInfo.riInfo.ui32Crc || m_ui32FullCrc == m_vPatchInfo[lpParm].ui32Crc ) {
+								rgbqColor = { .rgbBlue = 170, .rgbGreen = 255, .rgbRed = 213, .rgbReserved = 0xCF };
+							}
+							else {
+								rgbqColor = { .rgbBlue = 128, .rgbGreen = 128, .rgbRed = 255, .rgbReserved = 0xCF };
+							}
+						}
+						else {
+							rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };
+						}
+					}
+					else {											// IPS file.
+						rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };
+					}
+				}
+				else {												// TXT/MD.
+					rgbqColor = { .rgbBlue = 0xE0, .rgbGreen = 0xE0, .rgbRed = 0xE0, .rgbReserved = 0x3F };
+				}
+			}
+			ptvTree->SetItemColor( hThis, rgbqColor );
+			hThis = ptvTree->GetNext( hThis );
+		}
+	}
+
+	/**
+	 * Updates the text description on the bottom based on the currently selected items.
+	 **/
+	void CPatchWindowTopPage::UpdateText() {
+		if ( m_pwParent ) {
+			auto pwText = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW );
+		}
+	}
+
+	/**
+	 * Reveals compatiable ROM hacks.  Finds BPS files with CRC’s matching the loaded ROM file and expands those while collapsing all others.
+	 * 
+	 * \param _bSelect If true, the items are also selected.
+	 **/
+	void CPatchWindowTopPage::RevealCompatible( bool _bSelect ) {
+		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		if ( ptvTree ) {
+			ptvTree->BeginLargeUpdate();
+			auto hThis = ptvTree->GetNext( TVI_ROOT );
+			while ( hThis ) {
+				bool bCompat = IsCompatible( ptvTree, hThis );
+				ptvTree->SetItemExpand( hThis, bCompat );
+				if ( _bSelect && ptvTree->CountChildren( hThis ) == 0 ) {
+					ptvTree->SetItemSelection( hThis, bCompat );
+				}
+				hThis = ptvTree->GetNext( hThis );
+			}
+			ptvTree->FinishUpdate();
+		}
+	}
+
+	/**
+	 * Checks the given tree item for having a child that is a BPS file compatible with the current ROM.
+	 * 
+	 * \param _ptlvTree A pointer to the TreeListView.
+	 * \param _htiItem The item to recursively check for being compatible.
+	 * \return Returns true if the item or any of its children are compatible with the current ROM file.
+	 **/
+	bool CPatchWindowTopPage::IsCompatible( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const {
+		if ( !m_rRomInfo.riInfo.s16File.size() ) { return false; }				// Nothing is loaded.
+		size_t sIdx = size_t( _ptlvTree->GetItemLParam( _htiItem ) );
+		if ( sIdx < m_vPatchInfo.size() ) {
+			if ( !m_vPatchInfo[sIdx].bIsText && m_vPatchInfo[sIdx].ui32Crc ) {
+				if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
+					return true;
+				}
+			}
+		}
+		std::vector<HTREEITEM> vChildren;
+		auto sSize = _ptlvTree->GatherChildren( vChildren, _htiItem );
+		if ( sSize != vChildren.size() ) { return false; }	// Memory failure.
+		for ( auto & htiChild : vChildren ) {
+			if ( IsCompatible( _ptlvTree, htiChild ) ) { return true; }
+		}
+		return false;
+	}
+
+	/**
+	 * Checks for a child node that is a checksum patch.
+	 * 
+	 * \param _ptlvTree A pointer to the TreeListView.
+	 * \param _htiItem The item to recursively check for being a checksum patch.
+	 * \return Returns true if the item or any of its children are is a BPS or other checksum-based patch file.
+	 **/
+	bool CPatchWindowTopPage::HasCheckSumPatch( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const {
+		if ( !m_rRomInfo.riInfo.s16File.size() ) { return false; }				// Nothing is loaded.
+		size_t sIdx = size_t( _ptlvTree->GetItemLParam( _htiItem ) );
+		if ( sIdx < m_vPatchInfo.size() ) {
+			if ( !m_vPatchInfo[sIdx].bIsText && m_vPatchInfo[sIdx].ui32Crc ) {
+				return true;
+			}
+		}
+		std::vector<HTREEITEM> vChildren;
+		auto sSize = _ptlvTree->GatherChildren( vChildren, _htiItem );
+		if ( sSize != vChildren.size() ) { return false; }	// Memory failure.
+		for ( auto & htiChild : vChildren ) {
+			if ( HasCheckSumPatch( _ptlvTree, htiChild ) ) { return true; }
+		}
+		return false;
+	}
+
+	/**
+	 * Reveals all patch files with CRC checks.
+	 **/
+	void CPatchWindowTopPage::RevealCrcPatches() {
+		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		if ( ptvTree ) {
+			ptvTree->BeginLargeUpdate();
+			auto hThis = ptvTree->GetNext( TVI_ROOT );
+			while ( hThis ) {
+				size_t sIdx = size_t( ptvTree->GetItemLParam( hThis ) );
+				ptvTree->SetItemExpand( hThis, HasCheckSumPatch( ptvTree, hThis ) );
+				hThis = ptvTree->GetNext( hThis );
+			}
+			ptvTree->FinishUpdate();
+		}
+	}
+
+	/**
 	 * Adds all the nodes in _vNodes as children of _hParent.
 	 * 
 	 * \param _vNodes The nodes to add under _hParent.
@@ -533,6 +723,12 @@ namespace lsn {
 			if ( _vNodes[I].sIdx != ~size_t( 0 ) ) {
 				if ( m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ) {
 					_ptlTree->SetItemText( hItem, std::format( L"Source ROM CRC32: {:08X}", m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ).c_str(), 1 );
+					/*RGBQUAD rgbqColor;
+					rgbqColor.rgbRed = 0xE0;
+					rgbqColor.rgbGreen = 0xE0;
+					rgbqColor.rgbBlue = 0xE0;
+					rgbqColor.rgbReserved = 0x3F;
+					_ptlTree->SetItemColor( hItem, rgbqColor );*/
 				}
 				else if ( m_vPatchInfo[_vNodes[I].sIdx].bIsText && m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.size() != 0 ) {
 					auto aReplaced = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.data()) );
@@ -540,6 +736,12 @@ namespace lsn {
 					aReplaced = CUtilities::Replace( aReplaced, std::u16string( u"\n" ), std::u16string( u"\\n" ) );
 					_ptlTree->SetItemText( hItem,
 						reinterpret_cast<const WCHAR *>(aReplaced.c_str()), 1 );
+					RGBQUAD rgbqColor;
+					rgbqColor.rgbRed = 0xE0;
+					rgbqColor.rgbGreen = 0xE0;
+					rgbqColor.rgbBlue = 0xE0;
+					rgbqColor.rgbReserved = 0x3F;
+					_ptlTree->SetItemColor( hItem, rgbqColor );
 				}
 			}
 			AddToTree( _vNodes[I].vChildren, hItem, _ptlTree );

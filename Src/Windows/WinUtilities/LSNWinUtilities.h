@@ -38,6 +38,7 @@ namespace lsn {
 			LSN_CLOSE_PATCHER									= WM_USER + 1,
 			LSN_CLOSE_WAV_EDITOR,
 			LSN_UPDATE_HZ,
+			LSN_UPDATE_PATCHER_DESC,
 #endif	// #if defined( LSN_WINDOWS )
 		};
 
