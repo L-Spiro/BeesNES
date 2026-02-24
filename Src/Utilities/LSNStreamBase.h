@@ -11,7 +11,6 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Utilities/LSNUtilities.h"
-#include "LSNStreamBase.h"
 
 #include <vector>
 
@@ -26,8 +25,6 @@ namespace lsn {
 	 */
 	class CStreamBase {
 	public :
-
-
 		// == Functions.
 		// ========
 		// READING

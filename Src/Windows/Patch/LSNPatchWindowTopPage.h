@@ -137,6 +137,12 @@ namespace lsn {
 			size_t											sIdx = ~size_t( 0 );										/**< Index of the information item. */
 		};
 
+		/** Information for a patched file. */
+		struct LSN_PATCHED_FILE {
+			std::u16string									u16Path;													/**< Path to the file. */
+			uint32_t										ui32Crc = 0;												/**< The CRC of the file following the patch. */
+		};
+
 
 		// == Members.
 		LSN_OPTIONS *										m_poOptions;												/**< The options object. */
@@ -213,6 +219,17 @@ namespace lsn {
 		void												AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
 
 		/**
+		 * Applies a patch to a given stream.
+		 * 
+		 * \param _psbPatch The patch stream.
+		 * \param _vRom The ROM data.
+		 * \param _pOutPath The output path.
+		 * \param _pfPatchedInfo Information for the patched file.
+		 * \throw Throws upon error.
+		 **/
+		void												PatchFile( const CStreamBase * _psbPatch, const std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo );
+
+		/**
 		 * Creates a non-optimized basic tree given patch information.
 		 * 
 		 * \param _vInfo The information from which to generate a basic tree structure.
@@ -235,6 +252,15 @@ namespace lsn {
 		 * \param _vTree The tree to simplify.
 		 **/
 		static void											SimplifyTree( std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vTree );
+
+		/**
+		 * Constructs a file name using the current ROM name and the name of a patch.
+		 * 
+		 * \param _u16RomFileName The name of the ROM.
+		 * \param _u16PatchFileName The name of the patch.
+		 * \return Returns a new file name constructed from the name of the ROM and the name of the patch.
+		 **/
+		static std::filesystem::path						DefaultPatchName( const std::u16string &_u16RomFileName, const std::u16string &_u16PatchFileName );
 
 	private :
 		typedef CPatchWindowLayout							Layout;

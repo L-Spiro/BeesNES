@@ -280,6 +280,12 @@
     <Filter Include="Header Files\Filters\NTSC-CRT-Full\Display">
       <UniqueIdentifier>{f0e8d94a-2b95-445d-8c33-58a826ddb258}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Patching">
+      <UniqueIdentifier>{99e66de3-aff6-4cc6-8829-b717e3c5e5e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Patching">
+      <UniqueIdentifier>{2f8fb507-6a80-44d8-850a-b55f448f1691}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -1055,6 +1061,9 @@
     </ClInclude>
     <ClInclude Include="Src\Filters\LSNDx9PalLSpiroFilter.h">
       <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Patching\LSNIpsFile.h">
+      <Filter>Header Files\Patching</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

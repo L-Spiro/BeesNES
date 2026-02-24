@@ -13,6 +13,7 @@
 #include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Patching/LSNIpsFile.h"
 #include "../../System/LSNSystemBase.h"
 #include "../../Windows/Layout/LSNLayoutManager.h"
 #include "../WinUtilities/LSNWinUtilities.h"
@@ -327,121 +328,134 @@ namespace lsn {
 			case CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON : {
 				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptvTree && m_vPatchRomFile.size() ) {
-					std::vector<HTREEITEM> vSelected;
-					if ( ptvTree->GatherSelected( vSelected, true ) ) {
-						// Trim the selection down to only patch files.
-						bool bWarnOfDoom = false;
-						for ( auto I = vSelected.size(); I--; ) {
-							if ( ptvTree->CountChildren( vSelected[I] ) ) {
-								// Patch files are "leaf" nodes; no children.
-								vSelected.erase( vSelected.begin() + I );
-							}
-							else {
-								size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
-								if ( sIdx >= m_vPatchInfo.size() ) {
+					try {
+						std::vector<HTREEITEM> vSelected;
+						if ( ptvTree->GatherSelected( vSelected, true ) ) {
+							// Trim the selection down to only patch files.
+							bool bWarnOfDoom = false;
+							for ( auto I = vSelected.size(); I--; ) {
+								if ( ptvTree->CountChildren( vSelected[I] ) ) {
+									// Patch files are "leaf" nodes; no children.
 									vSelected.erase( vSelected.begin() + I );
 								}
 								else {
-									if ( m_vPatchInfo[sIdx].bIsText ) {
+									size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
+									if ( sIdx >= m_vPatchInfo.size() ) {
 										vSelected.erase( vSelected.begin() + I );
 									}
 									else {
-										// Is a patch file.  Check for being a CRC patch and consider warning the user.
-										if ( m_vPatchInfo[sIdx].ui32Crc ) {
-											if ( m_vPatchInfo[sIdx].ui32Crc != m_ui32FullCrc && m_vPatchInfo[sIdx].ui32Crc != m_rRomInfo.riInfo.ui32Crc ) {
+										if ( m_vPatchInfo[sIdx].bIsText ) {
+											vSelected.erase( vSelected.begin() + I );
+										}
+										else {
+											// Is a patch file.  Check for being a CRC patch and consider warning the user.
+											if ( m_vPatchInfo[sIdx].ui32Crc ) {										// BPS.
+												if ( m_vPatchInfo[sIdx].ui32Crc != m_ui32FullCrc && m_vPatchInfo[sIdx].ui32Crc != m_rRomInfo.riInfo.ui32Crc ) {
+													bWarnOfDoom = true;
+												}
+											}
+											else if ( !SiblingHasTextReferenceToCrc( ptvTree, vSelected[I] ) ) {	// IPS.
 												bWarnOfDoom = true;
 											}
 										}
 									}
 								}
 							}
-						}
 
-						// Act on whatever remains.
-						if ( vSelected.size() == 1 ) {
-							if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1 ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
-								size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[0] ) );
+							// Act on whatever remains.
+							if ( vSelected.size() == 1 ) {
+								if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1 ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
+									size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[0] ) );
 
-								// Prompt for the save path.
-								OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
-								std::wstring szFileName;
-								szFileName.resize( 0xFFFF + 2 );
+									// Prompt for the save path.
+									OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+									std::wstring szFileName;
+									szFileName.resize( 0xFFFF + 2 );
 
-								
-
-								std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_NES_FILES____NES____NES_ ), std::size( LSN_LSTR( LSN_NES_FILES____NES____NES_ ) ) - 1 );
-								ofnOpenFile.hwndOwner = Wnd();
-								ofnOpenFile.lpstrFilter = wsFilter.c_str();
-								ofnOpenFile.lpstrFile = szFileName.data();
-								ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
-								ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-								ofnOpenFile.lpstrInitialDir = m_poOptions->wsPatchOutFolder.c_str();
-								if ( !m_poOptions->wsPatchOutFolder.size() ) {
-									ofnOpenFile.lpstrInitialDir = m_poOptions->wsInRomInitPath.c_str();
-								}
-
-								CUtilities::LSN_FILE_PATHS fpPath;
-								CUtilities::DeconstructFilePath( m_vPatchInfo[sIdx].u16FullPath, fpPath );
-								{
-									std::filesystem::path pRomPath = std::filesystem::path( m_rRomInfo.riInfo.s16File ).remove_filename();
-									auto wsRomPathWs = pRomPath.generic_wstring();
-									std::filesystem::path pTmpFileName = (*ofnOpenFile.lpstrInitialDir) ? ofnOpenFile.lpstrInitialDir : wsRomPathWs;
-									auto u16AnotherTmp = std::filesystem::path( m_rRomInfo.riInfo.s16RomName ).replace_extension( u"" ).generic_u16string() + u"_" + std::filesystem::path( fpPath.u16sFile ).filename().generic_u16string();
-									pTmpFileName /= std::filesystem::path( u16AnotherTmp ).filename();
-									std::wstring wsTmpFileName = pTmpFileName.filename().replace_extension( u".nes" ).generic_wstring();
-									::lstrcpynW( ofnOpenFile.lpstrFile, wsTmpFileName.c_str(), ofnOpenFile.nMaxFile - 1 );
-								}
-
-								if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-									m_poOptions->wsPatchOutFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
-									auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
-									if ( !pPath.has_extension() ) {
-										pPath += ".nes";
-									}
-								}
-							}
-						}
-						else if ( vSelected.size() ) {
-							if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
-								// Prompt for the save folder.
-								std::wstring wsDisplayName;
-								wsDisplayName.resize( 0xFFFF + 2 );
-
-								auto wsDefaultDir = m_poOptions->wsPatchOutFolder;
-								if ( !m_poOptions->wsPatchOutFolder.size() ) {
-									wsDefaultDir = m_poOptions->wsInRomInitPath;
-								}
-
-								BROWSEINFOW biBrowseInfo = {};
-								biBrowseInfo.hwndOwner = Wnd();
-								biBrowseInfo.pidlRoot = nullptr;													// Root folder (nullptr = "My Computer")
-								biBrowseInfo.pszDisplayName = wsDisplayName.data();									// Out buffer for display name
-								biBrowseInfo.lpszTitle = LSN_LSTR( LSN_WE_BROWSE_OUTPUT_FOLDER );					// Title text in the dialog
-								biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
-								biBrowseInfo.iImage = 0;
-								biBrowseInfo.lpfn = CWinUtilities::BrowseCallbackProc;
-								biBrowseInfo.lParam = reinterpret_cast<LPARAM>(wsDefaultDir.c_str());
-								{
-									CWinUtilities::LSN_OLEINITIALIZE oOle;
-									if ( oOle.Success() ) {
-										biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
+									std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_NES_FILES____NES____NES_ ), std::size( LSN_LSTR( LSN_NES_FILES____NES____NES_ ) ) - 1 );
+									ofnOpenFile.hwndOwner = Wnd();
+									ofnOpenFile.lpstrFilter = wsFilter.c_str();
+									ofnOpenFile.lpstrFile = szFileName.data();
+									ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+									ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+									ofnOpenFile.lpstrInitialDir = m_poOptions->wsPatchOutFolder.c_str();
+									if ( !m_poOptions->wsPatchOutFolder.size() ) {
+										ofnOpenFile.lpstrInitialDir = m_poOptions->wsInRomInitPath.c_str();
 									}
 
-									PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
-									if ( pidlSelected ) {
-										std::wstring szFileName;
-										szFileName.resize( 0xFFFF + 2 );
-
-										if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
-											/*m_pwewoOptions->wsOutputFolder = szFileName.c_str();
-											auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
-											if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }*/
+									CUtilities::LSN_FILE_PATHS fpPath;
+									CUtilities::DeconstructFilePath( m_vPatchInfo[sIdx].u16FullPath, fpPath );
+									{
+										try {
+											std::wstring wsTmpFileName = DefaultPatchName( m_rRomInfo.riInfo.s16RomName, fpPath.u16sFile ).generic_wstring();
+											::lstrcpynW( ofnOpenFile.lpstrFile, wsTmpFileName.c_str(), ofnOpenFile.nMaxFile - 1 );
 										}
-										::CoTaskMemFree( pidlSelected );
+										catch ( ... ) {}
+									}
+
+									if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+										auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+										if ( !pPath.has_extension() ) {
+											pPath += ".nes";
+										}
+										m_poOptions->wsPatchOutFolder = std::filesystem::path( pPath ).remove_filename().generic_wstring();
+
+										try {
+											CStream sPatch( m_vPatchInfo[sIdx].vLoadedPatchFile );
+											LSN_PATCHED_FILE pfPatched;
+											PatchFile( &sPatch, m_vPatchRomFile, pPath, pfPatched );
+										}
+										catch ( ... ) {
+											lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ) );
+										}
+									}
+								}
+							}
+							else if ( vSelected.size() ) {
+								if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
+									// Prompt for the save folder.
+									std::wstring wsDisplayName;
+									wsDisplayName.resize( 0xFFFF + 2 );
+
+									auto wsDefaultDir = m_poOptions->wsPatchOutFolder;
+									if ( !m_poOptions->wsPatchOutFolder.size() ) {
+										wsDefaultDir = m_poOptions->wsInRomInitPath;
+									}
+
+									BROWSEINFOW biBrowseInfo = {};
+									biBrowseInfo.hwndOwner = Wnd();
+									biBrowseInfo.pidlRoot = nullptr;													// Root folder (nullptr = "My Computer")
+									biBrowseInfo.pszDisplayName = wsDisplayName.data();									// Out buffer for display name
+									biBrowseInfo.lpszTitle = LSN_LSTR( LSN_WE_BROWSE_OUTPUT_FOLDER );					// Title text in the dialog
+									biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
+									biBrowseInfo.iImage = 0;
+									biBrowseInfo.lpfn = CWinUtilities::BrowseCallbackProc;
+									biBrowseInfo.lParam = reinterpret_cast<LPARAM>(wsDefaultDir.c_str());
+									{
+										CWinUtilities::LSN_OLEINITIALIZE oOle;
+										if ( oOle.Success() ) {
+											biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
+										}
+
+										PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
+										if ( pidlSelected ) {
+											std::wstring szFileName;
+											szFileName.resize( 0xFFFF + 2 );
+
+											if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
+												/*m_pwewoOptions->wsOutputFolder = szFileName.c_str();
+												auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+												if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }*/
+											}
+											::CoTaskMemFree( pidlSelected );
+										}
 									}
 								}
 							}
 						}
+					}
+					catch ( ... ) {
+						lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ) );
 					}
 				}
 				break;
@@ -936,6 +950,53 @@ namespace lsn {
 	}
 
 	/**
+	 * Applies a patch to a given stream.
+	 * 
+	 * \param _psbPatch The patch stream.
+	 * \param _vRom The ROM data.
+	 * \param _pOutPath The output path.
+	 * \param _pfPatchedInfo Information for the patched file.
+	 * \throw Throws upon error.
+	 **/
+	void CPatchWindowTopPage::PatchFile( const CStreamBase * _psbPatch, const std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo ) {
+		{
+			// Check for being an IPS file.
+			CIpsFile ifIps( _psbPatch );
+			if ( ifIps.VerifyHeader() ) {
+				CStdFile sfFile;
+				if ( !sfFile.Create( _pOutPath ) ) {
+					auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_CREATE_FILE ), _pOutPath.generic_wstring() );
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+					return;
+				}
+				try {
+					std::vector<uint8_t> vRomCopy = m_vPatchRomFile;
+					CStream sRomStream( vRomCopy );
+					if ( !ifIps.ApplyPatch( &sRomStream ) ) {
+						lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ) );
+						return;
+					}
+					if ( !sfFile.WriteToFile( vRomCopy ) ) {
+						auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_WRITE_FILE ), _pOutPath.generic_wstring() );
+						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+						return;
+					}
+					_pfPatchedInfo.ui32Crc = CCrc::GetCrc( vRomCopy.data(), vRomCopy.size() );
+					_pfPatchedInfo.u16Path = _pOutPath.generic_u16string();
+				}
+				catch ( const std::exception &_e ) {
+					std::string sError = _e.what();
+					std::wstring wsError( sError.begin(), sError.end() );
+					
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+					return;
+				}
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Creates a non-optimized basic tree given patch information.
 	 * 
 	 * \param _vInfo The information from which to generate a basic tree structure.
@@ -1003,6 +1064,20 @@ namespace lsn {
 		for ( size_t I = 0; I < _vTree.size(); ++I ) {
 			SimplifyTree( _vTree[I].vChildren );
 		}
+	}
+
+	/**
+	 * Constructs a file name using the current ROM name and the name of a patch.
+	 * 
+	 * \param _u16RomFileName The name of the ROM.
+	 * \param _u16PatchFileName The name of the patch.
+	 * \return Returns a new file name constructed from the name of the ROM and the name of the patch.
+	 **/
+	std::filesystem::path CPatchWindowTopPage::DefaultPatchName( const std::u16string &_u16RomFileName, const std::u16string &_u16PatchFileName ) {
+		std::filesystem::path pTmp = std::filesystem::path( _u16RomFileName ).filename().replace_extension( u"" );
+		pTmp += u"_";
+		pTmp += std::filesystem::path( _u16PatchFileName ).filename().replace_extension( std::filesystem::path( _u16RomFileName ).extension() );
+		return pTmp;
 	}
 
 }	// namespace lsn

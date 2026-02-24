@@ -493,6 +493,22 @@ namespace lsw {
 		}
 
 		/**
+		 * Applies the system fixed-width GUI font to this control.
+		 **/
+		void								SetSystemFixedFont() {
+			HFONT hFont = static_cast<HFONT>(::GetStockObject( SYSTEM_FIXED_FONT ));
+			::SendMessageW( Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(hFont), MAKELPARAM( TRUE, 0 ) );
+		}
+
+		/**
+		 * Applies the ANSI fixed-width GUI font to this control.
+		 **/
+		void								SetAnsiFixedFont() {
+			HFONT hFont = static_cast<HFONT>(::GetStockObject( ANSI_FIXED_FONT ));
+			::SendMessageW( Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(hFont), MAKELPARAM( TRUE, 0 ) );
+		}
+
+		/**
 		 * Gives the keyboard focus to this window.
 		 * \brief Calls ::SetFocus() and updates internal focus tracking.
 		 *

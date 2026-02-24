@@ -134,10 +134,12 @@ namespace lsn {
 					ptTab->AdjustRect( FALSE, &rInternalSize );
 					::MoveWindow( pwEdit->Wnd(), rInternalSize.left, rInternalSize.top, rInternalSize.Width(), rInternalSize.Height(), TRUE );
 					pwEdit->UpdateRects();
-
-					pwEdit->SetDefaultGuiFont();
 				}
 			}
+		}
+		CWidget * pwEdit = FindChild( CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
+		if ( pwEdit ) {
+			pwEdit->SetAnsiFixedFont();
 		}
 		
 		psSplitter->SetSplitterType( CSplitter::LSW_SS_HORIZONTAL );

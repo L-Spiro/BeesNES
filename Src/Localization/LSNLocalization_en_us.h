@@ -270,9 +270,11 @@
 #define LSN_PATCH_EXPAND_ALL												E&xpand All
 #define LSN_PATCH_COLLAPSE_SELECTED											C&ollapse Selected
 #define LSN_PATCH_COLLAPSE_ALL												&Collapse All
-#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1								WARNING: The selected patch is incompatible with the current ROM file based on the patch’s embedded CRC.\r\nDo you really wish to continue?
-#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X								WARNING: At least one of the selected patches is incompatible with the current ROM file based on the patch’s embedded CRC.\r\nDo you really wish to continue?
+#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1								WARNING: The selected patch is incompatible with the current ROM file based on the patch’s embedded or inferred CRC.\r\n\r\nDo you really wish to continue?
+#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X								WARNING: At least one of the selected patches is incompatible with the current ROM file based on the patch’s embedded or inferred CRC.\r\n\r\nDo you really wish to continue?
 #define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE							Incompatible Patch
+#define LSN_PATCH_UNABLE_TO_CREATE_FILE										Failed to create patch file: {}
+#define LSN_PATCH_UNABLE_TO_WRITE_FILE										Failed to write patched ROM to file: {}
 
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
