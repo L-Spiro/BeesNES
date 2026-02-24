@@ -115,6 +115,13 @@ namespace lsw {
 		 */
 		static INT_PTR CALLBACK				DialogProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam );
 
+		/**
+		 * Attaches an HWND to this widget after creation.  Only call manually if manually creating a widget.
+		 * \brief Finalizes control initialization once the window handle exists.
+		 *
+		 * \param _hWnd The created window handle.
+		 */
+		virtual void						InitControl( HWND _hWnd );
 
 		/**
 		 * The Window handle.
@@ -476,6 +483,14 @@ namespace lsw {
 		 * \param _iLen The maximum number of TCHARs the user can enter, not including the terminating null character. If this parameter is zero, the text length is limited to 0x7FFFFFFE characters.
 		 **/
 		virtual void						LimitText( int _iLen = 0 ) { static_cast<void>(_iLen); }
+
+		/**
+		 * Applies the default GUI font to this control.
+		 **/
+		void								SetDefaultGuiFont() {
+			HFONT hFont = static_cast<HFONT>(::GetStockObject( DEFAULT_GUI_FONT ));
+			::SendMessageW( Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(hFont), MAKELPARAM( TRUE, 0 ) );
+		}
 
 		/**
 		 * Gives the keyboard focus to this window.
@@ -2067,14 +2082,6 @@ namespace lsw {
 		 * \brief Applies expression-driven layout to determine bounds.
 		 */
 		virtual void						EvalNewSize();
-
-		/**
-		 * Attaches an HWND to this widget after creation.
-		 * \brief Finalizes control initialization once the window handle exists.
-		 *
-		 * \param _hWnd The created window handle.
-		 */
-		virtual void						InitControl( HWND _hWnd );
 
 		/**
 		 * Adds a dockable window to this widget's dockable list.

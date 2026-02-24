@@ -704,6 +704,20 @@ namespace lsw {
 	}
 
 	/**
+	 * Gets an item’s parent item.
+	 * 
+	 * \param _htiItem The item whose parent is to be gotten.
+	 * \return Returns NULL if _htiItem is invalid or is TVI_ROOT, otherwise returns the parent item for the given item. 
+	 **/
+	HTREEITEM CTreeListView::GetItemParent( HTREEITEM _htiItem ) {
+		ee::CTree<CTreeListView::LSW_TREE_ROW> * ptNode = TreeItemToPointer( _htiItem );
+		if ( !ptNode ) { return NULL; }
+		if ( ptNode == &m_tRoot ) { return NULL; }
+
+		return PointerToTreeItem( ptNode->Parent() );
+	}
+
+	/**
 	 * Sorts items.
 	 * 
 	 * \param _iSubItem The index of the sub-item.

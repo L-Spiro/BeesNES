@@ -20,6 +20,7 @@
 #include <commdlg.h>
 #include <filesystem>
 #include <set>
+#include <shlobj.h>
 
 
 namespace lsn {
@@ -85,11 +86,11 @@ namespace lsn {
 				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wInRomInitPath.c_str();
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wsInRomInitPath.c_str();
 	
 				std::u16string u16Path, u16FileName;
 				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wInRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					m_poOptions->wsInRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 
 					lsn::CZipFile zfFile;
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
@@ -112,12 +113,6 @@ namespace lsn {
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 					}
-					auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
-					if ( ptvTree ) {
-						ptvTree->BeginLargeUpdate();
-						UpdateColors();
-						ptvTree->FinishUpdate();
-					}
 				}
 				break;
 			}
@@ -131,11 +126,11 @@ namespace lsn {
 				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wPatchInitPath.c_str();
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wsPatchInitPath.c_str();
 				
 				std::u16string u16Path;
 				if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wPatchInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					m_poOptions->wsPatchInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 					size_t sBpsStart = 1, sTxtStart = 1;
 					lsn::CZipFile zfFile;
 					if ( zfFile.Open( reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile) ) && zfFile.IsArchive() ) {
@@ -232,6 +227,7 @@ namespace lsn {
 						AddToTree( aTmp, TVI_ROOT, ptvTree );
 						UpdateColors();
 						ptvTree->FinishUpdate();
+						UpdateText();
 					}
 					catch ( ... ) {
 					}
@@ -253,11 +249,11 @@ namespace lsn {
 				ofnOpenFile.lpstrFile = reinterpret_cast<LPWSTR>(&szFileName[0]);
 				ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 				ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
-				ofnOpenFile.lpstrInitialDir = m_poOptions->wOutRomInitPath.c_str();
+				ofnOpenFile.lpstrInitialDir = m_poOptions->wsOutRomInitPath.c_str();
 	
 				std::u16string u16Path, u16FileName;
 				if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-					m_poOptions->wOutRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+					m_poOptions->wsOutRomInitPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 
 					u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
 					u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
@@ -271,6 +267,7 @@ namespace lsn {
 			}*/
 			case CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
+					m_vPatchRomFile.clear();
 					auto wsText = _pwSrc->GetTextW();
 					CUtilities::LSN_FILE_PATHS fpPath;
 					CUtilities::DeconstructFilePath( reinterpret_cast<const char16_t *>(wsText.c_str()), fpPath );
@@ -279,7 +276,6 @@ namespace lsn {
 						auto aZipPath = fpPath.u16sPath;
 						aZipPath.pop_back();
 						if ( zfFile.Open( aZipPath.c_str() ) && zfFile.IsArchive() ) {
-							m_vPatchRomFile.clear();
 							if ( zfFile.ExtractToMemory( fpPath.u16sFile, m_vPatchRomFile ) ) {
 							}
 						}
@@ -287,14 +283,13 @@ namespace lsn {
 					else {
 						lsn::CStdFile sfFile;
 						if ( sfFile.Open( fpPath.u16sFullPath.c_str() ) ) {
-							m_vPatchRomFile.clear();
 							if ( sfFile.LoadToMemory( m_vPatchRomFile ) ) {
 							}
 						}
 					}
 					m_u16RomPath = fpPath.u16sPath + fpPath.u16sFile;
 
-					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
+					/*auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_OUT_EDIT );
 					if ( pwPathEdit ) {
 						if ( m_bOutIsAutoFilled || !pwPathEdit->GetTextW().size() ) {
 							if ( CUtilities::LastChar( fpPath.u16sFullPath ) == u'}' ) { fpPath.u16sPath.pop_back(); }
@@ -314,11 +309,140 @@ namespace lsn {
 							
 							pwPathEdit->SetTextW( aFinal.native().c_str() );
 							m_bOutIsAutoFilled = true;
-							m_poOptions->wOutRomInitPath = aFinal.remove_filename();
+							m_poOptions->wsOutRomInitPath = aFinal.remove_filename();
+						}
+					}*/
+					UpdateInfo();
+					auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+					if ( ptvTree ) {
+						ptvTree->BeginLargeUpdate();
+						UpdateColors();
+						ptvTree->FinishUpdate();
+						UpdateText();
+					}
+					return LSW_H_CONTINUE;
+				}
+				break;
+			}
+			case CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON : {
+				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( ptvTree && m_vPatchRomFile.size() ) {
+					std::vector<HTREEITEM> vSelected;
+					if ( ptvTree->GatherSelected( vSelected, true ) ) {
+						// Trim the selection down to only patch files.
+						bool bWarnOfDoom = false;
+						for ( auto I = vSelected.size(); I--; ) {
+							if ( ptvTree->CountChildren( vSelected[I] ) ) {
+								// Patch files are "leaf" nodes; no children.
+								vSelected.erase( vSelected.begin() + I );
+							}
+							else {
+								size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
+								if ( sIdx >= m_vPatchInfo.size() ) {
+									vSelected.erase( vSelected.begin() + I );
+								}
+								else {
+									if ( m_vPatchInfo[sIdx].bIsText ) {
+										vSelected.erase( vSelected.begin() + I );
+									}
+									else {
+										// Is a patch file.  Check for being a CRC patch and consider warning the user.
+										if ( m_vPatchInfo[sIdx].ui32Crc ) {
+											if ( m_vPatchInfo[sIdx].ui32Crc != m_ui32FullCrc && m_vPatchInfo[sIdx].ui32Crc != m_rRomInfo.riInfo.ui32Crc ) {
+												bWarnOfDoom = true;
+											}
+										}
+									}
+								}
+							}
+						}
+
+						// Act on whatever remains.
+						if ( vSelected.size() == 1 ) {
+							if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1 ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
+								size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[0] ) );
+
+								// Prompt for the save path.
+								OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+								std::wstring szFileName;
+								szFileName.resize( 0xFFFF + 2 );
+
+								
+
+								std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_NES_FILES____NES____NES_ ), std::size( LSN_LSTR( LSN_NES_FILES____NES____NES_ ) ) - 1 );
+								ofnOpenFile.hwndOwner = Wnd();
+								ofnOpenFile.lpstrFilter = wsFilter.c_str();
+								ofnOpenFile.lpstrFile = szFileName.data();
+								ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+								ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+								ofnOpenFile.lpstrInitialDir = m_poOptions->wsPatchOutFolder.c_str();
+								if ( !m_poOptions->wsPatchOutFolder.size() ) {
+									ofnOpenFile.lpstrInitialDir = m_poOptions->wsInRomInitPath.c_str();
+								}
+
+								CUtilities::LSN_FILE_PATHS fpPath;
+								CUtilities::DeconstructFilePath( m_vPatchInfo[sIdx].u16FullPath, fpPath );
+								{
+									std::filesystem::path pRomPath = std::filesystem::path( m_rRomInfo.riInfo.s16File ).remove_filename();
+									auto wsRomPathWs = pRomPath.generic_wstring();
+									std::filesystem::path pTmpFileName = (*ofnOpenFile.lpstrInitialDir) ? ofnOpenFile.lpstrInitialDir : wsRomPathWs;
+									auto u16AnotherTmp = std::filesystem::path( m_rRomInfo.riInfo.s16RomName ).replace_extension( u"" ).generic_u16string() + u"_" + std::filesystem::path( fpPath.u16sFile ).filename().generic_u16string();
+									pTmpFileName /= std::filesystem::path( u16AnotherTmp ).filename();
+									std::wstring wsTmpFileName = pTmpFileName.filename().replace_extension( u".nes" ).generic_wstring();
+									::lstrcpynW( ofnOpenFile.lpstrFile, wsTmpFileName.c_str(), ofnOpenFile.nMaxFile - 1 );
+								}
+
+								if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
+									m_poOptions->wsPatchOutFolder = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+									auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+									if ( !pPath.has_extension() ) {
+										pPath += ".nes";
+									}
+								}
+							}
+						}
+						else if ( vSelected.size() ) {
+							if ( !bWarnOfDoom || lsw::CBase::PromptYesNo( Wnd(), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X ), LSN_LSTR( LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE ) ) ) {
+								// Prompt for the save folder.
+								std::wstring wsDisplayName;
+								wsDisplayName.resize( 0xFFFF + 2 );
+
+								auto wsDefaultDir = m_poOptions->wsPatchOutFolder;
+								if ( !m_poOptions->wsPatchOutFolder.size() ) {
+									wsDefaultDir = m_poOptions->wsInRomInitPath;
+								}
+
+								BROWSEINFOW biBrowseInfo = {};
+								biBrowseInfo.hwndOwner = Wnd();
+								biBrowseInfo.pidlRoot = nullptr;													// Root folder (nullptr = "My Computer")
+								biBrowseInfo.pszDisplayName = wsDisplayName.data();									// Out buffer for display name
+								biBrowseInfo.lpszTitle = LSN_LSTR( LSN_WE_BROWSE_OUTPUT_FOLDER );					// Title text in the dialog
+								biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
+								biBrowseInfo.iImage = 0;
+								biBrowseInfo.lpfn = CWinUtilities::BrowseCallbackProc;
+								biBrowseInfo.lParam = reinterpret_cast<LPARAM>(wsDefaultDir.c_str());
+								{
+									CWinUtilities::LSN_OLEINITIALIZE oOle;
+									if ( oOle.Success() ) {
+										biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
+									}
+
+									PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
+									if ( pidlSelected ) {
+										std::wstring szFileName;
+										szFileName.resize( 0xFFFF + 2 );
+
+										if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
+											/*m_pwewoOptions->wsOutputFolder = szFileName.c_str();
+											auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+											if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }*/
+										}
+										::CoTaskMemFree( pidlSelected );
+									}
+								}
+							}
 						}
 					}
-					UpdateInfo();
-					return LSW_H_CONTINUE;
 				}
 				break;
 			}
@@ -385,10 +509,8 @@ namespace lsn {
 	CWidget::LSW_HANDLED CPatchWindowTopPage::Timer( UINT_PTR _uiptrId, TIMERPROC /*_tpProc*/ ) {
 		switch ( _uiptrId ) {
 			case CWinUtilities::LSN_UPDATE_PATCHER_DESC : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
-				if ( ptlTree ) {
-					//ptlTree->ExpandSelected();
-				}
+				UpdateText();
+				m_tUpdateBottomTimer.Stop();
 				break;
 			}
 		}
@@ -441,7 +563,6 @@ namespace lsn {
 			bool bColAll = ptlvTree->AnyHasExpandedChildren();
 			LSW_MENU_ITEM miMenuBar[] = {
 				//bIsSeperator	dwId														bCheckable	bChecked	bEnabled		lpwcText, stTextLen							bSkip
-
 				{ FALSE,		CPatchWindowLayout::LSN_PWI_REVEAL_COMPATIBLE,				FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_REVEAL_COMPATIBLE ),	FALSE },
 				{ FALSE,		CPatchWindowLayout::LSN_PWI_SELECT_COMPATIBLE,				FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_SELECT_COMPATIBLE ),	FALSE },
 				{ FALSE,		CPatchWindowLayout::LSN_PWI_REVEAL_CRC,						FALSE,		FALSE,		bHasItems,		LSN_LSTR( LSN_PATCH_REVEAL_BPS ),			FALSE },
@@ -475,13 +596,6 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_ItemChanged( LPNMLISTVIEW /*_lplvParm*/ ) {
-		/*::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_ItemChanged:\t{} {} {}\r\n", _lplvParm->iItem, _lplvParm->uOldState, _lplvParm->uNewState ).c_str() );
-		if ( _lplvParm->iItem == -1 ) {
-		}
-		else {
-			if ( _lplvParm->uNewState & LVIS_SELECTED ) {
-			}
-		}*/
 		m_tUpdateBottomTimer.Start( Wnd(), CWinUtilities::LSN_UPDATE_PATCHER_DESC, 16 );
 		return LSW_H_CONTINUE;
 	}
@@ -493,27 +607,9 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CPatchWindowTopPage::Notify_OdStateChange( LPNMLVODSTATECHANGE /*_lposcParm*/ ) {
-		//::OutputDebugStringW( std::format( L"CPatchWindowTopPage::Notify_OdStateChange:\t{} {}\r\n", _lposcParm->iFrom, _lposcParm->iTo ).c_str() );
 		m_tUpdateBottomTimer.Start( Wnd(), CWinUtilities::LSN_UPDATE_PATCHER_DESC, 16 );
 		return LSW_H_CONTINUE;
 	}
-
-	/**
-	 * Gets the window rectangle for the given widget or gets this control's window rectangle if _pwChild is nullptr.
-	 * 
-	 * \param _pwChild The widget whose window rectangle is to be gotten.
-	 * \return Returns the child's window rectangle or this client rectangle.
-	 **/
-	//LSW_RECT CPatchWindowTopPage::WindowRect( const CWidget * _pwChild ) const {
-	//	LSW_RECT rWindow;
-	//	::GetWindowRect( Wnd(), &rWindow );
-	//	//LSW_RECT rRet = m_pwParent ? m_pwParent->ClientRect( _pwChild ? _pwChild : this ) : ClientRect( _pwChild );
-	//	LSW_RECT rRet;
-	//	if ( (!_pwChild || _pwChild == this) && m_pwParent ) { rRet = m_pwParent->ClientRect( this ); }
-	//	else { rRet = ClientRect( _pwChild ); }
-	//	rRet.MoveBy( rWindow.left, rWindow.top );
-	//	return rRet;
-	//}
 
 	/**
 	 * Updates the source ROM information labels.
@@ -573,7 +669,6 @@ namespace lsn {
 	 * Updates the colors based on the currently loaded ROM file.
 	 **/
 	void CPatchWindowTopPage::UpdateColors() {
-		//m_rRomInfo.riInfo.s16File
 		auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( !ptvTree ) { return; }
 		auto hThis = ptvTree->GetNext( TVI_ROOT );
@@ -583,21 +678,26 @@ namespace lsn {
 
 			if ( size_t( lpParm ) < m_vPatchInfo.size() ) {
 				if ( !m_vPatchInfo[lpParm].bIsText ) {
-					if ( m_vPatchInfo[lpParm].ui32Crc ) {			// BPS file.
-						if ( m_rRomInfo.riInfo.s16File.size() ) {
+					if ( m_vPatchInfo[lpParm].ui32Crc ) {																						// BPS file.
+						if ( m_vPatchRomFile.size() ) {
 							if ( m_vPatchInfo[lpParm].ui32Crc == m_rRomInfo.riInfo.ui32Crc || m_ui32FullCrc == m_vPatchInfo[lpParm].ui32Crc ) {
-								rgbqColor = { .rgbBlue = 170, .rgbGreen = 255, .rgbRed = 213, .rgbReserved = 0xCF };
+								rgbqColor = { .rgbBlue = 64, .rgbGreen = 255, .rgbRed = 159, .rgbReserved = 0xCF };							// Found a match.
 							}
 							else {
-								rgbqColor = { .rgbBlue = 128, .rgbGreen = 128, .rgbRed = 255, .rgbReserved = 0xCF };
+								rgbqColor = { .rgbBlue = 128, .rgbGreen = 128, .rgbRed = 255, .rgbReserved = 0xCF };							// Not a match.
 							}
 						}
 						else {
-							rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };
+							rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };								// No ROM file loaded.
 						}
 					}
-					else {											// IPS file.
-						rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };
+					else {																														// IPS file.
+						if ( SiblingHasTextReferenceToCrc( ptvTree, hThis ) ) {
+							rgbqColor = { .rgbBlue = 170, .rgbGreen = 255, .rgbRed = 213, .rgbReserved = 0xCF };								// A sibling text file contains a reference to the desired CRC.
+						}
+						else {
+							rgbqColor = { .rgbBlue = 170, .rgbGreen = 198, .rgbRed = 255, .rgbReserved = 0xCF };								// No found relationship with the current ROM.
+						}
 					}
 				}
 				else {												// TXT/MD.
@@ -614,7 +714,72 @@ namespace lsn {
 	 **/
 	void CPatchWindowTopPage::UpdateText() {
 		if ( m_pwParent ) {
-			auto pwText = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW );
+			auto pwText = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
+			if ( pwText ) {
+				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				if ( !ptvTree ) {
+					pwText->SetTextW( L"" );
+				}
+				else {
+					std::vector<HTREEITEM> vSelected;
+					ptvTree->GatherSelected( vSelected, true );
+					if ( vSelected.size() == 0 ) {
+						pwText->SetTextW( L"" );
+					}
+					else {
+						std::wstring wsText;
+						for ( size_t I = 0; I < vSelected.size(); ++I ) {
+							size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
+							if ( sIdx < m_vPatchInfo.size() ) {
+								try {
+									if ( wsText.size() ) {
+										wsText += L"\r\n\r\n";
+									}
+									auto u16Tmp = m_vPatchInfo[sIdx].u16FullPath;
+									u16Tmp = CUtilities::Replace( u16Tmp, std::u16string( u"{" ), std::u16string( u"\\" ) );
+									u16Tmp = CUtilities::Replace( u16Tmp, std::u16string( u"}" ), std::u16string( u"" ) );
+									u16Tmp = CUtilities::Replace( u16Tmp, u'/', u'\\' );
+									CUtilities::LSN_FILE_PATHS fpPath;
+									CUtilities::DeconstructFilePath( u16Tmp.c_str(), fpPath );
+
+									wsText += CUtilities::XStringToWString( fpPath.u16sFile.c_str(), fpPath.u16sFile.size() );
+									if ( m_vPatchInfo[sIdx].bIsText ) {
+										wsText += L"\r\n";
+										auto wsTmp = CUtilities::Replace( ptvTree->GetItemText( vSelected[I], 1 ), std::wstring( L"\\r" ), std::wstring() );
+										wsTmp = CUtilities::Replace( wsTmp, std::wstring( L"\\n" ), std::wstring( L"\r\n" ) );
+										wsText += wsTmp;
+									}
+									else {
+										if ( !m_vPatchRomFile.size() ) {
+										}
+										else {
+											wsText += L": ";
+											if ( m_vPatchInfo[sIdx].ui32Crc ) {
+												if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
+													wsText += LSN_LSTR( LSN_PATCH_PATCH_IS_COMPATIBLE );
+												}
+												else {
+													wsText += LSN_LSTR( LSN_PATCH_NOT_COMPATIBLE );
+												}
+											}
+											else {
+												if ( SiblingHasTextReferenceToCrc( ptvTree, vSelected[I] ) ) {
+													wsText += LSN_LSTR( LSN_PATCH_LIKELY_COMPATIBLE );
+												}
+												else {
+													wsText += LSN_LSTR( LSN_PATCH_COMPAT_UNKNOWN );
+												}
+											}
+										}
+									}
+								}
+								catch ( ... ) {}
+							}
+						}
+						pwText->SetTextW( wsText.c_str() );
+					}
+				}
+			}
 		}
 	}
 
@@ -631,8 +796,8 @@ namespace lsn {
 			while ( hThis ) {
 				bool bCompat = IsCompatible( ptvTree, hThis );
 				ptvTree->SetItemExpand( hThis, bCompat );
-				if ( _bSelect && ptvTree->CountChildren( hThis ) == 0 ) {
-					ptvTree->SetItemSelection( hThis, bCompat );
+				if ( _bSelect ) {
+					ptvTree->SetItemSelection( hThis, bCompat && ptvTree->CountChildren( hThis ) == 0 );
 				}
 				hThis = ptvTree->GetNext( hThis );
 			}
@@ -643,17 +808,22 @@ namespace lsn {
 	/**
 	 * Checks the given tree item for having a child that is a BPS file compatible with the current ROM.
 	 * 
-	 * \param _ptlvTree A pointer to the TreeListView.
+	 * \param _ptlvTree A pointer to the CTreeListView.
 	 * \param _htiItem The item to recursively check for being compatible.
 	 * \return Returns true if the item or any of its children are compatible with the current ROM file.
 	 **/
 	bool CPatchWindowTopPage::IsCompatible( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const {
-		if ( !m_rRomInfo.riInfo.s16File.size() ) { return false; }				// Nothing is loaded.
+		if ( !m_vPatchRomFile.size() ) { return false; }				// Nothing is loaded.
 		size_t sIdx = size_t( _ptlvTree->GetItemLParam( _htiItem ) );
 		if ( sIdx < m_vPatchInfo.size() ) {
-			if ( !m_vPatchInfo[sIdx].bIsText && m_vPatchInfo[sIdx].ui32Crc ) {
-				if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
-					return true;
+			if ( !m_vPatchInfo[sIdx].bIsText ) {
+				if ( m_vPatchInfo[sIdx].ui32Crc ) {
+					if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
+						return true;
+					}
+				}
+				else {
+					if ( SiblingHasTextReferenceToCrc( _ptlvTree, _htiItem ) ) { return true; }
 				}
 			}
 		}
@@ -667,6 +837,36 @@ namespace lsn {
 	}
 
 	/**
+	 * Given a tree item, its siblings are checked for being a text file, and then the text is searched for the current ROM file’s CRC’s.
+	 * 
+	 * \param _ptlvTree A pointer to the CTreeListView.
+	 * \param _htiItem The item whose following siblings are to be checked for being text, and then the text searched for the current ROM’s CRC pair.
+	 * \return Returns true if a text file is a sibling of the given item and that text file contains either of the CRC’s for the current ROM.
+	 **/
+	bool CPatchWindowTopPage::SiblingHasTextReferenceToCrc( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const {
+		if ( !m_vPatchRomFile.size() ) { return false; }				// Nothing is loaded.
+
+		HTREEITEM htiNext = _ptlvTree->GetNext( _htiItem ), htiParent = _ptlvTree->GetItemParent( _htiItem );
+		std::wstring wsFindMeLowerFull = std::format( L"{:08x}", m_ui32FullCrc );
+		std::wstring wsFindMeLower = std::format( L"{:08x}", m_rRomInfo.riInfo.ui32Crc );
+		while ( htiNext && _ptlvTree->GetItemParent( htiNext ) == htiParent ) {
+			size_t sIdx = size_t( _ptlvTree->GetItemLParam( htiNext ) );
+			if ( sIdx < m_vPatchInfo.size() ) {
+				if ( m_vPatchInfo[sIdx].bIsText ) {
+					try {
+						std::wstring wsLower = CUtilities::ToLower( _ptlvTree->GetItemText( htiNext, 1 ) );
+						if ( std::wstring::npos != wsLower.find( wsFindMeLowerFull ) || std::wstring::npos != wsLower.find( wsFindMeLower ) ) { return true; }
+					}
+					catch ( ... ) {}
+				}
+			}
+
+			htiNext = _ptlvTree->GetNext( htiNext );
+		}
+		return false;
+	}
+
+	/**
 	 * Checks for a child node that is a checksum patch.
 	 * 
 	 * \param _ptlvTree A pointer to the TreeListView.
@@ -674,7 +874,7 @@ namespace lsn {
 	 * \return Returns true if the item or any of its children are is a BPS or other checksum-based patch file.
 	 **/
 	bool CPatchWindowTopPage::HasCheckSumPatch( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const {
-		if ( !m_rRomInfo.riInfo.s16File.size() ) { return false; }				// Nothing is loaded.
+		if ( !m_vPatchRomFile.size() ) { return false; }				// Nothing is loaded.
 		size_t sIdx = size_t( _ptlvTree->GetItemLParam( _htiItem ) );
 		if ( sIdx < m_vPatchInfo.size() ) {
 			if ( !m_vPatchInfo[sIdx].bIsText && m_vPatchInfo[sIdx].ui32Crc ) {
@@ -683,7 +883,7 @@ namespace lsn {
 		}
 		std::vector<HTREEITEM> vChildren;
 		auto sSize = _ptlvTree->GatherChildren( vChildren, _htiItem );
-		if ( sSize != vChildren.size() ) { return false; }	// Memory failure.
+		if ( sSize != vChildren.size() ) { return false; }						// Memory failure.
 		for ( auto & htiChild : vChildren ) {
 			if ( HasCheckSumPatch( _ptlvTree, htiChild ) ) { return true; }
 		}
@@ -699,7 +899,6 @@ namespace lsn {
 			ptvTree->BeginLargeUpdate();
 			auto hThis = ptvTree->GetNext( TVI_ROOT );
 			while ( hThis ) {
-				size_t sIdx = size_t( ptvTree->GetItemLParam( hThis ) );
 				ptvTree->SetItemExpand( hThis, HasCheckSumPatch( ptvTree, hThis ) );
 				hThis = ptvTree->GetNext( hThis );
 			}
@@ -723,12 +922,6 @@ namespace lsn {
 			if ( _vNodes[I].sIdx != ~size_t( 0 ) ) {
 				if ( m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ) {
 					_ptlTree->SetItemText( hItem, std::format( L"Source ROM CRC32: {:08X}", m_vPatchInfo[_vNodes[I].sIdx].ui32Crc ).c_str(), 1 );
-					/*RGBQUAD rgbqColor;
-					rgbqColor.rgbRed = 0xE0;
-					rgbqColor.rgbGreen = 0xE0;
-					rgbqColor.rgbBlue = 0xE0;
-					rgbqColor.rgbReserved = 0x3F;
-					_ptlTree->SetItemColor( hItem, rgbqColor );*/
 				}
 				else if ( m_vPatchInfo[_vNodes[I].sIdx].bIsText && m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.size() != 0 ) {
 					auto aReplaced = CUtilities::Utf8ToUtf16( reinterpret_cast<const char8_t *>(m_vPatchInfo[_vNodes[I].sIdx].vLoadedPatchFile.data()) );
@@ -736,12 +929,6 @@ namespace lsn {
 					aReplaced = CUtilities::Replace( aReplaced, std::u16string( u"\n" ), std::u16string( u"\\n" ) );
 					_ptlTree->SetItemText( hItem,
 						reinterpret_cast<const WCHAR *>(aReplaced.c_str()), 1 );
-					RGBQUAD rgbqColor;
-					rgbqColor.rgbRed = 0xE0;
-					rgbqColor.rgbGreen = 0xE0;
-					rgbqColor.rgbBlue = 0xE0;
-					rgbqColor.rgbReserved = 0x3F;
-					_ptlTree->SetItemColor( hItem, rgbqColor );
 				}
 			}
 			AddToTree( _vNodes[I].vChildren, hItem, _ptlTree );

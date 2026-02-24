@@ -20,6 +20,8 @@
 
 using namespace lsw;
 
+//#define LSN_PATCHER_TAB_BOTTOM
+
 namespace lsn {
 
 	/**
@@ -48,9 +50,10 @@ namespace lsn {
 			LSN_PWI_FILE_PATCH_TREELISTVIEW,
 			LSN_PWI_FILE_PATCH_BUTTON,
 
-			LSN_PWI_FILE_OUT_LABEL,
+			/*LSN_PWI_FILE_OUT_LABEL,
 			LSN_PWI_FILE_OUT_EDIT,
-			LSN_PWI_FILE_OUT_BUTTON,
+			LSN_PWI_FILE_OUT_BUTTON,*/
+			LSN_PWI_FILE_QUICK_PATCH_BUTTON,
 
 
 			LSN_PWI_INFO_GROUP,
@@ -62,6 +65,7 @@ namespace lsn {
 
 
 			LSN_PWI_BOTTOM_TABS,
+			LSN_PWI_BOTTOM_TAB_DESC_EDIT,
 		};
 
 		// Menu items

@@ -175,7 +175,6 @@ namespace lsn {
 				auto aTmp = CUtilities::ToLower( CUtilities::GetFileExtension( aFileUtf16 ) );
 				if ( aTmp == sExt ) {
 					try {
-						
 						std::vector<uint8_t> vTmp;
 						if ( !ExtractToMemory( aFileUtf16, vTmp ) ) {
 							if ( _pui32FailedLoads ) { (*_pui32FailedLoads)++; }

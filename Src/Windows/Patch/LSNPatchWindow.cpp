@@ -18,6 +18,8 @@
 #include "../Layout/LSNLayoutMacros.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
+#include <Tab/LSWTab.h>
+
 #include <commdlg.h>
 #include <filesystem>
 #include <set>
@@ -50,27 +52,27 @@ namespace lsn {
 		LSW_RECT rClient = ClientRect( nullptr );
 
 		LSW_WIDGET_LAYOUT wlLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
-			LSW_LT_SPLITTER,											// ltType
-			static_cast<WORD>(CPatchWindowLayout::LSN_PWI_SPLITTER),	// wId
-			reinterpret_cast<LPCWSTR>(lsw::CBase::SplitterAtom()),		// lpwcClass
-			TRUE,														// bEnabled
-			FALSE,														// bActive
-			0,															// iLeft
-			0,															// iTop
-			static_cast<DWORD>(rClient.Width()),						// dwWidth
-			static_cast<DWORD>(rClient.Height()),						// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE,								// dwStyle
-			0,															// dwStyleEx
-			nullptr,													// pwcText
-			0,															// sTextLen
-			LSN_LT_PATCH_DIALOG,										// dwParentId
+			LSW_LT_SPLITTER,															// ltType
+			static_cast<WORD>(CPatchWindowLayout::LSN_PWI_SPLITTER),					// wId
+			reinterpret_cast<LPCWSTR>(lsw::CBase::SplitterAtom()),						// lpwcClass
+			TRUE,																		// bEnabled
+			FALSE,																		// bActive
+			0,																			// iLeft
+			0,																			// iTop
+			static_cast<DWORD>(rClient.Width()),										// dwWidth
+			static_cast<DWORD>(rClient.Height()),										// dwHeight
+			WS_CHILDWINDOW | WS_VISIBLE,												// dwStyle
+			0,																			// dwStyleEx
+			nullptr,																	// pwcText
+			0,																			// sTextLen
+			LSN_LT_PATCH_DIALOG,														// dwParentId
 
-			LSN_LOCK_LEFT,												// pcLeftSizeExp
-			LSN_LOCK_RIGHT,												// pcRightSizeExp
-			LSN_LOCK_TOP,												// pcTopSizeExp
-			LSN_LOCK_BOTTOM,											// pcBottomSizeExp
-			nullptr, 0,													// pcWidthSizeExp
-			nullptr, 0,													// pcHeightSizeExp
+			LSN_LOCK_LEFT,																// pcLeftSizeExp
+			LSN_LOCK_RIGHT,																// pcRightSizeExp
+			LSN_LOCK_TOP,																// pcTopSizeExp
+			LSN_LOCK_BOTTOM,															// pcBottomSizeExp
+			nullptr, 0,																	// pcWidthSizeExp
+			nullptr, 0,																	// pcHeightSizeExp
 		} );
 		
 		
@@ -80,16 +82,67 @@ namespace lsn {
 		m_vPages.push_back( pwTopPage );
 		m_vPages.push_back( pwBottomPage );
 
-		CSplitter * aSplitter = static_cast<CSplitter *>(static_cast<lsw::CLayoutManager *>(lsw::CBase::LayoutManager())->CreateWidget( wlLayout, this, TRUE, NULL, 0 ));
-		if ( !aSplitter ) {
-			delete aSplitter;
+		CSplitter * psSplitter = static_cast<CSplitter *>(static_cast<lsw::CLayoutManager *>(lsw::CBase::LayoutManager())->CreateWidget( wlLayout, this, TRUE, NULL, 0 ));
+		if ( !psSplitter ) {
+			delete psSplitter;
 			return LSW_H_CONTINUE;
 		}
-		m_psSplitter = aSplitter;
+		m_psSplitter = psSplitter;
+		m_psSplitter->InitControl( m_psSplitter->Wnd() );
+
+		lsw::CTab * ptTab = static_cast<lsw::CTab *>(pwBottomPage->FindChild( WORD( CPatchWindowLayout::LSN_PWI_BOTTOM_TABS ) ));
+		if ( ptTab ) {
+			ptTab->SetShowCloseBoxes( false );
+
+			LSW_WIDGET_LAYOUT wlEditLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
+				LSW_LT_EDIT,																// ltType
+				static_cast<WORD>(CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT),		// wId
+				nullptr,																	// lpwcClass
+				TRUE,																		// bEnabled
+				FALSE,																		// bActive
+				0,																			// iLeft
+				0,																			// iTop
+				0,																			// dwWidth
+				0,																			// dwHeight
+				LSN_EDITSTYLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL |
+					WS_HSCROLL | WS_VSCROLL,												// dwStyle
+				WS_EX_CLIENTEDGE,															// dwStyleEx
+				nullptr,																	// pwcText
+				0,																			// sTextLen
+				ptTab->Id(),																// dwParentId
+
+				LSN_LOCK_LEFT,																// pcLeftSizeExp
+				LSN_LOCK_RIGHT,																// pcRightSizeExp
+				LSN_LOCK_TOP,																// pcTopSizeExp
+				LSN_LOCK_BOTTOM,															// pcBottomSizeExp
+				nullptr, 0,																	// pcWidthSizeExp
+				nullptr, 0,																	// pcHeightSizeExp
+			} );
+			CWidget * pwEdit = static_cast<lsw::CLayoutManager *>(lsw::CBase::LayoutManager())->CreateWidget( wlEditLayout, ptTab, TRUE, NULL, 0 );
+			if ( pwEdit ) {
+				pwEdit->InitControl( pwEdit->Wnd() );
+			
+				TCITEMW tciItem = { 0 };
+				tciItem.mask = TCIF_TEXT;
+				tciItem.pszText = const_cast<LPWSTR>(LSN_LSTR( LSN_PATCH_DETAILS ));
+				auto iIdx = ptTab->InsertItem( 0, &tciItem, pwEdit );
+				if ( iIdx == -1 ) {
+					delete pwEdit;
+				}
+				else {
+					LSW_RECT rInternalSize = ptTab->WindowRect().ScreenToClient( ptTab->Wnd() );
+					ptTab->AdjustRect( FALSE, &rInternalSize );
+					::MoveWindow( pwEdit->Wnd(), rInternalSize.left, rInternalSize.top, rInternalSize.Width(), rInternalSize.Height(), TRUE );
+					pwEdit->UpdateRects();
+
+					pwEdit->SetDefaultGuiFont();
+				}
+			}
+		}
 		
-		aSplitter->SetSplitterType( CSplitter::LSW_SS_HORIZONTAL );
-		aSplitter->Attach( pwTopPage, CSplitter::LSW_A_UPPER );
-		aSplitter->Attach( pwBottomPage, CSplitter::LSW_A_BOTTOM );
+		psSplitter->SetSplitterType( CSplitter::LSW_SS_HORIZONTAL );
+		psSplitter->Attach( pwTopPage, CSplitter::LSW_A_UPPER );
+		psSplitter->Attach( pwBottomPage, CSplitter::LSW_A_BOTTOM );
 		return LSW_H_CONTINUE;
 	}
 
@@ -143,7 +196,7 @@ namespace lsn {
 		}
 		_pmmiInfo->ptMinTrackSize.x = lLeft;
 		//_pmmiInfo->ptMinTrackSize.y = _pmmiInfo->ptMaxTrackSize.y = m_rStartingRect.Height();
-		_pmmiInfo->ptMinTrackSize.y = m_rStartingRect.Height();
+		_pmmiInfo->ptMinTrackSize.y = m_rStartingRect.Height() / 2;
 		return LSW_H_HANDLED;
 	}
 

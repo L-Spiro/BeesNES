@@ -50,12 +50,13 @@ namespace lsn {
 		WINDOWPLACEMENT										wpMainWindowPlacement = { 0 };								/**< The main window's placement. */
 #endif	// #ifdef LSN_WINDOWS
 
-		std::wstring										wInRomInitPath;												/**< The initial directory for the input ROM. */
-		std::wstring										wOutRomInitPath;											/**< The initial directory for the output ROM. */
-		std::wstring										wPatchInitPath;												/**< The initial directory for the patch file. */
-		std::wstring										wDefaultRomPath;											/**< The normal path to ROM files. */
-		std::wstring										wRawAudioPath;												/**< The directory where the last raw audio file was made. */
-		std::wstring										wOutAudioPath;												/**< The directory where the last output-capture audio file was made. */
+		std::wstring										wsInRomInitPath;											/**< The initial directory for the input ROM. */
+		std::wstring										wsOutRomInitPath;											/**< The initial directory for the output ROM. */
+		std::wstring										wsPatchInitPath;											/**< The initial directory for the patch file. */
+		std::wstring										wsDefaultRomPath;											/**< The normal path to ROM files. */
+		std::wstring										wsRawAudioPath;												/**< The directory where the last raw audio file was made. */
+		std::wstring										wsOutAudioPath;												/**< The directory where the last output-capture audio file was made. */
+		std::wstring										wsPatchOutFolder;											/**< The Patcher output folder. */
 		std::vector<std::wstring>							vRawStartHistory;											/**< The history of raw start-condition parameters. */
 		std::vector<std::wstring>							vRawEndHistory;												/**< The history of raw end-condition parameters. */
 		std::vector<std::wstring>							vOutStartHistory;											/**< The history of output-capture start-condition parameters. */

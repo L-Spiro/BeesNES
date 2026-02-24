@@ -12,6 +12,7 @@
 
 #include "LSNInputWindowLayout.h"
 #include "LSNInputPage.h"
+
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;

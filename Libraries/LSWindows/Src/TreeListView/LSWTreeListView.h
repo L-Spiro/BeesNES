@@ -380,6 +380,14 @@ namespace lsw {
 		std::wstring						GetItemText( HTREEITEM _htiItem, size_t _sColumn );
 
 		/**
+		 * Gets an item’s parent item.
+		 * 
+		 * \param _htiItem The item whose parent is to be gotten.
+		 * \return Returns NULL if _htiItem is invalid or is TVI_ROOT, otherwise returns the parent item for the given item. 
+		 **/
+		HTREEITEM							GetItemParent( HTREEITEM _htiItem );
+
+		/**
 		 * Sorts items.
 		 * 
 		 * \param _iSubItem The index of the sub-item.

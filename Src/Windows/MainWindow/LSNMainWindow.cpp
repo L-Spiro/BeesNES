@@ -322,10 +322,10 @@ namespace lsn {
 					ofnOpenFile.lpstrFile = szFileName.data();
 					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 					ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-					ofnOpenFile.lpstrInitialDir = m_bnEmulator.Options().wDefaultRomPath.c_str();
+					ofnOpenFile.lpstrInitialDir = m_bnEmulator.Options().wsDefaultRomPath.c_str();
 
 					if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
-						m_bnEmulator.Options().wDefaultRomPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						m_bnEmulator.Options().wsDefaultRomPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 						const LPWSTR lpstrExt = &ofnOpenFile.lpstrFile[ofnOpenFile.nFileExtension];
 						if ( lpstrExt ) {
 							if ( ::StrCmpIW( lpstrExt, L"zip" ) == 0 ) {

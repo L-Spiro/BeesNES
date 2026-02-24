@@ -859,8 +859,6 @@ namespace lsn {
 	 * Loads a project.
 	 **/
 	void CWavEditorWindow::LoadProject() {
-		
-
 #define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_BWAV_FILES____BWAV____BWAV_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
 
 		OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };

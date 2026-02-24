@@ -95,26 +95,6 @@ namespace lsn {
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 
 
-		// == Functions.
-		/**
-		 * Callback procedure for the folder browser dialog.
-		 *
-		 * \param _hWnd   The dialog window handle.
-		 * \param _uMsg   The message.
-		 * \param _lParam The message parameter.
-		 * \param _lpData The application-defined data (initial path pointer).
-		 * \return Returns 0 to continue default processing.
-		 */
-		static int CALLBACK									BrowseCallbackProc( HWND _hWnd, UINT _uMsg, LPARAM /*_lParam*/, LPARAM lpData );
-
-		/**
-		 * Initializes OLE for the current thread.
-		 * 
-		 * \param _pvReserved Reserved; must be nullptr.
-		 * \return Returns true if OLE was initialized successfully, false otherwise.
-		 */
-		static bool											OleInitialize( LPVOID _pvReserved = nullptr );
-
 	private :
 		typedef CWavEditorWindowLayout						Layout;
 		typedef lsw::CWidget								Parent;

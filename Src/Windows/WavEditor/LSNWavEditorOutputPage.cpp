@@ -16,7 +16,6 @@
 
 #include <commdlg.h>
 #include <filesystem>
-#include <shlobj.h>
 
 
 namespace lsn {
@@ -109,27 +108,26 @@ namespace lsn {
 				biBrowseInfo.lpszTitle = LSN_LSTR( LSN_WE_BROWSE_OUTPUT_FOLDER );					// Title text in the dialog
 				biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
 				biBrowseInfo.iImage = 0;
-				biBrowseInfo.lpfn = BrowseCallbackProc;
+				biBrowseInfo.lpfn = CWinUtilities::BrowseCallbackProc;
 				biBrowseInfo.lParam = reinterpret_cast<LPARAM>(m_pwewoOptions->wsOutputFolder.c_str());
-				bool bOlInit = OleInitialize();
-				if ( bOlInit ) {
-					biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
-				}
-
-				PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
-				if ( pidlSelected ) {
-					std::wstring szFileName;
-					szFileName.resize( 0xFFFF + 2 );
-
-					if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
-						m_pwewoOptions->wsOutputFolder = szFileName.c_str();
-						auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
-						if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }
+				{
+					CWinUtilities::LSN_OLEINITIALIZE oOle;
+					if ( oOle.Success() ) {
+						biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE;
 					}
-					::CoTaskMemFree( pidlSelected );
-				}
-				if ( bOlInit ) {
-					::OleUninitialize();
+
+					PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
+					if ( pidlSelected ) {
+						std::wstring szFileName;
+						szFileName.resize( 0xFFFF + 2 );
+
+						if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
+							m_pwewoOptions->wsOutputFolder = szFileName.c_str();
+							auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
+							if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }
+						}
+						::CoTaskMemFree( pidlSelected );
+					}
 				}
 				break;
 			}
@@ -393,34 +391,6 @@ namespace lsn {
 				pwThis->SetEnabled( cControls[I].bCloseCondition0 );
 			}
 		}
-	}
-
-	/**
-	 * Callback procedure for the folder browser dialog.
-	 *
-	 * \param _hWnd   The dialog window handle.
-	 * \param _uMsg   The message.
-	 * \param _lParam The message parameter.
-	 * \param _lpData The application-defined data (initial path pointer).
-	 * \return Returns 0 to continue default processing.
-	 */
-	int CALLBACK CWavEditorOutputPage::BrowseCallbackProc( HWND _hWnd, UINT _uMsg, LPARAM /*_lParam*/, LPARAM lpData ) {
-		if ( _uMsg == BFFM_INITIALIZED && lpData ) {
-			// lpData is a pointer to the initial folder path
-			::SendMessageW( _hWnd, BFFM_SETSELECTIONW, TRUE, lpData );
-		}
-		return 0;
-	}
-
-	/**
-	 * Initializes OLE for the current thread.
-	 * 
-	 * \param _pvReserved Reserved; must be nullptr.
-	 * \return Returns true if OLE was initialized successfully, false otherwise.
-	 */
-	bool CWavEditorOutputPage::OleInitialize( LPVOID _pvReserved ) {
-		HRESULT hrResult = ::OleInitialize( _pvReserved );
-		return (hrResult == S_OK || hrResult == S_FALSE);
 	}
 
 }	// namespace lsn

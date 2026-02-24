@@ -175,11 +175,20 @@ namespace lsn {
 		/**
 		 * Checks the given tree item for having a child that is a BPS file compatible with the current ROM.
 		 * 
-		 * \param _ptlvTree A pointer to the TreeListView.
+		 * \param _ptlvTree A pointer to the CTreeListView.
 		 * \param _htiItem The item to recursively check for being compatible.
 		 * \return Returns true if the item or any of its children are compatible with the current ROM file.
 		 **/
 		bool												IsCompatible( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const;
+
+		/**
+		 * Given a tree item, its siblings are checked for being a text file, and then the text is searched for the current ROM file’s CRC’s.
+		 * 
+		 * \param _ptlvTree A pointer to the CTreeListView.
+		 * \param _htiItem The item whose following siblings are to be checked for being text, and then the text searched for the current ROM’s CRC pair.
+		 * \return Returns true if a text file is a sibling of the given item and that text file contains either of the CRC’s for the current ROM.
+		 **/
+		bool												SiblingHasTextReferenceToCrc( lsw::CTreeListView * _ptlvTree, HTREEITEM _htiItem ) const;
 
 		/**
 		 * Checks for a child node that is a checksum patch.

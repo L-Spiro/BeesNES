@@ -18,6 +18,7 @@
 #include <cmath>
 #include <cwctype>
 #include <fenv.h>
+#include <filesystem>
 //#include <intrin.h>
 #include <numbers>
 #include <random>
@@ -1442,6 +1443,27 @@ namespace lsn {
 		 * \return Returns true if any file names are duplicates of each other when compared with case-insensitivity.
 		 **/
 		static bool											DuplicateFiles( const std::vector<CUtilities::LSN_FILE_PATHS> &_s16Paths, std::vector<size_t> &_vIndices );
+
+		/**
+		 * Generates a file name that doesn’t exist.
+		 * 
+		 * \param _tPath The path to the file.
+		 * \param _tFileName The name of the file.
+		 * \return Returns a full path to a file that doesn’t exist.
+		 **/
+		static std::filesystem::path						GenerateNewFilePath( const std::filesystem::path &_tPath, const std::filesystem::path &_tFileName ) {
+			std::filesystem::path pRoot = _tPath, pFile = _tFileName;
+			auto aExt = pFile.extension();
+			uint64_t ui64Idx = 1;
+			while ( std::filesystem::exists( pRoot / pFile ) ) {
+				pFile = _tFileName.filename();
+				pFile += L" (";
+				pFile += std::to_wstring( ui64Idx++ );
+				pFile += L")";
+				pFile += aExt;
+			}
+			return pRoot / pFile;
+		}
 		
 		/**
 		 * Performs a case-insensitive string compare against 2 UTF-16 strings.  Returns true if they are equal.

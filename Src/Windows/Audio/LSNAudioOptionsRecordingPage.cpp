@@ -175,10 +175,10 @@ namespace lsn {
 					ofnOpenFile.lpstrFile = szFileName.data();
 					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 					ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-					ofnOpenFile.lpstrInitialDir = m_poOptions->wRawAudioPath.c_str();
+					ofnOpenFile.lpstrInitialDir = m_poOptions->wsRawAudioPath.c_str();
 
 					if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-						m_poOptions->wRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						m_poOptions->wsRawAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 						auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
 						if ( !pPath.has_extension() ) {
 							pPath += ".wav";
@@ -202,10 +202,10 @@ namespace lsn {
 					ofnOpenFile.lpstrFile = szFileName.data();
 					ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
 					ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-					ofnOpenFile.lpstrInitialDir = m_poOptions->wOutAudioPath.c_str();
+					ofnOpenFile.lpstrInitialDir = m_poOptions->wsOutAudioPath.c_str();
 
 					if ( ::GetSaveFileNameW( &ofnOpenFile ) ) {
-						m_poOptions->wOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
+						m_poOptions->wsOutAudioPath = std::filesystem::path( ofnOpenFile.lpstrFile ).remove_filename();
 						auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
 						if ( !pPath.has_extension() ) {
 							pPath += ".wav";

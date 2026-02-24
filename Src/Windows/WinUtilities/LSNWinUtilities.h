@@ -17,6 +17,7 @@
 #include <Widget/LSWWidget.h>
 
 #include <map>
+#include <shlobj.h>
 #include <vector>
 
 using namespace lsw;
@@ -48,6 +49,32 @@ namespace lsn {
 		struct LSN_COMBO_ENTRY {
 			const wchar_t *										pwcName;						/**< The name of the entry. */
 			LPARAM												lpParm;							/**< The parameter of the entry. */
+		};
+
+		/** An ::OleInitialize() wrapper. */
+		struct LSN_OLEINITIALIZE {
+			LSN_OLEINITIALIZE( LPVOID _pvReserved = nullptr ) :
+				bOle( CWinUtilities::OleInitialize( _pvReserved ) ) {
+			}
+			~LSN_OLEINITIALIZE() {
+				if ( bOle ) {
+					::OleUninitialize();
+					bOle = false;
+				}
+			}
+
+
+			// == Functions.
+			/**
+			 * Determines whether the call to ::OleInitialize() was successful or not.
+			 * 
+			 * \return Returns true if the call to ::OleInitialize() was successful.
+			 **/
+			inline bool											Success() const { return bOle; }
+
+		protected :
+			// == Members.
+			bool												bOle = false;
 		};
 
 
@@ -275,6 +302,34 @@ namespace lsn {
 		 * \return Returns true if reading of the key information from the stream succeeded.
 		 **/
 		static bool												ReadUiKey( lsw::LSW_KEY &_kKey, lsn::CStream &_sStream );
+
+		/**
+		 * Callback procedure for the folder browser dialog.
+		 *
+		 * \param _hWnd   The dialog window handle.
+		 * \param _uMsg   The message.
+		 * \param _lParam The message parameter.
+		 * \param _lpData The application-defined data (initial path pointer).
+		 * \return Returns 0 to continue default processing.
+		 */
+		static int CALLBACK										BrowseCallbackProc( HWND _hWnd, UINT _uMsg, LPARAM /*_lParam*/, LPARAM lpData ) {
+			if ( _uMsg == BFFM_INITIALIZED && lpData ) {
+				// lpData is a pointer to the initial folder path
+				::SendMessageW( _hWnd, BFFM_SETSELECTIONW, TRUE, lpData );
+			}
+			return 0;
+		}
+
+		/**
+		 * Initializes OLE for the current thread.
+		 * 
+		 * \param _pvReserved Reserved; must be nullptr.
+		 * \return Returns true if OLE was initialized successfully, false otherwise.
+		 */
+		static bool												OleInitialize( LPVOID _pvReserved = nullptr ) {
+			HRESULT hrResult = ::OleInitialize( _pvReserved );
+			return (hrResult == S_OK || hrResult == S_FALSE);
+		}
 
 
 	protected :

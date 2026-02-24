@@ -831,16 +831,16 @@ namespace lsn {
 		if ( !LoadInputSettings( ui32Version, _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
 		if ( !LoadRecentFiles( ui32Version, _sFile ) ) { return false; }
 
-		if ( !_sFile.ReadStringU16( m_oOptions.wInRomInitPath ) ) { return false; }
-		if ( !_sFile.ReadStringU16( m_oOptions.wOutRomInitPath ) ) { return false; }
-		if ( !_sFile.ReadStringU16( m_oOptions.wPatchInitPath ) ) { return false; }
-		if ( !_sFile.ReadStringU16( m_oOptions.wDefaultRomPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsInRomInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsOutRomInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsPatchInitPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsDefaultRomPath ) ) { return false; }
 
 		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
 
 		if ( !LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions ) ) { return false; }
-		if ( !_sFile.ReadStringU16( m_oOptions.wRawAudioPath ) ) { return false; }
-		if ( !_sFile.ReadStringU16( m_oOptions.wOutAudioPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsRawAudioPath ) ) { return false; }
+		if ( !_sFile.ReadStringU16( m_oOptions.wsOutAudioPath ) ) { return false; }
 
 		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
 		if ( !LoadAudioStreamSettings( ui32Version, _sFile, m_oOptions.stfStreamOptionsOutCapture ) ) { return false; }
@@ -885,6 +885,8 @@ namespace lsn {
 			if ( !LoadPaletteSettings( ui32Version, _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
 		}
 
+		if ( !_sFile.ReadStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
+
 		return true;
 	}
 
@@ -899,16 +901,16 @@ namespace lsn {
 		if ( !SaveInputSettings( _sFile, m_oOptions.ioGlobalInputOptions ) ) { return false; }
 		if ( !SaveRecentFiles( _sFile ) ) { return false; }
 
-		if ( !_sFile.WriteStringU16( m_oOptions.wInRomInitPath ) ) { return false; }
-		if ( !_sFile.WriteStringU16( m_oOptions.wOutRomInitPath ) ) { return false; }
-		if ( !_sFile.WriteStringU16( m_oOptions.wPatchInitPath ) ) { return false; }
-		if ( !_sFile.WriteStringU16( m_oOptions.wDefaultRomPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsInRomInitPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsOutRomInitPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsPatchInitPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsDefaultRomPath ) ) { return false; }
 
 		if ( !_sFile.Write( m_oOptions.pmRegion ) ) { return false; }
 
 		if ( !SaveAudioSettings( _sFile, m_oOptions.aoGlobalAudioOptions ) ) { return false; }
-		if ( !_sFile.WriteStringU16( m_oOptions.wRawAudioPath ) ) { return false; }
-		if ( !_sFile.WriteStringU16( m_oOptions.wOutAudioPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsRawAudioPath ) ) { return false; }
+		if ( !_sFile.WriteStringU16( m_oOptions.wsOutAudioPath ) ) { return false; }
 		
 		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsRaw ) ) { return false; }
 		if ( !SaveAudioStreamSettings( _sFile, m_oOptions.stfStreamOptionsOutCapture ) ) { return false; }
@@ -943,6 +945,8 @@ namespace lsn {
 			if ( !SavePaletteSettings( _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
 		}
 		
+		if ( !_sFile.WriteStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
+
 		return true;
 	}
 

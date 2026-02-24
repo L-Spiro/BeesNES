@@ -254,17 +254,25 @@
 #define LSN_PATCH_PATCH_FILE												Patch File(s):
 #define LSN_PATCH_OUTPUT_FILE												Output File:
 #define LSN_PATCH_BROWSE													Browse
+#define LSN_PATCH_QUICK_PATCH												Quick Patch
 #define LSN_PATCH_FILE_TYPES												Patch Files (*.ips, *.bps, *.zip)\0*.ips;*.bps;*.zip\0All Files (*.*)\0*.*\0\0
 #define LSN_PATCH_SRC_INFO													Source ROM Information
 #define LSN_PATCH_PATCH														Patch
 #define LSN_PATCH_DETAILS													Details
+#define LSN_PATCH_PATCH_IS_COMPATIBLE										Patch file is compatible with the current ROM file based on the embedded CRC.
+#define LSN_PATCH_LIKELY_COMPATIBLE											* Patch file is likely compatible with the current ROM file based on the CRC being found in an accompanying text file. *
+#define LSN_PATCH_COMPAT_UNKNOWN											** Patch file compatibility with the current ROM file is unknown. **
+#define LSN_PATCH_NOT_COMPATIBLE											*** Patch file is not compatible with the current ROM file based on the embedded CRC. ***
 #define LSN_PATCH_REVEAL_COMPATIBLE											&Reveal Compatible
 #define LSN_PATCH_SELECT_COMPATIBLE											&Select Compatible
-#define LSN_PATCH_REVEAL_BPS												Re&veal BPS
+#define LSN_PATCH_REVEAL_BPS												Re&veal All BPS Files
 #define LSN_PATCH_EXPAND_SELECTED											Expand Selec&ted
 #define LSN_PATCH_EXPAND_ALL												E&xpand All
 #define LSN_PATCH_COLLAPSE_SELECTED											C&ollapse Selected
 #define LSN_PATCH_COLLAPSE_ALL												&Collapse All
+#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_1								WARNING: The selected patch is incompatible with the current ROM file based on the patch’s embedded CRC.\r\nDo you really wish to continue?
+#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_X								WARNING: At least one of the selected patches is incompatible with the current ROM file based on the patch’s embedded CRC.\r\nDo you really wish to continue?
+#define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE							Incompatible Patch
 
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
