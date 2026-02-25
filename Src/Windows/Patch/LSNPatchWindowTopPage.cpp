@@ -908,16 +908,18 @@ namespace lsn {
 		std::wstring wsFindMeHeaderlessLower = std::format( L"{:08x}", m_rRomInfo.riInfo.ui32HeaderlessCrc );
 		std::wstring wsMd5 = CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhMd5 );
 		std::wstring wsMd5Headerless = CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhHeaderlessMd5 );
-		while ( htiNext && _ptlvTree->GetItemParent( htiNext ) == htiParent ) {
-			size_t sIdx = size_t( _ptlvTree->GetItemLParam( htiNext ) );
-			if ( sIdx < m_vPatchInfo.size() ) {
-				if ( m_vPatchInfo[sIdx].bIsText ) {
-					try {
-						std::wstring wsLower = CUtilities::ToLower( _ptlvTree->GetItemText( htiNext, 1 ) );
-						if ( std::wstring::npos != wsLower.find( wsFindMeLowerFull ) || std::wstring::npos != wsLower.find( wsFindMeLower ) || std::wstring::npos != wsLower.find( wsFindMeHeaderlessLower ) ||
-							std::wstring::npos != wsLower.find( wsMd5 ) || std::wstring::npos != wsLower.find( wsMd5Headerless ) ) { return true; }
+		while ( htiNext ) {
+			if ( _ptlvTree->GetItemParent( htiNext ) == htiParent ) {
+				size_t sIdx = size_t( _ptlvTree->GetItemLParam( htiNext ) );
+				if ( sIdx < m_vPatchInfo.size() ) {
+					if ( m_vPatchInfo[sIdx].bIsText ) {
+						try {
+							std::wstring wsLower = CUtilities::ToLower( _ptlvTree->GetItemText( htiNext, 1 ) );
+							if ( std::wstring::npos != wsLower.find( wsFindMeLowerFull ) || std::wstring::npos != wsLower.find( wsFindMeLower ) || std::wstring::npos != wsLower.find( wsFindMeHeaderlessLower ) ||
+								std::wstring::npos != wsLower.find( wsMd5 ) || std::wstring::npos != wsLower.find( wsMd5Headerless ) ) { return true; }
+						}
+						catch ( ... ) {}
 					}
-					catch ( ... ) {}
 				}
 			}
 
