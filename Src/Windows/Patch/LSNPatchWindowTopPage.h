@@ -215,6 +215,7 @@ namespace lsn {
 		 * 
 		 * \param _vNodes The nodes to add under _hParent.
 		 * \param _hParent The parent under which to add _vNodes.
+		 * \param _ptlTree The CTreeListView control.
 		 **/
 		void												AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree );
 
@@ -227,7 +228,27 @@ namespace lsn {
 		 * \param _pfPatchedInfo Information for the patched file.
 		 * \throw Throws upon error.
 		 **/
-		void												PatchFile( const CStreamBase * _psbPatch, const std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo );
+		void												PatchFile( const CStreamBase * _psbPatch, std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo );
+
+		/**
+		 * Trims non-patch entries from the given vector.
+		 * 
+		 * \param _ptlTree The CTreeListView control.
+		 * \param _vTrimMe The vector whose elements are to be removed should they not refer to valid patch files.
+		 * \param _bWarnOfDoom If true upon return, at least one of the remaining items was not able to be verified as compatible with the current ROM.
+		 * \return Returns a reference to _vTrimMe.
+		 **/
+		std::vector<HTREEITEM> &							TrimVector( lsw::CTreeListView * _ptlTree, std::vector<HTREEITEM> &_vTrimMe, bool &_bWarnOfDoom );
+
+		/**
+		 * Checks a CRC against the current ROM’s CRC set.
+		 * 
+		 * \param _ui32Crc The CRC to check against the current ROM’s set of CRC’s.
+		 * \return Returns true if any of the ROM’s CRC’s match the given CRC.
+		 **/
+		inline bool											CrcMatch( uint32_t _ui32Crc ) const {
+			return (_ui32Crc == m_ui32FullCrc || _ui32Crc == m_rRomInfo.riInfo.ui32Crc || _ui32Crc == m_rRomInfo.riInfo.ui32HeaderlessCrc);
+		}
 
 		/**
 		 * Creates a non-optimized basic tree given patch information.

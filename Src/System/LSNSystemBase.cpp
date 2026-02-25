@@ -110,6 +110,10 @@ namespace lsn {
 			_rRom.riInfo.ui16SubMapper = pnhHeader->GetSubMapper();
 			_rRom.riInfo.mmMirroring = pnhHeader->GetMirrorMode();
 			_rRom.riInfo.pmConsoleRegion = pnhHeader->GetGameRegion();
+			_rRom.riInfo.ui32HeaderlessCrc = CCrc::GetCrc( pui8Data, stDataSize );
+			_rRom.riInfo.mhMd5 = CMd5::Compute( _vRom.data(), _vRom.size() );
+			_rRom.riInfo.mhHeaderlessMd5 = CMd5::Compute( pui8Data, stDataSize );
+
 			_rRom.i32ChrRamSize = pnhHeader->GetChrRamSize();
 			_rRom.i32SaveChrRamSize = pnhHeader->GetSaveChrRamSize();
 			_rRom.i32WorkRamSize = pnhHeader->GetWorkRamSize();

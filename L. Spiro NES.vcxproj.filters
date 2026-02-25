@@ -1065,6 +1065,12 @@
     <ClInclude Include="Src\Patching\LSNIpsFile.h">
       <Filter>Header Files\Patching</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Patching\LSNBpsFile.h">
+      <Filter>Header Files\Patching</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNMd5.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

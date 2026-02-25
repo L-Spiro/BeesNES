@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Utilities/LSNMd5.h"
+
 #include <string>
 
 namespace lsn {
@@ -24,6 +26,9 @@ namespace lsn {
 		std::u16string						s16File;										/**< The full file path in UTF-16. */
 		std::u16string						s16RomName;										/**< The ROM file name in UTF-16. */
 		uint32_t							ui32Crc;										/**< The ROM CRC. */
+		uint32_t							ui32HeaderlessCrc;								/**< The ROM headerless CRC. */
+		CMd5::LSN_MD5_HASH					mhMd5;											/**< The ROM MD5. */
+		CMd5::LSN_MD5_HASH					mhHeaderlessMd5;								/**< The ROM headerless MD5. */
 		LSN_MIRROR_MODE						mmMirroring;									/**< The ROM mirroring mode. */
 		LSN_PPU_METRICS						pmConsoleRegion;								/**< NTSC, PAL, or Dendy. */
 		uint16_t							ui16Mapper;										/**< The mapper. */

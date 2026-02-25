@@ -1983,6 +1983,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\OS\LSNOs.h" />
     <ClInclude Include="Src\OS\LSNWindows.h" />
     <ClInclude Include="Src\Palette\LSNPalette.h" />
+    <ClInclude Include="Src\Patching\LSNBpsFile.h" />
     <ClInclude Include="Src\Patching\LSNIpsFile.h" />
     <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
     <ClInclude Include="Src\Ppu\LSNPpuBase.h" />
@@ -2000,6 +2001,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
     <ClInclude Include="Src\Utilities\LSNLargeVector.h" />
+    <ClInclude Include="Src\Utilities\LSNMd5.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNRingBuffer.h" />
     <ClInclude Include="Src\Utilities\LSNScopedNoSubnormals.h" />

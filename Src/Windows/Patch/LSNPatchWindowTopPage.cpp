@@ -13,6 +13,7 @@
 #include "../../File/LSNStdFile.h"
 #include "../../File/LSNZipFile.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../../Patching/LSNBpsFile.h"
 #include "../../Patching/LSNIpsFile.h"
 #include "../../System/LSNSystemBase.h"
 #include "../../Windows/Layout/LSNLayoutManager.h"
@@ -50,6 +51,7 @@ namespace lsn {
 			ptlTree->SetColumnWidth( 1, 550 );
 		}
 
+		UpdateText();
 		return LSW_H_CONTINUE;
 	}
 
@@ -333,34 +335,7 @@ namespace lsn {
 						if ( ptvTree->GatherSelected( vSelected, true ) ) {
 							// Trim the selection down to only patch files.
 							bool bWarnOfDoom = false;
-							for ( auto I = vSelected.size(); I--; ) {
-								if ( ptvTree->CountChildren( vSelected[I] ) ) {
-									// Patch files are "leaf" nodes; no children.
-									vSelected.erase( vSelected.begin() + I );
-								}
-								else {
-									size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
-									if ( sIdx >= m_vPatchInfo.size() ) {
-										vSelected.erase( vSelected.begin() + I );
-									}
-									else {
-										if ( m_vPatchInfo[sIdx].bIsText ) {
-											vSelected.erase( vSelected.begin() + I );
-										}
-										else {
-											// Is a patch file.  Check for being a CRC patch and consider warning the user.
-											if ( m_vPatchInfo[sIdx].ui32Crc ) {										// BPS.
-												if ( m_vPatchInfo[sIdx].ui32Crc != m_ui32FullCrc && m_vPatchInfo[sIdx].ui32Crc != m_rRomInfo.riInfo.ui32Crc ) {
-													bWarnOfDoom = true;
-												}
-											}
-											else if ( !SiblingHasTextReferenceToCrc( ptvTree, vSelected[I] ) ) {	// IPS.
-												bWarnOfDoom = true;
-											}
-										}
-									}
-								}
-							}
+							TrimVector( ptvTree, vSelected, bWarnOfDoom );
 
 							// Act on whatever remains.
 							if ( vSelected.size() == 1 ) {
@@ -443,9 +418,30 @@ namespace lsn {
 											szFileName.resize( 0xFFFF + 2 );
 
 											if ( ::SHGetPathFromIDListW( pidlSelected, szFileName.data() ) ) {
-												/*m_pwewoOptions->wsOutputFolder = szFileName.c_str();
-												auto pwWidget = FindChild( Layout::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT );
-												if ( pwWidget ) { pwWidget->SetTextW( m_pwewoOptions->wsOutputFolder.c_str() ); }*/
+												m_poOptions->wsPatchOutFolder = szFileName.c_str();
+												std::filesystem::path pOutFolder( m_poOptions->wsPatchOutFolder );
+												bool bMemoryError = false;
+												for ( size_t I = 0; I < vSelected.size(); ++I ) {
+													size_t sIdx = size_t( ptvTree->GetItemLParam( vSelected[I] ) );
+													CUtilities::LSN_FILE_PATHS fpPath;
+													CUtilities::DeconstructFilePath( m_vPatchInfo[sIdx].u16FullPath, fpPath );
+													{
+														try {
+															auto pPath = CUtilities::GenerateNewFilePath( pOutFolder, DefaultPatchName( m_rRomInfo.riInfo.s16RomName, fpPath.u16sFile ) );
+
+															CStream sPatch( m_vPatchInfo[sIdx].vLoadedPatchFile );
+															LSN_PATCHED_FILE pfPatched;
+															PatchFile( &sPatch, m_vPatchRomFile, pPath, pfPatched );
+														}
+														catch ( ... ) {
+															bMemoryError = false;
+														}
+													}
+												}
+												
+												if ( bMemoryError ) {
+													lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_PATCH_OUT_OF_MEMORY_CREATING_PATCH ) );
+												}
 											}
 											::CoTaskMemFree( pidlSelected );
 										}
@@ -636,30 +632,57 @@ namespace lsn {
 			auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_CRC_LABEL );
 			if ( pwPathEdit ) {
 				m_ui32FullCrc = CCrc::GetCrc( m_vPatchRomFile.data(), m_vPatchRomFile.size() );
-				pwPathEdit->SetTextW( std::format( L"Full CRC32:\t{:08X}", m_ui32FullCrc ).c_str() );
+				try {
+					pwPathEdit->SetTextW( std::format( L"Full CRC32:\t\t{:08X}", m_ui32FullCrc ).c_str() );
+				} catch ( ... ) {}
 			}
 			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CRC_LABEL );
 			if ( pwPathEdit ) {
-				pwPathEdit->SetTextW( std::format( L"ROM CRC32:\t{:08X}", rRom.riInfo.ui32Crc ).c_str() );
+				try {
+					pwPathEdit->SetTextW( std::format( L"ROM CRC32:\t\t{:08X}", rRom.riInfo.ui32Crc ).c_str() );
+				} catch ( ... ) {}
+			}
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_HEADERLESS_CRC_LABEL );
+			if ( pwPathEdit ) {
+				try {
+					pwPathEdit->SetTextW( std::format( L"Headerless CRC32:\t{:08X}", rRom.riInfo.ui32HeaderlessCrc ).c_str() );
+				} catch ( ... ) {}
+			}
+
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_MD5_LABEL );
+			if ( pwPathEdit ) {
+				try {
+					pwPathEdit->SetTextW( std::format( L"MD5:\t\t\t{}", CUtilities::ToUpper( CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhMd5 ) ) ).c_str() );
+				} catch ( ... ) {}
+			}
+			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_HEADERLESS_MD5_LABEL );
+			if ( pwPathEdit ) {
+				try {
+					pwPathEdit->SetTextW( std::format( L"Headerless MD5:\t\t{}", CUtilities::ToUpper( CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhHeaderlessMd5 ) ) ).c_str() );
+				} catch ( ... ) {}
 			}
 
 			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_PGM_SIZE_LABEL );
 			if ( pwPathEdit ) {
-				pwPathEdit->SetTextW( std::format( L"ROM PGM Size:\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+				try {
+					pwPathEdit->SetTextW( std::format( L"ROM PGM Size:\t\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+				} catch ( ... ) {}
 			}
 			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CHR_SIZE_LABEL );
 			if ( pwPathEdit ) {
-				pwPathEdit->SetTextW( std::format( L"ROM CHR Size:\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vChrRom.size(), rRom.vChrRom.size() / 1024.0 ).c_str() );
+				try {
+					pwPathEdit->SetTextW( std::format( L"ROM CHR Size:\t\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vChrRom.size(), rRom.vChrRom.size() / 1024.0 ).c_str() );
+				} catch ( ... ) {}
 			}
 			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_MIRROR_LABEL );
 			if ( pwPathEdit ) {
 				switch ( rRom.riInfo.mmMirroring ) {
 					case LSN_MM_VERTICAL : {
-						pwPathEdit->SetTextW( std::format( L"Mirroring:\tVertical", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\t\tVertical", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
 						break;
 					}
 					case LSN_MM_HORIZONTAL : {
-						pwPathEdit->SetTextW( std::format( L"Mirroring:\tHorizontal", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
+						pwPathEdit->SetTextW( std::format( L"Mirroring:\t\tHorizontal", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
 						break;
 					}
 					case LSN_MM_4_SCREENS : {
@@ -694,7 +717,7 @@ namespace lsn {
 				if ( !m_vPatchInfo[lpParm].bIsText ) {
 					if ( m_vPatchInfo[lpParm].ui32Crc ) {																						// BPS file.
 						if ( m_vPatchRomFile.size() ) {
-							if ( m_vPatchInfo[lpParm].ui32Crc == m_rRomInfo.riInfo.ui32Crc || m_ui32FullCrc == m_vPatchInfo[lpParm].ui32Crc ) {
+							if ( CrcMatch( m_vPatchInfo[lpParm].ui32Crc ) ) {
 								rgbqColor = { .rgbBlue = 64, .rgbGreen = 255, .rgbRed = 159, .rgbReserved = 0xCF };							// Found a match.
 							}
 							else {
@@ -733,12 +756,22 @@ namespace lsn {
 				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( !ptvTree ) {
 					pwText->SetTextW( L"" );
+
+					auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+					if ( pwQuick ) {
+						pwQuick->SetEnabled( false );
+					}
 				}
 				else {
 					std::vector<HTREEITEM> vSelected;
 					ptvTree->GatherSelected( vSelected, true );
 					if ( vSelected.size() == 0 ) {
 						pwText->SetTextW( L"" );
+
+						auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+						if ( pwQuick ) {
+							pwQuick->SetEnabled( false );
+						}
 					}
 					else {
 						std::wstring wsText;
@@ -769,7 +802,7 @@ namespace lsn {
 										else {
 											wsText += L": ";
 											if ( m_vPatchInfo[sIdx].ui32Crc ) {
-												if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
+												if ( CrcMatch( m_vPatchInfo[sIdx].ui32Crc ) ) {
 													wsText += LSN_LSTR( LSN_PATCH_PATCH_IS_COMPATIBLE );
 												}
 												else {
@@ -791,6 +824,15 @@ namespace lsn {
 							}
 						}
 						pwText->SetTextW( wsText.c_str() );
+
+
+
+						bool bWarnOfDoom = false;
+						TrimVector( ptvTree, vSelected, bWarnOfDoom );
+						auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+						if ( pwQuick ) {
+							pwQuick->SetEnabled( vSelected.size() != 0 );
+						}
 					}
 				}
 			}
@@ -832,7 +874,7 @@ namespace lsn {
 		if ( sIdx < m_vPatchInfo.size() ) {
 			if ( !m_vPatchInfo[sIdx].bIsText ) {
 				if ( m_vPatchInfo[sIdx].ui32Crc ) {
-					if ( m_vPatchInfo[sIdx].ui32Crc == m_ui32FullCrc || m_vPatchInfo[sIdx].ui32Crc == m_rRomInfo.riInfo.ui32Crc ) {
+					if ( CrcMatch( m_vPatchInfo[sIdx].ui32Crc ) ) {
 						return true;
 					}
 				}
@@ -863,13 +905,17 @@ namespace lsn {
 		HTREEITEM htiNext = _ptlvTree->GetNext( _htiItem ), htiParent = _ptlvTree->GetItemParent( _htiItem );
 		std::wstring wsFindMeLowerFull = std::format( L"{:08x}", m_ui32FullCrc );
 		std::wstring wsFindMeLower = std::format( L"{:08x}", m_rRomInfo.riInfo.ui32Crc );
+		std::wstring wsFindMeHeaderlessLower = std::format( L"{:08x}", m_rRomInfo.riInfo.ui32HeaderlessCrc );
+		std::wstring wsMd5 = CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhMd5 );
+		std::wstring wsMd5Headerless = CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhHeaderlessMd5 );
 		while ( htiNext && _ptlvTree->GetItemParent( htiNext ) == htiParent ) {
 			size_t sIdx = size_t( _ptlvTree->GetItemLParam( htiNext ) );
 			if ( sIdx < m_vPatchInfo.size() ) {
 				if ( m_vPatchInfo[sIdx].bIsText ) {
 					try {
 						std::wstring wsLower = CUtilities::ToLower( _ptlvTree->GetItemText( htiNext, 1 ) );
-						if ( std::wstring::npos != wsLower.find( wsFindMeLowerFull ) || std::wstring::npos != wsLower.find( wsFindMeLower ) ) { return true; }
+						if ( std::wstring::npos != wsLower.find( wsFindMeLowerFull ) || std::wstring::npos != wsLower.find( wsFindMeLower ) || std::wstring::npos != wsLower.find( wsFindMeHeaderlessLower ) ||
+							std::wstring::npos != wsLower.find( wsMd5 ) || std::wstring::npos != wsLower.find( wsMd5Headerless ) ) { return true; }
 					}
 					catch ( ... ) {}
 				}
@@ -925,7 +971,7 @@ namespace lsn {
 	 * 
 	 * \param _vNodes The nodes to add under _hParent.
 	 * \param _hParent The parent under which to add _vNodes.
-	 * \return DESC
+	 * \param _ptlTree The CTreeListView control.
 	 **/
 	void CPatchWindowTopPage::AddToTree( const std::vector<LSN_PATCH_INFO_TREE_ITEM> &_vNodes, HTREEITEM _hParent, lsw::CTreeListView * _ptlTree ) {
 		for ( size_t I = 0; I < _vNodes.size(); ++I ) {
@@ -958,42 +1004,126 @@ namespace lsn {
 	 * \param _pfPatchedInfo Information for the patched file.
 	 * \throw Throws upon error.
 	 **/
-	void CPatchWindowTopPage::PatchFile( const CStreamBase * _psbPatch, const std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo ) {
-		{
-			// Check for being an IPS file.
-			CIpsFile ifIps( _psbPatch );
-			if ( ifIps.VerifyHeader() ) {
-				CStdFile sfFile;
-				if ( !sfFile.Create( _pOutPath ) ) {
-					auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_CREATE_FILE ), _pOutPath.generic_wstring() );
-					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
-					return;
-				}
-				try {
-					std::vector<uint8_t> vRomCopy = m_vPatchRomFile;
-					CStream sRomStream( vRomCopy );
-					if ( !ifIps.ApplyPatch( &sRomStream ) ) {
-						lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ) );
-						return;
+	void CPatchWindowTopPage::PatchFile( const CStreamBase * _psbPatch, std::vector<uint8_t> &_vRom, const std::filesystem::path &_pOutPath, LSN_PATCHED_FILE &_pfPatchedInfo ) {
+		std::vector<uint8_t> vRomCopy;
+		do {
+			{
+				// Check for being an IPS file.
+				_psbPatch->MovePointerTo( 0 );
+				CIpsFile ifIps( _psbPatch );
+				if ( ifIps.VerifyHeader() ) {
+					try {
+						vRomCopy = _vRom;
+						CStream sRomStream( vRomCopy );
+						if ( !ifIps.ApplyPatch( &sRomStream ) ) {
+							lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ) );
+							return;
+						}
+
+						CStdFile sfFile;
+						if ( !sfFile.Create( _pOutPath ) ) {
+							auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_CREATE_FILE ), _pOutPath.generic_wstring() );
+							lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+							return;
+						}
+						if ( !sfFile.WriteToFile( vRomCopy ) ) {
+							auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_WRITE_FILE ), _pOutPath.generic_wstring() );
+							lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+							return;
+						}
+					
 					}
-					if ( !sfFile.WriteToFile( vRomCopy ) ) {
-						auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_WRITE_FILE ), _pOutPath.generic_wstring() );
+					catch ( const std::exception &_e ) {
+						std::string sError = _e.what();
+						std::wstring wsError( sError.begin(), sError.end() );
+					
 						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
 						return;
 					}
-					_pfPatchedInfo.ui32Crc = CCrc::GetCrc( vRomCopy.data(), vRomCopy.size() );
-					_pfPatchedInfo.u16Path = _pOutPath.generic_u16string();
+					break;
 				}
-				catch ( const std::exception &_e ) {
-					std::string sError = _e.what();
-					std::wstring wsError( sError.begin(), sError.end() );
+			}
+			{
+				// Check for being a BPS file.
+				_psbPatch->MovePointerTo( 0 );
+				CBpsFile bfBps( _psbPatch );
+				if ( bfBps.VerifyHeader() ) {
+					try {
+						CStream sSrcStream( _vRom );
+						CStream sRomStream( vRomCopy );
+						if ( !bfBps.ApplyPatch( &sSrcStream, &sRomStream ) ) {
+							lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ) );
+							return;
+						}
+
+						CStdFile sfFile;
+						if ( !sfFile.Create( _pOutPath ) ) {
+							auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_CREATE_FILE ), _pOutPath.generic_wstring() );
+							lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+							return;
+						}
+						if ( !sfFile.WriteToFile( vRomCopy ) ) {
+							auto wsError = std::format( LSN_LSTR( LSN_PATCH_UNABLE_TO_WRITE_FILE ), _pOutPath.generic_wstring() );
+							lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+							return;
+						}
 					
-					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
-					return;
+					}
+					catch ( const std::exception &_e ) {
+						std::string sError = _e.what();
+						std::wstring wsError( sError.begin(), sError.end() );
+					
+						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str() );
+						return;
+					}
+					break;
 				}
-				return;
+			}
+		} while ( false );
+
+		_pfPatchedInfo.ui32Crc = CCrc::GetCrc( vRomCopy.data(), vRomCopy.size() );
+		_pfPatchedInfo.u16Path = _pOutPath.generic_u16string();
+	}
+
+	/**
+	 * Trims non-patch entries from the given vector.
+	 * 
+	 * \param _ptlTree The CTreeListView control.
+	 * \param _vTrimMe The vector whose elements are to be removed should they not refer to valid patch files.
+	 * \param _bWarnOfDoom If true upon return, at least one of the remaining items was not able to be verified as compatible with the current ROM.
+	 * \return Returns a reference to _vTrimMe.
+	 **/
+	std::vector<HTREEITEM> & CPatchWindowTopPage::TrimVector( lsw::CTreeListView * _ptlTree, std::vector<HTREEITEM> &_vTrimMe, bool &_bWarnOfDoom ) {
+		_bWarnOfDoom = false;
+		for ( auto I = _vTrimMe.size(); I--; ) {
+			if ( _ptlTree->CountChildren( _vTrimMe[I] ) ) {
+				// Patch files are "leaf" nodes; no children.
+				_vTrimMe.erase( _vTrimMe.begin() + I );
+			}
+			else {
+				size_t sIdx = size_t( _ptlTree->GetItemLParam( _vTrimMe[I] ) );
+				if ( sIdx >= m_vPatchInfo.size() ) {
+					_vTrimMe.erase( _vTrimMe.begin() + I );
+				}
+				else {
+					if ( m_vPatchInfo[sIdx].bIsText ) {
+						_vTrimMe.erase( _vTrimMe.begin() + I );
+					}
+					else {
+						// Is a patch file.  Check for being a CRC patch and consider warning the user.
+						if ( m_vPatchInfo[sIdx].ui32Crc ) {										// BPS.
+							if ( !CrcMatch( m_vPatchInfo[sIdx].ui32Crc ) ) {
+								_bWarnOfDoom = true;
+							}
+						}
+						else if ( !SiblingHasTextReferenceToCrc( _ptlTree, _vTrimMe[I] ) ) {	// IPS.
+							_bWarnOfDoom = true;
+						}
+					}
+				}
 			}
 		}
+		return _vTrimMe;
 	}
 
 	/**

@@ -305,6 +305,19 @@ namespace lsn {
 		}
 
 		/**
+		 * Performs ::towupper() on the given input.
+		 * 
+		 * \param _pcStr The string to convert to upper-case
+		 * \return Returns the upper-cased input.
+		 **/
+		template <typename _tType = std::u8string>
+		static inline _tType								ToUpper( const _tType &_Str ) {
+			_tType sRet = _Str;
+			std::transform( sRet.begin(), sRet.end(), sRet.begin(), []( _tType::value_type _iC ) { return ::towupper( static_cast<wint_t>(_iC) ); } );	
+			return sRet;
+		}
+
+		/**
 		 * Is a string entirely whitespace?
 		 * 
 		 * \param _tValue The string to test.
@@ -1456,11 +1469,8 @@ namespace lsn {
 			auto aExt = pFile.extension();
 			uint64_t ui64Idx = 1;
 			while ( std::filesystem::exists( pRoot / pFile ) ) {
-				pFile = _tFileName.filename();
-				pFile += L" (";
-				pFile += std::to_wstring( ui64Idx++ );
-				pFile += L")";
-				pFile += aExt;
+				pFile = _tFileName.filename().replace_extension( "" );
+				pFile += L" (" + std::to_wstring( ui64Idx++ ) + L")" + aExt.generic_wstring();
 			}
 			return pRoot / pFile;
 		}

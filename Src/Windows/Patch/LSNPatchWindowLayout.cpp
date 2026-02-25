@@ -27,7 +27,7 @@ namespace lsn {
 #define LSN_PATCH_LABEL0_W										50
 
 #define LSN_PATCH_INFO_GROUP_TOP								(LSN_PATCH_FILE_GROUP_TOP + LSN_PATCH_FILE_GROUP_H + LSN_TOP_JUST)
-#define LSN_PATCH_INFO_GROUP_H									(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_STATIC_HEIGHT * 5)
+#define LSN_PATCH_INFO_GROUP_H									(LSN_GROUP_TOP + LSN_GROUP_BOTTOM + LSN_DEF_STATIC_HEIGHT * 8)
 
 #define LSN_PATCH_H												(LSN_PATCH_INFO_GROUP_TOP + LSN_PATCH_INFO_GROUP_H + LSN_TOP_JUST)
 
@@ -236,7 +236,7 @@ namespace lsn {
 			LSW_LT_BUTTON,										// ltType
 			LSN_PWI_FILE_QUICK_PATCH_BUTTON,					// wId
 			WC_BUTTONW,											// lpwcClass
-			TRUE,												// bEnabled
+			FALSE,												// bEnabled
 			FALSE,												// bActive
 			LSN_PATCH_W - (LSN_LEFT_JUST + LSN_GROUP_LEFT) - LSN_DEF_BUTTON_WIDTH,															// iLeft
 			LSN_PATCH_FILE_GROUP_TOP + LSN_GROUP_TOP + (LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST) + LSN_PATCH_TREE_HEIGHT - LSN_DEF_BUTTON_HEIGHT,// iTop
@@ -369,7 +369,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_CRC_LABEL,							// wId
+			LSN_PWI_INFO_HEADERLESS_CRC_LABEL,					// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -392,12 +392,83 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_PGM_SIZE_LABEL,					// wId
+			LSN_PWI_INFO_ROM_CRC_LABEL,							// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
 			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 2,															// iTop
+			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,								// dwHeight
+			LSN_STATICSTYLE,									// dwStyle
+			0,													// dwStyleEx
+			nullptr,											// pwcText
+			0,													// sTextLen
+			LSN_PWI_TOP_PAGE,									// dwParentId
+
+			LSN_LOCK_LEFT,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,										// pcRightSizeExp
+			nullptr, 0,											// pcTopSizeExp
+			LSN_LOCK_BOTTOM,									// pcBottomSizeExp
+			nullptr, 0,											// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,									// pcHeightSizeExp
+		},
+
+		{
+			LSW_LT_LABEL,										// ltType
+			LSN_PWI_INFO_MD5_LABEL,								// wId
+			nullptr,											// lpwcClass
+			TRUE,												// bEnabled
+			FALSE,												// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
+			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 3,															// iTop
+			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,								// dwHeight
+			LSN_STATICSTYLE,									// dwStyle
+			0,													// dwStyleEx
+			nullptr,											// pwcText
+			0,													// sTextLen
+			LSN_PWI_TOP_PAGE,									// dwParentId
+
+			LSN_LOCK_LEFT,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,										// pcRightSizeExp
+			nullptr, 0,											// pcTopSizeExp
+			LSN_LOCK_BOTTOM,									// pcBottomSizeExp
+			nullptr, 0,											// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,									// pcHeightSizeExp
+		},
+		{
+			LSW_LT_LABEL,										// ltType
+			LSN_PWI_INFO_HEADERLESS_MD5_LABEL,					// wId
+			nullptr,											// lpwcClass
+			TRUE,												// bEnabled
+			FALSE,												// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
+			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 4,															// iTop
+			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,								// dwHeight
+			LSN_STATICSTYLE,									// dwStyle
+			0,													// dwStyleEx
+			nullptr,											// pwcText
+			0,													// sTextLen
+			LSN_PWI_TOP_PAGE,									// dwParentId
+
+			LSN_LOCK_LEFT,										// pcLeftSizeExp
+			LSN_LOCK_RIGHT,										// pcRightSizeExp
+			nullptr, 0,											// pcTopSizeExp
+			LSN_LOCK_BOTTOM,									// pcBottomSizeExp
+			nullptr, 0,											// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,									// pcHeightSizeExp
+		},
+
+		{
+			LSW_LT_LABEL,										// ltType
+			LSN_PWI_INFO_ROM_PGM_SIZE_LABEL,					// wId
+			nullptr,											// lpwcClass
+			TRUE,												// bEnabled
+			FALSE,												// bActive
+			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
+			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 5,															// iTop
 			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,								// dwHeight
 			LSN_STATICSTYLE,									// dwStyle
@@ -420,7 +491,7 @@ namespace lsn {
 			TRUE,												// bEnabled
 			FALSE,												// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
-			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 3,													// iTop
+			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 6,													// iTop
 			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,								// dwHeight
 			LSN_STATICSTYLE,									// dwStyle
@@ -443,7 +514,7 @@ namespace lsn {
 			TRUE,												// bEnabled
 			FALSE,												// bActive
 			LSN_LEFT_JUST + LSN_GROUP_LEFT,						// iLeft
-			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 4,													// iTop
+			LSN_PATCH_INFO_GROUP_TOP + LSN_GROUP_TOP + LSN_DEF_STATIC_HEIGHT * 7,													// iTop
 			LSN_PATCH_INNER_CONTENT_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,								// dwHeight
 			LSN_STATICSTYLE,									// dwStyle

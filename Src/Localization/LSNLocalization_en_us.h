@@ -82,7 +82,7 @@
 #define LSN_REGION_PALN														Ar&gentina Famiclone
 
 // Tools menu.
-#define LSN_TOOLS_PATCH														&Patcher
+#define LSN_TOOLS_PATCH														i&Patch
 #define LSN_TOOLS_WAV_EDIT													&WAV Editor
 
 // Main menu.
@@ -248,7 +248,7 @@
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_STOP_SAMPLE							The stop sample must be greater than the start sample.
 
 // Patcher.
-#define LSN_PATCH_PATCH_ROM													Patch a ROM
+#define LSN_PATCH_PATCH_ROM													iPatch: Patch a ROM
 #define LSN_PATCH_FILE														File
 #define LSN_PATCH_ROM_TO_PATCH												ROM to Patch:
 #define LSN_PATCH_PATCH_FILE												Patch File(s):
@@ -275,6 +275,7 @@
 #define LSN_PATCH_WARNING_INCOMPATIBLE_FILE_TITLE							Incompatible Patch
 #define LSN_PATCH_UNABLE_TO_CREATE_FILE										Failed to create patch file: {}
 #define LSN_PATCH_UNABLE_TO_WRITE_FILE										Failed to write patched ROM to file: {}
+#define LSN_PATCH_OUT_OF_MEMORY_CREATING_PATCH								Out of memory creating 1 or more patch(es).
 
 // WAV Editor
 #define LSN_WE_WAV_EDITOR													WAV Editor
