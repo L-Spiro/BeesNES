@@ -64,15 +64,15 @@ namespace lsn {
 			/** The last text in Actual Hz. */
 			std::wstring											wsActualHz = L"";
 			/** The last text in Characteristics/Volume. */
-			std::wstring											wsCharVolume = L"0.402";
+			std::wstring											wsCharVolume = L"0.395";
 			/** The last text in Characteristics/LPF Hz. */
-			std::wstring											wsCharLpfHz = L"7050";
+			std::wstring											wsCharLpfHz = L"17000";
 			/** The last text in Characteristics/HPF 1 Hz. */
-			std::wstring											wsCharHpf0Hz = L"200";
+			std::wstring											wsCharHpf0Hz = L"285.170928955078125";
 			/** The last text in Characteristics/HPF 2 Hz. */
-			std::wstring											wsCharHpf1Hz = L"34.5";
+			std::wstring											wsCharHpf1Hz = L"85.50933074951171875";
 			/** The last text in Characteristics/HPF 3 Hz. */
-			std::wstring											wsCharHpf2Hz = L"34.5";
+			std::wstring											wsCharHpf2Hz = L"7.361726284027099609375";
 
 			/** The last text in Characteristics/LPF Falloff. */
 			std::wstring											wsCharLpfFall = L"log10( 0.5 ) * 20 // -6.0205999 dB";
