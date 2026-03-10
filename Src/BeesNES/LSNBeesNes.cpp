@@ -71,8 +71,8 @@ namespace lsn {
 		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
 
 #ifdef LSN_DX9
-		m_d9pfDx9Palette.SetVertSharpness( 6 );
-		m_d9pfDx9Palette.SetHorSharpness( 6 );
+		m_d9pfDx9Palette.SetVertSharpness( 5 );
+		m_d9pfDx9Palette.SetHorSharpness( 5 );
 
 		m_p9nlsfDx9LSpiroNtsc.SetFps( 60.098813897440515529533511098629f );
 		m_p9plsfDx9LSpiroPal.SetFps( 50.006978908188585607940446650124f );
@@ -728,8 +728,8 @@ namespace lsn {
 	 **/
 	void CBeesNes::UpdateGpuPalette() {
 #ifdef LSN_DX9
-		std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
-		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
+		std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
 		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_POW_2_2, CNesPalette::LSN_G_NONE );
 		//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_SMPTE240M, CNesPalette::LSN_G_NONE );
 		m_d9pfDx9Palette.SetLut( vTmp[0].x );
