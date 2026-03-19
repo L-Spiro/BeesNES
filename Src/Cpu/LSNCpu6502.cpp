@@ -197,11 +197,11 @@ namespace lsn {
 	 *
 	 * \param _jJson The JSON file.
 	 * \param _jvTest The test to run.
-	 * \return Returns true if te test succeeds, false otherwise.
+	 * \return Returns -1 on error, the number of cycles otherwise.
 	 */
-	bool CCpu6502::RunJsonTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest ) {
+	int32_t CCpu6502::RunJsonTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest ) {
 		LSN_CPU_VERIFY_OBJ cvoVerifyMe;
-		if ( !GetTest( _jJson, _jvTest, cvoVerifyMe ) ) { return false; }
+		if ( !GetTest( _jJson, _jvTest, cvoVerifyMe ) ) { return -1; }
 
 		// Create the initial state.
 		ResetToKnown();
@@ -222,16 +222,33 @@ namespace lsn {
 		/*if ( "10 91 3e" == cvoVerifyMe.sName ) {
 			volatile int ghg = 0;
 		}*/
-		//m_bIsReset = true;
+		int32_t i32Cnt = 0;
+#ifdef LSN_CYCLES_DOC
+		
+		std::string sLine;
+#endif	// #ifdef LSN_CYCLES_DOC
 		for ( auto I = cvoVerifyMe.vCycles.size(); I--; ) {
+#ifdef LSN_CYCLES_DOC
+			if ( i32Cnt ) {
+				lsn::DebugA( (std::to_string( i32Cnt ) + ".1\t").c_str() );
+			}
+#endif	// #ifdef LSN_CYCLES_DOC
 			Tick();
-			/*if ( m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM ) {
-				if ( m_bHandleNmi != I < 1 ) {
-					::OutputDebugStringA( "\r\nDouble-check polling.\r\n" );
-				}
-			}*/
+
+#ifdef LSN_CYCLES_DOC
+			if ( i32Cnt ) {
+				lsn::DebugA( ("\r\n" + std::to_string( i32Cnt ) + ".2\t").c_str() );
+			}
+			else {
+				lsn::DebugA( " -X.2\t" );
+			}
+#endif	// #ifdef LSN_CYCLES_DOC
+			++i32Cnt;
 			m_bDetectedNmi = true;
 			TickPhi2();
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\r\n" );
+#endif	// #ifdef LSN_CYCLES_DOC
 			if ( m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_JAM && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BRK &&
 				m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BPL && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BNE && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BVC && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BVS &&
 				m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BCC && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BCS && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BEQ && m_iInstructionSet[m_fsState.ui16OpCode].iInstruction != LSN_I_BMI ) {
@@ -240,7 +257,14 @@ namespace lsn {
 				}
 			}
 		}
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( (std::to_string( i32Cnt ) + ".1\t").c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 		Tick();
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( (std::string( "\r\n" ) + std::to_string( i32Cnt ) + ".2\tRead PC\tStore as OpCode.\r\n").c_str() );
+		lsn::DebugA( " +X.1\t\t\r\n\r\n\r\n" );
+#endif	// #ifdef LSN_CYCLES_DOC
 		
 		// Verify.
 #define LSN_VURIFFY( REG )																																												\
@@ -299,7 +323,7 @@ namespace lsn {
 				}
 			}
 		}
-		return true;
+		return i32Cnt;
 	}
 #endif	// #ifdef LSN_CPU_VERIFY
 
@@ -431,6 +455,16 @@ namespace lsn {
 	/** Performs an add-with-carry with an operand, setting flags C, N, V, and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Adc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "Result16 = u16(A) + u16(Operand) + C flag.\r\n\t\t"
+			"V flag = (~(u16(A) ^ u16(Operand)) & (u16(A) ^ Result16) & 0x0080) != 0.\r\n\t\t"
+			"A = u8(Result16).\r\n\t\t"
+			"C flag = Result16 > $FF, N flag = (Result16 & $80), Z flag = (A == $00)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<_bIncPc>();
 
 		Adc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
@@ -441,15 +475,28 @@ namespace lsn {
 	void CCpu6502::Add_XAndOperand_To_AddrOrPntr_8bit() {
 		LSN_INSTR_START_PHI1( _bRead );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
 		}
 
 		if constexpr ( _bToAddr ) {
 			m_fsState.ui16Address = uint8_t( m_fsState.ui8Operand + m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Address = u8(Operand + X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui16Pointer = uint8_t( m_fsState.ui8Operand + m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Pointer = u8(Operand + X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -462,15 +509,28 @@ namespace lsn {
 	void CCpu6502::Add_XAndPtrOrAddr_To_AddrOrPntr_8bit() {
 		LSN_INSTR_START_PHI1( _bRead );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
 		}
 
 		if constexpr ( _bToAddr ) {
 			m_fsState.ui16Address = uint8_t( m_fsState.ui16Pointer + m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Address = u8(Pointer + X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui16Pointer = uint8_t( m_fsState.ui16Address + m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Pointer = u8(Address + X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -483,6 +543,13 @@ namespace lsn {
 	void CCpu6502::Add_XAndPtrOrAddr_To_AddrOrPtr() {
 		LSN_INSTR_START_PHI1( _bRead );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
 		}
@@ -493,6 +560,12 @@ namespace lsn {
 			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
 
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Target = Pointer + X.\r\n\t\t"
+				"Address.L = Target.L.\r\n\t\t"
+				"Address.H = Pointer.H.\r\n\t\t"
+				"BoundaryCrossed = Pointer.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui16Target = m_fsState.ui16Address + m_fsState.rRegs.ui8X;
@@ -500,6 +573,12 @@ namespace lsn {
 			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
 
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Target = Address + X.\r\n\t\t"
+				"Pointer.L = Target.L.\r\n\t\t"
+				"Pointer.H = Address.H.\r\n\t\t"
+				"BoundaryCrossed = Address.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -512,6 +591,13 @@ namespace lsn {
 	void CCpu6502::Add_YAndPtrOrAddr_To_AddrOrPtr() {
 		LSN_INSTR_START_PHI1( _bRead );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
 		}
@@ -522,6 +608,12 @@ namespace lsn {
 			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
 
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Target = Pointer + Y.\r\n\t\t"
+				"Address.L = Target.L.\r\n\t\t"
+				"Address.H = Pointer.H.\r\n\t\t"
+				"BoundaryCrossed = Pointer.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui16Target = m_fsState.ui16Address + m_fsState.rRegs.ui8Y;
@@ -529,6 +621,12 @@ namespace lsn {
 			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
 
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Target = Address + Y.\r\n\t\t"
+				"Pointer.L = Target.L.\r\n\t\t"
+				"Pointer.H = Address.H.\r\n\t\t"
+				"BoundaryCrossed = Address.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		LSN_NEXT_FUNCTION;
@@ -538,6 +636,12 @@ namespace lsn {
 
 	/** Performs A = A & OP.  Sets flags C, N, and Z, increases PC. */
 	void CCpu6502::Anc_IncPc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "A &= Operand. C flag = (A & $80), N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<true>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
@@ -549,6 +653,14 @@ namespace lsn {
 	/** Performs A = A & OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::And_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A &= Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
@@ -559,6 +671,11 @@ namespace lsn {
 
 	/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
 	void CCpu6502::Ane_IncPc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "A = ((A | $EE) & X & Operand). N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<true>();
 
 		// "N and Z are set according to the value of the accumulator before the instruction executed" does not seem to be true.
@@ -571,6 +688,18 @@ namespace lsn {
 	/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Arr_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A &= Operand.\r\n\t\t"
+			"HighBit = (C flag) << 7.\r\n\t\t"
+			"C flag = (A & $80).\r\n\t\t"
+			"A = (A >> 1) | HighBit.\r\n\t\t"
+			"V flag = (C flag ^ ((A >> 5) & $01)).\r\n\t\t"
+			"N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
@@ -595,6 +724,11 @@ namespace lsn {
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = (Operand & $80). Operand <<= 1. N flag = (Operand & $80), Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -610,10 +744,23 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = (A & $80). A <<= 1. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
 	void CCpu6502::Asr_IncPc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "A &= Operand.\r\n\t\t"
+			"C flag = (A & $01).\r\n\t\t"
+			"A = (A >> 1).\r\n\t\t"
+			"N flag = 0, Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<true>();
 
 		m_fsState.rRegs.ui8A &= m_fsState.ui8Operand;
@@ -623,8 +770,6 @@ namespace lsn {
 
 		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
-
-		
 	}
 
 	/** Sets flags N, V and Z according to a bit test. */
@@ -634,6 +779,11 @@ namespace lsn {
 		SetBit<V()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & (1 << 6)) != 0x00 );
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & (1 << 7)) != 0x00 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !(m_fsState.ui8Operand & m_fsState.rRegs.ui8A) );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "V flag = (Operand & $40), N flag = (Operand & $80), Z flag = !(Operand & A)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
@@ -642,6 +792,13 @@ namespace lsn {
 		LSN_INSTR_START_PHI1( true );
 
 		m_fsState.bTakeJump = (m_fsState.rRegs.ui8Status & _uBit) == (_uVal * _uBit);
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( std::format( "Jump = (P & ${:02X}) == ${:02X}.", _uBit, _uVal * _uBit ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_UPDATE_PC;
 
 		LSN_NEXT_FUNCTION;
@@ -673,11 +830,28 @@ namespace lsn {
 			LSN_NEXT_FUNCTION;
 		}
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tStore as Operand.\r\n\t\t" );
+		lsn::DebugA( "If !Jump, poll interrupts.\r\n\t\t"
+			"Otherwise Address = i16(i8(Operand)) + PC + 1.\r\n\t\t"
+			"BoundaryCrossed = Address.H != PC.H.\r\n\t\t"
+			"If !BoundaryCrossed, poll interrupts." );
+		/*lsn::DebugA( "If !Jump, poll interrupts and end (next half-cycle is 4.1).\r\n\t\t"
+			"Otherwise Address = i16(i8(Operand)) + PC + 1.\r\n\t\t"
+			"BoundaryCrossed = Address.H != PC.H.\r\n\t\t"
+			"If !BoundaryCrossed, poll interrupts." );*/
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_INSTR_END_PHI2;
 	}
 
 	/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
 	void CCpu6502::Branch_Cycle2() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Inc. PC. If !Jump, end (next half-cycle is 4.2)." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if ( !m_fsState.bTakeJump ) {
 			BeginInst<true>();
 		}
@@ -697,6 +871,10 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tDiscard." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if ( !m_fsState.bBoundaryCrossed ) {
 			LSN_FINISH_INST( false );
 		}
@@ -709,6 +887,10 @@ namespace lsn {
 
 	/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
 	void CCpu6502::Branch_Cycle3() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "PC.L = Address.L. If !BoundaryCrossed, end (next half-cycle is 4.2)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		if ( !m_fsState.bBoundaryCrossed ) {
 			BeginInst();
 
@@ -730,6 +912,10 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tDiscard. Poll interrupts." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_FINISH_INST( true );
 
 		LSN_INSTR_END_PHI2;
@@ -738,6 +924,11 @@ namespace lsn {
 	/** 4th cycle of branch instructions. Page boundary was crossed. */
 	void CCpu6502::Branch_Cycle4() {
 		BeginInst();
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "PC.H = Address.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		m_fsState.rRegs.ui8Pc[1] = m_fsState.ui8Address[1];
 	}
@@ -748,6 +939,11 @@ namespace lsn {
 		
 		m_bBrkIsReset = false;
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "PC = Address." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Clears the carry bit. */
@@ -755,6 +951,11 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<C(), false>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = 0." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Clears the decimal flag. */
@@ -762,6 +963,11 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<D(), false>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "D flag = 0." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Clears the IRQ flag. */
@@ -769,6 +975,11 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<I(), false>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "I flag = 0." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Clears the overflow flag. */
@@ -776,11 +987,24 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<V(), false>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "V flag = 0." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Compares A with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cmp_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "C flag = (A >= Operand), N flag = ((A - Operand) & $80), Z flag = (A == Operand)." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
@@ -789,6 +1013,13 @@ namespace lsn {
 	/** Compares X with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cpx_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "C flag = (X >= Operand), N flag = ((X - Operand) & $80), Z flag = (X == Operand)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8X, m_fsState.ui8Operand );
@@ -797,6 +1028,13 @@ namespace lsn {
 	/** Compares Y with OP. */
 	template <bool _bIncPc>
 	void CCpu6502::Cpy_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "C flag = (Y >= Operand), N flag = ((Y - Operand) & $80), Z flag = (Y == Operand)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<_bIncPc>();
 
 		Cmp( m_fsState.rRegs.ui8Y, m_fsState.ui8Operand );
@@ -809,6 +1047,11 @@ namespace lsn {
 		constexpr uint8_t ui8Mask = M() | X();
 		m_fsState.rRegs.ui8Status = (m_fsState.ui8Operand & ~ui8Mask) | (m_fsState.rRegs.ui8Status & ui8Mask);
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Mask = (M flag | X flag).\r\n\t\tP = (Operand & ~Mask) | (P & Mask)." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -820,6 +1063,14 @@ namespace lsn {
 		LSN_INSTR_START_PHI1( true );
 
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Target;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "PC = Target." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bIncPc ) {
 			LSN_UPDATE_PC;
@@ -837,6 +1088,10 @@ namespace lsn {
 		LSN_INSTR_START_PHI2_READ( m_fsState.vBrkVector + 1, ui8Tmp );
 		m_fsState.ui8Address[1] = ui8Tmp;
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read Vector + 1\tStore as Address.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
 		}
@@ -853,6 +1108,9 @@ namespace lsn {
 		LSN_INSTR_START_PHI2_READ( m_fsState.vBrkVector, ui8Tmp );
 		m_fsState.ui8Address[0] = ui8Tmp;
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read Vector\tStore as Address.L." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
@@ -865,6 +1123,11 @@ namespace lsn {
 
 		--m_fsState.ui8Operand;
 		Cmp( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Operand -= 1.\r\n\t\tC flag = (A >= Operand), N flag = ((A - Operand) & $80), Z flag = (A == Operand)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
@@ -879,6 +1142,11 @@ namespace lsn {
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Operand -= 1. N flag = (Operand & $80), Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -892,6 +1160,11 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "X -= 1. N flag = (X & $80), Z flag = !X." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs Y--.  Sets flags N and Z. */
@@ -902,11 +1175,24 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Y -= 1. N flag = (Y & $80), Z flag = !Y." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs A = A ^ OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Eor_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A ^= Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A ^= m_fsState.ui8Operand;
@@ -919,6 +1205,10 @@ namespace lsn {
 	void CCpu6502::Fetch_Opcode_IncPc_Phi2() {
 		uint8_t ui8Op;
 		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tStore as OpCode." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 #ifdef LSN_CPU_VERIFY
 		m_fsState.ui16PcModify = 1;
@@ -957,6 +1247,10 @@ namespace lsn {
 		uint8_t ui8Op;
 		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Op );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tDiscard." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
 		}
@@ -976,6 +1270,10 @@ namespace lsn {
 
 		m_fsState.ui16PcModify = 1;
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read PC\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
 		}
@@ -994,11 +1292,17 @@ namespace lsn {
 			// PC -> Address.
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui8Address[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read PC\tStore as Address.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			// PC -> Pointer.
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui8Pointer[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read PC\tStore as Pointer.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		m_fsState.ui16PcModify = 1;
@@ -1021,11 +1325,17 @@ namespace lsn {
 			// PC -> Address.
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui16Address = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read PC\tStore as Address.L." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			// PC -> Pointer.
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui16Pointer = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read PC\tStore as Pointer.L." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		m_fsState.ui16PcModify = 1;
@@ -1042,9 +1352,17 @@ namespace lsn {
 
 		if constexpr ( _bFromAddr ) {
 			m_fsState.ui8Pointer[1] = m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( "Pointer.H = Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui8Address[1] = m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( "Address.H = Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}		
 
 		LSN_NEXT_FUNCTION;
@@ -1062,12 +1380,26 @@ namespace lsn {
 			m_fsState.ui8Pointer[0] = m_fsState.ui8Target[0];
 			m_fsState.ui8Pointer[1] = m_fsState.ui8Address[1];
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Pointer[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( "Target = Address + Y.\r\n\t\t"
+				"Pointer.L = Target.L.\r\n\t\t"
+				"Pointer.H = Address.H.\r\n\t\t"
+				"BoundaryCrossed = Pointer.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			m_fsState.ui16Target = m_fsState.ui16Pointer + m_fsState.rRegs.ui8Y;
 			m_fsState.ui8Address[0] = m_fsState.ui8Target[0];
 			m_fsState.ui8Address[1] = m_fsState.ui8Pointer[1];
 			m_fsState.bBoundaryCrossed = m_fsState.ui8Address[1] != m_fsState.ui8Target[1];
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( "Target = Pointer + Y.\r\n\t\t"
+				"Address.L = Target.L.\r\n\t\t"
+				"Address.H = Pointer.H.\r\n\t\t"
+				"BoundaryCrossed = Address.H != Target.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}		
 
 		LSN_NEXT_FUNCTION;
@@ -1084,6 +1416,10 @@ namespace lsn {
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 		
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Operand += 1. N flag = (Operand & $80), Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
@@ -1098,6 +1434,11 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8X & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8X );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "X += 1. N flag = (X & $80), Z flag = !X." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs Y++.  Sets flags N and Z. */
@@ -1108,6 +1449,11 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8Y & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8Y );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Y += 1. N flag = (Y & $80), Z flag = !Y." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
@@ -1117,33 +1463,19 @@ namespace lsn {
 		++m_fsState.ui8Operand;
 		Sbc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 
-		LSN_NEXT_FUNCTION;
-
-		LSN_INSTR_END_PHI1;
-	}
-
-	/** Jams the machine. */
-	void CCpu6502::Jam() {
-		LSN_INSTR_START_PHI1( true );
-
-		if ( m_fsState.bAllowWritingToPc ) {
-			m_fsState.rRegs.ui16Pc += uint16_t( -int16_t( m_fsState.ui16PcModify ) );
-		}
-		m_fsState.ui16PcModify = 0;
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Operand += 1.\r\n\t\t"
+			"Val = u16(Operand) ^ $00FF.\r\n\t\t"
+			"Result = u16(A) + Val + C flag.\r\n\t\t"
+			"V flag = ((u16(A) ^ Result) & (Val ^ Result) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result).\r\n\t\t"
+			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
-	}
-
-	/** Jams the machine. */
-	void CCpu6502::Jam_Phi2() {
-		uint8_t ui8Op;
-		LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc + 1, ui8Op );
-
-		LSN_NEXT_FUNCTION_BY( -1 );
-
-		LSN_INSTR_END_PHI2;
 	}
 
 	/** Copies m_fsState.ui16Address into PC. */
@@ -1152,10 +1484,21 @@ namespace lsn {
 
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
 		m_fsState.ui16PcModify = 0;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "PC = Address." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Copies m_fsState.ui16Address into PC, adjusts S. */
 	void CCpu6502::Jsr_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_STACK;
+		lsn::DebugA( "PC = Address." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<false, true>();
 
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Address;
@@ -1165,6 +1508,14 @@ namespace lsn {
 	/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Las_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A = X = S = (Operand & S). N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.rRegs.ui8S = (m_fsState.ui8Operand & m_fsState.rRegs.ui8S);
@@ -1176,6 +1527,14 @@ namespace lsn {
 	/** Performs A = X = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Lax_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A = X = Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
@@ -1187,6 +1546,14 @@ namespace lsn {
 	/** Performs A = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Lda_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A = Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A = m_fsState.ui8Operand;
@@ -1198,6 +1565,14 @@ namespace lsn {
 	/** Performs X = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ldx_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "X = Operand. N flag = (X & $80), Z flag = !X." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8X = m_fsState.ui8Operand;
@@ -1209,6 +1584,14 @@ namespace lsn {
 	/** Performs Y = OP.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ldy_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "Y = Operand. N flag = (Y & $80), Z flag = !Y." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8Y = m_fsState.ui8Operand;
@@ -1227,6 +1610,11 @@ namespace lsn {
 		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = (Operand & $01). Operand >>= 1. N flag = 0, Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1241,10 +1629,24 @@ namespace lsn {
 
 		SetBit<N(), false>( m_fsState.rRegs.ui8Status );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = (A & $01). A >>= 1. N flag = 0, Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
 	void CCpu6502::Lxa_IncPc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "For Single-Step Tests:\r\n\t\t"
+			"  A = X = ((A | $EE) & Operand).\r\n\t\t"
+			"Otherwise:\r\n\t\t"
+			"  A = X = ((A | $FF) & Operand).\r\n\t\t"
+			"N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<true>();
 
 		LSN_UPDATE_PC;
@@ -1262,6 +1664,17 @@ namespace lsn {
 	/** Generic null operation. */
 	template <bool _bRead, bool _bIncPc, bool _bAdjS, bool _bBeginInstr>
 	void CCpu6502::Null() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		if constexpr ( _bAdjS ) {
+			LSN_PRINT_STACK;
+		}
+		lsn::DebugA( "" );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bBeginInstr ) {
 			BeginInst<_bIncPc, _bAdjS>();
 		}
@@ -1284,6 +1697,17 @@ namespace lsn {
 	/** Generic null operation for BRK that can be either a read or write, depending on RESET. */
 	template <bool _bIncPc, bool _bAdjS, bool _bBeginInstr>
 	void CCpu6502::Null_RorW() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		if constexpr ( _bAdjS ) {
+			LSN_PRINT_STACK;
+		}
+		lsn::DebugA( "" );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		if constexpr ( _bBeginInstr ) {
 			BeginInst<_bIncPc, _bAdjS>();
 		}
@@ -1311,6 +1735,14 @@ namespace lsn {
 	/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Ora_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "A |= Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		m_fsState.rRegs.ui8A |= m_fsState.ui8Operand;
@@ -1326,6 +1758,11 @@ namespace lsn {
 		m_fsState.ui8Operand = m_fsState.rRegs.ui8Status;
 		SetBit<X() | M(), true>( m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "Operand = S. X flag = 1, M flag = 1." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1338,6 +1775,11 @@ namespace lsn {
 		m_fsState.rRegs.ui8A = m_fsState.ui8Operand;
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "A = Operand. N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Pulls the status byte, unsets X, sets M. */
@@ -1345,16 +1787,11 @@ namespace lsn {
 		BeginInst();
 
 		m_fsState.rRegs.ui8Status = (m_fsState.ui8Operand & ~X()) | M();
-	}
 
-	/** Pulls from the stack, stores in A. */
-	template <int8_t _i8SOff>
-	void CCpu6502::Pull_To_A_Phi2() {
-		LSN_POP( m_fsState.rRegs.ui8A );
-
-		LSN_NEXT_FUNCTION;
-
-		LSN_INSTR_END_PHI2;
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "P = ((Operand & ~(X flag)) | (M flag))." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Pulls from the stack, stores in m_fsState.ui8Operand. */
@@ -1362,22 +1799,11 @@ namespace lsn {
 	void CCpu6502::Pull_To_Operand_Phi2() {
 		LSN_POP( m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Read u8(S{:+}) | $0100\tStore as Operand.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
-
-		LSN_INSTR_END_PHI2;
-	}
-
-	/** Pulls from the stack, stores in m_fsState.ui16Target.H. */
-	template <int8_t _i8SOff, bool _bEndInstr>
-	void CCpu6502::Pull_To_Target_H_Phi2() {
-		LSN_POP( m_fsState.ui8Target[0] );
-
-		if constexpr ( _bEndInstr ) {
-			LSN_FINISH_INST( true );
-		}
-		else {
-			LSN_NEXT_FUNCTION;
-		}
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1386,6 +1812,10 @@ namespace lsn {
 	template <int8_t _i8SOff>
 	void CCpu6502::Pull_To_Target_L_Phi2() {
 		LSN_POP( m_fsState.ui8Target[0] );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Read u8(S{:+}) | $0100\tStore as Target.L.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
@@ -1396,6 +1826,10 @@ namespace lsn {
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Push_A_Phi2() {
 		LSN_PUSH( m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite A.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1411,6 +1845,10 @@ namespace lsn {
 	template <int8_t _i8SOff, bool _bEndInstr>
 	void CCpu6502::Push_Operand_Phi2() {
 		LSN_PUSH( m_fsState.ui8Operand );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite Operand.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1434,6 +1872,10 @@ namespace lsn {
 			LSN_PUSH( m_fsState.rRegs.ui8Pc[1] );
 		}
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite PC.H.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
@@ -1451,6 +1893,10 @@ namespace lsn {
 			LSN_PUSH( m_fsState.rRegs.ui8Pc[0] );
 		}
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite PC.L.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
@@ -1467,9 +1913,15 @@ namespace lsn {
 		else {
 			if ( m_fsState.bPushB ) {
 				LSN_PUSH( m_fsState.rRegs.ui8Status | X() );
+#ifdef LSN_CYCLES_DOC
+				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tIf PushB, Write (S | (X flag)), otherwise write S.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 			}
 			else {
 				LSN_PUSH( m_fsState.rRegs.ui8Status );
+#ifdef LSN_CYCLES_DOC
+				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite S.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 			}
 		}
 
@@ -1483,6 +1935,10 @@ namespace lsn {
 	void CCpu6502::ReadAddr_Phi2() {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( _ui16Addr, ui8Tmp );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read ${:04X}\tDiscard." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bMoveBack ) {
 			LSN_NEXT_FUNCTION_BY( -1 );
@@ -1500,6 +1956,10 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( m_fsState.ui8Operand, ui8Tmp );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read Operand\tDiscard." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI2;
@@ -1513,11 +1973,17 @@ namespace lsn {
 			// Pointer -> Address.
 			LSN_INSTR_START_PHI2_READ( (m_fsState.ui8Pointer[1] << 8) | uint8_t( m_fsState.ui8Pointer[0] + 1 ), ui8Tmp );
 			m_fsState.ui8Address[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read (Pointer.H << 8) | u8(Pointer.L + 1)\tStore as Address.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			// Address -> Pointer.
 			LSN_INSTR_START_PHI2_READ( (m_fsState.ui8Address[1] << 8) | uint8_t( m_fsState.ui8Address[0] + 1 ), ui8Tmp );
 			m_fsState.ui8Pointer[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read (Address.H << 8) | u8(Address.L + 1)\tStore as Pointer.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		
 		if constexpr ( _bEndInstr ) {
@@ -1538,11 +2004,17 @@ namespace lsn {
 			// Pointer -> Address.
 			LSN_INSTR_START_PHI2_READ( uint8_t( m_fsState.ui16Pointer + 1 ), ui8Tmp );
 			m_fsState.ui8Address[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read u8(Pointer + 1)\tStore as Address.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			// Address -> Pointer.
 			LSN_INSTR_START_PHI2_READ( uint8_t( m_fsState.ui16Address + 1 ), ui8Tmp );
 			m_fsState.ui8Pointer[1] = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read u8(Address + 1)\tStore as Pointer.H." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1558,11 +2030,17 @@ namespace lsn {
 			// Pointer -> Address.
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
 			m_fsState.ui16Address = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Pointer\tStore as Address." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			// Address -> Pointer.
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
 			m_fsState.ui16Pointer = ui8Tmp;
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Address\tStore as Pointer." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		
 		LSN_NEXT_FUNCTION;
@@ -1576,9 +2054,15 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Address\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Pointer\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		m_fsState.ui8Operand = ui8Tmp;
 
@@ -1598,9 +2082,15 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		if constexpr ( _bFromAddr ) {
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Address, ui8Tmp );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Address\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			LSN_INSTR_START_PHI2_READ( m_fsState.ui16Pointer, ui8Tmp );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Read Pointer\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		m_fsState.ui8Operand = ui8Tmp;
 		
@@ -1618,6 +2108,9 @@ namespace lsn {
 			// A page boundary was crossed, so we can't skip anything or end early.  Keep going normally.
 			LSN_NEXT_FUNCTION;
 		}
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( " If BoundaryCrossed, skip the next cycle." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_INSTR_END_PHI2;
 	}
@@ -1628,6 +2121,10 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( 0x100 | m_fsState.rRegs.ui8S, ui8Tmp );
 		m_fsState.ui8Operand = ui8Tmp;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Read (S | $0100)\tStore as Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1645,6 +2142,10 @@ namespace lsn {
 		uint8_t ui8Tmp;
 		LSN_INSTR_START_PHI2_READ( 0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff ), ui8Tmp );
 		m_fsState.ui8Target[1] = ui8Tmp;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( std::format( "Read u8(S{:+}) | $0100\tStore as Target.H.", _i8SOff ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 		
 		if constexpr ( _bEndInstr ) {
 			LSN_FINISH_INST( true );
@@ -1669,6 +2170,14 @@ namespace lsn {
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "LowBit = C flag. C flag = (Operand & $80).\r\n\t\t"
+			"Operand = (Operand << 1) | LowBit.\r\n\t\t"
+			"A &= Operand.\r\n\t\t"
+			"N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1686,6 +2195,13 @@ namespace lsn {
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "LowBit = C flag. C flag = (Operand & $80).\r\n\t\t"
+			"Operand = (Operand << 1) | LowBit.\r\n\t\t"
+			"N flag = (Operand & $80), Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1702,6 +2218,13 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "LowBit = C flag. C flag = (A & $80).\r\n\t\t"
+			"A = (A << 1) | LowBit.\r\n\t\t"
+			"N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z. */
@@ -1715,6 +2238,13 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.ui8Operand & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.ui8Operand );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "HiBit = (C flag) << 7. C flag = (Operand & $01).\r\n\t\t"
+			"Operand = (Operand >> 1) | HiBit.\r\n\t\t"
+			"N flag = (Operand & $80), Z flag = !Operand." );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
 
@@ -1732,6 +2262,13 @@ namespace lsn {
 
 		SetBit<N()>( m_fsState.rRegs.ui8Status, (m_fsState.rRegs.ui8A & 0x80) != 0 );
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, !m_fsState.rRegs.ui8A );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "HiBit = (C flag) << 7. C flag = (A & $01).\r\n\t\t"
+			"A = (A >> 1) | HiBit.\r\n\t\t"
+			"N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
@@ -1745,6 +2282,17 @@ namespace lsn {
 
 		Adc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "HiBit = (C flag) << 7. C flag = (Operand & $01).\r\n\t\t"
+			"Operand = (Operand >> 1) | HiBit.\r\n\t\t"
+			"N flag = (Operand & $80), Z flag = !Operand.\r\n\t\t"
+			"Result = u16(A) + u16(Operand) + C flag.\r\n\t\t"
+			"V flag = (~(u16(A) ^ u16(Operand)) & (u16(A) ^ Result) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result).\r\n\t\t"
+			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A.");
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1757,10 +2305,21 @@ namespace lsn {
 		//LSN_UPDATE_S;
 
 		m_fsState.rRegs.ui16Pc = m_fsState.ui16Target;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "PC = Target.");
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Adjusts PC and calls BeginInst(). */
 	void CCpu6502::Rts_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "" );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<true>();
 	}
 
@@ -1769,9 +2328,15 @@ namespace lsn {
 	void CCpu6502::Sax_Phi2() {
 		if constexpr ( _bToAddr ) {
 			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Write to Address\tWrite (A & X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X );
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "Write to Pointer\tWrite (A & X)." );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		LSN_FINISH_INST( true );
@@ -1782,6 +2347,18 @@ namespace lsn {
 	/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
 	template <bool _bIncPc>
 	void CCpu6502::Sbc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		if constexpr ( _bIncPc ) {
+			LSN_PRINT_PC;
+		}
+		lsn::DebugA( "Val = u16(Operand) ^ $00FF.\r\n\t\t"
+			"Result = u16(A) + Val + C flag.\r\n\t\t"
+			"V flag = ((u16(A) ^ Result) & (Val ^ Result) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result).\r\n\t\t"
+			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<_bIncPc>();
 
 		Sbc( m_fsState.rRegs.ui8A, m_fsState.ui8Operand );
@@ -1789,6 +2366,15 @@ namespace lsn {
 
 	/** Performs X = (A & X) - OP.  Sets flags C, N and Z. */
 	void CCpu6502::Sbx_IncPc_BeginInst() {
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		LSN_PRINT_PC;
+		lsn::DebugA( "AnX = (A & X).\r\n\t\t"
+			"C flag = (AnX >= Operand).\r\n\t\t"
+			"X = AnX - Operand.\r\n\t\t"
+			"N flag = (X & $80), Z flag = !X." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		BeginInst<true>();
 
 		const uint8_t ui8AnX = (m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X);
@@ -1804,6 +2390,11 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<C(), true>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "C flag = 1." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Sets the decimal flag. */
@@ -1811,6 +2402,11 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<D(), true>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "D flag = 1." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Sets the IRQ flag. */
@@ -1818,15 +2414,26 @@ namespace lsn {
 		BeginInst();
 
 		SetBit<I(), true>( m_fsState.rRegs.ui8Status );
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+		lsn::DebugA( "I flag = 1." );
+#endif	// #ifdef LSN_CYCLES_DOC
 	}
 
 	/** Selects the BRK vector etc. */
 	template <bool _bAdjS>
 	void CCpu6502::SelectBrkVectors() {
 		
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\t" );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bAdjS ) {
 			LSN_INSTR_START_PHI1( true );
+#ifdef LSN_CYCLES_DOC
+			LSN_PRINT_STACK;
+#endif	// #ifdef LSN_CYCLES_DOC
 			LSN_UPDATE_S;
 		}
 		else {
@@ -1836,6 +2443,14 @@ namespace lsn {
 #ifdef LSN_CPU_VERIFY
 		m_fsState.vBrkVector = LSN_V_IRQ_BRK;
 		m_fsState.bPushB = true;
+
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "Use Interrupt flags to select Vector.\r\n\t\t"
+			"If RESET, Vector = $FFFC.\r\n\t\t"
+			"Else if NMI, Vector = $FFFA.\r\n\t\t"
+			"Else if IRQ/BRK, Vector = $FFFE.\r\n\t\t"
+			"If not BRK, PushB = false." );
+#endif	// #ifdef LSN_CYCLES_DOC
 #else
 
 		// Select vector to use.
@@ -1879,6 +2494,11 @@ namespace lsn {
 		SetBit<X(), false>( m_fsState.rRegs.ui8Status );
 		m_fsState.bAllowWritingToPc = true;
 
+#ifdef LSN_CYCLES_DOC
+		lsn::DebugA( "\tI flag = 1, M flag = 1, X flag = 0.\r\n\t\t"
+			"Enable updates to PC." );
+#endif	// #ifdef LSN_CYCLES_DOC
+
 		LSN_NEXT_FUNCTION;
 
 		LSN_INSTR_END_PHI1;
@@ -1903,6 +2523,15 @@ namespace lsn {
 				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "High = Address.H.\r\n\t\t"
+				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
+				"If RDY went low {} cycles ago, High = $FFFF.\r\n\t\t"
+				"Val = (High & A & X).\r\n\t"
+				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n"
+				"Otherwise write to Address\tVal.", _uRdyCnt ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
 			uint16_t ui16High = m_fsState.ui8Pointer[1];
@@ -1920,6 +2549,15 @@ namespace lsn {
 				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
+#ifdef LSN_CYCLES_DOC
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "High = Pointer.H.\r\n\t\t"
+				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
+				"If RDY went low {} cycles ago, High = $FFFF.\r\n\t\t"
+				"Val = (High & A & X).\r\n\t"
+				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n"
+				"Otherwise write to Pointer\tVal.", _uRdyCnt ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		/* Stores A AND X AND (high-byte of addr. + 1) at addr.

@@ -217,7 +217,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevInstance*/, _In_ LPWSTR /*_lpCmdLine*/, _In_ int /*_nCmdShow*/ ) {
 	std::unique_ptr<lsn::CCpuBus> pbBus = std::make_unique<lsn::CCpuBus>();
 	pbBus->ApplyMap();
-	std::unique_ptr<lsn::CCpu6502> pcCpu = std::make_unique<lsn::CCpu6502>( pbBus.get() );
+	std::unique_ptr<lsn::CCpu6502> pcCpu = std::make_unique<lsn::CCpu6502>( pbBus.get(), nullptr );
 
 	std::wstring wsBuffer;
 	const DWORD dwSize = 0xFFFF;
@@ -226,7 +226,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 	{
-		for ( uint32_t I = 0x00; I < 256; ++I ) {
+		for ( uint32_t I = 0x00; I < 0x01; ++I ) {
 			std::wstring wsFile;
 			lson::CJson jSon;
 			std::vector<uint8_t> vBytes;
@@ -244,13 +244,45 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 					pcCpu->ResetToKnown();
 					pbBus->ApplyMap();
 
+					int32_t i32MinSize = INT32_MAX, i32MaxSize = 0;
+
 					const lson::CJsonContainer::LSON_JSON_VALUE & jvRoot = jSon.GetContainer()->GetValue( jSon.GetContainer()->GetRoot() );
 					for ( size_t J = 0; J < jvRoot.vArray.size(); ++J ) {
+						
+						if ( J >= 9000 && i32MinSize != lsn::CCpu6502::InstrTable()[I].ui8TotalCycles && lsn::CCpu6502::InstrTable()[I].iInstruction != lsn::CCpu6502::LSN_I_JAM ) {
+							lsn::DebugLine( std::format( "\r\n\r\n\r\n*** CHECK CYCLE COUNT {} -> {} ***\r\n\r\n\r\n\r\n\r\n", lsn::CCpu6502::InstrTable()[I].ui8TotalCycles,
+								i32MinSize ) );
+						}
+
+#ifdef LSN_CYCLES_DOC
+						if ( i32MinSize == i32MaxSize ) {
+							lsn::DebugLine( std::format( "{} ({:02X})\tCycles: {}\tSize: {}\r\n"
+							"\t{}\r\nCycle\tR/W\tDesc.", lsn::CCpu6502::m_smdInstMetaData[lsn::CCpu6502::InstrTable()[I].iInstruction].pcName, I,
+								i32MinSize,
+								lsn::CCpu6502::InstrTable()[I].ui8Size,
+								lsn::CCpu6502::InstrTable()[I].pcTypeString ) );
+						}
+						else {
+							
+							lsn::DebugLine( std::format( "{} ({:02X})\tCycles: {}-{}\tSize: {}\r\n"
+							"\t{}\r\nCycle\tR/W\tDesc.", lsn::CCpu6502::m_smdInstMetaData[lsn::CCpu6502::InstrTable()[I].iInstruction].pcName, I,
+								i32MinSize, i32MaxSize,
+								lsn::CCpu6502::InstrTable()[I].ui8Size,
+								lsn::CCpu6502::InstrTable()[I].pcTypeString ) );
+						}
+#endif	// #ifdef LSN_CYCLES_DOC
+
 						const lson::CJsonContainer::LSON_JSON_VALUE & jvThis = jSon.GetContainer()->GetValue( jvRoot.vArray[J] );
-						if ( !pcCpu->RunJsonTest( jSon, jvThis ) ) {
-							//volatile int hkhj = 0;
+						int32_t i32Cycles = pcCpu->RunJsonTest( jSon, jvThis );
+						if ( i32Cycles > 0 ) {
+							i32MinSize = std::min( i32MinSize, i32Cycles );
+							i32MaxSize = std::max( i32MaxSize, i32Cycles );
 						}
 					}
+
+#ifdef LSN_CYCLES_DOC
+					lsn::DebugLine( std::format( "Min: {}\tMax: {}", i32MinSize, i32MaxSize ).c_str() );
+#endif	// #ifdef LSN_CYCLES_DOC
 
 					::OutputDebugStringA( "JSON NOT FAIL\r\n" );
 					::OutputDebugStringW( wcFile );

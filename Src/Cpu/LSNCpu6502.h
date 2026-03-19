@@ -65,8 +65,19 @@
 #define LSN_FROM_P											false
 
 #ifdef LSN_CPU_VERIFY
-#define LSN_CYCLES_DOC													1
+#define LSN_CYCLES_DOC										1
 #endif	// #ifdef LSN_CPU_VERIFY
+#ifdef LSN_CYCLES_DOC
+#define LSN_PRINT_STACK																																			\
+	if ( int8_t( m_fsState.ui8SModify ) < 0 ) { lsn::DebugA( ("Dec. SP by " + std::to_string( -int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }			\
+	else if ( int8_t( m_fsState.ui8SModify ) > 0 ) { lsn::DebugA( ("Inc. SP by " + std::to_string( int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }
+#define LSN_PRINT_PC																																			\
+	if ( int16_t( m_fsState.ui16PcModify ) < 0 ) { lsn::DebugA( "Dec. PC. " ); }																				\
+	else if ( int16_t( m_fsState.ui16PcModify ) > 0 ) { lsn::DebugA( "Inc. PC. " ); }
+#else
+#define LSN_PRINT_STACK
+#define LSN_PRINT_PC
+#endif	// #ifdef LSN_CYCLES_DOC
 
 
 namespace lsn {
@@ -146,6 +157,7 @@ namespace lsn {
 			LSN_ADDRESSING_MODES							amAddrMode;																		/**< Addressing mode. Used only for debugging, disassembling, etc. */
 			uint8_t											ui8Size;																		/**< Size in bytes of the instruction. Used only for debugging, disassembling, etc. */
 			LSN_INSTRUCTIONS								iInstruction;																	/**< The instruction. */
+			const char *									pcTypeString;																	/**< The type string of the instruction. */
 		};
 
 		/** Instruction data for assembly/disassembly. */
@@ -283,9 +295,16 @@ namespace lsn {
 		 *
 		 * \param _jJson The JSON file.
 		 * \param _jvTest The test to run.
-		 * \return Returns true if te test succeeds, false otherwise.
+		 * \return Returns -1 on error, the number of cycles otherwise.
 		 */
-		bool												RunJsonTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest );
+		int32_t												RunJsonTest( lson::CJson &_jJson, const lson::CJsonContainer::LSON_JSON_VALUE &_jvTest );
+
+		/**
+		 * Gets the instruction table.
+		 * 
+		 * \return Returns a constant pointer to the instruction table (256 entries).
+		 **/
+		static inline const LSN_INSTR *						InstrTable() { return m_iInstructionSet; }
 #endif	// #ifdef LSN_CPU_VERIFY
 
 		/**
@@ -305,6 +324,10 @@ namespace lsn {
 		void												SetMapper( CMapperBase * _pmbMapper ) {
 			m_pmbMapper = _pmbMapper;
 		}
+
+
+		// == Members.
+		static const LSN_INSTR_META_DATA					m_smdInstMetaData[LSN_I_TOTAL];														/**< Metadata for the instructions (for assembly and disassembly etc.) */
 
 
 	protected :
@@ -392,7 +415,7 @@ namespace lsn {
 		uint8_t												m_ui8InputsPoll[8];
 		
 		static LSN_INSTR									m_iInstructionSet[256];																/**< The instruction set. */
-		static const LSN_INSTR_META_DATA					m_smdInstMetaData[LSN_I_TOTAL];														/**< Metadata for the instructions (for assembly and disassembly etc.) */
+		
 
 
 #ifdef LSN_CPU_VERIFY
@@ -958,12 +981,6 @@ namespace lsn {
 		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
 		void												Isb();
 
-		/** Jams the machine. */
-		void												Jam();
-
-		/** Jams the machine. */
-		void												Jam_Phi2();
-
 		/** Copies m_ui16Address into PC. */
 		void												Jmp_BeginInst();
 
@@ -1020,17 +1037,9 @@ namespace lsn {
 		/** Pulls the status byte, unsets X, sets M. */
 		void												Plp_BeginInst();
 
-		/** Pulls from the stack, stores in A. */
-		template <int8_t _i8SOff = 0>
-		void												Pull_To_A_Phi2();
-
 		/** Pulls from the stack, stores in m_fsState.ui8Operand. */
 		template <int8_t _i8SOff = 0>
 		void												Pull_To_Operand_Phi2();
-
-		/** Pulls from the stack, stores in m_ui16Target.H. */
-		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
-		void												Pull_To_Target_H_Phi2();
 
 		/** Pulls from the stack, stores in m_ui16Target.L. */
 		template <int8_t _i8SOff = 0>
@@ -1293,11 +1302,8 @@ namespace lsn {
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
 	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
-		// If the value in the register is equal or greater than the compared value, the Carry will be set.
 		SetBit<C()>( m_fsState.rRegs.ui8Status, _ui8RegVal >= _ui8OpVal );
-		// The equal (Z) and negative (N) flags will be set based on equality or lack thereof...
 		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == _ui8OpVal );
-		// ...and the sign (IE A>=$80) of the register.
 		SetBit<N()>( m_fsState.rRegs.ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 
