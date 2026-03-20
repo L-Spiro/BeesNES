@@ -58,7 +58,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 03
 		LSN_INDIRECT_X_RMW( SLO, Slo )
@@ -128,7 +128,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 13
 		LSN_INDIRECT_Y_RMW( SLO, Slo )
@@ -204,7 +204,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 23
 		LSN_INDIRECT_X_RMW( RLA, Rla )
@@ -273,7 +273,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 33
 		LSN_INDIRECT_Y_RMW( RLA, Rla )
@@ -349,7 +349,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 43
 		LSN_INDIRECT_X_RMW( SRE, Sre )
@@ -422,7 +422,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 53
 		LSN_INDIRECT_Y_RMW( SRE, Sre )
@@ -497,7 +497,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 63
 		LSN_INDIRECT_X_RMW( RRA, Rra )
@@ -573,7 +573,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 73
 		LSN_INDIRECT_Y_RMW( RRA, Rra )
@@ -716,7 +716,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// 93
 #define LSN_SHA	LSN_TO_P, 5
@@ -863,7 +863,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// B3
 		LSN_INDIRECT_Y_R( LAX, Lax_BeginInst )
@@ -998,7 +998,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// D3
 		LSN_INDIRECT_Y_RMW( DCP, Dcp )
@@ -1125,7 +1125,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFE, false>,
 			&CCpu6502::Null<LSN_R>,														&CCpu6502::ReadAddr_Phi2<0xFFFF, true>, },
-		3, LSN_AM_IMPLIED, 2, LSN_I_JAM, "Implied"
+		3, LSN_AM_IMPLIED, 1, LSN_I_JAM, "Implied"
 	},
 	{	// F3
 		LSN_INDIRECT_Y_RMW( ISB, Isb )
