@@ -796,7 +796,7 @@ namespace lsn {
 #ifdef LSN_CYCLES_DOC
 		lsn::DebugA( "\t" );
 		LSN_PRINT_PC;
-		lsn::DebugA( std::format( "Jump = (P & ${:02X}) == ${:02X}.", _uBit, _uVal * _uBit ).c_str() );
+		lsn::DebugA( std::format( "Jump = ((P & ${:02X}) == ${:02X}).", _uBit, _uVal * _uBit ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_UPDATE_PC;
@@ -1914,13 +1914,13 @@ namespace lsn {
 			if ( m_fsState.bPushB ) {
 				LSN_PUSH( m_fsState.rRegs.ui8Status | X() );
 #ifdef LSN_CYCLES_DOC
-				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tIf PushB, Write (S | (X flag)), otherwise write S.", _i8SOff ).c_str() );
+				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tIf PushB, Write (P | (X flag)), otherwise write P.", _i8SOff ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 			}
 			else {
 				LSN_PUSH( m_fsState.rRegs.ui8Status );
 #ifdef LSN_CYCLES_DOC
-				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite S.", _i8SOff ).c_str() );
+				lsn::DebugA( std::format( "Write to u8(S{:+}) | $0100\tWrite P.", _i8SOff ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 			}
 		}
