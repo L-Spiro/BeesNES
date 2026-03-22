@@ -226,7 +226,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 	{
-		for ( uint32_t I = 0x1E; I < 0x1F; ++I ) {
+		for ( uint32_t I = 0x2C; I < 0x2D; ++I ) {
 			std::wstring wsFile;
 			lson::CJson jSon;
 			std::vector<uint8_t> vBytes;
@@ -248,7 +248,6 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 
 					const lson::CJsonContainer::LSON_JSON_VALUE & jvRoot = jSon.GetContainer()->GetValue( jSon.GetContainer()->GetRoot() );
 					for ( size_t J = 0; J < jvRoot.vArray.size(); ++J ) {
-						
 						if ( J >= 9000 && i32MinSize != lsn::CCpu6502::InstrTable()[I].ui8TotalCycles && lsn::CCpu6502::InstrTable()[I].iInstruction != lsn::CCpu6502::LSN_I_JAM ) {
 							lsn::DebugLine( std::format( "\r\n\r\n\r\n*** CHECK CYCLE COUNT {} -> {} ***\r\n\r\n\r\n\r\n\r\n", lsn::CCpu6502::InstrTable()[I].ui8TotalCycles,
 								i32MinSize ) );
