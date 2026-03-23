@@ -834,7 +834,7 @@ namespace lsn {
 		lsn::DebugA( "Read PC\tStore as Operand.\r\n\t\t" );
 		lsn::DebugA( "If !Jump, poll interrupts.\r\n\t\t"
 			"Otherwise Address = i16(i8(Operand)) + PC + 1.\r\n\t\t"
-			"BoundaryCrossed = Address.H != PC.H.\r\n\t\t"
+			"BoundaryCrossed = Address.H != (PC + 1).H.\r\n\t\t"
 			"If !BoundaryCrossed, poll interrupts." );
 		/*lsn::DebugA( "If !Jump, poll interrupts and end (next half-cycle is 4.1).\r\n\t\t"
 			"Otherwise Address = i16(i8(Operand)) + PC + 1.\r\n\t\t"
