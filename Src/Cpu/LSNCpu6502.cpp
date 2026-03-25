@@ -1326,7 +1326,7 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui16Address = ui8Tmp;
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "Read PC\tStore as Address.L." );
+			lsn::DebugA( "Read PC\tStore as Address." );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
@@ -1334,7 +1334,7 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_READ( m_fsState.rRegs.ui16Pc, ui8Tmp );
 			m_fsState.ui16Pointer = ui8Tmp;
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "Read PC\tStore as Pointer.L." );
+			lsn::DebugA( "Read PC\tStore as Pointer." );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
@@ -2109,7 +2109,7 @@ namespace lsn {
 			LSN_NEXT_FUNCTION;
 		}
 #ifdef LSN_CYCLES_DOC
-		lsn::DebugA( " If BoundaryCrossed, skip the next cycle." );
+		lsn::DebugA( " If !BoundaryCrossed, skip the next cycle." );
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_INSTR_END_PHI2;
