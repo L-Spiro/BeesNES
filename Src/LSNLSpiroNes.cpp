@@ -226,7 +226,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 	{
-		for ( uint32_t I = 0x5F; I < 0x60; ++I ) {
+		for ( uint32_t I = 0xAC; I < 0xAD; ++I ) {
 			std::wstring wsFile;
 			lson::CJson jSon;
 			std::vector<uint8_t> vBytes;
@@ -238,7 +238,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 				vBytes.push_back( 0 );
 
 				if ( !jSon.SetJson( reinterpret_cast<const char *>(vBytes.data()) ) ) {
-					::OutputDebugStringA( "JSON FAIL\r\n" );
+					lsn::DebugA( "JSON FAIL\r\n" );
 				}
 				else {
 					pcCpu->ResetToKnown();
@@ -283,9 +283,9 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 					lsn::DebugLine( std::format( "Min: {}\tMax: {}", i32MinSize, i32MaxSize ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 
-					::OutputDebugStringA( "JSON NOT FAIL\r\n" );
+					lsn::DebugA( "JSON NOT FAIL\r\n" );
 					::OutputDebugStringW( wcFile );
-					::OutputDebugStringA( "\r\n" );
+					lsn::DebugA( "\r\n" );
 				}
 			}
 		}

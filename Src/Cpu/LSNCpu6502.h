@@ -69,7 +69,7 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 #ifdef LSN_CYCLES_DOC
 #define LSN_PRINT_STACK																																			\
-	if ( int8_t( m_fsState.ui8SModify ) < 0 ) { lsn::DebugA( ("Dec. S by " + std::to_string( -int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }			\
+	if ( int8_t( m_fsState.ui8SModify ) < 0 ) { lsn::DebugA( ("Dec. S by " + std::to_string( -int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }				\
 	else if ( int8_t( m_fsState.ui8SModify ) > 0 ) { lsn::DebugA( ("Inc. S by " + std::to_string( int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }
 #define LSN_PRINT_PC																																			\
 	if ( int16_t( m_fsState.ui16PcModify ) < 0 ) { lsn::DebugA( "Dec. PC. " ); }																				\

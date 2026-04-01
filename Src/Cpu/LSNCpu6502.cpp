@@ -463,7 +463,7 @@ namespace lsn {
 		lsn::DebugA( "Result16 = u16(A) + u16(Operand) + C flag.\r\n\t\t"
 			"V flag = (~(u16(A) ^ u16(Operand)) & (u16(A) ^ Result16) & 0x0080) != 0.\r\n\t\t"
 			"A = u8(Result16).\r\n\t\t"
-			"C flag = Result16 > $FF, N flag = (Result16 & $80), Z flag = (A == $00)." );
+			"C flag = (Result16 > $FF), N flag = (Result16 & $80), Z flag = (A == $00)." );
 #endif	// #ifdef LSN_CYCLES_DOC
 		BeginInst<_bIncPc>();
 
@@ -1467,10 +1467,10 @@ namespace lsn {
 		lsn::DebugA( "\t" );
 		lsn::DebugA( "Operand += 1.\r\n\t\t"
 			"Val = u16(Operand) ^ $00FF.\r\n\t\t"
-			"Result = u16(A) + Val + C flag.\r\n\t\t"
-			"V flag = ((u16(A) ^ Result) & (Val ^ Result) & $0080) != 0.\r\n\t\t"
-			"A = u8(Result).\r\n\t\t"
-			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A." );
+			"Result16 = u16(A) + Val + C flag.\r\n\t\t"
+			"V flag = ((u16(A) ^ Result16) & (Val ^ Result16) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result16).\r\n\t\t"
+			"C flag = (Result16 > $FF), N flag = (A & $80), Z flag = !A." );
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
@@ -2286,11 +2286,10 @@ namespace lsn {
 		lsn::DebugA( "\t" );
 		lsn::DebugA( "HiBit = (C flag) << 7. C flag = (Operand & $01).\r\n\t\t"
 			"Operand = (Operand >> 1) | HiBit.\r\n\t\t"
-			"N flag = (Operand & $80), Z flag = !Operand.\r\n\t\t"
-			"Result = u16(A) + u16(Operand) + C flag.\r\n\t\t"
-			"V flag = (~(u16(A) ^ u16(Operand)) & (u16(A) ^ Result) & $0080) != 0.\r\n\t\t"
-			"A = u8(Result).\r\n\t\t"
-			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A.");
+			"Result16 = u16(A) + u16(Operand) + C flag.\r\n\t\t"
+			"V flag = (~(u16(A) ^ u16(Operand)) & (u16(A) ^ Result16) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result16).\r\n\t\t"
+			"C flag = (Result16 > $FF), N flag = (A & $80), Z flag = !A.");
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		LSN_NEXT_FUNCTION;
@@ -2353,10 +2352,10 @@ namespace lsn {
 			LSN_PRINT_PC;
 		}
 		lsn::DebugA( "Val = u16(Operand) ^ $00FF.\r\n\t\t"
-			"Result = u16(A) + Val + C flag.\r\n\t\t"
-			"V flag = ((u16(A) ^ Result) & (Val ^ Result) & $0080) != 0.\r\n\t\t"
-			"A = u8(Result).\r\n\t\t"
-			"C flag = (Result > $FF), N flag = (A & $80), Z flag = !A." );
+			"Result16 = u16(A) + Val + C flag.\r\n\t\t"
+			"V flag = ((u16(A) ^ Result16) & (Val ^ Result16) & $0080) != 0.\r\n\t\t"
+			"A = u8(Result16).\r\n\t\t"
+			"C flag = (Result16 > $FF), N flag = (A & $80), Z flag = !A." );
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		BeginInst<_bIncPc>();
@@ -2527,10 +2526,10 @@ namespace lsn {
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "High = Address.H.\r\n\t\t"
 				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY went low {} cycles ago, High = $FFFF.\r\n\t\t"
+				"If RDY just went low, High = $FFFF.\r\n\t\t"
 				"Val = u8(High & A & X).\r\n\t"
 				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
-				"Otherwise write to Address\tWrite Val.", _uRdyCnt ).c_str() );
+				"Otherwise write to Address\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
@@ -2553,10 +2552,10 @@ namespace lsn {
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "High = Pointer.H.\r\n\t\t"
 				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY went low {} cycles ago, High = $FFFF.\r\n\t\t"
+				"If RDY just went low, High = $FFFF.\r\n\t\t"
 				"Val = u8(High & A & X).\r\n\t"
 				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
-				"Otherwise write to Pointer\tWrite Val.", _uRdyCnt ).c_str() );
+				"Otherwise write to Pointer\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
@@ -2587,7 +2586,7 @@ namespace lsn {
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = u8(Address.H & A & X).\r\n\t\t"
+			lsn::DebugA( "\tIf BoundaryCrossed, Val = u8(Address.H & A & X).\r\n\t\t"
 				"Otherwise Val = u8((Address.H + 1) & A & X).\r\n\t"
 				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
 				"Otherwise write to Address\tWrite Val." );
@@ -2635,7 +2634,7 @@ namespace lsn {
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = (Address.H & X).\r\n\t\t"
+			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Address.H & X).\r\n\t\t"
 				"Otherwise Val = u8((Address.H + 1) & X).\r\n\t"
 				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
 				"Otherwise write to Address\tWrite Val." );
@@ -2651,7 +2650,7 @@ namespace lsn {
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = (Pointer.H & X).\r\n\t\t"
+			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Pointer.H & X).\r\n\t\t"
 				"Otherwise Val = u8((Pointer.H + 1) & X).\r\n\t"
 				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
 				"Otherwise write to Pointer\tWrite Val." );
@@ -2683,7 +2682,7 @@ namespace lsn {
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
 			}
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = (Address.H & Y).\r\n\t\t"
+			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Address.H & Y).\r\n\t\t"
 				"Otherwise Val = u8((Address.H + 1) & Y).\r\n\t"
 				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
 				"Otherwise write to Address\tWrite Val." );
@@ -2699,7 +2698,7 @@ namespace lsn {
 				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
 			}
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = (Pointer.H & Y).\r\n\t\t"
+			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Pointer.H & Y).\r\n\t\t"
 				"Otherwise Val = u8((Pointer.H + 1) & Y).\r\n\t"
 				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
 				"Otherwise write to Pointer\tWrite Val." );
