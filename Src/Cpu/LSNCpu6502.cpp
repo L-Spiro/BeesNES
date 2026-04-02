@@ -2526,7 +2526,7 @@ namespace lsn {
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "High = Address.H.\r\n\t\t"
 				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY just went low, High = $FFFF.\r\n\t\t"
+				"If RDY just went low on the previous cycle, High = $FFFF.\r\n\t\t"
 				"Val = u8(High & A & X).\r\n\t"
 				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
 				"Otherwise write to Address\tWrite Val." ).c_str() );
@@ -2552,7 +2552,7 @@ namespace lsn {
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "High = Pointer.H.\r\n\t\t"
 				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY just went low, High = $FFFF.\r\n\t\t"
+				"If RDY just went low on the previous cycle, High = $FFFF.\r\n\t\t"
 				"Val = u8(High & A & X).\r\n\t"
 				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
 				"Otherwise write to Pointer\tWrite Val." ).c_str() );
