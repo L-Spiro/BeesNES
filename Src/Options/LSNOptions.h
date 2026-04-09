@@ -41,7 +41,13 @@ namespace lsn {
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCapture;									/**< Output capture. */
 
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
-		CFilterBase::LSN_FILTERS							fFilter = CFilterBase::LSN_F_AUTO_CRT_FULL;					/**< The current filter ID. */
+		CFilterBase::LSN_FILTERS							fFilter =													/**< The current filter ID. */
+#ifdef LSN_DX9
+																CFilterBase::LSN_F_AUTO_CRT_FULL;						// CFilterBase::LSN_F_LSPIRON_AUTO_US_DX9;
+#else
+																CFilterBase::LSN_F_AUTO_CRT_FULL;
+#endif	// #ifdef LSN_DX9
+		
 
 		LSN_PALETTE_OPTIONS									poGlobalPalettes[LSN_PM_CONSOLE_TOTAL];						/**< Global palette options. */
 		LSN_PALETTE_OPTIONS									poThisGamePalette[LSN_PM_CONSOLE_TOTAL];					/**< This game's palette options. */

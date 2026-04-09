@@ -226,7 +226,7 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 	PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 	std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 	{
-		for ( uint32_t I = 0xD2; I < 0xD3; ++I ) {
+		for ( uint32_t I = 0xFF; I < 0x100; ++I ) {
 			std::wstring wsFile;
 			lson::CJson jSon;
 			std::vector<uint8_t> vBytes;
