@@ -148,6 +148,13 @@ namespace lsn {
 		 */
 		inline uint64_t						GetCycleCount() const { return m_ui64CycleCount; }
 
+		/**
+		 * Begins a DMC DMA transfer.
+		 * 
+		 * \param _bIsRestart true if this is fetching the next byte of an ongoing sample, false if it's the first byte of a new sample transfer.
+		 */
+		virtual void						BeginDmcDma( bool _bIsRestart ) { static_cast<void>(_bIsRestart); }
+
 
 	protected :
 		// == Enumerations.

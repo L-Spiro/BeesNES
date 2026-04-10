@@ -149,6 +149,17 @@ namespace lsn {
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
 			m_pdx9dDevice = &s_dgsState.dx9Device;
+
+			m_tIndex.reset();
+			m_tLut.reset();
+			m_rtInitial.reset();
+			m_rtScanlined.reset();
+			m_vbQuad.reset();
+			m_psIdxToColor.reset();
+			m_psVerticalNN.reset();
+			m_psCopy.reset();
+
+			m_bUpdatePalette = true;
 		}
 
 		if LSN_UNLIKELY( !m_tIndex.get() ) {
@@ -282,6 +293,7 @@ namespace lsn {
 	 * \return Returns true if all shaders are ready.
 	 */
 	bool CDx9PaletteFilter::EnsureShaders() {
+		if ( !m_pdx9dDevice ) { return false; }
 		// Pass 1: indices + LUT -> RGBA (ps_2_0). L16 is normalized to 0..1; un-normalize to 0..65535 then clamp to 0..511.
 		static const char * kPsIdxToColorHlsl =
 			"sampler2D sIdx : register( s0 );\n"

@@ -117,9 +117,11 @@ namespace lsn {
 
 	/**
 	 * Begins a DMC DMA transfer.
+	 * 
+	 * \param _bIsRestart true if this is fetching the next byte of an ongoing sample, false if it's the first byte of a new sample transfer.
 	 */
-	void CCpu6502::BeginDmcDma() {
-		if ( true /** Is start of a new sample? */ ) {
+	void CCpu6502::BeginDmcDma( bool _bIsRestart ) {
+		if ( !_bIsRestart ) { // Is start of a new sample?
 			m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
 
 			m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
@@ -134,8 +136,31 @@ namespace lsn {
 		}
 
 		m_bDmcGo = false;
-		// m_bDmcDma = true;	// The key to actually stopping the CPU.
+
+		//m_bDmcDma = true;		// The key to actually stopping the CPU.
 	}
+
+	/**
+	 * Begins a DMC DMA transfer.
+	 */
+	//void CCpu6502::BeginDmcDma() {
+	//	if ( true /** Is start of a new sample? */ ) {
+	//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
+
+	//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
+	//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
+	//	}
+	//	else {
+	//		// Reload.
+	//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+
+	//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+	//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
+	//	}
+
+	//	m_bDmcGo = false;
+	//	// m_bDmcDma = true;	// The key to actually stopping the CPU.
+	//}
 
 	/**
 	 * Notifies the class that an NMI has occurred.

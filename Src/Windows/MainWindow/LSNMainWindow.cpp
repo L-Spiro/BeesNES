@@ -117,6 +117,7 @@ namespace lsn {
 
 		m_bnEmulator.SetFolder( wsRoot.c_str() );
 		m_bnEmulator.LoadSettings();
+		m_bnEmulator.SetCurFilter( m_bnEmulator.Options().fFilter );
 
 		/*for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
 			std::wstring wsTemp = wsRoot + L"Resources\\";

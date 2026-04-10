@@ -372,22 +372,31 @@ namespace lsn {
 	 * \param _fFilter The new filter to be applied after the next Swap().
 	 */
 	void CBeesNes::SetCurFilter( CFilterBase::LSN_FILTERS _fFilter ) {
-		if ( m_oOptions.fFilter != _fFilter ) {
+		if ( m_oOptions.fFilter != _fFilter || !m_bHaveSetFilter ) {
 			CFilterBase * pfbPrev = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 			m_oOptions.fFilter = _fFilter;
 			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
-			if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
-				// If the new filter is the same as what has been queued up for deactivation, deactivate first and then activate.
-				if ( m_cfartCurFilterAndTargets.pfbDeactivateMe == m_cfartCurFilterAndTargets.pfbNextFilter ) {
-					m_cfartCurFilterAndTargets.DeActivate();
-				}
-				
+			if ( !m_bHaveSetFilter ) {
+				// First call.
 				if ( m_cfartCurFilterAndTargets.pfbNextFilter ) {
 					m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
 				}
-				if ( pfbPrev ) {
-					m_cfartCurFilterAndTargets.DeActivate();
-					m_cfartCurFilterAndTargets.pfbDeactivateMe = pfbPrev;
+				m_bHaveSetFilter = true;
+			}
+			else {
+				if ( pfbPrev != m_cfartCurFilterAndTargets.pfbNextFilter ) {
+					// If the new filter is the same as what has been queued up for deactivation, deactivate first and then activate.
+					if ( m_cfartCurFilterAndTargets.pfbDeactivateMe == m_cfartCurFilterAndTargets.pfbNextFilter ) {
+						m_cfartCurFilterAndTargets.DeActivate();
+					}
+				
+					if ( m_cfartCurFilterAndTargets.pfbNextFilter ) {
+						m_cfartCurFilterAndTargets.pfbNextFilter->Activate();
+					}
+					if ( pfbPrev ) {
+						m_cfartCurFilterAndTargets.DeActivate();
+						m_cfartCurFilterAndTargets.pfbDeactivateMe = pfbPrev;
+					}
 				}
 			}
 		}

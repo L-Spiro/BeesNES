@@ -539,6 +539,8 @@ namespace lsn {
 		uint8_t									m_ui8RapidFires[8];
 		/** The emulation options. */
 		LSN_OPTIONS								m_oOptions;
+		/** Is this the first time setting the filter? */
+		bool									m_bHaveSetFilter = false;
 		/** The per-game settings path. */
 		std::u16string							m_u16PerGameSettings;
 

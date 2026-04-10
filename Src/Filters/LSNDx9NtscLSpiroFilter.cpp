@@ -208,6 +208,12 @@ namespace lsn {
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
 			m_pdx9dDevice = &s_dgsState.dx9Device;
+			m_rtScanlined.reset();
+			m_vbQuad.reset();
+
+			m_tSrc.reset();
+			m_psVerticalNN.reset();
+			m_psCopy.reset();
 		}
 
 		if LSN_UNLIKELY( !m_rtScanlined.get() ) {
@@ -280,6 +286,7 @@ namespace lsn {
 	 * \return Returns true if all shaders are ready.
 	 */
 	bool CDx9NtscLSpiroFilter::EnsureShaders() {
+		if ( !m_pdx9dDevice ) { return false; }
 		// Pass 1: vertical nearest-neighbor (ps_2_0). c0 = [srcH, 1/srcH, 0.5, 0].
 		static const char * kPsVerticalNNHlsl =
 			"#include \"LSNGamma.hlsl\"\n"

@@ -65,7 +65,7 @@
 #define LSN_FROM_P											false
 
 #ifdef LSN_CPU_VERIFY
-#define LSN_CYCLES_DOC										1
+//#define LSN_CYCLES_DOC										1
 #endif	// #ifdef LSN_CPU_VERIFY
 #ifdef LSN_CYCLES_DOC
 #define LSN_PRINT_STACK																																			\
@@ -253,8 +253,15 @@ namespace lsn {
 
 		/**
 		 * Begins a DMC DMA transfer.
+		 * 
+		 * \param _bIsRestart true if this is fetching the next byte of an ongoing sample, false if it's the first byte of a new sample transfer.
 		 */
-		void												BeginDmcDma();
+		virtual void										BeginDmcDma( bool _bIsRestart );
+
+		/**
+		 * Begins a DMC DMA transfer.
+		 */
+		//void												BeginDmcDma();
 
 		/**
 		 * Notifies the class that an NMI has occurred.
