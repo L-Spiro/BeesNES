@@ -1785,6 +1785,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Apu\LSNApu2A0X.h" />
     <ClInclude Include="Src\Apu\LSNApuBase.h" />
     <ClInclude Include="Src\Apu\LSNApuUnit.h" />
+    <ClInclude Include="Src\Apu\LSNDmc.h" />
     <ClInclude Include="Src\Apu\LSNEnvelope.h" />
     <ClInclude Include="Src\Apu\LSNLengthCounter.h" />
     <ClInclude Include="Src\Apu\LSNLinearCounter.h" />
@@ -2045,6 +2046,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Apu\LSNApuUnit.cpp" />
+    <ClCompile Include="Src\Apu\LSNDmc.cpp" />
     <ClCompile Include="Src\Apu\LSNNoise.cpp" />
     <ClCompile Include="Src\Apu\LSNPulse.cpp" />
     <ClCompile Include="Src\Apu\LSNSequencer.cpp" />
