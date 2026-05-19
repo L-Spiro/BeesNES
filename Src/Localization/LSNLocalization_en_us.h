@@ -281,6 +281,7 @@
 #define LSN_WE_WAV_EDITOR													WAV Editor
 #define LSN_WE_FILES														Files
 #define LSN_WE_FILES_DESC													Channels: {}; Dur: {:.7f}; Hz: {}
+#define LSN_WE_MULTI_FILES_DESC												Channels: {}; Dur: {:.7f}; Hz: {}; Total Dur: {:.7f}
 #define LSN_WE_FILE_SETTINGS												Per-File Settings
 #define LSN_WE_FILE_SETTINGS_ALL											Per-File Settings (All Files)
 #define LSN_WE_SEQUENCING													Per-File Sequencing

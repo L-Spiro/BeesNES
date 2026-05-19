@@ -66,7 +66,24 @@ namespace lsn {
 			TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
 				_ui32Id, TVI_ROOT );
 			HTREEITEM hItem = ptlTree->InsertItem( &isInsertMe );
-			ptlTree->SetItemText( hItem, std::format( LSN_LSTR( LSN_WE_FILES_DESC ), pItem->wfFile.fcFormat.uiNumChannels, pItem->wfFile.ui64Samples / double( pItem->wfFile.fcFormat.uiSampleRate ), pItem->wfFile.fcFormat.uiSampleRate ).c_str(), 1 );
+			if ( pItem->vExtensions.size() ) {
+				ptlTree->SetItemText( hItem, std::format( LSN_LSTR( LSN_WE_MULTI_FILES_DESC ),
+					pItem->wfFile.fcFormat.uiNumChannels,
+					pItem->wfFile.ui64Samples / double( pItem->wfFile.fcFormat.uiSampleRate ),
+					pItem->wfFile.fcFormat.uiSampleRate,
+					pItem->ui64FullSampleCnt / double( pItem->wfFile.fcFormat.uiSampleRate ) ).c_str(), 1 );
+				for ( size_t I = 0; I < pItem->vExtensions.size(); ++I ) {
+					wsTmp = std::filesystem::path( pItem->vExtensions[I].wsPath ).filename().generic_wstring();
+					TVINSERTSTRUCTW isInsertMe2 = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
+						_ui32Id, hItem );
+					HTREEITEM hThisItem = ptlTree->InsertItem( &isInsertMe2 );
+					ptlTree->SetItemText( hThisItem, std::format( LSN_LSTR( LSN_WE_FILES_DESC ), pItem->vExtensions[I].fcFormat.uiNumChannels, pItem->vExtensions[I].ui64Samples / double( pItem->vExtensions[I].fcFormat.uiSampleRate ), pItem->vExtensions[I].fcFormat.uiSampleRate ).c_str(), 1 );
+				}
+				ptlTree->SetItemExpand( hItem, FALSE );
+			}
+			else {
+				ptlTree->SetItemText( hItem, std::format( LSN_LSTR( LSN_WE_FILES_DESC ), pItem->wfFile.fcFormat.uiNumChannels, pItem->wfFile.ui64Samples / double( pItem->wfFile.fcFormat.uiSampleRate ), pItem->wfFile.fcFormat.uiSampleRate ).c_str(), 1 );
+			}
 			return true;
 		}
 		return false;

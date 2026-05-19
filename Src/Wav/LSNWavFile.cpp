@@ -556,7 +556,10 @@ namespace lsn {
 			if ( m_sStream.sfFile.IsOpen() ) {
 				if ( m_sStream.bStreaming ) {
 					if ( !m_sStream.vCurBuffer.empty() ) {
-						m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+						LSN_STREAM_BUFFER sbBuffer;
+						sbBuffer.vBuffer = std::move( m_sStream.vCurBuffer );
+						sbBuffer.ui32WavFile_DSize = 0;
+						m_sStream.qBufferQueue.push( std::move( sbBuffer ) );
 						m_sStream.vCurBuffer.clear();
 					}
 					m_sStream.bEnd = true;	// File will be closed in the writer thread.
@@ -588,7 +591,8 @@ namespace lsn {
 			if ( (*m_sStream.pfAddSampleFunc)( _fSample, m_sStream ) ) {
 				m_sStream.bAdding = true;
 				m_sStream.vCurBuffer.push_back( _fSample );
-				uint64_t ui64TotalWillWrite = ++m_sStream.ui64SamplesWritten;
+				
+				++m_sStream.ui64SamplesWritten;
 				m_sStream.ui32WavFile_DSize += sizeof( float );
 
 				if ( m_sStream.bMeta && m_sStream.pfMetaFunc ) {
@@ -596,10 +600,26 @@ namespace lsn {
 					AddMetaData();
 				}
 
-				if LSN_UNLIKELY( ui64TotalWillWrite == ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) ||		// Maximum a WAV file can contain (4294967264/0xFFFFFFE0 samples).
-					m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {													// Buffer limit reached.
+				uint32_t ui32MaxFloatBytes = ((UINT_MAX - m_sStream.ui32WavFile_Size - 4) / sizeof( float )) * sizeof( float );
+				bool bSplit = m_sStream.ui32WavFile_DSize == ui32MaxFloatBytes;
+
+				if LSN_UNLIKELY( bSplit || m_sStream.vCurBuffer.size() == m_sStream.stBufferSize ) {
 					// Efficiently pass the buffer off to the writer thread.
-					m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+					LSN_STREAM_BUFFER sbBuffer;
+					sbBuffer.vBuffer = std::move( m_sStream.vCurBuffer );
+					sbBuffer.ui32WavFile_DSize = 0;
+					m_sStream.qBufferQueue.push( std::move( sbBuffer ) );
+					
+					if LSN_UNLIKELY( bSplit ) {
+						// Push an empty buffer as a signal to the writer thread to split the file.
+						LSN_STREAM_BUFFER sbSplitSignal;
+						sbSplitSignal.ui32WavFile_DSize = m_sStream.ui32WavFile_DSize;
+						m_sStream.qBufferQueue.push( std::move( sbSplitSignal ) );
+
+						// Reset the local file size counter for the upcoming file.
+						m_sStream.ui32WavFile_DSize = 0;
+					}
+
 					// Create a new buffer and reserve space for efficiency.
 					m_sStream.vCurBuffer.clear();
 					m_sStream.vCurBuffer.reserve( m_sStream.stBufferSize );
@@ -608,7 +628,10 @@ namespace lsn {
 				}
 			}
 			else if ( m_sStream.bEnd ) {
-				m_sStream.qBufferQueue.push( std::move( m_sStream.vCurBuffer ) );
+				LSN_STREAM_BUFFER sbBuffer;
+				sbBuffer.vBuffer = std::move( m_sStream.vCurBuffer );
+				sbBuffer.ui32WavFile_DSize = 0;
+				m_sStream.qBufferQueue.push( std::move( sbBuffer ) );
 				// Create a new buffer and reserve space for efficiency.
 				m_sStream.vCurBuffer.clear();
 				// Notify the writer thread that a full buffer is ready.
@@ -1201,9 +1224,10 @@ namespace lsn {
 	 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
 	 * 
 	 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+	 * \param _bIsSplit If true, indicates the file is being created as a split overflow, bypassing main-thread variables.
 	 * \return Returns true if the file was created and the header was written to it.
 	 **/
-	bool CWavFile::CreateStreamFile( const char8_t * _pcPath ) {
+	bool CWavFile::CreateStreamFile( const char8_t * _pcPath, bool _bIsSplit ) {
 		LSN_SAVE_DATA sdSaveSettings( m_sStream.ui32Hz, m_sStream.ui16Bits );
 		sdSaveSettings.fFormat = m_sStream.fFormat;
 		
@@ -1240,9 +1264,10 @@ namespace lsn {
 		if ( !m_sStream.sfFile.Write( ui32DataSize ) ) { return false; }
 		
 		// File now ready for streaming.
-		
-		m_sStream.ui32WavFile_Size = 4 + uiFmtSize;
-		m_sStream.ui32WavFile_DSize = 0;
+		if ( !_bIsSplit ) {
+			m_sStream.ui32WavFile_Size = 4 + uiFmtSize;
+			m_sStream.ui32WavFile_DSize = 0;
+		}
 
 		//m_sStream.ui64FinalSampleCount = ui64Samples;
 		return true;
@@ -1250,11 +1275,14 @@ namespace lsn {
 
 	/**
 	 * Closes the current streaming file.
+	 * 
+	 * \param _ui32DSize The final size of all the samples placed into the buffer.  If 0, the size is taken from m_sStream.ui32WavFile_DSize.
 	 **/
-	void CWavFile::CloseStreamFile() {
+	void CWavFile::CloseStreamFile( uint32_t _ui32DSize ) {
 		if LSN_LIKELY( m_sStream.sfFile.IsOpen() ) {
 			if LSN_LIKELY( m_sStream.bStreaming ) {
-				uint32_t ui32Size = uint32_t( m_sStream.ui32WavFile_DSize * uint64_t( m_sStream.ui16Bits ) / (sizeof( float ) * 8) );
+				uint32_t ui32DSizeToUse = (_ui32DSize == 0) ? m_sStream.ui32WavFile_DSize : _ui32DSize;
+				uint32_t ui32Size = uint32_t( ui32DSizeToUse * uint64_t( m_sStream.ui16Bits ) / (sizeof( float ) * 8) );
 				if ( ui32Size & 1 ) {
 					m_sStream.sfFile.Write<uint8_t>( 0 );
 					++ui32Size;
@@ -1268,8 +1296,12 @@ namespace lsn {
 			}
 		
 			m_sStream.sfFile.Close();
-			m_sStream.ui32WavFile_DSize = 0;
+			if ( _ui32DSize == 0 ) {
+				m_sStream.ui32WavFile_DSize = 0;
+			}
 		}
+		
+		if ( _ui32DSize != 0 ) { return; }
 		
 
 		{
@@ -1316,29 +1348,46 @@ namespace lsn {
 	 **/
 	void CWavFile::StreamWriterThread() {
 		std::vector<uint8_t> vConversionBuffer;
+		
+		m_sStream.ui32SplitIndex = 0;
+
 		while ( true ) {
-			std::vector<float> vBufferToWrite;
+			LSN_STREAM_BUFFER sbBufferToWrite;
 			{
 				std::unique_lock<std::mutex> ulLock( m_sStream.mMutex );
 				// Wait until there is a full buffer or a shutdown is signaled.
-                m_sStream.cvCondition.wait( ulLock, [this] {
-                    return !m_sStream.qBufferQueue.empty() || m_sStream.bEnd;
-                });
+				m_sStream.cvCondition.wait( ulLock, [this] {
+					return !m_sStream.qBufferQueue.empty() || m_sStream.bEnd;
+				} );
 
 				// If there’s data to write, retrieve the next buffer.
-                if ( !m_sStream.qBufferQueue.empty() ) {
-                    vBufferToWrite = std::move( m_sStream.qBufferQueue.front() );
-                    m_sStream.qBufferQueue.pop();
-                }
+				if ( !m_sStream.qBufferQueue.empty() ) {
+					sbBufferToWrite = std::move( m_sStream.qBufferQueue.front() );
+					m_sStream.qBufferQueue.pop();
+				}
 				else if ( m_sStream.bEnd ) {
-                    // No more buffers and shutdown requested.
-                    break;
-                }
+					// No more buffers and shutdown requested.
+					break;
+				}
 			}
 			// Write the buffer to disk (if any).
-            if LSN_UNLIKELY( !vBufferToWrite.empty() ) {
-				(*m_sStream.pfCvtAndWriteFunc)( vBufferToWrite, vConversionBuffer, m_sStream );
-            }
+			if LSN_LIKELY( !sbBufferToWrite.vBuffer.empty() ) {
+				(*m_sStream.pfCvtAndWriteFunc)( sbBufferToWrite.vBuffer, vConversionBuffer, m_sStream );
+			}
+			else if ( !m_sStream.bEnd && sbBufferToWrite.ui32WavFile_DSize != 0 ) {
+				// An empty buffer pushed while not ending is the signal to split the file.
+				CloseStreamFile( sbBufferToWrite.ui32WavFile_DSize );
+
+				// Generate the new file path with the appended index before the extension.
+				std::filesystem::path pOriginalPath( m_sStream.wsPath );
+				std::filesystem::path pNextPath = pOriginalPath;
+				pNextPath.replace_filename( pOriginalPath.stem().wstring() + L"." + std::to_wstring( m_sStream.ui32SplitIndex++ ) + pOriginalPath.extension().wstring() );
+				
+				std::filesystem::path pAbsolutePath = std::filesystem::absolute( pNextPath );
+				
+				// Open the next chunk. CreateStreamFile() will safely set up the new headers.
+				CreateStreamFile( pAbsolutePath.generic_u8string().c_str(), true );
+			}
 		}
 		CloseStreamFile();
 	}

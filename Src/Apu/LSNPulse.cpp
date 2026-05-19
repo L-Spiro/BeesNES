@@ -41,7 +41,8 @@ namespace lsn {
 		/*if LSN_UNLIKELY( m_bRestartSeq ) {
 			m_bRestartSeq = false;
 			m_ui8SeqOff = 0;
-		} else {
+		}
+		else {
 			m_ui8SeqOff--;
 			if LSN_UNLIKELY( m_ui8SeqOff == 0xFF ) { m_ui8SeqOff = 0x7; }
 		}

@@ -20,7 +20,6 @@
 #include "../Bus/LSNBus.h"
 #include "../Input/LSNInputPoller.h"
 #include "../Mappers/LSNMapperBase.h"
-#include "../System/LSNInterruptable.h"
 #include "../System/LSNSystemBase.h"
 #include "../System/LSNTickable.h"
 #include "LSNCpuBase.h"
@@ -91,7 +90,7 @@ namespace lsn {
 	 *
 	 * Description: Enough emulation of a Ricoh 6502 CPU to run a Nintendo Entertainment System.
 	 */
-	class CCpu6502 : public CTickable, public CInterruptable, public CCpuBase {
+	class CCpu6502 : public CTickable, public CCpuBase {
 	public :
 		// == Various constructors.
 		CCpu6502( CCpuBus * _pbBus, CSystemBase * _psbSystem );
@@ -388,8 +387,8 @@ namespace lsn {
 		uint16_t											m_ui16DmaCounter = 0;																/**< DMA counter. */
 		uint16_t											m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
 		uint16_t											m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
-		uint16_t											m_ui16DmcAddress = 0;																/**< The DMC DMA address. */
-		uint16_t											m_ui16DmcBytesRemain = 0;															/**< The number of remaining bytes for DMC DMA. */
+		//uint16_t											m_ui16DmcAddress = 0;																/**< The DMC DMA address. */
+		//uint16_t											m_ui16DmcBytesRemain = 0;															/**< The number of remaining bytes for DMC DMA. */
 
 		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
 		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
@@ -624,10 +623,6 @@ namespace lsn {
 					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
 					// The CPU is now stalled.  Begin the transfer.
 					LSN_SET_PTRS( LSN_DS_DUMMY );
-
-					if constexpr ( !_bIsReload ) {
-						LoadDmcDmaAddressAndSize();
-					}
 				}
 				else {
 					LSN_SET_PTRS( LSN_DS_IDLE );
@@ -656,7 +651,9 @@ namespace lsn {
 				if constexpr ( _bPhi2 ) {
 					if ( m_bDmcRead && (m_ui64CycleCount & 0x1) == LSN_GET ) {
 						m_bDmcBusAccess = true;
-						m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmcAddress ) );
+						//m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmcAddress ) );
+						uint16_t ui16DmcAddr = m_psbSystem->DmcDmaAddress();
+						auto ui8DmcValue = m_pbBus->Read( ui16DmcAddr );
 						
 						m_pfDmcDmaFuncs[0] = nullptr;
 						m_pfDmcDmaFuncs[1] = nullptr;
@@ -672,26 +669,8 @@ namespace lsn {
 							m_pfTickFunc = m_pfTickFuncCopy;
 						}
 
-
-
-						// Increment and wrap.
-						m_ui16DmcAddress = (m_ui16DmcAddress + 1) | 0x8000;
-
-						// Decrement remaining.
-						--m_ui16DmcBytesRemain;
-						if ( m_ui16DmcBytesRemain == 0 ) {
-							auto ui84010 = m_psbSystem->Get4010();
-							if ( (ui84010 & 0x40) != 0 ) {
-								// Loop.
-								LoadDmcDmaAddressAndSize();
-							}
-							else {
-								// Raise IRQ if enabled.
-								if ( (ui84010 & 0x80) != 0 ) {
-									Irq( LSN_IS_APU_DMC );
-								}
-							}
-						}
+						m_psbSystem->ReceiveDmcSample( ui8DmcValue );
+						m_bDmcBusAccess = false;
 					}
 					else {
 						// Not a GET cycle.
@@ -737,10 +716,10 @@ namespace lsn {
 		/**
 		 * Loads the DMC DMA read address and size.
 		 **/
-		inline void											LoadDmcDmaAddressAndSize() {
+		/*inline void											LoadDmcDmaAddressAndSize() {
 			m_ui16DmcAddress = uint16_t( 0xC000U + (m_psbSystem->Get4012() << 6) );
 			m_ui16DmcBytesRemain = uint16_t( (m_psbSystem->Get4013() << 4) | 0x0001U );
-		}
+		}*/
 
 		/**
 		 * Writing to 0x4014 initiates a DMA transfer.

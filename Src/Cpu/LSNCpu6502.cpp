@@ -137,7 +137,7 @@ namespace lsn {
 
 		m_bDmcGo = false;
 
-		//m_bDmcDma = true;		// The key to actually stopping the CPU.
+		m_bDmcDma = true;		// The key to actually stopping the CPU.
 	}
 
 	/**

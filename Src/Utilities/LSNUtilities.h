@@ -739,16 +739,6 @@ namespace lsn {
 			}
 
 			return (dLo + dHi) * 0.5;
-			/*constexpr double dAlpha = 0.1115721959217312597711924126997473649680614471435546875;
-			constexpr double dBeta = 1.1115721959217312875267680283286608755588531494140625;
-			constexpr double dCut = 0.022821585529445027884509755722319823689758777618408203125;
-			if ( _dVal >= 0.09441886527340710710820559370404225774109363555908203125 ) { return std::pow( _dVal, 1.0 / 2.31 ); }
-			double dFrac = _dVal / 0.09441886527340710710820559370404225774109363555908203125;
-			return ((_dVal <= dCut ?
-				_dVal * 4.0 :
-				dBeta * std::pow( _dVal, 0.45 ) - dAlpha)
-				* (1.0 - dFrac))
-				+ (dFrac * std::pow( _dVal, 1.0 / 2.31 ));*/
 		}
 
 		/**

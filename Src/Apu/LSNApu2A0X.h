@@ -22,6 +22,7 @@
 #include "../Utilities/LSNRingBuffer.h"
 #include "LSNApuBase.h"
 #include "LSNApuUnit.h"
+#include "LSNDmc.h"
 #include "LSNNoise.h"
 #include "LSNPulse.h"
 #include "LSNTriangle.h"
@@ -167,12 +168,13 @@ namespace lsn {
 		typedef CApu2A0X<_tType, _tM0S0, _tM0S1, _tM0S2, _tM0S3_0, _tM0S3_1, _tM0S3_2, _tM1S0, _tM1S1, _tM1S2, _tM1S3, _tM1S4_0, _tM1S4_1, _tMasterClock, _tMasterDiv, _tApuDiv, _bSwapDuty>
 														CThisApu;
 	public :
-		CApu2A0X( CCpuBus * _pbBus, CInterruptable * _piIrqTarget ) :
+		CApu2A0X( CCpuBus * _pbBus, CInterruptable * _piIrqTarget, CCpuBase * _pcbCpu ) :
 			m_pbBus( _pbBus ),
 			m_ui64Cycles( 0 ),
 			m_ui64StepCycles( 0 ),
 			m_ui64RawExportStartCycle( 0 ),
 			m_piIrqTarget( _piIrqTarget ),
+			m_pcbCpu( _pcbCpu ), 
 			m_dvRegisters3_4017( Set4017, this ),
 			m_dvPulse1LengthCounter( Pulse1LengthCounter, this ),
 			m_dvPulse2LengthCounter( Pulse2LengthCounter, this ),
@@ -195,7 +197,6 @@ namespace lsn {
 			m_fTVol( 1.0f ),
 			m_fNVol( 1.0f ),
 			m_fDmcVol( 1.0f ),
-			m_fDmcRegVol( 0.0f ),
 			m_bEnabled( true ) {
 
 			m_pfLpf.CreateLpf( 20000.0f, HzAsFloat() );
@@ -384,6 +385,7 @@ namespace lsn {
 			m_pPulse1.UpdateSweeperState<1>();
 			m_pPulse2.UpdateSweeperState<0>();
 			
+			m_dDmc.Tick( m_pcbCpu );
 			
 
 			if LSN_LIKELY( m_bEnabled ) {
@@ -420,7 +422,7 @@ namespace lsn {
 				
 				float fNoise = (bNoise ? m_nNoise.GetEnvelopeOutput( LSN_NOISE_USE_VOLUME ) : 0.0f) * m_fNVol;
 				float fTriangle = m_tTriangle.Output() * m_fTVol;
-				float fDmc = m_fDmcRegVol * m_fDmcVol;
+				float fDmc = m_dDmc.GetOutputLevel() * m_fDmcVol;
 
 				//fFinalPulse = fNoise = fTriangle = 0.0f;
 
@@ -527,6 +529,11 @@ namespace lsn {
 			m_ChannelOutputting[LSN_C_PULSE_0] = false;
 			m_ChannelOutputting[LSN_C_PULSE_1] = false;
 			m_ChannelOutputting[LSN_C_NOISE] = false;
+
+			m_dDmc.Write4010<_tType>( m_ui8Registers[0x10], nullptr );
+			m_dDmc.Write4011( m_ui8Registers[0x11] );
+			m_dDmc.Write4012( m_ui8Registers[0x12] );
+			m_dDmc.Write4013( m_ui8Registers[0x13] );
 		}
 
 		/**
@@ -546,8 +553,14 @@ namespace lsn {
 			m_nNoise.ResetToKnown();
 			m_tTriangle.ResetToKnown();
 			ResetAnalog();
-			m_fDmcRegVol = 0.0f;
+			m_dDmc.ResetToKnown();
 			m_dvRegisters3_4017.SetValue( 0x00 );
+
+			m_dDmc.Write4010<_tType>( m_ui8Registers[0x10], m_pcbCpu );
+			m_dDmc.Write4011( m_ui8Registers[0x11] );
+			m_dDmc.Write4012( m_ui8Registers[0x12] );
+			m_dDmc.Write4013( m_ui8Registers[0x13] );
+
 		}
 
 		/**
@@ -713,6 +726,25 @@ namespace lsn {
 		 * \return Returns the $4013 register value.
 		 **/
 		inline uint8_t									Get4013() const { return m_ui8Registers[0x13]; }
+
+		/**
+		 * Receives a fetched sample byte from the CPU's DMC DMA cycle.
+		 *
+		 * \param _ui8Sample The 8-bit sample fetched from CPU memory.
+		 */
+		inline void										ReceiveDmcSample( uint8_t _ui8Sample ) {
+			m_dDmc.ReceiveSample( _ui8Sample, m_pcbCpu );
+		}
+
+		/**
+		 * Gets the address the DMC DMA should read from.
+		 * The CPU uses this to figure out where to point its read during DMA.
+		 *
+		 * \return Returns the 16-bit address for the next sample byte.
+		 */
+		inline uint16_t									GetDmcDmaAddress() const {
+			return m_dDmc.GetCurrentAddress();
+		}
 
 		/**
 		 * The add-metadata function.  Fetches the current registers from a ring buffer (because the associated samples may be out-of-date).
@@ -899,15 +931,17 @@ namespace lsn {
 		/** The starting cycle of raw WAV exports. */
 		uint64_t										m_ui64RawExportStartCycle;
 		/** The main bus. */
-		CCpuBus *										m_pbBus;
+		CCpuBus *										m_pbBus = nullptr;
 		/** The IRQ target. */
-		CInterruptable *								m_piIrqTarget;
+		CInterruptable *								m_piIrqTarget = nullptr;
+		/** The CPU base. */
+		CCpuBase *										m_pcbCpu = nullptr;
 		/** WAV streamer for the source signal. */
-		CWavFile *										m_pwfRawStream;
+		CWavFile *										m_pwfRawStream = nullptr;
 		/** WAV streamer for the output signal. */
-		CWavFile *										m_pwfOutStream;
+		CWavFile *										m_pwfOutStream = nullptr;
 		/** The current cycle function. */
-		PfTicks											m_pftTick;
+		PfTicks											m_pftTick = nullptr;
 		/** Final volume multiplier. */
 		float											m_fVolume = (-1.0f);		
 		/** The 37-Hz pole filter. */
@@ -921,27 +955,27 @@ namespace lsn {
 		/** A sanitization HPF. */
 		CHpfFilter										m_hfHpfFilter2;
 		/** The sample-box LPF frequency. */
-		float											m_fSampleBoxLpf;
+		float											m_fSampleBoxLpf = 0.0f;
 		/** The LPF frequency. */
-		float											m_fLpf;
+		float											m_fLpf = 0.0f;
 		/** The HPF0 frequency. */
-		float											m_fHpf0;
+		float											m_fHpf0 = 0.0f;
 		/** The HPF1 frequency. */
-		float											m_fHpf1;
+		float											m_fHpf1 = 0.0f;
 		/** The HPF2 frequency. */
-		float											m_fHpf2;
+		float											m_fHpf2 = 0.0f;
 		/** The Pulse 1 master volume. */
-		float											m_fP1Vol;
+		float											m_fP1Vol = 0.0f;
 		/** The Pulse 2 master volume. */
-		float											m_fP2Vol;
+		float											m_fP2Vol = 0.0f;
 		/** The Triangle master volume. */
-		float											m_fTVol;
+		float											m_fTVol = 0.0f;
 		/** The Noise master volume. */
-		float											m_fNVol;
+		float											m_fNVol = 0.0f;
 		/** The Dmc master volume. */
-		float											m_fDmcVol;
+		float											m_fDmcVol = 0.0f;
 		/** DMC voluem (from register 4011, not settings). */
-		float											m_fDmcRegVol;
+		float											m_fDmcRegVol = 0.0f;
 		/** Pulse 1. */
 		CPulse											m_pPulse1;
 		/** Pulse 2. */
@@ -950,6 +984,8 @@ namespace lsn {
 		CNoise											m_nNoise;
 		/** Triangle. */
 		CTriangle										m_tTriangle;
+		/** DMC. */
+		CDmc											m_dDmc;
 		/** Delayed writes. */
 		DelayedVal										m_dvRegisters3_4017;
 		/** Non-delayed registers. */
@@ -1548,6 +1584,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4010( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x10] = _ui8Val;
+			paApu->m_dDmc.Write4010<_tType>( _ui8Val, paApu->m_pcbCpu );
 			paApu->m_bRegModified = true;
 		}
 
@@ -1562,7 +1599,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4011( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x11] = _ui8Val;
-			paApu->m_fDmcRegVol = float( _ui8Val & 0b01111111 );
+			paApu->m_dDmc.Write4011( _ui8Val );
 			paApu->m_bRegModified = true;
 		}
 
@@ -1577,6 +1614,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4012( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x12] = _ui8Val;
+			paApu->m_dDmc.Write4012( _ui8Val );
 			paApu->m_bRegModified = true;
 		}
 
@@ -1591,6 +1629,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write4013( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x13] = _ui8Val;
+			paApu->m_dDmc.Write4013( _ui8Val );
 			paApu->m_bRegModified = true;
 		}
 
@@ -1618,9 +1657,19 @@ namespace lsn {
 				_ui8Ret |= 0b1000;
 			}
 
+			if ( paApu->m_dDmc.GetBytesRemaining() > 0 ) {
+				_ui8Ret |= 0b00010000;
+			}
+
 			if ( paApu->m_piIrqTarget->GetIrqStatus( LSN_IS_APU ) ) {
 				_ui8Ret |= 0b01000000;
+				// TODO: If an interrupt flag was set at the same moment as the read, it will read back as 1 but it will not be cleared.
 				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU );
+			}
+
+			if ( paApu->m_dDmc.IsIrqAsserted( paApu->m_pcbCpu ) ) {
+				_ui8Ret |= 0b10000000;
+				paApu->m_dDmc.ClearIrq( paApu->m_pcbCpu );
 			}
 		}
 
@@ -1652,9 +1701,13 @@ namespace lsn {
 				paApu->m_nNoise.SetLengthCounter( 0 );
 				//paApu->m_dvNoiseLengthCounter.WriteWithDelay( 0 );
 			}
+
 			if LSN_LIKELY( paApu->m_piIrqTarget ) {
-				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU_DMC );
+				paApu->m_dDmc.ClearIrq( paApu->m_pcbCpu );
 			}
+
+			paApu->m_dDmc.SetEnabled( (_ui8Val & 0b00010000) != 0, paApu->m_pcbCpu );
+
 			paApu->m_bRegModified = true;
 		}
 

@@ -59,16 +59,16 @@ namespace lsn {
 		CSystem() :
 			m_cCpu( &m_bBus, this ),
 			m_pPpu( &m_bBus, &m_cCpu ),
-			m_aApu( &m_bBus, &m_cCpu ) {
+			m_aApu( &m_bBus, &m_cCpu, &m_cCpu ) {
 			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
 				// PHI1.
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), 0 + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), (_tCpuDiv / 3) + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
 				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv, LSN_APU_SLOT },
 
 				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), 0 + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), (_tCpuDiv / 3) + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
 			};
 			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
 
@@ -717,6 +717,20 @@ namespace lsn {
 		 * \return Returns the $4013 register value.
 		 **/
 		virtual uint8_t									Get4013() const { return m_aApu.Get4013(); }
+
+		/**
+		 * Gets the DMC DMA address.
+		 * 
+		 * \return Returns the DMC DMA address.
+		 **/
+		virtual uint16_t								DmcDmaAddress() const { return m_aApu.GetDmcDmaAddress(); }
+
+		/**
+		 * Hands the DMC DMA value off to the APU.
+		 * 
+		 * \param _ui8Value The value to hand off to the APU.
+		 **/
+		virtual void									ReceiveDmcSample( uint8_t _ui8Value ) { m_aApu.ReceiveDmcSample( _ui8Value ); }
 
 		/**
 		 * Sets the raw stream-to-file pointer.

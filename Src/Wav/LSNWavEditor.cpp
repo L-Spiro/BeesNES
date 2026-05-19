@@ -114,7 +114,7 @@ namespace lsn {
 			wfsSet.ui64FullSampleCnt += wfsSet.wfFile.ui64Samples;
 			std::filesystem::path pPath = std::filesystem::absolute( std::filesystem::path( _wsPath ) );
 			auto aFileName = pPath.filename().replace_extension( "" );
-			for ( size_t I = 1; true; ++I ) {
+			for ( size_t I = 0; true; ++I ) {
 				auto aThisFileName = aFileName;
 				aThisFileName += ("." + std::to_string( I ) + ".wav");
 				auto pFinalNewPath = pPath;

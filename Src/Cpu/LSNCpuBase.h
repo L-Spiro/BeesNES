@@ -9,8 +9,9 @@
 
 #pragma once
 
-
 #include "../LSNLSpiroNes.h"
+#include "../Bus/LSNBus.h"
+#include "../System/LSNInterruptable.h"
 
 namespace lsn {
 
@@ -20,7 +21,7 @@ namespace lsn {
 	 *
 	 * Description: The base class for all CPU's.
 	 */
-	class CCpuBase {
+	class CCpuBase : public CInterruptable {
 	public :
 		CCpuBase( CCpuBus * _pbBus ) :
 			m_ui64CycleCount( 0 ),

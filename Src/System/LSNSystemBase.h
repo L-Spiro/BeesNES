@@ -285,6 +285,20 @@ namespace lsn {
 		virtual uint8_t									Get4013() const { return 0; }
 
 		/**
+		 * Gets the DMC DMA address.
+		 * 
+		 * \return Returns the DMC DMA address.
+		 **/
+		virtual uint16_t								DmcDmaAddress() const { return 0; }
+
+		/**
+		 * Hands the DMC DMA value off to the APU.
+		 * 
+		 * \param _ui8Value The value to hand off to the APU.
+		 **/
+		virtual void									ReceiveDmcSample( uint8_t /*_ui8Value*/ ) {}
+
+		/**
 		 * Sets the raw stream-to-file pointer.
 		 * 
 		 * \param _pfStream The stream-to-file pointer to set.

@@ -286,6 +286,12 @@ namespace lsn {
 		};
 #pragma pack( pop )
 
+		/** A stream-to-file buffer. */
+		struct LSN_STREAM_BUFFER {
+			std::vector<float>											vBuffer;					/**< The buffer of samples. */
+			uint32_t													ui32WavFile_DSize = 0;		/**< The file size to pass to CloseStreamFile() upon splitting. */
+		};
+
 		/** A stream-to-file structure. */
 		struct LSN_STREAMING {
 			uint64_t													ui64SamplesReceived = 0;	/**< The number of samples sent to the stream. */
@@ -308,7 +314,8 @@ namespace lsn {
 			PfAddMetaDataFunc											pfMetaFunc = nullptr;		/**< The function for adding metadata. */
 			PfMetaDataThreadFunc										pfMetaThreadFunc = nullptr;	/**< The function for parsing metadata into the final file output. */
 
-			std::queue<std::vector<float>>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
+			std::queue<LSN_STREAM_BUFFER>								qBufferQueue;				/**< The queue of buffers handled by the thread. */
+			uint32_t													ui32SplitIndex = 0;			/**< The current split index for the file. */
 			std::mutex													mMutex;						/**< The thread mutex for accessing qBufferQueue and bStreaming. */
 			std::condition_variable										cvCondition;				/**< The conditional variable for the lock. */
 			std::thread													tThread;					/**< The thread for writing to the file. */
@@ -1385,14 +1392,17 @@ namespace lsn {
 		 * Creates the file for streaming and writes the header data to it, preparing it for writing samples.
 		 * 
 		 * \param _pcPath Uses data loaded into m_sStream to create a new file.
+		 * \param _bIsSplit If true, indicates the file is being created as a split overflow, bypassing main-thread variables.
 		 * \return Returns true if the file was created and the header was written to it.
 		 **/
-		bool															CreateStreamFile( const char8_t * _pcPath );
+		bool															CreateStreamFile( const char8_t * _pcPath, bool _bIsSplit = false );
 
 		/**
 		 * Closes the current streaming file.
+		 * 
+		 * \param _ui32DSize The final size of all the samples placed into the buffer.  If 0, the size is taken from m_sStream.ui32WavFile_DSize.
 		 **/
-		void															CloseStreamFile();
+		void															CloseStreamFile( uint32_t _ui32DSize = 0 );
 
 		/**
 		 * Creates the file for streaming metadata.  All writes to the file are handled by a callback.
