@@ -462,7 +462,7 @@
 #define LSN_WE_TT_START_SNAP												Start at the sample just before the first sample that is different from the one at the specified time.
 #define LSN_WE_TT_STOP_SNAP													Stop at the sample just after the first sample that is different from the one at the specified time.
 #define LSN_WE_TT_ONE_SHOT													If checked, the audio will play from start to end, and include the opening and trailing silence.
-#define LSN_WE_TT_LOOPING													If checked, the audio will play from start to end, then continue playing for the pre-fade duration, and then continue playing during the fade-out, and include the opening and trailing silence.  The End Time will usually be set to the time the track loops (typically the exact time of the 2nd loop, in the file\u2019s native Hz).
+#define LSN_WE_TT_LOOPING													If checked, the audio will play from start to end, then continue playing for the pre-fade duration, and then continue playing during the fade-out, and include the opening and trailing silence.  The Stop Time will usually be set to the time the track loops (typically the exact time of the 2nd loop, in the file\u2019s native Hz).
 #define LSN_WE_TT_PREFADE													In a looping track, this is tne number of seconds to continue playing before beginning the fade-out.
 #define LSN_WE_TT_FADE														In a looping track, this is the duration, in seconds, of the studio fade-out that will be applied.
 #define LSN_WE_TT_OPENING_SILENCE											The duration of opening silence to prepend to the output file.

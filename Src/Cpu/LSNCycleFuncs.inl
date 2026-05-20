@@ -373,7 +373,7 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 			/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
 			&CCpu6502::Null<LSN_R, true>,												&CCpu6502::Fetch_Operand_Discard_Phi2,
 			&CCpu6502::Null<LSN_W>,														&CCpu6502::Push_A_Phi2<0, true>,
-			&CCpu6502::BeginInst<false, true>, },
+			&CCpu6502::Null<LSN_R, false, true, true> },
 		3, LSN_AM_IMPLIED, 1, LSN_I_PHA, "Implied"
 	},
 	{	// 49
