@@ -45,7 +45,7 @@
 
 #define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
-#define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION //m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_NextInstructionStd
+#define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION
 
 #define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
@@ -483,7 +483,7 @@ namespace lsn {
 		/** The OAM DMA cycles. */
 		template <unsigned _uState, bool _bPhi2, bool _bCalledFromDmc = false>
 		void												Tick_OamDma() {
-#define LSN_GET												0
+#define LSN_GET												1
 #define LSN_PUT												(LSN_GET ^ 1)
 #define LSN_SET_PTRS( STATE )															\
 	m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
@@ -603,7 +603,7 @@ namespace lsn {
 		/** The DMC DMA cycles. */
 		template <unsigned _uState, bool _bPhi2, bool _bIsReload>
 		void												Tick_DmcDma() {
-#define LSN_GET												0
+#define LSN_GET												1
 #define LSN_PUT												(LSN_GET ^ 1)
 #define LSN_SET_PTRS( STATE )															\
 	m_pfTickFunc = &CCpu6502::Tick_DmcDma<STATE, !_bPhi2, _bIsReload>;					\

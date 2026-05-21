@@ -63,12 +63,12 @@ namespace lsn {
 			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
 				// PHI1.
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), (_tCpuDiv / 3) + _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
 				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv, LSN_APU_SLOT },
 
 				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
 				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), (_tCpuDiv / 3) + _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
 			};
 			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
 
@@ -173,23 +173,23 @@ namespace lsn {
 					uint64_t ui64Low = ~0ULL;
 
 					size_t sCheckedSlot;
-					// Looping over the 4 slots adds a small amount of overhead.  Unrolling the loop is easy.
+					// Looping over the 3 slots adds a small amount of overhead.  Unrolling the loop is easy.
 					// PPU slot.
-					size_t sTmp = m_sSlotsToCheck[0];
+					size_t sTmp = m_sSlotsToCheck[1];
 					if LSN_LIKELY( m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
-						phsSlot = &m_hsSlots[sTmp];
-						ui64Low = phsSlot->ui64Counter;
-						sCheckedSlot = 0;
-					}
-					// CPU slot.
-					sTmp = m_sSlotsToCheck[1];
-					if LSN_UNLIKELY( m_hsSlots[sTmp].ui64Counter <= ui64Low && m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
 						phsSlot = &m_hsSlots[sTmp];
 						ui64Low = phsSlot->ui64Counter;
 						sCheckedSlot = 1;
 					}
+					// CPU slot.
+					sTmp = m_sSlotsToCheck[0];
+					if LSN_UNLIKELY( m_hsSlots[sTmp].ui64Counter < ui64Low && m_hsSlots[sTmp].ui64Counter <= m_ui64MasterCounter ) {
+						phsSlot = &m_hsSlots[sTmp];
+						ui64Low = phsSlot->ui64Counter;
+						sCheckedSlot = 0;
+					}
 					// By assuming the APU is not divided into PHI1 and PHI2 we can save just a bit of time here.
-					if LSN_UNLIKELY( m_hsSlots[LSN_APU_SLOT].ui64Counter < ui64Low && m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter ) {
+					if LSN_UNLIKELY( m_hsSlots[LSN_APU_SLOT].ui64Counter <= ui64Low && m_hsSlots[LSN_APU_SLOT].ui64Counter <= m_ui64MasterCounter ) {
 						// If we come in here then we know that the APU will be the one to tick.
 						//	This means we can optimize away the "if ( phsSlot != nullptr )" check
 						//	as well as the pointer-access ("phsSlot").

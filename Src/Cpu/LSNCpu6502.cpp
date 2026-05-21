@@ -57,11 +57,11 @@ namespace lsn {
 	 * Performs a single PHI2 update.
 	 **/
 	void CCpu6502::TickPhi2() {
-		(this->*m_pfTickFunc)();
-
 		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
 		//m_bIrqSeenLowPhi2 |= m_bIrqStatusLine & static_cast<int8_t>(!(m_fsState.rRegs.ui8Status & I()));
 		m_bIrqSeenLowPhi2 |= (m_ui8IrqStatusLine != 0);
+
+		(this->*m_pfTickFunc)();
 
 		++m_ui64CycleCount;
 		/*if ( m_ui64CycleCount == (266551) ) {
@@ -139,28 +139,6 @@ namespace lsn {
 
 		m_bDmcDma = true;		// The key to actually stopping the CPU.
 	}
-
-	/**
-	 * Begins a DMC DMA transfer.
-	 */
-	//void CCpu6502::BeginDmcDma() {
-	//	if ( true /** Is start of a new sample? */ ) {
-	//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-
-	//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-	//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
-	//	}
-	//	else {
-	//		// Reload.
-	//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-
-	//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-	//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
-	//	}
-
-	//	m_bDmcGo = false;
-	//	// m_bDmcDma = true;	// The key to actually stopping the CPU.
-	//}
 
 	/**
 	 * Notifies the class that an NMI has occurred.
