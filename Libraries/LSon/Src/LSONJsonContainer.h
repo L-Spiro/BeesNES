@@ -3,6 +3,7 @@
 #include "LSONJsonSyntaxNodes.h"
 #include "Gen/LSONJsonParser.h"
 
+#include <map>
 #include <vector>
 
 
@@ -70,18 +71,20 @@ namespace lson {
 		/**
 		 * Adds a string and returns its index into the stack.
 		 *
-		 * \param _sText The string to add or whose existing index is to be found.
+		 * \param _pcText The string to add or whose existing index is to be found.
+		 * \param _sLen The number of characters in _pcText.
 		 * \return Returns the index of the added string.
 		 */
-		size_t											AddString( const std::string &_sText );
+		size_t											AddString( const char * _pcText, size_t _sLen );
 
 		/**
 		 * Removes quotes from the front and end before adding the string.
 		 *
 		 * \param _sText The string to add or whose existing index is to be found.
+		 * \param _sLen The number of characters in _pcText.
 		 * \return Returns the index of the added string after stripping the enclosing quotes from it.
 		 */
-		size_t											AddQuoteString( const std::string &_sText );
+		size_t											AddQuoteString( const char * _pcText, size_t _sLen );
 
 		/**
 		 * Returns the index of a string or -1 if it does not exist.
@@ -286,6 +289,8 @@ namespace lson {
 		std::vector<YYSTYPE::LSON_NODE>					m_vNodes;
 		/** The stack of UTF-8 strings. */
 		std::vector<std::string>						m_vStrings;
+		/** Quick indexing of strings. */
+		std::map<std::string, size_t>					m_mStringIndex;
 		/** Tree values, referenced by index. */
 		std::vector<LSON_JSON_VALUE>					m_vValues;
 		/** The resulting tree. */

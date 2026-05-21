@@ -86,7 +86,7 @@ values
 	;
 	
 string
-	: LSON_STRING											{ $$ = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText() ); }
+	: LSON_STRING											{ $$ = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ); }
 	
 decimal
 	: LSON_DECIMAL											{ $$ = ::atof( m_pjlLexer->YYText() ); }

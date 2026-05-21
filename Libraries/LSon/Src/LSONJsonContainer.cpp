@@ -19,14 +19,19 @@ namespace lson {
 	/**
 	 * Adds a string and returns its index into the stack.
 	 *
-	 * \param _sText The string to add or whose existing index is to be found.
+	 * \param _pcText The string to add or whose existing index is to be found.
+	 * \param _sLen The number of characters in _pcText.
 	 * \return Returns the index of the added string.
 	 */
-	size_t CJsonContainer::AddString( const std::string &_sText ) {
-		size_t stRet = FindString( _sText );
+	size_t CJsonContainer::AddString( const char * _pcText, size_t _sLen ) {
+		std::string sTmp( _pcText, _sLen );
+		size_t stRet = FindString( sTmp );
 		if ( stRet == size_t( -1 ) ) {
-			m_vStrings.push_back( _sText );
-			return m_vStrings.size() - 1;
+			auto sIdx = m_vStrings.size();
+			m_mStringIndex[sTmp] = sIdx;
+			m_vStrings.emplace_back( sTmp );
+			
+			return sIdx;
 		}
 		return stRet;
 	}
@@ -34,11 +39,12 @@ namespace lson {
 	/**
 	 * Removes quotes from the front and end before adding the string.
 	 *
-	 * \param _sText The string to add or whose existing index is to be found.
+	 * \param _pcText The string to add or whose existing index is to be found.
+	 * \param _sLen The number of characters in _pcText.
 	 * \return Returns the index of the added string after stripping the enclosing quotes from it.
 	 */
-	size_t CJsonContainer::AddQuoteString( const std::string &_sText ) {
-		return AddString( _sText.substr( 1, _sText.size() - 2 ) );
+	size_t CJsonContainer::AddQuoteString( const char * _pcText, size_t _sLen ) {
+		return AddString( _pcText + 1, _sLen - 2 );
 	}
 
 	/**
@@ -48,9 +54,11 @@ namespace lson {
 	 * \return Returns the index of the string if it exists or size_t( -1 ).
 	 */
 	size_t CJsonContainer::FindString( const std::string &_sText ) const {
-		for ( auto I = m_vStrings.size(); I--; ) {
+		auto aIdx = m_mStringIndex.find( _sText );
+		if ( aIdx != m_mStringIndex.end() ) { return aIdx->second; }
+		/*for ( auto I = m_vStrings.size(); I--; ) {
 			if ( m_vStrings[I] == _sText ) { return I; }
-		}
+		}*/
 		return size_t( -1 );
 	}
 

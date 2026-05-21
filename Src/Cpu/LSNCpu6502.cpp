@@ -46,6 +46,7 @@ namespace lsn {
 		}*/
 		m_bIrqStatusPhi1Flag = m_bIrqSeenLowPhi2;
 		m_bIrqSeenLowPhi2 = false;
+		m_bNmiStatusPhi1Flag = m_bDetectedNmi;
 
 #ifndef LSN_CPU_VERIFY
 		m_pmbMapper->Tick();
@@ -135,8 +136,7 @@ namespace lsn {
 			m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
 		}
 
-		m_bDmcGo = false;
-
+		m_bDmcGo = m_bRdyLow;
 		m_bDmcDma = true;		// The key to actually stopping the CPU.
 	}
 
@@ -2476,7 +2476,7 @@ namespace lsn {
 
 		if LSN_LIKELY( !m_bRdyLow ) {
 			if ( m_bDetectedNmi ) {
-				m_bHandleNmi = m_bDetectedNmi = false;
+				m_bHandleNmi = m_bDetectedNmi = m_bNmiStatusPhi1Flag = false;
 				m_bNmiStatusLine = false;
 			}
 			m_bHandleIrq = false;

@@ -1669,7 +1669,7 @@ namespace lsn {
 
 			if ( paApu->m_dDmc.IsIrqAsserted( paApu->m_pcbCpu ) ) {
 				_ui8Ret |= 0b10000000;
-				paApu->m_dDmc.ClearIrq( paApu->m_pcbCpu );
+				//paApu->m_dDmc.ClearIrq( paApu->m_pcbCpu );
 			}
 		}
 

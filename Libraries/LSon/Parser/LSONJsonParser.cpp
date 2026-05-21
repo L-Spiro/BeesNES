@@ -505,7 +505,7 @@ namespace yy {
 
   case 20:
 
-    { (yyval.sStringIndex) = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText() ); }
+    { (yyval.sStringIndex) = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ); }
     break;
 
   case 21:
