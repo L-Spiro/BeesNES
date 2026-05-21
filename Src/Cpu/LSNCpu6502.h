@@ -489,16 +489,7 @@ namespace lsn {
 	m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
 	m_pfOamDmaFuncs[false] = &CCpu6502::Tick_OamDma<STATE, false, _bCalledFromDmc>;		\
 	m_pfOamDmaFuncs[true] = &CCpu6502::Tick_OamDma<STATE, true, _bCalledFromDmc>
-			/*if constexpr ( _uState == LSN_DS_IDLE && _bPhi2 == false ) {
-				::OutputDebugStringA( "\r\n" );
-			}
-			{
-				char szBuffer[64];
-				::sprintf( szBuffer, "_uState %u, _bPhi2 %u\r\n", _uState, _bPhi2 );
-				::OutputDebugStringA( szBuffer );
-			}*/
 			// _uState == LSN_DMA_STATES
-			// _bEven is true when the cycle index is odd (1, 3, 5, etc.)
 			//
 			// Triggered by Phi2 read, so can never happen between Phi1 nd Phi2.  Always begins on a Phi1.
 			// Idle function doesn't need to track Phi1 or Phi2. m_bDmaGo is only set on Phi2, so the Phi can be determined then.
@@ -619,21 +610,28 @@ namespace lsn {
 					(this->*m_pfTickFuncCopy)();
 				}
 				if ( m_bDmcGo ) {
-					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
-					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
-					// The CPU is now stalled.  Begin the transfer.
-					LSN_SET_PTRS( LSN_DS_DUMMY );
+					if constexpr ( _bPhi2 ) {
+						LSN_SET_PTRS( LSN_DS_DUMMY );
+					}
+					else {
+						LSN_SET_PTRS( LSN_DS_IDLE );
+					}
 				}
 				else {
 					LSN_SET_PTRS( LSN_DS_IDLE );
 				}
 			}
 			if constexpr ( _uState == LSN_DS_DUMMY ) {
-				if ( m_pfOamDmaFuncs[0] ) {
-					(this->*m_pfOamDmaFuncs[_bPhi2])();
-				}
-				else if constexpr ( _bPhi2 ) {
+				if constexpr ( _bPhi2 ) {
 					m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
+					if ( m_pfOamDmaFuncs[_bPhi2] ) {
+						m_bDmcBusAccess = true;
+						(this->*m_pfOamDmaFuncs[_bPhi2])();
+						m_bDmcBusAccess = false;
+					}
+				}
+				else if ( m_pfOamDmaFuncs[_bPhi2] ) {
+					(this->*m_pfOamDmaFuncs[_bPhi2])();
 				}
 
 				if constexpr ( _bPhi2 ) {
@@ -651,7 +649,6 @@ namespace lsn {
 				if constexpr ( _bPhi2 ) {
 					if ( m_bDmcRead && (m_ui64CycleCount & 0x1) == LSN_GET ) {
 						m_bDmcBusAccess = true;
-						//m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmcAddress ) );
 						uint16_t ui16DmcAddr = m_psbSystem->DmcDmaAddress();
 						auto ui8DmcValue = m_pbBus->Read( ui16DmcAddr );
 						
@@ -662,7 +659,7 @@ namespace lsn {
 						m_bDmcDma = false;
 						m_bDmcRead = false;
 
-						if ( m_pfOamDmaFuncs[0] ) {
+						if ( m_pfOamDmaFuncs[_bPhi2] ) {
 							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
 						}
 						else {
@@ -674,7 +671,7 @@ namespace lsn {
 					}
 					else {
 						// Not a GET cycle.
-						if ( m_pfOamDmaFuncs[0] ) {
+						if ( m_pfOamDmaFuncs[_bPhi2] ) {
 							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
 						}
 						LSN_SET_PTRS( LSN_DS_READ_WRITE );
@@ -684,7 +681,7 @@ namespace lsn {
 				}
 				else {
 					// Nothing for us to do.
-					if ( m_pfOamDmaFuncs[0] ) {
+					if ( m_pfOamDmaFuncs[_bPhi2] ) {
 						(this->*m_pfOamDmaFuncs[_bPhi2])();
 					}
 					LSN_SET_PTRS( LSN_DS_READ_WRITE );

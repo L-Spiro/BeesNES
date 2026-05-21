@@ -122,21 +122,41 @@ namespace lsn {
 	 * \param _bIsRestart true if this is fetching the next byte of an ongoing sample, false if it's the first byte of a new sample transfer.
 	 */
 	void CCpu6502::BeginDmcDma( bool _bIsRestart ) {
-		if ( !_bIsRestart ) { // Is start of a new sample?
-			m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-
-			m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-			m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
-		}
-		else {
-			// Reload.
-			m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-
-			m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-			m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
-		}
-
 		m_bDmcGo = m_bRdyLow;
+
+		//if ( !m_bDmcGo ) {
+			if ( !_bIsRestart ) { // Is start of a new sample?
+				m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
+
+				m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
+				m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
+			}
+			else {
+				// Reload.
+				m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+
+				m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
+				m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
+			}
+		//}
+		//else {
+		//	// m_bRdyLow, which means OAM DMA has already halted the CPU.  Skip IDLE and go to DUMMY.
+
+		//	if ( !_bIsRestart ) { // Is start of a new sample?
+		//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>;
+
+		//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>;
+		//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false>;
+		//	}
+		//	else {
+		//		// Reload.
+		//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>;
+
+		//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>;
+		//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true>;
+		//	}
+		//}
+		
 		m_bDmcDma = true;		// The key to actually stopping the CPU.
 	}
 
