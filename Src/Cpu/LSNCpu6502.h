@@ -47,7 +47,8 @@
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION
 
-#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bNmiStatusPhi1Flag
+//#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bNmiStatusPhi1Flag
+#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
 
 #define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); m_fsState.ui8SModify = uint8_t( -1L + _i8SOff )
 #define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (RESULT) ); m_fsState.ui8SModify = uint8_t( 1 + _i8SOff )
@@ -184,7 +185,7 @@ namespace lsn {
 			m_bNmiStatusLine = false;
 			m_bLastNmiStatusLine = false;
 			m_bDetectedNmi = false;
-			m_bNmiStatusPhi1Flag = false;
+			//m_bNmiStatusPhi1Flag = false;
 			m_bHandleNmi = false;
 			m_ui8IrqStatusLine = 0;
 			m_bIrqSeenLowPhi2 = false;
@@ -397,7 +398,7 @@ namespace lsn {
 		bool												m_bNmiStatusLine = false;															/**< The status line for NMI. */
 		bool												m_bLastNmiStatusLine = false;														/**< THe last status line for NMI. */
 		bool												m_bDetectedNmi = false;																/**< The edge detector for the PHI2 part of the cycle. */
-		bool												m_bNmiStatusPhi1Flag = false;														/**< The delayed latch for NMI, */
+		//bool												m_bNmiStatusPhi1Flag = false;														/**< The delayed latch for NMI, */
 		bool												m_bHandleNmi = false;																/**< Once an NMI edge is detected, this is set to indicate that it needs to be handled on the PHI1 of the next cycle. */
 		uint8_t												m_ui8IrqStatusLine = 0;																/**< The status line for IRQ. */
 		bool												m_bIrqSeenLowPhi2 = false;															/**< Set if m_bIrqStatusLine is low on PHI2. */

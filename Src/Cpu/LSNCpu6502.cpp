@@ -46,7 +46,7 @@ namespace lsn {
 		}*/
 		m_bIrqStatusPhi1Flag = m_bIrqSeenLowPhi2;
 		m_bIrqSeenLowPhi2 = false;
-		m_bNmiStatusPhi1Flag = m_bDetectedNmi;
+		//m_bNmiStatusPhi1Flag = m_bDetectedNmi;
 
 #ifndef LSN_CPU_VERIFY
 		m_pmbMapper->Tick();
@@ -59,7 +59,6 @@ namespace lsn {
 	 **/
 	void CCpu6502::TickPhi2() {
 		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
-		//m_bIrqSeenLowPhi2 |= m_bIrqStatusLine & static_cast<int8_t>(!(m_fsState.rRegs.ui8Status & I()));
 		m_bIrqSeenLowPhi2 |= (m_ui8IrqStatusLine != 0);
 
 		(this->*m_pfTickFunc)();
@@ -2496,7 +2495,7 @@ namespace lsn {
 
 		if LSN_LIKELY( !m_bRdyLow ) {
 			if ( m_bDetectedNmi ) {
-				m_bHandleNmi = m_bDetectedNmi = m_bNmiStatusPhi1Flag = false;
+				m_bHandleNmi = m_bDetectedNmi = /*m_bNmiStatusPhi1Flag =*/ false;
 				m_bNmiStatusLine = false;
 			}
 			m_bHandleIrq = false;
@@ -2534,7 +2533,7 @@ namespace lsn {
 			if ( !m_fsState.bBoundaryCrossed ) {
 				++ui16High;
 			}
-			if ( m_ui8RdyOffCnt == _uRdyCnt + 0 ) {
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
 				ui16High = 0xFFFF;
 			}
 			if ( m_fsState.bBoundaryCrossed ) {
@@ -2560,7 +2559,7 @@ namespace lsn {
 			if ( !m_fsState.bBoundaryCrossed ) {
 				++ui16High;
 			}
-			if ( m_ui8RdyOffCnt == _uRdyCnt + 0 ) {
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
 				ui16High = 0xFFFF;
 			}
 			if ( m_fsState.bBoundaryCrossed ) {
