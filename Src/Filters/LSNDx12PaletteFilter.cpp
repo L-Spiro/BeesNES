@@ -67,7 +67,10 @@ namespace lsn {
 		m_tLut.reset();
 		m_rtInitial.reset();
 		m_rtScanlined.reset();
-		m_vbQuad.reset();
+		
+		m_vbPass1.reset();
+		m_vbPass2.reset();
+		m_vbPass3.reset();
 		
 		m_rIndexUpload.reset();
 		m_rLutUpload.reset();
@@ -214,16 +217,28 @@ namespace lsn {
 		if LSN_UNLIKELY( !m_tLut.get() ) { m_tLut = std::make_unique<CDirectX12Texture>(); }
 		if LSN_UNLIKELY( !m_rtInitial.get() ) { m_rtInitial = std::make_unique<CDirectX12Resource>(); }
 		if LSN_UNLIKELY( !m_rtScanlined.get() ) { m_rtScanlined = std::make_unique<CDirectX12Resource>(); }
-		if LSN_UNLIKELY( !m_vbQuad.get() ) { m_vbQuad = std::make_unique<CDirectX12Resource>(); }
+		
+		if LSN_UNLIKELY( !m_vbPass1.get() ) { m_vbPass1 = std::make_unique<CDirectX12Resource>(); }
+		if LSN_UNLIKELY( !m_vbPass2.get() ) { m_vbPass2 = std::make_unique<CDirectX12Resource>(); }
+		if LSN_UNLIKELY( !m_vbPass3.get() ) { m_vbPass3 = std::make_unique<CDirectX12Resource>(); }
+		
 		if LSN_UNLIKELY( !m_rIndexUpload.get() ) { m_rIndexUpload = std::make_unique<CDirectX12Resource>(); }
 		if LSN_UNLIKELY( !m_rLutUpload.get() ) { m_rLutUpload = std::make_unique<CDirectX12Resource>(); }
 		
 		const uint32_t ui32ScanW = m_ui32SrcW * GetActualHorSharpness();
 		const uint32_t ui32ScanH = m_ui32SrcH * GetActualVertSharpness();
 		if ( !ui32ScanW || !ui32ScanH ) { return false; }
-		const bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_rtScanlined->Get() && m_vbQuad->Get();
+		
+		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_rtScanlined->Get() && m_vbPass1->Get() && m_vbPass2->Get() && m_vbPass3->Get();
 
-		if ( bOk ) { m_bValidState = true; return true; }
+		if ( bOk ) {
+			// Also check if the scale changed, necessitating a recreation of the scanline target.
+			D3D12_RESOURCE_DESC rdScanDesc = m_rtScanlined->Get()->GetDesc();
+			if ( rdScanDesc.Width == ui32ScanW && rdScanDesc.Height == ui32ScanH ) {
+				m_bValidState = true; 
+				return true;
+			}
+		}
 
 		ReleaseSizeDependents();
 
@@ -267,12 +282,23 @@ namespace lsn {
 		pd12Device->CreateRenderTargetView( m_rtScanlined->Get(), nullptr, hRtv ); // Slot 1
 
 
-		// 4. Vertex Buffer (4 vertices). Use UPLOAD heap so CPU can update coordinates.
+		// 4. Vertex Buffers (4 vertices each). Independent buffers avoid command queue race conditions.
 		D3D12_RESOURCE_DESC rdVb = { D3D12_RESOURCE_DIMENSION_BUFFER, 0, sizeof( LSN_XYZRHWTEX1 ) * 4, 1, 1, 1, DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE };
-		if ( !m_vbQuad->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
-		m_vbView.BufferLocation = m_vbQuad->Get()->GetGPUVirtualAddress();
-		m_vbView.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
-		m_vbView.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
+		
+		if ( !m_vbPass1->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
+		m_vbView1.BufferLocation = m_vbPass1->Get()->GetGPUVirtualAddress();
+		m_vbView1.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
+		m_vbView1.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
+
+		if ( !m_vbPass2->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
+		m_vbView2.BufferLocation = m_vbPass2->Get()->GetGPUVirtualAddress();
+		m_vbView2.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
+		m_vbView2.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
+
+		if ( !m_vbPass3->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
+		m_vbView3.BufferLocation = m_vbPass3->Get()->GetGPUVirtualAddress();
+		m_vbView3.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
+		m_vbView3.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
 
 		if ( !UpdateLut() ) { return false; }
 
@@ -375,20 +401,26 @@ namespace lsn {
 			// 2: Sampler
 			drRanges[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER; drRanges[2].NumDescriptors = 1; drRanges[2].BaseShaderRegister = 0; drRanges[2].RegisterSpace = 0; drRanges[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-			D3D12_ROOT_PARAMETER rpParameters[4];
+			// Allocate 5 Parameters: Index 1 isolates the PS constants so they don't overwrite VS constants.
+			D3D12_ROOT_PARAMETER rpParameters[5];
 			rpParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-			rpParameters[0].Constants.ShaderRegister = 0; rpParameters[0].Constants.RegisterSpace = 0; rpParameters[0].Constants.Num32BitValues = 4; rpParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[1].DescriptorTable.NumDescriptorRanges = 1; rpParameters[1].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-			rpParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-			rpParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[3].DescriptorTable.NumDescriptorRanges = 1; rpParameters[3].DescriptorTable.pDescriptorRanges = &drRanges[2]; rpParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			rpParameters[0].Constants.ShaderRegister = 0; rpParameters[0].Constants.RegisterSpace = 0; rpParameters[0].Constants.Num32BitValues = 4; rpParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+			
+			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+			rpParameters[1].Constants.ShaderRegister = 1; rpParameters[1].Constants.RegisterSpace = 0; rpParameters[1].Constants.Num32BitValues = 4; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 4, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
+			rpParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			
+			rpParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[3].DescriptorTable.NumDescriptorRanges = 1; rpParameters[3].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			
+			rpParameters[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[4].DescriptorTable.NumDescriptorRanges = 1; rpParameters[4].DescriptorTable.pDescriptorRanges = &drRanges[2]; rpParameters[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 5, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
 
 			Microsoft::WRL::ComPtr<ID3DBlob> pbSig, pbErr;
-			
 			typedef HRESULT( WINAPI * PFN_D3D12SerializeRootSignature )( const D3D12_ROOT_SIGNATURE_DESC *, D3D_ROOT_SIGNATURE_VERSION, ID3DBlob **, ID3DBlob ** );
 			PFN_D3D12SerializeRootSignature pfnSer = reinterpret_cast<PFN_D3D12SerializeRootSignature>(::GetProcAddress( m_pdx12dDevice->Dll().hHandle, "D3D12SerializeRootSignature" ));
 			
@@ -427,7 +459,7 @@ namespace lsn {
 		static const char * kPsVerticalNNHlsl =
 			"Texture2D tSrc : register(t0);\n"
 			"SamplerState sPoint : register(s0);\n"
-			"cbuffer RootConstants : register(b0) { float4 c0; };\n" // x=srcH, y=1/srcH, z=0.5
+			"cbuffer PSConstants : register(b1) { float4 c0; };\n" // Shifted to b1
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
 			"    float v = (floor(input.Tex.y * c0.x) + c0.z) * c0.y;\n"
@@ -438,16 +470,8 @@ namespace lsn {
 			"Texture2D tSrc : register(t0);\n"
 			"SamplerState sLinear : register(s0);\n"
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
-			"float3 LinearToSrgb(float3 c) {\n"
-			"  float3 lo = 12.92 * c;\n"
-			"  float3 hi = 1.055 * pow(abs(c), 1.0 / 2.4) - 0.055;\n"
-			"  float3 t = step(float3(0.0031308, 0.0031308, 0.0031308), c);\n"
-			"  return lerp(lo, hi, t);\n"
-			"}\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
-			"  float4 c = tSrc.Sample(sLinear, input.Tex);\n"
-			"  c.rgb = saturate(saturate(c.rgb));\n"
-			"  return c;\n"
+			"  return tSrc.Sample(sLinear, input.Tex);\n"
 			"}\n";
 
 		std::vector<uint8_t> vBcVs, vBcIdx, vBcVert, vBcCopy;
@@ -490,7 +514,7 @@ namespace lsn {
 
 		// PSO 3: Copy
 		gpsdDesc.PS = { vBcCopy.data(), vBcCopy.size() };
-		gpsdDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // Assuming backbuffer is UNORM
+		gpsdDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // Srgb hardware conversion format
 		if ( !m_psoCopy->Get() && !m_psoCopy->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
 
 		return true;
@@ -525,10 +549,13 @@ namespace lsn {
 	 * \brief Releases size-dependent resources.
 	 */
 	void CDx12PaletteFilter::ReleaseSizeDependents() {
-		if LSN_LIKELY( m_tIndex.get() && m_tIndex->Get() ) { m_tIndex->Get()->Release(); }
-		if LSN_LIKELY( m_rtInitial.get() && m_rtInitial->Get() ) { m_rtInitial->Get()->Release(); }
-		if LSN_LIKELY( m_rtScanlined.get() && m_rtScanlined->Get() ) { m_rtScanlined->Get()->Release(); }
-		if LSN_LIKELY( m_vbQuad.get() && m_vbQuad->Get() ) { m_vbQuad->Get()->Release(); }
+		if LSN_LIKELY( m_tIndex.get() ) { m_tIndex->Reset(); }
+		if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
+		if LSN_LIKELY( m_rtScanlined.get() ) { m_rtScanlined->Reset(); }
+		
+		if LSN_LIKELY( m_vbPass1.get() ) { m_vbPass1->Reset(); }
+		if LSN_LIKELY( m_vbPass2.get() ) { m_vbPass2->Reset(); }
+		if LSN_LIKELY( m_vbPass3.get() ) { m_vbPass3->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -591,15 +618,15 @@ namespace lsn {
 		float fConstants1[4] = { static_cast<float>(m_ui32SrcW), static_cast<float>(m_ui32SrcH), 0.0f, 0.0f };
 		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 4, fConstants1, 0 );
 
-		// Set SRVs (Index at Slot 0, LUT at Slot 1).
+		// Set SRVs. Indices shifted by 1 due to the new PS constant parameter.
 		D3D12_GPU_DESCRIPTOR_HANDLE hLutSrv = hSrvGpu; hLutSrv.ptr += m_uiSrvDescriptorSize;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 1, hSrvGpu );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hLutSrv );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 3, hSampGpu ); // Point Sampler
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hSrvGpu );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 3, hLutSrv );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 4, hSampGpu ); // Point Sampler
 
-		FillQuad( (*m_vbQuad), 0.0f, 0.0f, float(m_ui32SrcW), float(m_ui32SrcH), 0.0f, 0.0f, 1.0f, 1.0f );
+		FillQuad( (*m_vbPass1), 0.0f, 0.0f, float(m_ui32SrcW), float(m_ui32SrcH), 0.0f, 0.0f, 1.0f, 1.0f );
 		m_gclCommandList->Get()->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView );
+		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView1 );
 		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
 
 
@@ -618,15 +645,18 @@ namespace lsn {
 		m_gclCommandList->Get()->RSSetViewports( 1, &vp2 );
 		m_gclCommandList->Get()->RSSetScissorRects( 1, &rScissor2 );
 
+		// VS Constants (b0)
 		float fConstants2[4] = { static_cast<float>(ui32DstW), static_cast<float>(ui32DstH), 0.0f, 0.0f };
-		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 2, fConstants2, 0 ); // TargetSize
+		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 2, fConstants2, 0 );
+		// PS Constants (b1) - Isolated!
 		float fC0[4] = { float( m_ui32SrcH ), 1.0f / float( m_ui32SrcH ), 0.5f, 0.0f };
-		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 4, fC0, 0 ); // Pixel shader constants override
+		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 1, 4, fC0, 0 );
 
 		D3D12_GPU_DESCRIPTOR_HANDLE hInitialSrv = hSrvGpu; hInitialSrv.ptr += m_uiSrvDescriptorSize * 2;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 1, hInitialSrv );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hInitialSrv );
 
-		FillQuad( (*m_vbQuad), 0.0f, 0.0f, float(ui32DstW), float(ui32DstH), 0.0f, 1.0f, 1.0f, 0.0f );
+		FillQuad( (*m_vbPass2), 0.0f, 0.0f, float(ui32DstW), float(ui32DstH), 0.0f, 1.0f, 1.0f, 0.0f );
+		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView2 );
 		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
 
 
@@ -641,7 +671,10 @@ namespace lsn {
 		m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
 
 		D3D12_CPU_DESCRIPTOR_HANDLE hBackRtv = hRtvStart; hBackRtv.ptr += m_uiRtvDescriptorSize * 2;
-		m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), nullptr, hBackRtv );
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), &rtvDesc, hBackRtv );
 		m_gclCommandList->Get()->OMSetRenderTargets( 1, &hBackRtv, FALSE, nullptr );
 
 		float fClearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -659,10 +692,11 @@ namespace lsn {
 
 		D3D12_GPU_DESCRIPTOR_HANDLE hScanSrv = hSrvGpu; hScanSrv.ptr += m_uiSrvDescriptorSize * 3;
 		D3D12_GPU_DESCRIPTOR_HANDLE hLinearSamp = hSampGpu; hLinearSamp.ptr += m_uiSamplerDescriptorSize;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 1, hScanSrv );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 3, hLinearSamp );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hScanSrv );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 4, hLinearSamp );
 
-		FillQuad( (*m_vbQuad), static_cast<float>(_rOutput.left), static_cast<float>(_rOutput.top), static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom), 0.0f, 0.0f, 1.0f, 1.0f );
+		FillQuad( (*m_vbPass3), static_cast<float>(_rOutput.left), static_cast<float>(_rOutput.top), static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom), 0.0f, 0.0f, 1.0f, 1.0f );
+		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView3 );
 		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
 
 		// Final Transition Back for Presenting & Cleanup states

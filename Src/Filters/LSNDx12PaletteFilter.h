@@ -164,10 +164,14 @@ namespace lsn {
 		std::unique_ptr<CDirectX12Resource>					m_rtInitial;
 		/** Scanlined floating-point render target. */
 		std::unique_ptr<CDirectX12Resource>					m_rtScanlined;
-		/** Screen-space quad vertex buffer. */
-		std::unique_ptr<CDirectX12Resource>					m_vbQuad;
-		/** Vertex buffer view. */
-		D3D12_VERTEX_BUFFER_VIEW							m_vbView;
+		
+		// Independent Screen-space quad vertex buffers for each pass.
+		std::unique_ptr<CDirectX12Resource>					m_vbPass1;
+		std::unique_ptr<CDirectX12Resource>					m_vbPass2;
+		std::unique_ptr<CDirectX12Resource>					m_vbPass3;
+		D3D12_VERTEX_BUFFER_VIEW							m_vbView1;
+		D3D12_VERTEX_BUFFER_VIEW							m_vbView2;
+		D3D12_VERTEX_BUFFER_VIEW							m_vbView3;
 
 		// Upload Heaps for GPU copies.
 		std::unique_ptr<CDirectX12Resource>					m_rIndexUpload;
