@@ -199,7 +199,8 @@ namespace lsn {
 
 		/**
 		 * Clears the DMC IRQ flag directly on the CPU.
-		 * * \param _pCpu Pointer to the CPU tracking the IRQ.
+		 * 
+		 * \param _pCpu Pointer to the CPU tracking the IRQ.
 		 */
 		inline void								ClearIrq( CCpuBase * _pCpu ) { 
 			_pCpu->ClearIrq( LSN_IS_APU_DMC ); 

@@ -11,6 +11,9 @@
 #include "../LSNLSpiroNes.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
+#ifdef LSN_DX12
+#include "../Filters/LSNDx12PaletteFilter.h"
+#endif	// #ifdef LSN_DX12
 #ifdef LSN_DX9
 #include "../Filters/LSNDx9NtscLSpiroFilter.h"
 #include "../Filters/LSNDx9PaletteFilter.h"
@@ -87,7 +90,7 @@ namespace lsn {
 			 * Safely performs deactivation.
 			 **/
 			void								DeActivate() const {
-				if ( pfbDeactivateMe ) {
+				if LSN_UNLIKELY( pfbDeactivateMe ) {
 					pfbDeactivateMe->DeActivate();
 					pfbDeactivateMe = nullptr;
 				}
@@ -488,6 +491,10 @@ namespace lsn {
 		/** Direct3D 9 up-scale L. Spiro PAL-M filter. */
 		CDx9PalLSpiroFilter						m_p9plsfDx9LSpiroPalN;
 #endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+		/** Direct3D 12 palette filter. */
+		CDx12PaletteFilter						m_d12pfDx12Palette;
+#endif	// #ifdef LSN_DX12
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** The default palettes for each system. */

@@ -17,6 +17,7 @@
 #include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
 #include "../GPU/DirectX12/LSNDirectX12DescriptorHeap.h"
 #include "../GPU/DirectX12/LSNDirectX12Fence.h"
+#include "../GPU/DirectX12/LSNDirectX12Resource.h"
 
 #include <Widget/LSWWidget.h>
 
@@ -89,6 +90,19 @@ namespace lsn {
 			int32_t /*_i32DispLeft*/, int32_t /*_i32DispTop*/, uint32_t /*_ui32DispWidth*/, uint32_t /*_ui32DispHeight*/ ) override { return nullptr; }
 
 		/**
+		 * Which GPU API is being used?
+		 * 
+		 * \return Returns a LSN_GRAPHICS_API value indicating which GPU API is being used, if any.
+		 **/
+		virtual LSN_GRAPHICS_API							GpuApi() const { return LSN_GA_DX12; }
+
+		// == Members.
+		/** Global: window class name for the DX12 child target. */
+		static const wchar_t *								LSN_DX12_TARGET_CLASS;
+
+
+		// == Functions.
+		/**
 		 * Sets the parent window handle.  Must be set only when there is a 0 reference count.
 		 *
 		 * \param _pwParent The parent window for the present target (swap chain owner).
@@ -97,6 +111,21 @@ namespace lsn {
 		static bool											SetRenderWindowParent( lsw::CWidget * _pwParent ) {
 			if ( s_dgsState.i32RefCnt != 0 ) { return false; }
 			s_dgsState.pwParent = _pwParent;
+			return true;
+		}
+
+		/**
+		 * \brief Check cooperative level and recover from device loss when possible.
+		 *
+		 * \return Returns true if the device is usable for this frame; false if lost.
+		 **/
+		static bool											HandleDeviceLoss() {
+			if ( !s_dgsState.i32RefCnt || !s_dgsState.hWndTarget || !s_dgsState.dx12Device.GetDevice() ) { return false; }
+			HRESULT hRes = s_dgsState.dx12Device.GetDevice()->GetDeviceRemovedReason();
+			if ( FAILED( hRes ) ) {
+				// D3D12 device is completely removed. Requires full teardown and recreation.
+				return false; 
+			}
 			return true;
 		}
 
@@ -122,6 +151,7 @@ namespace lsn {
 		/** The shared base data for all Direct3D 12 filters. */
 		struct LSN_DX12_GLOBAL_STATE {
 			lsw::CWidget *									pwParent = nullptr;										/**< Parent window (swap-chain owner). */
+			HWND											hWndTarget = NULL;										/**< Render window. */
 			CDirectX12Device								dx12Device;												/**< DirectX 12 device and swap-chain owner. */
 			int32_t											i32RefCnt = 0;											/**< Reference count. */
 			lsw::LSW_RECT									rScreenRect;											/**< Cached output rectangle in client coordinates. */
@@ -135,6 +165,13 @@ namespace lsn {
 			bool											CreateDx12();
 
 			/**
+			 * \brief Creates the child target window used for DX12 presentation.
+			 * 
+			 * \return Returns true if created or already exists.
+			 */
+			bool											CreateDx12TargetChild();
+
+			/**
 			 * Destroys the DirectX 12 device and swap chain when the ref-count reaches 0.
 			 **/
 			void											DestroyDx12();
@@ -144,13 +181,62 @@ namespace lsn {
 			 *
 			 * \return Returns true on success.
 			 */
-			bool											LayoutTarget();
+			bool											LayoutTargetChild();
+
+			~LSN_DX12_GLOBAL_STATE();
 		};
+
+#pragma pack( push, 1 )
+		struct LSN_XYZRHWTEX1 {
+			float fX, fY, fZ, fW;
+			float fU, fV;
+		};
+#pragma pack(pop)
 
 
 		// == Members.
 		/** The global Direct3D 12 state. */
 		static LSN_DX12_GLOBAL_STATE						s_dgsState;
+
+		// == Functions.
+		/**
+		 * \brief Registers the DX12 child target window class (no background erase).
+		 * 
+		 * \return Returns true if the class is registered or already existed.
+		 */
+		static bool LSN_FASTCALL							RegisterDx12TargetClass();
+
+		/**
+		 * \brief Fills a buffer with an XYZRHW|TEX1 quad.
+		 *
+		 * Note: Direct3D 12 does not require the -0.5f offset used in Direct3D 9.
+		 *
+		 * \param _dx12rBuffer The vertex buffer resource to arrange.
+		 * \param _fL Left X in pixels.
+		 * \param _fT Top Y in pixels.
+		 * \param _fR Right X in pixels.
+		 * \param _fB Bottom Y in pixels.
+		 * \param _fU0 Left U coordinate.
+		 * \param _fV0 Top V coordinate.
+		 * \param _fU1 Right U coordinate.
+		 * \param _fV1 Bottom V coordinate.
+		 * \return Returns true on success.
+		 */
+		bool												FillQuad( CDirectX12Resource &_dx12rBuffer, float _fL, float _fT, float _fR, float _fB, float _fU0, float _fV0, float _fU1, float _fV1 );
+
+		/**
+		 * \brief Computes UVs for a WxH texture.
+		 *
+		 * D3D12 does not require half-texel offsets, making this function a passthrough for API parity.
+		 */
+		static inline void									HalfTexelUv( uint32_t /*_ui32W*/, uint32_t /*_ui32H*/,
+			float &_fU0, float &_fV0, float &_fU1, float &_fV1 ) {
+			_fU0 = 0.0f;
+			_fV0 = 0.0f;
+			_fU1 = 1.0f;
+			_fV1 = 1.0f;
+		}
+
 	};
 
 }	// namespace lsn

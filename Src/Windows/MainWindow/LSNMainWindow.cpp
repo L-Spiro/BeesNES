@@ -71,8 +71,10 @@ namespace lsn {
 
 #ifdef LSN_DX9
 		CDx9FilterBase::SetRenderWindowParent( this );
-		//CreateDx9();
 #endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+		CDx12FilterBase::SetRenderWindowParent( this );
+#endif	// #ifdef LSN_DX12
 
 #if 0
 		bool bDx9 = CDirectX9::Supported();
@@ -192,6 +194,13 @@ namespace lsn {
 			::OutputDebugStringA( "\r\n* * * * * CDx9FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
 		}
 #endif	// #ifdef LSN_DX9
+
+#ifdef LSN_DX12
+		// Technically unnecessary, but it helps us find bugs related to resource management.  This should never fail.
+		if ( !CDx12FilterBase::SetRenderWindowParent( NULL ) ) {
+			::OutputDebugStringA( "\r\n* * * * * CDx12FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
+		}
+#endif	// #ifdef LSN_DX12
 	}
 
 	// == Functions.
@@ -478,6 +487,13 @@ namespace lsn {
 				break;
 			}
 #endif	// #ifdef LSN_DX9
+
+#ifdef LSN_DX12
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALETTE : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDDX12 );
+				break;
+			}
+#endif	// #ifdef LSN_DX12
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
@@ -707,76 +723,93 @@ namespace lsn {
 		
 
 
-#ifdef LSN_DX9
-		// ==== DX9 path (if initialized) ==== //
+// ==== GPU path (if initialized) ==== //
 		if ( m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter() ) {
-			// If the device is lost, try to recover (non-blocking).
-			if ( !CDx9FilterBase::HandleDeviceLoss() ) {
-				m_bnEmulator.RenderInfo().DeActivate();
-				return LSW_H_HANDLED;   // Skip this frame.
-			}
-			::ValidateRect( Wnd(), NULL );
+			
+			switch ( m_bnEmulator.RenderInfo().pfbPrevFilter->GpuApi() ) {
+#ifdef LSN_DX9
+				case CFilterBase::LSN_GA_DX9 : {
+					// If the device is lost, try to recover (non-blocking).
+					if ( !CDx9FilterBase::HandleDeviceLoss() ) {
+						m_bnEmulator.RenderInfo().DeActivate();
+						return LSW_H_HANDLED;   // Skip this frame.
+					}
+					::ValidateRect( Wnd(), NULL );
 
-			if ( IDirect3DDevice9 * pd3d = CDx9FilterBase::Device().GetDirectX9Device() ) {
-				const HRESULT hrBegin = pd3d->BeginScene();
-				if ( SUCCEEDED( hrBegin ) ) {
-					lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-					m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
-					m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
-					m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
-					m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
-					m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-					bMirrored = m_bnEmulator.RenderInfo().bMirrored;
-					puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+					if ( IDirect3DDevice9 * pd3d = CDx9FilterBase::Device().GetDirectX9Device() ) {
+						const HRESULT hrBegin = pd3d->BeginScene();
+						if ( SUCCEEDED( hrBegin ) ) {
+							lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+							m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
+							m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 
-					pd3d->EndScene();
+							pd3d->EndScene();
+						}
+						const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
+						if ( FAILED( hrPresent ) ) {
+							CDx9FilterBase::HandleDeviceLoss();
+						}
+					}
+					break;
 				}
-				const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
-				if ( FAILED( hrPresent ) ) {
-					CDx9FilterBase::HandleDeviceLoss();
+#endif	// #ifdef LSN_DX9
+
+#ifdef LSN_DX12
+				case CFilterBase::LSN_GA_DX12 : {
+					// Check cooperative level for device removal.
+					if ( !CDx12FilterBase::HandleDeviceLoss() ) {
+						m_bnEmulator.RenderInfo().DeActivate();
+						return LSW_H_HANDLED;   // Skip this frame.
+					}
+					::ValidateRect( Wnd(), NULL );
+
+					if ( IDXGISwapChain4 * pscSwapChain = CDx12FilterBase::Device().GetSwapChain() ) {
+						{
+							lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+							// The filter's Render() handles command list recording, execution, and preparing for PRESENT.
+							m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
+							
+							m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+						}
+						
+						// Present outside of the critical section.
+						const HRESULT hrPresent = pscSwapChain->Present( 0, 0 );
+						if ( FAILED( hrPresent ) ) {
+							CDx12FilterBase::HandleDeviceLoss();
+						}
+					}
+					break;
+				}
+#endif	// #ifdef LSN_DX12
+
+				case CFilterBase::LSN_GA_VULKAN : {
+					// TODO: Vulkan path
+					break;
+				}
+
+				case CFilterBase::LSN_GA_METAL : {
+					// TODO: Metal path
+					break;
+				}
+
+				default : {
+					break;
 				}
 			}
 
 			m_bnEmulator.RenderInfo().DeActivate();
 			return LSW_H_HANDLED;
 		}
-		//if ( m_bUseDx9 ) {
-		//	// If the device is lost, try to recover (non-blocking).
-		//	if ( !m_dx9Device.HandleDeviceLoss( m_hWndDx9Target ) ) {
-		//		m_bnEmulator.RenderInfo().DeActivate();
-		//		return LSW_H_HANDLED;   // Skip this frame.
-		//	}
-		//	//LSW_BEGINPAINT bpPaint( Wnd() );	// Invalidates; prevents constant redraws, causes redrawing only when requested.
-		//	::ValidateRect( Wnd(), NULL );
-
-		//	// Prefer wrapper helpers if present; otherwise fall back to raw device.
-		//	if ( IDirect3DDevice9 * pd3d = m_dx9Device.GetDirectX9Device() ) {
-		//		const HRESULT hrBegin = pd3d->BeginScene();
-		//		if ( SUCCEEDED( hrBegin ) ) {
-		//			
-		//			m_upDx9PaletteRender->UploadIndices( reinterpret_cast<const uint16_t *>(m_bnEmulator.RenderInfo().pui8CurRenderTarget),
-		//				m_bnEmulator.RenderInfo().ui32Width, m_bnEmulator.RenderInfo().ui32Height, m_bnEmulator.RenderInfo().ui32Stride );
-		//			lsw::LSW_RECT rRect;
-		//			rRect.left = iDestX;
-		//			rRect.top = iDestY;
-		//			rRect.right = rRect.left + int( dwFinalW );
-		//			rRect.bottom = rRect.top + int( dwFinalH );
-		//			m_upDx9PaletteRender->Render( rRect );
-
-		//			pd3d->EndScene();
-		//			//::ValidateRect( m_hWndDx9Target, NULL );
-		//		}
-		//		// Present to the main window. Handle device loss on failure.
-		//		LSW_RECT rRect = m_rMaxRect;//VirtualClientRect( nullptr );
-		//		const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
-		//		if ( FAILED( hrPresent ) ) {
-		//			m_dx9Device.HandleDeviceLoss( m_hWndDx9Target );
-		//		}
-		//	}
-		//	m_bnEmulator.RenderInfo().DeActivate();
-		//	return LSW_H_HANDLED;
-		//}
-#endif	// #ifdef LSN_DX9
 
 
 		//::SetThreadHighPriority();
@@ -1276,6 +1309,14 @@ namespace lsn {
 					break;
 				}
 #endif	// #ifdef LSN_DX9
+
+#ifdef LSN_DX12
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALETTE : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDDX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+#endif	// #ifdef LSN_DX12
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );

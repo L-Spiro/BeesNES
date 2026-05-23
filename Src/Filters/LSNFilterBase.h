@@ -55,8 +55,21 @@ namespace lsn {
 			
 			LSN_F_LSPIRON_AUTO_US_DX9,						/**< L. Spiro auto up-scaled Direct3D 9. */
 #endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+			LSN_F_INDEXEDDX12,								/**< Basic paletted Direct3D 12. */
+#endif	// #ifdef LSN_DX12
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */
+		};
+
+		// == Enumerations.
+		/** The graphics API used by a GPU filter. */
+		enum LSN_GRAPHICS_API {
+			LSN_GA_NONE,
+			LSN_GA_DX9,
+			LSN_GA_DX12,
+			LSN_GA_VULKAN,
+			LSN_GA_METAL
 		};
 
 
@@ -161,6 +174,14 @@ namespace lsn {
 		 * \return Returns false.
 		 **/
 		virtual bool										IsGpuFilter() const { return false; }
+
+		/**
+		 * Which GPU API is being used?
+		 * 
+		 * \return Returns a LSN_GRAPHICS_API value indicating which GPU API is being used, if any.
+		 **/
+		virtual LSN_GRAPHICS_API							GpuApi() const { return LSN_GA_NONE; }
+
 
 		/**
 		 * Called when the filter is about to become active.

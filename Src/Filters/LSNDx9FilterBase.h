@@ -51,10 +51,19 @@ namespace lsn {
 		 */
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height );
 
+		/**
+		 * Which GPU API is being used?
+		 * 
+		 * \return Returns a LSN_GRAPHICS_API value indicating which GPU API is being used, if any.
+		 **/
+		virtual LSN_GRAPHICS_API							GpuApi() const { return LSN_GA_DX9; }
+
 		// == Members.
 		/** Global: window class name for the DX9 child target. */
 		static const wchar_t *								LSN_DX9_TARGET_CLASS;
 
+
+		// == Functions.
 		/**
 		 * Sets the parent window handle.  Must be set only when there is a 0 reference count.  Typically it will only ever be set once; nothing should ever destroy the main window except shut-down.
 		 * 

@@ -61,6 +61,21 @@ namespace lsn {
 		 * \return Returns a pointer to the swap chain.
 		 **/
 		IDXGISwapChain4 *										GetSwapChain() { return m_scSwapChain.Get(); }
+
+		/**
+		 * Resizes the swap chain backbuffers to match the current target window dimensions.
+		 * Note: It is the caller's responsibility to release any active Render Target Views referencing the swap chain before calling this.
+		 *
+		 * \return Returns true if the swap chain was successfully resized.
+		 **/
+		bool													ResizeSwapChain();
+
+		/**
+		 * Flushes the command queue, blocking the CPU until the GPU has finished all pending operations.
+		 *
+		 * \return Returns true if the flush was successful.
+		 **/
+		bool													FlushCommandQueue();
 		
 		/**
 		 * Frees all resources used by this object and leaves the object in a valid reusable state.
@@ -74,6 +89,9 @@ namespace lsn {
 		Microsoft::WRL::ComPtr<ID3D12Device>					m_pd3dDevice;							/**< The direct3D 12 device. */
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue>				m_cqCommandQueue;						/**< The primary command queue. */
 		Microsoft::WRL::ComPtr<IDXGISwapChain4>					m_scSwapChain;							/**< The swapchain. */
+		Microsoft::WRL::ComPtr<ID3D12Fence>						m_pfFence;								/**< The fence used to flush the command queue. */
+		UINT64													m_ui64FenceValue = 0;					/**< The current fence value. */
+		HANDLE													m_hFenceEvent = NULL;					/**< The event used for fence synchronization. */
 
 	};
 

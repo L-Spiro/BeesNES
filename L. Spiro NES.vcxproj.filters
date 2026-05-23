@@ -1074,6 +1074,9 @@
     <ClInclude Include="Src\Apu\LSNDmc.h">
       <Filter>Header Files\Apu</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNDx12PaletteFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1483,6 +1486,9 @@
     </ClCompile>
     <ClCompile Include="Src\Apu\LSNDmc.cpp">
       <Filter>Source Files\Apu</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNDx12PaletteFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

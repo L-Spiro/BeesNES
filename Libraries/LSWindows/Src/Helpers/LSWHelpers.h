@@ -276,7 +276,7 @@ namespace lsw {
 
 
 		// == Operators.
-		LSW_HMODULE &						operator = ( LSW_HMODULE && _hOther ) {
+		LSW_HMODULE &						operator = ( LSW_HMODULE && _hOther ) noexcept {
 			if ( this != &_hOther ) {
 				Reset();
 				hHandle = _hOther.hHandle;

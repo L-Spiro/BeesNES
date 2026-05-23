@@ -97,6 +97,15 @@ namespace lsn {
 							&scChain1 ) ) ) { return false; }
 
 						if ( FAILED( scChain1.As( &m_scSwapChain ) ) ) { return false; }
+
+						// Create synchronization objects.
+						Microsoft::WRL::ComPtr<ID3D12Fence> pfFence;
+						if ( FAILED( dDevice->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &pfFence ) ) ) ) { return false; }
+						m_hFenceEvent = ::CreateEventW( nullptr, FALSE, FALSE, nullptr );
+						if ( !m_hFenceEvent ) { return false; }
+
+						m_pfFence = std::move( pfFence );
+						m_ui64FenceValue = 0;
 						m_cqCommandQueue = std::move( cqQueue );
 						m_pd3dDevice = std::move( dDevice );
 						m_pfFactory = std::move( fFactory );
@@ -114,9 +123,59 @@ namespace lsn {
 	}
 
 	/**
+	 * Flushes the command queue, blocking the CPU until the GPU has finished all pending operations.
+	 *
+	 * \return Returns true if the flush was successful.
+	 **/
+	bool CDirectX12Device::FlushCommandQueue() {
+		if ( !m_cqCommandQueue.Get() || !m_pfFence.Get() || !m_hFenceEvent ) { return false; }
+
+		m_ui64FenceValue++;
+		if ( FAILED( m_cqCommandQueue->Signal( m_pfFence.Get(), m_ui64FenceValue ) ) ) { return false; }
+
+		if ( m_pfFence->GetCompletedValue() < m_ui64FenceValue ) {
+			if ( FAILED( m_pfFence->SetEventOnCompletion( m_ui64FenceValue, m_hFenceEvent ) ) ) { return false; }
+			::WaitForSingleObject( m_hFenceEvent, INFINITE );
+		}
+		return true;
+	}
+
+	/**
+	 * Resizes the swap chain backbuffers to match the current target window dimensions.
+	 * Note: It is the caller's responsibility to release any active Render Target Views referencing the swap chain before calling this.
+	 *
+	 * \return Returns true if the swap chain was successfully resized.
+	 **/
+	bool CDirectX12Device::ResizeSwapChain() {
+		if ( !m_scSwapChain.Get() ) { return false; }
+
+		if ( !FlushCommandQueue() ) { return false; }
+
+		DXGI_SWAP_CHAIN_DESC1 scdDesc;
+		if ( FAILED( m_scSwapChain->GetDesc1( &scdDesc ) ) ) { return false; }
+
+		// Passing 0 for width and height automatically uses the client area of the target HWND.
+		HRESULT hRes = m_scSwapChain->ResizeBuffers(
+			scdDesc.BufferCount,
+			0,
+			0,
+			scdDesc.Format,
+			scdDesc.Flags
+		);
+
+		return SUCCEEDED( hRes );
+	}
+
+	/**
 	 * Frees all resources used by this object and leaves the object in a valid reusable state.
 	 **/
 	void CDirectX12Device::Reset() {
+		if ( m_hFenceEvent ) {
+			::CloseHandle( m_hFenceEvent );
+			m_hFenceEvent = NULL;
+		}
+		m_ui64FenceValue = 0;
+		m_pfFence.Reset();
 		m_scSwapChain.Reset();
 		m_cqCommandQueue.Reset();
 		m_pd3dDevice.Reset();

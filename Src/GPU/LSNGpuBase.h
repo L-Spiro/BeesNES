@@ -76,6 +76,13 @@ namespace lsn {
 		 **/
 		virtual bool											Create( HWND /*_hWnd*/, const std::string &/*_sAdapter*/ );
 
+		/**
+		 * Gets a handle to the loaded API DLL.
+		 * 
+		 * \return Returns a handle to the loaded API-specific DLL.
+		 **/
+		const lsw::LSW_HMODULE &								Dll() const { return m_hLib; }
+
 
 	protected :
 		// == Members.

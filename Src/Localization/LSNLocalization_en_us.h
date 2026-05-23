@@ -54,6 +54,9 @@
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												Pale&tte (Software)
 #define LSN_VIDEO_FILTER_DX9_PALETTE										Pale&tte (Microsoft® Direct3D® 9)
+#define LSN_VIDEO_FILTER_DX12_PALETTE										Pale&tte (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_VULKAN_PALETTE										Pale&tte (Vulkan)
+#define LSN_VIDEO_FILTER_METAL_PALETTE										Pale&tte (Metal)
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
 #define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-&B/B1/G/H/I/K (L. Spiro)
@@ -70,6 +73,28 @@
 #define LSN_VIDEO_FILTER_LSPIRO_PALM_DX9_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Microsoft® Direct3D® 9)
 #define LSN_VIDEO_FILTER_LSPIRO_PALN_DX9_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Microsoft® Direct3D® 9)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX9_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Microsoft® Direct3D® 9)
+
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX12_UPSCALE							NTSC-M (&L. Spiro) (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_DX12_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_DX12_UPSCALE							PAL-&D/D1 (L. Spiro) (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_DX12_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_DX12_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Microsoft® Direct3D® 12)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX12_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Microsoft® Direct3D® 12)
+
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_VULKAN_UPSCALE							NTSC-M (&L. Spiro) (Vulkan®)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_VULKAN_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (Vulkan®)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_VULKAN_UPSCALE						PAL-&D/D1 (L. Spiro) (Vulkan®)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_VULKAN_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Vulkan®)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_VULKAN_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Vulkan®)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_VULKAN_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Vulkan®)
+
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_METAL_UPSCALE							NTSC-M (&L. Spiro) (Metal®)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_METAL_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (Metal®)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_METAL_UPSCALE							PAL-&D/D1 (L. Spiro) (Metal®)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_METAL_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (Metal®)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_METAL_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (Metal®)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_METAL_UPSCALE							NTSC/PAL &Auto (L. Spiro) (Metal®)
+
 #define LSN_VIDEO_FILTER_DIRECT3D_9											Mi&crosoft® Direct3D® 9
 #define LSN_VIDEO_FILTER_DIRECT3D_12										Microso&ft® Direct3D® 12
 #define LSN_VIDEO_FILTER_VULKAN_1											&Vulkan 1
