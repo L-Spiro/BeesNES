@@ -1877,6 +1877,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resource.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Texture.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TexturePixelScaler.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureRenderer.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureUploader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Device.h" />
@@ -2121,6 +2124,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resource.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Texture.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TexturePixelScaler.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureRenderer.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureUploader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9CubeTexture.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Device.cpp" />
