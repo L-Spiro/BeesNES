@@ -11,14 +11,13 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../GPU/DirectX9/LSNDirectX9PixelShader.h"
-#include "../GPU/DirectX9/LSNDirectX9RenderTarget.h"
-#include "../GPU/DirectX9/LSNDirectX9Texture.h"
-#include "../GPU/DirectX9/LSNDirectX9VertexBuffer.h"
+#include "../GPU/DirectX9/LSNDx9TextureUploader.h"
+#include "../GPU/DirectX9/LSNDx9TextureRenderer.h"
 #include "LSNDx9FilterBase.h"
 #include "LSNLSpiroNtscFilterBase.h"
 
 #include <mutex>
+#include <vector>
 
 
 namespace lsn {
@@ -44,7 +43,7 @@ namespace lsn {
 		 * \param _ui16Height The console screen height.  Typically 240.
 		 * \return Returns the input format requested of the PPU.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height );
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
 
 		/**
 		 * \brief Updates the vertical sharpness factor (integer scale).
@@ -121,28 +120,28 @@ namespace lsn {
 		 *
 		 * \return Returns the output format from the PPU/input format for this filter.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const override { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
 
 		/**
 		 * If true, the PPU is requested to provide a frame that has been flipped vertically.
 		 *
 		 * \return Returns true to receive a vertically flipped image from the PPU, false to receive an unflipped image.
 		 */
-		virtual bool										FlipInput() const { return false; }
+		virtual bool										FlipInput() const override { return false; }
 
 		/**
 		 * Gets a pointer to the output buffer.
 		 *
 		 * \return Returns a pointer to the output buffer.
 		 */
-		virtual uint8_t *									OutputBuffer() { return CurTarget(); }
+		virtual uint8_t *									OutputBuffer() override { return CurTarget(); }
 
 		/**
 		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.
 		 *
 		 * \return Returns the bits-per-pixel of the final output.
 		 */
-		virtual uint32_t									OutputBits() const { return 32; }
+		virtual uint32_t									OutputBits() const override { return 32; }
 
 		/**
 		 * Called when the filter is about to become active.
@@ -187,18 +186,19 @@ namespace lsn {
 		// == Members.
 		/** The DirectX 9 device wrapper (non-owning). */
 		CDirectX9Device *									m_pdx9dDevice = nullptr;
-		/** Initial floating-point render target (same size as indices). */
-		//std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
-		/** Software target texture (A32B32G32R32F, MANAGED), source for GPU up-scale. */
-		std::unique_ptr<CDirectX9Texture>					m_tSrc;
-		/** Scanlined floating-point render target (height = source height Å~ factor). */
+		
+		/** Generically uploads CPU texel arrays to GPU textures. */
+		CDx9TextureUploader									m_tuUploader;
+		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
+		CDx9TextureRenderer									m_trRenderer;
+
+		/** Scanlined floating-point render target (height = source height ◊ factor). */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtScanlined;
 		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
-		/** Pixel shader: vertical nearest-neighbor upscale (pass 2). */
+		/** Pixel shader: vertical nearest-neighbor upscale (pass 1). */
 		std::unique_ptr<CDirectX9PixelShader>				m_psVerticalNN;
-		/** Pixel shader: copy pass (pass 3). */
-		std::unique_ptr<CDirectX9PixelShader>				m_psCopy;
+
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
 		/** Source height in pixels. */
@@ -207,12 +207,14 @@ namespace lsn {
 		uint32_t											m_ui32RsrcW = 0;
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
+		/** Scanlined target width. */
+		uint32_t											m_ui32TargetScanW = 0;
+		/** Scanlined target height. */
+		uint32_t											m_ui32TargetScanH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 3;
 		/** Horizontal sharpness factor. */
 		uint32_t											m_ui32HorSharness = 1;
-		/** The locked rectangle into which the frame is drawn during ths osftware phase. */
-		D3DLOCKED_RECT										m_lrRect{};
 		/** Use a 16-bit initial render target? */
 		bool												m_bUse16BitInitialTarget = true;
 		/** Are we in a valid state? */
@@ -242,22 +244,13 @@ namespace lsn {
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-		 *
-		 * Releases/creates the index texture, both FP render targets, and quad vertex buffer as needed.
-		 *
+		 * 
 		 * \return Returns true on success.
 		 */
 		bool												EnsureSizeAndResources();
 
 		/**
-		 * Creates the upload texture.
-		 * 
-		 * \return Returns true on success.
-		 **/
-		bool												PrepaerSrcTexture();
-
-		/**
-		 * \brief Ensures pixel shaders (indexÅ®color, vertical NN, copy) are created.
+		 * \brief Ensures pixel shaders (vertical NN) are created.
 		 *
 		 * Compiles the HLSL entry points with D3DX at runtime and creates pixel shaders from bytecode.
 		 * If D3DX cannot be loaded, this function returns false.
@@ -323,13 +316,6 @@ namespace lsn {
 	private :
 		typedef CDx9FilterBase								CParent;
 	};
-	
-
-
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	// DEFINITIONS
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	// == Functions.
 
 }	// namespace lsn
 

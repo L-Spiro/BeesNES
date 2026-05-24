@@ -1891,6 +1891,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VertexShader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TexturePixelScaler.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TextureRenderer.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TextureUploader.h" />
     <ClInclude Include="Src\GPU\LSNGpuBase.h" />
     <ClInclude Include="Src\GPU\LSNIndexBufferBase.h" />
     <ClInclude Include="Src\GPU\LSNSurface.h" />
@@ -2131,6 +2134,9 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexBuffer.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VertexShader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9VolumeTexture.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TexturePixelScaler.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TextureRenderer.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TextureUploader.cpp" />
     <ClCompile Include="Src\GPU\LSNGpuBase.cpp" />
     <ClCompile Include="Src\GPU\LSNIndexBufferBase.cpp" />
     <ClCompile Include="Src\GPU\LSNTextureBase.cpp" />

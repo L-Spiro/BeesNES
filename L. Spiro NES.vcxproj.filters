@@ -1077,6 +1077,15 @@
     <ClInclude Include="Src\Filters\LSNDx12PaletteFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TextureUploader.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TextureRenderer.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDx9TexturePixelScaler.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1489,6 +1498,15 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNDx12PaletteFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TextureUploader.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TextureRenderer.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDx9TexturePixelScaler.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
