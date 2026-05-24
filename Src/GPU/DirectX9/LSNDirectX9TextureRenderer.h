@@ -21,15 +21,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDx9TextureRenderer
+	 * Class CDirectX9TextureRenderer
 	 * \brief A generic helper class for rendering a texture to a surface.
 	 *
 	 * Description: Accepts an input texture and an output render target and simply renders the result from the input to the output using bilinear sampling and a basic copy/gamma shader.
 	 */
-	class CDx9TextureRenderer {
+	class CDirectX9TextureRenderer {
 	public :
-		CDx9TextureRenderer();
-		~CDx9TextureRenderer();
+		CDirectX9TextureRenderer();
+		~CDirectX9TextureRenderer();
 
 
 		// == Functions.

@@ -1,4 +1,4 @@
-#ifdef LSN_DX9
+Ôªø#ifdef LSN_DX9
 
 /**
  * Copyright L. Spiro 2025
@@ -14,6 +14,8 @@
 #include "../GPU/DirectX9/LSNDirectX9PixelShader.h"
 #include "../GPU/DirectX9/LSNDirectX9RenderTarget.h"
 #include "../GPU/DirectX9/LSNDirectX9Texture.h"
+#include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
+#include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
 #include "../GPU/DirectX9/LSNDirectX9VertexBuffer.h"
 #include "LSNDx9FilterBase.h"
 
@@ -153,26 +155,28 @@ namespace lsn {
 		// == Members.
 		/** The DirectX 9 device wrapper (non-owning). */
 		CDirectX9Device *									m_pdx9dDevice = nullptr;
+		
+		/** Generically scales a texture via nearest-neighbor. */
+		CDirectX9TexturePixelScaler							m_tpsScaler;
+		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
+		CDirectX9TextureRenderer							m_trRenderer;
+
 		/** Index texture (L16, DEFAULT|DYNAMIC). */
 		std::unique_ptr<CDirectX9Texture>					m_tIndex;
-		/** 512Å~1 LUT texture (A32B32G32R32F, MANAGED). */
+		/** 512√ó1 LUT texture (A32B32G32R32F, MANAGED). */
 		std::unique_ptr<CDirectX9Texture>					m_tLut;
 		/** Initial floating-point render target (same size as indices). */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
-		/** Scanlined floating-point render target (height = source height Å~ factor). */
-		std::unique_ptr<CDirectX9RenderTarget>				m_rtScanlined;
 		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
-		/** Pixel shader: indices + LUT Å® RGBA (pass 1). */
+		/** Pixel shader: indices + LUT ‚Üí RGBA (pass 1). */
 		std::unique_ptr<CDirectX9PixelShader>				m_psIdxToColor;
-		/** Pixel shader: vertical nearest-neighbor upscale (pass 2). */
-		std::unique_ptr<CDirectX9PixelShader>				m_psVerticalNN;
-		/** Pixel shader: copy pass (pass 3). */
-		std::unique_ptr<CDirectX9PixelShader>				m_psCopy;
+
 		/** The palette look-up table. */
 		std::vector<float>									m_vLut;
 		/** The output buffer.  Not actually used, but provides a safe buffer for reading in some edges cases after filters are swapped. Also can be used for storing screenshots. */
 		std::vector<uint8_t>								m_vOutputBuffer;
+		
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
 		/** Source height in pixels. */
@@ -206,16 +210,12 @@ namespace lsn {
 		/**
 		 * \brief Updates the 512-entry float RGBA LUT.
 		 *
-		 * The LUT is a 512Å~1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
-		 *
 		 * \return Returns true on success.
 		 */
 		bool												UpdateLut();
 
 		/**
 		 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
-		 *
-		 * Values are mapped to L16 in [0..65535] so that sampling.r*511 + 0.5 floors back to the exact index in the shader.
 		 *
 		 * \param _pui16Idx Source pointer to the index image (row-major).
 		 * \param _ui32W Image width in pixels (must equal the Init size).
@@ -226,10 +226,7 @@ namespace lsn {
 		bool												UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch = 0 );
 
 		/**
-		 * \brief Ensures pixel shaders (indexÅ®color, vertical NN, copy) are created.
-		 *
-		 * Compiles the HLSL entry points with D3DX at runtime and creates pixel shaders from bytecode.
-		 * If D3DX cannot be loaded, this function returns false.
+		 * \brief Ensures pixel shaders (index‚Üícolor) are created.
 		 *
 		 * \return Returns true if all shaders are ready.
 		 */
@@ -247,7 +244,7 @@ namespace lsn {
 		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode );
 
 		/**
-		 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
+		 * \brief Releases size-dependent resources.
 		 */
 		void												ReleaseSizeDependents();
 
@@ -257,8 +254,8 @@ namespace lsn {
 		 * Precondition: The caller must have already called BeginScene() on the device.
 		 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
 		 *
-		 * Pass 1 renders indexÅ®color into the FP RT with a 1:1 viewport.
-		 * Pass 2 renders the FP RT into the scanlined RT (heightÅ~factor) using nearest-neighbor vertically.
+		 * Pass 1 renders index/color into the FP RT with a 1:1 viewport.
+		 * Pass 2 renders the FP RT into the scanlined RT (heightÔøΩ~factor) using nearest-neighbor vertically.
 		 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
 		 *
 		 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
@@ -271,6 +268,5 @@ namespace lsn {
 	};
 
 }	// namespace lsn
-
 
 #endif	// #ifdef LSN_DX9

@@ -8,13 +8,13 @@
  * Description: A generic helper class for uploading CPU texel arrays to a Direct3D 9 texture.
  */
 
-#include "LSNDx9TextureUploader.h"
+#include "LSNDirectX9TextureUploader.h"
 
 namespace lsn {
 
-	CDx9TextureUploader::CDx9TextureUploader() {
+	CDirectX9TextureUploader::CDirectX9TextureUploader() {
 	}
-	CDx9TextureUploader::~CDx9TextureUploader() {
+	CDirectX9TextureUploader::~CDirectX9TextureUploader() {
 		Reset();
 	}
 
@@ -22,7 +22,7 @@ namespace lsn {
 	/**
 	 * Resets the texture and internal states.
 	 **/
-	void CDx9TextureUploader::Reset() {
+	void CDirectX9TextureUploader::Reset() {
 		if LSN_LIKELY( m_ptTexture.get() && m_ptTexture->Get() ) { m_ptTexture->Reset(); }
 		m_ptTexture.reset();
 		m_ui32Width = 0;
@@ -41,7 +41,7 @@ namespace lsn {
 	 * \param _fFormat The Direct3D 9 format of the texture.
 	 * \return Returns true on success.
 	 **/
-	bool CDx9TextureUploader::UploadTexels( CDirectX9Device * _pdx9dDevice, const uint8_t * _pui8Data, uint32_t _ui32Width, uint32_t _ui32Height, uint32_t _ui32Stride, D3DFORMAT _fFormat ) {
+	bool CDirectX9TextureUploader::UploadTexels( CDirectX9Device * _pdx9dDevice, const uint8_t * _pui8Data, uint32_t _ui32Width, uint32_t _ui32Height, uint32_t _ui32Stride, D3DFORMAT _fFormat ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_pdx9dDevice->GetDirectX9Device() || !_pui8Data || !_ui32Width || !_ui32Height || !_ui32Stride ) { return false; }
 
 		if LSN_UNLIKELY( !m_ptTexture.get() || !m_ptTexture->Valid() || m_ui32Width != _ui32Width || m_ui32Height != _ui32Height || m_fFormat != _fFormat ) {

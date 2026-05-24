@@ -11,8 +11,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../GPU/DirectX9/LSNDx9TextureUploader.h"
-#include "../GPU/DirectX9/LSNDx9TextureRenderer.h"
+#include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
+#include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
+#include "../GPU/DirectX9/LSNDirectX9TextureUploader.h"
 #include "LSNDx9FilterBase.h"
 #include "LSNLSpiroNtscFilterBase.h"
 
@@ -188,16 +189,11 @@ namespace lsn {
 		CDirectX9Device *									m_pdx9dDevice = nullptr;
 		
 		/** Generically uploads CPU texel arrays to GPU textures. */
-		CDx9TextureUploader									m_tuUploader;
-		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
-		CDx9TextureRenderer									m_trRenderer;
-
-		/** Scanlined floating-point render target (height = source height × factor). */
-		std::unique_ptr<CDirectX9RenderTarget>				m_rtScanlined;
-		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
-		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
-		/** Pixel shader: vertical nearest-neighbor upscale (pass 1). */
-		std::unique_ptr<CDirectX9PixelShader>				m_psVerticalNN;
+		CDirectX9TextureUploader							m_tuUploader;
+		/** Generically scales a texture via nearest-neighbor and applies gamma. */
+		CDirectX9TexturePixelScaler							m_tpsScaler;
+		/** Generically renders a texture to the backbuffer using bilinear sampling. */
+		CDirectX9TextureRenderer							m_trRenderer;
 
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
@@ -207,10 +203,6 @@ namespace lsn {
 		uint32_t											m_ui32RsrcW = 0;
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
-		/** Scanlined target width. */
-		uint32_t											m_ui32TargetScanW = 0;
-		/** Scanlined target height. */
-		uint32_t											m_ui32TargetScanH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 3;
 		/** Horizontal sharpness factor. */
@@ -236,43 +228,19 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
-		 * 
-		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * * \param _pui8Pixels The input array of 9-bit PPU outputs.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
 		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-		 * 
-		 * \return Returns true on success.
+		 * * \return Returns true on success.
 		 */
 		bool												EnsureSizeAndResources();
 
 		/**
-		 * \brief Ensures pixel shaders (vertical NN) are created.
-		 *
-		 * Compiles the HLSL entry points with D3DX at runtime and creates pixel shaders from bytecode.
-		 * If D3DX cannot be loaded, this function returns false.
-		 *
-		 * \return Returns true if all shaders are ready.
-		 */
-		bool												EnsureShaders();
-
-		/**
-		 * \brief Compiles an HLSL pixel shader using dynamically loaded D3DX.
-		 *
-		 * \param _pcszSource Null-terminated HLSL source code.
-		 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").
-		 * \param _pcszProfile Null-terminated profile (e.g., "ps_2_0").
-		 * \param _vOutByteCode Output vector to receive the compiled bytecode (DWORD stream).
-		 * \param _piInclude Optional #include handler.
-		 * \return Returns true if compilation succeeded and bytecode was produced.
-		 */
-		bool												CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude );
-
-		/**
-		 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
+		 * \brief Releases size-dependent resources.
 		 */
 		void												ReleaseSizeDependents();
 

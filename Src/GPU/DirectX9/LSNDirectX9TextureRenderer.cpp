@@ -8,7 +8,7 @@
  * Description: A generic helper class for rendering a texture to a surface with bilinear sampling and gamma correction.
  */
 
-#include "LSNDx9TextureRenderer.h"
+#include "LSNDirectX9TextureRenderer.h"
 
 namespace lsn {
 
@@ -21,9 +21,9 @@ namespace lsn {
 	static constexpr DWORD LSN_FVF_XYZRHWTEX1 = D3DFVF_XYZRHW | D3DFVF_TEX1;
 
 
-	CDx9TextureRenderer::CDx9TextureRenderer() {
+	CDirectX9TextureRenderer::CDirectX9TextureRenderer() {
 	}
-	CDx9TextureRenderer::~CDx9TextureRenderer() {
+	CDirectX9TextureRenderer::~CDirectX9TextureRenderer() {
 		Reset();
 	}
 
@@ -31,7 +31,7 @@ namespace lsn {
 	/**
 	 * Resets the vertex buffer, shaders, and internal states.
 	 **/
-	void CDx9TextureRenderer::Reset() {
+	void CDirectX9TextureRenderer::Reset() {
 		if LSN_LIKELY( m_pvbQuad.get() && m_pvbQuad->Get() ) { m_pvbQuad->Reset(); }
 		m_pvbQuad.reset();
 		m_ppsCopy.reset();
@@ -49,7 +49,7 @@ namespace lsn {
 	 * \param _bSrgb Enable or disable hardware sRGB conversion.
 	 * \return Returns true on success.
 	 **/
-	bool CDx9TextureRenderer::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb ) {
+	bool CDirectX9TextureRenderer::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_psDst ) { return false; }
 		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice ) ) { return false; }
 
@@ -115,7 +115,7 @@ namespace lsn {
 	 * \param _pdx9dDevice The Direct3D 9 device.
 	 * \return Returns true if resources are ready.
 	 **/
-	bool CDx9TextureRenderer::EnsureResources( CDirectX9Device * _pdx9dDevice ) {
+	bool CDirectX9TextureRenderer::EnsureResources( CDirectX9Device * _pdx9dDevice ) {
 		if LSN_UNLIKELY( !m_pvbQuad.get() || !m_pvbQuad->Valid() ) {
 			m_pvbQuad = std::make_unique<CDirectX9VertexBuffer>( _pdx9dDevice );
 			if ( !m_pvbQuad->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, LSN_FVF_XYZRHWTEX1, D3DPOOL_DEFAULT ) ) { return false; }
@@ -151,7 +151,7 @@ namespace lsn {
 	 * \param _vOutByteCode Output vector to receive the compiled bytecode.
 	 * \return Returns true if compilation succeeded.
 	 **/
-	bool CDx9TextureRenderer::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode ) {
+	bool CDirectX9TextureRenderer::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",

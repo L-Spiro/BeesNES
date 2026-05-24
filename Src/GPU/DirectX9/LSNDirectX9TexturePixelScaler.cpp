@@ -8,7 +8,7 @@
  * Description: A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
  */
 
-#include "LSNDx9TexturePixelScaler.h"
+#include "LSNDirectX9TexturePixelScaler.h"
 #include "LSNDirectX9DiskInclude.h"
 
 #include <string>
@@ -24,9 +24,9 @@ namespace lsn {
 	static constexpr DWORD LSN_FVF_XYZRHWTEX1 = D3DFVF_XYZRHW | D3DFVF_TEX1;
 
 
-	CDx9TexturePixelScaler::CDx9TexturePixelScaler() {
+	CDirectX9TexturePixelScaler::CDirectX9TexturePixelScaler() {
 	}
-	CDx9TexturePixelScaler::~CDx9TexturePixelScaler() {
+	CDirectX9TexturePixelScaler::~CDirectX9TexturePixelScaler() {
 		Reset();
 	}
 
@@ -34,7 +34,7 @@ namespace lsn {
 	/**
 	 * Resets the resources and internal states.
 	 **/
-	void CDx9TexturePixelScaler::Reset() {
+	void CDirectX9TexturePixelScaler::Reset() {
 		if LSN_LIKELY( m_rtTarget.get() && m_rtTarget->Get() ) { m_rtTarget->Reset(); }
 		if LSN_LIKELY( m_vbQuad.get() && m_vbQuad->Get() ) { m_vbQuad->Reset(); }
 		m_rtTarget.reset();
@@ -57,9 +57,11 @@ namespace lsn {
 	 * \param _ui32ScaleY The vertical scaling factor.
 	 * \param _gGamma The gamma curve to apply.
 	 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
+	 * \param _bFlipY If true, the rendered image is flipped vertically.
 	 * \return Returns true on success.
 	 **/
-	bool CDx9TexturePixelScaler::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget ) {
+	bool CDirectX9TexturePixelScaler::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY,
+		CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_ui32SrcW || !_ui32SrcH || !_ui32ScaleX || !_ui32ScaleY ) { return false; }
 
 		const uint32_t ui32DstW = _ui32SrcW * _ui32ScaleX;
@@ -109,10 +111,13 @@ namespace lsn {
 			float fR = static_cast<float>(ui32DstW) - fOff;
 			float fB = static_cast<float>(ui32DstH) - fOff;
 
-			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, 0.0f };
-			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, 0.0f };
-			pvP[2] = { fL, fB, 0.0f, 1.0f, 0.0f, 1.0f };
-			pvP[3] = { fR, fB, 0.0f, 1.0f, 1.0f, 1.0f };
+			float fVTop = _bFlipY ? 1.0f : 0.0f;
+			float fVBot = _bFlipY ? 0.0f : 1.0f;
+
+			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, fVTop };
+			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, fVTop };
+			pvP[2] = { fL, fB, 0.0f, 1.0f, 0.0f, fVBot };
+			pvP[3] = { fR, fB, 0.0f, 1.0f, 1.0f, fVBot };
 			m_vbQuad->Unlock();
 		}
 
@@ -131,7 +136,7 @@ namespace lsn {
 	 * \param _fFormat The target format.
 	 * \return Returns true if resources are ready.
 	 **/
-	bool CDx9TexturePixelScaler::EnsureResources( CDirectX9Device * _pdx9dDevice, uint32_t _ui32DstW, uint32_t _ui32DstH, D3DFORMAT _fFormat ) {
+	bool CDirectX9TexturePixelScaler::EnsureResources( CDirectX9Device * _pdx9dDevice, uint32_t _ui32DstW, uint32_t _ui32DstH, D3DFORMAT _fFormat ) {
 		if LSN_UNLIKELY( !m_vbQuad.get() || !m_vbQuad->Valid() ) {
 			m_vbQuad = std::make_unique<CDirectX9VertexBuffer>( _pdx9dDevice );
 			if ( !m_vbQuad->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, LSN_FVF_XYZRHWTEX1, D3DPOOL_DEFAULT ) ) { return false; }
@@ -156,7 +161,7 @@ namespace lsn {
 	 * \param _gGamma The gamma curve to apply.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDx9TexturePixelScaler::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma ) {
+	bool CDirectX9TexturePixelScaler::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma ) {
 		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gShaderGamma == _gGamma ) { return true; }
 
 		m_psShader = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
@@ -212,7 +217,7 @@ namespace lsn {
 	 * \param _piInclude Optional #include handler.
 	 * \return Returns true if compilation succeeded.
 	 **/
-	bool CDx9TexturePixelScaler::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude ) {
+	bool CDirectX9TexturePixelScaler::CompileHlslPs( const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<DWORD> &_vOutByteCode, ID3DXInclude * _piInclude ) {
 		static const wchar_t * kDlls[] = {
 			L"d3dx9_43.dll", L"d3dx9_42.dll", L"d3dx9_41.dll", L"d3dx9_40.dll",
 			L"d3dx9_39.dll", L"d3dx9_38.dll", L"d3dx9_37.dll", L"d3dx9_36.dll",

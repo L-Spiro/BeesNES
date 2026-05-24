@@ -24,15 +24,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDx9TexturePixelScaler
+	 * Class CDirectX9TexturePixelScaler
 	 * \brief A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
 	 *
 	 * Description: Scales a texture by integer factors using nearest-neighbor sampling. Can also apply a specified gamma curve to the output.
 	 */
-	class CDx9TexturePixelScaler {
+	class CDirectX9TexturePixelScaler {
 	public :
-		CDx9TexturePixelScaler();
-		~CDx9TexturePixelScaler();
+		CDirectX9TexturePixelScaler();
+		~CDirectX9TexturePixelScaler();
 
 
 		// == Functions.
@@ -52,9 +52,11 @@ namespace lsn {
 		 * \param _ui32ScaleY The vertical scaling factor.
 		 * \param _gGamma The gamma curve to apply.
 		 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
+		 * \param _bFlipY If true, the rendered image is flipped vertically.
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget );
+		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY,
+			CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY = false );
 
 		/**
 		 * Gets the scaled output texture.

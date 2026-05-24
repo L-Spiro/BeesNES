@@ -19,15 +19,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDx9TextureUploader
+	 * Class CDirectX9TextureUploader
 	 * \brief A generic helper class for uploading CPU texel arrays to a Direct3D 9 texture.
 	 *
 	 * Description: Owns a dynamic texture and handles the locking/copying of CPU byte arrays to the GPU.
 	 */
-	class CDx9TextureUploader {
+	class CDirectX9TextureUploader {
 	public :
-		CDx9TextureUploader();
-		~CDx9TextureUploader();
+		CDirectX9TextureUploader();
+		~CDirectX9TextureUploader();
 
 
 		// == Functions.
