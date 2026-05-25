@@ -24943,16 +24943,16 @@ if constexpr ( _tRegCode == 4 ) {
 		m_cCycle[106389] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_4__340x311;
-		m_cCycle[106391] = pfTmp;
-	}
-	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_4__1x291;
 		m_cCycle[99232] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_4__257x240;
 		m_cCycle[82097] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_4__340x311;
+		m_cCycle[106391] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_4__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_132x0_140x0_X;
@@ -87099,6 +87099,9 @@ if constexpr ( _tRegCode == 4 ) {
 		m_cCycle[81836] = pfTmp;
 		m_cCycle[81838] = pfTmp;
 		m_cCycle[106388] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_4__339x311;
 		m_cCycle[106390] = pfTmp;
 	}
 	{

@@ -18,6 +18,8 @@
 #include "../GPU/DirectX12/LSNDirectX12PipelineState.h"
 #include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
 #include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
+#include "../GPU/DirectX12/LSNDirectX12TexturePixelScaler.h"
+#include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
 #include "LSNDx12FilterBase.h"
 
 #include <Helpers/LSWHelpers.h>
@@ -156,22 +158,22 @@ namespace lsn {
 		// == Members.
 		/** The DirectX 12 device wrapper (non-owning). */
 		CDirectX12Device *									m_pdx12dDevice = nullptr;
+		
+		/** Generically scales a texture via nearest-neighbor. */
+		CDirectX12TexturePixelScaler						m_tpsScaler;
+		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
+		CDirectX12TextureRenderer							m_trRenderer;
+
 		/** Index texture (R16_UNORM, DEFAULT heap). */
 		std::unique_ptr<CDirectX12Texture>					m_tIndex;
 		/** 512x1 LUT texture (R32G32B32A32_FLOAT, DEFAULT heap). */
 		std::unique_ptr<CDirectX12Texture>					m_tLut;
 		/** Initial floating-point render target. */
 		std::unique_ptr<CDirectX12Resource>					m_rtInitial;
-		/** Scanlined floating-point render target. */
-		std::unique_ptr<CDirectX12Resource>					m_rtScanlined;
 		
-		// Independent Screen-space quad vertex buffers for each pass.
+		/** Screen-space quad vertex buffer. */
 		std::unique_ptr<CDirectX12Resource>					m_vbPass1;
-		std::unique_ptr<CDirectX12Resource>					m_vbPass2;
-		std::unique_ptr<CDirectX12Resource>					m_vbPass3;
 		D3D12_VERTEX_BUFFER_VIEW							m_vbView1;
-		D3D12_VERTEX_BUFFER_VIEW							m_vbView2;
-		D3D12_VERTEX_BUFFER_VIEW							m_vbView3;
 
 		// Upload Heaps for GPU copies.
 		std::unique_ptr<CDirectX12Resource>					m_rIndexUpload;
@@ -184,8 +186,6 @@ namespace lsn {
 		// Pipeline state objects and signatures.
 		std::unique_ptr<CDirectX12RootSignature>			m_rsRootSignature;
 		std::unique_ptr<CDirectX12PipelineState>			m_psoIdxToColor;
-		std::unique_ptr<CDirectX12PipelineState>			m_psoVerticalNN;
-		std::unique_ptr<CDirectX12PipelineState>			m_psoCopy;
 
 		// Descriptor Heaps.
 		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhSrvHeap;

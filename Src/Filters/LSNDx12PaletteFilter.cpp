@@ -63,14 +63,13 @@ namespace lsn {
 	void CDx12PaletteFilter::DeActivate() {
 		CParent::DeActivate();
 
+		m_tpsScaler.Reset();
+		m_trRenderer.Reset();
+
 		m_tIndex.reset();
 		m_tLut.reset();
 		m_rtInitial.reset();
-		m_rtScanlined.reset();
-		
 		m_vbPass1.reset();
-		m_vbPass2.reset();
-		m_vbPass3.reset();
 		
 		m_rIndexUpload.reset();
 		m_rLutUpload.reset();
@@ -79,8 +78,6 @@ namespace lsn {
 		m_dhSamplerHeap.reset();
 
 		m_psoIdxToColor.reset();
-		m_psoVerticalNN.reset();
-		m_psoCopy.reset();
 		m_rsRootSignature.reset();
 
 		m_gclCommandList.reset();
@@ -160,6 +157,8 @@ namespace lsn {
 			if ( !s_dgsState.CreateDx12() ) { return false; }
 			m_pdx12dDevice = &s_dgsState.dx12Device;
 			m_bUpdatePalette = true;
+			m_tpsScaler.Reset();
+			m_trRenderer.Reset();
 		}
 
 		ID3D12Device * pd12Device = m_pdx12dDevice->GetDevice();
@@ -180,22 +179,19 @@ namespace lsn {
 		}
 
 		// Ensure Descriptors Heaps. 
-		// SRV: 0=Index, 1=LUT, 2=InitialRT, 3=ScanlinedRT
 		if LSN_UNLIKELY( !m_dhSrvHeap.get() ) {
 			m_dhSrvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
 			if ( !m_dhSrvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
-		// RTV: 0=InitialRT, 1=ScanlinedRT, 2=Backbuffer
 		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
 			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 3, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
 			if ( !m_dhRtvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
-		// Samplers: 0=Point, 1=Linear
 		if LSN_UNLIKELY( !m_dhSamplerHeap.get() ) {
 			m_dhSamplerHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
 			if ( !m_dhSamplerHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 
 			D3D12_SAMPLER_DESC sdPoint = {};
@@ -204,101 +200,60 @@ namespace lsn {
 			sdPoint.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 			sdPoint.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 
-			D3D12_SAMPLER_DESC sdLinear = sdPoint;
-			sdLinear.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-
 			D3D12_CPU_DESCRIPTOR_HANDLE hSampler = m_dhSamplerHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 			pd12Device->CreateSampler( &sdPoint, hSampler );
-			hSampler.ptr += m_uiSamplerDescriptorSize;
-			pd12Device->CreateSampler( &sdLinear, hSampler );
 		}
 
 		if LSN_UNLIKELY( !m_tIndex.get() ) { m_tIndex = std::make_unique<CDirectX12Texture>(); }
 		if LSN_UNLIKELY( !m_tLut.get() ) { m_tLut = std::make_unique<CDirectX12Texture>(); }
 		if LSN_UNLIKELY( !m_rtInitial.get() ) { m_rtInitial = std::make_unique<CDirectX12Resource>(); }
-		if LSN_UNLIKELY( !m_rtScanlined.get() ) { m_rtScanlined = std::make_unique<CDirectX12Resource>(); }
-		
 		if LSN_UNLIKELY( !m_vbPass1.get() ) { m_vbPass1 = std::make_unique<CDirectX12Resource>(); }
-		if LSN_UNLIKELY( !m_vbPass2.get() ) { m_vbPass2 = std::make_unique<CDirectX12Resource>(); }
-		if LSN_UNLIKELY( !m_vbPass3.get() ) { m_vbPass3 = std::make_unique<CDirectX12Resource>(); }
 		
 		if LSN_UNLIKELY( !m_rIndexUpload.get() ) { m_rIndexUpload = std::make_unique<CDirectX12Resource>(); }
 		if LSN_UNLIKELY( !m_rLutUpload.get() ) { m_rLutUpload = std::make_unique<CDirectX12Resource>(); }
 		
-		const uint32_t ui32ScanW = m_ui32SrcW * GetActualHorSharpness();
-		const uint32_t ui32ScanH = m_ui32SrcH * GetActualVertSharpness();
-		if ( !ui32ScanW || !ui32ScanH ) { return false; }
-		
-		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_rtScanlined->Get() && m_vbPass1->Get() && m_vbPass2->Get() && m_vbPass3->Get();
+		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_vbPass1->Get();
 
-		if ( bOk ) {
-			// Also check if the scale changed, necessitating a recreation of the scanline target.
-			D3D12_RESOURCE_DESC rdScanDesc = m_rtScanlined->Get()->GetDesc();
-			if ( rdScanDesc.Width == ui32ScanW && rdScanDesc.Height == ui32ScanH ) {
-				m_bValidState = true; 
-				return true;
-			}
-		}
+		if ( bOk ) { m_bValidState = true; return true; }
 
 		ReleaseSizeDependents();
 
 		D3D12_HEAP_PROPERTIES hpDefault = { D3D12_HEAP_TYPE_DEFAULT, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
 		D3D12_HEAP_PROPERTIES hpUpload = { D3D12_HEAP_TYPE_UPLOAD, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
 		
-		// 1. Index Texture: R16_UNORM.
+
 		D3D12_RESOURCE_DESC rdIndex = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, m_ui32SrcW, m_ui32SrcH, 1, 1, DXGI_FORMAT_R16_UNORM, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_NONE };
-		if ( !m_tIndex->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdIndex, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
+		if ( !m_tIndex->CreateCommittedTexture( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdIndex, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
 		
-		// Upload buffer for Index.
+
 		UINT64 ui64IndexSize = 0;
 		pd12Device->GetCopyableFootprints( &rdIndex, 0, 1, 0, nullptr, nullptr, nullptr, &ui64IndexSize );
 		D3D12_RESOURCE_DESC rdIdxUpload = { D3D12_RESOURCE_DIMENSION_BUFFER, 0, ui64IndexSize, 1, 1, 1, DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE };
 		if ( !m_rIndexUpload->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdIdxUpload, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
 
-		// 2. Initial RT.
+
 		DXGI_FORMAT fmtRt = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
 		D3D12_RESOURCE_DESC rdInitial = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, m_ui32SrcW, m_ui32SrcH, 1, 1, fmtRt, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
 		D3D12_CLEAR_VALUE cvClear = { fmtRt, { 0.0f, 0.0f, 0.0f, 1.0f } };
 		if ( !m_rtInitial->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdInitial, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear ) ) { return false; }
 
-		// 3. Scanlined RT.
-		D3D12_RESOURCE_DESC rdScan = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, ui32ScanW, ui32ScanH, 1, 1, fmtRt, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
-		if ( !m_rtScanlined->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdScan, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear ) ) { return false; }
 
-		// Create SRVs and RTVs in heaps.
 		D3D12_CPU_DESCRIPTOR_HANDLE hSrv = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 		pd12Device->CreateShaderResourceView( m_tIndex->Get(), nullptr, hSrv );
-		hSrv.ptr += m_uiSrvDescriptorSize; // Slot 1 reserved for LUT
+		hSrv.ptr += m_uiSrvDescriptorSize; // Slot 1 reserved for LUT.
 
-		hSrv.ptr += m_uiSrvDescriptorSize; // Slot 2 = InitialRT
+		hSrv.ptr += m_uiSrvDescriptorSize; // Slot 2 = InitialRT.
 		pd12Device->CreateShaderResourceView( m_rtInitial->Get(), nullptr, hSrv );
 
-		hSrv.ptr += m_uiSrvDescriptorSize; // Slot 3 = ScanlinedRT
-		pd12Device->CreateShaderResourceView( m_rtScanlined->Get(), nullptr, hSrv );
-
 		D3D12_CPU_DESCRIPTOR_HANDLE hRtv = m_dhRtvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
-		pd12Device->CreateRenderTargetView( m_rtInitial->Get(), nullptr, hRtv ); // Slot 0
-		hRtv.ptr += m_uiRtvDescriptorSize;
-		pd12Device->CreateRenderTargetView( m_rtScanlined->Get(), nullptr, hRtv ); // Slot 1
+		pd12Device->CreateRenderTargetView( m_rtInitial->Get(), nullptr, hRtv ); // Slot 0.
 
-
-		// 4. Vertex Buffers (4 vertices each). Independent buffers avoid command queue race conditions.
 		D3D12_RESOURCE_DESC rdVb = { D3D12_RESOURCE_DIMENSION_BUFFER, 0, sizeof( LSN_XYZRHWTEX1 ) * 4, 1, 1, 1, DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE };
 		
 		if ( !m_vbPass1->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
 		m_vbView1.BufferLocation = m_vbPass1->Get()->GetGPUVirtualAddress();
 		m_vbView1.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
 		m_vbView1.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
-
-		if ( !m_vbPass2->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
-		m_vbView2.BufferLocation = m_vbPass2->Get()->GetGPUVirtualAddress();
-		m_vbView2.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
-		m_vbView2.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
-
-		if ( !m_vbPass3->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdVb, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
-		m_vbView3.BufferLocation = m_vbPass3->Get()->GetGPUVirtualAddress();
-		m_vbView3.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
-		m_vbView3.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
 
 		if ( !UpdateLut() ) { return false; }
 
@@ -322,7 +277,7 @@ namespace lsn {
 			D3D12_HEAP_PROPERTIES hpUpload = { D3D12_HEAP_TYPE_UPLOAD, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
 			
 			D3D12_RESOURCE_DESC rdLut = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, 512, 1, 1, 1, DXGI_FORMAT_R32G32B32A32_FLOAT, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_NONE };
-			if ( !m_tLut->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdLut, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
+			if ( !m_tLut->CreateCommittedTexture( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdLut, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
 
 			UINT64 ui64LutSize = 0;
 			pd12Device->GetCopyableFootprints( &rdLut, 0, 1, 0, nullptr, nullptr, nullptr, &ui64LutSize );
@@ -393,32 +348,25 @@ namespace lsn {
 
 		if ( !m_rsRootSignature.get() ) {
 			m_rsRootSignature = std::make_unique<CDirectX12RootSignature>();
-			D3D12_DESCRIPTOR_RANGE drRanges[4];
-			// 0: SRV Main Input
+			D3D12_DESCRIPTOR_RANGE drRanges[3];
 			drRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; drRanges[0].NumDescriptors = 1; drRanges[0].BaseShaderRegister = 0; drRanges[0].RegisterSpace = 0; drRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-			// 1: SRV LUT Input
 			drRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; drRanges[1].NumDescriptors = 1; drRanges[1].BaseShaderRegister = 1; drRanges[1].RegisterSpace = 0; drRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-			// 2: Sampler
 			drRanges[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER; drRanges[2].NumDescriptors = 1; drRanges[2].BaseShaderRegister = 0; drRanges[2].RegisterSpace = 0; drRanges[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-			// Allocate 5 Parameters: Index 1 isolates the PS constants so they don't overwrite VS constants.
-			D3D12_ROOT_PARAMETER rpParameters[5];
+			D3D12_ROOT_PARAMETER rpParameters[4];
 			rpParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 			rpParameters[0].Constants.ShaderRegister = 0; rpParameters[0].Constants.RegisterSpace = 0; rpParameters[0].Constants.Num32BitValues = 4; rpParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 			
-			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-			rpParameters[1].Constants.ShaderRegister = 1; rpParameters[1].Constants.RegisterSpace = 0; rpParameters[1].Constants.Num32BitValues = 4; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
+			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[1].DescriptorTable.NumDescriptorRanges = 1; rpParameters[1].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			
 			rpParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 			
 			rpParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[3].DescriptorTable.NumDescriptorRanges = 1; rpParameters[3].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-			
-			rpParameters[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[4].DescriptorTable.NumDescriptorRanges = 1; rpParameters[4].DescriptorTable.pDescriptorRanges = &drRanges[2]; rpParameters[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			rpParameters[3].DescriptorTable.NumDescriptorRanges = 1; rpParameters[3].DescriptorTable.pDescriptorRanges = &drRanges[2]; rpParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 5, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
+			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 4, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
 
 			Microsoft::WRL::ComPtr<ID3DBlob> pbSig, pbErr;
 			typedef HRESULT( WINAPI * PFN_D3D12SerializeRootSignature )( const D3D12_ROOT_SIGNATURE_DESC *, D3D_ROOT_SIGNATURE_VERSION, ID3DBlob **, ID3DBlob ** );
@@ -456,29 +404,9 @@ namespace lsn {
 			"    return tLut.Sample(sPoint, float2(u, 0.5));\n"
 			"}\n";
 
-		static const char * kPsVerticalNNHlsl =
-			"Texture2D tSrc : register(t0);\n"
-			"SamplerState sPoint : register(s0);\n"
-			"cbuffer PSConstants : register(b1) { float4 c0; };\n" // Shifted to b1
-			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
-			"float4 main(PS_INPUT input) : SV_TARGET {\n"
-			"    float v = (floor(input.Tex.y * c0.x) + c0.z) * c0.y;\n"
-			"    return tSrc.Sample(sPoint, float2(input.Tex.x, v));\n"
-			"}\n";
-
-		static const char * kPsCopyHlsl =
-			"Texture2D tSrc : register(t0);\n"
-			"SamplerState sLinear : register(s0);\n"
-			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
-			"float4 main(PS_INPUT input) : SV_TARGET {\n"
-			"  return tSrc.Sample(sLinear, input.Tex);\n"
-			"}\n";
-
-		std::vector<uint8_t> vBcVs, vBcIdx, vBcVert, vBcCopy;
+		std::vector<uint8_t> vBcVs, vBcIdx;
 		if ( !CompileHlsl( kVsHlsl, "main", "vs_5_0", vBcVs ) ||
-			 !CompileHlsl( kPsIdxToColorHlsl, "main", "ps_5_0", vBcIdx ) ||
-			 !CompileHlsl( kPsVerticalNNHlsl, "main", "ps_5_0", vBcVert ) ||
-			 !CompileHlsl( kPsCopyHlsl, "main", "ps_5_0", vBcCopy ) ) {
+			 !CompileHlsl( kPsIdxToColorHlsl, "main", "ps_5_0", vBcIdx ) ) {
 			return false;
 		}
 
@@ -488,8 +416,6 @@ namespace lsn {
 		};
 
 		if ( !m_psoIdxToColor.get() ) { m_psoIdxToColor = std::make_unique<CDirectX12PipelineState>(); }
-		if ( !m_psoVerticalNN.get() ) { m_psoVerticalNN = std::make_unique<CDirectX12PipelineState>(); }
-		if ( !m_psoCopy.get() ) { m_psoCopy = std::make_unique<CDirectX12PipelineState>(); }
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC gpsdDesc = {};
 		gpsdDesc.pRootSignature = m_rsRootSignature->Get();
@@ -503,19 +429,10 @@ namespace lsn {
 		gpsdDesc.SampleDesc.Count = 1;
 		gpsdDesc.InputLayout = { iedInputLayout, 2 };
 
-		// PSO 1: Idx to Color
+
 		gpsdDesc.PS = { vBcIdx.data(), vBcIdx.size() };
 		gpsdDesc.RTVFormats[0] = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
 		if ( !m_psoIdxToColor->Get() && !m_psoIdxToColor->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
-
-		// PSO 2: Vertical NN
-		gpsdDesc.PS = { vBcVert.data(), vBcVert.size() };
-		if ( !m_psoVerticalNN->Get() && !m_psoVerticalNN->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
-
-		// PSO 3: Copy
-		gpsdDesc.PS = { vBcCopy.data(), vBcCopy.size() };
-		gpsdDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // Srgb hardware conversion format
-		if ( !m_psoCopy->Get() && !m_psoCopy->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
 
 		return true;
 	}
@@ -537,7 +454,18 @@ namespace lsn {
 		if ( !pfnCompile ) { return false; }
 
 		Microsoft::WRL::ComPtr<ID3DBlob> pbCode, pbErr;
-		HRESULT hRes = pfnCompile( _pcszSource, std::strlen( _pcszSource ), nullptr, nullptr, nullptr, _pcszEntry, _pcszProfile, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &pbCode, &pbErr );
+		HRESULT hRes = pfnCompile(
+			_pcszSource,
+			std::strlen( _pcszSource ),
+			nullptr,
+			nullptr,
+			nullptr,
+			_pcszEntry,
+			_pcszProfile,
+			D3DCOMPILE_OPTIMIZATION_LEVEL3,
+			0,
+			&pbCode,
+			&pbErr );
 		
 		if ( FAILED( hRes ) || !pbCode ) { return false; }
 		_vOutByteCode.resize( pbCode->GetBufferSize() );
@@ -549,13 +477,10 @@ namespace lsn {
 	 * \brief Releases size-dependent resources.
 	 */
 	void CDx12PaletteFilter::ReleaseSizeDependents() {
-		if LSN_LIKELY( m_tIndex.get() ) { m_tIndex->Reset(); }
-		if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
-		if LSN_LIKELY( m_rtScanlined.get() ) { m_rtScanlined->Reset(); }
+		if LSN_LIKELY( m_tIndex.get() && m_tIndex->Get() ) { m_tIndex->Reset(); }
+		if LSN_LIKELY( m_rtInitial.get() && m_rtInitial->Get() ) { m_rtInitial->Reset(); }
 		
-		if LSN_LIKELY( m_vbPass1.get() ) { m_vbPass1->Reset(); }
-		if LSN_LIKELY( m_vbPass2.get() ) { m_vbPass2->Reset(); }
-		if LSN_LIKELY( m_vbPass3.get() ) { m_vbPass3->Reset(); }
+		if LSN_LIKELY( m_vbPass1.get() && m_vbPass1->Get() ) { m_vbPass1->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -571,7 +496,7 @@ namespace lsn {
 		m_caAllocator->Get()->Reset();
 		m_gclCommandList->Get()->Reset( m_caAllocator->Get(), nullptr );
 
-		// 1. Copy uploads to default textures.
+
 		{
 			D3D12_TEXTURE_COPY_LOCATION tclDestIdx = { m_tIndex->Get(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX, { 0 } };
 			D3D12_PLACED_SUBRESOURCE_FOOTPRINT psfIdxFootprint;
@@ -588,25 +513,24 @@ namespace lsn {
 			m_gclCommandList->Get()->CopyTextureRegion( &tclDestLut, 0, 0, 0, &tclSrcLut, nullptr );
 		}
 
-		// 2. Transition resources for rendering.
-		D3D12_RESOURCE_BARRIER rbBarriers[4];
+
+		D3D12_RESOURCE_BARRIER rbBarriers[3];
 		rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tIndex->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 		rbBarriers[1] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tLut->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 		rbBarriers[2] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtInitial->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
-		rbBarriers[3] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtScanlined->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
-		m_gclCommandList->Get()->ResourceBarrier( 4, rbBarriers );
+		m_gclCommandList->Get()->ResourceBarrier( 3, rbBarriers );
 
-		// Standard Pipeline Setup
+
 		m_gclCommandList->Get()->SetGraphicsRootSignature( m_rsRootSignature->Get() );
 		ID3D12DescriptorHeap * ppHeaps[] = { m_dhSrvHeap->Get(), m_dhSamplerHeap->Get() };
 		m_gclCommandList->Get()->SetDescriptorHeaps( 2, ppHeaps );
 
-		D3D12_CPU_DESCRIPTOR_HANDLE hSrvStart = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 		D3D12_CPU_DESCRIPTOR_HANDLE hRtvStart = m_dhRtvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 		D3D12_GPU_DESCRIPTOR_HANDLE hSrvGpu = m_dhSrvHeap->Get()->GetGPUDescriptorHandleForHeapStart();
 		D3D12_GPU_DESCRIPTOR_HANDLE hSampGpu = m_dhSamplerHeap->Get()->GetGPUDescriptorHandleForHeapStart();
 
-		// ----- Pass 1: Indices + LUT -> Initial FP RT (1:1) -----
+
+
 		m_gclCommandList->Get()->SetPipelineState( m_psoIdxToColor->Get() );
 		m_gclCommandList->Get()->OMSetRenderTargets( 1, &hRtvStart, FALSE, nullptr );
 		
@@ -618,99 +542,66 @@ namespace lsn {
 		float fConstants1[4] = { static_cast<float>(m_ui32SrcW), static_cast<float>(m_ui32SrcH), 0.0f, 0.0f };
 		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 4, fConstants1, 0 );
 
-		// Set SRVs. Indices shifted by 1 due to the new PS constant parameter.
 		D3D12_GPU_DESCRIPTOR_HANDLE hLutSrv = hSrvGpu; hLutSrv.ptr += m_uiSrvDescriptorSize;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hSrvGpu );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 3, hLutSrv );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 4, hSampGpu ); // Point Sampler
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 1, hSrvGpu );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hLutSrv );
+		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 3, hSampGpu );
 
-		FillQuad( (*m_vbPass1), 0.0f, 0.0f, float(m_ui32SrcW), float(m_ui32SrcH), 0.0f, 0.0f, 1.0f, 1.0f );
+		D3D12_RANGE rReadRange = { 0, 0 };
+		LSN_XYZRHWTEX1 * pvP = nullptr;
+		if ( SUCCEEDED( m_vbPass1->Get()->Map( 0, &rReadRange, reinterpret_cast<void **>(&pvP) ) ) ) {
+			float fL = 0.0f;
+			float fT = 0.0f;
+			float fR = static_cast<float>(m_ui32SrcW);
+			float fB = static_cast<float>(m_ui32SrcH);
+			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, 0.0f };
+			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, 0.0f };
+			pvP[2] = { fL, fB, 0.0f, 1.0f, 0.0f, 1.0f };
+			pvP[3] = { fR, fB, 0.0f, 1.0f, 1.0f, 1.0f };
+			m_vbPass1->Get()->Unmap( 0, nullptr );
+		}
+
 		m_gclCommandList->Get()->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView1 );
 		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
 
+		D3D12_RESOURCE_BARRIER rbInitialToSrv[1];
+		rbInitialToSrv[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtInitial->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
+		m_gclCommandList->Get()->ResourceBarrier( 1, rbInitialToSrv );
 
-		// ----- Pass 2: Initial FP -> Scanlined FP -----
-		rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtInitial->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
-		m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
-
-		D3D12_CPU_DESCRIPTOR_HANDLE hScanRtv = hRtvStart; hScanRtv.ptr += m_uiRtvDescriptorSize;
-		m_gclCommandList->Get()->OMSetRenderTargets( 1, &hScanRtv, FALSE, nullptr );
-		m_gclCommandList->Get()->SetPipelineState( m_psoVerticalNN->Get() );
-
-		const UINT ui32DstW = m_ui32SrcW * GetActualHorSharpness();
-		const UINT ui32DstH = m_ui32SrcH * GetActualVertSharpness();
-		D3D12_VIEWPORT vp2 = { 0.0f, 0.0f, static_cast<float>(ui32DstW), static_cast<float>(ui32DstH), 0.0f, 1.0f };
-		D3D12_RECT rScissor2 = { 0, 0, static_cast<LONG>(ui32DstW), static_cast<LONG>(ui32DstH) };
-		m_gclCommandList->Get()->RSSetViewports( 1, &vp2 );
-		m_gclCommandList->Get()->RSSetScissorRects( 1, &rScissor2 );
-
-		// VS Constants (b0)
-		float fConstants2[4] = { static_cast<float>(ui32DstW), static_cast<float>(ui32DstH), 0.0f, 0.0f };
-		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 2, fConstants2, 0 );
-		// PS Constants (b1) - Isolated!
-		float fC0[4] = { float( m_ui32SrcH ), 1.0f / float( m_ui32SrcH ), 0.5f, 0.0f };
-		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 1, 4, fC0, 0 );
-
-		D3D12_GPU_DESCRIPTOR_HANDLE hInitialSrv = hSrvGpu; hInitialSrv.ptr += m_uiSrvDescriptorSize * 2;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hInitialSrv );
-
-		FillQuad( (*m_vbPass2), 0.0f, 0.0f, float(ui32DstW), float(ui32DstH), 0.0f, 1.0f, 1.0f, 0.0f );
-		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView2 );
-		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
-
-
-		// ----- Pass 3: Composite to Backbuffer -----
-		rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtScanlined->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
-		m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
+		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_rtInitial.get(), m_ui32SrcW, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_NONE, m_bUse16BitInitialTarget, true ) ) {
+			return false;
+		}
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> rBackBuffer;
-		m_pdx12dDevice->GetSwapChain()->GetBuffer( m_pdx12dDevice->GetSwapChain()->GetCurrentBackBufferIndex(), IID_PPV_ARGS( &rBackBuffer ) );
+		if LSN_LIKELY( SUCCEEDED( m_pdx12dDevice->GetSwapChain()->GetBuffer( m_pdx12dDevice->GetSwapChain()->GetCurrentBackBufferIndex(), IID_PPV_ARGS( &rBackBuffer ) ) ) ) {
+			D3D12_RESOURCE_BARRIER rbBack[1];
+			rbBack[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbBack );
 
-		rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET } };
-		m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
+			D3D12_CPU_DESCRIPTOR_HANDLE hBackRtv = hRtvStart; hBackRtv.ptr += m_uiRtvDescriptorSize;
+			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+			rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+			m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), &rtvDesc, hBackRtv );
 
-		D3D12_CPU_DESCRIPTOR_HANDLE hBackRtv = hRtvStart; hBackRtv.ptr += m_uiRtvDescriptorSize * 2;
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), &rtvDesc, hBackRtv );
-		m_gclCommandList->Get()->OMSetRenderTargets( 1, &hBackRtv, FALSE, nullptr );
+			m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
 
-		float fClearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		m_gclCommandList->Get()->ClearRenderTargetView( hBackRtv, fClearColor, 0, nullptr );
+			D3D12_RESOURCE_BARRIER rbPresent[1];
+			rbPresent[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbPresent );
+		}
 
-		D3D12_RESOURCE_DESC rdDesc = rBackBuffer->GetDesc();
-		D3D12_VIEWPORT vp3 = { 0.0f, 0.0f, static_cast<float>(rdDesc.Width), static_cast<float>(rdDesc.Height), 0.0f, 1.0f };
-		D3D12_RECT rScissor3 = { 0, 0, static_cast<LONG>(rdDesc.Width), static_cast<LONG>(rdDesc.Height) };
-		m_gclCommandList->Get()->RSSetViewports( 1, &vp3 );
-		m_gclCommandList->Get()->RSSetScissorRects( 1, &rScissor3 );
-
-		m_gclCommandList->Get()->SetPipelineState( m_psoCopy->Get() );
-		float fConstants3[4] = { static_cast<float>(rdDesc.Width), static_cast<float>(rdDesc.Height), 0.0f, 0.0f };
-		m_gclCommandList->Get()->SetGraphicsRoot32BitConstants( 0, 4, fConstants3, 0 );
-
-		D3D12_GPU_DESCRIPTOR_HANDLE hScanSrv = hSrvGpu; hScanSrv.ptr += m_uiSrvDescriptorSize * 3;
-		D3D12_GPU_DESCRIPTOR_HANDLE hLinearSamp = hSampGpu; hLinearSamp.ptr += m_uiSamplerDescriptorSize;
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 2, hScanSrv );
-		m_gclCommandList->Get()->SetGraphicsRootDescriptorTable( 4, hLinearSamp );
-
-		FillQuad( (*m_vbPass3), static_cast<float>(_rOutput.left), static_cast<float>(_rOutput.top), static_cast<float>(_rOutput.right), static_cast<float>(_rOutput.bottom), 0.0f, 0.0f, 1.0f, 1.0f );
-		m_gclCommandList->Get()->IASetVertexBuffers( 0, 1, &m_vbView3 );
-		m_gclCommandList->Get()->DrawInstanced( 4, 1, 0, 0 );
-
-		// Final Transition Back for Presenting & Cleanup states
-		rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT } };
-		rbBarriers[1] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tIndex->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST } };
-		rbBarriers[2] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tLut->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST } };
-		m_gclCommandList->Get()->ResourceBarrier( 3, rbBarriers );
+		D3D12_RESOURCE_BARRIER rbCleanup[2];
+		rbCleanup[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tIndex->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST } };
+		rbCleanup[1] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_tLut->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST } };
+		m_gclCommandList->Get()->ResourceBarrier( 2, rbCleanup );
 
 		m_gclCommandList->Get()->Close();
 
 		ID3D12CommandList * ppCommandLists[] = { m_gclCommandList->Get() };
 		m_pdx12dDevice->GetCommandQueue()->ExecuteCommandLists( 1, ppCommandLists );
 
-		// Critical: Wait for the GPU to finish execution since the command allocator and mapped CPU data are reused instantly.
 		m_pdx12dDevice->FlushCommandQueue();
 
 		return true;

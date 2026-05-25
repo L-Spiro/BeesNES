@@ -18,7 +18,7 @@
 #include "LSNLSpiroNtscFilterBase.h"
 
 #include <mutex>
-#include <vector>
+//#include <vector>
 
 
 namespace lsn {

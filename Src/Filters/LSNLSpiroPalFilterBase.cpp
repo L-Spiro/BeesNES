@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of an PAL filter.
+ * Description: My own implementation of a PAL filter.
  */
 
 #include "LSNLSpiroPalFilterBase.h"

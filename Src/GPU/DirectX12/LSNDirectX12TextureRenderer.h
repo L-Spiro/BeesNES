@@ -45,11 +45,11 @@ namespace lsn {
 
 		/**
 		 * Renders the input texture to the target surface.
-		 * 
+		 *
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \param _pgclCommandList The command list used to execute the draw.
 		 * \param _prSrc The source texture to draw.
-		 * \param _prDst The destination surface resource (e.g., the swap chain backbuffer). Used for viewport dimension mapping.
+		 * \param _p12rDst The destination surface resource (e.g., the swap chain backbuffer). Used for viewport dimension mapping.
 		 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
 		 * \param _rOutput The destination rectangle in client pixels.
 		 * \param _fGamma The PC monitor's gamma parameter.
@@ -58,7 +58,7 @@ namespace lsn {
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, CDirectX12Resource * _prDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false, ID3DInclude * _piInclude = nullptr );
+		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false, ID3DInclude * _piInclude = nullptr );
 
 
 	protected :
@@ -83,7 +83,7 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * Ensures the vertex buffer and descriptor heaps are created.
-		 * 
+		 *
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \return Returns true if resources are ready.
 		 **/
@@ -91,7 +91,7 @@ namespace lsn {
 
 		/**
 		 * Ensures the Pipeline State Object and Root Signature are created for the specified format.
-		 * 
+		 *
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \param _fTargetFormat The format of the RTV this shader will output to.
 		 * \param _piInclude Optional #include handler for shader compilation.
@@ -101,7 +101,7 @@ namespace lsn {
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.
-		 * 
+		 *
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \param _pcszSource Null-terminated HLSL source code.
 		 * \param _pcszEntry Null-terminated entry-point function name.

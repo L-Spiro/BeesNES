@@ -9,6 +9,7 @@
  */
 
 #include "LSNDirectX12TexturePixelScaler.h"
+#include "LSNDirectX12DiskInclude.h"
 
 #include <string>
 
@@ -259,10 +260,10 @@ namespace lsn {
 			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb )"; break; }
 			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
 			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :	{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :		{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
+			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
+			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
 			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :	{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
+			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
 			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
 			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
 			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.22222222222222232090871330001391470432281494140625 )"; break; }
@@ -300,9 +301,12 @@ namespace lsn {
 			"    return c;\n"
 			"}\n";
 
+		CDirectX12DiskInclude diDefaultInclude( CDirectX12DiskInclude::GetExeShadersDir() );
+		ID3DInclude * pInc = _piInclude ? _piInclude : &diDefaultInclude;
+
 		std::vector<uint8_t> vBcVs, vBcPs;
-		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, _piInclude ) ||
-			 !CompileHlsl( _pd12dDevice, sPsHlsl.c_str(), "main", "ps_5_0", vBcPs, _piInclude ) ) {
+		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, pInc ) ||
+			 !CompileHlsl( _pd12dDevice, sPsHlsl.c_str(), "main", "ps_5_0", vBcPs, pInc ) ) {
 			return false;
 		}
 

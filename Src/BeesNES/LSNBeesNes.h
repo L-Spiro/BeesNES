@@ -12,7 +12,9 @@
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX12
+#include "../Filters/LSNDx12NtscLSpiroFilter.h"
 #include "../Filters/LSNDx12PaletteFilter.h"
+#include "../Filters/LSNDx12PalLSpiroFilter.h"
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_DX9
 #include "../Filters/LSNDx9NtscLSpiroFilter.h"
@@ -494,6 +496,16 @@ namespace lsn {
 #ifdef LSN_DX12
 		/** Direct3D 12 palette filter. */
 		CDx12PaletteFilter						m_d12pfDx12Palette;
+		/** Direct3D 12 up-scale L. Spiro NTSC filter. */
+		CDx12NtscLSpiroFilter					m_p12nlsfDx12LSpiroNtsc;
+		/** Direct3D 12 up-scale L. Spiro PAL filter. */
+		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPal;
+		/** Direct3D 12 up-scale L. Spiro Dendy filter. */
+		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroDendy;
+		/** Direct3D 12 up-scale L. Spiro PAL-M filter. */
+		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPalM;
+		/** Direct3D 12 up-scale L. Spiro PAL-M filter. */
+		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPalN;
 #endif	// #ifdef LSN_DX12
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];

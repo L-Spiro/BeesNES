@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of an PAL filter.
+ * Description: My own implementation of a PAL filter.
  */
 
 #pragma once
@@ -27,9 +27,9 @@ namespace lsn {
 
 	/**
 	 * Class CLSpiroPalFilterBase
-	 * \brief My own implementation of an PAL filter.
+	 * \brief My own implementation of a PAL filter.
 	 *
-	 * Description: My own implementation of an PAL filter.
+	 * Description: My own implementation of a PAL filter.
 	 */
 	class CLSpiroPalFilterBase {
 	public :

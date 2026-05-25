@@ -9,6 +9,7 @@
  */
 
 #include "LSNDirectX12TextureRenderer.h"
+#include "LSNDirectX12DiskInclude.h"
 
 namespace lsn {
 
@@ -44,11 +45,11 @@ namespace lsn {
 
 	/**
 	 * Renders the input texture to the target surface.
-	 * 
+	 *
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _pgclCommandList The command list used to execute the draw.
 	 * \param _prSrc The source texture to draw.
-	 * \param _prDst The destination surface resource (e.g., the swap chain backbuffer). Used for viewport dimension mapping.
+	 * \param _p12rDst The destination surface resource (e.g., the swap chain backbuffer). Used for viewport dimension mapping.
 	 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
 	 * \param _rOutput The destination rectangle in client pixels.
 	 * \param _fGamma The PC monitor's gamma parameter.
@@ -57,8 +58,8 @@ namespace lsn {
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TextureRenderer::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, CDirectX12Resource * _prDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, ID3DInclude * _piInclude ) {
-		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_prDst ) { return false; }
+	bool CDirectX12TextureRenderer::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, ID3DInclude * _piInclude ) {
+		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_p12rDst ) { return false; }
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
@@ -78,7 +79,7 @@ namespace lsn {
 			pCommandList->ClearRenderTargetView( _cdhRtv, fClearColor, 0, nullptr );
 		}
 
-		D3D12_RESOURCE_DESC rdDesc = _prDst->Get()->GetDesc();
+		D3D12_RESOURCE_DESC rdDesc = _p12rDst->GetDesc();
 		D3D12_VIEWPORT vpViewport = { 0.0f, 0.0f, static_cast<float>(rdDesc.Width), static_cast<float>(rdDesc.Height), 0.0f, 1.0f };
 		D3D12_RECT rScissor = { 0, 0, static_cast<LONG>(rdDesc.Width), static_cast<LONG>(rdDesc.Height) };
 		pCommandList->RSSetViewports( 1, &vpViewport );
@@ -125,7 +126,7 @@ namespace lsn {
 
 	/**
 	 * Ensures the vertex buffer and descriptor heaps are created.
-	 * 
+	 *
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \return Returns true if resources are ready.
 	 **/
@@ -167,7 +168,7 @@ namespace lsn {
 
 	/**
 	 * Ensures the Pipeline State Object and Root Signature are created for the specified format.
-	 * 
+	 *
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _fTargetFormat The format of the RTV this shader will output to.
 	 * \param _piInclude Optional #include handler for shader compilation.
@@ -232,9 +233,12 @@ namespace lsn {
 			"  return saturate(c);\n"
 			"}\n";
 
+		CDirectX12DiskInclude diDefaultInclude( CDirectX12DiskInclude::GetExeShadersDir() );
+		ID3DInclude * pInc = _piInclude ? _piInclude : &diDefaultInclude;
+
 		std::vector<uint8_t> vBcVs, vBcCopy;
-		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, _piInclude ) ||
-			 !CompileHlsl( _pd12dDevice, kPsCopyHlsl, "main", "ps_5_0", vBcCopy, _piInclude ) ) {
+		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, pInc ) ||
+			 !CompileHlsl( _pd12dDevice, kPsCopyHlsl, "main", "ps_5_0", vBcCopy, pInc ) ) {
 			return false;
 		}
 
@@ -264,7 +268,7 @@ namespace lsn {
 
 	/**
 	 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.
-	 * 
+	 *
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _pcszSource Null-terminated HLSL source code.
 	 * \param _pcszEntry Null-terminated entry-point function name.

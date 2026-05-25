@@ -1,37 +1,39 @@
-#ifdef LSN_DX9
+#ifdef LSN_DX12
 
 /**
  * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of a PAL filter.
+ * Description: My own implementation of an NTSC filter.
  */
 
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
-#include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
-#include "../GPU/DirectX9/LSNDirectX9TextureUploader.h"
-#include "LSNDx9FilterBase.h"
-#include "LSNLSpiroPalFilterBase.h"
+#include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
+#include "../GPU/DirectX12/LSNDirectX12TexturePixelScaler.h"
+#include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
+#include "../GPU/DirectX12/LSNDirectX12TextureUploader.h"
+#include "LSNDx12FilterBase.h"
+#include "LSNLSpiroNtscFilterBase.h"
 
 #include <mutex>
+#include <vector>
 
 
 namespace lsn {
 
 	/**
-	 * Class CDx9PalLSpiroFilter
-	 * \brief My own implementation of a PAL filter.
+	 * Class CDx12NtscLSpiroFilter
+	 * \brief My own implementation of an NTSC filter.
 	 *
-	 * Description: My own implementation of a PAL filter.
+	 * Description: My own implementation of an NTSC filter.
 	 */
-	class CDx9PalLSpiroFilter : public CLSpiroPalFilterBase, public CDx9FilterBase {
+	class CDx12NtscLSpiroFilter : public CLSpiroNtscFilterBase, public CDx12FilterBase {
 	public :
-		CDx9PalLSpiroFilter();
-		virtual ~CDx9PalLSpiroFilter();
+		CDx12NtscLSpiroFilter();
+		virtual ~CDx12NtscLSpiroFilter();
 		
 		
 		// == Functions.
@@ -184,15 +186,23 @@ namespace lsn {
 
 
 		// == Members.
-		/** The DirectX 9 device wrapper (non-owning). */
-		CDirectX9Device *									m_pdx9dDevice = nullptr;
+		/** The DirectX 12 device wrapper (non-owning). */
+		CDirectX12Device *									m_pdx12dDevice = nullptr;
 		
 		/** Generically uploads CPU texel arrays to GPU textures. */
-		CDirectX9TextureUploader							m_tuUploader;
+		CDirectX12TextureUploader							m_tuUploader;
 		/** Generically scales a texture via nearest-neighbor and applies gamma. */
-		CDirectX9TexturePixelScaler							m_tpsScaler;
+		CDirectX12TexturePixelScaler						m_tpsScaler;
 		/** Generically renders a texture to the backbuffer using bilinear sampling. */
-		CDirectX9TextureRenderer							m_trRenderer;
+		CDirectX12TextureRenderer							m_trRenderer;
+
+		// Command execution per-frame.
+		std::unique_ptr<CDirectX12CommandAllocator>			m_caAllocator;
+		std::unique_ptr<CDirectX12GraphicsCommandList>		m_gclCommandList;
+
+		// Descriptor Heap for the RTV buffer.
+		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhRtvHeap;
+		UINT												m_uiRtvDescriptorSize = 0;
 
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
@@ -227,14 +237,16 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
-		 * * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
 		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-		 * * \return Returns true on success.
+		 * 
+		 * \return Returns true on success.
 		 */
 		bool												EnsureSizeAndResources();
 
@@ -281,9 +293,9 @@ namespace lsn {
 		void												WorkerThread( size_t _stThreadIdx );
 
 	private :
-		typedef CDx9FilterBase								CParent;
+		typedef CDx12FilterBase								CParent;
 	};
 
 }	// namespace lsn
 
-#endif	// #ifdef LSN_DX9
+#endif	// #ifdef LSN_DX12

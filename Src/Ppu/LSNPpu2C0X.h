@@ -1697,7 +1697,7 @@ namespace lsn {
 
 			ppPpu->m_bShowBg = !!_tNewVal.s.ui8ShowBackground;
 			ppPpu->m_bShowSprites = !!_tNewVal.s.ui8ShowSprites;
-			ppPpu->m_bRendering = ppPpu->m_bShowBg || ppPpu->m_bShowSprites;
+			ppPpu->m_bRendering = bool( ppPpu->m_bShowBg | ppPpu->m_bShowSprites );
 		}
 
 		/**
@@ -2231,27 +2231,56 @@ namespace lsn {
 				"m_ui64RenderStartCycle = m_ui64Cycle;\r\n";
 			}
 
-			// End cycle.
-			sRet += "\r\n"
-			"++m_stCurCycle;\r\n";
+			//// End cycle.
+			//sRet += "\r\n"
+			//"++m_stCurCycle;\r\n";
 
-			// End frame.
-			{
-				if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
-					sRet += "\r\n"
-					"if constexpr ( _bOddFrameShenanigans ) {\r\n"
-					"	if ( ((m_ui64Frame & 0x1) == 1) && m_bRendering ) {\r\n"
-					"		m_stCurCycle = 1;\r\n"
-					"	}\r\n"
-					"	else {\r\n"
-					"		m_stCurCycle = 0;\r\n"
-					"	}\r\n"
-					"}\r\n"
-					"else {\r\n"
-					"	m_stCurCycle = 0;\r\n"
-					"}\r\n"
-					"++m_ui64Frame;\r\n";
-				}
+			//// End frame.
+			//{
+			//	if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
+			//		sRet += "\r\n"
+			//		"if constexpr ( _bOddFrameShenanigans ) {\r\n"
+			//		"	if ( ((m_ui64Frame & 0x1) == 1) && m_bRendering ) {\r\n"
+			//		"		m_stCurCycle = 1;\r\n"
+			//		"	}\r\n"
+			//		"	else {\r\n"
+			//		"		m_stCurCycle = 0;\r\n"
+			//		"	}\r\n"
+			//		"}\r\n"
+			//		"else {\r\n"
+			//		"	m_stCurCycle = 0;\r\n"
+			//		"}\r\n"
+			//		"++m_ui64Frame;\r\n";
+			//	}
+			//}
+			// End cycle & Frame transitions.
+			if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 2 ) {
+				// Dot 339 of the pre-render line: Evaluate the odd-frame skip.
+				sRet += "\r\n"
+				"if constexpr ( _bOddFrameShenanigans ) {\r\n"
+				"	if ( ((m_ui64Frame & 0x1) == 1) && m_bRendering ) {\r\n"
+				"		m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0\r\n"
+				"		++m_ui64Frame;\r\n"
+				"	}\r\n"
+				"	else {\r\n"
+				"		++m_stCurCycle;\r\n"
+				"	}\r\n"
+				"}\r\n"
+				"else {\r\n"
+				"	++m_stCurCycle;\r\n"
+				"}\r\n";
+			}
+			else if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
+				// Dot 340 of the pre-render line.
+				// If we reached this cycle, the skip didn't happen. End the frame normally.
+				sRet += "\r\n"
+				"m_stCurCycle = 0;\r\n"
+				"++m_ui64Frame;\r\n";
+			}
+			else {
+				// Standard cycle progression for all other dots.
+				sRet += "\r\n"
+				"++m_stCurCycle;\r\n";
 			}
 
 			// Remove empty if(){} blocks.
@@ -2340,6 +2369,8 @@ namespace lsn {
 					"}\r\n\r\n\r\n";
 				::OutputDebugStringA( sTmp.c_str() );
 			}
+			volatile int gjghg = 0;
+			(void)gjghg;
 		}
 #endif	// #ifdef LSN_GEN_PPU
 

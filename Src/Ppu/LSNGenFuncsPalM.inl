@@ -5,26 +5,6 @@ void LSN_FASTCALL								Cycle_3__0x0_338x0_340x0_0x1_338x1_340x1_0x2_338x2_340x
 }
 
 
-void LSN_FASTCALL								Cycle_3__340x261() {
-
-
-	++m_stCurCycle;
-
-	if constexpr (_bOddFrameShenanigans) {
-		if (((m_ui64Frame & 0x1) == 1) && m_bRendering) {
-			m_stCurCycle = 1;
-		}
-		else {
-			m_stCurCycle = 0;
-		}
-	}
-	else {
-		m_stCurCycle = 0;
-	}
-	++m_ui64Frame;
-}
-
-
 void LSN_FASTCALL								Cycle_3__1x241() {
 
 
@@ -76,6 +56,14 @@ void LSN_FASTCALL								Cycle_3__257x240() {
 	}
 
 	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_3__340x261() {
+
+
+	m_stCurCycle = 0;
+	++m_ui64Frame;
 }
 
 
@@ -1273,6 +1261,29 @@ void LSN_FASTCALL								Cycle_3__337x0_339x0_337x1_339x1_337x2_339x2_337x3_339x
 }
 
 
+void LSN_FASTCALL								Cycle_3__339x261() {
+
+	if (m_bRendering) {
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+
+	if constexpr (_bOddFrameShenanigans) {
+		if (((m_ui64Frame & 0x1) == 1) && m_bRendering) {
+			m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0
+			++m_ui64Frame;
+		}
+		else {
+			++m_stCurCycle;
+		}
+	}
+	else {
+		++m_stCurCycle;
+	}
+}
+
+
 void LSN_FASTCALL								Cycle_3__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x3_321x4_329x4_X() {
 
 	if (m_bRendering) {
@@ -1941,5 +1952,3 @@ void LSN_FASTCALL								Cycle_3__0x240() {
 
 	++m_stCurCycle;
 }
-
-

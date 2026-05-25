@@ -64,6 +64,14 @@ namespace lsn {
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_INDEXEDDX12
+			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX12
+
+			{ &m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal },			// LSN_F_LSPIROPAL_US_DX12
+			{ &m_p12plsfDx12LSpiroDendy,	&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy },		// LSN_F_LSPIRODENDY_US_DX12
+			{ &m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX12
+			{ &m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX12
+
+			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX12
 #endif	// #ifdef LSN_DX12
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -120,6 +128,43 @@ namespace lsn {
 #ifdef LSN_DX12
 		m_d12pfDx12Palette.SetVertSharpness( 5 );
 		m_d12pfDx12Palette.SetHorSharpness( 5 );
+
+		m_p12nlsfDx12LSpiroNtsc.SetFps( 60.098813897440515529533511098629f );
+		m_p12plsfDx12LSpiroPal.SetFps( 50.006978908188585607940446650124f );
+		m_p12plsfDx12LSpiroDendy.SetFps( 50.006978908188585607940446650124f );
+		m_p12plsfDx12LSpiroPalM.SetFps( 60.032435273083568398202053145976f );
+		m_p12plsfDx12LSpiroPalN.SetFps( 50.502710495150011279043537108053f );
+
+		m_p12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
+		/*m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 25 );
+		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+		m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 48 );
+		//m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 64 );
+		/*m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
+		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
+		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		//m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p12plsfDx12LSpiroPal.SetWidthScale( 10 );
+		m_p12plsfDx12LSpiroPal.SetKernelSize( 48 );
+		m_p12plsfDx12LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
+		m_p12plsfDx12LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p12plsfDx12LSpiroDendy.SetWidthScale( 10 );
+		m_p12plsfDx12LSpiroDendy.SetKernelSize( 44 );
+		m_p12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p12plsfDx12LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p12plsfDx12LSpiroPalM.SetWidthScale( 8 );
+		m_p12plsfDx12LSpiroPalM.SetKernelSize( 46 );
+		m_p12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_p12plsfDx12LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		m_p12plsfDx12LSpiroPalN.SetWidthScale( 8 );
+		m_p12plsfDx12LSpiroPalN.SetKernelSize( 48 );
+		m_p12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
+		m_p12plsfDx12LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 #endif	// #ifdef LSN_DX12
 
 		// FPS settings.
@@ -278,6 +323,12 @@ namespace lsn {
 
 #ifdef LSN_DX12
 		m_d12pfDx12Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p12nlsfDx12LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+
+		m_p12plsfDx12LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p12plsfDx12LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p12plsfDx12LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_p12plsfDx12LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_DX12
 
 

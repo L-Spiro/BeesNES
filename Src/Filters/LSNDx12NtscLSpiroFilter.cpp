@@ -1,4 +1,4 @@
-#ifdef LSN_DX9
+#ifdef LSN_DX12
 
 /**
  * Copyright L. Spiro 2026
@@ -8,8 +8,7 @@
  * Description: My own implementation of an NTSC filter.
  */
 
-#include "LSNDx9NtscLSpiroFilter.h"
-#include "../GPU/DirectX9/LSNDirectX9DiskInclude.h"
+#include "LSNDx12NtscLSpiroFilter.h"
 #include "../Utilities/LSNScopedNoSubnormals.h"
 
 #include <algorithm>
@@ -20,10 +19,10 @@
 namespace lsn {
 
 	// == Members.
-	CDx9NtscLSpiroFilter::CDx9NtscLSpiroFilter() {
+	CDx12NtscLSpiroFilter::CDx12NtscLSpiroFilter() {
 		SetMonitorGammaApply( false );
 	}
-	CDx9NtscLSpiroFilter::~CDx9NtscLSpiroFilter() {
+	CDx12NtscLSpiroFilter::~CDx12NtscLSpiroFilter() {
 		StopThreads();
 	}
 
@@ -36,7 +35,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx12NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		StopThreads();
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
@@ -48,6 +47,7 @@ namespace lsn {
 
 		m_tuUploader.Reset();
 		m_trRenderer.Reset();
+		m_tpsScaler.Reset();
 		ReleaseSizeDependents();
 		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
@@ -74,9 +74,9 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx9NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+	uint8_t * CDx12NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
-		if LSN_UNLIKELY( !m_pdx9dDevice ) { return m_vBasicRenderTarget[0].data(); }
+		if LSN_UNLIKELY( !m_pdx12dDevice || !m_pdx12dDevice->GetDevice() ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 			m_ui32SrcW = _ui32Width;
 			m_ui32SrcH = _ui32Height;
@@ -95,7 +95,10 @@ namespace lsn {
 
 		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
 
-		m_tuUploader.UploadTexels( m_pdx9dDevice, m_vRgbBuffer.data(), m_ui16ScaledWidth, m_ui32SrcH, ui32Pitch, D3DFMT_A32B32G32R32F );
+		m_caAllocator->Get()->Reset();
+		m_gclCommandList->Get()->Reset( m_caAllocator->Get(), nullptr );
+
+		m_tuUploader.UploadTexels( m_pdx12dDevice, m_gclCommandList.get(), m_vRgbBuffer.data(), m_ui16ScaledWidth, m_ui32SrcH, ui32Pitch, DXGI_FORMAT_R32G32B32A32_FLOAT );
 
 		Render( rRect );
 
@@ -108,7 +111,7 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become active.
 	 */
-	void CDx9NtscLSpiroFilter::Activate() {
+	void CDx12NtscLSpiroFilter::Activate() {
 		CParent::Activate();
 
 		EnsureSizeAndResources();
@@ -118,24 +121,28 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become inactive.
 	 */
-	void CDx9NtscLSpiroFilter::DeActivate() {
+	void CDx12NtscLSpiroFilter::DeActivate() {
 		CParent::DeActivate();
 
 		m_tuUploader.Reset();
 		m_tpsScaler.Reset();
 		m_trRenderer.Reset();
+		
+		m_dhRtvHeap.reset();
+		m_gclCommandList.reset();
+		m_caAllocator.reset();
 
-		if ( m_pdx9dDevice ) {
-			s_dgsState.DestroyDx9();
-			m_pdx9dDevice = nullptr;
+		if ( m_pdx12dDevice ) {
+			s_dgsState.DestroyDx12();
+			m_pdx12dDevice = nullptr;
 		}
 	}
 
 	/**
 	 * Informs the filter of a window resize.
 	 **/
-	void CDx9NtscLSpiroFilter::FrameResize() {
-		s_dgsState.OnSizeDx9();
+	void CDx12NtscLSpiroFilter::FrameResize() {
+		OnSizeDx12();
 		EnsureSizeAndResources();
 	}
 
@@ -144,7 +151,7 @@ namespace lsn {
 	 *
 	 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
 	 */
-	void CDx9NtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
+	void CDx12NtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
 		if ( _stThreads == m_stWorkerThreadCount ) { return; }
 
 		const bool bRestart = m_bThreadsStarted;
@@ -159,7 +166,7 @@ namespace lsn {
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 	 **/
-	void CDx9NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
+	void CDx12NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
 		const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
 		if LSN_UNLIKELY( !m_vThreads.size() ) {
 			RenderScanlineRange<false>( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
@@ -191,14 +198,34 @@ namespace lsn {
 	 * 
 	 * \return Returns true on success.
 	 */
-	bool CDx9NtscLSpiroFilter::EnsureSizeAndResources() {
+	bool CDx12NtscLSpiroFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
-		if ( !m_pdx9dDevice ) {
-			if ( !s_dgsState.CreateDx9() ) { return false; }
-			m_pdx9dDevice = &s_dgsState.dx9Device;
+		if ( !m_pdx12dDevice ) {
+			if ( !s_dgsState.CreateDx12() ) { return false; }
+			m_pdx12dDevice = &s_dgsState.dx12Device;
 			m_tuUploader.Reset();
 			m_tpsScaler.Reset();
 			m_trRenderer.Reset();
+		}
+
+		ID3D12Device * pd12Device = m_pdx12dDevice->GetDevice();
+		if ( !pd12Device ) { return false; }
+
+		m_uiRtvDescriptorSize = pd12Device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+
+		if LSN_UNLIKELY( !m_caAllocator.get() ) {
+			m_caAllocator = std::make_unique<CDirectX12CommandAllocator>();
+			if ( !m_caAllocator->CreateCommandAllocator( pd12Device, D3D12_COMMAND_LIST_TYPE_DIRECT ) ) { return false; }
+		}
+		if LSN_UNLIKELY( !m_gclCommandList.get() ) {
+			m_gclCommandList = std::make_unique<CDirectX12GraphicsCommandList>();
+			if ( !m_gclCommandList->CreateCommandList( pd12Device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_caAllocator->Get(), nullptr ) ) { return false; }
+			m_gclCommandList->Get()->Close();
+		}
+		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
+			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
+			if ( !m_dhRtvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
 
 		if ( m_ui32RsrcW == m_ui32SrcW && m_ui32RsrcH == m_ui32SrcH ) {
@@ -214,9 +241,9 @@ namespace lsn {
 	}
 
 	/**
-	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
+	 * \brief Releases size-dependent resources.
 	 */
-	void CDx9NtscLSpiroFilter::ReleaseSizeDependents() {
+	void CDx12NtscLSpiroFilter::ReleaseSizeDependents() {
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -226,22 +253,39 @@ namespace lsn {
 	 * \param _rOutput The destination rectangle.
 	 * \return Returns true if rendering succeeded.
 	 */
-	bool CDx9NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
-		if LSN_UNLIKELY( !m_bValidState || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Valid() ) { return false; }
-		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
-		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
+	bool CDx12NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
+		if LSN_UNLIKELY( !m_bValidState || !m_gclCommandList.get() || !m_pdx12dDevice || !m_pdx12dDevice->GetSwapChain() || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Get() ) { return false; }
 
-
-		if ( !m_tpsScaler.Render( m_pdx9dDevice, m_tuUploader.GetTexture()->Get(), m_ui16ScaledWidth, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT1, m_bUse16BitInitialTarget ) ) {
+		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tuUploader.GetTexture(), m_ui16ScaledWidth, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT1, m_bUse16BitInitialTarget, false ) ) {
 			return false;
 		}
 
 
-		IDirect3DSurface9 * psBackBuffer = nullptr;
-		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
-			m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, true, true );
-			psBackBuffer->Release();
+
+		Microsoft::WRL::ComPtr<ID3D12Resource> rBackBuffer;
+		if LSN_LIKELY( SUCCEEDED( m_pdx12dDevice->GetSwapChain()->GetBuffer( m_pdx12dDevice->GetSwapChain()->GetCurrentBackBufferIndex(), IID_PPV_ARGS( &rBackBuffer ) ) ) ) {
+			D3D12_RESOURCE_BARRIER rbBarriers[1];
+			rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
+
+			D3D12_CPU_DESCRIPTOR_HANDLE hBackRtv = m_dhRtvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
+			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+			rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+			m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), &rtvDesc, hBackRtv );
+
+			m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
+
+			rbBarriers[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbBarriers );
 		}
+
+		m_gclCommandList->Get()->Close();
+
+		ID3D12CommandList * ppCommandLists[] = { m_gclCommandList->Get() };
+		m_pdx12dDevice->GetCommandQueue()->ExecuteCommandLists( 1, ppCommandLists );
+
+		m_pdx12dDevice->FlushCommandQueue();
 
 		return true;
 	}
@@ -252,7 +296,7 @@ namespace lsn {
 	 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
 	 * Safe to call multiple times; if threads are already started, this function does nothing.
 	 */
-	void CDx9NtscLSpiroFilter::StartThreads() {
+	void CDx12NtscLSpiroFilter::StartThreads() {
 		if ( m_bThreadsStarted ) { return; }
 
 		const size_t stWorkers = m_stWorkerThreadCount;
@@ -264,7 +308,7 @@ namespace lsn {
 		if ( stWorkers ) {
 			m_vThreads.reserve( stWorkers );
 			for ( size_t I = 0; I < stWorkers; ++I ) {
-				m_vThreads.emplace_back( &CDx9NtscLSpiroFilter::WorkerThread, this, I + 1 );
+				m_vThreads.emplace_back( &CDx12NtscLSpiroFilter::WorkerThread, this, I + 1 );
 			}
 		}
 
@@ -278,7 +322,7 @@ namespace lsn {
 	 * resets thread-control state.  Safe to call multiple times; if threads are not started,
 	 * this function does nothing.
 	 */
-	void CDx9NtscLSpiroFilter::StopThreads() {
+	void CDx12NtscLSpiroFilter::StopThreads() {
 		if ( !m_bThreadsStarted ) { return; }
 
 		{
@@ -312,7 +356,7 @@ namespace lsn {
 	 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
 	 *	Index 0 is reserved for the calling thread.
 	 */
-	void CDx9NtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
+	void CDx12NtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
 		::SetThreadHighPriority();
 		lsn::CScopedNoSubnormals snsNoSubnormals;
 
@@ -347,4 +391,4 @@ namespace lsn {
 
 }	// namespace lsn
 
-#endif	// #ifdef LSN_DX9
+#endif	// #ifdef LSN_DX12
