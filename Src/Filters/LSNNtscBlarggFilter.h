@@ -11,6 +11,7 @@
 #include "../LSNLSpiroNes.h"
 #include "LSNFilterBase.h"
 #include "nes_ntsc/nes_ntsc.h"
+
 #include <vector>
 
 

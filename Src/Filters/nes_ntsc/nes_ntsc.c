@@ -214,9 +214,9 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 				float r, g, b = YIQ_TO_RGB( y, i, q, default_decoder, float, r, g );
 				
 				/* fast approximation of n = pow( n, gamma ) */
-				r = (r * gamma_factor - gamma_factor) * r + r;
+				/*r = (r * gamma_factor - gamma_factor) * r + r;
 				g = (g * gamma_factor - gamma_factor) * g + g;
-				b = (b * gamma_factor - gamma_factor) * b + b;
+				b = (b * gamma_factor - gamma_factor) * b + b;*/
 				
 				q = RGB_TO_YIQ( r, g, b, y, i );
 			}

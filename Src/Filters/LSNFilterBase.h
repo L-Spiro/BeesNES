@@ -46,6 +46,7 @@ namespace lsn {
 
 #ifdef LSN_DX9
 			LSN_F_INDEXEDDX9,								/**< Basic paletted Direct3D 9. */
+			LSN_F_NTSC_BLARGG_US_DX9,						/**< Blargg's NTSC up-scaled Direct3D 9. */
 			LSN_F_LSPIRONTSC_US_DX9,						/**< L. Spiro NTSC up-scaled Direct3D 9. */
 
 			LSN_F_LSPIROPAL_US_DX9,							/**< L. Spiro PAL up-scaled Direct3D 9. */
@@ -57,6 +58,7 @@ namespace lsn {
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			LSN_F_INDEXEDDX12,								/**< Basic paletted Direct3D 12. */
+			LSN_F_NTSC_BLARGG_US_DX12,						/**< Blargg's NTSC up-scaled Direct3D 12. */
 			LSN_F_LSPIRONTSC_US_DX12,						/**< L. Spiro NTSC up-scaled Direct3D 12. */
 
 			LSN_F_LSPIROPAL_US_DX12,						/**< L. Spiro PAL up-scaled Direct3D 12. */

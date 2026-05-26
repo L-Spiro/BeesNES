@@ -2259,7 +2259,7 @@ namespace lsn {
 				sRet += "\r\n"
 				"if constexpr ( _bOddFrameShenanigans ) {\r\n"
 				"	if ( ((m_ui64Frame & 0x1) == 1) && m_bRendering ) {\r\n"
-				"		m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0\r\n"
+				"		m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0.\r\n"
 				"		++m_ui64Frame;\r\n"
 				"	}\r\n"
 				"	else {\r\n"

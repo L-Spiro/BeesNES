@@ -53,6 +53,7 @@ namespace lsn {
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
 			{ &m_d9pfDx9Palette,			&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette },				// LSN_F_INDEXEDDX9
+			{ &m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG_US_DX9
 			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX9
 
 			{ &m_p9plsfDx9LSpiroPal,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal },			// LSN_F_LSPIROPAL_US_DX9
@@ -64,6 +65,7 @@ namespace lsn {
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_INDEXEDDX12
+			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_NTSC_BLARGG_US_DX12
 			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX12
 
 			{ &m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal },			// LSN_F_LSPIROPAL_US_DX12
@@ -313,6 +315,7 @@ namespace lsn {
 
 #ifdef LSN_DX9
 		m_d9pfDx9Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9nbfBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_p9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_p9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );

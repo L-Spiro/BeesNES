@@ -18,7 +18,7 @@
 #include "LSNLSpiroNtscFilterBase.h"
 
 #include <mutex>
-//#include <vector>
+#include <vector>
 
 
 namespace lsn {
@@ -228,14 +228,16 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
-		 * * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
 		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-		 * * \return Returns true on success.
+		 * 
+		 * \return Returns true on success.
 		 */
 		bool												EnsureSizeAndResources();
 

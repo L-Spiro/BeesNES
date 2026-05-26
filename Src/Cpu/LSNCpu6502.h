@@ -121,13 +121,13 @@ namespace lsn {
 			LSN_DS_IDLE,																													/**< Waiting for a read cycle. */
 			LSN_DS_DUMMY,																													/**< DMC dummy cycle. */
 			LSN_DS_READ_WRITE,																												/**< Reading and writing. */
-			LSN_DS_END,																														/**< Emulates repeating of the last-attempted read cycle by issuing a dummy Phi1 and then reading the DMA CPU address during Phi2, then sets the tick pointers back to normal operation. */
+			//LSN_DS_END,																														/**< Emulates repeating of the last-attempted read cycle by issuing a dummy Phi1 and then reading the DMA CPU address during Phi2, then sets the tick pointers back to normal operation. */
 		};
 
 
 		// == Types.
 		/** The processor registers. */
-	struct LSN_REGISTERS {
+		struct LSN_REGISTERS {
 			uint8_t											ui8A;																			/**< A     Accumulator. */
 			uint8_t											ui8X;																			/**< X     Index Register X. */
 			uint8_t											ui8Y;																			/**< Y     Index Register Y. */
@@ -480,6 +480,38 @@ namespace lsn {
 
 		/** Performs a cycle inside an instruction. */
 		inline void											Tick_InstructionCycleStd();
+
+		/**
+		 * Converts an OAM DMA function pointer to an index.
+		 * 
+		 * \param _pfFunc The function pointer to convert.
+		 * \return Returns an index representing the OAM DMA function pointer.
+		 **/
+		inline uint8_t										OamDmaFuncToIdx( PfCycle _pfFunc );
+
+		/**
+		 * Converts a DMC DMA function pointer to an index.
+		 * 
+		 * \param _pfFunc The function pointer to convert.
+		 * \return Returns an index representing the DMC DMA function pointer.
+		 **/
+		inline uint8_t										DmcDmaFuncToIdx( PfCycle _pfFunc );
+
+		/**
+		 * Converts an index to an OAM DMA function pointer.
+		 * 
+		 * \param _u8Idx The index to convert.
+		 * \return Returns the associated function pointer or nullptr.
+		 **/
+		inline PfCycle										IdxToOamFunc( uint8_t _u8Idx );
+
+		/**
+		 * Converts an index to a DMC DMA function pointer.
+		 * 
+		 * \param _u8Idx The index to convert.
+		 * \return Returns the associated function pointer or nullptr.
+		 **/
+		inline PfCycle										IdxToDmcFunc( uint8_t _u8Idx );
 
 		/** The OAM DMA cycles. */
 		template <unsigned _uState, bool _bPhi2, bool _bCalledFromDmc = false>
@@ -1229,6 +1261,150 @@ namespace lsn {
 	inline void CCpu6502::Tick_InstructionCycleStd() {
 		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_fsState.ui8FuncIndex])();
 		(this->*m_fsState.pfCurInstruction[m_fsState.ui8FuncIndex])();
+	}
+
+	/**
+	 * Converts an OAM DMA function pointer to an index.
+	 * 
+	 * \param _pfFunc The function pointer to convert.
+	 * \return Returns an index representing the OAM DMA function pointer.
+	 **/
+	inline uint8_t CCpu6502::OamDmaFuncToIdx( PfCycle _pfFunc ) {
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, false> ) { return 0; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true> ) { return 1; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, false> ) { return 2; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true> ) { return 3; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, false> ) { return 4; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true> ) { return 5; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, false> ) { return 6; }
+		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true> ) { return 7; }
+		return uint8_t( -1 );
+
+		// Generated via:
+		//OamStates = { "LSN_DS_IDLE", /*"LSN_DS_DUMMY", */"LSN_DS_READ_WRITE", };
+		//FalseTrue = { "false", "true" };
+		//PrintFunc = "\tinline uint8_t CCpu6502::OamDmaFuncToIdx( PfCycle _pfFunc ) {\r\n";
+		//Idx = 0;
+		//for ( S = 0; S < OamStates.size(); ++S ) {
+		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
+		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
+		//			PrintFunc += "\t\tif ( _pfFunc == &CCpu6502::Tick_OamDma<{}, {}, {}> ) {{ return {}; }}\r\n".format(
+		//				OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc], Idx++ );
+		//		}
+		//	}
+		//}
+		//PrintFunc += "\t\treturn uint8_t( -1 );\r\n";
+		//PrintFunc += "\t}";
+	}
+
+	/**
+	 * Converts a DMC DMA function pointer to an index.
+	 * 
+	 * \param _pfFunc The function pointer to convert.
+	 * \return Returns an index representing the DMC DMA function pointer.
+	 **/
+	inline uint8_t CCpu6502::DmcDmaFuncToIdx( PfCycle _pfFunc ) {
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false> ) { return 0; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true> ) { return 1; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false> ) { return 2; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true> ) { return 3; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false> ) { return 4; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true> ) { return 5; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false> ) { return 6; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true> ) { return 7; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, false> ) { return 8; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, true> ) { return 9; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, false> ) { return 10; }
+		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, true> ) { return 11; }
+		return uint8_t( -1 );
+
+		// Generated via:
+		//OamStates = { "LSN_DS_IDLE", "LSN_DS_DUMMY", "LSN_DS_READ_WRITE", };
+		//FalseTrue = { "false", "true" };
+		//PrintFunc = "\tinline uint8_t CCpu6502::DmcDmaFuncToIdx( PfCycle _pfFunc ) {\r\n";
+		//Idx = 0;
+		//for ( S = 0; S < OamStates.size(); ++S ) {
+		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
+		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
+		//			PrintFunc += "\t\tif ( _pfFunc == &CCpu6502::Tick_DmcDma<{}, {}, {}> ) {{ return {}; }}\r\n".format(
+		//				OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc], Idx++ );
+		//		}
+		//	}
+		//}
+		//PrintFunc += "\t\treturn uint8_t( -1 );\r\n";
+		//PrintFunc += "\t}";
+	}
+
+	/**
+	 * Converts an index to an OAM DMA function pointer.
+	 * 
+	 * \param _u8Idx The index to convert.
+	 * \return Returns the associated function pointer or nullptr.
+	 **/
+	inline CCpu6502::PfCycle CCpu6502::IdxToOamFunc( uint8_t _u8Idx ) {
+		if ( 0 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, false>; }
+		if ( 1 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true>; }
+		if ( 2 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, false>; }
+		if ( 3 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true>; }
+		if ( 4 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, false>; }
+		if ( 5 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>; }
+		if ( 6 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, false>; }
+		if ( 7 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>; }
+		return nullptr;
+
+		// Generated via:
+		//OamStates = { "LSN_DS_IDLE", /*"LSN_DS_DUMMY", */"LSN_DS_READ_WRITE", };
+		//FalseTrue = { "false", "true" };
+		//PrintFunc = "\tinline CCpu6502::PfCycle CCpu6502::IdxToOamFunc( uint8_t _u8Idx ) {\r\n";
+		//Idx = 0;
+		//for ( S = 0; S < OamStates.size(); ++S ) {
+		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
+		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
+		//			PrintFunc += "\t\tif ( {} == _u8Idx ) {{ return &CCpu6502::Tick_OamDma<{}, {}, {}>; }}\r\n".format(
+		//				Idx++, OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc] );
+		//		}
+		//	}
+		//}
+		//PrintFunc += "\t\treturn nullptr;\r\n";
+		//PrintFunc += "\t}";
+	}
+
+	/**
+	 * Converts an index to a DMC DMA function pointer.
+	 * 
+	 * \param _u8Idx The index to convert.
+	 * \return Returns the associated function pointer or nullptr.
+	 **/
+	inline CCpu6502::PfCycle CCpu6502::IdxToDmcFunc( uint8_t _u8Idx ) {
+		if ( 0 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>; }
+		if ( 1 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>; }
+		if ( 2 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>; }
+		if ( 3 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>; }
+		if ( 4 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>; }
+		if ( 5 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>; }
+		if ( 6 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false>; }
+		if ( 7 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true>; }
+		if ( 8 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, false>; }
+		if ( 9 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, true>; }
+		if ( 10 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, false>; }
+		if ( 11 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, true>; }
+		return nullptr;
+
+		// Generated via:
+		//OamStates = { "LSN_DS_IDLE", "LSN_DS_DUMMY", "LSN_DS_READ_WRITE", };
+		//FalseTrue = { "false", "true" };
+		//PrintFunc = "\tinline CCpu6502::PfCycle CCpu6502::IdxToDmcFunc( uint8_t _u8Idx ) {\r\n";
+		//Idx = 0;
+		//for ( S in OamStates ) {
+		//	for ( Phi2 : FalseTrue ) {
+		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
+		//			PrintFunc += "\t\tif ( {} == _u8Idx ) {{ return &CCpu6502::Tick_DmcDma<{}, {}, {}>; }}\r\n".format(
+		//				Idx++, S, Phi2, FalseTrue[FromDmc] );
+		//		}
+		//	}
+		//}
+		//PrintFunc += "\t\treturn nullptr;\r\n";
+		//PrintFunc += "\t}";
 	}
 
 	/**

@@ -1271,7 +1271,7 @@ void LSN_FASTCALL								Cycle_0__339x261() {
 
 	if constexpr (_bOddFrameShenanigans) {
 		if (((m_ui64Frame & 0x1) == 1) && m_bRendering) {
-			m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0
+			m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0.
 			++m_ui64Frame;
 		}
 		else {

@@ -73,7 +73,6 @@ namespace lsn {
 		pd3d9dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 		pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 		
-		// Controlled by parameter now to prevent double-gamma issues.
 		pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, _bSrgb ? TRUE : FALSE );
 
 		pd3d9dDevice->SetTexture( 0, _ptSrc );

@@ -12,11 +12,13 @@
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX12
+//#include "../Filters/LSNDx12NtscBlarggFilter.h"
 #include "../Filters/LSNDx12NtscLSpiroFilter.h"
 #include "../Filters/LSNDx12PaletteFilter.h"
 #include "../Filters/LSNDx12PalLSpiroFilter.h"
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_DX9
+#include "../Filters/LSNDx9NtscBlarggFilter.h"
 #include "../Filters/LSNDx9NtscLSpiroFilter.h"
 #include "../Filters/LSNDx9PaletteFilter.h"
 #include "../Filters/LSNDx9PalLSpiroFilter.h"
@@ -482,6 +484,8 @@ namespace lsn {
 #ifdef LSN_DX9
 		/** Direct3D 9 palette filter. */
 		CDx9PaletteFilter						m_d9pfDx9Palette;
+		/** Direct3D 9 Blargg NTSC filter. */
+		CDx9NtscBlarggFilter					m_d9nbfBlarggNtscFilter;
 		/** Direct3D 9 up-scale L. Spiro NTSC filter. */
 		CDx9NtscLSpiroFilter					m_p9nlsfDx9LSpiroNtsc;
 		/** Direct3D 9 up-scale L. Spiro PAL filter. */

@@ -1839,6 +1839,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Filters\LSNDx12PaletteFilter.h" />
     <ClInclude Include="Src\Filters\LSNDx12PalLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNDx9FilterBase.h" />
+    <ClInclude Include="Src\Filters\LSNDx9NtscBlarggFilter.h" />
     <ClInclude Include="Src\Filters\LSNDx9NtscLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNDx9PaletteFilter.h" />
     <ClInclude Include="Src\Filters\LSNDx9PalLSpiroFilter.h" />
@@ -2093,6 +2094,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Filters\LSNDx12PaletteFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNDx12PalLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9FilterBase.cpp" />
+    <ClCompile Include="Src\Filters\LSNDx9NtscBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9NtscLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9PaletteFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNDx9PalLSpiroFilter.cpp" />
