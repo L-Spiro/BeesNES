@@ -438,6 +438,13 @@ namespace lsn {
 		inline uint16_t									GetCurrentScanline() const { return uint16_t( m_stCurCycle / _tDotWidth ); }
 
 		/**
+		 * Gets the current PPU cycle.
+		 * 
+		 * \return Returns the current PPU cycle.
+		 **/
+		inline uint64_t									GetCycle() const { return m_ui64Cycle; }
+
+		/**
 		 * Gets the PPU bus.
 		 *
 		 * \return Returns the PPU bus.

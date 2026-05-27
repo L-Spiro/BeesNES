@@ -272,6 +272,13 @@ namespace lsn {
 		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.FrameCount(); }
 
 		/**
+		 * Gets the current PPU cycle.
+		 * 
+		 * \return Returns the current PPU cycle.
+		 **/
+		virtual inline uint64_t							GetPpuCycle() const { return m_pPpu.GetCycle(); }
+
+		/**
 		 * Gets the current counter for the CPU.
 		 * 
 		 * \return Returns the CPU's current counter.

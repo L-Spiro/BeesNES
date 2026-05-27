@@ -236,6 +236,13 @@ namespace lsn {
 		virtual uint64_t								GetPpuFrameCount() const { return 0; }
 
 		/**
+		 * Gets the current PPU cycle.
+		 * 
+		 * \return Returns the current PPU cycle.
+		 **/
+		virtual inline uint64_t							GetPpuCycle() const { return 0; }
+
+		/**
 		 * Gets the PPU as a display client.
 		 *
 		 * \return Returns the PPU as a CDisplayClient *.
