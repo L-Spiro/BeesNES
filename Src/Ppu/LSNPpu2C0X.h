@@ -811,18 +811,24 @@ namespace lsn {
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
 
-				constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 0 /*1*/;
-				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX) + 0/*-1 + (_uCpuDivisor / _uPpuDivisor)*/;
+				constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
+				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
 				int32_t i32Dif = i32CurIdx - i32TargetIdx;
-				if ( i32Dif == -1 - 1 ) {
+				if ( i32Dif == 1 || i32Dif == 2 ) {
+					// Do not trigger NMI.
+				}
+				else {
+					ppPpu->TriggerNmi();
+				}
+				/*if ( i32Dif == -1 ) {
 					ppPpu->m_pcPpuCtrl.s.ui8Nmi = false;
 					ppPpu->TriggerNmi();
 					ppPpu->m_pcPpuCtrl.s.ui8Nmi = true;
 				}
 				else {
 					ppPpu->TriggerNmi();
-				}
+				}*/
 			}
 		}
 
@@ -860,33 +866,24 @@ namespace lsn {
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
 
-				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 0 /*1*/;
-				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX) + 0/*-1 + (_uCpuDivisor / _uPpuDivisor)*/;
+				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;
+				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
 				int32_t i32Dif = i32CurIdx - i32TargetIdx;
 				bool bRegPass = false;
 				if constexpr ( _tRegCode == LSN_PM_PAL ) {
-					bRegPass = (i32Dif == -2 - 1);
+					bRegPass = (i32Dif == -1); 
 				}
-				if ( bRegPass || i32Dif == -1 - 1 ) {
+				
+				if ( bRegPass || i32Dif == 0 ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 				}
-				else if ( i32Dif == 0 - 1 || i32Dif == 1 - 1 ) {
+				else if ( i32Dif == 1 || i32Dif == 2 ) {
 					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
-				}
-
-				constexpr int32_t i32ClearTargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
-				int32_t i32ClearDif = i32CurIdx - i32ClearTargetIdx;
-				int32_t i32Low = -1 - 1;
-				if constexpr ( _tRegCode == LSN_PM_PAL ) {
-					i32Low = -2 - 1;
-				}
-				if ( i32ClearDif >= i32Low && i32ClearDif <= 0 ) {
-					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 				}
 			}
 

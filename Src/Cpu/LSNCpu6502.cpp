@@ -58,15 +58,14 @@ namespace lsn {
 	 * Performs a single PHI2 update.
 	 **/
 	void CCpu6502::TickPhi2() {
-		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine); m_bLastNmiStatusLine = m_bNmiStatusLine;
 		m_bIrqSeenLowPhi2 |= (m_ui8IrqStatusLine != 0);
 
 		(this->*m_pfTickFunc)();
 
+		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
+		m_bLastNmiStatusLine = m_bNmiStatusLine;
+
 		++m_ui64CycleCount;
-		/*if ( m_ui64CycleCount == (266551) ) {
-			volatile int kjhkjh  =0;
-		}*/
 	}
 
 	/**
@@ -2451,7 +2450,12 @@ namespace lsn {
 #endif	// #ifdef LSN_CYCLES_DOC
 
 		if constexpr ( _bAdjS ) {
-			LSN_INSTR_START_PHI1( true );
+			if LSN_UNLIKELY( m_bIsReset ) {
+				LSN_INSTR_START_PHI1( true );
+			}
+			else {
+				LSN_INSTR_START_PHI1( false );
+			}
 #ifdef LSN_CYCLES_DOC
 			LSN_PRINT_STACK;
 #endif	// #ifdef LSN_CYCLES_DOC

@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Blargg’s implementation of an NTSC filter.
+ * Description: LMP88959’s implementation of an NTSC filter.
  */
 
 #pragma once
@@ -15,7 +15,6 @@
 #include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureUploader.h"
 #include "LSNDx9FilterBase.h"
-#include "nes_ntsc/nes_ntsc.h"
 
 #include <mutex>
 #include <vector>
@@ -24,15 +23,15 @@
 namespace lsn {
 
 	/**
-	 * Class CDx9NtscBlarggFilter
-	 * \brief Blargg’s implementation of an NTSC filter.
+	 * Class CDx9NtscCrtFullFilter
+	 * \brief LMP88959’s implementation of an NTSC filter.
 	 *
-	 * Description: Blargg’s implementation of an NTSC filter.
+	 * Description: LMP88959’s implementation of an NTSC filter.
 	 */
-	class CDx9NtscBlarggFilter : public CDx9FilterBase {
+	class CDx9NtscCrtFullFilter : public CDx9FilterBase {
 	public :
-		CDx9NtscBlarggFilter();
-		virtual ~CDx9NtscBlarggFilter();
+		CDx9NtscCrtFullFilter();
+		virtual ~CDx9NtscCrtFullFilter();
 		
 		
 		// == Functions.
@@ -189,8 +188,19 @@ namespace lsn {
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 
-		/** The Blargg NTSC emulation. */
-		nes_ntsc_t											m_nnBlarggNtsc;
+		/** The EMMIR (LMP88959) NTSC emulation. */
+		//NES_NTSC_SETTINGS									m_nsSettings;
+		std::vector<uint8_t>								m_vSettings;
+		/** The CRT structure. */
+		//CRT													m_nnCrtNtsc;
+		std::vector<uint8_t>								m_vCrtNtsc;
+		/** The phase table. */
+		int													m_iPhaseRef[4];
+		/** The final width. NTSC is CRT_HRES pixels wide. */
+		uint32_t											m_ui32FinalWidth;
+		/** The final height. */
+		uint32_t											m_ui32FinalHeight;
+
 		/** The final stride. */
 		uint32_t											m_ui32FinalStride;
 		/** The output created by calling FilterFrame(). */

@@ -1107,6 +1107,9 @@
     <ClInclude Include="Src\Filters\LSNDx9NtscBlarggFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNDx9NtscCrtFullFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1545,6 +1548,9 @@
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNDx9NtscBlarggFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNDx9NtscCrtFullFilter.cpp">
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
