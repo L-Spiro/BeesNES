@@ -53,19 +53,26 @@ namespace lsn {
 			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
 			{ &m_d9pfDx9Palette,			&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette },				// LSN_F_INDEXEDDX9
-			{ &m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter,		&m_d9nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG_US_DX9
+			{ &m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirNtscFullFilter,	&m_d9ncfDx9EmmirNtscFullFilter,	&m_d9ncfDx9EmmirNtscFullFilter },	// LSN_F_NTSC_CRT_FULL_US_DX9
+			{ &m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter },	// LSN_F_PAL_CRT_FULL_US_DX9
+
 			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX9
 
 			{ &m_p9plsfDx9LSpiroPal,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal },			// LSN_F_LSPIROPAL_US_DX9
 			{ &m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX9
 			{ &m_p9plsfDx9LSpiroPalM,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX9
 			{ &m_p9plsfDx9LSpiroPalN,		&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX9
-
+			
+			{ &m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter },	// LSN_F_AUTO_CRT_FULL_US_DX9
 			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_INDEXEDDX12
 			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_NTSC_BLARGG_US_DX12
+			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_NTSC_CRT_FULL_US_DX12
+			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_PAL_CRT_FULL_US_DX12
+
 			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX12
 
 			{ &m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal },			// LSN_F_LSPIROPAL_US_DX12
@@ -73,6 +80,7 @@ namespace lsn {
 			{ &m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX12
 			{ &m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX12
 
+			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_AUTO_CRT_FULL_US_DX12
 			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX12
 #endif	// #ifdef LSN_DX12
 		};
@@ -315,7 +323,9 @@ namespace lsn {
 
 #ifdef LSN_DX9
 		m_d9pfDx9Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_d9nbfBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9nbfDx9BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9ncfDx9EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9ncfDx9EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_p9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_p9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );

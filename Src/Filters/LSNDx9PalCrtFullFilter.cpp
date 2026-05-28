@@ -5,34 +5,34 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: LMP88959’s implementation of an NTSC filter.
+ * Description: LMP88959’s implementation of an PAL filter.
  */
 
-#include "LSNDx9NtscCrtFullFilter.h"
+#include "LSNDx9PalCrtFullFilter.h"
 #include "../GPU/DirectX9/LSNDirectX9DiskInclude.h"
 #include "../Utilities/LSNScopedNoSubnormals.h"
-#include "NTSC-CRT-Full/crt_core.h"
+#include "PAL-CRT-Full/pal_core.h"
 
 #include <algorithm>
 #include <cmath>
 #include <memory>
 #include <numbers>
 
-#define m_nsSettings				(*reinterpret_cast<NTSC_SETTINGS *>(m_vSettings.data()))
-#define m_nnCrtNtsc					(*reinterpret_cast<CRT *>(m_vCrtNtsc.data()))
+#define m_nsSettings				(*reinterpret_cast<PAL_SETTINGS *>(m_vSettings.data()))
+#define m_nnCrtPal					(*reinterpret_cast<PAL_CRT *>(m_vCrtPal.data()))
 
 namespace lsn {
 
 	// == Members.
-	CDx9NtscCrtFullFilter::CDx9NtscCrtFullFilter() :
+	CDx9PalCrtFullFilter::CDx9PalCrtFullFilter() :
 		m_ui32FinalStride( 0 ) {
 		int iPhases[4] = { 0, 16, 0, -16 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 
-		m_vSettings.resize( sizeof( NTSC_SETTINGS ) );
-		m_vCrtNtsc.resize( sizeof( CRT ) );
+		m_vSettings.resize( sizeof( PAL_SETTINGS ) );
+		m_vCrtPal.resize( sizeof( PAL_CRT ) );
 	}
-	CDx9NtscCrtFullFilter::~CDx9NtscCrtFullFilter() {
+	CDx9PalCrtFullFilter::~CDx9PalCrtFullFilter() {
 	}
 
 	// == Functions.
@@ -44,7 +44,7 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9NtscCrtFullFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx9PalCrtFullFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
 
@@ -59,38 +59,21 @@ namespace lsn {
 		m_stStride = size_t( _ui16Width * sizeof( uint16_t ) );
 
 		constexpr uint32_t ui32Scale = 1;
-		m_ui32FinalWidth = CRT_HRES * ui32Scale;
+		m_ui32FinalWidth = PAL_HRES * ui32Scale;
 		m_ui32FinalHeight = _ui16Height * ui32Scale;
 		m_ui32FinalStride = RowStride( m_ui32FinalWidth, OutputBits() );
 		m_vRgbBuffer.resize( m_ui32FinalStride * m_ui32FinalHeight );
 
-		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, CRT_PIX_FORMAT_BGRA, m_vRgbBuffer.data() );
-		/*m_nnCrtNtsc.brightness = -14;
-		m_nnCrtNtsc.contrast = 125;
-		m_nnCrtNtsc.saturation = 9;
-		m_nnCrtNtsc.blend = 1;
-		//m_nnCrtNtsc.scanlines = 1;
-		m_nnCrtNtsc.white_point = 80;*/
-		
-		/*m_nnCrtNtsc.hue = 8;
-		m_nnCrtNtsc.brightness = 0;
-		m_nnCrtNtsc.contrast = 165;
-		m_nnCrtNtsc.saturation = 14;
-		m_nnCrtNtsc.black_point = 2;
-		m_nnCrtNtsc.white_point = 85;
-		m_nnCrtNtsc.blend = 1;*/
+		::pal_init( &m_nnCrtPal, m_ui32FinalWidth, m_ui32FinalHeight, PAL_PIX_FORMAT_BGRA, m_vRgbBuffer.data() );
+		m_nnCrtPal.brightness = 4;
+		m_nnCrtPal.contrast = 180;
+		m_nnCrtPal.saturation = 17;
+		m_nnCrtPal.black_point = 4;
+		m_nnCrtPal.white_point = 75;
+		m_nnCrtPal.blend = 0;
 
-		m_nnCrtNtsc.hue = 20;
-		m_nnCrtNtsc.brightness = 4;
-		m_nnCrtNtsc.contrast = 180;
-		m_nnCrtNtsc.saturation = 17;
-		m_nnCrtNtsc.black_point = 4;
-		m_nnCrtNtsc.white_point = 75;
-		m_nnCrtNtsc.blend = 0;
-		m_nnCrtNtsc.do_vsync = true;
-		m_nnCrtNtsc.do_hsync = true;
-
-		m_nsSettings.border_color = 0x22;
+		m_nnCrtPal.chroma_correction = 1;
+		m_nsSettings.yoffset = 7;
 
 		/** 
 		* 		hue	0	int
@@ -123,7 +106,7 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx9NtscCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+	uint8_t * CDx9PalCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( !m_pdx9dDevice ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
@@ -144,10 +127,9 @@ namespace lsn {
 		m_nsSettings.data = reinterpret_cast<unsigned short *>(_pui8Input);
 		m_nsSettings.w = int( m_ui32OutputWidth );
 		m_nsSettings.h = int( m_ui32OutputHeight );
-		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
 
-		::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
-		::crt_demodulate_full( &m_nnCrtNtsc, 3 );
+		::pal_modulate( &m_nnCrtPal, &m_nsSettings );
+		::pal_demodulate( &m_nnCrtPal, 3 );
 
 		m_tuUploader.UploadTexels( m_pdx9dDevice, m_vRgbBuffer.data(), m_ui32FinalWidth, m_ui32FinalHeight, ui32Pitch, D3DFMT_X8R8G8B8 );
 
@@ -162,7 +144,7 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become active.
 	 */
-	void CDx9NtscCrtFullFilter::Activate() {
+	void CDx9PalCrtFullFilter::Activate() {
 		CParent::Activate();
 
 		EnsureSizeAndResources();
@@ -171,7 +153,7 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become inactive.
 	 */
-	void CDx9NtscCrtFullFilter::DeActivate() {
+	void CDx9PalCrtFullFilter::DeActivate() {
 		CParent::DeActivate();
 
 		m_tuUploader.Reset();
@@ -187,7 +169,7 @@ namespace lsn {
 	/**
 	 * Informs the filter of a window resize.
 	 **/
-	void CDx9NtscCrtFullFilter::FrameResize() {
+	void CDx9PalCrtFullFilter::FrameResize() {
 		s_dgsState.OnSizeDx9();
 		EnsureSizeAndResources();
 	}
@@ -197,7 +179,7 @@ namespace lsn {
 	 * 
 	 * \return Returns true on success.
 	 */
-	bool CDx9NtscCrtFullFilter::EnsureSizeAndResources() {
+	bool CDx9PalCrtFullFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
@@ -222,7 +204,7 @@ namespace lsn {
 	/**
 	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
 	 */
-	void CDx9NtscCrtFullFilter::ReleaseSizeDependents() {
+	void CDx9PalCrtFullFilter::ReleaseSizeDependents() {
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -232,7 +214,7 @@ namespace lsn {
 	 * \param _rOutput The destination rectangle.
 	 * \return Returns true if rendering succeeded.
 	 */
-	bool CDx9NtscCrtFullFilter::Render( const lsw::LSW_RECT &_rOutput ) {
+	bool CDx9PalCrtFullFilter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_bValidState || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Valid() ) { return false; }
 		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
@@ -257,4 +239,4 @@ namespace lsn {
 #endif	// #ifdef LSN_DX9
 
 #undef m_nsSettings
-#undef m_nnCrtNtsc
+#undef m_nnCrtPal

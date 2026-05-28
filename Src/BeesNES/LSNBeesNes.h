@@ -19,7 +19,9 @@
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_DX9
 #include "../Filters/LSNDx9NtscBlarggFilter.h"
+#include "../Filters/LSNDx9NtscCrtFullFilter.h"
 #include "../Filters/LSNDx9NtscLSpiroFilter.h"
+#include "../Filters/LSNDx9PalCrtFullFilter.h"
 #include "../Filters/LSNDx9PaletteFilter.h"
 #include "../Filters/LSNDx9PalLSpiroFilter.h"
 #endif	// #ifdef LSN_DX9
@@ -485,7 +487,11 @@ namespace lsn {
 		/** Direct3D 9 palette filter. */
 		CDx9PaletteFilter						m_d9pfDx9Palette;
 		/** Direct3D 9 Blargg NTSC filter. */
-		CDx9NtscBlarggFilter					m_d9nbfBlarggNtscFilter;
+		CDx9NtscBlarggFilter					m_d9nbfDx9BlarggNtscFilter;
+		/** Direct3D 9 LMP88959 NTSC CTR filter. */
+		CDx9NtscCrtFullFilter					m_d9ncfDx9EmmirNtscFullFilter;
+		/** Direct3D 9 LMP88959 PAL CTR filter. */
+		CDx9PalCrtFullFilter					m_d9ncfDx9EmmirPalFullFilter;
 		/** Direct3D 9 up-scale L. Spiro NTSC filter. */
 		CDx9NtscLSpiroFilter					m_p9nlsfDx9LSpiroNtsc;
 		/** Direct3D 9 up-scale L. Spiro PAL filter. */

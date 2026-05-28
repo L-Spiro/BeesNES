@@ -47,25 +47,29 @@ namespace lsn {
 #ifdef LSN_DX9
 			LSN_F_INDEXEDDX9,								/**< Basic paletted Direct3D 9. */
 			LSN_F_NTSC_BLARGG_US_DX9,						/**< Blargg's NTSC up-scaled Direct3D 9. */
+			LSN_F_NTSC_CRT_FULL_US_DX9,						/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 9. */
+			LSN_F_PAL_CRT_FULL_US_DX9,						/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 9. */
 			LSN_F_LSPIRONTSC_US_DX9,						/**< L. Spiro NTSC up-scaled Direct3D 9. */
-
 			LSN_F_LSPIROPAL_US_DX9,							/**< L. Spiro PAL up-scaled Direct3D 9. */
 			LSN_F_LSPIRODENDY_US_DX9,						/**< L. Spiro Dendy up-scaled Direct3D 9. */
 			LSN_F_LSPIROPALM_US_DX9,						/**< L. Spiro PAL-M up-scaled Direct3D 9. */
 			LSN_F_LSPIRONPALN_US_DX9,						/**< L. Spiro PAL-N up-scaled Direct3D 9. */
 			
+			LSN_F_AUTO_CRT_FULL_US_DX9,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 9. */
 			LSN_F_LSPIRON_AUTO_US_DX9,						/**< L. Spiro auto up-scaled Direct3D 9. */
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			LSN_F_INDEXEDDX12,								/**< Basic paletted Direct3D 12. */
 			LSN_F_NTSC_BLARGG_US_DX12,						/**< Blargg's NTSC up-scaled Direct3D 12. */
+			LSN_F_NTSC_CRT_FULL_US_DX12,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 12. */
+			LSN_F_PAL_CRT_FULL_US_DX12,						/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 12. */
 			LSN_F_LSPIRONTSC_US_DX12,						/**< L. Spiro NTSC up-scaled Direct3D 12. */
-
 			LSN_F_LSPIROPAL_US_DX12,						/**< L. Spiro PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRODENDY_US_DX12,						/**< L. Spiro Dendy up-scaled Direct3D 12. */
 			LSN_F_LSPIROPALM_US_DX12,						/**< L. Spiro PAL-M up-scaled Direct3D 12. */
 			LSN_F_LSPIRONPALN_US_DX12,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
 			
+			LSN_F_AUTO_CRT_FULL_US_DX12,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRON_AUTO_US_DX12,						/**< L. Spiro auto up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_DX12
 
