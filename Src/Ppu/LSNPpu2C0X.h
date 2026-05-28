@@ -815,7 +815,7 @@ namespace lsn {
 				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
 				int32_t i32Dif = i32CurIdx - i32TargetIdx;
-				if ( i32Dif == 1 || i32Dif == 2 ) {
+				if ( i32Dif == 0 || i32Dif == 1 ) {
 					// Do not trigger NMI.
 				}
 				else {
@@ -2399,6 +2399,7 @@ namespace lsn {
 	 * An NTSC PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 128, 105>													CNtscPpu;
+	// 292.57142857142857142857142857143×240
 
 	/**
 	 * A PAL PPU.
@@ -2406,6 +2407,7 @@ namespace lsn {
 	typedef CPpu2C0X<LSN_PPU_TYPE( PAL ), false, 355, 240
 		/*7375000.0 / 5320342.5*/>
 																											CPalPpu;
+	// 355×240
 
 	/**
 	 * A Dendy PPU.
@@ -2413,12 +2415,14 @@ namespace lsn {
 	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 355, 240
 		/*7375000.0 / 5320342.5*/>
 																											CDendyPpu;
+	// 355×240
 
 	/**
 	 * A PAL-M PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 128, 105>
 																											CPalMPpu;
+	// 292.57142857142857142857142857143×240
 
 	/**
 	 * A PAL-N PPU.
@@ -2426,6 +2430,7 @@ namespace lsn {
 	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), true, 355, 240
 		/*7375000.0 / 5320342.5*/>
 																											CPalNPpu;
+	// 355×240
 
 #undef LSN_PPU_TYPE
 
