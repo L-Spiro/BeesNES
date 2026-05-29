@@ -199,7 +199,7 @@ namespace lsn {
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
 
 
-		if ( !m_tpsScaler.Render( m_pdx9dDevice, m_tuUploader.GetTexture()->Get(), NES_NTSC_OUT_WIDTH( m_ui32SrcW ), m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT1, m_bUse16BitInitialTarget ) ) {
+		if ( !m_tpsScaler.Render( m_pdx9dDevice, m_tuUploader.GetTexture()->Get(), NES_NTSC_OUT_WIDTH( m_ui32SrcW ), m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT2, m_bUse16BitInitialTarget ) ) {
 			return false;
 		}
 

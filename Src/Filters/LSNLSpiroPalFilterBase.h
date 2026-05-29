@@ -173,6 +173,8 @@ namespace lsn {
 		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
 			m_fPhosphorDecayTime = _fTime;
 			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.55f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.35f, m_fFps ));
 		}
 
 		/**
@@ -183,6 +185,8 @@ namespace lsn {
 		void												SetFps( float _fFps  = 60.098812103271484375f ) {
 			m_fFps = _fFps;
 			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.55f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.35f, m_fFps ));
 		}
 
 		/**
@@ -193,6 +197,8 @@ namespace lsn {
 		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
 			m_fInitPhosphorDecay = _fLevel;
 			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.55f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.35f, m_fFps ));
 		}
 
 
@@ -269,6 +275,8 @@ namespace lsn {
 		float												m_fBlackSetting = 0.0f;								/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;							/**< White level. */
 		float												m_fPhosphorDecayRate = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */
+		float												m_fPhosphorDecayRateRed = 0.95f * 0.9f;				/**< Red phosphor decay rate. */
+		float												m_fPhosphorDecayRateBlue = 0.95f * 0.85f;			/**< Blue phosphor decay rate. */
 		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */
 		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
 
@@ -629,9 +637,9 @@ namespace lsn {
 			__m512 m0 = _mm512_set1_ps( 0.0f );
 			__m512 m299 = _mm512_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m512 mPhosInitDecay = _mm512_set1_ps( m_fInitPhosphorDecay );
-			__m512 mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m512 mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRateRed );
 			__m512 mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRate );
-			__m512 mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			__m512 mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRateBlue );
 			constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -722,9 +730,9 @@ namespace lsn {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
 			__m256 m299 = _mm256_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m256 mPhosInitDecay = _mm256_set1_ps( m_fInitPhosphorDecay );
-			__m256 mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m256 mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRateRed );
 			__m256 mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRate );
-			__m256 mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			__m256 mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRateBlue );
 			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -824,9 +832,9 @@ namespace lsn {
 			__m128 m0 = _mm_set1_ps( 0.0f );
 			__m128 m299 = _mm_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 			__m128 mPhosInitDecay = _mm_set1_ps( m_fInitPhosphorDecay );
-			__m128 mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRate * 0.9f );
+			__m128 mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRateRed );
 			__m128 mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRate );
-			__m128 mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRate * 0.85f );
+			__m128 mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRateBlue );
 			constexpr auto sRegSize = sizeof( __m128 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().

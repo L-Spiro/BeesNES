@@ -256,7 +256,7 @@ namespace lsn {
 	bool CDx12NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_bValidState || !m_gclCommandList.get() || !m_pdx12dDevice || !m_pdx12dDevice->GetSwapChain() || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Get() ) { return false; }
 
-		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tuUploader.GetTexture(), m_ui16ScaledWidth, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT1, m_bUse16BitInitialTarget, false ) ) {
+		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tuUploader.GetTexture(), m_ui16ScaledWidth, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT2, m_bUse16BitInitialTarget, false ) ) {
 			return false;
 		}
 

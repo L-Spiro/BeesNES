@@ -112,6 +112,7 @@ namespace lsn {
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 
 		m_p9plsfDx9LSpiroPal.SetWidthScale( 10 );
@@ -123,16 +124,19 @@ namespace lsn {
 		m_p9plsfDx9LSpiroDendy.SetKernelSize( 44 );
 		m_p9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9plsfDx9LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
 		m_p9plsfDx9LSpiroPalM.SetWidthScale( 8 );
 		m_p9plsfDx9LSpiroPalM.SetKernelSize( 46 );
 		m_p9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9plsfDx9LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		m_p9plsfDx9LSpiroPalN.SetWidthScale( 8 );
 		m_p9plsfDx9LSpiroPalN.SetKernelSize( 48 );
 		m_p9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
 		m_p9plsfDx9LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX9
 
 #ifdef LSN_DX12
@@ -155,7 +159,9 @@ namespace lsn {
 		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
+		
 		m_p12plsfDx12LSpiroPal.SetWidthScale( 10 );
 		m_p12plsfDx12LSpiroPal.SetKernelSize( 48 );
 		m_p12plsfDx12LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
@@ -165,16 +171,19 @@ namespace lsn {
 		m_p12plsfDx12LSpiroDendy.SetKernelSize( 44 );
 		m_p12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12plsfDx12LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
 		m_p12plsfDx12LSpiroPalM.SetWidthScale( 8 );
 		m_p12plsfDx12LSpiroPalM.SetKernelSize( 46 );
 		m_p12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12plsfDx12LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		m_p12plsfDx12LSpiroPalN.SetWidthScale( 8 );
 		m_p12plsfDx12LSpiroPalN.SetKernelSize( 48 );
 		m_p12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
 		m_p12plsfDx12LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_p12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX12
 
 		// FPS settings.
@@ -815,7 +824,8 @@ namespace lsn {
 #ifdef LSN_DX9
 		{
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
-			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_POW_2_2, CNesPalette::LSN_G_NONE );
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_SMPTE240M, CNesPalette::LSN_G_NONE );
 			m_d9pfDx9Palette.SetLut( vTmp[0].x );
@@ -824,7 +834,8 @@ namespace lsn {
 
 #ifdef LSN_DX12
 		{
-			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
 			m_d12pfDx12Palette.SetLut( vTmp[0].x );
 		}
 #endif	// #ifdef LSN_DX12

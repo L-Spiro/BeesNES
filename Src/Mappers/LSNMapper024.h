@@ -177,7 +177,7 @@ namespace lsn {
 		 * \param _fApuSample The APU sample to mix with the extended-audio sample.
 		 **/
 		virtual float									GetExtAudio( float _fApuSample ) {
-			return m_avAudio.Sample() + _fApuSample;
+			return m_avAudio.Sample() * 0.6074657440185546875f + _fApuSample;
 		}
 
 
