@@ -78,9 +78,12 @@ namespace lsn {
 			m_ui8Oam2ClearIdx( 0 ),
 			m_ui8Oam2WriteIdx( 0 ),
 			m_ui8Oam2SpriteCpyCnt( 0 ),
-			m_dvLeftShowRedGreenDelay( MaskCallback, this ),
-			m_dvPpuMaskDelay( nullptr, this ),
-			m_bAddresLatch( false ) {
+			//m_dvLeftShowRedGreenDelay( MaskCallback, this ),
+			//m_dvLeftShowRedGreenDelay( nullptr, this ),
+			//m_dvPpuMaskDelay( nullptr, this ),
+			m_dvPpuMaskDelay( MaskCallback, this ),
+			m_bAddresLatch( false ),
+			m_bSkipDot( false ) {
 
 #ifdef LSN_INT_OAM_DECAY
 			for ( auto I = std::size( m_ui64OamDecay ); I--; ) {
@@ -125,7 +128,7 @@ namespace lsn {
 		 * Performs a single cycle update.
 		 */
 		virtual void									Tick() {
-			m_dvLeftShowRedGreenDelay.Tick();
+			//m_dvLeftShowRedGreenDelay.Tick();
 			m_dvPpuMaskDelay.Tick();
 			m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();
@@ -247,7 +250,7 @@ namespace lsn {
 			LSN_PPUMASK pmMaskVal;
 			pmMaskVal.ui8Reg = 0;
 			m_dvPpuMaskDelay.SetValue( pmMaskVal );
-			m_dvLeftShowRedGreenDelay.SetValue( pmMaskVal );
+			//m_dvLeftShowRedGreenDelay.SetValue( pmMaskVal );
 
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
@@ -846,7 +849,7 @@ namespace lsn {
 			LSN_PPUMASK pmTmp;
 			ppPpu->m_ui8IoBusLatch = pmTmp.ui8Reg = _ui8Val;
 			ppPpu->m_dvPpuMaskDelay.WriteWithDelay( pmTmp );
-			ppPpu->m_dvLeftShowRedGreenDelay.WriteWithDelay( pmTmp );
+			//ppPpu->m_dvLeftShowRedGreenDelay.WriteWithDelay( pmTmp );
 			/*char szBuffer[256];
 			std::sprintf( szBuffer, "Write2001: %.2X Frame: %u [%u,%u]\r\n", _ui8Val, uint32_t( ppPpu->m_ui64Frame ), ppPpu->GetCurrentRowPos(), ppPpu->GetCurrentScanline() );
 			::OutputDebugStringA( szBuffer );*/
@@ -1264,11 +1267,21 @@ namespace lsn {
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
-		CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left*, show*, red, green bits). */
+		//CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left*, show*, red, green bits). */
 		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register (the rest of the bits). */
+
+		/*
+		on 2C02G:
+		Blue is instant, asynchronous, and continuous
+		Red and green wait for the current CPU write to finish but is not synchronized to pixels
+		Monochrome waits for the current CPU write to finish, then waits for the next pixel
+		sprite and tilemap left mask wait for the current CPU write to finish, then is delayed ... multiple pixels
+
+		Note that these behaviors vary by PPU revision
+		*/
 		
 #ifndef LSN_INT_OAM_DECAY
-		float											m_fOamDecayFactor;								/**< The primary OM decay rate. */
+		float											m_fOamDecayFactor;								/**< The primary OAM decay rate. */
 #endif	// #ifndef LSN_INT_OAM_DECAY
 		uint16_t										m_ui16CurX;										/**< The current dot.  Value updated at the start of every PPU tick. */
 		uint16_t										m_ui16CurY;										/**< The current scanline.  Value updated at the start of every PPU tick. */
@@ -1318,6 +1331,7 @@ namespace lsn {
 
 		bool											m_bSuppressNmi;									/**< If true, NMI can't be generated. */
 		bool											m_bUpdateVramAddr;								/**< If true, the VRAM address is updated at the end of the cycle. */
+		bool											m_bSkipDot;										/**< If true, dot 0 of odd frames is skipped.  Set on dot 339. */
 
 		//bool g_bDoDebugPrint									= false;
 
@@ -1717,7 +1731,7 @@ namespace lsn {
 				else {
 					uint8_t ui8BackgroundPixel = 0;
 					uint8_t ui8BackgroundPalette = 0;
-					if ( m_bShowBg && (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftBackground || ui16X >= 8) ) {
+					if ( m_bShowBg && (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftBackground || ui16X >= 8) ) {
 						const uint16_t ui16Bit = 0x8000 >> m_ui8FineScrollX;
 						ui8BackgroundPixel = (((m_ui16ShiftPatternHi & ui16Bit) > 0) << 1) |
 							((m_ui16ShiftPatternLo & ui16Bit) > 0);
@@ -1729,7 +1743,7 @@ namespace lsn {
 					uint8_t ui8ForegroundPalette = 0;
 					uint8_t ui8ForegroundPriority = 0;
 					bool bIsRenderingSprite0 = false;
-					if ( m_bShowSprites && (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftSprites || ui16X >= 8) ) {
+					if ( m_bShowSprites && (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftSprites || ui16X >= 8) ) {
 						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
 							if ( m_asActiveSprites.ui8X[I] == 0 ) {
 								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
@@ -1787,7 +1801,7 @@ namespace lsn {
 							// This is handled elsewhere.  I think.  TODO: Check it.
 
 							// At x=0 to x=7 if the left-side clipping window is enabled (if bit 2 or bit 1 of PPUMASK is 0).
-							if ( ((ui16X >= 8) || (m_dvLeftShowRedGreenDelay.Value().s.ui8LeftBackground | m_dvLeftShowRedGreenDelay.Value().s.ui8LeftSprites)) &&
+							if ( ((ui16X >= 8) || (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftBackground | m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftSprites)) &&
 								// At x=255, for an obscure reason related to the pixel pipeline.
 								ui16X != 255 ) {
 								m_psPpuStatus.s.ui8Sprite0Hit = 1;
@@ -1910,7 +1924,7 @@ namespace lsn {
 
 			// Clear V-blank and friends.  Moved to the start of the next tick following the normal tick where it should happen.
 			//	This keeps the flags alive until the CPU can read them if that happens on the same PPU tick as they should be cleared.
-			if ( _uY == _tDotHeight - 1 && _uX == 1 + 1 ) {
+			if ( _uY == _tDotHeight - 1 && _uX == 1 /*+ 1*/ ) {
 				sRet += "\r\n"
 				"m_psPpuStatus.s.ui8VBlank = 0;\r\n"
 				"m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
@@ -2257,32 +2271,33 @@ namespace lsn {
 			//		"++m_ui64Frame;\r\n";
 			//	}
 			//}
-			// End cycle & Frame transitions.
+			
+			// 339: Decide whether to skip the dot.
 			if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 2 ) {
-				// Dot 339 of the pre-render line: Evaluate the odd-frame skip.
 				sRet += "\r\n"
 				"if constexpr ( _bOddFrameShenanigans ) {\r\n"
-				"	if ( ((m_ui64Frame & 0x1) == 1) && m_bRendering ) {\r\n"
-				"		m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0.\r\n"
+				"	m_bSkipDot = ((m_ui64Frame & 0x1) == 1) && bool( m_dvPpuMaskDelay.MostRecentValue().s.ui8ShowBackground | m_dvPpuMaskDelay.MostRecentValue().s.ui8ShowSprites );\r\n"
+				"}\r\n";
+			}
+			// 340: Go to the next frame, skipping dot 0 based off m_bSkipDot.
+			if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
+				sRet += "\r\n"
+				"if constexpr ( _bOddFrameShenanigans ) {\r\n"
+				"	if ( m_bSkipDot ) {\r\n"
+				"		m_stCurCycle = 1;\r\n"
 				"		++m_ui64Frame;\r\n"
 				"	}\r\n"
 				"	else {\r\n"
-				"		++m_stCurCycle;\r\n"
+				"		m_stCurCycle = 0;\r\n"
+				"		++m_ui64Frame;\r\n"
 				"	}\r\n"
 				"}\r\n"
 				"else {\r\n"
-				"	++m_stCurCycle;\r\n"
+				"	m_stCurCycle = 0;\r\n"
+				"	++m_ui64Frame;\r\n"
 				"}\r\n";
 			}
-			else if ( _uY == _tDotHeight - 1 && _uX == _tDotWidth - 1 ) {
-				// Dot 340 of the pre-render line.
-				// If we reached this cycle, the skip didn't happen. End the frame normally.
-				sRet += "\r\n"
-				"m_stCurCycle = 0;\r\n"
-				"++m_ui64Frame;\r\n";
-			}
 			else {
-				// Standard cycle progression for all other dots.
 				sRet += "\r\n"
 				"++m_stCurCycle;\r\n";
 			}

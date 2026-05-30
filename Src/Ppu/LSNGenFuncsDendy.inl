@@ -62,8 +62,20 @@ void LSN_FASTCALL								Cycle_2__257x240() {
 void LSN_FASTCALL								Cycle_2__340x311() {
 
 
-	m_stCurCycle = 0;
-	++m_ui64Frame;
+	if constexpr (_bOddFrameShenanigans) {
+		if (m_bSkipDot) {
+			m_stCurCycle = 1;
+			++m_ui64Frame;
+		}
+		else {
+			m_stCurCycle = 0;
+			++m_ui64Frame;
+		}
+	}
+	else {
+		m_stCurCycle = 0;
+		++m_ui64Frame;
+	}
 }
 
 
@@ -1270,17 +1282,10 @@ void LSN_FASTCALL								Cycle_2__339x311() {
 
 
 	if constexpr (_bOddFrameShenanigans) {
-		if (((m_ui64Frame & 0x1) == 1) && m_bRendering) {
-			m_stCurCycle = 0; // Skip dot 340, jump straight to 0,0.
-			++m_ui64Frame;
-		}
-		else {
-			++m_stCurCycle;
-		}
+		m_bSkipDot = ((m_ui64Frame & 0x1) == 1) && bool(m_dvPpuMaskDelay.MostRecentValue().s.ui8ShowBackground | m_dvPpuMaskDelay.MostRecentValue().s.ui8ShowSprites);
 	}
-	else {
-		++m_stCurCycle;
-	}
+
+	++m_stCurCycle;
 }
 
 

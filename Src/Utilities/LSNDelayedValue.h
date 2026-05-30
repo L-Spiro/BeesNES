@@ -139,18 +139,46 @@ namespace lsn {
 			return m_tBuffer[0];
 		}
 
+		/**
+		 * Gets a value with a different delay (but smaller) delay than the designated delay.
+		 * 
+		 * \tparam _iRelativeDelay The relatively delayed value to get. 0 = the same as Value(), -1 = the value with 1 less delay than Value(), etc.
+		 * \return Returns the value with the given delay relative to the maximum delay.
+		 **/
+		template <signed _iRelativeDelay>
+		const _tnType &										RelativeValue() const {
+			static_assert( _iRelativeDelay <= 0, "RelativeValue(): _iRelativeDelay must be 0 or negative." );
+			constexpr size_t sIdx = size_t( ArraySize<_uDelayCycles>() - 1 + _iRelativeDelay );
+			static_assert( sIdx < ArraySize<_uDelayCycles>(), "RelativeValue(): _iRelativeDelay out of range." );
+
+			return m_tBuffer[sIdx];
+		}
+
+		/**
+		 * Gets a value with a specific delay amount, unrelated to _uDelayCycles (but no greater than (_uDelayCycles-1).
+		 * 
+		 * \tparam _uDelay The delay from which to read the value. 0 = no delay (same as MostRecentValue()), 1 = 1 delay, etc.
+		 * \return Returns the value at the given delay.
+		 **/
+		template <unsigned _uDelay>
+		const _tnType &										ValueWithDelay() const {
+			static_assert( _uDelay < ArraySize<_uDelayCycles>(), "ValueWithDelay(): _uDelay out of range." );
+			return m_tBuffer[_uDelay];
+		}
+
 	protected :
 		// == Members.
 		/** A callback function called when the final value actually gets set. */
 		Callback											m_cCallback;
 		/** The first parameter to pass to the callback. */
 		void *												m_pvCallbackParm;
+		/** If non-zero, there is a value in the pipeline and the object should be updated each cycle until it reaches the top. */
+		size_t												m_stDirty;
 		/** The array of values through which changes must pass to reach the final value. */
 		_tnType												m_tBuffer[ArraySize<_uDelayCycles>()];
 		/** A companion array that allows us to track values through the delay to know when to trigger the callback.  The callback must only be triggered on actual writes to the target value. */
 		bool												m_bIsWrite[ArraySize<_uDelayCycles>()];
-		/** If non-zero, there is a value in the pipeline and the object should be updated each cycle until it reaches the top. */
-		size_t												m_stDirty;
+		
 	};
 
 }	// namespace lsn

@@ -2212,6 +2212,21 @@ namespace lsn {
 				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 7;
 				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 9;
 
+				// Xbox 360 controller.
+				/*mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 1;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] = 2;
+				
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_B] = 3;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_B] = 4;
+
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_SELECT] = 7;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] = 5;
+
+				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 8;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 6;*/
+
+				//Start = 8, Select = 7, A = 1, B = 3, Turbo Start = 6, Turbo Select = 5, Turbo A = 2, Turbo B = 4.
+
 
 				// My USB NES controller.
 				if ( ui32Buttons == 10 ) {
