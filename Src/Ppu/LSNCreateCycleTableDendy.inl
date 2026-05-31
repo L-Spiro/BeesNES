@@ -87586,7 +87586,6 @@ if constexpr ( _tRegCode == 2 ) {
 		m_cCycle[81487] = pfTmp;
 		m_cCycle[81820] = pfTmp;
 		m_cCycle[81828] = pfTmp;
-		m_cCycle[106052] = pfTmp;
 		m_cCycle[106060] = pfTmp;
 		m_cCycle[106068] = pfTmp;
 		m_cCycle[106076] = pfTmp;
@@ -90171,6 +90170,7 @@ if constexpr ( _tRegCode == 2 ) {
 		m_cCycle[81488] = pfTmp;
 		m_cCycle[81821] = pfTmp;
 		m_cCycle[81829] = pfTmp;
+		m_cCycle[106053] = pfTmp;
 		m_cCycle[106061] = pfTmp;
 		m_cCycle[106069] = pfTmp;
 		m_cCycle[106077] = pfTmp;
@@ -91315,8 +91315,8 @@ if constexpr ( _tRegCode == 2 ) {
 		m_cCycle[106371] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_2__2x311;
-		m_cCycle[106053] = pfTmp;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_2__1x311;
+		m_cCycle[106052] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_2__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x1_X;

@@ -813,12 +813,13 @@ namespace lsn {
 			else if ( (ppPpu->m_pcPpuCtrl.s.ui8Nmi && !bPrevNmi) && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
+				//ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
 				constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
 				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
 				int32_t i32Dif = i32CurIdx - i32TargetIdx;
-				if ( i32Dif == 0 || i32Dif == 1 ) {
+				if ( i32Dif == 0 || i32Dif == 1 || i32Dif == 2 ) {
 					// Do not trigger NMI.
 				}
 				else {
@@ -865,20 +866,22 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Read2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
+			uint8_t ui8Status = ppPpu->m_psPpuStatus.ui8Reg;
 			{
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
+				//ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
-				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;
+				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;	// Scanline 241, dot 1.
 				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
 				int32_t i32Dif = i32CurIdx - i32TargetIdx;
-				bool bRegPass = false;
+				/*bool bRegPass = false;
 				if constexpr ( _tRegCode == LSN_PM_PAL ) {
-					bRegPass = (i32Dif == -1); 
-				}
+					bRegPass = (i32Dif == -1);
+				}*/
 				
-				if ( bRegPass || i32Dif == 0 ) {
+				if ( /*bRegPass ||*/ i32Dif == 0 ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
@@ -888,10 +891,20 @@ namespace lsn {
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
 				}
+
+				ui8Status = ppPpu->m_psPpuStatus.ui8Reg;
+
+				// VBLANK CLEAR.
+				constexpr int32_t i32ClearIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;							// Pre-render scanline, dot 1.
+				int32_t i32ClearDif = i32CurIdx - i32ClearIdx;
+				
+				if ( i32ClearDif == 0 ) {
+					ui8Status |= 0x80; 
+				}
 			}
 
 
-			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ppPpu->m_psPpuStatus.ui8Reg & 0xE0);
+			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ui8Status & 0xE0);
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
 			// Reads cause the v-blank flag to reset.
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;

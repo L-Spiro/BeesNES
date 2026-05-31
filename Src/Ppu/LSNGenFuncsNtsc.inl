@@ -1568,7 +1568,7 @@ void LSN_FASTCALL								Cycle_0__261x261_262x261_263x261_264x261_269x261_270x26
 }
 
 
-void LSN_FASTCALL								Cycle_0__2x261() {
+void LSN_FASTCALL								Cycle_0__1x261() {
 
 	m_psPpuStatus.s.ui8VBlank = 0;
 	m_psPpuStatus.s.ui8SpriteOverflow = 0;
@@ -1581,11 +1581,18 @@ void LSN_FASTCALL								Cycle_0__2x261() {
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
 		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
 	}
 
 	if (m_bRendering) {
 
-		m_ui8NextTileId = m_ui8NtAtBuffer;
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 	}
 
 	++m_stCurCycle;
