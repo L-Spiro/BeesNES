@@ -813,18 +813,33 @@ namespace lsn {
 			else if ( (ppPpu->m_pcPpuCtrl.s.ui8Nmi && !bPrevNmi) && ppPpu->m_psPpuStatus.s.ui8VBlank ) {
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
-				//ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+				ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
-				constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
+				/*constexpr int32_t i32TargetIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
+				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);*/
+
+				constexpr int32_t i32TargetClearIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;
+				constexpr int32_t i32TargetSetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;
+    
 				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
 
-				int32_t i32Dif = i32CurIdx - i32TargetIdx;
-				if ( i32Dif == 0 || i32Dif == 1 || i32Dif == 2 ) {
-					// Do not trigger NMI.
+				int32_t i32ClearDif = i32CurIdx - i32TargetClearIdx;
+				int32_t i32SetDif = i32CurIdx - i32TargetSetIdx;
+
+				if ( i32ClearDif == 1 || i32SetDif == 1 ) {
+					// If the NMI flag is enabled on the exact same cycle the VBLANK flag is cleared OR set, no NMI is generated.
 				}
 				else {
 					ppPpu->TriggerNmi();
 				}
+
+				//int32_t i32Dif = i32CurIdx - i32TargetIdx;
+				//if ( i32Dif == 0 /*|| i32Dif == 1 || i32Dif == 2*/ ) {
+				//	// Do not trigger NMI.
+				//}
+				//else {
+				//	ppPpu->TriggerNmi();
+				//}
 				/*if ( i32Dif == -1 ) {
 					ppPpu->m_pcPpuCtrl.s.ui8Nmi = false;
 					ppPpu->TriggerNmi();
@@ -870,7 +885,7 @@ namespace lsn {
 			{
 				int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				int16_t i16AdjustedY = ppPpu->m_ui16CurY;
-				//ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+				ppPpu->AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
 
 				constexpr int32_t i32TargetIdx = ((_tPreRender + _tRender + _tPostRender) * _tDotWidth) + 1;	// Scanline 241, dot 1.
 				int32_t i32CurIdx = (i16AdjustedY * _tDotWidth + i16AdjustedX);
@@ -881,12 +896,12 @@ namespace lsn {
 					bRegPass = (i32Dif == -1);
 				}*/
 				
-				if ( /*bRegPass ||*/ i32Dif == 0 ) {
+				if ( /*bRegPass ||*/ i32Dif == -1 ) {
 					// Reading one PPU clock before reads it as clear and never sets the flag or generates NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 				}
-				else if ( i32Dif == 1 || i32Dif == 2 ) {
+				else if ( i32Dif == 0 || i32Dif == 1 ) {
 					// Reading on the same PPU clock or one later reads it as set, clears it, and suppresses the NMI for that frame.
 					ppPpu->m_bSuppressNmi = true;
 					ppPpu->m_psPpuStatus.s.ui8VBlank = 1;
@@ -898,8 +913,8 @@ namespace lsn {
 				constexpr int32_t i32ClearIdx = ((_tDotHeight - 1) * _tDotWidth) + 1;							// Pre-render scanline, dot 1.
 				int32_t i32ClearDif = i32CurIdx - i32ClearIdx;
 				
-				if ( i32ClearDif == 0 ) {
-					ui8Status |= 0x80; 
+				if ( i32ClearDif == -1 ) {
+					ui8Status |= 0x80;
 				}
 			}
 
@@ -2021,29 +2036,95 @@ namespace lsn {
 			}
 
 
-			// Shifting and transferring to shifters.
+			// ==============================================================================
+			// Background Memory Fetches (1-256, 321-336)
+			// ==============================================================================
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
-				sRet += "\r\n"
-				"if ( m_bRendering ) {\r\n"
+	
+				sRet += "\r\nif ( m_bRendering ) {\r\n";
+
+				if ( (_uX - LSN_LEFT) % 8 == 0 ) {
+					sRet += "\r\n"
+					"	// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+					"	m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 1 ) {
+					sRet += "\r\n"
+					"	m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 2 ) {
+					sRet += "\r\n"
+					"	// LSN_PPU_NAMETABLES = 0x2000.\r\n"
+					"	// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.\r\n"
+					"	m_ui8NtAtBuffer = Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |\r\n"
+					"		(m_paPpuAddrV.s.ui16NametableX << 10) |\r\n"
+					"		((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |\r\n"
+					"		(m_paPpuAddrV.s.ui16CourseX >> 2) );\r\n"
+					"	if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NtAtBuffer >>= 4; }\r\n"
+					"	if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NtAtBuffer >>= 2; }\r\n"
+					"	m_ui8NtAtBuffer &= 0x3;\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 3 ) {
+					sRet += "\r\n"
+					"	m_ui8NextTileAttribute = m_ui8NtAtBuffer;\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 4 ) {
+					sRet += "\r\n"
+					"	// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+					"	m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+					"		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+					"		(m_paPpuAddrV.s.ui16FineY) +\r\n"
+					"		0) );\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 5 ) {
+					sRet += "\r\n"
+					"	m_ui8NextTileLsb = m_ui8NtAtBuffer;\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 6 ) {
+					sRet += "\r\n"
+					"	// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
+					"	m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
+					"		(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
+					"		(m_paPpuAddrV.s.ui16FineY) +\r\n"
+					"		8) );\r\n";
+				}
+				if ( (_uX - LSN_LEFT) % 8 == 7 ) {
+					sRet += "\r\n"
+					"	m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
+				}
+	
+				sRet += "}\r\n";
+			}
+
+			// ==============================================================================
+			// Background Shifting and Reloading (2-257, 322-337)
+			// ==============================================================================
+			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
+				((_uX >= (LSN_LEFT + 1) && _uX < (LSN_RIGHT + 1)) || (_uX >= (LSN_NEXT_TWO + 1) && _uX < (LSN_DUMMY_BEGIN + 1))) ) {
+	
+				sRet += "\r\nif ( m_bRendering ) {\r\n"
 				"	m_ui16ShiftPatternLo <<= 1;\r\n"
 				"	m_ui16ShiftPatternHi <<= 1;\r\n"
 				"	m_ui16ShiftAttribLo <<= 1;\r\n"
 				"	m_ui16ShiftAttribHi <<= 1;\r\n";
+	
+				// Reload exactly on dots 9, 17, 25... 257, and 329, 337
 				if ( (_uX - LSN_LEFT) % 8 == 0 ) {
 					sRet += "\r\n"
-				"	m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;\r\n"
-				"	m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;\r\n"
-				"\r\n"
-				"	m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);\r\n"
-				"	m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);\r\n";
+					"	m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;\r\n"
+					"	m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;\r\n"
+					"\r\n"
+					"	m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);\r\n"
+					"	m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);\r\n";
 				}
-				sRet +=	
-				"}\r\n";
+	
+				sRet += "}\r\n";
 			}
 
-
+			// ==============================================================================
 			// Render.
+			// ==============================================================================
 			{
 				uint16_t ui16X, ui16Y;
 				if ( CycleToRenderTarget( _uX, _uY, ui16X, ui16Y ) ) {
@@ -2052,66 +2133,9 @@ namespace lsn {
 				}
 			}
 
-			// Background processing (1-256, 321-336).
-			sRet += "\r\n"
-			"if ( m_bRendering ) {\r\n";
-			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
-				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
-				// Load background data.
-				{
-					if ( (_uX - LSN_LEFT) % 8 == 0 ) {
-						sRet += "\r\n"
-						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 1 ) {
-						sRet += "\r\n"
-						"m_ui8NextTileId = m_ui8NtAtBuffer;\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 2 ) {
-						sRet += "\r\n"
-						"// LSN_PPU_NAMETABLES = 0x2000.\r\n"
-						"// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.\r\n"
-						"m_ui8NtAtBuffer = Read( (LSN_PPU_NAMETABLES + LSN_PPU_ATTRIBUTE_TABLE_OFFSET) | (m_paPpuAddrV.s.ui16NametableY << 11) |\r\n"
-						"	(m_paPpuAddrV.s.ui16NametableX << 10) |\r\n"
-						"	((m_paPpuAddrV.s.ui16CourseY >> 2) << 3) |\r\n"
-						"	(m_paPpuAddrV.s.ui16CourseX >> 2) );\r\n"
-						"if ( m_paPpuAddrV.s.ui16CourseY & 0x2 ) { m_ui8NtAtBuffer >>= 4; }\r\n"
-						"if ( m_paPpuAddrV.s.ui16CourseX & 0x2 ) { m_ui8NtAtBuffer >>= 2; }\r\n"
-						"m_ui8NtAtBuffer &= 0x3;\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 3 ) {
-						sRet += "\r\n"
-						"m_ui8NextTileAttribute = m_ui8NtAtBuffer;\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 4 ) {
-						sRet += "\r\n"
-						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
-						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
-						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
-						"	0) );\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 5 ) {
-						sRet += "\r\n"
-						"m_ui8NextTileLsb = m_ui8NtAtBuffer;\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 6 ) {
-						sRet += "\r\n"
-						"// LSN_PPU_PATTERN_TABLES = 0x0000.\r\n"
-						"m_ui8NtAtBuffer = Read( LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +\r\n"
-						"	(static_cast<uint16_t>(m_ui8NextTileId) << 4) +\r\n"
-						"	(m_paPpuAddrV.s.ui16FineY) +\r\n"
-						"	8) );\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 8 == 7 ) {
-						sRet += "\r\n"
-						"m_ui8NextTileMsb = m_ui8NtAtBuffer;\r\n";
-					}
-				}
-			}
-
+			// ==============================================================================
 			// Garbage fetches (257-320).
+			// ==============================================================================
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				(_uX >= LSN_RIGHT && _uX < LSN_NEXT_TWO) ) {
 				{
@@ -2162,6 +2186,12 @@ namespace lsn {
 				}
 			}
 
+			// ==============================================================================
+			// Background processing (1-256, 321-336).
+			// ==============================================================================
+			sRet += "\r\n"
+			"if ( m_bRendering ) {\r\n";
+			
 			
 			// Increase H and V.
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&

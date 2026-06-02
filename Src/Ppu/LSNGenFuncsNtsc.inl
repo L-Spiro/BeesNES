@@ -96,6 +96,11 @@ void LSN_FASTCALL								Cycle_0__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -104,10 +109,6 @@ void LSN_FASTCALL								Cycle_0__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -130,6 +131,11 @@ void LSN_FASTCALL								Cycle_0__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -138,10 +144,6 @@ void LSN_FASTCALL								Cycle_0__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileId = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -164,6 +166,11 @@ void LSN_FASTCALL								Cycle_0__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -172,10 +179,6 @@ void LSN_FASTCALL								Cycle_0__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileLsb = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -198,6 +201,11 @@ void LSN_FASTCALL								Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -207,8 +215,6 @@ void LSN_FASTCALL								Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 	RenderPixel();
 
 	if (m_bRendering) {
-
-		m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 		// Increase v.H.
 		IncHorizontal();
@@ -238,6 +244,11 @@ void LSN_FASTCALL								Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -247,52 +258,9 @@ void LSN_FASTCALL								Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 	RenderPixel();
 
 	if (m_bRendering) {
-
-		m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 		// Increase v.H.
 		IncHorizontal();
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_137x0_145x0_X() {
-
-	Pixel_Evaluation_Sprite<false, true>();
-
-	if (m_bRendering) {
-		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
-			if (m_asActiveSprites.ui8X[I]) {
-				--m_asActiveSprites.ui8X[I];
-			}
-			else {
-				m_asActiveSprites.ui8ShiftLo[I] <<= 1;
-				m_asActiveSprites.ui8ShiftHi[I] <<= 1;
-			}
-		}
-	}
-
-	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
-
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 	}
 
 	++m_stCurCycle;
@@ -316,15 +284,6 @@ void LSN_FASTCALL								Cycle_0__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 	}
 
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
 
 		// LSN_PPU_NAMETABLES = 0x2000.
 		// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
@@ -336,6 +295,58 @@ void LSN_FASTCALL								Cycle_0__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 		if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
 		m_ui8NtAtBuffer &= 0x3;
 	}
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+	}
+
+	RenderPixel();
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_137x0_145x0_X() {
+
+	Pixel_Evaluation_Sprite<false, true>();
+
+	if (m_bRendering) {
+		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
+			if (m_asActiveSprites.ui8X[I]) {
+				--m_asActiveSprites.ui8X[I];
+			}
+			else {
+				m_asActiveSprites.ui8ShiftLo[I] <<= 1;
+				m_asActiveSprites.ui8ShiftHi[I] <<= 1;
+			}
+		}
+	}
+
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+	RenderPixel();
+
 
 	++m_stCurCycle;
 }
@@ -358,6 +369,15 @@ void LSN_FASTCALL								Cycle_0__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 	}
 
 	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			0));
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -366,14 +386,6 @@ void LSN_FASTCALL								Cycle_0__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		// LSN_PPU_PATTERN_TABLES = 0x0000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-			(m_paPpuAddrV.s.ui16FineY) +
-			0));
-	}
 
 	++m_stCurCycle;
 }
@@ -396,6 +408,15 @@ void LSN_FASTCALL								Cycle_0__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 	}
 
 	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			8));
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -404,14 +425,6 @@ void LSN_FASTCALL								Cycle_0__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		// LSN_PPU_PATTERN_TABLES = 0x0000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-			(m_paPpuAddrV.s.ui16FineY) +
-			8));
-	}
 
 	++m_stCurCycle;
 }
@@ -434,6 +447,12 @@ void LSN_FASTCALL								Cycle_0__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 	}
 
 	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -448,11 +467,6 @@ void LSN_FASTCALL								Cycle_0__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_6
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
-	}
 
 	++m_stCurCycle;
 }
@@ -463,10 +477,23 @@ void LSN_FASTCALL								Cycle_0__257x0_257x1_257x2_257x3_257x4_257x5_257x6_257x
 	Pixel_Fetch_Sprite<0, 0>();	// Sprite fetches (257-320).
 
 	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+
+	if (m_bRendering) {
 
 		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
 		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
@@ -489,12 +516,10 @@ void LSN_FASTCALL								Cycle_0__259x0_259x1_259x2_259x3_259x4_259x5_259x6_259x
 
 	Pixel_Fetch_Sprite<0, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -513,10 +538,8 @@ void LSN_FASTCALL								Cycle_0__261x0_261x1_261x2_261x3_261x4_261x5_261x6_261x
 
 	Pixel_Fetch_Sprite<0, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -526,10 +549,8 @@ void LSN_FASTCALL								Cycle_0__262x0_262x1_262x2_262x3_262x4_262x5_262x6_262x
 
 	Pixel_Fetch_Sprite<0, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -539,10 +560,8 @@ void LSN_FASTCALL								Cycle_0__263x0_263x1_263x2_263x3_263x4_263x5_263x6_263x
 
 	Pixel_Fetch_Sprite<0, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -552,10 +571,8 @@ void LSN_FASTCALL								Cycle_0__264x0_264x1_264x2_264x3_264x4_264x5_264x6_264x
 
 	Pixel_Fetch_Sprite<0, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -565,12 +582,10 @@ void LSN_FASTCALL								Cycle_0__265x0_265x1_265x2_265x3_265x4_265x5_265x6_265x
 
 	Pixel_Fetch_Sprite<1, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -589,12 +604,10 @@ void LSN_FASTCALL								Cycle_0__267x0_267x1_267x2_267x3_267x4_267x5_267x6_267x
 
 	Pixel_Fetch_Sprite<1, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -613,10 +626,8 @@ void LSN_FASTCALL								Cycle_0__269x0_269x1_269x2_269x3_269x4_269x5_269x6_269x
 
 	Pixel_Fetch_Sprite<1, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -626,10 +637,8 @@ void LSN_FASTCALL								Cycle_0__270x0_270x1_270x2_270x3_270x4_270x5_270x6_270x
 
 	Pixel_Fetch_Sprite<1, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -639,10 +648,8 @@ void LSN_FASTCALL								Cycle_0__271x0_271x1_271x2_271x3_271x4_271x5_271x6_271x
 
 	Pixel_Fetch_Sprite<1, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -652,10 +659,8 @@ void LSN_FASTCALL								Cycle_0__272x0_272x1_272x2_272x3_272x4_272x5_272x6_272x
 
 	Pixel_Fetch_Sprite<1, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -665,12 +670,10 @@ void LSN_FASTCALL								Cycle_0__273x0_273x1_273x2_273x3_273x4_273x5_273x6_273x
 
 	Pixel_Fetch_Sprite<2, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -689,12 +692,10 @@ void LSN_FASTCALL								Cycle_0__275x0_275x1_275x2_275x3_275x4_275x5_275x6_275x
 
 	Pixel_Fetch_Sprite<2, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -713,10 +714,8 @@ void LSN_FASTCALL								Cycle_0__277x0_277x1_277x2_277x3_277x4_277x5_277x6_277x
 
 	Pixel_Fetch_Sprite<2, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -726,10 +725,8 @@ void LSN_FASTCALL								Cycle_0__278x0_278x1_278x2_278x3_278x4_278x5_278x6_278x
 
 	Pixel_Fetch_Sprite<2, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -739,10 +736,8 @@ void LSN_FASTCALL								Cycle_0__279x0_279x1_279x2_279x3_279x4_279x5_279x6_279x
 
 	Pixel_Fetch_Sprite<2, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -752,10 +747,8 @@ void LSN_FASTCALL								Cycle_0__280x0_280x1_280x2_280x3_280x4_280x5_280x6_280x
 
 	Pixel_Fetch_Sprite<2, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -765,12 +758,10 @@ void LSN_FASTCALL								Cycle_0__281x0_281x1_281x2_281x3_281x4_281x5_281x6_281x
 
 	Pixel_Fetch_Sprite<3, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -789,12 +780,10 @@ void LSN_FASTCALL								Cycle_0__283x0_283x1_283x2_283x3_283x4_283x5_283x6_283x
 
 	Pixel_Fetch_Sprite<3, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -813,10 +802,8 @@ void LSN_FASTCALL								Cycle_0__285x0_285x1_285x2_285x3_285x4_285x5_285x6_285x
 
 	Pixel_Fetch_Sprite<3, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -826,10 +813,8 @@ void LSN_FASTCALL								Cycle_0__286x0_286x1_286x2_286x3_286x4_286x5_286x6_286x
 
 	Pixel_Fetch_Sprite<3, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -839,10 +824,8 @@ void LSN_FASTCALL								Cycle_0__287x0_287x1_287x2_287x3_287x4_287x5_287x6_287x
 
 	Pixel_Fetch_Sprite<3, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -852,10 +835,8 @@ void LSN_FASTCALL								Cycle_0__288x0_288x1_288x2_288x3_288x4_288x5_288x6_288x
 
 	Pixel_Fetch_Sprite<3, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -865,12 +846,10 @@ void LSN_FASTCALL								Cycle_0__289x0_289x1_289x2_289x3_289x4_289x5_289x6_289x
 
 	Pixel_Fetch_Sprite<4, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -889,12 +868,10 @@ void LSN_FASTCALL								Cycle_0__291x0_291x1_291x2_291x3_291x4_291x5_291x6_291x
 
 	Pixel_Fetch_Sprite<4, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -913,10 +890,8 @@ void LSN_FASTCALL								Cycle_0__293x0_293x1_293x2_293x3_293x4_293x5_293x6_293x
 
 	Pixel_Fetch_Sprite<4, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -926,10 +901,8 @@ void LSN_FASTCALL								Cycle_0__294x0_294x1_294x2_294x3_294x4_294x5_294x6_294x
 
 	Pixel_Fetch_Sprite<4, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -939,10 +912,8 @@ void LSN_FASTCALL								Cycle_0__295x0_295x1_295x2_295x3_295x4_295x5_295x6_295x
 
 	Pixel_Fetch_Sprite<4, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -952,10 +923,8 @@ void LSN_FASTCALL								Cycle_0__296x0_296x1_296x2_296x3_296x4_296x5_296x6_296x
 
 	Pixel_Fetch_Sprite<4, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -965,12 +934,10 @@ void LSN_FASTCALL								Cycle_0__297x0_297x1_297x2_297x3_297x4_297x5_297x6_297x
 
 	Pixel_Fetch_Sprite<5, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -989,12 +956,10 @@ void LSN_FASTCALL								Cycle_0__299x0_299x1_299x2_299x3_299x4_299x5_299x6_299x
 
 	Pixel_Fetch_Sprite<5, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -1013,10 +978,8 @@ void LSN_FASTCALL								Cycle_0__301x0_301x1_301x2_301x3_301x4_301x5_301x6_301x
 
 	Pixel_Fetch_Sprite<5, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1026,10 +989,8 @@ void LSN_FASTCALL								Cycle_0__302x0_302x1_302x2_302x3_302x4_302x5_302x6_302x
 
 	Pixel_Fetch_Sprite<5, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1039,10 +1000,8 @@ void LSN_FASTCALL								Cycle_0__303x0_303x1_303x2_303x3_303x4_303x5_303x6_303x
 
 	Pixel_Fetch_Sprite<5, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1052,10 +1011,8 @@ void LSN_FASTCALL								Cycle_0__304x0_304x1_304x2_304x3_304x4_304x5_304x6_304x
 
 	Pixel_Fetch_Sprite<5, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1065,12 +1022,10 @@ void LSN_FASTCALL								Cycle_0__305x0_305x1_305x2_305x3_305x4_305x5_305x6_305x
 
 	Pixel_Fetch_Sprite<6, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -1089,12 +1044,10 @@ void LSN_FASTCALL								Cycle_0__307x0_307x1_307x2_307x3_307x4_307x5_307x6_307x
 
 	Pixel_Fetch_Sprite<6, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -1113,10 +1066,8 @@ void LSN_FASTCALL								Cycle_0__309x0_309x1_309x2_309x3_309x4_309x5_309x6_309x
 
 	Pixel_Fetch_Sprite<6, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1126,10 +1077,8 @@ void LSN_FASTCALL								Cycle_0__310x0_310x1_310x2_310x3_310x4_310x5_310x6_310x
 
 	Pixel_Fetch_Sprite<6, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1139,10 +1088,8 @@ void LSN_FASTCALL								Cycle_0__311x0_311x1_311x2_311x3_311x4_311x5_311x6_311x
 
 	Pixel_Fetch_Sprite<6, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1152,10 +1099,8 @@ void LSN_FASTCALL								Cycle_0__312x0_312x1_312x2_312x3_312x4_312x5_312x6_312x
 
 	Pixel_Fetch_Sprite<6, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1165,12 +1110,10 @@ void LSN_FASTCALL								Cycle_0__313x0_313x1_313x2_313x3_313x4_313x5_313x6_313x
 
 	Pixel_Fetch_Sprite<7, 0>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -1189,12 +1132,10 @@ void LSN_FASTCALL								Cycle_0__315x0_315x1_315x2_315x3_315x4_315x5_315x6_315x
 
 	Pixel_Fetch_Sprite<7, 2>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
 
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
 
 	++m_stCurCycle;
 }
@@ -1213,10 +1154,8 @@ void LSN_FASTCALL								Cycle_0__317x0_317x1_317x2_317x3_317x4_317x5_317x6_317x
 
 	Pixel_Fetch_Sprite<7, 4>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1226,10 +1165,8 @@ void LSN_FASTCALL								Cycle_0__318x0_318x1_318x2_318x3_318x4_318x5_318x6_318x
 
 	Pixel_Fetch_Sprite<7, 5>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1239,10 +1176,8 @@ void LSN_FASTCALL								Cycle_0__319x0_319x1_319x2_319x3_319x4_319x5_319x6_319x
 
 	Pixel_Fetch_Sprite<7, 6>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
@@ -1252,16 +1187,14 @@ void LSN_FASTCALL								Cycle_0__320x0_320x1_320x2_320x3_320x4_320x5_320x6_320x
 
 	Pixel_Fetch_Sprite<7, 7>();	// Sprite fetches (257-320).
 
-	if (m_bRendering) {
+	m_ui8OamAddr = 0;
 
-		m_ui8OamAddr = 0;
-	}
 
 	++m_stCurCycle;
 }
 
 
-void LSN_FASTCALL								Cycle_0__337x0_339x0_337x1_339x1_337x2_339x2_337x3_339x3_337x4_339x4_X() {
+void LSN_FASTCALL								Cycle_0__339x0_339x1_339x2_339x3_339x4_339x5_339x6_339x7_339x8_339x9_X() {
 
 	if (m_bRendering) {
 		// LSN_PPU_NAMETABLES = 0x2000.
@@ -1289,7 +1222,12 @@ void LSN_FASTCALL								Cycle_0__339x261() {
 }
 
 
-void LSN_FASTCALL								Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x3_321x4_329x4_X() {
+void LSN_FASTCALL								Cycle_0__337x0_337x1_337x2_337x3_337x4_337x5_337x6_337x7_337x8_337x9_X() {
+
+	if (m_bRendering) {
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
 
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
@@ -1304,10 +1242,34 @@ void LSN_FASTCALL								Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
 	}
 
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__257x261() {
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+
 	if (m_bRendering) {
 
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
+		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
 	}
 
 	++m_stCurCycle;
@@ -1315,13 +1277,6 @@ void LSN_FASTCALL								Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x
 
 
 void LSN_FASTCALL								Cycle_0__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x3_323x4_331x4_X() {
-
-	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-	}
 
 	if (m_bRendering) {
 
@@ -1336,18 +1291,58 @@ void LSN_FASTCALL								Cycle_0__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x
 		m_ui8NtAtBuffer &= 0x3;
 	}
 
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x3_325x4_333x4_X() {
-
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
 		m_ui16ShiftAttribHi <<= 1;
 	}
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__321x0_321x1_321x2_321x3_321x4_321x5_321x6_321x7_321x8_321x9_X() {
+
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__329x0_329x1_329x2_329x3_329x4_329x5_329x6_329x7_329x8_329x9_X() {
+
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x3_325x4_333x4_X() {
 
 	if (m_bRendering) {
 
@@ -1358,18 +1353,19 @@ void LSN_FASTCALL								Cycle_0__325x0_333x0_325x1_333x1_325x2_333x2_325x3_333x
 			0));
 	}
 
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x3_327x4_335x4_X() {
-
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
 		m_ui16ShiftAttribHi <<= 1;
 	}
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x3_327x4_335x4_X() {
 
 	if (m_bRendering) {
 
@@ -1380,11 +1376,24 @@ void LSN_FASTCALL								Cycle_0__327x0_335x0_327x1_335x1_327x2_335x2_327x3_335x
 			8));
 	}
 
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+	}
+
+
 	++m_stCurCycle;
 }
 
 
 void LSN_FASTCALL								Cycle_0__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x3_324x4_332x4_X() {
+
+	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
 
 	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
@@ -1393,10 +1402,6 @@ void LSN_FASTCALL								Cycle_0__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	if (m_bRendering) {
-
-		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1405,16 +1410,17 @@ void LSN_FASTCALL								Cycle_0__324x0_332x0_324x1_332x1_324x2_332x2_324x3_332x
 void LSN_FASTCALL								Cycle_0__322x0_330x0_322x1_330x1_322x2_330x2_322x3_330x3_322x4_330x4_X() {
 
 	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	if (m_bRendering) {
-
-		m_ui8NextTileId = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1423,16 +1429,17 @@ void LSN_FASTCALL								Cycle_0__322x0_330x0_322x1_330x1_322x2_330x2_322x3_330x
 void LSN_FASTCALL								Cycle_0__326x0_334x0_326x1_334x1_326x2_334x2_326x3_334x3_326x4_334x4_X() {
 
 	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
 		m_ui16ShiftAttribHi <<= 1;
 	}
 
-	if (m_bRendering) {
-
-		m_ui8NextTileLsb = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1441,6 +1448,11 @@ void LSN_FASTCALL								Cycle_0__326x0_334x0_326x1_334x1_326x2_334x2_326x3_334x
 void LSN_FASTCALL								Cycle_0__256x261() {
 
 	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1448,8 +1460,6 @@ void LSN_FASTCALL								Cycle_0__256x261() {
 	}
 
 	if (m_bRendering) {
-
-		m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 		// Increase v.H.
 		IncHorizontal();
@@ -1465,6 +1475,11 @@ void LSN_FASTCALL								Cycle_0__256x261() {
 void LSN_FASTCALL								Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x3_328x4_336x4_X() {
 
 	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1472,8 +1487,6 @@ void LSN_FASTCALL								Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x
 	}
 
 	if (m_bRendering) {
-
-		m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 		// Increase v.H.
 		IncHorizontal();
@@ -1496,78 +1509,6 @@ void LSN_FASTCALL								Cycle_0__282x261_284x261_290x261_292x261_298x261_300x26
 }
 
 
-void LSN_FASTCALL								Cycle_0__280x261_285x261_286x261_287x261_288x261_293x261_294x261_295x261_296x261_301x261_X() {
-
-	if (m_bRendering) {
-
-		m_ui8OamAddr = 0;
-
-		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
-		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
-		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__281x261_283x261_289x261_291x261_297x261_299x261() {
-
-	if (m_bRendering) {
-
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-
-		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
-		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
-		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__257x261() {
-
-	if (m_bRendering) {
-
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-
-		m_paPpuAddrV.s.ui16NametableX = m_paPpuAddrT.s.ui16NametableX;
-		m_paPpuAddrV.s.ui16CourseX = m_paPpuAddrT.s.ui16CourseX;
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__259x261_265x261_267x261_273x261_275x261_305x261_307x261_313x261_315x261() {
-
-	if (m_bRendering) {
-
-		m_ui8OamAddr = 0;
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
-	}
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_0__261x261_262x261_263x261_264x261_269x261_270x261_271x261_272x261_277x261_278x261_X() {
-
-	if (m_bRendering) {
-
-		m_ui8OamAddr = 0;
-	}
-
-	++m_stCurCycle;
-}
-
-
 void LSN_FASTCALL								Cycle_0__1x261() {
 
 	m_psPpuStatus.s.ui8VBlank = 0;
@@ -1577,23 +1518,11 @@ void LSN_FASTCALL								Cycle_0__1x261() {
 	m_pnNmiTarget->ClearNmi();
 
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	if (m_bRendering) {
 
 		// LSN_PPU_NAMETABLES = 0x2000.
 		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 	}
+
 
 	++m_stCurCycle;
 }
@@ -1616,6 +1545,11 @@ void LSN_FASTCALL								Cycle_0__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1624,10 +1558,6 @@ void LSN_FASTCALL								Cycle_0__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileAttribute = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1650,6 +1580,11 @@ void LSN_FASTCALL								Cycle_0__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileId = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1658,10 +1593,6 @@ void LSN_FASTCALL								Cycle_0__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileId = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1684,6 +1615,11 @@ void LSN_FASTCALL								Cycle_0__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileLsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1692,10 +1628,6 @@ void LSN_FASTCALL								Cycle_0__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		m_ui8NextTileLsb = m_ui8NtAtBuffer;
-	}
 
 	++m_stCurCycle;
 }
@@ -1718,6 +1650,11 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 	}
 
 	if (m_bRendering) {
+
+		m_ui8NextTileMsb = m_ui8NtAtBuffer;
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1727,8 +1664,6 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 	RenderPixel();
 
 	if (m_bRendering) {
-
-		m_ui8NextTileMsb = m_ui8NtAtBuffer;
 
 		// Increase v.H.
 		IncHorizontal();
@@ -1738,41 +1673,52 @@ void LSN_FASTCALL								Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x
 }
 
 
-void LSN_FASTCALL								Cycle_0__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x1_X() {
+void LSN_FASTCALL								Cycle_0__261x261_262x261_263x261_264x261_269x261_270x261_271x261_272x261_277x261_278x261_X() {
 
-	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
+	m_ui8OamAddr = 0;
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__280x261_285x261_286x261_287x261_288x261_293x261_294x261_295x261_296x261_301x261_X() {
+
+	m_ui8OamAddr = 0;
 
 	if (m_bRendering) {
-		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
-			if (m_asActiveSprites.ui8X[I]) {
-				--m_asActiveSprites.ui8X[I];
-			}
-			else {
-				m_asActiveSprites.ui8ShiftLo[I] <<= 1;
-				m_asActiveSprites.ui8ShiftHi[I] <<= 1;
-			}
-		}
+
+		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
+		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
+		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
 	}
 
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__259x261_265x261_267x261_273x261_275x261_305x261_307x261_313x261_315x261() {
+
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__281x261_283x261_289x261_291x261_297x261_299x261() {
+
+	m_ui8OamAddr = 0;
+	// LSN_PPU_NAMETABLES = 0x2000.
+	m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));	// Garbage fetches (257-320).
+
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
 
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
-
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+		m_paPpuAddrV.s.ui16FineY = m_paPpuAddrT.s.ui16FineY;
+		m_paPpuAddrV.s.ui16NametableY = m_paPpuAddrT.s.ui16NametableY;
+		m_paPpuAddrV.s.ui16CourseY = m_paPpuAddrT.s.ui16CourseY;
 	}
 
 	++m_stCurCycle;
@@ -1796,15 +1742,6 @@ void LSN_FASTCALL								Cycle_0__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 	}
 
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
 
 		// LSN_PPU_NAMETABLES = 0x2000.
 		// LSN_PPU_ATTRIBUTE_TABLE_OFFSET = 0x03C0.
@@ -1816,6 +1753,58 @@ void LSN_FASTCALL								Cycle_0__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 		if (m_paPpuAddrV.s.ui16CourseX & 0x2) { m_ui8NtAtBuffer >>= 2; }
 		m_ui8NtAtBuffer &= 0x3;
 	}
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+	}
+
+	RenderPixel();
+
+
+	++m_stCurCycle;
+}
+
+
+void LSN_FASTCALL								Cycle_0__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x1_X() {
+
+	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
+
+	if (m_bRendering) {
+		for (uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {
+			if (m_asActiveSprites.ui8X[I]) {
+				--m_asActiveSprites.ui8X[I];
+			}
+			else {
+				m_asActiveSprites.ui8ShiftLo[I] <<= 1;
+				m_asActiveSprites.ui8ShiftHi[I] <<= 1;
+			}
+		}
+	}
+
+	if (m_bRendering) {
+
+		// LSN_PPU_NAMETABLES = 0x2000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
+	}
+
+	if (m_bRendering) {
+		m_ui16ShiftPatternLo <<= 1;
+		m_ui16ShiftPatternHi <<= 1;
+		m_ui16ShiftAttribLo <<= 1;
+		m_ui16ShiftAttribHi <<= 1;
+
+		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
+		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
+
+		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
+		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
+	}
+
+	RenderPixel();
+
 
 	++m_stCurCycle;
 }
@@ -1838,6 +1827,15 @@ void LSN_FASTCALL								Cycle_0__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 	}
 
 	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			0));
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1846,14 +1844,6 @@ void LSN_FASTCALL								Cycle_0__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		// LSN_PPU_PATTERN_TABLES = 0x0000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-			(m_paPpuAddrV.s.ui16FineY) +
-			0));
-	}
 
 	++m_stCurCycle;
 }
@@ -1876,6 +1866,15 @@ void LSN_FASTCALL								Cycle_0__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 	}
 
 	if (m_bRendering) {
+
+		// LSN_PPU_PATTERN_TABLES = 0x0000.
+		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
+			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
+			(m_paPpuAddrV.s.ui16FineY) +
+			8));
+	}
+
+	if (m_bRendering) {
 		m_ui16ShiftPatternLo <<= 1;
 		m_ui16ShiftPatternHi <<= 1;
 		m_ui16ShiftAttribLo <<= 1;
@@ -1884,14 +1883,6 @@ void LSN_FASTCALL								Cycle_0__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x
 
 	RenderPixel();
 
-	if (m_bRendering) {
-
-		// LSN_PPU_PATTERN_TABLES = 0x0000.
-		m_ui8NtAtBuffer = Read(LSN_PPU_PATTERN_TABLES | ((m_pcPpuCtrl.s.ui8BackgroundTileSelect << 12) +
-			(static_cast<uint16_t>(m_ui8NextTileId) << 4) +
-			(m_paPpuAddrV.s.ui16FineY) +
-			8));
-	}
 
 	++m_stCurCycle;
 }
@@ -1902,25 +1893,13 @@ void LSN_FASTCALL								Cycle_0__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
 
 		// LSN_PPU_NAMETABLES = 0x2000.
 		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 	}
+
+	RenderPixel();
+
 
 	++m_stCurCycle;
 }
@@ -1931,25 +1910,13 @@ void LSN_FASTCALL								Cycle_0__1x0() {
 	m_ui8OamLatch = ReadOam(m_ui8OamAddr);
 
 	if (m_bRendering) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi <<= 1;
-		m_ui16ShiftAttribLo <<= 1;
-		m_ui16ShiftAttribHi <<= 1;
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	RenderPixel();
-
-	if (m_bRendering) {
 
 		// LSN_PPU_NAMETABLES = 0x2000.
 		m_ui8NtAtBuffer = Read(LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF));
 	}
+
+	RenderPixel();
+
 
 	m_ui64RenderStartCycle = m_ui64Cycle;
 
