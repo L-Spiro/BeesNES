@@ -518,7 +518,8 @@ namespace lsn {
 					// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
 					if ( m_ui8OamAddr != 0 ) {
 						for ( size_t I = 0; I < 8; ++I ) {
-							WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
+							//WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
+							WriteOam( I, ReadOam( (m_ui8OamAddr & 0xF8) + I ) );
 						}
 					}
 				}
@@ -551,7 +552,8 @@ namespace lsn {
 							int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
-								if ( m_ui8OamAddr == 0 ) {
+								//if ( m_ui8OamAddr == 0 ) {
+								if ( m_ui16CurX == 66 ) {
 									// Inform that there is a sprite-0 in the next scanline.
 									m_bSprite0IsInSecondary = true;
 								}
