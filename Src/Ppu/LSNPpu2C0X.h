@@ -1005,7 +1005,7 @@ namespace lsn {
 
 
 			// If the scanline is NOT (>= 0 and < 240, or -1).
-			if ( !((ppPpu->m_bRendering && (i16AdjustedY < (_tPreRender + _tRender))) || i16AdjustedY == (_tDotHeight - 1)) ) {
+			if ( !(ppPpu->m_bRendering && (i16AdjustedY < (_tPreRender + _tRender) || i16AdjustedY == (_tDotHeight - 1))) ) {
 				ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
 			}
 			else {
@@ -1038,8 +1038,8 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			uint16_t ui16Scan = ppPpu->m_ui16CurY;
 			// If the scanline is (>= 0 and < 240, or -1).
-			if ( (ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender))) || ui16Scan == (_tDotHeight - 1) ) {
-				ppPpu->m_ui8OamAddr += 4;
+			if ( ppPpu->m_bRendering && (ui16Scan < (_tPreRender + _tRender) || ui16Scan == (_tDotHeight - 1)) ) {
+				ppPpu->m_ui8OamAddr = (ppPpu->m_ui8OamAddr + 4) & 0xFC;
 				return;
 			}
 			ppPpu->m_ui8IoBusLatch = ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val );
