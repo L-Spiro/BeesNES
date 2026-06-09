@@ -7880,29 +7880,11 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[88999] = pfTmp;
 		m_cCycle[89000] = pfTmp;
 		m_cCycle[89001] = pfTmp;
-		m_cCycle[89259] = pfTmp;
-		m_cCycle[89261] = pfTmp;
-		m_cCycle[89267] = pfTmp;
-		m_cCycle[89269] = pfTmp;
-		m_cCycle[89275] = pfTmp;
-		m_cCycle[89277] = pfTmp;
-		m_cCycle[89307] = pfTmp;
-		m_cCycle[89309] = pfTmp;
-		m_cCycle[89315] = pfTmp;
-		m_cCycle[89317] = pfTmp;
 		m_cCycle[89339] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__1x241;
 		m_cCycle[82182] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__257x240;
-		m_cCycle[82097] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__340x261;
-		m_cCycle[89341] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_132x0_140x0_X;
@@ -13668,6 +13650,33 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81751] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__68x261_76x261_84x261_92x261_100x261_108x261_116x261_124x261_132x261_140x261_X;
+		m_cCycle[89069] = pfTmp;
+		m_cCycle[89077] = pfTmp;
+		m_cCycle[89085] = pfTmp;
+		m_cCycle[89093] = pfTmp;
+		m_cCycle[89101] = pfTmp;
+		m_cCycle[89109] = pfTmp;
+		m_cCycle[89117] = pfTmp;
+		m_cCycle[89125] = pfTmp;
+		m_cCycle[89133] = pfTmp;
+		m_cCycle[89141] = pfTmp;
+		m_cCycle[89149] = pfTmp;
+		m_cCycle[89157] = pfTmp;
+		m_cCycle[89165] = pfTmp;
+		m_cCycle[89173] = pfTmp;
+		m_cCycle[89181] = pfTmp;
+		m_cCycle[89189] = pfTmp;
+		m_cCycle[89197] = pfTmp;
+		m_cCycle[89205] = pfTmp;
+		m_cCycle[89213] = pfTmp;
+		m_cCycle[89221] = pfTmp;
+		m_cCycle[89229] = pfTmp;
+		m_cCycle[89237] = pfTmp;
+		m_cCycle[89245] = pfTmp;
+		m_cCycle[89253] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130x0_138x0_X;
 		m_cCycle[66] = pfTmp;
 		m_cCycle[74] = pfTmp;
@@ -19429,6 +19438,33 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81733] = pfTmp;
 		m_cCycle[81741] = pfTmp;
 		m_cCycle[81749] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__66x261_74x261_82x261_90x261_98x261_106x261_114x261_122x261_130x261_138x261_X;
+		m_cCycle[89067] = pfTmp;
+		m_cCycle[89075] = pfTmp;
+		m_cCycle[89083] = pfTmp;
+		m_cCycle[89091] = pfTmp;
+		m_cCycle[89099] = pfTmp;
+		m_cCycle[89107] = pfTmp;
+		m_cCycle[89115] = pfTmp;
+		m_cCycle[89123] = pfTmp;
+		m_cCycle[89131] = pfTmp;
+		m_cCycle[89139] = pfTmp;
+		m_cCycle[89147] = pfTmp;
+		m_cCycle[89155] = pfTmp;
+		m_cCycle[89163] = pfTmp;
+		m_cCycle[89171] = pfTmp;
+		m_cCycle[89179] = pfTmp;
+		m_cCycle[89187] = pfTmp;
+		m_cCycle[89195] = pfTmp;
+		m_cCycle[89203] = pfTmp;
+		m_cCycle[89211] = pfTmp;
+		m_cCycle[89219] = pfTmp;
+		m_cCycle[89227] = pfTmp;
+		m_cCycle[89235] = pfTmp;
+		m_cCycle[89243] = pfTmp;
+		m_cCycle[89251] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_134x0_142x0_X;
@@ -25194,247 +25230,31 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81753] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x7_256x8_256x9_X;
-		m_cCycle[256] = pfTmp;
-		m_cCycle[597] = pfTmp;
-		m_cCycle[938] = pfTmp;
-		m_cCycle[1279] = pfTmp;
-		m_cCycle[1620] = pfTmp;
-		m_cCycle[1961] = pfTmp;
-		m_cCycle[2302] = pfTmp;
-		m_cCycle[2643] = pfTmp;
-		m_cCycle[2984] = pfTmp;
-		m_cCycle[3325] = pfTmp;
-		m_cCycle[3666] = pfTmp;
-		m_cCycle[4007] = pfTmp;
-		m_cCycle[4348] = pfTmp;
-		m_cCycle[4689] = pfTmp;
-		m_cCycle[5030] = pfTmp;
-		m_cCycle[5371] = pfTmp;
-		m_cCycle[5712] = pfTmp;
-		m_cCycle[6053] = pfTmp;
-		m_cCycle[6394] = pfTmp;
-		m_cCycle[6735] = pfTmp;
-		m_cCycle[7076] = pfTmp;
-		m_cCycle[7417] = pfTmp;
-		m_cCycle[7758] = pfTmp;
-		m_cCycle[8099] = pfTmp;
-		m_cCycle[8440] = pfTmp;
-		m_cCycle[8781] = pfTmp;
-		m_cCycle[9122] = pfTmp;
-		m_cCycle[9463] = pfTmp;
-		m_cCycle[9804] = pfTmp;
-		m_cCycle[10145] = pfTmp;
-		m_cCycle[10486] = pfTmp;
-		m_cCycle[10827] = pfTmp;
-		m_cCycle[11168] = pfTmp;
-		m_cCycle[11509] = pfTmp;
-		m_cCycle[11850] = pfTmp;
-		m_cCycle[12191] = pfTmp;
-		m_cCycle[12532] = pfTmp;
-		m_cCycle[12873] = pfTmp;
-		m_cCycle[13214] = pfTmp;
-		m_cCycle[13555] = pfTmp;
-		m_cCycle[13896] = pfTmp;
-		m_cCycle[14237] = pfTmp;
-		m_cCycle[14578] = pfTmp;
-		m_cCycle[14919] = pfTmp;
-		m_cCycle[15260] = pfTmp;
-		m_cCycle[15601] = pfTmp;
-		m_cCycle[15942] = pfTmp;
-		m_cCycle[16283] = pfTmp;
-		m_cCycle[16624] = pfTmp;
-		m_cCycle[16965] = pfTmp;
-		m_cCycle[17306] = pfTmp;
-		m_cCycle[17647] = pfTmp;
-		m_cCycle[17988] = pfTmp;
-		m_cCycle[18329] = pfTmp;
-		m_cCycle[18670] = pfTmp;
-		m_cCycle[19011] = pfTmp;
-		m_cCycle[19352] = pfTmp;
-		m_cCycle[19693] = pfTmp;
-		m_cCycle[20034] = pfTmp;
-		m_cCycle[20375] = pfTmp;
-		m_cCycle[20716] = pfTmp;
-		m_cCycle[21057] = pfTmp;
-		m_cCycle[21398] = pfTmp;
-		m_cCycle[21739] = pfTmp;
-		m_cCycle[22080] = pfTmp;
-		m_cCycle[22421] = pfTmp;
-		m_cCycle[22762] = pfTmp;
-		m_cCycle[23103] = pfTmp;
-		m_cCycle[23444] = pfTmp;
-		m_cCycle[23785] = pfTmp;
-		m_cCycle[24126] = pfTmp;
-		m_cCycle[24467] = pfTmp;
-		m_cCycle[24808] = pfTmp;
-		m_cCycle[25149] = pfTmp;
-		m_cCycle[25490] = pfTmp;
-		m_cCycle[25831] = pfTmp;
-		m_cCycle[26172] = pfTmp;
-		m_cCycle[26513] = pfTmp;
-		m_cCycle[26854] = pfTmp;
-		m_cCycle[27195] = pfTmp;
-		m_cCycle[27536] = pfTmp;
-		m_cCycle[27877] = pfTmp;
-		m_cCycle[28218] = pfTmp;
-		m_cCycle[28559] = pfTmp;
-		m_cCycle[28900] = pfTmp;
-		m_cCycle[29241] = pfTmp;
-		m_cCycle[29582] = pfTmp;
-		m_cCycle[29923] = pfTmp;
-		m_cCycle[30264] = pfTmp;
-		m_cCycle[30605] = pfTmp;
-		m_cCycle[30946] = pfTmp;
-		m_cCycle[31287] = pfTmp;
-		m_cCycle[31628] = pfTmp;
-		m_cCycle[31969] = pfTmp;
-		m_cCycle[32310] = pfTmp;
-		m_cCycle[32651] = pfTmp;
-		m_cCycle[32992] = pfTmp;
-		m_cCycle[33333] = pfTmp;
-		m_cCycle[33674] = pfTmp;
-		m_cCycle[34015] = pfTmp;
-		m_cCycle[34356] = pfTmp;
-		m_cCycle[34697] = pfTmp;
-		m_cCycle[35038] = pfTmp;
-		m_cCycle[35379] = pfTmp;
-		m_cCycle[35720] = pfTmp;
-		m_cCycle[36061] = pfTmp;
-		m_cCycle[36402] = pfTmp;
-		m_cCycle[36743] = pfTmp;
-		m_cCycle[37084] = pfTmp;
-		m_cCycle[37425] = pfTmp;
-		m_cCycle[37766] = pfTmp;
-		m_cCycle[38107] = pfTmp;
-		m_cCycle[38448] = pfTmp;
-		m_cCycle[38789] = pfTmp;
-		m_cCycle[39130] = pfTmp;
-		m_cCycle[39471] = pfTmp;
-		m_cCycle[39812] = pfTmp;
-		m_cCycle[40153] = pfTmp;
-		m_cCycle[40494] = pfTmp;
-		m_cCycle[40835] = pfTmp;
-		m_cCycle[41176] = pfTmp;
-		m_cCycle[41517] = pfTmp;
-		m_cCycle[41858] = pfTmp;
-		m_cCycle[42199] = pfTmp;
-		m_cCycle[42540] = pfTmp;
-		m_cCycle[42881] = pfTmp;
-		m_cCycle[43222] = pfTmp;
-		m_cCycle[43563] = pfTmp;
-		m_cCycle[43904] = pfTmp;
-		m_cCycle[44245] = pfTmp;
-		m_cCycle[44586] = pfTmp;
-		m_cCycle[44927] = pfTmp;
-		m_cCycle[45268] = pfTmp;
-		m_cCycle[45609] = pfTmp;
-		m_cCycle[45950] = pfTmp;
-		m_cCycle[46291] = pfTmp;
-		m_cCycle[46632] = pfTmp;
-		m_cCycle[46973] = pfTmp;
-		m_cCycle[47314] = pfTmp;
-		m_cCycle[47655] = pfTmp;
-		m_cCycle[47996] = pfTmp;
-		m_cCycle[48337] = pfTmp;
-		m_cCycle[48678] = pfTmp;
-		m_cCycle[49019] = pfTmp;
-		m_cCycle[49360] = pfTmp;
-		m_cCycle[49701] = pfTmp;
-		m_cCycle[50042] = pfTmp;
-		m_cCycle[50383] = pfTmp;
-		m_cCycle[50724] = pfTmp;
-		m_cCycle[51065] = pfTmp;
-		m_cCycle[51406] = pfTmp;
-		m_cCycle[51747] = pfTmp;
-		m_cCycle[52088] = pfTmp;
-		m_cCycle[52429] = pfTmp;
-		m_cCycle[52770] = pfTmp;
-		m_cCycle[53111] = pfTmp;
-		m_cCycle[53452] = pfTmp;
-		m_cCycle[53793] = pfTmp;
-		m_cCycle[54134] = pfTmp;
-		m_cCycle[54475] = pfTmp;
-		m_cCycle[54816] = pfTmp;
-		m_cCycle[55157] = pfTmp;
-		m_cCycle[55498] = pfTmp;
-		m_cCycle[55839] = pfTmp;
-		m_cCycle[56180] = pfTmp;
-		m_cCycle[56521] = pfTmp;
-		m_cCycle[56862] = pfTmp;
-		m_cCycle[57203] = pfTmp;
-		m_cCycle[57544] = pfTmp;
-		m_cCycle[57885] = pfTmp;
-		m_cCycle[58226] = pfTmp;
-		m_cCycle[58567] = pfTmp;
-		m_cCycle[58908] = pfTmp;
-		m_cCycle[59249] = pfTmp;
-		m_cCycle[59590] = pfTmp;
-		m_cCycle[59931] = pfTmp;
-		m_cCycle[60272] = pfTmp;
-		m_cCycle[60613] = pfTmp;
-		m_cCycle[60954] = pfTmp;
-		m_cCycle[61295] = pfTmp;
-		m_cCycle[61636] = pfTmp;
-		m_cCycle[61977] = pfTmp;
-		m_cCycle[62318] = pfTmp;
-		m_cCycle[62659] = pfTmp;
-		m_cCycle[63000] = pfTmp;
-		m_cCycle[63341] = pfTmp;
-		m_cCycle[63682] = pfTmp;
-		m_cCycle[64023] = pfTmp;
-		m_cCycle[64364] = pfTmp;
-		m_cCycle[64705] = pfTmp;
-		m_cCycle[65046] = pfTmp;
-		m_cCycle[65387] = pfTmp;
-		m_cCycle[65728] = pfTmp;
-		m_cCycle[66069] = pfTmp;
-		m_cCycle[66410] = pfTmp;
-		m_cCycle[66751] = pfTmp;
-		m_cCycle[67092] = pfTmp;
-		m_cCycle[67433] = pfTmp;
-		m_cCycle[67774] = pfTmp;
-		m_cCycle[68115] = pfTmp;
-		m_cCycle[68456] = pfTmp;
-		m_cCycle[68797] = pfTmp;
-		m_cCycle[69138] = pfTmp;
-		m_cCycle[69479] = pfTmp;
-		m_cCycle[69820] = pfTmp;
-		m_cCycle[70161] = pfTmp;
-		m_cCycle[70502] = pfTmp;
-		m_cCycle[70843] = pfTmp;
-		m_cCycle[71184] = pfTmp;
-		m_cCycle[71525] = pfTmp;
-		m_cCycle[71866] = pfTmp;
-		m_cCycle[72207] = pfTmp;
-		m_cCycle[72548] = pfTmp;
-		m_cCycle[72889] = pfTmp;
-		m_cCycle[73230] = pfTmp;
-		m_cCycle[73571] = pfTmp;
-		m_cCycle[73912] = pfTmp;
-		m_cCycle[74253] = pfTmp;
-		m_cCycle[74594] = pfTmp;
-		m_cCycle[74935] = pfTmp;
-		m_cCycle[75276] = pfTmp;
-		m_cCycle[75617] = pfTmp;
-		m_cCycle[75958] = pfTmp;
-		m_cCycle[76299] = pfTmp;
-		m_cCycle[76640] = pfTmp;
-		m_cCycle[76981] = pfTmp;
-		m_cCycle[77322] = pfTmp;
-		m_cCycle[77663] = pfTmp;
-		m_cCycle[78004] = pfTmp;
-		m_cCycle[78345] = pfTmp;
-		m_cCycle[78686] = pfTmp;
-		m_cCycle[79027] = pfTmp;
-		m_cCycle[79368] = pfTmp;
-		m_cCycle[79709] = pfTmp;
-		m_cCycle[80050] = pfTmp;
-		m_cCycle[80391] = pfTmp;
-		m_cCycle[80732] = pfTmp;
-		m_cCycle[81073] = pfTmp;
-		m_cCycle[81414] = pfTmp;
-		m_cCycle[81755] = pfTmp;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__70x261_78x261_86x261_94x261_102x261_110x261_118x261_126x261_134x261_142x261_X;
+		m_cCycle[89071] = pfTmp;
+		m_cCycle[89079] = pfTmp;
+		m_cCycle[89087] = pfTmp;
+		m_cCycle[89095] = pfTmp;
+		m_cCycle[89103] = pfTmp;
+		m_cCycle[89111] = pfTmp;
+		m_cCycle[89119] = pfTmp;
+		m_cCycle[89127] = pfTmp;
+		m_cCycle[89135] = pfTmp;
+		m_cCycle[89143] = pfTmp;
+		m_cCycle[89151] = pfTmp;
+		m_cCycle[89159] = pfTmp;
+		m_cCycle[89167] = pfTmp;
+		m_cCycle[89175] = pfTmp;
+		m_cCycle[89183] = pfTmp;
+		m_cCycle[89191] = pfTmp;
+		m_cCycle[89199] = pfTmp;
+		m_cCycle[89207] = pfTmp;
+		m_cCycle[89215] = pfTmp;
+		m_cCycle[89223] = pfTmp;
+		m_cCycle[89231] = pfTmp;
+		m_cCycle[89239] = pfTmp;
+		m_cCycle[89247] = pfTmp;
+		m_cCycle[89255] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_136x0_144x0_X;
@@ -30958,6 +30778,279 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81731] = pfTmp;
 		m_cCycle[81739] = pfTmp;
 		m_cCycle[81747] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x7_256x8_256x9_X;
+		m_cCycle[256] = pfTmp;
+		m_cCycle[597] = pfTmp;
+		m_cCycle[938] = pfTmp;
+		m_cCycle[1279] = pfTmp;
+		m_cCycle[1620] = pfTmp;
+		m_cCycle[1961] = pfTmp;
+		m_cCycle[2302] = pfTmp;
+		m_cCycle[2643] = pfTmp;
+		m_cCycle[2984] = pfTmp;
+		m_cCycle[3325] = pfTmp;
+		m_cCycle[3666] = pfTmp;
+		m_cCycle[4007] = pfTmp;
+		m_cCycle[4348] = pfTmp;
+		m_cCycle[4689] = pfTmp;
+		m_cCycle[5030] = pfTmp;
+		m_cCycle[5371] = pfTmp;
+		m_cCycle[5712] = pfTmp;
+		m_cCycle[6053] = pfTmp;
+		m_cCycle[6394] = pfTmp;
+		m_cCycle[6735] = pfTmp;
+		m_cCycle[7076] = pfTmp;
+		m_cCycle[7417] = pfTmp;
+		m_cCycle[7758] = pfTmp;
+		m_cCycle[8099] = pfTmp;
+		m_cCycle[8440] = pfTmp;
+		m_cCycle[8781] = pfTmp;
+		m_cCycle[9122] = pfTmp;
+		m_cCycle[9463] = pfTmp;
+		m_cCycle[9804] = pfTmp;
+		m_cCycle[10145] = pfTmp;
+		m_cCycle[10486] = pfTmp;
+		m_cCycle[10827] = pfTmp;
+		m_cCycle[11168] = pfTmp;
+		m_cCycle[11509] = pfTmp;
+		m_cCycle[11850] = pfTmp;
+		m_cCycle[12191] = pfTmp;
+		m_cCycle[12532] = pfTmp;
+		m_cCycle[12873] = pfTmp;
+		m_cCycle[13214] = pfTmp;
+		m_cCycle[13555] = pfTmp;
+		m_cCycle[13896] = pfTmp;
+		m_cCycle[14237] = pfTmp;
+		m_cCycle[14578] = pfTmp;
+		m_cCycle[14919] = pfTmp;
+		m_cCycle[15260] = pfTmp;
+		m_cCycle[15601] = pfTmp;
+		m_cCycle[15942] = pfTmp;
+		m_cCycle[16283] = pfTmp;
+		m_cCycle[16624] = pfTmp;
+		m_cCycle[16965] = pfTmp;
+		m_cCycle[17306] = pfTmp;
+		m_cCycle[17647] = pfTmp;
+		m_cCycle[17988] = pfTmp;
+		m_cCycle[18329] = pfTmp;
+		m_cCycle[18670] = pfTmp;
+		m_cCycle[19011] = pfTmp;
+		m_cCycle[19352] = pfTmp;
+		m_cCycle[19693] = pfTmp;
+		m_cCycle[20034] = pfTmp;
+		m_cCycle[20375] = pfTmp;
+		m_cCycle[20716] = pfTmp;
+		m_cCycle[21057] = pfTmp;
+		m_cCycle[21398] = pfTmp;
+		m_cCycle[21739] = pfTmp;
+		m_cCycle[22080] = pfTmp;
+		m_cCycle[22421] = pfTmp;
+		m_cCycle[22762] = pfTmp;
+		m_cCycle[23103] = pfTmp;
+		m_cCycle[23444] = pfTmp;
+		m_cCycle[23785] = pfTmp;
+		m_cCycle[24126] = pfTmp;
+		m_cCycle[24467] = pfTmp;
+		m_cCycle[24808] = pfTmp;
+		m_cCycle[25149] = pfTmp;
+		m_cCycle[25490] = pfTmp;
+		m_cCycle[25831] = pfTmp;
+		m_cCycle[26172] = pfTmp;
+		m_cCycle[26513] = pfTmp;
+		m_cCycle[26854] = pfTmp;
+		m_cCycle[27195] = pfTmp;
+		m_cCycle[27536] = pfTmp;
+		m_cCycle[27877] = pfTmp;
+		m_cCycle[28218] = pfTmp;
+		m_cCycle[28559] = pfTmp;
+		m_cCycle[28900] = pfTmp;
+		m_cCycle[29241] = pfTmp;
+		m_cCycle[29582] = pfTmp;
+		m_cCycle[29923] = pfTmp;
+		m_cCycle[30264] = pfTmp;
+		m_cCycle[30605] = pfTmp;
+		m_cCycle[30946] = pfTmp;
+		m_cCycle[31287] = pfTmp;
+		m_cCycle[31628] = pfTmp;
+		m_cCycle[31969] = pfTmp;
+		m_cCycle[32310] = pfTmp;
+		m_cCycle[32651] = pfTmp;
+		m_cCycle[32992] = pfTmp;
+		m_cCycle[33333] = pfTmp;
+		m_cCycle[33674] = pfTmp;
+		m_cCycle[34015] = pfTmp;
+		m_cCycle[34356] = pfTmp;
+		m_cCycle[34697] = pfTmp;
+		m_cCycle[35038] = pfTmp;
+		m_cCycle[35379] = pfTmp;
+		m_cCycle[35720] = pfTmp;
+		m_cCycle[36061] = pfTmp;
+		m_cCycle[36402] = pfTmp;
+		m_cCycle[36743] = pfTmp;
+		m_cCycle[37084] = pfTmp;
+		m_cCycle[37425] = pfTmp;
+		m_cCycle[37766] = pfTmp;
+		m_cCycle[38107] = pfTmp;
+		m_cCycle[38448] = pfTmp;
+		m_cCycle[38789] = pfTmp;
+		m_cCycle[39130] = pfTmp;
+		m_cCycle[39471] = pfTmp;
+		m_cCycle[39812] = pfTmp;
+		m_cCycle[40153] = pfTmp;
+		m_cCycle[40494] = pfTmp;
+		m_cCycle[40835] = pfTmp;
+		m_cCycle[41176] = pfTmp;
+		m_cCycle[41517] = pfTmp;
+		m_cCycle[41858] = pfTmp;
+		m_cCycle[42199] = pfTmp;
+		m_cCycle[42540] = pfTmp;
+		m_cCycle[42881] = pfTmp;
+		m_cCycle[43222] = pfTmp;
+		m_cCycle[43563] = pfTmp;
+		m_cCycle[43904] = pfTmp;
+		m_cCycle[44245] = pfTmp;
+		m_cCycle[44586] = pfTmp;
+		m_cCycle[44927] = pfTmp;
+		m_cCycle[45268] = pfTmp;
+		m_cCycle[45609] = pfTmp;
+		m_cCycle[45950] = pfTmp;
+		m_cCycle[46291] = pfTmp;
+		m_cCycle[46632] = pfTmp;
+		m_cCycle[46973] = pfTmp;
+		m_cCycle[47314] = pfTmp;
+		m_cCycle[47655] = pfTmp;
+		m_cCycle[47996] = pfTmp;
+		m_cCycle[48337] = pfTmp;
+		m_cCycle[48678] = pfTmp;
+		m_cCycle[49019] = pfTmp;
+		m_cCycle[49360] = pfTmp;
+		m_cCycle[49701] = pfTmp;
+		m_cCycle[50042] = pfTmp;
+		m_cCycle[50383] = pfTmp;
+		m_cCycle[50724] = pfTmp;
+		m_cCycle[51065] = pfTmp;
+		m_cCycle[51406] = pfTmp;
+		m_cCycle[51747] = pfTmp;
+		m_cCycle[52088] = pfTmp;
+		m_cCycle[52429] = pfTmp;
+		m_cCycle[52770] = pfTmp;
+		m_cCycle[53111] = pfTmp;
+		m_cCycle[53452] = pfTmp;
+		m_cCycle[53793] = pfTmp;
+		m_cCycle[54134] = pfTmp;
+		m_cCycle[54475] = pfTmp;
+		m_cCycle[54816] = pfTmp;
+		m_cCycle[55157] = pfTmp;
+		m_cCycle[55498] = pfTmp;
+		m_cCycle[55839] = pfTmp;
+		m_cCycle[56180] = pfTmp;
+		m_cCycle[56521] = pfTmp;
+		m_cCycle[56862] = pfTmp;
+		m_cCycle[57203] = pfTmp;
+		m_cCycle[57544] = pfTmp;
+		m_cCycle[57885] = pfTmp;
+		m_cCycle[58226] = pfTmp;
+		m_cCycle[58567] = pfTmp;
+		m_cCycle[58908] = pfTmp;
+		m_cCycle[59249] = pfTmp;
+		m_cCycle[59590] = pfTmp;
+		m_cCycle[59931] = pfTmp;
+		m_cCycle[60272] = pfTmp;
+		m_cCycle[60613] = pfTmp;
+		m_cCycle[60954] = pfTmp;
+		m_cCycle[61295] = pfTmp;
+		m_cCycle[61636] = pfTmp;
+		m_cCycle[61977] = pfTmp;
+		m_cCycle[62318] = pfTmp;
+		m_cCycle[62659] = pfTmp;
+		m_cCycle[63000] = pfTmp;
+		m_cCycle[63341] = pfTmp;
+		m_cCycle[63682] = pfTmp;
+		m_cCycle[64023] = pfTmp;
+		m_cCycle[64364] = pfTmp;
+		m_cCycle[64705] = pfTmp;
+		m_cCycle[65046] = pfTmp;
+		m_cCycle[65387] = pfTmp;
+		m_cCycle[65728] = pfTmp;
+		m_cCycle[66069] = pfTmp;
+		m_cCycle[66410] = pfTmp;
+		m_cCycle[66751] = pfTmp;
+		m_cCycle[67092] = pfTmp;
+		m_cCycle[67433] = pfTmp;
+		m_cCycle[67774] = pfTmp;
+		m_cCycle[68115] = pfTmp;
+		m_cCycle[68456] = pfTmp;
+		m_cCycle[68797] = pfTmp;
+		m_cCycle[69138] = pfTmp;
+		m_cCycle[69479] = pfTmp;
+		m_cCycle[69820] = pfTmp;
+		m_cCycle[70161] = pfTmp;
+		m_cCycle[70502] = pfTmp;
+		m_cCycle[70843] = pfTmp;
+		m_cCycle[71184] = pfTmp;
+		m_cCycle[71525] = pfTmp;
+		m_cCycle[71866] = pfTmp;
+		m_cCycle[72207] = pfTmp;
+		m_cCycle[72548] = pfTmp;
+		m_cCycle[72889] = pfTmp;
+		m_cCycle[73230] = pfTmp;
+		m_cCycle[73571] = pfTmp;
+		m_cCycle[73912] = pfTmp;
+		m_cCycle[74253] = pfTmp;
+		m_cCycle[74594] = pfTmp;
+		m_cCycle[74935] = pfTmp;
+		m_cCycle[75276] = pfTmp;
+		m_cCycle[75617] = pfTmp;
+		m_cCycle[75958] = pfTmp;
+		m_cCycle[76299] = pfTmp;
+		m_cCycle[76640] = pfTmp;
+		m_cCycle[76981] = pfTmp;
+		m_cCycle[77322] = pfTmp;
+		m_cCycle[77663] = pfTmp;
+		m_cCycle[78004] = pfTmp;
+		m_cCycle[78345] = pfTmp;
+		m_cCycle[78686] = pfTmp;
+		m_cCycle[79027] = pfTmp;
+		m_cCycle[79368] = pfTmp;
+		m_cCycle[79709] = pfTmp;
+		m_cCycle[80050] = pfTmp;
+		m_cCycle[80391] = pfTmp;
+		m_cCycle[80732] = pfTmp;
+		m_cCycle[81073] = pfTmp;
+		m_cCycle[81414] = pfTmp;
+		m_cCycle[81755] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__72x261_80x261_88x261_96x261_104x261_112x261_120x261_128x261_136x261_144x261_X;
+		m_cCycle[89073] = pfTmp;
+		m_cCycle[89081] = pfTmp;
+		m_cCycle[89089] = pfTmp;
+		m_cCycle[89097] = pfTmp;
+		m_cCycle[89105] = pfTmp;
+		m_cCycle[89113] = pfTmp;
+		m_cCycle[89121] = pfTmp;
+		m_cCycle[89129] = pfTmp;
+		m_cCycle[89137] = pfTmp;
+		m_cCycle[89145] = pfTmp;
+		m_cCycle[89153] = pfTmp;
+		m_cCycle[89161] = pfTmp;
+		m_cCycle[89169] = pfTmp;
+		m_cCycle[89177] = pfTmp;
+		m_cCycle[89185] = pfTmp;
+		m_cCycle[89193] = pfTmp;
+		m_cCycle[89201] = pfTmp;
+		m_cCycle[89209] = pfTmp;
+		m_cCycle[89217] = pfTmp;
+		m_cCycle[89225] = pfTmp;
+		m_cCycle[89233] = pfTmp;
+		m_cCycle[89241] = pfTmp;
+		m_cCycle[89249] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__256x261;
+		m_cCycle[89257] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131x0_139x0_X;
@@ -36723,6 +36816,33 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81750] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__67x261_75x261_83x261_91x261_99x261_107x261_115x261_123x261_131x261_139x261_X;
+		m_cCycle[89068] = pfTmp;
+		m_cCycle[89076] = pfTmp;
+		m_cCycle[89084] = pfTmp;
+		m_cCycle[89092] = pfTmp;
+		m_cCycle[89100] = pfTmp;
+		m_cCycle[89108] = pfTmp;
+		m_cCycle[89116] = pfTmp;
+		m_cCycle[89124] = pfTmp;
+		m_cCycle[89132] = pfTmp;
+		m_cCycle[89140] = pfTmp;
+		m_cCycle[89148] = pfTmp;
+		m_cCycle[89156] = pfTmp;
+		m_cCycle[89164] = pfTmp;
+		m_cCycle[89172] = pfTmp;
+		m_cCycle[89180] = pfTmp;
+		m_cCycle[89188] = pfTmp;
+		m_cCycle[89196] = pfTmp;
+		m_cCycle[89204] = pfTmp;
+		m_cCycle[89212] = pfTmp;
+		m_cCycle[89220] = pfTmp;
+		m_cCycle[89228] = pfTmp;
+		m_cCycle[89236] = pfTmp;
+		m_cCycle[89244] = pfTmp;
+		m_cCycle[89252] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_137x0_145x0_X;
 		m_cCycle[73] = pfTmp;
 		m_cCycle[81] = pfTmp;
@@ -42244,6 +42364,32 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81732] = pfTmp;
 		m_cCycle[81740] = pfTmp;
 		m_cCycle[81748] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__73x261_81x261_89x261_97x261_105x261_113x261_121x261_129x261_137x261_145x261_X;
+		m_cCycle[89074] = pfTmp;
+		m_cCycle[89082] = pfTmp;
+		m_cCycle[89090] = pfTmp;
+		m_cCycle[89098] = pfTmp;
+		m_cCycle[89106] = pfTmp;
+		m_cCycle[89114] = pfTmp;
+		m_cCycle[89122] = pfTmp;
+		m_cCycle[89130] = pfTmp;
+		m_cCycle[89138] = pfTmp;
+		m_cCycle[89146] = pfTmp;
+		m_cCycle[89154] = pfTmp;
+		m_cCycle[89162] = pfTmp;
+		m_cCycle[89170] = pfTmp;
+		m_cCycle[89178] = pfTmp;
+		m_cCycle[89186] = pfTmp;
+		m_cCycle[89194] = pfTmp;
+		m_cCycle[89202] = pfTmp;
+		m_cCycle[89210] = pfTmp;
+		m_cCycle[89218] = pfTmp;
+		m_cCycle[89226] = pfTmp;
+		m_cCycle[89234] = pfTmp;
+		m_cCycle[89242] = pfTmp;
+		m_cCycle[89250] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_133x0_141x0_X;
@@ -48009,6 +48155,33 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81752] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__69x261_77x261_85x261_93x261_101x261_109x261_117x261_125x261_133x261_141x261_X;
+		m_cCycle[89070] = pfTmp;
+		m_cCycle[89078] = pfTmp;
+		m_cCycle[89086] = pfTmp;
+		m_cCycle[89094] = pfTmp;
+		m_cCycle[89102] = pfTmp;
+		m_cCycle[89110] = pfTmp;
+		m_cCycle[89118] = pfTmp;
+		m_cCycle[89126] = pfTmp;
+		m_cCycle[89134] = pfTmp;
+		m_cCycle[89142] = pfTmp;
+		m_cCycle[89150] = pfTmp;
+		m_cCycle[89158] = pfTmp;
+		m_cCycle[89166] = pfTmp;
+		m_cCycle[89174] = pfTmp;
+		m_cCycle[89182] = pfTmp;
+		m_cCycle[89190] = pfTmp;
+		m_cCycle[89198] = pfTmp;
+		m_cCycle[89206] = pfTmp;
+		m_cCycle[89214] = pfTmp;
+		m_cCycle[89222] = pfTmp;
+		m_cCycle[89230] = pfTmp;
+		m_cCycle[89238] = pfTmp;
+		m_cCycle[89246] = pfTmp;
+		m_cCycle[89254] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_135x0_143x0_X;
 		m_cCycle[71] = pfTmp;
 		m_cCycle[79] = pfTmp;
@@ -53772,6 +53945,33 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81754] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__71x261_79x261_87x261_95x261_103x261_111x261_119x261_127x261_135x261_143x261_X;
+		m_cCycle[89072] = pfTmp;
+		m_cCycle[89080] = pfTmp;
+		m_cCycle[89088] = pfTmp;
+		m_cCycle[89096] = pfTmp;
+		m_cCycle[89104] = pfTmp;
+		m_cCycle[89112] = pfTmp;
+		m_cCycle[89120] = pfTmp;
+		m_cCycle[89128] = pfTmp;
+		m_cCycle[89136] = pfTmp;
+		m_cCycle[89144] = pfTmp;
+		m_cCycle[89152] = pfTmp;
+		m_cCycle[89160] = pfTmp;
+		m_cCycle[89168] = pfTmp;
+		m_cCycle[89176] = pfTmp;
+		m_cCycle[89184] = pfTmp;
+		m_cCycle[89192] = pfTmp;
+		m_cCycle[89200] = pfTmp;
+		m_cCycle[89208] = pfTmp;
+		m_cCycle[89216] = pfTmp;
+		m_cCycle[89224] = pfTmp;
+		m_cCycle[89232] = pfTmp;
+		m_cCycle[89240] = pfTmp;
+		m_cCycle[89248] = pfTmp;
+		m_cCycle[89256] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_65x9_X;
 		m_cCycle[65] = pfTmp;
 		m_cCycle[406] = pfTmp;
@@ -54015,6 +54215,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81564] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__65x261;
+		m_cCycle[89066] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__257x0_257x1_257x2_257x3_257x4_257x5_257x6_257x7_257x8_257x9_X;
 		m_cCycle[257] = pfTmp;
 		m_cCycle[598] = pfTmp;
@@ -54256,6 +54460,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81074] = pfTmp;
 		m_cCycle[81415] = pfTmp;
 		m_cCycle[81756] = pfTmp;
+		m_cCycle[89258] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__258x0_258x1_258x2_258x3_258x4_258x5_258x6_258x7_258x8_258x9_X;
@@ -54499,6 +54704,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81075] = pfTmp;
 		m_cCycle[81416] = pfTmp;
 		m_cCycle[81757] = pfTmp;
+		m_cCycle[89259] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__259x0_259x1_259x2_259x3_259x4_259x5_259x6_259x7_259x8_259x9_X;
@@ -54742,6 +54948,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81076] = pfTmp;
 		m_cCycle[81417] = pfTmp;
 		m_cCycle[81758] = pfTmp;
+		m_cCycle[89260] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__260x0_260x1_260x2_260x3_260x4_260x5_260x6_260x7_260x8_260x9_X;
@@ -54985,6 +55192,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81077] = pfTmp;
 		m_cCycle[81418] = pfTmp;
 		m_cCycle[81759] = pfTmp;
+		m_cCycle[89261] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__261x0_261x1_261x2_261x3_261x4_261x5_261x6_261x7_261x8_261x9_X;
@@ -55228,6 +55436,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81078] = pfTmp;
 		m_cCycle[81419] = pfTmp;
 		m_cCycle[81760] = pfTmp;
+		m_cCycle[89262] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__262x0_262x1_262x2_262x3_262x4_262x5_262x6_262x7_262x8_262x9_X;
@@ -55471,6 +55680,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81079] = pfTmp;
 		m_cCycle[81420] = pfTmp;
 		m_cCycle[81761] = pfTmp;
+		m_cCycle[89263] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__263x0_263x1_263x2_263x3_263x4_263x5_263x6_263x7_263x8_263x9_X;
@@ -55714,6 +55924,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81080] = pfTmp;
 		m_cCycle[81421] = pfTmp;
 		m_cCycle[81762] = pfTmp;
+		m_cCycle[89264] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__264x0_264x1_264x2_264x3_264x4_264x5_264x6_264x7_264x8_264x9_X;
@@ -55957,6 +56168,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81081] = pfTmp;
 		m_cCycle[81422] = pfTmp;
 		m_cCycle[81763] = pfTmp;
+		m_cCycle[89265] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__265x0_265x1_265x2_265x3_265x4_265x5_265x6_265x7_265x8_265x9_X;
@@ -56200,6 +56412,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81082] = pfTmp;
 		m_cCycle[81423] = pfTmp;
 		m_cCycle[81764] = pfTmp;
+		m_cCycle[89266] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__266x0_266x1_266x2_266x3_266x4_266x5_266x6_266x7_266x8_266x9_X;
@@ -56443,6 +56656,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81083] = pfTmp;
 		m_cCycle[81424] = pfTmp;
 		m_cCycle[81765] = pfTmp;
+		m_cCycle[89267] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__267x0_267x1_267x2_267x3_267x4_267x5_267x6_267x7_267x8_267x9_X;
@@ -56686,6 +56900,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81084] = pfTmp;
 		m_cCycle[81425] = pfTmp;
 		m_cCycle[81766] = pfTmp;
+		m_cCycle[89268] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__268x0_268x1_268x2_268x3_268x4_268x5_268x6_268x7_268x8_268x9_X;
@@ -56929,6 +57144,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81085] = pfTmp;
 		m_cCycle[81426] = pfTmp;
 		m_cCycle[81767] = pfTmp;
+		m_cCycle[89269] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__269x0_269x1_269x2_269x3_269x4_269x5_269x6_269x7_269x8_269x9_X;
@@ -57172,6 +57388,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81086] = pfTmp;
 		m_cCycle[81427] = pfTmp;
 		m_cCycle[81768] = pfTmp;
+		m_cCycle[89270] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__270x0_270x1_270x2_270x3_270x4_270x5_270x6_270x7_270x8_270x9_X;
@@ -57415,6 +57632,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81087] = pfTmp;
 		m_cCycle[81428] = pfTmp;
 		m_cCycle[81769] = pfTmp;
+		m_cCycle[89271] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__271x0_271x1_271x2_271x3_271x4_271x5_271x6_271x7_271x8_271x9_X;
@@ -57658,6 +57876,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81088] = pfTmp;
 		m_cCycle[81429] = pfTmp;
 		m_cCycle[81770] = pfTmp;
+		m_cCycle[89272] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__272x0_272x1_272x2_272x3_272x4_272x5_272x6_272x7_272x8_272x9_X;
@@ -57901,6 +58120,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81089] = pfTmp;
 		m_cCycle[81430] = pfTmp;
 		m_cCycle[81771] = pfTmp;
+		m_cCycle[89273] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__273x0_273x1_273x2_273x3_273x4_273x5_273x6_273x7_273x8_273x9_X;
@@ -58144,6 +58364,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81090] = pfTmp;
 		m_cCycle[81431] = pfTmp;
 		m_cCycle[81772] = pfTmp;
+		m_cCycle[89274] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__274x0_274x1_274x2_274x3_274x4_274x5_274x6_274x7_274x8_274x9_X;
@@ -58387,6 +58608,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81091] = pfTmp;
 		m_cCycle[81432] = pfTmp;
 		m_cCycle[81773] = pfTmp;
+		m_cCycle[89275] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__275x0_275x1_275x2_275x3_275x4_275x5_275x6_275x7_275x8_275x9_X;
@@ -58630,6 +58852,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81092] = pfTmp;
 		m_cCycle[81433] = pfTmp;
 		m_cCycle[81774] = pfTmp;
+		m_cCycle[89276] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__276x0_276x1_276x2_276x3_276x4_276x5_276x6_276x7_276x8_276x9_X;
@@ -58873,6 +59096,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81093] = pfTmp;
 		m_cCycle[81434] = pfTmp;
 		m_cCycle[81775] = pfTmp;
+		m_cCycle[89277] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__277x0_277x1_277x2_277x3_277x4_277x5_277x6_277x7_277x8_277x9_X;
@@ -59116,6 +59340,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81094] = pfTmp;
 		m_cCycle[81435] = pfTmp;
 		m_cCycle[81776] = pfTmp;
+		m_cCycle[89278] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__278x0_278x1_278x2_278x3_278x4_278x5_278x6_278x7_278x8_278x9_X;
@@ -59359,6 +59584,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81095] = pfTmp;
 		m_cCycle[81436] = pfTmp;
 		m_cCycle[81777] = pfTmp;
+		m_cCycle[89279] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__279x0_279x1_279x2_279x3_279x4_279x5_279x6_279x7_279x8_279x9_X;
@@ -59602,6 +59828,11 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81096] = pfTmp;
 		m_cCycle[81437] = pfTmp;
 		m_cCycle[81778] = pfTmp;
+		m_cCycle[89280] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__280x261;
+		m_cCycle[89281] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__280x0_280x1_280x2_280x3_280x4_280x5_280x6_280x7_280x8_280x9_X;
@@ -59847,6 +60078,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81779] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__281x261;
+		m_cCycle[89282] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__281x0_281x1_281x2_281x3_281x4_281x5_281x6_281x7_281x8_281x9_X;
 		m_cCycle[281] = pfTmp;
 		m_cCycle[622] = pfTmp;
@@ -60088,6 +60323,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81098] = pfTmp;
 		m_cCycle[81439] = pfTmp;
 		m_cCycle[81780] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__282x261;
+		m_cCycle[89283] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__282x0_282x1_282x2_282x3_282x4_282x5_282x6_282x7_282x8_282x9_X;
@@ -60333,6 +60572,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81781] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__283x261;
+		m_cCycle[89284] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__283x0_283x1_283x2_283x3_283x4_283x5_283x6_283x7_283x8_283x9_X;
 		m_cCycle[283] = pfTmp;
 		m_cCycle[624] = pfTmp;
@@ -60574,6 +60817,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81100] = pfTmp;
 		m_cCycle[81441] = pfTmp;
 		m_cCycle[81782] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__284x261;
+		m_cCycle[89285] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__284x0_284x1_284x2_284x3_284x4_284x5_284x6_284x7_284x8_284x9_X;
@@ -60819,6 +61066,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81783] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__285x261;
+		m_cCycle[89286] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__285x0_285x1_285x2_285x3_285x4_285x5_285x6_285x7_285x8_285x9_X;
 		m_cCycle[285] = pfTmp;
 		m_cCycle[626] = pfTmp;
@@ -61060,6 +61311,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81102] = pfTmp;
 		m_cCycle[81443] = pfTmp;
 		m_cCycle[81784] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__286x261;
+		m_cCycle[89287] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__286x0_286x1_286x2_286x3_286x4_286x5_286x6_286x7_286x8_286x9_X;
@@ -61305,6 +61560,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81785] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__287x261;
+		m_cCycle[89288] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__287x0_287x1_287x2_287x3_287x4_287x5_287x6_287x7_287x8_287x9_X;
 		m_cCycle[287] = pfTmp;
 		m_cCycle[628] = pfTmp;
@@ -61546,6 +61805,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81104] = pfTmp;
 		m_cCycle[81445] = pfTmp;
 		m_cCycle[81786] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__288x261;
+		m_cCycle[89289] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__288x0_288x1_288x2_288x3_288x4_288x5_288x6_288x7_288x8_288x9_X;
@@ -61791,6 +62054,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81787] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__289x261;
+		m_cCycle[89290] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__289x0_289x1_289x2_289x3_289x4_289x5_289x6_289x7_289x8_289x9_X;
 		m_cCycle[289] = pfTmp;
 		m_cCycle[630] = pfTmp;
@@ -62032,6 +62299,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81106] = pfTmp;
 		m_cCycle[81447] = pfTmp;
 		m_cCycle[81788] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__290x261;
+		m_cCycle[89291] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__290x0_290x1_290x2_290x3_290x4_290x5_290x6_290x7_290x8_290x9_X;
@@ -62277,6 +62548,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81789] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__291x261;
+		m_cCycle[89292] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__291x0_291x1_291x2_291x3_291x4_291x5_291x6_291x7_291x8_291x9_X;
 		m_cCycle[291] = pfTmp;
 		m_cCycle[632] = pfTmp;
@@ -62518,6 +62793,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81108] = pfTmp;
 		m_cCycle[81449] = pfTmp;
 		m_cCycle[81790] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__292x261;
+		m_cCycle[89293] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__292x0_292x1_292x2_292x3_292x4_292x5_292x6_292x7_292x8_292x9_X;
@@ -62763,6 +63042,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81791] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__293x261;
+		m_cCycle[89294] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__293x0_293x1_293x2_293x3_293x4_293x5_293x6_293x7_293x8_293x9_X;
 		m_cCycle[293] = pfTmp;
 		m_cCycle[634] = pfTmp;
@@ -63004,6 +63287,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81110] = pfTmp;
 		m_cCycle[81451] = pfTmp;
 		m_cCycle[81792] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__294x261;
+		m_cCycle[89295] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__294x0_294x1_294x2_294x3_294x4_294x5_294x6_294x7_294x8_294x9_X;
@@ -63249,6 +63536,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81793] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__295x261;
+		m_cCycle[89296] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__295x0_295x1_295x2_295x3_295x4_295x5_295x6_295x7_295x8_295x9_X;
 		m_cCycle[295] = pfTmp;
 		m_cCycle[636] = pfTmp;
@@ -63490,6 +63781,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81112] = pfTmp;
 		m_cCycle[81453] = pfTmp;
 		m_cCycle[81794] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__296x261;
+		m_cCycle[89297] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__296x0_296x1_296x2_296x3_296x4_296x5_296x6_296x7_296x8_296x9_X;
@@ -63735,6 +64030,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81795] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__297x261;
+		m_cCycle[89298] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__297x0_297x1_297x2_297x3_297x4_297x5_297x6_297x7_297x8_297x9_X;
 		m_cCycle[297] = pfTmp;
 		m_cCycle[638] = pfTmp;
@@ -63976,6 +64275,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81114] = pfTmp;
 		m_cCycle[81455] = pfTmp;
 		m_cCycle[81796] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__298x261;
+		m_cCycle[89299] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__298x0_298x1_298x2_298x3_298x4_298x5_298x6_298x7_298x8_298x9_X;
@@ -64221,6 +64524,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81797] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__299x261;
+		m_cCycle[89300] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__299x0_299x1_299x2_299x3_299x4_299x5_299x6_299x7_299x8_299x9_X;
 		m_cCycle[299] = pfTmp;
 		m_cCycle[640] = pfTmp;
@@ -64462,6 +64769,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81116] = pfTmp;
 		m_cCycle[81457] = pfTmp;
 		m_cCycle[81798] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__300x261;
+		m_cCycle[89301] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__300x0_300x1_300x2_300x3_300x4_300x5_300x6_300x7_300x8_300x9_X;
@@ -64707,6 +65018,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81799] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__301x261;
+		m_cCycle[89302] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__301x0_301x1_301x2_301x3_301x4_301x5_301x6_301x7_301x8_301x9_X;
 		m_cCycle[301] = pfTmp;
 		m_cCycle[642] = pfTmp;
@@ -64948,6 +65263,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81118] = pfTmp;
 		m_cCycle[81459] = pfTmp;
 		m_cCycle[81800] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__302x261;
+		m_cCycle[89303] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__302x0_302x1_302x2_302x3_302x4_302x5_302x6_302x7_302x8_302x9_X;
@@ -65193,6 +65512,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81801] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__303x261;
+		m_cCycle[89304] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__303x0_303x1_303x2_303x3_303x4_303x5_303x6_303x7_303x8_303x9_X;
 		m_cCycle[303] = pfTmp;
 		m_cCycle[644] = pfTmp;
@@ -65434,6 +65757,10 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81120] = pfTmp;
 		m_cCycle[81461] = pfTmp;
 		m_cCycle[81802] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__304x261;
+		m_cCycle[89305] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__304x0_304x1_304x2_304x3_304x4_304x5_304x6_304x7_304x8_304x9_X;
@@ -65920,6 +66247,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81122] = pfTmp;
 		m_cCycle[81463] = pfTmp;
 		m_cCycle[81804] = pfTmp;
+		m_cCycle[89306] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__306x0_306x1_306x2_306x3_306x4_306x5_306x6_306x7_306x8_306x9_X;
@@ -66163,6 +66491,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81123] = pfTmp;
 		m_cCycle[81464] = pfTmp;
 		m_cCycle[81805] = pfTmp;
+		m_cCycle[89307] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__307x0_307x1_307x2_307x3_307x4_307x5_307x6_307x7_307x8_307x9_X;
@@ -66406,6 +66735,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81124] = pfTmp;
 		m_cCycle[81465] = pfTmp;
 		m_cCycle[81806] = pfTmp;
+		m_cCycle[89308] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__308x0_308x1_308x2_308x3_308x4_308x5_308x6_308x7_308x8_308x9_X;
@@ -66649,6 +66979,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81125] = pfTmp;
 		m_cCycle[81466] = pfTmp;
 		m_cCycle[81807] = pfTmp;
+		m_cCycle[89309] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__309x0_309x1_309x2_309x3_309x4_309x5_309x6_309x7_309x8_309x9_X;
@@ -66892,6 +67223,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81126] = pfTmp;
 		m_cCycle[81467] = pfTmp;
 		m_cCycle[81808] = pfTmp;
+		m_cCycle[89310] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__310x0_310x1_310x2_310x3_310x4_310x5_310x6_310x7_310x8_310x9_X;
@@ -67135,6 +67467,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81127] = pfTmp;
 		m_cCycle[81468] = pfTmp;
 		m_cCycle[81809] = pfTmp;
+		m_cCycle[89311] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__311x0_311x1_311x2_311x3_311x4_311x5_311x6_311x7_311x8_311x9_X;
@@ -67378,6 +67711,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81128] = pfTmp;
 		m_cCycle[81469] = pfTmp;
 		m_cCycle[81810] = pfTmp;
+		m_cCycle[89312] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__312x0_312x1_312x2_312x3_312x4_312x5_312x6_312x7_312x8_312x9_X;
@@ -67621,6 +67955,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81129] = pfTmp;
 		m_cCycle[81470] = pfTmp;
 		m_cCycle[81811] = pfTmp;
+		m_cCycle[89313] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__313x0_313x1_313x2_313x3_313x4_313x5_313x6_313x7_313x8_313x9_X;
@@ -67864,6 +68199,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81130] = pfTmp;
 		m_cCycle[81471] = pfTmp;
 		m_cCycle[81812] = pfTmp;
+		m_cCycle[89314] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__314x0_314x1_314x2_314x3_314x4_314x5_314x6_314x7_314x8_314x9_X;
@@ -68107,6 +68443,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81131] = pfTmp;
 		m_cCycle[81472] = pfTmp;
 		m_cCycle[81813] = pfTmp;
+		m_cCycle[89315] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__315x0_315x1_315x2_315x3_315x4_315x5_315x6_315x7_315x8_315x9_X;
@@ -68350,6 +68687,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81132] = pfTmp;
 		m_cCycle[81473] = pfTmp;
 		m_cCycle[81814] = pfTmp;
+		m_cCycle[89316] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__316x0_316x1_316x2_316x3_316x4_316x5_316x6_316x7_316x8_316x9_X;
@@ -68593,6 +68931,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81133] = pfTmp;
 		m_cCycle[81474] = pfTmp;
 		m_cCycle[81815] = pfTmp;
+		m_cCycle[89317] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__317x0_317x1_317x2_317x3_317x4_317x5_317x6_317x7_317x8_317x9_X;
@@ -68836,6 +69175,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81134] = pfTmp;
 		m_cCycle[81475] = pfTmp;
 		m_cCycle[81816] = pfTmp;
+		m_cCycle[89318] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__318x0_318x1_318x2_318x3_318x4_318x5_318x6_318x7_318x8_318x9_X;
@@ -69079,6 +69419,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81135] = pfTmp;
 		m_cCycle[81476] = pfTmp;
 		m_cCycle[81817] = pfTmp;
+		m_cCycle[89319] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__319x0_319x1_319x2_319x3_319x4_319x5_319x6_319x7_319x8_319x9_X;
@@ -69322,6 +69663,7 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81136] = pfTmp;
 		m_cCycle[81477] = pfTmp;
 		m_cCycle[81818] = pfTmp;
+		m_cCycle[89320] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__320x0_320x1_320x2_320x3_320x4_320x5_320x6_320x7_320x8_320x9_X;
@@ -69565,501 +69907,495 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81137] = pfTmp;
 		m_cCycle[81478] = pfTmp;
 		m_cCycle[81819] = pfTmp;
+		m_cCycle[89321] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__339x0_339x1_339x2_339x3_339x4_339x5_339x6_339x7_339x8_339x9_X;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__337x0_339x0_337x1_339x1_337x2_339x2_337x3_339x3_337x4_339x4_X;
+		m_cCycle[337] = pfTmp;
 		m_cCycle[339] = pfTmp;
+		m_cCycle[678] = pfTmp;
 		m_cCycle[680] = pfTmp;
+		m_cCycle[1019] = pfTmp;
 		m_cCycle[1021] = pfTmp;
+		m_cCycle[1360] = pfTmp;
 		m_cCycle[1362] = pfTmp;
+		m_cCycle[1701] = pfTmp;
 		m_cCycle[1703] = pfTmp;
+		m_cCycle[2042] = pfTmp;
 		m_cCycle[2044] = pfTmp;
+		m_cCycle[2383] = pfTmp;
 		m_cCycle[2385] = pfTmp;
+		m_cCycle[2724] = pfTmp;
 		m_cCycle[2726] = pfTmp;
+		m_cCycle[3065] = pfTmp;
 		m_cCycle[3067] = pfTmp;
+		m_cCycle[3406] = pfTmp;
 		m_cCycle[3408] = pfTmp;
+		m_cCycle[3747] = pfTmp;
 		m_cCycle[3749] = pfTmp;
+		m_cCycle[4088] = pfTmp;
 		m_cCycle[4090] = pfTmp;
+		m_cCycle[4429] = pfTmp;
 		m_cCycle[4431] = pfTmp;
+		m_cCycle[4770] = pfTmp;
 		m_cCycle[4772] = pfTmp;
+		m_cCycle[5111] = pfTmp;
 		m_cCycle[5113] = pfTmp;
+		m_cCycle[5452] = pfTmp;
 		m_cCycle[5454] = pfTmp;
+		m_cCycle[5793] = pfTmp;
 		m_cCycle[5795] = pfTmp;
+		m_cCycle[6134] = pfTmp;
 		m_cCycle[6136] = pfTmp;
+		m_cCycle[6475] = pfTmp;
 		m_cCycle[6477] = pfTmp;
+		m_cCycle[6816] = pfTmp;
 		m_cCycle[6818] = pfTmp;
+		m_cCycle[7157] = pfTmp;
 		m_cCycle[7159] = pfTmp;
+		m_cCycle[7498] = pfTmp;
 		m_cCycle[7500] = pfTmp;
+		m_cCycle[7839] = pfTmp;
 		m_cCycle[7841] = pfTmp;
+		m_cCycle[8180] = pfTmp;
 		m_cCycle[8182] = pfTmp;
+		m_cCycle[8521] = pfTmp;
 		m_cCycle[8523] = pfTmp;
+		m_cCycle[8862] = pfTmp;
 		m_cCycle[8864] = pfTmp;
+		m_cCycle[9203] = pfTmp;
 		m_cCycle[9205] = pfTmp;
+		m_cCycle[9544] = pfTmp;
 		m_cCycle[9546] = pfTmp;
+		m_cCycle[9885] = pfTmp;
 		m_cCycle[9887] = pfTmp;
+		m_cCycle[10226] = pfTmp;
 		m_cCycle[10228] = pfTmp;
+		m_cCycle[10567] = pfTmp;
 		m_cCycle[10569] = pfTmp;
+		m_cCycle[10908] = pfTmp;
 		m_cCycle[10910] = pfTmp;
+		m_cCycle[11249] = pfTmp;
 		m_cCycle[11251] = pfTmp;
+		m_cCycle[11590] = pfTmp;
 		m_cCycle[11592] = pfTmp;
+		m_cCycle[11931] = pfTmp;
 		m_cCycle[11933] = pfTmp;
+		m_cCycle[12272] = pfTmp;
 		m_cCycle[12274] = pfTmp;
+		m_cCycle[12613] = pfTmp;
 		m_cCycle[12615] = pfTmp;
+		m_cCycle[12954] = pfTmp;
 		m_cCycle[12956] = pfTmp;
+		m_cCycle[13295] = pfTmp;
 		m_cCycle[13297] = pfTmp;
+		m_cCycle[13636] = pfTmp;
 		m_cCycle[13638] = pfTmp;
+		m_cCycle[13977] = pfTmp;
 		m_cCycle[13979] = pfTmp;
+		m_cCycle[14318] = pfTmp;
 		m_cCycle[14320] = pfTmp;
+		m_cCycle[14659] = pfTmp;
 		m_cCycle[14661] = pfTmp;
+		m_cCycle[15000] = pfTmp;
 		m_cCycle[15002] = pfTmp;
+		m_cCycle[15341] = pfTmp;
 		m_cCycle[15343] = pfTmp;
+		m_cCycle[15682] = pfTmp;
 		m_cCycle[15684] = pfTmp;
+		m_cCycle[16023] = pfTmp;
 		m_cCycle[16025] = pfTmp;
+		m_cCycle[16364] = pfTmp;
 		m_cCycle[16366] = pfTmp;
+		m_cCycle[16705] = pfTmp;
 		m_cCycle[16707] = pfTmp;
+		m_cCycle[17046] = pfTmp;
 		m_cCycle[17048] = pfTmp;
+		m_cCycle[17387] = pfTmp;
 		m_cCycle[17389] = pfTmp;
+		m_cCycle[17728] = pfTmp;
 		m_cCycle[17730] = pfTmp;
+		m_cCycle[18069] = pfTmp;
 		m_cCycle[18071] = pfTmp;
+		m_cCycle[18410] = pfTmp;
 		m_cCycle[18412] = pfTmp;
+		m_cCycle[18751] = pfTmp;
 		m_cCycle[18753] = pfTmp;
+		m_cCycle[19092] = pfTmp;
 		m_cCycle[19094] = pfTmp;
+		m_cCycle[19433] = pfTmp;
 		m_cCycle[19435] = pfTmp;
+		m_cCycle[19774] = pfTmp;
 		m_cCycle[19776] = pfTmp;
+		m_cCycle[20115] = pfTmp;
 		m_cCycle[20117] = pfTmp;
+		m_cCycle[20456] = pfTmp;
 		m_cCycle[20458] = pfTmp;
+		m_cCycle[20797] = pfTmp;
 		m_cCycle[20799] = pfTmp;
+		m_cCycle[21138] = pfTmp;
 		m_cCycle[21140] = pfTmp;
+		m_cCycle[21479] = pfTmp;
 		m_cCycle[21481] = pfTmp;
+		m_cCycle[21820] = pfTmp;
 		m_cCycle[21822] = pfTmp;
+		m_cCycle[22161] = pfTmp;
 		m_cCycle[22163] = pfTmp;
+		m_cCycle[22502] = pfTmp;
 		m_cCycle[22504] = pfTmp;
+		m_cCycle[22843] = pfTmp;
 		m_cCycle[22845] = pfTmp;
+		m_cCycle[23184] = pfTmp;
 		m_cCycle[23186] = pfTmp;
+		m_cCycle[23525] = pfTmp;
 		m_cCycle[23527] = pfTmp;
+		m_cCycle[23866] = pfTmp;
 		m_cCycle[23868] = pfTmp;
+		m_cCycle[24207] = pfTmp;
 		m_cCycle[24209] = pfTmp;
+		m_cCycle[24548] = pfTmp;
 		m_cCycle[24550] = pfTmp;
+		m_cCycle[24889] = pfTmp;
 		m_cCycle[24891] = pfTmp;
+		m_cCycle[25230] = pfTmp;
 		m_cCycle[25232] = pfTmp;
+		m_cCycle[25571] = pfTmp;
 		m_cCycle[25573] = pfTmp;
+		m_cCycle[25912] = pfTmp;
 		m_cCycle[25914] = pfTmp;
+		m_cCycle[26253] = pfTmp;
 		m_cCycle[26255] = pfTmp;
+		m_cCycle[26594] = pfTmp;
 		m_cCycle[26596] = pfTmp;
+		m_cCycle[26935] = pfTmp;
 		m_cCycle[26937] = pfTmp;
+		m_cCycle[27276] = pfTmp;
 		m_cCycle[27278] = pfTmp;
+		m_cCycle[27617] = pfTmp;
 		m_cCycle[27619] = pfTmp;
+		m_cCycle[27958] = pfTmp;
 		m_cCycle[27960] = pfTmp;
+		m_cCycle[28299] = pfTmp;
 		m_cCycle[28301] = pfTmp;
+		m_cCycle[28640] = pfTmp;
 		m_cCycle[28642] = pfTmp;
+		m_cCycle[28981] = pfTmp;
 		m_cCycle[28983] = pfTmp;
+		m_cCycle[29322] = pfTmp;
 		m_cCycle[29324] = pfTmp;
+		m_cCycle[29663] = pfTmp;
 		m_cCycle[29665] = pfTmp;
+		m_cCycle[30004] = pfTmp;
 		m_cCycle[30006] = pfTmp;
+		m_cCycle[30345] = pfTmp;
 		m_cCycle[30347] = pfTmp;
+		m_cCycle[30686] = pfTmp;
 		m_cCycle[30688] = pfTmp;
+		m_cCycle[31027] = pfTmp;
 		m_cCycle[31029] = pfTmp;
+		m_cCycle[31368] = pfTmp;
 		m_cCycle[31370] = pfTmp;
+		m_cCycle[31709] = pfTmp;
 		m_cCycle[31711] = pfTmp;
+		m_cCycle[32050] = pfTmp;
 		m_cCycle[32052] = pfTmp;
+		m_cCycle[32391] = pfTmp;
 		m_cCycle[32393] = pfTmp;
+		m_cCycle[32732] = pfTmp;
 		m_cCycle[32734] = pfTmp;
+		m_cCycle[33073] = pfTmp;
 		m_cCycle[33075] = pfTmp;
+		m_cCycle[33414] = pfTmp;
 		m_cCycle[33416] = pfTmp;
+		m_cCycle[33755] = pfTmp;
 		m_cCycle[33757] = pfTmp;
+		m_cCycle[34096] = pfTmp;
 		m_cCycle[34098] = pfTmp;
+		m_cCycle[34437] = pfTmp;
 		m_cCycle[34439] = pfTmp;
+		m_cCycle[34778] = pfTmp;
 		m_cCycle[34780] = pfTmp;
+		m_cCycle[35119] = pfTmp;
 		m_cCycle[35121] = pfTmp;
+		m_cCycle[35460] = pfTmp;
 		m_cCycle[35462] = pfTmp;
+		m_cCycle[35801] = pfTmp;
 		m_cCycle[35803] = pfTmp;
+		m_cCycle[36142] = pfTmp;
 		m_cCycle[36144] = pfTmp;
+		m_cCycle[36483] = pfTmp;
 		m_cCycle[36485] = pfTmp;
+		m_cCycle[36824] = pfTmp;
 		m_cCycle[36826] = pfTmp;
+		m_cCycle[37165] = pfTmp;
 		m_cCycle[37167] = pfTmp;
+		m_cCycle[37506] = pfTmp;
 		m_cCycle[37508] = pfTmp;
+		m_cCycle[37847] = pfTmp;
 		m_cCycle[37849] = pfTmp;
+		m_cCycle[38188] = pfTmp;
 		m_cCycle[38190] = pfTmp;
+		m_cCycle[38529] = pfTmp;
 		m_cCycle[38531] = pfTmp;
+		m_cCycle[38870] = pfTmp;
 		m_cCycle[38872] = pfTmp;
+		m_cCycle[39211] = pfTmp;
 		m_cCycle[39213] = pfTmp;
+		m_cCycle[39552] = pfTmp;
 		m_cCycle[39554] = pfTmp;
+		m_cCycle[39893] = pfTmp;
 		m_cCycle[39895] = pfTmp;
+		m_cCycle[40234] = pfTmp;
 		m_cCycle[40236] = pfTmp;
+		m_cCycle[40575] = pfTmp;
 		m_cCycle[40577] = pfTmp;
+		m_cCycle[40916] = pfTmp;
 		m_cCycle[40918] = pfTmp;
+		m_cCycle[41257] = pfTmp;
 		m_cCycle[41259] = pfTmp;
+		m_cCycle[41598] = pfTmp;
 		m_cCycle[41600] = pfTmp;
+		m_cCycle[41939] = pfTmp;
 		m_cCycle[41941] = pfTmp;
+		m_cCycle[42280] = pfTmp;
 		m_cCycle[42282] = pfTmp;
+		m_cCycle[42621] = pfTmp;
 		m_cCycle[42623] = pfTmp;
+		m_cCycle[42962] = pfTmp;
 		m_cCycle[42964] = pfTmp;
+		m_cCycle[43303] = pfTmp;
 		m_cCycle[43305] = pfTmp;
+		m_cCycle[43644] = pfTmp;
 		m_cCycle[43646] = pfTmp;
+		m_cCycle[43985] = pfTmp;
 		m_cCycle[43987] = pfTmp;
+		m_cCycle[44326] = pfTmp;
 		m_cCycle[44328] = pfTmp;
+		m_cCycle[44667] = pfTmp;
 		m_cCycle[44669] = pfTmp;
+		m_cCycle[45008] = pfTmp;
 		m_cCycle[45010] = pfTmp;
+		m_cCycle[45349] = pfTmp;
 		m_cCycle[45351] = pfTmp;
+		m_cCycle[45690] = pfTmp;
 		m_cCycle[45692] = pfTmp;
+		m_cCycle[46031] = pfTmp;
 		m_cCycle[46033] = pfTmp;
+		m_cCycle[46372] = pfTmp;
 		m_cCycle[46374] = pfTmp;
+		m_cCycle[46713] = pfTmp;
 		m_cCycle[46715] = pfTmp;
+		m_cCycle[47054] = pfTmp;
 		m_cCycle[47056] = pfTmp;
+		m_cCycle[47395] = pfTmp;
 		m_cCycle[47397] = pfTmp;
+		m_cCycle[47736] = pfTmp;
 		m_cCycle[47738] = pfTmp;
+		m_cCycle[48077] = pfTmp;
 		m_cCycle[48079] = pfTmp;
+		m_cCycle[48418] = pfTmp;
 		m_cCycle[48420] = pfTmp;
+		m_cCycle[48759] = pfTmp;
 		m_cCycle[48761] = pfTmp;
+		m_cCycle[49100] = pfTmp;
 		m_cCycle[49102] = pfTmp;
+		m_cCycle[49441] = pfTmp;
 		m_cCycle[49443] = pfTmp;
+		m_cCycle[49782] = pfTmp;
 		m_cCycle[49784] = pfTmp;
+		m_cCycle[50123] = pfTmp;
 		m_cCycle[50125] = pfTmp;
+		m_cCycle[50464] = pfTmp;
 		m_cCycle[50466] = pfTmp;
+		m_cCycle[50805] = pfTmp;
 		m_cCycle[50807] = pfTmp;
+		m_cCycle[51146] = pfTmp;
 		m_cCycle[51148] = pfTmp;
+		m_cCycle[51487] = pfTmp;
 		m_cCycle[51489] = pfTmp;
+		m_cCycle[51828] = pfTmp;
 		m_cCycle[51830] = pfTmp;
+		m_cCycle[52169] = pfTmp;
 		m_cCycle[52171] = pfTmp;
+		m_cCycle[52510] = pfTmp;
 		m_cCycle[52512] = pfTmp;
+		m_cCycle[52851] = pfTmp;
 		m_cCycle[52853] = pfTmp;
+		m_cCycle[53192] = pfTmp;
 		m_cCycle[53194] = pfTmp;
+		m_cCycle[53533] = pfTmp;
 		m_cCycle[53535] = pfTmp;
+		m_cCycle[53874] = pfTmp;
 		m_cCycle[53876] = pfTmp;
+		m_cCycle[54215] = pfTmp;
 		m_cCycle[54217] = pfTmp;
+		m_cCycle[54556] = pfTmp;
 		m_cCycle[54558] = pfTmp;
+		m_cCycle[54897] = pfTmp;
 		m_cCycle[54899] = pfTmp;
+		m_cCycle[55238] = pfTmp;
 		m_cCycle[55240] = pfTmp;
+		m_cCycle[55579] = pfTmp;
 		m_cCycle[55581] = pfTmp;
+		m_cCycle[55920] = pfTmp;
 		m_cCycle[55922] = pfTmp;
+		m_cCycle[56261] = pfTmp;
 		m_cCycle[56263] = pfTmp;
+		m_cCycle[56602] = pfTmp;
 		m_cCycle[56604] = pfTmp;
+		m_cCycle[56943] = pfTmp;
 		m_cCycle[56945] = pfTmp;
+		m_cCycle[57284] = pfTmp;
 		m_cCycle[57286] = pfTmp;
+		m_cCycle[57625] = pfTmp;
 		m_cCycle[57627] = pfTmp;
+		m_cCycle[57966] = pfTmp;
 		m_cCycle[57968] = pfTmp;
+		m_cCycle[58307] = pfTmp;
 		m_cCycle[58309] = pfTmp;
+		m_cCycle[58648] = pfTmp;
 		m_cCycle[58650] = pfTmp;
+		m_cCycle[58989] = pfTmp;
 		m_cCycle[58991] = pfTmp;
+		m_cCycle[59330] = pfTmp;
 		m_cCycle[59332] = pfTmp;
+		m_cCycle[59671] = pfTmp;
 		m_cCycle[59673] = pfTmp;
+		m_cCycle[60012] = pfTmp;
 		m_cCycle[60014] = pfTmp;
+		m_cCycle[60353] = pfTmp;
 		m_cCycle[60355] = pfTmp;
+		m_cCycle[60694] = pfTmp;
 		m_cCycle[60696] = pfTmp;
+		m_cCycle[61035] = pfTmp;
 		m_cCycle[61037] = pfTmp;
+		m_cCycle[61376] = pfTmp;
 		m_cCycle[61378] = pfTmp;
+		m_cCycle[61717] = pfTmp;
 		m_cCycle[61719] = pfTmp;
+		m_cCycle[62058] = pfTmp;
 		m_cCycle[62060] = pfTmp;
+		m_cCycle[62399] = pfTmp;
 		m_cCycle[62401] = pfTmp;
+		m_cCycle[62740] = pfTmp;
 		m_cCycle[62742] = pfTmp;
+		m_cCycle[63081] = pfTmp;
 		m_cCycle[63083] = pfTmp;
+		m_cCycle[63422] = pfTmp;
 		m_cCycle[63424] = pfTmp;
+		m_cCycle[63763] = pfTmp;
 		m_cCycle[63765] = pfTmp;
+		m_cCycle[64104] = pfTmp;
 		m_cCycle[64106] = pfTmp;
+		m_cCycle[64445] = pfTmp;
 		m_cCycle[64447] = pfTmp;
+		m_cCycle[64786] = pfTmp;
 		m_cCycle[64788] = pfTmp;
+		m_cCycle[65127] = pfTmp;
 		m_cCycle[65129] = pfTmp;
+		m_cCycle[65468] = pfTmp;
 		m_cCycle[65470] = pfTmp;
+		m_cCycle[65809] = pfTmp;
 		m_cCycle[65811] = pfTmp;
+		m_cCycle[66150] = pfTmp;
 		m_cCycle[66152] = pfTmp;
+		m_cCycle[66491] = pfTmp;
 		m_cCycle[66493] = pfTmp;
+		m_cCycle[66832] = pfTmp;
 		m_cCycle[66834] = pfTmp;
+		m_cCycle[67173] = pfTmp;
 		m_cCycle[67175] = pfTmp;
+		m_cCycle[67514] = pfTmp;
 		m_cCycle[67516] = pfTmp;
+		m_cCycle[67855] = pfTmp;
 		m_cCycle[67857] = pfTmp;
+		m_cCycle[68196] = pfTmp;
 		m_cCycle[68198] = pfTmp;
+		m_cCycle[68537] = pfTmp;
 		m_cCycle[68539] = pfTmp;
+		m_cCycle[68878] = pfTmp;
 		m_cCycle[68880] = pfTmp;
+		m_cCycle[69219] = pfTmp;
 		m_cCycle[69221] = pfTmp;
+		m_cCycle[69560] = pfTmp;
 		m_cCycle[69562] = pfTmp;
+		m_cCycle[69901] = pfTmp;
 		m_cCycle[69903] = pfTmp;
+		m_cCycle[70242] = pfTmp;
 		m_cCycle[70244] = pfTmp;
+		m_cCycle[70583] = pfTmp;
 		m_cCycle[70585] = pfTmp;
+		m_cCycle[70924] = pfTmp;
 		m_cCycle[70926] = pfTmp;
+		m_cCycle[71265] = pfTmp;
 		m_cCycle[71267] = pfTmp;
+		m_cCycle[71606] = pfTmp;
 		m_cCycle[71608] = pfTmp;
+		m_cCycle[71947] = pfTmp;
 		m_cCycle[71949] = pfTmp;
+		m_cCycle[72288] = pfTmp;
 		m_cCycle[72290] = pfTmp;
+		m_cCycle[72629] = pfTmp;
 		m_cCycle[72631] = pfTmp;
+		m_cCycle[72970] = pfTmp;
 		m_cCycle[72972] = pfTmp;
+		m_cCycle[73311] = pfTmp;
 		m_cCycle[73313] = pfTmp;
+		m_cCycle[73652] = pfTmp;
 		m_cCycle[73654] = pfTmp;
+		m_cCycle[73993] = pfTmp;
 		m_cCycle[73995] = pfTmp;
+		m_cCycle[74334] = pfTmp;
 		m_cCycle[74336] = pfTmp;
+		m_cCycle[74675] = pfTmp;
 		m_cCycle[74677] = pfTmp;
+		m_cCycle[75016] = pfTmp;
 		m_cCycle[75018] = pfTmp;
+		m_cCycle[75357] = pfTmp;
 		m_cCycle[75359] = pfTmp;
+		m_cCycle[75698] = pfTmp;
 		m_cCycle[75700] = pfTmp;
+		m_cCycle[76039] = pfTmp;
 		m_cCycle[76041] = pfTmp;
+		m_cCycle[76380] = pfTmp;
 		m_cCycle[76382] = pfTmp;
+		m_cCycle[76721] = pfTmp;
 		m_cCycle[76723] = pfTmp;
+		m_cCycle[77062] = pfTmp;
 		m_cCycle[77064] = pfTmp;
+		m_cCycle[77403] = pfTmp;
 		m_cCycle[77405] = pfTmp;
+		m_cCycle[77744] = pfTmp;
 		m_cCycle[77746] = pfTmp;
+		m_cCycle[78085] = pfTmp;
 		m_cCycle[78087] = pfTmp;
+		m_cCycle[78426] = pfTmp;
 		m_cCycle[78428] = pfTmp;
+		m_cCycle[78767] = pfTmp;
 		m_cCycle[78769] = pfTmp;
+		m_cCycle[79108] = pfTmp;
 		m_cCycle[79110] = pfTmp;
+		m_cCycle[79449] = pfTmp;
 		m_cCycle[79451] = pfTmp;
+		m_cCycle[79790] = pfTmp;
 		m_cCycle[79792] = pfTmp;
+		m_cCycle[80131] = pfTmp;
 		m_cCycle[80133] = pfTmp;
+		m_cCycle[80472] = pfTmp;
 		m_cCycle[80474] = pfTmp;
+		m_cCycle[80813] = pfTmp;
 		m_cCycle[80815] = pfTmp;
+		m_cCycle[81154] = pfTmp;
 		m_cCycle[81156] = pfTmp;
+		m_cCycle[81495] = pfTmp;
 		m_cCycle[81497] = pfTmp;
+		m_cCycle[81836] = pfTmp;
 		m_cCycle[81838] = pfTmp;
+		m_cCycle[89338] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__339x261;
 		m_cCycle[89340] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__337x0_337x1_337x2_337x3_337x4_337x5_337x6_337x7_337x8_337x9_X;
-		m_cCycle[337] = pfTmp;
-		m_cCycle[678] = pfTmp;
-		m_cCycle[1019] = pfTmp;
-		m_cCycle[1360] = pfTmp;
-		m_cCycle[1701] = pfTmp;
-		m_cCycle[2042] = pfTmp;
-		m_cCycle[2383] = pfTmp;
-		m_cCycle[2724] = pfTmp;
-		m_cCycle[3065] = pfTmp;
-		m_cCycle[3406] = pfTmp;
-		m_cCycle[3747] = pfTmp;
-		m_cCycle[4088] = pfTmp;
-		m_cCycle[4429] = pfTmp;
-		m_cCycle[4770] = pfTmp;
-		m_cCycle[5111] = pfTmp;
-		m_cCycle[5452] = pfTmp;
-		m_cCycle[5793] = pfTmp;
-		m_cCycle[6134] = pfTmp;
-		m_cCycle[6475] = pfTmp;
-		m_cCycle[6816] = pfTmp;
-		m_cCycle[7157] = pfTmp;
-		m_cCycle[7498] = pfTmp;
-		m_cCycle[7839] = pfTmp;
-		m_cCycle[8180] = pfTmp;
-		m_cCycle[8521] = pfTmp;
-		m_cCycle[8862] = pfTmp;
-		m_cCycle[9203] = pfTmp;
-		m_cCycle[9544] = pfTmp;
-		m_cCycle[9885] = pfTmp;
-		m_cCycle[10226] = pfTmp;
-		m_cCycle[10567] = pfTmp;
-		m_cCycle[10908] = pfTmp;
-		m_cCycle[11249] = pfTmp;
-		m_cCycle[11590] = pfTmp;
-		m_cCycle[11931] = pfTmp;
-		m_cCycle[12272] = pfTmp;
-		m_cCycle[12613] = pfTmp;
-		m_cCycle[12954] = pfTmp;
-		m_cCycle[13295] = pfTmp;
-		m_cCycle[13636] = pfTmp;
-		m_cCycle[13977] = pfTmp;
-		m_cCycle[14318] = pfTmp;
-		m_cCycle[14659] = pfTmp;
-		m_cCycle[15000] = pfTmp;
-		m_cCycle[15341] = pfTmp;
-		m_cCycle[15682] = pfTmp;
-		m_cCycle[16023] = pfTmp;
-		m_cCycle[16364] = pfTmp;
-		m_cCycle[16705] = pfTmp;
-		m_cCycle[17046] = pfTmp;
-		m_cCycle[17387] = pfTmp;
-		m_cCycle[17728] = pfTmp;
-		m_cCycle[18069] = pfTmp;
-		m_cCycle[18410] = pfTmp;
-		m_cCycle[18751] = pfTmp;
-		m_cCycle[19092] = pfTmp;
-		m_cCycle[19433] = pfTmp;
-		m_cCycle[19774] = pfTmp;
-		m_cCycle[20115] = pfTmp;
-		m_cCycle[20456] = pfTmp;
-		m_cCycle[20797] = pfTmp;
-		m_cCycle[21138] = pfTmp;
-		m_cCycle[21479] = pfTmp;
-		m_cCycle[21820] = pfTmp;
-		m_cCycle[22161] = pfTmp;
-		m_cCycle[22502] = pfTmp;
-		m_cCycle[22843] = pfTmp;
-		m_cCycle[23184] = pfTmp;
-		m_cCycle[23525] = pfTmp;
-		m_cCycle[23866] = pfTmp;
-		m_cCycle[24207] = pfTmp;
-		m_cCycle[24548] = pfTmp;
-		m_cCycle[24889] = pfTmp;
-		m_cCycle[25230] = pfTmp;
-		m_cCycle[25571] = pfTmp;
-		m_cCycle[25912] = pfTmp;
-		m_cCycle[26253] = pfTmp;
-		m_cCycle[26594] = pfTmp;
-		m_cCycle[26935] = pfTmp;
-		m_cCycle[27276] = pfTmp;
-		m_cCycle[27617] = pfTmp;
-		m_cCycle[27958] = pfTmp;
-		m_cCycle[28299] = pfTmp;
-		m_cCycle[28640] = pfTmp;
-		m_cCycle[28981] = pfTmp;
-		m_cCycle[29322] = pfTmp;
-		m_cCycle[29663] = pfTmp;
-		m_cCycle[30004] = pfTmp;
-		m_cCycle[30345] = pfTmp;
-		m_cCycle[30686] = pfTmp;
-		m_cCycle[31027] = pfTmp;
-		m_cCycle[31368] = pfTmp;
-		m_cCycle[31709] = pfTmp;
-		m_cCycle[32050] = pfTmp;
-		m_cCycle[32391] = pfTmp;
-		m_cCycle[32732] = pfTmp;
-		m_cCycle[33073] = pfTmp;
-		m_cCycle[33414] = pfTmp;
-		m_cCycle[33755] = pfTmp;
-		m_cCycle[34096] = pfTmp;
-		m_cCycle[34437] = pfTmp;
-		m_cCycle[34778] = pfTmp;
-		m_cCycle[35119] = pfTmp;
-		m_cCycle[35460] = pfTmp;
-		m_cCycle[35801] = pfTmp;
-		m_cCycle[36142] = pfTmp;
-		m_cCycle[36483] = pfTmp;
-		m_cCycle[36824] = pfTmp;
-		m_cCycle[37165] = pfTmp;
-		m_cCycle[37506] = pfTmp;
-		m_cCycle[37847] = pfTmp;
-		m_cCycle[38188] = pfTmp;
-		m_cCycle[38529] = pfTmp;
-		m_cCycle[38870] = pfTmp;
-		m_cCycle[39211] = pfTmp;
-		m_cCycle[39552] = pfTmp;
-		m_cCycle[39893] = pfTmp;
-		m_cCycle[40234] = pfTmp;
-		m_cCycle[40575] = pfTmp;
-		m_cCycle[40916] = pfTmp;
-		m_cCycle[41257] = pfTmp;
-		m_cCycle[41598] = pfTmp;
-		m_cCycle[41939] = pfTmp;
-		m_cCycle[42280] = pfTmp;
-		m_cCycle[42621] = pfTmp;
-		m_cCycle[42962] = pfTmp;
-		m_cCycle[43303] = pfTmp;
-		m_cCycle[43644] = pfTmp;
-		m_cCycle[43985] = pfTmp;
-		m_cCycle[44326] = pfTmp;
-		m_cCycle[44667] = pfTmp;
-		m_cCycle[45008] = pfTmp;
-		m_cCycle[45349] = pfTmp;
-		m_cCycle[45690] = pfTmp;
-		m_cCycle[46031] = pfTmp;
-		m_cCycle[46372] = pfTmp;
-		m_cCycle[46713] = pfTmp;
-		m_cCycle[47054] = pfTmp;
-		m_cCycle[47395] = pfTmp;
-		m_cCycle[47736] = pfTmp;
-		m_cCycle[48077] = pfTmp;
-		m_cCycle[48418] = pfTmp;
-		m_cCycle[48759] = pfTmp;
-		m_cCycle[49100] = pfTmp;
-		m_cCycle[49441] = pfTmp;
-		m_cCycle[49782] = pfTmp;
-		m_cCycle[50123] = pfTmp;
-		m_cCycle[50464] = pfTmp;
-		m_cCycle[50805] = pfTmp;
-		m_cCycle[51146] = pfTmp;
-		m_cCycle[51487] = pfTmp;
-		m_cCycle[51828] = pfTmp;
-		m_cCycle[52169] = pfTmp;
-		m_cCycle[52510] = pfTmp;
-		m_cCycle[52851] = pfTmp;
-		m_cCycle[53192] = pfTmp;
-		m_cCycle[53533] = pfTmp;
-		m_cCycle[53874] = pfTmp;
-		m_cCycle[54215] = pfTmp;
-		m_cCycle[54556] = pfTmp;
-		m_cCycle[54897] = pfTmp;
-		m_cCycle[55238] = pfTmp;
-		m_cCycle[55579] = pfTmp;
-		m_cCycle[55920] = pfTmp;
-		m_cCycle[56261] = pfTmp;
-		m_cCycle[56602] = pfTmp;
-		m_cCycle[56943] = pfTmp;
-		m_cCycle[57284] = pfTmp;
-		m_cCycle[57625] = pfTmp;
-		m_cCycle[57966] = pfTmp;
-		m_cCycle[58307] = pfTmp;
-		m_cCycle[58648] = pfTmp;
-		m_cCycle[58989] = pfTmp;
-		m_cCycle[59330] = pfTmp;
-		m_cCycle[59671] = pfTmp;
-		m_cCycle[60012] = pfTmp;
-		m_cCycle[60353] = pfTmp;
-		m_cCycle[60694] = pfTmp;
-		m_cCycle[61035] = pfTmp;
-		m_cCycle[61376] = pfTmp;
-		m_cCycle[61717] = pfTmp;
-		m_cCycle[62058] = pfTmp;
-		m_cCycle[62399] = pfTmp;
-		m_cCycle[62740] = pfTmp;
-		m_cCycle[63081] = pfTmp;
-		m_cCycle[63422] = pfTmp;
-		m_cCycle[63763] = pfTmp;
-		m_cCycle[64104] = pfTmp;
-		m_cCycle[64445] = pfTmp;
-		m_cCycle[64786] = pfTmp;
-		m_cCycle[65127] = pfTmp;
-		m_cCycle[65468] = pfTmp;
-		m_cCycle[65809] = pfTmp;
-		m_cCycle[66150] = pfTmp;
-		m_cCycle[66491] = pfTmp;
-		m_cCycle[66832] = pfTmp;
-		m_cCycle[67173] = pfTmp;
-		m_cCycle[67514] = pfTmp;
-		m_cCycle[67855] = pfTmp;
-		m_cCycle[68196] = pfTmp;
-		m_cCycle[68537] = pfTmp;
-		m_cCycle[68878] = pfTmp;
-		m_cCycle[69219] = pfTmp;
-		m_cCycle[69560] = pfTmp;
-		m_cCycle[69901] = pfTmp;
-		m_cCycle[70242] = pfTmp;
-		m_cCycle[70583] = pfTmp;
-		m_cCycle[70924] = pfTmp;
-		m_cCycle[71265] = pfTmp;
-		m_cCycle[71606] = pfTmp;
-		m_cCycle[71947] = pfTmp;
-		m_cCycle[72288] = pfTmp;
-		m_cCycle[72629] = pfTmp;
-		m_cCycle[72970] = pfTmp;
-		m_cCycle[73311] = pfTmp;
-		m_cCycle[73652] = pfTmp;
-		m_cCycle[73993] = pfTmp;
-		m_cCycle[74334] = pfTmp;
-		m_cCycle[74675] = pfTmp;
-		m_cCycle[75016] = pfTmp;
-		m_cCycle[75357] = pfTmp;
-		m_cCycle[75698] = pfTmp;
-		m_cCycle[76039] = pfTmp;
-		m_cCycle[76380] = pfTmp;
-		m_cCycle[76721] = pfTmp;
-		m_cCycle[77062] = pfTmp;
-		m_cCycle[77403] = pfTmp;
-		m_cCycle[77744] = pfTmp;
-		m_cCycle[78085] = pfTmp;
-		m_cCycle[78426] = pfTmp;
-		m_cCycle[78767] = pfTmp;
-		m_cCycle[79108] = pfTmp;
-		m_cCycle[79449] = pfTmp;
-		m_cCycle[79790] = pfTmp;
-		m_cCycle[80131] = pfTmp;
-		m_cCycle[80472] = pfTmp;
-		m_cCycle[80813] = pfTmp;
-		m_cCycle[81154] = pfTmp;
-		m_cCycle[81495] = pfTmp;
-		m_cCycle[81836] = pfTmp;
-		m_cCycle[89338] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__257x261;
-		m_cCycle[89258] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__323x0_331x0_323x1_331x1_323x2_331x2_323x3_331x3_323x4_331x4_X;
@@ -70543,558 +70879,492 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81489] = pfTmp;
 		m_cCycle[81822] = pfTmp;
 		m_cCycle[81830] = pfTmp;
-		m_cCycle[89004] = pfTmp;
-		m_cCycle[89012] = pfTmp;
-		m_cCycle[89020] = pfTmp;
-		m_cCycle[89028] = pfTmp;
-		m_cCycle[89036] = pfTmp;
-		m_cCycle[89044] = pfTmp;
-		m_cCycle[89052] = pfTmp;
-		m_cCycle[89060] = pfTmp;
-		m_cCycle[89068] = pfTmp;
-		m_cCycle[89076] = pfTmp;
-		m_cCycle[89084] = pfTmp;
-		m_cCycle[89092] = pfTmp;
-		m_cCycle[89100] = pfTmp;
-		m_cCycle[89108] = pfTmp;
-		m_cCycle[89116] = pfTmp;
-		m_cCycle[89124] = pfTmp;
-		m_cCycle[89132] = pfTmp;
-		m_cCycle[89140] = pfTmp;
-		m_cCycle[89148] = pfTmp;
-		m_cCycle[89156] = pfTmp;
-		m_cCycle[89164] = pfTmp;
-		m_cCycle[89172] = pfTmp;
-		m_cCycle[89180] = pfTmp;
-		m_cCycle[89188] = pfTmp;
-		m_cCycle[89196] = pfTmp;
-		m_cCycle[89204] = pfTmp;
-		m_cCycle[89212] = pfTmp;
-		m_cCycle[89220] = pfTmp;
-		m_cCycle[89228] = pfTmp;
-		m_cCycle[89236] = pfTmp;
-		m_cCycle[89244] = pfTmp;
-		m_cCycle[89252] = pfTmp;
 		m_cCycle[89324] = pfTmp;
 		m_cCycle[89332] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__321x0_321x1_321x2_321x3_321x4_321x5_321x6_321x7_321x8_321x9_X;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__321x0_329x0_321x1_329x1_321x2_329x2_321x3_329x3_321x4_329x4_X;
 		m_cCycle[321] = pfTmp;
-		m_cCycle[662] = pfTmp;
-		m_cCycle[1003] = pfTmp;
-		m_cCycle[1344] = pfTmp;
-		m_cCycle[1685] = pfTmp;
-		m_cCycle[2026] = pfTmp;
-		m_cCycle[2367] = pfTmp;
-		m_cCycle[2708] = pfTmp;
-		m_cCycle[3049] = pfTmp;
-		m_cCycle[3390] = pfTmp;
-		m_cCycle[3731] = pfTmp;
-		m_cCycle[4072] = pfTmp;
-		m_cCycle[4413] = pfTmp;
-		m_cCycle[4754] = pfTmp;
-		m_cCycle[5095] = pfTmp;
-		m_cCycle[5436] = pfTmp;
-		m_cCycle[5777] = pfTmp;
-		m_cCycle[6118] = pfTmp;
-		m_cCycle[6459] = pfTmp;
-		m_cCycle[6800] = pfTmp;
-		m_cCycle[7141] = pfTmp;
-		m_cCycle[7482] = pfTmp;
-		m_cCycle[7823] = pfTmp;
-		m_cCycle[8164] = pfTmp;
-		m_cCycle[8505] = pfTmp;
-		m_cCycle[8846] = pfTmp;
-		m_cCycle[9187] = pfTmp;
-		m_cCycle[9528] = pfTmp;
-		m_cCycle[9869] = pfTmp;
-		m_cCycle[10210] = pfTmp;
-		m_cCycle[10551] = pfTmp;
-		m_cCycle[10892] = pfTmp;
-		m_cCycle[11233] = pfTmp;
-		m_cCycle[11574] = pfTmp;
-		m_cCycle[11915] = pfTmp;
-		m_cCycle[12256] = pfTmp;
-		m_cCycle[12597] = pfTmp;
-		m_cCycle[12938] = pfTmp;
-		m_cCycle[13279] = pfTmp;
-		m_cCycle[13620] = pfTmp;
-		m_cCycle[13961] = pfTmp;
-		m_cCycle[14302] = pfTmp;
-		m_cCycle[14643] = pfTmp;
-		m_cCycle[14984] = pfTmp;
-		m_cCycle[15325] = pfTmp;
-		m_cCycle[15666] = pfTmp;
-		m_cCycle[16007] = pfTmp;
-		m_cCycle[16348] = pfTmp;
-		m_cCycle[16689] = pfTmp;
-		m_cCycle[17030] = pfTmp;
-		m_cCycle[17371] = pfTmp;
-		m_cCycle[17712] = pfTmp;
-		m_cCycle[18053] = pfTmp;
-		m_cCycle[18394] = pfTmp;
-		m_cCycle[18735] = pfTmp;
-		m_cCycle[19076] = pfTmp;
-		m_cCycle[19417] = pfTmp;
-		m_cCycle[19758] = pfTmp;
-		m_cCycle[20099] = pfTmp;
-		m_cCycle[20440] = pfTmp;
-		m_cCycle[20781] = pfTmp;
-		m_cCycle[21122] = pfTmp;
-		m_cCycle[21463] = pfTmp;
-		m_cCycle[21804] = pfTmp;
-		m_cCycle[22145] = pfTmp;
-		m_cCycle[22486] = pfTmp;
-		m_cCycle[22827] = pfTmp;
-		m_cCycle[23168] = pfTmp;
-		m_cCycle[23509] = pfTmp;
-		m_cCycle[23850] = pfTmp;
-		m_cCycle[24191] = pfTmp;
-		m_cCycle[24532] = pfTmp;
-		m_cCycle[24873] = pfTmp;
-		m_cCycle[25214] = pfTmp;
-		m_cCycle[25555] = pfTmp;
-		m_cCycle[25896] = pfTmp;
-		m_cCycle[26237] = pfTmp;
-		m_cCycle[26578] = pfTmp;
-		m_cCycle[26919] = pfTmp;
-		m_cCycle[27260] = pfTmp;
-		m_cCycle[27601] = pfTmp;
-		m_cCycle[27942] = pfTmp;
-		m_cCycle[28283] = pfTmp;
-		m_cCycle[28624] = pfTmp;
-		m_cCycle[28965] = pfTmp;
-		m_cCycle[29306] = pfTmp;
-		m_cCycle[29647] = pfTmp;
-		m_cCycle[29988] = pfTmp;
-		m_cCycle[30329] = pfTmp;
-		m_cCycle[30670] = pfTmp;
-		m_cCycle[31011] = pfTmp;
-		m_cCycle[31352] = pfTmp;
-		m_cCycle[31693] = pfTmp;
-		m_cCycle[32034] = pfTmp;
-		m_cCycle[32375] = pfTmp;
-		m_cCycle[32716] = pfTmp;
-		m_cCycle[33057] = pfTmp;
-		m_cCycle[33398] = pfTmp;
-		m_cCycle[33739] = pfTmp;
-		m_cCycle[34080] = pfTmp;
-		m_cCycle[34421] = pfTmp;
-		m_cCycle[34762] = pfTmp;
-		m_cCycle[35103] = pfTmp;
-		m_cCycle[35444] = pfTmp;
-		m_cCycle[35785] = pfTmp;
-		m_cCycle[36126] = pfTmp;
-		m_cCycle[36467] = pfTmp;
-		m_cCycle[36808] = pfTmp;
-		m_cCycle[37149] = pfTmp;
-		m_cCycle[37490] = pfTmp;
-		m_cCycle[37831] = pfTmp;
-		m_cCycle[38172] = pfTmp;
-		m_cCycle[38513] = pfTmp;
-		m_cCycle[38854] = pfTmp;
-		m_cCycle[39195] = pfTmp;
-		m_cCycle[39536] = pfTmp;
-		m_cCycle[39877] = pfTmp;
-		m_cCycle[40218] = pfTmp;
-		m_cCycle[40559] = pfTmp;
-		m_cCycle[40900] = pfTmp;
-		m_cCycle[41241] = pfTmp;
-		m_cCycle[41582] = pfTmp;
-		m_cCycle[41923] = pfTmp;
-		m_cCycle[42264] = pfTmp;
-		m_cCycle[42605] = pfTmp;
-		m_cCycle[42946] = pfTmp;
-		m_cCycle[43287] = pfTmp;
-		m_cCycle[43628] = pfTmp;
-		m_cCycle[43969] = pfTmp;
-		m_cCycle[44310] = pfTmp;
-		m_cCycle[44651] = pfTmp;
-		m_cCycle[44992] = pfTmp;
-		m_cCycle[45333] = pfTmp;
-		m_cCycle[45674] = pfTmp;
-		m_cCycle[46015] = pfTmp;
-		m_cCycle[46356] = pfTmp;
-		m_cCycle[46697] = pfTmp;
-		m_cCycle[47038] = pfTmp;
-		m_cCycle[47379] = pfTmp;
-		m_cCycle[47720] = pfTmp;
-		m_cCycle[48061] = pfTmp;
-		m_cCycle[48402] = pfTmp;
-		m_cCycle[48743] = pfTmp;
-		m_cCycle[49084] = pfTmp;
-		m_cCycle[49425] = pfTmp;
-		m_cCycle[49766] = pfTmp;
-		m_cCycle[50107] = pfTmp;
-		m_cCycle[50448] = pfTmp;
-		m_cCycle[50789] = pfTmp;
-		m_cCycle[51130] = pfTmp;
-		m_cCycle[51471] = pfTmp;
-		m_cCycle[51812] = pfTmp;
-		m_cCycle[52153] = pfTmp;
-		m_cCycle[52494] = pfTmp;
-		m_cCycle[52835] = pfTmp;
-		m_cCycle[53176] = pfTmp;
-		m_cCycle[53517] = pfTmp;
-		m_cCycle[53858] = pfTmp;
-		m_cCycle[54199] = pfTmp;
-		m_cCycle[54540] = pfTmp;
-		m_cCycle[54881] = pfTmp;
-		m_cCycle[55222] = pfTmp;
-		m_cCycle[55563] = pfTmp;
-		m_cCycle[55904] = pfTmp;
-		m_cCycle[56245] = pfTmp;
-		m_cCycle[56586] = pfTmp;
-		m_cCycle[56927] = pfTmp;
-		m_cCycle[57268] = pfTmp;
-		m_cCycle[57609] = pfTmp;
-		m_cCycle[57950] = pfTmp;
-		m_cCycle[58291] = pfTmp;
-		m_cCycle[58632] = pfTmp;
-		m_cCycle[58973] = pfTmp;
-		m_cCycle[59314] = pfTmp;
-		m_cCycle[59655] = pfTmp;
-		m_cCycle[59996] = pfTmp;
-		m_cCycle[60337] = pfTmp;
-		m_cCycle[60678] = pfTmp;
-		m_cCycle[61019] = pfTmp;
-		m_cCycle[61360] = pfTmp;
-		m_cCycle[61701] = pfTmp;
-		m_cCycle[62042] = pfTmp;
-		m_cCycle[62383] = pfTmp;
-		m_cCycle[62724] = pfTmp;
-		m_cCycle[63065] = pfTmp;
-		m_cCycle[63406] = pfTmp;
-		m_cCycle[63747] = pfTmp;
-		m_cCycle[64088] = pfTmp;
-		m_cCycle[64429] = pfTmp;
-		m_cCycle[64770] = pfTmp;
-		m_cCycle[65111] = pfTmp;
-		m_cCycle[65452] = pfTmp;
-		m_cCycle[65793] = pfTmp;
-		m_cCycle[66134] = pfTmp;
-		m_cCycle[66475] = pfTmp;
-		m_cCycle[66816] = pfTmp;
-		m_cCycle[67157] = pfTmp;
-		m_cCycle[67498] = pfTmp;
-		m_cCycle[67839] = pfTmp;
-		m_cCycle[68180] = pfTmp;
-		m_cCycle[68521] = pfTmp;
-		m_cCycle[68862] = pfTmp;
-		m_cCycle[69203] = pfTmp;
-		m_cCycle[69544] = pfTmp;
-		m_cCycle[69885] = pfTmp;
-		m_cCycle[70226] = pfTmp;
-		m_cCycle[70567] = pfTmp;
-		m_cCycle[70908] = pfTmp;
-		m_cCycle[71249] = pfTmp;
-		m_cCycle[71590] = pfTmp;
-		m_cCycle[71931] = pfTmp;
-		m_cCycle[72272] = pfTmp;
-		m_cCycle[72613] = pfTmp;
-		m_cCycle[72954] = pfTmp;
-		m_cCycle[73295] = pfTmp;
-		m_cCycle[73636] = pfTmp;
-		m_cCycle[73977] = pfTmp;
-		m_cCycle[74318] = pfTmp;
-		m_cCycle[74659] = pfTmp;
-		m_cCycle[75000] = pfTmp;
-		m_cCycle[75341] = pfTmp;
-		m_cCycle[75682] = pfTmp;
-		m_cCycle[76023] = pfTmp;
-		m_cCycle[76364] = pfTmp;
-		m_cCycle[76705] = pfTmp;
-		m_cCycle[77046] = pfTmp;
-		m_cCycle[77387] = pfTmp;
-		m_cCycle[77728] = pfTmp;
-		m_cCycle[78069] = pfTmp;
-		m_cCycle[78410] = pfTmp;
-		m_cCycle[78751] = pfTmp;
-		m_cCycle[79092] = pfTmp;
-		m_cCycle[79433] = pfTmp;
-		m_cCycle[79774] = pfTmp;
-		m_cCycle[80115] = pfTmp;
-		m_cCycle[80456] = pfTmp;
-		m_cCycle[80797] = pfTmp;
-		m_cCycle[81138] = pfTmp;
-		m_cCycle[81479] = pfTmp;
-		m_cCycle[81820] = pfTmp;
-		m_cCycle[89322] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__329x0_329x1_329x2_329x3_329x4_329x5_329x6_329x7_329x8_329x9_X;
 		m_cCycle[329] = pfTmp;
+		m_cCycle[662] = pfTmp;
 		m_cCycle[670] = pfTmp;
+		m_cCycle[1003] = pfTmp;
 		m_cCycle[1011] = pfTmp;
+		m_cCycle[1344] = pfTmp;
 		m_cCycle[1352] = pfTmp;
+		m_cCycle[1685] = pfTmp;
 		m_cCycle[1693] = pfTmp;
+		m_cCycle[2026] = pfTmp;
 		m_cCycle[2034] = pfTmp;
+		m_cCycle[2367] = pfTmp;
 		m_cCycle[2375] = pfTmp;
+		m_cCycle[2708] = pfTmp;
 		m_cCycle[2716] = pfTmp;
+		m_cCycle[3049] = pfTmp;
 		m_cCycle[3057] = pfTmp;
+		m_cCycle[3390] = pfTmp;
 		m_cCycle[3398] = pfTmp;
+		m_cCycle[3731] = pfTmp;
 		m_cCycle[3739] = pfTmp;
+		m_cCycle[4072] = pfTmp;
 		m_cCycle[4080] = pfTmp;
+		m_cCycle[4413] = pfTmp;
 		m_cCycle[4421] = pfTmp;
+		m_cCycle[4754] = pfTmp;
 		m_cCycle[4762] = pfTmp;
+		m_cCycle[5095] = pfTmp;
 		m_cCycle[5103] = pfTmp;
+		m_cCycle[5436] = pfTmp;
 		m_cCycle[5444] = pfTmp;
+		m_cCycle[5777] = pfTmp;
 		m_cCycle[5785] = pfTmp;
+		m_cCycle[6118] = pfTmp;
 		m_cCycle[6126] = pfTmp;
+		m_cCycle[6459] = pfTmp;
 		m_cCycle[6467] = pfTmp;
+		m_cCycle[6800] = pfTmp;
 		m_cCycle[6808] = pfTmp;
+		m_cCycle[7141] = pfTmp;
 		m_cCycle[7149] = pfTmp;
+		m_cCycle[7482] = pfTmp;
 		m_cCycle[7490] = pfTmp;
+		m_cCycle[7823] = pfTmp;
 		m_cCycle[7831] = pfTmp;
+		m_cCycle[8164] = pfTmp;
 		m_cCycle[8172] = pfTmp;
+		m_cCycle[8505] = pfTmp;
 		m_cCycle[8513] = pfTmp;
+		m_cCycle[8846] = pfTmp;
 		m_cCycle[8854] = pfTmp;
+		m_cCycle[9187] = pfTmp;
 		m_cCycle[9195] = pfTmp;
+		m_cCycle[9528] = pfTmp;
 		m_cCycle[9536] = pfTmp;
+		m_cCycle[9869] = pfTmp;
 		m_cCycle[9877] = pfTmp;
+		m_cCycle[10210] = pfTmp;
 		m_cCycle[10218] = pfTmp;
+		m_cCycle[10551] = pfTmp;
 		m_cCycle[10559] = pfTmp;
+		m_cCycle[10892] = pfTmp;
 		m_cCycle[10900] = pfTmp;
+		m_cCycle[11233] = pfTmp;
 		m_cCycle[11241] = pfTmp;
+		m_cCycle[11574] = pfTmp;
 		m_cCycle[11582] = pfTmp;
+		m_cCycle[11915] = pfTmp;
 		m_cCycle[11923] = pfTmp;
+		m_cCycle[12256] = pfTmp;
 		m_cCycle[12264] = pfTmp;
+		m_cCycle[12597] = pfTmp;
 		m_cCycle[12605] = pfTmp;
+		m_cCycle[12938] = pfTmp;
 		m_cCycle[12946] = pfTmp;
+		m_cCycle[13279] = pfTmp;
 		m_cCycle[13287] = pfTmp;
+		m_cCycle[13620] = pfTmp;
 		m_cCycle[13628] = pfTmp;
+		m_cCycle[13961] = pfTmp;
 		m_cCycle[13969] = pfTmp;
+		m_cCycle[14302] = pfTmp;
 		m_cCycle[14310] = pfTmp;
+		m_cCycle[14643] = pfTmp;
 		m_cCycle[14651] = pfTmp;
+		m_cCycle[14984] = pfTmp;
 		m_cCycle[14992] = pfTmp;
+		m_cCycle[15325] = pfTmp;
 		m_cCycle[15333] = pfTmp;
+		m_cCycle[15666] = pfTmp;
 		m_cCycle[15674] = pfTmp;
+		m_cCycle[16007] = pfTmp;
 		m_cCycle[16015] = pfTmp;
+		m_cCycle[16348] = pfTmp;
 		m_cCycle[16356] = pfTmp;
+		m_cCycle[16689] = pfTmp;
 		m_cCycle[16697] = pfTmp;
+		m_cCycle[17030] = pfTmp;
 		m_cCycle[17038] = pfTmp;
+		m_cCycle[17371] = pfTmp;
 		m_cCycle[17379] = pfTmp;
+		m_cCycle[17712] = pfTmp;
 		m_cCycle[17720] = pfTmp;
+		m_cCycle[18053] = pfTmp;
 		m_cCycle[18061] = pfTmp;
+		m_cCycle[18394] = pfTmp;
 		m_cCycle[18402] = pfTmp;
+		m_cCycle[18735] = pfTmp;
 		m_cCycle[18743] = pfTmp;
+		m_cCycle[19076] = pfTmp;
 		m_cCycle[19084] = pfTmp;
+		m_cCycle[19417] = pfTmp;
 		m_cCycle[19425] = pfTmp;
+		m_cCycle[19758] = pfTmp;
 		m_cCycle[19766] = pfTmp;
+		m_cCycle[20099] = pfTmp;
 		m_cCycle[20107] = pfTmp;
+		m_cCycle[20440] = pfTmp;
 		m_cCycle[20448] = pfTmp;
+		m_cCycle[20781] = pfTmp;
 		m_cCycle[20789] = pfTmp;
+		m_cCycle[21122] = pfTmp;
 		m_cCycle[21130] = pfTmp;
+		m_cCycle[21463] = pfTmp;
 		m_cCycle[21471] = pfTmp;
+		m_cCycle[21804] = pfTmp;
 		m_cCycle[21812] = pfTmp;
+		m_cCycle[22145] = pfTmp;
 		m_cCycle[22153] = pfTmp;
+		m_cCycle[22486] = pfTmp;
 		m_cCycle[22494] = pfTmp;
+		m_cCycle[22827] = pfTmp;
 		m_cCycle[22835] = pfTmp;
+		m_cCycle[23168] = pfTmp;
 		m_cCycle[23176] = pfTmp;
+		m_cCycle[23509] = pfTmp;
 		m_cCycle[23517] = pfTmp;
+		m_cCycle[23850] = pfTmp;
 		m_cCycle[23858] = pfTmp;
+		m_cCycle[24191] = pfTmp;
 		m_cCycle[24199] = pfTmp;
+		m_cCycle[24532] = pfTmp;
 		m_cCycle[24540] = pfTmp;
+		m_cCycle[24873] = pfTmp;
 		m_cCycle[24881] = pfTmp;
+		m_cCycle[25214] = pfTmp;
 		m_cCycle[25222] = pfTmp;
+		m_cCycle[25555] = pfTmp;
 		m_cCycle[25563] = pfTmp;
+		m_cCycle[25896] = pfTmp;
 		m_cCycle[25904] = pfTmp;
+		m_cCycle[26237] = pfTmp;
 		m_cCycle[26245] = pfTmp;
+		m_cCycle[26578] = pfTmp;
 		m_cCycle[26586] = pfTmp;
+		m_cCycle[26919] = pfTmp;
 		m_cCycle[26927] = pfTmp;
+		m_cCycle[27260] = pfTmp;
 		m_cCycle[27268] = pfTmp;
+		m_cCycle[27601] = pfTmp;
 		m_cCycle[27609] = pfTmp;
+		m_cCycle[27942] = pfTmp;
 		m_cCycle[27950] = pfTmp;
+		m_cCycle[28283] = pfTmp;
 		m_cCycle[28291] = pfTmp;
+		m_cCycle[28624] = pfTmp;
 		m_cCycle[28632] = pfTmp;
+		m_cCycle[28965] = pfTmp;
 		m_cCycle[28973] = pfTmp;
+		m_cCycle[29306] = pfTmp;
 		m_cCycle[29314] = pfTmp;
+		m_cCycle[29647] = pfTmp;
 		m_cCycle[29655] = pfTmp;
+		m_cCycle[29988] = pfTmp;
 		m_cCycle[29996] = pfTmp;
+		m_cCycle[30329] = pfTmp;
 		m_cCycle[30337] = pfTmp;
+		m_cCycle[30670] = pfTmp;
 		m_cCycle[30678] = pfTmp;
+		m_cCycle[31011] = pfTmp;
 		m_cCycle[31019] = pfTmp;
+		m_cCycle[31352] = pfTmp;
 		m_cCycle[31360] = pfTmp;
+		m_cCycle[31693] = pfTmp;
 		m_cCycle[31701] = pfTmp;
+		m_cCycle[32034] = pfTmp;
 		m_cCycle[32042] = pfTmp;
+		m_cCycle[32375] = pfTmp;
 		m_cCycle[32383] = pfTmp;
+		m_cCycle[32716] = pfTmp;
 		m_cCycle[32724] = pfTmp;
+		m_cCycle[33057] = pfTmp;
 		m_cCycle[33065] = pfTmp;
+		m_cCycle[33398] = pfTmp;
 		m_cCycle[33406] = pfTmp;
+		m_cCycle[33739] = pfTmp;
 		m_cCycle[33747] = pfTmp;
+		m_cCycle[34080] = pfTmp;
 		m_cCycle[34088] = pfTmp;
+		m_cCycle[34421] = pfTmp;
 		m_cCycle[34429] = pfTmp;
+		m_cCycle[34762] = pfTmp;
 		m_cCycle[34770] = pfTmp;
+		m_cCycle[35103] = pfTmp;
 		m_cCycle[35111] = pfTmp;
+		m_cCycle[35444] = pfTmp;
 		m_cCycle[35452] = pfTmp;
+		m_cCycle[35785] = pfTmp;
 		m_cCycle[35793] = pfTmp;
+		m_cCycle[36126] = pfTmp;
 		m_cCycle[36134] = pfTmp;
+		m_cCycle[36467] = pfTmp;
 		m_cCycle[36475] = pfTmp;
+		m_cCycle[36808] = pfTmp;
 		m_cCycle[36816] = pfTmp;
+		m_cCycle[37149] = pfTmp;
 		m_cCycle[37157] = pfTmp;
+		m_cCycle[37490] = pfTmp;
 		m_cCycle[37498] = pfTmp;
+		m_cCycle[37831] = pfTmp;
 		m_cCycle[37839] = pfTmp;
+		m_cCycle[38172] = pfTmp;
 		m_cCycle[38180] = pfTmp;
+		m_cCycle[38513] = pfTmp;
 		m_cCycle[38521] = pfTmp;
+		m_cCycle[38854] = pfTmp;
 		m_cCycle[38862] = pfTmp;
+		m_cCycle[39195] = pfTmp;
 		m_cCycle[39203] = pfTmp;
+		m_cCycle[39536] = pfTmp;
 		m_cCycle[39544] = pfTmp;
+		m_cCycle[39877] = pfTmp;
 		m_cCycle[39885] = pfTmp;
+		m_cCycle[40218] = pfTmp;
 		m_cCycle[40226] = pfTmp;
+		m_cCycle[40559] = pfTmp;
 		m_cCycle[40567] = pfTmp;
+		m_cCycle[40900] = pfTmp;
 		m_cCycle[40908] = pfTmp;
+		m_cCycle[41241] = pfTmp;
 		m_cCycle[41249] = pfTmp;
+		m_cCycle[41582] = pfTmp;
 		m_cCycle[41590] = pfTmp;
+		m_cCycle[41923] = pfTmp;
 		m_cCycle[41931] = pfTmp;
+		m_cCycle[42264] = pfTmp;
 		m_cCycle[42272] = pfTmp;
+		m_cCycle[42605] = pfTmp;
 		m_cCycle[42613] = pfTmp;
+		m_cCycle[42946] = pfTmp;
 		m_cCycle[42954] = pfTmp;
+		m_cCycle[43287] = pfTmp;
 		m_cCycle[43295] = pfTmp;
+		m_cCycle[43628] = pfTmp;
 		m_cCycle[43636] = pfTmp;
+		m_cCycle[43969] = pfTmp;
 		m_cCycle[43977] = pfTmp;
+		m_cCycle[44310] = pfTmp;
 		m_cCycle[44318] = pfTmp;
+		m_cCycle[44651] = pfTmp;
 		m_cCycle[44659] = pfTmp;
+		m_cCycle[44992] = pfTmp;
 		m_cCycle[45000] = pfTmp;
+		m_cCycle[45333] = pfTmp;
 		m_cCycle[45341] = pfTmp;
+		m_cCycle[45674] = pfTmp;
 		m_cCycle[45682] = pfTmp;
+		m_cCycle[46015] = pfTmp;
 		m_cCycle[46023] = pfTmp;
+		m_cCycle[46356] = pfTmp;
 		m_cCycle[46364] = pfTmp;
+		m_cCycle[46697] = pfTmp;
 		m_cCycle[46705] = pfTmp;
+		m_cCycle[47038] = pfTmp;
 		m_cCycle[47046] = pfTmp;
+		m_cCycle[47379] = pfTmp;
 		m_cCycle[47387] = pfTmp;
+		m_cCycle[47720] = pfTmp;
 		m_cCycle[47728] = pfTmp;
+		m_cCycle[48061] = pfTmp;
 		m_cCycle[48069] = pfTmp;
+		m_cCycle[48402] = pfTmp;
 		m_cCycle[48410] = pfTmp;
+		m_cCycle[48743] = pfTmp;
 		m_cCycle[48751] = pfTmp;
+		m_cCycle[49084] = pfTmp;
 		m_cCycle[49092] = pfTmp;
+		m_cCycle[49425] = pfTmp;
 		m_cCycle[49433] = pfTmp;
+		m_cCycle[49766] = pfTmp;
 		m_cCycle[49774] = pfTmp;
+		m_cCycle[50107] = pfTmp;
 		m_cCycle[50115] = pfTmp;
+		m_cCycle[50448] = pfTmp;
 		m_cCycle[50456] = pfTmp;
+		m_cCycle[50789] = pfTmp;
 		m_cCycle[50797] = pfTmp;
+		m_cCycle[51130] = pfTmp;
 		m_cCycle[51138] = pfTmp;
+		m_cCycle[51471] = pfTmp;
 		m_cCycle[51479] = pfTmp;
+		m_cCycle[51812] = pfTmp;
 		m_cCycle[51820] = pfTmp;
+		m_cCycle[52153] = pfTmp;
 		m_cCycle[52161] = pfTmp;
+		m_cCycle[52494] = pfTmp;
 		m_cCycle[52502] = pfTmp;
+		m_cCycle[52835] = pfTmp;
 		m_cCycle[52843] = pfTmp;
+		m_cCycle[53176] = pfTmp;
 		m_cCycle[53184] = pfTmp;
+		m_cCycle[53517] = pfTmp;
 		m_cCycle[53525] = pfTmp;
+		m_cCycle[53858] = pfTmp;
 		m_cCycle[53866] = pfTmp;
+		m_cCycle[54199] = pfTmp;
 		m_cCycle[54207] = pfTmp;
+		m_cCycle[54540] = pfTmp;
 		m_cCycle[54548] = pfTmp;
+		m_cCycle[54881] = pfTmp;
 		m_cCycle[54889] = pfTmp;
+		m_cCycle[55222] = pfTmp;
 		m_cCycle[55230] = pfTmp;
+		m_cCycle[55563] = pfTmp;
 		m_cCycle[55571] = pfTmp;
+		m_cCycle[55904] = pfTmp;
 		m_cCycle[55912] = pfTmp;
+		m_cCycle[56245] = pfTmp;
 		m_cCycle[56253] = pfTmp;
+		m_cCycle[56586] = pfTmp;
 		m_cCycle[56594] = pfTmp;
+		m_cCycle[56927] = pfTmp;
 		m_cCycle[56935] = pfTmp;
+		m_cCycle[57268] = pfTmp;
 		m_cCycle[57276] = pfTmp;
+		m_cCycle[57609] = pfTmp;
 		m_cCycle[57617] = pfTmp;
+		m_cCycle[57950] = pfTmp;
 		m_cCycle[57958] = pfTmp;
+		m_cCycle[58291] = pfTmp;
 		m_cCycle[58299] = pfTmp;
+		m_cCycle[58632] = pfTmp;
 		m_cCycle[58640] = pfTmp;
+		m_cCycle[58973] = pfTmp;
 		m_cCycle[58981] = pfTmp;
+		m_cCycle[59314] = pfTmp;
 		m_cCycle[59322] = pfTmp;
+		m_cCycle[59655] = pfTmp;
 		m_cCycle[59663] = pfTmp;
+		m_cCycle[59996] = pfTmp;
 		m_cCycle[60004] = pfTmp;
+		m_cCycle[60337] = pfTmp;
 		m_cCycle[60345] = pfTmp;
+		m_cCycle[60678] = pfTmp;
 		m_cCycle[60686] = pfTmp;
+		m_cCycle[61019] = pfTmp;
 		m_cCycle[61027] = pfTmp;
+		m_cCycle[61360] = pfTmp;
 		m_cCycle[61368] = pfTmp;
+		m_cCycle[61701] = pfTmp;
 		m_cCycle[61709] = pfTmp;
+		m_cCycle[62042] = pfTmp;
 		m_cCycle[62050] = pfTmp;
+		m_cCycle[62383] = pfTmp;
 		m_cCycle[62391] = pfTmp;
+		m_cCycle[62724] = pfTmp;
 		m_cCycle[62732] = pfTmp;
+		m_cCycle[63065] = pfTmp;
 		m_cCycle[63073] = pfTmp;
+		m_cCycle[63406] = pfTmp;
 		m_cCycle[63414] = pfTmp;
+		m_cCycle[63747] = pfTmp;
 		m_cCycle[63755] = pfTmp;
+		m_cCycle[64088] = pfTmp;
 		m_cCycle[64096] = pfTmp;
+		m_cCycle[64429] = pfTmp;
 		m_cCycle[64437] = pfTmp;
+		m_cCycle[64770] = pfTmp;
 		m_cCycle[64778] = pfTmp;
+		m_cCycle[65111] = pfTmp;
 		m_cCycle[65119] = pfTmp;
+		m_cCycle[65452] = pfTmp;
 		m_cCycle[65460] = pfTmp;
+		m_cCycle[65793] = pfTmp;
 		m_cCycle[65801] = pfTmp;
+		m_cCycle[66134] = pfTmp;
 		m_cCycle[66142] = pfTmp;
+		m_cCycle[66475] = pfTmp;
 		m_cCycle[66483] = pfTmp;
+		m_cCycle[66816] = pfTmp;
 		m_cCycle[66824] = pfTmp;
+		m_cCycle[67157] = pfTmp;
 		m_cCycle[67165] = pfTmp;
+		m_cCycle[67498] = pfTmp;
 		m_cCycle[67506] = pfTmp;
+		m_cCycle[67839] = pfTmp;
 		m_cCycle[67847] = pfTmp;
+		m_cCycle[68180] = pfTmp;
 		m_cCycle[68188] = pfTmp;
+		m_cCycle[68521] = pfTmp;
 		m_cCycle[68529] = pfTmp;
+		m_cCycle[68862] = pfTmp;
 		m_cCycle[68870] = pfTmp;
+		m_cCycle[69203] = pfTmp;
 		m_cCycle[69211] = pfTmp;
+		m_cCycle[69544] = pfTmp;
 		m_cCycle[69552] = pfTmp;
+		m_cCycle[69885] = pfTmp;
 		m_cCycle[69893] = pfTmp;
+		m_cCycle[70226] = pfTmp;
 		m_cCycle[70234] = pfTmp;
+		m_cCycle[70567] = pfTmp;
 		m_cCycle[70575] = pfTmp;
+		m_cCycle[70908] = pfTmp;
 		m_cCycle[70916] = pfTmp;
+		m_cCycle[71249] = pfTmp;
 		m_cCycle[71257] = pfTmp;
+		m_cCycle[71590] = pfTmp;
 		m_cCycle[71598] = pfTmp;
+		m_cCycle[71931] = pfTmp;
 		m_cCycle[71939] = pfTmp;
+		m_cCycle[72272] = pfTmp;
 		m_cCycle[72280] = pfTmp;
+		m_cCycle[72613] = pfTmp;
 		m_cCycle[72621] = pfTmp;
+		m_cCycle[72954] = pfTmp;
 		m_cCycle[72962] = pfTmp;
+		m_cCycle[73295] = pfTmp;
 		m_cCycle[73303] = pfTmp;
+		m_cCycle[73636] = pfTmp;
 		m_cCycle[73644] = pfTmp;
+		m_cCycle[73977] = pfTmp;
 		m_cCycle[73985] = pfTmp;
+		m_cCycle[74318] = pfTmp;
 		m_cCycle[74326] = pfTmp;
+		m_cCycle[74659] = pfTmp;
 		m_cCycle[74667] = pfTmp;
+		m_cCycle[75000] = pfTmp;
 		m_cCycle[75008] = pfTmp;
+		m_cCycle[75341] = pfTmp;
 		m_cCycle[75349] = pfTmp;
+		m_cCycle[75682] = pfTmp;
 		m_cCycle[75690] = pfTmp;
+		m_cCycle[76023] = pfTmp;
 		m_cCycle[76031] = pfTmp;
+		m_cCycle[76364] = pfTmp;
 		m_cCycle[76372] = pfTmp;
+		m_cCycle[76705] = pfTmp;
 		m_cCycle[76713] = pfTmp;
+		m_cCycle[77046] = pfTmp;
 		m_cCycle[77054] = pfTmp;
+		m_cCycle[77387] = pfTmp;
 		m_cCycle[77395] = pfTmp;
+		m_cCycle[77728] = pfTmp;
 		m_cCycle[77736] = pfTmp;
+		m_cCycle[78069] = pfTmp;
 		m_cCycle[78077] = pfTmp;
+		m_cCycle[78410] = pfTmp;
 		m_cCycle[78418] = pfTmp;
+		m_cCycle[78751] = pfTmp;
 		m_cCycle[78759] = pfTmp;
+		m_cCycle[79092] = pfTmp;
 		m_cCycle[79100] = pfTmp;
+		m_cCycle[79433] = pfTmp;
 		m_cCycle[79441] = pfTmp;
+		m_cCycle[79774] = pfTmp;
 		m_cCycle[79782] = pfTmp;
+		m_cCycle[80115] = pfTmp;
 		m_cCycle[80123] = pfTmp;
+		m_cCycle[80456] = pfTmp;
 		m_cCycle[80464] = pfTmp;
+		m_cCycle[80797] = pfTmp;
 		m_cCycle[80805] = pfTmp;
+		m_cCycle[81138] = pfTmp;
 		m_cCycle[81146] = pfTmp;
+		m_cCycle[81479] = pfTmp;
 		m_cCycle[81487] = pfTmp;
+		m_cCycle[81820] = pfTmp;
 		m_cCycle[81828] = pfTmp;
-		m_cCycle[89010] = pfTmp;
-		m_cCycle[89018] = pfTmp;
-		m_cCycle[89026] = pfTmp;
-		m_cCycle[89034] = pfTmp;
-		m_cCycle[89042] = pfTmp;
-		m_cCycle[89050] = pfTmp;
-		m_cCycle[89058] = pfTmp;
-		m_cCycle[89066] = pfTmp;
-		m_cCycle[89074] = pfTmp;
-		m_cCycle[89082] = pfTmp;
-		m_cCycle[89090] = pfTmp;
-		m_cCycle[89098] = pfTmp;
-		m_cCycle[89106] = pfTmp;
-		m_cCycle[89114] = pfTmp;
-		m_cCycle[89122] = pfTmp;
-		m_cCycle[89130] = pfTmp;
-		m_cCycle[89138] = pfTmp;
-		m_cCycle[89146] = pfTmp;
-		m_cCycle[89154] = pfTmp;
-		m_cCycle[89162] = pfTmp;
-		m_cCycle[89170] = pfTmp;
-		m_cCycle[89178] = pfTmp;
-		m_cCycle[89186] = pfTmp;
-		m_cCycle[89194] = pfTmp;
-		m_cCycle[89202] = pfTmp;
-		m_cCycle[89210] = pfTmp;
-		m_cCycle[89218] = pfTmp;
-		m_cCycle[89226] = pfTmp;
-		m_cCycle[89234] = pfTmp;
-		m_cCycle[89242] = pfTmp;
-		m_cCycle[89250] = pfTmp;
+		m_cCycle[89322] = pfTmp;
 		m_cCycle[89330] = pfTmp;
 	}
 	{
@@ -71579,38 +71849,6 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81491] = pfTmp;
 		m_cCycle[81824] = pfTmp;
 		m_cCycle[81832] = pfTmp;
-		m_cCycle[89006] = pfTmp;
-		m_cCycle[89014] = pfTmp;
-		m_cCycle[89022] = pfTmp;
-		m_cCycle[89030] = pfTmp;
-		m_cCycle[89038] = pfTmp;
-		m_cCycle[89046] = pfTmp;
-		m_cCycle[89054] = pfTmp;
-		m_cCycle[89062] = pfTmp;
-		m_cCycle[89070] = pfTmp;
-		m_cCycle[89078] = pfTmp;
-		m_cCycle[89086] = pfTmp;
-		m_cCycle[89094] = pfTmp;
-		m_cCycle[89102] = pfTmp;
-		m_cCycle[89110] = pfTmp;
-		m_cCycle[89118] = pfTmp;
-		m_cCycle[89126] = pfTmp;
-		m_cCycle[89134] = pfTmp;
-		m_cCycle[89142] = pfTmp;
-		m_cCycle[89150] = pfTmp;
-		m_cCycle[89158] = pfTmp;
-		m_cCycle[89166] = pfTmp;
-		m_cCycle[89174] = pfTmp;
-		m_cCycle[89182] = pfTmp;
-		m_cCycle[89190] = pfTmp;
-		m_cCycle[89198] = pfTmp;
-		m_cCycle[89206] = pfTmp;
-		m_cCycle[89214] = pfTmp;
-		m_cCycle[89222] = pfTmp;
-		m_cCycle[89230] = pfTmp;
-		m_cCycle[89238] = pfTmp;
-		m_cCycle[89246] = pfTmp;
-		m_cCycle[89254] = pfTmp;
 		m_cCycle[89326] = pfTmp;
 		m_cCycle[89334] = pfTmp;
 	}
@@ -72096,38 +72334,6 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81493] = pfTmp;
 		m_cCycle[81826] = pfTmp;
 		m_cCycle[81834] = pfTmp;
-		m_cCycle[89008] = pfTmp;
-		m_cCycle[89016] = pfTmp;
-		m_cCycle[89024] = pfTmp;
-		m_cCycle[89032] = pfTmp;
-		m_cCycle[89040] = pfTmp;
-		m_cCycle[89048] = pfTmp;
-		m_cCycle[89056] = pfTmp;
-		m_cCycle[89064] = pfTmp;
-		m_cCycle[89072] = pfTmp;
-		m_cCycle[89080] = pfTmp;
-		m_cCycle[89088] = pfTmp;
-		m_cCycle[89096] = pfTmp;
-		m_cCycle[89104] = pfTmp;
-		m_cCycle[89112] = pfTmp;
-		m_cCycle[89120] = pfTmp;
-		m_cCycle[89128] = pfTmp;
-		m_cCycle[89136] = pfTmp;
-		m_cCycle[89144] = pfTmp;
-		m_cCycle[89152] = pfTmp;
-		m_cCycle[89160] = pfTmp;
-		m_cCycle[89168] = pfTmp;
-		m_cCycle[89176] = pfTmp;
-		m_cCycle[89184] = pfTmp;
-		m_cCycle[89192] = pfTmp;
-		m_cCycle[89200] = pfTmp;
-		m_cCycle[89208] = pfTmp;
-		m_cCycle[89216] = pfTmp;
-		m_cCycle[89224] = pfTmp;
-		m_cCycle[89232] = pfTmp;
-		m_cCycle[89240] = pfTmp;
-		m_cCycle[89248] = pfTmp;
-		m_cCycle[89256] = pfTmp;
 		m_cCycle[89328] = pfTmp;
 		m_cCycle[89336] = pfTmp;
 	}
@@ -72613,38 +72819,6 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81490] = pfTmp;
 		m_cCycle[81823] = pfTmp;
 		m_cCycle[81831] = pfTmp;
-		m_cCycle[89005] = pfTmp;
-		m_cCycle[89013] = pfTmp;
-		m_cCycle[89021] = pfTmp;
-		m_cCycle[89029] = pfTmp;
-		m_cCycle[89037] = pfTmp;
-		m_cCycle[89045] = pfTmp;
-		m_cCycle[89053] = pfTmp;
-		m_cCycle[89061] = pfTmp;
-		m_cCycle[89069] = pfTmp;
-		m_cCycle[89077] = pfTmp;
-		m_cCycle[89085] = pfTmp;
-		m_cCycle[89093] = pfTmp;
-		m_cCycle[89101] = pfTmp;
-		m_cCycle[89109] = pfTmp;
-		m_cCycle[89117] = pfTmp;
-		m_cCycle[89125] = pfTmp;
-		m_cCycle[89133] = pfTmp;
-		m_cCycle[89141] = pfTmp;
-		m_cCycle[89149] = pfTmp;
-		m_cCycle[89157] = pfTmp;
-		m_cCycle[89165] = pfTmp;
-		m_cCycle[89173] = pfTmp;
-		m_cCycle[89181] = pfTmp;
-		m_cCycle[89189] = pfTmp;
-		m_cCycle[89197] = pfTmp;
-		m_cCycle[89205] = pfTmp;
-		m_cCycle[89213] = pfTmp;
-		m_cCycle[89221] = pfTmp;
-		m_cCycle[89229] = pfTmp;
-		m_cCycle[89237] = pfTmp;
-		m_cCycle[89245] = pfTmp;
-		m_cCycle[89253] = pfTmp;
 		m_cCycle[89325] = pfTmp;
 		m_cCycle[89333] = pfTmp;
 	}
@@ -73130,38 +73304,6 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81488] = pfTmp;
 		m_cCycle[81821] = pfTmp;
 		m_cCycle[81829] = pfTmp;
-		m_cCycle[89003] = pfTmp;
-		m_cCycle[89011] = pfTmp;
-		m_cCycle[89019] = pfTmp;
-		m_cCycle[89027] = pfTmp;
-		m_cCycle[89035] = pfTmp;
-		m_cCycle[89043] = pfTmp;
-		m_cCycle[89051] = pfTmp;
-		m_cCycle[89059] = pfTmp;
-		m_cCycle[89067] = pfTmp;
-		m_cCycle[89075] = pfTmp;
-		m_cCycle[89083] = pfTmp;
-		m_cCycle[89091] = pfTmp;
-		m_cCycle[89099] = pfTmp;
-		m_cCycle[89107] = pfTmp;
-		m_cCycle[89115] = pfTmp;
-		m_cCycle[89123] = pfTmp;
-		m_cCycle[89131] = pfTmp;
-		m_cCycle[89139] = pfTmp;
-		m_cCycle[89147] = pfTmp;
-		m_cCycle[89155] = pfTmp;
-		m_cCycle[89163] = pfTmp;
-		m_cCycle[89171] = pfTmp;
-		m_cCycle[89179] = pfTmp;
-		m_cCycle[89187] = pfTmp;
-		m_cCycle[89195] = pfTmp;
-		m_cCycle[89203] = pfTmp;
-		m_cCycle[89211] = pfTmp;
-		m_cCycle[89219] = pfTmp;
-		m_cCycle[89227] = pfTmp;
-		m_cCycle[89235] = pfTmp;
-		m_cCycle[89243] = pfTmp;
-		m_cCycle[89251] = pfTmp;
 		m_cCycle[89323] = pfTmp;
 		m_cCycle[89331] = pfTmp;
 	}
@@ -73647,44 +73789,8 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81492] = pfTmp;
 		m_cCycle[81825] = pfTmp;
 		m_cCycle[81833] = pfTmp;
-		m_cCycle[89007] = pfTmp;
-		m_cCycle[89015] = pfTmp;
-		m_cCycle[89023] = pfTmp;
-		m_cCycle[89031] = pfTmp;
-		m_cCycle[89039] = pfTmp;
-		m_cCycle[89047] = pfTmp;
-		m_cCycle[89055] = pfTmp;
-		m_cCycle[89063] = pfTmp;
-		m_cCycle[89071] = pfTmp;
-		m_cCycle[89079] = pfTmp;
-		m_cCycle[89087] = pfTmp;
-		m_cCycle[89095] = pfTmp;
-		m_cCycle[89103] = pfTmp;
-		m_cCycle[89111] = pfTmp;
-		m_cCycle[89119] = pfTmp;
-		m_cCycle[89127] = pfTmp;
-		m_cCycle[89135] = pfTmp;
-		m_cCycle[89143] = pfTmp;
-		m_cCycle[89151] = pfTmp;
-		m_cCycle[89159] = pfTmp;
-		m_cCycle[89167] = pfTmp;
-		m_cCycle[89175] = pfTmp;
-		m_cCycle[89183] = pfTmp;
-		m_cCycle[89191] = pfTmp;
-		m_cCycle[89199] = pfTmp;
-		m_cCycle[89207] = pfTmp;
-		m_cCycle[89215] = pfTmp;
-		m_cCycle[89223] = pfTmp;
-		m_cCycle[89231] = pfTmp;
-		m_cCycle[89239] = pfTmp;
-		m_cCycle[89247] = pfTmp;
-		m_cCycle[89255] = pfTmp;
 		m_cCycle[89327] = pfTmp;
 		m_cCycle[89335] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__256x261;
-		m_cCycle[89257] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__328x0_336x0_328x1_336x1_328x2_336x2_328x3_336x3_328x4_336x4_X;
@@ -74168,48 +74274,16 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81494] = pfTmp;
 		m_cCycle[81827] = pfTmp;
 		m_cCycle[81835] = pfTmp;
-		m_cCycle[89009] = pfTmp;
-		m_cCycle[89017] = pfTmp;
-		m_cCycle[89025] = pfTmp;
-		m_cCycle[89033] = pfTmp;
-		m_cCycle[89041] = pfTmp;
-		m_cCycle[89049] = pfTmp;
-		m_cCycle[89057] = pfTmp;
-		m_cCycle[89065] = pfTmp;
-		m_cCycle[89073] = pfTmp;
-		m_cCycle[89081] = pfTmp;
-		m_cCycle[89089] = pfTmp;
-		m_cCycle[89097] = pfTmp;
-		m_cCycle[89105] = pfTmp;
-		m_cCycle[89113] = pfTmp;
-		m_cCycle[89121] = pfTmp;
-		m_cCycle[89129] = pfTmp;
-		m_cCycle[89137] = pfTmp;
-		m_cCycle[89145] = pfTmp;
-		m_cCycle[89153] = pfTmp;
-		m_cCycle[89161] = pfTmp;
-		m_cCycle[89169] = pfTmp;
-		m_cCycle[89177] = pfTmp;
-		m_cCycle[89185] = pfTmp;
-		m_cCycle[89193] = pfTmp;
-		m_cCycle[89201] = pfTmp;
-		m_cCycle[89209] = pfTmp;
-		m_cCycle[89217] = pfTmp;
-		m_cCycle[89225] = pfTmp;
-		m_cCycle[89233] = pfTmp;
-		m_cCycle[89241] = pfTmp;
-		m_cCycle[89249] = pfTmp;
 		m_cCycle[89329] = pfTmp;
 		m_cCycle[89337] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__282x261_284x261_290x261_292x261_298x261_300x261;
-		m_cCycle[89283] = pfTmp;
-		m_cCycle[89285] = pfTmp;
-		m_cCycle[89291] = pfTmp;
-		m_cCycle[89293] = pfTmp;
-		m_cCycle[89299] = pfTmp;
-		m_cCycle[89301] = pfTmp;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__257x240;
+		m_cCycle[82097] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__340x261;
+		m_cCycle[89341] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__1x261;
@@ -76139,6 +76213,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81559] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__4x261_12x261_20x261_28x261_36x261_44x261_52x261_60x261;
+		m_cCycle[89005] = pfTmp;
+		m_cCycle[89013] = pfTmp;
+		m_cCycle[89021] = pfTmp;
+		m_cCycle[89029] = pfTmp;
+		m_cCycle[89037] = pfTmp;
+		m_cCycle[89045] = pfTmp;
+		m_cCycle[89053] = pfTmp;
+		m_cCycle[89061] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__2x0_10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x1_X;
 		m_cCycle[2] = pfTmp;
 		m_cCycle[10] = pfTmp;
@@ -78060,6 +78145,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81541] = pfTmp;
 		m_cCycle[81549] = pfTmp;
 		m_cCycle[81557] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__2x261_10x261_18x261_26x261_34x261_42x261_50x261_58x261;
+		m_cCycle[89003] = pfTmp;
+		m_cCycle[89011] = pfTmp;
+		m_cCycle[89019] = pfTmp;
+		m_cCycle[89027] = pfTmp;
+		m_cCycle[89035] = pfTmp;
+		m_cCycle[89043] = pfTmp;
+		m_cCycle[89051] = pfTmp;
+		m_cCycle[89059] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x1_X;
@@ -79985,6 +80081,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81561] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__6x261_14x261_22x261_30x261_38x261_46x261_54x261_62x261;
+		m_cCycle[89007] = pfTmp;
+		m_cCycle[89015] = pfTmp;
+		m_cCycle[89023] = pfTmp;
+		m_cCycle[89031] = pfTmp;
+		m_cCycle[89039] = pfTmp;
+		m_cCycle[89047] = pfTmp;
+		m_cCycle[89055] = pfTmp;
+		m_cCycle[89063] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__8x0_16x0_24x0_32x0_40x0_48x0_56x0_64x0_8x1_16x1_X;
 		m_cCycle[8] = pfTmp;
 		m_cCycle[16] = pfTmp;
@@ -81908,63 +82015,15 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81563] = pfTmp;
 	}
 	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__261x261_262x261_263x261_264x261_269x261_270x261_271x261_272x261_277x261_278x261_X;
-		m_cCycle[89262] = pfTmp;
-		m_cCycle[89263] = pfTmp;
-		m_cCycle[89264] = pfTmp;
-		m_cCycle[89265] = pfTmp;
-		m_cCycle[89270] = pfTmp;
-		m_cCycle[89271] = pfTmp;
-		m_cCycle[89272] = pfTmp;
-		m_cCycle[89273] = pfTmp;
-		m_cCycle[89278] = pfTmp;
-		m_cCycle[89279] = pfTmp;
-		m_cCycle[89280] = pfTmp;
-		m_cCycle[89310] = pfTmp;
-		m_cCycle[89311] = pfTmp;
-		m_cCycle[89312] = pfTmp;
-		m_cCycle[89313] = pfTmp;
-		m_cCycle[89318] = pfTmp;
-		m_cCycle[89319] = pfTmp;
-		m_cCycle[89320] = pfTmp;
-		m_cCycle[89321] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__280x261_285x261_286x261_287x261_288x261_293x261_294x261_295x261_296x261_301x261_X;
-		m_cCycle[89281] = pfTmp;
-		m_cCycle[89286] = pfTmp;
-		m_cCycle[89287] = pfTmp;
-		m_cCycle[89288] = pfTmp;
-		m_cCycle[89289] = pfTmp;
-		m_cCycle[89294] = pfTmp;
-		m_cCycle[89295] = pfTmp;
-		m_cCycle[89296] = pfTmp;
-		m_cCycle[89297] = pfTmp;
-		m_cCycle[89302] = pfTmp;
-		m_cCycle[89303] = pfTmp;
-		m_cCycle[89304] = pfTmp;
-		m_cCycle[89305] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__259x261_265x261_267x261_273x261_275x261_305x261_307x261_313x261_315x261;
-		m_cCycle[89260] = pfTmp;
-		m_cCycle[89266] = pfTmp;
-		m_cCycle[89268] = pfTmp;
-		m_cCycle[89274] = pfTmp;
-		m_cCycle[89276] = pfTmp;
-		m_cCycle[89306] = pfTmp;
-		m_cCycle[89308] = pfTmp;
-		m_cCycle[89314] = pfTmp;
-		m_cCycle[89316] = pfTmp;
-	}
-	{
-		PfCycles pfTmp = &CPpu2C0X::Cycle_0__281x261_283x261_289x261_291x261_297x261_299x261;
-		m_cCycle[89282] = pfTmp;
-		m_cCycle[89284] = pfTmp;
-		m_cCycle[89290] = pfTmp;
-		m_cCycle[89292] = pfTmp;
-		m_cCycle[89298] = pfTmp;
-		m_cCycle[89300] = pfTmp;
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__8x261_16x261_24x261_32x261_40x261_48x261_56x261_64x261;
+		m_cCycle[89009] = pfTmp;
+		m_cCycle[89017] = pfTmp;
+		m_cCycle[89025] = pfTmp;
+		m_cCycle[89033] = pfTmp;
+		m_cCycle[89041] = pfTmp;
+		m_cCycle[89049] = pfTmp;
+		m_cCycle[89057] = pfTmp;
+		m_cCycle[89065] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x1_X;
@@ -83890,6 +83949,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81558] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__3x261_11x261_19x261_27x261_35x261_43x261_51x261_59x261;
+		m_cCycle[89004] = pfTmp;
+		m_cCycle[89012] = pfTmp;
+		m_cCycle[89020] = pfTmp;
+		m_cCycle[89028] = pfTmp;
+		m_cCycle[89036] = pfTmp;
+		m_cCycle[89044] = pfTmp;
+		m_cCycle[89052] = pfTmp;
+		m_cCycle[89060] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x1_X;
 		m_cCycle[9] = pfTmp;
 		m_cCycle[17] = pfTmp;
@@ -85571,6 +85641,16 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81540] = pfTmp;
 		m_cCycle[81548] = pfTmp;
 		m_cCycle[81556] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__9x261_17x261_25x261_33x261_41x261_49x261_57x261;
+		m_cCycle[89010] = pfTmp;
+		m_cCycle[89018] = pfTmp;
+		m_cCycle[89026] = pfTmp;
+		m_cCycle[89034] = pfTmp;
+		m_cCycle[89042] = pfTmp;
+		m_cCycle[89050] = pfTmp;
+		m_cCycle[89058] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x1_X;
@@ -87496,6 +87576,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81560] = pfTmp;
 	}
 	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__5x261_13x261_21x261_29x261_37x261_45x261_53x261_61x261;
+		m_cCycle[89006] = pfTmp;
+		m_cCycle[89014] = pfTmp;
+		m_cCycle[89022] = pfTmp;
+		m_cCycle[89030] = pfTmp;
+		m_cCycle[89038] = pfTmp;
+		m_cCycle[89046] = pfTmp;
+		m_cCycle[89054] = pfTmp;
+		m_cCycle[89062] = pfTmp;
+	}
+	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__7x0_15x0_23x0_31x0_39x0_47x0_55x0_63x0_7x1_15x1_X;
 		m_cCycle[7] = pfTmp;
 		m_cCycle[15] = pfTmp;
@@ -89417,6 +89508,17 @@ if constexpr ( _tRegCode == 0 ) {
 		m_cCycle[81546] = pfTmp;
 		m_cCycle[81554] = pfTmp;
 		m_cCycle[81562] = pfTmp;
+	}
+	{
+		PfCycles pfTmp = &CPpu2C0X::Cycle_0__7x261_15x261_23x261_31x261_39x261_47x261_55x261_63x261;
+		m_cCycle[89008] = pfTmp;
+		m_cCycle[89016] = pfTmp;
+		m_cCycle[89024] = pfTmp;
+		m_cCycle[89032] = pfTmp;
+		m_cCycle[89040] = pfTmp;
+		m_cCycle[89048] = pfTmp;
+		m_cCycle[89056] = pfTmp;
+		m_cCycle[89064] = pfTmp;
 	}
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_0__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X;

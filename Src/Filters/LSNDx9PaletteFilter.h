@@ -88,7 +88,7 @@ namespace lsn {
 		 * \return Returns the image scale to use, accounting for mipmaps.
 		 **/
 		inline uint32_t										GetActualVertSharpness() const {
-			return m_ui32SrcH ? std::min<uint32_t>( s_dgsState.rScreenRect.Height() / m_ui32SrcH, GetVertSharpness() ) : 1;
+			return m_ui32SrcH ? std::min<uint32_t>( static_cast<uint32_t>(std::ceil( s_dgsState.rScreenRect.Height() / double( m_ui32SrcH ) )), GetVertSharpness() ) : 1;
 		}
 
 		/**
@@ -97,7 +97,7 @@ namespace lsn {
 		 * \return Returns the image scale to use, accounting for mipmaps.
 		 **/
 		inline uint32_t										GetActualHorSharpness() const {
-			return m_ui32SrcW ? std::min<uint32_t>( s_dgsState.rScreenRect.Width() / m_ui32SrcW, GetHorSharpness() ) : 1;
+			return m_ui32SrcW ? std::min<uint32_t>( static_cast<uint32_t>(std::ceil( s_dgsState.rScreenRect.Width() / double( m_ui32SrcW ) )), GetHorSharpness() ) : 1;
 		}
 
 		/**
