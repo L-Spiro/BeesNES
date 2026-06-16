@@ -42,6 +42,7 @@ namespace lsn {
 		{ CResamplerBase::HammingFilterFunc,				1.0f },
 		{ CResamplerBase::HanningFilterFunc,				1.0f },
 		{ CResamplerBase::BlackmanFilterFunc,				3.0f },
+		{ CResamplerBase::JincFilterFunc,					3.0f },
 		{ CResamplerBase::GaussianSharpFilterFunc,			1.25f },
 		{ CResamplerBase::GaussianFilterFunc,				1.25f },
 		{ CResamplerBase::BellFilterFunc,					1.5f },

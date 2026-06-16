@@ -60,6 +60,7 @@ namespace lsn {
 			LSN_FF_HAMMING,
 			LSN_FF_HANNING,
 			LSN_FF_BLACKMAN,
+			LSN_FF_JINC,
 			LSN_FF_GAUSSIANSHARP,
 			LSN_FF_GAUSSIAN,
 			LSN_FF_BELL,
@@ -160,6 +161,153 @@ namespace lsn {
 			}
 
 			return fSum;
+		}
+
+		/**
+		 * Calculates the J1 Bessel function approximation.
+		 *
+		 * \param _fX The input float value.
+		 * \return The computed float result.
+		 */
+		static float											J1( float _fX ) {
+			float fP;
+			float fQ;
+			size_t iIdx;
+
+			static const float afPone[] = {
+				0.581199354001606143928050809e+21f,
+			   -0.6672106568924916298020941484e+20f,
+				0.2316433580634002297931815435e+19f,
+			   -0.3588817569910106050743641413e+17f,
+				0.2908795263834775409737601689e+15f,
+			   -0.1322983480332126453125473247e+13f,
+				0.3413234182301700539091292655e+10f,
+			   -0.4695753530642995859767162166e+7f,
+				0.270112271089232341485679099e+4f
+			};
+    
+			static const float afQone[] = {
+				0.11623987080032122878585294e+22f,
+				0.1185770712190320999837113348e+20f,
+				0.6092061398917521746105196863e+17f,
+				0.2081661221307607351240184229e+15f,
+				0.5243710262167649715406728642e+12f,
+				0.1013863514358673989967045588e+10f,
+				0.1501793594998585505921097578e+7f,
+				0.1606931573481487801970916749e+4f,
+				0.1e+1f
+			};
+
+			fP = afPone[8];
+			fQ = afQone[8];
+    
+			for ( iIdx = 7; iIdx--; ) {
+				fP = fP * _fX * _fX + afPone[iIdx];
+				fQ = fQ * _fX * _fX + afQone[iIdx];
+			}
+    
+			return (fP / fQ);
+		}
+
+		/**
+		 * Calculates the P1 auxiliary polynomial for the Bessel approximation.
+		 *
+		 * \param _fX The input float value.
+		 * \return The computed float result.
+		 */
+		static float											P1( float _fX ) {
+			float fP;
+			float fQ;
+			size_t iIdx;
+
+			static const float afPone[] = {
+				0.352246649133679798341724373e+5f,
+				0.62758845247161281269005675e+5f,
+				0.313539631109159574238669888e+5f,
+				0.49854832060594338434500455e+4f,
+				0.2111529182853962382105718e+3f,
+				0.12571716929145341558495e+1f
+			};
+    
+			static const float afQone[] = {
+				0.352246649133679798068390431e+5f,
+				0.626943469593560511888833731e+5f,
+				0.312404063819041039923015703e+5f,
+				0.4930396490181088979386097e+4f,
+				0.2030775189134759322293574e+3f,
+				0.1e+1f
+			};
+
+			fP = afPone[5];
+			fQ = afQone[5];
+    
+			for ( iIdx = 4; iIdx--; ) {
+				fP = fP * (8.0f / _fX) * (8.0f / _fX) + afPone[iIdx];
+				fQ = fQ * (8.0f / _fX) * (8.0f / _fX) + afQone[iIdx];
+			}
+    
+			return (fP / fQ);
+		}
+
+		/**
+		 * Calculates the Q1 auxiliary polynomial for the Bessel approximation.
+		 *
+		 * \param _fX The input float value.
+		 * \return The computed float result.
+		 */
+		static float											Q1( float _fX ) {
+			float fP;
+			float fQ;
+			size_t iIdx;
+
+			static const float afPone[] = {
+				0.3511751914303552822533318e+3f,
+				0.7210391804904475039280863e+3f,
+				0.4259873011654442389886993e+3f,
+				0.831898957673850827325226e+2f,
+				0.45681716295512267064405e+1f,
+				0.3532840052740123642735e-1f
+			};
+    
+			static const float afQone[] = {
+				0.74917374171809127714519505e+4f,
+				0.154141773392650970499848051e+5f,
+				0.91522317015169922705904727e+4f,
+				0.18111867005523513506724158e+4f,
+				0.1038187585462133728776636e+3f,
+				0.1e+1f
+			};
+
+			fP = afPone[5];
+			fQ = afQone[5];
+    
+			for ( iIdx = 4; iIdx--; ) {
+				fP = fP * (8.0f / _fX) * (8.0f / _fX) + afPone[iIdx];
+				fQ = fQ * (8.0f / _fX) * (8.0f / _fX) + afQone[iIdx];
+			}
+    
+			return (fP / fQ);
+		}
+
+		/**
+		 * A helper function.
+		 *
+		 * \param _fX A happy parameter.
+		 * \return Returns happiness.
+		 */
+		static inline float										Bessel1( float _fX ) {
+			float fP, fQ;
+			if ( _fX == 0.0f ) { return 0.0f; }
+			fP = _fX;
+			if ( _fX < 0.0f ) { _fX = -_fX; }
+			if ( _fX < 8.0f ) { return fP * J1( _fX ); }
+			constexpr float fSqrt2 = 1.41421353816986083984375f;
+			fQ = std::sqrt( (2.0f / (std::numbers::pi_v<float> * _fX)) ) * (P1( _fX ) * (1.0f / fSqrt2 * (std::sin( _fX ) - std::cos( _fX ))) - 
+				 8.0f / _fX * Q1( _fX ) * (-1.0f / fSqrt2 * (std::sin( _fX ) + std::cos( _fX ))));
+
+			if ( fP < 0.0f ) { fQ = -fQ; }
+
+			return fQ;
 		}
 
 		/**
@@ -458,6 +606,19 @@ namespace lsn {
 				return Clean( Sinc( _fT ) * BlackmanWindow( _fT / 3.0f ) );
 			}
 			return 0.0f;
+		}
+
+		/**
+		 * The Jinc filter function.
+		 *
+		 * \param _fT The value to filter.
+		 * \return Returns the filtered value.
+		 */
+		static inline float										JincFilterFunc( float _fT ) {
+			if ( _fT == 0.0 ) {
+				return 0.5 * std::numbers::pi_v<float>;
+			}
+			return Bessel1( std::numbers::pi_v<float> *_fT ) / _fT;
 		}
 
 		/**

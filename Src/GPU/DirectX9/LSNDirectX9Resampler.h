@@ -93,7 +93,7 @@ namespace lsn {
 		std::unique_ptr<CDirectX9PixelShader>					m_psResampleY;
 
 		/** The filter to use. */
-		LSN_FILTER_FUNCS										m_ffFilter = LSN_FF_ROBIDOUXSHARP;
+		LSN_FILTER_FUNCS										m_ffFilter = LSN_FF_CARDINALSPLINEUNIFORM;
 		
 		/** Cached dimensions to prevent unneeded recalculations. */
 		uint32_t												m_ui32LastSrcW = 0;
