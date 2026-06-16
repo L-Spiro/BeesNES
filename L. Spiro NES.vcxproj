@@ -1857,6 +1857,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Filters\LSNPalCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNPalLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\LSNPostProcessBase.h" />
+    <ClInclude Include="Src\Filters\LSNResamplerBase.h" />
     <ClInclude Include="Src\Filters\LSNRgb24Filter.h" />
     <ClInclude Include="Src\Filters\LSNSrgbPostProcess.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
@@ -1896,6 +1897,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Resampler.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Texture.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TexturePixelScaler.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TextureRenderer.h" />
@@ -2019,9 +2021,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
     <ClInclude Include="Src\Utilities\LSNRingBuffer.h" />
     <ClInclude Include="Src\Utilities\LSNScopedNoSubnormals.h" />
+    <ClInclude Include="Src\Utilities\LSNSimdTypes.h" />
     <ClInclude Include="Src\Utilities\LSNStream.h" />
     <ClInclude Include="Src\Utilities\LSNStreamBase.h" />
+    <ClInclude Include="Src\Utilities\LSNTextureAddressing.h" />
     <ClInclude Include="Src\Utilities\LSNUtilities.h" />
+    <ClInclude Include="Src\Utilities\LSNVector4.h" />
     <ClInclude Include="Src\Wav\LSNWavEditor.h" />
     <ClInclude Include="Src\Wav\LSNWavFile.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsGeneralPage.h" />
@@ -2113,6 +2118,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNPalLSpiroFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNResamplerBase.cpp" />
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\LSNSrgbPostProcess.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
@@ -2147,6 +2153,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Resampler.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Texture.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TexturePixelScaler.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TextureRenderer.cpp" />
@@ -2173,6 +2180,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\System\LSNSystem.cpp" />
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
+    <ClCompile Include="Src\Utilities\LSNTextureAddressing.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp" />
     <ClCompile Include="Src\Wav\LSNWavFile.cpp" />

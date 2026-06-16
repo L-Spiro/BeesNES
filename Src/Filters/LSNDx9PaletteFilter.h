@@ -13,6 +13,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../GPU/DirectX9/LSNDirectX9PixelShader.h"
 #include "../GPU/DirectX9/LSNDirectX9RenderTarget.h"
+#include "../GPU/DirectX9/LSNDirectX9Resampler.h"
 #include "../GPU/DirectX9/LSNDirectX9Texture.h"
 #include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
@@ -108,6 +109,20 @@ namespace lsn {
 		inline void											Use16Target( bool _bUse16Bit ) { m_bUse16BitInitialTarget = _bUse16Bit; }
 
 		/**
+		 * Sets whether the filter should use the high-quality 2-pass resampler for the final composite render.
+		 * 
+		 * \param _bUse If true, CDirectX9Resampler is used.
+		 **/
+		inline void											SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+
+		/**
+		 * Gets whether the filter is configured to use the high-quality resampler.
+		 * 
+		 * \return Returns true if CDirectX9Resampler is enabled.
+		 **/
+		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+
+		/**
 		 * Sets the palette.
 		 * 
 		 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
@@ -158,6 +173,8 @@ namespace lsn {
 		
 		/** Generically scales a texture via nearest-neighbor. */
 		CDirectX9TexturePixelScaler							m_tpsScaler;
+		/** 2-Pass high-quality texture resampler. */
+		CDirectX9Resampler									m_rsResampler;
 		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
 		CDirectX9TextureRenderer							m_trRenderer;
 
@@ -167,6 +184,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9Texture>					m_tLut;
 		/** Initial floating-point render target (same size as indices). */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
+		/** Intermediate resample floating-point render target for passing to the screen composite. */
+		std::unique_ptr<CDirectX9RenderTarget>				m_rtResampled;
 		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
 		/** Pixel shader: indices + LUT → RGBA (pass 1). */
@@ -185,12 +204,18 @@ namespace lsn {
 		uint32_t											m_ui32RsrcW = 0;
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
+		/** Resampled target width. */
+		uint32_t											m_ui32ResampledTargetW = 0;
+		/** Resampled target height. */
+		uint32_t											m_ui32ResampledTargetH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 2;
 		/** Horizontal sharpness factor. */
 		uint32_t											m_ui32HorSharness = 2;
 		/** Use a 16-bit initial render target? */
 		bool												m_bUse16BitInitialTarget = true;
+		/** Toggles whether the high-quality 2-pass CDirectX9Resampler handles final scaling. */
+		bool												m_bUseHighQualityResampler = true;
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 		/** Does the palette need to be uploaded? */
@@ -255,8 +280,8 @@ namespace lsn {
 		 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
 		 *
 		 * Pass 1 renders index/color into the FP RT with a 1:1 viewport.
-		 * Pass 2 renders the FP RT into the scanlined RT (height�~factor) using nearest-neighbor vertically.
-		 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
+		 * Pass 2 renders the FP RT into the scanlined RT (height * factor) using nearest-neighbor vertically.
+		 * Pass 3 clears the backbuffer black and draws the resampled RT into the destination rectangle.
 		 *
 		 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
 		 * \return Returns true if the draw succeeded; false on failure.

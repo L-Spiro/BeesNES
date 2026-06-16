@@ -66,10 +66,12 @@ namespace lsn {
 
 		m_tpsScaler.Reset();
 		m_trRenderer.Reset();
+		m_rsResampler.Reset();
 
 		m_tIndex.reset();
 		m_tLut.reset();
 		m_rtInitial.reset();
+		m_rtResampled.reset();
 		m_vbQuad.reset();
 		m_psIdxToColor.reset();
 
@@ -152,9 +154,12 @@ namespace lsn {
 
 			m_tpsScaler.Reset();
 			m_trRenderer.Reset();
+			m_rsResampler.Reset();
+			
 			m_tIndex.reset();
 			m_tLut.reset();
 			m_rtInitial.reset();
+			m_rtResampled.reset();
 			m_vbQuad.reset();
 			m_psIdxToColor.reset();
 
@@ -186,7 +191,7 @@ namespace lsn {
 	/**
 	 * \brief Updates the 512-entry float RGBA LUT.
 	 *
-	 * The LUT is a 512�~1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
+	 * The LUT is a 512×1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
 	 *
 	 * \return Returns true on success.
 	 */
@@ -344,6 +349,7 @@ namespace lsn {
 	void CDx9PaletteFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tIndex.get() ) { m_tIndex->Reset(); }
 		if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
+		if LSN_LIKELY( m_rtResampled.get() ) { m_rtResampled->Reset(); }
 		if LSN_LIKELY( m_vbQuad.get() ) { m_vbQuad->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
@@ -355,8 +361,8 @@ namespace lsn {
 	 * Postcondition: The scene remains open; the caller is responsible for EndScene() and Present().
 	 *
 	 * Pass 1 renders index/color into the FP RT with a 1:1 viewport.
-	 * Pass 2 renders the FP RT into the scanlined RT (height�~factor) using nearest-neighbor vertically.
-	 * Pass 3 clears the backbuffer black and draws the scanlined RT into the destination rectangle.
+	 * Pass 2 renders the FP RT into the scanlined RT (height * factor) using nearest-neighbor vertically.
+	 * Pass 3 clears the backbuffer black and draws the resampled RT into the destination rectangle.
 	 *
 	 * \param _rOutput The destination rectangle in client pixels where the NES image should appear.
 	 * \return Returns true if the draw succeeded; false on failure.
@@ -412,10 +418,34 @@ namespace lsn {
 			return false;
 		}
 
-		// ----- Pass 3: Composite to backbuffer inside _rOutput -----
+		// ----- Pass 3 & 4: Resample (Optional) & Composite to backbuffer inside _rOutput -----
 		IDirect3DSurface9 * psBackBuffer = nullptr;
 		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
-			m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, true, true );
+			
+			if ( m_bUseHighQualityResampler ) {
+				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+				
+				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Valid() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
+					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
+					else if LSN_UNLIKELY( !m_rtResampled.get() ) { m_rtResampled = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
+					
+					m_rtResampled->CreateColorTarget( ui32DstW, ui32DstH, m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F );
+					m_ui32ResampledTargetW = ui32DstW;
+					m_ui32ResampledTargetH = ui32DstH;
+				}
+
+				if ( m_rtResampled->Valid() && m_rsResampler.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), m_tpsScaler.GetWidth(), m_tpsScaler.GetHeight(), m_rtResampled.get(), ui32DstW, ui32DstH ) ) {
+					m_trRenderer.Render( m_pdx9dDevice, m_rtResampled->Texture()->Get(), psBackBuffer, _rOutput, 1.0f, true, true );
+				}
+				else {
+					m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, true, true );
+				}
+			}
+			else {
+				m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, true, true );
+			}
+			
 			psBackBuffer->Release();
 		}
 
