@@ -11,6 +11,8 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../GPU/DirectX9/LSNDirectX9RenderTarget.h"
+#include "../GPU/DirectX9/LSNDirectX9Resampler.h"
 #include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureUploader.h"
@@ -96,6 +98,18 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets whether the filter should use the high-quality 2-pass resampler for the final composite render.
+		 * \param _bUse If true, CDirectX9Resampler is used.
+		 **/
+		inline void											SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+
+		/**
+		 * Gets whether the filter is configured to use the high-quality resampler.
+		 * \return Returns true if CDirectX9Resampler is enabled.
+		 **/
+		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+
+		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *
@@ -168,8 +182,13 @@ namespace lsn {
 		CDirectX9TextureUploader							m_tuUploader;
 		/** Generically scales a texture via nearest-neighbor and applies gamma. */
 		CDirectX9TexturePixelScaler							m_tpsScaler;
+		/** 2-Pass high-quality texture resampler. */
+		CDirectX9Resampler									m_rsResampler;
 		/** Generically renders a texture to the backbuffer using bilinear sampling. */
 		CDirectX9TextureRenderer							m_trRenderer;
+
+		/** Intermediate resample floating-point render target for passing to the screen composite. */
+		std::unique_ptr<CDirectX9RenderTarget>				m_rtResampled;
 
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
@@ -179,12 +198,18 @@ namespace lsn {
 		uint32_t											m_ui32RsrcW = 0;
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
+		/** Resampled target width. */
+		uint32_t											m_ui32ResampledTargetW = 0;
+		/** Resampled target height. */
+		uint32_t											m_ui32ResampledTargetH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 3;
 		/** Horizontal sharpness factor. */
 		uint32_t											m_ui32HorSharness = 1;
 		/** Use a 16-bit initial render target? */
 		bool												m_bUse16BitInitialTarget = true;
+		/** Toggles whether the high-quality 2-pass CDirectX9Resampler handles final scaling. */
+		bool												m_bUseHighQualityResampler = true;
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 

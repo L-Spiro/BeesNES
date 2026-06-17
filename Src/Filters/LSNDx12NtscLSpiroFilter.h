@@ -12,6 +12,10 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
+#include "../GPU/DirectX12/LSNDirectX12DescriptorHeap.h"
+#include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
+#include "../GPU/DirectX12/LSNDirectX12Resampler.h"
+#include "../GPU/DirectX12/LSNDirectX12Resource.h"
 #include "../GPU/DirectX12/LSNDirectX12TexturePixelScaler.h"
 #include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
 #include "../GPU/DirectX12/LSNDirectX12TextureUploader.h"
@@ -98,10 +102,28 @@ namespace lsn {
 		}
 
 		/**
-		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
-		 *	its width, height, bit-depth, and stride, are returned.
+		 * Sets whether to use a 16-bit render target for the initial pass.  Must be called before the filter is actually used.
+		 * 
+		 * \param _bUse16Bit If true, a 16-bit target is used, otherwise a 32-bit target is used.
+		 **/
+		inline void											Use16Target( bool _bUse16Bit ) { m_bUse16BitInitialTarget = _bUse16Bit; }
+
+		/**
+		 * Sets whether the filter should use the high-quality 2-pass resampler for the final composite render.
+		 * \param _bUse If true, CDirectX12Resampler is used.
+		 **/
+		inline void											SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+
+		/**
+		 * Gets whether the filter is configured to use the high-quality resampler.
+		 * \return Returns true if CDirectX12Resampler is enabled.
+		 **/
+		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+
+		/**
+		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.
 		 *
-		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
+		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.
 		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
 		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
 		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
@@ -114,7 +136,7 @@ namespace lsn {
 		 * \param _ui32DispHeight The display area height
 		 * \return Returns a pointer to the filtered output buffer.
 		 */
-		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 			int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) override;
 
 		/**
@@ -193,15 +215,21 @@ namespace lsn {
 		CDirectX12TextureUploader							m_tuUploader;
 		/** Generically scales a texture via nearest-neighbor and applies gamma. */
 		CDirectX12TexturePixelScaler						m_tpsScaler;
+		/** 2-Pass high-quality texture resampler. */
+		CDirectX12Resampler									m_rsResampler;
 		/** Generically renders a texture to the backbuffer using bilinear sampling. */
 		CDirectX12TextureRenderer							m_trRenderer;
 
-		// Command execution per-frame.
-		std::unique_ptr<CDirectX12CommandAllocator>			m_caAllocator;
-		std::unique_ptr<CDirectX12GraphicsCommandList>		m_gclCommandList;
+		/** Intermediate resample floating-point render target for passing to the screen composite. */
+		std::unique_ptr<CDirectX12Resource>					m_rtResampled;
 
-		// Descriptor Heap for the RTV buffer.
+		/** Command allocator for frame execution. */
+		std::unique_ptr<CDirectX12CommandAllocator>			m_caAllocator;
+		/** Command list for frame execution. */
+		std::unique_ptr<CDirectX12GraphicsCommandList>		m_gclCommandList;
+		/** Descriptor Heap for RTVs. */
 		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhRtvHeap;
+		/** Descriptor size for RTVs. */
 		UINT												m_uiRtvDescriptorSize = 0;
 
 		/** Source width in pixels. */
@@ -212,12 +240,18 @@ namespace lsn {
 		uint32_t											m_ui32RsrcW = 0;
 		/** Created resource height. */
 		uint32_t											m_ui32RsrcH = 0;
+		/** Resampled target width. */
+		uint32_t											m_ui32ResampledTargetW = 0;
+		/** Resampled target height. */
+		uint32_t											m_ui32ResampledTargetH = 0;
 		/** Vertical sharpness factor. */
 		uint32_t											m_ui32VertSharpness = 3;
 		/** Horizontal sharpness factor. */
 		uint32_t											m_ui32HorSharness = 1;
 		/** Use a 16-bit initial render target? */
 		bool												m_bUse16BitInitialTarget = true;
+		/** Toggles whether the high-quality 2-pass CDirectX12Resampler handles final scaling. */
+		bool												m_bUseHighQualityResampler = true;
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 

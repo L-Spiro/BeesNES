@@ -117,7 +117,8 @@ namespace lsn {
 		/** The filter to use. */
 		LSN_FILTER_FUNCS										m_ffFilter = LSN_FF_CARDINALSPLINEUNIFORM;
 		
-		/** Cached dimensions to prevent unneeded recalculations. */
+		/** Cached dimensions and states to prevent unneeded recalculations. */
+		ID3D12Resource *										m_p12LastSrcResource = nullptr;
 		uint32_t												m_ui32LastSrcW = 0;
 		uint32_t												m_ui32LastSrcH = 0;
 		uint32_t												m_ui32LastDstW = 0;

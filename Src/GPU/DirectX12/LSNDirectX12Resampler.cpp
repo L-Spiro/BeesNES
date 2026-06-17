@@ -58,6 +58,7 @@ namespace lsn {
 		m_ppsResampleY.reset();
 		m_prsRootSignature.reset();
 		
+		m_p12LastSrcResource = nullptr;
 		m_ui32LastSrcW = 0;
 		m_ui32LastSrcH = 0;
 		m_ui32LastDstW = 0;
@@ -88,9 +89,11 @@ namespace lsn {
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
 
-		// Write Source SRV into local heap at Offset 0.
-		D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
-		pd12Device->CreateShaderResourceView( _prSrc->Get(), nullptr, hSrvCpu );
+		if ( m_p12LastSrcResource != _prSrc->Get() ) {
+			D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
+			pd12Device->CreateShaderResourceView( _prSrc->Get(), nullptr, hSrvCpu );
+			m_p12LastSrcResource = _prSrc->Get();
+		}
 
 		ID3D12DescriptorHeap * ppHeaps[] = { m_dhSrvHeap->Get() };
 		pCommandList->SetDescriptorHeaps( 1, ppHeaps );
@@ -121,9 +124,10 @@ namespace lsn {
 			float fVsConstants[4] = { static_cast<float>(_ui32DstW), static_cast<float>(_ui32SrcH), 0.0f, 0.0f };
 			pCommandList->SetGraphicsRoot32BitConstants( 0, 4, fVsConstants, 0 );
 
-			float fPsConstants[4] = { static_cast<float>(m_ui32MaxTapsX), 0.0f, 0.0f, 0.0f };
-			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, fPsConstants, 0 );
+			uint32_t ui32PsConstantsX[4] = { m_ui32MaxTapsX, 0, 0, 0 };
+			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, ui32PsConstantsX, 0 );
 
+			// Offset 0 maps to (Src [0], LutX [1])
 			D3D12_GPU_DESCRIPTOR_HANDLE hSrvPass1 = { hSrvGpuBase.ptr };
 			pCommandList->SetGraphicsRootDescriptorTable( 2, hSrvPass1 );
 
@@ -148,9 +152,10 @@ namespace lsn {
 			float fVsConstants[4] = { static_cast<float>(_ui32DstW), static_cast<float>(_ui32DstH), 0.0f, 0.0f };
 			pCommandList->SetGraphicsRoot32BitConstants( 0, 4, fVsConstants, 0 );
 
-			float fPsConstants[4] = { static_cast<float>(m_ui32MaxTapsY), 0.0f, 0.0f, 0.0f };
-			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, fPsConstants, 0 );
+			uint32_t ui32PsConstantsY[4] = { m_ui32MaxTapsY, 0, 0, 0 };
+			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, ui32PsConstantsY, 0 );
 
+			// Offset 2 maps to (Intermediate [2], LutY [3])
 			D3D12_GPU_DESCRIPTOR_HANDLE hSrvPass2 = { hSrvGpuBase.ptr + 2 * stSrvSize };
 			pCommandList->SetGraphicsRootDescriptorTable( 2, hSrvPass2 );
 
@@ -315,8 +320,7 @@ namespace lsn {
 			"    float4 cFinal = float4( 0.0, 0.0, 0.0, 0.0 );\n"
 			"    int dstX = (int)input.Pos.x;\n"
 			"    int srcY = (int)input.Pos.y;\n"
-			"    for ( uint i = 0; i < 256; ++i ) {\n"
-			"        if ( i >= MaxTaps ) { break; }\n"
+			"    for ( uint i = 0; i < MaxTaps; ++i ) {\n"
 			"        float4 vLut = tLut.Load( int3( dstX, i, 0 ) );\n"
 			"        int srcX = (int)vLut.g;\n"
 			"        cFinal += tSrc.Load( int3( srcX, srcY, 0 ) ) * vLut.r;\n"
@@ -333,8 +337,7 @@ namespace lsn {
 			"    float4 cFinal = float4( 0.0, 0.0, 0.0, 0.0 );\n"
 			"    int dstX = (int)input.Pos.x;\n"
 			"    int dstY = (int)input.Pos.y;\n"
-			"    for ( uint i = 0; i < 256; ++i ) {\n"
-			"        if ( i >= MaxTaps ) { break; }\n"
+			"    for ( uint i = 0; i < MaxTaps; ++i ) {\n"
 			"        float4 vLut = tLut.Load( int3( dstY, i, 0 ) );\n"
 			"        int srcY = (int)vLut.g;\n"
 			"        cFinal += tSrc.Load( int3( dstX, srcY, 0 ) ) * vLut.r;\n"
@@ -370,10 +373,12 @@ namespace lsn {
 		gpsdDesc.SampleDesc.Count = 1;
 		gpsdDesc.InputLayout = { iedInputLayout, 2 };
 
+		// Width pass.
 		m_ppsResampleX = std::make_unique<CDirectX12PipelineState>();
 		gpsdDesc.PS = { vBcPsX.data(), vBcPsX.size() };
 		if ( !m_ppsResampleX->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
 
+		// Height pass.
 		m_ppsResampleY = std::make_unique<CDirectX12PipelineState>();
 		gpsdDesc.PS = { vBcPsY.data(), vBcPsY.size() };
 		if ( !m_ppsResampleY->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }

@@ -622,18 +622,18 @@ namespace lsn {
 					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 					m_gclCommandList->Get()->ResourceBarrier( 1, rbResampled );
 
-					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_rtResampled.get(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_rtResampled.get(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
 				}
 				else {
 					// Fallback to scaler if the 2-pass resampler aborts.
 					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 					m_gclCommandList->Get()->ResourceBarrier( 1, rbResampled );
 
-					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
 				}
 			}
 			else {
-				m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+				m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
 			}
 
 			D3D12_RESOURCE_BARRIER rbPresent[1];

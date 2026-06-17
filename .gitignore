@@ -150,3 +150,14 @@ Research/nes-test-roms-master/other/Irritating Ship (NESdev Compo 2022).nes
 Research/Instructions/~$Ricoh 2A03 Instructions Old NES.xlsx
 Research/Instructions/~$Ricoh 2A03 Instructions NES.xlsx
 /Tmp
+Tools/PPU Generator/LSNCreateCycleTableDendy.inl
+Tools/PPU Generator/LSNCreateCycleTableNtsc.inl
+Tools/PPU Generator/LSNCreateCycleTablePal.inl
+Tools/PPU Generator/LSNCreateCycleTablePalM.inl
+Tools/PPU Generator/LSNCreateCycleTablePalN.inl
+Tools/PPU Generator/LSNGenFuncsDendy.inl
+Tools/PPU Generator/LSNGenFuncsNtsc.inl
+Tools/PPU Generator/LSNGenFuncsPal.inl
+Tools/PPU Generator/LSNGenFuncsPalM.inl
+Tools/PPU Generator/LSNGenFuncsPalN.inl
+/Tools/PPU Generator/.vs
