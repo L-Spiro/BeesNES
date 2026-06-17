@@ -18,6 +18,7 @@
 #include "../GPU/DirectX12/LSNDirectX12PipelineState.h"
 #include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
 #include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
+#include "../GPU/DirectX12/LSNDirectX12Resampler.h"
 #include "../GPU/DirectX12/LSNDirectX12TexturePixelScaler.h"
 #include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
 #include "LSNDx12FilterBase.h"
@@ -112,6 +113,20 @@ namespace lsn {
 		inline void											Use16Target( bool _bUse16Bit ) { m_bUse16BitInitialTarget = _bUse16Bit; }
 
 		/**
+		 * Sets whether the filter should use the high-quality 2-pass resampler for the final composite render.
+		 * 
+		 * \param _bUse If true, CDirectX12Resampler is used.
+		 **/
+		inline void											SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+
+		/**
+		 * Gets whether the filter is configured to use the high-quality resampler.
+		 * 
+		 * \return Returns true if CDirectX12Resampler is enabled.
+		 **/
+		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+
+		/**
 		 * Sets the palette.
 		 * 
 		 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
@@ -161,6 +176,8 @@ namespace lsn {
 		
 		/** Generically scales a texture via nearest-neighbor. */
 		CDirectX12TexturePixelScaler						m_tpsScaler;
+		/** 2-Pass high-quality texture resampler. */
+		CDirectX12Resampler									m_rsResampler;
 		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
 		CDirectX12TextureRenderer							m_trRenderer;
 
@@ -170,6 +187,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX12Texture>					m_tLut;
 		/** Initial floating-point render target. */
 		std::unique_ptr<CDirectX12Resource>					m_rtInitial;
+		/** Intermediate resample floating-point render target for passing to the screen composite. */
+		std::unique_ptr<CDirectX12Resource>					m_rtResampled;
 		
 		/** Screen-space quad vertex buffer. */
 		std::unique_ptr<CDirectX12Resource>					m_vbPass1;
@@ -204,9 +223,12 @@ namespace lsn {
 		uint32_t											m_ui32SrcH = 0;
 		uint32_t											m_ui32RsrcW = 0;
 		uint32_t											m_ui32RsrcH = 0;
+		uint32_t											m_ui32ResampledTargetW = 0;
+		uint32_t											m_ui32ResampledTargetH = 0;
 		uint32_t											m_ui32VertSharpness = 2;
 		uint32_t											m_ui32HorSharness = 2;
 		bool												m_bUse16BitInitialTarget = true;
+		bool												m_bUseHighQualityResampler = true;
 		bool												m_bValidState = false;
 		bool												m_bUpdatePalette = true;
 			

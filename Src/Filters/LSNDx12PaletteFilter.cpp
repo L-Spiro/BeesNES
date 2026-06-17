@@ -64,11 +64,13 @@ namespace lsn {
 		CParent::DeActivate();
 
 		m_tpsScaler.Reset();
+		m_rsResampler.Reset();
 		m_trRenderer.Reset();
 
 		m_tIndex.reset();
 		m_tLut.reset();
 		m_rtInitial.reset();
+		m_rtResampled.reset();
 		m_vbPass1.reset();
 		
 		m_rIndexUpload.reset();
@@ -158,6 +160,7 @@ namespace lsn {
 			m_pdx12dDevice = &s_dgsState.dx12Device;
 			m_bUpdatePalette = true;
 			m_tpsScaler.Reset();
+			m_rsResampler.Reset();
 			m_trRenderer.Reset();
 		}
 
@@ -186,7 +189,8 @@ namespace lsn {
 		}
 		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
 			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
+			// Capacity 3: [0: Initial RT, 1: BackBuffer, 2: Resampled Target].
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 3, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
 			if ( !m_dhRtvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
 		if LSN_UNLIKELY( !m_dhSamplerHeap.get() ) {
@@ -285,7 +289,7 @@ namespace lsn {
 			if ( !m_rLutUpload->CreateCommittedResource( pd12Device, &hpUpload, D3D12_HEAP_FLAG_NONE, &rdUpload, D3D12_RESOURCE_STATE_GENERIC_READ ) ) { return false; }
 
 			D3D12_CPU_DESCRIPTOR_HANDLE hSrv = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
-			hSrv.ptr += m_uiSrvDescriptorSize; // Slot 1
+			hSrv.ptr += m_uiSrvDescriptorSize;	// Slot 1.
 			pd12Device->CreateShaderResourceView( m_tLut->Get(), nullptr, hSrv );
 		}
 
@@ -479,6 +483,7 @@ namespace lsn {
 	void CDx12PaletteFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tIndex.get() && m_tIndex->Get() ) { m_tIndex->Reset(); }
 		if LSN_LIKELY( m_rtInitial.get() && m_rtInitial->Get() ) { m_rtInitial->Reset(); }
+		if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
 		
 		if LSN_LIKELY( m_vbPass1.get() && m_vbPass1->Get() ) { m_vbPass1->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
@@ -585,7 +590,51 @@ namespace lsn {
 			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 			m_pdx12dDevice->GetDevice()->CreateRenderTargetView( rBackBuffer.Get(), &rtvDesc, hBackRtv );
 
-			m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+			if ( m_bUseHighQualityResampler ) {
+				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+				
+				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Get() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
+					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
+					else if LSN_UNLIKELY( !m_rtResampled.get() ) { m_rtResampled = std::make_unique<CDirectX12Resource>(); }
+
+					D3D12_HEAP_PROPERTIES hpDefault = { D3D12_HEAP_TYPE_DEFAULT, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
+					DXGI_FORMAT fmtRt = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
+					D3D12_RESOURCE_DESC rdResampled = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, ui32DstW, ui32DstH, 1, 1, fmtRt, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
+					D3D12_CLEAR_VALUE cvClear = { fmtRt, { 0.0f, 0.0f, 0.0f, 1.0f } };
+					
+					m_rtResampled->CreateCommittedResource( m_pdx12dDevice->GetDevice(), &hpDefault, D3D12_HEAP_FLAG_NONE, &rdResampled, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear );
+					
+					m_ui32ResampledTargetW = ui32DstW;
+					m_ui32ResampledTargetH = ui32DstH;
+
+					D3D12_CPU_DESCRIPTOR_HANDLE hResampledRtv = hRtvStart; hResampledRtv.ptr += m_uiRtvDescriptorSize * 2;
+					m_pdx12dDevice->GetDevice()->CreateRenderTargetView( m_rtResampled->Get(), nullptr, hResampledRtv );
+				}
+
+				D3D12_CPU_DESCRIPTOR_HANDLE hResampledRtv = hRtvStart; hResampledRtv.ptr += m_uiRtvDescriptorSize * 2;
+
+				D3D12_RESOURCE_BARRIER rbResampled[1];
+				rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
+				m_gclCommandList->Get()->ResourceBarrier( 1, rbResampled );
+
+				if ( m_rsResampler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), m_tpsScaler.GetWidth(), m_tpsScaler.GetHeight(), m_rtResampled->Get(), hResampledRtv, ui32DstW, ui32DstH ) ) {
+					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
+					m_gclCommandList->Get()->ResourceBarrier( 1, rbResampled );
+
+					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_rtResampled.get(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+				}
+				else {
+					// Fallback to scaler if the 2-pass resampler aborts.
+					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
+					m_gclCommandList->Get()->ResourceBarrier( 1, rbResampled );
+
+					m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+				}
+			}
+			else {
+				m_trRenderer.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, true, true );
+			}
 
 			D3D12_RESOURCE_BARRIER rbPresent[1];
 			rbPresent[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT } };

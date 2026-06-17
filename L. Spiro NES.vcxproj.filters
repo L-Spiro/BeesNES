@@ -1128,6 +1128,9 @@
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Resampler.h">
       <Filter>Header Files\GPU\DirectX9</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resampler.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1582,6 +1585,9 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Resampler.cpp">
       <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resampler.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

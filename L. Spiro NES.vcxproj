@@ -1881,6 +1881,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resampler.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resource.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Texture.h" />
@@ -2138,6 +2139,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resampler.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resource.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Texture.cpp" />
