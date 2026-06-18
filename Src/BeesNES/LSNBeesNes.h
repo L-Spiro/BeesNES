@@ -12,8 +12,10 @@
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX12
-//#include "../Filters/LSNDx12NtscBlarggFilter.h"
+#include "../Filters/LSNDx12NtscBlarggFilter.h"
+#include "../Filters/LSNDx12NtscCrtFullFilter.h"
 #include "../Filters/LSNDx12NtscLSpiroFilter.h"
+#include "../Filters/LSNDx12PalCrtFullFilter.h"
 #include "../Filters/LSNDx12PaletteFilter.h"
 #include "../Filters/LSNDx12PalLSpiroFilter.h"
 #endif	// #ifdef LSN_DX12
@@ -279,8 +281,17 @@ namespace lsn {
 		/**
 		 * Swaps PPU render targets and switches to the next filter if a new filter has been set.
 		 *	Should be called inside the same citical section/mutex as Render().
+		 *
+		 * \param _bActuallySwap If true, the source buffer is swapped.  Set to false to re-render the previous source buffer. 
 		 */
-		void									Swap();
+		void									Swap( bool _bActuallySwap = true );
+
+		/**
+		 * Determines if swapping is safe (the new filter has all of the same inputs as the current filter).
+		 * 
+		 * \return Returns true if the queued filter has all of the same inputs (format, bit depth, dimensions, etc.) as the current filter.
+		 **/
+		bool									SwapIsSafe();
 
 		/**
 		 * Dirties the render flag.  Allow re-rendering of the last frame.
@@ -506,6 +517,12 @@ namespace lsn {
 #ifdef LSN_DX12
 		/** Direct3D 12 palette filter. */
 		CDx12PaletteFilter						m_d12pfDx12Palette;
+		/** Direct3D 9 Blargg NTSC filter. */
+		CDx12NtscBlarggFilter					m_d12nbfDx12BlarggNtscFilter;
+		/** Direct3D 9 LMP88959 NTSC CTR filter. */
+		CDx12NtscCrtFullFilter					m_d12ncfDx12EmmirNtscFullFilter;
+		/** Direct3D 12 LMP88959 PAL CTR filter. */
+		CDx12PalCrtFullFilter					m_d12ncfDx12EmmirPalFullFilter;
 		/** Direct3D 12 up-scale L. Spiro NTSC filter. */
 		CDx12NtscLSpiroFilter					m_p12nlsfDx12LSpiroNtsc;
 		/** Direct3D 12 up-scale L. Spiro PAL filter. */

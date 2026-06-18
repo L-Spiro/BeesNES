@@ -226,7 +226,14 @@ namespace lsn {
 		/**
 		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
 		 */
-		virtual void							Swap();
+		virtual void							Swap() { SwapInternal( true ); }
+
+		/**
+		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
+		 *
+		 * \param _bActuallySwap If true, the source buffer is swapped.  Set to false to re-render the previous source buffer. 
+		 */
+		void									SwapInternal( bool _bActuallySwap = true );
 
 		/**
 		 * Starts running the rom on a thread.  Tick() no longer becomes useful while the emulator is running in its own thread.

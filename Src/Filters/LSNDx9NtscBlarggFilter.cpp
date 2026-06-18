@@ -35,7 +35,7 @@ namespace lsn {
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 
-		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUXSHARP );
+		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUX );
 	}
 	CDx9NtscBlarggFilter::~CDx9NtscBlarggFilter() {
 	}
@@ -219,6 +219,8 @@ namespace lsn {
 			if ( m_bUseHighQualityResampler ) {
 				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
 				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+
+				m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
 				
 				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Valid() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
 					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }

@@ -458,6 +458,9 @@ namespace lsn {
 #ifdef LSN_DX9
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDDX9 );
+				if ( m_bnEmulator.SwapIsSafe() ) {
+					SwapInternal( false );
+				}
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_BLARGG_UPSCALED : {
@@ -499,7 +502,7 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_AUTO_LSPIRO_UPSCALED : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRON_AUTO_US_DX9 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRO_AUTO_US_DX9 );
 				break;
 			}
 #endif	// #ifdef LSN_DX9
@@ -531,12 +534,24 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALN_LSPIRO_UPSCALED : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRONPALN_US_DX12 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPALN_US_DX12 );
 				break;
 			}
-
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_NTSC_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT_FULL_US_DX12 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PAL_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL_US_DX12 );
+				break;
+			}
+			
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL_US_DX12 );
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_LSPIRO_UPSCALED : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRON_AUTO_US_DX12 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRO_AUTO_US_DX12 );
 				break;
 			}
 #endif	// #ifdef LSN_DX12
@@ -769,7 +784,7 @@ namespace lsn {
 		
 
 
-// ==== GPU path (if initialized) ==== //
+		// ==== GPU path (if initialized) ==== //
 		if ( m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter() ) {
 			
 			switch ( m_bnEmulator.RenderInfo().pfbPrevFilter->GpuApi() ) {
@@ -1370,7 +1385,7 @@ namespace lsn {
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_AUTO_LSPIRO_UPSCALED : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRON_AUTO_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRO_AUTO_US_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1409,13 +1424,28 @@ namespace lsn {
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALN_LSPIRO_UPSCALED : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRONPALN_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPALN_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
-
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_NTSC_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_CRT_FULL_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PAL_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_CRT_FULL_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_CRT_FULL_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_LSPIRO_UPSCALED : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRON_AUTO_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRO_AUTO_US_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1551,11 +1581,13 @@ namespace lsn {
 
 	/**
 	 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
+	 *
+	 * \param _bActuallySwap If true, the source buffer is swapped.  Set to false to re-render the previous source buffer. 
 	 */
-	void CMainWindow::Swap() {
+	void CMainWindow::SwapInternal( bool _bActuallySwap ) {
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-			m_bnEmulator.Swap();
+			m_bnEmulator.Swap( _bActuallySwap );
 		}
 		::RedrawWindow( Wnd(), NULL, NULL,
 			RDW_INVALIDATE |

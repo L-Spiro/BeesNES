@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: LMP88959’s implementation of an PAL filter.
+ * Description: LMP88959’s implementation of a PAL filter.
  */
 
 #include "LSNDx9PalCrtFullFilter.h"
@@ -31,6 +31,8 @@ namespace lsn {
 
 		m_vSettings.resize( sizeof( PAL_SETTINGS ) );
 		m_vCrtPal.resize( sizeof( PAL_CRT ) );
+
+		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_LINEAR );
 	}
 	CDx9PalCrtFullFilter::~CDx9PalCrtFullFilter() {
 	}
@@ -49,7 +51,10 @@ namespace lsn {
 		m_ui32SrcH = _ui16Height;
 
 		m_tuUploader.Reset();
+		m_tpsScaler.Reset();
+		m_rsResampler.Reset();
 		m_trRenderer.Reset();
+		m_rtResampled.reset();
 		ReleaseSizeDependents();
 		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
@@ -158,7 +163,9 @@ namespace lsn {
 
 		m_tuUploader.Reset();
 		m_tpsScaler.Reset();
+		m_rsResampler.Reset();
 		m_trRenderer.Reset();
+		m_rtResampled.reset();
 
 		if ( m_pdx9dDevice ) {
 			s_dgsState.DestroyDx9();
@@ -186,7 +193,9 @@ namespace lsn {
 			m_pdx9dDevice = &s_dgsState.dx9Device;
 			m_tuUploader.Reset();
 			m_tpsScaler.Reset();
+			m_rsResampler.Reset();
 			m_trRenderer.Reset();
+			m_rtResampled.reset();
 		}
 
 		if ( m_ui32RsrcW == m_ui32SrcW && m_ui32RsrcH == m_ui32SrcH ) {
@@ -205,6 +214,7 @@ namespace lsn {
 	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
 	 */
 	void CDx9PalCrtFullFilter::ReleaseSizeDependents() {
+		if LSN_LIKELY( m_rtResampled.get() ) { m_rtResampled->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -227,7 +237,33 @@ namespace lsn {
 
 		IDirect3DSurface9 * psBackBuffer = nullptr;
 		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
-			m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+			
+			if ( m_bUseHighQualityResampler ) {
+				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+
+				m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
+				
+				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Valid() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
+					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
+					else if LSN_UNLIKELY( !m_rtResampled.get() ) { m_rtResampled = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
+					
+					m_rtResampled->CreateColorTarget( ui32DstW, ui32DstH, m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F );
+					m_ui32ResampledTargetW = ui32DstW;
+					m_ui32ResampledTargetH = ui32DstH;
+				}
+
+				if ( m_rtResampled->Valid() && m_rsResampler.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), m_tpsScaler.GetWidth(), m_tpsScaler.GetHeight(), m_rtResampled.get(), ui32DstW, ui32DstH ) ) {
+					m_trRenderer.Render( m_pdx9dDevice, m_rtResampled->Texture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+				}
+				else {
+					m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+				}
+			}
+			else {
+				m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+			}
+			
 			psBackBuffer->Release();
 		}
 

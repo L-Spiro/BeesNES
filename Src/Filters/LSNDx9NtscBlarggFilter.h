@@ -111,6 +111,21 @@ namespace lsn {
 		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
 
 		/**
+		 * Gets the convolution sampler to use for resampling.
+		 * 
+		 * \param _ui32Width The target width.
+		 * \param _ui32Height The target height.
+		 * \return Returns the desired convolution sampler to use.
+		 **/
+		inline CResamplerBase::LSN_FILTER_FUNCS				GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) {
+			// For low resolutions, use the sharpest-possible filter.
+			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
+			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_ROBIDOUX; }
+			//if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
+			return CResamplerBase::LSN_FF_LINEAR;
+		}
+
+		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *

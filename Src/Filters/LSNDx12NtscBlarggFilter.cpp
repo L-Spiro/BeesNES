@@ -5,10 +5,10 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of an NTSC filter.
+ * Description: Blargg’s implementation of an NTSC filter for Direct3D 12.
  */
 
-#include "LSNDx12NtscLSpiroFilter.h"
+#include "LSNDx12NtscBlarggFilter.h"
 #include "../Utilities/LSNScopedNoSubnormals.h"
 
 #include <algorithm>
@@ -19,11 +19,24 @@
 namespace lsn {
 
 	// == Members.
-	CDx12NtscLSpiroFilter::CDx12NtscLSpiroFilter() {
-		SetMonitorGammaApply( false );
+	CDx12NtscBlarggFilter::CDx12NtscBlarggFilter() :
+		m_ui32FinalStride( 0 ) {
+		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
+		nsTmp.artifacts = 0.62;
+		nsTmp.bleed = 0.0;
+		nsTmp.fringing = 0.05;
+		nsTmp.sharpness = 0.78;
+		nsTmp.merge_fields = 0;
+		nsTmp.saturation = -0.250;
+		nsTmp.brightness = -0.084;
+		nsTmp.gamma = 0.0;
+		nsTmp.hue = 7.89 / 180.0;
+		
+		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+
+		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUX );
 	}
-	CDx12NtscLSpiroFilter::~CDx12NtscLSpiroFilter() {
-		StopThreads();
+	CDx12NtscBlarggFilter::~CDx12NtscBlarggFilter() {
 	}
 
 	// == Functions.
@@ -35,15 +48,9 @@ namespace lsn {
 	 * \param _ui16Height The console screen height.  Typically 240.
 	 * \return Returns the input format requested of the PPU.
 	 */
-	CDisplayClient::LSN_PPU_OUT_FORMAT CDx12NtscLSpiroFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
-		StopThreads();
+	CDisplayClient::LSN_PPU_OUT_FORMAT CDx12NtscBlarggFilter::Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) {
 		m_ui32SrcW = _ui16Width;
 		m_ui32SrcH = _ui16Height;
-
-		m_ui32OutputWidth = _ui16Width;
-		m_ui32OutputHeight = _ui16Height;
-		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
-		AllocYiqBuffers( _ui16Width, _ui16Height, m_ui16WidthScale );
 
 		m_tuUploader.Reset();
 		m_tpsScaler.Reset();
@@ -53,9 +60,14 @@ namespace lsn {
 		ReleaseSizeDependents();
 		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
-		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
 
-		StartThreads();
+		m_ui32OutputWidth = _ui16Width;
+		m_ui32OutputHeight = _ui16Height;
+		m_stStride = size_t( _ui16Width * sizeof( uint16_t ) );
+
+		m_ui32FinalStride = RowStride( NES_NTSC_OUT_WIDTH( _ui16Width ), OutputBits() );
+		m_vRgbBuffer.resize( m_ui32FinalStride * _ui16Height );
+
 		return pofOut;
 	}
 
@@ -75,14 +87,13 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx12NtscLSpiroFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+	uint8_t * CDx12NtscBlarggFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( !m_pdx12dDevice ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 			m_ui32SrcW = _ui32Width;
 			m_ui32SrcH = _ui32Height;
 			EnsureSizeAndResources();
-			AllocYiqBuffers( uint16_t( m_ui32SrcW ), uint16_t( m_ui32SrcH ), m_ui16WidthScale );
 		}
 		
 		lsw::LSW_RECT rRect;
@@ -91,16 +102,22 @@ namespace lsn {
 		rRect.right = rRect.left + LONG( _ui32DispWidth );
 		rRect.bottom = rRect.top + LONG( _ui32DispHeight );
 
-		const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
-		m_vRgbBuffer.resize( m_ui16ScaledWidth * m_ui32SrcH * 4 * sizeof( float ) );
+		const uint32_t ui32Pitch = m_ui32FinalStride;
+		m_vRgbBuffer.resize( ui32Pitch * m_ui32SrcH );
 
-		FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
+		::nes_ntsc_blit( &m_nnBlarggNtsc,
+			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle % 3, 3,
+			_ui32Width, _ui32Height,
+			m_vRgbBuffer.data(), m_ui32FinalStride );
+		
+		_ui32Width = NES_NTSC_OUT_WIDTH( _ui32Width );
+		_ui32Stride = m_ui32FinalStride;
 
 		// Reset command list for upload and rendering execution
 		m_caAllocator->Get()->Reset();
 		m_gclCommandList->Get()->Reset( m_caAllocator->Get(), nullptr );
 
-		m_tuUploader.UploadTexels( m_pdx12dDevice, m_gclCommandList.get(), m_vRgbBuffer.data(), m_ui16ScaledWidth, m_ui32SrcH, ui32Pitch, DXGI_FORMAT_R32G32B32A32_FLOAT );
+		m_tuUploader.UploadTexels( m_pdx12dDevice, m_gclCommandList.get(), m_vRgbBuffer.data(), _ui32Width, m_ui32SrcH, ui32Pitch, DXGI_FORMAT_B8G8R8A8_UNORM );
 
 		Render( rRect );
 
@@ -113,17 +130,16 @@ namespace lsn {
 	/**
 	 * Called when the filter is about to become active.
 	 */
-	void CDx12NtscLSpiroFilter::Activate() {
+	void CDx12NtscBlarggFilter::Activate() {
 		CParent::Activate();
 
 		EnsureSizeAndResources();
-		AllocYiqBuffers( uint16_t( m_ui32SrcW ), uint16_t( m_ui32SrcH ), m_ui16WidthScale );
 	}
 
 	/**
 	 * Called when the filter is about to become inactive.
 	 */
-	void CDx12NtscLSpiroFilter::DeActivate() {
+	void CDx12NtscBlarggFilter::DeActivate() {
 		CParent::DeActivate();
 
 		m_tuUploader.Reset();
@@ -145,56 +161,9 @@ namespace lsn {
 	/**
 	 * Informs the filter of a window resize.
 	 **/
-	void CDx12NtscLSpiroFilter::FrameResize() {
+	void CDx12NtscBlarggFilter::FrameResize() {
 		OnSizeDx12();
 		EnsureSizeAndResources();
-	}
-
-	/**
-	 * Sets the number of worker threads used by the filter.
-	 *
-	 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
-	 */
-	void CDx12NtscLSpiroFilter::SetWorkerThreadCount( size_t _stThreads ) {
-		if ( _stThreads == m_stWorkerThreadCount ) { return; }
-
-		const bool bRestart = m_bThreadsStarted;
-		if ( bRestart ) { StopThreads(); }
-		m_stWorkerThreadCount = _stThreads;
-		if ( bRestart ) { StartThreads(); }
-	}
-
-	/**
-	 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
-	 * 
-	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
-	 **/
-	void CDx12NtscLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
-		const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
-		if LSN_UNLIKELY( !m_vThreads.size() ) {
-			RenderScanlineRange<false>( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
-			return;
-		}
-
-		const size_t stThreads = m_vThreads.size() + 1;
-		{
-			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
-			m_jJob.pui8Pixels = _pui8Pixels;
-			m_jJob.ui64RenderStartCycle = _ui64RenderStartCycle;
-			m_jJob.stThreads = stThreads;
-			++m_ui64JobId;
-			m_ui32WorkersRemaining.store( uint32_t( m_vThreads.size() ) );
-		}
-		m_cvGo.notify_all();
-
-		const uint16_t ui16Lines = m_ui16Height;
-		const uint16_t ui16Start = 0;
-		const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * 1U) / uint32_t( stThreads ) );
-		RenderScanlineRange<false>( _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
-
-		std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
-		m_cvDone.wait( ulLock, [&]() { return m_ui32WorkersRemaining.load() == 0; } );
 	}
 
 	/**
@@ -202,7 +171,7 @@ namespace lsn {
 	 * 
 	 * \return Returns true on success.
 	 */
-	bool CDx12NtscLSpiroFilter::EnsureSizeAndResources() {
+	bool CDx12NtscBlarggFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
 		if ( !m_pdx12dDevice ) {
 			if ( !s_dgsState.CreateDx12() ) { return false; }
@@ -231,7 +200,7 @@ namespace lsn {
 
 		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
 			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			// Capacity: Slot 0 = BackBuffer, Slot 1 = Resampled Intermediate Render Target.
+			// Capacity: Slot 0 = BackBuffer, Slot 1 = Resampled Intermediate Render Target
 			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
 			if ( !m_dhRtvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
@@ -251,7 +220,7 @@ namespace lsn {
 	/**
 	 * \brief Releases size-dependent resources.
 	 */
-	void CDx12NtscLSpiroFilter::ReleaseSizeDependents() {
+	void CDx12NtscBlarggFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
@@ -262,10 +231,10 @@ namespace lsn {
 	 * \param _rOutput The destination rectangle.
 	 * \return Returns true if rendering succeeded.
 	 */
-	bool CDx12NtscLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
+	bool CDx12NtscBlarggFilter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_bValidState || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Get() ) { return false; }
 
-		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tuUploader.GetTexture(), m_ui16ScaledWidth, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT2, m_bUse16BitInitialTarget ) ) {
+		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_tuUploader.GetTexture(), NES_NTSC_OUT_WIDTH( m_ui32SrcW ), m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT2, m_bUse16BitInitialTarget ) ) {
 			return false;
 		}
 
@@ -343,105 +312,6 @@ namespace lsn {
 		m_pdx12dDevice->FlushCommandQueue();
 
 		return true;
-	}
-
-	/**
-	 * \brief Starts the worker threads.
-	 *
-	 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
-	 * Safe to call multiple times; if threads are already started, this function does nothing.
-	 */
-	void CDx12NtscLSpiroFilter::StartThreads() {
-		if ( m_bThreadsStarted ) { return; }
-
-		const size_t stWorkers = m_stWorkerThreadCount;
-		m_bStopThreads = false;
-		m_ui64JobId = 0;
-		m_ui32WorkersRemaining.store( 0 );
-		m_vThreads.clear();
-
-		if ( stWorkers ) {
-			m_vThreads.reserve( stWorkers );
-			for ( size_t I = 0; I < stWorkers; ++I ) {
-				m_vThreads.emplace_back( &CDx12NtscLSpiroFilter::WorkerThread, this, I + 1 );
-			}
-		}
-
-		m_bThreadsStarted = true;
-	}
-
-	/**
-	 * \brief Stops the worker threads.
-	 *
-	 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
-	 * resets thread-control state.  Safe to call multiple times; if threads are not started,
-	 * this function does nothing.
-	 */
-	void CDx12NtscLSpiroFilter::StopThreads() {
-		if ( !m_bThreadsStarted ) { return; }
-
-		{
-			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
-			m_bStopThreads = true;
-		}
-		m_cvGo.notify_all();
-
-		for ( auto & T : m_vThreads ) {
-			if ( T.joinable() ) {
-				T.join();
-			}
-		}
-		m_vThreads.clear();
-
-		{
-			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
-			m_bStopThreads = false;
-		}
-		m_ui32WorkersRemaining.store( 0 );
-		m_bThreadsStarted = false;
-	}
-
-	/**
-	 * \brief The worker thread entry point.
-	 *
-	 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
-	 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
-	 * finishes the job.
-	 *
-	 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
-	 *	Index 0 is reserved for the calling thread.
-	 */
-	void CDx12NtscLSpiroFilter::WorkerThread( size_t _stThreadIdx ) {
-		::SetThreadHighPriority();
-		lsn::CScopedNoSubnormals snsNoSubnormals;
-
-		uint64_t ui64LastJobId = 0;
-
-		for ( ;; ) {
-			LSN_JOB jJob;
-			{
-				std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
-				m_cvGo.wait( ulLock, [&]() { return m_bStopThreads || m_ui64JobId != ui64LastJobId; } );
-				if ( m_bStopThreads ) { break; }
-
-				ui64LastJobId = m_ui64JobId;
-				jJob = m_jJob;
-			}
-
-			const uint16_t ui16Lines = m_ui16Height;
-			const uint16_t ui16Start = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx )) / uint32_t( jJob.stThreads ) );
-			const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx + 1 )) / uint32_t( jJob.stThreads ) );
-			
-			if ( ui16End > ui16Start ) {
-				const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
-				RenderScanlineRange<false>( jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
-			}
-
-			if ( m_ui32WorkersRemaining.fetch_sub( 1 ) == 1 ) {
-				std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
-				m_cvDone.notify_one();
-			}
-		}
 	}
 
 }	// namespace lsn

@@ -64,6 +64,9 @@ namespace lsn {
 			LSN_FF_GAUSSIANSHARP,
 			LSN_FF_GAUSSIAN,
 			LSN_FF_BELL,
+
+
+			LSN_FF_TOTAL			// Not a filter.
 		};
 
 

@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: My own implementation of a PAL filter.
+ * Description: Blargg’s implementation of an NTSC filter for Direct3D 12.
  */
 
 #pragma once
@@ -20,24 +20,23 @@
 #include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
 #include "../GPU/DirectX12/LSNDirectX12TextureUploader.h"
 #include "LSNDx12FilterBase.h"
-#include "LSNLSpiroPalFilterBase.h"
+#include "nes_ntsc/nes_ntsc.h"
 
-#include <mutex>
 #include <vector>
 
 
 namespace lsn {
 
 	/**
-	 * Class CDx12PalLSpiroFilter
-	 * \brief My own implementation of a PAL filter.
+	 * Class CDx12NtscBlarggFilter
+	 * \brief Blargg’s implementation of an NTSC filter for Direct3D 12.
 	 *
-	 * Description: My own implementation of a PAL filter.
+	 * Description: Blargg’s implementation of an NTSC filter.
 	 */
-	class CDx12PalLSpiroFilter : public CLSpiroPalFilterBase, public CDx12FilterBase {
+	class CDx12NtscBlarggFilter : public CDx12FilterBase {
 	public :
-		CDx12PalLSpiroFilter();
-		virtual ~CDx12PalLSpiroFilter();
+		CDx12NtscBlarggFilter();
+		virtual ~CDx12NtscBlarggFilter();
 		
 		
 		// == Functions.
@@ -130,8 +129,8 @@ namespace lsn {
 		inline CResamplerBase::LSN_FILTER_FUNCS				GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) {
 			// For low resolutions, use the sharpest-possible filter.
 			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
-			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_CARDINALSPLINEUNIFORM; }
-			if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
+			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_ROBIDOUX; }
+			//if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
 			return CResamplerBase::LSN_FF_LINEAR;
 		}
 
@@ -197,31 +196,8 @@ namespace lsn {
 		 **/
 		virtual void										FrameResize() override;
 
-		/**
-		 * Sets the number of worker threads used by the filter.
-		 *
-		 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
-		 */
-		void												SetWorkerThreadCount( size_t _stThreads );
-
-		/**
-		 * Gets the number of worker threads used by the filter.
-		 *
-		 * \return Returns the total number of worker threads used by the filter.
-		 */
-		inline size_t										WorkerThreadCount() const { return m_stWorkerThreadCount; }
-
 
 	protected :
-		// == Types.
-		/** A per-frame work package shared by all threads. */
-		struct LSN_JOB {
-			const uint8_t *									pui8Pixels = nullptr;								/**< The input 9-bit pixel array. */
-			uint64_t										ui64RenderStartCycle = 0;							/**< The render cycle at the start of the frame. */
-			size_t											stThreads = 1;										/**< Total number of threads for the job, including the calling thread. */
-		};
-
-
 		// == Members.
 		/** The DirectX 12 device wrapper (non-owning). */
 		CDirectX12Device *									m_pdx12dDevice = nullptr;
@@ -270,28 +246,16 @@ namespace lsn {
 		/** Are we in a valid state? */
 		bool												m_bValidState = false;
 
-		std::vector<std::thread>							m_vThreads;											/**< Worker threads. */
-		std::mutex											m_mThreadMutex;										/**< Mutex protecting thread state. */
-		std::condition_variable								m_cvGo;												/**< Signal to tell worker threads to start a job. */
-		std::condition_variable								m_cvDone;											/**< Signal to tell the main thread workers have finished. */
-		std::atomic<uint32_t>								m_ui32WorkersRemaining = 0;							/**< Number of workers still running the current job. */
-		size_t												m_stWorkerThreadCount = 2;							/**< Total number of worker threads. */
-		bool												m_bThreadsStarted = false;							/**< True if the worker threads have been created. */
-		bool												m_bStopThreads = false;								/**< True if worker threads should exit. */
-		uint64_t											m_ui64JobId = 0;									/**< Incremented to start a new job. */
-		LSN_JOB												m_jJob;												/**< The current job. */
-		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		/** The Blargg NTSC emulation. */
+		nes_ntsc_t											m_nnBlarggNtsc;
+
+		/** The final stride. */
+		uint32_t											m_ui32FinalStride;
+		/** The output created by calling FilterFrame(). */
+		std::vector<uint8_t>								m_vRgbBuffer;
 
 
 		// == Functions.
-		/**
-		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
-		 * 
-		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
-		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
-		 **/
-		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
-		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
 		 * 
@@ -311,35 +275,6 @@ namespace lsn {
 		 * \return Returns true if rendering succeeded.
 		 */
 		bool												Render( const lsw::LSW_RECT &_rOutput );
-
-		/**
-		 * \brief Starts the worker threads.
-		 *
-		 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
-		 * Safe to call multiple times; if threads are already started, this function does nothing.
-		 */
-		void												StartThreads();
-
-		/**
-		 * \brief Stops the worker threads.
-		 *
-		 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
-		 * resets thread-control state.  Safe to call multiple times; if threads are not started,
-		 * this function does nothing.
-		 */
-		void												StopThreads();
-
-		/**
-		 * \brief The worker thread entry point.
-		 *
-		 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
-		 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
-		 * finishes the job.
-		 *
-		 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
-		 *	Index 0 is reserved for the calling thread.
-		 */
-		void												WorkerThread( size_t _stThreadIdx );
 
 	private :
 		typedef CDx12FilterBase								CParent;

@@ -56,7 +56,7 @@ namespace lsn {
 			LSN_F_LSPIRONPALN_US_DX9,						/**< L. Spiro PAL-N up-scaled Direct3D 9. */
 			
 			LSN_F_AUTO_CRT_FULL_US_DX9,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 9. */
-			LSN_F_LSPIRON_AUTO_US_DX9,						/**< L. Spiro auto up-scaled Direct3D 9. */
+			LSN_F_LSPIRO_AUTO_US_DX9,						/**< L. Spiro auto up-scaled Direct3D 9. */
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			LSN_F_INDEXEDDX12,								/**< Basic paletted Direct3D 12. */
@@ -67,10 +67,10 @@ namespace lsn {
 			LSN_F_LSPIROPAL_US_DX12,						/**< L. Spiro PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRODENDY_US_DX12,						/**< L. Spiro Dendy up-scaled Direct3D 12. */
 			LSN_F_LSPIROPALM_US_DX12,						/**< L. Spiro PAL-M up-scaled Direct3D 12. */
-			LSN_F_LSPIRONPALN_US_DX12,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
+			LSN_F_LSPIROPALN_US_DX12,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
 			
 			LSN_F_AUTO_CRT_FULL_US_DX12,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
-			LSN_F_LSPIRON_AUTO_US_DX12,						/**< L. Spiro auto up-scaled Direct3D 12. */
+			LSN_F_LSPIRO_AUTO_US_DX12,						/**< L. Spiro auto up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_DX12
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */

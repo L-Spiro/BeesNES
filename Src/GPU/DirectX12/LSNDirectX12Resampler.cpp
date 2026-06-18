@@ -58,7 +58,6 @@ namespace lsn {
 		m_ppsResampleY.reset();
 		m_prsRootSignature.reset();
 		
-		m_p12LastSrcResource = nullptr;
 		m_ui32LastSrcW = 0;
 		m_ui32LastSrcH = 0;
 		m_ui32LastDstW = 0;
@@ -83,17 +82,14 @@ namespace lsn {
 	 * \return Returns true on success.
 	 **/
 	bool CDirectX12Resampler::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, uint32_t _ui32DstW, uint32_t _ui32DstH, ID3DInclude * _piInclude ) {
-		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_p12rDst || !_ui32SrcW || !_ui32SrcH || !_ui32DstW || !_ui32DstH ) { return false; }
+		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_prSrc->Get() || !_p12rDst || !_ui32SrcW || !_ui32SrcH || !_ui32DstW || !_ui32DstH ) { return false; }
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice, _pgclCommandList, _ui32SrcW, _ui32SrcH, _ui32DstW, _ui32DstH, _piInclude ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
 
-		if ( m_p12LastSrcResource != _prSrc->Get() ) {
-			D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
-			pd12Device->CreateShaderResourceView( _prSrc->Get(), nullptr, hSrvCpu );
-			m_p12LastSrcResource = _prSrc->Get();
-		}
+		D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
+		pd12Device->CreateShaderResourceView( _prSrc->Get(), nullptr, hSrvCpu );
 
 		ID3D12DescriptorHeap * ppHeaps[] = { m_dhSrvHeap->Get() };
 		pCommandList->SetDescriptorHeaps( 1, ppHeaps );
@@ -220,7 +216,15 @@ namespace lsn {
 		D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpuBase = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 
 		// Ensure intermediate float32 texture fits Pass 1 output (DstW x SrcH).
-		if LSN_UNLIKELY( !m_prIntermediate.get() || !m_prIntermediate->Get() || m_ui32LastDstW != _ui32DstW || m_ui32LastSrcH != _ui32SrcH ) {
+		bool bRebuildInt = !m_prIntermediate.get() || !m_prIntermediate->Get();
+		if ( !bRebuildInt ) {
+			D3D12_RESOURCE_DESC rdDesc = m_prIntermediate->Get()->GetDesc();
+			if ( rdDesc.Width != _ui32DstW || rdDesc.Height != _ui32SrcH ) {
+				bRebuildInt = true;
+			}
+		}
+
+		if LSN_UNLIKELY( bRebuildInt ) {
 			if LSN_LIKELY( m_prIntermediate.get() && m_prIntermediate->Get() ) { m_prIntermediate->Reset(); }
 			m_prIntermediate = std::make_unique<CDirectX12Resource>();
 

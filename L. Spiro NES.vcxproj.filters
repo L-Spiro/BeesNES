@@ -1131,6 +1131,15 @@
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resampler.h">
       <Filter>Header Files\GPU\DirectX12</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNDx12NtscCrtFullFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNDx12PalCrtFullFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNDx12NtscBlarggFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1588,6 +1597,15 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resampler.cpp">
       <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNDx12NtscCrtFullFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNDx12PalCrtFullFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNDx12NtscBlarggFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

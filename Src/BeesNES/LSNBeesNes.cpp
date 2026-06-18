@@ -39,49 +39,49 @@ namespace lsn {
 		
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
-			//LSN_PM_NTSC					LSN_PM_PAL						LSN_PM_DENDY					LSN_PM_PALM						LSN_PM_PALN
-			{ &m_r24fRgb24Filter,			&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter,				&m_r24fRgb24Filter },				// LSN_F_RGB24
-			{ &m_nbfBlarggNtscFilter,		&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter,			&m_nbfBlarggNtscFilter },			// LSN_F_NTSC_BLARGG
-			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter,			&m_nbfLSpiroNtscFilter },			// LSN_F_NTSC_LSPIRO
-			{ &m_nbfLSpiroPalFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter,			&m_nbfLSpiroPalFilter },			// LSN_F_PAL_LSPIRO
-			{ &m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroDendyFilter },			// LSN_F_DENDY_LSPIRO
-			{ &m_nbfLSpiroPalMFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalMFilter },			// LSN_F_PALM_LSPIRO
-			{ &m_nbfLSpiroPalNFilter,		&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_PALN_LSPIRO
-			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter,		&m_ncfEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL
-			{ &m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_PAL_CRT_FULL
-			{ &m_ncfEmmirNtscFullFilter,	&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter,		&m_ncfEmmirPalFullFilter },			// LSN_F_AUTO_CRT_FULL
-			{ &m_nbfLSpiroNtscFilter,		&m_nbfLSpiroPalFilter,			&m_nbfLSpiroDendyFilter,		&m_nbfLSpiroPalMFilter,			&m_nbfLSpiroPalNFilter },			// LSN_F_AUTO_LSPIRO
+			//LSN_PM_NTSC							LSN_PM_PAL								LSN_PM_DENDY							LSN_PM_PALM								LSN_PM_PALN
+			{ &m_r24fRgb24Filter,					&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter },					// LSN_F_RGB24
+			{ &m_nbfBlarggNtscFilter,				&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter },				// LSN_F_NTSC_BLARGG
+			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter },				// LSN_F_NTSC_LSPIRO
+			{ &m_nbfLSpiroPalFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter },				// LSN_F_PAL_LSPIRO
+			{ &m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter },				// LSN_F_DENDY_LSPIRO
+			{ &m_nbfLSpiroPalMFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter },				// LSN_F_PALM_LSPIRO
+			{ &m_nbfLSpiroPalNFilter,				&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_PALN_LSPIRO
+			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter },			// LSN_F_NTSC_CRT_FULL
+			{ &m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_PAL_CRT_FULL
+			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_AUTO_CRT_FULL
+			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
-			{ &m_d9pfDx9Palette,			&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette,				&m_d9pfDx9Palette },				// LSN_F_INDEXEDDX9
-			{ &m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter,	&m_d9nbfDx9BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_DX9
-			{ &m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirNtscFullFilter,	&m_d9ncfDx9EmmirNtscFullFilter,	&m_d9ncfDx9EmmirNtscFullFilter },	// LSN_F_NTSC_CRT_FULL_US_DX9
-			{ &m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter },	// LSN_F_PAL_CRT_FULL_US_DX9
+			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXEDDX9
+			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_US_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX9
+			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX9
 
-			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc,			&m_p9nlsfDx9LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX9
+			{ &m_p9nlsfDx9LSpiroNtsc,				&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX9
 
-			{ &m_p9plsfDx9LSpiroPal,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroPal },			// LSN_F_LSPIROPAL_US_DX9
-			{ &m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX9
-			{ &m_p9plsfDx9LSpiroPalM,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX9
-			{ &m_p9plsfDx9LSpiroPalN,		&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX9
+			{ &m_p9plsfDx9LSpiroPal,				&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_US_DX9
+			{ &m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_US_DX9
+			{ &m_p9plsfDx9LSpiroPalM,				&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX9
+			{ &m_p9plsfDx9LSpiroPalN,				&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN },				// LSN_F_LSPIRONPALN_US_DX9
 			
-			{ &m_d9ncfDx9EmmirNtscFullFilter,&m_d9ncfDx9EmmirPalFullFilter,&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter,	&m_d9ncfDx9EmmirPalFullFilter },	// LSN_F_AUTO_CRT_FULL_US_DX9
-			{ &m_p9nlsfDx9LSpiroNtsc,		&m_p9plsfDx9LSpiroPal,			&m_p9plsfDx9LSpiroDendy,		&m_p9plsfDx9LSpiroPalM,			&m_p9plsfDx9LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX9
+			{ &m_p9nlsfDx9LSpiroNtsc,				&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
-			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_INDEXEDDX12
-			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_NTSC_BLARGG_US_DX12
-			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_NTSC_CRT_FULL_US_DX12
-			{ &m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette,			&m_d12pfDx12Palette },				// LSN_F_PAL_CRT_FULL_US_DX12
+			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXEDDX12
+			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX12
+			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX12
 
-			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc,		&m_p12nlsfDx12LSpiroNtsc },			// LSN_F_LSPIRONTSC_US_DX12
+			{ &m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX12
 
-			{ &m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroPal },			// LSN_F_LSPIROPAL_US_DX12
-			{ &m_p12plsfDx12LSpiroDendy,	&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroDendy },		// LSN_F_LSPIRODENDY_US_DX12
-			{ &m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalM },			// LSN_F_LSPIROPALM_US_DX12
-			{ &m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRONPALN_US_DX12
+			{ &m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_US_DX12
+			{ &m_p12plsfDx12LSpiroDendy,			&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX12
+			{ &m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX12
+			{ &m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_US_DX12
 
-			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_AUTO_CRT_FULL_US_DX12
-			{ &m_p12nlsfDx12LSpiroNtsc,		&m_p12plsfDx12LSpiroPal,		&m_p12plsfDx12LSpiroDendy,		&m_p12plsfDx12LSpiroPalM,		&m_p12plsfDx12LSpiroPalN },			// LSN_F_LSPIRON_AUTO_US_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX12
+			{ &m_p12nlsfDx12LSpiroNtsc,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX12
 #endif	// #ifdef LSN_DX12
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -130,7 +130,7 @@ namespace lsn {
 		m_p9plsfDx9LSpiroPalM.SetKernelSize( 46 );
 		m_p9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9plsfDx9LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		//m_p9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		m_p9plsfDx9LSpiroPalN.SetWidthScale( 8 );
 		m_p9plsfDx9LSpiroPalN.SetKernelSize( 48 );
@@ -177,7 +177,7 @@ namespace lsn {
 		m_p12plsfDx12LSpiroPalM.SetKernelSize( 46 );
 		m_p12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12plsfDx12LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		//m_p12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		m_p12plsfDx12LSpiroPalN.SetWidthScale( 8 );
 		m_p12plsfDx12LSpiroPalN.SetKernelSize( 48 );
@@ -345,6 +345,9 @@ namespace lsn {
 
 #ifdef LSN_DX12
 		m_d12pfDx12Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12nbfDx12BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12ncfDx12EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12ncfDx12EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_p12nlsfDx12LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_p12plsfDx12LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
@@ -529,33 +532,6 @@ namespace lsn {
 					_i32Left, _i32Top, _ui32FinalW, _ui32FinalH );
 			}
 			else {
-#if defined( LSN_GPU_SUPPORT ) && 0
-				// We can probably do up-scaling on the GPU.
-
-				/**
-				 * Here lies the end of this approach.  It just isn’t very compatible with my idea to support multiple GPU API’s such that switching filters means switching GPU API’s in some cases.
-				 *	The filters are designed so that there is overlap between the end of the current filter and the start of the next filter.  This is to avoid unloading and reloading the same GPU
-				 *	library when switching between them.  It’s probably fine to have existing devices from 2 different GPU API’s, although I wouldn’t try to render from both of them.  Also it might
-				 *	not even be fine to have 2 different-API devices open at the same time.  I haven’t been able to confirm yet.
-				 * To go this route, I would have to make sure the GPU upscaler uses the same API as whatever the current filter is using, if the current filter is a GPU filter, which isn’t terribly
-				 *	hard, it’s just that I don’t want to then also have 2 separate devices open from the same GPU API, nor do I want to give access to the filter’s internal GPU state for the upscaler
-				 *	to hijack and use for this process.  I ALSO do not want to make a global GPU API manager.  I really want to keep the GPU work modular and isolated; I don’t want this project to
-				 *	rely on there being GPU support to run for a few reasons.
-				 * In any case, I realized here that I don’t have great options for continuing this path, and as blah as it is I think now it is best to just make different full instances of the
-				 *	filter classes, one for each GPU API and for software.
-				 */
-				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
-					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-					m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
-
-			
-				for ( size_t I = 0; I < m_vPostProcesses.size(); ++I ) {
-					m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_pppbPostTable[m_vPostProcesses[I]]->ApplyFilter( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
-						_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
-						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
-						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
-				}
-#else
 				// Pure software rendering.
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult = m_cfartCurFilterAndTargets.pfbPrevFilter->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
 					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
@@ -568,7 +544,6 @@ namespace lsn {
 						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
 				}
-#endif	// #ifdef LSN_GPU_SUPPORT
 			}
 		}
 	}
@@ -576,8 +551,12 @@ namespace lsn {
 	/**
 	 * Swaps PPU render targets and switches to the next filter if a new filter has been set.
 	 *	Should be called inside the same citical section/mutex as Render().
+	 *
+	 * \param _bActuallySwap If true, the source buffer is swapped.  Set to false to re-render the previous source buffer.
 	 */
-	void CBeesNes::Swap() {
+	void CBeesNes::Swap( bool _bActuallySwap ) {
+		bool bMirrired = m_cfartCurFilterAndTargets.bMirrored;
+		auto pfbPrev = m_cfartCurFilterAndTargets.pfbPrevFilter;
 		m_cfartCurFilterAndTargets.pfbPrevFilter = m_cfartCurFilterAndTargets.pfbCurFilter;
 		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_cfartCurFilterAndTargets.pfbCurFilter->OutputBuffer();
 		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() );
@@ -590,9 +569,34 @@ namespace lsn {
 		m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
 
 		m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
-			
-		m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
+		
+		if LSN_LIKELY( _bActuallySwap ) {
+			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
+		}
+		else if ( pfbPrev ) {
+			if ( m_cfartCurFilterAndTargets.bMirrored != bMirrired ) {
+				std::memcpy( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), pfbPrev->CurTarget(),
+					m_cfartCurFilterAndTargets.ui32Stride * m_cfartCurFilterAndTargets.ui32Height );
+			}
+			else {
+				std::memcpy( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), pfbPrev->CurTarget(),
+					m_cfartCurFilterAndTargets.ui32Stride * m_cfartCurFilterAndTargets.ui32Height );
+			}
+		}
 		GetDisplayClient()->SetRenderTarget( m_cfartCurFilterAndTargets.pfbCurFilter->CurTarget(), m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride(), m_cfartCurFilterAndTargets.pfbCurFilter->InputFormat(), m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput() );
+	}
+
+	/**
+	 * Determines if swapping is safe (the new filter has all of the same inputs as the current filter).
+	 * 
+	 * \return Returns true if the queued filter has all of the same inputs (format, bit depth, dimensions, etc.) as the current filter.
+	 **/
+	bool CBeesNes::SwapIsSafe() {
+		if ( m_cfartCurFilterAndTargets.ui16Bits != uint16_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputBits() ) ) { return false; }
+		if ( m_cfartCurFilterAndTargets.ui32Width != m_cfartCurFilterAndTargets.pfbCurFilter->OutputWidth() ) { return false; }
+		if ( m_cfartCurFilterAndTargets.ui32Height != m_cfartCurFilterAndTargets.pfbCurFilter->OutputHeight() ) { return false; }
+		if ( m_cfartCurFilterAndTargets.ui32Stride != uint32_t( m_cfartCurFilterAndTargets.pfbCurFilter->OutputStride() ) ) { return false; }
+		return true;
 	}
 
 	/**

@@ -283,7 +283,7 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Converts a 9-bit PPU output index to an PAL signal.
+		 * Converts a 9-bit PPU output index to a PAL signal.
 		 * 
 		 * \param _ui16Pixel The PPU output index to convert.
 		 * \param _ui16Phase The phase counter.
@@ -419,7 +419,7 @@ namespace lsn {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Functions.
 	/**
-	 * Converts a 9-bit PPU output index to an PAL signal.
+	 * Converts a 9-bit PPU output index to a PAL signal.
 	 * 
 	 * \param _ui16Pixel The PPU output index to convert.
 	 * \param _ui16Phase The phase counter.
