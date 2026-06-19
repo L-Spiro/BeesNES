@@ -14,6 +14,15 @@ std::string		GenFunc( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, uint32_
 	uint16_t _ui16X, uint16_t _ui16Y ) {
 	std::string sRet;
 
+	// _ui16X counts half-cycles, so it goes from 0 to (_ui16DotWidth * 2 - 1).
+	// Convert to actual dot.
+	uint16_t ui16Dot = _ui16X >> 1;
+	bool bIsPhi2 = bool( _ui16X & 1 );
+	
+	// DOT: The integer dot count from 0 to 340.
+	// DELAY: Half-cycle delay as written in the signals page: https://www.nesdev.org/wiki/PPU_signals
+	// The comparison should be made against _ui16X, not ui16Dot.
+#define PPU_CYCLE( DOT, DELAY )		uint16_t( DOT * 2 + uint16_t( std::round( DELAY * 2.0 ) ) )
 
 
 	// Remove opening new lines.
@@ -22,6 +31,7 @@ std::string		GenFunc( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, uint32_
 	}
 
 	return sRet;
+#undef PPU_CYCLE
 }
 
 
@@ -29,16 +39,13 @@ void			GenerateCycleFuncs( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, ui
 	struct LSN_TABLE_INDICES {
 		uint16_t								ui16X;
 		uint16_t								ui16Y;
-
-		/*bool									operator < ( const LSN_TABLE_INDICES &_tiOther ) const {
-		}*/
 	};
 	typedef std::vector<LSN_TABLE_INDICES>		CStringList;
 	std::map<std::string, CStringList> mMap;
 
 	LSN_TABLE_INDICES tiI = { 0, 0 };
 	while ( tiI.ui16Y < _ui16DotHeight ) {
-		while ( tiI.ui16X < _ui16DotWidth ) {
+		while ( tiI.ui16X < _ui16DotWidth * 2 ) {
 			std::string sThis = GenFunc( _ui32RegCode, _bOddFrameShenanigans, _ui32PreRender, _ui32Render, _ui32PostRender, _ui16DotHeight, _ui16DotWidth,
 				tiI.ui16X, tiI.ui16Y );
 					

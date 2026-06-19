@@ -1140,6 +1140,12 @@
     <ClInclude Include="Src\Filters\LSNDx12NtscBlarggFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Phosphor.h">
+      <Filter>Header Files\GPU\DirectX9</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Phosphor.h">
+      <Filter>Header Files\GPU\DirectX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1606,6 +1612,12 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNDx12NtscBlarggFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Phosphor.cpp">
+      <Filter>Source Files\GPU\DirectX9</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Phosphor.cpp">
+      <Filter>Source Files\GPU\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

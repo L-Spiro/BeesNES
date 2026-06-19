@@ -1882,6 +1882,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12DiskInclude.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Fence.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Phosphor.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resampler.h" />
@@ -1899,6 +1900,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Phosphor.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Resampler.h" />
@@ -2143,6 +2145,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Device.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Fence.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12GraphicsCommandList.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Phosphor.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12PipelineState.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12QueryHeap.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resampler.cpp" />
@@ -2159,6 +2162,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResource.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9LosableResourceManager.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9NesPresenter.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Phosphor.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9PixelShader.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Resampler.cpp" />
