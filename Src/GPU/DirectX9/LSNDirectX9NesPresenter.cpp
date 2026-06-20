@@ -20,7 +20,7 @@ namespace lsn {
 		float fX, fY, fZ, fRhw;
 		float fU, fV;
 	};
-#pragma pack(pop)
+#pragma pack( pop )
 
 	static const DWORD LSN_FVF_XYZRHWTEX1 = D3DFVF_XYZRHW | D3DFVF_TEX1;
 

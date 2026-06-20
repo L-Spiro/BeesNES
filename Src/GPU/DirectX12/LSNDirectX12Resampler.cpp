@@ -20,7 +20,7 @@ namespace lsn {
 		float fX, fY, fZ, fW;
 		float fU, fV;
 	};
-#pragma pack(pop)
+#pragma pack( pop )
 
 
 	CDirectX12Resampler::CDirectX12Resampler() {

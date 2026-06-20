@@ -234,7 +234,7 @@ namespace lsn {
 			float fX, fY, fZ, fRhw;
 			float fU, fV;
 		};
-#pragma pack(pop)
+#pragma pack( pop )
 
 
 		// == Members.

@@ -1889,6 +1889,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Resource.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12Texture.h" />
+    <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureGamma.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TexturePixelScaler.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureRenderer.h" />
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureUploader.h" />
@@ -1905,6 +1906,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Resampler.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9Texture.h" />
+    <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TextureGamma.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TexturePixelScaler.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TextureRenderer.h" />
     <ClInclude Include="Src\GPU\DirectX9\LSNDirectX9TextureUploader.h" />
@@ -2152,6 +2154,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Resource.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12RootSignature.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12Texture.cpp" />
+    <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureGamma.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TexturePixelScaler.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureRenderer.cpp" />
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureUploader.cpp" />
@@ -2167,6 +2170,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9RenderTarget.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Resampler.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9Texture.cpp" />
+    <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TextureGamma.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TexturePixelScaler.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TextureRenderer.cpp" />
     <ClCompile Include="Src\GPU\DirectX9\LSNDirectX9TextureUploader.cpp" />

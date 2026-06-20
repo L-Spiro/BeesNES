@@ -5,11 +5,13 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for rendering a texture to a surface with bilinear sampling and gamma correction.
+ * Description: A generic helper class for applying a gamma curve to a texture.
  */
 
-#include "LSNDirectX12TextureRenderer.h"
+#include "LSNDirectX12TextureGamma.h"
 #include "LSNDirectX12DiskInclude.h"
+
+#include <string>
 
 namespace lsn {
 
@@ -20,95 +22,86 @@ namespace lsn {
 	};
 #pragma pack( pop )
 
-	CDirectX12TextureRenderer::CDirectX12TextureRenderer() {
+	CDirectX12TextureGamma::CDirectX12TextureGamma() {
 	}
-	CDirectX12TextureRenderer::~CDirectX12TextureRenderer() {
+	CDirectX12TextureGamma::~CDirectX12TextureGamma() {
 		Reset();
 	}
 
 	// == Functions.
 	/**
-	 * Resets the vertex buffer, shaders, and internal states.
+	 * Resets the resources and internal states.
 	 **/
-	void CDirectX12TextureRenderer::Reset() {
+	void CDirectX12TextureGamma::Reset() {
 		if LSN_LIKELY( m_prVbQuad.get() && m_prVbQuad->Get() ) { m_prVbQuad->Reset(); }
-		m_prVbQuad.reset();
-		if LSN_LIKELY( m_ppsCopy.get() && m_ppsCopy->Get() ) { m_ppsCopy->Reset(); }
-		m_ppsCopy.reset();
+		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() ) { m_ppsShader->Reset(); }
 		if LSN_LIKELY( m_prsRootSignature.get() && m_prsRootSignature->Get() ) { m_prsRootSignature->Reset(); }
-		m_prsRootSignature.reset();
 		
+		m_prVbQuad.reset();
+		m_ppsShader.reset();
+		m_prsRootSignature.reset();
 		m_dhSrvHeap.reset();
 		m_dhSamplerHeap.reset();
-		m_fPsoFormat = DXGI_FORMAT_UNKNOWN;
+
+		m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		m_fFormat = DXGI_FORMAT_UNKNOWN;
 	}
 
 	/**
-	 * Renders the input texture to the target surface.
-	 *
+	 * Renders the input texture to the target, applying the selected gamma curve.
+	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _pgclCommandList The command list used to execute the draw.
 	 * \param _prSrc The source texture to draw.
-	 * \param _p12rDst The destination surface resource (e.g., the swap chain backbuffer). Used for viewport dimension mapping.
+	 * \param _ui32SrcW The width of the source texture.
+	 * \param _ui32SrcH The height of the source texture.
 	 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
-	 * \param _rOutput The destination rectangle in client pixels.
-	 * \param _fGamma The PC monitor's gamma parameter.
-	 * \param _bClear If true, clears the destination surface to black before rendering.
-	 * \param _bSrgb Set to true if the destination RTV was created with an _SRGB format.
+	 * \param _gGamma The gamma curve to apply.
+	 * \param _fTargetFormat The format of the RTV this shader will output to.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TextureRenderer::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, ID3DInclude * _piInclude ) {
-		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_p12rDst ) { return false; }
+	bool CDirectX12TextureGamma::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
+		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_ui32SrcW || !_ui32SrcH ) { return false; }
+
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gGamma, _fTargetFormat, _piInclude ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
 
-		const DXGI_FORMAT fTargetFormat = _bSrgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-		if LSN_UNLIKELY( !EnsureShaders( _pd12dDevice, fTargetFormat, _piInclude ) ) { return false; }
-
-		// Write Source SRV into local heap.
+		// Write Source SRV into local heap. Unconditional to prevent TDRs from alias tracking.
 		D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
 		pd12Device->CreateShaderResourceView( _prSrc->Get(), nullptr, hSrvCpu );
 
 		pCommandList->OMSetRenderTargets( 1, &_cdhRtv, FALSE, nullptr );
 
-		if ( _bClear ) {
-			float fClearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-			pCommandList->ClearRenderTargetView( _cdhRtv, fClearColor, 0, nullptr );
-		}
-
-		D3D12_RESOURCE_DESC rdDesc = _p12rDst->GetDesc();
-		D3D12_VIEWPORT vpViewport = { 0.0f, 0.0f, static_cast<float>(rdDesc.Width), static_cast<float>(rdDesc.Height), 0.0f, 1.0f };
-		D3D12_RECT rScissor = { 0, 0, static_cast<LONG>(rdDesc.Width), static_cast<LONG>(rdDesc.Height) };
+		D3D12_VIEWPORT vpViewport = { 0.0f, 0.0f, static_cast<float>(_ui32SrcW), static_cast<float>(_ui32SrcH), 0.0f, 1.0f };
+		D3D12_RECT rScissor = { 0, 0, static_cast<LONG>(_ui32SrcW), static_cast<LONG>(_ui32SrcH) };
 		pCommandList->RSSetViewports( 1, &vpViewport );
 		pCommandList->RSSetScissorRects( 1, &rScissor );
 
-		pCommandList->SetPipelineState( m_ppsCopy->Get() );
+		pCommandList->SetPipelineState( m_ppsShader->Get() );
 		pCommandList->SetGraphicsRootSignature( m_prsRootSignature->Get() );
 
 		ID3D12DescriptorHeap * ppHeaps[] = { m_dhSrvHeap->Get(), m_dhSamplerHeap->Get() };
 		pCommandList->SetDescriptorHeaps( 2, ppHeaps );
 
-		float fVsConstants[4] = { static_cast<float>(rdDesc.Width), static_cast<float>(rdDesc.Height), 0.0f, 0.0f };
+		float fVsConstants[4] = { static_cast<float>(_ui32SrcW), static_cast<float>(_ui32SrcH), 0.0f, 0.0f };
 		pCommandList->SetGraphicsRoot32BitConstants( 0, 4, fVsConstants, 0 );
-
-		float fPsConstants[4] = { _fGamma, 0.0f, 0.0f, 0.0f };
-		pCommandList->SetGraphicsRoot32BitConstants( 1, 4, fPsConstants, 0 );
 
 		D3D12_GPU_DESCRIPTOR_HANDLE hSrvGpu = m_dhSrvHeap->Get()->GetGPUDescriptorHandleForHeapStart();
 		D3D12_GPU_DESCRIPTOR_HANDLE hSampGpu = m_dhSamplerHeap->Get()->GetGPUDescriptorHandleForHeapStart();
-		pCommandList->SetGraphicsRootDescriptorTable( 2, hSrvGpu );
-		pCommandList->SetGraphicsRootDescriptorTable( 3, hSampGpu );
+		pCommandList->SetGraphicsRootDescriptorTable( 1, hSrvGpu );
+		pCommandList->SetGraphicsRootDescriptorTable( 2, hSampGpu );
 
 		D3D12_RANGE rReadRange = { 0, 0 };
 		LSN_XYZRHWTEX1 * pvP = nullptr;
 		if ( SUCCEEDED( m_prVbQuad->Get()->Map( 0, &rReadRange, reinterpret_cast<void **>(&pvP) ) ) ) {
-			float fL = static_cast<float>(_rOutput.left);
-			float fT = static_cast<float>(_rOutput.top);
-			float fR = static_cast<float>(_rOutput.right);
-			float fB = static_cast<float>(_rOutput.bottom);
+			float fL = 0.0f;
+			float fT = 0.0f;
+			float fR = static_cast<float>(_ui32SrcW);
+			float fB = static_cast<float>(_ui32SrcH);
 
 			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, 0.0f };
 			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, 0.0f };
@@ -126,11 +119,11 @@ namespace lsn {
 
 	/**
 	 * Ensures the vertex buffer and descriptor heaps are created.
-	 *
+	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \return Returns true if resources are ready.
 	 **/
-	bool CDirectX12TextureRenderer::EnsureResources( CDirectX12Device * _pd12dDevice ) {
+	bool CDirectX12TextureGamma::EnsureResources( CDirectX12Device * _pd12dDevice ) {
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 
 		if LSN_UNLIKELY( !m_prVbQuad.get() || !m_prVbQuad->Get() ) {
@@ -155,31 +148,33 @@ namespace lsn {
 			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
 			if ( !m_dhSamplerHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 
-			D3D12_SAMPLER_DESC sdLinear = {};
-			sdLinear.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-			sdLinear.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			sdLinear.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			sdLinear.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			pd12Device->CreateSampler( &sdLinear, m_dhSamplerHeap->Get()->GetCPUDescriptorHandleForHeapStart() );
+			D3D12_SAMPLER_DESC sdPoint = {};
+			sdPoint.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+			sdPoint.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+			sdPoint.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+			sdPoint.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+			pd12Device->CreateSampler( &sdPoint, m_dhSamplerHeap->Get()->GetCPUDescriptorHandleForHeapStart() );
 		}
 
 		return true;
 	}
 
 	/**
-	 * Ensures the Pipeline State Object and Root Signature are created for the specified format.
-	 *
+	 * Ensures the Pipeline State Object is compiled with the correct gamma function.
+	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
-	 * \param _fTargetFormat The format of the RTV this shader will output to.
+	 * \param _gGamma The gamma curve to apply.
+	 * \param _fFormat The target format for the pipeline.
 	 * \param _piInclude Optional #include handler for shader compilation.
-	 * \return Returns true if the shaders are ready.
+	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX12TextureRenderer::EnsureShaders( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
-		if LSN_LIKELY( m_ppsCopy.get() && m_ppsCopy->Get() && m_fPsoFormat == _fTargetFormat ) { return true; }
+	bool CDirectX12TextureGamma::EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
+		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gShaderGamma == _gGamma && m_fFormat == _fFormat ) { return true; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
-		m_ppsCopy = std::make_unique<CDirectX12PipelineState>();
-		m_fPsoFormat = _fTargetFormat;
+		m_ppsShader = std::make_unique<CDirectX12PipelineState>();
+		m_gShaderGamma = _gGamma;
+		m_fFormat = _fFormat;
 
 		if ( !m_prsRootSignature.get() ) {
 			m_prsRootSignature = std::make_unique<CDirectX12RootSignature>();
@@ -187,20 +182,17 @@ namespace lsn {
 			drRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; drRanges[0].NumDescriptors = 1; drRanges[0].BaseShaderRegister = 0; drRanges[0].RegisterSpace = 0; drRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 			drRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER; drRanges[1].NumDescriptors = 1; drRanges[1].BaseShaderRegister = 0; drRanges[1].RegisterSpace = 0; drRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-			D3D12_ROOT_PARAMETER rpParameters[4];
+			D3D12_ROOT_PARAMETER rpParameters[3];
 			rpParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 			rpParameters[0].Constants.ShaderRegister = 0; rpParameters[0].Constants.RegisterSpace = 0; rpParameters[0].Constants.Num32BitValues = 4; rpParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 			
-			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-			rpParameters[1].Constants.ShaderRegister = 0; rpParameters[1].Constants.RegisterSpace = 0; rpParameters[1].Constants.Num32BitValues = 4; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-			rpParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			rpParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[1].DescriptorTable.NumDescriptorRanges = 1; rpParameters[1].DescriptorTable.pDescriptorRanges = &drRanges[0]; rpParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 			
-			rpParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rpParameters[3].DescriptorTable.NumDescriptorRanges = 1; rpParameters[3].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+			rpParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rpParameters[2].DescriptorTable.NumDescriptorRanges = 1; rpParameters[2].DescriptorTable.pDescriptorRanges = &drRanges[1]; rpParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 4, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
+			D3D12_ROOT_SIGNATURE_DESC rsdDesc = { 3, rpParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
 
 			Microsoft::WRL::ComPtr<ID3DBlob> pbSig, pbErr;
 			typedef HRESULT( WINAPI * PFN_D3D12SerializeRootSignature )( const D3D12_ROOT_SIGNATURE_DESC *, D3D_ROOT_SIGNATURE_VERSION, ID3DBlob **, ID3DBlob ** );
@@ -208,6 +200,26 @@ namespace lsn {
 			
 			if ( !pfnSer || FAILED( pfnSer( &rsdDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pbSig, &pbErr ) ) ) { return false; }
 			if ( !m_prsRootSignature->CreateRootSignature( pd12Device, 0, pbSig->GetBufferPointer(), pbSig->GetBufferSize() ) ) { return false; }
+		}
+
+		std::string sGammaCall = "c.rgb";
+		switch ( _gGamma ) {
+			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb )"; break; }
+			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
+			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
+			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
+			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
+			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
+			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
+			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
+			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
+			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.22222222222222232090871330001391470432281494140625 )"; break; }
+			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, 2.35 )"; break; }
+			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, 2.4 )"; break; }
+			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, 2.5 )"; break; }
+			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, 2.7 )"; break; }
+			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
+			default : { break; }
 		}
 
 		static const char * kVsHlsl =
@@ -223,22 +235,23 @@ namespace lsn {
 			"    return output;\n"
 			"}\n";
 
-		static const char * kPsCopyHlsl =
+		std::string sPsHlsl =
+			"#include \"LSNGamma.hlsl\"\n"
 			"Texture2D tSrc : register(t0);\n"
-			"SamplerState sLinear : register(s0);\n"
-			"cbuffer PSConstants : register(b0) { float4 c0; };\n"
+			"SamplerState sPoint : register(s0);\n"
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
-			"  float4 c = tSrc.Sample(sLinear, input.Tex);\n"
-			"  return saturate(c);\n"
+			"    float4 c = tSrc.Sample(sPoint, input.Tex);\n"
+			"    c.rgb = " + sGammaCall + ";\n"
+			"    return c;\n"
 			"}\n";
 
 		CDirectX12DiskInclude diDefaultInclude( CDirectX12DiskInclude::GetExeShadersDir() );
 		ID3DInclude * pInc = _piInclude ? _piInclude : &diDefaultInclude;
 
-		std::vector<uint8_t> vBcVs, vBcCopy;
+		std::vector<uint8_t> vBcVs, vBcPs;
 		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, pInc ) ||
-			 !CompileHlsl( _pd12dDevice, kPsCopyHlsl, "main", "ps_5_0", vBcCopy, pInc ) ) {
+			 !CompileHlsl( _pd12dDevice, sPsHlsl.c_str(), "main", "ps_5_0", vBcPs, pInc ) ) {
 			return false;
 		}
 
@@ -250,25 +263,25 @@ namespace lsn {
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC gpsdDesc = {};
 		gpsdDesc.pRootSignature = m_prsRootSignature->Get();
 		gpsdDesc.VS = { vBcVs.data(), vBcVs.size() };
-		gpsdDesc.PS = { vBcCopy.data(), vBcCopy.size() };
+		gpsdDesc.PS = { vBcPs.data(), vBcPs.size() };
 		gpsdDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 		gpsdDesc.SampleMask = UINT_MAX;
 		gpsdDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 		gpsdDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 		gpsdDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		gpsdDesc.NumRenderTargets = 1;
-		gpsdDesc.RTVFormats[0] = _fTargetFormat;
+		gpsdDesc.RTVFormats[0] = _fFormat;
 		gpsdDesc.SampleDesc.Count = 1;
 		gpsdDesc.InputLayout = { iedInputLayout, 2 };
 
-		if ( !m_ppsCopy->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
+		if ( !m_ppsShader->CreateGraphicsPipelineState( pd12Device, &gpsdDesc ) ) { return false; }
 
 		return true;
 	}
 
 	/**
 	 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.
-	 *
+	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _pcszSource Null-terminated HLSL source code.
 	 * \param _pcszEntry Null-terminated entry-point function name.
@@ -277,7 +290,7 @@ namespace lsn {
 	 * \param _piInclude Optional #include handler.
 	 * \return Returns true if compilation succeeded.
 	 **/
-	bool CDirectX12TextureRenderer::CompileHlsl( CDirectX12Device * /*_pd12dDevice*/, const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<uint8_t> &_vOutByteCode, ID3DInclude * _piInclude ) {
+	bool CDirectX12TextureGamma::CompileHlsl( CDirectX12Device * /*_pd12dDevice*/, const char * _pcszSource, const char * _pcszEntry, const char * _pcszProfile, std::vector<uint8_t> &_vOutByteCode, ID3DInclude * _piInclude ) {
 		lsw::LSW_HMODULE hCompiler( L"d3dcompiler_47.dll" );
 		if ( !hCompiler.Valid() ) { return false; }
 		typedef HRESULT( WINAPI * PFN_D3DCOMPILE )( LPCVOID, SIZE_T, LPCSTR, const D3D_SHADER_MACRO *, ID3DInclude *, LPCSTR, LPCSTR, UINT, UINT, ID3DBlob **, ID3DBlob ** );
