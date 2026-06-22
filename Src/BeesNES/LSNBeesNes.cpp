@@ -95,11 +95,11 @@ namespace lsn {
 		m_d9pfDx9Palette.SetVertSharpness( 5 );
 		m_d9pfDx9Palette.SetHorSharpness( 5 );
 
-		m_p9nlsfDx9LSpiroNtsc.SetFps( 60.098813897440515529533511098629f );
-		m_p9plsfDx9LSpiroPal.SetFps( 50.006978908188585607940446650124f );
-		m_p9plsfDx9LSpiroDendy.SetFps( 50.006978908188585607940446650124f );
-		m_p9plsfDx9LSpiroPalM.SetFps( 60.032435273083568398202053145976f );
-		m_p9plsfDx9LSpiroPalN.SetFps( 50.502710495150011279043537108053f );
+		m_p9nlsfDx9LSpiroNtsc.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_p9plsfDx9LSpiroPal.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_p9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_p9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
+		m_p9plsfDx9LSpiroPalN.CDx9FilterBase::SetFps( 50.502710495150011279043537108053f );
 
 
 		m_p9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
