@@ -128,6 +128,7 @@ namespace lsn {
 	 * Informs the filter of a window resize.
 	 **/
 	void CDx9NtscLSpiroFilter::FrameResize() {
+		s_dgsState.OnSizeDx9();
 		EnsureSizeAndResources();
 	}
 
