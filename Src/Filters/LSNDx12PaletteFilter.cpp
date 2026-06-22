@@ -5,6 +5,8 @@
 namespace lsn {
 
 	CDx12PaletteFilter::CDx12PaletteFilter() {
+		SetPhosphorDecayLevel( 0.15f );
+		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx12PaletteFilter::~CDx12PaletteFilter() {
 	}
@@ -26,7 +28,13 @@ namespace lsn {
 		m_ui32OutputHeight = _ui16Height;
 		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint32_t ) );
 
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
+		m_tpsScaler.Reset();
+		m_rsResampler.Reset();
+		m_trRenderer.Reset();
 		ReleaseSizeDependents();
+		
 		return CParent::Init( _stBuffers, _ui16Width, _ui16Height );
 	}
 
@@ -63,6 +71,8 @@ namespace lsn {
 	void CDx12PaletteFilter::DeActivate() {
 		CParent::DeActivate();
 
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
 		m_rsResampler.Reset();
 		m_trRenderer.Reset();
@@ -70,12 +80,16 @@ namespace lsn {
 		m_tIndex.reset();
 		m_tLut.reset();
 		m_rtInitial.reset();
+		m_rtGamma.reset();
+		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
 		m_vbPass1.reset();
 		
 		m_rIndexUpload.reset();
 		m_rLutUpload.reset();
 		m_dhSrvHeap.reset();
+		m_dhGammaRtv.reset();
+		m_dhPhosphorRtv.reset();
 		m_dhRtvHeap.reset();
 		m_dhSamplerHeap.reset();
 
@@ -159,6 +173,8 @@ namespace lsn {
 			if ( !s_dgsState.CreateDx12() ) { return false; }
 			m_pdx12dDevice = &s_dgsState.dx12Device;
 			m_bUpdatePalette = true;
+			m_tgGamma.Reset();
+			m_pPhosphor.Reset();
 			m_tpsScaler.Reset();
 			m_rsResampler.Reset();
 			m_trRenderer.Reset();
@@ -186,6 +202,16 @@ namespace lsn {
 			m_dhSrvHeap = std::make_unique<CDirectX12DescriptorHeap>();
 			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
 			if ( !m_dhSrvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
+		}
+		if LSN_UNLIKELY( !m_dhGammaRtv.get() ) {
+			m_dhGammaRtv = std::make_unique<CDirectX12DescriptorHeap>();
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
+			if ( !m_dhGammaRtv->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
+		}
+		if LSN_UNLIKELY( !m_dhPhosphorRtv.get() ) {
+			m_dhPhosphorRtv = std::make_unique<CDirectX12DescriptorHeap>();
+			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
+			if ( !m_dhPhosphorRtv->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
 		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
 			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
@@ -216,7 +242,7 @@ namespace lsn {
 		if LSN_UNLIKELY( !m_rIndexUpload.get() ) { m_rIndexUpload = std::make_unique<CDirectX12Resource>(); }
 		if LSN_UNLIKELY( !m_rLutUpload.get() ) { m_rLutUpload = std::make_unique<CDirectX12Resource>(); }
 		
-		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_vbPass1->Get();
+		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Get() && m_rtInitial->Get() && m_vbPass1->Get() && m_rtGamma.get() && m_rtGamma->Get() && m_rtPhosphorTarget.get() && m_rtPhosphorTarget->Get();
 
 		if ( bOk ) { m_bValidState = true; return true; }
 
@@ -240,6 +266,14 @@ namespace lsn {
 		D3D12_RESOURCE_DESC rdInitial = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, m_ui32SrcW, m_ui32SrcH, 1, 1, fmtRt, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
 		D3D12_CLEAR_VALUE cvClear = { fmtRt, { 0.0f, 0.0f, 0.0f, 1.0f } };
 		if ( !m_rtInitial->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdInitial, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear ) ) { return false; }
+
+		m_rtGamma = std::make_unique<CDirectX12Resource>();
+		if ( !m_rtGamma->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdInitial, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear ) ) { return false; }
+		pd12Device->CreateRenderTargetView( m_rtGamma->Get(), nullptr, m_dhGammaRtv->Get()->GetCPUDescriptorHandleForHeapStart() );
+
+		m_rtPhosphorTarget = std::make_unique<CDirectX12Resource>();
+		if ( !m_rtPhosphorTarget->CreateCommittedResource( pd12Device, &hpDefault, D3D12_HEAP_FLAG_NONE, &rdInitial, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear ) ) { return false; }
+		pd12Device->CreateRenderTargetView( m_rtPhosphorTarget->Get(), nullptr, m_dhPhosphorRtv->Get()->GetCPUDescriptorHandleForHeapStart() );
 
 
 		D3D12_CPU_DESCRIPTOR_HANDLE hSrv = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
@@ -483,6 +517,8 @@ namespace lsn {
 	void CDx12PaletteFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tIndex.get() && m_tIndex->Get() ) { m_tIndex->Reset(); }
 		if LSN_LIKELY( m_rtInitial.get() && m_rtInitial->Get() ) { m_rtInitial->Reset(); }
+		if LSN_LIKELY( m_rtGamma.get() && m_rtGamma->Get() ) { m_rtGamma->Reset(); }
+		if LSN_LIKELY( m_rtPhosphorTarget.get() && m_rtPhosphorTarget->Get() ) { m_rtPhosphorTarget->Reset(); }
 		if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
 		
 		if LSN_LIKELY( m_vbPass1.get() && m_vbPass1->Get() ) { m_vbPass1->Reset(); }
@@ -574,7 +610,48 @@ namespace lsn {
 		rbInitialToSrv[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtInitial->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 		m_gclCommandList->Get()->ResourceBarrier( 1, rbInitialToSrv );
 
-		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), m_rtInitial.get(), m_ui32SrcW, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_NONE, m_bUse16BitInitialTarget, true ) ) {
+		CDirectX12Resource * prScaleSource = m_rtInitial.get();
+		DXGI_FORMAT fmtRt = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
+		uint32_t ui32NativeW = m_ui32SrcW;
+		uint32_t ui32NativeH = m_ui32SrcH;
+
+		// --- PASS 2: GAMMA ---
+		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
+		if ( effGamma != CNesPalette::LSN_G_NONE ) {
+			D3D12_RESOURCE_BARRIER rbGamma[1];
+			rbGamma[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtGamma->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbGamma );
+
+			D3D12_CPU_DESCRIPTOR_HANDLE hGammaRtv = m_dhGammaRtv->Get()->GetCPUDescriptorHandleForHeapStart();
+
+			if ( m_tgGamma.Render( m_pdx12dDevice, m_gclCommandList.get(), prScaleSource, ui32NativeW, ui32NativeH, hGammaRtv, effGamma, fmtRt ) ) {
+				prScaleSource = m_rtGamma.get();
+			}
+
+			rbGamma[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			rbGamma[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbGamma );
+		}
+
+		// --- PASS 3: PHOSPHOR DECAY ---
+		if ( m_bEnablePhosphorDecay ) {
+			D3D12_RESOURCE_BARRIER rbPhosphor[1];
+			rbPhosphor[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtPhosphorTarget->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbPhosphor );
+
+			D3D12_CPU_DESCRIPTOR_HANDLE hPhosphorRtv = m_dhPhosphorRtv->Get()->GetCPUDescriptorHandleForHeapStart();
+
+			if ( m_pPhosphor.Render( m_pdx12dDevice, m_gclCommandList.get(), prScaleSource, ui32NativeW, ui32NativeH, m_rtPhosphorTarget->Get(), hPhosphorRtv, fmtRt, m_fInitPhosphorDecay, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue ) ) {
+				prScaleSource = m_rtPhosphorTarget.get();
+			}
+
+			rbPhosphor[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			rbPhosphor[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			m_gclCommandList->Get()->ResourceBarrier( 1, rbPhosphor );
+		}
+
+		// --- PASS 4: PIXEL SCALER ---
+		if ( !m_tpsScaler.Render( m_pdx12dDevice, m_gclCommandList.get(), prScaleSource, ui32NativeW, ui32NativeH, GetActualHorSharpness(), GetActualVertSharpness(), m_bUse16BitInitialTarget, true ) ) {
 			return false;
 		}
 
@@ -601,9 +678,9 @@ namespace lsn {
 					else if LSN_UNLIKELY( !m_rtResampled.get() ) { m_rtResampled = std::make_unique<CDirectX12Resource>(); }
 
 					D3D12_HEAP_PROPERTIES hpDefault = { D3D12_HEAP_TYPE_DEFAULT, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
-					DXGI_FORMAT fmtRt = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
-					D3D12_RESOURCE_DESC rdResampled = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, ui32DstW, ui32DstH, 1, 1, fmtRt, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
-					D3D12_CLEAR_VALUE cvClear = { fmtRt, { 0.0f, 0.0f, 0.0f, 1.0f } };
+					DXGI_FORMAT fmtRt2 = m_bUse16BitInitialTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
+					D3D12_RESOURCE_DESC rdResampled = { D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, ui32DstW, ui32DstH, 1, 1, fmtRt2, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET };
+					D3D12_CLEAR_VALUE cvClear = { fmtRt2, { 0.0f, 0.0f, 0.0f, 1.0f } };
 					
 					m_rtResampled->CreateCommittedResource( m_pdx12dDevice->GetDevice(), &hpDefault, D3D12_HEAP_FLAG_NONE, &rdResampled, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &cvClear );
 					

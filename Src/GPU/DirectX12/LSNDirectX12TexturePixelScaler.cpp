@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+ * Description: A generic helper class for applying integer nearest-neighbor scaling to a texture.
  */
 
 #include "LSNDirectX12TexturePixelScaler.h"
@@ -46,7 +46,6 @@ namespace lsn {
 		m_dhRtvHeap.reset();
 		m_dhSamplerHeap.reset();
 
-		m_gShaderGamma = CNesPalette::LSN_G_NONE;
 		m_ui32TargetW = 0;
 		m_ui32TargetH = 0;
 		m_fFormat = DXGI_FORMAT_UNKNOWN;
@@ -62,13 +61,12 @@ namespace lsn {
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _ui32ScaleX The horizontal scaling factor.
 	 * \param _ui32ScaleY The vertical scaling factor.
-	 * \param _gGamma The gamma curve to apply.
 	 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
 	 * \param _bFlipY If true, the rendered image is flipped vertically.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TexturePixelScaler::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY, ID3DInclude * _piInclude ) {
+	bool CDirectX12TexturePixelScaler::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, bool _bUse16BitTarget, bool _bFlipY, ID3DInclude * _piInclude ) {
 		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_ui32SrcW || !_ui32SrcH || !_ui32ScaleX || !_ui32ScaleY ) { return false; }
 
 		const uint32_t ui32DstW = _ui32SrcW * _ui32ScaleX;
@@ -76,7 +74,7 @@ namespace lsn {
 		const DXGI_FORMAT fFormat = _bUse16BitTarget ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice, ui32DstW, ui32DstH, fFormat ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gGamma, fFormat, _piInclude ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, fFormat, _piInclude ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
@@ -211,20 +209,19 @@ namespace lsn {
 	}
 
 	/**
-	 * Ensures the Pipeline State Object is compiled with the correct gamma function.
+	 * Ensures the Pipeline State Object is compiled.
 	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
-	 * \param _gGamma The gamma curve to apply.
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX12TexturePixelScaler::EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
-		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gShaderGamma == _gGamma ) { return true; }
+	bool CDirectX12TexturePixelScaler::EnsureShader( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
+		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_fFormat == _fFormat ) { return true; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		m_ppsShader = std::make_unique<CDirectX12PipelineState>();
-		m_gShaderGamma = _gGamma;
+		m_fFormat = _fFormat;
 
 		if ( !m_prsRootSignature.get() ) {
 			m_prsRootSignature = std::make_unique<CDirectX12RootSignature>();
@@ -255,26 +252,6 @@ namespace lsn {
 			if ( !m_prsRootSignature->CreateRootSignature( pd12Device, 0, pbSig->GetBufferPointer(), pbSig->GetBufferSize() ) ) { return false; }
 		}
 
-		std::string sGammaCall = "c.rgb";
-		switch ( _gGamma ) {
-			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
-			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
-			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.22222222222222232090871330001391470432281494140625 )"; break; }
-			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, 2.35 )"; break; }
-			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, 2.4 )"; break; }
-			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, 2.5 )"; break; }
-			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, 2.7 )"; break; }
-			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
-			default: break;
-		}
-
 		static const char * kVsHlsl =
 			"cbuffer VSConstants : register(b0) { float2 TargetSize; float2 Padding; };\n"
 			"struct VS_INPUT { float4 Pos : POSITION; float2 Tex : TEXCOORD0; };\n"
@@ -288,17 +265,14 @@ namespace lsn {
 			"    return output;\n"
 			"}\n";
 
-		std::string sPsHlsl =
-			"#include \"LSNGamma.hlsl\"\n"
+		static const char * kPsHlsl =
 			"Texture2D tSrc : register(t0);\n"
 			"SamplerState sPoint : register(s0);\n"
-			"cbuffer PSConstants : register(b1) { float4 c0; };\n" // c0 = [srcH, 1/srcH, 0.5, 0]
+			"cbuffer PSConstants : register(b1) { float4 c0; };\n"
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
 			"    float v = (floor(input.Tex.y * c0.x) + c0.z) * c0.y;\n"
-			"    float4 c = tSrc.Sample(sPoint, float2(input.Tex.x, v));\n"
-			"    c.rgb = " + sGammaCall + ";\n"
-			"    return c;\n"
+			"    return tSrc.Sample(sPoint, float2(input.Tex.x, v));\n"
 			"}\n";
 
 		CDirectX12DiskInclude diDefaultInclude( CDirectX12DiskInclude::GetExeShadersDir() );
@@ -306,7 +280,7 @@ namespace lsn {
 
 		std::vector<uint8_t> vBcVs, vBcPs;
 		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, pInc ) ||
-			 !CompileHlsl( _pd12dDevice, sPsHlsl.c_str(), "main", "ps_5_0", vBcPs, pInc ) ) {
+			 !CompileHlsl( _pd12dDevice, kPsHlsl, "main", "ps_5_0", vBcPs, pInc ) ) {
 			return false;
 		}
 

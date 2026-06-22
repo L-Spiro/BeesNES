@@ -35,7 +35,8 @@ namespace lsn {
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 
-		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUX );
+		SetPhosphorDecayLevel( 0.15f );
+		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx9NtscBlarggFilter::~CDx9NtscBlarggFilter() {
 	}
@@ -54,9 +55,14 @@ namespace lsn {
 		m_ui32SrcH = _ui16Height;
 
 		m_tuUploader.Reset();
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
 		m_rsResampler.Reset();
 		m_trRenderer.Reset();
+		m_rtGamma.reset();
+		m_rtPhosphorTarget.reset();
+		m_rtResampled.reset();
 		ReleaseSizeDependents();
 		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
@@ -106,7 +112,6 @@ namespace lsn {
 		const uint32_t ui32Pitch = m_ui32FinalStride;
 		m_vRgbBuffer.resize( ui32Pitch * m_ui32SrcH );
 
-		//FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
 		::nes_ntsc_blit( &m_nnBlarggNtsc,
 			reinterpret_cast<NES_NTSC_IN_T *>(_pui8Input), _ui32Width, _ui64RenderStartCycle % 3, 3,
 			_ui32Width, _ui32Height,
@@ -140,9 +145,13 @@ namespace lsn {
 		CParent::DeActivate();
 
 		m_tuUploader.Reset();
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
 		m_rsResampler.Reset();
 		m_trRenderer.Reset();
+		m_rtGamma.reset();
+		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
 
 		if ( m_pdx9dDevice ) {
@@ -170,10 +179,29 @@ namespace lsn {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
 			m_pdx9dDevice = &s_dgsState.dx9Device;
 			m_tuUploader.Reset();
+			m_tgGamma.Reset();
+			m_pPhosphor.Reset();
 			m_tpsScaler.Reset();
 			m_rsResampler.Reset();
 			m_trRenderer.Reset();
+			m_rtGamma.reset();
+			m_rtPhosphorTarget.reset();
 			m_rtResampled.reset();
+		}
+
+		uint32_t ui32NativeW = NES_NTSC_OUT_WIDTH( m_ui32SrcW );
+		uint32_t ui32NativeH = m_ui32SrcH;
+
+		if LSN_UNLIKELY( !m_rtGamma.get() || !m_rtGamma->Valid() || !m_rtPhosphorTarget.get() || !m_rtPhosphorTarget->Valid() ) {
+			D3DFORMAT fmtRt = m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
+			
+			if LSN_LIKELY( m_rtGamma.get() && m_rtGamma->Get() ) { m_rtGamma->Reset(); }
+			else if LSN_UNLIKELY( !m_rtGamma.get() ) { m_rtGamma = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
+			if ( !m_rtGamma->CreateColorTarget( ui32NativeW, ui32NativeH, fmtRt ) ) { return false; }
+
+			if LSN_LIKELY( m_rtPhosphorTarget.get() && m_rtPhosphorTarget->Get() ) { m_rtPhosphorTarget->Reset(); }
+			else if LSN_UNLIKELY( !m_rtPhosphorTarget.get() ) { m_rtPhosphorTarget = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
+			if ( !m_rtPhosphorTarget->CreateColorTarget( ui32NativeW, ui32NativeH, fmtRt ) ) { return false; }
 		}
 
 		if ( m_ui32RsrcW == m_ui32SrcW && m_ui32RsrcH == m_ui32SrcH ) {
@@ -207,12 +235,31 @@ namespace lsn {
 		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
 
+		uint32_t ui32NativeW = NES_NTSC_OUT_WIDTH( m_ui32SrcW );
+		uint32_t ui32NativeH = m_ui32SrcH;
+		IDirect3DTexture9 * ptScaleSource = m_tuUploader.GetTexture()->Get();
 
-		if ( !m_tpsScaler.Render( m_pdx9dDevice, m_tuUploader.GetTexture()->Get(), NES_NTSC_OUT_WIDTH( m_ui32SrcW ), m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_CRT2, m_bUse16BitInitialTarget ) ) {
+		// --- PASS 1: GAMMA ---
+		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
+		if ( effGamma != CNesPalette::LSN_G_NONE ) {
+			if ( m_tgGamma.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtGamma.get(), effGamma ) ) {
+				ptScaleSource = m_rtGamma->Texture()->Get();
+			}
+		}
+
+		// --- PASS 2: PHOSPHOR DECAY ---
+		if ( m_bEnablePhosphorDecay ) {
+			if ( m_pPhosphor.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtPhosphorTarget.get(), m_fInitPhosphorDecay, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue ) ) {
+				ptScaleSource = m_rtPhosphorTarget->Texture()->Get();
+			}
+		}
+
+		// --- PASS 3: PIXEL SCALER ---
+		if ( !m_tpsScaler.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, GetActualHorSharpness(), GetActualVertSharpness(), m_bUse16BitInitialTarget ) ) {
 			return false;
 		}
 
-
+		// --- PASS 4: COMPOSITE (RESAMPLER/RENDERER) ---
 		IDirect3DSurface9 * psBackBuffer = nullptr;
 		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
 			

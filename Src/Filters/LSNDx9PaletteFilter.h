@@ -11,14 +11,17 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../GPU/DirectX9/LSNDirectX9Phosphor.h"
 #include "../GPU/DirectX9/LSNDirectX9PixelShader.h"
 #include "../GPU/DirectX9/LSNDirectX9RenderTarget.h"
 #include "../GPU/DirectX9/LSNDirectX9Resampler.h"
 #include "../GPU/DirectX9/LSNDirectX9Texture.h"
+#include "../GPU/DirectX9/LSNDirectX9TextureGamma.h"
 #include "../GPU/DirectX9/LSNDirectX9TexturePixelScaler.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureRenderer.h"
 #include "../GPU/DirectX9/LSNDirectX9VertexBuffer.h"
 #include "LSNDx9FilterBase.h"
+#include "../Utilities/LSNUtilities.h"
 
 #include <Helpers/LSWHelpers.h>
 
@@ -123,6 +126,77 @@ namespace lsn {
 		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
 
 		/**
+		 * \brief Sets the gamma curve.
+		 * 
+		 * \param _gGamma The gamma curve to apply.
+		 */
+		inline void											SetGamma( CNesPalette::LSN_GAMMA _gGamma ) { m_gGamma = _gGamma; }
+
+		/**
+		 * \brief Gets the current gamma setting.
+		 * 
+		 * \return Returns the gamma setting.
+		 */
+		inline CNesPalette::LSN_GAMMA						GetGamma() const { return m_gGamma; }
+
+		/**
+		 * \brief Gets the effective gamma curve.
+		 * 
+		 * \return Returns the resolved gamma curve (handling LSN_G_AUTO).
+		 */
+		inline CNesPalette::LSN_GAMMA						GetEffectiveGamma() const { return m_gGamma == CNesPalette::LSN_G_AUTO ? CNesPalette::LSN_G_sRGB : m_gGamma; }
+
+		/**
+		 * \brief Sets whether phosphor decay is enabled.
+		 * 
+		 * \param _bEnable If true, phosphor decay is applied.
+		 */
+		inline void											SetPhosphorDecayEnable( bool _bEnable ) { m_bEnablePhosphorDecay = _bEnable; }
+
+		/**
+		 * \brief Gets whether phosphor decay is enabled.
+		 * 
+		 * \return Returns true if phosphor decay is enabled.
+		 */
+		inline bool											GetPhosphorDecayEnable() const { return m_bEnablePhosphorDecay; }
+
+		/**
+		 * Sets the phospher decay time.
+		 * 
+		 * \param _fTime The time it takes the phosphors to decay to 0.001.
+		 **/
+		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
+			m_fPhosphorDecayTime = _fTime;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
+		 * Sets the FPS of the hardware.
+		 * 
+		 * \param _fFps The FPS to set.
+		 **/
+		void												SetFps( float _fFps = 60.098812103271484375f ) {
+			m_fFps = _fFps;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
+		 * Sets the initial phosphor decay level.
+		 * 
+		 * \param _fLevel The strength of the phosphor decay.
+		 **/
+		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
+			m_fInitPhosphorDecay = _fLevel;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
 		 * Gets the convolution sampler to use for resampling.
 		 * 
 		 * \param _ui32Width The target width.
@@ -141,7 +215,7 @@ namespace lsn {
 		 * Sets the palette.
 		 * 
 		 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
-		 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.  False always indicates a memory failure if _pfRgba512 is not nullptr.
+		 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.
 		 **/
 		bool												SetLut( const float * _pfRgba512 );
 
@@ -186,30 +260,51 @@ namespace lsn {
 		/** The DirectX 9 device wrapper (non-owning). */
 		CDirectX9Device *									m_pdx9dDevice = nullptr;
 		
+		/** Generically applies gamma to a native-sized texture. */
+		CDirectX9TextureGamma								m_tgGamma;
+		/** Hardware wrapper for a phosphor-decay post-processing effect. */
+		CDirectX9Phosphor									m_pPhosphor;
 		/** Generically scales a texture via nearest-neighbor. */
 		CDirectX9TexturePixelScaler							m_tpsScaler;
 		/** 2-Pass high-quality texture resampler. */
 		CDirectX9Resampler									m_rsResampler;
-		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
+		/** Generically renders a texture to the backbuffer using bilinear sampling. */
 		CDirectX9TextureRenderer							m_trRenderer;
 
-		/** Index texture (L16, DEFAULT|DYNAMIC). */
+		/** Index texture (D3DFMT_L16). */
 		std::unique_ptr<CDirectX9Texture>					m_tIndex;
-		/** 512×1 LUT texture (A32B32G32R32F, MANAGED). */
+		/** 512x1 LUT texture (D3DFMT_A32B32G32R32F). */
 		std::unique_ptr<CDirectX9Texture>					m_tLut;
-		/** Initial floating-point render target (same size as indices). */
+		/** Initial floating-point render target. */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtInitial;
+		/** Gamma pass render target. */
+		std::unique_ptr<CDirectX9RenderTarget>				m_rtGamma;
+		/** Phosphor decay target. */
+		std::unique_ptr<CDirectX9RenderTarget>				m_rtPhosphorTarget;
 		/** Intermediate resample floating-point render target for passing to the screen composite. */
 		std::unique_ptr<CDirectX9RenderTarget>				m_rtResampled;
-		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
-		std::unique_ptr<CDirectX9VertexBuffer>				m_vbQuad;
-		/** Pixel shader: indices + LUT → RGBA (pass 1). */
+		
+		/** Screen-space quad vertex buffer. */
+		std::unique_ptr<CDirectX9VertexBuffer>				m_vbPass1;
+		/** The pixel shader for Pass 1 (Indices to Colors). */
 		std::unique_ptr<CDirectX9PixelShader>				m_psIdxToColor;
 
 		/** The palette look-up table. */
 		std::vector<float>									m_vLut;
-		/** The output buffer.  Not actually used, but provides a safe buffer for reading in some edges cases after filters are swapped. Also can be used for storing screenshots. */
+		/** The output buffer. */
 		std::vector<uint8_t>								m_vOutputBuffer;
+
+		/** Current selected gamma curve. */
+		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_NONE;
+
+		/** Phosphor variables. */
+		float												m_fFps = 60.098812103271484375f;					/**< The FPS. */
+		float												m_fInitPhosphorDecay = 0.25f;						/**< Max phosphor level. */
+		float												m_fPhosphorDecayRateRed = 0.401767850f;				/**< Red phosphor decay rate. */
+		float												m_fPhosphorDecayRateGreen = 0.663420439f;			/**< Green phosphor decay rate. */
+		float												m_fPhosphorDecayRateBlue = 0.193711475f;			/**< Blue phosphor decay rate. */
+		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
+		bool												m_bEnablePhosphorDecay = true;						/**< Enable phosphor decay? */
 		
 		/** Source width in pixels. */
 		uint32_t											m_ui32SrcW = 0;
@@ -240,40 +335,38 @@ namespace lsn {
 		// == Functions.
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-		 *
-		 * Releases/creates the index texture, both FP render targets, and quad vertex buffer as needed.
-		 *
+		 * 
 		 * \return Returns true on success.
 		 */
 		bool												EnsureSizeAndResources();
 
 		/**
 		 * \brief Updates the 512-entry float RGBA LUT.
-		 *
+		 * 
 		 * \return Returns true on success.
 		 */
 		bool												UpdateLut();
 
 		/**
-		 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
-		 *
+		 * \brief Uploads the 16-bit PPU indices to the index texture.
+		 * 
 		 * \param _pui16Idx Source pointer to the index image (row-major).
-		 * \param _ui32W Image width in pixels (must equal the Init size).
-		 * \param _ui32H Image height in pixels (must equal the Init size).
-		 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed (= _ui32W * 2).
+		 * \param _ui32W Image width in pixels.
+		 * \param _ui32H Image height in pixels.
+		 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed.
 		 * \return Returns true on success.
 		 */
 		bool												UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch = 0 );
 
 		/**
-		 * \brief Ensures pixel shaders (index→color) are created.
-		 *
+		 * \brief Ensures pixel shaders, vertex shaders, and PSOs are created.
+		 * 
 		 * \return Returns true if all shaders are ready.
 		 */
 		bool												EnsureShaders();
 
 		/**
-		 * \brief Compiles an HLSL pixel shader using dynamically loaded D3DX.
+		 * \brief Compiles an HLSL shader using dynamically loaded d3dcompiler_47.dll.
 		 *
 		 * \param _pcszSource Null-terminated HLSL source code.
 		 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").

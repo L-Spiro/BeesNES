@@ -5,13 +5,12 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+ * Description: A generic helper class for applying integer nearest-neighbor scaling to a texture.
  */
 
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
-#include "../../Filters/LSNNesPalette.h"
 #include "LSNDirectX12Device.h"
 #include "LSNDirectX12Resource.h"
 #include "LSNDirectX12PipelineState.h"
@@ -28,9 +27,9 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX12TexturePixelScaler
-	 * \brief A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+	 * \brief A generic helper class for applying integer nearest-neighbor scaling to a texture.
 	 *
-	 * Description: Scales a texture by integer factors using nearest-neighbor sampling. Can also apply a specified gamma curve to the output.
+	 * Description: Scales a texture by integer factors using nearest-neighbor sampling.
 	 */
 	class CDirectX12TexturePixelScaler {
 	public :
@@ -54,13 +53,12 @@ namespace lsn {
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _ui32ScaleX The horizontal scaling factor.
 		 * \param _ui32ScaleY The vertical scaling factor.
-		 * \param _gGamma The gamma curve to apply.
 		 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
 		 * \param _bFlipY If true, the rendered image is flipped vertically.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY = false, ID3DInclude * _piInclude = nullptr );
+		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY, bool _bUse16BitTarget, bool _bFlipY = false, ID3DInclude * _piInclude = nullptr );
 
 		/**
 		 * Gets the scaled output texture.
@@ -100,13 +98,11 @@ namespace lsn {
 		/** Descriptor Heap for the Point Sampler. */
 		std::unique_ptr<CDirectX12DescriptorHeap>				m_dhSamplerHeap;
 
-		/** The pixel shader for scaling and gamma. */
+		/** The pixel shader for scaling. */
 		std::unique_ptr<CDirectX12PipelineState>				m_ppsShader;
 		/** The root signature for the scaler. */
 		std::unique_ptr<CDirectX12RootSignature>				m_prsRootSignature;
 
-		/** The current gamma setting used to compile the shader. */
-		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
 		/** The width of the generated render target texture. */
 		uint32_t												m_ui32TargetW = 0;
 		/** The height of the generated render target texture. */
@@ -127,15 +123,14 @@ namespace lsn {
 		bool													EnsureResources( CDirectX12Device * _pd12dDevice, uint32_t _ui32DstW, uint32_t _ui32DstH, DXGI_FORMAT _fFormat );
 
 		/**
-		 * Ensures the Pipeline State Object is compiled with the correct gamma function.
+		 * Ensures the Pipeline State Object is compiled.
 		 * 
 		 * \param _pd12dDevice The Direct3D 12 device.
-		 * \param _gGamma The gamma curve to apply.
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
+		bool													EnsureShader( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.

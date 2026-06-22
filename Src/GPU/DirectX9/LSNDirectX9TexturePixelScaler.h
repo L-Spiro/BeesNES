@@ -5,13 +5,12 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+ * Description: A generic helper class for applying integer nearest-neighbor scaling to a texture.
  */
 
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
-#include "../../Filters/LSNNesPalette.h"
 #include "LSNDirectX9Device.h"
 #include "LSNDirectX9PixelShader.h"
 #include "LSNDirectX9RenderTarget.h"
@@ -25,9 +24,9 @@ namespace lsn {
 
 	/**
 	 * Class CDirectX9TexturePixelScaler
-	 * \brief A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+	 * \brief A generic helper class for applying integer nearest-neighbor scaling to a texture.
 	 *
-	 * Description: Scales a texture by integer factors using nearest-neighbor sampling. Can also apply a specified gamma curve to the output.
+	 * Description: Scales a texture by integer factors using nearest-neighbor sampling.
 	 */
 	class CDirectX9TexturePixelScaler {
 	public :
@@ -50,13 +49,12 @@ namespace lsn {
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _ui32ScaleX The horizontal scaling factor.
 		 * \param _ui32ScaleY The vertical scaling factor.
-		 * \param _gGamma The gamma curve to apply.
 		 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
 		 * \param _bFlipY If true, the rendered image is flipped vertically.
 		 * \return Returns true on success.
 		 **/
 		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY,
-			CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY = false );
+			bool _bUse16BitTarget, bool _bFlipY = false );
 
 		/**
 		 * Gets the scaled output texture.
@@ -86,10 +84,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9RenderTarget>					m_rtTarget;
 		/** Dynamic screen-space quad vertex buffer (XYZRHW|TEX1, 4 vertices). */
 		std::unique_ptr<CDirectX9VertexBuffer>					m_vbQuad;
-		/** The pixel shader for scaling and gamma. */
+		/** The pixel shader for scaling. */
 		std::unique_ptr<CDirectX9PixelShader>					m_psShader;
-		/** The current gamma setting used to compile the shader. */
-		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
 		/** The width of the generated render target texture. */
 		uint32_t												m_ui32TargetW = 0;
 		/** The height of the generated render target texture. */
@@ -111,13 +107,12 @@ namespace lsn {
 		bool													EnsureResources( CDirectX9Device * _pdx9dDevice, uint32_t _ui32DstW, uint32_t _ui32DstH, D3DFORMAT _fFormat );
 
 		/**
-		 * Ensures the pixel shader is compiled with the correct gamma function.
+		 * Ensures the pixel shader is compiled.
 		 * 
 		 * \param _pdx9dDevice The Direct3D 9 device.
-		 * \param _gGamma The gamma curve to apply.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma );
+		bool													EnsureShader( CDirectX9Device * _pdx9dDevice );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded D3DX.

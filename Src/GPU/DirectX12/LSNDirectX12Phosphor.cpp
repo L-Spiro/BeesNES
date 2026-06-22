@@ -20,7 +20,7 @@ namespace lsn {
 		float fX, fY, fZ, fW;
 		float fU, fV;
 	};
-#pragma pack( pop )
+#pragma pack(pop)
 
 
 	CDirectX12Phosphor::CDirectX12Phosphor() {
@@ -90,6 +90,22 @@ namespace lsn {
 		pCommandList->SetDescriptorHeaps( 2, ppHeaps );
 
 		pCommandList->SetGraphicsRootSignature( m_prsRootSignature->Get() );
+		
+		D3D12_RANGE rReadRange = { 0, 0 };
+		LSN_XYZRHWTEX1 * pvP = nullptr;
+		if ( SUCCEEDED( m_prVbQuad->Get()->Map( 0, &rReadRange, reinterpret_cast<void **>(&pvP) ) ) ) {
+			float fL = 0.0f;
+			float fT = 0.0f;
+			float fR = static_cast<float>(_ui32SrcW);
+			float fB = static_cast<float>(_ui32SrcH);
+
+			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, 0.0f };
+			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, 0.0f };
+			pvP[2] = { fL, fB, 0.0f, 1.0f, 0.0f, 1.0f };
+			pvP[3] = { fR, fB, 0.0f, 1.0f, 1.0f, 1.0f };
+			m_prVbQuad->Get()->Unmap( 0, nullptr );
+		}
+
 		pCommandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 		pCommandList->IASetVertexBuffers( 0, 1, &m_vbView );
 
@@ -169,16 +185,6 @@ namespace lsn {
 			m_vbView.BufferLocation = m_prVbQuad->Get()->GetGPUVirtualAddress();
 			m_vbView.StrideInBytes = sizeof( LSN_XYZRHWTEX1 );
 			m_vbView.SizeInBytes = sizeof( LSN_XYZRHWTEX1 ) * 4;
-
-			D3D12_RANGE rReadRange = { 0, 0 };
-			LSN_XYZRHWTEX1 * pvP = nullptr;
-			if ( SUCCEEDED( m_prVbQuad->Get()->Map( 0, &rReadRange, reinterpret_cast<void **>(&pvP) ) ) ) {
-				pvP[0] = { 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
-				pvP[1] = { 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f };
-				pvP[2] = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-				pvP[3] = { 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f };
-				m_prVbQuad->Get()->Unmap( 0, nullptr );
-			}
 		}
 
 		if LSN_UNLIKELY( !m_dhSrvHeap.get() ) {

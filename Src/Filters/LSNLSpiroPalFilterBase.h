@@ -172,7 +172,7 @@ namespace lsn {
 		 **/
 		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
 			m_fPhosphorDecayTime = _fTime;
-			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
 			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
 		}
@@ -184,7 +184,7 @@ namespace lsn {
 		 **/
 		void												SetFps( float _fFps  = 50.006977081298828125f ) {
 			m_fFps = _fFps;
-			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
 			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
 		}
@@ -196,7 +196,7 @@ namespace lsn {
 		 **/
 		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
 			m_fInitPhosphorDecay = _fLevel;
-			m_fPhosphorDecayRate = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
 			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
 		}
@@ -274,7 +274,7 @@ namespace lsn {
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
 		float												m_fBlackSetting = 0.0f;								/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;							/**< White level. */
-		float												m_fPhosphorDecayRate = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */
+		float												m_fPhosphorDecayRateGreen = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */
 		float												m_fPhosphorDecayRateRed = 0.95f * 0.9f;				/**< Red phosphor decay rate. */
 		float												m_fPhosphorDecayRateBlue = 0.95f * 0.85f;			/**< Blue phosphor decay rate. */
 		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */
@@ -324,7 +324,7 @@ namespace lsn {
 		 * \param _pui8Dst Pointers to the start of the destination buffer.
 		 * \param _sPitch The pitch of the rows in the scanline buffer.
 		 **/
-		template <bool _bStoreToInt = true>
+		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
 
 		/**
@@ -408,7 +408,7 @@ namespace lsn {
 		 * \param _pui8Dst Pointers to the start of the destination buffer.
 		 * \param _sPitch The pitch of the rows in the scanline buffer.
 		 **/
-		template <bool _bStoreToInt = true>
+		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
 		void												ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch );
 	};
 	
@@ -477,7 +477,7 @@ namespace lsn {
 	 * \param _pui8Dst Pointers to the start of the destination buffer.
 	 * \param _sPitch The pitch of the rows in the scanline buffer.
 	 **/
-	template <bool _bStoreToInt>
+	template <bool _bStoreToInt, bool _bPhosphorDecay>
 	void CLSpiroPalFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
@@ -489,7 +489,7 @@ namespace lsn {
 		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
 			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
 			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_PAL_DOTS_X * H) * 8) % 12 ), H );
-			ConvertYiqToBgra<_bStoreToInt>( H, _pui8Dst, _sPitch );
+			ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay>( H, _pui8Dst, _sPitch );
 			pfY += sYiqStride;
 			pfI += sYiqStride;
 			pfQ += sYiqStride;
@@ -615,7 +615,7 @@ namespace lsn {
 	 * \param _pui8Dst Pointers to the start of the destination buffer.
 	 * \param _sPitch The pitch of the rows in the scanline buffer.
 	 **/
-	template <bool _bStoreToInt>
+	template <bool _bStoreToInt, bool _bPhosphorDecay>
 	void CLSpiroPalFilterBase::ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch ) {
 		uint8_t * pui8Bgra = _pui8Dst + _sPitch * _sScanline;
 		float * pfBlendBuffer = m_vBlendBuffer.data() + m_ui16ScaledWidth * 3 * _sScanline;
@@ -636,10 +636,16 @@ namespace lsn {
 		if ( CUtilities::IsAvx512BWSupported() ) {
 			__m512 m0 = _mm512_set1_ps( 0.0f );
 			__m512 m299 = _mm512_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
-			__m512 mPhosInitDecay = _mm512_set1_ps( m_fInitPhosphorDecay );
-			__m512 mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRateRed );
-			__m512 mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRate );
-			__m512 mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRateBlue );
+			__m512 mPhosInitDecay;
+			__m512 mPhosphorDecayR;
+			__m512 mPhosphorDecayG;
+			__m512 mPhosphorDecayB;
+			if constexpr ( _bPhosphorDecay ) {
+				mPhosInitDecay = _mm512_set1_ps( m_fInitPhosphorDecay );
+				mPhosphorDecayR = _mm512_set1_ps( m_fPhosphorDecayRateRed );
+				mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRateGreen );
+				mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRateBlue );
+			}
 			constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -658,24 +664,25 @@ namespace lsn {
 				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
 				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
 
-				mOldR = _mm512_mul_ps( mPhosphorDecayR, mOldR );
-				__m512 mScaledR = _mm512_mul_ps( mPhosInitDecay, mR );
-				mR = _mm512_max_ps( mOldR, mR );
-				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledR, mOldR ) );
-				pfBlendBuffer += sRegSize;
+				if constexpr ( _bPhosphorDecay ) {
+					mOldR = _mm512_mul_ps( mPhosphorDecayR, mOldR );
+					__m512 mScaledR = _mm512_mul_ps( mPhosInitDecay, mR );
+					mR = _mm512_max_ps( mOldR, mR );
+					_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledR, mOldR ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldG = _mm512_mul_ps( mPhosphorDecayG, mOldG );
-				__m512 mScaledG = _mm512_mul_ps( mPhosInitDecay, mG );
-				mG = _mm512_max_ps( mOldG, mG );
-				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledG, mOldG ) );
-				pfBlendBuffer += sRegSize;
+					mOldG = _mm512_mul_ps( mPhosphorDecayG, mOldG );
+					__m512 mScaledG = _mm512_mul_ps( mPhosInitDecay, mG );
+					mG = _mm512_max_ps( mOldG, mG );
+					_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledG, mOldG ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldB = _mm512_mul_ps( mPhosphorDecayB, mOldB );
-				__m512 mScaledB = _mm512_mul_ps( mPhosInitDecay, mB );
-				mB = _mm512_max_ps( mOldB, mB );
-				_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledB, mOldB ) );
-				pfBlendBuffer += sRegSize;
-
+					mOldB = _mm512_mul_ps( mPhosphorDecayB, mOldB );
+					__m512 mScaledB = _mm512_mul_ps( mPhosInitDecay, mB );
+					mB = _mm512_max_ps( mOldB, mB );
+					_mm512_store_ps( pfBlendBuffer, _mm512_max_ps( mScaledB, mOldB ) );
+					pfBlendBuffer += sRegSize;
+				}
 
 				if constexpr ( _bStoreToInt ) {
 					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
@@ -729,10 +736,16 @@ namespace lsn {
 		if ( CUtilities::IsAvx2Supported() ) {
 			__m256 m0 = _mm256_set1_ps( 0.0f );
 			__m256 m299 = _mm256_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
-			__m256 mPhosInitDecay = _mm256_set1_ps( m_fInitPhosphorDecay );
-			__m256 mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRateRed );
-			__m256 mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRate );
-			__m256 mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRateBlue );
+			__m256 mPhosInitDecay;
+			__m256 mPhosphorDecayR;
+			__m256 mPhosphorDecayG;
+			__m256 mPhosphorDecayB;
+			if constexpr ( _bPhosphorDecay ) {
+				mPhosInitDecay = _mm256_set1_ps( m_fInitPhosphorDecay );
+				mPhosphorDecayR = _mm256_set1_ps( m_fPhosphorDecayRateRed );
+				mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRateGreen );
+				mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRateBlue );
+			}
 			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -751,24 +764,25 @@ namespace lsn {
 				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
 				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
 
-				mOldR = _mm256_mul_ps( mPhosphorDecayR, mOldR );
-				__m256 mScaledR = _mm256_mul_ps( mPhosInitDecay, mR );
-				mR = _mm256_max_ps( mOldR, mR );
-				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledR, mOldR ) );
-				pfBlendBuffer += sRegSize;
+				if constexpr ( _bPhosphorDecay ) {
+					mOldR = _mm256_mul_ps( mPhosphorDecayR, mOldR );
+					__m256 mScaledR = _mm256_mul_ps( mPhosInitDecay, mR );
+					mR = _mm256_max_ps( mOldR, mR );
+					_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledR, mOldR ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldG = _mm256_mul_ps( mPhosphorDecayG, mOldG );
-				__m256 mScaledG = _mm256_mul_ps( mPhosInitDecay, mG );
-				mG = _mm256_max_ps( mOldG, mG );
-				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledG, mOldG ) );
-				pfBlendBuffer += sRegSize;
+					mOldG = _mm256_mul_ps( mPhosphorDecayG, mOldG );
+					__m256 mScaledG = _mm256_mul_ps( mPhosInitDecay, mG );
+					mG = _mm256_max_ps( mOldG, mG );
+					_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledG, mOldG ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldB = _mm256_mul_ps( mPhosphorDecayB, mOldB );
-				__m256 mScaledB = _mm256_mul_ps( mPhosInitDecay, mB );
-				mB = _mm256_max_ps( mOldB, mB );
-				_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledB, mOldB ) );
-				pfBlendBuffer += sRegSize;
-
+					mOldB = _mm256_mul_ps( mPhosphorDecayB, mOldB );
+					__m256 mScaledB = _mm256_mul_ps( mPhosInitDecay, mB );
+					mB = _mm256_max_ps( mOldB, mB );
+					_mm256_store_ps( pfBlendBuffer, _mm256_max_ps( mScaledB, mOldB ) );
+					pfBlendBuffer += sRegSize;
+				}
 
 				if constexpr ( _bStoreToInt ) {
 					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
@@ -831,10 +845,16 @@ namespace lsn {
 		if ( CUtilities::IsSse4Supported() ) {
 			__m128 m0 = _mm_set1_ps( 0.0f );
 			__m128 m299 = _mm_set1_ps( (uint32_t( LSN_SRGB_RES ) - 1.0f) );
-			__m128 mPhosInitDecay = _mm_set1_ps( m_fInitPhosphorDecay );
-			__m128 mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRateRed );
-			__m128 mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRate );
-			__m128 mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRateBlue );
+			__m128 mPhosInitDecay;
+			__m128 mPhosphorDecayR;
+			__m128 mPhosphorDecayG;
+			__m128 mPhosphorDecayB;
+			if constexpr ( _bPhosphorDecay ) {
+				mPhosInitDecay = _mm_set1_ps( m_fInitPhosphorDecay );
+				mPhosphorDecayR = _mm_set1_ps( m_fPhosphorDecayRateRed );
+				mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRateGreen );
+				mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRateBlue );
+			}
 			constexpr auto sRegSize = sizeof( __m128 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -853,24 +873,25 @@ namespace lsn {
 				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, _mm_set1_ps( -0.394642233974f ) ), _mm_mul_ps( mV, _mm_set1_ps( -0.580621847591f ) ) ) );
 				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
 
+				if constexpr ( _bPhosphorDecay ) {
+					mOldR = _mm_mul_ps( mPhosphorDecayR, mOldR );
+					__m128 mScaledR = _mm_mul_ps( mPhosInitDecay, mR );
+					mR = _mm_max_ps( mOldR, mR );
+					_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledR, mOldR ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldR = _mm_mul_ps( mPhosphorDecayR, mOldR );
-				__m128 mScaledR = _mm_mul_ps( mPhosInitDecay, mR );
-				mR = _mm_max_ps( mOldR, mR );
-				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledR, mOldR ) );
-				pfBlendBuffer += sRegSize;
+					mOldG = _mm_mul_ps( mPhosphorDecayG, mOldG );
+					__m128 mScaledG = _mm_mul_ps( mPhosInitDecay, mG );
+					mG = _mm_max_ps( mOldG, mG );
+					_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledG, mOldG ) );
+					pfBlendBuffer += sRegSize;
 
-				mOldG = _mm_mul_ps( mPhosphorDecayG, mOldG );
-				__m128 mScaledG = _mm_mul_ps( mPhosInitDecay, mG );
-				mG = _mm_max_ps( mOldG, mG );
-				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledG, mOldG ) );
-				pfBlendBuffer += sRegSize;
-
-				mOldB = _mm_mul_ps( mPhosphorDecayB, mOldB );
-				__m128 mScaledB = _mm_mul_ps( mPhosInitDecay, mB );
-				mB = _mm_max_ps( mOldB, mB );
-				_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledB, mOldB ) );
-				pfBlendBuffer += sRegSize;
+					mOldB = _mm_mul_ps( mPhosphorDecayB, mOldB );
+					__m128 mScaledB = _mm_mul_ps( mPhosInitDecay, mB );
+					mB = _mm_max_ps( mOldB, mB );
+					_mm_store_ps( pfBlendBuffer, _mm_max_ps( mScaledB, mOldB ) );
+					pfBlendBuffer += sRegSize;
+				}
 
 				if constexpr ( _bStoreToInt ) {
 					// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
@@ -958,12 +979,14 @@ namespace lsn {
 				fG = std::clamp( fG * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 				fB = std::clamp( fB * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );
 
-				fR += m_fPhosphorDecayRate * (*pfBlendBuffer);
-				(*pfBlendBuffer++) = fR;
-				fG += m_fPhosphorDecayRate * (*pfBlendBuffer);
-				(*pfBlendBuffer++) = fG;
-				fB += m_fPhosphorDecayRate * (*pfBlendBuffer);
-				(*pfBlendBuffer++) = fB;
+				if constexpr ( _bPhosphorDecay ) {
+					fR += m_fPhosphorDecayRateGreen * (*pfBlendBuffer);
+					(*pfBlendBuffer++) = fR;
+					fG += m_fPhosphorDecayRateGreen * (*pfBlendBuffer);
+					(*pfBlendBuffer++) = fG;
+					fB += m_fPhosphorDecayRateGreen * (*pfBlendBuffer);
+					(*pfBlendBuffer++) = fB;
+				}
 
 				if constexpr ( _bStoreToInt ) {
 					// Convert to integers.

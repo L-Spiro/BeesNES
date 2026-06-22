@@ -6,6 +6,8 @@
 namespace lsn {
 
 	CDx9PaletteFilter::CDx9PaletteFilter() {
+		SetPhosphorDecayLevel( 0.15f );
+		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx9PaletteFilter::~CDx9PaletteFilter() {
 	}
@@ -27,7 +29,16 @@ namespace lsn {
 		m_ui32OutputHeight = _ui16Height;
 		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint32_t ) );
 
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
+		m_tpsScaler.Reset();
+		m_rsResampler.Reset();
+		m_trRenderer.Reset();
+		
+		m_rtGamma.reset();
+		m_rtPhosphorTarget.reset();
 		ReleaseSizeDependents();
+		
 		return CParent::Init( _stBuffers, _ui16Width, _ui16Height );
 	}
 
@@ -35,7 +46,7 @@ namespace lsn {
 	 * Sets the palette.
 	 * 
 	 * \param _pfRgba512 Pointer to 2048 floats (512 * RGBA).
-	 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.  False always indicates a memory failure if _pfRgba512 is not nullptr.
+	 * \return Returns true if the memory for the palette copy was able to be allocated and _pfRgba512 is not nullptr.
 	 **/
 	bool CDx9PaletteFilter::SetLut( const float * _pfRgba512 ) {
 		if ( !_pfRgba512 ) { return false; }
@@ -64,15 +75,19 @@ namespace lsn {
 	void CDx9PaletteFilter::DeActivate() {
 		CParent::DeActivate();
 
+		m_tgGamma.Reset();
+		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
-		m_trRenderer.Reset();
 		m_rsResampler.Reset();
+		m_trRenderer.Reset();
 
 		m_tIndex.reset();
 		m_tLut.reset();
 		m_rtInitial.reset();
+		m_rtGamma.reset();
+		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
-		m_vbQuad.reset();
+		m_vbPass1.reset();
 		m_psIdxToColor.reset();
 
 		m_bUpdatePalette = true;
@@ -110,7 +125,7 @@ namespace lsn {
 			m_vOutputBuffer.resize( _ui32Width * _ui32Height * sizeof( uint32_t ) );
 		}
 		if LSN_UNLIKELY( m_bUpdatePalette ) {
-			UpdateLut();	// Failure isn't technically critical.
+			UpdateLut();
 		}
 		if LSN_UNLIKELY( !UploadIndices( reinterpret_cast<const uint16_t *>(_pui8Input), _ui32Width, _ui32Height, _ui32Stride ) ) {
 			m_bValidState = false;
@@ -126,7 +141,7 @@ namespace lsn {
 		_ui32Width = uint32_t( s_dgsState.rScreenRect.Width() );
 		_ui32Height = uint32_t( s_dgsState.rScreenRect.Height() );
 		_ui32Stride = _ui32Width * sizeof( uint32_t );
-		return m_vOutputBuffer.data();		// Unused except in edge cases; we present to the screen directly.
+		return m_vOutputBuffer.data();
 	}
 
 	/**
@@ -141,9 +156,7 @@ namespace lsn {
 
 	/**
 	 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
-	 *
-	 * Releases/creates the index texture, both FP render targets, and quad vertex buffer as needed.
-	 *
+	 * 
 	 * \return Returns true on success.
 	 */
 	bool CDx9PaletteFilter::EnsureSizeAndResources() {
@@ -151,34 +164,42 @@ namespace lsn {
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
 			m_pdx9dDevice = &s_dgsState.dx9Device;
-
-			m_tpsScaler.Reset();
-			m_trRenderer.Reset();
-			m_rsResampler.Reset();
-			
-			m_tIndex.reset();
-			m_tLut.reset();
-			m_rtInitial.reset();
-			m_rtResampled.reset();
-			m_vbQuad.reset();
-			m_psIdxToColor.reset();
-
 			m_bUpdatePalette = true;
+			m_tgGamma.Reset();
+			m_pPhosphor.Reset();
+			m_tpsScaler.Reset();
+			m_rsResampler.Reset();
+			m_trRenderer.Reset();
+			m_rtGamma.reset();
+			m_rtPhosphorTarget.reset();
 		}
 
+		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
+		if ( !pd3d9dDevice ) { return false; }
+
 		if LSN_UNLIKELY( !m_tIndex.get() ) { m_tIndex = std::make_unique<CDirectX9Texture>( m_pdx9dDevice ); }
+		if LSN_UNLIKELY( !m_tLut.get() ) { m_tLut = std::make_unique<CDirectX9Texture>( m_pdx9dDevice ); }
 		if LSN_UNLIKELY( !m_rtInitial.get() ) { m_rtInitial = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
-		if LSN_UNLIKELY( !m_vbQuad.get() ) { m_vbQuad = std::make_unique<CDirectX9VertexBuffer>( m_pdx9dDevice ); }
+		if LSN_UNLIKELY( !m_vbPass1.get() ) { m_vbPass1 = std::make_unique<CDirectX9VertexBuffer>( m_pdx9dDevice ); }
 		
-		const bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Valid() && m_rtInitial->Valid() && m_vbQuad->Valid();
+		bool bOk = (m_ui32RsrcW == m_ui32SrcW) && (m_ui32RsrcH == m_ui32SrcH) && m_tIndex->Valid() && m_rtInitial->Valid() && m_vbPass1->Valid() && m_rtGamma.get() && m_rtGamma->Valid() && m_rtPhosphorTarget.get() && m_rtPhosphorTarget->Valid();
+
 		if ( bOk ) { m_bValidState = true; return true; }
 
 		ReleaseSizeDependents();
 
-		if ( !m_tIndex->Create2D( m_ui32SrcW, m_ui32SrcH, 1, D3DUSAGE_DYNAMIC, D3DFMT_L16, D3DPOOL_DEFAULT ) ) { return false; }
-		const auto fmtRt = m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
+		if ( !m_tIndex->CreateTexture( m_ui32SrcW, m_ui32SrcH, 1, 0, D3DFMT_L16, D3DPOOL_MANAGED ) ) { return false; }
+		
+		D3DFORMAT fmtRt = m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
 		if ( !m_rtInitial->CreateColorTarget( m_ui32SrcW, m_ui32SrcH, fmtRt ) ) { return false; }
-		if ( !m_vbQuad->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, LSN_FVF_XYZRHWTEX1, D3DPOOL_DEFAULT ) ) { return false; }
+
+		m_rtGamma = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
+		if ( !m_rtGamma->CreateColorTarget( m_ui32SrcW, m_ui32SrcH, fmtRt ) ) { return false; }
+
+		m_rtPhosphorTarget = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
+		if ( !m_rtPhosphorTarget->CreateColorTarget( m_ui32SrcW, m_ui32SrcH, fmtRt ) ) { return false; }
+
+		if ( !m_vbPass1->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_XYZRHW | D3DFVF_TEX1, D3DPOOL_DEFAULT ) ) { return false; }
 
 		if ( !UpdateLut() ) { return false; }
 
@@ -190,105 +211,91 @@ namespace lsn {
 
 	/**
 	 * \brief Updates the 512-entry float RGBA LUT.
-	 *
-	 * The LUT is a 512×1 A32B32G32R32F MANAGED texture. Each entry is RGBA in linear space.
-	 *
+	 * 
 	 * \return Returns true on success.
 	 */
 	bool CDx9PaletteFilter::UpdateLut() {
 		if LSN_UNLIKELY( !m_pdx9dDevice || !m_ui32SrcW || !m_ui32SrcH ) { return false; }
-		// Create once: 512x1 A32B32G32R32F MANAGED texture.
-		if LSN_UNLIKELY( !m_tLut.get() ) {
-			m_tLut = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
-			if ( !m_tLut.get() ) { return false; }
-		}
+
 		if LSN_UNLIKELY( !m_tLut->Valid() ) {
-			if ( !m_tLut->Create2D( 512, 1, 1, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED ) ) {
-				return false;
-			}
+			if ( !m_tLut->CreateTexture( 512, 1, 1, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED ) ) { return false; }
 		}
+
 		if LSN_UNLIKELY( m_vLut.size() && m_bUpdatePalette ) {
-			D3DLOCKED_RECT lrLocked{};
-			if LSN_UNLIKELY( !m_tLut->LockRect( 0, lrLocked, nullptr, 0 ) ) { return false; }
-			std::memcpy( lrLocked.pBits, m_vLut.data(), sizeof( float ) * 4 * 512 );
-			m_tLut->UnlockRect( 0 );
-			m_bUpdatePalette = false;
+			D3DLOCKED_RECT lrLock;
+			if ( SUCCEEDED( m_tLut->Get()->LockRect( 0, &lrLock, nullptr, 0 ) ) ) {
+				std::memcpy( lrLock.pBits, m_vLut.data(), sizeof( float ) * 4 * 512 );
+				m_tLut->Get()->UnlockRect( 0 );
+				m_bUpdatePalette = false;
+			}
 		}
 		return true;
 	}
 
 	/**
-	 * \brief Uploads the 16-bit PPU indices (9-bit effective values 0..511) to the L16 index texture.
-	 *
-	 * Values are mapped to L16 in [0..65535] so that sampling.r*511 + 0.5 floors back to the exact index in the shader.
-	 *
+	 * \brief Uploads the 16-bit PPU indices to the index texture.
+	 * 
 	 * \param _pui16Idx Source pointer to the index image (row-major).
-	 * \param _ui32W Image width in pixels (must equal the Init size).
-	 * \param _ui32H Image height in pixels (must equal the Init size).
-	 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed (= _ui32W * 2).
+	 * \param _ui32W Image width in pixels.
+	 * \param _ui32H Image height in pixels.
+	 * \param _ui32SrcPitch Source pitch in bytes; pass 0 for tightly packed.
 	 * \return Returns true on success.
 	 */
 	bool CDx9PaletteFilter::UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch ) {
-		if LSN_UNLIKELY( !m_pdx9dDevice || _ui32W != m_ui32SrcW || _ui32H != m_ui32SrcH ) { return false; }
-
-		if LSN_UNLIKELY( !m_tIndex.get() ) {
-			m_tIndex = std::make_unique<CDirectX9Texture>( m_pdx9dDevice );
-			if LSN_UNLIKELY( !m_tIndex.get() ) { return false; }
-		}
-
-		if LSN_UNLIKELY( !m_tIndex->Valid() ) { return false; }
+		if LSN_UNLIKELY( !m_pdx9dDevice || _ui32W != m_ui32SrcW || _ui32H != m_ui32SrcH || !m_tIndex->Valid() ) { return false; }
 		if ( !_ui32SrcPitch ) { _ui32SrcPitch = _ui32W * sizeof( uint16_t ); }
 
-		D3DLOCKED_RECT lrRect{};
-		if LSN_UNLIKELY( !m_tIndex->LockRect( 0, lrRect, nullptr, D3DLOCK_DISCARD ) || nullptr == lrRect.pBits ) { return false; }
+		D3DLOCKED_RECT lrLock;
+		if LSN_UNLIKELY( FAILED( m_tIndex->Get()->LockRect( 0, &lrLock, nullptr, D3DLOCK_DISCARD ) ) ) { return false; }
 
-		if LSN_LIKELY( lrRect.Pitch == INT( _ui32SrcPitch ) ) {
-			// Just copy it all at once.
-			std::memcpy( lrRect.pBits, _pui16Idx, _ui32H * _ui32SrcPitch );
-			m_tIndex->UnlockRect( 0 );
-			return true;
+		const UINT uiPitch = lrLock.Pitch;
+		if LSN_LIKELY( uiPitch == _ui32SrcPitch ) {
+			std::memcpy( lrLock.pBits, _pui16Idx, _ui32H * _ui32SrcPitch );
 		}
-
-		for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
-			const uint8_t * pSrcRow = reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch;
-			uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrRect.pBits) + Y * lrRect.Pitch;
-			const uint16_t * pSrc = reinterpret_cast<const uint16_t *>(pSrcRow);
-			uint16_t * pDst = reinterpret_cast<uint16_t *>(pDstRow);
-			std::memcpy( pDst, pSrc, _ui32W * sizeof( uint16_t ) );
+		else {
+			for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
+				const uint8_t * pSrcRow = reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch;
+				uint8_t * pDstRow = reinterpret_cast<uint8_t *>(lrLock.pBits) + Y * uiPitch;
+				std::memcpy( pDstRow, pSrcRow, _ui32W * sizeof( uint16_t ) );
+			}
 		}
-		m_tIndex->UnlockRect( 0 );
+		m_tIndex->Get()->UnlockRect( 0 );
 		return true;
 	}
 
 	/**
-	 * \brief Ensures pixel shaders (index→color) are created.
-	 *
+	 * \brief Ensures pixel shaders, vertex shaders, and PSOs are created.
+	 * 
 	 * \return Returns true if all shaders are ready.
 	 */
 	bool CDx9PaletteFilter::EnsureShaders() {
-		if ( !m_pdx9dDevice ) { return false; }
-		static const char * kPsIdxToColorHlsl =
-			"sampler2D sIdx : register( s0 );\n"
-			"sampler2D sLut : register( s1 );\n"
-			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
-			"    float raw = tex2D( sIdx, uv ).r * 65535.0;\n"
-			"    float idx = clamp( floor( raw + 0.5 ), 0.0, 511.0 );\n"
-			"    float u   = (idx + 0.5) / 512.0;\n"
-			"    return tex2D( sLut, float2( u, 0.5 ) );\n"
-			"}\n";
+		if ( !m_pdx9dDevice || !m_pdx9dDevice->GetDirectX9Device() ) { return false; }
 
-		if ( !m_psIdxToColor.get() ) { m_psIdxToColor = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice ); }
+		if ( !m_psIdxToColor.get() || !m_psIdxToColor->Valid() ) {
+			m_psIdxToColor = std::make_unique<CDirectX9PixelShader>( m_pdx9dDevice );
 
-		if ( !m_psIdxToColor->Valid() ) {
-			std::vector<DWORD> vBc;
-			if ( !CompileHlslPs( kPsIdxToColorHlsl, "main", "ps_2_0", vBc ) ) { return false; }
-			if ( !m_psIdxToColor->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
+			static const char * kPsIdxToColorHlsl =
+				"sampler2D sIdx : register( s0 );\n"
+				"sampler2D sLut : register( s1 );\n"
+				"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
+				"    float raw = tex2D( sIdx, uv ).r * 65535.0;\n"
+				"    float idx = clamp( floor( raw + 0.5 ), 0.0, 511.0 );\n"
+				"    float u = (idx + 0.5) / 512.0;\n"
+				"    return tex2D( sLut, float2( u, 0.5 ) );\n"
+				"}\n";
+
+			std::vector<DWORD> vBcIdx;
+			if ( !CompileHlslPs( kPsIdxToColorHlsl, "main", "ps_2_0", vBcIdx ) ) {
+				return false;
+			}
+			if ( !m_psIdxToColor->CreateFromByteCode( vBcIdx.data(), vBcIdx.size() ) ) { return false; }
 		}
+
 		return true;
 	}
 
 	/**
-	 * \brief Compiles an HLSL pixel shader using dynamically loaded D3DX.
+	 * \brief Compiles an HLSL shader using dynamically loaded d3dcompiler_47.dll.
 	 *
 	 * \param _pcszSource Null-terminated HLSL source code.
 	 * \param _pcszEntry Null-terminated entry-point function name (e.g., "main").
@@ -321,13 +328,7 @@ namespace lsn {
 
 		ID3DXBuffer * pbCode = nullptr;
 		ID3DXBuffer * pbErrs = nullptr;
-		HRESULT hRes = pfnCompile(
-			_pcszSource,
-			static_cast<UINT>(std::strlen( _pcszSource )),
-			nullptr, nullptr,
-			_pcszEntry, _pcszProfile,
-			0,
-			&pbCode, &pbErrs, nullptr );
+		HRESULT hRes = pfnCompile( _pcszSource, static_cast<UINT>(std::strlen( _pcszSource )), nullptr, nullptr, _pcszEntry, _pcszProfile, 0, &pbCode, &pbErrs, nullptr );
 		if ( FAILED( hRes ) || !pbCode ) {
 			if ( pbErrs ) { pbErrs->Release(); }
 			return false;
@@ -344,13 +345,16 @@ namespace lsn {
 	}
 
 	/**
-	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
+	 * \brief Releases size-dependent resources.
 	 */
 	void CDx9PaletteFilter::ReleaseSizeDependents() {
 		if LSN_LIKELY( m_tIndex.get() ) { m_tIndex->Reset(); }
 		if LSN_LIKELY( m_rtInitial.get() ) { m_rtInitial->Reset(); }
+		if LSN_LIKELY( m_rtGamma.get() ) { m_rtGamma->Reset(); }
+		if LSN_LIKELY( m_rtPhosphorTarget.get() ) { m_rtPhosphorTarget->Reset(); }
 		if LSN_LIKELY( m_rtResampled.get() ) { m_rtResampled->Reset(); }
-		if LSN_LIKELY( m_vbQuad.get() ) { m_vbQuad->Reset(); }
+		
+		if LSN_LIKELY( m_vbPass1.get() ) { m_vbPass1->Reset(); }
 		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
@@ -368,57 +372,92 @@ namespace lsn {
 	 * \return Returns true if the draw succeeded; false on failure.
 	 */
 	bool CDx9PaletteFilter::Render( const lsw::LSW_RECT &_rOutput ) {
-		if LSN_UNLIKELY( !m_bValidState || !m_tIndex.get() || !m_tLut.get() || !m_rtInitial.get() || !m_psIdxToColor.get() || !m_vbQuad.get() ) { return false; }
-		if LSN_UNLIKELY( !m_pdx9dDevice || !m_tIndex->Valid() || !m_tLut->Valid() || !m_rtInitial->Valid() || !m_psIdxToColor->Valid() || !m_vbQuad->Valid() ) { return false; }
-		
+		if LSN_UNLIKELY( !m_bValidState || !m_tIndex->Valid() || !m_tLut->Valid() || !m_rtInitial->Valid() || !m_psIdxToColor->Valid() ) { return false; }
 		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
 
-		// ----- Pass 1: Indices + LUT → Initial FP RT (1:1) -----
-		{
-			IDirect3DSurface9 * pd3ds9Surf = m_rtInitial->GetSurface();
-			if LSN_UNLIKELY( !pd3ds9Surf ) { return false; }
-			pd3d9dDevice->SetRenderTarget( 0, pd3ds9Surf );
-			pd3ds9Surf->Release();
-			pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+		// --- PASS 1: Index to Color ---
+		IDirect3DSurface9 * pd3ds9SurfDst = m_rtInitial->GetSurface();
+		if LSN_UNLIKELY( !pd3ds9SurfDst ) { return false; }
+		pd3d9dDevice->SetRenderTarget( 0, pd3ds9SurfDst );
+		pd3ds9SurfDst->Release();
 
-			D3DVIEWPORT9 vpViewport{};
-			vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = m_ui32SrcW; vpViewport.Height = m_ui32SrcH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
-			pd3d9dDevice->SetViewport( &vpViewport );
+		D3DVIEWPORT9 vpViewport{};
+		vpViewport.X = 0; vpViewport.Y = 0; vpViewport.Width = m_ui32SrcW; vpViewport.Height = m_ui32SrcH; vpViewport.MinZ = 0.0f; vpViewport.MaxZ = 1.0f;
+		pd3d9dDevice->SetViewport( &vpViewport );
 
-			pd3d9dDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
-			pd3d9dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-			pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+		pd3d9dDevice->SetRenderState( D3DRS_SRGBWRITEENABLE, FALSE );
+		pd3d9dDevice->SetRenderState( D3DRS_ZENABLE, FALSE );
+		pd3d9dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+		pd3d9dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
 
-			pd3d9dDevice->SetFVF( LSN_FVF_XYZRHWTEX1 );
-			float fU0, fV0, fU1, fV1;
-			HalfTexelUv( m_ui32SrcW, m_ui32SrcH, fU0, fV0, fU1, fV1 );
-			if LSN_UNLIKELY( !FillQuad( (*m_vbQuad), 0.0f, 0.0f, float( m_ui32SrcW ), float( m_ui32SrcH ), fU0, fV0, fU1, fV1 ) ) { return false; }
-			
-			pd3d9dDevice->SetStreamSource( 0, m_vbQuad->Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
+		pd3d9dDevice->SetTexture( 0, m_tIndex->Get() );
+		pd3d9dDevice->SetTexture( 1, m_tLut->Get() );
 
-			pd3d9dDevice->SetTexture( 0, m_tIndex->Get() );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-			pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+		pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
+		pd3d9dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
+		pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+		pd3d9dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 
-			pd3d9dDevice->SetTexture( 1, m_tLut->Get() );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-			pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+		pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MINFILTER, D3DTEXF_POINT );
+		pd3d9dDevice->SetSamplerState( 1, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
+		pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+		pd3d9dDevice->SetSamplerState( 1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
 
-			pd3d9dDevice->SetPixelShader( m_psIdxToColor->Get() );
-			pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
+		pd3d9dDevice->SetPixelShader( m_psIdxToColor->Get() );
+		pd3d9dDevice->SetFVF( D3DFVF_XYZRHW | D3DFVF_TEX1 );
+
+#pragma pack( push, 1 )
+		struct LSN_XYZRHWTEX1 {
+			float fX, fY, fZ, fRhw;
+			float fU, fV;
+		};
+#pragma pack(pop)
+
+		LSN_XYZRHWTEX1 * pvP = nullptr;
+		if ( SUCCEEDED( m_vbPass1->Lock( 0, 0, reinterpret_cast<void **>(&pvP), D3DLOCK_DISCARD ) ) ) {
+			constexpr float fOff = 0.5f;
+			float fL = 0.0f - fOff;
+			float fT = 0.0f - fOff;
+			float fR = static_cast<float>(m_ui32SrcW) - fOff;
+			float fB = static_cast<float>(m_ui32SrcH) - fOff;
+
+			pvP[0] = { fL, fT, 0.0f, 1.0f, 0.0f, 0.0f };
+			pvP[1] = { fR, fT, 0.0f, 1.0f, 1.0f, 0.0f };
+			pvP[2] = { fL, fB, 0.0f, 1.0f, 0.0f, 1.0f };
+			pvP[3] = { fR, fB, 0.0f, 1.0f, 1.0f, 1.0f };
+			m_vbPass1->Unlock();
 		}
 
-		// ----- Pass 2: Nearest-neighbor upscale via scaler class -----
-		if ( !m_tpsScaler.Render( m_pdx9dDevice, m_rtInitial->Texture()->Get(), m_ui32SrcW, m_ui32SrcH, GetActualHorSharpness(), GetActualVertSharpness(), CNesPalette::LSN_G_NONE, m_bUse16BitInitialTarget, true ) ) {
+		pd3d9dDevice->SetStreamSource( 0, m_vbPass1->Get(), 0, sizeof( LSN_XYZRHWTEX1 ) );
+		pd3d9dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
+
+
+		IDirect3DTexture9 * ptScaleSource = m_rtInitial->Texture()->Get();
+		uint32_t ui32NativeW = m_ui32SrcW;
+		uint32_t ui32NativeH = m_ui32SrcH;
+
+		// --- PASS 2: GAMMA ---
+		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
+		if ( effGamma != CNesPalette::LSN_G_NONE ) {
+			if ( m_tgGamma.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtGamma.get(), effGamma ) ) {
+				ptScaleSource = m_rtGamma->Texture()->Get();
+			}
+		}
+
+		// --- PASS 3: PHOSPHOR DECAY ---
+		if ( m_bEnablePhosphorDecay ) {
+			if ( m_pPhosphor.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtPhosphorTarget.get(), m_fInitPhosphorDecay, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue ) ) {
+				ptScaleSource = m_rtPhosphorTarget->Texture()->Get();
+			}
+		}
+
+		// --- PASS 4: PIXEL SCALER ---
+		if ( !m_tpsScaler.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, GetActualHorSharpness(), GetActualVertSharpness(), m_bUse16BitInitialTarget, true ) ) {
 			return false;
 		}
 
-		// ----- Pass 3 & 4: Resample (Optional) & Composite to backbuffer inside _rOutput -----
+		// --- PASS 5: COMPOSITE (RESAMPLER/RENDERER) ---
 		IDirect3DSurface9 * psBackBuffer = nullptr;
 		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
 			

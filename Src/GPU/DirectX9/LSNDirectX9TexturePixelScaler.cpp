@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying integer nearest-neighbor scaling and gamma to a texture.
+ * Description: A generic helper class for applying integer nearest-neighbor scaling to a texture.
  */
 
 #include "LSNDirectX9TexturePixelScaler.h"
@@ -40,7 +40,6 @@ namespace lsn {
 		m_rtTarget.reset();
 		m_vbQuad.reset();
 		m_psShader.reset();
-		m_gShaderGamma = CNesPalette::LSN_G_NONE;
 		m_ui32TargetW = 0;
 		m_ui32TargetH = 0;
 		m_fFormat = D3DFMT_UNKNOWN;
@@ -55,13 +54,12 @@ namespace lsn {
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _ui32ScaleX The horizontal scaling factor.
 	 * \param _ui32ScaleY The vertical scaling factor.
-	 * \param _gGamma The gamma curve to apply.
 	 * \param _bUse16BitTarget If true, a 16-bit target is used, otherwise a 32-bit target is used.
 	 * \param _bFlipY If true, the rendered image is flipped vertically.
 	 * \return Returns true on success.
 	 **/
 	bool CDirectX9TexturePixelScaler::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32ScaleX, uint32_t _ui32ScaleY,
-		CNesPalette::LSN_GAMMA _gGamma, bool _bUse16BitTarget, bool _bFlipY ) {
+		bool _bUse16BitTarget, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_ui32SrcW || !_ui32SrcH || !_ui32ScaleX || !_ui32ScaleY ) { return false; }
 
 		const uint32_t ui32DstW = _ui32SrcW * _ui32ScaleX;
@@ -69,7 +67,7 @@ namespace lsn {
 		const D3DFORMAT fFormat = _bUse16BitTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
 
 		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice, ui32DstW, ui32DstH, fFormat ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice, _gGamma ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice ) ) { return false; }
 
 		IDirect3DDevice9 * pd3d9dDevice = _pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
@@ -155,53 +153,27 @@ namespace lsn {
 	}
 
 	/**
-	 * Ensures the pixel shader is compiled with the correct gamma function.
+	 * Ensures the pixel shader is compiled.
 	 * 
 	 * \param _pdx9dDevice The Direct3D 9 device.
-	 * \param _gGamma The gamma curve to apply.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX9TexturePixelScaler::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma ) {
-		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gShaderGamma == _gGamma ) { return true; }
+	bool CDirectX9TexturePixelScaler::EnsureShader( CDirectX9Device * _pdx9dDevice ) {
+		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() ) { return true; }
 
 		m_psShader = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
-		m_gShaderGamma = _gGamma;
 
-		std::string sGammaCall = "c.rgb";
-		switch ( _gGamma ) {
-			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
-			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
-			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.22222222222222232090871330001391470432281494140625 )"; break; }
-			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, 2.35 )"; break; }
-			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, 2.4 )"; break; }
-			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, 2.5 )"; break; }
-			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, 2.7 )"; break; }
-			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
-			default: break;
-		}
-
-		std::string sShaderSrc =
-			"#include \"LSNGamma.hlsl\"\n"
+		static const char * kShaderSrc =
 			"sampler2D sSrc : register( s0 );\n"
-			"float4 c0 : register( c0 );\n" // x=srcW, y=srcH, z=1/srcW, w=1/srcH
-			"float4 c1 : register( c1 );\n" // x=0.5
+			"float4 c0 : register( c0 );\n"
+			"float4 c1 : register( c1 );\n"
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"    float2 uvy = (floor( uv * c0.xy ) + c1.xx ) * c0.zw;\n"
-			"    float4 c = tex2D( sSrc, uvy );\n"
-			"    c.rgb = " + sGammaCall + ";\n"
-			"    return c;\n"
+			"    return tex2D( sSrc, uvy );\n"
 			"}\n";
 
-		CDirectX9DiskInclude diInclude( CDirectX9DiskInclude::GetExeShadersDir() );
 		std::vector<DWORD> vBc;
-		if ( !CompileHlslPs( sShaderSrc.c_str(), "main", "ps_2_0", vBc, &diInclude ) ) { return false; }
+		if ( !CompileHlslPs( kShaderSrc, "main", "ps_2_0", vBc, nullptr ) ) { return false; }
 		if ( !m_psShader->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
 
 		return true;

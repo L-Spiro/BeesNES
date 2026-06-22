@@ -15,7 +15,7 @@
 #include <memory>
 #include <numbers>
 
-#define LSN_FINAL_BRIGHT							m_fBrightnessSetting// * (1.0f - (m_fPhosphorDecayRate /*m_fPhosphorDecayRate * (m_fInitPhosphorDecay * 2.0f)*/))
+#define LSN_FINAL_BRIGHT							m_fBrightnessSetting// * (1.0f - (m_fPhosphorDecayRateGreen /*m_fPhosphorDecayRateGreen * (m_fInitPhosphorDecay * 2.0f)*/))
 
 namespace lsn {
 

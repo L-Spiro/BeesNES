@@ -18,10 +18,13 @@
 #include "../GPU/DirectX12/LSNDirectX12PipelineState.h"
 #include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
 #include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
+#include "../GPU/DirectX12/LSNDirectX12Phosphor.h"
 #include "../GPU/DirectX12/LSNDirectX12Resampler.h"
+#include "../GPU/DirectX12/LSNDirectX12TextureGamma.h"
 #include "../GPU/DirectX12/LSNDirectX12TexturePixelScaler.h"
 #include "../GPU/DirectX12/LSNDirectX12TextureRenderer.h"
 #include "LSNDx12FilterBase.h"
+#include "../Utilities/LSNUtilities.h"
 
 #include <Helpers/LSWHelpers.h>
 #include <d3dcompiler.h>
@@ -127,6 +130,77 @@ namespace lsn {
 		inline bool											GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
 
 		/**
+		 * \brief Sets the gamma curve.
+		 * 
+		 * \param _gGamma The gamma curve to apply.
+		 */
+		inline void											SetGamma( CNesPalette::LSN_GAMMA _gGamma ) { m_gGamma = _gGamma; }
+
+		/**
+		 * \brief Gets the current gamma setting.
+		 * 
+		 * \return Returns the gamma setting.
+		 */
+		inline CNesPalette::LSN_GAMMA						GetGamma() const { return m_gGamma; }
+
+		/**
+		 * \brief Gets the effective gamma curve.
+		 * 
+		 * \return Returns the resolved gamma curve (handling LSN_G_AUTO).
+		 */
+		inline CNesPalette::LSN_GAMMA						GetEffectiveGamma() const { return m_gGamma == CNesPalette::LSN_G_AUTO ? CNesPalette::LSN_G_sRGB : m_gGamma; }
+
+		/**
+		 * \brief Sets whether phosphor decay is enabled.
+		 * 
+		 * \param _bEnable If true, phosphor decay is applied.
+		 */
+		inline void											SetPhosphorDecayEnable( bool _bEnable ) { m_bEnablePhosphorDecay = _bEnable; }
+
+		/**
+		 * \brief Gets whether phosphor decay is enabled.
+		 * 
+		 * \return Returns true if phosphor decay is enabled.
+		 */
+		inline bool											GetPhosphorDecayEnable() const { return m_bEnablePhosphorDecay; }
+
+		/**
+		 * Sets the phospher decay time.
+		 * 
+		 * \param _fTime The time it takes the phosphors to decay to 0.001.
+		 **/
+		void												SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
+			m_fPhosphorDecayTime = _fTime;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
+		 * Sets the FPS of the hardware.
+		 * 
+		 * \param _fFps The FPS to set.
+		 **/
+		void												SetFps( float _fFps = 60.098812103271484375f ) {
+			m_fFps = _fFps;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
+		 * Sets the initial phosphor decay level.
+		 * 
+		 * \param _fLevel The strength of the phosphor decay.
+		 **/
+		void												SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
+			m_fInitPhosphorDecay = _fLevel;
+			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
+			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
+			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
+		}
+
+		/**
 		 * Gets the convolution sampler to use for resampling.
 		 * 
 		 * \param _ui32Width The target width.
@@ -162,11 +236,11 @@ namespace lsn {
 		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.
 		 *
-		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
-		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
-		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
-		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
-		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
+		 * \param _pui8Input The buffer to be filtered.
+		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width.
+		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height.
+		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth.
+		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes.
 		 * \param _ui64PpuFrame The PPU frame associated with the input data.
 		 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
 		 * \param _i32DispLeft The display area left.
@@ -189,11 +263,15 @@ namespace lsn {
 		/** The DirectX 12 device wrapper (non-owning). */
 		CDirectX12Device *									m_pdx12dDevice = nullptr;
 		
+		/** Generically applies gamma to a native-sized texture. */
+		CDirectX12TextureGamma								m_tgGamma;
+		/** Hardware wrapper for a phosphor-decay post-processing effect. */
+		CDirectX12Phosphor									m_pPhosphor;
 		/** Generically scales a texture via nearest-neighbor. */
 		CDirectX12TexturePixelScaler						m_tpsScaler;
 		/** 2-Pass high-quality texture resampler. */
 		CDirectX12Resampler									m_rsResampler;
-		/** Generically renders a texture to the backbuffer using bilinear sampling and gamma. */
+		/** Generically renders a texture to the backbuffer using bilinear sampling. */
 		CDirectX12TextureRenderer							m_trRenderer;
 
 		/** Index texture (R16_UNORM, DEFAULT heap). */
@@ -202,6 +280,10 @@ namespace lsn {
 		std::unique_ptr<CDirectX12Texture>					m_tLut;
 		/** Initial floating-point render target. */
 		std::unique_ptr<CDirectX12Resource>					m_rtInitial;
+		/** Gamma pass render target. */
+		std::unique_ptr<CDirectX12Resource>					m_rtGamma;
+		/** Phosphor decay target. */
+		std::unique_ptr<CDirectX12Resource>					m_rtPhosphorTarget;
 		/** Intermediate resample floating-point render target for passing to the screen composite. */
 		std::unique_ptr<CDirectX12Resource>					m_rtResampled;
 		
@@ -223,6 +305,8 @@ namespace lsn {
 
 		// Descriptor Heaps.
 		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhSrvHeap;
+		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhGammaRtv;
+		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhPhosphorRtv;
 		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhRtvHeap;
 		std::unique_ptr<CDirectX12DescriptorHeap>			m_dhSamplerHeap;
 		UINT												m_uiSrvDescriptorSize = 0;
@@ -234,6 +318,18 @@ namespace lsn {
 		/** The output buffer. */
 		std::vector<uint8_t>								m_vOutputBuffer;
 		
+		/** Current selected gamma curve. */
+		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_NONE;
+
+		/** Phosphor variables. */
+		float												m_fFps = 60.098812103271484375f;					/**< The FPS. */
+		float												m_fInitPhosphorDecay = 0.25f;						/**< Max phosphor level. */
+		float												m_fPhosphorDecayRateRed = 0.401767850f;				/**< Red phosphor decay rate. */
+		float												m_fPhosphorDecayRateGreen = 0.663420439f;			/**< Green phosphor decay rate. */
+		float												m_fPhosphorDecayRateBlue = 0.193711475f;			/**< Blue phosphor decay rate. */
+		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
+		bool												m_bEnablePhosphorDecay = true;						/**< Enable phosphor decay? */
+
 		uint32_t											m_ui32SrcW = 0;
 		uint32_t											m_ui32SrcH = 0;
 		uint32_t											m_ui32RsrcW = 0;

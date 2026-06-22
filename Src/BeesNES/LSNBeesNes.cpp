@@ -112,7 +112,7 @@ namespace lsn {
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		//m_p9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 
 		m_p9plsfDx9LSpiroPal.SetWidthScale( 10 );
@@ -124,7 +124,7 @@ namespace lsn {
 		m_p9plsfDx9LSpiroDendy.SetKernelSize( 44 );
 		m_p9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p9plsfDx9LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
+		//m_p9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
 		m_p9plsfDx9LSpiroPalM.SetWidthScale( 8 );
 		m_p9plsfDx9LSpiroPalM.SetKernelSize( 46 );
@@ -136,7 +136,7 @@ namespace lsn {
 		m_p9plsfDx9LSpiroPalN.SetKernelSize( 48 );
 		m_p9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
 		m_p9plsfDx9LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
+		//m_p9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX9
 
 #ifdef LSN_DX12
@@ -159,7 +159,7 @@ namespace lsn {
 		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		//m_p12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		
 		m_p12plsfDx12LSpiroPal.SetWidthScale( 10 );
@@ -171,7 +171,7 @@ namespace lsn {
 		m_p12plsfDx12LSpiroDendy.SetKernelSize( 44 );
 		m_p12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_p12plsfDx12LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
+		//m_p12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
 		m_p12plsfDx12LSpiroPalM.SetWidthScale( 8 );
 		m_p12plsfDx12LSpiroPalM.SetKernelSize( 46 );
@@ -183,7 +183,7 @@ namespace lsn {
 		m_p12plsfDx12LSpiroPalN.SetKernelSize( 48 );
 		m_p12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
 		m_p12plsfDx12LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		m_p12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
+		//m_p12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX12
 
 		// FPS settings.
