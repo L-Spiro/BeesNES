@@ -422,6 +422,8 @@ namespace lsn {
 
 
 		// == Members.
+		/** The DirectX 9 device wrapper (non-owning). */
+		CDirectX9Device *									m_pdx9dDevice = nullptr;
 		/** The global Direct3D 9 state. */
 		static LSN_DX9_GLOBAL_STATE							s_dgsState;
 

@@ -73,6 +73,11 @@ namespace lsn {
 		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
 
+		if ( m_pdx9dDevice ) {
+			s_dgsState.DestroyDx9();
+			m_pdx9dDevice = nullptr;
+		}
+
 		CGpuFilterBase::DeActivate();
 	}
 

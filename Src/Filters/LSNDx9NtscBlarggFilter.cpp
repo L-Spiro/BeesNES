@@ -34,6 +34,8 @@ namespace lsn {
 		nsTmp.hue = 7.89 / 180.0;
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+		SetPhosphorDecayLevel( 0.15f );
+		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx9NtscBlarggFilter::~CDx9NtscBlarggFilter() {
 	}
@@ -150,10 +152,12 @@ namespace lsn {
 	 */
 	bool CDx9NtscBlarggFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
-		if ( !Device().GetDirectX9Device() ) {
+		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
+			m_pdx9dDevice = &s_dgsState.dx9Device;
 			m_tuUploader.Reset();
 		}
+		if ( !m_pdx9dDevice ) { return false; }
 
 		m_bValidState = true;
 		return true;

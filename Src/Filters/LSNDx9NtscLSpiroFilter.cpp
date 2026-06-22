@@ -186,10 +186,12 @@ namespace lsn {
 	 */
 	bool CDx9NtscLSpiroFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
-		if ( !Device().GetDirectX9Device() ) {
+		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
+			m_pdx9dDevice = &s_dgsState.dx9Device;
 			m_tuUploader.Reset();
 		}
+		if ( !m_pdx9dDevice ) { return false; }
 
 		m_bValidState = true;
 		return true;
