@@ -22,8 +22,9 @@ namespace lsn {
 	// == Members.
 	CDx9PalLSpiroFilter::CDx9PalLSpiroFilter() {
 		SetMonitorGammaApply( false );
-		SetPhosphorDecayLevel( 0.15f );
-		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
+		CDx9FilterBase::SetPhosphorDecayLevel( 0.15f );
+		CDx9FilterBase::SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
+		m_gGamma = CNesPalette::LSN_G_CRT1;
 	}
 	CDx9PalLSpiroFilter::~CDx9PalLSpiroFilter() {
 		StopThreads();
@@ -45,19 +46,10 @@ namespace lsn {
 
 		m_ui32OutputWidth = _ui16Width;
 		m_ui32OutputHeight = _ui16Height;
-		m_ui32FinalStride = RowStride( m_ui32OutputWidth, OutputBits() );
 		AllocYiqBuffers( _ui16Width, _ui16Height, m_ui16WidthScale );
 
 		m_tuUploader.Reset();
-		m_tgGamma.Reset();
-		m_pPhosphor.Reset();
-		m_tpsScaler.Reset();
-		m_rsResampler.Reset();
-		m_trRenderer.Reset();
-		m_rtGamma.reset();
-		m_rtPhosphorTarget.reset();
-		m_rtResampled.reset();
-		ReleaseSizeDependents();
+		ReleaseBaseSizeDependents();
 		
 		auto pofOut = CParent::Init( _stBuffers, _ui16Width, _ui16Height );
 		m_stStride = size_t( m_ui32OutputWidth * sizeof( uint16_t ) );
@@ -128,28 +120,15 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CDx9PalLSpiroFilter::DeActivate() {
-		CParent::DeActivate();
-
 		m_tuUploader.Reset();
-		m_tgGamma.Reset();
-		m_pPhosphor.Reset();
-		m_tpsScaler.Reset();
-		m_rsResampler.Reset();
-		m_trRenderer.Reset();
-		m_rtGamma.reset();
-		m_rtPhosphorTarget.reset();
-		m_rtResampled.reset();
-
-		if ( m_pdx9dDevice ) {
-			s_dgsState.DestroyDx9();
-			m_pdx9dDevice = nullptr;
-		}
+		CParent::DeActivate();
 	}
 
 	/**
 	 * Informs the filter of a window resize.
 	 **/
 	void CDx9PalLSpiroFilter::FrameResize() {
+		ReleaseBaseSizeDependents();
 		s_dgsState.OnSizeDx9();
 		EnsureSizeAndResources();
 	}
@@ -210,50 +189,13 @@ namespace lsn {
 		m_bValidState = false;
 		if ( !m_pdx9dDevice ) {
 			if ( !s_dgsState.CreateDx9() ) { return false; }
-			m_pdx9dDevice = &s_dgsState.dx9Device;
+			m_pdx9dDevice = &Device();
 			m_tuUploader.Reset();
-			m_tgGamma.Reset();
-			m_pPhosphor.Reset();
-			m_tpsScaler.Reset();
-			m_rsResampler.Reset();
-			m_trRenderer.Reset();
-			m_rtGamma.reset();
-			m_rtPhosphorTarget.reset();
-			m_rtResampled.reset();
 		}
-
-		if ( m_ui32RsrcW == m_ui32SrcW && m_ui32RsrcH == m_ui32SrcH && m_rtGamma.get() && m_rtGamma->Valid() && m_rtPhosphorTarget.get() && m_rtPhosphorTarget->Valid() ) {
-			m_bValidState = true; 
-			return true;
-		}
-
-		ReleaseSizeDependents();
-
-		uint32_t ui32NativeW = m_ui16ScaledWidth;
-		uint32_t ui32NativeH = m_ui32SrcH;
-
-		D3DFORMAT fmtRt = m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F;
-		
-		m_rtGamma = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
-		if ( !m_rtGamma->CreateColorTarget( ui32NativeW, ui32NativeH, fmtRt ) ) { return false; }
-
-		m_rtPhosphorTarget = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice );
-		if ( !m_rtPhosphorTarget->CreateColorTarget( ui32NativeW, ui32NativeH, fmtRt ) ) { return false; }
+		if ( !m_pdx9dDevice ) { return false; }
 
 		m_bValidState = true;
-		m_ui32RsrcW = m_ui32SrcW;
-		m_ui32RsrcH = m_ui32SrcH;
 		return true;
-	}
-
-	/**
-	 * \brief Releases size-dependent resources (index texture, FP RTs, quad VB).
-	 */
-	void CDx9PalLSpiroFilter::ReleaseSizeDependents() {
-		if LSN_LIKELY( m_rtGamma.get() ) { m_rtGamma->Reset(); }
-		if LSN_LIKELY( m_rtPhosphorTarget.get() ) { m_rtPhosphorTarget->Reset(); }
-		if LSN_LIKELY( m_rtResampled.get() ) { m_rtResampled->Reset(); }
-		m_ui32RsrcW = m_ui32RsrcH = 0;
 	}
 
 	/**
@@ -264,67 +206,7 @@ namespace lsn {
 	 */
 	bool CDx9PalLSpiroFilter::Render( const lsw::LSW_RECT &_rOutput ) {
 		if LSN_UNLIKELY( !m_bValidState || !m_tuUploader.GetTexture() || !m_tuUploader.GetTexture()->Valid() ) { return false; }
-		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
-		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
-
-		uint32_t ui32NativeW = m_ui16ScaledWidth;
-		uint32_t ui32NativeH = m_ui32SrcH;
-		IDirect3DTexture9 * ptScaleSource = m_tuUploader.GetTexture()->Get();
-
-		// --- PASS 1: GAMMA ---
-		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
-		if ( effGamma != CNesPalette::LSN_G_NONE ) {
-			if ( m_tgGamma.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtGamma.get(), effGamma ) ) {
-				ptScaleSource = m_rtGamma->Texture()->Get();
-			}
-		}
-
-		// --- PASS 2: PHOSPHOR DECAY ---
-		if ( m_bEnablePhosphorDecay ) {
-			if ( m_pPhosphor.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, m_rtPhosphorTarget.get(), m_fInitPhosphorDecay, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue ) ) {
-				ptScaleSource = m_rtPhosphorTarget->Texture()->Get();
-			}
-		}
-
-		// --- PASS 3: PIXEL SCALER ---
-		if ( !m_tpsScaler.Render( m_pdx9dDevice, ptScaleSource, ui32NativeW, ui32NativeH, GetActualHorSharpness(), GetActualVertSharpness(), m_bUse16BitInitialTarget ) ) {
-			return false;
-		}
-
-		// --- PASS 4: COMPOSITE (RESAMPLER/RENDERER) ---
-		IDirect3DSurface9 * psBackBuffer = nullptr;
-		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
-			
-			if ( m_bUseHighQualityResampler ) {
-				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
-				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
-
-				m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
-				
-				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Valid() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
-					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }
-					else if LSN_UNLIKELY( !m_rtResampled.get() ) { m_rtResampled = std::make_unique<CDirectX9RenderTarget>( m_pdx9dDevice ); }
-					
-					m_rtResampled->CreateColorTarget( ui32DstW, ui32DstH, m_bUse16BitInitialTarget ? D3DFMT_A16B16G16R16F : D3DFMT_A32B32G32R32F );
-					m_ui32ResampledTargetW = ui32DstW;
-					m_ui32ResampledTargetH = ui32DstH;
-				}
-
-				if ( m_rtResampled->Valid() && m_rsResampler.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), m_tpsScaler.GetWidth(), m_tpsScaler.GetHeight(), m_rtResampled.get(), ui32DstW, ui32DstH ) ) {
-					m_trRenderer.Render( m_pdx9dDevice, m_rtResampled->Texture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
-				}
-				else {
-					m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
-				}
-			}
-			else {
-				m_trRenderer.Render( m_pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
-			}
-			
-			psBackBuffer->Release();
-		}
-
-		return true;
+		return RenderBase( m_pdx9dDevice, m_tuUploader.GetTexture()->Get(), m_ui16ScaledWidth, m_ui32SrcH, _rOutput, false );
 	}
 
 	/**

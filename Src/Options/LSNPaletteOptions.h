@@ -26,7 +26,7 @@ namespace lsn {
 	struct LSN_PALETTE_OPTIONS {
 		// == Members.
 		std::wstring							wsPath;																												/**< Path to the palette. */
-		CNesPalette::LSN_GAMMA					gCrtGamma = CNesPalette::LSN_G_CRT1;																				/**< CRT gamma #1. */
+		CNesPalette::LSN_GAMMA					gCrtGamma = CNesPalette::LSN_G_CRT2;																				/**< CRT gamma #2. */
 		CNesPalette::LSN_GAMMA					gMonitorGamma = CNesPalette::LSN_G_sRGB;																			/**< sRGB gamma. */
 		bool									bUseGlobal = true;																									/**< Use global settings rather than per-game settings. */
 	};

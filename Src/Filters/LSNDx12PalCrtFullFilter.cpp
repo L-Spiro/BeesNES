@@ -116,7 +116,7 @@ namespace lsn {
 	 * \param _ui32DispHeight The display area height
 	 * \return Returns a pointer to the filtered output buffer.
 	 */
-	uint8_t * CDx12PalCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+	uint8_t * CDx12PalCrtFullFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		if LSN_UNLIKELY( !m_pdx12dDevice ) { return m_vBasicRenderTarget[0].data(); }
 		if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
@@ -168,8 +168,6 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CDx12PalCrtFullFilter::DeActivate() {
-		CParent::DeActivate();
-
 		m_tuUploader.Reset();
 		m_tgGamma.Reset();
 		m_pPhosphor.Reset();
@@ -192,6 +190,7 @@ namespace lsn {
 			s_dgsState.DestroyDx12();
 			m_pdx12dDevice = nullptr;
 		}
+		CParent::DeActivate();
 	}
 
 	/**

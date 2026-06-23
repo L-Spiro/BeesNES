@@ -119,9 +119,8 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CDx9NtscLSpiroFilter::DeActivate() {
-		CParent::DeActivate();
-
 		m_tuUploader.Reset();
+		CParent::DeActivate();
 	}
 
 	/**

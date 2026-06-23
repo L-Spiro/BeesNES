@@ -74,7 +74,6 @@ namespace lsn {
 		m_psIdxToColor.reset();
 
 		m_bUpdatePalette = true;
-
 		
 		CParent::DeActivate();
 	}

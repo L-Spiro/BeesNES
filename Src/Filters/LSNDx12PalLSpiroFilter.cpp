@@ -130,8 +130,6 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CDx12PalLSpiroFilter::DeActivate() {
-		CParent::DeActivate();
-
 		m_tuUploader.Reset();
 		m_tgGamma.Reset();
 		m_pPhosphor.Reset();
@@ -153,6 +151,7 @@ namespace lsn {
 			s_dgsState.DestroyDx12();
 			m_pdx12dDevice = nullptr;
 		}
+		CParent::DeActivate();
 	}
 
 	/**

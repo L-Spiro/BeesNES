@@ -376,7 +376,7 @@ namespace lsn {
 		std::condition_variable								m_cvGo;												/**< Signal to tell worker threads to start a job. */
 		std::condition_variable								m_cvDone;											/**< Signal to tell the main thread workers have finished. */
 		std::atomic<uint32_t>								m_ui32WorkersRemaining = 0;							/**< Number of workers still running the current job. */
-		size_t												m_stWorkerThreadCount = 2;							/**< Total number of worker threads. */
+		size_t												m_stWorkerThreadCount = 3;							/**< Total number of worker threads. */
 		bool												m_bThreadsStarted = false;							/**< True if the worker threads have been created. */
 		bool												m_bStopThreads = false;								/**< True if worker threads should exit. */
 		uint64_t											m_ui64JobId = 0;									/**< Incremented to start a new job. */

@@ -69,8 +69,6 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CDx12PaletteFilter::DeActivate() {
-		CParent::DeActivate();
-
 		m_tgGamma.Reset();
 		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
@@ -105,6 +103,7 @@ namespace lsn {
 			s_dgsState.DestroyDx12();
 			m_pdx12dDevice = nullptr;
 		}
+		CParent::DeActivate();
 	}
 
 	/**
