@@ -86,6 +86,9 @@ namespace lsn {
 
 			/** Filter helper value. */
 			float												fSupport = 1.0f;
+
+			/** The name of the filter. */
+			const wchar_t *										pwcName = L"";
 		} * LPLSN_FILTER, * const LPCLSN_FILTER;
 
 		/** Parameters for resampling. */

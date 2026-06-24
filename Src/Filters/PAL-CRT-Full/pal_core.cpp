@@ -31,7 +31,7 @@ static int
 sintabil8(int n)
 {
     int f, i, a, b;
-    
+
     /* looks scary but if you don't change T14_2PI
      * it won't cause out of bounds memory reads
      */
@@ -47,10 +47,10 @@ extern void
 pal_sincos14(int *s, int *c, int n)
 {
     int h;
-    
+
     n &= T14_MASK;
     h = n & ((T14_2PI >> 1) - 1);
-    
+
     if (h > ((T14_2PI >> 2) - 1)) {
         *c = -sintabil8(h - (T14_2PI >> 2));
         *s = sintabil8((T14_2PI >> 1) - h);
@@ -68,8 +68,8 @@ extern int
 pal_bpp4fmt(int format)
 {
     switch (format) {
-        case PAL_PIX_FORMAT_RGB: 
-        case PAL_PIX_FORMAT_BGR: 
+        case PAL_PIX_FORMAT_RGB:
+        case PAL_PIX_FORMAT_BGR:
             return 3;
         case PAL_PIX_FORMAT_ARGB:
         case PAL_PIX_FORMAT_RGBA:
@@ -87,9 +87,9 @@ pal_bpp4fmt(int format)
 
 /* convolution is much faster but the EQ looks softer, more authentic, and more analog */
 #define USE_CONVOLUTION 0
-#define USE_7_SAMPLE_KERNEL 1
-#define USE_6_SAMPLE_KERNEL 0
-#define USE_5_SAMPLE_KERNEL 0
+#define USE_7_SAMPLE 0
+#define USE_6_SAMPLE 0
+#define USE_5_SAMPLE 1
 
 #if USE_CONVOLUTION
 
@@ -103,9 +103,9 @@ static struct EQF {
 /* params unused to keep the function the same */
 static void
 init_eq(struct EQF *f,
-        int /*f_lo*/, int /*f_hi*/, int /*rate*/,
-        int /*g_lo*/, int /*g_mid*/, int /*g_hi*/)
-{    
+        int f_lo, int f_hi, int rate,
+        int g_lo, int g_mid, int g_hi)
+{
     memset(f, 0, sizeof(struct EQF));
 }
 
@@ -125,15 +125,15 @@ eqf(struct EQF *f, int s)
         h[i] = h[i - 1];
     }
     h[0] = s;
-#if USE_7_SAMPLE_KERNEL
+#if USE_7_SAMPLE
     /* index : 0 1 2 3 4 5 6 */
     /* weight: 1 4 7 8 7 4 1 */
     return (s + h[6] + ((h[1] + h[5]) * 4) + ((h[2] + h[4]) * 7) + (h[3] * 8)) >> 5;
-#elif USE_6_SAMPLE_KERNEL
+#elif USE_6_SAMPLE
     /* index : 0 1 2 3 4 5 */
     /* weight: 1 3 4 4 3 1 */
     return (s + h[5] + 3 * (h[1] + h[4]) + 4 * (h[2] + h[3])) >> 4;
-#elif USE_5_SAMPLE_KERNEL
+#elif USE_5_SAMPLE
     /* index : 0 1 2 3 4 */
     /* weight: 1 2 2 2 1 */
     return (s + h[4] + ((h[1] + h[2] + h[3]) << 1)) >> 3;
@@ -172,25 +172,25 @@ init_eq(struct EQF *f,
         int g_lo, int g_mid, int g_hi)
 {
     int sn, cs;
-    
+
     memset(f, 0, sizeof(struct EQF));
-        
+
     f->g[0] = g_lo;
     f->g[1] = g_mid;
     f->g[2] = g_hi;
-    
+
     pal_sincos14(&sn, &cs, T14_PI * f_lo / rate);
-    if constexpr (EQ_P >= 15) {
-        f->lf = 2 * (sn << (EQ_P - 15));
-    } else {
-        f->lf = 2 * (sn >> (15 - EQ_P));
-    }
+#if (EQ_P >= 15)
+    f->lf = 2 * (sn << (EQ_P - 15));
+#else
+    f->lf = 2 * (sn >> (15 - EQ_P));
+#endif
     pal_sincos14(&sn, &cs, T14_PI * f_hi / rate);
-    if constexpr (EQ_P >= 15) {
-        f->hf = 2 * (sn << (EQ_P - 15));
-    } else {
-        f->hf = 2 * (sn >> (15 - EQ_P));
-    }
+#if (EQ_P >= 15)
+    f->hf = 2 * (sn << (EQ_P - 15));
+#else
+    f->hf = 2 * (sn >> (15 - EQ_P));
+#endif
 }
 
 static void
@@ -203,17 +203,17 @@ reset_eq(struct EQF *f)
 
 static int
 eqf(struct EQF *f, int s)
-{    
+{
     int i, r[3];
 
     f->fL[0] += (f->lf * (s - f->fL[0]) + EQ_R) >> EQ_P;
     f->fH[0] += (f->hf * (s - f->fH[0]) + EQ_R) >> EQ_P;
-    
+
     for (i = 1; i < 4; i++) {
         f->fL[i] += (f->lf * (f->fL[i - 1] - f->fL[i]) + EQ_R) >> EQ_P;
         f->fH[i] += (f->hf * (f->fH[i - 1] - f->fH[i]) + EQ_R) >> EQ_P;
     }
-    
+
     r[0] = f->fL[3];
     r[1] = f->fH[3] - f->fL[3];
     r[2] = f->h[HISTOLD] - f->fH[3];
@@ -221,12 +221,12 @@ eqf(struct EQF *f, int s)
     for (i = 0; i < 3; i++) {
         r[i] = (r[i] * f->g[i]) >> EQ_P;
     }
-  
+
     for (i = HISTOLD; i > 0; i--) {
         f->h[i] = f->h[i - 1];
     }
     f->h[HISTNEW] = s;
-    
+
     return (r[0] + r[1] + r[2]);
 }
 
@@ -238,7 +238,7 @@ eqf(struct EQF *f, int s)
 
 extern void
 pal_resize(struct PAL_CRT *v, int w, int h, int f, unsigned char *out)
-{    
+{
     v->outw = w;
     v->outh = h;
     v->out_format = f;
@@ -264,10 +264,10 @@ pal_init(struct PAL_CRT *v, int w, int h, int f, unsigned char *out)
     pal_resize(v, w, h, f, out);
     pal_reset(v);
     v->rn = 194;
-    
+
     /* kilohertz to line sample conversion */
 #define kHz2L(kHz) (PAL_HRES * (kHz * 100) / L_FREQ)
-    
+
     /* band gains are pre-scaled as 16-bit fixed point
      * if you change the EQ_P define, you'll need to update these gains too
      */
@@ -286,7 +286,7 @@ pal_demodulate(struct PAL_CRT *c, int noise)
     struct {
         int y, u, v;
     } outbuf[AV_LEN + 16], *out = outbuf + 8, *yuvA, *yuvB;
-    int i, j = 0, line = 0, rn;
+    int i, j, line, rn;
     signed char *sig;
     int s = 0;
     int field, ratio;
@@ -294,20 +294,39 @@ pal_demodulate(struct PAL_CRT *c, int noise)
     int huesn, huecs;
     int xnudge = -3, ynudge = 3;
     int bright = c->brightness - (BLACK_LEVEL + c->black_point);
-    constexpr int bpp = 4;
-	int pitch;
+    int bpp, pitch;
 #if PAL_DO_BLOOM
     int prev_e; /* filtered beam energy per scan line */
     int max_e; /* approx maximum energy in a scan line */
 #endif
-    
-    //bpp = pal_bpp4fmt(c->out_format);
-    /*if LSN_UNLIKELY(bpp == 0) {
+
+    bpp = pal_bpp4fmt(c->out_format);
+    if (bpp == 0) {
         return;
-    }*/
+    }
     pitch = c->outw * bpp;
-    
+
     rn = c->rn;
+#if !PAL_DO_VSYNC
+    /* determine field before we add noise,
+     * otherwise it's not reliably recoverable
+     */
+    for (i = -VSYNC_WINDOW; i < VSYNC_WINDOW; i++) {
+        line = POSMOD(c->vsync + i, PAL_VRES);
+        sig = c->analog + line * PAL_HRES;
+        s = 0;
+        for (j = 0; j < PAL_HRES; j++) {
+            s += sig[j];
+            if (s <= (125 * SYNC_LEVEL)) {
+                goto found_field;
+            }
+        }
+    }
+found_field:
+    /* if vsync signal was in second half of line, odd field */
+    field = (j > (PAL_HRES / 2));
+    c->vsync = -3;
+#endif
     for (i = 0; i < PAL_INPUT_SIZE; i++) {
         rn = (214019 * rn + 140327895);
 
@@ -315,12 +334,12 @@ pal_demodulate(struct PAL_CRT *c, int noise)
         s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
         if LSN_UNLIKELY(s >  127) { s =  127; }
         if LSN_UNLIKELY(s < -127) { s = -127; }
-        c->inp[i] = (signed char)s;
+        c->inp[i] = (char)s;
     }
     c->rn = rn;
-
+#if PAL_DO_VSYNC
     /* Look for vertical sync.
-     * 
+     *
      * This is done by integrating the signal and
      * seeing if it exceeds a threshold. The threshold of
      * the vertical sync pulse is much higher because the
@@ -343,13 +362,10 @@ pal_demodulate(struct PAL_CRT *c, int noise)
         }
     }
 vsync_found:
-#if PAL_DO_VSYNC
     c->vsync = line; /* vsync found (or gave up) at this line */
-#else
-    c->vsync = -3;
-#endif
     /* if vsync signal was in second half of line, odd field */
     field = (j > (PAL_HRES / 2));
+#endif
 
 #if PAL_DO_BLOOM
     max_e = (128 + (noise / 2)) * AV_LEN;
@@ -358,12 +374,12 @@ vsync_found:
     /* ratio of output height to active video lines in the signal */
     ratio = (c->outh << 16) / PAL_LINES;
     ratio = (ratio + 32768) >> 16;
-    
+
     field = (field * (ratio / 2));
 
     for (line = PAL_TOP; line < PAL_BOT; line++) {
-        unsigned pos, ln;
-        int scanL, scanR, dx;
+        unsigned pos, ln, scanR;
+        int scanL, dx;
         int L, R;
         unsigned char *cL, *cR;
         int wave[4];
@@ -375,7 +391,7 @@ vsync_found:
 #if PAL_DO_BLOOM
         int line_w;
 #endif
-  
+
         beg = (line - PAL_TOP + 0) * (c->outh + c->v_fac) / PAL_LINES + field;
         end = (line - PAL_TOP + 1) * (c->outh + c->v_fac) / PAL_LINES + field;
 
@@ -400,11 +416,11 @@ vsync_found:
 #else
         c->hsync = 0;
 #endif
-        
+
         xpos = POSMOD(AV_BEG + c->hsync + xnudge, PAL_HRES);
         ypos = POSMOD(line + c->vsync + ynudge, PAL_VRES);
         pos = xpos + ypos * PAL_HRES;
-        
+
         sig = c->inp + ln + c->hsync;
         odd = 0; /* PAL switch, odd line has SYNC in breezeway, even is blank */
         s = 0;
@@ -423,7 +439,7 @@ vsync_found:
             n = sig[i];                 /* mixed with the new sample */
             ccr[i & 3] = p + n;
         }
- 
+
         phasealign = POSMOD(c->hsync, 4);
 
         if (!odd) {
@@ -434,7 +450,7 @@ vsync_found:
         pal_sincos14(&huesn, &huecs, 90 * 8192 / 180 - OFFSET_25Hz(line));
         huesn >>= 7; /* make 8-bit */
         huecs >>= 7;
-        
+
         /* amplitude of carrier = saturation, phase difference = hue */
         dcu = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
         dcv = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
@@ -443,7 +459,7 @@ vsync_found:
         wave[1] = ((dcv * huecs + dcu * huesn) >> 8) * c->saturation;
         wave[2] = -wave[0];
         wave[3] = -wave[1];
-       
+
         sig = c->inp + pos;
 #if PAL_DO_BLOOM
         s = 0;
@@ -457,7 +473,7 @@ vsync_found:
         dx = (line_w << 12) / c->outw;
         scanL = ((AV_LEN / 2) - (line_w >> 1) + 8) << 12;
         scanR = (AV_LEN - 1) << 12;
-        
+
         L = (scanL >> 12);
         R = (scanR >> 12);
 #else
@@ -470,7 +486,7 @@ vsync_found:
         reset_eq(&eqY);
         reset_eq(&eqU);
         reset_eq(&eqV);
-        
+
         for (i = L; i < R; i++) {
             int dmU, dmV;
             int ou, ov;
@@ -512,7 +528,7 @@ vsync_found:
 			__m512i vMax255     = _mm512_set1_epi32(255);
 
 			// Precompute an index vector for dx increments:
-			// { 0, dx, 2*dx, c, 15*dx }.
+			// { 0, dx, 2*dx, ï¿½c, 15*dx }.
 			__m512i idxInc = _mm512_setr_epi32(
 				0,      dx,     2*dx,   3*dx,
 				4*dx,   5*dx,   6*dx,   7*dx,
@@ -522,7 +538,7 @@ vsync_found:
 
 			// Process 16 pixels per iteration.
 			for ( ; (int)pos < scanR && cL < cR; pos += dx * 16, cL += 16 * bpp ) {
-				// Compute positions for 16 pixels: pos, pos+dx, c, pos+15*dx.
+				// Compute positions for 16 pixels: pos, pos+dx, ï¿½c, pos+15*dx.
 				__m512i vPos = _mm512_add_epi32(_mm512_set1_epi32(pos), idxInc);
 
 				// Compute R = pos & 0xfff and L = 0xfff - R.
@@ -655,12 +671,12 @@ vsync_found:
 			__m256i vMax255     = _mm256_set1_epi32(255);
 
 			// Precompute an index vector for dx increments:
-			// { 0, dx, 2*dx, c, 7*dx }.
+			// { 0, dx, 2*dx, ï¿½c, 7*dx }.
 			__m256i idxInc = _mm256_setr_epi32(0, dx, 2*dx, 3*dx, 4*dx, 5*dx, 6*dx, 7*dx);
 
 			// Process eight pixels per iteration.
 			for ( ; (int)pos < scanR && cL < cR; pos += dx * 8, cL += 8 * bpp ) {
-				// Compute the positions for eight pixels: pos, pos+dx, c, pos+7*dx.
+				// Compute the positions for eight pixels: pos, pos+dx, ï¿½c, pos+7*dx.
 				__m256i vPos = _mm256_add_epi32(_mm256_set1_epi32(pos), idxInc);
 
 				// Compute R = pos & 0xfff and L = 0xfff - R.
@@ -785,10 +801,10 @@ vsync_found:
             R = pos & 0xfff;
             L = 0xfff - R;
             s = pos >> 12;
-            
+
             yuvA = out + s;
             yuvB = out + s + 1;
-            
+
             /* interpolate between samples if needed */
             y = ((yuvA->y * L) >>  2) + ((yuvB->y * R) >>  2);
             u = ((yuvA->u * L) >> 14) + ((yuvB->u * R) >> 14);
@@ -873,9 +889,9 @@ vsync_found:
             }
 
 
-			cL += bpp;
+            cL += bpp;
         }
-        
+
         /* duplicate extra lines */
         for (s = beg + 1; s < (end - c->scanlines); s++) {
             memcpy(c->out + s * pitch, c->out + (s - 1) * pitch, pitch);

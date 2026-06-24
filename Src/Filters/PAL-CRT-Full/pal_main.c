@@ -18,7 +18,11 @@
 #include "bmp_rw.h"
 #include "pal_core.h"
 
+
+#ifndef CMD_LINE_VERSION
 #define CMD_LINE_VERSION 1
+#endif
+
 /* there is no NES command line version */
 #if ((PAL_SYSTEM == PAL_SYSTEM_NES) && CMD_LINE_VERSION)
 #error NES mode does not have a command line version
@@ -226,6 +230,7 @@ main(int argc, char **argv)
 
     pal_init(&crt, outw, outh, PAL_PIX_FORMAT_BGRA, output);
 
+    memset(&pal, 0, sizeof(struct PAL_SETTINGS));
     pal.data = img;
     pal.format = PAL_PIX_FORMAT_BGRA;
     pal.w = imgw;

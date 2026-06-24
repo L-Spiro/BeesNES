@@ -10,26 +10,17 @@
  */
 /*****************************************************************************/
 
-#ifndef _PAL_NES_H_
-#define _PAL_NES_H_
+#ifndef _PAL_NESRGB_H_
+#define _PAL_NESRGB_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* pal_nes.h
+/* pal_nesrgb.h
  *
- * An interface to convert NES PPU output to an analog PAL signal.
-
- * Special thanks to the NESDev Discord Server and Forums
- * as well as the the following members (in no particular order):
- * lidnariq
- * Persune
- * Eugene.S
- * L. Spiro
- * org
- * feos
- * HardWareMan
+ * An interface to convert NES PPU output in RGB form to an analog PAL signal.
+ * 
  */
 
 #define PAL_CC_LINE 28417
@@ -114,13 +105,13 @@ extern "C" {
 #define SYNC_LEVEL      -37
 
 struct PAL_SETTINGS {
-    const unsigned short *data; /* 6 or 9-bit NES 'pixels' */
+    const unsigned char *data; /* image data */
+    int format;     /* pix format (one of the PAL_PIX_FORMATs in pal_core.h) */
     int w, h;       /* width and height of image */
     /* NOTE: NES mode is always progressive */
     int hue;              /* 0-359 */
     int xoffset;    /* x offset in sample space. 0 is minimum value */
     int yoffset;    /* y offset in # of lines. 0 is minimum value */
-    int ua6538;     /* set to non-zero for UA6538 mode, zero for RP2C07 */
     /* make sure your PAL_SETTINGS struct is zeroed out before you do anything */
     int field_initialized; /* internal state */
     

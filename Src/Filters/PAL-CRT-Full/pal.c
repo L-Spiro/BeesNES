@@ -239,7 +239,7 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
             }
             for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * PAL_CB_FREQ); t++) {
                 pal_sincos14(&sn, &cs, ccburst[n & 3][t & 3] - OFFSET_25Hz(n));
-                line[t] = (BLANK_LEVEL + ((sn >> 10) * BURST_LEVEL)) >> 5;
+                line[t] = (char)((BLANK_LEVEL + ((sn >> 10) * BURST_LEVEL)) >> 5);
                 iccf[(n + 3) % PAL_VRES][t & 3] = line[t];
             }
         }
@@ -317,7 +317,7 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
             if (ire < 0)   ire = 0;
             if (ire > 110) ire = 110;
 
-            v->analog[(x + xo) + (y + yo) * PAL_HRES] = ire;
+            v->analog[(x + xo) + (y + yo) * PAL_HRES] = (char)ire;
         }
     }
     /* 25 Hz offset makes it so the phase does not repeat in a field */

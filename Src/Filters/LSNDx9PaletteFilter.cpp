@@ -376,7 +376,7 @@ namespace lsn {
 			float fX, fY, fZ, fRhw;
 			float fU, fV;
 		};
-#pragma pack(pop)
+#pragma pack( pop )
 
 		LSN_XYZRHWTEX1 * pvP = nullptr;
 		if ( SUCCEEDED( m_vbPass1->Lock( 0, 0, reinterpret_cast<void **>(&pvP), D3DLOCK_DISCARD ) ) ) {

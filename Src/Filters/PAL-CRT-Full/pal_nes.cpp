@@ -26,87 +26,82 @@
 /* Use UA6538 voltages or RP2C07 */
 #define UA6538 0
 
-#if UA6538
-/*  white = 1450
-    *  black = 0
-    *  IREmax = 110
-    *    
-    *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
-    */
-/* From HardWareMan's UA6538 voltage measurements
-    * RELATIVE TO BLACK (mV)
-    *        LOW/EMPH          HIGH/EMPH
-    *  L0   -125 / -208         450 /  234
-    *  L1      0 / -116         934 /  600
-    *  L2    350 /  159        1450 / 1009
-    *  L3    975 /  634        1450 / 1009
-    *  
-    */
-static int IRE[16] = {
-    /* 0d     1d     2d      3d */
-    -9710,  0,     27189,  75741,
-    /* 0d     1d     2d      3d emphasized */
-    -16158,-9011,  12352,  49251,
-    /* 00     10     20      30 */
-    34957, 72556, 112640, 112640,
-    /* 00     10     20      30 emphasized */
-    18178, 46610, 78382,  78382
-};
-#else
-/*  white = 1467
-    *  black = 0
-    *  IREmax = 110
-    *    
-    *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
-    */
-/* From HardWareMan's RP2C07 voltage measurements
-    * RELATIVE TO BLACK (mV)
-    *        LOW/EMPH          HIGH/EMPH
-    *  L0   -175 / -266         609 /  334
-    *  L1      0 / -133        1000 /  642
-    *  L2    475 /  225        1467 / 1000
-    *  L3   1067 /  700        1467 / 1000
-    */
-static int IRE[16] = {
-    /* 0d     1d     2d      3d */
-    -13437, 0,     36472,  81927,
-    /* 0d     1d     2d      3d emphasized */
-    -20424,-10212, 17276,  53748,
-    /* 00     10     20      30 */
-    46761, 76783, 112640, 112640,
-    /* 00     10     20      30 emphasized */
-    25645, 49294, 76783,  76783
-};
-#endif
-#if SWAP_RED_GREEN_EMPHASIS_BITS
-/* red 0200, green 0100, blue 0400 */
-static int active[6] = {
-    0300, 0200,
-    0600, 0400,
-    0500, 0100
-};
-#else
-/* red 0100, green 0200, blue 0400 */
-static int active[6] = {
-    0300, 0100,
-    0500, 0400,
-    0600, 0200
-};
-#endif
 /* generate the square wave for a given 9-bit pixel and phase
  */
-static int alter = 0; /* flag for alternate line */
 static int
-square_sample(int p, int phase)
+square_sample(int p, int phase, int alter, int ua6538)
 {
-
+    /*  white = 1450
+     *  black = 0
+     *  IREmax = 110
+     *    
+     *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
+     */
+    /* From HardWareMan's UA6538 voltage measurements
+     * RELATIVE TO BLACK (mV)
+     *        LOW/EMPH          HIGH/EMPH
+     *  L0   -125 / -208         450 /  234
+     *  L1      0 / -116         934 /  600
+     *  L2    350 /  159        1450 / 1009
+     *  L3    975 /  634        1450 / 1009
+     *  
+     */
+    static int IRE_UA6538[16] = {
+     /* 0d     1d     2d      3d */
+       -9710,  0,     27189,  75741,
+     /* 0d     1d     2d      3d emphasized */
+       -16158,-9011,  12352,  49251,
+     /* 00     10     20      30 */
+        34957, 72556, 112640, 112640,
+     /* 00     10     20      30 emphasized */
+        18178, 46610, 78382,  78382
+    };
+    /*  white = 1467
+     *  black = 0
+     *  IREmax = 110
+     *    
+     *  ampIRE = round((mV / (white - black)) * 1024 * IREmax) 
+     */
+    /* From HardWareMan's RP2C07 voltage measurements
+     * RELATIVE TO BLACK (mV)
+     *        LOW/EMPH          HIGH/EMPH
+     *  L0   -175 / -266         609 /  334
+     *  L1      0 / -133        1000 /  642
+     *  L2    475 /  225        1467 / 1000
+     *  L3   1067 /  700        1467 / 1000
+     */
+    static int IRE[16] = {
+     /* 0d     1d     2d      3d */
+       -13437, 0,     36472,  81927,
+     /* 0d     1d     2d      3d emphasized */
+       -20424,-10212, 17276,  53748,
+     /* 00     10     20      30 */
+        46761, 76783, 112640, 112640,
+     /* 00     10     20      30 emphasized */
+        25645, 49294, 76783,  76783
+    };
+#if SWAP_RED_GREEN_EMPHASIS_BITS
+    /* red 0200, green 0100, blue 0400 */
+    static int active[6] = {
+        0300, 0200,
+        0600, 0400,
+        0500, 0100
+    };
+#else
+    /* red 0100, green 0200, blue 0400 */
+    static int active[6] = {
+        0300, 0100,
+        0500, 0400,
+        0600, 0200
+    };
+#endif
     int hue, ohue;
     int e, l, v;
 
     hue = (p & 0x0f);
 
     /* last two columns are black */
-    if LSN_UNLIKELY(hue >= 0x0e) {
+    if (hue >= 0x0e) {
         return 0;
     }
     ohue = hue;
@@ -122,7 +117,11 @@ square_sample(int p, int phase)
         default:   l = v; break;
     }
 
-    return IRE[(l << 3) + (e << 2) + ((p >> 4) & 3)];
+    if (ua6538) {
+        return IRE_UA6538[(l << 3) + (e << 2) + ((p >> 4) & 3)];
+    } else {
+        return IRE[(l << 3) + (e << 2) + ((p >> 4) & 3)];
+    }
 }
 
 /* this function is an optimization
@@ -135,7 +134,7 @@ setup_field(struct PAL_CRT *v, struct PAL_SETTINGS *s)
     int n, y;
     
     for (y = 0; y < 6; y++) {
-        s->altline[y] = ((y & 1) ? -1 : 1);
+        s->altline[y] = ((y & 1) ? 1 : -1);
     };
  
     for (n = 0; n < PAL_VRES; n++) {
@@ -144,13 +143,13 @@ setup_field(struct PAL_CRT *v, struct PAL_SETTINGS *s)
  
         t = LINE_BEG;
 
-        if LSN_UNLIKELY(n <= 3 || (n >= 7 && n <= 9)) {
+        if (n <= 3 || (n >= 7 && n <= 9)) {
             /* equalizing pulses - small blips of sync, mostly blank */
             while (t < (4   * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
             while (t < (50  * PAL_HRES / 100)) line[t++] = BLANK_LEVEL;
             while (t < (54  * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
             while (t < (100 * PAL_HRES / 100)) line[t++] = BLANK_LEVEL;
-        } else if LSN_UNLIKELY(n >= 4 && n <= 6) {
+        } else if (n >= 4 && n <= 6) {
             int offs[4] = { 46, 50, 96, 100 };
             /* vertical sync pulse - small blips of blank, mostly sync */
             while (t < (offs[0] * PAL_HRES / 100)) line[t++] = SYNC_LEVEL;
@@ -185,8 +184,9 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
     int iccf[6][4];
     int ccburst[6][4]; /* color phase for burst */
     int sn, cs;
+    int alter = 0;
         
-    if LSN_UNLIKELY(!s->field_initialized) {
+    if (!s->field_initialized) {
         setup_field(v, s);
         s->field_initialized = 1;
     }
@@ -213,8 +213,8 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
         int t, cb, nm6;
         int sy = (y * s->h) / desth;
 
-        if LSN_UNLIKELY(sy >= s->h) sy = s->h;
-        if LSN_UNLIKELY(sy < 0) sy = 0;
+        if (sy >= s->h) sy = s->h;
+        if (sy < 0) sy = 0;
  
         n = (y + yo);
         nm6 = n % 6;
@@ -230,20 +230,37 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
         phase = nm6 * 2;
         alter = s->altline[nm6] == -1;
         phase += alter ? 0 : 6;
-        for (x = 0; x < destw; x++) {
+		for (x = 0; x < destw; x++) {
+            int ire, p;
+
+            p = s->data[((x * s->w) / destw) + sy];
+            ire = BLACK_LEVEL + v->black_point;
+
+            ire += square_sample(p, phase + 0, alter, s->ua6538);
+            ire += square_sample(p, phase + 1, alter, s->ua6538);
+            ire += square_sample(p, phase + 2, alter, s->ua6538);
+            ire += square_sample(p, phase + 3, alter, s->ua6538);
+            ire += square_sample(p, phase + 4, alter, s->ua6538);
+            ire += square_sample(p, phase + 5, alter, s->ua6538);
+            ire = (ire * v->white_point / (110 * 6)) >> 10;
+            v->analog[(x + xo) + n * PAL_HRES] = (char)ire;
+            phase += 3;
+        }
+
+        /*for (x = 0; x < destw; x++) {
             int ire, p;
             
             p = s->data[((x * s->w) / destw) + sy];
             ire = BLACK_LEVEL + v->black_point;
             
-            ire += square_sample(p, phase + 0);
-            ire += square_sample(p, phase + 1);
-            ire += square_sample(p, phase + 2);
-            ire += square_sample(p, phase + 3);
+            ire += square_sample(p, phase + 0, alter, s->ua6538);
+            ire += square_sample(p, phase + 1, alter, s->ua6538);
+            ire += square_sample(p, phase + 2, alter, s->ua6538);
+            ire += square_sample(p, phase + 3, alter, s->ua6538);
             ire = (ire * v->white_point / 110) >> 12;
-            v->analog[(x + xo) + n * PAL_HRES] = (char)(ire);
+            v->analog[(x + xo) + n * PAL_HRES] = (char)ire;
             phase += 3;
-        }
+        }*/
     }
    
     for (x = 0; x < 4; x++) {
