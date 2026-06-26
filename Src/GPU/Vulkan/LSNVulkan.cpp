@@ -16,7 +16,9 @@ namespace lsn {
 	// == Members.
 #include "LSNVulkanFuncDef.inl"
 	
-
+#ifdef CreateSemaphore
+#undef CreateSemaphore
+#endif	// CreateSemaphore
 	
 
 	BOOL CVulkan::m_bSupported = 3;																										/**< Is Vulkan 1.0 supported? */
@@ -121,6 +123,7 @@ namespace lsn {
 		LSN_LOAD_FUNC( DestroySurfaceKHR );
 		LSN_LOAD_FUNC( CreateSwapchainKHR );
 		LSN_LOAD_FUNC( DestroySwapchainKHR );
+		LSN_LOAD_FUNC( GetSwapchainImagesKHR );
 
 		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceFormatsKHR );
 		LSN_LOAD_FUNC( GetPhysicalDeviceSurfacePresentModesKHR );
@@ -129,6 +132,8 @@ namespace lsn {
 
 		LSN_LOAD_FUNC( CreateImage );
 		LSN_LOAD_FUNC( DestroyImage );
+
+		LSN_LOAD_FUNC( AcquireNextImageKHR );
 
 		LSN_LOAD_FUNC( GetImageMemoryRequirements );
 
@@ -140,6 +145,7 @@ namespace lsn {
 
 		// Loading function pointers for command buffers.
 		LSN_LOAD_FUNC( AllocateCommandBuffers );
+		LSN_LOAD_FUNC( FreeCommandBuffers );
 		LSN_LOAD_FUNC( BeginCommandBuffer );
 		LSN_LOAD_FUNC( EndCommandBuffer );
 		LSN_LOAD_FUNC( ResetCommandBuffer );
@@ -148,6 +154,11 @@ namespace lsn {
 		LSN_LOAD_FUNC( CreateCommandPool );
 		LSN_LOAD_FUNC( DestroyCommandPool );
 		LSN_LOAD_FUNC( ResetCommandPool );
+
+		// Loading function pointers for query pools.
+		LSN_LOAD_FUNC( CreateQueryPool );
+		LSN_LOAD_FUNC( DestroyQueryPool );
+		LSN_LOAD_FUNC( GetQueryPoolResults );
 
 		// Loading function pointers for fences.
 		LSN_LOAD_FUNC( CreateFence );
@@ -172,6 +183,10 @@ namespace lsn {
 		LSN_LOAD_FUNC( CreateImageView );
 		LSN_LOAD_FUNC( DestroyImageView );
 
+		// Loading function pointers for samplers.
+		LSN_LOAD_FUNC( CreateSampler );
+		LSN_LOAD_FUNC( DestroySampler );
+
 		// Loading function pointers for render passes.
 		LSN_LOAD_FUNC( CreateRenderPass );
 		LSN_LOAD_FUNC( DestroyRenderPass );
@@ -179,6 +194,11 @@ namespace lsn {
 		// Loading function pointers for framebuffers.
 		LSN_LOAD_FUNC( CreateFramebuffer );
 		LSN_LOAD_FUNC( DestroyFramebuffer );
+
+		// Loading function pointers for render passes and descriptors.
+		LSN_LOAD_FUNC( CmdBeginRenderPass );
+		LSN_LOAD_FUNC( CmdEndRenderPass );
+		LSN_LOAD_FUNC( UpdateDescriptorSets );
 
 		// Loading function pointers for pipelines.
 		LSN_LOAD_FUNC( CreateGraphicsPipelines );
@@ -192,6 +212,13 @@ namespace lsn {
 		// Loading function pointers for shader modules.
 		LSN_LOAD_FUNC( CreateShaderModule );
 		LSN_LOAD_FUNC( DestroyShaderModule );
+		LSN_LOAD_FUNC( CmdBindPipeline );
+		LSN_LOAD_FUNC( CmdBindDescriptorSets );
+		LSN_LOAD_FUNC( CmdBindVertexBuffers );
+		LSN_LOAD_FUNC( CmdDraw );
+		LSN_LOAD_FUNC( CmdSetViewport );
+		LSN_LOAD_FUNC( CmdSetScissor );
+		LSN_LOAD_FUNC( CmdPushConstants );
 
 		// Loading function pointers for descriptor set layouts.
 		LSN_LOAD_FUNC( CreateDescriptorSetLayout );
@@ -222,29 +249,34 @@ namespace lsn {
 		LSN_LOAD_FUNC( FlushMappedMemoryRanges );
 		LSN_LOAD_FUNC( InvalidateMappedMemoryRanges );
 
+		// Loading function pointers for general functionality.
+		LSN_LOAD_FUNC( GetPhysicalDeviceMemoryProperties );
+		LSN_LOAD_FUNC( CmdPipelineBarrier );
+		LSN_LOAD_FUNC( CmdCopyBufferToImage );
+
 #ifdef LSN_WINDOWS
 		// Ray-tracing.
-		LSN_LOAD_FUNC( CreateRayTracingPipelinesKHR );
-		LSN_LOAD_FUNC( GetRayTracingShaderGroupHandlesKHR );
-		LSN_LOAD_FUNC( GetRayTracingCaptureReplayShaderGroupHandlesKHR );
+		//LSN_LOAD_FUNC( CreateRayTracingPipelinesKHR );
+		//LSN_LOAD_FUNC( GetRayTracingShaderGroupHandlesKHR );
+		//LSN_LOAD_FUNC( GetRayTracingCaptureReplayShaderGroupHandlesKHR );
 
-		// Acceleration structures.
-		LSN_LOAD_FUNC( CreateAccelerationStructureKHR );
-		LSN_LOAD_FUNC( DestroyAccelerationStructureKHR );
-		LSN_LOAD_FUNC( GetAccelerationStructureDeviceAddressKHR );
-		LSN_LOAD_FUNC( BuildAccelerationStructuresKHR );
-		LSN_LOAD_FUNC( CopyAccelerationStructureKHR );
-		LSN_LOAD_FUNC( CopyAccelerationStructureToMemoryKHR );
-		LSN_LOAD_FUNC( CmdCopyMemoryToAccelerationStructureKHR );
-		LSN_LOAD_FUNC( WriteAccelerationStructuresPropertiesKHR );
-		LSN_LOAD_FUNC( GetAccelerationStructureBuildSizesKHR );
+		//// Acceleration structures.
+		//LSN_LOAD_FUNC( CreateAccelerationStructureKHR );
+		//LSN_LOAD_FUNC( DestroyAccelerationStructureKHR );
+		//LSN_LOAD_FUNC( GetAccelerationStructureDeviceAddressKHR );
+		//LSN_LOAD_FUNC( BuildAccelerationStructuresKHR );
+		//LSN_LOAD_FUNC( CopyAccelerationStructureKHR );
+		//LSN_LOAD_FUNC( CopyAccelerationStructureToMemoryKHR );
+		//LSN_LOAD_FUNC( CmdCopyMemoryToAccelerationStructureKHR );
+		//LSN_LOAD_FUNC( WriteAccelerationStructuresPropertiesKHR );
+		//LSN_LOAD_FUNC( GetAccelerationStructureBuildSizesKHR );
 
-		// Ray tracing commands.
-		LSN_LOAD_FUNC( CmdTraceRaysKHR );
-		LSN_LOAD_FUNC( CmdTraceRaysIndirectKHR );
+		//// Ray tracing commands.
+		//LSN_LOAD_FUNC( CmdTraceRaysKHR );
+		//LSN_LOAD_FUNC( CmdTraceRaysIndirectKHR );
 	
-		// Ray tracing queries.
-		LSN_LOAD_FUNC( GetRayTracingShaderGroupStackSizeKHR );
+		//// Ray tracing queries.
+		//LSN_LOAD_FUNC( GetRayTracingShaderGroupStackSizeKHR );
 #endif	// #ifdef LSN_WINDOWS
 
 #undef LSN_LOAD_FUNC

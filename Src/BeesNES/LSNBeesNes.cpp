@@ -57,15 +57,15 @@ namespace lsn {
 			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX9
 			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX9
 
-			{ &m_p9nlsfDx9LSpiroNtsc,				&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc,					&m_p9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX9
 
-			{ &m_p9plsfDx9LSpiroPal,				&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_US_DX9
-			{ &m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_US_DX9
-			{ &m_p9plsfDx9LSpiroPalM,				&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX9
-			{ &m_p9plsfDx9LSpiroPalN,				&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN,					&m_p9plsfDx9LSpiroPalN },				// LSN_F_LSPIRONPALN_US_DX9
+			{ &m_d9plsfDx9LSpiroPal,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_US_DX9
+			{ &m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_US_DX9
+			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX9
+			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRONPALN_US_DX9
 			
 			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX9
-			{ &m_p9nlsfDx9LSpiroNtsc,				&m_p9plsfDx9LSpiroPal,					&m_p9plsfDx9LSpiroDendy,				&m_p9plsfDx9LSpiroPalM,					&m_p9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXEDDX12
@@ -73,16 +73,32 @@ namespace lsn {
 			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX12
 			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX12
 
-			{ &m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc,				&m_p12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX12
 
-			{ &m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_US_DX12
-			{ &m_p12plsfDx12LSpiroDendy,			&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX12
-			{ &m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX12
-			{ &m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN,				&m_p12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_US_DX12
+			{ &m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_US_DX12
+			{ &m_d12plsfDx12LSpiroDendy,			&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX12
+			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX12
+			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_US_DX12
 
 			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX12
-			{ &m_p12nlsfDx12LSpiroNtsc,				&m_p12plsfDx12LSpiroPal,				&m_p12plsfDx12LSpiroDendy,				&m_p12plsfDx12LSpiroPalM,				&m_p12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX12
 #endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXEDVULKAN1
+			//{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_VULKAN1
+			//{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_VULKAN1
+			//{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_VULKAN1
+
+			//{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc },				// LSN_F_LSPIRONTSC_US_VULKAN1
+
+			//{ &m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal },				// LSN_F_LSPIROPAL_US_VULKAN1
+			//{ &m_vplsfVulkanLSpiroDendy,			&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy },			// LSN_F_LSPIRODENDY_US_VULKAN1
+			//{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_US_VULKAN1
+			//{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_US_VULKAN1
+
+			//{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_VULKAN1
+			//{ &m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_VULKAN1
+#endif	// #ifdef LSN_VULKAN1
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
@@ -95,100 +111,151 @@ namespace lsn {
 		m_d9pfDx9Palette.SetVertSharpness( 5 );
 		m_d9pfDx9Palette.SetHorSharpness( 5 );
 
-		m_p9nlsfDx9LSpiroNtsc.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
-		m_p9plsfDx9LSpiroPal.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
-		m_p9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
-		m_p9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
-		m_p9plsfDx9LSpiroPalN.CDx9FilterBase::SetFps( 50.502710495150011279043537108053f );
+		m_d9nlsfDx9LSpiroNtsc.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_d9plsfDx9LSpiroPal.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_d9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_d9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
+		m_d9plsfDx9LSpiroPalN.CDx9FilterBase::SetFps( 50.502710495150011279043537108053f );
 
 		m_d9ncfDx9EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
 
-		m_p9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
-		/*m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
-		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
-		m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 48 );
-		//m_p9nlsfDx9LSpiroNtsc.SetKernelSize( 64 );
-		/*m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
-		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-		m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		//m_p9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		m_d9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
+		/*m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
+		m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+		m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 48 );
+		//m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 64 );
+		/*m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
+		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
+		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		//m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 
-		m_p9plsfDx9LSpiroPal.SetWidthScale( 10 );
-		m_p9plsfDx9LSpiroPal.SetKernelSize( 48 );
-		m_p9plsfDx9LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-		m_p9plsfDx9LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_d9plsfDx9LSpiroPal.SetWidthScale( 10 );
+		m_d9plsfDx9LSpiroPal.SetKernelSize( 48 );
+		m_d9plsfDx9LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
+		m_d9plsfDx9LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 
-		m_p9plsfDx9LSpiroDendy.SetWidthScale( 10 );
-		m_p9plsfDx9LSpiroDendy.SetKernelSize( 44 );
-		m_p9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p9plsfDx9LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
+		m_d9plsfDx9LSpiroDendy.SetWidthScale( 10 );
+		m_d9plsfDx9LSpiroDendy.SetKernelSize( 44 );
+		m_d9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d9plsfDx9LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
-		m_p9plsfDx9LSpiroPalM.SetWidthScale( 8 );
-		m_p9plsfDx9LSpiroPalM.SetKernelSize( 46 );
-		m_p9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p9plsfDx9LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		m_d9plsfDx9LSpiroPalM.SetWidthScale( 8 );
+		m_d9plsfDx9LSpiroPalM.SetKernelSize( 46 );
+		m_d9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d9plsfDx9LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
-		m_p9plsfDx9LSpiroPalN.SetWidthScale( 8 );
-		m_p9plsfDx9LSpiroPalN.SetKernelSize( 48 );
-		m_p9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-		m_p9plsfDx9LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
+		m_d9plsfDx9LSpiroPalN.SetWidthScale( 8 );
+		m_d9plsfDx9LSpiroPalN.SetKernelSize( 48 );
+		m_d9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
+		m_d9plsfDx9LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX9
 
 #ifdef LSN_DX12
 		m_d12pfDx12Palette.SetVertSharpness( 5 );
 		m_d12pfDx12Palette.SetHorSharpness( 5 );
 
-		m_p12nlsfDx12LSpiroNtsc.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
-		m_p12plsfDx12LSpiroPal.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
-		m_p12plsfDx12LSpiroDendy.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
-		m_p12plsfDx12LSpiroPalM.CDx12FilterBase::SetFps( 60.032435273083568398202053145976f );
-		m_p12plsfDx12LSpiroPalN.CDx12FilterBase::SetFps( 50.502710495150011279043537108053f );
+		m_d12nlsfDx12LSpiroNtsc.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_d12plsfDx12LSpiroPal.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_d12plsfDx12LSpiroDendy.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
+		m_d12plsfDx12LSpiroPalM.CDx12FilterBase::SetFps( 60.032435273083568398202053145976f );
+		m_d12plsfDx12LSpiroPalN.CDx12FilterBase::SetFps( 50.502710495150011279043537108053f );
 
 		m_d12ncfDx12EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
-		m_p12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
-		/*m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 25 );
-		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
-		m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 48 );
-		//m_p12nlsfDx12LSpiroNtsc.SetKernelSize( 64 );
-		/*m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
-		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-		m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		//m_p12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		m_d12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
+		/*m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 25 );
+		m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+		m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 48 );
+		//m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 64 );
+		/*m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
+		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
+		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		//m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		
-		m_p12plsfDx12LSpiroPal.SetWidthScale( 10 );
-		m_p12plsfDx12LSpiroPal.SetKernelSize( 48 );
-		m_p12plsfDx12LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-		m_p12plsfDx12LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_d12plsfDx12LSpiroPal.SetWidthScale( 10 );
+		m_d12plsfDx12LSpiroPal.SetKernelSize( 48 );
+		m_d12plsfDx12LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
+		m_d12plsfDx12LSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 
-		m_p12plsfDx12LSpiroDendy.SetWidthScale( 10 );
-		m_p12plsfDx12LSpiroDendy.SetKernelSize( 44 );
-		m_p12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p12plsfDx12LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
+		m_d12plsfDx12LSpiroDendy.SetWidthScale( 10 );
+		m_d12plsfDx12LSpiroDendy.SetKernelSize( 44 );
+		m_d12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d12plsfDx12LSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
 
-		m_p12plsfDx12LSpiroPalM.SetWidthScale( 8 );
-		m_p12plsfDx12LSpiroPalM.SetKernelSize( 46 );
-		m_p12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_p12plsfDx12LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+		m_d12plsfDx12LSpiroPalM.SetWidthScale( 8 );
+		m_d12plsfDx12LSpiroPalM.SetKernelSize( 46 );
+		m_d12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		m_d12plsfDx12LSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
-		m_p12plsfDx12LSpiroPalN.SetWidthScale( 8 );
-		m_p12plsfDx12LSpiroPalN.SetKernelSize( 48 );
-		m_p12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-		m_p12plsfDx12LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
-		//m_p12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
+		m_d12plsfDx12LSpiroPalN.SetWidthScale( 8 );
+		m_d12plsfDx12LSpiroPalN.SetKernelSize( 48 );
+		m_d12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
+		m_d12plsfDx12LSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		//m_d12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX12
+
+
+
+#ifdef LSN_VULKAN1
+		m_vpfVulkanPalette.SetVertSharpness( 5 );
+		m_vpfVulkanPalette.SetHorSharpness( 5 );
+
+		//m_vnlsfVulkanLSpiroNtsc.CVulkanFilterBase::SetFps( 60.098813897440515529533511098629f );
+		//m_vplsfVulkanLSpiroPal.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
+		//m_vplsfVulkanLSpiroDendy.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
+		//m_vplsfVulkanLSpiroPalM.CVulkanFilterBase::SetFps( 60.032435273083568398202053145976f );
+		//m_vplsfVulkanLSpiroPalN.CVulkanFilterBase::SetFps( 50.502710495150011279043537108053f );
+
+		//m_vncfVulkanEmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
+
+		//m_vnlsfVulkanLSpiroNtsc.SetWidthScale( 8 );
+		///*m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 25 );
+		//m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
+		//m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 48 );
+		////m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 64 );
+		///*m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
+		//m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
+		//m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		////m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		//m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		////m_vnlsfVulkanLSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+
+		//
+		//m_vplsfVulkanLSpiroPal.SetWidthScale( 10 );
+		//m_vplsfVulkanLSpiroPal.SetKernelSize( 48 );
+		//m_vplsfVulkanLSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
+		//m_vplsfVulkanLSpiroPal.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+
+		//m_vplsfVulkanLSpiroDendy.SetWidthScale( 10 );
+		//m_vplsfVulkanLSpiroDendy.SetKernelSize( 44 );
+		//m_vplsfVulkanLSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		//m_vplsfVulkanLSpiroDendy.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		////m_vplsfVulkanLSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
+
+		//m_vplsfVulkanLSpiroPalM.SetWidthScale( 8 );
+		//m_vplsfVulkanLSpiroPalM.SetKernelSize( 46 );
+		//m_vplsfVulkanLSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
+		//m_vplsfVulkanLSpiroPalM.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		////m_vplsfVulkanLSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
+
+		//m_vplsfVulkanLSpiroPalN.SetWidthScale( 8 );
+		//m_vplsfVulkanLSpiroPalN.SetKernelSize( 48 );
+		//m_vplsfVulkanLSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
+		//m_vplsfVulkanLSpiroPalN.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		////m_vplsfVulkanLSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
+#endif	// #ifdef LSN_VULKAN1
 
 		// FPS settings.
 		m_nbfLSpiroNtscFilter.SetFps( 60.098813897440515529533511098629f );
@@ -339,12 +406,12 @@ namespace lsn {
 		m_d9nbfDx9BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9ncfDx9EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9ncfDx9EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
-		m_p9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p9plsfDx9LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p9plsfDx9LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p9plsfDx9LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9plsfDx9LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9plsfDx9LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9plsfDx9LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_DX9
 
 #ifdef LSN_DX12
@@ -352,13 +419,26 @@ namespace lsn {
 		m_d12nbfDx12BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12ncfDx12EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12ncfDx12EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p12nlsfDx12LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12nlsfDx12LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
-		m_p12plsfDx12LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p12plsfDx12LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p12plsfDx12LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_p12plsfDx12LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12plsfDx12LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12plsfDx12LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12plsfDx12LSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12plsfDx12LSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_DX12
+
+#ifdef LSN_VULKAN1
+		m_vpfVulkanPalette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		/*m_vnbfVulkanBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vncfVulkanEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vncfVulkanEmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vnlsfVulkanLSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+
+		m_vplsfVulkanLSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vplsfVulkanLSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vplsfVulkanLSpiroPalM.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vplsfVulkanLSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );*/
+#endif	// #ifdef LSN_VULKAN1
 
 
 		UpdateCurrentSystem();
@@ -847,6 +927,14 @@ namespace lsn {
 			m_d12pfDx12Palette.SetLut( vTmp[0].x );
 		}
 #endif	// #ifdef LSN_DX12
+
+#ifdef LSN_VULKAN1
+		{
+			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
+			m_vpfVulkanPalette.SetLut( vTmp[0].x );
+		}
+#endif	// #ifdef LSN_VULKAN1
 	}
 
 	/**

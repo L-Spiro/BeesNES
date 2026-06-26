@@ -36,6 +36,14 @@
 #include "../Filters/LSNPalLSpiroFilter.h"
 #include "../Filters/LSNRgb24Filter.h"
 #include "../Filters/LSNSrgbPostProcess.h"
+#ifdef LSN_VULKAN1
+//#include "../Filters/LSNVulkanNtscBlarggFilter.h"
+//#include "../Filters/LSNVulkanNtscCrtFullFilter.h"
+//#include "../Filters/LSNVulkanNtscLSpiroFilter.h"
+//#include "../Filters/LSNVulkanPalCrtFullFilter.h"
+#include "../Filters/LSNVulkanPaletteFilter.h"
+//#include "../Filters/LSNVulkanPalLSpiroFilter.h"
+#endif	// #ifdef LSN_VULKAN1
 #include "../Options/LSNOptions.h"
 #include "../System/LSNSystem.h"
 #include "../Utilities/LSNStream.h"
@@ -504,36 +512,59 @@ namespace lsn {
 		/** Direct3D 9 LMP88959 PAL CTR filter. */
 		CDx9PalCrtFullFilter					m_d9ncfDx9EmmirPalFullFilter;
 		/** Direct3D 9 up-scale L. Spiro NTSC filter. */
-		CDx9NtscLSpiroFilter					m_p9nlsfDx9LSpiroNtsc;
+		CDx9NtscLSpiroFilter					m_d9nlsfDx9LSpiroNtsc;
 		/** Direct3D 9 up-scale L. Spiro PAL filter. */
-		CDx9PalLSpiroFilter						m_p9plsfDx9LSpiroPal;
+		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPal;
 		/** Direct3D 9 up-scale L. Spiro Dendy filter. */
-		CDx9PalLSpiroFilter						m_p9plsfDx9LSpiroDendy;
+		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroDendy;
 		/** Direct3D 9 up-scale L. Spiro PAL-M filter. */
-		CDx9PalLSpiroFilter						m_p9plsfDx9LSpiroPalM;
-		/** Direct3D 9 up-scale L. Spiro PAL-M filter. */
-		CDx9PalLSpiroFilter						m_p9plsfDx9LSpiroPalN;
+		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalM;
+		/** Direct3D 9 up-scale L. Spiro PAL-N filter. */
+		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalN;
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 		/** Direct3D 12 palette filter. */
 		CDx12PaletteFilter						m_d12pfDx12Palette;
-		/** Direct3D 9 Blargg NTSC filter. */
+		/** Direct3D 12 Blargg NTSC filter. */
 		CDx12NtscBlarggFilter					m_d12nbfDx12BlarggNtscFilter;
-		/** Direct3D 9 LMP88959 NTSC CTR filter. */
+		/** Direct3D 12 LMP88959 NTSC CTR filter. */
 		CDx12NtscCrtFullFilter					m_d12ncfDx12EmmirNtscFullFilter;
 		/** Direct3D 12 LMP88959 PAL CTR filter. */
 		CDx12PalCrtFullFilter					m_d12ncfDx12EmmirPalFullFilter;
 		/** Direct3D 12 up-scale L. Spiro NTSC filter. */
-		CDx12NtscLSpiroFilter					m_p12nlsfDx12LSpiroNtsc;
+		CDx12NtscLSpiroFilter					m_d12nlsfDx12LSpiroNtsc;
 		/** Direct3D 12 up-scale L. Spiro PAL filter. */
-		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPal;
+		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPal;
 		/** Direct3D 12 up-scale L. Spiro Dendy filter. */
-		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroDendy;
+		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroDendy;
 		/** Direct3D 12 up-scale L. Spiro PAL-M filter. */
-		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPalM;
-		/** Direct3D 12 up-scale L. Spiro PAL-M filter. */
-		CDx12PalLSpiroFilter					m_p12plsfDx12LSpiroPalN;
+		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalM;
+		/** Direct3D 12 up-scale L. Spiro PAL-N filter. */
+		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalN;
 #endif	// #ifdef LSN_DX12
+
+#ifdef LSN_VULKAN1
+		/** Vulkan 1 palette filter. */
+		CVulkanPaletteFilter					m_vpfVulkanPalette;
+		/** Vulkan 1 Blargg NTSC filter. */
+		//CVulkanNtscBlarggFilter					m_vnbfVulkanBlarggNtscFilter;
+		/** Vulkan 1 LMP88959 NTSC CTR filter. */
+		//CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscFullFilter;
+		/** Vulkan 1 LMP88959 PAL CTR filter. */
+		//CVulkanPalCrtFullFilter					m_vncfVulkanEmmirPalFullFilter;
+		/** Vulkan 1 up-scale L. Spiro NTSC filter. */
+		//CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtsc;
+		/** Vulkan 1 up-scale L. Spiro PAL filter. */
+		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPal;
+		/** Vulkan 1 up-scale L. Spiro Dendy filter. */
+		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroDendy;
+		/** Vulkan 1 up-scale L. Spiro PAL-M filter. */
+		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalM;
+		/** Vulkan 1 up-scale L. Spiro PAL-N filter. */
+		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalN;
+#endif	// #ifdef LSN_VULKAN1
+
+
 		/** A filter table. */
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** The default palettes for each system. */

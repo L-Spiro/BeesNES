@@ -1152,6 +1152,72 @@
     <ClInclude Include="Src\GPU\DirectX12\LSNDirectX12TextureGamma.h">
       <Filter>Header Files\GPU\DirectX12</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanCommandPool.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanCommandBuffer.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanQueue.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanPipeline.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanQueryPool.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanFence.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDescriptorPool.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDescriptorSet.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDescriptorSetLayout.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanPipelineLayout.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanImage.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanBuffer.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanDeviceMemory.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanTextureUploader.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanTexturePixelScaler.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanTextureRenderer.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanPhosphor.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanResampler.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanFilterBase.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanTextureGamma.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanPaletteFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GPU\Vulkan\LSNVulkanSemaphore.h">
+      <Filter>Header Files\GPU\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1630,6 +1696,72 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\DirectX12\LSNDirectX12TextureGamma.cpp">
       <Filter>Source Files\GPU\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanCommandPool.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanCommandBuffer.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanQueue.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanPipeline.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanQueryPool.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanFence.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDescriptorPool.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDescriptorSet.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDescriptorSetLayout.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanPipelineLayout.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanImage.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanBuffer.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanDeviceMemory.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanTextureUploader.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanTexturePixelScaler.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanTextureRenderer.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanPhosphor.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanResampler.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanFilterBase.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanTextureGamma.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanPaletteFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GPU\Vulkan\LSNVulkanSemaphore.cpp">
+      <Filter>Source Files\GPU\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

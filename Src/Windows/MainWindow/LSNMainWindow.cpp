@@ -75,6 +75,9 @@ namespace lsn {
 #ifdef LSN_DX12
 		CDx12FilterBase::SetRenderWindowParent( this );
 #endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+		CVulkanFilterBase::SetRenderWindowParent( this );
+#endif	// #ifdef LSN_VULKAN1
 
 #if 0
 		bool bDx9 = CDirectX9::Supported();
@@ -191,16 +194,23 @@ namespace lsn {
 #ifdef LSN_DX9
 		// Technically unnecessary, but it helps us find bugs related to resource management.  This should never fail.
 		if ( !CDx9FilterBase::SetRenderWindowParent( NULL ) ) {
-			::OutputDebugStringA( "\r\n* * * * * CDx9FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
+			lsn::DebugA( "\r\n* * * * * CDx9FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
 		}
 #endif	// #ifdef LSN_DX9
 
 #ifdef LSN_DX12
 		// Technically unnecessary, but it helps us find bugs related to resource management.  This should never fail.
 		if ( !CDx12FilterBase::SetRenderWindowParent( NULL ) ) {
-			::OutputDebugStringA( "\r\n* * * * * CDx12FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
+			lsn::DebugA( "\r\n* * * * * CDx12FilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
 		}
 #endif	// #ifdef LSN_DX12
+
+#ifdef LSN_VULKAN1
+		// Technically unnecessary, but it helps us find bugs related to resource management.  This should never fail.
+		if ( !CVulkanFilterBase::SetRenderWindowParent( NULL ) ) {
+			lsn::DebugA( "\r\n* * * * * CVulkanFilterBase::SetRenderWindowParent( NULL ) * * * * *\r\n\r\n" );
+		}
+#endif	// #ifdef LSN_VULKAN1
 	}
 
 	// == Functions.
@@ -555,6 +565,57 @@ namespace lsn {
 				break;
 			}
 #endif	// #ifdef LSN_DX12
+
+
+#ifdef LSN_VULKAN1
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALETTE : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDVULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_BLARGG_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRONTSC_US_VULKAN1 );
+				break;
+			}
+
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PAL_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPAL_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_DENDY_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRODENDY_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALM_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPALM_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALN_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIROPALN_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT_FULL_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PAL_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL_US_VULKAN1 );
+				break;
+			}
+			
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_AUTO_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL_US_VULKAN1 );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_AUTO_LSPIRO_UPSCALED : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRO_AUTO_US_VULKAN1 );
+				break;
+			}
+#endif	// #ifdef LSN_VULKAN1
+
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
@@ -723,9 +784,6 @@ namespace lsn {
 		if ( !m_wpPlacement.bInBorderless ) {
 			::GetWindowPlacement( Wnd(), &m_bnEmulator.Options().wpMainWindowPlacement );
 		}
-#ifdef LSN_DX9
-		//DestroyDx9();
-#endif	// #ifdef LSN_DX9
 		::PostQuitMessage( 0 );
 		return LSW_H_CONTINUE;
 	}
@@ -853,10 +911,33 @@ namespace lsn {
 				}
 #endif	// #ifdef LSN_DX12
 
+#ifdef LSN_VULKAN1
 				case CFilterBase::LSN_GA_VULKAN : {
-					// TODO: Vulkan path
+					// Check cooperative level for device removal.
+					if ( !CVulkanFilterBase::HandleDeviceLoss() ) {
+						m_bnEmulator.RenderInfo().DeActivate();
+						return LSW_H_HANDLED;   // Skip this frame.
+					}
+					::ValidateRect( Wnd(), NULL );
+
+					if ( CVulkanFilterBase::Device().GetSwapChain() != VK_NULL_HANDLE ) {
+						lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+						
+						// The Vulkan filter's ApplyFilter() handles command list recording, execution,
+						// image acquisition, and swapchain presentation internally due to the tight
+						// coupling of vkAcquireNextImageKHR and the target framebuffers.
+						m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
+						
+						m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+						m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+						m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+						m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+						bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+						puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+					}
 					break;
 				}
+#endif	// #ifdef LSN_VULKAN1
 
 				case CFilterBase::LSN_GA_METAL : {
 					// TODO: Metal path
@@ -1450,6 +1531,69 @@ namespace lsn {
 					break;
 				}
 #endif	// #ifdef LSN_DX12
+
+
+#ifdef LSN_VULKAN1
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALETTE : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDVULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_BLARGG_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BLARGG_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRONTSC_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PAL_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPAL_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_DENDY_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRODENDY_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALM_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPALM_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALN_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIROPALN_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_CRT_FULL_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PAL_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_CRT_FULL_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_AUTO_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_CRT_FULL_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_AUTO_LSPIRO_UPSCALED : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRO_AUTO_US_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+#endif	// #ifdef LSN_VULKAN1
+
+
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_BLARGG : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_NTSC_BLARGG ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );

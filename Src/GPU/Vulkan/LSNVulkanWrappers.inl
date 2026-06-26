@@ -11,6 +11,9 @@ struct LSN_ACCELERATION_STRUCTURE {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_ACCELERATION_STRUCTURE( LSN_ACCELERATION_STRUCTURE &&_asOther ) noexcept : LSN_ACCELERATION_STRUCTURE() {
+		(*this) = std::move( _asOther );
+	}
     inline ~LSN_ACCELERATION_STRUCTURE() {
         Reset();
     }
@@ -101,6 +104,9 @@ struct LSN_BUFFER {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_BUFFER( LSN_BUFFER &&_bOther ) noexcept : LSN_BUFFER() {
+		(*this) = std::move( _bOther );
+	}
     inline ~LSN_BUFFER() {
         Reset();
     }
@@ -151,6 +157,78 @@ private :
     const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
+/** A Vulkan VkCommandBuffer wrapper. */
+struct LSN_COMMAND_BUFFER {
+	inline LSN_COMMAND_BUFFER() :
+		cbCommandBuffer( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		cpCommandPool( VK_NULL_HANDLE ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_COMMAND_BUFFER( VkDevice _dDevice, const VkCommandBufferAllocateInfo * _pcbaiAllocInfo ) :
+		rRes( CVulkan::m_pfAllocateCommandBuffers( _dDevice, _pcbaiAllocInfo, &cbCommandBuffer ) ),
+		cpCommandPool( _pcbaiAllocInfo ? _pcbaiAllocInfo->commandPool : VK_NULL_HANDLE ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_COMMAND_BUFFER( LSN_COMMAND_BUFFER &&_cbOther ) noexcept : LSN_COMMAND_BUFFER() {
+		(*this) = std::move( _cbOther );
+	}
+	inline ~LSN_COMMAND_BUFFER() {
+		Reset();
+	}
+
+	// == Operators.
+	inline LSN_COMMAND_BUFFER &							operator = ( LSN_COMMAND_BUFFER &&_cbOther ) noexcept {
+		if ( this != &_cbOther ) {
+			Reset();
+			rRes = _cbOther.rRes;
+			cbCommandBuffer = _cbOther.cbCommandBuffer;
+			cpCommandPool = _cbOther.cpCommandPool;
+			dDevice = _cbOther.dDevice;
+
+			_cbOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_cbOther.cbCommandBuffer = VK_NULL_HANDLE;
+			_cbOther.cpCommandPool = VK_NULL_HANDLE;
+			_cbOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
+
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkCommandBufferAllocateInfo * _pcbaiAllocInfo ) {
+		Reset();
+		if ( !_pcbaiAllocInfo ) { return false; }
+		rRes = CVulkan::m_pfAllocateCommandBuffers( _dDevice, _pcbaiAllocInfo, &cbCommandBuffer );
+		cpCommandPool = _pcbaiAllocInfo->commandPool;
+		dDevice = _dDevice;
+		return Valid();
+	}
+
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+	inline void											Reset() {
+		if ( Valid() || cbCommandBuffer != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && cpCommandPool && cbCommandBuffer ) {
+				CVulkan::m_pfFreeCommandBuffers( dDevice, cpCommandPool, 1, &cbCommandBuffer );
+			}
+			cbCommandBuffer = VK_NULL_HANDLE;
+			cpCommandPool = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
+
+	inline VkResult										Result() const { return rRes; }
+
+	// == Members.
+	VkCommandBuffer										cbCommandBuffer			= VK_NULL_HANDLE;
+
+private :
+	VkCommandPool										cpCommandPool			= VK_NULL_HANDLE;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+};
+
 /** A Vulkan VkCommandPool wrapper. */
 struct LSN_COMMAND_POOL {
     inline LSN_COMMAND_POOL() :
@@ -164,6 +242,9 @@ struct LSN_COMMAND_POOL {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_COMMAND_POOL( LSN_COMMAND_POOL &&_cpOther ) noexcept : LSN_COMMAND_POOL() {
+		(*this) = std::move( _cpOther );
+	}
     inline ~LSN_COMMAND_POOL() {
         Reset();
     }
@@ -227,6 +308,9 @@ struct LSN_DESCRIPTOR_POOL {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_DESCRIPTOR_POOL( LSN_DESCRIPTOR_POOL &&_dpOther ) noexcept : LSN_DESCRIPTOR_POOL() {
+		(*this) = std::move( _dpOther );
+	}
     inline ~LSN_DESCRIPTOR_POOL() {
         Reset();
     }
@@ -277,6 +361,78 @@ private :
     const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
+/** A Vulkan VkDescriptorSet wrapper. */
+struct LSN_DESCRIPTOR_SET {
+	inline LSN_DESCRIPTOR_SET() :
+		dsDescriptorSet( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		dpDescriptorPool( VK_NULL_HANDLE ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_DESCRIPTOR_SET( VkDevice _dDevice, const VkDescriptorSetAllocateInfo * _pdsaiAllocInfo ) :
+		rRes( CVulkan::m_pfAllocateDescriptorSets( _dDevice, _pdsaiAllocInfo, &dsDescriptorSet ) ),
+		dpDescriptorPool( _pdsaiAllocInfo ? _pdsaiAllocInfo->descriptorPool : VK_NULL_HANDLE ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_DESCRIPTOR_SET( LSN_DESCRIPTOR_SET &&_dsOther ) noexcept : LSN_DESCRIPTOR_SET() {
+		(*this) = std::move( _dsOther );
+	}
+	inline ~LSN_DESCRIPTOR_SET() {
+		Reset();
+	}
+
+	// == Operators.
+	inline LSN_DESCRIPTOR_SET &							operator = ( LSN_DESCRIPTOR_SET &&_dsOther ) noexcept {
+		if ( this != &_dsOther ) {
+			Reset();
+			rRes = _dsOther.rRes;
+			dsDescriptorSet = _dsOther.dsDescriptorSet;
+			dpDescriptorPool = _dsOther.dpDescriptorPool;
+			dDevice = _dsOther.dDevice;
+
+			_dsOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_dsOther.dsDescriptorSet = VK_NULL_HANDLE;
+			_dsOther.dpDescriptorPool = VK_NULL_HANDLE;
+			_dsOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
+
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkDescriptorSetAllocateInfo * _pdsaiAllocInfo ) {
+		Reset();
+		if ( !_pdsaiAllocInfo ) { return false; }
+		rRes = CVulkan::m_pfAllocateDescriptorSets( _dDevice, _pdsaiAllocInfo, &dsDescriptorSet );
+		dpDescriptorPool = _pdsaiAllocInfo->descriptorPool;
+		dDevice = _dDevice;
+		return Valid();
+	}
+
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+	inline void											Reset() {
+		if ( Valid() || dsDescriptorSet != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && dpDescriptorPool && dsDescriptorSet ) {
+				CVulkan::m_pfFreeDescriptorSets( dDevice, dpDescriptorPool, 1, &dsDescriptorSet );
+			}
+			dsDescriptorSet = VK_NULL_HANDLE;
+			dpDescriptorPool = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
+
+	inline VkResult										Result() const { return rRes; }
+
+	// == Members.
+	VkDescriptorSet										dsDescriptorSet			= VK_NULL_HANDLE;
+
+private :
+	VkDescriptorPool									dpDescriptorPool		= VK_NULL_HANDLE;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+};
+
 /** A Vulkan VkDescriptorSetLayout wrapper. */
 struct LSN_DESCRIPTOR_SET_LAYOUT {
     inline LSN_DESCRIPTOR_SET_LAYOUT() :
@@ -290,6 +446,9 @@ struct LSN_DESCRIPTOR_SET_LAYOUT {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_DESCRIPTOR_SET_LAYOUT( LSN_DESCRIPTOR_SET_LAYOUT &&_dslOther ) noexcept : LSN_DESCRIPTOR_SET_LAYOUT() {
+		(*this) = std::move( _dslOther );
+	}
     inline ~LSN_DESCRIPTOR_SET_LAYOUT() {
         Reset();
     }
@@ -353,6 +512,9 @@ struct LSN_DEVICE_MEMORY {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_DEVICE_MEMORY( LSN_DEVICE_MEMORY &&_dmOther ) noexcept : LSN_DEVICE_MEMORY() {
+		(*this) = std::move( _dmOther );
+	}
     inline ~LSN_DEVICE_MEMORY() {
         Reset();
     }
@@ -405,128 +567,155 @@ private :
 
 /** A Vulkan VkFence wrapper. */
 struct LSN_FENCE {
-    inline LSN_FENCE() :
-        fFence( VK_NULL_HANDLE ),
-        rRes( VK_ERROR_INITIALIZATION_FAILED ),
-        pacAllocCallbacks( nullptr ),
-        dDevice( nullptr ) {
-    }
-    inline LSN_FENCE( VkDevice _dDevice, const VkFenceCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
-        rRes( CVulkan::m_pfCreateFence( _dDevice, _pfciCreateInfo, _pacAllocator, &fFence ) ),
-        pacAllocCallbacks( _pacAllocator ),
-        dDevice( _dDevice ) {
-    }
-    inline ~LSN_FENCE() {
-        Reset();
-    }
+	inline LSN_FENCE() :
+		fFence( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_FENCE( VkDevice _dDevice, const VkFenceCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateFence( _dDevice, _pfciCreateInfo, _pacAllocator, &fFence ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_FENCE( LSN_FENCE &&_fOther ) noexcept : LSN_FENCE() {
+		(*this) = std::move( _fOther );
+	}
+	inline ~LSN_FENCE() {
+		Reset();
+	}
 
-    // == Operators.
-    LSN_FENCE &                                         operator = ( LSN_FENCE &&_fOther ) noexcept {
-        if ( this != &_fOther ) {
-            Reset();
-            rRes = _fOther.rRes;
-            fFence = _fOther.fFence;
-            pacAllocCallbacks = _fOther.pacAllocCallbacks;
+	// == Operators.
+	inline LSN_FENCE &									operator = ( LSN_FENCE &&_fOther ) noexcept {
+		if ( this != &_fOther ) {
+			Reset();
+			rRes = _fOther.rRes;
+			fFence = _fOther.fFence;
+			pacAllocCallbacks = _fOther.pacAllocCallbacks;
+			dDevice = _fOther.dDevice;
 
-            _fOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-            _fOther.fFence = VK_NULL_HANDLE;
-            _fOther.pacAllocCallbacks = nullptr;
-        }
-        return (*this);
-    };
+			_fOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_fOther.fFence = VK_NULL_HANDLE;
+			_fOther.pacAllocCallbacks = nullptr;
+			_fOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
 
-    // == Functions.
-    inline bool                                         Create( VkDevice _dDevice, const VkFenceCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
-        Reset();
-        rRes = CVulkan::m_pfCreateFence( _dDevice, _pfciCreateInfo, _pacAllocator, &fFence );
-        dDevice = _dDevice;
-        pacAllocCallbacks = _pacAllocator;
-        return Valid();
-    }
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkFenceCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		rRes = CVulkan::m_pfCreateFence( _dDevice, _pfciCreateInfo, _pacAllocator, &fFence );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
 
-    inline bool                                         Valid() const { return VK_SUCCESS == rRes; }
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
 
-    inline void                                         Reset() {
-        if ( Valid() ) {
-            rRes = VK_ERROR_INITIALIZATION_FAILED;
-            CVulkan::m_pfDestroyFence( dDevice, fFence, pacAllocCallbacks );
-            pacAllocCallbacks = nullptr;
-            fFence = VK_NULL_HANDLE;
-        }
-    }
+	inline void											Reset() {
+		if ( Valid() || fFence != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && fFence ) {
+				CVulkan::m_pfDestroyFence( dDevice, fFence, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			fFence = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
 
-    inline VkResult                                     Result() const { return rRes; }
+	inline VkResult										Wait( uint64_t _ui64Timeout = UINT64_MAX ) const {
+		if ( !Valid() ) { return VK_ERROR_INITIALIZATION_FAILED; }
+		return CVulkan::m_pfWaitForFences( dDevice, 1, &fFence, VK_TRUE, _ui64Timeout );
+	}
 
-    // == Members.
-    VkFence                                             fFence                  = VK_NULL_HANDLE;
+	inline VkResult										ResetFence() const {
+		if ( !Valid() ) { return VK_ERROR_INITIALIZATION_FAILED; }
+		return CVulkan::m_pfResetFences( dDevice, 1, &fFence );
+	}
+
+	inline VkResult										Result() const { return rRes; }
+
+	// == Members.
+	VkFence												fFence					= VK_NULL_HANDLE;
 
 private :
-    VkDevice                                            dDevice                 = nullptr;
-    VkResult                                            rRes                    = VK_ERROR_INITIALIZATION_FAILED;
-    const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
 /** A Vulkan VkFramebuffer wrapper. */
 struct LSN_FRAMEBUFFER {
-    inline LSN_FRAMEBUFFER() :
-        fbFramebuffer( VK_NULL_HANDLE ),
-        rRes( VK_ERROR_INITIALIZATION_FAILED ),
-        pacAllocCallbacks( nullptr ),
-        dDevice( nullptr ) {
-    }
-    inline LSN_FRAMEBUFFER( VkDevice _dDevice, const VkFramebufferCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
-        rRes( CVulkan::m_pfCreateFramebuffer( _dDevice, _pfciCreateInfo, _pacAllocator, &fbFramebuffer ) ),
-        pacAllocCallbacks( _pacAllocator ),
-        dDevice( _dDevice ) {
-    }
-    inline ~LSN_FRAMEBUFFER() {
-        Reset();
-    }
+	inline LSN_FRAMEBUFFER() :
+		fbFramebuffer( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_FRAMEBUFFER( VkDevice _dDevice, const VkFramebufferCreateInfo * _pfbciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateFramebuffer( _dDevice, _pfbciCreateInfo, _pacAllocator, &fbFramebuffer ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_FRAMEBUFFER( LSN_FRAMEBUFFER &&_fbOther ) noexcept : LSN_FRAMEBUFFER() {
+		(*this) = std::move( _fbOther );
+	}
+	inline ~LSN_FRAMEBUFFER() {
+		Reset();
+	}
 
-    // == Operators.
-    LSN_FRAMEBUFFER &                                   operator = ( LSN_FRAMEBUFFER &&_fbOther ) noexcept {
-        if ( this != &_fbOther ) {
-            Reset();
-            rRes = _fbOther.rRes;
-            fbFramebuffer = _fbOther.fbFramebuffer;
-            pacAllocCallbacks = _fbOther.pacAllocCallbacks;
+	// == Operators.
+	inline LSN_FRAMEBUFFER &							operator = ( LSN_FRAMEBUFFER &&_fbOther ) noexcept {
+		if ( this != &_fbOther ) {
+			Reset();
+			rRes = _fbOther.rRes;
+			fbFramebuffer = _fbOther.fbFramebuffer;
+			pacAllocCallbacks = _fbOther.pacAllocCallbacks;
+			dDevice = _fbOther.dDevice;
 
-            _fbOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-            _fbOther.fbFramebuffer = VK_NULL_HANDLE;
-            _fbOther.pacAllocCallbacks = nullptr;
-        }
-        return (*this);
-    };
+			_fbOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_fbOther.fbFramebuffer = VK_NULL_HANDLE;
+			_fbOther.pacAllocCallbacks = nullptr;
+			_fbOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
 
-    // == Functions.
-    inline bool                                         Create( VkDevice _dDevice, const VkFramebufferCreateInfo * _pfciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
-        Reset();
-        rRes = CVulkan::m_pfCreateFramebuffer( _dDevice, _pfciCreateInfo, _pacAllocator, &fbFramebuffer );
-        dDevice = _dDevice;
-        pacAllocCallbacks = _pacAllocator;
-        return Valid();
-    }
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkFramebufferCreateInfo * _pfbciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		if ( !_pfbciCreateInfo ) { return false; }
+		rRes = CVulkan::m_pfCreateFramebuffer( _dDevice, _pfbciCreateInfo, _pacAllocator, &fbFramebuffer );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
 
-    inline bool                                         Valid() const { return VK_SUCCESS == rRes; }
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
 
-    inline void                                         Reset() {
-        if ( Valid() ) {
-            rRes = VK_ERROR_INITIALIZATION_FAILED;
-            CVulkan::m_pfDestroyFramebuffer( dDevice, fbFramebuffer, pacAllocCallbacks );
-            pacAllocCallbacks = nullptr;
-            fbFramebuffer = VK_NULL_HANDLE;
-        }
-    }
+	inline void											Reset() {
+		if ( Valid() || fbFramebuffer != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && fbFramebuffer ) {
+				CVulkan::m_pfDestroyFramebuffer( dDevice, fbFramebuffer, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			fbFramebuffer = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
 
-    inline VkResult                                     Result() const { return rRes; }
+	inline VkResult										Result() const { return rRes; }
 
-    // == Members.
-    VkFramebuffer                                       fbFramebuffer           = VK_NULL_HANDLE;
+	// == Members.
+	VkFramebuffer										fbFramebuffer			= VK_NULL_HANDLE;
 
 private :
-    VkDevice                                            dDevice                 = nullptr;
-    VkResult                                            rRes                    = VK_ERROR_INITIALIZATION_FAILED;
-    const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
 /** A Vulkan VkDevice wrapper. */
@@ -540,6 +729,9 @@ struct LSN_DEVICE {
 		rRes( CVulkan::m_pfCreateDevice( _pdPhysicalDevice, _pdciCreateInfo, _pacAllocator, &dDevice ) ),
 		pacAllocCallbacks( _pacAllocator ) {
 	}
+	inline LSN_DEVICE( LSN_DEVICE &&_dOther ) noexcept : LSN_DEVICE() {
+		(*this) = std::move( _dOther );
+	}
 	inline ~LSN_DEVICE() {
 		Reset();
 	}
@@ -547,21 +739,21 @@ struct LSN_DEVICE {
 
 	// == Operators.
 	/**
-	 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+	 * Moves from _dOther to this object.  _dOther is left in a valid state and could be reused.
 	 * 
-	 * \param _iOther The object to move.
+	 * \param _dOther The object to move.
 	 * \return Returns this object after the move.
 	 **/
-	LSN_DEVICE &										operator = ( LSN_DEVICE &&_iOther ) noexcept {
-		if ( this != &_iOther ) {
+	LSN_DEVICE &										operator = ( LSN_DEVICE &&_dOther ) noexcept {
+		if ( this != &_dOther ) {
 			Reset();
-			rRes = _iOther.rRes;
-			dDevice = _iOther.dDevice;
-			pacAllocCallbacks = _iOther.pacAllocCallbacks;
+			rRes = _dOther.rRes;
+			dDevice = _dOther.dDevice;
+			pacAllocCallbacks = _dOther.pacAllocCallbacks;
 
-			_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-			_iOther.dDevice = nullptr;
-			_iOther.pacAllocCallbacks = nullptr;
+			_dOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_dOther.dDevice = nullptr;
+			_dOther.pacAllocCallbacks = nullptr;
 		}
 		return (*this);
 	};
@@ -628,6 +820,9 @@ struct LSN_INSTANCE {
 	inline LSN_INSTANCE( const VkInstanceCreateInfo * _piciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
 		rRes( CVulkan::m_pfCreateInstance( _piciCreateInfo, _pacAllocator, &iInstance ) ),
 		pacAllocCallbacks( _pacAllocator ) {
+	}
+	inline LSN_INSTANCE( LSN_INSTANCE &&_iOther ) noexcept : LSN_INSTANCE() {
+		(*this) = std::move( _iOther );
 	}
 	inline ~LSN_INSTANCE() {
 		Reset();
@@ -719,6 +914,9 @@ struct LSN_IMAGE {
 		rRes( CVulkan::m_pfCreateImage( _dDevice, _piciCreateInfo, _pacAllocator, &iImage ) ),
 		pacAllocCallbacks( _pacAllocator ),
 		dDevice( _dDevice ) {
+	}
+	inline LSN_IMAGE( LSN_IMAGE &&_iOther ) noexcept : LSN_IMAGE() {
+		(*this) = std::move( _iOther );
 	}
 	inline ~LSN_IMAGE() {
 		Reset();
@@ -814,6 +1012,9 @@ struct LSN_IMAGE_VIEW {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_IMAGE_VIEW( LSN_IMAGE_VIEW &&_ivOther ) noexcept : LSN_IMAGE_VIEW() {
+		(*this) = std::move( _ivOther );
+	}
     inline ~LSN_IMAGE_VIEW() {
         Reset();
     }
@@ -834,7 +1035,7 @@ struct LSN_IMAGE_VIEW {
     };
 
     // == Functions.
-    inline bool                                         reate( VkDevice _dDevice, const VkImageViewCreateInfo * _pivciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+    inline bool                                         Create( VkDevice _dDevice, const VkImageViewCreateInfo * _pivciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
         Reset();
         rRes = CVulkan::m_pfCreateImageView( _dDevice, _pivciCreateInfo, _pacAllocator, &ivImageView );
         dDevice = _dDevice;
@@ -877,6 +1078,9 @@ struct LSN_PIPELINE {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_PIPELINE( LSN_PIPELINE &&_pOther ) noexcept : LSN_PIPELINE() {
+		(*this) = std::move( _pOther );
+	}
     inline ~LSN_PIPELINE() {
         Reset();
     }
@@ -904,6 +1108,14 @@ struct LSN_PIPELINE {
         pacAllocCallbacks = _pacAllocator;
         return Valid();
     }
+
+	inline bool											Create( VkDevice _dDevice, const VkComputePipelineCreateInfo * _pcpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		rRes = CVulkan::m_pfCreateComputePipelines( _dDevice, VK_NULL_HANDLE, 1, _pcpciCreateInfo, _pacAllocator, &pPipeline );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
 
     inline bool                                         Valid() const { return VK_SUCCESS == rRes; }
 
@@ -940,6 +1152,9 @@ struct LSN_PIPELINE_LAYOUT {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_PIPELINE_LAYOUT( LSN_PIPELINE_LAYOUT &&_plOther ) noexcept : LSN_PIPELINE_LAYOUT() {
+		(*this) = std::move( _plOther );
+	}
     inline ~LSN_PIPELINE_LAYOUT() {
         Reset();
     }
@@ -990,67 +1205,219 @@ private :
     const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
-/** A Vulkan VkRenderPass wrapper. */
-struct LSN_RENDER_PASS {
-    inline LSN_RENDER_PASS() :
-        rpRenderPass( VK_NULL_HANDLE ),
-        rRes( VK_ERROR_INITIALIZATION_FAILED ),
-        pacAllocCallbacks( nullptr ),
-        dDevice( nullptr ) {
-    }
-    inline LSN_RENDER_PASS( VkDevice _dDevice, const VkRenderPassCreateInfo * _prpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
-        rRes( CVulkan::m_pfCreateRenderPass( _dDevice, _prpciCreateInfo, _pacAllocator, &rpRenderPass ) ),
-        pacAllocCallbacks( _pacAllocator ),
-        dDevice( _dDevice ) {
-    }
-    inline ~LSN_RENDER_PASS() {
-        Reset();
-    }
+/** A Vulkan VkQueryPool wrapper. */
+struct LSN_QUERY_POOL {
+	inline LSN_QUERY_POOL() :
+		qpQueryPool( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_QUERY_POOL( VkDevice _dDevice, const VkQueryPoolCreateInfo * _pqpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateQueryPool( _dDevice, _pqpciCreateInfo, _pacAllocator, &qpQueryPool ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_QUERY_POOL( LSN_QUERY_POOL &&_qpOther ) noexcept : LSN_QUERY_POOL() {
+		(*this) = std::move( _qpOther );
+	}
+	inline ~LSN_QUERY_POOL() {
+		Reset();
+	}
 
-    // == Operators.
-    LSN_RENDER_PASS &                                   operator = ( LSN_RENDER_PASS &&_rpOther ) noexcept {
-        if ( this != &_rpOther ) {
-            Reset();
-            rRes = _rpOther.rRes;
-            rpRenderPass = _rpOther.rpRenderPass;
-            pacAllocCallbacks = _rpOther.pacAllocCallbacks;
+	// == Operators.
+	LSN_QUERY_POOL &									operator = ( LSN_QUERY_POOL &&_qpOther ) noexcept {
+		if ( this != &_qpOther ) {
+			Reset();
+			rRes = _qpOther.rRes;
+			qpQueryPool = _qpOther.qpQueryPool;
+			pacAllocCallbacks = _qpOther.pacAllocCallbacks;
+			dDevice = _qpOther.dDevice;
 
-            _rpOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-            _rpOther.rpRenderPass = VK_NULL_HANDLE;
-            _rpOther.pacAllocCallbacks = nullptr;
-        }
-        return (*this);
-    };
+			_qpOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_qpOther.qpQueryPool = VK_NULL_HANDLE;
+			_qpOther.pacAllocCallbacks = nullptr;
+			_qpOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
 
-    // == Functions.
-    inline bool                                         Create( VkDevice _dDevice, const VkRenderPassCreateInfo * _prpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
-        Reset();
-        rRes = CVulkan::m_pfCreateRenderPass( _dDevice, _prpciCreateInfo, _pacAllocator, &rpRenderPass );
-        dDevice = _dDevice;
-        pacAllocCallbacks = _pacAllocator;
-        return Valid();
-    }
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkQueryPoolCreateInfo * _pqpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		rRes = CVulkan::m_pfCreateQueryPool( _dDevice, _pqpciCreateInfo, _pacAllocator, &qpQueryPool );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
 
-    inline bool                                         Valid() const { return VK_SUCCESS == rRes; }
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
 
-    inline void                                         Reset() {
-        if ( Valid() ) {
-            rRes = VK_ERROR_INITIALIZATION_FAILED;
-            CVulkan::m_pfDestroyRenderPass( dDevice, rpRenderPass, pacAllocCallbacks );
-            pacAllocCallbacks = nullptr;
-            rpRenderPass = VK_NULL_HANDLE;
-        }
-    }
+	inline void											Reset() {
+		if ( Valid() || qpQueryPool != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && qpQueryPool ) {
+				CVulkan::m_pfDestroyQueryPool( dDevice, qpQueryPool, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			qpQueryPool = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
 
-    inline VkResult                                     Result() const { return rRes; }
+	inline VkResult										Result() const { return rRes; }
 
-    // == Members.
-    VkRenderPass                                        rpRenderPass            = VK_NULL_HANDLE;
+	// == Members.
+	VkQueryPool											qpQueryPool				= VK_NULL_HANDLE;
 
 private :
-    VkDevice                                            dDevice                 = nullptr;
-    VkResult                                            rRes                    = VK_ERROR_INITIALIZATION_FAILED;
-    const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+};
+
+/** A Vulkan VkRenderPass wrapper. */
+struct LSN_RENDER_PASS {
+	inline LSN_RENDER_PASS() :
+		rpRenderPass( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_RENDER_PASS( VkDevice _dDevice, const VkRenderPassCreateInfo * _prpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateRenderPass( _dDevice, _prpciCreateInfo, _pacAllocator, &rpRenderPass ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_RENDER_PASS( LSN_RENDER_PASS &&_rpOther ) noexcept : LSN_RENDER_PASS() {
+		(*this) = std::move( _rpOther );
+	}
+	inline ~LSN_RENDER_PASS() {
+		Reset();
+	}
+
+	// == Operators.
+	inline LSN_RENDER_PASS &							operator = ( LSN_RENDER_PASS &&_rpOther ) noexcept {
+		if ( this != &_rpOther ) {
+			Reset();
+			rRes = _rpOther.rRes;
+			rpRenderPass = _rpOther.rpRenderPass;
+			pacAllocCallbacks = _rpOther.pacAllocCallbacks;
+			dDevice = _rpOther.dDevice;
+
+			_rpOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_rpOther.rpRenderPass = VK_NULL_HANDLE;
+			_rpOther.pacAllocCallbacks = nullptr;
+			_rpOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
+
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkRenderPassCreateInfo * _prpciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		if ( !_prpciCreateInfo ) { return false; }
+		rRes = CVulkan::m_pfCreateRenderPass( _dDevice, _prpciCreateInfo, _pacAllocator, &rpRenderPass );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
+
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+	inline void											Reset() {
+		if ( Valid() || rpRenderPass != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && rpRenderPass ) {
+				CVulkan::m_pfDestroyRenderPass( dDevice, rpRenderPass, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			rpRenderPass = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
+
+	inline VkResult										Result() const { return rRes; }
+
+	// == Members.
+	VkRenderPass										rpRenderPass			= VK_NULL_HANDLE;
+
+private :
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+};
+
+/** A Vulkan VkSampler wrapper. */
+struct LSN_SAMPLER {
+	inline LSN_SAMPLER() :
+		sSampler( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_SAMPLER( VkDevice _dDevice, const VkSamplerCreateInfo * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateSampler( _dDevice, _psciCreateInfo, _pacAllocator, &sSampler ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_SAMPLER( LSN_SAMPLER &&_sOther ) noexcept : LSN_SAMPLER() {
+		(*this) = std::move( _sOther );
+	}
+	inline ~LSN_SAMPLER() {
+		Reset();
+	}
+
+	// == Operators.
+	inline LSN_SAMPLER &								operator = ( LSN_SAMPLER &&_sOther ) noexcept {
+		if ( this != &_sOther ) {
+			Reset();
+			rRes = _sOther.rRes;
+			sSampler = _sOther.sSampler;
+			pacAllocCallbacks = _sOther.pacAllocCallbacks;
+			dDevice = _sOther.dDevice;
+
+			_sOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_sOther.sSampler = VK_NULL_HANDLE;
+			_sOther.pacAllocCallbacks = nullptr;
+			_sOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
+
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkSamplerCreateInfo * _psciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		if ( !_psciCreateInfo ) { return false; }
+		rRes = CVulkan::m_pfCreateSampler( _dDevice, _psciCreateInfo, _pacAllocator, &sSampler );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
+
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
+
+	inline void											Reset() {
+		if ( Valid() || sSampler != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && sSampler ) {
+				CVulkan::m_pfDestroySampler( dDevice, sSampler, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			sSampler = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
+
+	inline VkResult										Result() const { return rRes; }
+
+	// == Members.
+	VkSampler											sSampler				= VK_NULL_HANDLE;
+
+private :
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
 /** A Vulkan VkSemaphore wrapper. */
@@ -1066,6 +1433,9 @@ struct LSN_SEMAPHORE {
         pacAllocCallbacks( _pacAllocator ),
         dDevice( _dDevice ) {
     }
+	inline LSN_SEMAPHORE( LSN_SEMAPHORE &&_sOther ) noexcept : LSN_SEMAPHORE() {
+		(*this) = std::move( _sOther );
+	}
     inline ~LSN_SEMAPHORE() {
         Reset();
     }
@@ -1118,65 +1488,74 @@ private :
 
 /** A Vulkan VkShaderModule wrapper. */
 struct LSN_SHADER_MODULE {
-    inline LSN_SHADER_MODULE() :
-        smShaderModule( VK_NULL_HANDLE ),
-        rRes( VK_ERROR_INITIALIZATION_FAILED ),
-        pacAllocCallbacks( nullptr ),
-        dDevice( nullptr ) {
-    }
-    inline LSN_SHADER_MODULE( VkDevice _dDevice, const VkShaderModuleCreateInfo * _psmciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
-        rRes( CVulkan::m_pfCreateShaderModule( _dDevice, _psmciCreateInfo, _pacAllocator, &smShaderModule ) ),
-        pacAllocCallbacks( _pacAllocator ),
-        dDevice( _dDevice ) {
-    }
-    inline ~LSN_SHADER_MODULE() {
-        Reset();
-    }
+	inline LSN_SHADER_MODULE() :
+		smShaderModule( VK_NULL_HANDLE ),
+		rRes( VK_ERROR_INITIALIZATION_FAILED ),
+		pacAllocCallbacks( nullptr ),
+		dDevice( nullptr ) {
+	}
+	inline LSN_SHADER_MODULE( VkDevice _dDevice, const VkShaderModuleCreateInfo * _psmciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) :
+		rRes( CVulkan::m_pfCreateShaderModule( _dDevice, _psmciCreateInfo, _pacAllocator, &smShaderModule ) ),
+		pacAllocCallbacks( _pacAllocator ),
+		dDevice( _dDevice ) {
+	}
+	inline LSN_SHADER_MODULE( LSN_SHADER_MODULE &&_smOther ) noexcept : LSN_SHADER_MODULE() {
+		(*this) = std::move( _smOther );
+	}
+	inline ~LSN_SHADER_MODULE() {
+		Reset();
+	}
 
-    // == Operators.
-    LSN_SHADER_MODULE &                                 operator = ( LSN_SHADER_MODULE &&_smOther ) noexcept {
-        if ( this != &_smOther ) {
-            Reset();
-            rRes = _smOther.rRes;
-            smShaderModule = _smOther.smShaderModule;
-            pacAllocCallbacks = _smOther.pacAllocCallbacks;
+	// == Operators.
+	inline LSN_SHADER_MODULE &							operator = ( LSN_SHADER_MODULE &&_smOther ) noexcept {
+		if ( this != &_smOther ) {
+			Reset();
+			rRes = _smOther.rRes;
+			smShaderModule = _smOther.smShaderModule;
+			pacAllocCallbacks = _smOther.pacAllocCallbacks;
+			dDevice = _smOther.dDevice;
 
-            _smOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-            _smOther.smShaderModule = VK_NULL_HANDLE;
-            _smOther.pacAllocCallbacks = nullptr;
-        }
-        return (*this);
-    };
+			_smOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_smOther.smShaderModule = VK_NULL_HANDLE;
+			_smOther.pacAllocCallbacks = nullptr;
+			_smOther.dDevice = nullptr;
+		}
+		return (*this);
+	};
 
-    // == Functions.
-    inline bool                                         Create( VkDevice _dDevice, const VkShaderModuleCreateInfo * _psmciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
-        Reset();
-        rRes = CVulkan::m_pfCreateShaderModule( _dDevice, _psmciCreateInfo, _pacAllocator, &smShaderModule );
-        dDevice = _dDevice;
-        pacAllocCallbacks = _pacAllocator;
-        return Valid();
-    }
+	// == Functions.
+	inline bool											Create( VkDevice _dDevice, const VkShaderModuleCreateInfo * _psmciCreateInfo, const VkAllocationCallbacks * _pacAllocator = nullptr ) {
+		Reset();
+		if ( !_psmciCreateInfo ) { return false; }
+		rRes = CVulkan::m_pfCreateShaderModule( _dDevice, _psmciCreateInfo, _pacAllocator, &smShaderModule );
+		dDevice = _dDevice;
+		pacAllocCallbacks = _pacAllocator;
+		return Valid();
+	}
 
-    inline bool                                         Valid() const { return VK_SUCCESS == rRes; }
+	inline bool											Valid() const { return VK_SUCCESS == rRes; }
 
-    inline void                                         Reset() {
-        if ( Valid() ) {
-            rRes = VK_ERROR_INITIALIZATION_FAILED;
-            CVulkan::m_pfDestroyShaderModule( dDevice, smShaderModule, pacAllocCallbacks );
-            pacAllocCallbacks = nullptr;
-            smShaderModule = VK_NULL_HANDLE;
-        }
-    }
+	inline void											Reset() {
+		if ( Valid() || smShaderModule != VK_NULL_HANDLE ) {
+			rRes = VK_ERROR_INITIALIZATION_FAILED;
+			if ( dDevice && smShaderModule ) {
+				CVulkan::m_pfDestroyShaderModule( dDevice, smShaderModule, pacAllocCallbacks );
+			}
+			pacAllocCallbacks = nullptr;
+			smShaderModule = VK_NULL_HANDLE;
+			dDevice = nullptr;
+		}
+	}
 
-    inline VkResult                                     Result() const { return rRes; }
+	inline VkResult										Result() const { return rRes; }
 
-    // == Members.
-    VkShaderModule                                      smShaderModule          = VK_NULL_HANDLE;
+	// == Members.
+	VkShaderModule										smShaderModule			= VK_NULL_HANDLE;
 
 private :
-    VkDevice                                            dDevice                 = nullptr;
-    VkResult                                            rRes                    = VK_ERROR_INITIALIZATION_FAILED;
-    const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
+	VkDevice											dDevice					= nullptr;
+	VkResult											rRes					= VK_ERROR_INITIALIZATION_FAILED;
+	const VkAllocationCallbacks *						pacAllocCallbacks		= nullptr;
 };
 
 /** A Vulkan VkSurfaceKHR wrapper. */
@@ -1194,6 +1573,9 @@ struct LSN_SURFACE {
 		pacAllocCallbacks( _pacAllocator ) {
 	}
 #endif	// #ifdef LSN_WINDOWS
+	inline LSN_SURFACE( LSN_SURFACE &&_iOther ) noexcept : LSN_SURFACE() {
+		(*this) = std::move( _iOther );
+	}
 	inline ~LSN_SURFACE() {
 		Reset();
 	}
@@ -1293,6 +1675,9 @@ struct LSN_SWAPCHAIN {
 		pacAllocCallbacks( _pacAllocator ) {
 	}
 #endif	// #ifdef LSN_WINDOWS
+	inline LSN_SWAPCHAIN( LSN_SWAPCHAIN &&_scOther ) noexcept : LSN_SWAPCHAIN() {
+		(*this) = std::move( _scOther );
+	}
 	inline ~LSN_SWAPCHAIN() {
 		Reset();
 	}
@@ -1300,23 +1685,23 @@ struct LSN_SWAPCHAIN {
 
 	// == Operators.
 	/**
-	 * Moves from _iOther to this object.  _iOther is left in a valid state and could be reused.
+	 * Moves from _scOther to this object.  _scOther is left in a valid state and could be reused.
 	 * 
-	 * \param _iOther The object to move.
+	 * \param _scOther The object to move.
 	 * \return Returns this object after the move.
 	 **/
-	LSN_SWAPCHAIN &										operator = ( LSN_SWAPCHAIN &&_iOther ) noexcept {
-		if ( this != &_iOther ) {
+	LSN_SWAPCHAIN &										operator = ( LSN_SWAPCHAIN &&_scOther ) noexcept {
+		if ( this != &_scOther ) {
 			Reset();
-			rRes = _iOther.rRes;
-			sSwapchain = _iOther.sSwapchain;
-			dDevice = _iOther.dDevice;
-			pacAllocCallbacks = _iOther.pacAllocCallbacks;
+			rRes = _scOther.rRes;
+			sSwapchain = _scOther.sSwapchain;
+			dDevice = _scOther.dDevice;
+			pacAllocCallbacks = _scOther.pacAllocCallbacks;
 
-			_iOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
-			_iOther.sSwapchain = 0;
-			_iOther.dDevice = nullptr;
-			_iOther.pacAllocCallbacks = nullptr;
+			_scOther.rRes = VK_ERROR_INITIALIZATION_FAILED;
+			_scOther.sSwapchain = 0;
+			_scOther.dDevice = nullptr;
+			_scOther.pacAllocCallbacks = nullptr;
 		}
 		return (*this);
 	};

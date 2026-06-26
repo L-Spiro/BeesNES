@@ -7,7 +7,7 @@
  * \param _pDevice A pointer to a handle in which the created VkDevice is returned.
  * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_FEATURE_NOT_PRESENT, VK_ERROR_TOO_MANY_OBJECTS, VK_ERROR_DEVICE_LOST.
 **/
-CVulkan::PFN_vkCreateDevice CVulkan::m_pfCreateDevice = nullptr;
+PFN_vkCreateDevice CVulkan::m_pfCreateDevice = nullptr;
 
 /**
  * Destroy a logical device.
@@ -15,7 +15,7 @@ CVulkan::PFN_vkCreateDevice CVulkan::m_pfCreateDevice = nullptr;
  * \param _device The logical device to destroy.
  * \param _pAllocator Controls host memory allocation.
 **/
-CVulkan::PFN_vkDestroyDevice CVulkan::m_pfDestroyDevice = nullptr;
+PFN_vkDestroyDevice CVulkan::m_pfDestroyDevice = nullptr;
 
 /**
  * Get a queue handle from a device.
@@ -25,7 +25,7 @@ CVulkan::PFN_vkDestroyDevice CVulkan::m_pfDestroyDevice = nullptr;
  * \param _queueIndex The index within this queue family of the queue to retrieve.
  * \param _pQueue A pointer to a VkQueue object that will be filled with the handle for the requested queue.
 **/
-CVulkan::PFN_vkGetDeviceQueue CVulkan::m_pfGetDeviceQueue = nullptr;
+PFN_vkGetDeviceQueue CVulkan::m_pfGetDeviceQueue = nullptr;
 
 /**
  * Create a new Vulkan instance.
@@ -35,7 +35,7 @@ CVulkan::PFN_vkGetDeviceQueue CVulkan::m_pfGetDeviceQueue = nullptr;
  * \param _pInstance Points a VkInstance handle in which the resulting instance is returned.
  * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_INCOMPATIBLE_DRIVER
 **/
-CVulkan::PFN_vkCreateInstance CVulkan::m_pfCreateInstance = nullptr;
+PFN_vkCreateInstance CVulkan::m_pfCreateInstance = nullptr;
 
 /**
  * Destroy an instance of Vulkan.
@@ -53,7 +53,7 @@ PFN_vkDestroyInstance CVulkan::m_pfDestroyInstance = nullptr;
  * \param _pPhysicalDevices Either NULL or a pointer to an array of VkPhysicalDevice handles.
  * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED.
 **/
-CVulkan::PFN_vkEnumeratePhysicalDevices CVulkan::m_pfEnumeratePhysicalDevices = nullptr;
+PFN_vkEnumeratePhysicalDevices CVulkan::m_pfEnumeratePhysicalDevices = nullptr;
 
 /**
  * Returns properties of a physical device.
@@ -61,7 +61,7 @@ CVulkan::PFN_vkEnumeratePhysicalDevices CVulkan::m_pfEnumeratePhysicalDevices = 
  * \param _physicalDevice The handle to the physical device whose properties will be queried.
  * \param _pProperties A pointer to a VkPhysicalDeviceProperties structure in which properties are returned.
 **/
-CVulkan::PFN_vkGetPhysicalDeviceProperties CVulkan::m_pfGetPhysicalDeviceProperties = nullptr;
+PFN_vkGetPhysicalDeviceProperties CVulkan::m_pfGetPhysicalDeviceProperties = nullptr;
 
 #ifdef LSN_WINDOWS
 /**
@@ -73,7 +73,7 @@ CVulkan::PFN_vkGetPhysicalDeviceProperties CVulkan::m_pfGetPhysicalDevicePropert
  * \param _pSurface A pointer to a VkSurfaceKHR handle in which the created surface object is returned.
  * \return On success, this command returns: VK_SUCCESS.  On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY
 **/
-CVulkan::PFN_vkCreateWin32SurfaceKHR CVulkan::m_pfCreateWin32SurfaceKHR = nullptr;
+PFN_vkCreateWin32SurfaceKHR CVulkan::m_pfCreateWin32SurfaceKHR = nullptr;
 
 /**
  * Destroy a VkSurfaceKHR object.
@@ -82,7 +82,7 @@ CVulkan::PFN_vkCreateWin32SurfaceKHR CVulkan::m_pfCreateWin32SurfaceKHR = nullpt
  * \param _surface The surface to destroy.
  * \param _pAllocator The allocator used for host memory allocated for the surface object when there is no more specific allocator available.
 **/
-CVulkan::PFN_vkDestroySurfaceKHR CVulkan::m_pfDestroySurfaceKHR = nullptr;
+PFN_vkDestroySurfaceKHR CVulkan::m_pfDestroySurfaceKHR = nullptr;
 
 /**
  * Create a swapchain.
@@ -93,7 +93,7 @@ CVulkan::PFN_vkDestroySurfaceKHR CVulkan::m_pfDestroySurfaceKHR = nullptr;
  * \param _pSwapchain A pointer to a VkSwapchainKHR handle in which the created swapchain object will be returned.
  * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_DEVICE_LOST, VK_ERROR_SURFACE_LOST_KHR, VK_ERROR_NATIVE_WINDOW_IN_USE_KHR, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_COMPRESSION_EXHAUSTED_EXT.
 **/
-CVulkan::PFN_vkCreateSwapchainKHR CVulkan::m_pfCreateSwapchainKHR = nullptr;
+PFN_vkCreateSwapchainKHR CVulkan::m_pfCreateSwapchainKHR = nullptr;
 
 /**
  * Destroy a swapchain object.
@@ -102,7 +102,12 @@ CVulkan::PFN_vkCreateSwapchainKHR CVulkan::m_pfCreateSwapchainKHR = nullptr;
  * \param _swapchain The swapchain to destroy.
  * \param _pAllocator The allocator used for host memory allocated for the swapchain object when there is no more specific allocator available.
 **/
-CVulkan::PFN_vkDestroySwapchainKHR CVulkan::m_pfDestroySwapchainKHR = nullptr;
+PFN_vkDestroySwapchainKHR CVulkan::m_pfDestroySwapchainKHR = nullptr;
+
+/**
+ * Obtain the array of presentable images associated with a swapchain.
+ **/
+PFN_vkGetSwapchainImagesKHR CVulkan::m_pfGetSwapchainImagesKHR = nullptr;
 
 /**
  * Query color formats supported by surface.
@@ -113,7 +118,7 @@ CVulkan::PFN_vkDestroySwapchainKHR CVulkan::m_pfDestroySwapchainKHR = nullptr;
  * \param _pSurfaceFormats Either NULL or a pointer to an array of VkSurfaceFormatKHR structures.
  * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
 **/
-CVulkan::PFN_vkGetPhysicalDeviceSurfaceFormatsKHR CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR = nullptr;
+PFN_vkGetPhysicalDeviceSurfaceFormatsKHR CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR = nullptr;
 
 /**
  * Query supported presentation modes.
@@ -124,7 +129,7 @@ CVulkan::PFN_vkGetPhysicalDeviceSurfaceFormatsKHR CVulkan::m_pfGetPhysicalDevice
  * \param _pPresentModes Either NULL or a pointer to an array of VkPresentModeKHR values, indicating the supported presentation modes
  * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
 **/
-CVulkan::PFN_vkGetPhysicalDeviceSurfacePresentModesKHR CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR = nullptr;
+PFN_vkGetPhysicalDeviceSurfacePresentModesKHR CVulkan::m_pfGetPhysicalDeviceSurfacePresentModesKHR = nullptr;
 
 /**
  * Query surface capabilities.
@@ -134,7 +139,7 @@ CVulkan::PFN_vkGetPhysicalDeviceSurfacePresentModesKHR CVulkan::m_pfGetPhysicalD
  * \param _pSurfaceCapabilities A pointer to a VkSurfaceCapabilitiesKHR structure in which the capabilities are returned.
  * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_SURFACE_LOST_KHR.
 **/
-CVulkan::PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR CVulkan::m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR = nullptr;
+PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR CVulkan::m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR = nullptr;
 #endif	// #ifdef LSN_WINDOWS
 
 /**
@@ -146,7 +151,7 @@ CVulkan::PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR CVulkan::m_pfGetPhysicalD
  * \param _pImage A pointer to a VkImage handle in which the resulting image object is returned.
  * \return On success, this command returns: VK_SUCCESS. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_INITIALIZATION_FAILED, VK_ERROR_LAYER_NOT_PRESENT, VK_ERROR_EXTENSION_NOT_PRESENT, VK_ERROR_INCOMPATIBLE_DRIVER
 **/
-CVulkan::PFN_vkCreateImage CVulkan::m_pfCreateImage = nullptr;
+PFN_vkCreateImage CVulkan::m_pfCreateImage = nullptr;
 
 /**
  * Destroy an image object.
@@ -155,7 +160,20 @@ CVulkan::PFN_vkCreateImage CVulkan::m_pfCreateImage = nullptr;
  * \param _image The image to destroy.
  * \param _pAllocator Controls host memory allocation.
 **/
-CVulkan::PFN_vkDestroyImage CVulkan::m_pfDestroyImage = nullptr;
+PFN_vkDestroyImage CVulkan::m_pfDestroyImage = nullptr;
+
+/**
+ * Retrieve the index of the next available presentable image.
+ * 
+ * \param _device The logical device associated with the swapchain.
+ * \param _swapchain The non-retired swapchain from which an image is being acquired.
+ * \param _timeout Specifies how long the function waits, in nanoseconds, if no image is available.
+ * \param _semaphore VK_NULL_HANDLE or a semaphore to signal.
+ * \param _fence VK_NULL_HANDLE or a fence to signal.
+ * \param _pImageIndex A pointer to a uint32_t in which the index of the next image is returned.
+ * \return Returns VK_SUCCESS on success, or an appropriate error code (like VK_SUBOPTIMAL_KHR or VK_ERROR_OUT_OF_DATE_KHR) on failure.
+ **/
+PFN_vkAcquireNextImageKHR CVulkan::m_pfAcquireNextImageKHR = nullptr;
 
 /**
  * Returns the memory requirements for specified Vulkan object.
@@ -164,7 +182,7 @@ CVulkan::PFN_vkDestroyImage CVulkan::m_pfDestroyImage = nullptr;
  * \param _image The image to query.
  * \param _pMemoryRequirements A pointer to a VkMemoryRequirements structure in which the memory requirements of the image object are returned.
 **/
-CVulkan::PFN_vkGetImageMemoryRequirements CVulkan::m_pfGetImageMemoryRequirements = nullptr;
+PFN_vkGetImageMemoryRequirements CVulkan::m_pfGetImageMemoryRequirements = nullptr;
 
 /**
  * Allocate device memory.
@@ -174,7 +192,7 @@ CVulkan::PFN_vkGetImageMemoryRequirements CVulkan::m_pfGetImageMemoryRequirement
  * \param _pAllocator Controls host memory allocation.
  * \param _pMemory A pointer to a VkDeviceMemory handle in which information about the allocated memory is returned.
 **/
-CVulkan::PFN_vkAllocateMemory CVulkan::m_pfAllocateMemory = nullptr;
+PFN_vkAllocateMemory CVulkan::m_pfAllocateMemory = nullptr;
 
 /**
  * Free device memory.
@@ -183,7 +201,7 @@ CVulkan::PFN_vkAllocateMemory CVulkan::m_pfAllocateMemory = nullptr;
  * \param _memory The VkDeviceMemory object to be freed.
  * \param _pAllocator Controls host memory allocation.
 **/
-CVulkan::PFN_vkFreeMemory CVulkan::m_pfFreeMemory = nullptr;
+PFN_vkFreeMemory CVulkan::m_pfFreeMemory = nullptr;
 
 /**
  * Returns up to requested number of global extension properties.
@@ -193,7 +211,7 @@ CVulkan::PFN_vkFreeMemory CVulkan::m_pfFreeMemory = nullptr;
  * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
  * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
 **/
-CVulkan::PFN_vkEnumerateInstanceExtensionProperties CVulkan::m_pfEnumerateInstanceExtensionProperties = nullptr;
+PFN_vkEnumerateInstanceExtensionProperties CVulkan::m_pfEnumerateInstanceExtensionProperties = nullptr;
 
 /**
  * Returns properties of available physical device extensions.
@@ -204,7 +222,7 @@ CVulkan::PFN_vkEnumerateInstanceExtensionProperties CVulkan::m_pfEnumerateInstan
  * \param _pProperties Either NULL or a pointer to an array of VkExtensionProperties structures.
  * \return On success, this command returns: VK_SUCCESS, VK_INCOMPLETE. On failure, this command returns: VK_ERROR_OUT_OF_HOST_MEMORY, VK_ERROR_OUT_OF_DEVICE_MEMORY, VK_ERROR_LAYER_NOT_PRESENT.
 **/
-CVulkan::PFN_vkEnumerateDeviceExtensionProperties CVulkan::m_pfEnumerateDeviceExtensionProperties = nullptr;
+PFN_vkEnumerateDeviceExtensionProperties CVulkan::m_pfEnumerateDeviceExtensionProperties = nullptr;
 
 /**
  * Allocate command buffers from a command pool.
@@ -214,7 +232,17 @@ CVulkan::PFN_vkEnumerateDeviceExtensionProperties CVulkan::m_pfEnumerateDeviceEx
  * \param _pCommandBuffers A pointer to an array of VkCommandBuffer handles in which the resulting command buffer objects are returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkAllocateCommandBuffers CVulkan::m_pfAllocateCommandBuffers = nullptr;
+PFN_vkAllocateCommandBuffers CVulkan::m_pfAllocateCommandBuffers = nullptr;
+
+/**
+ * Free command buffers.
+ * 
+ * \param _device The logical device that owns the command pool.
+ * \param _commandPool The command pool from which the command buffers were allocated.
+ * \param _commandBufferCount The number of command buffers to free.
+ * \param _pCommandBuffers An array of VkCommandBuffer handles to be freed.
+ **/
+PFN_vkFreeCommandBuffers CVulkan::m_pfFreeCommandBuffers = nullptr;
 
 /**
  * Begin recording commands to a command buffer.
@@ -223,7 +251,7 @@ CVulkan::PFN_vkAllocateCommandBuffers CVulkan::m_pfAllocateCommandBuffers = null
  * \param _pBeginInfo A pointer to a VkCommandBufferBeginInfo structure specifying the parameters for beginning command buffer recording.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkBeginCommandBuffer CVulkan::m_pfBeginCommandBuffer = nullptr;
+PFN_vkBeginCommandBuffer CVulkan::m_pfBeginCommandBuffer = nullptr;
 
 /**
  * End recording commands to a command buffer.
@@ -231,7 +259,7 @@ CVulkan::PFN_vkBeginCommandBuffer CVulkan::m_pfBeginCommandBuffer = nullptr;
  * \param _commandBuffer The command buffer to end recording.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkEndCommandBuffer CVulkan::m_pfEndCommandBuffer = nullptr;
+PFN_vkEndCommandBuffer CVulkan::m_pfEndCommandBuffer = nullptr;
 
 /**
  * Reset a command buffer.
@@ -240,7 +268,7 @@ CVulkan::PFN_vkEndCommandBuffer CVulkan::m_pfEndCommandBuffer = nullptr;
  * \param _flags Flags specifying additional parameters.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkResetCommandBuffer CVulkan::m_pfResetCommandBuffer = nullptr;
+PFN_vkResetCommandBuffer CVulkan::m_pfResetCommandBuffer = nullptr;
 
 /**
  * Create a command pool for allocating command buffers.
@@ -251,7 +279,7 @@ CVulkan::PFN_vkResetCommandBuffer CVulkan::m_pfResetCommandBuffer = nullptr;
  * \param _pCommandPool A pointer to a VkCommandPool handle in which the resulting command pool is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateCommandPool CVulkan::m_pfCreateCommandPool = nullptr;
+PFN_vkCreateCommandPool CVulkan::m_pfCreateCommandPool = nullptr;
 
 /**
  * Destroy a command pool.
@@ -260,7 +288,7 @@ CVulkan::PFN_vkCreateCommandPool CVulkan::m_pfCreateCommandPool = nullptr;
  * \param _commandPool The command pool to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyCommandPool CVulkan::m_pfDestroyCommandPool = nullptr;
+PFN_vkDestroyCommandPool CVulkan::m_pfDestroyCommandPool = nullptr;
 
 /**
  * Reset a command pool.
@@ -270,7 +298,42 @@ CVulkan::PFN_vkDestroyCommandPool CVulkan::m_pfDestroyCommandPool = nullptr;
  * \param _flags Flags specifying additional parameters.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkResetCommandPool CVulkan::m_pfResetCommandPool = nullptr;
+PFN_vkResetCommandPool CVulkan::m_pfResetCommandPool = nullptr;
+
+/**
+ * Create a new query pool object.
+ * 
+ * \param _device The logical device that creates the query pool.
+ * \param _pCreateInfo A pointer to a VkQueryPoolCreateInfo structure containing parameters to be used to create the pool.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pQueryPool A pointer to a VkQueryPool handle in which the resulting query pool object is returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+PFN_vkCreateQueryPool CVulkan::m_pfCreateQueryPool = nullptr;
+
+/**
+ * Destroy a query pool object.
+ *
+ * \param _device The logical device that destroys the query pool.
+ * \param _queryPool The query pool to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+PFN_vkDestroyQueryPool CVulkan::m_pfDestroyQueryPool = nullptr;
+
+/**
+ * Copy results of queries in a query pool to a host memory buffer.
+ *
+ * \param _device The logical device that owns the query pool.
+ * \param _queryPool The query pool managing the queries containing the desired results.
+ * \param _firstQuery The initial query index.
+ * \param _queryCount The number of queries to read.
+ * \param _dataSize The size in bytes of the buffer pointed to by _pData.
+ * \param _pData A pointer to a user-allocated buffer where the results will be written.
+ * \param _stride The stride in bytes between results for individual queries within _pData.
+ * \param _flags A bitmask of VkQueryResultFlagBits specifying how and when results are returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+PFN_vkGetQueryPoolResults CVulkan::m_pfGetQueryPoolResults = nullptr;
 
 /**
  * Create a fence object.
@@ -281,7 +344,7 @@ CVulkan::PFN_vkResetCommandPool CVulkan::m_pfResetCommandPool = nullptr;
  * \param _pFence A pointer to a VkFence handle in which the resulting fence is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateFence CVulkan::m_pfCreateFence = nullptr;
+PFN_vkCreateFence CVulkan::m_pfCreateFence = nullptr;
 
 /**
  * Destroy a fence object.
@@ -290,7 +353,7 @@ CVulkan::PFN_vkCreateFence CVulkan::m_pfCreateFence = nullptr;
  * \param _fence The fence to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyFence CVulkan::m_pfDestroyFence = nullptr;
+PFN_vkDestroyFence CVulkan::m_pfDestroyFence = nullptr;
 
 /**
  * Wait for one or more fence objects to become signaled.
@@ -302,7 +365,7 @@ CVulkan::PFN_vkDestroyFence CVulkan::m_pfDestroyFence = nullptr;
  * \param _timeout The timeout period in nanoseconds.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkWaitForFences CVulkan::m_pfWaitForFences = nullptr;
+PFN_vkWaitForFences CVulkan::m_pfWaitForFences = nullptr;
 
 /**
  * Reset one or more fence objects.
@@ -312,7 +375,7 @@ CVulkan::PFN_vkWaitForFences CVulkan::m_pfWaitForFences = nullptr;
  * \param _pFences An array of VkFence handles.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkResetFences CVulkan::m_pfResetFences = nullptr;
+PFN_vkResetFences CVulkan::m_pfResetFences = nullptr;
 
 /**
  * Create a semaphore object.
@@ -323,7 +386,7 @@ CVulkan::PFN_vkResetFences CVulkan::m_pfResetFences = nullptr;
  * \param _pSemaphore A pointer to a VkSemaphore handle in which the resulting semaphore is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateSemaphore CVulkan::m_pfCreateSemaphore = nullptr;
+PFN_vkCreateSemaphore CVulkan::m_pfCreateSemaphore = nullptr;
 
 /**
  * Destroy a semaphore object.
@@ -332,7 +395,7 @@ CVulkan::PFN_vkCreateSemaphore CVulkan::m_pfCreateSemaphore = nullptr;
  * \param _semaphore The semaphore to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroySemaphore CVulkan::m_pfDestroySemaphore = nullptr;
+PFN_vkDestroySemaphore CVulkan::m_pfDestroySemaphore = nullptr;
 
 /**
  * Create a buffer object.
@@ -343,7 +406,7 @@ CVulkan::PFN_vkDestroySemaphore CVulkan::m_pfDestroySemaphore = nullptr;
  * \param _pBuffer A pointer to a VkBuffer handle in which the resulting buffer is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateBuffer CVulkan::m_pfCreateBuffer = nullptr;
+PFN_vkCreateBuffer CVulkan::m_pfCreateBuffer = nullptr;
 
 /**
  * Destroy a buffer object.
@@ -352,7 +415,7 @@ CVulkan::PFN_vkCreateBuffer CVulkan::m_pfCreateBuffer = nullptr;
  * \param _buffer The buffer to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyBuffer CVulkan::m_pfDestroyBuffer = nullptr;
+PFN_vkDestroyBuffer CVulkan::m_pfDestroyBuffer = nullptr;
 
 /**
  * Retrieve the memory requirements for a buffer.
@@ -361,7 +424,7 @@ CVulkan::PFN_vkDestroyBuffer CVulkan::m_pfDestroyBuffer = nullptr;
  * \param _buffer The buffer to query.
  * \param _pMemoryRequirements A pointer to a VkMemoryRequirements structure in which the memory requirements are returned.
  **/
-CVulkan::PFN_vkGetBufferMemoryRequirements CVulkan::m_pfGetBufferMemoryRequirements = nullptr;
+PFN_vkGetBufferMemoryRequirements CVulkan::m_pfGetBufferMemoryRequirements = nullptr;
 
 /**
  * Bind device memory to a buffer.
@@ -372,7 +435,7 @@ CVulkan::PFN_vkGetBufferMemoryRequirements CVulkan::m_pfGetBufferMemoryRequireme
  * \param _memoryOffset The start offset within the device memory to bind.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkBindBufferMemory CVulkan::m_pfBindBufferMemory = nullptr;
+PFN_vkBindBufferMemory CVulkan::m_pfBindBufferMemory = nullptr;
 
 /**
  * Bind device memory to an image.
@@ -383,7 +446,7 @@ CVulkan::PFN_vkBindBufferMemory CVulkan::m_pfBindBufferMemory = nullptr;
  * \param _memoryOffset The start offset within the device memory to bind.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkBindImageMemory CVulkan::m_pfBindImageMemory = nullptr;
+PFN_vkBindImageMemory CVulkan::m_pfBindImageMemory = nullptr;
 
 /**
  * Create an image view object.
@@ -394,7 +457,7 @@ CVulkan::PFN_vkBindImageMemory CVulkan::m_pfBindImageMemory = nullptr;
  * \param _pImageView A pointer to a VkImageView handle in which the resulting image view is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateImageView CVulkan::m_pfCreateImageView = nullptr;
+PFN_vkCreateImageView CVulkan::m_pfCreateImageView = nullptr;
 
 /**
  * Destroy an image view object.
@@ -403,7 +466,26 @@ CVulkan::PFN_vkCreateImageView CVulkan::m_pfCreateImageView = nullptr;
  * \param _imageView The image view to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyImageView CVulkan::m_pfDestroyImageView = nullptr;
+PFN_vkDestroyImageView CVulkan::m_pfDestroyImageView = nullptr;
+
+/**
+ * Create a new sampler object.
+ * 
+ * \param _device The logical device that creates the sampler.
+ * \param _pCreateInfo A pointer to a VkSamplerCreateInfo structure specifying the state of the sampler object.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pSampler A pointer to a VkSampler handle in which the resulting sampler object is returned.
+ **/
+PFN_vkCreateSampler CVulkan::m_pfCreateSampler = nullptr;
+
+/**
+ * Destroy a sampler object.
+ * 
+ * \param _device The logical device that destroys the sampler.
+ * \param _sampler The sampler to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+PFN_vkDestroySampler CVulkan::m_pfDestroySampler = nullptr;
 
 /**
  * Create a render pass object.
@@ -414,7 +496,7 @@ CVulkan::PFN_vkDestroyImageView CVulkan::m_pfDestroyImageView = nullptr;
  * \param _pRenderPass A pointer to a VkRenderPass handle in which the resulting render pass is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateRenderPass CVulkan::m_pfCreateRenderPass = nullptr;
+PFN_vkCreateRenderPass CVulkan::m_pfCreateRenderPass = nullptr;
 
 /**
  * Destroy a render pass object.
@@ -423,7 +505,7 @@ CVulkan::PFN_vkCreateRenderPass CVulkan::m_pfCreateRenderPass = nullptr;
  * \param _renderPass The render pass to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyRenderPass CVulkan::m_pfDestroyRenderPass = nullptr;
+PFN_vkDestroyRenderPass CVulkan::m_pfDestroyRenderPass = nullptr;
 
 /**
  * Create a framebuffer object.
@@ -434,7 +516,7 @@ CVulkan::PFN_vkDestroyRenderPass CVulkan::m_pfDestroyRenderPass = nullptr;
  * \param _pFramebuffer A pointer to a VkFramebuffer handle in which the resulting framebuffer is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateFramebuffer CVulkan::m_pfCreateFramebuffer = nullptr;
+PFN_vkCreateFramebuffer CVulkan::m_pfCreateFramebuffer = nullptr;
 
 /**
  * Destroy a framebuffer object.
@@ -443,7 +525,34 @@ CVulkan::PFN_vkCreateFramebuffer CVulkan::m_pfCreateFramebuffer = nullptr;
  * \param _framebuffer The framebuffer to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyFramebuffer CVulkan::m_pfDestroyFramebuffer = nullptr;
+PFN_vkDestroyFramebuffer CVulkan::m_pfDestroyFramebuffer = nullptr;
+
+/**
+ * Begin a new render pass.
+ * 
+ * \param _commandBuffer The command buffer in which to record the command.
+ * \param _pRenderPassBegin A pointer to a VkRenderPassBeginInfo structure.
+ * \param _contents Specifies how the commands within the first subpass will be provided.
+ **/
+PFN_vkCmdBeginRenderPass CVulkan::m_pfCmdBeginRenderPass = nullptr;
+
+/**
+ * End the current render pass.
+ * 
+ * \param _commandBuffer The command buffer in which to record the command.
+ **/
+PFN_vkCmdEndRenderPass CVulkan::m_pfCmdEndRenderPass = nullptr;
+
+/**
+ * Update the contents of a descriptor set object.
+ * 
+ * \param _device The logical device that updates the descriptor sets.
+ * \param _descriptorWriteCount The number of elements in the _pDescriptorWrites array.
+ * \param _pDescriptorWrites A pointer to an array of VkWriteDescriptorSet structures.
+ * \param _descriptorCopyCount The number of elements in the _pDescriptorCopies array.
+ * \param _pDescriptorCopies A pointer to an array of VkCopyDescriptorSet structures.
+ **/
+PFN_vkUpdateDescriptorSets CVulkan::m_pfUpdateDescriptorSets = nullptr;
 
 /**
  * Create graphics pipelines.
@@ -456,7 +565,7 @@ CVulkan::PFN_vkDestroyFramebuffer CVulkan::m_pfDestroyFramebuffer = nullptr;
  * \param _pPipelines A pointer to an array of VkPipeline handles in which the resulting pipelines are returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateGraphicsPipelines CVulkan::m_pfCreateGraphicsPipelines = nullptr;
+PFN_vkCreateGraphicsPipelines CVulkan::m_pfCreateGraphicsPipelines = nullptr;
 
 /**
  * Create compute pipelines.
@@ -469,7 +578,7 @@ CVulkan::PFN_vkCreateGraphicsPipelines CVulkan::m_pfCreateGraphicsPipelines = nu
  * \param _pPipelines A pointer to an array of VkPipeline handles in which the resulting pipelines are returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateComputePipelines CVulkan::m_pfCreateComputePipelines = nullptr;
+PFN_vkCreateComputePipelines CVulkan::m_pfCreateComputePipelines = nullptr;
 
 /**
  * Destroy a pipeline object.
@@ -478,7 +587,7 @@ CVulkan::PFN_vkCreateComputePipelines CVulkan::m_pfCreateComputePipelines = null
  * \param _pipeline The pipeline to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyPipeline CVulkan::m_pfDestroyPipeline = nullptr;
+PFN_vkDestroyPipeline CVulkan::m_pfDestroyPipeline = nullptr;
 
 /**
  * Create a pipeline layout object.
@@ -489,7 +598,7 @@ CVulkan::PFN_vkDestroyPipeline CVulkan::m_pfDestroyPipeline = nullptr;
  * \param _pPipelineLayout A pointer to a VkPipelineLayout handle in which the resulting pipeline layout is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreatePipelineLayout CVulkan::m_pfCreatePipelineLayout = nullptr;
+PFN_vkCreatePipelineLayout CVulkan::m_pfCreatePipelineLayout = nullptr;
 
 /**
  * Destroy a pipeline layout object.
@@ -498,7 +607,7 @@ CVulkan::PFN_vkCreatePipelineLayout CVulkan::m_pfCreatePipelineLayout = nullptr;
  * \param _pipelineLayout The pipeline layout to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyPipelineLayout CVulkan::m_pfDestroyPipelineLayout = nullptr;
+PFN_vkDestroyPipelineLayout CVulkan::m_pfDestroyPipelineLayout = nullptr;
 
 /**
  * Create a shader module object.
@@ -509,7 +618,7 @@ CVulkan::PFN_vkDestroyPipelineLayout CVulkan::m_pfDestroyPipelineLayout = nullpt
  * \param _pShaderModule A pointer to a VkShaderModule handle in which the resulting shader module is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateShaderModule CVulkan::m_pfCreateShaderModule = nullptr;
+PFN_vkCreateShaderModule CVulkan::m_pfCreateShaderModule = nullptr;
 
 /**
  * Destroy a shader module object.
@@ -518,7 +627,84 @@ CVulkan::PFN_vkCreateShaderModule CVulkan::m_pfCreateShaderModule = nullptr;
  * \param _shaderModule The shader module to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyShaderModule CVulkan::m_pfDestroyShaderModule = nullptr;
+PFN_vkDestroyShaderModule CVulkan::m_pfDestroyShaderModule = nullptr;
+
+/**
+ * Bind a pipeline object to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer that the pipeline will be bound to.
+ * \param _pipelineBindPoint Specifies whether to bind to the compute or graphics pipeline.
+ * \param _pipeline The pipeline to be bound.
+ **/
+PFN_vkCmdBindPipeline CVulkan::m_pfCmdBindPipeline = nullptr;
+
+/**
+ * Binds descriptor sets to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer that the descriptor sets will be bound to.
+ * \param _pipelineBindPoint Indicates the type of the pipeline that will use the descriptors.
+ * \param _layout The pipeline layout that the descriptor sets are compatible with.
+ * \param _firstSet The set number of the first descriptor set to be bound.
+ * \param _descriptorSetCount The number of elements in the _pDescriptorSets array.
+ * \param _pDescriptorSets A pointer to an array of handles to descriptor sets to bind.
+ * \param _dynamicOffsetCount The number of dynamic offsets in the _pDynamicOffsets array.
+ * \param _pDynamicOffsets A pointer to an array of uint32_t values specifying dynamic offsets.
+ **/
+PFN_vkCmdBindDescriptorSets CVulkan::m_pfCmdBindDescriptorSets = nullptr;
+
+/**
+ * Bind vertex buffers to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstBinding The index of the first vertex input binding whose state is updated.
+ * \param _bindingCount The number of vertex input bindings whose state is updated.
+ * \param _pBuffers A pointer to an array of buffer handles.
+ * \param _pOffsets A pointer to an array of buffer offsets.
+ **/
+PFN_vkCmdBindVertexBuffers CVulkan::m_pfCmdBindVertexBuffers = nullptr;
+
+/**
+ * Draw primitives.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _vertexCount The number of vertices to draw.
+ * \param _instanceCount The number of instances to draw.
+ * \param _firstVertex The index of the first vertex to draw.
+ * \param _firstInstance The instance ID of the first instance to draw.
+ **/
+PFN_vkCmdDraw CVulkan::m_pfCmdDraw = nullptr;
+
+/**
+ * Set the viewport dynamically for a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstViewport The index of the first viewport whose parameters are updated.
+ * \param _viewportCount The number of viewports whose parameters are updated.
+ * \param _pViewports A pointer to an array of VkViewport structures specifying viewport parameters.
+ **/
+PFN_vkCmdSetViewport CVulkan::m_pfCmdSetViewport = nullptr;
+
+/**
+ * Set the dynamic scissor rectangles for a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstScissor The index of the first scissor whose parameters are updated.
+ * \param _scissorCount The number of scissors whose parameters are updated.
+ * \param _pScissors A pointer to an array of VkRect2D structures specifying scissor rectangles.
+ **/
+PFN_vkCmdSetScissor CVulkan::m_pfCmdSetScissor = nullptr;
+
+/**
+ * Update the values of push constants.
+ * 
+ * \param _commandBuffer The command buffer in which the push constant update will be recorded.
+ * \param _layout The pipeline layout used to program the push constant updates.
+ * \param _stageFlags A bitmask specifying the shader stages that will use the push constants.
+ * \param _offset The start offset of the push constant range to update, in bytes.
+ * \param _size The size of the push constant range to update, in bytes.
+ * \param _pValues A pointer to an array of bytes containing the new push constant values.
+ **/
+PFN_vkCmdPushConstants CVulkan::m_pfCmdPushConstants = nullptr;
 
 /**
  * Create a descriptor set layout object.
@@ -529,7 +715,7 @@ CVulkan::PFN_vkDestroyShaderModule CVulkan::m_pfDestroyShaderModule = nullptr;
  * \param _pSetLayout A pointer to a VkDescriptorSetLayout handle in which the resulting descriptor set layout is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateDescriptorSetLayout CVulkan::m_pfCreateDescriptorSetLayout = nullptr;
+PFN_vkCreateDescriptorSetLayout CVulkan::m_pfCreateDescriptorSetLayout = nullptr;
 
 /**
  * Destroy a descriptor set layout object.
@@ -538,7 +724,7 @@ CVulkan::PFN_vkCreateDescriptorSetLayout CVulkan::m_pfCreateDescriptorSetLayout 
  * \param _descriptorSetLayout The descriptor set layout to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyDescriptorSetLayout CVulkan::m_pfDestroyDescriptorSetLayout = nullptr;
+PFN_vkDestroyDescriptorSetLayout CVulkan::m_pfDestroyDescriptorSetLayout = nullptr;
 
 /**
  * Create a descriptor pool object.
@@ -549,7 +735,7 @@ CVulkan::PFN_vkDestroyDescriptorSetLayout CVulkan::m_pfDestroyDescriptorSetLayou
  * \param _pDescriptorPool A pointer to a VkDescriptorPool handle in which the resulting descriptor pool is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateDescriptorPool CVulkan::m_pfCreateDescriptorPool = nullptr;
+PFN_vkCreateDescriptorPool CVulkan::m_pfCreateDescriptorPool = nullptr;
 
 /**
  * Destroy a descriptor pool object.
@@ -558,7 +744,7 @@ CVulkan::PFN_vkCreateDescriptorPool CVulkan::m_pfCreateDescriptorPool = nullptr;
  * \param _descriptorPool The descriptor pool to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyDescriptorPool CVulkan::m_pfDestroyDescriptorPool = nullptr;
+PFN_vkDestroyDescriptorPool CVulkan::m_pfDestroyDescriptorPool = nullptr;
 
 /**
  * Reset a descriptor pool object.
@@ -568,7 +754,7 @@ CVulkan::PFN_vkDestroyDescriptorPool CVulkan::m_pfDestroyDescriptorPool = nullpt
  * \param _flags Flags specifying additional parameters.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkResetDescriptorPool CVulkan::m_pfResetDescriptorPool = nullptr;
+PFN_vkResetDescriptorPool CVulkan::m_pfResetDescriptorPool = nullptr;
 
 /**
  * Allocate descriptor sets from a descriptor pool.
@@ -578,7 +764,7 @@ CVulkan::PFN_vkResetDescriptorPool CVulkan::m_pfResetDescriptorPool = nullptr;
  * \param _pDescriptorSets A pointer to an array of VkDescriptorSet handles in which the resulting descriptor sets are returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkAllocateDescriptorSets CVulkan::m_pfAllocateDescriptorSets = nullptr;
+PFN_vkAllocateDescriptorSets CVulkan::m_pfAllocateDescriptorSets = nullptr;
 
 /**
  * Free descriptor sets back to a descriptor pool.
@@ -589,7 +775,7 @@ CVulkan::PFN_vkAllocateDescriptorSets CVulkan::m_pfAllocateDescriptorSets = null
  * \param _pDescriptorSets A pointer to an array of VkDescriptorSet handles specifying the descriptor sets to free.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkFreeDescriptorSets CVulkan::m_pfFreeDescriptorSets = nullptr;
+PFN_vkFreeDescriptorSets CVulkan::m_pfFreeDescriptorSets = nullptr;
 
 /**
  * Submit a queue for execution.
@@ -600,7 +786,7 @@ CVulkan::PFN_vkFreeDescriptorSets CVulkan::m_pfFreeDescriptorSets = nullptr;
  * \param _fence A fence that will be signaled once the command buffers have completed execution.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkQueueSubmit CVulkan::m_pfQueueSubmit = nullptr;
+PFN_vkQueueSubmit CVulkan::m_pfQueueSubmit = nullptr;
 
 #ifdef LSN_WINDOWS
 /**
@@ -610,7 +796,7 @@ CVulkan::PFN_vkQueueSubmit CVulkan::m_pfQueueSubmit = nullptr;
  * \param _pPresentInfo A pointer to a VkPresentInfoKHR structure specifying the parameters of the presentation.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkQueuePresentKHR CVulkan::m_pfQueuePresentKHR = nullptr;
+PFN_vkQueuePresentKHR CVulkan::m_pfQueuePresentKHR = nullptr;
 #endif	// #ifdef LSN_WINDOWS
 
 /**
@@ -619,7 +805,7 @@ CVulkan::PFN_vkQueuePresentKHR CVulkan::m_pfQueuePresentKHR = nullptr;
  * \param _queue The queue to wait for.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkQueueWaitIdle CVulkan::m_pfQueueWaitIdle = nullptr;
+PFN_vkQueueWaitIdle CVulkan::m_pfQueueWaitIdle = nullptr;
 
 /**
  * Wait for all device operations to complete.
@@ -627,7 +813,7 @@ CVulkan::PFN_vkQueueWaitIdle CVulkan::m_pfQueueWaitIdle = nullptr;
  * \param _device The logical device to wait for.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkDeviceWaitIdle CVulkan::m_pfDeviceWaitIdle = nullptr;
+PFN_vkDeviceWaitIdle CVulkan::m_pfDeviceWaitIdle = nullptr;
 
 /**
  * Map a memory object into application address space.
@@ -640,7 +826,7 @@ CVulkan::PFN_vkDeviceWaitIdle CVulkan::m_pfDeviceWaitIdle = nullptr;
  * \param _ppData A pointer to a pointer in which the host-accessible pointer to the mapped memory is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkMapMemory CVulkan::m_pfMapMemory = nullptr;
+PFN_vkMapMemory CVulkan::m_pfMapMemory = nullptr;
 
 /**
  * Unmap a memory object previously mapped into application address space.
@@ -648,7 +834,7 @@ CVulkan::PFN_vkMapMemory CVulkan::m_pfMapMemory = nullptr;
  * \param _device The logical device that owns the memory.
  * \param _memory The memory object to unmap.
  **/
-CVulkan::PFN_vkUnmapMemory CVulkan::m_pfUnmapMemory = nullptr;
+PFN_vkUnmapMemory CVulkan::m_pfUnmapMemory = nullptr;
 
 /**
  * Flush ranges of mapped memory to ensure host writes are visible to the device.
@@ -658,7 +844,7 @@ CVulkan::PFN_vkUnmapMemory CVulkan::m_pfUnmapMemory = nullptr;
  * \param _pMemoryRanges A pointer to an array of VkMappedMemoryRange structures specifying the memory ranges to flush.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkFlushMappedMemoryRanges CVulkan::m_pfFlushMappedMemoryRanges = nullptr;
+PFN_vkFlushMappedMemoryRanges CVulkan::m_pfFlushMappedMemoryRanges = nullptr;
 
 /**
  * Invalidate ranges of mapped memory to ensure device writes are visible to the host.
@@ -668,7 +854,7 @@ CVulkan::PFN_vkFlushMappedMemoryRanges CVulkan::m_pfFlushMappedMemoryRanges = nu
  * \param _pMemoryRanges A pointer to an array of VkMappedMemoryRange structures specifying the memory ranges to invalidate.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkInvalidateMappedMemoryRanges CVulkan::m_pfInvalidateMappedMemoryRanges = nullptr;
+PFN_vkInvalidateMappedMemoryRanges CVulkan::m_pfInvalidateMappedMemoryRanges = nullptr;
 
 #ifdef LSN_WINDOWS
 /**
@@ -683,7 +869,7 @@ CVulkan::PFN_vkInvalidateMappedMemoryRanges CVulkan::m_pfInvalidateMappedMemoryR
  * \param _pPipelines A pointer to an array of VkPipeline handles in which the resulting pipelines are returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateRayTracingPipelinesKHR CVulkan::m_pfCreateRayTracingPipelinesKHR = nullptr;
+PFN_vkCreateRayTracingPipelinesKHR CVulkan::m_pfCreateRayTracingPipelinesKHR = nullptr;
 
 /**
  * Get ray tracing shader group handles.
@@ -696,7 +882,7 @@ CVulkan::PFN_vkCreateRayTracingPipelinesKHR CVulkan::m_pfCreateRayTracingPipelin
  * \param _pData A pointer to a buffer to receive the shader group handles.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkGetRayTracingShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingShaderGroupHandlesKHR = nullptr;
+PFN_vkGetRayTracingShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingShaderGroupHandlesKHR = nullptr;
 
 /**
  * Get capture replay shader group handles.
@@ -709,7 +895,7 @@ CVulkan::PFN_vkGetRayTracingShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingShad
  * \param _pData A pointer to a buffer to receive the shader group handles.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingCaptureReplayShaderGroupHandlesKHR = nullptr;
+PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR CVulkan::m_pfGetRayTracingCaptureReplayShaderGroupHandlesKHR = nullptr;
 
 /**
  * Create an acceleration structure object.
@@ -720,7 +906,7 @@ CVulkan::PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR CVulkan::m_pfGetR
  * \param _pAccelerationStructure A pointer to a VkAccelerationStructureKHR handle in which the resulting acceleration structure is returned.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCreateAccelerationStructureKHR CVulkan::m_pfCreateAccelerationStructureKHR = nullptr;
+PFN_vkCreateAccelerationStructureKHR CVulkan::m_pfCreateAccelerationStructureKHR = nullptr;
 
 /**
  * Destroy an acceleration structure object.
@@ -729,7 +915,7 @@ CVulkan::PFN_vkCreateAccelerationStructureKHR CVulkan::m_pfCreateAccelerationStr
  * \param _accelerationStructure The acceleration structure to destroy.
  * \param _pAllocator Controls host memory allocation.
  **/
-CVulkan::PFN_vkDestroyAccelerationStructureKHR CVulkan::m_pfDestroyAccelerationStructureKHR = nullptr;
+PFN_vkDestroyAccelerationStructureKHR CVulkan::m_pfDestroyAccelerationStructureKHR = nullptr;
 
 /**
  * Get the device address of an acceleration structure.
@@ -738,7 +924,7 @@ CVulkan::PFN_vkDestroyAccelerationStructureKHR CVulkan::m_pfDestroyAccelerationS
  * \param _pInfo A pointer to a VkAccelerationStructureDeviceAddressInfoKHR structure specifying the acceleration structure to query.
  * \return The device address of the acceleration structure.
  **/
-CVulkan::PFN_vkGetAccelerationStructureDeviceAddressKHR CVulkan::m_pfGetAccelerationStructureDeviceAddressKHR = nullptr;
+PFN_vkGetAccelerationStructureDeviceAddressKHR CVulkan::m_pfGetAccelerationStructureDeviceAddressKHR = nullptr;
 
 /**
  * Build acceleration structures.
@@ -750,7 +936,7 @@ CVulkan::PFN_vkGetAccelerationStructureDeviceAddressKHR CVulkan::m_pfGetAccelera
  * \param _ppBuildRangeInfos A pointer to an array of VkAccelerationStructureBuildRangeInfoKHR pointers specifying the ranges for each geometry in the acceleration structures.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkBuildAccelerationStructuresKHR CVulkan::m_pfBuildAccelerationStructuresKHR = nullptr;
+PFN_vkBuildAccelerationStructuresKHR CVulkan::m_pfBuildAccelerationStructuresKHR = nullptr;
 
 /**
  * Copy an acceleration structure.
@@ -760,7 +946,7 @@ CVulkan::PFN_vkBuildAccelerationStructuresKHR CVulkan::m_pfBuildAccelerationStru
  * \param _pInfo A pointer to a VkCopyAccelerationStructureInfoKHR structure specifying the copy operation.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCopyAccelerationStructureKHR CVulkan::m_pfCopyAccelerationStructureKHR = nullptr;
+PFN_vkCopyAccelerationStructureKHR CVulkan::m_pfCopyAccelerationStructureKHR = nullptr;
 
 /**
  * Copy an acceleration structure to memory.
@@ -770,7 +956,7 @@ CVulkan::PFN_vkCopyAccelerationStructureKHR CVulkan::m_pfCopyAccelerationStructu
  * \param _pInfo A pointer to a VkCopyAccelerationStructureToMemoryInfoKHR structure specifying the copy operation.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkCopyAccelerationStructureToMemoryKHR CVulkan::m_pfCopyAccelerationStructureToMemoryKHR = nullptr;
+PFN_vkCopyAccelerationStructureToMemoryKHR CVulkan::m_pfCopyAccelerationStructureToMemoryKHR = nullptr;
 
 /**
  * Copy memory to an acceleration structure.
@@ -778,7 +964,7 @@ CVulkan::PFN_vkCopyAccelerationStructureToMemoryKHR CVulkan::m_pfCopyAcceleratio
  * \param _commandBuffer The command buffer in which the copy command is recorded.
  * \param _pInfo A pointer to a VkCopyMemoryToAccelerationStructureInfoKHR structure specifying the copy operation.
  **/
-CVulkan::PFN_vkCmdCopyMemoryToAccelerationStructureKHR CVulkan::m_pfCmdCopyMemoryToAccelerationStructureKHR = nullptr;
+PFN_vkCmdCopyMemoryToAccelerationStructureKHR CVulkan::m_pfCmdCopyMemoryToAccelerationStructureKHR = nullptr;
 
 /**
  * Write acceleration structures properties.
@@ -792,7 +978,7 @@ CVulkan::PFN_vkCmdCopyMemoryToAccelerationStructureKHR CVulkan::m_pfCmdCopyMemor
  * \param _stride The stride in bytes between successive results.
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
-CVulkan::PFN_vkWriteAccelerationStructuresPropertiesKHR CVulkan::m_pfWriteAccelerationStructuresPropertiesKHR = nullptr;
+PFN_vkWriteAccelerationStructuresPropertiesKHR CVulkan::m_pfWriteAccelerationStructuresPropertiesKHR = nullptr;
 
 /**
  * Get the build sizes for an acceleration structure.
@@ -803,7 +989,7 @@ CVulkan::PFN_vkWriteAccelerationStructuresPropertiesKHR CVulkan::m_pfWriteAccele
  * \param _pMaxPrimitiveCounts A pointer to an array of maximum primitive counts for each geometry in the build operation.
  * \param _pSizeInfo A pointer to a VkAccelerationStructureBuildSizesInfoKHR structure in which the build sizes are returned.
  **/
-CVulkan::PFN_vkGetAccelerationStructureBuildSizesKHR CVulkan::m_pfGetAccelerationStructureBuildSizesKHR = nullptr;
+PFN_vkGetAccelerationStructureBuildSizesKHR CVulkan::m_pfGetAccelerationStructureBuildSizesKHR = nullptr;
 
 /**
  * Trace rays in a ray tracing pipeline.
@@ -817,7 +1003,7 @@ CVulkan::PFN_vkGetAccelerationStructureBuildSizesKHR CVulkan::m_pfGetAcceleratio
  * \param _height The height of the ray trace operation.
  * \param _depth The depth of the ray trace operation.
  **/
-CVulkan::PFN_vkCmdTraceRaysKHR CVulkan::m_pfCmdTraceRaysKHR = nullptr;
+PFN_vkCmdTraceRaysKHR CVulkan::m_pfCmdTraceRaysKHR = nullptr;
 
 /**
  * Trace rays in a ray tracing pipeline using indirect commands.
@@ -829,7 +1015,7 @@ CVulkan::PFN_vkCmdTraceRaysKHR CVulkan::m_pfCmdTraceRaysKHR = nullptr;
  * \param _pCallableShaderBindingTable A pointer to a VkStridedDeviceAddressRegionKHR structure specifying the callable shader binding table.
  * \param _indirectDeviceAddress The device address of the indirect command buffer.
  **/
-CVulkan::PFN_vkCmdTraceRaysIndirectKHR CVulkan::m_pfCmdTraceRaysIndirectKHR = nullptr;
+PFN_vkCmdTraceRaysIndirectKHR CVulkan::m_pfCmdTraceRaysIndirectKHR = nullptr;
 
 /**
  * Get the stack size required for a ray tracing shader group.
@@ -840,5 +1026,41 @@ CVulkan::PFN_vkCmdTraceRaysIndirectKHR CVulkan::m_pfCmdTraceRaysIndirectKHR = nu
  * \param _groupShader The specific shader within the group.
  * \return The stack size in bytes required for the shader group.
  **/
-CVulkan::PFN_vkGetRayTracingShaderGroupStackSizeKHR CVulkan::m_pfGetRayTracingShaderGroupStackSizeKHR = nullptr;
+PFN_vkGetRayTracingShaderGroupStackSizeKHR CVulkan::m_pfGetRayTracingShaderGroupStackSizeKHR = nullptr;
 #endif	// #ifdef LSN_WINDOWS
+
+/**
+ * Returns properties of available physical device memory.
+ * 
+ * \param _physicalDevice The handle to the physical device whose properties will be queried.
+ * \param _pMemoryProperties A pointer to a VkPhysicalDeviceMemoryProperties structure in which the properties are returned.
+ **/
+PFN_vkGetPhysicalDeviceMemoryProperties CVulkan::m_pfGetPhysicalDeviceMemoryProperties = nullptr;
+
+/**
+ * Insert a memory dependency.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _srcStageMask Specifies the source stage mask.
+ * \param _dstStageMask Specifies the destination stage mask.
+ * \param _dependencyFlags A bitmask of VkDependencyFlagBits specifying how execution and memory dependencies are formed.
+ * \param _memoryBarrierCount The number of elements in the _pMemoryBarriers array.
+ * \param _pMemoryBarriers A pointer to an array of VkMemoryBarrier structures.
+ * \param _bufferMemoryBarrierCount The number of elements in the _pBufferMemoryBarriers array.
+ * \param _pBufferMemoryBarriers A pointer to an array of VkBufferMemoryBarrier structures.
+ * \param _imageMemoryBarrierCount The number of elements in the _pImageMemoryBarriers array.
+ * \param _pImageMemoryBarriers A pointer to an array of VkImageMemoryBarrier structures.
+ **/
+PFN_vkCmdPipelineBarrier CVulkan::m_pfCmdPipelineBarrier = nullptr;
+
+/**
+ * Copy data from a buffer into an image.
+ * 
+ * \param _commandBuffer The command buffer into which the command will be recorded.
+ * \param _srcBuffer The source buffer.
+ * \param _dstImage The destination image.
+ * \param _dstImageLayout The layout of the destination image subresources for the copy.
+ * \param _regionCount The number of regions to copy.
+ * \param _pRegions A pointer to an array of VkBufferImageCopy structures specifying the regions to copy.
+ **/
+PFN_vkCmdCopyBufferToImage CVulkan::m_pfCmdCopyBufferToImage = nullptr;

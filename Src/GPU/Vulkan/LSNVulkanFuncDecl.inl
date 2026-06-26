@@ -105,6 +105,11 @@ static PFN_vkCreateSwapchainKHR							m_pfCreateSwapchainKHR;
 static PFN_vkDestroySwapchainKHR						m_pfDestroySwapchainKHR;
 
 /**
+ * Obtain the array of presentable images associated with a swapchain.
+ **/
+static PFN_vkGetSwapchainImagesKHR						m_pfGetSwapchainImagesKHR;
+
+/**
  * Query color formats supported by surface.
  * 
  * \param _physicalDevice The physical device that will be associated with the swapchain to be created, as described for vkCreateSwapchainKHR.
@@ -156,6 +161,19 @@ static PFN_vkCreateImage								m_pfCreateImage;
  * \param _pAllocator Controls host memory allocation.
  **/
 static PFN_vkDestroyImage								m_pfDestroyImage;
+
+/**
+ * Retrieve the index of the next available presentable image.
+ * 
+ * \param _device The logical device associated with the swapchain.
+ * \param _swapchain The non-retired swapchain from which an image is being acquired.
+ * \param _timeout Specifies how long the function waits, in nanoseconds, if no image is available.
+ * \param _semaphore VK_NULL_HANDLE or a semaphore to signal.
+ * \param _fence VK_NULL_HANDLE or a fence to signal.
+ * \param _pImageIndex A pointer to a uint32_t in which the index of the next image is returned.
+ * \return Returns VK_SUCCESS on success, or an appropriate error code (like VK_SUBOPTIMAL_KHR or VK_ERROR_OUT_OF_DATE_KHR) on failure.
+ **/
+static PFN_vkAcquireNextImageKHR                           m_pfAcquireNextImageKHR;
 
 /**
  * Returns the memory requirements for specified Vulkan object.
@@ -217,6 +235,16 @@ static PFN_vkEnumerateDeviceExtensionProperties			m_pfEnumerateDeviceExtensionPr
 static PFN_vkAllocateCommandBuffers                        m_pfAllocateCommandBuffers;
 
 /**
+ * Free command buffers.
+ * 
+ * \param _device The logical device that owns the command pool.
+ * \param _commandPool The command pool from which the command buffers were allocated.
+ * \param _commandBufferCount The number of command buffers to free.
+ * \param _pCommandBuffers An array of VkCommandBuffer handles to be freed.
+ **/
+static PFN_vkFreeCommandBuffers                            m_pfFreeCommandBuffers;
+
+/**
  * Begin recording commands to a command buffer.
  * 
  * \param _commandBuffer The command buffer to start recording.
@@ -271,6 +299,41 @@ static PFN_vkDestroyCommandPool                            m_pfDestroyCommandPoo
  * \return VK_SUCCESS on success, or a negative error code on failure.
  **/
 static PFN_vkResetCommandPool                              m_pfResetCommandPool;
+
+/**
+ * Create a new query pool object.
+ * 
+ * \param _device The logical device that creates the query pool.
+ * \param _pCreateInfo A pointer to a VkQueryPoolCreateInfo structure containing parameters to be used to create the pool.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pQueryPool A pointer to a VkQueryPool handle in which the resulting query pool object is returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkCreateQueryPool                               m_pfCreateQueryPool;
+
+/**
+ * Destroy a query pool object.
+ *
+ * \param _device The logical device that destroys the query pool.
+ * \param _queryPool The query pool to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+static PFN_vkDestroyQueryPool                              m_pfDestroyQueryPool;
+
+/**
+ * Copy results of queries in a query pool to a host memory buffer.
+ *
+ * \param _device The logical device that owns the query pool.
+ * \param _queryPool The query pool managing the queries containing the desired results.
+ * \param _firstQuery The initial query index.
+ * \param _queryCount The number of queries to read.
+ * \param _dataSize The size in bytes of the buffer pointed to by _pData.
+ * \param _pData A pointer to a user-allocated buffer where the results will be written.
+ * \param _stride The stride in bytes between results for individual queries within _pData.
+ * \param _flags A bitmask of VkQueryResultFlagBits specifying how and when results are returned.
+ * \return VK_SUCCESS on success, or a negative error code on failure.
+ **/
+static PFN_vkGetQueryPoolResults                           m_pfGetQueryPoolResults;
 
 /**
  * Create a fence object.
@@ -406,6 +469,25 @@ static PFN_vkCreateImageView                               m_pfCreateImageView;
 static PFN_vkDestroyImageView                              m_pfDestroyImageView;
 
 /**
+ * Create a new sampler object.
+ * 
+ * \param _device The logical device that creates the sampler.
+ * \param _pCreateInfo A pointer to a VkSamplerCreateInfo structure specifying the state of the sampler object.
+ * \param _pAllocator Controls host memory allocation.
+ * \param _pSampler A pointer to a VkSampler handle in which the resulting sampler object is returned.
+ **/
+static PFN_vkCreateSampler                                 m_pfCreateSampler;
+
+/**
+ * Destroy a sampler object.
+ * 
+ * \param _device The logical device that destroys the sampler.
+ * \param _sampler The sampler to destroy.
+ * \param _pAllocator Controls host memory allocation.
+ **/
+static PFN_vkDestroySampler                                m_pfDestroySampler;
+
+/**
  * Create a render pass object.
  * 
  * \param _device The logical device that owns the render pass.
@@ -444,6 +526,33 @@ static PFN_vkCreateFramebuffer                             m_pfCreateFramebuffer
  * \param _pAllocator Controls host memory allocation.
  **/
 static PFN_vkDestroyFramebuffer                            m_pfDestroyFramebuffer;
+
+/**
+ * Begin a new render pass.
+ * 
+ * \param _commandBuffer The command buffer in which to record the command.
+ * \param _pRenderPassBegin A pointer to a VkRenderPassBeginInfo structure.
+ * \param _contents Specifies how the commands within the first subpass will be provided.
+ **/
+static PFN_vkCmdBeginRenderPass                            m_pfCmdBeginRenderPass;
+
+/**
+ * End the current render pass.
+ * 
+ * \param _commandBuffer The command buffer in which to record the command.
+ **/
+static PFN_vkCmdEndRenderPass                              m_pfCmdEndRenderPass;
+
+/**
+ * Update the contents of a descriptor set object.
+ * 
+ * \param _device The logical device that updates the descriptor sets.
+ * \param _descriptorWriteCount The number of elements in the _pDescriptorWrites array.
+ * \param _pDescriptorWrites A pointer to an array of VkWriteDescriptorSet structures.
+ * \param _descriptorCopyCount The number of elements in the _pDescriptorCopies array.
+ * \param _pDescriptorCopies A pointer to an array of VkCopyDescriptorSet structures.
+ **/
+static PFN_vkUpdateDescriptorSets                          m_pfUpdateDescriptorSets;
 
 /**
  * Create graphics pipelines.
@@ -519,6 +628,83 @@ static PFN_vkCreateShaderModule                            m_pfCreateShaderModul
  * \param _pAllocator Controls host memory allocation.
  **/
 static PFN_vkDestroyShaderModule                           m_pfDestroyShaderModule;
+
+/**
+ * Bind a pipeline object to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer that the pipeline will be bound to.
+ * \param _pipelineBindPoint Specifies whether to bind to the compute or graphics pipeline.
+ * \param _pipeline The pipeline to be bound.
+ **/
+static PFN_vkCmdBindPipeline                               m_pfCmdBindPipeline;
+
+/**
+ * Binds descriptor sets to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer that the descriptor sets will be bound to.
+ * \param _pipelineBindPoint Indicates the type of the pipeline that will use the descriptors.
+ * \param _layout The pipeline layout that the descriptor sets are compatible with.
+ * \param _firstSet The set number of the first descriptor set to be bound.
+ * \param _descriptorSetCount The number of elements in the _pDescriptorSets array.
+ * \param _pDescriptorSets A pointer to an array of handles to descriptor sets to bind.
+ * \param _dynamicOffsetCount The number of dynamic offsets in the _pDynamicOffsets array.
+ * \param _pDynamicOffsets A pointer to an array of uint32_t values specifying dynamic offsets.
+ **/
+static PFN_vkCmdBindDescriptorSets                         m_pfCmdBindDescriptorSets;
+
+/**
+ * Bind vertex buffers to a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstBinding The index of the first vertex input binding whose state is updated.
+ * \param _bindingCount The number of vertex input bindings whose state is updated.
+ * \param _pBuffers A pointer to an array of buffer handles.
+ * \param _pOffsets A pointer to an array of buffer offsets.
+ **/
+static PFN_vkCmdBindVertexBuffers                          m_pfCmdBindVertexBuffers;
+
+/**
+ * Draw primitives.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _vertexCount The number of vertices to draw.
+ * \param _instanceCount The number of instances to draw.
+ * \param _firstVertex The index of the first vertex to draw.
+ * \param _firstInstance The instance ID of the first instance to draw.
+ **/
+static PFN_vkCmdDraw                                       m_pfCmdDraw;
+
+/**
+ * Set the viewport dynamically for a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstViewport The index of the first viewport whose parameters are updated.
+ * \param _viewportCount The number of viewports whose parameters are updated.
+ * \param _pViewports A pointer to an array of VkViewport structures specifying viewport parameters.
+ **/
+static PFN_vkCmdSetViewport                                m_pfCmdSetViewport;
+
+/**
+ * Set the dynamic scissor rectangles for a command buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _firstScissor The index of the first scissor whose parameters are updated.
+ * \param _scissorCount The number of scissors whose parameters are updated.
+ * \param _pScissors A pointer to an array of VkRect2D structures specifying scissor rectangles.
+ **/
+static PFN_vkCmdSetScissor                                 m_pfCmdSetScissor;
+
+/**
+ * Update the values of push constants.
+ * 
+ * \param _commandBuffer The command buffer in which the push constant update will be recorded.
+ * \param _layout The pipeline layout used to program the push constant updates.
+ * \param _stageFlags A bitmask specifying the shader stages that will use the push constants.
+ * \param _offset The start offset of the push constant range to update, in bytes.
+ * \param _size The size of the push constant range to update, in bytes.
+ * \param _pValues A pointer to an array of bytes containing the new push constant values.
+ **/
+static PFN_vkCmdPushConstants                              m_pfCmdPushConstants;
 
 /**
  * Create a descriptor set layout object.
@@ -842,3 +1028,39 @@ static PFN_vkCmdTraceRaysIndirectKHR                       m_pfCmdTraceRaysIndir
  **/
 static PFN_vkGetRayTracingShaderGroupStackSizeKHR          m_pfGetRayTracingShaderGroupStackSizeKHR;
 #endif	// #ifdef LSN_WINDOWS
+
+/**
+ * Returns properties of available physical device memory.
+ * 
+ * \param _physicalDevice The handle to the physical device whose properties will be queried.
+ * \param _pMemoryProperties A pointer to a VkPhysicalDeviceMemoryProperties structure in which the properties are returned.
+ **/
+static PFN_vkGetPhysicalDeviceMemoryProperties             m_pfGetPhysicalDeviceMemoryProperties;
+
+/**
+ * Insert a memory dependency.
+ * 
+ * \param _commandBuffer The command buffer into which the command is recorded.
+ * \param _srcStageMask Specifies the source stage mask.
+ * \param _dstStageMask Specifies the destination stage mask.
+ * \param _dependencyFlags A bitmask of VkDependencyFlagBits specifying how execution and memory dependencies are formed.
+ * \param _memoryBarrierCount The number of elements in the _pMemoryBarriers array.
+ * \param _pMemoryBarriers A pointer to an array of VkMemoryBarrier structures.
+ * \param _bufferMemoryBarrierCount The number of elements in the _pBufferMemoryBarriers array.
+ * \param _pBufferMemoryBarriers A pointer to an array of VkBufferMemoryBarrier structures.
+ * \param _imageMemoryBarrierCount The number of elements in the _pImageMemoryBarriers array.
+ * \param _pImageMemoryBarriers A pointer to an array of VkImageMemoryBarrier structures.
+ **/
+static PFN_vkCmdPipelineBarrier                            m_pfCmdPipelineBarrier;
+
+/**
+ * Copy data from a buffer into an image.
+ * 
+ * \param _commandBuffer The command buffer into which the command will be recorded.
+ * \param _srcBuffer The source buffer.
+ * \param _dstImage The destination image.
+ * \param _dstImageLayout The layout of the destination image subresources for the copy.
+ * \param _regionCount The number of regions to copy.
+ * \param _pRegions A pointer to an array of VkBufferImageCopy structures specifying the regions to copy.
+ **/
+static PFN_vkCmdCopyBufferToImage                          m_pfCmdCopyBufferToImage;

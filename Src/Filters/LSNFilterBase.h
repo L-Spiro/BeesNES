@@ -72,6 +72,20 @@ namespace lsn {
 			LSN_F_AUTO_CRT_FULL_US_DX12,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRO_AUTO_US_DX12,						/**< L. Spiro auto up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+			LSN_F_INDEXEDVULKAN1,							/**< Basic paletted Direct3D 12. */
+			LSN_F_NTSC_BLARGG_US_VULKAN1,					/**< Blargg's NTSC up-scaled Direct3D 12. */
+			LSN_F_NTSC_CRT_FULL_US_VULKAN1,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 12. */
+			LSN_F_PAL_CRT_FULL_US_VULKAN1,					/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 12. */
+			LSN_F_LSPIRONTSC_US_VULKAN1,					/**< L. Spiro NTSC up-scaled Direct3D 12. */
+			LSN_F_LSPIROPAL_US_VULKAN1,						/**< L. Spiro PAL up-scaled Direct3D 12. */
+			LSN_F_LSPIRODENDY_US_VULKAN1,					/**< L. Spiro Dendy up-scaled Direct3D 12. */
+			LSN_F_LSPIROPALM_US_VULKAN1,					/**< L. Spiro PAL-M up-scaled Direct3D 12. */
+			LSN_F_LSPIROPALN_US_VULKAN1,					/**< L. Spiro PAL-N up-scaled Direct3D 12. */
+			
+			LSN_F_AUTO_CRT_FULL_US_VULKAN1,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
+			LSN_F_LSPIRO_AUTO_US_VULKAN1,					/**< L. Spiro auto up-scaled Direct3D 12. */
+#endif	// #ifdef LSN_VULKAN1
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */
 		};
