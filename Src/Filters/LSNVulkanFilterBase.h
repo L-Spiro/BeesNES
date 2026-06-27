@@ -11,25 +11,28 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "LSNGpuFilterBase.h"
-#include "LSNNesPalette.h"
-#include "LSNResamplerBase.h"
 
 #include "../GPU/Vulkan/LSNVulkan.h"
 #include "../GPU/Vulkan/LSNVulkanDevice.h"
 #include "../GPU/Vulkan/LSNVulkanCommandBuffer.h"
+#include "../GPU/Vulkan/LSNVulkanCommandPool.h"
+#include "../GPU/Vulkan/LSNVulkanFence.h"
+#include "../GPU/Vulkan/LSNVulkanSemaphore.h"
 #include "../GPU/Vulkan/LSNVulkanImage.h"
 #include "../GPU/Vulkan/LSNVulkanDeviceMemory.h"
 #include "../GPU/Vulkan/LSNVulkanDescriptorPool.h"
 #include "../GPU/Vulkan/LSNVulkanDescriptorSetLayout.h"
 
-#include "../GPU/Vulkan/LSNVulkanCommandPool.h"
 #include "../GPU/Vulkan/LSNVulkanPhosphor.h"
 #include "../GPU/Vulkan/LSNVulkanResampler.h"
 #include "../GPU/Vulkan/LSNVulkanTextureGamma.h"
 #include "../GPU/Vulkan/LSNVulkanTexturePixelScaler.h"
 #include "../GPU/Vulkan/LSNVulkanTextureRenderer.h"
 #include "../Utilities/LSNUtilities.h"
+
+#include "LSNGpuFilterBase.h"
+#include "LSNNesPalette.h"
+#include "LSNResamplerBase.h"
 
 #include <Widget/LSWWidget.h>
 
@@ -113,6 +116,12 @@ namespace lsn {
 		 * \return Returns a reference to the global CVulkanDevice instance.
 		 */
 		static CVulkanDevice &									Device() { return s_vgsState.vkDevice; }
+
+		/**
+		 * Presents the active swapchain frame to the target surface.
+		 */
+		void													Present();
+
 
 		// == Common Pipeline Accessors ==
 		/**
@@ -334,7 +343,7 @@ namespace lsn {
 				}
 #else
 				if ( pvTarget ) {
-					lsn::DebugA( stderr, "\r\n* * * * * LSN_VULKAN_GLOBAL_STATE::~LSN_VULKAN_GLOBAL_STATE():pvTarget NOT DESTROYED * * * * *\r\n\r\n" );
+					lsn::DebugA( "\r\n* * * * * LSN_VULKAN_GLOBAL_STATE::~LSN_VULKAN_GLOBAL_STATE():pvTarget NOT DESTROYED * * * * *\r\n\r\n" );
 					pvTarget = nullptr;
 				}
 #endif
@@ -349,6 +358,15 @@ namespace lsn {
 		static LSN_VULKAN_GLOBAL_STATE							s_vgsState;							/**< The global Vulkan state containing the shared device. */
 
 		CVulkanDevice *											m_pvkDevice = nullptr;				/**< Pointer to the shared Vulkan device. */
+
+		// == Frame Sync and Command Records ==
+		CVulkanCommandPool										m_cpCommandPool;					/**< Command pool for managing the active frame. */
+		CVulkanCommandBuffer									m_cbCommandBuffer;					/**< Command buffer for recording passes. */
+		CVulkanFence											m_fRenderFence;						/**< GPU to CPU synchronization fence. */
+		CVulkanSemaphore										m_sImageAvailable;					/**< Semaphore signaled when the swapchain image is ready. */
+		CVulkanSemaphore										m_sRenderFinished;					/**< Semaphore signaled when drawing commands complete. */
+		uint32_t												m_ui32ImageIndex = 0;				/**< The active swapchain image index for the current frame. */
+		bool													m_bCanPresent = false;				/**< Signals to the external presenter if queueing succeeded. */
 
 		// == Common Pipeline Components ==
 		CVulkanTextureGamma										m_tgGamma;							/**< The gamma correction hardware pass. */
@@ -459,16 +477,6 @@ namespace lsn {
 		 * \return Returns true if pipeline execution was successfully recorded.
 		 */
 		bool													RenderBase( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandBuffer, VkImageView _ivSrc, VkSampler _sSrcSampler, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, uint32_t _ui32ImageIndex, bool _bFlipY = false );
-
-		/**
-		 * Helper to locate an appropriate memory type index for device or host allocations.
-		 *
-		 * \param _pdDevice The Vulkan physical device.
-		 * \param _ui32TypeFilter The acceptable memory types bitmask.
-		 * \param _mpfProperties The requested memory property flags.
-		 * \return Returns the index of the memory type, or 0 if none is found.
-		 */
-		uint32_t												FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties );
 		
 		/**
 		 * Helper to construct a standard rendering pass format layout.
@@ -496,16 +504,6 @@ namespace lsn {
 		 * \return Returns true if creating the point sampler m_sPointSampler succeeded.
 		 **/
 		bool													CreateSamplers( VkDevice _dDevice );
-
-		/**
-		 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
-		 *
-		 * \param _pcszSource Null-terminated GLSL source code.
-		 * \param _pcszStage The shader stage (e.g., "vertex" or "fragment").
-		 * \param _vOutByteCode Output vector to receive the compiled SPIR-V bytecode.
-		 * \return Returns true if compilation succeeded and bytecode was produced.
-		 */
-		static bool												CompileGlslToSpirv( const char * _pcszSource, const char * _pcszStage, std::vector<uint32_t> &_vOutByteCode );
 	};
 
 }	// namespace lsn

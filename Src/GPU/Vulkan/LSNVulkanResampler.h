@@ -184,16 +184,6 @@ namespace lsn {
 		 **/
 		bool													BuildLUT( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcSize, uint32_t _ui32DstSize, std::unique_ptr<CVulkanImage> &_piLut, std::unique_ptr<CVulkanDeviceMemory> &_pdmLutMemory, CVulkan::LSN_IMAGE_VIEW &_ivLutView, std::unique_ptr<CVulkanBuffer> &_pbUpload, std::unique_ptr<CVulkanDeviceMemory> &_pdmUploadMemory, uint32_t &_ui32OutMaxTaps );
 
-		/**
-		 * Creates a Vulkan shader module from SPIR-V code.
-		 **/
-		bool													LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule );
-
-		/**
-		 * Helper to find an appropriate memory type index for allocations.
-		 **/
-		uint32_t												FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties );
-
 	};
 
 }	// namespace lsn

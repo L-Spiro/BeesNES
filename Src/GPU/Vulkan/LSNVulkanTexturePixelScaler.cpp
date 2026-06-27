@@ -89,7 +89,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiImageAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiImageAllocInfo.allocationSize = mrImageMemReq.size;
-		maiImageAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiImageAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		m_pdmTargetMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !m_pdmTargetMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiImageAllocInfo ) ) { return false; }
@@ -124,7 +124,7 @@ namespace lsn {
 	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CVulkanTexturePixelScaler::EnsureShader( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag ) {
+	bool CVulkanTexturePixelScaler::EnsureShader( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
 
@@ -144,24 +144,38 @@ namespace lsn {
 		if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
 
 
-		VkPushConstantRange pcrPushConstant = {};
-		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT;
-		pcrPushConstant.offset = 0;
-		pcrPushConstant.size = sizeof( LSN_SCALER_CONSTANTS );
-
 		VkDescriptorSetLayout layouts[] = { m_pdslDescriptorSetLayout->Get() };
 		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		plciLayoutInfo.setLayoutCount = 1;
 		plciLayoutInfo.pSetLayouts = layouts;
-		plciLayoutInfo.pushConstantRangeCount = 1;
-		plciLayoutInfo.pPushConstantRanges = &pcrPushConstant;
 
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 
+		static const char * kVsGlsl =
+			"#version 450\n"
+			"layout(location = 0) in vec4 inPos;\n"
+			"layout(location = 1) in vec2 inTex;\n"
+			"layout(location = 0) out vec2 outTex;\n"
+			"void main() {\n"
+			"    gl_Position = vec4(inPos.x, -inPos.y, inPos.z, inPos.w);\n"
+			"    outTex = inTex;\n"
+			"}\n";
+
+		static const char * kPsGlsl =
+			"#version 450\n"
+			"layout(binding = 0) uniform sampler2D tTex;\n"
+			"layout(location = 0) in vec2 inTex;\n"
+			"layout(location = 0) out vec4 outColor;\n"
+			"void main() {\n"
+			"    outColor = texture(tTex, inTex);\n"
+			"}\n";
+
+		std::vector<uint32_t> vVert, vFrag;
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || !CVulkan::CompileGlslToSpirv( kPsGlsl, "fragment", vFrag ) ) { return false; }
 
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
+		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, vFrag, smFrag ) ) { return false; }
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -268,7 +282,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiVbAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiVbAllocInfo.allocationSize = mrVbMemReq.size;
-		maiVbAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		maiVbAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiVbAllocInfo ) ) { return false; }
@@ -298,7 +312,7 @@ namespace lsn {
 	bool CVulkanTexturePixelScaler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkDescriptorSet _dsSourceTexture, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_dsSourceTexture || !m_ppShader.get() ) { return false; }
 
-		// 1. Set Viewport and Scissor
+
 		VkViewport vViewport = {};
 		vViewport.x = static_cast<float>(_rOutput.left);
 		vViewport.y = static_cast<float>(_rOutput.top);
@@ -313,60 +327,25 @@ namespace lsn {
 		rScissor.extent = { static_cast<uint32_t>(_rOutput.Width()), static_cast<uint32_t>(_rOutput.Height()) };
 		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
 
-		// 2. Bind Pipeline
+
 		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShader->Get() );
 
-		// 3. Bind Vertex Buffer
+
 		VkBuffer buffers[] = { m_pbVbQuad->Get() };
 		VkDeviceSize offsets[] = { 0 };
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
 
-		// 4. Bind Descriptor Set
+
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &_dsSourceTexture, 0, nullptr );
 
-		// 5. Push Constants (Replacing the DX12 Root Signature Constants)
+
 		LSN_SCALER_CONSTANTS scConstants = { _ui32NativeW, _ui32NativeH, _bFlipY ? 1.0f : 0.0f };
 		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( LSN_SCALER_CONSTANTS ), &scConstants );
 
-		// 6. Draw Quad
+
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
 
 		return true;
-	}
-
-	/**
-	 * Creates a Vulkan shader module from SPIR-V code.
-	 * 
-	 * \param _pvkDevice The Vulkan device.
-	 * \param _vSpirv The compiled SPIR-V code.
-	 * \param _smModule The shader module wrapper to populate.
-	 * \return Returns true on success.
-	 **/
-	bool CVulkanTexturePixelScaler::LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule ) {
-		VkShaderModuleCreateInfo smciInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		smciInfo.codeSize = _vSpirv.size() * sizeof( uint32_t );
-		smciInfo.pCode = _vSpirv.data();
-		return _smModule.Create( _pvkDevice->GetDevice(), &smciInfo );
-	}
-
-	/**
-	 * Helper to find an appropriate memory type index for allocations.
-	 * 
-	 * \param _pdDevice The physical device.
-	 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
-	 * \param _mpfProperties The required memory properties.
-	 * \return Returns the index of the memory type, or 0 if none is found.
-	 **/
-	uint32_t CVulkanTexturePixelScaler::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
-		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
-		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
-
-		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
-			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
-				return I;
-			}
-		}
-		return 0; 
 	}
 
 }	// namespace lsn

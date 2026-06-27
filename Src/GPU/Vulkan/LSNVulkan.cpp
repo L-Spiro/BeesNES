@@ -10,6 +10,7 @@
 #ifdef LSN_VULKAN1
 
 #include "LSNVulkan.h"
+#include "LSNVulkanDevice.h"
 
 namespace lsn {
 
@@ -414,6 +415,102 @@ namespace lsn {
 			return pmRet;
 		}
 		catch ( ... ) { return VK_PRESENT_MODE_FIFO_KHR; }
+	}
+
+	
+
+	/**
+	 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
+	 *
+	 * \param _pcszSource Null-terminated GLSL source code.
+	 * \param _pcszStage The shader stage (e.g., "vertex" or "fragment").
+	 * \param _vOutByteCode Output vector to receive the compiled SPIR-V bytecode.
+	 * \return Returns true if compilation succeeded and bytecode was produced.
+	 */
+	bool CVulkan::CompileGlslToSpirv( const char * _pcszSource, const char * _pcszStage, std::vector<uint32_t> &_vOutByteCode ) {
+		std::string sInFile = std::string( "vktemp_" ) + _pcszStage + ".glsl";
+		std::string sOutFile = std::string( "vktemp_" ) + _pcszStage + ".spv";
+
+		FILE * pfIn = nullptr;
+#ifdef LSN_WINDOWS
+		::fopen_s( &pfIn, sInFile.c_str(), "wb" );
+#else
+		pfIn = std::fopen( sInFile.c_str(), "wb" );
+#endif
+		if ( !pfIn ) { return false; }
+		std::fwrite( _pcszSource, 1, std::strlen( _pcszSource ), pfIn );
+		std::fclose( pfIn );
+
+#ifdef LSN_WINDOWS
+		std::string sCmd = std::string( "glslc.exe -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+#else
+		std::string sCmd = std::string( "glslc -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+#endif
+
+		if ( std::system( sCmd.c_str() ) != 0 ) {
+			::remove( sInFile.c_str() );
+			return false;
+		}
+
+		FILE * pfOut = nullptr;
+#ifdef LSN_WINDOWS
+		::fopen_s( &pfOut, sOutFile.c_str(), "rb" );
+#else
+		pfOut = std::fopen( sOutFile.c_str(), "rb" );
+#endif
+		if ( !pfOut ) { 
+			::remove( sInFile.c_str() );
+			return false; 
+		}
+
+		std::fseek( pfOut, 0, SEEK_END );
+		long lSize = std::ftell( pfOut );
+		std::fseek( pfOut, 0, SEEK_SET );
+
+		_vOutByteCode.resize( lSize / sizeof( uint32_t ) );
+		std::fread( _vOutByteCode.data(), 1, lSize, pfOut );
+		std::fclose( pfOut );
+
+		::remove( sInFile.c_str() );
+		::remove( sOutFile.c_str() );
+
+		return !_vOutByteCode.empty();
+	}
+
+	/**
+	 * Creates a Vulkan shader module from SPIR-V code.
+	 *
+	 * \param _pvkDevice The Vulkan device.
+	 * \param _vSpirv The compiled SPIR-V code.
+	 * \param _smModule The shader module wrapper to populate.
+	 * \return Returns true on success.
+	 */
+	bool CVulkan::LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule ) {
+		if ( _vSpirv.empty() ) { return false; }
+		VkShaderModuleCreateInfo smciInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		smciInfo.codeSize = _vSpirv.size() * sizeof( uint32_t );
+		smciInfo.pCode = _vSpirv.data();
+		return _smModule.Create( _pvkDevice->GetDevice(), &smciInfo );
+	}
+
+	/**
+	 * Helper to find an appropriate memory type index for allocations.
+	 *
+	 * \param _pdDevice The physical device.
+	 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
+	 * \param _mpfProperties The required memory properties.
+	 * \return Returns the index of the memory type, or 0 if none is found.
+	 **/
+	uint32_t CVulkan::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
+		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
+		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
+
+		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
+			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
+				return I;
+			}
+		}
+		return 0; 
 	}
 
 	/**

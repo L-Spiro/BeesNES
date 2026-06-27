@@ -100,17 +100,6 @@ namespace lsn {
 		std::unique_ptr<CVulkanPipelineLayout>					m_pplPipelineLayout;
 		std::unique_ptr<CVulkanDescriptorSetLayout>				m_pdslDescriptorSetLayout;
 
-
-		// == Functions.
-		/**
-		 * Creates a Vulkan shader module from SPIR-V code.
-		 **/
-		bool													LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule );
-
-		/**
-		 * Helper to find an appropriate memory type index for allocations.
-		 **/
-		uint32_t												FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties );
 	};
 
 }	// namespace lsn

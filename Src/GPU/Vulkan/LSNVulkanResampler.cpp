@@ -143,7 +143,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiAlloc.allocationSize = mrMemReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		m_pdmIntermediateMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !m_pdmIntermediateMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
@@ -188,7 +188,7 @@ namespace lsn {
 
 		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), &mrMemReq );
 		maiAlloc.allocationSize = mrMemReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
@@ -248,7 +248,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiAlloc.allocationSize = mrMemReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		_pdmLutMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !_pdmLutMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
@@ -273,7 +273,7 @@ namespace lsn {
 
 		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), _pbUpload->Get(), &mrMemReq );
 		maiAlloc.allocationSize = mrMemReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		_pdmUploadMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !_pdmUploadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
@@ -327,7 +327,7 @@ namespace lsn {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpPass1.Valid() || !m_rpPass2.Valid() ) { return false; }
 		if ( m_ppPass1.get() && m_ppPass1->Get() ) { return true; }
 
-		// 1. Descriptors (Binding 0: Image/Sampler, Binding 1: LUT Image/Sampler)
+
 		VkDescriptorSetLayoutBinding dslbBindings[2] = {};
 		dslbBindings[0].binding = 0;
 		dslbBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -366,7 +366,7 @@ namespace lsn {
 		m_dsPass1.dsDescriptorSet = allocatedSets[0];
 		m_dsPass2.dsDescriptorSet = allocatedSets[1];
 
-		// 2. Pipeline Layout (Push Constants)
+
 		VkPushConstantRange pcrPushConstant = {};
 		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		pcrPushConstant.offset = 0;
@@ -381,9 +381,9 @@ namespace lsn {
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 
-		// 3. Compile Shaders
+
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
+		if ( !CVulkan::LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -395,7 +395,7 @@ namespace lsn {
 		pssciShaderStages[1].module = smFrag.smShaderModule;
 		pssciShaderStages[1].pName = "main";
 
-		// 4. Setup Graphics Pipeline (Pass 1 and Pass 2)
+
 		VkVertexInputBindingDescription vibdBindingDesc = {};
 		vibdBindingDesc.binding = 0;
 		vibdBindingDesc.stride = sizeof( LSN_XYZRHWTEX1 );
@@ -403,12 +403,12 @@ namespace lsn {
 
 		VkVertexInputAttributeDescription viadAttributes[2] = {};
 		viadAttributes[0].binding = 0;
-		viadAttributes[0].location = 0; // Position
+		viadAttributes[0].location = 0;		// Position.
 		viadAttributes[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		viadAttributes[0].offset = offsetof( LSN_XYZRHWTEX1, fX );
 
 		viadAttributes[1].binding = 0;
-		viadAttributes[1].location = 1; // TexCoord
+		viadAttributes[1].location = 1;		// TexCoord.
 		viadAttributes[1].format = VK_FORMAT_R32G32_SFLOAT;
 		viadAttributes[1].offset = offsetof( LSN_XYZRHWTEX1, fU );
 
@@ -458,12 +458,12 @@ namespace lsn {
 		gpciPipelineInfo.pDynamicState = &pdsciDynamicState;
 		gpciPipelineInfo.layout = m_pplPipelineLayout->Get();
 		
-		// Pass 1 Pipeline (Uses Intermediate Render Pass)
+
 		gpciPipelineInfo.renderPass = m_rpPass1.rpRenderPass;
 		m_ppPass1 = std::make_unique<CVulkanPipeline>();
 		if ( !m_ppPass1->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
 
-		// Pass 2 Pipeline (Uses Final Target Render Pass)
+
 		gpciPipelineInfo.renderPass = m_rpPass2.rpRenderPass;
 		m_ppPass2 = std::make_unique<CVulkanPipeline>();
 		if ( !m_ppPass2->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
@@ -554,31 +554,6 @@ namespace lsn {
 		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
 
 		return true;
-	}
-
-	/**
-	 * Creates a Vulkan shader module from SPIR-V code.
-	 **/
-	bool CVulkanResampler::LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule ) {
-		VkShaderModuleCreateInfo smciInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		smciInfo.codeSize = _vSpirv.size() * sizeof( uint32_t );
-		smciInfo.pCode = _vSpirv.data();
-		return _smModule.Create( _pvkDevice->GetDevice(), &smciInfo );
-	}
-
-	/**
-	 * Helper to find an appropriate memory type index for allocations.
-	 **/
-	uint32_t CVulkanResampler::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
-		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
-		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
-
-		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
-			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
-				return I;
-			}
-		}
-		return 0; 
 	}
 
 }	// namespace lsn

@@ -83,17 +83,6 @@ namespace lsn {
 		uint32_t												m_ui32Height = 0;
 		VkFormat												m_fFormat = VK_FORMAT_UNDEFINED;
 
-
-		// == Functions.
-		/**
-		 * Helper to find an appropriate memory type index for allocations.
-		 * 
-		 * \param _pdDevice The physical device.
-		 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
-		 * \param _mpfProperties The required memory properties.
-		 * \return Returns the index of the memory type, or 0 if none is found.
-		 **/
-		uint32_t												FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties );
 	};
 
 }	// namespace lsn

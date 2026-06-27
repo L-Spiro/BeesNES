@@ -77,13 +77,6 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CVulkanPaletteFilter::DeActivate() {
-		m_fRenderFence.Reset();
-		m_sImageAvailable.Reset();
-		m_sRenderFinished.Reset();
-
-		m_cbCommandBuffer.Reset();
-		m_cpCommandPool.Reset();
-
 		m_rpInitialPass.Reset();
 
 		ReleaseSizeDependents();
@@ -138,7 +131,7 @@ namespace lsn {
 	uint8_t * CVulkanPaletteFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		
-		if LSN_UNLIKELY( m_pvkDevice ) {
+		if LSN_UNLIKELY( !m_pvkDevice ) {
 			if ( !s_vgsState.CreateVulkan() ) { return m_vBasicRenderTarget[0].data(); }
 			m_pvkDevice = &s_vgsState.vkDevice;
 			m_bUpdatePalette = true;
@@ -167,21 +160,21 @@ namespace lsn {
 				VkDevice dDevice = m_pvkDevice->GetDevice();
 				VkQueue qQueue = m_pvkDevice->GetCommandQueue();
 
-				// 1. Wait for previous frame to finish.
+
 				m_fRenderFence.Wait( UINT64_MAX );
 
-				// 2. Acquire Swapchain Image.
-				uint32_t ui32ImageIndex;
-				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &ui32ImageIndex );
+				m_bCanPresent = false;
+
+				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
 				if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
 					m_pvkDevice->ResizeSwapChain();
 				} else if ( rRes == VK_SUCCESS ) {
 					m_fRenderFence.ResetFence();
 				
-					// 3. Render passes
-					Render( rRect, ui32ImageIndex );
 
-					// 4. Submit to Queue
+					Render( rRect, m_ui32ImageIndex );
+
+
 					VkPipelineStageFlags psfWaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 					VkSemaphore sWaits[] = { m_sImageAvailable.Get() };
 					VkSemaphore sSignals[] = { m_sRenderFinished.Get() };
@@ -197,17 +190,7 @@ namespace lsn {
 					siSubmit.pSignalSemaphores = sSignals;
 
 					CVulkan::m_pfQueueSubmit( qQueue, 1, &siSubmit, m_fRenderFence.Get() );
-
-					// 5. Present
-					VkSwapchainKHR scSwapchains[] = { m_pvkDevice->GetSwapChain() };
-					VkPresentInfoKHR piPresent = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-					piPresent.waitSemaphoreCount = 1;
-					piPresent.pWaitSemaphores = sSignals;
-					piPresent.swapchainCount = 1;
-					piPresent.pSwapchains = scSwapchains;
-					piPresent.pImageIndices = &ui32ImageIndex;
-
-					CVulkan::m_pfQueuePresentKHR( qQueue, &piPresent );
+					m_bCanPresent = true;
 				}
 			}
 
@@ -244,13 +227,11 @@ namespace lsn {
 		VkDevice dDevice = m_pvkDevice->GetDevice();
 		if ( !dDevice ) { return false; }
 
-		// 1. One-time Setup (Command Pools, Sync Objects, Static Palette buffers, Quads)
-		if ( !m_cpCommandPool.Get() ) {
-			m_cpCommandPool.CreateCommandPool( dDevice, 0, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT );
-			m_cbCommandBuffer.CreateCommandBuffer( dDevice, m_cpCommandPool.Get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY );
-			m_fRenderFence.CreateFence( dDevice, true ); // Signaled initially
-			m_sImageAvailable.CreateSemaphore( dDevice );
-			m_sRenderFinished.CreateSemaphore( dDevice );
+		// Hand off sync primitives and command pools to the base class early.
+		if ( !CParent::EnsureBaseSizeAndResources( m_pvkDevice, m_ui32SrcW, m_ui32SrcH ) ) { return false; }
+
+		// 1. One-time Setup (Static Palette buffers, Quads)
+		if ( !m_piPalette.get() ) {
 
 			// Static Palette Allocation (Assumes 512 entries, 4 bytes each = 2048 bytes)
 			m_piPalette = std::make_unique<CVulkanImage>();
@@ -271,7 +252,7 @@ namespace lsn {
 
 			VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 			maiAlloc.allocationSize = mrReq.size;
-			maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+			maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 			m_pdmPaletteMemory = std::make_unique<CVulkanDeviceMemory>();
 			m_pdmPaletteMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -292,7 +273,7 @@ namespace lsn {
 
 			CVulkan::m_pfGetBufferMemoryRequirements( dDevice, m_pbPaletteUpload->Get(), &mrReq );
 			maiAlloc.allocationSize = mrReq.size;
-			maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+			maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 			
 			m_pdmPaletteUploadMemory = std::make_unique<CVulkanDeviceMemory>();
 			m_pdmPaletteUploadMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -312,7 +293,7 @@ namespace lsn {
 
 			CVulkan::m_pfGetBufferMemoryRequirements( dDevice, m_pbVbQuad->Get(), &mrReq );
 			maiAlloc.allocationSize = mrReq.size;
-			maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+			maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 			
 			m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
 			m_pdmVbQuadMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -324,7 +305,7 @@ namespace lsn {
 				CVulkan::m_pfUnmapMemory( dDevice, m_pdmVbQuadMemory->Get() );
 			}
 
-			if ( !CreateSamplers( dDevice ) ) { return false; }
+			if ( !CParent::CreateSamplers( dDevice ) ) { return false; }
 		}
 
 		if ( m_piIndex.get() && m_ui32OutputWidth == m_ui32SrcW && m_ui32OutputHeight == m_ui32SrcH ) { m_bValidState = true; return true; }
@@ -354,7 +335,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiAlloc.allocationSize = mrReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		m_pdmInitialMemory = std::make_unique<CVulkanDeviceMemory>();
 		m_pdmInitialMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -384,7 +365,7 @@ namespace lsn {
 
 		CVulkan::m_pfGetImageMemoryRequirements( dDevice, m_piIndex->Get(), &mrReq );
 		maiAlloc.allocationSize = mrReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 		
 		m_pdmIndexMemory = std::make_unique<CVulkanDeviceMemory>();
 		m_pdmIndexMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -402,7 +383,7 @@ namespace lsn {
 
 		CVulkan::m_pfGetBufferMemoryRequirements( dDevice, m_pbIndexUpload->Get(), &mrReq );
 		maiAlloc.allocationSize = mrReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( m_pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		m_pdmIndexUploadMemory = std::make_unique<CVulkanDeviceMemory>();
 		m_pdmIndexUploadMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -466,7 +447,8 @@ namespace lsn {
 
 	/**
 	 * \brief Ensures pixel shaders, vertex shaders, and PSOs are created.
-	 * * \return Returns true if all shaders are ready.
+	 * 
+	 * \return Returns true if all shaders are ready.
 	 */
 	bool CVulkanPaletteFilter::EnsureShaders() {
 		VkDevice dDevice = m_pvkDevice->GetDevice();
@@ -562,13 +544,13 @@ namespace lsn {
 			"}\n";
 
 		std::vector<uint32_t> vSpirvVert, vSpirvFrag; 
-		if ( !CompileGlslToSpirv( kVsGlsl, "vertex", vSpirvVert ) || 
-			 !CompileGlslToSpirv( kPsIdxToColorGlsl, "fragment", vSpirvFrag ) ) {
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vSpirvVert ) || 
+			 !CVulkan::CompileGlslToSpirv( kPsIdxToColorGlsl, "fragment", vSpirvFrag ) ) {
 			return false;
 		}
 
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !LoadSpirv( m_pvkDevice, vSpirvVert, smVert ) || !LoadSpirv( m_pvkDevice, vSpirvFrag, smFrag ) ) { return false; }
+		if ( !CVulkan::LoadSpirv( m_pvkDevice, vSpirvVert, smVert ) || !CVulkan::LoadSpirv( m_pvkDevice, vSpirvFrag, smFrag ) ) { return false; }
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -779,22 +761,6 @@ namespace lsn {
 
 		CVulkan::m_pfEndCommandBuffer( cbCmd );
 		return true;
-	}
-
-	/**
-	 * Creates a Vulkan shader module from SPIR-V code.
-	 *
-	 * \param _pvkDevice The Vulkan device.
-	 * \param _vSpirv The compiled SPIR-V code.
-	 * \param _smModule The shader module wrapper to populate.
-	 * \return Returns true on success.
-	 */
-	bool CVulkanPaletteFilter::LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule ) {
-		if ( _vSpirv.empty() ) { return false; }
-		VkShaderModuleCreateInfo smciInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		smciInfo.codeSize = _vSpirv.size() * sizeof( uint32_t );
-		smciInfo.pCode = _vSpirv.data();
-		return _smModule.Create( _pvkDevice->GetDevice(), &smciInfo );
 	}
 
 }	// namespace lsn

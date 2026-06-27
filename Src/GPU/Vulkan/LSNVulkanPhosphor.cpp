@@ -129,7 +129,7 @@ namespace lsn {
 
 			VkMemoryAllocateInfo maiImageAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 			maiImageAllocInfo.allocationSize = mrImageMemReq.size;
-			maiImageAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+			maiImageAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 			m_pdmPhosphorMemory[I] = std::make_unique<CVulkanDeviceMemory>();
 			if ( !m_pdmPhosphorMemory[I]->AllocateMemory( _pvkDevice->GetDevice(), &maiImageAllocInfo ) ) { return false; }
@@ -204,7 +204,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiVbAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiVbAllocInfo.allocationSize = mrVbMemReq.size;
-		maiVbAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		maiVbAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiVbAllocInfo ) ) { return false; }
@@ -247,7 +247,7 @@ namespace lsn {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpRenderPass.Valid() ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
 
-		// 1. Create Descriptor Set Layout (Binding 0: Current Input, Binding 1: Previous Phosphor)
+
 		VkDescriptorSetLayoutBinding dslbBindings[2] = {};
 		dslbBindings[0].binding = 0;
 		dslbBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -266,8 +266,8 @@ namespace lsn {
 		m_pdslDescriptorSetLayout = std::make_unique<CVulkanDescriptorSetLayout>();
 		if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
 
-		// 2. Create Descriptor Pool and 2 Sets (One for each ping-pong direction).
-		VkDescriptorPoolSize dpsSize = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 }; // 2 sets * 2 bindings
+
+		VkDescriptorPoolSize dpsSize = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 };	// 2 sets * 2 bindings.
 		VkDescriptorPoolCreateInfo dpciPoolInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		dpciPoolInfo.poolSizeCount = 1;
 		dpciPoolInfo.pPoolSizes = &dpsSize;
@@ -291,7 +291,7 @@ namespace lsn {
 		m_dsPhosphor[0].dsDescriptorSet = allocatedSets[0];
 		m_dsPhosphor[1].dsDescriptorSet = allocatedSets[1];
 
-		// 3. Create Pipeline Layout with Push Constants
+
 		VkPushConstantRange pcrPushConstant = {};
 		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		pcrPushConstant.offset = 0;
@@ -299,16 +299,16 @@ namespace lsn {
 
 		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		plciLayoutInfo.setLayoutCount = 1;
-		plciLayoutInfo.pSetLayouts = layouts; // Points to the first element (the layout is identical for both)
+		plciLayoutInfo.pSetLayouts = layouts;
 		plciLayoutInfo.pushConstantRangeCount = 1;
 		plciLayoutInfo.pPushConstantRanges = &pcrPushConstant;
 
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 
-		// 4. Compile Shaders
+
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
+		if ( !CVulkan::LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -321,7 +321,7 @@ namespace lsn {
 		pssciShaderStages[1].module = smFrag.smShaderModule;
 		pssciShaderStages[1].pName = "main";
 
-		// 5. Setup Graphics Pipeline
+
 		VkVertexInputBindingDescription vibdBindingDesc = {};
 		vibdBindingDesc.binding = 0;
 		vibdBindingDesc.stride = sizeof( LSN_XYZRHWTEX1 );
@@ -329,12 +329,12 @@ namespace lsn {
 
 		VkVertexInputAttributeDescription viadAttributes[2] = {};
 		viadAttributes[0].binding = 0;
-		viadAttributes[0].location = 0; // Position
+		viadAttributes[0].location = 0;		// Position.
 		viadAttributes[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		viadAttributes[0].offset = offsetof( LSN_XYZRHWTEX1, fX );
 
 		viadAttributes[1].binding = 0;
-		viadAttributes[1].location = 1; // TexCoord
+		viadAttributes[1].location = 1;		// TexCoord.
 		viadAttributes[1].format = VK_FORMAT_R32G32_SFLOAT;
 		viadAttributes[1].offset = offsetof( LSN_XYZRHWTEX1, fU );
 
@@ -416,7 +416,7 @@ namespace lsn {
 	bool CVulkanPhosphor::RenderPhosphor( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkImageView _ivInputTexture, VkSampler _sInputSampler, uint32_t _ui32SrcW, uint32_t _ui32SrcH, float _fDecayR, float _fDecayG, float _fDecayB, float _fInitialDecay ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_ivInputTexture || !_sInputSampler || !m_ppShader.get() ) { return false; }
 
-		// 1. Update Descriptor Set dynamically for the current frame.
+
 		VkDescriptorImageInfo diiInput = { _sInputSampler, _ivInputTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		VkDescriptorImageInfo diiPrev = { m_sSampler.sSampler, m_ivPhosphorView[m_stRenderTargetIdx ^ 1].ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
@@ -439,7 +439,7 @@ namespace lsn {
 
 		CVulkan::m_pfUpdateDescriptorSets( _pvkDevice->GetDevice(), 2, wdsWrites, 0, nullptr );
 
-		// 2. Begin internal ping-pong render pass.
+
 		VkRenderPassBeginInfo rpbiInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiInfo.renderPass = m_rpRenderPass.rpRenderPass;
 		rpbiInfo.framebuffer = m_fbPhosphor[m_stRenderTargetIdx].fbFramebuffer;
@@ -448,7 +448,7 @@ namespace lsn {
 		
 		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiInfo, VK_SUBPASS_CONTENTS_INLINE );
 
-		// 3. Set Viewport and Scissor
+
 		VkViewport vViewport = {};
 		vViewport.x = 0.0f;
 		vViewport.y = 0.0f;
@@ -463,64 +463,29 @@ namespace lsn {
 		rScissor.extent = { _ui32SrcW, _ui32SrcH };
 		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
 
-		// 4. Bind Pipeline and vertex buffers.
+
 		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShader->Get() );
 
 		VkBuffer buffers[] = { m_pbVbQuad->Get() };
 		VkDeviceSize offsets[] = { 0 };
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
 
-		// 5. Bind updated Descriptor Set.
+
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPhosphor[m_stRenderTargetIdx].dsDescriptorSet, 0, nullptr );
 
-		// 6. Push Constants for decay rates.
+
 		LSN_PHOSPHOR_CONSTANTS pcConsts = { _fDecayR, _fDecayG, _fDecayB, _fInitialDecay };
 		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( LSN_PHOSPHOR_CONSTANTS ), &pcConsts );
 
-		// 7. Draw Quad and end pass.
+
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
 
 		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
 
-		// Toggle the index so the next pass reads from what we just wrote.
+
 		m_stRenderTargetIdx ^= 1;
 
 		return true;
-	}
-
-	/**
-	 * Creates a Vulkan shader module from SPIR-V code.
-	 *
-	 * \param _pvkDevice The Vulkan device.
-	 * \param _vSpirv The compiled SPIR-V code.
-	 * \param _smModule The shader module wrapper to populate.
-	 * \return Returns true on success.
-	 **/
-	bool CVulkanPhosphor::LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule ) {
-		VkShaderModuleCreateInfo smciInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		smciInfo.codeSize = _vSpirv.size() * sizeof( uint32_t );
-		smciInfo.pCode = _vSpirv.data();
-		return _smModule.Create( _pvkDevice->GetDevice(), &smciInfo );
-	}
-
-	/**
-	 * Helper to find an appropriate memory type index for allocations.
-	 *
-	 * \param _pdDevice The physical device.
-	 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
-	 * \param _mpfProperties The required memory properties.
-	 * \return Returns the index of the memory type, or 0 if none is found.
-	 **/
-	uint32_t CVulkanPhosphor::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
-		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
-		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
-
-		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
-			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
-				return I;
-			}
-		}
-		return 0; 
 	}
 
 }	// namespace lsn

@@ -113,13 +113,6 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		CVulkanCommandPool										m_cpCommandPool;				/**< Command pool for managing the active frame. */
-		CVulkanCommandBuffer									m_cbCommandBuffer;				/**< Command buffer for recording passes. */
-
-		CVulkanFence											m_fRenderFence;					/**< GPU to CPU synchronization fence. */
-		CVulkanSemaphore										m_sImageAvailable;				/**< Semaphore signaled when the swapchain image is ready. */
-		CVulkanSemaphore										m_sRenderFinished;				/**< Semaphore signaled when drawing commands complete. */
-
 		CVulkan::LSN_RENDER_PASS								m_rpInitialPass;				/**< The render pass format utilized by the palette step. */
 		std::unique_ptr<CVulkanImage>							m_piInitial;					/**< Initial floating-point render target. */
 		std::unique_ptr<CVulkanDeviceMemory>					m_pdmInitialMemory;				/**< Memory for the initial render target. */
@@ -176,16 +169,6 @@ namespace lsn {
 		 * \brief Releases size-dependent resources.
 		 */
 		void													ReleaseSizeDependents();
-
-		/**
-		 * Creates a Vulkan shader module from SPIR-V code.
-		 *
-		 * \param _pvkDevice The Vulkan device.
-		 * \param _vSpirv The compiled SPIR-V code.
-		 * \param _smModule The shader module wrapper to populate.
-		 * \return Returns true on success.
-		 */
-		bool													LoadSpirv( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule );
 
 		/**
 		 * \brief Updates the 512-entry float RGBA LUT in the upload buffer.

@@ -16,6 +16,9 @@
 #include "../LSNGpuBase.h"
 #include "Helpers/LSWHelpers.h"
 
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 #include <vector>
@@ -107,6 +110,35 @@ namespace lsn {
 		 */
 		static VkPresentModeKHR									GetPresentMode( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface );
 
+		/**
+		 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
+		 *
+		 * \param _pcszSource Null-terminated GLSL source code.
+		 * \param _pcszStage The shader stage (e.g., "vertex" or "fragment").
+		 * \param _vOutByteCode Output vector to receive the compiled SPIR-V bytecode.
+		 * \return Returns true if compilation succeeded and bytecode was produced.
+		 */
+		static bool												CompileGlslToSpirv( const char * _pcszSource, const char * _pcszStage, std::vector<uint32_t> &_vOutByteCode );
+
+		/**
+		 * Creates a Vulkan shader module from SPIR-V code.
+		 *
+		 * \param _pvkDevice The Vulkan device.
+		 * \param _vSpirv The compiled SPIR-V code.
+		 * \param _smModule The shader module wrapper to populate.
+		 * \return Returns true on success.
+		 */
+		static bool												LoadSpirv( class CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirv, CVulkan::LSN_SHADER_MODULE &_smModule );
+
+		/**
+		 * Helper to find an appropriate memory type index for allocations.
+		 * 
+		 * \param _pdDevice The physical device.
+		 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
+		 * \param _mpfProperties The required memory properties.
+		 * \return Returns the index of the memory type, or 0 if none is found.
+		 **/
+		static uint32_t											FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties );
 
 #include "LSNVulkanFuncDecl.inl"
 

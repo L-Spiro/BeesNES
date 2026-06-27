@@ -84,7 +84,7 @@ namespace lsn {
 
 			VkMemoryAllocateInfo maiImageAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 			maiImageAllocInfo.allocationSize = mrImageMemReq.size;
-			maiImageAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+			maiImageAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 			m_pdmImageMemory = std::make_unique<CVulkanDeviceMemory>();
 			if ( !m_pdmImageMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiImageAllocInfo ) ) { return false; }
@@ -114,7 +114,7 @@ namespace lsn {
 
 			VkMemoryAllocateInfo maiBufferAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 			maiBufferAllocInfo.allocationSize = mrBufferMemReq.size;
-			maiBufferAllocInfo.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrBufferMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+			maiBufferAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrBufferMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 			m_pdmUploadMemory = std::make_unique<CVulkanDeviceMemory>();
 			if ( !m_pdmUploadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiBufferAllocInfo ) ) { return false; }
@@ -199,26 +199,6 @@ namespace lsn {
 		);
 
 		return true;
-	}
-
-	/**
-	 * Helper to find an appropriate memory type index for allocations.
-	 * 
-	 * \param _pdDevice The physical device.
-	 * \param _ui32TypeFilter A bitmask specifying the acceptable memory types.
-	 * \param _mpfProperties The required memory properties.
-	 * \return Returns the index of the memory type, or 0 if none is found.
-	 **/
-	uint32_t CVulkanTextureUploader::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
-		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
-		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
-
-		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
-			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
-				return I;
-			}
-		}
-		return 0; 
 	}
 
 }	// namespace lsn

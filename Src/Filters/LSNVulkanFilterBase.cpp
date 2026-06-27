@@ -16,8 +16,8 @@
 #include <Base/LSWWndClassEx.h>
 #endif
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 
 namespace lsn {
 
@@ -67,6 +67,12 @@ namespace lsn {
 	 * Called when the filter is no longer active.
 	 */
 	void CVulkanFilterBase::DeActivate() {
+		m_fRenderFence.Reset();
+		m_sImageAvailable.Reset();
+		m_sRenderFinished.Reset();
+		m_cbCommandBuffer.Reset();
+		m_cpCommandPool.Reset();
+
 		m_tgGamma.Reset();
 		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
@@ -95,6 +101,31 @@ namespace lsn {
 		}
 
 		CGpuFilterBase::DeActivate();
+	}
+
+	/**
+	 * Presents the active swapchain frame to the target surface.
+	 */
+	void CVulkanFilterBase::Present() {
+		if LSN_UNLIKELY( !s_vgsState.bValidState || !m_pvkDevice || !m_sRenderFinished.Get() || !m_bCanPresent ) { return; }
+		m_bCanPresent = false; // Consume standard readiness.
+		
+		VkQueue qQueue = m_pvkDevice->GetCommandQueue();
+		if ( !qQueue ) { return; }
+
+		VkSwapchainKHR scSwapchains[] = { m_pvkDevice->GetSwapChain() };
+		VkPresentInfoKHR piPresent = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		piPresent.waitSemaphoreCount = 1;
+		VkSemaphore sSemaphores[] = { m_sRenderFinished.Get() };
+		piPresent.pWaitSemaphores = sSemaphores;
+		piPresent.swapchainCount = 1;
+		piPresent.pSwapchains = scSwapchains;
+		piPresent.pImageIndices = &m_ui32ImageIndex;
+
+		VkResult rRes = CVulkan::m_pfQueuePresentKHR( qQueue, &piPresent );
+		if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
+			m_pvkDevice->ResizeSwapChain();
+		}
 	}
 
 	/**
@@ -197,6 +228,14 @@ namespace lsn {
 			}
 		}
 
+		if ( !m_cpCommandPool.Get() ) {
+			m_cpCommandPool.CreateCommandPool( dDevice, 0, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT );
+			m_cbCommandBuffer.CreateCommandBuffer( dDevice, m_cpCommandPool.Get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY );
+			m_fRenderFence.CreateFence( dDevice, true ); // Signaled initially
+			m_sImageAvailable.CreateSemaphore( dDevice );
+			m_sRenderFinished.CreateSemaphore( dDevice );
+		}
+
 		if ( m_ui32RsrcW == _ui32NativeW && m_ui32RsrcH == _ui32NativeH && m_piGamma.get() && m_fbGamma.Valid() ) {
 			return true;
 		}
@@ -227,7 +266,7 @@ namespace lsn {
 
 		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		maiAlloc.allocationSize = mrReq.size;
-		maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		m_pdmGammaMemory = std::make_unique<CVulkanDeviceMemory>();
 		m_pdmGammaMemory->AllocateMemory( dDevice, &maiAlloc );
@@ -286,7 +325,7 @@ namespace lsn {
 			m_dsRendererSet.dsDescriptorSet = allocated[2];
 		}
 
-		if ( CreateSamplers( dDevice ) ) { return false; }
+		if ( !CreateSamplers( dDevice ) ) { return false; }
 
 		m_ui32RsrcW = _ui32NativeW;
 		m_ui32RsrcH = _ui32NativeH;
@@ -434,7 +473,7 @@ namespace lsn {
 
 				VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 				maiAlloc.allocationSize = mrReq.size;
-				maiAlloc.memoryTypeIndex = FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+				maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 				m_pdmResampledMemory = std::make_unique<CVulkanDeviceMemory>();
 				m_pdmResampledMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc );
@@ -479,26 +518,6 @@ namespace lsn {
 		CVulkan::m_pfCmdEndRenderPass( cbCmd );
 
 		return true;
-	}
-
-	/**
-	 * Helper to locate an appropriate memory type index for device or host allocations.
-	 *
-	 * \param _pdDevice The Vulkan physical device.
-	 * \param _ui32TypeFilter The acceptable memory types bitmask.
-	 * \param _mpfProperties The requested memory property flags.
-	 * \return Returns the index of the memory type, or 0 if none is found.
-	 */
-	uint32_t CVulkanFilterBase::FindMemoryType( VkPhysicalDevice _pdDevice, uint32_t _ui32TypeFilter, VkMemoryPropertyFlags _mpfProperties ) {
-		VkPhysicalDeviceMemoryProperties pdmpMemProperties;
-		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( _pdDevice, &pdmpMemProperties );
-
-		for ( uint32_t I = 0; I < pdmpMemProperties.memoryTypeCount; ++I ) {
-			if ( (_ui32TypeFilter & (1 << I)) && (pdmpMemProperties.memoryTypes[I].propertyFlags & _mpfProperties) == _mpfProperties ) {
-				return I;
-			}
-		}
-		return 0; 
 	}
 
 	/**
@@ -581,59 +600,6 @@ namespace lsn {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
-	 */
-	bool CVulkanFilterBase::CompileGlslToSpirv( const char * _pcszSource, const char * _pcszStage, std::vector<uint32_t> &_vOutByteCode ) {
-		std::string sInFile = std::string( "vktemp_" ) + _pcszStage + ".glsl";
-		std::string sOutFile = std::string( "vktemp_" ) + _pcszStage + ".spv";
-
-		FILE * pfIn = nullptr;
-#ifdef LSN_WINDOWS
-		::fopen_s( &pfIn, sInFile.c_str(), "wb" );
-#else
-		pfIn = std::fopen( sInFile.c_str(), "wb" );
-#endif
-		if ( !pfIn ) { return false; }
-		std::fwrite( _pcszSource, 1, std::strlen( _pcszSource ), pfIn );
-		std::fclose( pfIn );
-
-#ifdef LSN_WINDOWS
-		std::string sCmd = std::string( "glslc.exe -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
-#else
-		std::string sCmd = std::string( "glslc -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
-#endif
-
-		if ( std::system( sCmd.c_str() ) != 0 ) {
-			::remove( sInFile.c_str() );
-			return false;
-		}
-
-		FILE * pfOut = nullptr;
-#ifdef LSN_WINDOWS
-		::fopen_s( &pfOut, sOutFile.c_str(), "rb" );
-#else
-		pfOut = std::fopen( sOutFile.c_str(), "rb" );
-#endif
-		if ( !pfOut ) { 
-			::remove( sInFile.c_str() );
-			return false; 
-		}
-
-		std::fseek( pfOut, 0, SEEK_END );
-		long lSize = std::ftell( pfOut );
-		std::fseek( pfOut, 0, SEEK_SET );
-
-		_vOutByteCode.resize( lSize / sizeof( uint32_t ) );
-		std::fread( _vOutByteCode.data(), 1, lSize, pfOut );
-		std::fclose( pfOut );
-
-		::remove( sInFile.c_str() );
-		::remove( sOutFile.c_str() );
-
-		return !_vOutByteCode.empty();
 	}
 
 	// == LSN_VULKAN_GLOBAL_STATE ==

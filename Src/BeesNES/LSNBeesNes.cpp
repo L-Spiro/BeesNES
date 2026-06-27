@@ -34,7 +34,7 @@ namespace lsn {
 
 		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
 
-		CUtilities::GenGaussianNoise( 0.0125f );
+		CUtilities::GenGaussianNoise( 0.0225f );
 		CAudio::SetOutputSettings( Options().aoGlobalAudioOptions );
 		
 		//m_pfbFilterTable

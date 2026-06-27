@@ -844,7 +844,6 @@ namespace lsn {
 
 		// ==== GPU path (if initialized) ==== //
 		if ( m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter() ) {
-			
 			switch ( m_bnEmulator.RenderInfo().pfbPrevFilter->GpuApi() ) {
 #ifdef LSN_DX9
 				case CFilterBase::LSN_GA_DX9 : {
@@ -890,7 +889,7 @@ namespace lsn {
 					if ( IDXGISwapChain4 * pscSwapChain = CDx12FilterBase::Device().GetSwapChain() ) {
 						{
 							lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-							// The filter's Render() handles command list recording, execution, and preparing for PRESENT.
+
 							m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
 							
 							m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
@@ -901,7 +900,6 @@ namespace lsn {
 							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 						}
 						
-						// Present outside of the critical section.
 						const HRESULT hrPresent = pscSwapChain->Present( 0, 0 );
 						if ( FAILED( hrPresent ) ) {
 							CDx12FilterBase::HandleDeviceLoss();
@@ -921,19 +919,22 @@ namespace lsn {
 					::ValidateRect( Wnd(), NULL );
 
 					if ( CVulkanFilterBase::Device().GetSwapChain() != VK_NULL_HANDLE ) {
-						lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+						{
+							lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+							
+							m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
+							
+							m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
+							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
+							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
+							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
+							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+						}
 						
-						// The Vulkan filter's ApplyFilter() handles command list recording, execution,
-						// image acquisition, and swapchain presentation internally due to the tight
-						// coupling of vkAcquireNextImageKHR and the target framebuffers.
-						m_bnEmulator.Render( iDestX, iDestY, dwFinalW, dwFinalH );
-						
-						m_biBlitInfo.bmiHeader.biWidth = m_bnEmulator.RenderInfo().ui32Width;
-						m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
-						m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
-						m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-						bMirrored = m_bnEmulator.RenderInfo().bMirrored;
-						puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+						if ( m_bnEmulator.RenderInfo().pfbPrevFilter ) {
+							static_cast<CVulkanFilterBase *>(m_bnEmulator.RenderInfo().pfbPrevFilter)->Present();
+						}
 					}
 					break;
 				}
