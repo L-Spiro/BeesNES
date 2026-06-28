@@ -323,7 +323,7 @@ namespace lsn {
 	/**
 	 * Ensures the Pipeline State Objects and Descriptor Set Layouts are created.
 	 **/
-	bool CVulkanResampler::EnsureShaders( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag ) {
+	bool CVulkanResampler::EnsureShaders( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpPass1.Valid() || !m_rpPass2.Valid() ) { return false; }
 		if ( m_ppPass1.get() && m_ppPass1->Get() ) { return true; }
 
@@ -370,7 +370,7 @@ namespace lsn {
 		VkPushConstantRange pcrPushConstant = {};
 		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		pcrPushConstant.offset = 0;
-		pcrPushConstant.size = sizeof( LSN_RESAMPLER_CONSTANTS );
+		pcrPushConstant.size = 16; // 1 uint + 3 floats padding
 
 		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		plciLayoutInfo.setLayoutCount = 1;
@@ -381,20 +381,77 @@ namespace lsn {
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 
+		static const char * kVsGlsl =
+			"#version 450\n"
+			"layout(location = 0) in vec4 inPos;\n"
+			"layout(location = 1) in vec2 inTex;\n"
+			"void main() {\n"
+			"    gl_Position = vec4(inPos.x, -inPos.y, inPos.z, inPos.w);\n" // Vulkan Y-flip
+			"}\n";
 
-		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !CVulkan::LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
+		static const char * kPsResampleXGlsl =
+			"#version 450\n"
+			"layout(push_constant) uniform Push {\n"
+			"    uint maxTaps;\n"
+			"    vec3 padding;\n"
+			"} push;\n"
+			"layout(binding = 0) uniform sampler2D tSrc;\n"
+			"layout(binding = 1) uniform sampler2D tLut;\n"
+			"layout(location = 0) out vec4 outColor;\n"
+			"void main() {\n"
+			"    vec4 cFinal = vec4(0.0);\n"
+			"    int dstX = int(gl_FragCoord.x);\n"
+			"    int srcY = int(gl_FragCoord.y);\n"
+			"    for (uint i = 0u; i < push.maxTaps; ++i) {\n"
+			"        vec4 vLut = texelFetch(tLut, ivec2(dstX, int(i)), 0);\n"
+			"        int srcX = int(vLut.g);\n"
+			"        cFinal += texelFetch(tSrc, ivec2(srcX, srcY), 0) * vLut.r;\n"
+			"    }\n"
+			"    outColor = cFinal;\n"
+			"}\n";
+
+		static const char * kPsResampleYGlsl =
+			"#version 450\n"
+			"layout(push_constant) uniform Push {\n"
+			"    uint maxTaps;\n"
+			"    vec3 padding;\n"
+			"} push;\n"
+			"layout(binding = 0) uniform sampler2D tSrc;\n"
+			"layout(binding = 1) uniform sampler2D tLut;\n"
+			"layout(location = 0) out vec4 outColor;\n"
+			"void main() {\n"
+			"    vec4 cFinal = vec4(0.0);\n"
+			"    int dstX = int(gl_FragCoord.x);\n"
+			"    int dstY = int(gl_FragCoord.y);\n"
+			"    for (uint i = 0u; i < push.maxTaps; ++i) {\n"
+			"        vec4 vLut = texelFetch(tLut, ivec2(dstY, int(i)), 0);\n"
+			"        int srcY = int(vLut.g);\n"
+			"        cFinal += texelFetch(tSrc, ivec2(dstX, srcY), 0) * vLut.r;\n"
+			"    }\n"
+			"    outColor = cFinal;\n"
+			"}\n";
+
+		std::vector<uint32_t> vVert, vFragX, vFragY;
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) ||
+			 !CVulkan::CompileGlslToSpirv( kPsResampleXGlsl, "fragment", vFragX ) ||
+			 !CVulkan::CompileGlslToSpirv( kPsResampleYGlsl, "fragment", vFragY ) ) { return false; }
+
+		CVulkan::LSN_SHADER_MODULE smVert, smFragX, smFragY;
+		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) ||
+			 !CVulkan::LoadSpirv( _pvkDevice, vFragX, smFragX ) ||
+			 !CVulkan::LoadSpirv( _pvkDevice, vFragY, smFragY ) ) { return false; }
+
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		pssciShaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 		pssciShaderStages[0].module = smVert.smShaderModule;
 		pssciShaderStages[0].pName = "main";
+
 		pssciShaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		pssciShaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		pssciShaderStages[1].module = smFrag.smShaderModule;
+		pssciShaderStages[1].module = smFragX.smShaderModule;
 		pssciShaderStages[1].pName = "main";
-
 
 		VkVertexInputBindingDescription vibdBindingDesc = {};
 		vibdBindingDesc.binding = 0;
@@ -403,12 +460,12 @@ namespace lsn {
 
 		VkVertexInputAttributeDescription viadAttributes[2] = {};
 		viadAttributes[0].binding = 0;
-		viadAttributes[0].location = 0;		// Position.
+		viadAttributes[0].location = 0;
 		viadAttributes[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		viadAttributes[0].offset = offsetof( LSN_XYZRHWTEX1, fX );
 
 		viadAttributes[1].binding = 0;
-		viadAttributes[1].location = 1;		// TexCoord.
+		viadAttributes[1].location = 1;
 		viadAttributes[1].format = VK_FORMAT_R32G32_SFLOAT;
 		viadAttributes[1].offset = offsetof( LSN_XYZRHWTEX1, fU );
 
@@ -464,6 +521,8 @@ namespace lsn {
 		if ( !m_ppPass1->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
 
 
+		// Swap to Pass 2 Fragment Shader
+		pssciShaderStages[1].module = smFragY.smShaderModule;
 		gpciPipelineInfo.renderPass = m_rpPass2.rpRenderPass;
 		m_ppPass2 = std::make_unique<CVulkanPipeline>();
 		if ( !m_ppPass2->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
@@ -473,13 +532,19 @@ namespace lsn {
 
 	/**
 	 * Executes the 2-pass resampling operation.
+	 * 
+	 * \param _pvkDevice The Vulkan device.
+	 * \param _pcbCommandList The command buffer in which to record draw commands.
+	 * \param _ivSource The view of the source image to resample.
+	 * \param _sSourceSampler The sampler to use for the source image.
+	 * \param _fbTarget The final framebuffer to output to.
+	 * \param _rOutput The destination rectangle.
+	 * \param _bFlipY Determines whether the final pass should flip the Y axis.
+	 * \return Returns true if rendering succeeded.
 	 **/
-	bool CVulkanResampler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkImageView _ivSource, VkSampler _sSourceSampler, VkFramebuffer _fbTarget, const lsw::LSW_RECT &_rOutput, bool _bFlipY ) {
+	bool CVulkanResampler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkImageView _ivSource, VkSampler _sSourceSampler, VkFramebuffer _fbTarget, const lsw::LSW_RECT &_rOutput, bool /*_bFlipY*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_ivSource || !_fbTarget || !m_ppPass1.get() ) { return false; }
 
-		// ==========================
-		// PASS 1: Horizontal Scaling (Src -> Intermediate)
-		// ==========================
 		VkDescriptorImageInfo diiPass1Src = { _sSourceSampler, _ivSource, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		VkDescriptorImageInfo diiPass1Lut = { m_sSampler.sSampler, m_ivLutXView.ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
@@ -491,6 +556,7 @@ namespace lsn {
 		VkRenderPassBeginInfo rpbiPass1 = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiPass1.renderPass = m_rpPass1.rpRenderPass;
 		rpbiPass1.framebuffer = m_fbIntermediate.fbFramebuffer;
+		rpbiPass1.renderArea.offset = { 0, 0 };
 		rpbiPass1.renderArea.extent = { m_ui32DstW, m_ui32SrcH };
 		
 		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiPass1, VK_SUBPASS_CONTENTS_INLINE );
@@ -506,14 +572,14 @@ namespace lsn {
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPass1.dsDescriptorSet, 0, nullptr );
 
-		LSN_RESAMPLER_CONSTANTS rpcPass1 = { m_ui32SrcW, m_ui32DstW, m_ui32MaxTapsX, 0.0f };
-		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( LSN_RESAMPLER_CONSTANTS ), &rpcPass1 );
+		// Guaranteed layout matching: 4 bytes for MaxTaps, followed by 12 bytes of padding.
+		uint32_t ui32PushPass1[4] = { m_ui32MaxTapsX, 0, 0, 0 };
+		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, 16, ui32PushPass1 );
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
 		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
 
-		// Transition Intermediate to Read-Only
 		VkImageMemoryBarrier imbIntermediate = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-		imbIntermediate.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // It was written as attachment, transition handles correctly internally
+		imbIntermediate.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; 
 		imbIntermediate.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imbIntermediate.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		imbIntermediate.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -521,9 +587,6 @@ namespace lsn {
 		imbIntermediate.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 		CVulkan::m_pfCmdPipelineBarrier( _pcbCommandList->Get(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imbIntermediate );
 
-		// ==========================
-		// PASS 2: Vertical Scaling (Intermediate -> Target)
-		// ==========================
 		VkDescriptorImageInfo diiPass2Src = { m_sSampler.sSampler, m_ivIntermediateView.ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 		VkDescriptorImageInfo diiPass2Lut = { m_sSampler.sSampler, m_ivLutYView.ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
@@ -534,22 +597,22 @@ namespace lsn {
 		VkRenderPassBeginInfo rpbiPass2 = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiPass2.renderPass = m_rpPass2.rpRenderPass;
 		rpbiPass2.framebuffer = _fbTarget;
-		rpbiPass2.renderArea.offset = { _rOutput.left, _rOutput.top };
+		rpbiPass2.renderArea.offset = { 0, 0 };
 		rpbiPass2.renderArea.extent = { static_cast<uint32_t>(_rOutput.Width()), static_cast<uint32_t>(_rOutput.Height()) };
 		
 		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiPass2, VK_SUBPASS_CONTENTS_INLINE );
 
-		VkViewport vViewport2 = { static_cast<float>(_rOutput.left), static_cast<float>(_rOutput.top), static_cast<float>(_rOutput.Width()), static_cast<float>(_rOutput.Height()), 0.0f, 1.0f };
+		VkViewport vViewport2 = { 0.0f, 0.0f, static_cast<float>(_rOutput.Width()), static_cast<float>(_rOutput.Height()), 0.0f, 1.0f };
 		CVulkan::m_pfCmdSetViewport( _pcbCommandList->Get(), 0, 1, &vViewport2 );
-		VkRect2D rScissor2 = { { _rOutput.left, _rOutput.top }, { static_cast<uint32_t>(_rOutput.Width()), static_cast<uint32_t>(_rOutput.Height()) } };
+		VkRect2D rScissor2 = { { 0, 0 }, { static_cast<uint32_t>(_rOutput.Width()), static_cast<uint32_t>(_rOutput.Height()) } };
 		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor2 );
 
 		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppPass2->Get() );
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPass2.dsDescriptorSet, 0, nullptr );
 
-		LSN_RESAMPLER_CONSTANTS rpcPass2 = { m_ui32SrcH, m_ui32DstH, m_ui32MaxTapsY, _bFlipY ? 1.0f : 0.0f };
-		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( LSN_RESAMPLER_CONSTANTS ), &rpcPass2 );
+		uint32_t ui32PushPass2[4] = { m_ui32MaxTapsY, 0, 0, 0 };
+		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, 16, ui32PushPass2 );
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
 		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
 

@@ -64,7 +64,7 @@ namespace lsn {
 		 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat _fFormat, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag );
+		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat _fFormat, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag );
 
 		/**
 		 * Renders the integer scaling quad.

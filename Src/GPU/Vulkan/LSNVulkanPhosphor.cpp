@@ -243,7 +243,7 @@ namespace lsn {
 	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 	 * \return Returns true if the shaders are ready.
 	 **/
-	bool CVulkanPhosphor::EnsureShaders( CVulkanDevice * _pvkDevice, VkFormat /*_fTargetFormat*/, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag ) {
+	bool CVulkanPhosphor::EnsureShaders( CVulkanDevice * _pvkDevice, VkFormat /*_fTargetFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpRenderPass.Valid() ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
 
@@ -307,8 +307,40 @@ namespace lsn {
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 
 
+		static const char * kVsGlsl =
+			"#version 450\n"
+			"layout(location = 0) in vec4 inPos;\n"
+			"layout(location = 1) in vec2 inTex;\n"
+			"layout(location = 0) out vec2 outTex;\n"
+			"void main() {\n"
+			"    gl_Position = vec4(inPos.x, -inPos.y, inPos.z, inPos.w);\n"
+			"    outTex = inTex;\n"
+			"}\n";
+
+		static const char * kPsGlsl =
+			"#version 450\n"
+			"layout(push_constant) uniform Push {\n"
+			"    float decayR;\n"
+			"    float decayG;\n"
+			"    float decayB;\n"
+			"    float initDecay;\n"
+			"} push;\n"
+			"layout(binding = 0) uniform sampler2D tInput;\n"
+			"layout(binding = 1) uniform sampler2D tPrev;\n"
+			"layout(location = 0) in vec2 inTex;\n"
+			"layout(location = 0) out vec4 outColor;\n"
+			"void main() {\n"
+			"    vec4 cur = texture(tInput, inTex);\n"
+			"    vec4 prev = texture(tPrev, inTex);\n"
+			"    vec4 decayed = prev * vec4(push.decayR, push.decayG, push.decayB, 1.0);\n"
+			"    outColor = max(cur, decayed);\n"
+			"}\n";
+
+		std::vector<uint32_t> vVert, vFrag;
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || !CVulkan::CompileGlslToSpirv( kPsGlsl, "fragment", vFrag ) ) { return false; }
+
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !CVulkan::LoadSpirv( _pvkDevice, _vSpirvVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, _vSpirvFrag, smFrag ) ) { return false; }
+		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, vFrag, smFrag ) ) { return false; }
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

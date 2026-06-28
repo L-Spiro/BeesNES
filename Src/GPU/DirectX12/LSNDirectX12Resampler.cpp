@@ -123,7 +123,7 @@ namespace lsn {
 			uint32_t ui32PsConstantsX[4] = { m_ui32MaxTapsX, 0, 0, 0 };
 			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, ui32PsConstantsX, 0 );
 
-			// Offset 0 maps to (Src [0], LutX [1])
+			// Offset 0 maps to (Src [0], LutX [1]).
 			D3D12_GPU_DESCRIPTOR_HANDLE hSrvPass1 = { hSrvGpuBase.ptr };
 			pCommandList->SetGraphicsRootDescriptorTable( 2, hSrvPass1 );
 
@@ -151,7 +151,7 @@ namespace lsn {
 			uint32_t ui32PsConstantsY[4] = { m_ui32MaxTapsY, 0, 0, 0 };
 			pCommandList->SetGraphicsRoot32BitConstants( 1, 4, ui32PsConstantsY, 0 );
 
-			// Offset 2 maps to (Intermediate [2], LutY [3])
+			// Offset 2 maps to (Intermediate [2], LutY [3]).
 			D3D12_GPU_DESCRIPTOR_HANDLE hSrvPass2 = { hSrvGpuBase.ptr + 2 * stSrvSize };
 			pCommandList->SetGraphicsRootDescriptorTable( 2, hSrvPass2 );
 

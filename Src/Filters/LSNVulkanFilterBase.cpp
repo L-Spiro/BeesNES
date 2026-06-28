@@ -381,8 +381,14 @@ namespace lsn {
 		VkImageView ivCurrentSource = _ivSrc;
 		VkSampler sCurrentSampler = _sSrcSampler ? _sSrcSampler : m_sPointSampler.sSampler;
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
+		std::vector<uint32_t> vDummy;
 
+		// Initialize shaders and resources for the base stages
+		if ( !m_tgGamma.EnsureResources( _pvkDevice ) || 
+			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
 
+		if ( !m_trRenderer.EnsureResources( _pvkDevice ) || 
+			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_UNORM, vDummy, vDummy ) ) { return false; }
 
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
 		if ( effGamma != CNesPalette::LSN_G_NONE ) {
@@ -401,20 +407,21 @@ namespace lsn {
 			sCurrentSampler = m_sPointSampler.sSampler;
 		}
 
-
-
 		if ( m_bEnablePhosphorDecay ) {
+			if ( !m_pPhosphor.EnsureResources( _pvkDevice, _pcbCommandBuffer, _ui32NativeW, _ui32NativeH, fmtRt ) ||
+				 !m_pPhosphor.EnsureShaders( _pvkDevice, fmtRt, vDummy, vDummy ) ) { return false; }
+
 			if ( m_pPhosphor.RenderPhosphor( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, sCurrentSampler, _ui32NativeW, _ui32NativeH, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue, m_fInitPhosphorDecay ) ) {
 				ivCurrentSource = m_pPhosphor.GetCurrentPhosphorView();
 			}
 		}
 
-
-
 		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() );
 		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() );
 
 		if ( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
+			if ( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
+
 			if ( !m_fbScaler.Valid() ) {
 				VkFramebufferCreateInfo fbciFrame = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 				fbciFrame.renderPass = m_rpScalerPass.rpRenderPass;
@@ -440,8 +447,6 @@ namespace lsn {
 
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
-
-
 
 		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
 		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
@@ -499,19 +504,32 @@ namespace lsn {
 				m_ui32ResampledTargetH = ui32DstH;
 			}
 
+			if ( !m_rsResampler.EnsureResources( _pvkDevice, _pcbCommandBuffer, uiActualW, uiActualH, ui32DstW, ui32DstH, fmtRt, fmtRt ) ||
+				 !m_rsResampler.EnsureShaders( _pvkDevice, vDummy, vDummy ) ) { return false; }
+
 			if ( m_rsResampler.Render( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, m_sPointSampler.sSampler, m_fbResampled.fbFramebuffer, _rOutput, false ) ) {
 				ivCurrentSource = m_ivResampledView.ivImageView;
 			}
 		}
 
-
 		UpdateDescriptorSet( m_dsRendererSet.dsDescriptorSet, ivCurrentSource, m_sLinearSampler.sSampler );
+
+		// =========================================================================
+		// MAGENTA CLEAR COLOR INJECTION (To verify rendering layer)
+		// =========================================================================
+		VkClearValue cvClear = {};
+		cvClear.color.float32[0] = 1.0f; // R
+		cvClear.color.float32[1] = 0.0f; // G
+		cvClear.color.float32[2] = 1.0f; // B
+		cvClear.color.float32[3] = 1.0f; // A
 
 		VkRenderPassBeginInfo rpbiBackBuffer = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiBackBuffer.renderPass = m_rpBackBufferPass.rpRenderPass;
 		rpbiBackBuffer.framebuffer = m_vSwapFramebuffers[_ui32ImageIndex].fbFramebuffer;
 		rpbiBackBuffer.renderArea.offset = { 0, 0 };
 		rpbiBackBuffer.renderArea.extent = { ui32DstW, ui32DstH };
+		/*rpbiBackBuffer.clearValueCount = 1;
+		rpbiBackBuffer.pClearValues = &cvClear;*/
 		
 		CVulkan::m_pfCmdBeginRenderPass( cbCmd, &rpbiBackBuffer, VK_SUBPASS_CONTENTS_INLINE );
 		m_trRenderer.Render( _pvkDevice, _pcbCommandBuffer, m_dsRendererSet.dsDescriptorSet, _rOutput );
@@ -532,6 +550,8 @@ namespace lsn {
 		VkAttachmentDescription adAttachment = {};
 		adAttachment.format = _fFormat;
 		adAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		// NOTE: Changed to CLEAR for the backbuffer to verify rendering.
+		//adAttachment.loadOp = _bIsBackBuffer ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		adAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		adAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		adAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;

@@ -227,20 +227,16 @@ namespace lsn {
 		VkDevice dDevice = m_pvkDevice->GetDevice();
 		if ( !dDevice ) { return false; }
 
-		// Hand off sync primitives and command pools to the base class early.
 		if ( !CParent::EnsureBaseSizeAndResources( m_pvkDevice, m_ui32SrcW, m_ui32SrcH ) ) { return false; }
 
-		// 1. One-time Setup (Static Palette buffers, Quads)
 		if ( !m_piPalette.get() ) {
-
-			// Static Palette Allocation (Assumes 512 entries, 4 bytes each = 2048 bytes)
 			m_piPalette = std::make_unique<CVulkanImage>();
 			VkImageCreateInfo iciPalette = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 			iciPalette.imageType = VK_IMAGE_TYPE_2D;
 			iciPalette.extent = { 512, 1, 1 };
 			iciPalette.mipLevels = 1;
 			iciPalette.arrayLayers = 1;
-			iciPalette.format = VK_FORMAT_R8G8B8A8_UNORM; // Vulkan equivalent to standard byte LUTs
+			iciPalette.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			iciPalette.tiling = VK_IMAGE_TILING_OPTIMAL;
 			iciPalette.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			iciPalette.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -261,7 +257,7 @@ namespace lsn {
 			VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 			ivciView.image = m_piPalette->Get();
 			ivciView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			ivciView.format = VK_FORMAT_R8G8B8A8_UNORM;
+			ivciView.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			ivciView.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 			m_ivPaletteView.Create( dDevice, &ivciView );
 
@@ -279,7 +275,7 @@ namespace lsn {
 			m_pdmPaletteUploadMemory->AllocateMemory( dDevice, &maiAlloc );
 			CVulkan::m_pfBindBufferMemory( dDevice, m_pbPaletteUpload->Get(), m_pdmPaletteUploadMemory->Get(), 0 );
 
-			// Quad Vertex Buffer
+
 			LSN_XYZRHWTEX1 Quad[] = {
 				{ -1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
 				{  1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f },
@@ -310,13 +306,13 @@ namespace lsn {
 
 		if ( m_piIndex.get() && m_ui32OutputWidth == m_ui32SrcW && m_ui32OutputHeight == m_ui32SrcH ) { m_bValidState = true; return true; }
 
-		// 2. Size-Dependent Allocations (Index Buffer and Initial Render Target)
+
 		ReleaseSizeDependents();
 
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
 		if ( !m_rpInitialPass.Valid() ) { CreateRenderPass( fmtRt, m_rpInitialPass ); }
 
-		// Initial Target
+
 		m_piInitial = std::make_unique<CVulkanImage>();
 		VkImageCreateInfo iciInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		iciInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -357,9 +353,9 @@ namespace lsn {
 		fbciFrame.layers = 1;
 		m_fbInitial.Create( dDevice, &fbciFrame );
 
-		// Index Buffer
+
 		m_piIndex = std::make_unique<CVulkanImage>();
-		iciInfo.format = VK_FORMAT_R16_UINT; // 16-bit indices
+		iciInfo.format = VK_FORMAT_R16_UINT;
 		iciInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		m_piIndex->CreateImage( dDevice, &iciInfo );
 
@@ -451,6 +447,7 @@ namespace lsn {
 	 * \return Returns true if all shaders are ready.
 	 */
 	bool CVulkanPaletteFilter::EnsureShaders() {
+		if ( !m_pvkDevice ) { return false; }
 		VkDevice dDevice = m_pvkDevice->GetDevice();
 		if ( m_ppShader.get() && m_ppShader->Get() ) {
 			VkDescriptorImageInfo diiIndex = { m_sPointSampler.sSampler, m_ivIndexView.ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
@@ -532,13 +529,13 @@ namespace lsn {
 
 		static const char * kPsIdxToColorGlsl =
 			"#version 450\n"
-			"layout(binding = 0) uniform sampler2D tIdx;\n"
+			"layout(binding = 0) uniform usampler2D tIdx;\n"
 			"layout(binding = 1) uniform sampler2D tLut;\n"
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    float raw = texture(tIdx, inTex).r * 65535.0;\n"
-			"    float idx = clamp(floor(raw + 0.5), 0.0, 511.0);\n"
+			"    uint raw = texture(tIdx, inTex).r;\n"
+			"    float idx = clamp(float(raw), 0.0, 511.0);\n"
 			"    float u = (idx + 0.5) / 512.0;\n"
 			"    outColor = texture(tLut, vec2(u, 0.5));\n"
 			"}\n";
