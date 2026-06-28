@@ -403,6 +403,11 @@ namespace lsn {
 			m_tgGamma.Render( _pvkDevice, _pcbCommandBuffer, m_dsGammaSet.dsDescriptorSet, _ui32NativeW, _ui32NativeH, effGamma );
 			CVulkan::m_pfCmdEndRenderPass( cbCmd );
 
+			VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+			mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			mbBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			CVulkan::m_pfCmdPipelineBarrier( cbCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 1, &mbBarrier, 0, nullptr, 0, nullptr );
+
 			ivCurrentSource = m_ivGammaView.ivImageView;
 			sCurrentSampler = m_sPointSampler.sSampler;
 		}
@@ -412,12 +417,18 @@ namespace lsn {
 				 !m_pPhosphor.EnsureShaders( _pvkDevice, fmtRt, vDummy, vDummy ) ) { return false; }
 
 			if ( m_pPhosphor.RenderPhosphor( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, sCurrentSampler, _ui32NativeW, _ui32NativeH, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue, m_fInitPhosphorDecay ) ) {
+				
+				VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+				mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				mbBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				CVulkan::m_pfCmdPipelineBarrier( cbCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 1, &mbBarrier, 0, nullptr, 0, nullptr );
+
 				ivCurrentSource = m_pPhosphor.GetCurrentPhosphorView();
 			}
 		}
 
-		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() );
-		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() );
+		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() ) * _ui32NativeW;
+		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() ) * _ui32NativeH;
 
 		if ( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
 			if ( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
@@ -445,91 +456,33 @@ namespace lsn {
 			m_tpsScaler.Render( _pvkDevice, _pcbCommandBuffer, m_dsScalerSet.dsDescriptorSet, _ui32NativeW, _ui32NativeH, _rOutput, _bFlipY );
 			CVulkan::m_pfCmdEndRenderPass( cbCmd );
 
+			VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+			mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			mbBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			CVulkan::m_pfCmdPipelineBarrier( cbCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 1, &mbBarrier, 0, nullptr, 0, nullptr );
+
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
 
 		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
 		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
 
-		if ( m_bUseHighQualityResampler ) {
-			m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
-			
-			if LSN_UNLIKELY( !m_piResampled.get() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
-				m_fbResampled.Reset();
-				m_ivResampledView.Reset();
-				if ( m_pdmResampledMemory.get() ) { m_pdmResampledMemory->Reset(); }
-				if ( m_piResampled.get() ) { m_piResampled->Reset(); }
-
-				m_piResampled = std::make_unique<CVulkanImage>();
-				VkImageCreateInfo iciInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-				iciInfo.imageType = VK_IMAGE_TYPE_2D;
-				iciInfo.extent = { ui32DstW, ui32DstH, 1 };
-				iciInfo.mipLevels = 1;
-				iciInfo.arrayLayers = 1;
-				iciInfo.format = fmtRt;
-				iciInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-				iciInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				iciInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-				iciInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-				m_piResampled->CreateImage( _pvkDevice->GetDevice(), &iciInfo );
-
-				VkMemoryRequirements mrReq;
-				CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), m_piResampled->Get(), &mrReq );
-
-				VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-				maiAlloc.allocationSize = mrReq.size;
-				maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-
-				m_pdmResampledMemory = std::make_unique<CVulkanDeviceMemory>();
-				m_pdmResampledMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc );
-				CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), m_piResampled->Get(), m_pdmResampledMemory->Get(), 0 );
-
-				VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-				ivciView.image = m_piResampled->Get();
-				ivciView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				ivciView.format = fmtRt;
-				ivciView.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-				m_ivResampledView.Create( _pvkDevice->GetDevice(), &ivciView );
-
-				VkFramebufferCreateInfo fbciFrame = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-				fbciFrame.renderPass = m_rpScalerPass.rpRenderPass;		// Shares identical layout signatures.
-				fbciFrame.attachmentCount = 1;
-				fbciFrame.pAttachments = &m_ivResampledView.ivImageView;
-				fbciFrame.width = ui32DstW;
-				fbciFrame.height = ui32DstH;
-				fbciFrame.layers = 1;
-				m_fbResampled.Create( _pvkDevice->GetDevice(), &fbciFrame );
-
-				m_ui32ResampledTargetW = ui32DstW;
-				m_ui32ResampledTargetH = ui32DstH;
-			}
-
-			if ( !m_rsResampler.EnsureResources( _pvkDevice, _pcbCommandBuffer, uiActualW, uiActualH, ui32DstW, ui32DstH, fmtRt, fmtRt ) ||
-				 !m_rsResampler.EnsureShaders( _pvkDevice, vDummy, vDummy ) ) { return false; }
-
-			if ( m_rsResampler.Render( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, m_sPointSampler.sSampler, m_fbResampled.fbFramebuffer, _rOutput, false ) ) {
-				ivCurrentSource = m_ivResampledView.ivImageView;
-			}
-		}
-
 		UpdateDescriptorSet( m_dsRendererSet.dsDescriptorSet, ivCurrentSource, m_sLinearSampler.sSampler );
 
-		// =========================================================================
-		// MAGENTA CLEAR COLOR INJECTION (To verify rendering layer)
-		// =========================================================================
 		VkClearValue cvClear = {};
-		cvClear.color.float32[0] = 1.0f; // R
+		cvClear.color.float32[0] = 0.0f; // R
 		cvClear.color.float32[1] = 0.0f; // G
-		cvClear.color.float32[2] = 1.0f; // B
+		cvClear.color.float32[2] = 0.0f; // B
 		cvClear.color.float32[3] = 1.0f; // A
 
 		VkRenderPassBeginInfo rpbiBackBuffer = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiBackBuffer.renderPass = m_rpBackBufferPass.rpRenderPass;
 		rpbiBackBuffer.framebuffer = m_vSwapFramebuffers[_ui32ImageIndex].fbFramebuffer;
 		rpbiBackBuffer.renderArea.offset = { 0, 0 };
-		rpbiBackBuffer.renderArea.extent = { ui32DstW, ui32DstH };
-		/*rpbiBackBuffer.clearValueCount = 1;
-		rpbiBackBuffer.pClearValues = &cvClear;*/
+		
+		rpbiBackBuffer.renderArea.extent = { static_cast<uint32_t>(s_vgsState.rScreenRect.Width()), static_cast<uint32_t>(s_vgsState.rScreenRect.Height()) };
+		rpbiBackBuffer.clearValueCount = 1;
+		rpbiBackBuffer.pClearValues = &cvClear;
 		
 		CVulkan::m_pfCmdBeginRenderPass( cbCmd, &rpbiBackBuffer, VK_SUBPASS_CONTENTS_INLINE );
 		m_trRenderer.Render( _pvkDevice, _pcbCommandBuffer, m_dsRendererSet.dsDescriptorSet, _rOutput );

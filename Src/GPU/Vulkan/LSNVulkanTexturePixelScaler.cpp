@@ -58,58 +58,72 @@ namespace lsn {
 	 **/
 	bool CVulkanTexturePixelScaler::EnsureResources( CVulkanDevice * _pvkDevice, uint32_t _ui32DstW, uint32_t _ui32DstH, VkFormat _fFormat ) {
 		if LSN_UNLIKELY( !_pvkDevice ) { return false; }
-		
-		if ( m_piTarget.get() && m_piTarget->Get() && m_ui32DstW == m_ui32DstW && m_ui32DstH == m_ui32DstH && m_fFormat == _fFormat ) {
-			return true;
-		}
+		if ( m_piTarget.get() && m_ui32DstW == _ui32DstW && m_ui32DstH == _ui32DstH ) { return true; }
 
-		m_ivTargetView.Reset();
-		if ( m_pdmTargetMemory.get() ) { m_pdmTargetMemory->Reset(); }
-		if ( m_piTarget.get() ) { m_piTarget->Reset(); }
+		Reset();
 
 		m_piTarget = std::make_unique<CVulkanImage>();
-		VkImageCreateInfo iciImageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		iciImageInfo.imageType = VK_IMAGE_TYPE_2D;
-		iciImageInfo.extent.width = _ui32DstW;
-		iciImageInfo.extent.height = _ui32DstH;
-		iciImageInfo.extent.depth = 1;
-		iciImageInfo.mipLevels = 1;
-		iciImageInfo.arrayLayers = 1;
-		iciImageInfo.format = _fFormat;
-		iciImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		iciImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		iciImageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		iciImageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		iciImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		VkImageCreateInfo iciInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		iciInfo.imageType = VK_IMAGE_TYPE_2D;
+		iciInfo.extent = { _ui32DstW, _ui32DstH, 1 };
+		iciInfo.mipLevels = 1;
+		iciInfo.arrayLayers = 1;
+		iciInfo.format = _fFormat;
+		iciInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		iciInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		iciInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		iciInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		if ( !m_piTarget->CreateImage( _pvkDevice->GetDevice(), &iciInfo ) ) { return false; }
 
-		if ( !m_piTarget->CreateImage( _pvkDevice->GetDevice(), &iciImageInfo ) ) { return false; }
+		VkMemoryRequirements mrReq;
+		CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), m_piTarget->Get(), &mrReq );
 
-		VkMemoryRequirements mrImageMemReq;
-		CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), m_piTarget->Get(), &mrImageMemReq );
-
-		VkMemoryAllocateInfo maiImageAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		maiImageAllocInfo.allocationSize = mrImageMemReq.size;
-		maiImageAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		maiAlloc.allocationSize = mrReq.size;
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		m_pdmTargetMemory = std::make_unique<CVulkanDeviceMemory>();
-		if ( !m_pdmTargetMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiImageAllocInfo ) ) { return false; }
+		if ( !m_pdmTargetMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
 		CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), m_piTarget->Get(), m_pdmTargetMemory->Get(), 0 );
 
-		VkImageViewCreateInfo ivciViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		ivciViewInfo.image = m_piTarget->Get();
-		ivciViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		ivciViewInfo.format = _fFormat;
-		ivciViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		ivciViewInfo.subresourceRange.baseMipLevel = 0;
-		ivciViewInfo.subresourceRange.levelCount = 1;
-		ivciViewInfo.subresourceRange.baseArrayLayer = 0;
-		ivciViewInfo.subresourceRange.layerCount = 1;
+		VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		ivciView.image = m_piTarget->Get();
+		ivciView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ivciView.format = _fFormat;
+		ivciView.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+		if ( !m_ivTargetView.Create( _pvkDevice->GetDevice(), &ivciView ) ) { return false; }
+
+		// --- Quad Creation ---
+		LSN_XYZRHWTEX1 Quad[] = {
+			{ -1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
+			{  1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f },
+			{ -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+			{  1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f },
+		};
+
+		m_pbVbQuad = std::make_unique<CVulkanBuffer>();
+		VkBufferCreateInfo bciQuad = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bciQuad.size = sizeof( Quad );
+		bciQuad.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bciQuad.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if ( !m_pbVbQuad->CreateBuffer( _pvkDevice->GetDevice(), &bciQuad ) ) { return false; }
+
+		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), &mrReq );
+		maiAlloc.allocationSize = mrReq.size;
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
-		if ( !m_ivTargetView.Create( _pvkDevice->GetDevice(), &ivciViewInfo ) ) { return false; }
+		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
+		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
+		CVulkan::m_pfBindBufferMemory( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), m_pdmVbQuadMemory->Get(), 0 );
+
+		void* pvData = nullptr;
+		if ( CVulkan::m_pfMapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get(), 0, sizeof( Quad ), 0, &pvData ) == VK_SUCCESS ) {
+			std::memcpy( pvData, Quad, sizeof( Quad ) );
+			CVulkan::m_pfUnmapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get() );
+		}
 
 		m_ui32DstW = _ui32DstW;
 		m_ui32DstH = _ui32DstH;
-		m_fFormat = _fFormat;
 
 		return true;
 	}
@@ -125,16 +139,14 @@ namespace lsn {
 	 * \return Returns true if the shader is ready.
 	 **/
 	bool CVulkanTexturePixelScaler::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
-		if LSN_UNLIKELY( !_pvkDevice ) { return false; }
+		if LSN_UNLIKELY( !_pvkDevice || !_rpRenderPass ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
-
 
 		VkDescriptorSetLayoutBinding dslbBinding = {};
 		dslbBinding.binding = 0;
 		dslbBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		dslbBinding.descriptorCount = 1;
 		dslbBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		dslbBinding.pImmutableSamplers = nullptr;
 
 		VkDescriptorSetLayoutCreateInfo dslciLayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 		dslciLayoutInfo.bindingCount = 1;
@@ -143,11 +155,17 @@ namespace lsn {
 		m_pdslDescriptorSetLayout = std::make_unique<CVulkanDescriptorSetLayout>();
 		if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
 
+		VkPushConstantRange pcrPushConstant = {};
+		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		pcrPushConstant.offset = 0;
+		pcrPushConstant.size = 16; 
 
 		VkDescriptorSetLayout layouts[] = { m_pdslDescriptorSetLayout->Get() };
 		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		plciLayoutInfo.setLayoutCount = 1;
 		plciLayoutInfo.pSetLayouts = layouts;
+		plciLayoutInfo.pushConstantRangeCount = 1;
+		plciLayoutInfo.pPushConstantRanges = &pcrPushConstant;
 
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
@@ -164,11 +182,13 @@ namespace lsn {
 
 		static const char * kPsGlsl =
 			"#version 450\n"
-			"layout(binding = 0) uniform sampler2D tTex;\n"
+			"layout(push_constant) uniform Push { vec4 c0; } push;\n"
+			"layout(binding = 0) uniform sampler2D tSrc;\n"
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    outColor = texture(tTex, inTex);\n"
+			"    float v = (floor(inTex.y * push.c0.x) + push.c0.z) * push.c0.y;\n"
+			"    outColor = texture(tSrc, vec2(inTex.x, v));\n"
 			"}\n";
 
 		std::vector<uint32_t> vVert, vFrag;
@@ -196,12 +216,12 @@ namespace lsn {
 
 		VkVertexInputAttributeDescription viadAttributes[2] = {};
 		viadAttributes[0].binding = 0;
-		viadAttributes[0].location = 0;							// Position.
+		viadAttributes[0].location = 0; 
 		viadAttributes[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		viadAttributes[0].offset = offsetof( LSN_XYZRHWTEX1, fX );
 
 		viadAttributes[1].binding = 0;
-		viadAttributes[1].location = 1;							// TexCoord.
+		viadAttributes[1].location = 1; 
 		viadAttributes[1].format = VK_FORMAT_R32G32_SFLOAT;
 		viadAttributes[1].offset = offsetof( LSN_XYZRHWTEX1, fU );
 
@@ -262,38 +282,6 @@ namespace lsn {
 		m_ppShader = std::make_unique<CVulkanPipeline>();
 		if ( !m_ppShader->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
 
-
-		LSN_XYZRHWTEX1 Quad[] = {
-			{ -1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
-			{  1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f },
-			{ -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f },
-			{  1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f },
-		};
-
-		m_pbVbQuad = std::make_unique<CVulkanBuffer>();
-		VkBufferCreateInfo bciBufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		bciBufferInfo.size = sizeof( Quad );
-		bciBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		bciBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		if ( !m_pbVbQuad->CreateBuffer( _pvkDevice->GetDevice(), &bciBufferInfo ) ) { return false; }
-
-		VkMemoryRequirements mrVbMemReq;
-		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), &mrVbMemReq );
-
-		VkMemoryAllocateInfo maiVbAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		maiVbAllocInfo.allocationSize = mrVbMemReq.size;
-		maiVbAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-
-		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
-		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiVbAllocInfo ) ) { return false; }
-		CVulkan::m_pfBindBufferMemory( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), m_pdmVbQuadMemory->Get(), 0 );
-
-		void * pvData = nullptr;
-		if ( CVulkan::m_pfMapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get(), 0, sizeof( Quad ), 0, &pvData ) == VK_SUCCESS ) {
-			std::memcpy( pvData, Quad, sizeof( Quad ) );
-			CVulkan::m_pfUnmapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get() );
-		}
-
 		return true;
 	}
 
@@ -309,22 +297,21 @@ namespace lsn {
 	 * \param _bFlipY Determines whether the integer scaler pass should flip the Y axis.
 	 * \return Returns true if rendering commands were successfully recorded.
 	 **/
-	bool CVulkanTexturePixelScaler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkDescriptorSet _dsSourceTexture, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY ) {
+	bool CVulkanTexturePixelScaler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkDescriptorSet _dsSourceTexture, uint32_t _ui32SrcW, uint32_t _ui32SrcH, const lsw::LSW_RECT &/*_rOutput*/, bool /*_bFlipY*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_dsSourceTexture || !m_ppShader.get() ) { return false; }
 
-
 		VkViewport vViewport = {};
-		vViewport.x = static_cast<float>(_rOutput.left);
-		vViewport.y = static_cast<float>(_rOutput.top);
-		vViewport.width = static_cast<float>(_rOutput.Width());
-		vViewport.height = static_cast<float>(_rOutput.Height());
+		vViewport.x = 0.0f;
+		vViewport.y = 0.0f;
+		vViewport.width = static_cast<float>(m_ui32DstW);
+		vViewport.height = static_cast<float>(m_ui32DstH);
 		vViewport.minDepth = 0.0f;
 		vViewport.maxDepth = 1.0f;
 		CVulkan::m_pfCmdSetViewport( _pcbCommandList->Get(), 0, 1, &vViewport );
 
 		VkRect2D rScissor = {};
-		rScissor.offset = { _rOutput.left, _rOutput.top };
-		rScissor.extent = { static_cast<uint32_t>(_rOutput.Width()), static_cast<uint32_t>(_rOutput.Height()) };
+		rScissor.offset = { 0, 0 };
+		rScissor.extent = { m_ui32DstW, m_ui32DstH };
 		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
 
 
@@ -334,14 +321,11 @@ namespace lsn {
 		VkBuffer buffers[] = { m_pbVbQuad->Get() };
 		VkDeviceSize offsets[] = { 0 };
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
-
-
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &_dsSourceTexture, 0, nullptr );
 
-
-		LSN_SCALER_CONSTANTS scConstants = { _ui32NativeW, _ui32NativeH, _bFlipY ? 1.0f : 0.0f };
-		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( LSN_SCALER_CONSTANTS ), &scConstants );
-
+		float fSrcH = static_cast<float>(_ui32SrcH);
+		float fC0[4] = { fSrcH, 1.0f / fSrcH, 0.5f, 0.0f };
+		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( fC0 ), fC0 );
 
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
 
