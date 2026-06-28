@@ -211,7 +211,7 @@ namespace lsn {
 				VkImageViewCreateInfo ivciViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 				ivciViewInfo.image = m_vSwapImages[I];
 				ivciViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				ivciViewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+				ivciViewInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
 				ivciViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				ivciViewInfo.subresourceRange.levelCount = 1;
 				ivciViewInfo.subresourceRange.layerCount = 1;
@@ -464,8 +464,8 @@ namespace lsn {
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
 
-		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
-		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+		/*uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());*/
 
 		UpdateDescriptorSet( m_dsRendererSet.dsDescriptorSet, ivCurrentSource, m_sLinearSampler.sSampler );
 

@@ -187,8 +187,10 @@ namespace lsn {
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    float v = (floor(inTex.y * push.c0.x) + push.c0.z) * push.c0.y;\n"
-			"    outColor = texture(tSrc, vec2(inTex.x, v));\n"
+			"    vec2 uv = inTex;\n"
+			"    if (push.c0.w > 0.5) { uv.y = 1.0 - uv.y; }\n"
+			"    float v = (floor(uv.y * push.c0.x) + push.c0.z) * push.c0.y;\n"
+			"    outColor = texture(tSrc, vec2(uv.x, v));\n"
 			"}\n";
 
 		std::vector<uint32_t> vVert, vFrag;
@@ -297,7 +299,7 @@ namespace lsn {
 	 * \param _bFlipY Determines whether the integer scaler pass should flip the Y axis.
 	 * \return Returns true if rendering commands were successfully recorded.
 	 **/
-	bool CVulkanTexturePixelScaler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkDescriptorSet _dsSourceTexture, uint32_t _ui32SrcW, uint32_t _ui32SrcH, const lsw::LSW_RECT &/*_rOutput*/, bool /*_bFlipY*/ ) {
+	bool CVulkanTexturePixelScaler::Render( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkDescriptorSet _dsSourceTexture, uint32_t /*_ui32SrcW*/, uint32_t _ui32SrcH, const lsw::LSW_RECT &/*_rOutput*/, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_dsSourceTexture || !m_ppShader.get() ) { return false; }
 
 		VkViewport vViewport = {};
@@ -324,7 +326,7 @@ namespace lsn {
 		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &_dsSourceTexture, 0, nullptr );
 
 		float fSrcH = static_cast<float>(_ui32SrcH);
-		float fC0[4] = { fSrcH, 1.0f / fSrcH, 0.5f, 0.0f };
+		float fC0[4] = { fSrcH, 1.0f / fSrcH, 0.5f, _bFlipY ? 1.0f : 0.0f };
 		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( fC0 ), fC0 );
 
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );

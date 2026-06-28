@@ -443,14 +443,40 @@ namespace lsn {
 
 #ifdef LSN_WINDOWS
 		std::string sCmd = std::string( "glslc.exe -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+		
+		STARTUPINFOA si;
+		PROCESS_INFORMATION pi;
+		ZeroMemory( &si, sizeof( si ) );
+		si.cb = sizeof( si );
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_HIDE;
+		ZeroMemory( &pi, sizeof( pi ) );
+
+		// CreateProcessA requires a mutable string buffer.
+		std::vector<char> vCmdBuffer( sCmd.begin(), sCmd.end() );
+		vCmdBuffer.push_back( '\0' );
+
+		if ( ::CreateProcessA( NULL, vCmdBuffer.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi ) ) {
+			::WaitForSingleObject( pi.hProcess, INFINITE );
+			DWORD dwExitCode = 0;
+			::GetExitCodeProcess( pi.hProcess, &dwExitCode );
+			::CloseHandle( pi.hProcess );
+			::CloseHandle( pi.hThread );
+			if ( dwExitCode != 0 ) {
+				::remove( sInFile.c_str() );
+				return false;
+			}
+		} else {
+			::remove( sInFile.c_str() );
+			return false;
+		}
 #else
 		std::string sCmd = std::string( "glslc -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
-#endif
-
 		if ( std::system( sCmd.c_str() ) != 0 ) {
 			::remove( sInFile.c_str() );
 			return false;
 		}
+#endif
 
 		FILE * pfOut = nullptr;
 #ifdef LSN_WINDOWS

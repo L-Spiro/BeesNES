@@ -189,14 +189,14 @@ namespace lsn {
 
 		if LSN_UNLIKELY( !m_dhSrvHeap.get() ) {
 			m_dhSrvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			// Capacity for 3 SRVs: [0: Src, 1: Phosphor0, 2: Phosphor1]
+			// Capacity for 3 SRVs: [0: Src, 1: Phosphor0, 2: Phosphor1].
 			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 };
 			if ( !m_dhSrvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}
 
 		if LSN_UNLIKELY( !m_dhRtvHeap.get() ) {
 			m_dhRtvHeap = std::make_unique<CDirectX12DescriptorHeap>();
-			// Capacity for 2 RTVs: [0: Phosphor0, 1: Phosphor1]
+			// Capacity for 2 RTVs: [0: Phosphor0, 1: Phosphor1].
 			D3D12_DESCRIPTOR_HEAP_DESC dhdDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
 			if ( !m_dhRtvHeap->CreateDescriptorHeap( pd12Device, &dhdDesc ) ) { return false; }
 		}

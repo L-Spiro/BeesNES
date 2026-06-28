@@ -36,27 +36,37 @@ namespace lsn {
 			m_pdmPhosphorMemory[I].reset();
 		}
 
+		m_fbOutput.Reset();
+		m_ivOutputView.Reset();
+		if LSN_LIKELY( m_pdmOutputMemory.get() ) { m_pdmOutputMemory->Reset(); }
+		if LSN_LIKELY( m_piOutput.get() ) { m_piOutput->Reset(); }
+		m_piOutput.reset();
+		m_pdmOutputMemory.reset();
+
 		if LSN_LIKELY( m_pdmVbQuadMemory.get() ) { m_pdmVbQuadMemory->Reset(); }
 		if LSN_LIKELY( m_pbVbQuad.get() ) { m_pbVbQuad->Reset(); }
-		if LSN_LIKELY( m_ppShader.get() ) { m_ppShader->Reset(); }
-		if LSN_LIKELY( m_pplPipelineLayout.get() ) { m_pplPipelineLayout->Reset(); }
-		if LSN_LIKELY( m_pdslDescriptorSetLayout.get() ) { m_pdslDescriptorSetLayout->Reset(); }
-		if LSN_LIKELY( m_pdpDescriptorPool.get() ) { m_pdpDescriptorPool->Reset(); }
-
 		m_pbVbQuad.reset();
 		m_pdmVbQuadMemory.reset();
-		m_ppShader.reset();
-		m_pplPipelineLayout.reset();
-		m_pdslDescriptorSetLayout.reset();
-		m_pdpDescriptorPool.reset();
-		
+
 		m_rpRenderPass.Reset();
-		m_sSampler.Reset();
+
+		if LSN_LIKELY( m_ppShaderOutput.get() ) { m_ppShaderOutput->Reset(); }
+		m_ppShaderOutput.reset();
+		if LSN_LIKELY( m_ppShaderUpdate.get() ) { m_ppShaderUpdate->Reset(); }
+		m_ppShaderUpdate.reset();
+
+		if LSN_LIKELY( m_pplPipelineLayout.get() ) { m_pplPipelineLayout->Reset(); }
+		m_pplPipelineLayout.reset();
+
+		if LSN_LIKELY( m_pdslDescriptorSetLayout.get() ) { m_pdslDescriptorSetLayout->Reset(); }
+		m_pdslDescriptorSetLayout.reset();
+
+		if LSN_LIKELY( m_pdpDescriptorPool.get() ) { m_pdpDescriptorPool->Reset(); }
+		m_pdpDescriptorPool.reset();
 
 		m_stRenderTargetIdx = 0;
 		m_ui32SrcW = 0;
 		m_ui32SrcH = 0;
-		m_fFormat = VK_FORMAT_UNDEFINED;
 	}
 
 	/**
@@ -69,122 +79,82 @@ namespace lsn {
 	 * \param _fTargetFormat The format of the RTV this shader will output to (and the ping-pong buffers).
 	 * \return Returns true if resources are ready.
 	 **/
-	bool CVulkanPhosphor::EnsureResources( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcW, uint32_t _ui32SrcH, VkFormat _fTargetFormat ) {
+	bool CVulkanPhosphor::EnsureResources( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcW, uint32_t _ui32SrcH, VkFormat _fFormat ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList ) { return false; }
-		
-		if ( m_piPhosphor[0].get() && m_ui32SrcW == m_ui32SrcW && m_ui32SrcH == m_ui32SrcH && m_fFormat == _fTargetFormat ) {
-			return true;
-		}
+		if ( m_piPhosphor[0].get() && m_ui32SrcW == _ui32SrcW && m_ui32SrcH == _ui32SrcH ) { return true; }
 
 		Reset();
 
-		// 1. Create Render Pass
-		VkAttachmentDescription adAttachment = {};
-		adAttachment.format = _fTargetFormat;
-		adAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		adAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // We draw a full screen quad over it.
-		adAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		adAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		adAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		adAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		adAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		VkAttachmentDescription adPass = {};
+		adPass.format = _fFormat;
+		adPass.samples = VK_SAMPLE_COUNT_1_BIT;
+		adPass.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		adPass.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		adPass.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		adPass.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		adPass.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		adPass.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		VkAttachmentReference arColorRef = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-
+		VkAttachmentReference arRef = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		VkSubpassDescription sdSubpass = {};
 		sdSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		sdSubpass.colorAttachmentCount = 1;
-		sdSubpass.pColorAttachments = &arColorRef;
+		sdSubpass.pColorAttachments = &arRef;
 
 		VkRenderPassCreateInfo rpciInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
 		rpciInfo.attachmentCount = 1;
-		rpciInfo.pAttachments = &adAttachment;
+		rpciInfo.pAttachments = &adPass;
 		rpciInfo.subpassCount = 1;
 		rpciInfo.pSubpasses = &sdSubpass;
-
 		if ( !m_rpRenderPass.Create( _pvkDevice->GetDevice(), &rpciInfo ) ) { return false; }
 
-		// 2. Create the two ping-pong buffers.
-		VkImageMemoryBarrier imbBarriers[2] = {};
-		for ( int I = 0; I < 2; ++I ) {
-			m_piPhosphor[I] = std::make_unique<CVulkanImage>();
-			VkImageCreateInfo iciImageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-			iciImageInfo.imageType = VK_IMAGE_TYPE_2D;
-			iciImageInfo.extent.width = _ui32SrcW;
-			iciImageInfo.extent.height = _ui32SrcH;
-			iciImageInfo.extent.depth = 1;
-			iciImageInfo.mipLevels = 1;
-			iciImageInfo.arrayLayers = 1;
-			iciImageInfo.format = _fTargetFormat;
-			iciImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-			iciImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			iciImageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-			iciImageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			iciImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-			if ( !m_piPhosphor[I]->CreateImage( _pvkDevice->GetDevice(), &iciImageInfo ) ) { return false; }
+		auto CreateTexture = [&]( std::unique_ptr<CVulkanImage> &_piTarget, std::unique_ptr<CVulkanDeviceMemory> &_pdmMemory, CVulkan::LSN_IMAGE_VIEW &_ivView, CVulkan::LSN_FRAMEBUFFER &_fbTarget ) {
+			_piTarget = std::make_unique<CVulkanImage>();
+			VkImageCreateInfo iciInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+			iciInfo.imageType = VK_IMAGE_TYPE_2D;
+			iciInfo.extent = { _ui32SrcW, _ui32SrcH, 1 };
+			iciInfo.mipLevels = 1;
+			iciInfo.arrayLayers = 1;
+			iciInfo.format = _fFormat;
+			iciInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			iciInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			iciInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			iciInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			_piTarget->CreateImage( _pvkDevice->GetDevice(), &iciInfo );
 
-			VkMemoryRequirements mrImageMemReq;
-			CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), m_piPhosphor[I]->Get(), &mrImageMemReq );
+			VkMemoryRequirements mrReq;
+			CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), _piTarget->Get(), &mrReq );
 
-			VkMemoryAllocateInfo maiImageAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-			maiImageAllocInfo.allocationSize = mrImageMemReq.size;
-			maiImageAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrImageMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+			VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+			maiAlloc.allocationSize = mrReq.size;
+			maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
-			m_pdmPhosphorMemory[I] = std::make_unique<CVulkanDeviceMemory>();
-			if ( !m_pdmPhosphorMemory[I]->AllocateMemory( _pvkDevice->GetDevice(), &maiImageAllocInfo ) ) { return false; }
-			CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), m_piPhosphor[I]->Get(), m_pdmPhosphorMemory[I]->Get(), 0 );
+			_pdmMemory = std::make_unique<CVulkanDeviceMemory>();
+			_pdmMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc );
+			CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), _piTarget->Get(), _pdmMemory->Get(), 0 );
 
-			VkImageViewCreateInfo ivciViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			ivciViewInfo.image = m_piPhosphor[I]->Get();
-			ivciViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			ivciViewInfo.format = _fTargetFormat;
-			ivciViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			ivciViewInfo.subresourceRange.baseMipLevel = 0;
-			ivciViewInfo.subresourceRange.levelCount = 1;
-			ivciViewInfo.subresourceRange.baseArrayLayer = 0;
-			ivciViewInfo.subresourceRange.layerCount = 1;
-			
-			if ( !m_ivPhosphorView[I].Create( _pvkDevice->GetDevice(), &ivciViewInfo ) ) { return false; }
+			VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			ivciView.image = _piTarget->Get();
+			ivciView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			ivciView.format = _fFormat;
+			ivciView.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			_ivView.Create( _pvkDevice->GetDevice(), &ivciView );
 
-			VkFramebufferCreateInfo fbciInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-			fbciInfo.renderPass = m_rpRenderPass.rpRenderPass;
-			fbciInfo.attachmentCount = 1;
-			fbciInfo.pAttachments = &m_ivPhosphorView[I].ivImageView;
-			fbciInfo.width = _ui32SrcW;
-			fbciInfo.height = _ui32SrcH;
-			fbciInfo.layers = 1;
+			VkFramebufferCreateInfo fbciFrame = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+			fbciFrame.renderPass = m_rpRenderPass.rpRenderPass;
+			fbciFrame.attachmentCount = 1;
+			fbciFrame.pAttachments = &_ivView.ivImageView;
+			fbciFrame.width = _ui32SrcW;
+			fbciFrame.height = _ui32SrcH;
+			fbciFrame.layers = 1;
+			_fbTarget.Create( _pvkDevice->GetDevice(), &fbciFrame );
+		};
 
-			if ( !m_fbPhosphor[I].Create( _pvkDevice->GetDevice(), &fbciInfo ) ) { return false; }
+		CreateTexture( m_piOutput, m_pdmOutputMemory, m_ivOutputView, m_fbOutput );
+		CreateTexture( m_piPhosphor[0], m_pdmPhosphorMemory[0], m_ivPhosphorView[0], m_fbPhosphor[0] );
+		CreateTexture( m_piPhosphor[1], m_pdmPhosphorMemory[1], m_ivPhosphorView[1], m_fbPhosphor[1] );
 
-			// Prep transition barriers
-			imbBarriers[I].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imbBarriers[I].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imbBarriers[I].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imbBarriers[I].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			imbBarriers[I].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			imbBarriers[I].image = m_piPhosphor[I]->Get();
-			imbBarriers[I].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			imbBarriers[I].subresourceRange.baseMipLevel = 0;
-			imbBarriers[I].subresourceRange.levelCount = 1;
-			imbBarriers[I].subresourceRange.baseArrayLayer = 0;
-			imbBarriers[I].subresourceRange.layerCount = 1;
-			imbBarriers[I].srcAccessMask = 0;
-			imbBarriers[I].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		}
-
-		// 3. Transition to SHADER_READ_ONLY_OPTIMAL.
-		// The first pass reads from [1] while writing to [0]. Both must be initialized.
-		CVulkan::m_pfCmdPipelineBarrier(
-			_pcbCommandList->Get(),
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			2, imbBarriers
-		);
-
-		// 4. Create Vertex Buffer for a full screen quad.
 		LSN_XYZRHWTEX1 Quad[] = {
 			{ -1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
 			{  1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f },
@@ -193,21 +163,20 @@ namespace lsn {
 		};
 
 		m_pbVbQuad = std::make_unique<CVulkanBuffer>();
-		VkBufferCreateInfo bciBufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		bciBufferInfo.size = sizeof( Quad );
-		bciBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		bciBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		if ( !m_pbVbQuad->CreateBuffer( _pvkDevice->GetDevice(), &bciBufferInfo ) ) { return false; }
+		VkBufferCreateInfo bciQuad = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bciQuad.size = sizeof( Quad );
+		bciQuad.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bciQuad.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if ( !m_pbVbQuad->CreateBuffer( _pvkDevice->GetDevice(), &bciQuad ) ) { return false; }
 
-		VkMemoryRequirements mrVbMemReq;
-		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), &mrVbMemReq );
-
-		VkMemoryAllocateInfo maiVbAllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		maiVbAllocInfo.allocationSize = mrVbMemReq.size;
-		maiVbAllocInfo.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrVbMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-
+		VkMemoryRequirements mrReq;
+		CVulkan::m_pfGetBufferMemoryRequirements( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), &mrReq );
+		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		maiAlloc.allocationSize = mrReq.size;
+		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		
 		m_pdmVbQuadMemory = std::make_unique<CVulkanDeviceMemory>();
-		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiVbAllocInfo ) ) { return false; }
+		if ( !m_pdmVbQuadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
 		CVulkan::m_pfBindBufferMemory( _pvkDevice->GetDevice(), m_pbVbQuad->Get(), m_pdmVbQuadMemory->Get(), 0 );
 
 		void* pvData = nullptr;
@@ -216,20 +185,9 @@ namespace lsn {
 			CVulkan::m_pfUnmapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get() );
 		}
 
-		// 5. Create Sampler for the ping-pong reads.
-		VkSamplerCreateInfo sciSamplerInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		sciSamplerInfo.magFilter = VK_FILTER_NEAREST;
-		sciSamplerInfo.minFilter = VK_FILTER_NEAREST;
-		sciSamplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-		sciSamplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		sciSamplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		sciSamplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		sciSamplerInfo.maxAnisotropy = 1.0f;
-		if ( !m_sSampler.Create( _pvkDevice->GetDevice(), &sciSamplerInfo ) ) { return false; }
-
 		m_ui32SrcW = _ui32SrcW;
 		m_ui32SrcH = _ui32SrcH;
-		m_fFormat = _fTargetFormat;
+		m_stRenderTargetIdx = 0;
 
 		return true;
 	}
@@ -245,8 +203,7 @@ namespace lsn {
 	 **/
 	bool CVulkanPhosphor::EnsureShaders( CVulkanDevice * _pvkDevice, VkFormat /*_fTargetFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpRenderPass.Valid() ) { return false; }
-		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
-
+		if ( m_ppShaderOutput.get() && m_ppShaderOutput->Get() && m_ppShaderUpdate.get() && m_ppShaderUpdate->Get() ) { return true; }
 
 		VkDescriptorSetLayoutBinding dslbBindings[2] = {};
 		dslbBindings[0].binding = 0;
@@ -266,8 +223,7 @@ namespace lsn {
 		m_pdslDescriptorSetLayout = std::make_unique<CVulkanDescriptorSetLayout>();
 		if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
 
-
-		VkDescriptorPoolSize dpsSize = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 };	// 2 sets * 2 bindings.
+		VkDescriptorPoolSize dpsSize = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 };
 		VkDescriptorPoolCreateInfo dpciPoolInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		dpciPoolInfo.poolSizeCount = 1;
 		dpciPoolInfo.pPoolSizes = &dpsSize;
@@ -284,18 +240,13 @@ namespace lsn {
 
 		VkDescriptorSet allocatedSets[2];
 		if ( CVulkan::m_pfAllocateDescriptorSets( _pvkDevice->GetDevice(), &dsaiAllocInfo, allocatedSets ) != VK_SUCCESS ) { return false; }
-
-		// Move allocated sets into our strict RAII wrappers to guarantee leak-proof cleanup on Reset().
-		// Since we didn't specify VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT, destroying the pool implicitly destroys these sets.
-		// However, the LSN_DESCRIPTOR_SET RAII wrapper will still safely relinquish its handle without an API-level error.
 		m_dsPhosphor[0].dsDescriptorSet = allocatedSets[0];
 		m_dsPhosphor[1].dsDescriptorSet = allocatedSets[1];
-
 
 		VkPushConstantRange pcrPushConstant = {};
 		pcrPushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		pcrPushConstant.offset = 0;
-		pcrPushConstant.size = sizeof( LSN_PHOSPHOR_CONSTANTS );
+		pcrPushConstant.size = 16; // { float decayR, float decayG, float decayB, float initDecay }
 
 		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		plciLayoutInfo.setLayoutCount = 1;
@@ -305,7 +256,6 @@ namespace lsn {
 
 		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
 		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
-
 
 		static const char * kVsGlsl =
 			"#version 450\n"
@@ -317,7 +267,7 @@ namespace lsn {
 			"    outTex = inTex;\n"
 			"}\n";
 
-		static const char * kPsGlsl =
+		static const char * kPsOutputGlsl =
 			"#version 450\n"
 			"layout(push_constant) uniform Push {\n"
 			"    float decayR;\n"
@@ -325,22 +275,47 @@ namespace lsn {
 			"    float decayB;\n"
 			"    float initDecay;\n"
 			"} push;\n"
-			"layout(binding = 0) uniform sampler2D tInput;\n"
-			"layout(binding = 1) uniform sampler2D tPrev;\n"
+			"layout(binding = 0) uniform sampler2D tSrc;\n"
+			"layout(binding = 1) uniform sampler2D tHistory;\n"
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    vec4 cur = texture(tInput, inTex);\n"
-			"    vec4 prev = texture(tPrev, inTex);\n"
-			"    vec4 decayed = prev * vec4(push.decayR, push.decayG, push.decayB, 1.0);\n"
-			"    outColor = max(cur, decayed);\n"
+			"    vec4 curColor = texture(tSrc, inTex);\n"
+			"    vec4 oldColor = texture(tHistory, inTex);\n"
+			"    vec3 oldDecayed = oldColor.rgb * vec3(push.decayR, push.decayG, push.decayB);\n"
+			"    outColor = vec4(max(oldDecayed, curColor.rgb), curColor.a);\n"
 			"}\n";
 
-		std::vector<uint32_t> vVert, vFrag;
-		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || !CVulkan::CompileGlslToSpirv( kPsGlsl, "fragment", vFrag ) ) { return false; }
+		static const char * kPsUpdateGlsl =
+			"#version 450\n"
+			"layout(push_constant) uniform Push {\n"
+			"    float decayR;\n"
+			"    float decayG;\n"
+			"    float decayB;\n"
+			"    float initDecay;\n"
+			"} push;\n"
+			"layout(binding = 0) uniform sampler2D tSrc;\n"
+			"layout(binding = 1) uniform sampler2D tHistory;\n"
+			"layout(location = 0) in vec2 inTex;\n"
+			"layout(location = 0) out vec4 outColor;\n"
+			"void main() {\n"
+			"    vec4 curColor = texture(tSrc, inTex);\n"
+			"    vec4 oldColor = texture(tHistory, inTex);\n"
+			"    vec3 oldDecayed = oldColor.rgb * vec3(push.decayR, push.decayG, push.decayB);\n"
+			"    vec3 scaledCurrent = curColor.rgb * push.initDecay;\n"
+			"    outColor = vec4(max(scaledCurrent, oldDecayed), curColor.a);\n"
+			"}\n";
 
-		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
-		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, vFrag, smFrag ) ) { return false; }
+		std::vector<uint32_t> vVert, vFragOutput, vFragUpdate;
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || 
+			 !CVulkan::CompileGlslToSpirv( kPsOutputGlsl, "fragment", vFragOutput ) ||
+			 !CVulkan::CompileGlslToSpirv( kPsUpdateGlsl, "fragment", vFragUpdate ) ) { return false; }
+
+		CVulkan::LSN_SHADER_MODULE smVert, smFragOutput, smFragUpdate;
+		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) || 
+			 !CVulkan::LoadSpirv( _pvkDevice, vFragOutput, smFragOutput ) ||
+			 !CVulkan::LoadSpirv( _pvkDevice, vFragUpdate, smFragUpdate ) ) { return false; }
+
 
 		VkPipelineShaderStageCreateInfo pssciShaderStages[2] = {};
 		pssciShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -350,7 +325,7 @@ namespace lsn {
 
 		pssciShaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		pssciShaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		pssciShaderStages[1].module = smFrag.smShaderModule;
+		pssciShaderStages[1].module = smFragOutput.smShaderModule;
 		pssciShaderStages[1].pName = "main";
 
 
@@ -361,12 +336,12 @@ namespace lsn {
 
 		VkVertexInputAttributeDescription viadAttributes[2] = {};
 		viadAttributes[0].binding = 0;
-		viadAttributes[0].location = 0;		// Position.
+		viadAttributes[0].location = 0; 
 		viadAttributes[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		viadAttributes[0].offset = offsetof( LSN_XYZRHWTEX1, fX );
 
 		viadAttributes[1].binding = 0;
-		viadAttributes[1].location = 1;		// TexCoord.
+		viadAttributes[1].location = 1; 
 		viadAttributes[1].format = VK_FORMAT_R32G32_SFLOAT;
 		viadAttributes[1].offset = offsetof( LSN_XYZRHWTEX1, fU );
 
@@ -424,8 +399,12 @@ namespace lsn {
 		gpciPipelineInfo.renderPass = m_rpRenderPass.rpRenderPass;
 		gpciPipelineInfo.subpass = 0;
 
-		m_ppShader = std::make_unique<CVulkanPipeline>();
-		if ( !m_ppShader->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
+		m_ppShaderOutput = std::make_unique<CVulkanPipeline>();
+		if ( !m_ppShaderOutput->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
+
+		pssciShaderStages[1].module = smFragUpdate.smShaderModule;
+		m_ppShaderUpdate = std::make_unique<CVulkanPipeline>();
+		if ( !m_ppShaderUpdate->CreateGraphicsPipeline( _pvkDevice->GetDevice(), &gpciPipelineInfo ) ) { return false; }
 
 		return true;
 	}
@@ -445,77 +424,88 @@ namespace lsn {
 	 * \param _fInitialDecay The initial decay value.
 	 * \return Returns true if rendering succeeded.
 	 **/
-	bool CVulkanPhosphor::RenderPhosphor( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkImageView _ivInputTexture, VkSampler _sInputSampler, uint32_t _ui32SrcW, uint32_t _ui32SrcH, float _fDecayR, float _fDecayG, float _fDecayB, float _fInitialDecay ) {
-		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_ivInputTexture || !_sInputSampler || !m_ppShader.get() ) { return false; }
+	bool CVulkanPhosphor::RenderPhosphor( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, VkImageView _ivSource, VkSampler _sSampler, uint32_t _ui32SrcW, uint32_t _ui32SrcH, float _fDecayR, float _fDecayG, float _fDecayB, float _fInitDecay ) {
+		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList || !_ivSource || !m_ppShaderOutput.get() || !m_ppShaderUpdate.get() ) { return false; }
 
-
-		VkDescriptorImageInfo diiInput = { _sInputSampler, _ivInputTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
-		VkDescriptorImageInfo diiPrev = { m_sSampler.sSampler, m_ivPhosphorView[m_stRenderTargetIdx ^ 1].ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		VkDescriptorImageInfo diiSrc = { _sSampler, _ivSource, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		VkDescriptorImageInfo diiHist = { _sSampler, m_ivPhosphorView[m_stRenderTargetIdx].ivImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
 		VkWriteDescriptorSet wdsWrites[2] = {};
-		wdsWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		wdsWrites[0].dstSet = m_dsPhosphor[m_stRenderTargetIdx].dsDescriptorSet;
-		wdsWrites[0].dstBinding = 0;
-		wdsWrites[0].dstArrayElement = 0;
-		wdsWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		wdsWrites[0].descriptorCount = 1;
-		wdsWrites[0].pImageInfo = &diiInput;
-
-		wdsWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		wdsWrites[1].dstSet = m_dsPhosphor[m_stRenderTargetIdx].dsDescriptorSet;
-		wdsWrites[1].dstBinding = 1;
-		wdsWrites[1].dstArrayElement = 0;
-		wdsWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		wdsWrites[1].descriptorCount = 1;
-		wdsWrites[1].pImageInfo = &diiPrev;
-
+		wdsWrites[0] = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, m_dsPhosphor[0].dsDescriptorSet, 0, 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &diiSrc, nullptr, nullptr };
+		wdsWrites[1] = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, m_dsPhosphor[0].dsDescriptorSet, 1, 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &diiHist, nullptr, nullptr };
 		CVulkan::m_pfUpdateDescriptorSets( _pvkDevice->GetDevice(), 2, wdsWrites, 0, nullptr );
 
-
-		VkRenderPassBeginInfo rpbiInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		rpbiInfo.renderPass = m_rpRenderPass.rpRenderPass;
-		rpbiInfo.framebuffer = m_fbPhosphor[m_stRenderTargetIdx].fbFramebuffer;
-		rpbiInfo.renderArea.offset = { 0, 0 };
-		rpbiInfo.renderArea.extent = { _ui32SrcW, _ui32SrcH };
-		
-		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiInfo, VK_SUBPASS_CONTENTS_INLINE );
-
-
-		VkViewport vViewport = {};
-		vViewport.x = 0.0f;
-		vViewport.y = 0.0f;
-		vViewport.width = static_cast<float>(_ui32SrcW);
-		vViewport.height = static_cast<float>(_ui32SrcH);
-		vViewport.minDepth = 0.0f;
-		vViewport.maxDepth = 1.0f;
-		CVulkan::m_pfCmdSetViewport( _pcbCommandList->Get(), 0, 1, &vViewport );
-
-		VkRect2D rScissor = {};
-		rScissor.offset = { 0, 0 };
-		rScissor.extent = { _ui32SrcW, _ui32SrcH };
-		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
-
-
-		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShader->Get() );
+		VkViewport vViewport = { 0.0f, 0.0f, static_cast<float>(_ui32SrcW), static_cast<float>(_ui32SrcH), 0.0f, 1.0f };
+		VkRect2D rScissor = { { 0, 0 }, { _ui32SrcW, _ui32SrcH } };
 
 		VkBuffer buffers[] = { m_pbVbQuad->Get() };
 		VkDeviceSize offsets[] = { 0 };
+		float fPush[4] = { _fDecayR, _fDecayG, _fDecayB, _fInitDecay };
+
+		// =========================================================================
+		// PASS 1: Render Visual Composite to m_fbOutput
+		// =========================================================================
+		VkRenderPassBeginInfo rpbiPass1 = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		rpbiPass1.renderPass = m_rpRenderPass.rpRenderPass;
+		rpbiPass1.framebuffer = m_fbOutput.fbFramebuffer;
+		rpbiPass1.renderArea.offset = { 0, 0 };
+		rpbiPass1.renderArea.extent = { _ui32SrcW, _ui32SrcH };
+
+		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiPass1, VK_SUBPASS_CONTENTS_INLINE );
+		
+		CVulkan::m_pfCmdSetViewport( _pcbCommandList->Get(), 0, 1, &vViewport );
+		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
+		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShaderOutput->Get() );
 		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
-
-
-		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPhosphor[m_stRenderTargetIdx].dsDescriptorSet, 0, nullptr );
-
-
-		LSN_PHOSPHOR_CONSTANTS pcConsts = { _fDecayR, _fDecayG, _fDecayB, _fInitialDecay };
-		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( LSN_PHOSPHOR_CONSTANTS ), &pcConsts );
-
-
+		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPhosphor[0].dsDescriptorSet, 0, nullptr );
+		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( fPush ), fPush );
+		
 		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
-
 		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
 
+		VkImageMemoryBarrier imbOutput = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		imbOutput.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imbOutput.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imbOutput.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imbOutput.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imbOutput.image = m_piOutput->Get();
+		imbOutput.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+		CVulkan::m_pfCmdPipelineBarrier( _pcbCommandList->Get(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imbOutput );
 
-		m_stRenderTargetIdx ^= 1;
+
+		// =========================================================================
+		// PASS 2: Update History Buffer with Scaled Current Frame
+		// =========================================================================
+		size_t stWriteIndex = m_stRenderTargetIdx ^ 1;
+
+		VkRenderPassBeginInfo rpbiPass2 = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		rpbiPass2.renderPass = m_rpRenderPass.rpRenderPass;
+		rpbiPass2.framebuffer = m_fbPhosphor[stWriteIndex].fbFramebuffer;
+		rpbiPass2.renderArea.offset = { 0, 0 };
+		rpbiPass2.renderArea.extent = { _ui32SrcW, _ui32SrcH };
+
+		CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiPass2, VK_SUBPASS_CONTENTS_INLINE );
+
+		CVulkan::m_pfCmdSetViewport( _pcbCommandList->Get(), 0, 1, &vViewport );
+		CVulkan::m_pfCmdSetScissor( _pcbCommandList->Get(), 0, 1, &rScissor );
+		CVulkan::m_pfCmdBindPipeline( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShaderUpdate->Get() );
+		CVulkan::m_pfCmdBindVertexBuffers( _pcbCommandList->Get(), 0, 1, buffers, offsets );
+		CVulkan::m_pfCmdBindDescriptorSets( _pcbCommandList->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pplPipelineLayout->Get(), 0, 1, &m_dsPhosphor[0].dsDescriptorSet, 0, nullptr );
+		CVulkan::m_pfCmdPushConstants( _pcbCommandList->Get(), m_pplPipelineLayout->Get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( fPush ), fPush );
+
+		CVulkan::m_pfCmdDraw( _pcbCommandList->Get(), 4, 1, 0, 0 );
+		CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
+
+		VkImageMemoryBarrier imbUpdate = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		imbUpdate.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imbUpdate.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imbUpdate.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imbUpdate.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imbUpdate.image = m_piPhosphor[stWriteIndex]->Get();
+		imbUpdate.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+		CVulkan::m_pfCmdPipelineBarrier( _pcbCommandList->Get(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imbUpdate );
+
+		m_stRenderTargetIdx = stWriteIndex;
 
 		return true;
 	}

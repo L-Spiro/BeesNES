@@ -82,6 +82,16 @@ namespace lsn {
 
 	/**
 	 * Ensures all render targets, intermediate buffers, and LUTs are created.
+	 *
+	 * \param _pvkDevice The Vulkan device.
+	 * \param _pcbCommandList The command list used to record barriers and copy operations.
+	 * \param _ui32SrcW The source width.
+	 * \param _ui32SrcH The source height.
+	 * \param _ui32DstW The destination width.
+	 * \param _ui32DstH The destination height.
+	 * \param _fIntermediateFormat The format for the intermediate target.
+	 * \param _fTargetFormat The format for the final target.
+	 * \return Returns true if resources are ready.
 	 **/
 	bool CVulkanResampler::EnsureResources( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcW, uint32_t _ui32SrcH, uint32_t _ui32DstW, uint32_t _ui32DstH, VkFormat _fIntermediateFormat, VkFormat _fTargetFormat ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_pcbCommandList ) { return false; }
@@ -221,6 +231,18 @@ namespace lsn {
 
 	/**
 	 * Builds a Look-Up Table (LUT) texture for resampling weights.
+	 * 
+	 * \param _pvkDevice The Vulkan device.
+	 * \param _pcbCommandList The command buffer to record upload barriers.
+	 * \param _ui32SrcSize The source dimension.
+	 * \param _ui32DstSize The destination dimension.
+	 * \param _piLut The LUT image to create.
+	 * \param _pdmLutMemory The LUT device memory.
+	 * \param _ivLutView The LUT image view.
+	 * \param _pbUpload The upload buffer.
+	 * \param _pdmUploadMemory The upload buffer memory.
+	 * \param _ui32OutMaxTaps Receives the maximum kernel taps.
+	 * \return Returns true if the LUT was successfully built.
 	 **/
 	bool CVulkanResampler::BuildLUT( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t /*_ui32SrcSize*/, uint32_t _ui32DstSize, std::unique_ptr<CVulkanImage> &_piLut, std::unique_ptr<CVulkanDeviceMemory> &_pdmLutMemory, CVulkan::LSN_IMAGE_VIEW &_ivLutView, std::unique_ptr<CVulkanBuffer> &_pbUpload, std::unique_ptr<CVulkanDeviceMemory> &_pdmUploadMemory, uint32_t &_ui32OutMaxTaps ) {
 		// Mock max taps for generic allocation logic. CResamplerBase logic belongs here.
@@ -322,6 +344,11 @@ namespace lsn {
 
 	/**
 	 * Ensures the Pipeline State Objects and Descriptor Set Layouts are created.
+	 * 
+	 * \param _pvkDevice The Vulkan device.
+	 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
+	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
+	 * \return Returns true if the shaders are ready.
 	 **/
 	bool CVulkanResampler::EnsureShaders( CVulkanDevice * _pvkDevice, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !m_rpPass1.Valid() || !m_rpPass2.Valid() ) { return false; }

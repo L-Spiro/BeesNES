@@ -92,7 +92,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the view of the target that was just rendered to, so the next pass can read from it.
 		 **/
-		inline VkImageView										GetCurrentPhosphorView() const { return m_ivPhosphorView[m_stRenderTargetIdx ^ 1].ivImageView; }
+		inline VkImageView										GetCurrentPhosphorView() const { return m_ivOutputView.ivImageView; }
 
 
 	protected :
@@ -113,26 +113,70 @@ namespace lsn {
 
 
 		// == Members.
+		/** The output target for the first pass (visual composite). */
+		std::unique_ptr<CVulkanImage>							m_piOutput;
+
+		/** The device memory allocation for the output target. */
+		std::unique_ptr<CVulkanDeviceMemory>					m_pdmOutputMemory;
+
+		/** The image view used to sample the output target in subsequent passes. */
+		CVulkan::LSN_IMAGE_VIEW									m_ivOutputView;
+
+		/** The framebuffer encapsulating the output target. */
+		CVulkan::LSN_FRAMEBUFFER								m_fbOutput;
+
+		/** The ping-pong history textures storing the decayed phosphor state. */
 		std::unique_ptr<CVulkanImage>							m_piPhosphor[2];
+
+		/** The device memory allocations for the ping-pong history textures. */
 		std::unique_ptr<CVulkanDeviceMemory>					m_pdmPhosphorMemory[2];
+
+		/** The image views used to sample the ping-pong history textures. */
 		CVulkan::LSN_IMAGE_VIEW									m_ivPhosphorView[2];
+
+		/** The framebuffers encapsulating the ping-pong history textures. */
 		CVulkan::LSN_FRAMEBUFFER								m_fbPhosphor[2];
 		
+		/** The vertex buffer containing the fullscreen quad. */
 		std::unique_ptr<CVulkanBuffer>							m_pbVbQuad;
+
+		/** The device memory allocation for the vertex buffer quad. */
 		std::unique_ptr<CVulkanDeviceMemory>					m_pdmVbQuadMemory;
 
-		std::unique_ptr<CVulkanPipeline>						m_ppShader;
+		/** The pipeline state object for the screen output pass (Pass 1). */
+		std::unique_ptr<CVulkanPipeline>						m_ppShaderOutput;
+
+		/** The pipeline state object for the history buffer update pass (Pass 2). */
+		std::unique_ptr<CVulkanPipeline>						m_ppShaderUpdate;
+
+		/** The pipeline layout detailing the push constants and descriptor sets. */
 		std::unique_ptr<CVulkanPipelineLayout>					m_pplPipelineLayout;
+
+		/** The descriptor set layout defining the texture bindings. */
 		std::unique_ptr<CVulkanDescriptorSetLayout>				m_pdslDescriptorSetLayout;
+
+		/** The descriptor pool used to allocate the descriptor sets. */
 		std::unique_ptr<CVulkanDescriptorPool>					m_pdpDescriptorPool;
+
+		/** The descriptor sets for binding the source and history textures. */
 		CVulkan::LSN_DESCRIPTOR_SET								m_dsPhosphor[2];
 
+		/** The render pass defining the attachment formats and load/store operations. */
 		CVulkan::LSN_RENDER_PASS								m_rpRenderPass;
+
+		/** The sampler used for reading the source and history textures. */
 		CVulkan::LSN_SAMPLER									m_sSampler;
 
+		/** The index of the current history buffer being written to (0 or 1). */
 		size_t													m_stRenderTargetIdx = 0;
+
+		/** The width of the source image from the previous resource allocation. */
 		uint32_t												m_ui32SrcW = 0;
+
+		/** The height of the source image from the previous resource allocation. */
 		uint32_t												m_ui32SrcH = 0;
+
+		/** The format of the intermediate render targets and history buffers. */
 		VkFormat												m_fFormat = VK_FORMAT_UNDEFINED;
 
 	};
