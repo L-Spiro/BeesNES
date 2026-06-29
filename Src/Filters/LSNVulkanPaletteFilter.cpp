@@ -205,7 +205,12 @@ namespace lsn {
 	 * Informs the filter of a window resize.
 	 **/
 	void CVulkanPaletteFilter::FrameResize() {
+		if ( s_vgsState.vkDevice.GetDevice() ) {
+			CVulkan::m_pfDeviceWaitIdle( s_vgsState.vkDevice.GetDevice() );
+		}
+
 		ReleaseBaseSizeDependents();
+		ReleaseSwapchainResources();		
 		OnSizeVulkan();
 		EnsureSizeAndResources();
 		EnsureShaders();
@@ -732,7 +737,7 @@ namespace lsn {
 
 		VkViewport vViewport = { 0.0f, 0.0f, static_cast<float>(m_ui32SrcW), static_cast<float>(m_ui32SrcH), 0.0f, 1.0f };
 		CVulkan::m_pfCmdSetViewport( cbCmd, 0, 1, &vViewport );
-		VkRect2D rScissor = { { 0, 0 }, { m_ui32SrcW, m_ui32SrcH } };
+		VkRect2D rScissor = { { int32_t( _rOutput.left ), int32_t( _rOutput.top ) }, { m_ui32SrcW, m_ui32SrcH } };
 		CVulkan::m_pfCmdSetScissor( cbCmd, 0, 1, &rScissor );
 
 		CVulkan::m_pfCmdBindPipeline( cbCmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppShader->Get() );

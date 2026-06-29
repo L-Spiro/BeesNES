@@ -396,7 +396,7 @@ namespace lsn {
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
 		std::vector<uint32_t> vDummy;
 
-		// Initialize shaders and resources for the base stages.
+		// Initialize shaders and resources for the base stages
 		if ( !m_tgGamma.EnsureResources( _pvkDevice ) || 
 			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
 
@@ -440,13 +440,17 @@ namespace lsn {
 			}
 		}
 
-		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() ) * _ui32NativeW;
-		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() ) * _ui32NativeH;
+		uint32_t ui32StableW = static_cast<uint32_t>(s_vgsState.rScreenRect.Width());
+		uint32_t ui32StableH = static_cast<uint32_t>(s_vgsState.rScreenRect.Height());
+
+		uint32_t uiActualW = GetActualHorSharpness( ui32StableW ) * _ui32NativeW;
+		uint32_t uiActualH = GetActualVertSharpness( ui32StableH ) * _ui32NativeH;
 
 		if ( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
 			if ( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
 
-			if ( !m_fbScaler.Valid() ) {
+			if LSN_UNLIKELY( !m_fbScaler.Valid() || m_ui32ScalerTargetW != uiActualW || m_ui32ScalerTargetH != uiActualH ) {
+				m_fbScaler.Reset();
 				VkFramebufferCreateInfo fbciFrame = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 				fbciFrame.renderPass = m_rpScalerPass.rpRenderPass;
 				fbciFrame.attachmentCount = 1;
@@ -456,6 +460,9 @@ namespace lsn {
 				fbciFrame.height = uiActualH;
 				fbciFrame.layers = 1;
 				m_fbScaler.Create( _pvkDevice->GetDevice(), &fbciFrame );
+
+				m_ui32ScalerTargetW = uiActualW;
+				m_ui32ScalerTargetH = uiActualH;
 			}
 
 			UpdateDescriptorSet( m_dsScalerSet.dsDescriptorSet, ivCurrentSource, sCurrentSampler );
@@ -477,8 +484,8 @@ namespace lsn {
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
 
-		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
-		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+		uint32_t ui32DstW = ui32StableW;
+		uint32_t ui32DstH = ui32StableH;
 
 		if ( m_bUseHighQualityResampler ) {
 			m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
@@ -558,9 +565,9 @@ namespace lsn {
 		VkRenderPassBeginInfo rpbiBackBuffer = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiBackBuffer.renderPass = m_rpBackBufferPass.rpRenderPass;
 		rpbiBackBuffer.framebuffer = m_vSwapFramebuffers[_ui32ImageIndex].fbFramebuffer;
-		rpbiBackBuffer.renderArea.offset = { 0, 0 };
+		rpbiBackBuffer.renderArea.offset = { int32_t( _rOutput.left ), int32_t( _rOutput.top ) };
 		
-		rpbiBackBuffer.renderArea.extent = { static_cast<uint32_t>(s_vgsState.rScreenRect.Width()), static_cast<uint32_t>(s_vgsState.rScreenRect.Height()) };
+		rpbiBackBuffer.renderArea.extent = { ui32StableW, ui32StableH };
 		/*rpbiBackBuffer.clearValueCount = 1;
 		rpbiBackBuffer.pClearValues = &cvClear;*/
 		
