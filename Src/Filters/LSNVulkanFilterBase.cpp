@@ -440,11 +440,8 @@ namespace lsn {
 			}
 		}
 
-		uint32_t ui32StableW = static_cast<uint32_t>(s_vgsState.rScreenRect.Width());
-		uint32_t ui32StableH = static_cast<uint32_t>(s_vgsState.rScreenRect.Height());
-
-		uint32_t uiActualW = GetActualHorSharpness( ui32StableW ) * _ui32NativeW;
-		uint32_t uiActualH = GetActualVertSharpness( ui32StableH ) * _ui32NativeH;
+		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() ) * _ui32NativeW;
+		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() ) * _ui32NativeH;
 
 		if ( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
 			if ( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
@@ -484,8 +481,8 @@ namespace lsn {
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
 
-		uint32_t ui32DstW = ui32StableW;
-		uint32_t ui32DstH = ui32StableH;
+		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
 
 		if ( m_bUseHighQualityResampler ) {
 			m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
@@ -562,12 +559,21 @@ namespace lsn {
 		//cvClear.color.float32[2] = 0.0f; // B.
 		//cvClear.color.float32[3] = 1.0f; // A.
 
+#ifdef LSN_WINDOWS
+		uint32_t ui32WndW = static_cast<uint32_t>(s_vgsState.rScreenRect.Width());
+		uint32_t ui32WndH = static_cast<uint32_t>(s_vgsState.rScreenRect.Height());
+#else
+		lsw::LSW_RECT rClient = s_vgsState.pwParent->VirtualClientRect( nullptr );
+		uint32_t ui32WndW = static_cast<uint32_t>(rClient.Width());
+		uint32_t ui32WndH = static_cast<uint32_t>(rClient.Height());
+#endif
+
 		VkRenderPassBeginInfo rpbiBackBuffer = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiBackBuffer.renderPass = m_rpBackBufferPass.rpRenderPass;
 		rpbiBackBuffer.framebuffer = m_vSwapFramebuffers[_ui32ImageIndex].fbFramebuffer;
-		rpbiBackBuffer.renderArea.offset = { int32_t( _rOutput.left ), int32_t( _rOutput.top ) };
+		rpbiBackBuffer.renderArea.offset = { 0, 0 };
 		
-		rpbiBackBuffer.renderArea.extent = { ui32StableW, ui32StableH };
+		rpbiBackBuffer.renderArea.extent = { ui32WndW, ui32WndH };
 		/*rpbiBackBuffer.clearValueCount = 1;
 		rpbiBackBuffer.pClearValues = &cvClear;*/
 		

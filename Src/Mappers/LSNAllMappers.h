@@ -69,10 +69,14 @@
 
 #include "../Mappers/LSNMapper097.h"
 
+#include "../Mappers/LSNMapper101.h"
+
 #include "../Mappers/LSNMapper112.h"
 #include "../Mappers/LSNMapper113.h"
 
 #include "../Mappers/LSNMapper132.h"
+
+#include "../Mappers/LSNMapper140.h"
 
 #include "../Mappers/LSNMapper142.h"
 

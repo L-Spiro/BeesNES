@@ -1,9 +1,9 @@
 /**
- * Copyright L. Spiro 2022
+ * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 087 implementation.
+ * Description: Mapper 140 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper087
-	 * \brief Mapper 087 implementation.
+	 * Class CMapper140
+	 * \brief Mapper 140 implementation.
 	 *
-	 * Description: Mapper 087 implementation.
+	 * Description: Mapper 140 implementation.
 	 */
-	class CMapper087 : public CMapperBase {
+	class CMapper140 : public CMapperBase {
 	public :
-		CMapper087() {
+		CMapper140() {
 		}
-		virtual ~CMapper087() {
+		virtual ~CMapper140() {
 		}
 
 
@@ -34,7 +34,7 @@ namespace lsn {
 		 *
 		 * \return Returns the size of the PGM banks.
 		 */
-		static constexpr uint16_t						PgmBankSize() { return 16 * 1024; }
+		static constexpr uint16_t						PgmBankSize() { return 32 * 1024; }
 
 		/**
 		 * Gets the CHR bank size.
@@ -51,8 +51,6 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
-			m_ui8PgmBank = 0;
-			//m_ui8ChrBank = uint8_t( m_prRom->vChrRom.size() / (8 * 1024) - 1 );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 		}
 
@@ -66,15 +64,15 @@ namespace lsn {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
 			// ================
-			// FIXED BANKS
+			// SWAPPABLE BANKS
 			// ================
-			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
+			// CPU.
+			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
-			// Set the reads of the fixed bank at the end.
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
-			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xC000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
+			// PPU.
+			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
 			}
 
 
@@ -83,17 +81,8 @@ namespace lsn {
 			// ================
 			// CHR bank-select.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper087::SelectBank6000_7FFF, this, 0 );	// Treated as ROM.
-			}
-			
-
-			// ================
-			// SWAPPABLE BANKS
-			// ================
-			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
-			}
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper140::SelectBank6000_7FFF, this, 0 );	// Treated as ROM.
+			}			
 		}
 
 
@@ -111,8 +100,9 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank6000_7FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper087 * pmThis = reinterpret_cast<CMapper087 *>(_pvParm0);
-			pmThis->SetChrBank<0, ChrBankSize()>( (((_ui8Val & 0b01) << 1) | ((_ui8Val & 0b10) >> 1)) );
+			CMapper140 * pmThis = reinterpret_cast<CMapper140 *>(_pvParm0);
+			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val >> 4) & 0b00000011 );
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b00001111 );
 		}
 	};
 

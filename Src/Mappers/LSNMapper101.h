@@ -1,9 +1,9 @@
 /**
- * Copyright L. Spiro 2022
+ * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: Mapper 087 implementation.
+ * Description: Mapper 101 implementation.
  */
 
 
@@ -15,16 +15,16 @@
 namespace lsn {
 
 	/**
-	 * Class CMapper087
-	 * \brief Mapper 087 implementation.
+	 * Class CMapper101
+	 * \brief Mapper 101 implementation.
 	 *
-	 * Description: Mapper 087 implementation.
+	 * Description: Mapper 101 implementation.
 	 */
-	class CMapper087 : public CMapperBase {
+	class CMapper101 : public CMapperBase {
 	public :
-		CMapper087() {
+		CMapper101() {
 		}
-		virtual ~CMapper087() {
+		virtual ~CMapper101() {
 		}
 
 
@@ -83,7 +83,7 @@ namespace lsn {
 			// ================
 			// CHR bank-select.
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper087::SelectBank6000_7FFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper101::SelectBank6000_7FFF, this, 0 );	// Treated as ROM.
 			}
 			
 
@@ -111,8 +111,8 @@ namespace lsn {
 		 * \param _ui8Val The value to write.
 		 */
 		static void LSN_FASTCALL						SelectBank6000_7FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CMapper087 * pmThis = reinterpret_cast<CMapper087 *>(_pvParm0);
-			pmThis->SetChrBank<0, ChrBankSize()>( (((_ui8Val & 0b01) << 1) | ((_ui8Val & 0b10) >> 1)) );
+			CMapper101 * pmThis = reinterpret_cast<CMapper101 *>(_pvParm0);
+			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val );
 		}
 	};
 
