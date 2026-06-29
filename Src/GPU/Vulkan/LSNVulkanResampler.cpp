@@ -244,16 +244,29 @@ namespace lsn {
 	 * \param _ui32OutMaxTaps Receives the maximum kernel taps.
 	 * \return Returns true if the LUT was successfully built.
 	 **/
-	bool CVulkanResampler::BuildLUT( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t /*_ui32SrcSize*/, uint32_t _ui32DstSize, std::unique_ptr<CVulkanImage> &_piLut, std::unique_ptr<CVulkanDeviceMemory> &_pdmLutMemory, CVulkan::LSN_IMAGE_VIEW &_ivLutView, std::unique_ptr<CVulkanBuffer> &_pbUpload, std::unique_ptr<CVulkanDeviceMemory> &_pdmUploadMemory, uint32_t &_ui32OutMaxTaps ) {
-		// Mock max taps for generic allocation logic. CResamplerBase logic belongs here.
-		_ui32OutMaxTaps = 8; // Replace with actual CResamplerBase calculation
-		VkDeviceSize stLutBytes = static_cast<VkDeviceSize>(_ui32DstSize) * _ui32OutMaxTaps * 4 * sizeof( float ); // RGBA32_SFLOAT
+	bool CVulkanResampler::BuildLUT( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcSize, uint32_t _ui32DstSize, std::unique_ptr<CVulkanImage> &_piLut, std::unique_ptr<CVulkanDeviceMemory> &_pdmLutMemory, CVulkan::LSN_IMAGE_VIEW &_ivLutView, std::unique_ptr<CVulkanBuffer> &_pbUpload, std::unique_ptr<CVulkanDeviceMemory> &_pdmUploadMemory, uint32_t &_ui32OutMaxTaps ) {
+		if LSN_UNLIKELY( !CreateContribList( _ui32SrcSize, _ui32DstSize, LSN_TA_CLAMP, CResamplerBase::m_fFilter[m_ffFilter].pfFunc, CResamplerBase::m_fFilter[m_ffFilter].fSupport, 1.0f ) ) { return false; }
+
+		uint32_t ui32MaxTaps = 0;
+		for ( size_t I = 0; I < m_cContribs.size(); ++I ) {
+			ui32MaxTaps = std::max( ui32MaxTaps, static_cast<uint32_t>(m_cContribs[I].fContributions.size()) );
+		}
+
+		if LSN_LIKELY( _pdmLutMemory.get() ) { _pdmLutMemory->Reset(); }
+		if LSN_LIKELY( _piLut.get() ) { _piLut->Reset(); }
+		if LSN_LIKELY( _pdmUploadMemory.get() ) { _pdmUploadMemory->Reset(); }
+		if LSN_LIKELY( _pbUpload.get() ) { _pbUpload->Reset(); }
+		_ivLutView.Reset();
 
 		_piLut = std::make_unique<CVulkanImage>();
+		_pdmLutMemory = std::make_unique<CVulkanDeviceMemory>();
+		_pbUpload = std::make_unique<CVulkanBuffer>();
+		_pdmUploadMemory = std::make_unique<CVulkanDeviceMemory>();
+
 		VkImageCreateInfo iciImageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		iciImageInfo.imageType = VK_IMAGE_TYPE_2D;
-		iciImageInfo.extent.width = _ui32OutMaxTaps;
-		iciImageInfo.extent.height = _ui32DstSize;
+		iciImageInfo.extent.width = _ui32DstSize;
+		iciImageInfo.extent.height = ui32MaxTaps;
 		iciImageInfo.extent.depth = 1;
 		iciImageInfo.mipLevels = 1;
 		iciImageInfo.arrayLayers = 1;
@@ -272,7 +285,6 @@ namespace lsn {
 		maiAlloc.allocationSize = mrMemReq.size;
 		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
-		_pdmLutMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !_pdmLutMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
 		CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), _piLut->Get(), _pdmLutMemory->Get(), 0 );
 
@@ -285,8 +297,8 @@ namespace lsn {
 		ivciView.subresourceRange.layerCount = 1;
 		if ( !_ivLutView.Create( _pvkDevice->GetDevice(), &ivciView ) ) { return false; }
 
-		// Upload Buffer
-		_pbUpload = std::make_unique<CVulkanBuffer>();
+		VkDeviceSize stLutBytes = static_cast<VkDeviceSize>(_ui32DstSize) * ui32MaxTaps * 4 * sizeof( float );
+
 		VkBufferCreateInfo bciBuffer = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		bciBuffer.size = stLutBytes;
 		bciBuffer.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -297,22 +309,30 @@ namespace lsn {
 		maiAlloc.allocationSize = mrMemReq.size;
 		maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrMemReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
-		_pdmUploadMemory = std::make_unique<CVulkanDeviceMemory>();
 		if ( !_pdmUploadMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc ) ) { return false; }
 		CVulkan::m_pfBindBufferMemory( _pvkDevice->GetDevice(), _pbUpload->Get(), _pdmUploadMemory->Get(), 0 );
 
-		void* pvData = nullptr;
+		void * pvData = nullptr;
 		if ( CVulkan::m_pfMapMemory( _pvkDevice->GetDevice(), _pdmUploadMemory->Get(), 0, stLutBytes, 0, &pvData ) == VK_SUCCESS ) {
-			
-			// =========================================================================
-			// TODO: Execute CResamplerBase weights/indices logic here.
-			// Example: std::memcpy( pvData, m_vWeights.data(), stLutBytes );
-			// =========================================================================
-
+			float * pfData = reinterpret_cast<float *>(pvData);
+			for ( uint32_t Y = 0; Y < ui32MaxTaps; ++Y ) {
+				float * pfRow = pfData + (Y * _ui32DstSize * 4);
+				for ( uint32_t X = 0; X < _ui32DstSize; ++X ) {
+					if ( Y < m_cContribs[X].fContributions.size() ) {
+						pfRow[X*4+0] = m_cContribs[X].fContributions[Y];					// R: Weight
+						pfRow[X*4+1] = static_cast<float>(m_cContribs[X].i32Indices[Y]);	// G: Raw Source Integer Coordinate
+					}
+					else {
+						pfRow[X*4+0] = 0.0f;
+						pfRow[X*4+1] = 0.0f;
+					}
+					pfRow[X*4+2] = 0.0f;													// B
+					pfRow[X*4+3] = 0.0f;													// A
+				}
+			}
 			CVulkan::m_pfUnmapMemory( _pvkDevice->GetDevice(), _pdmUploadMemory->Get() );
 		}
 
-		// Copy Commands and Layout Transitions
 		VkImageMemoryBarrier imbBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		imbBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imbBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -330,7 +350,7 @@ namespace lsn {
 		VkBufferImageCopy bicCopy = {};
 		bicCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		bicCopy.imageSubresource.layerCount = 1;
-		bicCopy.imageExtent = { _ui32OutMaxTaps, _ui32DstSize, 1 };
+		bicCopy.imageExtent = { _ui32DstSize, ui32MaxTaps, 1 };
 		CVulkan::m_pfCmdCopyBufferToImage( _pcbCommandList->Get(), _pbUpload->Get(), _piLut->Get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bicCopy );
 
 		imbBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -338,6 +358,11 @@ namespace lsn {
 		imbBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		imbBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		CVulkan::m_pfCmdPipelineBarrier( _pcbCommandList->Get(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imbBarrier );
+
+		m_cContribs.clear();
+		m_cContribs.shrink_to_fit();
+
+		_ui32OutMaxTaps = ui32MaxTaps;
 
 		return true;
 	}

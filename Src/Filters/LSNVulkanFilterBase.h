@@ -407,6 +407,9 @@ namespace lsn {
 		CVulkan::LSN_DESCRIPTOR_SET								m_dsScalerSet;						/**< The descriptor set linking input to the scaler pass. */
 		CVulkan::LSN_DESCRIPTOR_SET								m_dsRendererSet;					/**< The descriptor set linking input to the final renderer pass. */
 
+		uint32_t												m_ui32ScalerTargetW = 0;			/**< The absolute width in pixels of the intermediate scaling render target from the previous allocation. */
+		uint32_t												m_ui32ScalerTargetH = 0;			/**< The absolute height in pixels of the intermediate scaling render target from the previous allocation. */
+
 		// Settings...
 		CNesPalette::LSN_GAMMA									m_gGamma = CNesPalette::LSN_G_AUTO;	/**< The requested gamma curve. */
 		float													m_fFps = 60.098812103271484375f;	/**< The refresh rate used for timing. */

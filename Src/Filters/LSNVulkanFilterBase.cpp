@@ -181,19 +181,30 @@ namespace lsn {
 		if LSN_UNLIKELY( !_pvkDevice || !_pvkDevice->GetDevice() ) { return false; }
 		VkDevice dDevice = _pvkDevice->GetDevice();
 
-
 		uint32_t ui32ImageCount;
 		CVulkan::m_pfGetSwapchainImagesKHR( dDevice, _pvkDevice->GetSwapChain(), &ui32ImageCount, nullptr );
-		if ( m_vSwapImages.size() != ui32ImageCount ) {
+		
+		std::vector<VkImage> vTempImages( ui32ImageCount );
+		if ( ui32ImageCount > 0 ) {
+			CVulkan::m_pfGetSwapchainImagesKHR( dDevice, _pvkDevice->GetSwapChain(), &ui32ImageCount, vTempImages.data() );
+		}
+
+		bool bRebuildSwapchain = (m_vSwapImages.size() != ui32ImageCount);
+		if ( !bRebuildSwapchain && ui32ImageCount > 0 ) {
+			// If the swapchain was recreated, the image handles will differ even if the count is the same.
+			if ( m_vSwapImages[0] != vTempImages[0] ) {
+				bRebuildSwapchain = true;
+			}
+		}
+
+		if ( bRebuildSwapchain ) {
 			ReleaseSwapchainResources();
 
-			m_vSwapImages.resize( ui32ImageCount );
-			CVulkan::m_pfGetSwapchainImagesKHR( dDevice, _pvkDevice->GetSwapChain(), &ui32ImageCount, m_vSwapImages.data() );
-
+			m_vSwapImages = std::move( vTempImages );
 			m_vSwapViews.resize( ui32ImageCount );
 			m_vSwapFramebuffers.resize( ui32ImageCount );
 
-			if ( !m_rpBackBufferPass.Valid() ) { CreateRenderPass( VK_FORMAT_B8G8R8A8_UNORM, m_rpBackBufferPass, true ); }
+			if ( !m_rpBackBufferPass.Valid() ) { CreateRenderPass( VK_FORMAT_B8G8R8A8_SRGB, m_rpBackBufferPass, true ); }
 
 #ifdef LSN_WINDOWS
 			RECT rClient;
@@ -348,6 +359,8 @@ namespace lsn {
 
 		m_fbScaler.Reset();
 		m_ui32RsrcW = m_ui32RsrcH = 0;
+		m_ui32ScalerTargetW = m_ui32ScalerTargetH = 0;
+		m_ui32ResampledTargetW = m_ui32ResampledTargetH = 0;
 	}
 
 	/**
@@ -383,12 +396,12 @@ namespace lsn {
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
 		std::vector<uint32_t> vDummy;
 
-		// Initialize shaders and resources for the base stages
+		// Initialize shaders and resources for the base stages.
 		if ( !m_tgGamma.EnsureResources( _pvkDevice ) || 
 			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
 
 		if ( !m_trRenderer.EnsureResources( _pvkDevice ) || 
-			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_UNORM, vDummy, vDummy ) ) { return false; }
+			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_SRGB, vDummy, vDummy ) ) { return false; }
 
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
 		if ( effGamma != CNesPalette::LSN_G_NONE ) {
@@ -464,16 +477,83 @@ namespace lsn {
 			ivCurrentSource = m_tpsScaler.GetTargetView();
 		}
 
-		/*uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
-		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());*/
+		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+
+		if ( m_bUseHighQualityResampler ) {
+			m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
+			
+			if LSN_UNLIKELY( !m_piResampled.get() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
+				m_fbResampled.Reset();
+				m_ivResampledView.Reset();
+				if LSN_LIKELY( m_pdmResampledMemory.get() ) { m_pdmResampledMemory->Reset(); }
+				if LSN_LIKELY( m_piResampled.get() ) { m_piResampled->Reset(); }
+
+				m_piResampled = std::make_unique<CVulkanImage>();
+				VkImageCreateInfo iciInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+				iciInfo.imageType = VK_IMAGE_TYPE_2D;
+				iciInfo.extent = { ui32DstW, ui32DstH, 1 };
+				iciInfo.mipLevels = 1;
+				iciInfo.arrayLayers = 1;
+				iciInfo.format = fmtRt;
+				iciInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+				iciInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				iciInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+				iciInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+				m_piResampled->CreateImage( _pvkDevice->GetDevice(), &iciInfo );
+
+				VkMemoryRequirements mrReq;
+				CVulkan::m_pfGetImageMemoryRequirements( _pvkDevice->GetDevice(), m_piResampled->Get(), &mrReq );
+
+				VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+				maiAlloc.allocationSize = mrReq.size;
+				maiAlloc.memoryTypeIndex = CVulkan::FindMemoryType( _pvkDevice->GetPhysicalDevice(), mrReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+
+				m_pdmResampledMemory = std::make_unique<CVulkanDeviceMemory>();
+				m_pdmResampledMemory->AllocateMemory( _pvkDevice->GetDevice(), &maiAlloc );
+				CVulkan::m_pfBindImageMemory( _pvkDevice->GetDevice(), m_piResampled->Get(), m_pdmResampledMemory->Get(), 0 );
+
+				VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+				ivciView.image = m_piResampled->Get();
+				ivciView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				ivciView.format = fmtRt;
+				ivciView.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+				m_ivResampledView.Create( _pvkDevice->GetDevice(), &ivciView );
+
+				VkFramebufferCreateInfo fbciFrame = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+				fbciFrame.renderPass = m_rpScalerPass.rpRenderPass;		// Shares identical layout signatures.
+				fbciFrame.attachmentCount = 1;
+				fbciFrame.pAttachments = &m_ivResampledView.ivImageView;
+				fbciFrame.width = ui32DstW;
+				fbciFrame.height = ui32DstH;
+				fbciFrame.layers = 1;
+				m_fbResampled.Create( _pvkDevice->GetDevice(), &fbciFrame );
+
+				m_ui32ResampledTargetW = ui32DstW;
+				m_ui32ResampledTargetH = ui32DstH;
+			}
+
+			if ( !m_rsResampler.EnsureResources( _pvkDevice, _pcbCommandBuffer, uiActualW, uiActualH, ui32DstW, ui32DstH, fmtRt, fmtRt ) ||
+				 !m_rsResampler.EnsureShaders( _pvkDevice, vDummy, vDummy ) ) { return false; }
+
+			if ( m_rsResampler.Render( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, m_sPointSampler.sSampler, m_fbResampled.fbFramebuffer, _rOutput, false ) ) {
+				
+				VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+				mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				mbBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				CVulkan::m_pfCmdPipelineBarrier( cbCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 1, &mbBarrier, 0, nullptr, 0, nullptr );
+
+				ivCurrentSource = m_ivResampledView.ivImageView;
+			}
+		}
 
 		UpdateDescriptorSet( m_dsRendererSet.dsDescriptorSet, ivCurrentSource, m_sLinearSampler.sSampler );
 
-		VkClearValue cvClear = {};
-		cvClear.color.float32[0] = 0.0f; // R
-		cvClear.color.float32[1] = 0.0f; // G
-		cvClear.color.float32[2] = 0.0f; // B
-		cvClear.color.float32[3] = 1.0f; // A
+		//VkClearValue cvClear = {};
+		//cvClear.color.float32[0] = 0.0f; // R.
+		//cvClear.color.float32[1] = 0.0f; // G.
+		//cvClear.color.float32[2] = 0.0f; // B.
+		//cvClear.color.float32[3] = 1.0f; // A.
 
 		VkRenderPassBeginInfo rpbiBackBuffer = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpbiBackBuffer.renderPass = m_rpBackBufferPass.rpRenderPass;
@@ -481,8 +561,8 @@ namespace lsn {
 		rpbiBackBuffer.renderArea.offset = { 0, 0 };
 		
 		rpbiBackBuffer.renderArea.extent = { static_cast<uint32_t>(s_vgsState.rScreenRect.Width()), static_cast<uint32_t>(s_vgsState.rScreenRect.Height()) };
-		rpbiBackBuffer.clearValueCount = 1;
-		rpbiBackBuffer.pClearValues = &cvClear;
+		/*rpbiBackBuffer.clearValueCount = 1;
+		rpbiBackBuffer.pClearValues = &cvClear;*/
 		
 		CVulkan::m_pfCmdBeginRenderPass( cbCmd, &rpbiBackBuffer, VK_SUBPASS_CONTENTS_INLINE );
 		m_trRenderer.Render( _pvkDevice, _pcbCommandBuffer, m_dsRendererSet.dsDescriptorSet, _rOutput );
@@ -503,8 +583,6 @@ namespace lsn {
 		VkAttachmentDescription adAttachment = {};
 		adAttachment.format = _fFormat;
 		adAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		// NOTE: Changed to CLEAR for the backbuffer to verify rendering.
-		//adAttachment.loadOp = _bIsBackBuffer ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		adAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		adAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		adAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
