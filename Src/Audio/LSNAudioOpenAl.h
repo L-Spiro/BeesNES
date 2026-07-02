@@ -19,6 +19,11 @@
 #include "OpenAL/LSNOpenAlDevice.h"
 #include "OpenAL/LSNOpenAlSource.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
 namespace lsn {
 
 	/**
@@ -41,9 +46,10 @@ namespace lsn {
 		/**
 		 * Shuts down the audio.
 		 * 
+		 * \param _bForReals If true, the application is being closed so the device-polling thread(s) should close.
 		 * \return Returns true if shutdown was successful.
 		 **/
-		virtual bool										ShutdownAudio();
+		virtual bool										ShutdownAudio( bool _bForReals = false );
 
 		/**
 		 * Gets the global OpenAL device.
@@ -78,6 +84,13 @@ namespace lsn {
 		 **/
 		virtual std::vector<uint32_t>						GetAudioFormatsAndHz();
 
+		/**
+		 * Determines if the device has been lost other otherwise requires a reset.
+		 * 
+		 * \return Returns true if the audio device has been lost.
+		 **/
+		inline bool											DeviceLost() const { return m_bDeviceLost; }
+
 
 	protected :
 		// == Members.
@@ -91,6 +104,17 @@ namespace lsn {
 		COpenAlBuffer										m_oabBuffers[LSN_AUDIO_BUFFERS];
 		/** The current output format. Flush to set (flushing copies from the "Next" value into this one). */
 		ALenum												m_eFormat = AL_FORMAT_MONO16;
+
+		/** The background thread responsible for polling the device status. */
+		std::thread											m_tDeviceCheckThread;
+		/** Atomic flag to signal the polling thread to continue running or shut down. */
+		std::atomic<bool>									m_bRunDeviceCheckThread;
+		/** Mutex used in conjunction with the condition variable for thread sleeping. */
+		std::mutex											m_mxDeviceCheckMutex;
+		/** Condition variable used to sleep the thread and instantly wake it on shutdown. */
+		std::condition_variable								m_cvDeviceCheckCv;
+		/** Atomic flag set to true by the background thread when a disconnect is detected.  Consumed and reset by the main audio thread. */
+		std::atomic<bool>									m_bDeviceLost;
 		
 
 		// == Functions.

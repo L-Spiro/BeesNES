@@ -54,9 +54,14 @@ namespace lsn {
 	/**
 	 * Shuts down the audio.
 	 * 
+	 * \param _bForReals If true, the application is being closed so the device-polling thread(s) should close.
 	 * \return Returns true if shutdown was successful.
 	 **/
-	bool CAudioOpenAl::ShutdownAudio() {
+	bool CAudioOpenAl::ShutdownAudio( bool _bForReals ) {
+		if ( _bForReals ) {
+			// Shut down device-polling threads.
+
+		}
 		if ( m_oasSource.GetState() == AL_PLAYING || m_oasSource.GetState() == AL_PAUSED ) {
 			m_oasSource.Stop();
 		}

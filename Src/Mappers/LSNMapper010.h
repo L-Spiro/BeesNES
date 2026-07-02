@@ -109,12 +109,12 @@ namespace lsn {
 			// RAM
 			// ================
 			// Set the reads and writes of the RAM.
-			if ( m_prRom->i32WorkRamSize > 0 ) {
+			//if ( m_prRom->i32WorkRamSize > 0 ) {	// Avoid problems from bad dumps.
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamRead, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper010::Mapper010PgmRamWrite, this, uint16_t( I - 0x6000 ) );
 				}
-			}
+			//}
 
 			// ================
 			// BANK-SELECT

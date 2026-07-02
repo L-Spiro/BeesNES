@@ -958,7 +958,7 @@ namespace lsn {
 			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
 			const int8_t * pi8Samples = reinterpret_cast<const int8_t *>(&m_vSamples.data()[sIdx]);
 			while ( _ui32From < _ui32To ) {
-				_vResult.push_back( (static_cast<int32_t>((*pi8Samples)) - 128) / 127.0 );
+				_vResult.push_back( (static_cast<int32_t>((*pi8Samples)) - 128) / 128.0 );
 
 				pi8Samples += m_uiNumChannels;
 				++_ui32From;

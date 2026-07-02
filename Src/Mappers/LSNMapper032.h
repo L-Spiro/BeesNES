@@ -45,13 +45,15 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			m_ui8PgmBank = 0;
+			std::memset( m_ui8PgmBanks, 0, sizeof( m_ui8PgmBanks ) );
+			std::memset( m_ui8ChrBanks, 0, sizeof( m_ui8ChrBanks ) );
 			SanitizeRegs<PgmBankSize(), 0x0400>();
 			SetPgmBank<1, PgmBankSize()>( -2 );
 			m_ui8Mode = 0;
 
-			size_t stBanks = m_prRom->vPrgRom.size() / PgmBankSize();
-			m_ui8Neg1Bank = uint8_t( stBanks - (-(-1) % stBanks) );
-			m_ui8Neg2Bank = uint8_t( stBanks - (-(-2) % stBanks) );
+			//size_t stBanks = m_prRom->vPrgRom.size() / PgmBankSize();
+			m_ui8Neg1Bank = GetPgmBank<PgmBankSize()>( -1 );
+			m_ui8Neg2Bank = GetPgmBank<PgmBankSize()>( -2 );
 		}
 
 		/**
@@ -112,27 +114,40 @@ namespace lsn {
 				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<7, 0x0400>, this, uint16_t( I - 0x1C00 ) );
 			}
 
+			// ================
+			// RAM
+			// ================
+			// Set the reads and writes of the RAM.
+			//if ( m_prRom->i32WorkRamSize > 0 ) {	// Avoid problems from bad dumps.
+				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper032::Mapper010PgmRamRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::Mapper010PgmRamWrite, this, uint16_t( I - 0x6000 ) );
+				}
+			//}
+
 
 			// ================
 			// BANK-SELECT
 			// ================
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
-				uint16_t ui16Mask = I & 0xF007;
-				if ( ui16Mask >= 0x8000 && ui16Mask <= 0x8007 ) {
+				uint16_t ui16Mask = I & 0xF000;
+				if ( ui16Mask >= 0x8000 && ui16Mask <= 0x8000 ) {
 					// PGM bank-select 0.
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );	// Treated as ROM.
 				}
-				if ( ui16Mask >= 0xA000 && ui16Mask <= 0xA007 ) {
+				if ( ui16Mask >= 0xA000 && ui16Mask <= 0xA000 ) {
 					// PGM bank-select 1.
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankA000_A007, this, uint16_t( I - 0xA000 ) );	// Treated as ROM.
 				}
+				if ( ui16Mask >= 0x9000 && ui16Mask <= 0x9000 ) {
+					// Mode/mirroring.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectModeEtc9000_9007, this, uint16_t( I - 0x9000 ) );
+				}
+
+				ui16Mask = I & 0xF007;
 				if ( ui16Mask >= 0xB000 && ui16Mask <= 0xB007 ) {
 					// CHR bank-select.
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankB000_B007, this, uint16_t( I - 0xB000 ) );
-				}
-				if ( ui16Mask >= 0x9000 && ui16Mask <= 0x9007 ) {
-					// Mode/mirroring.
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectModeEtc9000_9007, this, uint16_t( I - 0x9000 ) );
 				}
 			}
 
@@ -152,6 +167,8 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		/** RAM. */
+		uint8_t											m_ui8PgmRam[8*1024];
 		/** The PGM mode. */
 		uint8_t											m_ui8Mode;
 		/** The index of the -1 bank. */
@@ -160,6 +177,33 @@ namespace lsn {
 		uint8_t											m_ui8Neg2Bank;
 
 		// == Functions.
+		
+		/**
+		 * Reads from the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Mapper010PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
+			_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+		}
+
+		/**
+		 * Writes to the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Mapper010PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+		}
+
 		/**
 		 * PRG mode and mirroring.
 		 *
@@ -251,12 +295,13 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PgmBankRead_A000_C000( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
-			if ( !pmThis->m_ui8Mode ) {
+			/*if ( !pmThis->m_ui8Mode ) {
 				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
 			}
 			else {
 				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize())];
-			}
+			}*/
+			_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
 		}
 
 		/**
@@ -273,7 +318,8 @@ namespace lsn {
 				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8Neg2Bank)*PgmBankSize())];
 			}
 			else {
-				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
+				//_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[1])*PgmBankSize())];
+				_ui8Ret = pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize())];
 			}
 		}
 	};

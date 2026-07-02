@@ -525,7 +525,7 @@ namespace lsn {
 			if ( stBanks ) {
 				size_t stIdx;
 				if ( _i16Bank < 0 ) {
-					stIdx = stBanks - (-_i16Bank % stBanks);
+					stIdx = (stBanks - (-_i16Bank % stBanks)) % stBanks;
 				}
 				else {
 					stIdx = _i16Bank % stBanks;

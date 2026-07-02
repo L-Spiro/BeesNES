@@ -34,6 +34,7 @@ namespace lsn {
 		_rRom.riInfo.s16RomName = CUtilities::GetFileName( _s16Path );
 		_rRom.riInfo.ui16Chip = static_cast<uint16_t>(CDatabase::LSN_C_UNKNOWN);
 		_rRom.riInfo.ui16PcbClass = static_cast<uint16_t>(CDatabase::LSN_PC_UNKNOWN);
+		_rRom.riInfo.bBusConficts = true;
 
 		if ( _vRom.size() >= 4 ) {
 			const uint8_t ui8NesHeader[] = {
@@ -85,6 +86,7 @@ namespace lsn {
 						}
 						_rRom.vPrgRom.resize( aEntry->second.ui32PgmRomSize );
 					}
+					_rRom.riInfo.bBusConficts = aEntry->second.bBusConflicts;
 				}
 			}
 

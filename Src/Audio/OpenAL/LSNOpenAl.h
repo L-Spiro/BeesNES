@@ -16,6 +16,7 @@
 #include "LSNOpenAlDevice.h"
 #include "LSNOpenAlGetError.h"
 #include "LSNOpenAlInclude.h"
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -105,6 +106,19 @@ namespace lsn {
 			return COpenAlGetError::CheckError_ALC( _pcFile, _ui32Line, _pdDevice );
 		}
 
+		/**
+		 * Handler for ALCenum-returning functions that can error and return a value.
+		 *
+		 * \param _pcFile The file calling the given function.
+		 * \param _ui32Line The line number on which the given function is being called.
+		 * \param _rtFunc The function being called.
+		 * \param _rtRet Holds the return value for the called function.
+		 * \param _pdDevice A pointer to the device.
+		 * \param _pParms Parameters to pass to _rtFunc.
+		 * \param _tFunction The function type of _rtFunc.
+		 * \param _tParams Templetized parameter list.
+		 * \return Returns true if the function was called without generating an error.
+		 */
 		template<typename _tFunction, typename _tReturnType, typename ... _tParams>
 		static auto											alcCallImpl( const char * _pcFile, const std::uint_fast32_t _ui32Line,
 			_tFunction _rtFunc,
@@ -240,18 +254,22 @@ namespace lsn {
 #endif	// #ifdef __AVX512F__
 
 		/**
-		 * Gets the enumerated value for the mono-24 format.
+		 * Checks the connection status of the specified OpenAL device.
+		 * Polls the device using the ALC_EXT_disconnect extension to determine if the underlying hardware has been unexpectedly removed.
 		 * 
-		 * \return Returns the enumerated value for the mono-24 format or NULL.
-		 **/
-		//const static inline ALenum							AL_FORMAT_MONO24() { return m_eMono24; }
-
-		/**
-		 * Gets the enumerated value for the mono-32 format.
-		 * 
-		 * \return Returns the enumerated value for the mono-32 format or NULL.
-		 **/
-		//const static inline ALenum							AL_FORMAT_MONO32() { return m_eMono32; }
+		 * \param pDevice Pointer to the OpenAL device context to check.
+		 */
+		static bool											CheckDeviceStatus( ALCdevice * _pdDevice ) {
+			if ( _pdDevice && ::alcIsExtensionPresent( _pdDevice, "ALC_EXT_disconnect" ) ) {
+				ALCint iConnected = ALC_TRUE;
+				if ( alcCall( ::alcGetIntegerv, _pdDevice, _pdDevice, ALC_CONNECTED, 1, &iConnected ) ) {
+					if ( iConnected == ALC_FALSE ) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
 
 	protected :
 		// == Members.

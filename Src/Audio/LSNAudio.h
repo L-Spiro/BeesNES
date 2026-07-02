@@ -43,9 +43,10 @@ namespace lsn {
 		/**
 		 * Shuts down the audio.
 		 * 
+		 * \param _bForReals If true, the application is being closed so the device-polling thread(s) should close.
 		 * \return Returns true if shutdown was successful.
 		 **/
-		static bool											ShutdownAudio();
+		static bool											ShutdownAudio( bool _bForReals );
 		
 		/**
 		 * Initializes the sample box, preparing to deliver nice clean band-limited samples as fast as alien technology can deliver.

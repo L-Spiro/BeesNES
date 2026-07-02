@@ -61,12 +61,13 @@ namespace lsn {
 	/**
 	 * Shuts down the audio.
 	 * 
+	 * \param _bForReals If true, the application is being closed so the device-polling thread(s) should close.
 	 * \return Returns true if shutdown was successful.
 	 **/
-	bool CAudio::ShutdownAudio() {
+	bool CAudio::ShutdownAudio( bool _bForReals ) {
 		StopThread();
 		
-		return m_adAudioDevice.ShutdownAudio();
+		return m_adAudioDevice.ShutdownAudio( _bForReals );
 	}
 
 	/**

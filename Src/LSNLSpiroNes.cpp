@@ -202,7 +202,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 	lsn::CVulkan::ShutDown();
 #endif	// #ifdef LSN_VULKAN1
 
-	lsn::CAudio::ShutdownAudio();
+	lsn::CAudio::ShutdownAudio( true );
 	lsw::CBase::ShutDown();
 	lsn::CDatabase::Reset();
 	lsn::CDirectInput8::Release();

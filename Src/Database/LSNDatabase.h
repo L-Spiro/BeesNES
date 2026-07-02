@@ -110,6 +110,7 @@ namespace lsn {
 			LSN_PCB_CLASS						pcPcbClass = LSN_PC_UNKNOWN;							/**< the PCB class. */
 			uint16_t							ui16Mapper = uint16_t( -1 );							/**< The mapper. */
 			uint16_t							ui16SubMapper = uint16_t( -1 );							/**< The sub-mapper. */
+			bool								bBusConflicts = true;									/**< Allow bus conflicts? */
 		};
 
 

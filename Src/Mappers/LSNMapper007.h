@@ -53,6 +53,8 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 			m_ui8PgmBank = 0;
+			m_ui8ChrBank = 0;
+			m_bConflicts = _rRom.riInfo.bBusConficts;
 		}
 
 		/**
@@ -90,7 +92,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		bool											bConflicts = false;				/**< Whether t emulate bus conflicts or not. */
+		bool											m_bConflicts = false;				/**< Whether to emulate bus conflicts or not. */
 
 
 		// == Functions.
@@ -104,7 +106,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper007 * pmThis = reinterpret_cast<CMapper007 *>(_pvParm0);
-			if ( pmThis->bConflicts ) {
+			if ( pmThis->m_bConflicts ) {
 				uint8_t ui8Rom = pmThis->m_prRom->vPrgRom.data()[size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize()+size_t(_ui16Parm1)];
 				_ui8Val &= ui8Rom;
 			}

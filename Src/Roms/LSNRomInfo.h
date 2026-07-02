@@ -35,6 +35,7 @@ namespace lsn {
 		uint16_t							ui16SubMapper;									/**< The sub-mapper. */
 		uint16_t							ui16Chip;										/**< The mapper chip. */
 		uint16_t							ui16PcbClass;									/**< The PCB class. */
+		bool								bBusConficts = true;							/**< Support bus conflicts (when available)? */
 		bool								bMapperSupported;								/**< If true, the necessary mapper is supported. */
 	};
 

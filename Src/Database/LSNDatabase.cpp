@@ -208,7 +208,7 @@ namespace lsn {
 			// City Connection (Europe)
 			{ .ui32Crc = 0xBBB3DE0A, .pmRegion = LSN_PM_PAL },
 			// Cobra Triangle (E)
-			{ .ui32Crc = 0x898E4232, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x898E4232, .pmRegion = LSN_PM_PAL, .bBusConflicts = false },
 			// colorwin_pal
 			{ .ui32Crc = 0x6348E921, .pmRegion = LSN_PM_PAL },
 			// Conflict (Japan)
@@ -368,7 +368,7 @@ namespace lsn {
 			// International Cricket (Prototype) (E)
 			{ .ui32Crc = 0x9DB6A3ED, .pmRegion = LSN_PM_PAL },
 			// Ironsword - Wizards & Warriors 2 (E) [!]
-			{ .ui32Crc = 0x694C801F, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x694C801F, .pmRegion = LSN_PM_PAL, .bBusConflicts = false },
 			// Iron Tank (U)
 			{ .ui32Crc = 0x77540BB5, .pmRegion = LSN_PM_NTSC },
 			// Isolated Warrior (E)
@@ -562,7 +562,7 @@ namespace lsn {
 			// Rainbow Islands - The Story of Bubble Bobble 2 (E) [!]
 			{ .ui32Crc = 0xAE71768E, .pmRegion = LSN_PM_PAL },
 			// RC Pro-Am (E) (PRG 0)
-			{ .ui32Crc = 0xE5A972BE, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM },
+			{ .ui32Crc = 0xE5A972BE, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SEROM, .bBusConflicts = false },
 			// RC Pro-Am (E) (PRG 1)
 			{ .ui32Crc = 0x2DBDDD11, .pmRegion = LSN_PM_PAL, .cChip = LSN_C_MMC1B2, .pcPcbClass = LSN_PC_SEROM },
 			// Reigen Doushi (Japan)
@@ -660,7 +660,7 @@ namespace lsn {
 			// Solomon's Key (Europe)
 			{ .ui32Crc = 0x3067E376, .pmRegion = LSN_PM_PAL },
 			// Solstice (E) [!]
-			{ .ui32Crc = 0x7CB0D70D, .pmRegion = LSN_PM_PAL },
+			{ .ui32Crc = 0x7CB0D70D, .pmRegion = LSN_PM_PAL, .bBusConflicts = false },
 			// Space Harrier (Japan)
 			{ .ui32Crc = 0x43539A3C, .pmRegion = LSN_PM_NTSC, .cChip = LSN_C_MMC1A, .pcPcbClass = LSN_PC_SGROM },
 			// Space Shuttle Project (U)
@@ -784,8 +784,16 @@ namespace lsn {
 			// ========
 			// Doraemon.
 			{ .ui32Crc = 0xB00ABE1C, .mmMirrorOverride = LSN_MM_VERTICAL },
+
+			// Master Chu & The Drunkard Hu (U)
+			{ .ui32Crc = 0x1A2D3B17, .mmMirrorOverride = LSN_MM_VERTICAL },
+
 			// Mach Rider (Japan, USA) (Rev A)
 			{ .ui32Crc = 0x3ACD4BF1, .mmMirrorOverride = LSN_MM_VERTICAL },
+
+			// Metal Fighter (U)
+			{ .ui32Crc = 0xA695B076, .mmMirrorOverride = LSN_MM_VERTICAL },
+
 			// Ms. Pac Man.
 			{ .ui32Crc = 0x4B2DCE64, .mmMirrorOverride = LSN_MM_HORIZONTAL },
 			// Pacmania (U)
@@ -1313,8 +1321,61 @@ namespace lsn {
 			// ========
 			// OVERSIZE
 			// ========
-			// Galaxian (Japan).
+			// Galaxian (Japan)
 			{ .ui32Crc = 0x084F61CD, .ui32PgmRomSize = 8 * 1024 },
+
+
+			// ========
+			// CONFLICTS
+			// ========
+			// Castle of Deceit (U)
+			{ .ui32Crc = 0xD377CC36, .bBusConflicts = false },
+			// Cobra Triangle (U)
+			{ .ui32Crc = 0xC8AD4F32, .bBusConflicts = false },
+			// Double Dare (U)
+			{ .ui32Crc = 0x2B378D11, .bBusConflicts = false },
+
+			// Free Fall (U) (Prototype) [!]
+			{ .ui32Crc = 0x12BE47DA, .bBusConflicts = false },
+
+			// IronSword - Wizards & Warriors II (USA)
+			{ .ui32Crc = 0x2328046E, .bBusConflicts = false },
+			// Jeopardy! (U)
+			{ .ui32Crc = 0xD5C71458, .bBusConflicts = false },
+			// Jeopardy! (USA)
+			{ .ui32Crc = 0xB5D10D5C, .bBusConflicts = false },
+			// Jeopardy! (USA) (Rev 1)
+			{ .ui32Crc = 0x2A662AC7, .bBusConflicts = false },
+			// Jeopardy! 25th Anniversary Edition (U)
+			{ .ui32Crc = 0x0BDD8DD9, .bBusConflicts = false },
+			// Jeopardy! Junior Edition (U)
+			{ .ui32Crc = 0x6A88579F, .bBusConflicts = false },
+			// R.C. Pro-Am (USA)
+			{ .ui32Crc = 0xDD062F9C, .bBusConflicts = false },			
+			// Solstice - The Quest for the Staff of Demnos (USA) (Beta)
+			{ .ui32Crc = 0x5DC9BC41, .bBusConflicts = false },
+			// Solstice - The Quest for the Staff of Demnos (USA)
+			{ .ui32Crc = 0xEDCF1B71, .bBusConflicts = false },
+			// Solstice (U) [a1]
+			{ .ui32Crc = 0x95AD6D57, .pmRegion = LSN_PM_NTSC, .bBusConflicts = false },
+			// WWF WrestleMania (Europe)
+			{ .ui32Crc = 0x6C4A9735, .bBusConflicts = false },
+			// WWF WrestleMania (USA)
+			{ .ui32Crc = 0x37138039, .bBusConflicts = false },			
+			// Wheel of Fortune (U)
+			{ .ui32Crc = 0xFBF8A785, .bBusConflicts = false },
+			// Wheel of Fortune Featuring Vanna White (USA) (Beta)
+			{ .ui32Crc = 0x90E0E38F, .bBusConflicts = false },
+			// Wheel of Fortune Featuring Vanna White (USA)
+			{ .ui32Crc = 0x4220C170, .bBusConflicts = false },
+			// Wheel of Fortune (USA) (Rev 1)
+			{ .ui32Crc = 0x3368F7FB, .bBusConflicts = false },
+			// Wheel of Fortune Family Edition (U)
+			{ .ui32Crc = 0x009AF6BE, .bBusConflicts = false },
+			// Wheel of Fortune - Junior Edition (USA)
+			{ .ui32Crc = 0x68383607, .bBusConflicts = false },
+			// World Games (U)
+			{ .ui32Crc = 0xF613A8F9, .bBusConflicts = false },
 		};
 		for ( auto I = std::size( eEntries ); I--; ) {
 			if ( m_mDatabase.end() != m_mDatabase.find( eEntries[I].ui32Crc ) ) {

@@ -38,3 +38,7 @@
 #define AL_FORMAT_71CHN16                        0x1211
 #define AL_FORMAT_71CHN32                        0x1212
 #endif	// #ifndef AL_EXT_MCFORMATS
+
+#ifndef ALC_CONNECTED
+#define ALC_CONNECTED							0x313
+#endif	// #ifndef ALC_CONNECTED

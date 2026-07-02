@@ -39,9 +39,10 @@ namespace lsn {
         /**
          * Shuts down the audio.
          *
+		 * \param _bForReals If true, the application is being closed so the device-polling thread(s) should close.
          * \return Returns true if shutdown was successful.
          **/
-        virtual bool                                        ShutdownAudio();
+        virtual bool                                        ShutdownAudio( bool _bForReals );
         
         /**
          * Called when emulation begins.  Resets the ring buffer of buckets.

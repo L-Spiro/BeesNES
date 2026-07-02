@@ -36,9 +36,9 @@
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 
-#ifdef LSN_DX9
-#include "../../Filters/LSNDx9FilterBase.h"
-#endif	// #ifdef LSN_DX9
+//#ifdef LSN_DX9
+//#include "../../Filters/LSNDx9FilterBase.h"
+//#endif	// #ifdef LSN_DX9
 
 #include <commdlg.h>
 #include <dbt.h>
@@ -47,14 +47,14 @@
 
 #include "../../../resource.h"
 
-#include "../../GPU/DirectX9/LSNDirectX9.h"
-#include "../../GPU/DirectX9/LSNDirectX9Device.h"
-#include "../../GPU/DirectX12/LSNDirectX12.h"
-#include "../../GPU/DirectX12/LSNDirectX12Device.h"
-#include "../../GPU/Vulkan/LSNVulkan.h"
-#include "../../GPU/Vulkan/LSNVulkanDevice.h"
+//#include "../../GPU/DirectX9/LSNDirectX9.h"
+//#include "../../GPU/DirectX9/LSNDirectX9Device.h"
+//#include "../../GPU/DirectX12/LSNDirectX12.h"
+//#include "../../GPU/DirectX12/LSNDirectX12Device.h"
+//#include "../../GPU/Vulkan/LSNVulkan.h"
+//#include "../../GPU/Vulkan/LSNVulkanDevice.h"
 
-#define LSN_SCALE_RESOLUTION					30.0
+#define LSN_SCALE_RESOLUTION					8.0
 
 
 namespace lsn {
