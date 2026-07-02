@@ -120,8 +120,8 @@ namespace lsn {
 			// Set the reads and writes of the RAM.
 			//if ( m_prRom->i32WorkRamSize > 0 ) {	// Avoid problems from bad dumps.
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
-					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper032::Mapper010PgmRamRead, this, uint16_t( I - 0x6000 ) );
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::Mapper010PgmRamWrite, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper032::Mapper032PgmRamRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::Mapper032PgmRamWrite, this, uint16_t( I - 0x6000 ) );
 				}
 			//}
 
@@ -176,8 +176,7 @@ namespace lsn {
 		/** The index of the -2 bank. */
 		uint8_t											m_ui8Neg2Bank;
 
-		// == Functions.
-		
+		// == Functions.		
 		/**
 		 * Reads from the PGM RAM.
 		 *
@@ -186,7 +185,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer from which to read.
 		 * \param _ui8Ret The read value.
 		 */
-		static void LSN_FASTCALL						Mapper010PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+		static void LSN_FASTCALL						Mapper032PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
 		}
@@ -199,7 +198,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						Mapper010PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						Mapper032PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper032 * pmThis = reinterpret_cast<CMapper032 *>(_pvParm0);
 			pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
 		}

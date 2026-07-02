@@ -51,6 +51,8 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
+			/*std::memset( m_ui8PgmBanks, 0xFF, sizeof( m_ui8PgmBanks ) );
+			std::memset( m_ui8ChrBanks, 0xFF, sizeof( m_ui8ChrBanks ) );*/
 			SanitizeRegs<PgmBankSize(), ChrBankSize() * 2>();
 		}
 

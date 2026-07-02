@@ -82,29 +82,67 @@ namespace lsn {
 					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<1, ChrBankSize()>, this, uint16_t( I - 0x1000 ) );
 				}
 			}
+			
 
+			// ================
+			// RAM
+			// ================
+			// Set the reads and writes of the RAM.
+			//if ( m_prRom->i32WorkRamSize > 0 ) {	// Avoid problems from bad dumps.
+				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper034::Mapper034PgmRamRead, this, uint16_t( I - 0x6000 ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper034::Mapper034PgmRamWrite, this, uint16_t( I - 0x6000 ) );
+				}
+			//}
 
 			// ================
 			// BANK-SELECT
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper034::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper034::SelectBank8000_FFFF, this, 0 );
 			}
 			
-			_pbCpuBus->SetWriteFunc( 0x7FFD, &CMapper034::SelectBank7FFD, this, 0 );	// Treated as ROM.
+			_pbCpuBus->SetWriteFunc( 0x7FFD, &CMapper034::SelectBank7FFD, this, 0 );
 			if ( m_prRom->vChrRom.size() ) {
-				_pbCpuBus->SetWriteFunc( 0x7FFE, &CMapper034::SelectBank7FFE, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7FFF, &CMapper034::SelectBank7FFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( 0x7FFE, &CMapper034::SelectBank7FFE, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7FFF, &CMapper034::SelectBank7FFF, this, 0 );
 			}
 		}
 
 
 	protected :
 		// == Members.
+		/** RAM. */
+		uint8_t											m_ui8PgmRam[8*1024];
 
 
-		// == Functions.
+		// == Functions.		
+		/**
+		 * Reads from the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Mapper034PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper034 * pmThis = reinterpret_cast<CMapper034 *>(_pvParm0);
+			_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+		}
+
+		/**
+		 * Writes to the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Mapper034PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper034 * pmThis = reinterpret_cast<CMapper034 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+		}
 		/**
 		 * Selects a bank (BNROM).
 		 *
@@ -128,6 +166,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank7FFD( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper034 * pmThis = reinterpret_cast<CMapper034 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[0x1FFD] = _ui8Val;
 			pmThis->SetPgmBank<0, PgmBankSize()>( _ui8Val & 0b1 );
 		}
 
@@ -141,6 +180,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank7FFE( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper034 * pmThis = reinterpret_cast<CMapper034 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[0x1FFD] = _ui8Val;
 			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b1111 );
 		}
 
@@ -154,6 +194,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						SelectBank7FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper034 * pmThis = reinterpret_cast<CMapper034 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[0x1FFF] = _ui8Val;
 			pmThis->SetChrBank<1, ChrBankSize()>( _ui8Val & 0b1111 );
 		}
 	};
