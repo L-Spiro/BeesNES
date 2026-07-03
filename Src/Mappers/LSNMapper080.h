@@ -119,31 +119,31 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			{
-				_pbCpuBus->SetWriteFunc( 0x7EFA, &CMapper080::SelectBank7EFA_7EFB, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EFB, &CMapper080::SelectBank7EFA_7EFB, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EFC, &CMapper080::SelectBank7EFC_7EFD, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EFD, &CMapper080::SelectBank7EFC_7EFD, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EFE, &CMapper080::SelectBank7EFE_7EFF, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EFF, &CMapper080::SelectBank7EFE_7EFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( 0x7EFA, &CMapper080::SelectBank7EFA_7EFB, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EFB, &CMapper080::SelectBank7EFA_7EFB, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EFC, &CMapper080::SelectBank7EFC_7EFD, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EFD, &CMapper080::SelectBank7EFC_7EFD, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EFE, &CMapper080::SelectBank7EFE_7EFF, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EFF, &CMapper080::SelectBank7EFE_7EFF, this, 0 );
 			}
 			// CHR bank-select.
 			{
-				_pbCpuBus->SetWriteFunc( 0x7EF0, &CMapper080::SelectBank7EF0_7EF0, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF1, &CMapper080::SelectBank7EF1_7EF1, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF2, &CMapper080::SelectBank7EF2_7EF2, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF3, &CMapper080::SelectBank7EF3_7EF3, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF4, &CMapper080::SelectBank7EF4_7EF4, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF5, &CMapper080::SelectBank7EF5_7EF5, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( 0x7EF0, &CMapper080::SelectBank7EF0_7EF0, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF1, &CMapper080::SelectBank7EF1_7EF1, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF2, &CMapper080::SelectBank7EF2_7EF2, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF3, &CMapper080::SelectBank7EF3_7EF3, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF4, &CMapper080::SelectBank7EF4_7EF4, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF5, &CMapper080::SelectBank7EF5_7EF5, this, 0 );
 			}
 			// Mirroring select.
 			{
-				_pbCpuBus->SetWriteFunc( 0x7EF6, &CMapper080::SelectBank7EF6_7EF7, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF7, &CMapper080::SelectBank7EF6_7EF7, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( 0x7EF6, &CMapper080::SelectBank7EF6_7EF7, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF7, &CMapper080::SelectBank7EF6_7EF7, this, 0 );
 			}
 			// RAM access.
 			{
-				_pbCpuBus->SetWriteFunc( 0x7EF8, &CMapper080::SelectBank7EF8_7EF9, this, 0 );	// Treated as ROM.
-				_pbCpuBus->SetWriteFunc( 0x7EF9, &CMapper080::SelectBank7EF8_7EF9, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( 0x7EF8, &CMapper080::SelectBank7EF8_7EF9, this, 0 );
+				_pbCpuBus->SetWriteFunc( 0x7EF9, &CMapper080::SelectBank7EF8_7EF9, this, 0 );
 			}
 
 

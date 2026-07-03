@@ -51,6 +51,8 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
+			std::memset( m_ui8PgmBanks, 0, sizeof( m_ui8PgmBanks ) );
+			std::memset( m_ui8ChrBanks, 0, sizeof( m_ui8ChrBanks ) );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
 		}
 
@@ -71,8 +73,10 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 			}
 			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+			if ( m_prRom->vChrRom.size() ) {
+				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+				}
 			}
 
 
@@ -82,7 +86,7 @@ namespace lsn {
 			// PGM bank-select.
 			for ( uint32_t I = 0x4100; I < 0x6000; ++I ) {
 				if ( (I & 0b1110000100000000) == 0b0100000100000000 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper079::SelectBank4100_5FFF, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper079::SelectBank4100_5FFF, this, 0 );
 				}
 			}
 		}

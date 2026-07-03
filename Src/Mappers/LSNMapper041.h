@@ -92,11 +92,11 @@ namespace lsn {
 			// PGM/CHR bank-select.
 			for ( uint32_t I = 0x6000; I < 0x6800; ++I ) {
 				if ( (I & 0b1111100000000000) == 0b0110000000000000 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper041::SelectBank6000_67FF, this, uint16_t( I ) );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper041::SelectBank6000_67FF, this, uint16_t( I ) );
 				}
 			}
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper041::SelectBank8000_FFFF, this, uint16_t( I ) );		// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper041::SelectBank8000_FFFF, this, uint16_t( I ) );
 			}
 
 

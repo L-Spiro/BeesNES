@@ -876,13 +876,13 @@ namespace lsn {
 				}
 			}
 			// Success path.  Put the palette where it needs to go.
-			m_gCrtGamma = poOptions.gCrtGamma;
+			std::memcpy( m_gCrtGamma, poOptions.gCrtGamma, sizeof( m_gCrtGamma ) );
 			m_gMonitorGamma = poOptions.gMonitorGamma;
 
 			lsn::LSN_PALETTE * ppPal = m_psbSystem->Palette();
 			bool bRet = true;
 			if ( ppPal ) {
-				if ( !m_npPalette.FillSoftwarePalette( ppPal, m_gCrtGamma, m_gMonitorGamma ) ) { bRet = false; }
+				if ( !m_npPalette.FillSoftwarePalette( ppPal, m_gCrtGamma[m_pmSystem], m_gMonitorGamma ) ) { bRet = false; }
 			}
 
 			return bRet;
@@ -913,7 +913,7 @@ namespace lsn {
 		{
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
-			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_POW_2_2, CNesPalette::LSN_G_NONE );
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_SMPTE240M, CNesPalette::LSN_G_NONE );
 			m_d9pfDx9Palette.SetLut( vTmp[0].x );
@@ -923,7 +923,7 @@ namespace lsn {
 #ifdef LSN_DX12
 		{
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
-			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			m_d12pfDx12Palette.SetLut( vTmp[0].x );
 		}
 #endif	// #ifdef LSN_DX12
@@ -931,7 +931,7 @@ namespace lsn {
 #ifdef LSN_VULKAN1
 		{
 			//std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_sRGB, CNesPalette::LSN_G_NONE );
-			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( CNesPalette::LSN_G_CRT2, CNesPalette::LSN_G_NONE );
+			std::vector<CNesPalette::Float32_4> vTmp = Palette().PaletteToF32( PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
 			m_vpfVulkanPalette.SetLut( vTmp[0].x );
 		}
 #endif	// #ifdef LSN_VULKAN1
@@ -1546,8 +1546,16 @@ namespace lsn {
 		_poOptions = LSN_PALETTE_OPTIONS();
 
 		if ( !_sFile.ReadStringU16( _poOptions.wsPath ) ) { return false; }
-		if ( !_sFile.Read( _poOptions.gCrtGamma ) ) { return false; }
+		for ( size_t I = 0; I < std::size( _poOptions.gCrtGamma ); ++I ) {
+			if ( !_sFile.Read( _poOptions.gCrtGamma[I] ) ) { return false; }
+			if ( _poOptions.gCrtGamma[I] >= CNesPalette::LSN_G_TOTAL ) {
+				_poOptions.gCrtGamma[I] = CNesPalette::LSN_G_CRT2;
+			}
+		}
 		if ( !_sFile.Read( _poOptions.gMonitorGamma ) ) { return false; }
+		if ( _poOptions.gMonitorGamma >= CNesPalette::LSN_G_TOTAL ) {
+			_poOptions.gMonitorGamma = CNesPalette::LSN_G_sRGB;
+		}
 		if ( !_sFile.Read( _poOptions.bUseGlobal ) ) { return false; }
 		return false;
 	}
@@ -1561,7 +1569,9 @@ namespace lsn {
 	 */
 	bool CBeesNes::SavePaletteSettings( CStream &_sFile, const LSN_PALETTE_OPTIONS &_poOptions ) {
 		if ( !_sFile.WriteStringU16( _poOptions.wsPath ) ) { return false; }
-		if ( !_sFile.Write( _poOptions.gCrtGamma ) ) { return false; }
+		for ( size_t I = 0; I < std::size( _poOptions.gCrtGamma ); ++I ) {
+			if ( !_sFile.Write( _poOptions.gCrtGamma[I] ) ) { return false; }
+		}
 		if ( !_sFile.Write( _poOptions.gMonitorGamma ) ) { return false; }
 		if ( !_sFile.Write( _poOptions.bUseGlobal ) ) { return false; }
 		return true;

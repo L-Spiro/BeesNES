@@ -161,13 +161,13 @@ namespace lsn {
 		static void LSN_FASTCALL						SelectBank4100( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t /*_ui8Val*/ ) {
 			CMapper036 * pmThis = reinterpret_cast<CMapper036 *>(_pvParm0);
 			if ( pmThis->m_bIncrMode ) {
-				pmThis->m_ui8Rr++;
+				pmThis->m_ui8Rr = (pmThis->m_ui8Rr + 1) & 0b11;
 			}
 			else if ( pmThis->m_bInvMode ) {
-				pmThis->m_ui8Rr = ~pmThis->m_ui8Pp;
+				pmThis->m_ui8Rr = (~pmThis->m_ui8Pp) & 0b11;
 			}
 			else {
-				pmThis->m_ui8Rr = pmThis->m_ui8Pp;
+				pmThis->m_ui8Rr = pmThis->m_ui8Pp & 0b11;
 			}
 		}
 

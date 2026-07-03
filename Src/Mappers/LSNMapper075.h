@@ -98,22 +98,22 @@ namespace lsn {
 
 			// Select banks.
 			for ( uint32_t I = 0x8000; I < 0x9000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBank8000_8FFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBank8000_8FFF, this, 0 );
 			}
 			for ( uint32_t I = 0x9000; I < 0xA000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBank9000_9FFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBank9000_9FFF, this, 0 );
 			}
 			for ( uint32_t I = 0xA000; I < 0xB000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankA000_AFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankA000_AFFF, this, 0 );
 			}
 			for ( uint32_t I = 0xC000; I < 0xD000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankC000_CFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankC000_CFFF, this, 0 );
 			}
 			for ( uint32_t I = 0xE000; I < 0xF000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankE000_EFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankE000_EFFF, this, 0 );
 			}
 			for ( uint32_t I = 0xF000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankF000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper075::SelectBankF000_FFFF, this, 0 );
 			}
 
 

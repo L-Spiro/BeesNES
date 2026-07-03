@@ -452,7 +452,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the CRT palette gamma.
 		 **/
-		CNesPalette::LSN_GAMMA					PaletteCrtGamma() const { return m_gCrtGamma; }
+		CNesPalette::LSN_GAMMA					PaletteCrtGamma() const { return m_gCrtGamma[m_pmSystem]; }
 
 		/**
 		 * Gets the monitor palette gamma.
@@ -570,7 +570,7 @@ namespace lsn {
 		/** The default palettes for each system. */
 		CNesPalette								m_npPalette;
 		/** CRT gamma. */
-		CNesPalette::LSN_GAMMA					m_gCrtGamma;
+		CNesPalette::LSN_GAMMA					m_gCrtGamma[LSN_PM_CONSOLE_TOTAL];
 		/** Monitor gamma. */
 		CNesPalette::LSN_GAMMA					m_gMonitorGamma;
 		/** "NONE" post-processing. */

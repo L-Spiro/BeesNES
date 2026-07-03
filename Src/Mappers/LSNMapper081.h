@@ -80,7 +80,7 @@ namespace lsn {
 			// ================
 			// PGM/CHR bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper081::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper081::SelectBank8000_FFFF, this, 0 );
 			}
 
 			ApplyStdChrRom( _pbPpuBus );

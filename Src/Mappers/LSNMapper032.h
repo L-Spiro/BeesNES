@@ -133,11 +133,11 @@ namespace lsn {
 				uint16_t ui16Mask = I & 0xF000;
 				if ( ui16Mask >= 0x8000 && ui16Mask <= 0x8000 ) {
 					// PGM bank-select 0.
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBank8000_8007, this, uint16_t( I - 0x8000 ) );
 				}
 				if ( ui16Mask >= 0xA000 && ui16Mask <= 0xA000 ) {
 					// PGM bank-select 1.
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankA000_A007, this, uint16_t( I - 0xA000 ) );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper032::SelectBankA000_A007, this, uint16_t( I - 0xA000 ) );
 				}
 				if ( ui16Mask >= 0x9000 && ui16Mask <= 0x9000 ) {
 					// Mode/mirroring.

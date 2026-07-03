@@ -2062,12 +2062,6 @@ namespace lsn {
 	 **/
 	void CMainWindow::UpdateGpuPalette() {
 		m_bnEmulator.UpdateGpuPalette();
-#ifdef LSN_DX9
-		/*if ( m_bUseDx9 && m_upDx9PaletteRender.get() ) {
-			std::vector<CNesPalette::Float32_4> vTmp = m_bnEmulator.Palette().PaletteToF32( m_bnEmulator.PaletteCrtGamma(), CNesPalette::LSN_G_NONE );
-			m_upDx9PaletteRender->UpdateLut( vTmp[0].x );
-		}*/
-#endif	// #ifdef LSN_DX9
 	}
 
 	/**
@@ -2212,7 +2206,7 @@ namespace lsn {
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
 				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
 				uint16_t ui16Mapper = m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper;
-				if ( ui16Mapper == 4 ) {
+				if ( ui16Mapper == 4 || ui16Mapper == 37 || ui16Mapper == 118 || ui16Mapper == 119 ) {
 					u16Name += u" (Partial Support)";
 				}
 				else if ( !m_bnEmulator.GetSystem()->GetRom()->riInfo.bMapperSupported ) {

@@ -82,7 +82,7 @@ namespace lsn {
 			// PGM bank-select.
 			for ( uint32_t I = 0x4100; I < 0x6000; ++I ) {
 				if ( (I & 0b1110000100000000) == 0b0100000100000000 ) {
-					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper113::SelectBank4100_5FFF, this, 0 );	// Treated as ROM.
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper113::SelectBank4100_5FFF, this, 0 );
 				}
 			}
 

@@ -84,7 +84,7 @@ namespace lsn {
 			// ================
 			// PGM bank-select.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper078::SelectBank8000_FFFF, this, 0 );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper078::SelectBank8000_FFFF, this, 0 );
 			}
 
 
@@ -115,7 +115,7 @@ namespace lsn {
 
 			switch ( (_ui8Val >> 3) & 1 ) {
 				case 0 : {
-					if ( pmThis->m_prRom->riInfo.ui32Crc == 0xBC1197A4 ) {
+					if ( pmThis->m_prRom->riInfo.ui32Crc == 0xBC1197A4 || pmThis->m_prRom->riInfo.ui16SubMapper == 0 ) {
 						pmThis->m_mmMirror = LSN_MM_HORIZONTAL;
 					}
 					else {
@@ -124,7 +124,7 @@ namespace lsn {
 					break;
 				}
 				case 1 : {
-					if ( pmThis->m_prRom->riInfo.ui32Crc == 0xBC1197A4 ) {
+					if ( pmThis->m_prRom->riInfo.ui32Crc == 0xBC1197A4 || pmThis->m_prRom->riInfo.ui16SubMapper == 0 ) {
 						pmThis->m_mmMirror = LSN_MM_VERTICAL;
 					}
 					else {

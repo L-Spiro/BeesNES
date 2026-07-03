@@ -49,7 +49,7 @@ namespace lsn {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, nullptr, uint16_t( I ) );	// Treated as ROM.
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, nullptr, uint16_t( I ) );
 			}
 		}
 
