@@ -10,7 +10,11 @@
 #ifdef LSN_VULKAN1
 
 #include "LSNVulkan.h"
+#include "../../Crc/LSNCrc.h"
 #include "LSNVulkanDevice.h"
+
+#include <filesystem>
+#include <format>
 
 namespace lsn {
 
@@ -417,7 +421,49 @@ namespace lsn {
 		catch ( ... ) { return VK_PRESENT_MODE_FIFO_KHR; }
 	}
 
-	
+	/**
+	 * Gets the default folder for built shaders.
+	 * 
+	 * \return Returns the default folder where built shaders can be found.
+	 **/
+	std::wstring CVulkan::DefaultShaderBuildFolder() {
+#if defined( _WIN32 )
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 );
+		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+		return wsRoot + L"ShaderBin\\";
+#else
+		char szBuffer[PATH_MAX];
+		std::string sPathStr;
+
+#if defined( __APPLE__ )
+		uint32_t uiSize = sizeof( szBuffer );
+		if ( ::_NSGetExecutablePath( szBuffer, &uiSize ) == 0 ) {
+			char szRealPath[PATH_MAX];
+			if ( ::realpath( szBuffer, szRealPath ) != nullptr ) {
+				sPathStr = szRealPath;
+			} else {
+				sPathStr = szBuffer;
+			}
+		}
+#elif defined( __linux__ )
+		ssize_t sLen = ::readlink( "/proc/self/exe", szBuffer, sizeof( szBuffer ) - 1 );
+		if ( sLen != -1 ) {
+			szBuffer[sLen] = '\0';
+			sPathStr = szBuffer;
+		}
+#endif
+
+		size_t stPos = sPathStr.find_last_of( '/' );
+		std::string sDir = ( stPos != std::string::npos ) ? sPathStr.substr( 0, stPos + 1 ) : "";
+		sDir += "ShaderBin/";
+
+		return std::wstring( sDir.begin(), sDir.end() );
+#endif
+	}
 
 	/**
 	 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
@@ -428,50 +474,85 @@ namespace lsn {
 	 * \return Returns true if compilation succeeded and bytecode was produced.
 	 */
 	bool CVulkan::CompileGlslToSpirv( const char * _pcszSource, const char * _pcszStage, std::vector<uint32_t> &_vOutByteCode ) {
-		std::string sInFile = std::string( "vktemp_" ) + _pcszStage + ".glsl";
-		std::string sOutFile = std::string( "vktemp_" ) + _pcszStage + ".spv";
+		size_t sLen = std::strlen( _pcszSource );
+		uint32_t ui32Crc = CCrc::GetCrc( reinterpret_cast<const uint8_t *>(_pcszSource), sLen );
+		std::string sStage( _pcszStage );
+		std::wstring wsStage( sStage.begin(), sStage.end() );
+		std::wstring wsPreBuiltPath = std::format( L"{}v.{:08X}.{}.bin", DefaultShaderBuildFolder(), ui32Crc, wsStage );
+
+#ifndef LSN_WINDOWS
+		std::string sPreBuiltPath( wsPreBuiltPath.begin(), wsPreBuiltPath.end() );
+#endif
+
+		FILE * pfCached = nullptr;
+#ifdef LSN_WINDOWS
+		::_wfopen_s( &pfCached, wsPreBuiltPath.c_str(), L"rb" );
+#else
+		pfCached = std::fopen( sPreBuiltPath.c_str(), "rb" );
+#endif
+		if ( pfCached ) {
+			std::fseek( pfCached, 0, SEEK_END );
+			long lSize = std::ftell( pfCached );
+			std::fseek( pfCached, 0, SEEK_SET );
+
+			_vOutByteCode.resize( lSize / sizeof( uint32_t ) );
+			std::fread( _vOutByteCode.data(), 1, lSize, pfCached );
+			std::fclose( pfCached );
+
+			return !_vOutByteCode.empty();
+		}
+
+		// No cache.  Build it and create the cache.
+		std::string sInFile = std::string( "vktemp_" ) + sStage + ".glsl";
+		std::string sOutFile = std::string( "vktemp_" ) + sStage + ".spv";
+
+#ifdef LSN_WINDOWS
+		std::wstring wsInFile( sInFile.begin(), sInFile.end() );
+		std::wstring wsOutFile( sOutFile.begin(), sOutFile.end() );
+#endif
 
 		FILE * pfIn = nullptr;
 #ifdef LSN_WINDOWS
-		::fopen_s( &pfIn, sInFile.c_str(), "wb" );
+		::_wfopen_s( &pfIn, wsInFile.c_str(), L"wb" );
 #else
 		pfIn = std::fopen( sInFile.c_str(), "wb" );
 #endif
 		if ( !pfIn ) { return false; }
-		std::fwrite( _pcszSource, 1, std::strlen( _pcszSource ), pfIn );
+		std::fwrite( _pcszSource, 1, sLen, pfIn );
 		std::fclose( pfIn );
 
 #ifdef LSN_WINDOWS
-		std::string sCmd = std::string( "glslc.exe -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+		std::string sCmd = std::string( "glslc.exe -fshader-stage=" ) + sStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+		std::wstring wsCmd( sCmd.begin(), sCmd.end() );
 		
-		STARTUPINFOA si;
-		PROCESS_INFORMATION pi;
-		ZeroMemory( &si, sizeof( si ) );
-		si.cb = sizeof( si );
-		si.dwFlags = STARTF_USESHOWWINDOW;
-		si.wShowWindow = SW_HIDE;
-		ZeroMemory( &pi, sizeof( pi ) );
+		STARTUPINFOW siStartInfo;
+		PROCESS_INFORMATION piProcInfo;
+		::ZeroMemory( &siStartInfo, sizeof( siStartInfo ) );
+		siStartInfo.cb = sizeof( siStartInfo );
+		siStartInfo.dwFlags = STARTF_USESHOWWINDOW;
+		siStartInfo.wShowWindow = SW_HIDE;
+		::ZeroMemory( &piProcInfo, sizeof( piProcInfo ) );
 
-		// CreateProcessA requires a mutable string buffer.
-		std::vector<char> vCmdBuffer( sCmd.begin(), sCmd.end() );
-		vCmdBuffer.push_back( '\0' );
+		// CreateProcessW requires a mutable string buffer.
+		std::vector<wchar_t> vCmdBuffer( wsCmd.begin(), wsCmd.end() );
+		vCmdBuffer.push_back( L'\0' );
 
-		if ( ::CreateProcessA( NULL, vCmdBuffer.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi ) ) {
-			::WaitForSingleObject( pi.hProcess, INFINITE );
+		if ( ::CreateProcessW( NULL, vCmdBuffer.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siStartInfo, &piProcInfo ) ) {
+			::WaitForSingleObject( piProcInfo.hProcess, INFINITE );
 			DWORD dwExitCode = 0;
-			::GetExitCodeProcess( pi.hProcess, &dwExitCode );
-			::CloseHandle( pi.hProcess );
-			::CloseHandle( pi.hThread );
+			::GetExitCodeProcess( piProcInfo.hProcess, &dwExitCode );
+			::CloseHandle( piProcInfo.hProcess );
+			::CloseHandle( piProcInfo.hThread );
 			if ( dwExitCode != 0 ) {
-				::remove( sInFile.c_str() );
+				::_wremove( wsInFile.c_str() );
 				return false;
 			}
 		} else {
-			::remove( sInFile.c_str() );
+			::_wremove( wsInFile.c_str() );
 			return false;
 		}
 #else
-		std::string sCmd = std::string( "glslc -fshader-stage=" ) + _pcszStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
+		std::string sCmd = std::string( "glslc -fshader-stage=" ) + sStage + " \"" + sInFile + "\" -o \"" + sOutFile + "\"";
 		if ( std::system( sCmd.c_str() ) != 0 ) {
 			::remove( sInFile.c_str() );
 			return false;
@@ -480,12 +561,16 @@ namespace lsn {
 
 		FILE * pfOut = nullptr;
 #ifdef LSN_WINDOWS
-		::fopen_s( &pfOut, sOutFile.c_str(), "rb" );
+		::_wfopen_s( &pfOut, wsOutFile.c_str(), L"rb" );
 #else
 		pfOut = std::fopen( sOutFile.c_str(), "rb" );
 #endif
 		if ( !pfOut ) { 
+#ifdef LSN_WINDOWS
+			::_wremove( wsInFile.c_str() );
+#else
 			::remove( sInFile.c_str() );
+#endif
 			return false; 
 		}
 
@@ -497,8 +582,34 @@ namespace lsn {
 		std::fread( _vOutByteCode.data(), 1, lSize, pfOut );
 		std::fclose( pfOut );
 
+#ifdef LSN_WINDOWS
+		::_wremove( wsInFile.c_str() );
+		::_wremove( wsOutFile.c_str() );
+#else
 		::remove( sInFile.c_str() );
 		::remove( sOutFile.c_str() );
+#endif
+
+
+
+std::error_code ecError;
+#ifdef LSN_WINDOWS
+		std::filesystem::create_directories( std::filesystem::path( wsPreBuiltPath ).parent_path(), ecError );
+#else
+		std::filesystem::create_directories( std::filesystem::path( sPreBuiltPath ).parent_path(), ecError );
+#endif
+
+
+		FILE * pfSave = nullptr;
+#ifdef LSN_WINDOWS
+		::_wfopen_s( &pfSave, wsPreBuiltPath.c_str(), L"wb" );
+#else
+		pfSave = std::fopen( sPreBuiltPath.c_str(), "wb" );
+#endif
+		if ( pfSave ) {
+			std::fwrite( _vOutByteCode.data(), sizeof( uint32_t ), _vOutByteCode.size(), pfSave );
+			std::fclose( pfSave );
+		}
 
 		return !_vOutByteCode.empty();
 	}

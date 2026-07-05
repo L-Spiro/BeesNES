@@ -896,6 +896,7 @@ namespace lsn {
 	 * \return Returns the default folder where default palettes can be found.
 	 **/
 	std::wstring CBeesNes::DefaultPaletteFolder() const {
+#if defined( _WIN32 )
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
 		wsBuffer.resize( dwSize + 1 );
@@ -903,6 +904,34 @@ namespace lsn {
 		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
 		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 		return wsRoot + L"Palettes\\";
+#else
+		char szBuffer[PATH_MAX];
+		std::string sPathStr;
+
+#if defined( __APPLE__ )
+		uint32_t uiSize = sizeof( szBuffer );
+		if ( ::_NSGetExecutablePath( szBuffer, &uiSize ) == 0 ) {
+			char szRealPath[PATH_MAX];
+			if ( ::realpath( szBuffer, szRealPath ) != nullptr ) {
+				sPathStr = szRealPath;
+			} else {
+				sPathStr = szBuffer;
+			}
+		}
+#elif defined( __linux__ )
+		ssize_t sLen = ::readlink( "/proc/self/exe", szBuffer, sizeof( szBuffer ) - 1 );
+		if ( sLen != -1 ) {
+			szBuffer[sLen] = '\0';
+			sPathStr = szBuffer;
+		}
+#endif
+
+		size_t stPos = sPathStr.find_last_of( '/' );
+		std::string sDir = ( stPos != std::string::npos ) ? sPathStr.substr( 0, stPos + 1 ) : "";
+		sDir += "Palettes/";
+
+		return std::wstring( sDir.begin(), sDir.end() );
+#endif
 	}
 
 	/**

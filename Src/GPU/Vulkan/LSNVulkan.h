@@ -111,6 +111,13 @@ namespace lsn {
 		static VkPresentModeKHR									GetPresentMode( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface );
 
 		/**
+		 * Gets the default folder for built shaders.
+		 * 
+		 * \return Returns the default folder where built shaders can be found.
+		 **/
+		static std::wstring										DefaultShaderBuildFolder();
+
+		/**
 		 * \brief Compiles a GLSL shader to SPIR-V using the Vulkan SDK's glslc command line tool.
 		 *
 		 * \param _pcszSource Null-terminated GLSL source code.

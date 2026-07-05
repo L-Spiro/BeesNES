@@ -125,7 +125,7 @@ namespace lsn {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper065::SelectBank8000_8FFF, this, 0 );
 			}
 			// PGM layout.
-			_pbCpuBus->SetWriteFunc( uint16_t( 0x9003 ), &CMapper065::SetPgmLayout9000, this, 0 );
+			_pbCpuBus->SetWriteFunc( uint16_t( 0x9000 ), &CMapper065::SetPgmLayout9000, this, 0 );
 			// Mirroring.
 			_pbCpuBus->SetWriteFunc( uint16_t( 0x9001 ), &CMapper065::SelectMirror9001, this, 0 );
 			// IRQ.
