@@ -424,43 +424,30 @@ namespace lsn {
 				break;
 			}
 			
+#define LSN_SET_SCALE( CASE, SCALE )																		\
+	case CMainWindowLayout::CASE : {																		\
+		m_bnEmulator.SetScale( SCALE );																		\
+		LSW_RECT rScreen = FinalWindowRect();																\
+		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );			\
+		break;																								\
+	}
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_1X, 1.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_1_75X, 1.75 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_2X, 2.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_3X, 3.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_3_5X, 3.5 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_4X, 4.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_5X, 5.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_5_25X, 5.25 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_6X, 6.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_7X, 7.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_8X, 8.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_8_75X, 8.75 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_9X, 9.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_10X, 10.0 )
+			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_10_5X, 10.5 )
+#undef LSN_SET_SCALE
 
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_1X : {
-				m_bnEmulator.SetScale( 1.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_2X : {
-				m_bnEmulator.SetScale( 2.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_3X : {
-				m_bnEmulator.SetScale( 3.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_4X : {
-				m_bnEmulator.SetScale( 4.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_5X : {
-				m_bnEmulator.SetScale( 5.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_SIZE_6X : {
-				m_bnEmulator.SetScale( 6.0 );
-				LSW_RECT rScreen = FinalWindowRect();
-				::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
-				break;
-			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_RGB24 );
 				break;
@@ -1366,9 +1353,23 @@ namespace lsn {
 				LSN_CHECK_SCALE( 4 );
 				LSN_CHECK_SCALE( 5 );
 				LSN_CHECK_SCALE( 6 );
+				LSN_CHECK_SCALE( 7 );
+				LSN_CHECK_SCALE( 8 );
+				LSN_CHECK_SCALE( 9 );
+				LSN_CHECK_SCALE( 10 );
 #undef LSN_CHECK_SCALE
-
-
+#define LSN_CHECK_SCALE( CASE, SCALE )																																					\
+	case CMainWindowLayout::CASE : {																																					\
+		MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetScale() == double( SCALE ) ? MFS_CHECKED : MFS_UNCHECKED ) };	\
+		::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );																															\
+		break;																																											\
+	}
+				LSN_CHECK_SCALE( LSN_MWMI_VIDEO_SIZE_1_75X, 1.75 );
+				LSN_CHECK_SCALE( LSN_MWMI_VIDEO_SIZE_3_5X, 3.5 );
+				LSN_CHECK_SCALE( LSN_MWMI_VIDEO_SIZE_5_25X, 5.25 );
+				LSN_CHECK_SCALE( LSN_MWMI_VIDEO_SIZE_8_75X, 8.75 );
+				LSN_CHECK_SCALE( LSN_MWMI_VIDEO_SIZE_10_5X, 10.5 );
+#undef LSN_CHECK_SCALE
 				case CMainWindowLayout::LSN_MWMI_PAUSE : {
 					try {
 						std::wstring wStr = m_bnEmulator.RomIsPaused() ? LSN_LSTR( LSN_GAME_UNPAUSE ) : LSN_LSTR( LSN_GAME_PAUSE );

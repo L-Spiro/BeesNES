@@ -1233,6 +1233,21 @@
     <ClInclude Include="Src\Mappers\LSNMapper119.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanNtscBlarggFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanNtscCrtFullFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanNtscLSpiroFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanPalCrtFullFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNVulkanPalLSpiroFilter.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1777,6 +1792,21 @@
     </ClCompile>
     <ClCompile Include="Src\GPU\Vulkan\LSNVulkanSemaphore.cpp">
       <Filter>Source Files\GPU\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanNtscBlarggFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanNtscCrtFullFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanNtscLSpiroFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanPalCrtFullFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filters\LSNVulkanPalLSpiroFilter.cpp">
+      <Filter>Source Files\Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

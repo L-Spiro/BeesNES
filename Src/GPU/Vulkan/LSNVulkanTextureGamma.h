@@ -58,12 +58,13 @@ namespace lsn {
 		 * 
 		 * \param _pvkDevice The Vulkan device.
 		 * \param _rpRenderPass The render pass that the pipeline will execute within.
+		 * \param _gGamma The specific gamma curve to hard-code into the generated shader.
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 		 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat _fFormat, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag );
+		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, VkFormat _fFormat = VK_FORMAT_UNDEFINED, const std::vector<uint32_t> &_vSpirvVert = std::vector<uint32_t>(), const std::vector<uint32_t> &_vSpirvFrag = std::vector<uint32_t>() );
 
 		/**
 		 * Renders the texture to the surface.
@@ -93,12 +94,23 @@ namespace lsn {
 #pragma pack( pop )
 
 		// == Members.
+		/** The vertex buffer containing the fullscreen quad. */
 		std::unique_ptr<CVulkanBuffer>							m_pbVbQuad;
+
+		/** The device memory allocation for the vertex buffer quad. */
 		std::unique_ptr<CVulkanDeviceMemory>					m_pdmVbQuadMemory;
 
+		/** The pipeline state object for the gamma pass. */
 		std::unique_ptr<CVulkanPipeline>						m_ppShader;
+
+		/** The pipeline layout detailing the push constants (if any) and descriptor sets. */
 		std::unique_ptr<CVulkanPipelineLayout>					m_pplPipelineLayout;
+
+		/** The descriptor set layout defining the texture bindings. */
 		std::unique_ptr<CVulkanDescriptorSetLayout>				m_pdslDescriptorSetLayout;
+
+		/** The currently compiled shader gamma curve. */
+		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
 
 	};
 

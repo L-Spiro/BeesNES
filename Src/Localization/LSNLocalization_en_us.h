@@ -49,13 +49,20 @@
 #define LSN_AUDIO															&Audio
 // Video sizes.
 #define LSN_VIDEO_SIZE_1X													1\u00D7
+#define LSN_VIDEO_SIZE_1_75X												1.75\u00D7
 #define LSN_VIDEO_SIZE_2X													2\u00D7
 #define LSN_VIDEO_SIZE_3X													3\u00D7
+#define LSN_VIDEO_SIZE_3_5X													3.5\u00D7
 #define LSN_VIDEO_SIZE_4X													4\u00D7
 #define LSN_VIDEO_SIZE_5X													5\u00D7
+#define LSN_VIDEO_SIZE_5_25X												5.25\u00D7
 #define LSN_VIDEO_SIZE_6X													6\u00D7
 #define LSN_VIDEO_SIZE_7X													7\u00D7
 #define LSN_VIDEO_SIZE_8X													8\u00D7
+#define LSN_VIDEO_SIZE_8_75X												8.75\u00D7
+#define LSN_VIDEO_SIZE_9X													9\u00D7
+#define LSN_VIDEO_SIZE_10X													10\u00D7
+#define LSN_VIDEO_SIZE_10_5X												10.5\u00D7
 // Video filters.
 #define LSN_VIDEO_FILTER_NONE												Pale&tte (Software)
 #define LSN_VIDEO_FILTER_DX9_PALETTE										Pale&tte (LSN_MICROSOFT_DIRECT3D_9)

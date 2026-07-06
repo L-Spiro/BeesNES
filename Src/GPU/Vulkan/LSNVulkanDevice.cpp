@@ -159,7 +159,8 @@ namespace lsn {
 			VkSurfaceTransformFlagBitsKHR stfbTrans;
 			if ( scCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR ) {
 				stfbTrans = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-			} else {
+			}
+			else {
 				stfbTrans = scCapabilities.currentTransform;
 			}
 
@@ -167,7 +168,8 @@ namespace lsn {
 			VkExtent2D eExtent;
 			if ( scCapabilities.currentExtent.width != 0xFFFFFFFF ) {
 				eExtent = scCapabilities.currentExtent;
-			} else {
+			}
+			else {
 				RECT rClient;
 				::GetClientRect( _hWnd, &rClient );
 				eExtent.width = std::clamp<uint32_t>( rClient.right - rClient.left, scCapabilities.minImageExtent.width, scCapabilities.maxImageExtent.width );

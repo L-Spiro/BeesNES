@@ -77,6 +77,10 @@ namespace lsn {
 	 * Called when the filter is about to become inactive.
 	 */
 	void CVulkanPaletteFilter::DeActivate() {
+		if ( m_pvkDevice && m_pvkDevice->GetDevice() ) {
+			CVulkan::m_pfDeviceWaitIdle( m_pvkDevice->GetDevice() );
+		}
+
 		m_rpInitialPass.Reset();
 
 		ReleaseSizeDependents();
@@ -168,7 +172,8 @@ namespace lsn {
 				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
 				if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
 					m_pvkDevice->ResizeSwapChain();
-				} else if ( rRes == VK_SUCCESS ) {
+				}
+				else if ( rRes == VK_SUCCESS ) {
 					m_fRenderFence.ResetFence();
 				
 
@@ -223,6 +228,8 @@ namespace lsn {
 	 */
 	bool CVulkanPaletteFilter::EnsureSizeAndResources() {
 		m_bValidState = false;
+		if LSN_UNLIKELY( !m_ui32SrcW || !m_ui32SrcH ) { return false; }
+
 		if ( !m_pvkDevice ) {
 			if ( !s_vgsState.CreateVulkan() ) { return false; }
 			m_pvkDevice = &s_vgsState.vkDevice;
@@ -300,7 +307,7 @@ namespace lsn {
 			m_pdmVbQuadMemory->AllocateMemory( dDevice, &maiAlloc );
 			CVulkan::m_pfBindBufferMemory( dDevice, m_pbVbQuad->Get(), m_pdmVbQuadMemory->Get(), 0 );
 
-			void* pvData = nullptr;
+			void * pvData = nullptr;
 			if ( CVulkan::m_pfMapMemory( dDevice, m_pdmVbQuadMemory->Get(), 0, sizeof( Quad ), 0, &pvData ) == VK_SUCCESS ) {
 				std::memcpy( pvData, Quad, sizeof( Quad ) );
 				CVulkan::m_pfUnmapMemory( dDevice, m_pdmVbQuadMemory->Get() );
@@ -390,8 +397,8 @@ namespace lsn {
 		m_pdmIndexUploadMemory->AllocateMemory( dDevice, &maiAlloc );
 		CVulkan::m_pfBindBufferMemory( dDevice, m_pbIndexUpload->Get(), m_pdmIndexUploadMemory->Get(), 0 );
 
-		m_ui32OutputWidth = m_ui32SrcW;
-		m_ui32OutputHeight = m_ui32SrcH;
+		/*m_ui32OutputWidth = m_ui32SrcW;
+		m_ui32OutputHeight = m_ui32SrcH;*/
 		m_bValidState = true;
 
 		return true;
@@ -405,7 +412,7 @@ namespace lsn {
 	bool CVulkanPaletteFilter::UpdateLut() {
 		if LSN_UNLIKELY( !m_pvkDevice ) { return false; }
 		if LSN_UNLIKELY( m_vLut.size() && m_bUpdatePalette && m_pbPaletteUpload.get() && m_pbPaletteUpload->Get() ) {
-			void* pvData = nullptr;
+			void * pvData = nullptr;
 			if ( CVulkan::m_pfMapMemory( m_pvkDevice->GetDevice(), m_pdmPaletteUploadMemory->Get(), 0, 512 * 4 * sizeof( float ), 0, &pvData ) == VK_SUCCESS ) {
 				std::memcpy( pvData, m_vLut.data(), 512 * 4 * sizeof( float ) );
 				CVulkan::m_pfUnmapMemory( m_pvkDevice->GetDevice(), m_pdmPaletteUploadMemory->Get() );
@@ -424,17 +431,21 @@ namespace lsn {
 	 * \return Returns true on success.
 	 */
 	bool CVulkanPaletteFilter::UploadIndices( const uint16_t * _pui16Idx, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32SrcPitch ) {
-		if LSN_UNLIKELY( !m_pvkDevice || _ui32W != m_ui32SrcW || _ui32H != m_ui32SrcH || !m_piIndex->Get() || !m_pbIndexUpload->Get() ) { return false; }
+		if LSN_UNLIKELY( !_ui32W || !_ui32H || !m_pvkDevice || _ui32W != m_ui32SrcW || _ui32H != m_ui32SrcH || 
+			!m_piIndex.get() || !m_piIndex->Get() || 
+			!m_pbIndexUpload.get() || !m_pbIndexUpload->Get() || 
+			!m_pdmIndexUploadMemory.get() || !m_pdmIndexUploadMemory->Get() ) { return false; }
 		if ( !_ui32SrcPitch ) { _ui32SrcPitch = _ui32W * sizeof( uint16_t ); }
 
-		void* pvData = nullptr;
+		void * pvData = nullptr;
 		VkDeviceSize stBytes = static_cast<VkDeviceSize>(_ui32W) * _ui32H * sizeof( uint16_t );
 
 		if ( CVulkan::m_pfMapMemory( m_pvkDevice->GetDevice(), m_pdmIndexUploadMemory->Get(), 0, stBytes, 0, &pvData ) == VK_SUCCESS ) {
 			uint32_t ui32Pitch = _ui32W * sizeof( uint16_t );
 			if ( ui32Pitch == _ui32SrcPitch ) {
 				std::memcpy( pvData, _pui16Idx, stBytes );
-			} else {
+			}
+			else {
 				for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
 					std::memcpy( reinterpret_cast<uint8_t *>(pvData) + Y * ui32Pitch, reinterpret_cast<const uint8_t *>(_pui16Idx) + Y * _ui32SrcPitch, ui32Pitch );
 				}
@@ -655,7 +666,7 @@ namespace lsn {
 		m_pbIndexUpload.reset();
 		m_pdmIndexUploadMemory.reset();
 
-		m_ui32OutputWidth = m_ui32OutputHeight = 0;
+		//m_ui32OutputWidth = m_ui32OutputHeight = 0;
 	}
 
 	/**

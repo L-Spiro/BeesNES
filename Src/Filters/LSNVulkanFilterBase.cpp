@@ -67,33 +67,47 @@ namespace lsn {
 	 * Called when the filter is no longer active.
 	 */
 	void CVulkanFilterBase::DeActivate() {
-		m_fRenderFence.Reset();
-		m_sImageAvailable.Reset();
-		m_sRenderFinished.Reset();
-		m_cbCommandBuffer.Reset();
-		m_cpCommandPool.Reset();
+		if ( m_pvkDevice && m_pvkDevice->GetDevice() ) {
+			CVulkan::m_pfDeviceWaitIdle( m_pvkDevice->GetDevice() );
+		}
 
+		// Tear down all modular components.
 		m_tgGamma.Reset();
 		m_pPhosphor.Reset();
 		m_tpsScaler.Reset();
 		m_rsResampler.Reset();
 		m_trRenderer.Reset();
 
+		// Tear down base render passes.
 		m_rpGammaPass.Reset();
 		m_rpScalerPass.Reset();
 		m_rpBackBufferPass.Reset();
 
 		ReleaseBaseSizeDependents();
-		ReleaseSwapchainResources();
 
-		m_sPointSampler.Reset();
-		m_sLinearSampler.Reset();
-		m_dslCommonLayout.Reset();
-		
+		// Clear descriptor layouts and pools.
 		m_dsGammaSet.Reset();
 		m_dsScalerSet.Reset();
 		m_dsRendererSet.Reset();
-		if ( m_pdpDescriptorPool ) { m_pdpDescriptorPool->Reset(); m_pdpDescriptorPool.reset(); }
+
+		m_dslCommonLayout.Reset();
+		if ( m_pdpDescriptorPool.get() ) { m_pdpDescriptorPool->Reset(); }
+		m_pdpDescriptorPool.reset();
+
+		// Clear samplers.
+		m_sPointSampler.Reset();
+		m_sLinearSampler.Reset();
+
+		ReleaseSwapchainResources();
+
+		// Purge the base command components and synchronization primitives
+		// so they are forced to rebuild if the device is destroyed.
+		m_cbCommandBuffer.Reset();
+		m_cpCommandPool.Reset();
+
+		m_fRenderFence.Reset();
+		m_sImageAvailable.Reset();
+		m_sRenderFinished.Reset();
 
 		if ( m_pvkDevice ) {
 			s_vgsState.DestroyVulkan();
@@ -178,6 +192,7 @@ namespace lsn {
 	 * \return Returns true on success.
 	 */
 	bool CVulkanFilterBase::EnsureBaseSizeAndResources( CVulkanDevice * _pvkDevice, uint32_t _ui32NativeW, uint32_t _ui32NativeH ) {
+		if LSN_UNLIKELY( !_ui32NativeW || !_ui32NativeH || _ui32NativeW > 32768 || _ui32NativeH > 32768 ) { return false; }
 		if LSN_UNLIKELY( !_pvkDevice || !_pvkDevice->GetDevice() ) { return false; }
 		VkDevice dDevice = _pvkDevice->GetDevice();
 
@@ -185,19 +200,19 @@ namespace lsn {
 		CVulkan::m_pfGetSwapchainImagesKHR( dDevice, _pvkDevice->GetSwapChain(), &ui32ImageCount, nullptr );
 		
 		std::vector<VkImage> vTempImages( ui32ImageCount );
-		if ( ui32ImageCount > 0 ) {
+		if LSN_LIKELY( ui32ImageCount > 0 ) {
 			CVulkan::m_pfGetSwapchainImagesKHR( dDevice, _pvkDevice->GetSwapChain(), &ui32ImageCount, vTempImages.data() );
 		}
 
 		bool bRebuildSwapchain = (m_vSwapImages.size() != ui32ImageCount);
-		if ( !bRebuildSwapchain && ui32ImageCount > 0 ) {
+		if LSN_UNLIKELY( !bRebuildSwapchain && ui32ImageCount > 0 ) {
 			// If the swapchain was recreated, the image handles will differ even if the count is the same.
-			if ( m_vSwapImages[0] != vTempImages[0] ) {
+			if LSN_UNLIKELY( m_vSwapImages[0] != vTempImages[0] ) {
 				bRebuildSwapchain = true;
 			}
 		}
 
-		if ( bRebuildSwapchain ) {
+		if LSN_UNLIKELY( bRebuildSwapchain ) {
 			ReleaseSwapchainResources();
 
 			m_vSwapImages = std::move( vTempImages );
@@ -239,7 +254,7 @@ namespace lsn {
 			}
 		}
 
-		if ( !m_cpCommandPool.Get() ) {
+		if LSN_UNLIKELY( !m_cpCommandPool.Get() ) {
 			m_cpCommandPool.CreateCommandPool( dDevice, 0, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT );
 			m_cbCommandBuffer.CreateCommandBuffer( dDevice, m_cpCommandPool.Get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY );
 			m_fRenderFence.CreateFence( dDevice, true ); // Signaled initially
@@ -247,7 +262,7 @@ namespace lsn {
 			m_sRenderFinished.CreateSemaphore( dDevice );
 		}
 
-		if ( m_ui32RsrcW == _ui32NativeW && m_ui32RsrcH == _ui32NativeH && m_piGamma.get() && m_fbGamma.Valid() ) {
+		if LSN_UNLIKELY( m_ui32RsrcW == _ui32NativeW && m_ui32RsrcH == _ui32NativeH && m_piGamma.get() && m_fbGamma.Valid() ) {
 			return true;
 		}
 
@@ -255,8 +270,8 @@ namespace lsn {
 
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
 
-		if ( !m_rpGammaPass.Valid() ) { CreateRenderPass( fmtRt, m_rpGammaPass ); }
-		if ( !m_rpScalerPass.Valid() ) { CreateRenderPass( fmtRt, m_rpScalerPass ); }
+		if LSN_UNLIKELY( !m_rpGammaPass.Valid() ) { CreateRenderPass( fmtRt, m_rpGammaPass ); }
+		if LSN_UNLIKELY( !m_rpScalerPass.Valid() ) { CreateRenderPass( fmtRt, m_rpScalerPass ); }
 
 
 		m_piGamma = std::make_unique<CVulkanImage>();
@@ -281,6 +296,7 @@ namespace lsn {
 
 		m_pdmGammaMemory = std::make_unique<CVulkanDeviceMemory>();
 		m_pdmGammaMemory->AllocateMemory( dDevice, &maiAlloc );
+		if LSN_UNLIKELY( !m_pdmGammaMemory->Get() ) { return false; }
 		CVulkan::m_pfBindImageMemory( dDevice, m_piGamma->Get(), m_pdmGammaMemory->Get(), 0 );
 
 		VkImageViewCreateInfo ivciView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -300,7 +316,7 @@ namespace lsn {
 		m_fbGamma.Create( dDevice, &fbciFrame );
 
 
-		if ( !m_dslCommonLayout.Get() ) {
+		if LSN_UNLIKELY( !m_dslCommonLayout.Get() ) {
 			VkDescriptorSetLayoutBinding dslbBinding = {};
 			dslbBinding.binding = 0;
 			dslbBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -313,7 +329,7 @@ namespace lsn {
 			m_dslCommonLayout.CreateDescriptorSetLayout( dDevice, &dslciLayout );
 		}
 
-		if ( !m_pdpDescriptorPool ) {
+		if LSN_UNLIKELY( !m_pdpDescriptorPool ) {
 			VkDescriptorPoolSize dpsSize = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 };
 			VkDescriptorPoolCreateInfo dpciPool = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 			dpciPool.poolSizeCount = 1;
@@ -336,7 +352,7 @@ namespace lsn {
 			m_dsRendererSet.dsDescriptorSet = allocated[2];
 		}
 
-		if ( !CreateSamplers( dDevice ) ) { return false; }
+		if LSN_UNLIKELY( !CreateSamplers( dDevice ) ) { return false; }
 
 		m_ui32RsrcW = _ui32NativeW;
 		m_ui32RsrcH = _ui32NativeH;
@@ -396,15 +412,15 @@ namespace lsn {
 		VkFormat fmtRt = m_bUse16BitInitialTarget ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R32G32B32A32_SFLOAT;
 		std::vector<uint32_t> vDummy;
 
-		// Initialize shaders and resources for the base stages
-		if ( !m_tgGamma.EnsureResources( _pvkDevice ) || 
-			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
+		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
+		if LSN_UNLIKELY( !m_tgGamma.EnsureResources( _pvkDevice ) || 
+			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, effGamma, fmtRt, vDummy, vDummy ) ) { return false; }
 
-		if ( !m_trRenderer.EnsureResources( _pvkDevice ) || 
+		if LSN_UNLIKELY( !m_trRenderer.EnsureResources( _pvkDevice ) || 
 			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_SRGB, vDummy, vDummy ) ) { return false; }
 
-		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
-		if ( effGamma != CNesPalette::LSN_G_NONE ) {
+		
+		if LSN_UNLIKELY( effGamma != CNesPalette::LSN_G_NONE ) {
 			UpdateDescriptorSet( m_dsGammaSet.dsDescriptorSet, ivCurrentSource, sCurrentSampler );
 
 			VkRenderPassBeginInfo rpbiInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
@@ -426,10 +442,10 @@ namespace lsn {
 		}
 
 		if ( m_bEnablePhosphorDecay ) {
-			if ( !m_pPhosphor.EnsureResources( _pvkDevice, _pcbCommandBuffer, _ui32NativeW, _ui32NativeH, fmtRt ) ||
+			if LSN_UNLIKELY( !m_pPhosphor.EnsureResources( _pvkDevice, _pcbCommandBuffer, _ui32NativeW, _ui32NativeH, fmtRt ) ||
 				 !m_pPhosphor.EnsureShaders( _pvkDevice, fmtRt, vDummy, vDummy ) ) { return false; }
 
-			if ( m_pPhosphor.RenderPhosphor( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, sCurrentSampler, _ui32NativeW, _ui32NativeH, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue, m_fInitPhosphorDecay ) ) {
+			if LSN_LIKELY( m_pPhosphor.RenderPhosphor( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, sCurrentSampler, _ui32NativeW, _ui32NativeH, m_fPhosphorDecayRateRed, m_fPhosphorDecayRateGreen, m_fPhosphorDecayRateBlue, m_fInitPhosphorDecay ) ) {
 				
 				VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
 				mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -443,8 +459,8 @@ namespace lsn {
 		uint32_t uiActualW = GetActualHorSharpness( _rOutput.Width() ) * _ui32NativeW;
 		uint32_t uiActualH = GetActualVertSharpness( _rOutput.Height() ) * _ui32NativeH;
 
-		if ( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
-			if ( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
+		if LSN_LIKELY( m_tpsScaler.EnsureResources( _pvkDevice, uiActualW, uiActualH, fmtRt ) ) {
+			if LSN_UNLIKELY( !m_tpsScaler.EnsureShaders( _pvkDevice, m_rpScalerPass.rpRenderPass, fmtRt, vDummy, vDummy ) ) { return false; }
 
 			if LSN_UNLIKELY( !m_fbScaler.Valid() || m_ui32ScalerTargetW != uiActualW || m_ui32ScalerTargetH != uiActualH ) {
 				m_fbScaler.Reset();
@@ -537,10 +553,10 @@ namespace lsn {
 				m_ui32ResampledTargetH = ui32DstH;
 			}
 
-			if ( !m_rsResampler.EnsureResources( _pvkDevice, _pcbCommandBuffer, uiActualW, uiActualH, ui32DstW, ui32DstH, fmtRt, fmtRt ) ||
+			if LSN_UNLIKELY( !m_rsResampler.EnsureResources( _pvkDevice, _pcbCommandBuffer, uiActualW, uiActualH, ui32DstW, ui32DstH, fmtRt, fmtRt ) ||
 				 !m_rsResampler.EnsureShaders( _pvkDevice, vDummy, vDummy ) ) { return false; }
 
-			if ( m_rsResampler.Render( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, m_sPointSampler.sSampler, m_fbResampled.fbFramebuffer, _rOutput, false ) ) {
+			if LSN_LIKELY( m_rsResampler.Render( _pvkDevice, _pcbCommandBuffer, ivCurrentSource, m_sPointSampler.sSampler, m_fbResampled.fbFramebuffer, _rOutput, false ) ) {
 				
 				VkMemoryBarrier mbBarrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
 				mbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

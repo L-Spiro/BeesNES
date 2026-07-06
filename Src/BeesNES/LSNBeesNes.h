@@ -37,12 +37,12 @@
 #include "../Filters/LSNRgb24Filter.h"
 #include "../Filters/LSNSrgbPostProcess.h"
 #ifdef LSN_VULKAN1
-//#include "../Filters/LSNVulkanNtscBlarggFilter.h"
-//#include "../Filters/LSNVulkanNtscCrtFullFilter.h"
-//#include "../Filters/LSNVulkanNtscLSpiroFilter.h"
-//#include "../Filters/LSNVulkanPalCrtFullFilter.h"
+#include "../Filters/LSNVulkanNtscBlarggFilter.h"
+#include "../Filters/LSNVulkanNtscCrtFullFilter.h"
+#include "../Filters/LSNVulkanNtscLSpiroFilter.h"
+#include "../Filters/LSNVulkanPalCrtFullFilter.h"
 #include "../Filters/LSNVulkanPaletteFilter.h"
-//#include "../Filters/LSNVulkanPalLSpiroFilter.h"
+#include "../Filters/LSNVulkanPalLSpiroFilter.h"
 #endif	// #ifdef LSN_VULKAN1
 #include "../Options/LSNOptions.h"
 #include "../System/LSNSystem.h"
@@ -547,21 +547,21 @@ namespace lsn {
 		/** Vulkan 1 palette filter. */
 		CVulkanPaletteFilter					m_vpfVulkanPalette;
 		/** Vulkan 1 Blargg NTSC filter. */
-		//CVulkanNtscBlarggFilter					m_vnbfVulkanBlarggNtscFilter;
+		CVulkanNtscBlarggFilter					m_vnbfVulkanBlarggNtscFilter;
 		/** Vulkan 1 LMP88959 NTSC CTR filter. */
-		//CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscFullFilter;
+		CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscFullFilter;
 		/** Vulkan 1 LMP88959 PAL CTR filter. */
-		//CVulkanPalCrtFullFilter					m_vncfVulkanEmmirPalFullFilter;
+		CVulkanPalCrtFullFilter					m_vncfVulkanEmmirPalFullFilter;
 		/** Vulkan 1 up-scale L. Spiro NTSC filter. */
-		//CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtsc;
+		CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtsc;
 		/** Vulkan 1 up-scale L. Spiro PAL filter. */
-		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPal;
+		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPal;
 		/** Vulkan 1 up-scale L. Spiro Dendy filter. */
-		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroDendy;
+		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroDendy;
 		/** Vulkan 1 up-scale L. Spiro PAL-M filter. */
-		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalM;
+		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalM;
 		/** Vulkan 1 up-scale L. Spiro PAL-N filter. */
-		//CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalN;
+		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalN;
 #endif	// #ifdef LSN_VULKAN1
 
 

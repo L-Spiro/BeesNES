@@ -445,7 +445,8 @@ namespace lsn {
 			char szRealPath[PATH_MAX];
 			if ( ::realpath( szBuffer, szRealPath ) != nullptr ) {
 				sPathStr = szRealPath;
-			} else {
+			}
+			else {
 				sPathStr = szBuffer;
 			}
 		}
@@ -547,7 +548,8 @@ namespace lsn {
 				::_wremove( wsInFile.c_str() );
 				return false;
 			}
-		} else {
+		}
+		else {
 			::_wremove( wsInFile.c_str() );
 			return false;
 		}
@@ -592,7 +594,7 @@ namespace lsn {
 
 
 
-std::error_code ecError;
+		std::error_code ecError;
 #ifdef LSN_WINDOWS
 		std::filesystem::create_directories( std::filesystem::path( wsPreBuiltPath ).parent_path(), ecError );
 #else

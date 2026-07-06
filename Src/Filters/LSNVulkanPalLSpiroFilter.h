@@ -1,0 +1,244 @@
+#ifdef LSN_VULKAN1
+
+/**
+ * Copyright L. Spiro 2026
+ *
+ * Written by: Shawn (L. Spiro) Wilcoxen
+ *
+ * Description: My own implementation of a PAL filter for Vulkan 1.0.
+ */
+
+#pragma once
+
+#include "../LSNLSpiroNes.h"
+#include "LSNVulkanFilterBase.h"
+#include "LSNLSpiroPalFilterBase.h"
+
+#include "../GPU/Vulkan/LSNVulkanImage.h"
+#include "../GPU/Vulkan/LSNVulkanDeviceMemory.h"
+#include "../GPU/Vulkan/LSNVulkanBuffer.h"
+
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <vector>
+
+
+namespace lsn {
+
+	/**
+	 * Class CVulkanPalLSpiroFilter
+	 * \brief My own implementation of a PAL filter for Vulkan 1.0.
+	 *
+	 * Description: My own implementation of a PAL filter.
+	 */
+	class CVulkanPalLSpiroFilter : public CLSpiroPalFilterBase, public CVulkanFilterBase {
+	public :
+		CVulkanPalLSpiroFilter();
+		virtual ~CVulkanPalLSpiroFilter();
+		
+		
+		// == Functions.
+		/**
+		 * Sets the basic parameters for the filter.
+		 *
+		 * \param _stBuffers The number of render targets to create.
+		 * \param _ui16Width The console screen width.  Typically 256.
+		 * \param _ui16Height The console screen height.  Typically 240.
+		 * \return Returns the input format requested of the PPU.
+		 */
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
+
+		/**
+		 * Gets the convolution sampler to use for resampling.
+		 *
+		 * \param _ui32Width The target width.
+		 * \param _ui32Height The target height.
+		 * \return Returns the desired convolution sampler to use.
+		 **/
+		virtual inline CResamplerBase::LSN_FILTER_FUNCS		GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) override {
+			// For low resolutions, use the sharpest-possible filter.
+			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
+			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_CARDINALSPLINEUNIFORM; }
+			if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
+			return CResamplerBase::LSN_FF_LINEAR;
+		}
+
+		/**
+		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
+		 *	its width, height, bit-depth, and stride, are returned.
+		 *
+		 * \param _pui8Input The buffer to be filtered, which will be a pointer to one of the buffers returned by OutputBuffer() previously.  Its format will be that returned in InputFormat().
+		 * \param _ui32Width On input, this is the width of the buffer in pixels.  On return, it is filled with the final width, in pixels, of the result.
+		 * \param _ui32Height On input, this is the height of the buffer in pixels.  On return, it is filled with the final height, in pixels, of the result.
+		 * \param _ui16BitDepth On input, this is the bit depth of the buffer.  On return, it is filled with the final bit depth of the result.
+		 * \param _ui32Stride On input, this is the stride of the buffer.  On return, it is filled with the final stride, in bytes, of the result.
+		 * \param _ui64PpuFrame The PPU frame associated with the input data.
+		 * \param _ui64RenderStartCycle The cycle at which rendering of the first pixel began.
+		 * \param _i32DispLeft The display area left.
+		 * \param _i32DispTop The display area top.
+		 * \param _ui32DispWidth The display area width.
+		 * \param _ui32DispHeight The display area height
+		 * \return Returns a pointer to the filtered output buffer.
+		 */
+		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t _ui64PpuFrame, uint64_t _ui64RenderStartCycle,
+			int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) override;
+
+		/**
+		 * Gets the PPU output format.
+		 *
+		 * \return Returns the output format from the PPU/input format for this filter.
+		 */
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const override { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
+
+		/**
+		 * If true, the PPU is requested to provide a frame that has been flipped vertically.
+		 *
+		 * \return Returns true to receive a vertically flipped image from the PPU, false to receive an unflipped image.
+		 */
+		virtual bool										FlipInput() const override { return false; }
+
+		/**
+		 * Gets a pointer to the output buffer.
+		 *
+		 * \return Returns a pointer to the output buffer.
+		 */
+		virtual uint8_t *									OutputBuffer() override { return CurTarget(); }
+
+		/**
+		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.
+		 *
+		 * \return Returns the bits-per-pixel of the final output.
+		 */
+		virtual uint32_t									OutputBits() const override { return 32; }
+
+		/**
+		 * Called when the filter is about to become active.
+		 */
+		virtual void										Activate() override;
+
+		/**
+		 * Called when the filter is about to become inactive.
+		 */
+		virtual void										DeActivate() override;
+
+		/**
+		 * Informs the filter of a window resize.
+		 **/
+		virtual void										FrameResize() override;
+
+		/**
+		 * Sets the number of worker threads used by the filter.
+		 *
+		 * \param _stThreads Number of worker threads to use.  0 disables worker threads.
+		 */
+		void												SetWorkerThreadCount( size_t _stThreads );
+
+		/**
+		 * Gets the number of worker threads used by the filter.
+		 *
+		 * \return Returns the total number of worker threads used by the filter.
+		 */
+		inline size_t										WorkerThreadCount() const { return m_stWorkerThreadCount; }
+
+
+	protected :
+		// == Types.
+		/** A per-frame work package shared by all threads. */
+		struct LSN_JOB {
+			const uint8_t *									pui8Pixels = nullptr;								/**< The input 9-bit pixel array. */
+			uint64_t										ui64RenderStartCycle = 0;							/**< The render cycle at the start of the frame. */
+			size_t											stThreads = 1;										/**< Total number of threads for the job, including the calling thread. */
+		};
+
+
+		// == Members.
+		std::unique_ptr<CVulkanImage>						m_piTexture;										/**< The Vulkan texture hosting the blitted PAL image. */
+		std::unique_ptr<CVulkanDeviceMemory>				m_pdmTextureMemory;									/**< Memory for the texture. */
+		CVulkan::LSN_IMAGE_VIEW								m_ivTextureView;									/**< View of the texture. */
+		std::unique_ptr<CVulkanBuffer>						m_pbTextureUpload;									/**< Host-visible buffer for texture data upload. */
+		std::unique_ptr<CVulkanDeviceMemory>				m_pdmTextureUploadMemory;							/**< Memory for the texture upload buffer. */
+
+		uint32_t											m_ui32SrcW = 0;										/**< Source width in pixels. */
+		uint32_t											m_ui32SrcH = 0;										/**< Source height in pixels. */
+		bool												m_bValidState = false;								/**< Are we in a valid state? */
+
+		std::vector<std::thread>							m_vThreads;											/**< Worker threads. */
+		std::mutex											m_mThreadMutex;										/**< Mutex protecting thread state. */
+		std::condition_variable								m_cvGo;												/**< Signal to tell worker threads to start a job. */
+		std::condition_variable								m_cvDone;											/**< Signal to tell the main thread workers have finished. */
+		std::atomic<uint32_t>								m_ui32WorkersRemaining = 0;							/**< Number of workers still running the current job. */
+		size_t												m_stWorkerThreadCount = 2;							/**< Total number of worker threads. */
+		bool												m_bThreadsStarted = false;							/**< True if the worker threads have been created. */
+		bool												m_bStopThreads = false;								/**< True if worker threads should exit. */
+		uint64_t											m_ui64JobId = 0;									/**< Incremented to start a new job. */
+		LSN_JOB												m_jJob;												/**< The current job. */
+		std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
+		std::vector<uint8_t>								m_vOutputBuffer;									/**< The final output buffer tracker. */
+
+
+		// == Functions.
+		/**
+		 * Renders a full frame of PPU 9-bit (stored in uint16_t's) palette indices to a given 32-bit RGBX buffer.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
+		 **/
+		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
+		
+		/**
+		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
+		 *
+		 * \return Returns true on success.
+		 */
+		bool												EnsureSizeAndResources();
+
+		/**
+		 * \brief Releases size-dependent resources.
+		 */
+		void												ReleaseSizeDependents();
+
+		/**
+		 * \brief Uploads the CPU-side PAL image to the staging upload buffer.
+		 *
+		 * \return Returns true on success.
+		 */
+		bool												UploadTexture();
+
+		/**
+		 * \brief Starts the worker threads.
+		 *
+		 * Creates m_vThreads based on m_stWorkerThreadCount and resets the thread-control state.
+		 * Safe to call multiple times; if threads are already started, this function does nothing.
+		 */
+		void												StartThreads();
+
+		/**
+		 * \brief Stops the worker threads.
+		 *
+		 * Signals all worker threads to exit, wakes them, joins them, clears m_vThreads, and
+		 * resets thread-control state.  Safe to call multiple times; if threads are not started,
+		 * this function does nothing.
+		 */
+		void												StopThreads();
+
+		/**
+		 * \brief The worker thread entry point.
+		 *
+		 * Waits for jobs signaled via m_cvGo, renders the scanline range assigned to this worker,
+		 * then decrements m_ui32WorkersRemaining and notifies m_cvDone when the final worker
+		 * finishes the job.
+		 *
+		 * \param _stThreadIdx The worker thread index in the range [1, stThreads - 1].
+		 *	Index 0 is reserved for the calling thread.
+		 */
+		void												WorkerThread( size_t _stThreadIdx );
+
+	private :
+		typedef CVulkanFilterBase								CParent;
+	};
+
+}	// namespace lsn
+
+#endif	// #ifdef LSN_VULKAN1

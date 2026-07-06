@@ -1,37 +1,40 @@
-#ifdef LSN_DX12
+#ifdef LSN_VULKAN1
 
 /**
  * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: LMP88959’s implementation of a PAL filter for Direct3D 12.
+ * Description: Blargg’s implementation of an NTSC filter for Vulkan.
  */
 
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../GPU/DirectX12/LSNDirectX12CommandAllocator.h"
-#include "../GPU/DirectX12/LSNDirectX12GraphicsCommandList.h"
-#include "../GPU/DirectX12/LSNDirectX12TextureUploader.h"
-#include "LSNDx12FilterBase.h"
+#include "LSNVulkanFilterBase.h"
 
-#include <mutex>
+#include "../GPU/Vulkan/LSNVulkanImage.h"
+#include "../GPU/Vulkan/LSNVulkanDeviceMemory.h"
+#include "../GPU/Vulkan/LSNVulkanBuffer.h"
+
+#include "nes_ntsc/nes_ntsc.h"
+
+#include <Helpers/LSWHelpers.h>
+#include <memory>
 #include <vector>
-
 
 namespace lsn {
 
 	/**
-	 * Class CDx12PalCrtFullFilter
-	 * \brief LMP88959’s implementation of a PAL filter for Direct3D 12.
+	 * Class CVulkanNtscBlarggFilter
+	 * \brief Blargg’s implementation of an NTSC filter for Vulkan.
 	 *
-	 * Description: LMP88959’s implementation of a PAL filter.
+	 * Description: Blargg’s implementation of an NTSC filter.
 	 */
-	class CDx12PalCrtFullFilter : public CDx12FilterBase {
+	class CVulkanNtscBlarggFilter : public CVulkanFilterBase {
 	public :
-		CDx12PalCrtFullFilter();
-		virtual ~CDx12PalCrtFullFilter();
+		CVulkanNtscBlarggFilter();
+		virtual ~CVulkanNtscBlarggFilter();
 		
 		
 		// == Functions.
@@ -43,19 +46,20 @@ namespace lsn {
 		 * \param _ui16Height The console screen height.  Typically 240.
 		 * \return Returns the input format requested of the PPU.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT				Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
 
 		/**
 		 * Gets the convolution sampler to use for resampling.
+		 * 
 		 * \param _ui32Width The target width.
 		 * \param _ui32Height The target height.
 		 * \return Returns the desired convolution sampler to use.
 		 **/
-		virtual inline CResamplerBase::LSN_FILTER_FUNCS		GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) override {
+		virtual inline CResamplerBase::LSN_FILTER_FUNCS			GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) override {
 			// For low resolutions, use the sharpest-possible filter.
 			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
-			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
-			if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSOFT; }
+			if ( fResolutionFactor < 2.5f ) { return CResamplerBase::LSN_FF_ROBIDOUX; }
+			//if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
 			return CResamplerBase::LSN_FF_LINEAR;
 		}
 
@@ -75,7 +79,7 @@ namespace lsn {
 		 * \param _ui32DispHeight The display area height
 		 * \return Returns a pointer to the filtered output buffer.
 		 */
-		virtual uint8_t *									ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t _ui64RenderStartCycle,
+		virtual uint8_t *										ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &_ui16BitDepth, uint32_t &_ui32Stride, uint64_t _ui64PpuFrame, uint64_t _ui64RenderStartCycle,
 			int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) override;
 
 		/**
@@ -83,77 +87,62 @@ namespace lsn {
 		 *
 		 * \return Returns the output format from the PPU/input format for this filter.
 		 */
-		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			InputFormat() const override { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
+		virtual CDisplayClient::LSN_PPU_OUT_FORMAT				InputFormat() const override { return CDisplayClient::LSN_POF_9BIT_PALETTE; }
 
 		/**
 		 * If true, the PPU is requested to provide a frame that has been flipped vertically.
 		 *
 		 * \return Returns true to receive a vertically flipped image from the PPU, false to receive an unflipped image.
 		 */
-		virtual bool										FlipInput() const override { return false; }
+		virtual bool											FlipInput() const override { return false; }
 
 		/**
 		 * Gets a pointer to the output buffer.
 		 *
 		 * \return Returns a pointer to the output buffer.
 		 */
-		virtual uint8_t *									OutputBuffer() override { return CurTarget(); }
+		virtual uint8_t *										OutputBuffer() override { return CurTarget(); }
 
 		/**
 		 * Gets the bits-per-pixel of the final output.  Will be 16, 24, or 32.
 		 *
 		 * \return Returns the bits-per-pixel of the final output.
 		 */
-		virtual uint32_t									OutputBits() const override { return 32; }
+		virtual uint32_t										OutputBits() const override { return 32; }
 
 		/**
 		 * Called when the filter is about to become active.
 		 */
-		virtual void										Activate() override;
+		virtual void											Activate() override;
 
 		/**
 		 * Called when the filter is about to become inactive.
 		 */
-		virtual void										DeActivate() override;
+		virtual void											DeActivate() override;
 
 		/**
 		 * Informs the filter of a window resize.
 		 **/
-		virtual void										FrameResize() override;
+		virtual void											FrameResize() override;
 
 
 	protected :
 		// == Members.
-		/** Generically uploads CPU texel arrays to GPU textures. */
-		CDirectX12TextureUploader							m_tuUploader;
+		std::unique_ptr<CVulkanImage>							m_piTexture;					/**< The Vulkan texture hosting the blitted NTSC image. */
+		std::unique_ptr<CVulkanDeviceMemory>					m_pdmTextureMemory;				/**< Memory for the texture. */
+		CVulkan::LSN_IMAGE_VIEW									m_ivTextureView;				/**< View of the texture. */
+		std::unique_ptr<CVulkanBuffer>							m_pbTextureUpload;				/**< Host-visible buffer for texture data upload. */
+		std::unique_ptr<CVulkanDeviceMemory>					m_pdmTextureUploadMemory;		/**< Memory for the texture upload buffer. */
 
-		/** Command allocator for frame execution. */
-		std::unique_ptr<CDirectX12CommandAllocator>			m_caAllocator;
-		/** Command list for frame execution. */
-		std::unique_ptr<CDirectX12GraphicsCommandList>		m_gclCommandList;
+		uint32_t												m_ui32SrcW = 0;					/**< Source width in pixels. */
+		uint32_t												m_ui32SrcH = 0;					/**< Source height in pixels. */
+		bool													m_bValidState = false;			/**< Are we in a valid state? */
 
-		/** Source width in pixels. */
-		uint32_t											m_ui32SrcW = 0;
-		/** Source height in pixels. */
-		uint32_t											m_ui32SrcH = 0;
-		/** Are we in a valid state? */
-		bool												m_bValidState = false;
+		nes_ntsc_t												m_nnBlarggNtsc;					/**< The Blargg NTSC emulation. */
 
-		/** The EMMIR (LMP88959) PAL emulation. */
-		std::vector<uint8_t>								m_vSettings;
-		/** The CRT structure. */
-		std::vector<uint8_t>								m_vCrtPal;
-		/** The phase table. */
-		int													m_iPhaseRef[4];
-		/** The final width. PAL is CRT_HRES pixels wide. */
-		uint32_t											m_ui32FinalWidth;
-		/** The final height. */
-		uint32_t											m_ui32FinalHeight;
-
-		/** The final stride. */
-		uint32_t											m_ui32FinalStride;
-		/** The output created by calling FilterFrame(). */
-		std::vector<uint8_t>								m_vRgbBuffer;
+		uint32_t												m_ui32FinalStride;				/**< The final stride. */
+		std::vector<uint8_t>									m_vRgbBuffer;					/**< The CPU-side output created by calling nes_ntsc_blit. */
+		std::vector<uint8_t>									m_vOutputBuffer;				/**< The final output buffer tracker. */
 
 
 		// == Functions.
@@ -162,20 +151,24 @@ namespace lsn {
 		 * 
 		 * \return Returns true on success.
 		 */
-		bool												EnsureSizeAndResources();
+		bool													EnsureSizeAndResources();
 
 		/**
-		 * Renders the final output to the backbuffer.
-		 *
-		 * \param _rOutput The destination rectangle.
-		 * \return Returns true if rendering succeeded.
+		 * \brief Releases size-dependent resources.
 		 */
-		bool												Render( const lsw::LSW_RECT &_rOutput );
+		void													ReleaseSizeDependents();
+
+		/**
+		 * \brief Uploads the CPU-side NTSC image to the staging upload buffer.
+		 * 
+		 * \return Returns true on success.
+		 */
+		bool													UploadTexture();
 
 	private :
-		typedef CDx12FilterBase								CParent;
+		typedef CVulkanFilterBase								CParent;
 	};
 
 }	// namespace lsn
 
-#endif	// #ifdef LSN_DX12
+#endif	// #ifdef LSN_VULKAN1

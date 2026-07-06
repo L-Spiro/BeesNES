@@ -166,6 +166,7 @@ namespace lsn {
 
 	/**
 	 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
+	 * 
 	 * \return Returns true on success.
 	 */
 	bool CDx12PalCrtFullFilter::EnsureSizeAndResources() {

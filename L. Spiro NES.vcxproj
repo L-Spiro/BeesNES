@@ -1864,7 +1864,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Filters\LSNRgb24Filter.h" />
     <ClInclude Include="Src\Filters\LSNSrgbPostProcess.h" />
     <ClInclude Include="Src\Filters\LSNVulkanFilterBase.h" />
+    <ClInclude Include="Src\Filters\LSNVulkanNtscBlarggFilter.h" />
+    <ClInclude Include="Src\Filters\LSNVulkanNtscCrtFullFilter.h" />
+    <ClInclude Include="Src\Filters\LSNVulkanNtscLSpiroFilter.h" />
+    <ClInclude Include="Src\Filters\LSNVulkanPalCrtFullFilter.h" />
     <ClInclude Include="Src\Filters\LSNVulkanPaletteFilter.h" />
+    <ClInclude Include="Src\Filters\LSNVulkanPalLSpiroFilter.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_config.h" />
     <ClInclude Include="Src\Filters\nes_ntsc\nes_ntsc_impl.h" />
@@ -2160,7 +2165,12 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp" />
     <ClCompile Include="Src\Filters\LSNSrgbPostProcess.cpp" />
     <ClCompile Include="Src\Filters\LSNVulkanFilterBase.cpp" />
+    <ClCompile Include="Src\Filters\LSNVulkanNtscBlarggFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNVulkanNtscCrtFullFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNVulkanNtscLSpiroFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNVulkanPalCrtFullFilter.cpp" />
     <ClCompile Include="Src\Filters\LSNVulkanPaletteFilter.cpp" />
+    <ClCompile Include="Src\Filters\LSNVulkanPalLSpiroFilter.cpp" />
     <ClCompile Include="Src\Filters\nes_ntsc\nes_ntsc.c" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_core.cpp" />
     <ClCompile Include="Src\Filters\NTSC-CRT-Full\crt_nes.cpp" />

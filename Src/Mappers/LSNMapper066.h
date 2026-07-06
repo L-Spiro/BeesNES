@@ -51,9 +51,9 @@ namespace lsn {
 		 */
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
+			std::memset( m_ui8PgmBanks, 0xFF, sizeof( m_ui8PgmBanks ) );
+			std::memset( m_ui8ChrBanks, 0xFF, sizeof( m_ui8ChrBanks ) );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
-			/*m_ui8PgmBank = uint8_t( m_prRom->vPrgRom.size() / (PgmBankSize()) - 1 );
-			m_ui8ChrBank = uint8_t( m_prRom->vChrRom.size() / (ChrBankSize()) - 1 );*/
 		}
 
 		/**
@@ -70,11 +70,13 @@ namespace lsn {
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_8000, this, uint16_t( I - 0x8000 ) );
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
 			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead_2000, this, uint16_t( I - 0x0000 ) );
+			if ( m_prRom->vChrRom.size() ) {
+				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+					_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+				}
 			}
 
 			// ================
@@ -82,7 +84,7 @@ namespace lsn {
 			// ================
 			// Writes to the whole area are used to select a bank.
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper066::SelectBank8000_FFFF, this, 0 );
+				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper066::SelectBank8000_FFFF, this, uint16_t( I - 0x8000 ) );
 			}
 		}
 
@@ -100,7 +102,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						SelectBank8000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper066 * pmThis = reinterpret_cast<CMapper066 *>(_pvParm0);
 			/*
 			 *	7  bit  0
@@ -110,10 +112,9 @@ namespace lsn {
 			 *	  ||   ++- Select 8 KB CHR ROM bank for PPU $0000-$1FFF
 			 *	  ++------ Select 32 KB PRG ROM bank for CPU $8000-$FFFF
 			 */
-			//pmThis->m_ui8PgmBank = ((_ui8Val & 0b00110000) >> 4) % (pmThis->m_prRom->vPrgRom.size() / (PgmBankSize()));
-			pmThis->SetPgmBank<0, PgmBankSize()>( (_ui8Val & 0b00110000) >> 4 );
-			pmThis->m_ui8ChrBank = (_ui8Val & 0b00000011) % (pmThis->m_prRom->vChrRom.size() / (ChrBankSize()));
-			pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b00000011 );
+			uint8_t ui8Conflict = _ui8Val & pmThis->m_prRom->vPrgRom.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize())];
+			pmThis->SetPgmBank<0, PgmBankSize()>( (ui8Conflict & 0b11110000) >> 4 );
+			pmThis->SetChrBank<0, ChrBankSize()>( ui8Conflict & 0b00001111 );
 		}
 	};
 

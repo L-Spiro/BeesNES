@@ -125,7 +125,7 @@ namespace lsn {
 		::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
 		::crt_demodulate_full( &m_nnCrtNtsc, 3 );
 
-		// Reset command list for upload and rendering execution
+		// Reset command list for upload and rendering execution.
 		m_caAllocator->Get()->Reset();
 		m_gclCommandList->Get()->Reset( m_caAllocator->Get(), nullptr );
 
