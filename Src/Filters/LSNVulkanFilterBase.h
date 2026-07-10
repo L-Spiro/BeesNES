@@ -95,6 +95,9 @@ namespace lsn {
 		 * \return Returns true if the parent was successfully set.
 		 */
 		static bool												SetRenderWindowParent( lsw::CWidget * _pwParent ) {
+			if ( s_vgsState.vkDevice.GetDevice() ) {
+				CVulkan::m_pfDeviceWaitIdle( s_vgsState.vkDevice.GetDevice() );
+			}
 			if ( s_vgsState.i32RefCnt != 0 ) { return false; }
 			s_vgsState.pwParent = _pwParent;
 			return true;

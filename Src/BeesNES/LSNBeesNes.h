@@ -471,6 +471,30 @@ namespace lsn {
 		 **/
 		void									ShutDown();
 
+		/**
+		 * Gets the black level for a given system.
+		 * 
+		 * \param _pmSystem The system whose black level to get.
+		 * \return Returns the black level for the given system.
+		 **/
+		static float							SystemBlackLevel( LSN_PPU_METRICS _pmSystem ) {
+			switch ( _pmSystem ) {
+				case LSN_PM_NTSC : {}
+				case LSN_PM_PALM : { return 0.312f; }
+			}
+			return 0.0f;
+		}
+
+		/**
+		 * Gets the white level for a given system.
+		 * 
+		 * \param _pmSystem The system whose white level to get.
+		 * \return Returns the white level for the given system.
+		 **/
+		static float							SystemWhiteLevel( LSN_PPU_METRICS /*_pmSystem*/ ) {
+			return 1.1f;
+		}
+
 
 	protected :
 		// == Members.
@@ -724,7 +748,26 @@ namespace lsn {
 		 * \param _ioInputOptions The input options to write to the settings data.
 		 * \return Returns true if the settings data was saved.
 		 */
-		bool									SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions );
+		bool									SaveInputSettings( CStream &_sFile, const LSN_INPUT_OPTIONS &_ioInputOptions );
+
+		/**
+		 * Loads input settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _ieInputOptions The input options into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadInputSettings( uint32_t _ui32Version, CStream &_sFile, lsn::LSN_INPUT_EVENT &_ieInputOptions );
+
+		/**
+		 * Saves input settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _ieInputOptions The input options to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveInputSettings( CStream &_sFile, const lsn::LSN_INPUT_EVENT &_ieInputOptions );
 
 		/**
 		 * Loads the recent-files list.

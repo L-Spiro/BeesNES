@@ -43,8 +43,8 @@ namespace lsn {
 			0,										// iTop
 			LSN_INPUT_W,							// dwWidth
 			LSN_INPUT_H,							// dwHeight
-			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
+			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,					// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																// dwStyleEx
 			LSN_LSTR( LSN_INPUT_DIALOG ),			// pwcText
 			0,										// sTextLen
 			LSN_IWI_NONE,							// dwParentId
@@ -60,7 +60,8 @@ namespace lsn {
 			0,										// iTop
 			255,									// dwWidth
 			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H) + 22,						// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
+			//WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,				// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,				// dwStyle
 			WS_EX_ACCEPTFILES,														// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
@@ -120,7 +121,7 @@ namespace lsn {
 			0, 0,									// iLeft, iTop
 			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
 			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,						// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
@@ -482,7 +483,7 @@ namespace lsn {
 			0, 0,									// iLeft, iTop
 			LSN_LEFT_JUST + LSN_INPUT_GROUP_W + LSN_LEFT_JUST,
 			(LSN_GENERAL_GROUP_H + LSN_SETTINGS_GROUP_H),
-			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,						// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen

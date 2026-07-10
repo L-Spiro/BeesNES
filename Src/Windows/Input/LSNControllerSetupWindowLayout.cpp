@@ -53,7 +53,8 @@ namespace lsn {
 			0,										// iTop
 			LSN_INPUT_GROUP_W,						// dwWidth
 			LSN_STD_CONT_H,							// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,																					// dwStyle
+			//WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK,																					// dwStyle
+			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | TCS_HOTTRACK | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,				// dwStyle
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
@@ -67,8 +68,9 @@ namespace lsn {
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			TRUE,									// bActive
-			LSN_LEFT_JUST,							// iLeft
-			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,		// iTop
+			//LSN_LEFT_JUST,							// iLeft
+			LSN_INPUT_W - (LSN_DEF_BUTTON_WIDTH * 1 + LSN_LEFT_JUST) * 2,																												// iLeft
+			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,																															// iTop
 			LSN_DEF_BUTTON_WIDTH,					// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
 			LSN_DEFBUTTONSTYLE,						// dwStyle
@@ -84,7 +86,7 @@ namespace lsn {
 			TRUE,									// bEnabled
 			FALSE,									// bActive
 			LSN_INPUT_W - LSN_DEF_BUTTON_WIDTH * 1 - LSN_LEFT_JUST,	// iLeft
-			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,		// iTop
+			LSN_INPUT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,																															// iTop
 			LSN_DEF_BUTTON_WIDTH,					// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,					// dwHeight
 			LSN_BUTTONSTYLE,						// dwStyle

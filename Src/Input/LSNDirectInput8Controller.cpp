@@ -9,6 +9,8 @@
  */
 
 #include "LSNDirectInput8Controller.h"
+#include "../Input/LSNControllerListener.h"
+
 #include <Base/LSWBase.h>
 
 namespace lsn {
@@ -108,7 +110,7 @@ namespace lsn {
 		if ( _ui8Idx == 0 ) { return JoyState().lX; }
 		if ( _ui8Idx == 1 ) { return JoyState().lY; }
 		if ( _ui8Idx == 2 ) { return JoyState().lZ; }
-		_ui8Idx -= 2;
+		_ui8Idx -= 3;
 		if ( _ui8Idx >= std::size( JoyState().rglSlider ) ) { return 0; }
 		return JoyState().rglSlider[_ui8Idx];
 	}
@@ -125,16 +127,113 @@ namespace lsn {
 	}
 
 	/**
+	 * Starts the thread.
+	 * 
+	 * \param _pclListener A pointer to an object that provides a listener interface for receiving notifications about controller events.
+	 **/
+	void CDirectInput8Controller::BeginThread( CControllerListener * _pclListener ) {
+		m_bStateCleared = false;
+		CUsbControllerBase::BeginThread( _pclListener );
+	}
+
+	/**
 	 * The thread function.
 	 * 
 	 * \param _ptThread A pointer to the thread data.
 	 * \return Return true to keep the thread going, false to stop the thread.
 	 **/
-	bool CDirectInput8Controller::ThreadFunc( LSN_THREAD * /*_ptThread*/ ) {
-		if ( !Poll() ) {
-			return false;
-		}
+	bool CDirectInput8Controller::ThreadFunc( LSN_THREAD * _ptThread ) {
+		std::memset( &m_jsState, 0, sizeof( m_jsState ) );
+		if ( Poll() ) {
+			if ( !m_bStateCleared ) {
+				bool bIsNeutral = true;
+			
+				// Buttons.
+				for ( uint8_t I = 0; I < std::size( JoyState().rgbButtons ); ++I ) {
+					if ( PollButton( I ) ) {
+						bIsNeutral = false;
+						break;
+					}
+				}
+			
+				// POV's.
+				if ( bIsNeutral ) {
+					for ( uint8_t I = 0; I < std::size( JoyState().rgdwPOV ); ++I ) {
+						if ( PollPov( I ) != 0xFFFFFFFF ) {
+							bIsNeutral = false;
+							break;
+						}
+					}
+				}
+			
+				// Axes.
+				if ( bIsNeutral ) {
+					for ( uint8_t I = 0; I < (3 + std::size( JoyState().rglSlider )); ++I ) {
+						long lAxis = PollAxis( I );
+						if ( lAxis < -500 || lAxis > 500 ) {
+							bIsNeutral = false;
+							break;
+						}
+					}
+				}
 
+			
+				if ( bIsNeutral ) {
+					m_bStateCleared = true;
+				}
+				return true;
+			}
+
+			// Buttons.
+			for ( uint8_t I = 0; I < std::size( JoyState().rgbButtons ); ++I ) {
+				if ( PollButton( I ) ) {
+					LSN_INPUT_EVENT ieEvent;
+					ieEvent.stIdx = I;
+					ieEvent.icType = LSN_IC_BUTTON;
+					ieEvent.u.bButton = true;
+
+					if ( _ptThread->m_pclListener ) {
+						_ptThread->m_pclListener->OnInput( _ptThread->m_pucbThis, ieEvent );
+					}
+					return false;
+				}
+			}
+
+			// POV's (D-Pads).
+			for ( uint8_t I = 0; I < std::size( JoyState().rgdwPOV ); ++I ) {
+				uint32_t ui32Pov = PollPov( I );
+			
+				// 0xFFFFFFFF (or -1) is the standard DirectInput value for a centered/unpressed POV hat.
+				if ( ui32Pov != 0xFFFFFFFF ) {
+					LSN_INPUT_EVENT ieEvent;
+					ieEvent.stIdx = I;
+					ieEvent.icType = LSN_IC_POV;
+					ieEvent.u.dwPov = ui32Pov;
+
+					if ( _ptThread->m_pclListener ) {
+						_ptThread->m_pclListener->OnInput( _ptThread->m_pucbThis, ieEvent );
+					}
+					return false;
+				}
+			}
+
+			// Axes.
+			for ( uint8_t I = 0; I < (3 + std::size( JoyState().rglSlider )); ++I ) {
+				long lAxis = PollAxis( I );
+			
+				if ( lAxis < -500 || lAxis > 500 ) {
+					LSN_INPUT_EVENT ieEvent;
+					ieEvent.stIdx = I;
+					ieEvent.icType = LSN_IC_AXIS;
+					ieEvent.u.lAxis = lAxis;
+
+					if ( _ptThread->m_pclListener ) {
+						_ptThread->m_pclListener->OnInput( _ptThread->m_pucbThis, ieEvent );
+					}
+					return false;
+				}
+			}
+		}
 
 		return true;
 #if 0

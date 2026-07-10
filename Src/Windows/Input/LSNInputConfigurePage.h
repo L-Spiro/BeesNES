@@ -251,6 +251,8 @@ namespace lsn {
 		 * Fully updates the dialog based on current selections.
 		 */
 		void									UpdateDialog() {
+			lsw::CWidget::LSW_SETREDRAW srRedraw( this, false, true, RDW_INVALIDATE |
+				RDW_ERASE | RDW_UPDATENOW | RDW_ALLCHILDREN );
 			bool bEnablePanel = true;
 			lsw::CCheckButton * pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_GLOBAL_CHECK ) ));
 			if ( pUseGlobal ) {

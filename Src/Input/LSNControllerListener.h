@@ -11,8 +11,11 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "LSNUsbControllerBase.h"
 
 namespace lsn {
+
+	class CUsbControllerBase;
 
 	/**
 	 * Class CControllerListener
@@ -24,6 +27,13 @@ namespace lsn {
 	class CControllerListener {
 	public :
 		// == Functions.
+		/**
+		 * Called when a controller input event is generated.
+		 * 
+		 * \param _pucbController A pointer to the controller that triggered the event.
+		 * \param _ieEvent A constant reference to the input event data.
+		 **/
+		virtual void											OnInput( CUsbControllerBase * /*_pucbController*/, const CUsbControllerBase::LSN_INPUT_EVENT &/*_ieEvent*/ ) {}
 	};
 
 }	// namespace lsn

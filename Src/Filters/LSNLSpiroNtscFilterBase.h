@@ -264,7 +264,7 @@ namespace lsn {
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
 		float												m_fBlackSetting = 0.312f;							/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;							/**< White level. */
-		float												m_fPhosphorDecayRateGreen = 0.95f;						/**< Phosphor decay rate.  RGB: 0.94999969005584716796875f, PAL-M (Brazil Famiclone): 0.949946105480194091796875f. */
+		float												m_fPhosphorDecayRateGreen = 0.95f;					/**< Phosphor decay rate.  RGB: 0.94999969005584716796875f, PAL-M (Brazil Famiclone): 0.949946105480194091796875f. */
 		float												m_fPhosphorDecayRateRed = 0.95f * 0.9f;				/**< Red phosphor decay rate. */
 		float												m_fPhosphorDecayRateBlue = 0.95f * 0.85f;			/**< Blue phosphor decay rate. */
 		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */

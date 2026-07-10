@@ -142,14 +142,34 @@ namespace lsn {
 			FALSE,									// bActive
 			LSN_STD_CONT_SS_LEFT + LSN_GROUP_LEFT,	// iLeft
 			LSN_STD_CONT_DPAD_TOP + LSN_GROUP_TOP,	// iTop
-			LSN_STD_CONT_SS_GROUP_W - LSN_GROUP_LEFT * 2,															// dwWidth
+			LSN_STD_CONT_SS_GROUP_W - LSN_GROUP_LEFT * 2,																	// dwWidth
 			LSN_DEF_EDIT_HEIGHT * 5,				// dwHeight
-			WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_ALIGNLEFT | WS_TABSTOP,		// dwStyle
-			WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,											// dwStyleEx
+			WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_ALIGNLEFT | WS_TABSTOP,				// dwStyle
+			WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,													// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_SCPI_MAINWINDOW,					// dwParentId
 		},
+
+		// Direction-Pad dot.
+		{
+			LSW_LT_RADIO,							// ltType
+			LSN_SCPI_INPUT_DPAD_DOT,				// wId
+			WC_BUTTONW,								// lpwcClass
+			FALSE,									// bEnabled
+			TRUE,									// bActive
+			LSN_STD_CONT_DPAD_LEFT + LSN_STD_CONT_DPAD_H_MIDDLE - (LSN_DEF_RADIO_HEIGHT_PXL / 2) / 2 + LSN_GROUP_LEFT,		// iLeft
+			LSN_STD_CONT_DPAD_TOP + LSN_STD_CONT_DPAD_V_MIDDLE - (LSN_DEF_RADIO_HEIGHT_PXL / 2) / 2 + LSN_GROUP_TOP,		// iTop
+			LSN_DEF_RADIO_HEIGHT_PXL / 2,				// dwWidth
+			LSN_DEF_RADIO_HEIGHT_PXL / 2,				// dwHeight
+			LSN_RADIOSTYLE,							// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			L"",									// pwcText
+			0,										// sTextLen
+			LSN_SCPI_MAINWINDOW,					// dwParentId
+		},
+
+		// 
 	};
 
 #undef LSN_STD_CONT_H

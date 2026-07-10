@@ -151,7 +151,7 @@
 // Input dialog.
 #define LSN_INPUT_GLOBAL_SETTINGS											Global Settings
 #define LSN_INPUT_PER_GAME_SETTINGS											Per-Game Settings
-#define LSN_INPUT_DIALOG													Configure Input
+#define LSN_INPUT_DIALOG													Input Configuration
 #define LSN_INPUT_GENERAL													General
 #define LSN_INPUT_CONSOLE_TYPE_												Console Type:
 #define LSN_INPUT_USE_GLOBAL												Use Global
@@ -203,6 +203,11 @@
 #define LSN_DEVICE_NAME														Device Name
 #define LSN_DEVICE_TYPE_													Device Type
 #define LSN_STATUS															Status
+#define LSN_USB_CONTROLLER													USB Controller
+#define LSN_KEYBOARD														Keyboard
+#define LSN_CIRCLE															\u25EF
+#define LSN_BALLOT_EX														\U0001F5F7
+#define LSN_BALLOT_CHECK													\U0001F5F9
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 

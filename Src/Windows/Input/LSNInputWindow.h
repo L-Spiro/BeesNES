@@ -90,6 +90,15 @@ namespace lsn {
 		 **/
 		void										TabToggled( CWidget * _pwTab, int /*_iTab*/ );
 
+		/**
+		 * The WM_DEVICECHANGE handler.
+		 * 
+		 * \param _wDbtEvent The event that has occurred.  One of the DBT_* values from the Dbt.h header file.
+		 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED							DeviceChange( WORD _wDbtEvent, LPARAM _lParam );
+
 
 	protected :
 		// == Members.

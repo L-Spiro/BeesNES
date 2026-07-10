@@ -10,12 +10,16 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
-#include "../Event/LSNEvent.h"
-#include "LSNControllerListener.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <thread>
 
 namespace lsn {
+
+	class CControllerListener;
 
 	/**
 	 * Class CUsbControllerBase
@@ -164,6 +168,22 @@ namespace lsn {
 		 **/
 		inline const LSN_MAPPING &								ButtonMap() const { return m_mButtonMap; }
 
+		/**
+		 * Gets the instance name of the USB controller.
+		 * 
+		 * \return Returns the instance name of the controller.
+		 **/
+		virtual const wchar_t *									InstanceName() const { return L""; }
+
+#ifdef _WIN32
+		/**
+		 * Gets the controller's unique identifier.
+		 * 
+		 * \return Returns the GUID for the controller.
+		 **/
+		virtual const GUID *									UniqueId() const { return nullptr; }
+#endif	// #ifdef _WIN32
+
 	protected :
 		// == Types.
 		/** The thread data. */
@@ -179,14 +199,14 @@ namespace lsn {
 		LSN_MAPPING												m_mButtonMap;
 		/** The event-listening thread. */
 		std::unique_ptr<std::thread>							m_ptThread;
-		/** The thread event. */
-		CEvent													m_eThreadClose;
-		/** The event marking the closing of the thread. */
-		CEvent													m_eThreadClosed;
+		/** The mutex for thread synchronization. */
+		std::mutex												m_mThreadMutex;
+		/** The condition variable used to interrupt and wake the thread instantly. */
+		std::condition_variable									m_cvThreadClose;
 		/** Thread data. */
 		LSN_THREAD												m_tThreadData;
 		/** Tells the thread to stop. */
-		std::atomic<bool>										m_bStopThread;
+		std::atomic<bool>										m_bStopThread{ true };
 
 
 

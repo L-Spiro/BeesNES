@@ -14,6 +14,7 @@
 #ifdef LSN_WINDOWS
 
 #include "LSNAudioBase.h"
+#include "OpenAL/LSNOpenAl.h"
 #include "OpenAL/LSNOpenAlBuffer.h"
 #include "OpenAL/LSNOpenAlContext.h"
 #include "OpenAL/LSNOpenAlDevice.h"
@@ -90,6 +91,31 @@ namespace lsn {
 		 * \return Returns true if the audio device has been lost.
 		 **/
 		inline bool											DeviceLost() const { return m_bDeviceLost; }
+
+		/**
+		 * Starts the background thread that continuously polls the audio device for disconnections.
+		 */
+		void												StartDeviceCheckThread() {
+			m_bRunDeviceCheckThread = true;
+			m_bDeviceLost = false;
+			m_tDeviceCheckThread = std::thread( &CAudioOpenAl::DeviceCheckLoop, this );
+		}
+
+		/**
+		 * Safely signals the background polling thread to stop and waits for it to finish.
+		 * Should be called during application teardown.
+		 */
+		void												StopDeviceCheckThread() {
+			if ( m_bRunDeviceCheckThread ) {
+				m_bRunDeviceCheckThread = false;
+				
+				m_cvDeviceCheckCv.notify_all();
+				
+				if ( m_tDeviceCheckThread.joinable() ) {
+					m_tDeviceCheckThread.join();
+				}
+			}
+		}
 
 
 	protected :
@@ -193,6 +219,30 @@ namespace lsn {
 		 * \return Returns the total number of buffers processed.
 		 **/
 		virtual uint32_t									BuffersProcessed() const { return m_oasSource.BuffersProcessed(); }
+
+		/**
+		 * The main loop of the background device checking thread.
+		 * Sleeps for 1000 milliseconds between checks. If a disconnect is detected, 
+		 * it sets the m_bDeviceLost flag for the audio thread to handle safely.
+		 */
+		void												DeviceCheckLoop() {
+			std::unique_lock<std::mutex> ulLock( m_mxDeviceCheckMutex );
+			
+			while ( m_bRunDeviceCheckThread ) {
+				std::cv_status cvsStatus = m_cvDeviceCheckCv.wait_for( ulLock, std::chrono::milliseconds( 1000 ) );
+				
+				if ( cvsStatus == std::cv_status::timeout && m_bRunDeviceCheckThread ) {
+					if ( !m_bDeviceLost && m_oadDevice.Device() != nullptr ) {
+						if ( !COpenAl::CheckDeviceStatus( m_oadDevice.Device() ) ) {
+							::printf( "Background Thread: Device lost. Flagging for reinitialization...\n" );
+							
+							m_bDeviceLost = true;
+						}
+					}
+					
+				}
+			}
+		}
 
 		/**
 		 * Gets the OpenAL format enum given a general format descriptor.

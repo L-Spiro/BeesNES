@@ -10,15 +10,19 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Input/LSNUsbControllerBase.h"
 #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
 #include "../OS/LSNFeatureSet.h"
 #endif	// #if defined( __i386__ ) || defined( __x86_64__ ) || defined( _MSC_VER )
+
+#include <EEExpEval.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cwctype>
 #include <fenv.h>
 #include <filesystem>
+#include <format>
 //#include <intrin.h>
 #include <numbers>
 #include <random>
@@ -1482,6 +1486,149 @@ namespace lsn {
 		 **/
 		static void											CopyLastFolderToFileName( std::u16string &_u16Folders, std::u16string &_u16Path );
 
+#ifdef LSN_WINDOWS
+		/**
+		 * Converts a Windows GUID object into a formatted string.
+		 *
+		 * @param _gId A pointer to the GUID structure to be formatted.
+		 * @return An std::string containing the formatted GUID, or an empty string if the pointer is null.
+		 */
+		static std::string									FormatGuidToString( const GUID &_gId ) {
+			try {
+				return std::format( "{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+					_gId.Data1,
+					_gId.Data2,
+					_gId.Data3,
+					_gId.Data4[0], _gId.Data4[1],
+					_gId.Data4[2], _gId.Data4[3],
+					_gId.Data4[4], _gId.Data4[5],
+					_gId.Data4[6], _gId.Data4[7] );
+			}
+			catch ( ... ) { return std::string(); }
+		}
+#endif	// #ifdef LSN_WINDOWS
+
+		/**
+		 * Retrieves a list of all connected hardware keyboards on the system.
+		 *
+		 * This function queries the underlying operating system to enumerate active
+		 * physical input devices capable of dispatching keyboard events.
+		 *
+		 * \return A vector of strings containing the identifiers of the detected keyboards.
+		 */
+		static std::vector<std::string>						GetConnectedKeyboards() {
+			std::vector<std::string> vKeyboards;
+
+#if defined( _WIN32 )
+			UINT uiDeviceCount = 0;
+    
+			::GetRawInputDeviceList( NULL, &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
+			if ( uiDeviceCount == 0 ) { return vKeyboards; }
+    
+			std::vector<RAWINPUTDEVICELIST> vRawInputDeviceList( uiDeviceCount );
+			::GetRawInputDeviceList( vRawInputDeviceList.data(), &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
+    
+			for ( UINT uiIndex = 0; uiIndex < uiDeviceCount; ++uiIndex ) {
+				if ( vRawInputDeviceList[uiIndex].dwType == RIM_TYPEKEYBOARD ) {
+					UINT uiNameSize = 0;
+					::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, NULL, &uiNameSize );
+            
+					if ( uiNameSize > 0 ) {
+						std::wstring vDeviceNameW;
+						vDeviceNameW.resize( uiNameSize );
+						::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, vDeviceNameW.data(), &uiNameSize );
+						std::string strHardwareId = ee::CExpEval::ToUtf8( vDeviceNameW );
+						if ( strHardwareId.size() > 0 ) {
+							// Parse \\?\HID#VID_XXXX&PID_YYYY#... down to VID_XXXX&PID_YYYY.
+							size_t sFirstHash = strHardwareId.find( '#' );
+							if ( sFirstHash != std::string::npos ) {
+								size_t sSecondHash = strHardwareId.find( '#', sFirstHash + 1 );
+								if ( sSecondHash != std::string::npos ) {
+									strHardwareId = strHardwareId.substr( sFirstHash + 1, sSecondHash - sFirstHash - 1 );
+								}
+							}
+                    
+							if ( std::find( vKeyboards.begin(), vKeyboards.end(), strHardwareId ) == vKeyboards.end() ) {
+								vKeyboards.push_back( strHardwareId );
+							}
+						}
+					}
+					else {
+						if ( std::find( vKeyboards.begin(), vKeyboards.end(), "Unknown_Windows_Keyboard" ) == vKeyboards.end() ) {
+							vKeyboards.push_back( "Unknown_Windows_Keyboard" );
+						}
+					}
+				}
+			}
+
+#elif defined( __linux__ )
+			std::ifstream fsFile( "/proc/bus/input/devices" );
+			std::string strLine;
+			std::string strCurrentDeviceName = "Unknown_Linux_Keyboard";
+    
+			if ( !fsFile.is_open() ) { return vKeyboards; }
+
+			while ( std::getline( fsFile, strLine ) ) {
+				if ( strLine.find( "N: Name=" ) != std::string::npos ) {
+					strCurrentDeviceName = strLine.substr( 8 );
+				}
+        
+				if ( strLine.find( "Handlers=" ) != std::string::npos && strLine.find( "kbd" ) != std::string::npos ) {
+					if ( std::find( vKeyboards.begin(), vKeyboards.end(), strCurrentDeviceName ) == vKeyboards.end() ) {
+						vKeyboards.push_back( strCurrentDeviceName );
+					}
+				}
+			}
+
+#elif defined( __APPLE__ ) || defined( __MACH__ ) || defined( __unix__ )
+			if ( ::isatty( STDIN_FILENO ) == 1 ) {
+				vKeyboards.push_back( "POSIX_Standard_Input_TTY" );
+			}
+#endif
+
+			return vKeyboards;
+		}
+
+		/**
+		 * Converts a controller input event into a readable wide string.
+		 * 
+		 * \param _ieEvent A constant reference to the input event data to be converted.
+		 * \return Returns a std::wstring representing the contents of the input event.
+		 **/
+		static std::wstring									InputEventToString( const CUsbControllerBase::LSN_INPUT_EVENT &_ieEvent ) {
+			switch ( _ieEvent.icType ) {
+				case CUsbControllerBase::LSN_IC_AXIS : {
+					if ( _ieEvent.stIdx == 0 ) {
+						return (_ieEvent.u.lAxis < 0) ? L"X-Axis Left" : L"X-Axis Right";
+					}
+					else if ( _ieEvent.stIdx == 1 ) {
+						return (_ieEvent.u.lAxis < 0) ? L"Y-Axis Up" : L"Y-Axis Down";
+					}
+					else if ( _ieEvent.stIdx == 2 ) {
+						return (_ieEvent.u.lAxis < 0) ? L"Z-Axis -" : L"Z-Axis +";
+					}
+				
+					// Fallback for extra sliders/axes.
+					return L"Axis " + std::to_wstring( _ieEvent.stIdx ) + ((_ieEvent.u.lAxis < 0) ? L" -" : L" +");
+				}
+				case CUsbControllerBase::LSN_IC_POV : {
+					switch ( _ieEvent.u.dwPov ) {
+						case 0 : { return L"D-Pad Up"; }
+						case 9000 : { return L"D-Pad Right"; }
+						case 18000 : { return L"D-Pad Down"; }
+						case 27000 : { return L"D-Pad Left"; }
+						default : { return L"D-Pad Unknown"; }
+					}
+				}
+				case CUsbControllerBase::LSN_IC_BUTTON : {
+					return L"Button " + std::to_wstring( _ieEvent.stIdx );
+				}
+			}
+
+			return L"Unknown Input";
+			
+		}
+
 		/**
 		 * Gets the volume of a sample using Audacity's Studio Fade Out routine.
 		 * 
@@ -2482,15 +2629,17 @@ namespace lsn {
 		 * \param _pfTarget The buffer to fill with random values.
 		 * \param _sSize The size of the buffer to fill in samples.
 		 * \param _fAmplitude The noise amplitude.
+		 * \param _fBlackLevel The black level.
+		 * \param _fWhiteLevel The white level.
 		 **/
-		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, float _fAmplitude = 0.1f ) {
+		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, float _fAmplitude = 0.1f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			std::random_device rdDev;
 			std::mt19937 mGen( rdDev() );
 			// Generate uniform noise in [-amplitude, +amplitude].
 			std::uniform_real_distribution<float> urdDist( -_fAmplitude, _fAmplitude );
 
 			while ( _sSize-- ) {
-				_pfTarget[_sSize] = urdDist( mGen );
+				_pfTarget[_sSize] = (urdDist( mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
 			}
 		}
 
@@ -2500,14 +2649,16 @@ namespace lsn {
 		 * \param _pfTarget The buffer to fill with random values.
 		 * \param _sSize The size of the buffer to fill in samples.
 		 * \param _fStdDev The standard deviation.
+		 * \param _fBlackLevel The black level.
+		 * \param _fWhiteLevel The white level.
 		 **/
-		static inline void									GaussianNoise( float * _pfTarget, size_t _sSize, float _fStdDev = 0.05f ) {
+		static inline void									GaussianNoise( float * _pfTarget, size_t _sSize, float _fStdDev = 0.05f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			std::random_device rdDev;
 			std::mt19937 mGen( rdDev() );
 			std::normal_distribution<float> urdDist( 0.0f, _fStdDev );
 
 			while ( _sSize-- ) {
-				_pfTarget[_sSize] = urdDist( mGen );
+				_pfTarget[_sSize] = (urdDist( mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
 			}
 		}
 
@@ -2515,11 +2666,13 @@ namespace lsn {
 		 * Fills the noise buffers with uniform noise.
 		 * 
 		 * \param _fAmplitude The noise amplitude.
+		 * \param _fBlackLevel The black level.
+		 * \param _fWhiteLevel The white level.
 		 **/
-		static void inline									GenUniformNoise( float _fAmplitude = 0.1f ) {
+		static void inline									GenUniformNoise( float _fAmplitude = 0.1f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			if LSN_LIKELY( !m_bNoiseIsGaussian && m_fLastNoiseParm == _fAmplitude ) { return; }
 			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
-				UniformNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fAmplitude );
+				UniformNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fAmplitude, _fBlackLevel, _fWhiteLevel );
 			}
 			m_bNoiseIsGaussian = false;
 			m_fLastNoiseParm = _fAmplitude;
@@ -2529,11 +2682,13 @@ namespace lsn {
 		 * Fills the noise buffers with Gaussian noise.
 		 * 
 		 * \param _fStdDev The standard deviation.
+		 * \param _fBlackLevel The black level.
+		 * \param _fWhiteLevel The white level.
 		 **/
-		static void inline									GenGaussianNoise( float _fStdDev = 0.05f ) {
+		static void inline									GenGaussianNoise( float _fStdDev = 0.05f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			if LSN_LIKELY( m_bNoiseIsGaussian && m_fLastNoiseParm == _fStdDev ) { return; }
 			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
-				GaussianNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fStdDev );
+				GaussianNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fStdDev, _fBlackLevel, _fWhiteLevel );
 			}
 			m_bNoiseIsGaussian = true;
 			m_fLastNoiseParm = _fStdDev;

@@ -14,11 +14,15 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../../Input/LSNControllerListener.h"
 #include "../../Options/LSNOptions.h"
+
 #include <Button/LSWButton.h>
 #include <ComboBox/LSWComboBox.h>
 #include <Helpers/LSWInputListenerBase.h>
+#include <ListView/LSWListView.h>
 #include <TrackBar/LSWTrackBar.h>
 #include <MainWindow/LSWMainWindow.h>
+
+#include <vector>
 
 using namespace lsw;
 
@@ -97,6 +101,14 @@ namespace lsn {
 		virtual bool								StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess );
 
 		/**
+		 * Called when a controller input event is generated.
+		 * 
+		 * \param _pucbController A pointer to the controller that triggered the event.
+		 * \param _ieEvent A constant reference to the input event data.
+		 **/
+		virtual void								OnInput( CUsbControllerBase * _pucbController, const CUsbControllerBase::LSN_INPUT_EVENT &_ieEvent );
+
+		/**
 		 * Handles the WM_COMMAND message.
 		 *
 		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
@@ -110,6 +122,15 @@ namespace lsn {
 		 * Fully updates the dialog based on current buttons and settings.
 		 */
 		void										UpdateDialog();
+
+		/**
+		 * The WM_DEVICECHANGE handler.
+		 * 
+		 * \param _wDbtEvent The event that has occurred.  One of the DBT_* values from the Dbt.h header file.
+		 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED							DeviceChange( WORD _wDbtEvent, LPARAM _lParam );
 
 		/**
 		 * Gets an array of the main buttons.  There will be 8 values in the array.
@@ -157,13 +178,73 @@ namespace lsn {
 		/** The turbo buttons. */
 		LSN_INPUT_EVENT								m_ieTurboButtons[8];
 		/** The button to which we are currently listening. */
-		size_t										m_stListeningIdx;
+		size_t										m_stListeningIdx = 0;
+		/** The listening control. */
+		CWidget *									m_pwListenControl = nullptr;
+
+		/** The array of registered controllers. */
+		std::vector<CUsbControllerBase *>			m_vControllers;
 
 		/** The play index. */
 		size_t										m_stPlayerIdx;
 		/** The configuration index. */
 		size_t										m_stConfigIdx;
 
+		/** The index of the name column. */
+		INT											m_iNameCol = 0;
+		/** The index of the type column. */
+		INT											m_iTypeCol = 0;
+		/** The index of the status column. */
+		INT											m_iStatusCol = 0;
+
+
+		// == Functions.
+		/**
+		 * Determines if a controller with the given CRC exists in m_vControllers.
+		 * 
+		 * \param _ui32Crc The CRC to check for a controller in m_vControllers having.
+		 * \return Returns true if a controller in m_vControllers has a GUID with the given CRC32.
+		 **/
+		bool										ControllerHasCrc( uint32_t _ui32Crc ) const;
+
+		/**
+		 * Updates the main listview with controller and keyboard inputs.
+		 **/
+		void										UpdateInputList();
+
+		/**
+		 * Determines if any entry in m_vControllers has a GUID with a CRC32 matching the given CRC32.
+		 * 
+		 * \param _ui32Crc The CRC32 to find on any item in m_vControllers.
+		 * \return Returns true if any item in m_vControllers has a GUID with the given CRC32.
+		 **/
+		bool										HaveControllerWithCrc32( uint32_t _ui32Crc ) const;
+
+		/**
+		 * Finds a CListView item with an LPARAM matching the given CRC32.
+		 * 
+		 * \param _plvListView The listview to scan.
+		 * \param _ui32Crc The CRC32 to find among the items in the given listview.
+		 * \return Returns the index of the first item with the given CRC32 or -1.
+		 **/
+		static int32_t								FindItemInListView( const lsw::CListView * _plvListView, uint32_t _ui32Crc );
+
+		/**
+		 * Finds a CListView item with a column-0 string matching the given name.
+		 * 
+		 * \param _plvListView The listview to scan.
+		 * \param _wsName The name to find among the items in the given listview.
+		 * \return Returns the index of the first item with the given name or -1.
+		 **/
+		static int32_t								FindItemInListView( const lsw::CListView * _plvListView, const std::wstring &_wsName );
+
+		/**
+		 * Takes a GUID and gets its CRC32.
+		 * 
+		 * \param _gId The GUID to convert.
+		 * \return Returns the CRC32 of the string form of the given GUID.
+		 **/
+		static uint32_t								GuidToCrc32( const GUID &_gId );
 
 	private :
 		typedef class CStdControllerPageLayout		Layout;

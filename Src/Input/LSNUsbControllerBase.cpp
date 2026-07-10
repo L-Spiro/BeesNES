@@ -7,6 +7,7 @@
  */
 
 #include "LSNUsbControllerBase.h"
+#include "LSNControllerListener.h"
 
 
 namespace lsn {
@@ -27,9 +28,12 @@ namespace lsn {
 	 * \param _pclListener A pointer to an object that provides a listener interface for receiving notifications about controller events
 	 **/
 	void CUsbControllerBase::BeginThread( CControllerListener * _pclListener ) {
+		StopThread();
+
 		m_tThreadData.m_pucbThis = this;
 		m_tThreadData.m_pclListener = _pclListener;
 		m_bStopThread = false;
+		Poll();
 		m_ptThread = std::make_unique<std::thread>( Thread, &m_tThreadData );
 	}
 
@@ -37,16 +41,25 @@ namespace lsn {
 	 * Stops the thread.
 	 **/
 	void CUsbControllerBase::StopThread() {
-		m_bStopThread = true;
-		{
-			if ( m_ptThread.get() ) {
-				m_eThreadClose.Signal();
-				m_eThreadClosed.WaitForSignal();
-				m_ptThread->join();
-				m_ptThread.reset();
-			}
+		if ( !m_ptThread || !m_ptThread->joinable() ) {
+			return;
 		}
-		m_bStopThread = false;
+
+		{
+			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+			m_bStopThread = true;
+		}
+		
+		m_cvThreadClose.notify_all();
+
+		if ( std::this_thread::get_id() != m_ptThread->get_id() ) {
+			m_ptThread->join();
+		}
+		else {
+			m_ptThread->detach();
+		}
+		
+		m_ptThread.reset();
 	}
 
 	/**
@@ -55,43 +68,14 @@ namespace lsn {
 	 * \param _ptThread Pointer to this object.
 	 */
 	void CUsbControllerBase::Thread( LSN_THREAD * _ptThread ) {
-		while ( _ptThread->m_pucbThis->ThreadFunc( _ptThread ) && !_ptThread->m_pucbThis->m_bStopThread ) {
+		while ( !_ptThread->m_pucbThis->m_bStopThread && _ptThread->m_pucbThis->ThreadFunc( _ptThread ) ) {
+
+			std::unique_lock<std::mutex> ulLock( _ptThread->m_pucbThis->m_mThreadMutex );
+			
+			_ptThread->m_pucbThis->m_cvThreadClose.wait_for( ulLock, std::chrono::milliseconds( 0 ), [ _ptThread ]() {
+				return _ptThread->m_pucbThis->m_bStopThread.load();
+			} );
 		}
-		_ptThread->m_pucbThis->m_eThreadClosed.Signal();
-		//HRESULT hRes;
-		//hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Acquire();
-		////hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Poll();
-		//hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &_ptThread->m_pucbThis->m_jsState );
-		//hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Unacquire();
-		//hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->SetEventNotification( _ptThread->m_pucbThis->m_eThreadClose.Handle() );
-		//while ( !_ptThread->m_pucbThis->m_bStopThread ) {
-		//	uint32_t ui32Wait = _ptThread->m_pucbThis->m_eThreadClose.WaitForSignal( 1000 / 10 );
-		//	//uint32_t ui32Wait = _ptThread->m_pucbThis->m_eThreadClose.WaitForSignal();
-		//	/*hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Acquire();
-		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Poll();
-		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &_ptThread->m_pucbThis->m_jsState );
-		//	hRes = _ptThread->m_pucbThis->m_did8Device.Obj()->Unacquire();
-		//	for ( auto I = std::size( _ptThread->m_pucbThis->m_jsState.rgbButtons ); I--; ) {
-		//		if ( _ptThread->m_pucbThis->m_jsState.rgbButtons[I] ) {
-		//			//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
-		//		}
-		//	}
-		//	for ( auto I = std::size( _ptThread->m_pucbThis->m_jsState.rgdwPOV ); I--; ) {
-		//		if ( _ptThread->m_pucbThis->m_jsState.rgdwPOV[I] != -1 ) {
-		//			lsw::CBase::MessageBoxError( NULL, L"Pressed", L"D-PAD" );
-		//		}
-		//	}*/
-		//	switch ( ui32Wait ) {
-		//		case WAIT_TIMEOUT : { break; }
-		//		case WAIT_OBJECT_0 : {
-		//			if ( _ptThread->m_pucbThis->m_bStopThread ) { break; }
-		//			//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
-		//			break;
-		//		}
-		//	}
-		//}
-		//_ptThread->m_pucbThis->m_did8Device.Obj()->SetEventNotification( NULL );
-		//_ptThread->m_pucbThis->m_eThreadClosed.Signal();
 	}
 
 }	// namespace lsn

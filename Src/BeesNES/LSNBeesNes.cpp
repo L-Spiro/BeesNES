@@ -493,6 +493,9 @@ namespace lsn {
 		Options().aoThisGameAudioOptions.bUseGlobal = true;
 		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
 		Options().ioThisGameInputOptions.bUseGlobal = true;
+
+		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
+		Options().ioGlobalInputOptions.bUseGlobal = true;
 		if ( _u16Path.size() ) {
 			CStdFile sfFile;
 			if ( sfFile.Open( _u16Path.c_str() ) ) {
@@ -509,6 +512,8 @@ namespace lsn {
 						Options().poThisGamePalette[I].bUseGlobal = true;
 						if ( !LoadPaletteSettings( ui32Version, sStream, Options().poThisGamePalette[I] ) ) { return false; }
 					}
+					
+					if ( !LoadInputSettings( ui32Version, sStream, m_oOptions.ioThisGameInputOptions ) ) { return false; }
 					return true;
 				}
 			}
@@ -532,6 +537,8 @@ namespace lsn {
 		for ( size_t I = 0; I < std::size( m_oOptions.poThisGamePalette ); ++I ) {
 			if ( !SavePaletteSettings( sStream, Options().poThisGamePalette[I] ) ) { return false; }
 		}
+
+		if ( !SaveInputSettings( sStream, m_oOptions.ioThisGameInputOptions ) ) { return false; }
 
 		CStdFile sfFile;
 		if ( !sfFile.Create( _u16Path.c_str() ) ) { return false; }
@@ -1041,6 +1048,8 @@ namespace lsn {
 
 		ApplyAudioOptions();
 		ApplyPaletteOptions();
+		
+		CUtilities::GenGaussianNoise( 0.0225f, SystemBlackLevel( m_pmSystem ), SystemWhiteLevel( m_pmSystem ) );
 	}
 
 	/**
@@ -1189,14 +1198,34 @@ namespace lsn {
 	 * \param _ioInputOptions The input options into which to load the settings data.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadInputSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
+	bool CBeesNes::LoadInputSettings( uint32_t _ui32Version, CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
+		std::memset( &_ioInputOptions, 0, sizeof( _ioInputOptions ) );
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8ConsoleType ) ) { return false; }
+		if ( _ioInputOptions.ui8ConsoleType >= LSN_CT_TOTAL ) {
+			_ioInputOptions.ui8ConsoleType = LSN_CT_NES;
+			return false;
+		}
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Expansion ) ) { return false; }
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[0] ) ) { return false; }
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[1] ) ) { return false; }
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[2] ) ) { return false; }
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8Player[3] ) ) { return false; }
 		if ( !_sFile.ReadBool( _ioInputOptions.bUseFourScore ) ) { return false; }
+
+		for ( size_t I = 0; I < std::size( _ioInputOptions.ieButtonMap ); ++I ) {
+			for ( size_t J = 0; J < std::size( _ioInputOptions.ieButtonMap[0] ); ++J ) {
+				for ( size_t K = 0; K < std::size( _ioInputOptions.ieButtonMap[0][0] ); ++K ) {
+					if ( !LoadInputSettings( _ui32Version, _sFile, _ioInputOptions.ieButtonMap[I][J][K] ) ) { return false; }
+				}
+			}
+		}
+		for ( size_t I = 0; I < std::size( _ioInputOptions.ieTurboButtonMap ); ++I ) {
+			for ( size_t J = 0; J < std::size( _ioInputOptions.ieTurboButtonMap[0] ); ++J ) {
+				for ( size_t K = 0; K < std::size( _ioInputOptions.ieTurboButtonMap[0][0] ); ++K ) {
+					if ( !LoadInputSettings( _ui32Version, _sFile, _ioInputOptions.ieTurboButtonMap[I][J][K] ) ) { return false; }
+				}
+			}
+		}
 		return true;
 	}
 
@@ -1207,7 +1236,7 @@ namespace lsn {
 	 * \param _ioInputOptions The input options to write to the settings data.
 	 * \return Returns true if the settings data was saved.
 	 */
-	bool CBeesNes::SaveInputSettings( CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
+	bool CBeesNes::SaveInputSettings( CStream &_sFile, const LSN_INPUT_OPTIONS &_ioInputOptions ) {
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8ConsoleType ) ) { return false; }
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Expansion ) ) { return false; }
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[0] ) ) { return false; }
@@ -1215,6 +1244,66 @@ namespace lsn {
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[2] ) ) { return false; }
 		if ( !_sFile.WriteUi8( _ioInputOptions.ui8Player[3] ) ) { return false; }
 		if ( !_sFile.WriteBool( _ioInputOptions.bUseFourScore ) ) { return false; }
+
+		for ( size_t I = 0; I < std::size( _ioInputOptions.ieButtonMap ); ++I ) {
+			for ( size_t J = 0; J < std::size( _ioInputOptions.ieButtonMap[0] ); ++J ) {
+				for ( size_t K = 0; K < std::size( _ioInputOptions.ieButtonMap[0][0] ); ++K ) {
+					if ( !SaveInputSettings( _sFile, _ioInputOptions.ieButtonMap[I][J][K] ) ) { return false; }
+				}
+			}
+		}
+		for ( size_t I = 0; I < std::size( _ioInputOptions.ieTurboButtonMap ); ++I ) {
+			for ( size_t J = 0; J < std::size( _ioInputOptions.ieTurboButtonMap[0] ); ++J ) {
+				for ( size_t K = 0; K < std::size( _ioInputOptions.ieTurboButtonMap[0][0] ); ++K ) {
+					if ( !SaveInputSettings( _sFile, _ioInputOptions.ieTurboButtonMap[I][J][K] ) ) { return false; }
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Loads input settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _ieInputOptions The input options into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadInputSettings( uint32_t /*_ui32Version*/, CStream &_sFile, lsn::LSN_INPUT_EVENT &_ieInputOptions ) {
+		if ( !_sFile.Read( _ieInputOptions.dtType ) ) { return false; }
+		switch ( _ieInputOptions.dtType ) {
+			case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {
+				if ( !_sFile.Read( _ieInputOptions.u.kb ) ) { return false; }
+				break;
+			}
+			case LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER : {
+				if ( !_sFile.Read( _ieInputOptions.u.cont ) ) { return false; }
+				break;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Saves input settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _ieInputOptions The input options to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveInputSettings( CStream &_sFile, const lsn::LSN_INPUT_EVENT &_ieInputOptions ) {
+		if ( !_sFile.Write( _ieInputOptions.dtType ) ) { return false; }
+		switch ( _ieInputOptions.dtType ) {
+			case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {
+				if ( !_sFile.Write( _ieInputOptions.u.kb ) ) { return false; }
+				break;
+			}
+			case LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER : {
+				if ( !_sFile.Write( _ieInputOptions.u.cont ) ) { return false; }
+				break;
+			}
+		}
 		return true;
 	}
 

@@ -42,6 +42,24 @@ namespace lsn {
 		}
 
 
+		// == Types.
+		/** Scoped pausing for system events such as resizing the main window. */
+		struct LSN_TEMP_PAUSE {
+			LSN_TEMP_PAUSE( CSystemBase &_sbSystem ) :
+				sbSystem( _sbSystem ) {
+				sbSystem.TemporaryPause();
+			}
+			~LSN_TEMP_PAUSE() {
+				sbSystem.TemporaryUnpause();
+			}
+
+
+		private :
+			// == Members.
+			CSystemBase &								sbSystem;
+		};
+
+
 		// == Functions.
 		/**
 		 * Resets all of the counters etc. to prepare for running a new emulation from the beginning.
@@ -86,6 +104,16 @@ namespace lsn {
 		 * Toggles the current ROM's pause state.
 		 **/
 		virtual void									TogglePauseRom() = 0;
+
+		/**
+		 * A temporary pause for some kind of system action (such as resizing the main window). Increments m_i32PauseCount.
+		 **/
+		virtual void									TemporaryPause() { ++m_i32PauseCount; }
+
+		/**
+		 * Unpauses after a call to TemporaryPause(). Decrements m_i32PauseCount.
+		 **/
+		virtual void									TemporaryUnpause() { --m_i32PauseCount; }
 
 		/**
 		 * Determines whether the ROM is paused or not.
@@ -356,7 +384,8 @@ namespace lsn {
 		uint64_t										m_ui64CurMasterCounter;				/**< The time of the last component's update, or the time of the current component being updated if accessed by the CPU, PPU, or APU. */
 		LSN_ROM											m_rRom;								/**< The current cartridge. */
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
-		bool											m_bPaused;							/**< Pause flag. */
+		volatile std::atomic<int32_t>					m_i32PauseCount = 0;				/**< The pause count.  For the game to run, m_bPaused must be false and this must be 0. */
+		volatile bool									m_bPaused = false;					/**< Pause flag. */
 
 
 		static CCpuBus									m_bBus;								/**< The bus. */

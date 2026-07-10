@@ -703,7 +703,7 @@ namespace lsn {
 			}
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
-				//CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
+				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_AUDIO : {
@@ -1082,11 +1082,13 @@ namespace lsn {
 		if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
 			if ( m_bMaximized ) {
 				if ( m_wpPlacement.bInBorderless ) {
+					CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
 					LeaveBorderless();
 				}
 			}
 			else {
 				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
+					CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
 					EnterBorderless();
 				}
 			}
@@ -1238,6 +1240,7 @@ namespace lsn {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
+		CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
 		Parent::Size( _wParam, _lWidth, _lHeight );
 		
 		bool bMax = _wParam == SIZE_MAXIMIZED;
@@ -1288,6 +1291,7 @@ namespace lsn {
 	 * \return Returns a LSW_HANDLED enumeration.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Sizing( INT _iEdge, LSW_RECT * _prRect ) {
+		CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
 		if ( m_pdcClient && !m_bMaximized ) {
 			LSW_RECT rBorders = FinalWindowRect( 0.0 );
 			// Dragging horizontal bars means "expand the width to match."
@@ -1737,9 +1741,7 @@ namespace lsn {
 		}
 		::RedrawWindow( Wnd(), NULL, NULL,
 			RDW_INVALIDATE |
-			RDW_NOERASE | RDW_NOFRAME | RDW_VALIDATE |
-			/*RDW_UPDATENOW |*/
-			/*RDW_NOCHILDREN*/RDW_ALLCHILDREN );
+			RDW_NOERASE | RDW_NOFRAME | RDW_ALLCHILDREN );
 	}
 
 	/**
@@ -1760,7 +1762,7 @@ namespace lsn {
 			if ( m_aiThreadState == LSN_TS_ACTIVE ) {
 				m_aiThreadState = LSN_TS_STOP;
 				while ( true ) {
-					std::this_thread::sleep_for( std::chrono::milliseconds( 30 ) );
+					std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 					if ( m_aiThreadState != LSN_TS_STOP ) { break; }
 				}
 				m_ptThread->join();
@@ -2453,10 +2455,13 @@ namespace lsn {
 	 * \param _lParam A pointer to a structure that contains event-specific data. Its format depends on the value of the wParam parameter. For more information, refer to the documentation for each event.
 	 * \return Returns an LSW_HANDLED code.
 	 **/
-	CWidget::LSW_HANDLED CMainWindow::DeviceChange( WORD _wDbtEvent, LPARAM /*_lParam*/ ) {
+	CWidget::LSW_HANDLED CMainWindow::DeviceChange( WORD _wDbtEvent, LPARAM _lParam ) {
 		switch ( _wDbtEvent ) {
 			case DBT_DEVNODES_CHANGED : {
 				ScanInputDevices();
+				for ( size_t I = 0; I < m_vChildren.size(); ++I ) {
+					m_vChildren[I]->DeviceChange( _wDbtEvent, _lParam );
+				}
 				break;
 			}
 		}

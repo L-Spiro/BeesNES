@@ -885,6 +885,18 @@ namespace lsw {
 		// Translate a child's tooltip text.
 		virtual std::wstring				TranslateTooltip( const std::string &_sText );
 
+		/**
+		 * Handles WM_DEVICECHANGE.
+		 * \brief Notified of device arrival/removal and related events.
+		 *
+		 * Return LSW_H_HANDLED to veto queries (equivalent to BROADCAST_QUERY_DENY).
+		 *
+		 * \param _wDbtEvent The DBT_* event code.
+		 * \param _lParam Event-specific data pointer (varies by event).
+		 * \return Returns a LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED					DeviceChange( WORD /*_wDbtEvent*/, LPARAM /*_lParam*/ ) { return LSW_H_CONTINUE; }
+
 		// Sets a given font on all children of a window.
 		static BOOL CALLBACK				EnumChildWindows_SetFont( HWND _hWnd, LPARAM _lParam );
 
@@ -1875,18 +1887,6 @@ namespace lsw {
 		 * \return Returns a LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED					TbnGetButtonInfo( LPNMTOOLBARW /*_lptbToolBar*/ ) { return LSW_H_CONTINUE; }
-
-		/**
-		 * Handles WM_DEVICECHANGE.
-		 * \brief Notified of device arrival/removal and related events.
-		 *
-		 * Return LSW_H_HANDLED to veto queries (equivalent to BROADCAST_QUERY_DENY).
-		 *
-		 * \param _wDbtEvent The DBT_* event code.
-		 * \param _lParam Event-specific data pointer (varies by event).
-		 * \return Returns a LSW_HANDLED code.
-		 **/
-		virtual LSW_HANDLED					DeviceChange( WORD /*_wDbtEvent*/, LPARAM /*_lParam*/ ) { return LSW_H_CONTINUE; }
 
 		/**
 		 * Handles WM_SYSCOMMAND.

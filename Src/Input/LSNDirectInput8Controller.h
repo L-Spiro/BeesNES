@@ -87,6 +87,27 @@ namespace lsn {
 		 **/
 		inline const DIJOYSTATE &								JoyState() const { return m_jsState; }
 
+		/**
+		 * Gets the instance name of the USB controller.
+		 * 
+		 * \return Returns the instance name of the controller.
+		 **/
+		virtual const wchar_t *									InstanceName() const { return m_diDeviceInstance.tszInstanceName; }
+
+		/**
+		 * Gets the controller's unique identifier.
+		 * 
+		 * \return Returns the GUID for the controller.
+		 **/
+		virtual const GUID *									UniqueId() const { return &m_diDeviceInstance.guidInstance; }
+
+		/**
+		 * Starts the thread.
+		 * 
+		 * \param _pclListener A pointer to an object that provides a listener interface for receiving notifications about controller events.
+		 **/
+		virtual void											BeginThread( CControllerListener * _pclListener = nullptr ) override;
+
 
 	protected :
 		// == Members.
@@ -98,6 +119,8 @@ namespace lsn {
 		DIJOYSTATE												m_jsState;
 		/** The device capabilities. */
 		DIDEVCAPS												m_dcCaps;
+		/** Tracks if the controller has returned to a completely neutral state since the thread started. */
+		bool													m_bStateCleared = false;
 
 
 		// == Functions.

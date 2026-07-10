@@ -60,18 +60,11 @@ namespace lsn {
 			m_cCpu( &m_bBus, this ),
 			m_pPpu( &m_bBus, &m_cCpu ),
 			m_aApu( &m_bBus, &m_cCpu, &m_cCpu ) {
-			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
-				// PHI1.
-				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), 0 + _tPpuDiv, _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), _tCpuDiv, _tCpuDiv, LSN_CPU_PHI2_SLOT },
-				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), 0 + _tApuDiv, _tApuDiv, LSN_APU_SLOT },
+			
+			InitComponentTable();
 
-				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
-				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), 0 + _tPpuDiv + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
-				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), _tCpuDiv + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
-			};
-			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
 
+			m_dSkipTime = (m_cClock.GetResolution() * 0.25);
 			ResetState( false );
 		}
 		~CSystem() {
@@ -85,7 +78,7 @@ namespace lsn {
 		 * 
 		 * \param _bAnalog If true, a soft reset is performed on the CPU, otherwise the CPU is reset to a known state.
 		 */
-		void											ResetState( bool _bAnalog ) {
+		virtual void									ResetState( bool _bAnalog ) override {
 			if ( _bAnalog ) {
 				m_cCpu.ResetAnalog();
 				m_aApu.ResetAnalog();
@@ -137,14 +130,8 @@ namespace lsn {
 				m_ui64AccumTime = 0;
 				m_ui64MasterCounter = 0;
 				m_ui64CurMasterCounter = 0;
-				m_hsSlots[LSN_CPU_SLOT].ui64Counter = 0 + _tCpuDiv;
-				m_hsSlots[LSN_PPU_SLOT].ui64Counter = (_tPpuDiv / 2) + _tPpuDiv;
-				m_hsSlots[LSN_APU_SLOT].ui64Counter = 0 + _tApuDiv;
-				m_sSlotsToCheck[0] = LSN_CPU_SLOT;
-				m_sSlotsToCheck[1] = LSN_PPU_SLOT;
-				m_sSlotsToCheck[2] = LSN_APU_SLOT;
-				m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter = m_hsSlots[LSN_CPU_SLOT].ui64Counter + (_tCpuDiv / 2);
 				
+				PreProcessTickOrder();
 			}
 		}
 
@@ -152,11 +139,17 @@ namespace lsn {
 		 * Performs an update of the system state.  This means getting the amount of time that has passed since this was last called,
 		 *	determining how many cycles need to be run for each hardware component, and running all of them.
 		 */
-		void											Tick() {
+		virtual void									Tick() override {
 			m_ui64TickCount++;
 			uint64_t ui64CurRealTime = m_cClock.GetRealTick();
-			if LSN_LIKELY( !m_bPaused ) {
-				uint64_t ui64Diff = ui64CurRealTime - m_ui64LastRealTime;
+			uint64_t ui64Diff = ui64CurRealTime - m_ui64LastRealTime;
+
+			if LSN_UNLIKELY( double( ui64Diff ) >= m_dSkipTime ) {
+				// Excessive stutter control.
+				m_ui64LastRealTime = ui64CurRealTime;
+				return;
+			}
+			if LSN_LIKELY( !m_bPaused && !m_i32PauseCount ) {	
 				m_ui64AccumTime += ui64Diff;
 				{
 					uint64_t ui64Hi;
@@ -166,7 +159,17 @@ namespace lsn {
 					//m_ui64MasterCounter = m_ui64AccumTime * _tMasterClock / (m_cClock.GetResolution() * _tMasterDiv);
 				}
 
+#if 1
+				LSN_HW_SLOTS * phsSlot = m_vRuntimeSlots[m_sTickIdx];
+				while ( phsSlot->ui64Counter <= m_ui64MasterCounter ) {
+					//m_ui64CurMasterCounter = phsSlot->ui64Counter;
+					(phsSlot->ptHw->*phsSlot->pfTick)();
+					phsSlot->ui64Counter += phsSlot->ui64Inc;
 
+					m_sTickIdx = (m_sTickIdx + 1) % m_vRuntimeSlots.size();
+					phsSlot = m_vRuntimeSlots[m_sTickIdx];
+				}
+#else
 				LSN_HW_SLOTS * phsSlot = nullptr;
 				do {
 					phsSlot = nullptr;
@@ -213,6 +216,7 @@ namespace lsn {
 					else { break; }
 
 				} while ( true );
+#endif	
 				//std::this_thread::yield();
 				//std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 			}
@@ -227,77 +231,77 @@ namespace lsn {
 		 *
 		 * \return Returns the master Hz.
 		 */
-		virtual uint64_t								GetMasterHz() const { return MasterHz(); }
+		virtual uint64_t								GetMasterHz() const override { return MasterHz(); }
 
 		/**
 		 * Gets the master divider.
 		 *
 		 * \return Returns the master divider.
 		 */
-		virtual uint64_t								GetMasterDiv() const { return MasterDiv(); }
+		virtual uint64_t								GetMasterDiv() const override { return MasterDiv(); }
 
 		/**
 		 * Gets the CPU divider.
 		 *
 		 * \return Returns the CPU divider.
 		 */
-		virtual uint64_t								GetCpuDiv() const { return CpuDiv(); }
+		virtual uint64_t								GetCpuDiv() const override { return CpuDiv(); }
 
 		/**
 		 * Gets the PPU divider.
 		 *
 		 * \return Returns the PPU divider.
 		 */
-		virtual uint64_t								GetPpuDiv() const { return PpuDiv(); }
+		virtual uint64_t								GetPpuDiv() const override { return PpuDiv(); }
 
 		/**
 		 * Gets the APU divider.
 		 *
 		 * \return Returns the APU divider.
 		 */
-		virtual uint64_t								GetApuDiv() const { return ApuDiv(); }
+		virtual uint64_t								GetApuDiv() const override { return ApuDiv(); }
 
 		/**
 		 * Gets the APU Hz.
 		 * 
 		 * \return Returns the APU Hz.
 		 **/
-		virtual double									GetApuHz() const { return m_aApu.Hz(); }
+		virtual double									GetApuHz() const override { return m_aApu.Hz(); }
 
 		/**
 		 * Gets the PPU frame count
 		 *
 		 * \return Returns the PPU frame count.
 		 */
-		virtual uint64_t								GetPpuFrameCount() const { return m_pPpu.FrameCount(); }
+		virtual uint64_t								GetPpuFrameCount() const override { return m_pPpu.FrameCount(); }
 
 		/**
 		 * Gets the current PPU cycle.
 		 * 
 		 * \return Returns the current PPU cycle.
 		 **/
-		virtual inline uint64_t							GetPpuCycle() const { return m_pPpu.GetCycle(); }
+		virtual inline uint64_t							GetPpuCycle() const override { return m_pPpu.GetCycle(); }
 
 		/**
 		 * Gets the current counter for the CPU.
 		 * 
 		 * \return Returns the CPU's current counter.
 		 **/
-		virtual uint64_t								GetCpuCounter() const { return m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter; }
+		virtual uint64_t								GetCpuCounter() const override { return m_hsSlots[LSN_CPU_PHI2_SLOT].ui64Counter; }
 
 		/**
 		 * Gets the current counter for the APU.
 		 * 
 		 * \return Returns the APU's current counter.
 		 **/
-		virtual uint64_t								GetApuCounter() const { return m_hsSlots[LSN_APU_SLOT].ui64Counter; }
+		virtual uint64_t								GetApuCounter() const override { return m_hsSlots[LSN_APU_SLOT].ui64Counter; }
 
 		/**
 		 * Gets the current counter for the PPU.
 		 * 
 		 * \return Returns the PPU's current counter.
 		 **/
-		virtual uint64_t								GetPpuCounter() const { return m_hsSlots[LSN_PPU_SLOT].ui64Counter; }
+		virtual uint64_t								GetPpuCounter() const override { return m_hsSlots[LSN_PPU_SLOT].ui64Counter; }
 
 		/**
 		 * Loads a ROM image.
@@ -306,7 +310,7 @@ namespace lsn {
 		 * \param _s16Path The ROM file path.
 		 * \return Returns true if the image was loaded, false otherwise.
 		 */
-		virtual bool									LoadRom( LSN_ROM &_rRom ) {
+		virtual bool									LoadRom( LSN_ROM &_rRom ) override {
 			m_pmbMapper.reset();
 			m_cCpu.SetMapper( nullptr );
 			m_rRom = std::move( _rRom );
@@ -628,7 +632,7 @@ namespace lsn {
 		 * \return Returns true if no ROM was opened or if everything went as-expected.  False indicates both a ROM being loaded and some kind of failure during its closing process.  Typically it means the ROM will not have been able
 		 *	to save some data to a file that it needed, such as its battery-backed RAM.
 		 **/
-		virtual bool									CloseRom() {
+		virtual bool									CloseRom() override {
 			bool bRes = true;
 			if ( m_pmbMapper.get() ) {
 				bRes = m_pmbMapper->SaveBatteryBacked();
@@ -643,29 +647,29 @@ namespace lsn {
 		/**
 		 * Pauses the current ROM.
 		 **/
-		virtual void									PauseRom() { m_bPaused = true; }
+		virtual void									PauseRom() override { m_bPaused = true; }
 
 		/**
 		 * Unpauses the current ROM.
 		 **/
-		virtual void									UnpauseRom() { m_bPaused = false; }
+		virtual void									UnpauseRom() override { m_bPaused = false; }
 
 		/**
 		 * Toggles the current ROM's pause state.
 		 **/
-		virtual void									TogglePauseRom() { m_bPaused = !m_bPaused; }
+		virtual void									TogglePauseRom() override { m_bPaused = !m_bPaused; }
 
 		/**
 		 * Determines whether the ROM is paused or not.
 		 * 
 		 * \return Returns true if the ROM is paused.
 		 **/
-		virtual bool									RomIsPaused() const { return m_bPaused; }
+		virtual bool									RomIsPaused() const override { return m_bPaused; }
 
 		/**
 		 * Reset the ROM.
 		 **/
-		virtual void									ResetRom() {
+		virtual void									ResetRom() override {
 			m_cCpu.ResetAnalog();
 			m_pPpu.ResetAnalog();
 			m_aApu.ResetAnalog();
@@ -674,7 +678,7 @@ namespace lsn {
 		/**
 		 * Reset the ROM.
 		 **/
-		virtual void									PowerCycle() {
+		virtual void									PowerCycle() override {
 			ResetState( false );
 		}
 
@@ -683,7 +687,7 @@ namespace lsn {
 		 *
 		 * \param _pipPoller The input poller pointer.
 		 */
-		virtual void									SetInputPoller( CInputPoller * _pipPoller ) {
+		virtual void									SetInputPoller( CInputPoller * _pipPoller ) override {
 			m_cCpu.SetInputPoller( _pipPoller );
 		}
 
@@ -706,21 +710,21 @@ namespace lsn {
 		 *
 		 * \return Returns a pointer to the palette.
 		 */
-		virtual LSN_PALETTE *							Palette() { return &m_pPpu.Palette(); }
+		virtual LSN_PALETTE *							Palette() override { return &m_pPpu.Palette(); }
 
 		/**
 		 * Gets the PPU as a display client.
 		 *
 		 * \return Returns the PPU as a CDisplayClient *.
 		 */
-		virtual CDisplayClient *						GetDisplayClient() { return &m_pPpu; }
+		virtual CDisplayClient *						GetDisplayClient() override { return &m_pPpu; }
 
 		/**
 		 * Sets the audio options.
 		 * 
 		 * \param _aoOptions The options to set.
 		 **/
-		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) {
+		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &_aoOptions ) override {
 			m_aApu.SetOptions( _aoOptions );
 		}
 
@@ -729,42 +733,42 @@ namespace lsn {
 		 * 
 		 * \return Returns the $4010 register value.
 		 **/
-		virtual uint8_t									Get4010() const { return m_aApu.Get4010(); }
+		virtual uint8_t									Get4010() const override { return m_aApu.Get4010(); }
 
 		/**
 		 * Gets the $4012 register value.
 		 * 
 		 * \return Returns the $4012 register value.
 		 **/
-		virtual uint8_t									Get4012() const { return m_aApu.Get4012(); }
+		virtual uint8_t									Get4012() const override { return m_aApu.Get4012(); }
 
 		/**
 		 * Gets the $4013 register value.
 		 * 
 		 * \return Returns the $4013 register value.
 		 **/
-		virtual uint8_t									Get4013() const { return m_aApu.Get4013(); }
+		virtual uint8_t									Get4013() const override { return m_aApu.Get4013(); }
 
 		/**
 		 * Gets the DMC DMA address.
 		 * 
 		 * \return Returns the DMC DMA address.
 		 **/
-		virtual uint16_t								DmcDmaAddress() const { return m_aApu.GetDmcDmaAddress(); }
+		virtual uint16_t								DmcDmaAddress() const override { return m_aApu.GetDmcDmaAddress(); }
 
 		/**
 		 * Hands the DMC DMA value off to the APU.
 		 * 
 		 * \param _ui8Value The value to hand off to the APU.
 		 **/
-		virtual void									ReceiveDmcSample( uint8_t _ui8Value ) { m_aApu.ReceiveDmcSample( _ui8Value ); }
+		virtual void									ReceiveDmcSample( uint8_t _ui8Value ) override { m_aApu.ReceiveDmcSample( _ui8Value ); }
 
 		/**
 		 * Sets the raw stream-to-file pointer.
 		 * 
 		 * \param _pfStream The stream-to-file pointer to set.
 		 **/
-		virtual void									SetRawStream( CWavFile * _pfStream ) {
+		virtual void									SetRawStream( CWavFile * _pfStream ) override {
 			m_aApu.SetRawStream( _pfStream );
 		}
 
@@ -773,14 +777,14 @@ namespace lsn {
 		 * 
 		 * \param _pfStream The stream-to-file pointer to set.
 		 **/
-		virtual void									SetOutStream( CWavFile * _pfStream ) {
+		virtual void									SetOutStream( CWavFile * _pfStream ) override {
 			m_aApu.SetOutStream( _pfStream );
 		}
 
 		/**
 		 * Sets as inactive (another system is being played).
 		 **/
-		virtual void									SetAsInactive() {
+		virtual void									SetAsInactive() override {
 			m_aApu.SetAsInactive();
 		}
 
@@ -793,7 +797,7 @@ namespace lsn {
 		 * \param _pfMetaThreadFunc Holds a pointer to the APU's thread function for either metadata stream.
 		 **/
 		virtual void									SetMetaDataStreamParms( void * &_pvParm, CWavFile::PfAddMetaDataFunc &_pfAddMetaFunc, CWavFile::PfAddMetaDataFunc &_pfAddMetaFuncRaw,
-			CWavFile::PfMetaDataThreadFunc &_pfMetaThreadFunc ) {
+			CWavFile::PfMetaDataThreadFunc &_pfMetaThreadFunc ) override {
 			_pvParm = &m_aApu;
 			_pfAddMetaFunc = nullptr;
 			_pfAddMetaFuncRaw = &m_aApu.AddMetaDataFunc_Raw;
@@ -814,11 +818,14 @@ namespace lsn {
 
 
 		// == Members.
+		double											m_dSkipTime = 0.0;					/**< Maximum duration between ticks before ticks are simply skipped. */
 		_cCpu											m_cCpu;								/**< The CPU. */
 		_cPpu											m_pPpu;								/**< The PPU. */
 		_cApu											m_aApu;								/**< The APU. */
 		LSN_HW_SLOTS									m_hsSlots[LSN_SLOTS];				/**< Run-time tick states for each component. */
 		size_t											m_sSlotsToCheck[3];					/**< Which slots to actually check.  PHI1 and PHI2 shouldn't be checked at the same time. */
+		size_t											m_sTickIdx = 0;						/**< The tick index into m_vRuntimeSlots. */
+		std::vector<LSN_HW_SLOTS *>						m_vRuntimeSlots;
 
 
 		// == Functions.
@@ -861,6 +868,94 @@ namespace lsn {
 			}
 			return false;
 		}
+
+		/**
+		 * Initializes the component tables for run-time.
+		 **/
+		void											InitComponentTable() {
+			uint64_t ui64PpuStart = 0;
+			uint64_t ui64CpuStart = 0;
+			uint64_t ui64ApuStart = 0;
+			LSN_HW_SLOTS hsSlots[LSN_SLOTS] = {
+				// PHI1.
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::Tick), ui64PpuStart, _tPpuDiv, LSN_PPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::Tick), ui64CpuStart, _tCpuDiv, LSN_CPU_PHI2_SLOT },
+				{ &m_aApu, static_cast<CTickable::PfTickFunc>(&_cApu::Tick), ui64ApuStart, _tApuDiv, LSN_APU_SLOT },
+
+				// The PHI2 of the CPU is spaced out to half the distance from the PHI1 above to the next PHI1.
+				{ &m_pPpu, static_cast<CTickable::PfTickFunc>(&_cPpu::TickPhi2), ui64PpuStart + (_tPpuDiv / 2), _tPpuDiv, LSN_PPU_SLOT },
+				{ &m_cCpu, static_cast<CTickable::PfTickFunc>(&_cCpu::TickPhi2), ui64CpuStart + (_tCpuDiv / 2), _tCpuDiv, LSN_CPU_SLOT },
+			};
+			std::memcpy( m_hsSlots, hsSlots, sizeof( hsSlots ) );
+
+			m_sSlotsToCheck[0] = LSN_CPU_SLOT;
+			m_sSlotsToCheck[1] = LSN_PPU_SLOT;
+			m_sSlotsToCheck[2] = LSN_APU_SLOT;
+		}
+
+		/**
+		 * Builds the tick table.  Preprocesses the scheduler into an array of items that can simply be ticked in order.
+		 *	Must be called within a try/catch block.
+		 **/
+		void											PreProcessTickOrder() {
+			InitComponentTable();
+			size_t sLoops = 1;
+			while ( (_tCpuDiv * sLoops) % _tPpuDiv ) {
+				++sLoops;
+			}
+			// All components are half-cycle, but the PPU and CPU divisors are expressed in full cycle times, while the APU is expressed in half-cycle times.
+			//	Based off the times we are supplied (_tCpuDiv, _tPpuDiv, and _tApuDiv), the CPU and PPU need to be counted twice to account for the extra PHI2's.
+			// Determine how many of each component will be in the array.
+			m_vRuntimeSlots.resize(
+				(_tCpuDiv * sLoops / _tCpuDiv) * 2 +	// CPU PHI1 and PHI2 ticks = (sLoops * 2).
+				(_tCpuDiv * sLoops / _tPpuDiv) * 1/*2*/ +	// PPU PHI1 and PHI2 ticks.
+				(_tCpuDiv * sLoops / _tApuDiv)			// APU PHI1 and PHI2.
+			);
+
+			uint64_t ui64Starts[std::size(m_hsSlots)];
+			for ( size_t I = 0; I < std::size( m_hsSlots ); ++I ) {
+				ui64Starts[I] = m_hsSlots[I].ui64Counter;
+			}
+
+			LSN_HW_SLOTS * phsSlot = nullptr;
+			for ( size_t I = 0; I < m_vRuntimeSlots.size(); ++I ) {
+				phsSlot = nullptr;
+				uint64_t ui64Low = ~0ULL;
+
+				size_t sCheckedSlot;
+
+				// PPU slot.
+				size_t sTmp = m_sSlotsToCheck[1];
+				phsSlot = &m_hsSlots[sTmp];
+				ui64Low = phsSlot->ui64Counter;
+				sCheckedSlot = 1;			// PPU: m_sSlotsToCheck[1] = LSN_PPU_SLOT
+
+				// CPU slot.
+				sTmp = m_sSlotsToCheck[0];
+				if LSN_UNLIKELY( m_hsSlots[sTmp].ui64Counter < ui64Low ) {
+					phsSlot = &m_hsSlots[sTmp];
+					ui64Low = phsSlot->ui64Counter;
+					sCheckedSlot = 0;		// CPU: m_sSlotsToCheck[0] = LSN_CPU_SLOT
+				}
+				// By assuming the APU is not divided into PHI1 and PHI2 we can save just a bit of time here.
+				if LSN_UNLIKELY( m_hsSlots[LSN_APU_SLOT].ui64Counter <= ui64Low ) {
+					phsSlot = &m_hsSlots[LSN_APU_SLOT];
+					ui64Low = phsSlot->ui64Counter;
+					sCheckedSlot = 2;		// APU: m_sSlotsToCheck[2] = LSN_APU_SLOT
+				}
+				
+				m_vRuntimeSlots[I] = phsSlot;
+
+				phsSlot->ui64Counter += phsSlot->ui64Inc;
+				m_sSlotsToCheck[sCheckedSlot] = phsSlot->sPartnerSlot;
+			}
+
+			for ( size_t I = 0; I < std::size( m_hsSlots ); ++I ) {
+				m_hsSlots[I].ui64Counter = ui64Starts[I];
+			}
+			m_sTickIdx = 0;
+		}
+
 
 		/**
 		 * Gets the master Hz.
