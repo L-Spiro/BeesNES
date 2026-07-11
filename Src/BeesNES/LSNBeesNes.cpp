@@ -806,6 +806,40 @@ namespace lsn {
 	}
 
 	/**
+	 * Applies controller settings to the applied input peripherals.  Pointers to the given USB controllers can be stored but
+	 *	must be cleared when DestroyControllers() is called.
+	 * 
+	 * \param _vControllers The registers controllers.
+	 * \param PARM DESC
+	 * \return Returns true if all inputs were assigned correctly.
+	 **/
+	bool CBeesNes::ApplyInputs( const std::vector<lsn::CUsbControllerBase *> &_vControllers ) {
+		IPeripheralBase::LSN_INPUT_CONFIGURATION_APPLICATION_RECORD icarRecord;
+		bool bSuccess = true;
+		for ( size_t I = 0; I < m_vPeripherals.size(); ++I ) {
+			if LSN_LIKELY( m_vPeripherals[I].get() ) {
+				auto * pieEvents = m_oOptions.ioGlobalInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieButtonMap[I];
+				auto * pieTurboEvents = m_oOptions.ioGlobalInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieTurboButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieTurboButtonMap[I];
+				if ( !m_vPeripherals[I]->ApplyConfiguration( (*pieEvents), (*pieTurboEvents), _vControllers, icarRecord ) ) {
+					bSuccess = false;
+				}
+			}
+		}
+		return bSuccess;
+	}
+
+	/**
+	 * Called when the source controller storage is about to be deleted.  Any references to them should be removed.
+	 **/
+	void CBeesNes::DestroyControllers() {
+		for ( auto I = m_vPeripherals.size(); I--; ) {
+			if LSN_LIKELY( m_vPeripherals[I].get() ) {
+				m_vPeripherals[I]->ControllerDetached();
+			}
+		}
+	}
+
+	/**
 	 * Applies the current audio options.
 	 **/
 	void CBeesNes::ApplyAudioOptions() {

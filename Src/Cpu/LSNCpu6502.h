@@ -765,7 +765,11 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			_ui8Ret = _ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[0] & 0x80) != 0);
+			// TODO:
+			/*if LSN_LIKELY( pcThis->m_pipPoller ) {
+				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4016 ) & 0b00011111);
+			}*/
+			_ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[0] & 0x80) != 0);
 			pcThis->m_ui8InputsState[0] <<= 1;
 		}
 
@@ -794,7 +798,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reading from 0x4016 gets the MSB of the current controller-2 state.
+		 * Reading from 0x4017 gets the MSB of the current controller-2 state.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
@@ -803,6 +807,10 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
+			// TODO:
+			/*if LSN_LIKELY( pcThis->m_pipPoller ) {
+				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4017 ) & 0b00011111);
+			}*/
 			_ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[1] & 0x80) != 0);
 			pcThis->m_ui8InputsState[1] <<= 1;
 		}

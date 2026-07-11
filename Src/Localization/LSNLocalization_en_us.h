@@ -209,6 +209,12 @@
 #define LSN_BALLOT_EX														\U0001F5F7
 #define LSN_BALLOT_CHECK													\U0001F5F9
 
+#define LSN_QUICK_SET														Quick Set
+#define LSN_CLEAR_ALL														Clear All
+#define LSN_SET_NORMAL_BUTTONS												Set Normal Buttons
+#define LSN_SET_TURBO_BUTTONS												Set Turbo Buttons
+#define LSN_DASH_LINE														\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
 // Audio Options.

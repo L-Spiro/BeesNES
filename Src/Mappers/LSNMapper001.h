@@ -27,6 +27,7 @@ namespace lsn {
 		CMapper001() {
 		}
 		virtual ~CMapper001() {
+			SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
 		}
 
 
@@ -135,7 +136,8 @@ namespace lsn {
 			}
 
 			m_bRamEnabled = GetRamEnabled();
-			std::memset( m_ui8PgmRam, 0, sizeof( m_ui8PgmRam ) );
+			LoadBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
+			
 		}
 
 		/**
@@ -144,7 +146,7 @@ namespace lsn {
 		 * \param _pbCpuBus A pointer to the CPU bus.
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
-		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) {
+		virtual void									ApplyMap( CCpuBus * _pbCpuBus, CPpuBus * _pbPpuBus ) override {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
 			constexpr bool ibIsSxROM = false;/*(m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SEROM ||
@@ -207,6 +209,13 @@ namespace lsn {
 			// MIRRORING
 			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
+		}
+
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
 		}
 
 

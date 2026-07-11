@@ -25,6 +25,7 @@ namespace lsn {
 		CMapper080() {
 		}
 		virtual ~CMapper080() {
+			SaveBatteryRam( m_ui8ChrRam, sizeof( m_ui8ChrRam ) );
 		}
 
 
@@ -46,6 +47,7 @@ namespace lsn {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<8 * 1024, 1 * 1024>();
 			m_bRamAllowed = false;
+			LoadBatteryRam( m_ui8ChrRam, sizeof( m_ui8ChrRam ) );
 		}
 
 		/**
@@ -151,6 +153,13 @@ namespace lsn {
 			// MIRRORING
 			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
+		}
+
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() {
+			SaveBatteryRam( m_ui8ChrRam, sizeof( m_ui8ChrRam ) );
 		}
 
 

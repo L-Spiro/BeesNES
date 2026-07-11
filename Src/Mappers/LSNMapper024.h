@@ -28,6 +28,7 @@ namespace lsn {
 			m_avAudio( m_pfSwizzleFunc ) {
 		}
 		virtual ~CMapper024() {
+			SaveBatteryRam( m_vWram.data(), m_vWram.size() );
 		}
 
 
@@ -55,6 +56,9 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+
+			m_vWram.resize( 0x8000 - 0x6000 );
+			LoadBatteryRam( m_vWram.data(), m_vWram.size() );
 		}
 
 		/**
@@ -86,7 +90,6 @@ namespace lsn {
 			for ( uint32_t I = 0xE000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
-			m_vWram.resize( 0x8000 - 0x6000 );
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper024::ReadWram, this, uint16_t( I - 0x6000 ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper024::WriteWram, this, uint16_t( I - 0x6000 ) );
@@ -161,6 +164,13 @@ namespace lsn {
 			// MIRRORING
 			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
+		}
+
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			SaveBatteryRam( m_vWram.data(), m_vWram.size() );
 		}
 
 		/**

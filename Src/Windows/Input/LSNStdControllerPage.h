@@ -45,10 +45,10 @@ namespace lsn {
 			m_stPlayerIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stConfigureIdx >> 16 ),
 			m_stConfigIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stConfigureIdx & 0xFFFF ) {
 		}
-		~CStdControllerPage() {
-		}
+		~CStdControllerPage();
 
 
+		// == Types.
 		/** The structure to pass to _ui64Data when creating this window. */
 		struct LSN_CONTROLLER_SETUP_DATA {
 			/** The options object. */
@@ -185,7 +185,7 @@ namespace lsn {
 		/** The array of registered controllers. */
 		std::vector<CUsbControllerBase *>			m_vControllers;
 
-		/** The play index. */
+		/** The player index. */
 		size_t										m_stPlayerIdx;
 		/** The configuration index. */
 		size_t										m_stConfigIdx;
@@ -197,8 +197,30 @@ namespace lsn {
 		/** The index of the status column. */
 		INT											m_iStatusCol = 0;
 
+		/** The starting index of auto-set. */
+		size_t										m_sAutoListenStart = 0;
+		/** The exclusive end index of auto-set. */
+		size_t										m_sAutoListenEnd = 0;
+		/** Are we in auto-set? */
+		bool										m_bAutoSet = false;
+		/** Have we begun a listen manually? */
+		bool										m_bManualListen = false;
+
 
 		// == Functions.
+		/**
+		 * Begins lisening on the given control and control index.
+		 * 
+		 * \param _sCntrlIdx The control index to which to begin the listen.
+		 * \param _pwListeningControl A pointer to the control on which the listen happens.
+		 **/
+		void										BeginListening( size_t _sCntrlIdx, CWidget * _pwListeningControl );
+
+		/**
+		 * Moves to the next auto-set key or ends auto-set.
+		 **/
+		void										NextAutoSet();
+
 		/**
 		 * Determines if a controller with the given CRC exists in m_vControllers.
 		 * 

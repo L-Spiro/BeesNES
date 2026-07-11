@@ -40,7 +40,15 @@ namespace lsn {
 		 * \param _ui8Port The port being polled (0 or 1).
 		 * \return Returns the result of polling the given port.
 		 */
-		virtual uint8_t					PollPort( uint8_t /*_ui8Port*/ ) { return 0; }
+		virtual uint8_t					PollPort( uint8_t /*_ui8Port*/ ) { return 0; }	// TODO: Change to return void.
+
+		/**
+		 * Handles a read of $4016/$4017.
+		 * 
+		 * \param _ui16Address The address being read.
+		 * \return Returns the desired read value.
+		 **/
+		virtual uint8_t					Read( uint16_t /*_ui16Address*/ ) { return 0; }
 	};
 
 }	// namespace lsn

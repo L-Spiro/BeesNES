@@ -12,10 +12,13 @@
 #include "../LSNLSpiroNes.h"
 #include "../Bus/LSNBus.h"
 #include "../Cpu/LSNCpuBase.h"
+#include "../File/LSNStdFile.h"
 #include "../Ppu/LSNPpuBase.h"
 #include "../Roms/LSNRom.h"
 #include "../System/LSNBussable.h"
 #include "../System/LSNInterruptable.h"
+
+#include <filesystem>
 
 namespace lsn {
 
@@ -321,6 +324,57 @@ namespace lsn {
 		 * \return Returns true if the operation completed as expected.  False indicates a file-access error.
 		 **/
 		virtual bool									SaveBatteryBacked() { return true; }
+
+		/**
+		 * Gets the battery-backed path.
+		 * 
+		 * \return REturns the path to the battery-backed file or an emptry string if m_prRom is nullptr.
+		 **/
+		virtual std::filesystem::path					BatteryBackedPath() const {
+			if ( !m_prRom ) { return std::filesystem::path(); }
+			std::filesystem::path pPath( m_prRom->u16SaveFilePrefix );
+			return pPath.replace_extension( ".bat" );
+		}
+
+		/**
+		 * Loads battery-backed memory into the given buffer from the battery file, or, if the battery file does not exist the path to it is created and
+		 *	the given buffer is filled with 0's.
+		 * 
+		 * \param _pui8Buffer The buffer into which to load battery-backed RAM.
+		 * \param _sSize The size of the given buffer.
+		 * \return Returns true if the file existed and was loaded.  False indicates that the buffer was set to all 0's.
+		 **/
+		virtual bool									LoadBatteryRam( uint8_t * _pui8Buffer, size_t _sSize ) {
+			auto pBatteryPath = BatteryBackedPath();
+			std::memset( _pui8Buffer, 0, _sSize );
+			if ( std::filesystem::exists( pBatteryPath ) ) {
+				std::vector<uint8_t> vTmp;
+				if ( CStdFile::LoadToMemory( pBatteryPath.native().c_str(), vTmp ) ) {
+					std::memcpy( _pui8Buffer, vTmp.data(), std::min( vTmp.size(), _sSize ) );
+					return true;
+				}
+			}
+			std::error_code ecError;
+			std::filesystem::create_directories( pBatteryPath.remove_filename(), ecError );
+			return false;
+		}
+
+		/**
+		 * Saves battery-backed RAM to the battery file.
+		 * 
+		 * \param _pui8Buffer The buffer to save to the battery file.
+		 * \param _sSize The size of the given buffer.
+		 * \return Returns true if the data was saved to the battery file. False could mean the file was in a read-only directory or otherwise could not be opened.
+		 **/
+		virtual bool									SaveBatteryRam( uint8_t * _pui8Buffer, size_t _sSize ) {
+			if ( !_sSize ) { return true; }
+			auto pBatteryPath = BatteryBackedPath();
+			if ( !std::filesystem::exists( pBatteryPath ) ) {
+				std::error_code ecError;
+				std::filesystem::create_directories( std::filesystem::path( pBatteryPath ).remove_filename(), ecError );
+			}
+			return CStdFile::WriteToFile( pBatteryPath.native().c_str(), _pui8Buffer, _sSize );
+		}
 
 		/**
 		 * Called to inform the mapper of a reset.

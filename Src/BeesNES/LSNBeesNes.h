@@ -45,6 +45,7 @@
 #include "../Filters/LSNVulkanPalLSpiroFilter.h"
 #endif	// #ifdef LSN_VULKAN1
 #include "../Options/LSNOptions.h"
+#include "../Peripherals/LSNPeripheralBase.h"
 #include "../System/LSNSystem.h"
 #include "../Utilities/LSNStream.h"
 
@@ -360,6 +361,21 @@ namespace lsn {
 		void									PowerCycle();
 
 		/**
+		 * Applies controller settings to the applied input peripherals.  Pointers to the given USB controllers can be stored but
+		 *	must be cleared when DestroyControllers() is called.
+		 * 
+		 * \param _vControllers The registers controllers.
+		 * \param PARM DESC
+		 * \return Returns true if all inputs were assigned correctly.
+		 **/
+		bool									ApplyInputs( const std::vector<lsn::CUsbControllerBase *> &_vControllers );
+
+		/**
+		 * Called when the source controller storage is about to be deleted.  Any references to them should be removed.
+		 **/
+		void									DestroyControllers();
+
+		/**
 		 * Gets the rapid-fire patterns.
 		 *
 		 * \return Returns a pointer to the 8 rapid-fire values.
@@ -631,13 +647,15 @@ namespace lsn {
 		LSN_PPU_METRICS							m_pmSystem;
 		
 		/** The current post-processing filter. */
-		//CPostProcessBase::LSN_POST_PROCESSES	m_ppPostProcess;
 		std::vector<CPostProcessBase::LSN_POST_PROCESSES>
 												m_vPostProcesses;
 		/** A temporary buffer for thread-safe copying of the PPU output for filtering. */
 		std::vector<uint8_t>					m_vTmpBuffer;
 		/** Rapid-fire buttons. */
 		uint8_t									m_ui8RapidFires[8];
+		/** The attached peripherals. */
+		std::vector<std::unique_ptr<IPeripheralBase>>
+												m_vPeripherals;
 		/** The emulation options. */
 		LSN_OPTIONS								m_oOptions;
 		/** Is this the first time setting the filter? */

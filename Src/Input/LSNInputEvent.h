@@ -52,7 +52,8 @@ namespace lsn {
 			}												kb;
 			struct {
 #if defined( LSN_WINDOWS )
-				GUID										guId;							/**< The USB controller's product ID. */
+				GUID										guId;							/**< The USB controller's session ID. */
+				GUID										guProductId;					/**< The USB controller's product ID. */
 #endif	// #if defined( LSN_WINDOWS )
 				CUsbControllerBase::LSN_INPUT_EVENT			ieEvent;						/**< The controller event */
 				float										fDeadzone;						/**< The dead zone if the input is an axis. */

@@ -2041,6 +2041,8 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClInclude Include="Src\Palette\LSNPalette.h" />
     <ClInclude Include="Src\Patching\LSNBpsFile.h" />
     <ClInclude Include="Src\Patching\LSNIpsFile.h" />
+    <ClInclude Include="Src\Peripherals\LSNPeripheralBase.h" />
+    <ClInclude Include="Src\Peripherals\LSNStdController.h" />
     <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
     <ClInclude Include="Src\Ppu\LSNPpuBase.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
@@ -2250,6 +2252,7 @@ copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Plat
     <ClCompile Include="Src\LSNLSpiroNes.cpp" />
     <ClCompile Include="Src\MiniZ\miniz.c" />
     <ClCompile Include="Src\OS\LSNFeatureSet.cpp" />
+    <ClCompile Include="Src\Peripherals\LSNStdController.cpp" />
     <ClCompile Include="Src\Roms\LSNRom.cpp" />
     <ClCompile Include="Src\Roms\LSNRomInfo.cpp" />
     <ClCompile Include="Src\System\LSNSystem.cpp" />

@@ -21,6 +21,12 @@
 
 namespace lsn {
 
+	CStdControllerPage::~CStdControllerPage() {
+		if ( m_pwListenControl ) {
+			StopListening_Keyboard( m_pwListenControl, false );
+		}
+	}
+
 	// == Functions.
 	/**
 	 * The WM_INITDIALOG handler.
@@ -29,7 +35,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
 		CListView * ptControllerList = static_cast<CListView *>(FindChild( Layout::LSN_SCPI_INPUT_DEVICES_LISTVIEW ));
-		if ( ptControllerList && m_pmwMainWindow ) {
+		if ( ptControllerList ) {
 			m_iNameCol = ptControllerList->AddColumn( LSN_LSTR( LSN_DEVICE_NAME ) );
 			if ( m_iNameCol >= 0 ) {
 				ptControllerList->SetColumnWidth( m_iNameCol, 220 );
@@ -109,8 +115,12 @@ namespace lsn {
 	bool CStdControllerPage::StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess ) {
 		if ( !lsw::CInputListenerBase::StopListening_Keyboard( _pwControl, _bSuccess ) ) { return false; }
 
-		for ( auto I = m_vControllers.size(); I--; ) {
-			m_vControllers[I]->StopThread();
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->LockControllers();
+			for ( auto I = m_vControllers.size(); I--; ) {
+				m_vControllers[I]->StopThread();
+			}
+			m_pmwMainWindow->UnlockControllers();
 		}
 
 		if ( _bSuccess ) {
@@ -123,7 +133,20 @@ namespace lsn {
 				m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey = m_kResult;
 			}
 		}
+		else {
+			m_bAutoSet = false;
+			if ( m_stListeningIdx < 8 ) {
+				m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+				std::memset( &m_ieMainButtons[m_stListeningIdx].u.kb.kKey, 0, sizeof( m_ieMainButtons[m_stListeningIdx].u.kb.kKey ) );
+			}
+			else {
+				m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+				std::memset( &m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey, 0, sizeof( m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey ) );
+			}
+		}
+		m_pwListenControl = nullptr;
 		UpdateDialog();
+		NextAutoSet();
 		return true;
 	}
 
@@ -134,21 +157,38 @@ namespace lsn {
 	 * \param _ieEvent A constant reference to the input event data.
 	 **/
 	void CStdControllerPage::OnInput( CUsbControllerBase * _pucbController, const CUsbControllerBase::LSN_INPUT_EVENT &_ieEvent ) {
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->LockControllers();
+		}
+		for ( auto I = m_vControllers.size(); I--; ) {
+			m_vControllers[I]->StopThread();
+		}
+		lsw::CInputListenerBase::StopListening_Keyboard( m_pwListenControl, false );
+
+
 		if ( m_stListeningIdx < 8 ) {
 			m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;
 			m_ieMainButtons[m_stListeningIdx].u.cont.guId = (*_pucbController->UniqueId());
+			m_ieMainButtons[m_stListeningIdx].u.cont.guProductId = (*_pucbController->ProductId());
 			m_ieMainButtons[m_stListeningIdx].u.cont.ieEvent = _ieEvent;
 		}
 		else {
 			m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;
 			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guId = (*_pucbController->UniqueId());
+			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guProductId = (*_pucbController->ProductId());
 			m_ieTurboButtons[m_stListeningIdx%8].u.cont.ieEvent = _ieEvent;
 		}
-		// Stops the polling threads and updates the dialog.
-		StopListening_Keyboard( m_pwListenControl, false );
+		
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->UnlockControllers();
+		}
 
 		auto wsText = CUtilities::InputEventToString( _ieEvent );
 		m_pwListenControl->SetTextW( wsText.c_str() );
+		m_pwListenControl = nullptr;
+		UpdateDialog();
+
+		NextAutoSet();
 	}
 
 	/**
@@ -169,12 +209,12 @@ namespace lsn {
 			case Layout::LSN_SCPI_BUTTON_LEFT_BUTTON : {}
 			case Layout::LSN_SCPI_BUTTON_RIGHT_BUTTON : {}
 			case Layout::LSN_SCPI_BUTTON_DOWN_BUTTON : {
-				m_stListeningIdx = _pwSrc->GetUserData() & 0xFF;
-				m_pwListenControl = _pwSrc;
-				BeginListening_Keyboard( _pwSrc );
-				for ( auto I = m_vControllers.size(); I--; ) {
-					m_vControllers[I]->BeginThread( this );
+				if ( m_pwListenControl ) {
+					StopListening_Keyboard( m_pwListenControl, false );
 				}
+				BeginListening( _pwSrc->GetUserData() & 0xFF, _pwSrc );
+				m_bManualListen = true;
+				m_bAutoSet = false;
 				return LSW_H_HANDLED;
 			}
 			case Layout::LSN_SCPI_BUTTON_A_TURBO_BUTTON : {}
@@ -185,12 +225,56 @@ namespace lsn {
 			case Layout::LSN_SCPI_BUTTON_LEFT_TURBO_BUTTON : {}
 			case Layout::LSN_SCPI_BUTTON_RIGHT_TURBO_BUTTON : {}
 			case Layout::LSN_SCPI_BUTTON_DOWN_TURBO_BUTTON : {
-				m_stListeningIdx = (_pwSrc->GetUserData() & 0xFF) + 8;
-				m_pwListenControl = _pwSrc;
-				BeginListening_Keyboard( _pwSrc );
-				for ( auto I = m_vControllers.size(); I--; ) {
-					m_vControllers[I]->BeginThread( this );
+				if ( m_pwListenControl ) {
+					StopListening_Keyboard( m_pwListenControl, false );
 				}
+				BeginListening( (_pwSrc->GetUserData() & 0xFF) + 8, _pwSrc );
+				m_bManualListen = true;
+				m_bAutoSet = false;
+				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_SCPI_QUICK_CONFIGURE_CLEAR_ALL_BUTTON : {
+				if ( m_pwListenControl ) {
+					StopListening_Keyboard( m_pwListenControl, false );
+				}
+				std::memset( m_ieMainButtons, 0, sizeof( m_ieMainButtons ) );
+				std::memset( m_ieTurboButtons, 0, sizeof( m_ieTurboButtons ) );
+				m_bManualListen = false;
+				m_bAutoSet = false;
+				m_stListeningIdx = 0;
+				{
+					auto vButtons = MainButtons();
+					for ( auto I = vButtons.size(); I--; ) {
+						vButtons[I]->SetTextA( "" );
+					}
+				}
+				{
+					auto vButtons = TurboButtons();
+					for ( auto I = vButtons.size(); I--; ) {
+						vButtons[I]->SetTextA( "" );
+					}
+				}
+				UpdateDialog();
+				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_SCPI_QUICK_CONFIGURE_SET_ALL_BUTTON : {
+				auto vButtons = MainButtons();
+				m_sAutoListenStart = m_stListeningIdx;
+				m_sAutoListenEnd = m_stListeningIdx % vButtons.size();
+				if ( m_bManualListen ) { ++m_sAutoListenStart; }
+				m_bAutoSet = true;
+				m_sAutoListenStart = m_sAutoListenStart % vButtons.size();
+				BeginListening( vButtons[m_sAutoListenStart]->GetUserData() & 0xFF, vButtons[m_sAutoListenStart] );
+				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_SCPI_QUICK_CONFIGURE_SET_TURBO_BUTTON : {
+				auto vButtons = TurboButtons();
+				m_sAutoListenStart = m_stListeningIdx;
+				m_sAutoListenEnd = m_stListeningIdx % vButtons.size();
+				if ( m_bManualListen ) { ++m_sAutoListenStart; }
+				m_bAutoSet = true;
+				m_sAutoListenStart = m_sAutoListenStart % vButtons.size();
+				BeginListening( (vButtons[m_sAutoListenStart]->GetUserData() & 0xFF) + 8, vButtons[m_sAutoListenStart] );
 				return LSW_H_HANDLED;
 			}
 		}
@@ -351,6 +435,57 @@ namespace lsn {
 			}
 			for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 				m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieTurboButtons[I];
+			}
+		}
+	}
+
+	/**
+	 * Begins lisening on the given control and control index.
+	 * 
+	 * \param _sCntrlIdx The control index to which to begin the listen.
+	 * \param _pwListeningControl A pointer to the control on which the listen happens.
+	 **/
+	void CStdControllerPage::BeginListening( size_t _sCntrlIdx, CWidget * _pwListeningControl ) {
+		m_stListeningIdx = _sCntrlIdx;
+		m_pwListenControl = _pwListeningControl;
+		BeginListening_Keyboard( _pwListeningControl );
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->LockControllers();
+			for ( auto I = m_vControllers.size(); I--; ) {
+				m_vControllers[I]->BeginThread( this );
+			}
+			m_pmwMainWindow->UnlockControllers();
+		}
+	}
+
+	/**
+	 * Moves to the next auto-set key or ends auto-set.
+	 **/
+	void CStdControllerPage::NextAutoSet() {
+		if ( m_bAutoSet ) {
+			if ( m_stListeningIdx < 8 ) {
+				auto vButtons = MainButtons();
+				m_sAutoListenStart = (m_sAutoListenStart + 1) % vButtons.size();
+				if ( m_sAutoListenStart == m_sAutoListenEnd ) {
+					m_bAutoSet = false;
+					m_stListeningIdx = m_sAutoListenEnd;
+				}
+				else {
+					vButtons[m_sAutoListenStart]->SetFocus();
+					BeginListening( vButtons[m_sAutoListenStart]->GetUserData() & 0xFF, vButtons[m_sAutoListenStart] );
+				}
+			}
+			else {
+				auto vButtons = TurboButtons();
+				m_sAutoListenStart = (m_sAutoListenStart + 1) % vButtons.size();
+				if ( m_sAutoListenStart == m_sAutoListenEnd ) {
+					m_bAutoSet = false;
+					m_stListeningIdx = m_sAutoListenEnd;
+				}
+				else {
+					vButtons[m_sAutoListenStart]->SetFocus();
+					BeginListening( (vButtons[m_sAutoListenStart]->GetUserData() & 0xFF) + 8, vButtons[m_sAutoListenStart] );
+				}
 			}
 		}
 	}

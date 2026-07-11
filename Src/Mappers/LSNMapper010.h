@@ -29,6 +29,7 @@ namespace lsn {
 			m_ui8ChrBankLatch1_FE( m_ui8ChrBanks[3] ) {
 		}
 		virtual ~CMapper010() {
+			SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
 		}
 
 
@@ -59,7 +60,7 @@ namespace lsn {
 			m_ui8Latch0 = 0xFE;
 			m_ui8Latch1 = 0xFE;
 
-			std::memset( m_ui8PgmRam, 0, sizeof( m_ui8PgmRam ) );
+			LoadBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
 		}
 
 		/**
@@ -159,6 +160,13 @@ namespace lsn {
 			// MIRRORING
 			// ================
 			ApplyControllableMirrorMap( _pbPpuBus );
+		}
+
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
 		}
 
 

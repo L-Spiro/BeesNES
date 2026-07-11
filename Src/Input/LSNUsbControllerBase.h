@@ -182,6 +182,13 @@ namespace lsn {
 		 * \return Returns the GUID for the controller.
 		 **/
 		virtual const GUID *									UniqueId() const { return nullptr; }
+
+		/**
+		 * Gets the controller's product identifier.
+		 * 
+		 * \return Returns the product GUID for the controller.
+		 **/
+		virtual const GUID *									ProductId() const { return nullptr; }
 #endif	// #ifdef _WIN32
 
 	protected :

@@ -36,13 +36,6 @@ namespace lsn {
 			nullptr,								// pwcText
 			0,										// sTextLen
 			LSN_SCPI_NONE,							// dwParentId
-
-			/*LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			nullptr, 0,								// pcRightSizeExp
-			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			LSN_FIXED_WIDTH,						// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,*/						// pcHeightSizeExp
 		},
 #define LSN_QUICK_CONTR( TYPE_, ID_, TEXT_, X_, Y_, W_, H_, STYLE_, STYLEEX_ )																		\
 	{																																				\
@@ -119,57 +112,137 @@ namespace lsn {
 
 		// Input Devices.
 		{
-			LSW_LT_GROUPBOX,						// ltType
-			LSN_SCPI_INPUT_DEVICES_GROUP,			// wId
-			WC_BUTTONW,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			LSN_STD_CONT_SS_LEFT,					// iLeft
-			LSN_STD_CONT_DPAD_TOP,					// iTop
-			LSN_STD_CONT_SS_GROUP_W,				// dwWidth
-			(LSN_GROUP_TOP + LSN_GROUP_BOTTOM) + (LSN_DEF_EDIT_HEIGHT * 5),											// dwHeight
-			LSN_GROUPSTYLE,																							// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,							// dwStyleEx
-			LSN_LSTR( LSN_INPUT_DEVICES ),			// pwcText
-			0,										// sTextLen
-			LSN_SCPI_MAINWINDOW,					// dwParentId
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_SCPI_INPUT_DEVICES_GROUP,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_SS_LEFT,							// iLeft
+			LSN_STD_CONT_DPAD_TOP,							// iTop
+			LSN_STD_CONT_SS_GROUP_W,						// dwWidth
+			LSN_STD_CONT_DEVICES_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_INPUT_DEVICES ),					// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
 		},
 		{
-			LSW_LT_LISTVIEW,						// ltType
-			LSN_SCPI_INPUT_DEVICES_LISTVIEW,		// wId
-			nullptr,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			LSN_STD_CONT_SS_LEFT + LSN_GROUP_LEFT,	// iLeft
-			LSN_STD_CONT_DPAD_TOP + LSN_GROUP_TOP,	// iTop
-			LSN_STD_CONT_SS_GROUP_W - LSN_GROUP_LEFT * 2,																	// dwWidth
-			LSN_DEF_EDIT_HEIGHT * 5,				// dwHeight
+			LSW_LT_LISTVIEW,								// ltType
+			LSN_SCPI_INPUT_DEVICES_LISTVIEW,				// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_SS_LEFT + LSN_GROUP_LEFT,			// iLeft
+			LSN_STD_CONT_DPAD_TOP + LSN_GROUP_TOP,			// iTop
+			LSN_STD_CONT_SS_GROUP_W - LSN_GROUP_LEFT * 2,	// dwWidth
+			LSN_STD_CONT_DEVICES_LIST_H,					// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_ALIGNLEFT | WS_TABSTOP,				// dwStyle
 			WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,													// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_SCPI_MAINWINDOW,					// dwParentId
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
 		},
 
 		// Direction-Pad dot.
 		{
-			LSW_LT_RADIO,							// ltType
-			LSN_SCPI_INPUT_DPAD_DOT,				// wId
-			WC_BUTTONW,								// lpwcClass
-			FALSE,									// bEnabled
-			TRUE,									// bActive
+			LSW_LT_RADIO,									// ltType
+			LSN_SCPI_INPUT_DPAD_DOT,						// wId
+			WC_BUTTONW,										// lpwcClass
+			FALSE,											// bEnabled
+			TRUE,											// bActive
 			LSN_STD_CONT_DPAD_LEFT + LSN_STD_CONT_DPAD_H_MIDDLE - (LSN_DEF_RADIO_HEIGHT_PXL / 2) / 2 + LSN_GROUP_LEFT,		// iLeft
 			LSN_STD_CONT_DPAD_TOP + LSN_STD_CONT_DPAD_V_MIDDLE - (LSN_DEF_RADIO_HEIGHT_PXL / 2) / 2 + LSN_GROUP_TOP,		// iTop
-			LSN_DEF_RADIO_HEIGHT_PXL / 2,				// dwWidth
-			LSN_DEF_RADIO_HEIGHT_PXL / 2,				// dwHeight
-			LSN_RADIOSTYLE,							// dwStyle
+			LSN_DEF_RADIO_HEIGHT_PXL / 2,					// dwWidth
+			LSN_DEF_RADIO_HEIGHT_PXL / 2,					// dwHeight
+			LSN_RADIOSTYLE,									// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
-			L"",									// pwcText
-			0,										// sTextLen
-			LSN_SCPI_MAINWINDOW,					// dwParentId
+			L"",											// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
 		},
 
-		// 
+		// Quick Set.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_SCPI_QUICK_CONFIGURE_GROUP,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_QUICK_GROUP_LEFT,					// iLeft
+			LSN_STD_CONT_DPAD_TOP,							// iTop
+			LSN_STD_CONT_BUT_GROUP_W,						// dwWidth
+			LSN_STD_CONT_QUICK_GROUP_H,						// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_QUICK_SET ),						// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_SCPI_QUICK_CONFIGURE_SET_ALL_BUTTON,		// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_QUICK_GROUP_LEFT + LSN_GROUP_LEFT,	// iLeft
+			LSN_STD_CONT_DPAD_TOP + LSN_GROUP_TOP,			// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_SET_NORMAL_BUTTONS ),				// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_SCPI_QUICK_CONFIGURE_SET_TURBO_BUTTON,		// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_QUICK_GROUP_LEFT + LSN_GROUP_LEFT,	// iLeft
+			LSN_STD_CONT_QUICK_SET_TURBO_TOP,				// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_SET_TURBO_BUTTONS ),				// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			LSN_SCPI_QUICK_CONFIGURE_DASH_LABEL,			// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_QUICK_GROUP_LEFT + LSN_GROUP_LEFT,	// iLeft
+			LSN_STD_CONT_QUICK_LABEL_TOP,					// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_STD_CONT_QUICK_LABEL_HEIGHT,				// dwHeight
+			LSN_STATICSTYLE | SS_LEFTNOWORDWRAP,			// dwStyle
+			0,												// dwStyleEx
+			LSN_LSTR( LSN_DASH_LINE ),						// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			LSN_SCPI_QUICK_CONFIGURE_CLEAR_ALL_BUTTON,		// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_QUICK_GROUP_LEFT + LSN_GROUP_LEFT,	// iLeft
+			LSN_STD_CONT_QUICK_CLEAR_TOP,					// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_CLEAR_ALL ),						// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
 	};
 
 #undef LSN_STD_CONT_H

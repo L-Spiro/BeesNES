@@ -26,6 +26,7 @@ namespace lsn {
 		CMapper069() {
 		}
 		virtual ~CMapper069() {
+			SaveBatteryRam( m_vPrgRam.data(), m_vPrgRam.size() );
 		}
 
 
@@ -53,6 +54,8 @@ namespace lsn {
 		virtual void									InitWithRom( LSN_ROM &_rRom, CCpuBase * _pcbCpuBase, CPpuBase * _ppbPpuBase, CInterruptable * _piInter, CBussable * _pbPpuBus ) {
 			CMapperBase::InitWithRom( _rRom, _pcbCpuBase, _ppbPpuBase, _piInter, _pbPpuBus );
 			SanitizeRegs<PgmBankSize(), ChrBankSize()>();
+			m_vPrgRam.resize( 512 * 1024 );
+			LoadBatteryRam( m_vPrgRam.data(), m_vPrgRam.size() );
 		}
 
 		/**
@@ -78,7 +81,6 @@ namespace lsn {
 			// SWAPPABLE BANKS
 			// ================
 			// CPU.
-			m_vPrgRam.resize( 512 * 1024 );
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper069::ReadBank0, this, uint16_t( I - 0x6000 ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper069::WriteBank0, this, uint16_t( I - 0x6000 ) );
@@ -163,6 +165,7 @@ namespace lsn {
 		 * Called to inform the mapper of a reset.
 		 **/
 		virtual void									Reset() {
+			SaveBatteryRam( m_vPrgRam.data(), m_vPrgRam.size() );
 			m_Audio5b.ResetSoft();
 		}
 

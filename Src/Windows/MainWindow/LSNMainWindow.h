@@ -254,6 +254,14 @@ namespace lsn {
 		virtual uint8_t							PollPort( uint8_t _ui8Port );
 
 		/**
+		 * Handles a read of $4016/$4017.
+		 * 
+		 * \param _ui16Address The address being read.
+		 * \return Returns the desired read value.
+		 **/
+		virtual uint8_t							Read( uint16_t _ui16Address );
+
+		/**
 		 * Locks the controller array for external access.  Always pair with a call to UnlockControllers().
 		 **/
 		inline void								LockControllers() const {

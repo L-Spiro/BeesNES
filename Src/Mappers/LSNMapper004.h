@@ -25,6 +25,7 @@ namespace lsn {
 		CMapper004() {
 		}
 		virtual ~CMapper004() {
+			SaveBatteryRam( m_ui8PrgRam, sizeof( m_ui8PrgRam ) );
 		}
 
 
@@ -56,6 +57,8 @@ namespace lsn {
 			SetPgmBank<2, PgmBankSize()>( -2 );
 
 			m_ui8Reg0 = m_ui8Reg1 = 0;
+
+			LoadBatteryRam( m_ui8PrgRam, sizeof( m_ui8PrgRam ) );
 		}
 
 		/**
@@ -184,7 +187,9 @@ namespace lsn {
 		 * Called to inform the mapper of a reset.
 		 **/
 		virtual void									Reset() override {
+			SaveBatteryRam( m_ui8PrgRam, sizeof( m_ui8PrgRam ) );
 			CMapperBase::Reset();
+
 			m_ui8IrqLatch = 0;
 			m_ui8IrqCounter = 0;
 			m_bIrqEnabled = false;

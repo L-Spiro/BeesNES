@@ -286,6 +286,12 @@
     <Filter Include="Source Files\Patching">
       <UniqueIdentifier>{2f8fb507-6a80-44d8-850a-b55f448f1691}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Peripherals">
+      <UniqueIdentifier>{043f18d7-f3e5-4cbf-b4f9-0a045ddd56fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Peripherals">
+      <UniqueIdentifier>{e3636da0-50a5-4553-8d88-16318d40860f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -1248,6 +1254,12 @@
     <ClInclude Include="Src\Filters\LSNVulkanPalLSpiroFilter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Peripherals\LSNPeripheralBase.h">
+      <Filter>Header Files\Peripherals</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Peripherals\LSNStdController.h">
+      <Filter>Header Files\Peripherals</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1807,6 +1819,9 @@
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNVulkanPalLSpiroFilter.cpp">
       <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Peripherals\LSNStdController.cpp">
+      <Filter>Source Files\Peripherals</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

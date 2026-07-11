@@ -26,6 +26,7 @@ namespace lsn {
 		CMapper023() {
 		}
 		virtual ~CMapper023() {
+			SaveBatteryRam( m_vWram.data(), m_vWram.size() );
 		}
 
 
@@ -57,6 +58,20 @@ namespace lsn {
 			std::memset( m_ui8DefaultChrRam, 0, sizeof( m_ui8DefaultChrRam ) );
 			std::memset( m_ui8ChrBanks, 0, sizeof( m_ui8ChrBanks ) );
 			std::memset( m_ui8PgmBanks, 0, sizeof( m_ui8PgmBanks ) );
+			switch ( ClassifyVrc( m_pcPcbClass ) ) {
+				case 2 : {
+					if ( m_prRom->i32SaveRamSize ) {
+						m_vWram.resize( 0x8000 - 0x6000 );
+					}
+					return;
+				}
+				case 4 : {
+					m_vWram.resize( 0x8000 - 0x6000 );
+					return;
+				}
+			}
+			
+			LoadBatteryRam( m_vWram.data(), m_vWram.size() );
 		}
 
 		/**
@@ -147,6 +162,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			SaveBatteryRam( m_vWram.data(), m_vWram.size() );
+		}
+
+		/**
 		 * Ticks with the CPU.
 		 */
 		virtual void									Tick() {
@@ -195,7 +217,7 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xC000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
 			if ( m_prRom->i32SaveRamSize ) {
-				m_vWram.resize( 0x8000 - 0x6000 );
+				//m_vWram.resize( 0x8000 - 0x6000 );
 				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 					_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<false>, this, uint16_t( I - 0x6000 ) );
 					_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<false>, this, uint16_t( I - 0x6000 ) );
@@ -274,7 +296,7 @@ namespace lsn {
 			for ( uint32_t I = 0xE000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xE000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
 			}
-			m_vWram.resize( 0x8000 - 0x6000 );
+			//m_vWram.resize( 0x8000 - 0x6000 );
 			for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapper023::ReadWram<true>, this, uint16_t( I - 0x6000 ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper023::WriteWram<true>, this, uint16_t( I - 0x6000 ) );

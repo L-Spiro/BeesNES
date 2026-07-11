@@ -102,6 +102,13 @@ namespace lsn {
 		virtual const GUID *									UniqueId() const { return &m_diDeviceInstance.guidInstance; }
 
 		/**
+		 * Gets the controller's product identifier.
+		 * 
+		 * \return Returns the product GUID for the controller.
+		 **/
+		virtual const GUID *									ProductId() const { return &m_diDeviceInstance.guidProduct; }
+
+		/**
 		 * Starts the thread.
 		 * 
 		 * \param _pclListener A pointer to an object that provides a listener interface for receiving notifications about controller events.

@@ -1921,6 +1921,21 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles a read of $4016/$4017.
+	 * 
+	 * \param _ui16Address The address being read.
+	 * \return Returns the desired read value.
+	 **/
+	uint8_t CMainWindow::Read( uint16_t _ui16Address ) {
+		if ( _ui16Address == 0x4016 ) {
+			return 0;
+		}
+		else {	// _ui16Address == 0x4017
+			return 0;
+		}
+	}
+
+	/**
 	 * Virtual client rectangle.  Can be used for things that need to be adjusted based on whether or not status bars, toolbars, etc. are present.
 	 *
 	 * \param _pwChild Optional child control.
@@ -2419,6 +2434,7 @@ namespace lsn {
 				
 			}
 		}
+		m_bnEmulator.ApplyInputs( m_pdi8cControllers );
 		return;
 	}
 
@@ -2427,6 +2443,7 @@ namespace lsn {
 	 **/
 	void CMainWindow::DestroyControllers() {
 		lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
+		m_bnEmulator.DestroyControllers();
 		for ( auto I = m_pdi8cControllers.size(); I--; ) {
 			delete m_pdi8cControllers[I];
 		}
