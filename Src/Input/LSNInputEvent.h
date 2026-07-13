@@ -28,7 +28,7 @@ namespace lsn {
 	 *
 	 * Description: An input event for triggering a button press in a game.  An input event can come from one of different device types (keyboard or USB controller),
 	 *	come from a specific device instance of that type (a specific USB controller model), be one of multiple types (axis, POV, or button), and come from one of
-	*	multiple instances (axis index, POV index, or button index).
+	 *	multiple instances (axis index, POV index, or button index).
 	 */
 	struct LSN_INPUT_EVENT {
 		// == Enumerations.

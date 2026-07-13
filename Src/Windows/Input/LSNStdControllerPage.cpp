@@ -113,6 +113,7 @@ namespace lsn {
 	 * \return Returns true if the listening state is LSW_LS_LISTENING and the old control procedure was restored.
 	 */
 	bool CStdControllerPage::StopListening_Keyboard( CWidget * _pwControl, bool _bSuccess ) {
+		if ( m_pucbControllerEventSource ) { return true; }	// It is being handled by the USB Controller path.
 		if ( !lsw::CInputListenerBase::StopListening_Keyboard( _pwControl, _bSuccess ) ) { return false; }
 
 		if ( m_pmwMainWindow ) {
@@ -134,15 +135,35 @@ namespace lsn {
 			}
 		}
 		else {
+			if ( !m_bAutoSet ) {
+				if ( m_stListeningIdx < 8 ) {
+					m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+					std::memset( &m_ieMainButtons[m_stListeningIdx].u.kb.kKey, 0, sizeof( m_ieMainButtons[m_stListeningIdx].u.kb.kKey ) );
+				}
+				else {
+					m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
+					std::memset( &m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey, 0, sizeof( m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey ) );
+				}
+			}
+			else if ( m_pwListenControl ) {
+				if ( m_stListeningIdx < 8 ) {
+					if ( m_ieMainButtons[m_stListeningIdx].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieMainButtons[m_stListeningIdx].u.kb.kKey.bKeyCode != 0 ) {
+						m_pwListenControl->SetTextW( lsw::CHelpers::ToString( m_ieMainButtons[m_stListeningIdx].u.kb.kKey, false ).c_str() );
+					}
+					else if ( m_ieMainButtons[m_stListeningIdx].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+						m_pwListenControl->SetTextW( CUtilities::InputEventToString( m_ieMainButtons[m_stListeningIdx].u.cont.ieEvent ).c_str() );
+					}
+				}
+				else {
+					if ( m_ieTurboButtons[m_stListeningIdx%8].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey.bKeyCode != 0 ) {
+						m_pwListenControl->SetTextW( lsw::CHelpers::ToString( m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey, false ).c_str() );
+					}
+					else if ( m_ieTurboButtons[m_stListeningIdx%8].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+						m_pwListenControl->SetTextW( CUtilities::InputEventToString( m_ieTurboButtons[m_stListeningIdx%8].u.cont.ieEvent ).c_str() );
+					}
+				}
+			}
 			m_bAutoSet = false;
-			if ( m_stListeningIdx < 8 ) {
-				m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
-				std::memset( &m_ieMainButtons[m_stListeningIdx].u.kb.kKey, 0, sizeof( m_ieMainButtons[m_stListeningIdx].u.kb.kKey ) );
-			}
-			else {
-				m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;
-				std::memset( &m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey, 0, sizeof( m_ieTurboButtons[m_stListeningIdx%8].u.kb.kKey ) );
-			}
 		}
 		m_pwListenControl = nullptr;
 		UpdateDialog();
@@ -157,33 +178,64 @@ namespace lsn {
 	 * \param _ieEvent A constant reference to the input event data.
 	 **/
 	void CStdControllerPage::OnInput( CUsbControllerBase * _pucbController, const CUsbControllerBase::LSN_INPUT_EVENT &_ieEvent ) {
+		m_pucbControllerEventSource = _pucbController;
+		m_ieControllerEvent = _ieEvent;
+
 		if ( m_pmwMainWindow ) {
 			m_pmwMainWindow->LockControllers();
 		}
 		for ( auto I = m_vControllers.size(); I--; ) {
+			m_vControllers[I]->SignalStop();
+		}
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->UnlockControllers();
+		}
+
+		::SendNotifyMessageW( Wnd(), CWinUtilities::LSN_USB_CONTROLLER_INPUT, 0, 0 );
+	}
+
+	/**
+	 * Handles controller input during polling.
+	 **/
+	void CStdControllerPage::StopListening_Controller() {
+		if ( !m_pucbControllerEventSource ) { return; }
+
+		lsw::CInputListenerBase::StopListening_Keyboard( m_pwListenControl, false );
+		
+		
+		if ( m_pmwMainWindow ) {
+			m_pmwMainWindow->LockControllers();
+		}
+		/*for ( auto I = m_vControllers.size(); I--; ) {
+			m_vControllers[I]->SignalStop();
+		}*/
+
+		for ( auto I = m_vControllers.size(); I--; ) {
 			m_vControllers[I]->StopThread();
 		}
-		lsw::CInputListenerBase::StopListening_Keyboard( m_pwListenControl, false );
-
+		auto pucbCopy = m_pucbControllerEventSource;
+		m_pucbControllerEventSource = nullptr;
 
 		if ( m_stListeningIdx < 8 ) {
 			m_ieMainButtons[m_stListeningIdx].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;
-			m_ieMainButtons[m_stListeningIdx].u.cont.guId = (*_pucbController->UniqueId());
-			m_ieMainButtons[m_stListeningIdx].u.cont.guProductId = (*_pucbController->ProductId());
-			m_ieMainButtons[m_stListeningIdx].u.cont.ieEvent = _ieEvent;
+			m_ieMainButtons[m_stListeningIdx].u.cont.guId = (*pucbCopy->UniqueId());
+			m_ieMainButtons[m_stListeningIdx].u.cont.guProductId = (*pucbCopy->ProductId());
+			m_ieMainButtons[m_stListeningIdx].u.cont.ieEvent = m_ieControllerEvent;
+			m_ieMainButtons[m_stListeningIdx].u.cont.fDeadzone = 0.25f;
 		}
 		else {
 			m_ieTurboButtons[m_stListeningIdx%8].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;
-			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guId = (*_pucbController->UniqueId());
-			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guProductId = (*_pucbController->ProductId());
-			m_ieTurboButtons[m_stListeningIdx%8].u.cont.ieEvent = _ieEvent;
+			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guId = (*pucbCopy->UniqueId());
+			m_ieTurboButtons[m_stListeningIdx%8].u.cont.guProductId = (*pucbCopy->ProductId());
+			m_ieTurboButtons[m_stListeningIdx%8].u.cont.ieEvent = m_ieControllerEvent;
+			m_ieTurboButtons[m_stListeningIdx%8].u.cont.fDeadzone = 0.25f;
 		}
 		
 		if ( m_pmwMainWindow ) {
 			m_pmwMainWindow->UnlockControllers();
 		}
 
-		auto wsText = CUtilities::InputEventToString( _ieEvent );
+		auto wsText = CUtilities::InputEventToString( m_ieControllerEvent );
 		m_pwListenControl->SetTextW( wsText.c_str() );
 		m_pwListenControl = nullptr;
 		UpdateDialog();
@@ -276,6 +328,24 @@ namespace lsn {
 				m_sAutoListenStart = m_sAutoListenStart % vButtons.size();
 				BeginListening( (vButtons[m_sAutoListenStart]->GetUserData() & 0xFF) + 8, vButtons[m_sAutoListenStart] );
 				return LSW_H_HANDLED;
+			}
+		}
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Handles WM_USER/custom messages.
+	 * 
+	 * \param _uMsg The message to handle.
+	 * \param _wParam Additional message-specific information.
+	 * \param _lParam Additional message-specific information.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CStdControllerPage::CustomPrivateMsg( UINT _uMsg, WPARAM /*_wParam*/, LPARAM /*_lParam*/ ) {
+		switch ( _uMsg ) {
+			case CWinUtilities::LSN_USB_CONTROLLER_INPUT : {
+				StopListening_Controller();
+				break;
 			}
 		}
 		return LSW_H_CONTINUE;

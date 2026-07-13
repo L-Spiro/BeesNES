@@ -20,6 +20,9 @@ namespace lsn {
 		std::memset( &m_dcCaps, 0, sizeof( m_dcCaps ) );
 	}
 	CDirectInput8Controller::~CDirectInput8Controller() {
+		if ( m_did8Device.Obj() ) {
+			m_did8Device.Obj()->Unacquire();
+		}
 	}
 
 
@@ -59,7 +62,8 @@ namespace lsn {
 				return false;
 			}
 			m_diDeviceInstance = _diInstance;
-			//BeginThread();
+			
+			m_did8Device.Obj()->Acquire();
 			return true;
 		}
 		return false;
@@ -73,19 +77,23 @@ namespace lsn {
 	 */
 	bool CDirectInput8Controller::Poll() {
 		if ( !m_did8Device.Obj() ) { return false; }
+		//std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
 		HRESULT hRes;
-		hRes = m_did8Device.Obj()->Acquire();
-		if ( hRes != DI_OK ) {
-			return false;
-		}
+
+		hRes = m_did8Device.Obj()->Poll();
 		hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
-		if ( hRes != DI_OK ) {
-			//lsw::CBase::MessageBoxError( NULL, CDirectInput8::ResultToString( hRet ).c_str(), L"DirectInput8 Error: CDirectInput8Controller::Poll" );
-			m_did8Device.Obj()->Unacquire();
-			return false;
+
+		if LSN_UNLIKELY( hRes == DIERR_INPUTLOST || hRes == DIERR_NOTACQUIRED ) {
+			bool bIsPollingThread = m_ptThread && (std::this_thread::get_id() == m_ptThread->get_id());
+			if ( bIsPollingThread && m_bStopThread ) { return false; }
+
+			hRes = m_did8Device.Obj()->Acquire();
+			if ( SUCCEEDED( hRes ) ) {
+				hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
+			}
 		}
-		m_did8Device.Obj()->Unacquire();
-		return true;
+
+		return SUCCEEDED( hRes );
 	}
 
 	/**
@@ -95,7 +103,7 @@ namespace lsn {
 	 * \return Returns true if the button indexed by _ui8Idx is pressed, false otherwise.
 	 **/
 	bool CDirectInput8Controller::PollButton( uint8_t _ui8Idx ) const {
-		if ( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgbButtons ) ) { return false; }
+		if LSN_UNLIKELY( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgbButtons ) ) { return false; }
 		return JoyState().rgbButtons[_ui8Idx] != 0;
 	}
 
@@ -106,7 +114,7 @@ namespace lsn {
 	 * \return Returns the axis value at the given axis index.
 	 **/
 	long CDirectInput8Controller::PollAxis( uint8_t _ui8Idx ) const {
-		if ( !m_did8Device.Obj() ) { return 0; }
+		if LSN_UNLIKELY( !m_did8Device.Obj() ) { return 0; }
 		if ( _ui8Idx == 0 ) { return JoyState().lX; }
 		if ( _ui8Idx == 1 ) { return JoyState().lY; }
 		if ( _ui8Idx == 2 ) { return JoyState().lZ; }
@@ -122,7 +130,7 @@ namespace lsn {
 	 * \return Returns the POV value given the POV array index.
 	 **/
 	uint32_t CDirectInput8Controller::PollPov( uint8_t _ui8Idx ) const {
-		if ( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgdwPOV ) ) { return false; }
+		if LSN_UNLIKELY( !m_did8Device.Obj() || _ui8Idx >= std::size( JoyState().rgdwPOV ) ) { return 0xFFFFFFFF; }
 		return JoyState().rgdwPOV[_ui8Idx];
 	}
 
@@ -236,43 +244,6 @@ namespace lsn {
 		}
 
 		return true;
-#if 0
-		HRESULT hRes;
-		hRes = m_did8Device.Obj()->Acquire();
-		//hRes = m_did8Device.Obj()->Poll();
-		hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
-		hRes = m_did8Device.Obj()->Unacquire();
-		hRes = m_did8Device.Obj()->SetEventNotification( m_eThreadClose.Handle() );
-		while ( !m_bStopThread ) {
-			uint32_t ui32Wait = m_eThreadClose.WaitForSignal( 1000 / 10 );
-			//uint32_t ui32Wait = m_eThreadClose.WaitForSignal();
-			/*hRes = m_did8Device.Obj()->Acquire();
-			hRes = m_did8Device.Obj()->Poll();
-			hRes = m_did8Device.Obj()->GetDeviceState( sizeof( m_jsState ), &m_jsState );
-			hRes = m_did8Device.Obj()->Unacquire();
-			for ( auto I = std::size( m_jsState.rgbButtons ); I--; ) {
-				if ( m_jsState.rgbButtons[I] ) {
-					//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
-				}
-			}
-			for ( auto I = std::size( m_jsState.rgdwPOV ); I--; ) {
-				if ( m_jsState.rgdwPOV[I] != -1 ) {
-					lsw::CBase::MessageBoxError( NULL, L"Pressed", L"D-PAD" );
-				}
-			}*/
-			switch ( ui32Wait ) {
-				case WAIT_TIMEOUT : { break; }
-				case WAIT_OBJECT_0 : {
-					if ( m_bStopThread ) { break; }
-					//lsw::CBase::MessageBoxError( NULL, L"Pressed", L"BUTTON" );
-					break;
-				}
-			}
-		}
-		m_did8Device.Obj()->SetEventNotification( NULL );
-		//m_eThreadClosed.Signal();
-#endif	// 0
-		return false;
 	}
 
 	/**

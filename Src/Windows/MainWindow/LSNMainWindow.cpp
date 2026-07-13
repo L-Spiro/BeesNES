@@ -183,6 +183,9 @@ namespace lsn {
 
 		//RegisterRawInput();
 		ScanInputDevices();
+		LockControllers();
+		m_bnEmulator.UpdatePeripherals( m_pdi8cControllers );
+		UnlockControllers();
 	}
 	CMainWindow::~CMainWindow() {
 		StopThread();
@@ -553,7 +556,6 @@ namespace lsn {
 			}
 #endif	// #ifdef LSN_DX12
 
-
 #ifdef LSN_VULKAN1
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALETTE : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDVULKAN1 );
@@ -607,14 +609,6 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_BLARGG );
 				break;
 			}
-			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_BLARGG : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_BLARGG );
-				break;
-			}*/
-			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_BLARGG : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_BLARGG );
-				break;
-			}*/
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_LSPIRO : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_LSPIRO );
 				break;
@@ -635,16 +629,20 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PALN_LSPIRO );
 				break;
 			}
-			/*case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT );
-				break;
-			}*/
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NTSC_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_NTSC_CRT_FULL );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_LSPIRO : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_LSPIRO );
 				break;
 			}
 			
@@ -673,14 +671,6 @@ namespace lsn {
 				break;
 			}
 
-			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT_FULL : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL );
-				break;
-			}
-			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_LSPIRO : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_LSPIRO );
-				break;
-			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_PATCH : {
 				if ( m_pwPatchWindow ) {
 					m_pwPatchWindow->SetFocus();
@@ -704,6 +694,9 @@ namespace lsn {
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
 				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
+				LockControllers();
+				m_bnEmulator.UpdatePeripherals( m_pdi8cControllers );
+				UnlockControllers();
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_AUDIO : {
@@ -1774,11 +1767,17 @@ namespace lsn {
 	/**
 	 * Polls the given port and returns a byte containing the result of polling by combining the LSN_INPUT_BITS values.
 	 *
-	 * \param _ui8Port The port being polled (0 or 1).
+	 * \param _ui8Value The value being written to $4016.
 	 * \return Returns the result of polling the given port.
 	 */
-	uint8_t CMainWindow::PollPort( uint8_t /*_ui8Port*/ ) {
+	void CMainWindow::PollPort( uint8_t _ui8Value ) {
 		if ( GetFocus() ) {
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
+			for ( size_t I = 0; I < m_pdi8cControllers.size(); ++I ) {
+				m_pdi8cControllers[I]->Poll();
+			}
+			m_bnEmulator.Write4016( _ui8Value );
+#if 0
 			uint8_t ui8Ret = 0;
 			if ( m_ptThread.get() ) {
 				// We only need to use critical sections on threaded implementations.
@@ -1916,8 +1915,8 @@ namespace lsn {
 			}
 
 			return ui8Ret;
+#endif
 		}
-		return 0;
 	}
 
 	/**
@@ -1927,11 +1926,12 @@ namespace lsn {
 	 * \return Returns the desired read value.
 	 **/
 	uint8_t CMainWindow::Read( uint16_t _ui16Address ) {
+		lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
 		if ( _ui16Address == 0x4016 ) {
-			return 0;
+			return m_bnEmulator.Read4016();
 		}
 		else {	// _ui16Address == 0x4017
-			return 0;
+			return m_bnEmulator.Read4017();
 		}
 	}
 
@@ -2386,9 +2386,9 @@ namespace lsn {
 			}
 			else {
 				m_pdi8cControllers.push_back( pdi8cController );
-				uint32_t ui32Buttons = pdi8cController->TotalButtons();
+				//uint32_t ui32Buttons = pdi8cController->TotalButtons();
 				// Map buttons.
-				auto & mMap = pdi8cController->ButtonMap();
+				/*auto & mMap = pdi8cController->ButtonMap();
 				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 0;
 				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] = 1;
 				
@@ -2399,7 +2399,7 @@ namespace lsn {
 				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_SELECT] = 8;
 
 				mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 7;
-				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 9;
+				mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 9;*/
 
 				// Xbox 360 controller.
 				/*mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 1;
@@ -2418,7 +2418,7 @@ namespace lsn {
 
 
 				// My USB NES controller.
-				if ( ui32Buttons == 10 ) {
+				/*if ( ui32Buttons == 10 ) {
 					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_A] = 1;
 					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_A] = 127;
 
@@ -2430,7 +2430,7 @@ namespace lsn {
 
 					mMap.ui8ButtonMap[CUsbControllerBase::LSN_B_START] = 9;
 					mMap.ui8RapidMap[CUsbControllerBase::LSN_B_START] = 127;
-				}
+				}*/
 				
 			}
 		}

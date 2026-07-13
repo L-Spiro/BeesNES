@@ -109,6 +109,11 @@ namespace lsn {
 		virtual void								OnInput( CUsbControllerBase * _pucbController, const CUsbControllerBase::LSN_INPUT_EVENT &_ieEvent );
 
 		/**
+		 * Handles controller input during polling.
+		 **/
+		void										StopListening_Controller();
+
+		/**
 		 * Handles the WM_COMMAND message.
 		 *
 		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
@@ -117,6 +122,16 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED							Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
+
+		/**
+		 * Handles WM_USER/custom messages.
+		 * 
+		 * \param _uMsg The message to handle.
+		 * \param _wParam Additional message-specific information.
+		 * \param _lParam Additional message-specific information.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED							CustomPrivateMsg( UINT _uMsg, WPARAM /*_wParam*/, LPARAM /*_lParam*/ );
 
 		/**
 		 * Fully updates the dialog based on current buttons and settings.
@@ -184,6 +199,12 @@ namespace lsn {
 
 		/** The array of registered controllers. */
 		std::vector<CUsbControllerBase *>			m_vControllers;
+
+		/** The controller that caused an input during polling. */
+		CUsbControllerBase *						m_pucbControllerEventSource = nullptr;
+
+		/** The input event that happened during polling. */
+		CUsbControllerBase::LSN_INPUT_EVENT			m_ieControllerEvent;
 
 		/** The player index. */
 		size_t										m_stPlayerIdx;

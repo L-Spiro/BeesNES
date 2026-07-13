@@ -37,10 +37,10 @@ namespace lsn {
 		/**
 		 * Polls the given port and returns a byte containing the result of polling by combining the LSN_INPUT_BITS values.
 		 *
-		 * \param _ui8Port The port being polled (0 or 1).
+		 * \param _ui8Value The value being written to $4016.
 		 * \return Returns the result of polling the given port.
 		 */
-		virtual uint8_t					PollPort( uint8_t /*_ui8Port*/ ) { return 0; }	// TODO: Change to return void.
+		virtual void					PollPort( uint8_t /*_ui8Value*/ ) {}
 
 		/**
 		 * Handles a read of $4016/$4017.

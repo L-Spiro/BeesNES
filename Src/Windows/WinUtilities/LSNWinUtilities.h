@@ -40,6 +40,7 @@ namespace lsn {
 			LSN_CLOSE_WAV_EDITOR,
 			LSN_UPDATE_HZ,
 			LSN_UPDATE_PATCHER_DESC,
+			LSN_USB_CONTROLLER_INPUT
 #endif	// #if defined( LSN_WINDOWS )
 		};
 

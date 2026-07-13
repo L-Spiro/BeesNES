@@ -13,8 +13,6 @@
 namespace lsn {
 
 	CUsbControllerBase::CUsbControllerBase() {
-		/*std::memset( &m_bmButtonMap, 0, sizeof( m_bmButtonMap ) );
-		std::memset( &m_bmRapidMap, 0, sizeof( m_bmRapidMap ) );*/
 	}
 	CUsbControllerBase::~CUsbControllerBase() {
 		StopThread();
@@ -33,7 +31,7 @@ namespace lsn {
 		m_tThreadData.m_pucbThis = this;
 		m_tThreadData.m_pclListener = _pclListener;
 		m_bStopThread = false;
-		Poll();
+
 		m_ptThread = std::make_unique<std::thread>( Thread, &m_tThreadData );
 	}
 
@@ -41,16 +39,9 @@ namespace lsn {
 	 * Stops the thread.
 	 **/
 	void CUsbControllerBase::StopThread() {
-		if ( !m_ptThread || !m_ptThread->joinable() ) {
-			return;
-		}
+		SignalStop();
 
-		{
-			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
-			m_bStopThread = true;
-		}
-		
-		m_cvThreadClose.notify_all();
+		if ( !m_ptThread || !m_ptThread->joinable() ) { return; }
 
 		if ( std::this_thread::get_id() != m_ptThread->get_id() ) {
 			m_ptThread->join();
@@ -72,7 +63,7 @@ namespace lsn {
 
 			std::unique_lock<std::mutex> ulLock( _ptThread->m_pucbThis->m_mThreadMutex );
 			
-			_ptThread->m_pucbThis->m_cvThreadClose.wait_for( ulLock, std::chrono::milliseconds( 0 ), [ _ptThread ]() {
+			_ptThread->m_pucbThis->m_cvThreadClose.wait_for( ulLock, std::chrono::milliseconds( 1 ), [ _ptThread ]() {
 				return _ptThread->m_pucbThis->m_bStopThread.load();
 			} );
 		}

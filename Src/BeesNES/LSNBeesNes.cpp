@@ -9,6 +9,7 @@
 #include "LSNBeesNes.h"
 #include "../File/LSNStdFile.h"
 #include "../Filters/LSNGpuFilterBase.h"
+#include "../Peripherals/LSNStdController.h"
 
 #include <filesystem>
 
@@ -495,7 +496,7 @@ namespace lsn {
 		Options().ioThisGameInputOptions.bUseGlobal = true;
 
 		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
-		Options().ioGlobalInputOptions.bUseGlobal = true;
+		Options().ioThisGameInputOptions.bUseGlobal = true;
 		if ( _u16Path.size() ) {
 			CStdFile sfFile;
 			if ( sfFile.Open( _u16Path.c_str() ) ) {
@@ -816,11 +817,24 @@ namespace lsn {
 	bool CBeesNes::ApplyInputs( const std::vector<lsn::CUsbControllerBase *> &_vControllers ) {
 		IPeripheralBase::LSN_INPUT_CONFIGURATION_APPLICATION_RECORD icarRecord;
 		bool bSuccess = true;
+		// Apply inputs with a 2-pass approach.
+		// Pass 1: Peripherals look for specifically the USB controller they are assigned.
 		for ( size_t I = 0; I < m_vPeripherals.size(); ++I ) {
-			if LSN_LIKELY( m_vPeripherals[I].get() ) {
-				auto * pieEvents = m_oOptions.ioGlobalInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieButtonMap[I];
-				auto * pieTurboEvents = m_oOptions.ioGlobalInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieTurboButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieTurboButtonMap[I];
-				if ( !m_vPeripherals[I]->ApplyConfiguration( (*pieEvents), (*pieTurboEvents), _vControllers, icarRecord ) ) {
+			if LSN_UNLIKELY( m_vPeripherals[I].get() ) {
+				auto * pieEvents = m_oOptions.ioThisGameInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieButtonMap[I];
+				auto * pieTurboEvents = m_oOptions.ioThisGameInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieTurboButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieTurboButtonMap[I];
+				if ( !m_vPeripherals[I]->ApplyConfiguration( (*pieEvents), (*pieTurboEvents), _vControllers, icarRecord, true ) ) {
+					bSuccess = false;
+				}
+			}
+		}
+
+		// Pass 2: Peripherals look for any USB controller that is of the same type as when controls were assigned.
+		for ( size_t I = 0; I < m_vPeripherals.size(); ++I ) {
+			if LSN_UNLIKELY( m_vPeripherals[I].get() ) {
+				auto * pieEvents = m_oOptions.ioThisGameInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieButtonMap[I];
+				auto * pieTurboEvents = m_oOptions.ioThisGameInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions.ieTurboButtonMap[I] : &m_oOptions.ioThisGameInputOptions.ieTurboButtonMap[I];
+				if ( !m_vPeripherals[I]->ApplyConfiguration( (*pieEvents), (*pieTurboEvents), _vControllers, icarRecord, false ) ) {
 					bSuccess = false;
 				}
 			}
@@ -833,10 +847,73 @@ namespace lsn {
 	 **/
 	void CBeesNes::DestroyControllers() {
 		for ( auto I = m_vPeripherals.size(); I--; ) {
-			if LSN_LIKELY( m_vPeripherals[I].get() ) {
+			if LSN_UNLIKELY( m_vPeripherals[I].get() ) {
 				m_vPeripherals[I]->ControllerDetached();
 			}
 		}
+	}
+
+	/**
+	 * Updates inputs based off settings. Peripherals are created and buttons are assigned (ApplyInputs() is called).
+	 * 
+	 * \param _vControllers The registered controllers.
+	 * \return Returns true if the peripherals were allocated and buttons assigned.
+	 **/
+	bool CBeesNes::UpdatePeripherals( const std::vector<lsn::CUsbControllerBase *> &_vControllers ) {
+		auto * pioOptions = m_oOptions.ioThisGameInputOptions.bUseGlobal ? &m_oOptions.ioGlobalInputOptions : &m_oOptions.ioThisGameInputOptions;
+		try {
+			m_vPeripherals.clear();	// Remove existing controllers.
+			m_vPeripherals.resize( std::size( pioOptions->ui8Player ) );
+			for ( size_t I = 0; I < std::size( pioOptions->ui8Player ); ++I ) {
+				switch ( pioOptions->ui8Player[I] ) {
+					case LSN_CT_STANDARD : {
+						m_vPeripherals[I] = std::make_unique<CStdController>();
+						break;
+					}
+					default : {}
+				}
+			}
+			return ApplyInputs( _vControllers );
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Handles writes to $4016.
+	 * 
+	 * \param _ui8Value The value being written.  If it is 1, inputs are polled.
+	 **/
+	void CBeesNes::Write4016( uint8_t _ui8Value ) {
+		if LSN_LIKELY( m_vPeripherals[0].get() ) {
+			m_vPeripherals[0]->Write( _ui8Value );
+		}
+		if ( m_vPeripherals[1].get() ) {
+			m_vPeripherals[1]->Write( _ui8Value );
+		}
+	}
+
+	 /**
+	  * Handles reads from $4016. Passes off to peripherals to get the return value.
+	  * 
+	  * \return Returns the value to be returned from reading register $4016.
+	  **/
+	uint8_t CBeesNes::Read4016() {
+		if LSN_LIKELY( m_vPeripherals[0].get() ) {
+			return m_vPeripherals[0]->Read();
+		}
+		return 0;
+	}
+
+	/**
+	  * Handles reads from $4017. Passes off to peripherals to get the return value.
+	  * 
+	  * \return Returns the value to be returned from reading register $4017.
+	  **/
+	uint8_t CBeesNes::Read4017() {
+		if ( m_vPeripherals[1].get() ) {
+			return m_vPeripherals[1]->Read();
+		}
+		return 0;
 	}
 
 	/**

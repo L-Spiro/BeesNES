@@ -193,10 +193,6 @@ namespace lsn {
 			m_bHandleIrq = false;
 			m_bRdyLow = false;
 			m_ui8RdyOffCnt = 0;
-
-			std::memset( m_ui8Inputs, 0, sizeof( m_ui8Inputs ) );
-			std::memset( m_ui8InputsState, 0, sizeof( m_ui8InputsState ) );
-			std::memset( m_ui8InputsPoll, 0, sizeof( m_ui8InputsPoll ) );
 		}
 
 		/**
@@ -414,12 +410,6 @@ namespace lsn {
 		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
 		bool												m_bDmcRead = false;																	/**< Is DMC on a read cycle? */
 		bool												m_bDmcBusAccess = false;															/**< Did the DMC access the bus on this cycle? */
-
-
-		// Temporary input.
-		uint8_t												m_ui8Inputs[8];
-		uint8_t												m_ui8InputsState[8];
-		uint8_t												m_ui8InputsPoll[8];
 		
 		static LSN_INSTR									m_iInstructionSet[256];																/**< The instruction set. */
 		
@@ -765,12 +755,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			// TODO:
-			/*if LSN_LIKELY( pcThis->m_pipPoller ) {
+			if LSN_LIKELY( pcThis->m_pipPoller ) {
 				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4016 ) & 0b00011111);
-			}*/
-			_ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[0] & 0x80) != 0);
-			pcThis->m_ui8InputsState[0] <<= 1;
+			}
 		}
 
 		/**
@@ -783,18 +770,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Write4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			pcThis->m_ui8Inputs[0] = (pcThis->m_ui8Inputs[0] & 0b11111000) | (_ui8Val & 0b00000111);
-			// Temp.
-			if ( pcThis->m_pipPoller ) {
-				pcThis->m_ui8InputsPoll[0] = pcThis->m_pipPoller->PollPort( 0 );
+			if LSN_LIKELY( pcThis->m_pipPoller ) {
+				pcThis->m_pipPoller->PollPort( _ui8Val );
 			}
-			else {
-				pcThis->m_ui8InputsPoll[0] = 0;
-			}
-			pcThis->m_ui8InputsState[0] = pcThis->m_ui8InputsPoll[0];
-
-			pcThis->m_ui8Inputs[1] = (pcThis->m_ui8Inputs[1] & 0b11111000) | (_ui8Val & 0b00000111);
-			pcThis->m_ui8InputsState[1] = pcThis->m_ui8InputsPoll[1];
 		}
 
 		/**
@@ -807,26 +785,9 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Read4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			// TODO:
-			/*if LSN_LIKELY( pcThis->m_pipPoller ) {
+			if LSN_LIKELY( pcThis->m_pipPoller ) {
 				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4017 ) & 0b00011111);
-			}*/
-			_ui8Ret = (_ui8Ret & 0b11100000) | ((pcThis->m_ui8InputsState[1] & 0x80) != 0);
-			pcThis->m_ui8InputsState[1] <<= 1;
-		}
-
-		/**
-		 * Writing to 0x4017 puts bits on the controller-2 port.
-		 *
-		 * \param _pvParm0 A data value assigned to this address.
-		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
-		 * \param _pui8Data The buffer to which to write.
-		 * \param _ui8Val The value to write.
-		 */
-		static void LSN_FASTCALL							Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
-			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			pcThis->m_ui8Inputs[1] = (pcThis->m_ui8Inputs[1] & 0b11111000) | (_ui8Val & 0b00000111);
-			pcThis->m_ui8InputsState[1] = pcThis->m_ui8InputsPoll[1];
+			}
 		}
 
 

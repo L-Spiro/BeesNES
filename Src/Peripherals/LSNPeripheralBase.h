@@ -13,6 +13,10 @@
 #include "../Input/LSNUsbControllerBase.h"
 #include "../Options/LSNInputOptions.h"
 
+#include <set>
+#include <vector>
+
+
 namespace lsn {
 
 	/**
@@ -32,6 +36,50 @@ namespace lsn {
 		 *	player 2's control will be assigned using USB #2's controller.
 		 */
 		struct LSN_INPUT_CONFIGURATION_APPLICATION_RECORD {
+			// == Types.
+			/** A peripheral/USB Controller pairing. */
+			struct LSN_PERIPHERAL_USB_PAIR {
+				IPeripheralBase *						ppbPeripheral = nullptr;			/**< The peripheral using the controller. */
+				CUsbControllerBase *					pucbController = nullptr;			/**< The controller being used by the peripheral. */
+
+
+				// == Operators.
+				/**
+				 * Less-than operator for sorting in a std::map.
+				 * 
+				 * \param _pupOther The other pair to compare against.
+				 * \return Returns true if this pair is strictly less than the given pair based on uintptr_t casting.
+				 */
+				bool									operator < ( const LSN_PERIPHERAL_USB_PAIR &_pupOther ) const {
+					if ( reinterpret_cast<uintptr_t>(ppbPeripheral) != reinterpret_cast<uintptr_t>(_pupOther.ppbPeripheral) ) {
+						return reinterpret_cast<uintptr_t>(ppbPeripheral) < reinterpret_cast<uintptr_t>(_pupOther.ppbPeripheral);
+					}
+					return reinterpret_cast<uintptr_t>(pucbController) < reinterpret_cast<uintptr_t>(_pupOther.pucbController);
+				}
+
+				/**
+				 * Equality operator.
+				 * 
+				 * \param _pupOther The other pair to compare against.
+				 * \return Returns true if both pointers in the pairs are equal.
+				 */
+				bool									operator == ( const LSN_PERIPHERAL_USB_PAIR &_pupOther ) const {
+					return (reinterpret_cast<uintptr_t>(ppbPeripheral) == reinterpret_cast<uintptr_t>(_pupOther.ppbPeripheral)) &&
+						(reinterpret_cast<uintptr_t>(pucbController) == reinterpret_cast<uintptr_t>(_pupOther.pucbController));
+				}
+			};
+
+			/** Specific button mappings that have already been made. */
+			struct LSN_USED_MAPPING {
+				IPeripheralBase *						ppbPeripheral = nullptr;			/**< The peripheral using the controller. */
+				CUsbControllerBase *					pucbController = nullptr;			/**< The controller being used by the peripheral. */
+				lsn::LSN_INPUT_EVENT					ieEvent;							/**< The input event. */
+				size_t									sButtonIdx = size_t( -1 );			/**< The index of the button on the peripheral. */
+			};
+
+			// == Members.
+			std::set<LSN_PERIPHERAL_USB_PAIR>			sPairings;							/**< Pairings between USB controllers and peripherals. */
+			std::vector<LSN_USED_MAPPING>				vAssignments;						/**< A logged button assignment to a USB controller. */
 		};
 
 
@@ -67,11 +115,13 @@ namespace lsn {
 		 * \param _ieTurboConfig The turbo configuration to apply.  [4] configurations, [8] buttons.
 		 * \param _vUsbControllers The attached USB controllers/devices.
 		 * \param _icarRecord An in/out record of what controllers have been accessed and how.
+		 * \param _bStrictApply If true, USB controllers should only connect to the specific devices that were used to configur inputs.
 		 * \return Returns true if all buttons were able to be applied.
 		 **/
 		virtual bool									ApplyConfiguration( lsn::LSN_INPUT_EVENT _ieConfig[4][8], lsn::LSN_INPUT_EVENT _ieTurboConfig[4][8],
 			const std::vector<CUsbControllerBase *> &_vUsbControllers,
-			LSN_INPUT_CONFIGURATION_APPLICATION_RECORD &_icarRecord ) = 0;
+			LSN_INPUT_CONFIGURATION_APPLICATION_RECORD &_icarRecord,
+			bool _bStrictApply ) = 0;
 	};
 
 }	// namespace lsn

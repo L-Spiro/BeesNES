@@ -34,20 +34,6 @@ namespace lsn {
 
 
 		// == Enumerations.
-		/** The controller buttons. */
-		enum LSN_BUTTONS {
-			LSN_B_A,											/**< The A button. */
-			LSN_B_B,											/**< The B button. */
-			LSN_B_START,										/**< The Start button. */
-			LSN_B_SELECT,										/**< The Select button. */
-			LSN_B_UP,											/**< The Up button. */
-			LSN_B_DOWN,											/**< The Down button. */
-			LSN_B_LEFT,											/**< The Left button. */
-			LSN_B_RIGHT,										/**< The Right button. */
-
-			LSN_B_TOTAL,										/**< The total number of buttons on a controller (8). */
-		};
-
 		/** Input classes. */
 		enum LSN_INPUT_CLASS {
 			LSN_IC_AXIS,										/**< An axis. */
@@ -67,19 +53,6 @@ namespace lsn {
 				bool											bButton;									/**< The button value if icType is LSN_IC_BUTTON. */
 			}													u;
 		};
-
-		/** A button mapping. */
-		struct LSN_MAPPING {
-			uint8_t												ui8RapidMap[LSN_B_TOTAL];					/**< Primary buttons. */
-			uint8_t												ui8ButtonMap[LSN_B_TOTAL];					/**< Rapid buttons. */
-		};
-
-		/** A button map. */
-		//struct LSN_BUTTON_MAP {
-		//	/** The keyboard/controller button to map to the given input (by button index, LSN_BUTTONS) */
-		//	uint16_t											ui16Map[LSN_B_TOTAL];
-		//};
-
 
 		// == Functions.
 		/**
@@ -155,18 +128,20 @@ namespace lsn {
 		virtual void											StopThread();
 
 		/**
-		 * Gets the button mapping for read and write.
-		 * 
-		 * \return Returns a reference to the button map.
+		 * Signals the thread to stop without blocking.
 		 **/
-		inline LSN_MAPPING &									ButtonMap() { return m_mButtonMap; }
+		void													SignalStop() {
+			if ( !m_ptThread || !m_ptThread->joinable() ) {
+				return;
+			}
 
-		/**
-		 * Gets the button mapping for read only.
-		 * 
-		 * \return Returns a constant reference to the button map.
-		 **/
-		inline const LSN_MAPPING &								ButtonMap() const { return m_mButtonMap; }
+			{
+				std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
+				m_bStopThread = true;
+			}
+		
+			m_cvThreadClose.notify_all();
+		}
 
 		/**
 		 * Gets the instance name of the USB controller.
@@ -202,8 +177,6 @@ namespace lsn {
 
 
 		// == Members.
-		/** The button mapping. */
-		LSN_MAPPING												m_mButtonMap;
 		/** The event-listening thread. */
 		std::unique_ptr<std::thread>							m_ptThread;
 		/** The mutex for thread synchronization. */

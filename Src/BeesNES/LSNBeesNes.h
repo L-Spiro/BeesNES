@@ -364,8 +364,7 @@ namespace lsn {
 		 * Applies controller settings to the applied input peripherals.  Pointers to the given USB controllers can be stored but
 		 *	must be cleared when DestroyControllers() is called.
 		 * 
-		 * \param _vControllers The registers controllers.
-		 * \param PARM DESC
+		 * \param _vControllers The registered controllers.
 		 * \return Returns true if all inputs were assigned correctly.
 		 **/
 		bool									ApplyInputs( const std::vector<lsn::CUsbControllerBase *> &_vControllers );
@@ -374,6 +373,35 @@ namespace lsn {
 		 * Called when the source controller storage is about to be deleted.  Any references to them should be removed.
 		 **/
 		void									DestroyControllers();
+
+		/**
+		 * Updates inputs based off settings. Peripherals are created and buttons are assigned (ApplyInputs() is called).
+		 * 
+		 * \param _vControllers The registered controllers.
+		 * \return Returns true if the peripherals were allocated and buttons assigned.
+		 **/
+		bool									UpdatePeripherals( const std::vector<lsn::CUsbControllerBase *> &_vControllers );
+
+		/**
+		 * Handles writes to $4016.
+		 * 
+		 * \param _ui8Value The value being written.  If it is 1, inputs are polled.
+		 **/
+		void									Write4016( uint8_t _ui8Value );
+
+		 /**
+		  * Handles reads from $4016. Passes off to peripherals to get the return value.
+		  * 
+		  * \return Returns the value to be returned from reading register $4016.
+		  **/
+		uint8_t									Read4016();
+
+		/**
+		  * Handles reads from $4017. Passes off to peripherals to get the return value.
+		  * 
+		  * \return Returns the value to be returned from reading register $4017.
+		  **/
+		uint8_t									Read4017();
 
 		/**
 		 * Gets the rapid-fire patterns.
