@@ -30,6 +30,39 @@ namespace lsn {
 		virtual ~IPeripheralBase() = default;
 
 
+		// == Enumerations.
+		/** The input bits. */
+		enum LSN_INPUT_BITS : uint8_t {
+			LSN_IB_A									= (1 << 7),							/**< The A button. */
+			LSN_IB_B									= (1 << 6),							/**< The B button. */
+			LSN_IB_SELECT								= (1 << 5),							/**< The Select button. */
+			LSN_IB_START								= (1 << 4),							/**< The Start button. */
+			LSN_IB_UP									= (1 << 3),							/**< The Up button. */
+			LSN_IB_DOWN									= (1 << 2),							/**< The Down button. */
+			LSN_IB_LEFT									= (1 << 1),							/**< The Left button. */
+			LSN_IB_RIGHT								= (1 << 0),							/**< The Right button. */
+		};
+
+		/** The controller buttons in the order in which they appear in the options settings. */
+		enum LSN_BUTTONS {
+			LSN_B_UP,																		/**< The Up button. */
+			LSN_B_LEFT,																		/**< The Left button. */
+			LSN_B_RIGHT,																	/**< The Right button. */
+			LSN_B_DOWN,																		/**< The Down button. */
+			LSN_B_SELECT,																	/**< The Select button. */
+			LSN_B_START,																	/**< The Start button. */
+			LSN_B_B,																		/**< The B button. */
+			LSN_B_A,																		/**< The A button. */
+
+			LSN_B_TOTAL,																	/**< The total number of buttons on a controller (8). */
+		};
+
+		/** The total number of inputs sets. */
+		enum LSN_INPUT_SETS {
+			LSN_IS_INPUT_SETS							= 8,								/**< One set for every button on a standard controller. */
+		};
+
+
 		// == Types.
 		/** When assigning keys, controllers need to know which devices have been "consumed" by other controllers.
 		 *	For example, if controller 1 has consumed inputs from the USB controller in USB #1, and USB #2 has the same type of controller,
@@ -111,14 +144,14 @@ namespace lsn {
 		/**
 		 * Applies controller configurations to the perpheral.
 		 * 
-		 * \param _ieConfig The configuration to apply.  [4] configurations, [8] buttons.
-		 * \param _ieTurboConfig The turbo configuration to apply.  [4] configurations, [8] buttons.
+		 * \param _ieConfig The configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
+		 * \param _ieTurboConfig The turbo configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
 		 * \param _vUsbControllers The attached USB controllers/devices.
 		 * \param _icarRecord An in/out record of what controllers have been accessed and how.
 		 * \param _bStrictApply If true, USB controllers should only connect to the specific devices that were used to configur inputs.
 		 * \return Returns true if all buttons were able to be applied.
 		 **/
-		virtual bool									ApplyConfiguration( lsn::LSN_INPUT_EVENT _ieConfig[4][8], lsn::LSN_INPUT_EVENT _ieTurboConfig[4][8],
+		virtual bool									ApplyConfiguration( lsn::LSN_INPUT_EVENT _ieConfig[LSN_IS_INPUT_SETS][LSN_B_TOTAL], lsn::LSN_INPUT_EVENT _ieTurboConfig[LSN_IS_INPUT_SETS][LSN_B_TOTAL],
 			const std::vector<CUsbControllerBase *> &_vUsbControllers,
 			LSN_INPUT_CONFIGURATION_APPLICATION_RECORD &_icarRecord,
 			bool _bStrictApply ) = 0;

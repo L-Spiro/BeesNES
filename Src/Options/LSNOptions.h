@@ -28,9 +28,6 @@ namespace lsn {
 	 * Description: Emulator options.
 	 */
 	struct LSN_OPTIONS {
-		// == Inputs to Dialogs.
-		double												dApuHz;
-
 		// == Settings.
 		LSN_INPUT_OPTIONS									ioGlobalInputOptions;										/**< Global input options. */
 		LSN_INPUT_OPTIONS									ioThisGameInputOptions;										/**< This game's input options. */
@@ -39,7 +36,11 @@ namespace lsn {
 		LSN_AUDIO_OPTIONS									aoThisGameAudioOptions;										/**< This game's audio options. */
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsRaw;										/**< Raw capture. */
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCapture;									/**< Output capture. */
+		
+		// == Inputs to Dialogs.
+		double												dApuHz;
 
+		// == Settings Again.
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
 		CFilterBase::LSN_FILTERS							fFilter =													/**< The current filter ID. */
 #ifdef LSN_DX9

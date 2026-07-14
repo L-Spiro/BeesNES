@@ -161,3 +161,5 @@ Tools/PPU Generator/LSNGenFuncsPal.inl
 Tools/PPU Generator/LSNGenFuncsPalM.inl
 Tools/PPU Generator/LSNGenFuncsPalN.inl
 /Tools/PPU Generator/.vs
+/Libraries/LSXML/Win32
+/Libraries/LSXML/x64

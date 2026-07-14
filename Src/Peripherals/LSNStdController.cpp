@@ -126,14 +126,14 @@ namespace lsn {
 	/**
 	 * Applies controller configurations to the perpheral.
 	 * 
-	 * \param _ieConfig The configuration to apply.  [4] configurations, [8] buttons.
-	 * \param _ieTurboConfig The turbo configuration to apply.  [4] configurations, [8] buttons.
+	 * \param _ieConfig The configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
+	 * \param _ieTurboConfig The turbo configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
 	 * \param _vUsbControllers The attached USB controllers/devices.
 	 * \param _icarRecord An in/out record of what controllers have been accessed and how.
 	 * \param _bStrictApply If true, USB controllers should only connect to the specific devices that were used to configur inputs.
 	 * \return Returns true if all buttons were able to be applied.
 	 **/
-	bool CStdController::ApplyConfiguration( lsn::LSN_INPUT_EVENT _ieConfig[4][8], lsn::LSN_INPUT_EVENT _ieTurboConfig[4][8],
+	bool CStdController::ApplyConfiguration( lsn::LSN_INPUT_EVENT _ieConfig[LSN_IS_INPUT_SETS][LSN_B_TOTAL], lsn::LSN_INPUT_EVENT _ieTurboConfig[LSN_IS_INPUT_SETS][LSN_B_TOTAL],
 		const std::vector<CUsbControllerBase *> &_vUsbControllers,
 		LSN_INPUT_CONFIGURATION_APPLICATION_RECORD &_icarRecord,
 		bool _bStrictApply ) {
@@ -147,7 +147,7 @@ namespace lsn {
 					m_vTurboMappings[B].clear();
 				}
 				// For each alternative key.
-				for ( size_t A = 0; A < 4; ++A ) {
+				for ( size_t A = 0; A < LSN_IS_INPUT_SETS; ++A ) {
 					// Normal buttons.
 					switch ( _ieConfig[A][B].dtType ) {
 						case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {

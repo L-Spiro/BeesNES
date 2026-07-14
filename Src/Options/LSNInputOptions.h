@@ -36,8 +36,8 @@ namespace lsn {
 		bool									bUseFourScore = false;																								/**< Use Four Score. */
 
 		// Standard controller options for each player.
-		LSN_INPUT_EVENT							ieButtonMap[4/** Up to 4 players. */][4/** 4 configurations. */][8/** 8 buttons.*/];								/**< The standard button map for up to 4 players, each with 4 alternatives and 8 buttons. */
-		LSN_INPUT_EVENT							ieTurboButtonMap[4/** Up to 4 players. */][4/** 4 configurations. */][8/** 8 buttons.*/];							/**< The turbo button map for up to 4 players, each with 4 alternatives and 8 buttons. */
+		LSN_INPUT_EVENT							ieButtonMap[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/];								/**< The standard button map for up to 4 players, each with 8 alternatives and 8 buttons. */
+		LSN_INPUT_EVENT							ieTurboButtonMap[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/];							/**< The turbo button map for up to 4 players, each with 8 alternatives and 8 buttons. */
 	};
 
 }	// namespace lsn

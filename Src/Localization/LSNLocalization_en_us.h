@@ -191,6 +191,10 @@
 #define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_1								Alternative Buttons 1
 #define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2								Alternative Buttons 2
 #define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3								Alternative Buttons 3
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_4								Alternative Buttons 4
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_5								Alternative Buttons 5
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_6								Alternative Buttons 6
+#define LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_7								Alternative Buttons 7
 #define LSN_STD_INPUT_RAPID													Rapid
 #define LSN_DIRECTIONAL_PAD													Directional Pad
 #define LSN_SELECT_START													Select/Start

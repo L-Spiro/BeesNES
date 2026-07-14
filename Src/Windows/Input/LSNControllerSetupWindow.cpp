@@ -52,6 +52,11 @@ namespace lsn {
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_1 )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_2 )),
 				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_3 )),
+				
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_4 )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_5 )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_6 )),
+				const_cast<LPWSTR>(LSN_LSTR( LSN_STD_INPUT_ALTTERNATIVE_BUTTONS_7 )),
 			};
 			for ( size_t I = std::size( lpwstrTabTitles ); I--; ) {
 				CStdControllerPage * pscpPage = static_cast<CStdControllerPage *>(CStdControllerPageLayout::CreatePage( this, (*m_pioOptions), m_pmwMainWindow, (m_stPlayerIdx << 16) | (I & 0xFFFF) ));
