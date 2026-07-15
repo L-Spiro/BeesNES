@@ -15,6 +15,102 @@
 
 namespace lsn {
 
+	// == Enumerations.
+	/**
+	 * \brief The NES 2.0 console type.
+	 */
+	enum LSN_CONSOLE_TYPE {
+		LSN_CT_NES_FAMICOM					= 0,						/**< Standard Nintendo Entertainment System or Famicom. */
+		LSN_CT_VS_SYSTEM					= 1,						/**< Nintendo Vs. System. */
+		LSN_CT_PLAYCHOICE_10				= 2,						/**< Nintendo PlayChoice-10. */
+		LSN_CT_FAMICOM_EPSON_EVA_ADPCM		= 3,						/**< Regular Famicom with EPSON EVA-ADPCM. */
+		LSN_CT_VT01							= 4,						/**< V.R. Technology VT01 with red/cyan ADC. */
+		LSN_CT_VT02							= 5,						/**< V.R. Technology VT02. */
+		LSN_CT_VT03							= 6,						/**< V.R. Technology VT03. */
+		LSN_CT_VT09							= 7,						/**< V.R. Technology VT09. */
+		LSN_CT_VT32							= 8,						/**< V.R. Technology VT32. */
+		LSN_CT_VT369						= 9,						/**< V.R. Technology VT369. */
+		LSN_CT_UM6578						= 10,						/**< UMC UM6578. */
+		LSN_CT_FAMICOM_NETWORK_SYSTEM		= 11,						/**< Famicom Network System. */
+		LSN_CT_SECAM_EP1X					= 12,						/**< Computer & Entertainment SECAM Ep1x. */
+
+		LSN_CT_NOCONSOLETYPE				= -1,						/**< Unspecified. */
+	};
+
+	/**
+	 * \brief The NES 2.0 CPU/PPU timing region.
+	 */
+	enum LSN_NES2_REGION {
+		LSN_NR_NTSC							= 0,						/**< RP2C02 (NTSC NES). */
+		LSN_NR_PAL							= 1,						/**< RP2C07 (Licensed PAL NES). */
+		LSN_NR_MULTI_REGION					= 2,						/**< Multiple-region. */
+		LSN_NR_DENDY						= 3,						/**< UA6538 (Dendy/Famiclone). */
+
+		LSN_NR_NONE							= 0xFFE2,					/**< Unspecified. */
+	};
+
+	/**
+	 * \brief The NES 2.0 default expansion device.
+	 */
+	enum LSN_EXPANSION_DEVICE {
+		LSN_ED_UNSPECIFIED					= 0,						/**< Unspecified expansion device. */
+		LSN_ED_STANDARD_CONTROLLERS			= 1,						/**< Standard NES/Famicom controllers. */
+		LSN_ED_NES_FOUR_SCORE				= 2,						/**< NES Four Score / Satellite. */
+		LSN_ED_FAMICOM_FOUR_PLAYER			= 3,						/**< Famicom Four Player Adapter. */
+		LSN_ED_VS_SYSTEM					= 4,						/**< Vs. System. */
+		LSN_ED_VS_SYSTEM_REVERSED			= 5,						/**< Vs. System with reversed inputs. */
+		LSN_ED_VS_PINBALL					= 6,						/**< Vs. Pinball. */
+		LSN_ED_VS_ZAPPER					= 7,						/**< Vs. Zapper. */
+		LSN_ED_ZAPPER						= 8,						/**< Zapper. */
+		LSN_ED_TWO_ZAPPERS					= 9,						/**< Two Zappers. */
+		LSN_ED_BANDAI_HYPER_SHOT			= 10,						/**< Bandai Hyper Shot. */
+		LSN_ED_POWER_PAD_SIDE_A				= 11,						/**< Power Pad Side A. */
+		LSN_ED_POWER_PAD_SIDE_B				= 12,						/**< Power Pad Side B. */
+		LSN_ED_FAMILY_TRAINER_SIDE_A		= 13,						/**< Family Trainer Side A. */
+		LSN_ED_FAMILY_TRAINER_SIDE_B		= 14,						/**< Family Trainer Side B. */
+		LSN_ED_ARKANOID_VAUS_NES			= 15,						/**< Arkanoid Vaus Controller (NES). */
+		LSN_ED_ARKANOID_VAUS_FAMICOM		= 16,						/**< Arkanoid Vaus Controller (Famicom). */
+		LSN_ED_TWO_VAUS_CONTROLLERS			= 17,						/**< Two Vaus Controllers. */
+		LSN_ED_KONAMI_HYPER_SHOT			= 18,						/**< Konami Hyper Shot. */
+		LSN_ED_COCONUTS_PACHINKO			= 19,						/**< Coconuts Pachinko Controller. */
+		LSN_ED_EXCITING_BOXING				= 20,						/**< Exciting Boxing Punching Board. */
+		LSN_ED_JISSEN_MAHJONG				= 21,						/**< Jissen Mahjong Controller. */
+		LSN_ED_PARTYTAP						= 22,						/**< PartyTap. */
+		LSN_ED_OEKA_KIDS_TABLET				= 23,						/**< Oeka Kids Tablet. */
+		LSN_ED_SUNSOFT_BARCODE_BATTLER		= 24,						/**< Sunsoft Barcode Battler. */
+		LSN_ED_MIRACLE_PIANO				= 25,						/**< Miracle Piano Keyboard. */
+		LSN_ED_POKKUN_MOGURAA				= 26,						/**< Pokkun Moguraa. */
+		LSN_ED_TOP_RIDER					= 27,						/**< Top Rider. */
+		LSN_ED_DOUBLE_FISTED				= 28,						/**< Double-Fisted. */
+		LSN_ED_FAMICOM_3D_SYSTEM			= 29,						/**< Famicom 3D System. */
+		LSN_ED_DOREMIKKO_KEYBOARD			= 30,						/**< Doremikko Keyboard. */
+		LSN_ED_ROB_GYRO_SET					= 31,						/**< R.O.B. Gyro Set. */
+		LSN_ED_ROB_STACK_UP					= 32,						/**< R.O.B. Stack-Up. */
+		LSN_ED_ASCII_KEYBOARD				= 33,						/**< ASCII Enigma ROM (Keyboard) / Data Recorder. */
+		LSN_ED_FAMILY_BASIC_KEYBOARD		= 34,						/**< Family BASIC Keyboard. */
+		LSN_ED_PEC_586_KEYBOARD				= 35,						/**< PEC-586 Keyboard. */
+		LSN_ED_BIT_CORP_KEYBOARD			= 36,						/**< Bit Corp. Keyboard. */
+		LSN_ED_SUBOR_KEYBOARD				= 37,						/**< Subor Keyboard. */
+		LSN_ED_SUBOR_KEYBOARD_MOUSE_3X8		= 38,						/**< Subor Keyboard + Mouse (3x8-bit). */
+		LSN_ED_SUBOR_KEYBOARD_MOUSE_24		= 39,						/**< Subor Keyboard + Mouse (24-bit). */
+		LSN_ED_SNES_MOUSE					= 40,						/**< SNES Mouse. */
+		LSN_ED_MULTICART					= 41,						/**< Multicart. */
+		LSN_ED_TWO_SNES_CONTROLLERS			= 42,						/**< Two Super Nintendo Controllers. */
+		LSN_ED_RACERMATE_BICYCLE			= 43,						/**< RacerMate Bicycle. */
+		LSN_ED_U_FORCE						= 44,						/**< U-Force. */
+		LSN_ED_ROB							= 45,						/**< R.O.B. */
+		LSN_ED_SNES_MOUSE_4017_D0			= 46,						/**< SNES Mouse ($4017.d0). */
+		LSN_ED_ZAPPER_4017					= 47,						/**< Zapper ($4017). */
+		LSN_ED_SHARP_C1_KEYBOARD			= 48,						/**< Sharp C1 Keyboard. */
+		LSN_ED_STANDARD_CONTROLLER_SWAPPED	= 49,						/**< Standard Controller, swapped. */
+		LSN_ED_EXCALIBUR_SUDOKU_PAD			= 50,						/**< Excalibur Sudoku Pad. */
+		LSN_ED_ABL_PINBALL					= 51,						/**< ABL Pinball. */
+		LSN_ED_GOLDEN_NUGGET_CASINO			= 52,						/**< Golden Nugget Casino. */
+		LSN_ED_FAMICOM_NETWORK_CONTROLLER	= 53,						/**< Famicom Network Controller. */
+
+		LSN_ED_NONE							= -1,						/**< Unspecified. */
+	};
+
 	/**
 	 * Class LSN_NES_HEADER
 	 * \brief The Archaic iNES, iNES 0.7, iNES, and iNES 2.0 header.
@@ -22,19 +118,19 @@ namespace lsn {
 	 * Description: The Archaic iNES, iNES 0.7, iNES, and iNES 2.0 header.
 	 */
 	struct LSN_NES_HEADER {
-		char									cNesString[4];				/**< 0-3: Constant $4E $45 $53 $1A ("NES" followed by MS-DOS end-of-file). */
-		uint8_t									ui8PrgRomSize;				/**< 4: Size of PRG ROM in 16 KB units. */
-		uint8_t									ui8ChrRomSize;				/**< 5: Size of CHR ROM in 8 KB units (0 means the board uses CHR RAM). */
-		uint8_t									ui8Byte6;					/**< 6: Flags 6 - Mapper, mirroring, battery, trainer. */
-		uint8_t									ui8Byte7;					/**< 7: Flags 7 - Mapper, VS/Playchoice, NES 2.0. */
-		uint8_t									ui8Byte8;					/**< 8: Flags 8 - PRG-RAM size (rarely used extension). */
-		uint8_t									ui8Byte9;					/**< 9: Flags 9 - TV system (rarely used extension). */
-		uint8_t									ui8Byte10;					/**< 10: Flags 10 - TV system, PRG-RAM presence (unofficial, rarely used extension). */
-		uint8_t									ui8Byte11;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
-		uint8_t									ui8Byte12;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
-		uint8_t									ui8Byte13;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
-		uint8_t									ui8Byte14;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
-		uint8_t									ui8Byte15;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
+		char								cNesString[4];				/**< 0-3: Constant $4E $45 $53 $1A ("NES" followed by MS-DOS end-of-file). */
+		uint8_t								ui8PrgRomSize;				/**< 4: Size of PRG ROM in 16 KB units. */
+		uint8_t								ui8ChrRomSize;				/**< 5: Size of CHR ROM in 8 KB units (0 means the board uses CHR RAM). */
+		uint8_t								ui8Byte6;					/**< 6: Flags 6 - Mapper, mirroring, battery, trainer. */
+		uint8_t								ui8Byte7;					/**< 7: Flags 7 - Mapper, VS/Playchoice, NES 2.0. */
+		uint8_t								ui8Byte8;					/**< 8: Flags 8 - PRG-RAM size (rarely used extension). */
+		uint8_t								ui8Byte9;					/**< 9: Flags 9 - TV system (rarely used extension). */
+		uint8_t								ui8Byte10;					/**< 10: Flags 10 - TV system, PRG-RAM presence (unofficial, rarely used extension). */
+		uint8_t								ui8Byte11;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
+		uint8_t								ui8Byte12;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
+		uint8_t								ui8Byte13;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
+		uint8_t								ui8Byte14;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
+		uint8_t								ui8Byte15;					/**< 11-15: Unused padding (should be filled with zero, but some rippers put their names across bytes 7-15). */
 
 
 		// == Functions.
@@ -43,91 +139,91 @@ namespace lsn {
 		 *
 		 * \return Returns the ROM header version.
 		 */
-		inline LSN_ROM_HEADER_VERSION			GetHeaderVersion() const;
+		inline LSN_ROM_HEADER_VERSION		GetHeaderVersion() const;
 
 		/**
 		 * Gets the game console region.
 		 *
 		 * \return Returns the game console region.
 		 */
-		inline LSN_PPU_METRICS					GetGameRegion() const;
+		inline LSN_PPU_METRICS				GetGameRegion() const;
 
 		/**
 		 * Determines if a battery is present.
 		 *
 		 * \return Returns true if a battery is present, false otherwise.
 		 */
-		inline bool								HasBattery() const;
+		inline bool							HasBattery() const;
 
 		/**
 		 * Determines if a trainer is present.
 		 *
 		 * \return Returns true if a trainer is present, false otherwise.
 		 */
-		inline bool								HasTrainer() const;
+		inline bool							HasTrainer() const;
 
 		/**
 		 * Gets the mapper.
 		 *
 		 * \return Returns the mapper ID.
 		 */
-		inline uint16_t							GetMapper() const;
+		inline uint16_t						GetMapper() const;
 
 		/**
 		 * Gets the sub-mapper.
 		 *
 		 * \return Returns the sub-mapper ID.
 		 */
-		inline uint16_t							GetSubMapper() const;
+		inline uint16_t						GetSubMapper() const;
 
 		/**
 		 * Gets the ROM mirror mode.
 		 *
 		 * \return Gets the mirroring mode for the ROM.
 		 */
-		inline LSN_MIRROR_MODE					GetMirrorMode() const;
+		inline LSN_MIRROR_MODE				GetMirrorMode() const;
 
 		/**
 		 * Gets the PGM ROM size.
 		 *
 		 * \return Returns the PGM ROM size.
 		 */
-		inline uint32_t							GetPgmRomSize() const;
+		inline uint32_t						GetPgmRomSize() const;
 
 		/**
 		 * Gets the CHR ROM size.
 		 *
 		 * \return Returns the CHR ROM size.
 		 */
-		inline uint32_t							GetChrRomSize() const;
+		inline uint32_t						GetChrRomSize() const;
 
 		/**
 		 * Gets the work RAM size.
 		 *
 		 * \return Returns the work RAM size.
 		 */
-		inline uint32_t							GetWorkRamSize() const;
+		inline uint32_t						GetWorkRamSize() const;
 
 		/**
 		 * Gets the save RAM size.
 		 *
 		 * \return Returns the save RAM size.
 		 */
-		inline uint32_t							GetSaveRamSize() const;
+		inline uint32_t						GetSaveRamSize() const;
 
 		/**
 		 * Gets the CHR RAM size.
 		 *
 		 * \return Returns the CHR RAM size.
 		 */
-		inline uint32_t							GetChrRamSize() const;
+		inline uint32_t						GetChrRamSize() const;
 
 		/**
 		 * Gets the save CHR RAM size.
 		 *
 		 * \return Returns the save CHR RAM size.
 		 */
-		inline uint32_t							GetSaveChrRamSize() const;
+		inline uint32_t						GetSaveChrRamSize() const;
 
 		/**
 		 * Translates the iNES 2.0 size, returning 0 in the case of error.
@@ -136,7 +232,7 @@ namespace lsn {
 		 * \param _ui32Mult The multiplier.
 		 * \return Returns the translated size using the iNES 2.0 formula: 2^E *(MM*2+1).
 		 */
-		static inline uint32_t					TranslateSize( uint32_t _ui32Exp, uint32_t _ui32Mult );
+		static inline uint32_t				TranslateSize( uint32_t _ui32Exp, uint32_t _ui32Mult );
 	};
 
 

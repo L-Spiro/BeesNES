@@ -21,6 +21,15 @@
 
 namespace lsn {
 
+	// == Members.
+	/** Normal presets. */
+	LSN_INPUT_EVENT CStdControllerPage::m_ieNormalPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL] = {};
+
+	/** Turbo presets. */
+	LSN_INPUT_EVENT CStdControllerPage::m_ieTurboPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL] = {};
+
+
+	// == Contructors.
 	CStdControllerPage::~CStdControllerPage() {
 		if ( m_pwListenControl ) {
 			StopListening_Keyboard( m_pwListenControl, false );
@@ -34,6 +43,8 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CStdControllerPage::InitDialog() {
+		CreatePresets();
+
 		CListView * ptControllerList = static_cast<CListView *>(FindChild( Layout::LSN_SCPI_INPUT_DEVICES_LISTVIEW ));
 		if ( ptControllerList ) {
 			m_iNameCol = ptControllerList->AddColumn( LSN_LSTR( LSN_DEVICE_NAME ) );
@@ -64,40 +75,38 @@ namespace lsn {
 			}
 		}
 
-		std::vector<lsw::CButton *> vMainButtons = MainButtons();
-		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();
+
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
 		std::vector<lsw::CTrackBar *> vDeadzoneTracks = DeadZoneTrackBars();
-		for ( size_t I = 0; I < vMainButtons.size(); ++I ) {
-			vMainButtons[I]->SetUserData( I );
-			if ( m_ieMainButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieMainButtons[I].u.kb.kKey.bKeyCode != 0 ) {
-				vMainButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieMainButtons[I].u.kb.kKey, false ).c_str() );
-			}
-			else if ( m_ieMainButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
-				vMainButtons[I]->SetTextW( CUtilities::InputEventToString( m_ieMainButtons[I].u.cont.ieEvent ).c_str() );
-			}
-		}
-		for ( size_t I = 0; I < vTurboButtons.size(); ++I ) {
-			vTurboButtons[I]->SetUserData( I );
-			if ( m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0 ) {
-				vTurboButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieTurboButtons[I].u.kb.kKey, false ).c_str() );
-			}
-			else if ( m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
-				vTurboButtons[I]->SetTextW( CUtilities::InputEventToString( m_ieTurboButtons[I].u.cont.ieEvent ).c_str() );
-			}
-		}
+		UpdateButtons( true );
 		for ( size_t I = 0; I < vTurboCombos.size(); ++I ) {
 			vTurboCombos[I]->SetUserData( I );
 
-			static const CWinUtilities::LSN_COMBO_ENTRY ceEnries[] = {
+			static const CWinUtilities::LSN_COMBO_ENTRY ceEntries[] = {
 				//pwcName																					lpParm
 				{ L"Std: 1111000011110000111100001111000011110000111100001111000011110000",					-1,		},
 			};
-			CWinUtilities::FillComboBox( vTurboCombos[I], ceEnries, std::size( ceEnries ), -1 );
+			CWinUtilities::FillComboBox( vTurboCombos[I], ceEntries, std::size( ceEntries ), -1 );
 		}
 		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
 			vDeadzoneTracks[I]->SetTicFreq( 5 );
 			vDeadzoneTracks[I]->SetPos( TRUE, 20 );
+		}
+
+		{
+			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
+			if ( pcbCombo ) {
+				static const CWinUtilities::LSN_COMBO_ENTRY ceEntries[] = {
+					//pwcName																					lpParm
+					{ LSN_LSTR( LSN_WASD_OP_L_ ),																LSN_P_WASD_OP_L_,					},
+					{ LSN_LSTR( LSN_WASD_UI_JK ),																LSN_P_WASD_UI_JK,					},
+					{ LSN_LSTR( LSN_ARROW_KEYS_QW_AS ),															LSN_P_ARROW_KEYS_QW_AS,				},
+					{ LSN_LSTR( LSN_HORI_SWITCH_Y_B_LAYOUT ),													LSN_P_HORI_SWITCH_Y_B_LAYOUT,		},
+					{ LSN_LSTR( LSN_HORI_SWITCH_B_A_LAYOUT ),													LSN_P_HORI_SWITCH_B_A_LAYOUT,		},
+					{ LSN_LSTR( LSN_AUDIO_OPTIONS_CUSTOM ),														-1,									},
+				};
+				CWinUtilities::FillComboBox( pcbCombo, ceEntries, std::size( ceEntries ), -1 );
+			}
 		}
 
 
@@ -251,7 +260,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CStdControllerPage::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * _pwSrc ) {
+	CWidget::LSW_HANDLED CStdControllerPage::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
 			case Layout::LSN_SCPI_BUTTON_A_BUTTON : {}
 			case Layout::LSN_SCPI_BUTTON_B_BUTTON : {}
@@ -329,6 +338,31 @@ namespace lsn {
 				BeginListening( (vButtons[m_sAutoListenStart]->GetUserData() & 0xFF) + 8, vButtons[m_sAutoListenStart] );
 				return LSW_H_HANDLED;
 			}
+
+			// Combo Boxes.
+			case CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO : {
+				if ( _wCtrlCode == CBN_SELENDOK ) {
+					lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(_pwSrc);
+					if ( pcbCombo ) {
+						LPARAM lpData = pcbCombo->GetCurSelItemData();
+						switch ( lpData ) {
+							case LSN_P_WASD_OP_L_ : {}						LSN_FALLTHROUGH
+							case LSN_P_WASD_UI_JK : {}						LSN_FALLTHROUGH
+							case LSN_P_ARROW_KEYS_QW_AS : {}				LSN_FALLTHROUGH
+							case LSN_P_HORI_SWITCH_Y_B_LAYOUT : {}			LSN_FALLTHROUGH
+							case LSN_P_HORI_SWITCH_B_A_LAYOUT : {
+								std::memcpy( m_ieMainButtons, m_ieNormalPresets[lpData], sizeof( m_ieMainButtons ) );
+								std::memcpy( m_ieTurboButtons, m_ieTurboPresets[lpData], sizeof( m_ieTurboButtons ) );
+
+								UpdateButtons( false );
+								UpdateDialog();
+								break;
+							}
+						}
+					}
+				}
+				break;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -360,7 +394,8 @@ namespace lsn {
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
 
 		for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
-			bool bKeySet = (m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0);
+			bool bKeySet = (m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0) ||
+				m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;
 			vTurboCombos[I]->SetEnabled( bKeySet );
 		}
 
@@ -368,6 +403,71 @@ namespace lsn {
 		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
 			vDeadzoneTracks[I]->SetEnabled( FALSE );
 		}
+
+		LPARAM lpPreset = -1;
+		for ( size_t I = 0; I < LSN_P_TOTAL; ++I ) {
+			bool bMatch = true;
+			for ( size_t P = 0; P < IPeripheralBase::LSN_B_TOTAL; ++P ) {
+				if ( m_ieMainButtons[P].dtType != m_ieNormalPresets[I][P].dtType ) { bMatch = false; break; }
+
+				if ( m_ieMainButtons[P].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD ) {
+					if ( m_ieMainButtons[P].u.kb.kKey.bKeyCode != m_ieNormalPresets[I][P].u.kb.kKey.bKeyCode ) { bMatch = false; break; }
+					if ( m_ieMainButtons[P].u.kb.kKey.bKeyModifier != m_ieNormalPresets[I][P].u.kb.kKey.bKeyModifier ) { bMatch = false; break; }
+					if ( m_ieMainButtons[P].u.kb.kKey.dwScanCode != m_ieNormalPresets[I][P].u.kb.kKey.dwScanCode ) { bMatch = false; break; }
+				}
+				else if ( m_ieMainButtons[P].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+					if ( m_ieMainButtons[P].u.cont.ieEvent.icType != m_ieNormalPresets[I][P].u.cont.ieEvent.icType ) { bMatch = false; break; }
+					if ( m_ieMainButtons[P].u.cont.ieEvent.stIdx != m_ieNormalPresets[I][P].u.cont.ieEvent.stIdx ) { bMatch = false; break; }
+					if ( std::memcmp( &m_ieMainButtons[P].u.cont.guProductId, &m_ieNormalPresets[I][P].u.cont.guProductId, sizeof( GUID ) ) != 0 ) { bMatch = false; break; }
+					switch ( m_ieMainButtons[P].u.cont.ieEvent.icType ) {
+						case CUsbControllerBase::LSN_IC_AXIS : {
+							if ( m_ieMainButtons[P].u.cont.ieEvent.u.lAxis > 0 && !(m_ieNormalPresets[I][P].u.cont.ieEvent.u.lAxis > 0) ) { bMatch = false; break; }
+							break;
+						}
+						case CUsbControllerBase::LSN_IC_POV : {
+							if ( m_ieMainButtons[P].u.cont.ieEvent.u.dwPov != m_ieNormalPresets[I][P].u.cont.ieEvent.u.dwPov ) { bMatch = false; break; }
+							break;
+						}
+					}
+				}
+
+				// If it still matches, check the turbo buttons.
+				if ( bMatch ) {
+					if ( m_ieTurboButtons[P].dtType != m_ieTurboPresets[I][P].dtType ) { bMatch = false; break; }
+
+					if ( m_ieTurboButtons[P].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD ) {
+						if ( m_ieTurboButtons[P].u.kb.kKey.bKeyCode != m_ieTurboPresets[I][P].u.kb.kKey.bKeyCode ) { bMatch = false; break; }
+						if ( m_ieTurboButtons[P].u.kb.kKey.bKeyModifier != m_ieTurboPresets[I][P].u.kb.kKey.bKeyModifier ) { bMatch = false; break; }
+						if ( m_ieTurboButtons[P].u.kb.kKey.dwScanCode != m_ieTurboPresets[I][P].u.kb.kKey.dwScanCode ) { bMatch = false; break; }
+					}
+					else if ( m_ieTurboButtons[P].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+						if ( m_ieTurboButtons[P].u.cont.ieEvent.icType != m_ieTurboPresets[I][P].u.cont.ieEvent.icType ) { bMatch = false; break; }
+						if ( m_ieTurboButtons[P].u.cont.ieEvent.stIdx != m_ieTurboPresets[I][P].u.cont.ieEvent.stIdx ) { bMatch = false; break; }
+						if ( std::memcmp( &m_ieTurboButtons[P].u.cont.guProductId, &m_ieTurboPresets[I][P].u.cont.guProductId, sizeof( GUID ) ) != 0 ) { bMatch = false; break; }
+						switch ( m_ieTurboButtons[P].u.cont.ieEvent.icType ) {
+							case CUsbControllerBase::LSN_IC_AXIS : {
+								if ( m_ieTurboButtons[P].u.cont.ieEvent.u.lAxis > 0 && !(m_ieTurboPresets[I][P].u.cont.ieEvent.u.lAxis > 0) ) { bMatch = false; break; }
+								break;
+							}
+							case CUsbControllerBase::LSN_IC_POV : {
+								if ( m_ieTurboButtons[P].u.cont.ieEvent.u.dwPov != m_ieTurboPresets[I][P].u.cont.ieEvent.u.dwPov ) { bMatch = false; break; }
+								break;
+							}
+						}
+					}
+				}
+			}
+			if ( bMatch ) {
+				lpPreset = static_cast<LPARAM>(I);
+				break;
+			}
+		}
+
+		lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
+		if ( pcbCombo ) {
+			pcbCombo->SetCurSelByItemData( lpPreset );
+		}
+
 		/*::RedrawWindow( Wnd(), NULL, NULL,
 			RDW_INVALIDATE |
 			RDW_ERASE | RDW_UPDATENOW | RDW_ALLCHILDREN );*/
@@ -625,6 +725,40 @@ namespace lsn {
 	}
 
 	/**
+	 * Updates the key buttons with their assignments.
+	 * 
+	 * \param _bSetUserData If true, user data is also assigned to each button.
+	 **/
+	void CStdControllerPage::UpdateButtons( bool _bSetUserData ) {
+		std::vector<lsw::CButton *> vMainButtons = MainButtons();
+		std::vector<lsw::CButton *> vTurboButtons = TurboButtons();
+		for ( size_t I = 0; I < vMainButtons.size(); ++I ) {
+			if ( _bSetUserData ) { vMainButtons[I]->SetUserData( I ); }
+			if ( m_ieMainButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieMainButtons[I].u.kb.kKey.bKeyCode != 0 ) {
+				vMainButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieMainButtons[I].u.kb.kKey, false ).c_str() );
+			}
+			else if ( m_ieMainButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+				vMainButtons[I]->SetTextW( CUtilities::InputEventToString( m_ieMainButtons[I].u.cont.ieEvent ).c_str() );
+			}
+			else {
+				vMainButtons[I]->SetTextW( L"" );
+			}
+		}
+		for ( size_t I = 0; I < vTurboButtons.size(); ++I ) {
+			if ( _bSetUserData ) { vTurboButtons[I]->SetUserData( I ); }
+			if ( m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_KEYBOARD && m_ieTurboButtons[I].u.kb.kKey.bKeyCode != 0 ) {
+				vTurboButtons[I]->SetTextW( lsw::CHelpers::ToString( m_ieTurboButtons[I].u.kb.kKey, false ).c_str() );
+			}
+			else if ( m_ieTurboButtons[I].dtType == LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER ) {
+				vTurboButtons[I]->SetTextW( CUtilities::InputEventToString( m_ieTurboButtons[I].u.cont.ieEvent ).c_str() );
+			}
+			else {
+				vTurboButtons[I]->SetTextW( L"" );
+			}
+		}
+	}
+
+	/**
 	 * Determines if any entry in m_vControllers has a GUID with a CRC32 matching the given CRC32.
 	 * 
 	 * \param _ui32Crc The CRC32 to find on any item in m_vControllers.
@@ -683,6 +817,154 @@ namespace lsn {
 	uint32_t CStdControllerPage::GuidToCrc32( const GUID &_gId ) {
 		auto sStr = CUtilities::FormatGuidToString( _gId );
 		return CCrc::GetCrc( reinterpret_cast<const uint8_t *>(sStr.data()), sStr.size() );
+	}
+
+	/**
+	 * Sets up the presets.
+	 **/
+	void CStdControllerPage::CreatePresets() {
+		static bool bSetUp = false;
+		if ( !bSetUp ) {
+			bSetUp = true;
+			std::memset( m_ieNormalPresets, 0, sizeof( m_ieNormalPresets ) );
+			std::memset( m_ieTurboPresets, 0, sizeof( m_ieTurboPresets ) );
+
+#define LSN_SET_KEY( PRESET, IDX, SCAN, KEY )																						\
+	m_ieNormalPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;														\
+	m_ieNormalPresets[PRESET][IDX].u.kb.kKey.dwScanCode = SCAN;																		\
+	m_ieNormalPresets[PRESET][IDX].u.kb.kKey.bKeyCode = KEY
+
+#define LSN_SET_TKEY( PRESET, IDX, SCAN, KEY )																						\
+	m_ieTurboPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_KEYBOARD;														\
+	m_ieTurboPresets[PRESET][IDX].u.kb.kKey.dwScanCode = SCAN;																		\
+	m_ieTurboPresets[PRESET][IDX].u.kb.kKey.bKeyCode = KEY
+
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_UP, 0x00110001, 'W' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_LEFT, 0x001E0001, 'A' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_RIGHT, 0x00200001, 'D' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_DOWN, 0x001F0001, 'S' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_SELECT, 0x00180001, 'O' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_START, 0x00190001, 'P' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_B, 0x00260001, 'L' );
+			LSN_SET_KEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_A, 0x00270001, VK_OEM_1 );
+
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_UP, 0x00030001, '2' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_LEFT, 0x00100001, 'Q' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_RIGHT, 0x00120001, 'E' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_DOWN, 0x002D0001, 'X' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_SELECT, 0x000A0001, '9' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_START, 0x000B0001, '0' );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_B, 0x00340001, VK_OEM_PERIOD );
+			LSN_SET_TKEY( LSN_P_WASD_OP_L_, IPeripheralBase::LSN_B_A, 0x00350001, VK_OEM_2 );
+
+			
+
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_UP, 0x00110001, 'W' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_LEFT, 0x001E0001, 'A' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_RIGHT, 0x00200001, 'D' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_DOWN, 0x001F0001, 'S' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_SELECT, 0x00160001, 'U' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_START, 0x00170001, 'I' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_B, 0x00240001, 'J' );
+			LSN_SET_KEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_A, 0x00250001, 'K' );
+
+			LSN_SET_TKEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_B, 0x00320001, 'M' );
+			LSN_SET_TKEY( LSN_P_WASD_UI_JK, IPeripheralBase::LSN_B_A, 0x00270001, VK_OEM_1 );
+
+
+
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_UP, 0x01480001, VK_UP );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_LEFT, 0x014B0001, VK_LEFT );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_RIGHT, 0x014D0001, VK_RIGHT );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_DOWN, 0x01500001, VK_DOWN );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_SELECT, 0x00100001, 'Q' );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_START, 0x00110001, 'W' );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_B, 0x001E0001, 'A' );
+			LSN_SET_KEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_A, 0x001F0001, 'S' );
+
+			LSN_SET_TKEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_B, 0x002C0001, 'Z' );
+			LSN_SET_TKEY( LSN_P_ARROW_KEYS_QW_AS, IPeripheralBase::LSN_B_A, 0x002D0001, 'X' );
+
+
+#define LSN_POV( PRESET, IDX, POV )																	\
+	m_ieNormalPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;					\
+	m_ieNormalPresets[PRESET][IDX].u.cont.ieEvent.icType = CUsbControllerBase::LSN_IC_POV;			\
+	m_ieNormalPresets[PRESET][IDX].u.cont.ieEvent.stIdx = 0;										\
+	m_ieNormalPresets[PRESET][IDX].u.cont.ieEvent.u.dwPov = POV;									\
+	std::memcpy( &m_ieNormalPresets[PRESET][IDX].u.cont.guProductId, &guId, sizeof( GUID ) )
+
+#define LSN_BUTTON( PRESET, IDX, BUTTON )															\
+	m_ieNormalPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;					\
+	m_ieNormalPresets[PRESET][IDX].u.cont.ieEvent.icType = CUsbControllerBase::LSN_IC_BUTTON;		\
+	m_ieNormalPresets[PRESET][IDX].u.cont.ieEvent.stIdx = BUTTON;									\
+	std::memcpy( &m_ieNormalPresets[PRESET][IDX].u.cont.guProductId, &guId, sizeof( GUID ) )
+
+
+
+#define LSN_TPOV( PRESET, IDX, POV )																\
+	m_ieTurboPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;					\
+	m_ieTurboPresets[PRESET][IDX].u.cont.ieEvent.icType = CUsbControllerBase::LSN_IC_POV;			\
+	m_ieTurboPresets[PRESET][IDX].u.cont.ieEvent.stIdx = 0;											\
+	m_ieTurboPresets[PRESET][IDX].u.cont.ieEvent.u.dwPov = POV;										\
+	std::memcpy( &m_ieTurboPresets[PRESET][IDX].u.cont.guProductId, &guId, sizeof( GUID ) )
+
+#define LSN_TBUTTON( PRESET, IDX, BUTTON )															\
+	m_ieTurboPresets[PRESET][IDX].dtType = LSN_INPUT_EVENT::LSN_DT_USB_CONTROLLER;					\
+	m_ieTurboPresets[PRESET][IDX].u.cont.ieEvent.icType = CUsbControllerBase::LSN_IC_BUTTON;		\
+	m_ieTurboPresets[PRESET][IDX].u.cont.ieEvent.stIdx = BUTTON;									\
+	std::memcpy( &m_ieTurboPresets[PRESET][IDX].u.cont.guProductId, &guId, sizeof( GUID ) )
+			{
+				GUID guId = {
+					0x00C10F0D,
+					0x0000,
+					0x0000,
+					{
+						0x00,
+						0x00,
+						0x50,
+						0x49,
+						0x44,
+						0x56,
+						0x49,
+						0x44
+					}
+				};
+
+
+				LSN_POV( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_UP, 0 );
+				LSN_POV( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_LEFT, 27000 );
+				LSN_POV( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_RIGHT, 9000 );
+				LSN_POV( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_DOWN, 18000 );
+
+				LSN_BUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_SELECT, 13 );
+				LSN_BUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_START, 12 );
+				LSN_BUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_B, 0 );
+				LSN_BUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_A, 1 );
+
+				LSN_TBUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_B, 3 );
+				LSN_TBUTTON( LSN_P_HORI_SWITCH_Y_B_LAYOUT, IPeripheralBase::LSN_B_A, 2 );
+
+
+
+				LSN_POV( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_UP, 0 );
+				LSN_POV( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_LEFT, 27000 );
+				LSN_POV( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_RIGHT, 9000 );
+				LSN_POV( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_DOWN, 18000 );
+
+				LSN_BUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_SELECT, 13 );
+				LSN_BUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_START, 12 );
+
+				LSN_BUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_B, 1 );
+				LSN_BUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_A, 2 );
+
+				LSN_TBUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_B, 0 );
+				LSN_TBUTTON( LSN_P_HORI_SWITCH_B_A_LAYOUT, IPeripheralBase::LSN_B_A, 3 );
+			}
+#undef LSN_TBUTTON
+#undef LSN_TPOV
+#undef LSN_SET_TKEY
+#undef LSN_SET_KEY
+		}
 	}
 
 }	// namespace lsn

@@ -243,6 +243,40 @@ namespace lsn {
 			0,												// sTextLen
 			LSN_SCPI_MAINWINDOW,							// dwParentId
 		},
+
+		// Preset.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			LSN_SCPI_QUICK_CONFIGURE_PRESET_GROUP,			// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT,							// iLeft
+			LSN_STD_CONT_PRESET_GROUP_TOP,					// iTop
+			LSN_STD_CONT_BUT_GROUP_W,						// dwWidth
+			LSN_STD_CONT_PRESET_GROUP_H,					// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_QUICK_SET ),						// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
+		{
+			LSW_LT_COMBOBOX,								// ltType
+			LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO,			// wId
+			WC_COMBOBOXW,									// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT + LSN_GROUP_LEFT,			// iLeft
+			LSN_STD_CONT_PRESET_GROUP_TOP + LSN_GROUP_TOP,	// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_DEF_COMBO_HEIGHT,							// dwHeight
+			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			LSN_SCPI_MAINWINDOW,							// dwParentId
+		},
 	};
 
 #undef LSN_STD_CONT_H

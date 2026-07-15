@@ -8,6 +8,11 @@
 
 
 #include "LSNDatabase.h"
+#include "../File/LSNZipFile.h"
+
+#include <LSXml.h>
+#include <LSXmlContainer.h>
+
 #include <string>
 
 namespace lsn {
@@ -1386,5 +1391,253 @@ namespace lsn {
 		m_mDatabase = std::map<uint32_t, LSN_ENTRY>();
 	}
 
+	/**
+	 * Loads the converted XML database (LSDB) of ROM's.
+	 * 
+	 * \param _pPath The path to the database to load.
+	 * \return Returns the number of items loaded from the database.
+	 **/
+	size_t CDatabase::LoadDatabase( const std::filesystem::path _pPath ) {
+		std::vector<uint8_t> vFile;
+		if ( !CStdFile::LoadToMemory( _pPath.native().c_str(), vFile ) ) { return 0; }
+		size_t sLoaded = 0;
+		try {
+			const CDatabase::LSN_DATABASE_ENTRY * pdeEntries = reinterpret_cast<const CDatabase::LSN_DATABASE_ENTRY *>(vFile.data());
+			if ( !pdeEntries ) { return 0; }
+			size_t sTotal = vFile.size() / sizeof( CDatabase::LSN_DATABASE_ENTRY );
+
+			for ( size_t I = 0; I < sTotal; ++I ) {
+				CDatabase::LSN_ENTRY eEntry;
+
+				eEntry.ui32PgmRomSize = pdeEntries[I].prPrgRom.ui32Size;
+				eEntry.ui32Crc = pdeEntries[I].rRom.ui32Crc32;
+				eEntry.ui16Mapper = pdeEntries[I].pPcb.ui16Mapper;
+				eEntry.ui16SubMapper = pdeEntries[I].pPcb.ui16SubMapper;
+				switch ( pdeEntries[I].pPcb.ui8Mirroring ) {
+					case 'H' : {
+						eEntry.mmMirrorOverride = LSN_MM_HORIZONTAL; break;
+					}
+					case 'V' : {
+						eEntry.mmMirrorOverride = LSN_MM_VERTICAL; break;
+					}
+					case '4' : {
+						eEntry.mmMirrorOverride = LSN_MM_4_SCREENS; break;
+					}
+					case '1' : {
+						eEntry.mmMirrorOverride = LSN_MM_1_SCREEN_A; break;
+					}
+				}
+				eEntry.ctConsoleType = pdeEntries[I].cConsole.ctType;
+				switch ( pdeEntries[I].cConsole.nrRegion ) {
+					case LSN_NR_NTSC : {
+						eEntry.pmRegion = LSN_PM_NTSC; break;
+					}
+					case LSN_NR_PAL : {
+						eEntry.pmRegion = LSN_PM_PAL; break;
+					}
+					case LSN_NR_MULTI_REGION : {
+						eEntry.pmRegion = LSN_PM_UNKNOWN; break;
+					}
+					case LSN_NR_DENDY : {
+						eEntry.pmRegion = LSN_PM_DENDY; break;
+					}
+				}
+				
+				auto aItem = m_mDatabase.find( eEntry.ui32Crc );
+				if ( aItem != m_mDatabase.end() ) {
+					//eEntry = aItem->second;
+					if ( aItem->second.ui32PgmRomSize == 0 ) {
+						aItem->second.ui32PgmRomSize = eEntry.ui32PgmRomSize;
+					}
+					if ( aItem->second.ui16Mapper == uint16_t( -1 ) ) {
+						aItem->second.ui16Mapper = eEntry.ui16Mapper;
+					}
+					if ( aItem->second.ui16SubMapper == uint16_t( -1 ) ) {
+						aItem->second.ui16SubMapper = eEntry.ui16SubMapper;
+					}
+					if ( aItem->second.mmMirrorOverride == LSN_MM_NO_OVERRIDE ) {
+						aItem->second.mmMirrorOverride = eEntry.mmMirrorOverride;
+					}
+					if ( aItem->second.pmRegion == LSN_PM_UNKNOWN ) {
+						aItem->second.pmRegion = eEntry.pmRegion;
+					}
+					aItem->second.ctConsoleType = eEntry.ctConsoleType;
+				}
+				else {
+					m_mDatabase[eEntry.ui32Crc] = eEntry;
+				}
+
+				++sLoaded;
+			}
+		}
+		catch ( ... ) {}
+		return sLoaded;
+	}
+
+	/**
+	 * Converts the XML database to a format that is faster to load and parse.
+	 * 
+	 * \param _pPathToXml The path to the XML file to load.
+	 * \param _pPathToLsdb The path to the output file to which to save the loaded data.
+	 * \return Returns the number of items loaded from the XML file and saved to the new location.
+	 **/
+	size_t CDatabase::ConvertXmlDatabase( const std::filesystem::path _pPathToXml, const std::filesystem::path _pPathToLsdb ) {
+		lsx::CXml xXml;
+		std::vector<uint8_t> vFile;
+		CZipFile zfZip;
+		if ( !zfZip.Open( _pPathToXml ) ) { return 0; }
+		std::vector<std::u16string> vEmbedded;
+		if ( !zfZip.GatherArchiveFiles( vEmbedded ) ) { return 0; }
+		if ( vEmbedded.size() != 1 ) { return 0; }
+
+		if ( !zfZip.ExtractToMemory( vEmbedded[0], vFile ) ) { return 0; }
+		size_t sLoaded = 0;
+		std::vector<CDatabase::LSN_DATABASE_ENTRY> vEntries;
+		try {
+			vFile.push_back( 0 );
+			if ( !xXml.SetXml( reinterpret_cast<const char *>(vFile.data()) ) ) { return 0; }
+
+			auto pxcContainer = xXml.GetContainer();
+			if ( !pxcContainer ) { return 0; }
+			auto ptRoot = pxcContainer->Next( nullptr );
+			if ( !ptRoot ) { return 0; }
+
+			vEntries.reserve( ptRoot->Size() );
+
+			// Quick compare against strings.
+			size_t sPrgRom = pxcContainer->FindString( "prgrom" );
+			size_t sChrRom = pxcContainer->FindString( "chrrom" );
+			size_t sRom = pxcContainer->FindString( "rom" );
+			size_t sPcb = pxcContainer->FindString( "pcb" );
+			size_t sSize = pxcContainer->FindString( "size" );
+			size_t sCrc32 = pxcContainer->FindString( "crc32" );
+			size_t sMapper = pxcContainer->FindString( "mapper" );
+			size_t sSubMapper = pxcContainer->FindString( "submapper" );
+			size_t sMirroring = pxcContainer->FindString( "mirroring" );
+			size_t sConsole = pxcContainer->FindString( "console" );
+			size_t sType = pxcContainer->FindString( "type" );
+			size_t sRegion = pxcContainer->FindString( "region" );
+			size_t sSha1 = pxcContainer->FindString( "sha1" );
+			size_t sSum16 = pxcContainer->FindString( "sum16" );
+			size_t sBattery = pxcContainer->FindString( "battery" );
+			size_t sExpansion = pxcContainer->FindString( "expansion" );
+
+			for ( size_t I = 0; I < ptRoot->Size(); ++I ) {
+				auto ptThis = ptRoot->GetChild( I );
+				if ( !ptThis ) { return sLoaded; }
+				std::string sName = pxcContainer->GetString( ptThis->Value().stNameString );
+				// Should have 6 children.
+				CDatabase::LSN_DATABASE_ENTRY deEntry;
+				for ( size_t C = 0; C < ptThis->Size(); ++C ) {
+					auto ptChild = ptThis->GetChild( C );
+					
+					if ( ptChild->Value().stNameString == sPrgRom ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.prPrgRom.szSha1, sThisAttrValu.c_str(), 40 );
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSum16 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+							}
+						}
+					}
+					else if ( ptChild->Value().stNameString == sChrRom ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.crChrRom.szSha1, sThisAttrValu.c_str(), 40 );
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSum16 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+							}
+						}
+					}
+					else if ( ptChild->Value().stNameString == sRom ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.rRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.rRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.rRom.szSha1, sThisAttrValu.c_str(), 40 );
+							}
+						}
+					}
+					else if ( ptChild->Value().stNameString == sPcb ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sMapper ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui16Mapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sSubMapper ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui16SubMapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sMirroring ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui8Mirroring = sThisAttrValu.c_str()[0];
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sBattery ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.bBattery = ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ) != 0;
+							}
+						}
+					}
+					else if ( ptChild->Value().stNameString == sConsole ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sType ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.cConsole.ctType = static_cast<LSN_CONSOLE_TYPE>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+							else if ( ptChild->Value().vAttributes[A].stNameString == sRegion ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.cConsole.nrRegion = static_cast<LSN_NES2_REGION>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+						}
+					}
+					else if ( ptChild->Value().stNameString == sExpansion ) {
+						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
+							if ( ptChild->Value().vAttributes[A].stNameString == sType ) {
+								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.eExpansion.edType = static_cast<LSN_EXPANSION_DEVICE>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+							}
+						}
+					}
+				}
+
+				vEntries.push_back( deEntry );
+			}
+
+			// All entries stored into vEntries.  Write it to the output file.
+			std::filesystem::create_directories( std::filesystem::path( _pPathToLsdb ).remove_filename() );
+			if ( !CStdFile::WriteToFile( _pPathToLsdb.native().c_str(), reinterpret_cast<const uint8_t *>(vEntries.data()), vEntries.size() * sizeof( CDatabase::LSN_DATABASE_ENTRY ) ) ) { return 0; }
+		}
+		catch ( ... ) {}
+		return vEntries.size();
+	}
 
 }	// namespace lsn

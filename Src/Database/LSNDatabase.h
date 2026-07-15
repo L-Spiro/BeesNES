@@ -10,6 +10,9 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Roms/LSNNesHeader.h"
+
+#include <filesystem>
 #include <map>
 
 
@@ -110,7 +113,60 @@ namespace lsn {
 			LSN_PCB_CLASS						pcPcbClass = LSN_PC_UNKNOWN;							/**< the PCB class. */
 			uint16_t							ui16Mapper = uint16_t( -1 );							/**< The mapper. */
 			uint16_t							ui16SubMapper = uint16_t( -1 );							/**< The sub-mapper. */
+			LSN_CONSOLE_TYPE					ctConsoleType = LSN_CT_NOCONSOLETYPE;					/**< The console type. */
+			LSN_EXPANSION_DEVICE				edExpansion = LSN_ED_NONE;								/**< What kind of expansion device is necessary for the game? */
 			bool								bBusConflicts = true;									/**< Allow bus conflicts? */
+		};
+
+		/** An entry in the XML database. */
+		struct LSN_DATABASE_ENTRY {
+			/** Represents the PRG-ROM data. */
+			struct LSN_PRG_ROM {
+				uint32_t						ui32Size = 0;											/**< Size of the PRG-ROM in bytes. */
+				uint32_t						ui32Crc32 = 0;											/**< CRC32 checksum. */
+				char							szSha1[41] = { 0 };										/**< SHA-1 hash string. */
+				uint16_t						ui16Sum16 = 0;											/**< 16-bit sum. */
+			}									prPrgRom;												/**< The PRG-ROM entry. */
+
+			/** Represents the CHR-ROM data. */
+			struct LSN_CHR_ROM {
+				uint32_t						ui32Size = 0;											/**< Size of the CHR-ROM in bytes. */
+				uint32_t						ui32Crc32 = 0;											/**< CRC32 checksum. */
+				uint16_t						ui16Sum16 = 0;											/**< 16-bit sum. */
+				char							szSha1[41] = { 0 };										/**< SHA-1 hash string. */
+			}									crChrRom;												/**< The CHR-ROM entry. */
+
+			/** Represents the entire ROM data. */
+			struct LSN_ROM {
+				uint32_t						ui32Size = 0;											/**< Total ROM size in bytes. */
+				uint32_t						ui32Crc32 = 0;											/**< CRC32 checksum of the entire ROM. */
+				char							szSha1[41] = { 0 };										/**< SHA-1 hash string of the entire ROM. */
+			}									rRom;													/**< The combined ROM entry. */
+
+			/**
+			 * \brief Represents the PCB properties.
+			 */
+			struct LSN_PCB {
+				uint16_t						ui16Mapper = 0;											/**< The mapper ID. */
+				uint16_t						ui16SubMapper = 0;										/**< The sub-mapper ID. */
+				uint8_t							ui8Mirroring = 0;										/**< Mirroring type (e.g., "H", "V", "4"). */
+				bool							bBattery = false;										/**< True if battery is present. */
+			}									pPcb;													/**< The PCB entry. */
+
+			/**
+			 * \brief Represents the console properties.
+			 */
+			struct LSN_CONSOLE {
+				LSN_CONSOLE_TYPE				ctType = LSN_CT_NES_FAMICOM;							/**< The console type. */
+				LSN_NES2_REGION					nrRegion = LSN_NR_NTSC;									/**< The region. */
+			}									cConsole;												/**< The console entry. */
+
+			/**
+			 * \brief Represents the expansion device properties.
+			 */
+			struct LSN_EXPANSION {
+				LSN_EXPANSION_DEVICE			edType = LSN_ED_UNSPECIFIED;							/**< The expansion device type. */
+			}									eExpansion;												/**< The expansion entry. */
 		};
 
 
@@ -124,6 +180,23 @@ namespace lsn {
 		 * Frees all memory associated with this class.
 		 */
 		static void								Reset();
+
+		/**
+		 * Loads the converted XML database (LSDB) of ROM's.
+		 * 
+		 * \param _pPath The path to the database to load.
+		 * \return Returns the number of items loaded from the database.
+		 **/
+		static size_t							LoadDatabase( const std::filesystem::path _pPath );
+
+		/**
+		 * Converts the XML database to a format that is faster to load and parse.
+		 * 
+		 * \param _pPathToXml The path to the XML file to load.
+		 * \param _pPathToLsdb The path to the output file to which to save the loaded data.
+		 * \return Returns the number of items loaded from the XML file and saved to the new location.
+		 **/
+		static size_t							ConvertXmlDatabase( const std::filesystem::path _pPathToXml, const std::filesystem::path _pPathToLsdb );
 
 
 		// == Members.

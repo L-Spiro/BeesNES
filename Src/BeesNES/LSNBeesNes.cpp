@@ -1382,7 +1382,9 @@ namespace lsn {
 	 * \return Returns true if the settings data was loaded.
 	 */
 	bool CBeesNes::LoadInputSettings( uint32_t /*_ui32Version*/, CStream &_sFile, lsn::LSN_INPUT_EVENT &_ieInputOptions ) {
-		if ( !_sFile.Read( _ieInputOptions.dtType ) ) { return false; }
+		uint8_t ui8Val;
+		if ( !_sFile.Read( ui8Val ) ) { return false; }
+		_ieInputOptions.dtType = static_cast<LSN_INPUT_EVENT::LSN_DEVICE_TYPE>(ui8Val);
 		switch ( _ieInputOptions.dtType ) {
 			case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {
 				if ( !_sFile.Read( _ieInputOptions.u.kb ) ) { return false; }
@@ -1404,7 +1406,7 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SaveInputSettings( CStream &_sFile, const lsn::LSN_INPUT_EVENT &_ieInputOptions ) {
-		if ( !_sFile.Write( _ieInputOptions.dtType ) ) { return false; }
+		if ( !_sFile.Write( static_cast<uint8_t>(_ieInputOptions.dtType) ) ) { return false; }
 		switch ( _ieInputOptions.dtType ) {
 			case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {
 				if ( !_sFile.Write( _ieInputOptions.u.kb ) ) { return false; }

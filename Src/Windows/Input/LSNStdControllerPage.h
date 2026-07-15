@@ -13,6 +13,7 @@
 #include "../../LSNLSpiroNes.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../../Input/LSNControllerListener.h"
+#include "../../Peripherals/LSNPeripheralBase.h"
 #include "../../Options/LSNOptions.h"
 
 #include <Button/LSWButton.h>
@@ -46,6 +47,19 @@ namespace lsn {
 			m_stConfigIdx( reinterpret_cast<LSN_CONTROLLER_SETUP_DATA *>(_ui64Data)->stConfigureIdx & 0xFFFF ) {
 		}
 		~CStdControllerPage();
+
+
+		// == Enumerations.
+		/** Presets. */
+		enum LSN_PRESETS : size_t {
+			LSN_P_WASD_OP_L_,
+			LSN_P_WASD_UI_JK,
+			LSN_P_ARROW_KEYS_QW_AS,
+			LSN_P_HORI_SWITCH_Y_B_LAYOUT,
+			LSN_P_HORI_SWITCH_B_A_LAYOUT,
+
+			LSN_P_TOTAL,
+		};
 
 
 		// == Types.
@@ -189,9 +203,9 @@ namespace lsn {
 		lsn::CMainWindow *							m_pmwMainWindow;
 
 		/** The primary buttons. */
-		LSN_INPUT_EVENT								m_ieMainButtons[8];
+		LSN_INPUT_EVENT								m_ieMainButtons[IPeripheralBase::LSN_B_TOTAL];
 		/** The turbo buttons. */
-		LSN_INPUT_EVENT								m_ieTurboButtons[8];
+		LSN_INPUT_EVENT								m_ieTurboButtons[IPeripheralBase::LSN_B_TOTAL];
 		/** The button to which we are currently listening. */
 		size_t										m_stListeningIdx = 0;
 		/** The listening control. */
@@ -227,6 +241,12 @@ namespace lsn {
 		/** Have we begun a listen manually? */
 		bool										m_bManualListen = false;
 
+		/** Normal presets. */
+		static LSN_INPUT_EVENT						m_ieNormalPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL];
+
+		/** Turbo presets. */
+		static LSN_INPUT_EVENT						m_ieTurboPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL];
+
 
 		// == Functions.
 		/**
@@ -254,6 +274,13 @@ namespace lsn {
 		 * Updates the main listview with controller and keyboard inputs.
 		 **/
 		void										UpdateInputList();
+
+		/**
+		 * Updates the key buttons with their assignments.
+		 * 
+		 * \param _bSetUserData If true, user data is also assigned to each button.
+		 **/
+		void										UpdateButtons( bool _bSetUserData );
 
 		/**
 		 * Determines if any entry in m_vControllers has a GUID with a CRC32 matching the given CRC32.
@@ -288,6 +315,11 @@ namespace lsn {
 		 * \return Returns the CRC32 of the string form of the given GUID.
 		 **/
 		static uint32_t								GuidToCrc32( const GUID &_gId );
+
+		/**
+		 * Sets up the presets.
+		 **/
+		static void									CreatePresets();
 
 	private :
 		typedef class CStdControllerPageLayout		Layout;

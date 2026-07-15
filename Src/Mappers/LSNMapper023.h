@@ -58,6 +58,7 @@ namespace lsn {
 			std::memset( m_ui8DefaultChrRam, 0, sizeof( m_ui8DefaultChrRam ) );
 			std::memset( m_ui8ChrBanks, 0, sizeof( m_ui8ChrBanks ) );
 			std::memset( m_ui8PgmBanks, 0, sizeof( m_ui8PgmBanks ) );
+			m_pcPcbClass = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
 			switch ( ClassifyVrc( m_pcPcbClass ) ) {
 				case 2 : {
 					if ( m_prRom->i32SaveRamSize ) {
@@ -88,7 +89,7 @@ namespace lsn {
 				_pbPpuBus->SetWriteFunc( uint16_t( I ), &DefaultChrRamWrite, this, uint16_t( I - 0x0000 ) );
 			}*/
 
-			m_pcPcbClass = iNesToPcb( m_prRom->riInfo.ui16Mapper, m_prRom->riInfo.ui16SubMapper );
+			
 			switch ( m_pcPcbClass ) {
 				case CDatabase::LSN_PC_VRC4b : {}			LSN_FALLTHROUGH
 				case CDatabase::LSN_PC_VRC2c : {}			LSN_FALLTHROUGH

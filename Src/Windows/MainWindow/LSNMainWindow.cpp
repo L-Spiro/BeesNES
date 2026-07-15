@@ -36,10 +36,6 @@
 #include <StatusBar/LSWStatusBar.h>
 #include <ToolBar/LSWToolBar.h>
 
-//#ifdef LSN_DX9
-//#include "../../Filters/LSNDx9FilterBase.h"
-//#endif	// #ifdef LSN_DX9
-
 #include <commdlg.h>
 #include <dbt.h>
 #include <filesystem>
@@ -47,12 +43,6 @@
 
 #include "../../../resource.h"
 
-//#include "../../GPU/DirectX9/LSNDirectX9.h"
-//#include "../../GPU/DirectX9/LSNDirectX9Device.h"
-//#include "../../GPU/DirectX12/LSNDirectX12.h"
-//#include "../../GPU/DirectX12/LSNDirectX12Device.h"
-//#include "../../GPU/Vulkan/LSNVulkan.h"
-//#include "../../GPU/Vulkan/LSNVulkanDevice.h"
 
 #define LSN_SCALE_RESOLUTION					8.0
 
@@ -295,6 +285,23 @@ namespace lsn {
 			::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );
 		}
 
+		{
+			std::filesystem::path pDatabase( m_bnEmulator.GetFolder() );
+			pDatabase /= L"Database";
+			std::filesystem::path pFastDatabase = pDatabase;
+		
+			pFastDatabase /= L"nes20db.lsdb";
+			if ( !std::filesystem::exists( pFastDatabase ) ) {
+				pDatabase /= L"nes20db.zip";
+				std::wstring wsTitle = GetTextW();
+				SetTextW( LSN_LSTR( LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_ ) );
+				CDatabase::ConvertXmlDatabase( pDatabase, pFastDatabase );
+				SetTextW( wsTitle.c_str() );
+			}
+			if ( std::filesystem::exists( pFastDatabase ) ) {
+				CDatabase::LoadDatabase( pFastDatabase );
+			}
+		}
 		return LSW_H_CONTINUE;
 	}
 

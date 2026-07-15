@@ -12,11 +12,14 @@
 #define LSN_NES																Nintendo Entertainment System\u00AE						// Nintendo Entertainment System(R)
 #define LSN_FAMICOM															Famicom\u00AE											// Famicom(R)
 #define LSN_SNES															Super Nintendo Entertainment System\u00AE				// Super Nintendo Entertainment System(R)
+#define LSN_BEESNES															BeesNES
 
 #define LSN_MICROSOFT_DIRECT3D_9											Microsoft® Direct3D® 9
 #define LSN_MICROSOFT_DIRECT3D_12											Microsoft® Direct3D® 12
 #define LSN_VULKAN_1														Vulkan® 1
 #define LSN_METAL															Metal®
+
+#define LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_							One-Time Conversion of XML Database…
 
 #define LSN_OPTIONS_TXT														Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
@@ -218,6 +221,13 @@
 #define LSN_SET_NORMAL_BUTTONS												Set Normal Buttons
 #define LSN_SET_TURBO_BUTTONS												Set Turbo Buttons
 #define LSN_DASH_LINE														\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+#define LSN_PRESET															Presets
+#define LSN_WASD_OP_L_														WASD - OP - L;
+#define LSN_WASD_UI_JK														WASD - UI - JK
+#define LSN_ARROW_KEYS_QW_AS												\u2191\u2190\u2192\u2193 - QW - AS
+#define LSN_HORI_SWITCH_Y_B_LAYOUT											HORI Nintendo Switch\u2122 Y+B Layout
+#define LSN_HORI_SWITCH_B_A_LAYOUT											HORI Nintendo Switch\u2122 B+A Layout
 
 #define LSN_LISTENING_														Listening\u2026											// Listening...
 
@@ -551,10 +561,10 @@
 
 #define LSN_WE_TT_VOL_ABS													The audio will be multiplied by a constant value on output.
 #define LSN_WE_TT_VOL_EDIT													The amount by which to multiple the final audio.
-#define LSN_WE_TT_VOL_NORMAL												The audio will be normalized to a given level.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
-#define LSN_WE_TT_VOL_NORMAL_EDIT											The level to which to normalize the final audio.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+#define LSN_WE_TT_VOL_NORMAL												The audio will be normalized to a given level.  All numeric edit boxes in LSN_BEESNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+#define LSN_WE_TT_VOL_NORMAL_EDIT											The level to which to normalize the final audio.  All numeric edit boxes in LSN_BEESNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
 #define LSN_WE_TT_VOL_LOUDNESS												Uses a gated RMS evaluation to set the audio to the given loudness level.
-#define LSN_WE_TT_VOL_LOUDNESS_EDIT											The level to which to set the loudness.  All numeric edit boxes in BeesNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
+#define LSN_WE_TT_VOL_LOUDNESS_EDIT											The level to which to set the loudness.  All numeric edit boxes in LSN_BEESNES allow typing equations, so it is possible to specify the normalization level in a dB -> linear equation or as a specific value.
 
 #define LSN_WE_TT_OUTPUT_HZ													The output .WAV file Hz.
 #define LSN_WE_TT_OUTPUT_FMT												The output .WAV file format.

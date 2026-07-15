@@ -124,6 +124,13 @@ namespace lsn {
 		void									SetFolder( const wchar_t * _pwcFolder ) { m_wsFolder = _pwcFolder; }
 
 		/**
+		 * Gets the current folder.
+		 * 
+		 * \return Returns the current root folder where the emulator should be located.
+		 **/
+		inline const std::wstring &				GetFolder() const { return m_wsFolder; }
+
+		/**
 		 * Loads the settings file.
 		 *
 		 * \return Returns true if the settings file was loaded.

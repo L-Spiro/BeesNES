@@ -33,7 +33,7 @@ namespace lsn {
 	struct LSN_INPUT_EVENT {
 		// == Enumerations.
 		/** Device types. */
-		enum LSN_DEVICE_TYPE : uint8_t {
+		enum LSN_DEVICE_TYPE : uint32_t {
 			LSN_DT_KEYBOARD,																/**< The event comes from the system keyboard. */
 			LSN_DT_USB_CONTROLLER,															/**< The event comes from a USB controller. */
 		};

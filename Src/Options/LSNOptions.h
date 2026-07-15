@@ -12,6 +12,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../Audio/LSNAudioOptions.h"
 #include "../Filters/LSNFilterBase.h"
+#include "../OS/LSNOs.h"
 #include "../Wav/LSNWavFile.h"
 #include "LSNInputOptions.h"
 #include "LSNPaletteOptions.h"
@@ -36,24 +37,13 @@ namespace lsn {
 		LSN_AUDIO_OPTIONS									aoThisGameAudioOptions;										/**< This game's audio options. */
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsRaw;										/**< Raw capture. */
 		CWavFile::LSN_STREAM_TO_FILE_OPTIONS				stfStreamOptionsOutCapture;									/**< Output capture. */
-		
-		// == Inputs to Dialogs.
-		double												dApuHz;
-
-		// == Settings Again.
-		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
-		CFilterBase::LSN_FILTERS							fFilter =													/**< The current filter ID. */
-#ifdef LSN_DX9
-																CFilterBase::LSN_F_LSPIRO_AUTO_US_DX9;
-#else
-																CFilterBase::LSN_F_AUTO_CRT_FULL;
-#endif	// #ifdef LSN_DX9
-		
 
 		LSN_PALETTE_OPTIONS									poGlobalPalettes[LSN_PM_CONSOLE_TOTAL];						/**< Global palette options. */
 		LSN_PALETTE_OPTIONS									poThisGamePalette[LSN_PM_CONSOLE_TOTAL];					/**< This game's palette options. */
 
-#ifdef LSN_WINDOWS
+		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
+
+#ifdef _WIN32
 		WINDOWPLACEMENT										wpMainWindowPlacement = { 0 };								/**< The main window's placement. */
 #endif	// #ifdef LSN_WINDOWS
 
@@ -69,8 +59,23 @@ namespace lsn {
 		std::vector<std::wstring>							vOutStartHistory;											/**< The history of output-capture start-condition parameters. */
 		std::vector<std::wstring>							vOutEndHistory;												/**< The history of output-capture end-condition parameters. */
 
+		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
+		CFilterBase::LSN_FILTERS							fFilter =													/**< The current filter ID. */
+#if defined( LSN_DX12 )
+																CFilterBase::LSN_F_LSPIRO_AUTO_US_DX12;
+#elif defined( LSN_DX9 )
+																CFilterBase::LSN_F_LSPIRO_AUTO_US_DX9;
+#elif defined( LSN_VULKAN1 )
+																CFilterBase::LSN_F_LSPIRO_AUTO_US_VULKAN1;
+#else
+																CFilterBase::LSN_F_AUTO_CRT_FULL;
+#endif	// #ifdef LSN_DX9
 
-		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
+
+		// == Inputs to Dialogs.
+		double												dApuHz;
+
+		
 	};
 
 }	// namespace lsn
