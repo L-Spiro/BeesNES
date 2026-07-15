@@ -400,6 +400,10 @@ namespace lsn {
 		// Test turbo first.
 		for ( size_t I = 0; I < m_vTurboPollFuncs[_bButton].size(); ++I ) {
 			if ( (*m_vTurboPollFuncs[_bButton][I])( m_vTurboMappings[_bButton][I] ) ) {
+				if ( !m_ui8PrevPhysicalStatus[_bButton] ) {
+					m_vTurboMappings[_bButton][I].ui64TurboBits = m_vTurboMappings[_bButton][I].ui64OriginalTurboBits;
+				}
+				m_ui8PrevPhysicalStatus[_bButton] = true;
 				uint8_t ui8Ret = m_vTurboMappings[_bButton][I].ui64TurboBits & 1;
 				m_vTurboMappings[_bButton][I].ui64TurboBits = RotateRight64( m_vTurboMappings[_bButton][I].ui64TurboBits, 1 );
 				return ui8Ret;
@@ -408,9 +412,11 @@ namespace lsn {
 		// Normal buttons.
 		for ( size_t I = 0; I < m_vNormalPollFuncs[_bButton].size(); ++I ) {
 			if ( (*m_vNormalPollFuncs[_bButton][I])( m_vMappings[_bButton][I] ) ) {
+				m_ui8PrevPhysicalStatus[_bButton] = true;
 				return 1;
 			}
 		}
+		m_ui8PrevPhysicalStatus[_bButton] = false;
 		return 0;
 #endif	// #ifdef LSN_WINDOWS
 	}

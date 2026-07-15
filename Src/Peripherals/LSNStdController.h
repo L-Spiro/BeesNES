@@ -111,6 +111,7 @@ namespace lsn {
 			lsn::LSN_INPUT_EVENT						ieEvent;									/**< Holds information for polling. */
 			/** The bit pattern for turbo controls. */
 			uint64_t									ui64TurboBits = 0b1111000011110000111100001111000011110000111100001111000011110000;
+			uint64_t									ui64OriginalTurboBits = 0b1111000011110000111100001111000011110000111100001111000011110000;
 		};
 
 		/** A poll function. */
@@ -128,6 +129,8 @@ namespace lsn {
 		std::vector<PfPollFunc>							m_vTurboPollFuncs[LSN_B_TOTAL];
 		/** The previous status of each button. */
 		uint8_t											m_ui8PrevStatus[LSN_B_TOTAL] = {};
+		/** The previous physical status of each button. */
+		uint8_t											m_ui8PrevPhysicalStatus[LSN_B_TOTAL] = {};
 		/** The 8-bit result of polling. **/
 		uint8_t											m_ui8Status = 0;
 		/** Disallow left/right and up/down being pressed at the same time. */
