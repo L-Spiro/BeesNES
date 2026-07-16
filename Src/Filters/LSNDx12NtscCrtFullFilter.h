@@ -47,6 +47,7 @@ namespace lsn {
 
 		/**
 		 * Gets the convolution sampler to use for resampling.
+		 * 
 		 * \param _ui32Width The target width.
 		 * \param _ui32Height The target height.
 		 * \return Returns the desired convolution sampler to use.
@@ -56,7 +57,8 @@ namespace lsn {
 			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
 			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
 			if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSOFT; }
-			return CResamplerBase::LSN_FF_LINEAR;
+			if ( fResolutionFactor < 4.5 ) { return CResamplerBase::LSN_FF_LINEAR; }
+			return CResamplerBase::LSN_FF_TOTAL;
 		}
 
 		/**

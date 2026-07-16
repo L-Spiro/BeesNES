@@ -499,9 +499,10 @@ namespace lsn {
 
 		uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
 		uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+		auto ffFilterFunc = GetPreferredConvolutionFilter( ui32DstW, ui32DstH );
 
-		if ( m_bUseHighQualityResampler ) {
-			m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
+		if ( m_bUseHighQualityResampler && ffFilterFunc != CResamplerBase::LSN_FF_TOTAL ) {
+			m_rsResampler.SetFilter( ffFilterFunc );
 			
 			if LSN_UNLIKELY( !m_piResampled.get() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
 				m_fbResampled.Reset();

@@ -254,12 +254,12 @@ namespace lsn {
 		// --- PASS 4: COMPOSITE (RESAMPLER/RENDERER) ---
 		IDirect3DSurface9 * psBackBuffer = nullptr;
 		if LSN_LIKELY( SUCCEEDED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) {
-			
-			if ( m_bUseHighQualityResampler ) {
-				uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
-				uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
+			uint32_t ui32DstW = static_cast<uint32_t>(_rOutput.Width());
+			uint32_t ui32DstH = static_cast<uint32_t>(_rOutput.Height());
 
-				m_rsResampler.SetFilter( GetPreferredConvolutionFilter( ui32DstW, ui32DstH ) );
+			auto ffFilterFunc = GetPreferredConvolutionFilter( ui32DstW, ui32DstH );
+			if ( m_bUseHighQualityResampler && ffFilterFunc != CResamplerBase::LSN_FF_TOTAL ) {
+				m_rsResampler.SetFilter( ffFilterFunc );
 				
 				if LSN_UNLIKELY( !m_rtResampled.get() || !m_rtResampled->Valid() || m_ui32ResampledTargetW != ui32DstW || m_ui32ResampledTargetH != ui32DstH ) {
 					if LSN_LIKELY( m_rtResampled.get() && m_rtResampled->Get() ) { m_rtResampled->Reset(); }

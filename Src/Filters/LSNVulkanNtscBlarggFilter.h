@@ -59,8 +59,8 @@ namespace lsn {
 			// For low resolutions, use the sharpest-possible filter.
 			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32SrcW), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32SrcH) );
 			if ( fResolutionFactor < 2.5f ) { return CResamplerBase::LSN_FF_ROBIDOUX; }
-			//if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
-			return CResamplerBase::LSN_FF_LINEAR;
+			if ( fResolutionFactor < 4.5 ) { return CResamplerBase::LSN_FF_LINEAR; }
+			return CResamplerBase::LSN_FF_TOTAL;
 		}
 
 		/**
