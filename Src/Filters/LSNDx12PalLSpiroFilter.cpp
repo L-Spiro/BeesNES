@@ -21,6 +21,10 @@ namespace lsn {
 	// == Members.
 	CDx12PalLSpiroFilter::CDx12PalLSpiroFilter() {
 		SetMonitorGammaApply( false );
+
+		m_bPreProcessNormalization = false;
+		GenNormalizedSignals();
+
 		CDx12FilterBase::SetPhosphorDecayLevel( 0.15f );
 		CDx12FilterBase::SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 		m_gGamma = CNesPalette::LSN_G_CRT1;

@@ -30,20 +30,6 @@ namespace lsn {
 	 */
 	class CControllerSetupWindowLayout {
 	public :
-		// == Enumerations.
-		// Control ID's.
-		enum LSN_CONTROLLER_SETUP_WINDOW_IDS : WORD {
-			LSN_CSW_NONE,
-			LSN_CSW_MAINWINDOW,
-			LSN_CSW_TAB,
-			LSN_CSW_OK,
-			LSN_CSW_CANCEL,
-
-			LSN_CSW_MAIN_PANEL,
-			LSN_CSW_RAPID_PANEL,
-		};
-
-
 		// == Functions.
 		/**
 		 * Creates the input-configuration window.

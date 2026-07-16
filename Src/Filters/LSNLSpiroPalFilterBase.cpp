@@ -267,6 +267,120 @@ namespace lsn {
 			}
 		}
 #endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+		if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+			while ( pfSignals < pfSignalEnd ) {
+				size_t sIdx = LSN_NOISE_BUFFER( CUtilities::Rand() );
+				
+				__m128 vNoise = _mm_load_ps( CUtilities::m_fNoiseBuffers[sIdx] );
+				__m128 vSig = _mm_loadu_ps( pfSignals );
+				vSig = _mm_add_ps( vSig, vNoise );
+				_mm_storeu_ps( pfSignals, vSig );
+				pfSignals += 4;
+
+				vNoise = _mm_load_ps( CUtilities::m_fNoiseBuffers[sIdx] + 4 );
+				vSig = _mm_loadu_ps( pfSignals );
+				vSig = _mm_add_ps( vSig, vNoise );
+				_mm_storeu_ps( pfSignals, vSig );
+				pfSignals += 4;
+
+				vNoise = _mm_load_ps( CUtilities::m_fNoiseBuffers[sIdx] + 8 );
+				vSig = _mm_loadu_ps( pfSignals );
+				vSig = _mm_add_ps( vSig, vNoise );
+				_mm_storeu_ps( pfSignals, vSig );
+				pfSignals += 4;
+
+				vNoise = _mm_load_ps( CUtilities::m_fNoiseBuffers[sIdx] + 12 );
+				vSig = _mm_loadu_ps( pfSignals );
+				vSig = _mm_add_ps( vSig, vNoise );
+				_mm_storeu_ps( pfSignals, vSig );
+				pfSignals += 4;
+			}
+		}
+#endif	// #ifdef __SSE4_1__
+
+
+		if ( !m_bPreProcessNormalization ) {
+			// Normalize.
+			pfSignals = pfSignalStart;
+			// Prefetch the middle of the buffer.
+			LSN_PREFETCH_LINE( pfSignals + ((m_ui16Width * m_ui16PixelToSignal) >> 1) );
+			
+			float fScale = m_fWhiteSetting - m_fBlackSetting;
+			float fInvScale = 1.0f / fScale;
+			float fBlack = m_fBlackSetting;
+
+#ifdef __AVX512F__
+			if ( CUtilities::IsAvx512FSupported() ) {
+				__m512 vBlack = _mm512_set1_ps( fBlack );
+				__m512 vInvScale = _mm512_set1_ps( fInvScale );
+				while ( pfSignals < pfSignalEnd ) {
+					__m512 vSig = _mm512_loadu_ps( pfSignals );
+					vSig = _mm512_sub_ps( vSig, vBlack );
+					vSig = _mm512_mul_ps( vSig, vInvScale );
+					_mm512_storeu_ps( pfSignals, vSig );
+					pfSignals += 16;
+				}
+			}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+				__m256 vBlack = _mm256_set1_ps( fBlack );
+				__m256 vInvScale = _mm256_set1_ps( fInvScale );
+				while ( pfSignals < pfSignalEnd ) {
+					__m256 vSig = _mm256_loadu_ps( pfSignals );
+					vSig = _mm256_sub_ps( vSig, vBlack );
+					vSig = _mm256_mul_ps( vSig, vInvScale );
+					_mm256_storeu_ps( pfSignals, vSig );
+					pfSignals += 8;
+
+					vSig = _mm256_loadu_ps( pfSignals );
+					vSig = _mm256_sub_ps( vSig, vBlack );
+					vSig = _mm256_mul_ps( vSig, vInvScale );
+					_mm256_storeu_ps( pfSignals, vSig );
+					pfSignals += 8;
+				}
+			}
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+			if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+				__m128 vBlack = _mm_set1_ps( fBlack );
+				__m128 vInvScale = _mm_set1_ps( fInvScale );
+				while ( pfSignals < pfSignalEnd ) {
+					__m128 vSig = _mm_loadu_ps( pfSignals );
+					vSig = _mm_sub_ps( vSig, vBlack );
+					vSig = _mm_mul_ps( vSig, vInvScale );
+					_mm_storeu_ps( pfSignals, vSig );
+					pfSignals += 4;
+
+					vSig = _mm_loadu_ps( pfSignals );
+					vSig = _mm_sub_ps( vSig, vBlack );
+					vSig = _mm_mul_ps( vSig, vInvScale );
+					_mm_storeu_ps( pfSignals, vSig );
+					pfSignals += 4;
+
+					vSig = _mm_loadu_ps( pfSignals );
+					vSig = _mm_sub_ps( vSig, vBlack );
+					vSig = _mm_mul_ps( vSig, vInvScale );
+					_mm_storeu_ps( pfSignals, vSig );
+					pfSignals += 4;
+
+					vSig = _mm_loadu_ps( pfSignals );
+					vSig = _mm_sub_ps( vSig, vBlack );
+					vSig = _mm_mul_ps( vSig, vInvScale );
+					_mm_storeu_ps( pfSignals, vSig );
+					pfSignals += 4;
+				}
+			}
+#endif	// #ifdef __SSE4_1__
+
+			// Software fallback.
+			while ( pfSignals < pfSignalEnd ) {
+				(*pfSignals) = ((*pfSignals) - fBlack) * fInvScale;
+				++pfSignals;
+			}
+		}
+
 
 		float fBrightness = LSN_FINAL_BRIGHT;
 		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
@@ -408,8 +522,15 @@ namespace lsn {
 	 * Fills the __m128 registers with the black level and (white-black) level.
 	 **/
 	void CLSpiroPalFilterBase::GenNormalizedSignals() {
-		for ( size_t I = 0; I < 16; ++I ) {
-			m_NormalizedLevels[I] = (CUtilities::m_fPalLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
+		if ( m_bPreProcessNormalization ) {
+			for ( size_t I = 0; I < 16; ++I ) {
+				m_NormalizedLevels[I] = (CUtilities::m_fPalLevels[I] - m_fBlackSetting) / (m_fWhiteSetting - m_fBlackSetting);
+			}
+		}
+		else {
+			for ( size_t I = 0; I < 16; ++I ) {
+				m_NormalizedLevels[I] = CUtilities::m_fPalLevels[I];
+			}
 		}
 	}
 

@@ -39,8 +39,9 @@
 #define LSN_ROUND_UP( VALUE, X )							((VALUE) + (((X) - (VALUE) & ((X) - 1)) & ((X) - 1)))
 #endif	// #ifndef LSN_ROUND_UP
 
-#define LSN_NOISE_BUFFERS									32
-#define LSN_NOISE_BUFFER( X )								((X) & 0x1F)
+#define LSN_NOISE_BUFFERS									1024
+#define LSN_NOISE_BUFFER( X )								((X) & 0x3FF)
+
 
 namespace lsn {
 
@@ -2623,75 +2624,89 @@ namespace lsn {
 			return std::exp( std::log( _dTarget / _dStart ) / dSteps );
 		}
 
-		/**
-		 * Generates uniformly distributed noise.
+/**
+		 * \brief Generates uniformly distributed noise.
 		 * 
 		 * \param _pfTarget The buffer to fill with random values.
 		 * \param _sSize The size of the buffer to fill in samples.
+		 * \param _mGen The random number generator engine.
 		 * \param _fAmplitude The noise amplitude.
 		 * \param _fBlackLevel The black level.
 		 * \param _fWhiteLevel The white level.
 		 **/
-		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, float _fAmplitude = 0.1f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
-			std::random_device rdDev;
-			std::mt19937 mGen( rdDev() );
+		static inline void									UniformNoise( float * _pfTarget, size_t _sSize, std::mt19937 &_mGen, float _fAmplitude = 0.1f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			// Generate uniform noise in [-amplitude, +amplitude].
 			std::uniform_real_distribution<float> urdDist( -_fAmplitude, _fAmplitude );
 
 			while ( _sSize-- ) {
-				_pfTarget[_sSize] = (urdDist( mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
+				_pfTarget[_sSize] = (urdDist( _mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
 			}
 		}
 
 		/**
-		 * Generates Gaussian noise.
+		 * \brief Generates Gaussian noise.
 		 * 
 		 * \param _pfTarget The buffer to fill with random values.
 		 * \param _sSize The size of the buffer to fill in samples.
+		 * \param _mGen The random number generator engine.
 		 * \param _fStdDev The standard deviation.
 		 * \param _fBlackLevel The black level.
 		 * \param _fWhiteLevel The white level.
 		 **/
-		static inline void									GaussianNoise( float * _pfTarget, size_t _sSize, float _fStdDev = 0.05f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
-			std::random_device rdDev;
-			std::mt19937 mGen( rdDev() );
+		static inline void									GaussianNoise( float * _pfTarget, size_t _sSize, std::mt19937 &_mGen, float _fStdDev = 0.05f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
 			std::normal_distribution<float> urdDist( 0.0f, _fStdDev );
 
 			while ( _sSize-- ) {
-				_pfTarget[_sSize] = (urdDist( mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
+				_pfTarget[_sSize] = (urdDist( _mGen ) - _fBlackLevel) / (_fWhiteLevel - _fBlackLevel);
 			}
 		}
 
 		/**
-		 * Fills the noise buffers with uniform noise.
+		 * \brief Fills the noise buffers with uniform noise.
 		 * 
 		 * \param _fAmplitude The noise amplitude.
 		 * \param _fBlackLevel The black level.
 		 * \param _fWhiteLevel The white level.
 		 **/
 		static void inline									GenUniformNoise( float _fAmplitude = 0.1f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
-			if LSN_LIKELY( !m_bNoiseIsGaussian && m_fLastNoiseParm == _fAmplitude ) { return; }
+			if LSN_LIKELY( !m_bNoiseIsGaussian && m_fLastNoiseParm == _fAmplitude && m_fLastNoiseBlackLevel == _fBlackLevel && m_fLastNoiseWhiteLevel == _fWhiteLevel ) {
+				return;
+			}
+
+			std::random_device rdDev;
+			std::mt19937 mGen( rdDev() );
+
 			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
-				UniformNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fAmplitude, _fBlackLevel, _fWhiteLevel );
+				UniformNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), mGen, _fAmplitude, _fBlackLevel, _fWhiteLevel );
 			}
 			m_bNoiseIsGaussian = false;
 			m_fLastNoiseParm = _fAmplitude;
+			m_fLastNoiseBlackLevel = _fBlackLevel;
+			m_fLastNoiseWhiteLevel = _fWhiteLevel;
 		}
 
 		/**
-		 * Fills the noise buffers with Gaussian noise.
+		 * \brief Fills the noise buffers with Gaussian noise.
 		 * 
 		 * \param _fStdDev The standard deviation.
 		 * \param _fBlackLevel The black level.
 		 * \param _fWhiteLevel The white level.
 		 **/
 		static void inline									GenGaussianNoise( float _fStdDev = 0.05f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
-			if LSN_LIKELY( m_bNoiseIsGaussian && m_fLastNoiseParm == _fStdDev ) { return; }
+			if LSN_LIKELY( m_bNoiseIsGaussian && m_fLastNoiseParm == _fStdDev && m_fLastNoiseBlackLevel == _fBlackLevel && m_fLastNoiseWhiteLevel == _fWhiteLevel ) {
+				return;
+			}
+
+			std::random_device rdDev;
+			std::mt19937 mGen( rdDev() );
+
 			for ( auto I = std::size( m_fNoiseBuffers ); I--; ) {
-				GaussianNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), _fStdDev, _fBlackLevel, _fWhiteLevel );
+				GaussianNoise( m_fNoiseBuffers[I], std::size( m_fNoiseBuffers[I] ), mGen, _fStdDev, _fBlackLevel, _fWhiteLevel );
 			}
 			m_bNoiseIsGaussian = true;
 			m_fLastNoiseParm = _fStdDev;
+			m_fLastNoiseBlackLevel = _fBlackLevel;
+			m_fLastNoiseWhiteLevel = _fWhiteLevel;
 		}
 
 		/**
@@ -2778,8 +2793,11 @@ namespace lsn {
 		LSN_ALIGN( 64 )
 		static float										m_fNoiseBuffers[LSN_NOISE_BUFFERS][16];		/**< LSN_NOISE_BUFFERS noise buffers, each with 16 samples. */
 		static uint32_t										m_ui32Rand;									/**< A quick pseudo-random value updated each time it is accessed via Rand(). */
-		static bool											m_bNoiseIsGaussian;							/**< True if the last call was to GenGaussianNoise(). */
 		static float										m_fLastNoiseParm;							/**< The last value passed to either GenUniformNoise() or GenGaussianNoise(). */
+		static float										m_fLastNoiseVol;							/**< The last noise volume. */
+		static float										m_fLastNoiseBlackLevel;						/**< The last noise black level. */
+		static float										m_fLastNoiseWhiteLevel;						/**< The last noise white level. */
+		static bool											m_bNoiseIsGaussian;							/**< True if the last call was to GenGaussianNoise(). */
 	};
 
 }	// namespace lsn

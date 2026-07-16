@@ -292,6 +292,12 @@
     <Filter Include="Source Files\Peripherals">
       <UniqueIdentifier>{e3636da0-50a5-4553-8d88-16318d40860f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\Graphics">
+      <UniqueIdentifier>{1bc62901-dc8e-4ce1-8b75-56285b24bf37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Graphics">
+      <UniqueIdentifier>{623440f4-c85d-416d-8f9e-b1438723933f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -1260,6 +1266,9 @@
     <ClInclude Include="Src\Peripherals\LSNStdController.h">
       <Filter>Header Files\Peripherals</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Graphics\LSNGraphicsOptionsWindowLayout.h">
+      <Filter>Header Files\Windows\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1822,6 +1831,9 @@
     </ClCompile>
     <ClCompile Include="Src\Peripherals\LSNStdController.cpp">
       <Filter>Source Files\Peripherals</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Graphics\LSNGraphicsOptionsWindowLayout.cpp">
+      <Filter>Source Files\Windows\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

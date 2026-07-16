@@ -12,9 +12,11 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNControllerSetupWindowLayout.h"
 #include "LSNInputWindowLayout.h"
 #include "LSNStdControllerPage.h"
+
 #include <MainWindow/LSWMainWindow.h>
 #include <Tab/LSWTab.h>
 
@@ -79,7 +81,7 @@ namespace lsn {
 		 * \return Returns the main tab control.
 		 **/
 		CTab *										GetTab() const {
-			return const_cast<CTab *>(static_cast<const CTab *>(FindChild( CControllerSetupWindowLayout::LSN_CSW_TAB )));
+			return const_cast<CTab *>(static_cast<const CTab *>(FindChild( CWinUtilities::LSN_CSW_TAB )));
 		}
 
 		/**
@@ -127,7 +129,7 @@ namespace lsn {
 
 	private :
 		typedef lsw::CMainWindow					Parent;
-		typedef class CControllerSetupWindowLayout	Layout;
+		typedef CWinUtilities						Layout;
 
 	};
 

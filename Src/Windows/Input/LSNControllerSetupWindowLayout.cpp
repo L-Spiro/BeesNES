@@ -13,6 +13,8 @@
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../WinUtilities/LSNWinUtilities.h"
+
 #include "LSNStdControllerPageLayout.h"
 
 
@@ -28,7 +30,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CControllerSetupWindowLayout::m_wlInputWindow[] = {
 		{
 			LSN_LT_CONTROLLER_SETUP_DIALOG,			// ltType
-			LSN_CSW_MAINWINDOW,						// wId
+			CWinUtilities::LSN_CSW_MAINWINDOW,		// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -40,12 +42,12 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,												// dwStyleEx
 			LSN_LSTR( LSN_INPUT_DIALOG ),			// pwcText
 			0,										// sTextLen
-			LSN_CSW_NONE,							// dwParentId
+			CWinUtilities::LSN_CSW_NONE,			// dwParentId
 		},
 
 		{
 			LSW_LT_TAB,								// ltType
-			LSN_CSW_TAB,							// wId
+			CWinUtilities::LSN_CSW_TAB,				// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -58,13 +60,13 @@ namespace lsn {
 			0,										// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_CSW_MAINWINDOW,						// dwParentId
+			CWinUtilities::LSN_CSW_MAINWINDOW,		// dwParentId
 		},
 
 
 		{
 			LSW_LT_BUTTON,							// ltType
-			LSN_CSW_OK,								// wId
+			CWinUtilities::LSN_CSW_OK,				// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			TRUE,									// bActive
@@ -77,11 +79,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_OK ),						// pwcText
 			0,										// sTextLen
-			LSN_CSW_MAINWINDOW,						// dwParentId
+			CWinUtilities::LSN_CSW_MAINWINDOW,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
-			LSN_CSW_CANCEL,							// wId
+			CWinUtilities::LSN_CSW_CANCEL,			// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -93,7 +95,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_CANCEL ),					// pwcText
 			0,										// sTextLen
-			LSN_CSW_MAINWINDOW,						// dwParentId
+			CWinUtilities::LSN_CSW_MAINWINDOW,		// dwParentId
 		},
 	};
 

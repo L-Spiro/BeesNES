@@ -72,7 +72,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CAudioOptionsWindowLayout::m_wlGlobalPage[] {
 		{
 			LSN_LT_AUDIO_OPTIONS_GLOBAL_PAGE,				// ltType
-			LSN_AOWI_PAGE_GLOBAL,							// wId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,							// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -84,13 +84,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,																																			// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),				// pwcText
 			0,												// sTextLen
-			LSN_AOWI_NONE,									// dwParentId
+			CWinUtilities::LSN_AOWI_NONE,					// dwParentId
 		},
 
 		// == General
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_GROUP,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_GROUP,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -102,13 +102,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_GENERAL ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		
 		// Device.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_DEVICE_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DEVICE_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -120,11 +120,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DEVICE ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,				// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -136,11 +136,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -152,13 +152,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Format.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_FORMAT_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_FORMAT_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -170,11 +170,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_FORMAT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO,				// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -186,11 +186,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_GENERAL_DITHER_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DITHER_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -202,13 +202,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DITHER ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -220,11 +220,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -236,11 +236,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -252,13 +252,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Background Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -270,11 +270,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BG_VOL ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -286,11 +286,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -302,14 +302,14 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 
 		// == Characteristics
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_GROUP,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -321,11 +321,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_AUDIO_CHARACTERISTICS ),																	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_LABEL,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -337,11 +337,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_PRESET ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -353,13 +353,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// LPF.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -371,11 +371,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_LPF_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -387,11 +387,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -403,13 +403,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// HPF 0.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -421,11 +421,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_1_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -437,11 +437,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -453,13 +453,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// HPF 1.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -471,11 +471,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_2_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -487,11 +487,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -503,13 +503,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// HPF 2.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -521,11 +521,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_3_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -537,11 +537,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -553,13 +553,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -571,11 +571,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -587,11 +587,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -603,13 +603,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Pulse-1 Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_LABEL,																																																	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -621,11 +621,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_P1_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR,																																																// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -637,11 +637,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -653,13 +653,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Pulse-2 Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_LABEL,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -671,11 +671,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_P2_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -687,11 +687,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -703,13 +703,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Triangle Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_LABEL,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_LABEL,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -721,11 +721,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_TRI_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -737,11 +737,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -753,13 +753,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Noise Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_LABEL,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -771,11 +771,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -787,11 +787,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -803,13 +803,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// DMC Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -821,11 +821,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DMC_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -837,11 +837,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -853,13 +853,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 
 		// Noise/Invert
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -871,11 +871,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -887,11 +887,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -903,7 +903,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_RP2A03_4B2_40 ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_GLOBAL,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_GLOBAL,			// dwParentId
 		},
 	};
 
@@ -911,7 +911,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CAudioOptionsWindowLayout::m_wlPerGamePage[] {
 		{
 			LSN_LT_AUDIO_OPTIONS_PERGAME_PAGE,				// ltType
-			LSN_AOWI_PAGE_PERGAME,							// wId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,							// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -923,13 +923,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,																																			// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_NONE,									// dwParentId
+			CWinUtilities::LSN_AOWI_NONE,					// dwParentId
 		},
 
 		// == General
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_GROUP,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_GROUP,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -941,13 +941,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_GENERAL ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		
 		// Device.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_DEVICE_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DEVICE_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -959,11 +959,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DEVICE ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DEVICE_COMBO,				// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -975,11 +975,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_ENABLE_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -991,13 +991,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Format.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_FORMAT_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_FORMAT_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1009,11 +1009,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_FORMAT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_FORMAT_COMBO,				// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1025,11 +1025,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_GENERAL_DITHER_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_DITHER_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1041,13 +1041,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DITHER ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1059,11 +1059,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_TRACKBAR,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1075,11 +1075,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_VOLUME_EDIT,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1091,13 +1091,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Background Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_LABEL,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_LABEL,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1109,11 +1109,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BG_VOL ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_TRACKBAR,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1125,11 +1125,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_GENERAL_BG_VOL_EDIT,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1141,14 +1141,14 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 
 		// == Characteristics
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_GROUP,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1160,11 +1160,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,											// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_AUDIO_CHARACTERISTICS ),																	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_LABEL,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1176,11 +1176,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_PRESET ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PRESETS_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1192,13 +1192,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// LPF.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1210,11 +1210,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_LPF_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1226,11 +1226,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1242,13 +1242,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// HPF 0.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1260,11 +1260,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_1_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1276,11 +1276,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1292,13 +1292,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// HPF 1.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1310,11 +1310,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_2_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1326,11 +1326,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF1_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1342,13 +1342,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// HPF 2.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1360,11 +1360,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_3_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1376,11 +1376,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_HPF2_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1392,13 +1392,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1410,11 +1410,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_TRACKBAR,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1426,11 +1426,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_VOLUME_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1442,13 +1442,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Pulse-1 Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_LABEL,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1460,11 +1460,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_P1_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1476,11 +1476,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE1_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1492,13 +1492,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Pulse-2 Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_LABEL,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1510,11 +1510,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_P2_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1526,11 +1526,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_PULSE2_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1542,13 +1542,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Triangle Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_LABEL,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_LABEL,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1560,11 +1560,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_TRI_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1576,11 +1576,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_TRIANGLE_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1592,13 +1592,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Noise Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_LABEL,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_LABEL,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1610,11 +1610,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR,																																								// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_TRACKBAR,																																								// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1626,11 +1626,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_VOLUME_EDIT,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1642,13 +1642,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// DMC Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1660,11 +1660,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DMC_VOLUME ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_TRACKBAR,								// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_TRACKBAR,																																									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1676,11 +1676,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_DMC_VOLUME_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1692,13 +1692,13 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 
 		// Noise/Invert
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_INVERT_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1710,11 +1710,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_NOISE_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1726,11 +1726,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_NOISE_MAINS_HUM ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
+			CWinUtilities::LSN_AOWI_PAGE_CHARACTERISTICS_OLD_NES_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1742,7 +1742,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_RP2A03_4B2_40 ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_PERGAME,							// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_PERGAME,			// dwParentId
 		},
 	};
 
@@ -1750,7 +1750,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CAudioOptionsWindowLayout::m_wlRecordingPage[] = {
 		{
 			LSN_LT_AUDIO_OPTIONS_RECORDING_PAGE,			// ltType
-			LSN_AOWI_PAGE_RECORDING,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,						// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1762,13 +1762,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,																																			// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_NONE,									// dwParentId
+			CWinUtilities::LSN_AOWI_NONE,					// dwParentId
 		},
 
 		// == Raw
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_GROUP,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_GROUP,						// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1780,13 +1780,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_RAW ),				// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Path.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_PATH_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_PATH_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1798,11 +1798,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_PATH_ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_RAW_PATH_EDIT,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_PATH_EDIT,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1814,11 +1814,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_AOWI_PAGE_RAW_PATH_BUTTON,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_PATH_BUTTON,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1830,13 +1830,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,	// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BROWSE ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Hz.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_HZ_LABEL,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_HZ_LABEL,						// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1848,11 +1848,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HZ_ ),				// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_RAW_HZ_EDIT,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_HZ_EDIT,						// wId
 			nullptr,										// lpwcClass
 			FALSE,											// bEnabled
 			FALSE,											// bActive
@@ -1864,11 +1864,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_ENABLE_CHECK,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_ENABLE_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1880,13 +1880,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Format.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_FORMAT_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_FORMAT_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1898,11 +1898,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_FORMAT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_FORMAT_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_FORMAT_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1914,13 +1914,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Bits.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_BITS_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_BITS_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1932,11 +1932,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BITS_ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_BITS_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_BITS_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1948,11 +1948,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_DITHER_CHECK,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_DITHER_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1964,13 +1964,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DITHER ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Start Condition.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_START_CONDITION_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_START_CONDITION_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1982,11 +1982,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_START_CONDITION_ ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_START_CONDITION_COMBO,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_START_CONDITION_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1998,13 +1998,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// End Condition.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_RAW_STOP_CONDITION_LABEL,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_STOP_CONDITION_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2016,11 +2016,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_END_CONDITION_ ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_STOP_CONDITION_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2032,11 +2032,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_START_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_START_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2048,11 +2048,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_STOP_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_STOP_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2064,13 +2064,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Metadata.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_GROUP,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_GROUP,						// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2082,11 +2082,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_RAW_META_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2098,11 +2098,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_CHECK,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2114,12 +2114,12 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_ALL_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_ALL_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2131,11 +2131,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_ALL ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_NONE_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_NONE_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2147,11 +2147,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NONE ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_PULSE1_CHECK,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_PULSE1_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2163,12 +2163,12 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE1 ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_PULSE2_CHECK,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_PULSE2_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2180,11 +2180,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE2 ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_TRI_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_TRI_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2196,11 +2196,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_TRIANGLE ),// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_NOISE_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_NOISE_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2212,12 +2212,12 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NOISE ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_DMC_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_DMC_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2229,11 +2229,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_DMC ),		// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2245,11 +2245,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_STATUS ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,				// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2261,12 +2261,12 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER ),																																								// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2278,11 +2278,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE1_ON_OFF ),																																								// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2294,11 +2294,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE2_ON_OFF ),																																								// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2310,7 +2310,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NOISE_ON_OFF ),																																								// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 
@@ -2318,7 +2318,7 @@ namespace lsn {
 		// == Output Capture
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_GROUP,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_GROUP,						// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2330,13 +2330,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_CAPTURE_OUTPUT ),				// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Path.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_PATH_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_PATH_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2348,11 +2348,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_PATH_ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_OUT_PATH_EDIT,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_PATH_EDIT,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2364,11 +2364,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_AOWI_PAGE_OUT_PATH_BUTTON,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_PATH_BUTTON,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2380,13 +2380,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,	// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BROWSE ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Hz.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_HZ_LABEL,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_HZ_LABEL,						// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2398,11 +2398,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HZ_ ),				// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_AOWI_PAGE_OUT_HZ_EDIT,						// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_HZ_EDIT,						// wId
 			nullptr,										// lpwcClass
 			FALSE,											// bEnabled
 			FALSE,											// bActive
@@ -2414,11 +2414,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_ENABLE_CHECK,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_ENABLE_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2430,13 +2430,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Format.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_FORMAT_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_FORMAT_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2448,11 +2448,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_FORMAT ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_FORMAT_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_FORMAT_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2464,13 +2464,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Bits.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_BITS_LABEL,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_BITS_LABEL,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2482,11 +2482,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BITS_ ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_BITS_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_BITS_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2498,11 +2498,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_AOWI_PAGE_OUT_DITHER_CHECK,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_DITHER_CHECK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2514,13 +2514,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DITHER ),			// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Start Condition.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_START_CONDITION_LABEL,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_START_CONDITION_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2532,11 +2532,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_START_CONDITION_ ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO,		// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_START_CONDITION_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2548,13 +2548,13 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// End Condition.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_AOWI_PAGE_OUT_STOP_CONDITION_LABEL,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_STOP_CONDITION_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2566,11 +2566,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_END_CONDITION_ ),	// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,			// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_STOP_CONDITION_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2582,11 +2582,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_START_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_START_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2598,11 +2598,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_AOWI_PAGE_OUT_STOP_COMBO,					// wId
+			CWinUtilities::LSN_AOWI_PAGE_OUT_STOP_COMBO,					// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2614,13 +2614,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_PAGE_RECORDING,						// dwParentId
+			CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		},
 
 		// Description.
 		//{
 		//	LSW_LT_LABEL,									// ltType
-		//	LSN_AOWI_PAGE_OUT_DESC_LABEL,					// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_DESC_LABEL,					// wId
 		//	nullptr,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2632,13 +2632,13 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_OUT_DESC ),			// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 
 		// Metadata.
 		//{
 		//	LSW_LT_GROUPBOX,								// ltType
-		//	LSN_AOWI_PAGE_OUT_GROUP,						// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_GROUP,						// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2650,11 +2650,11 @@ namespace lsn {
 		//	WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA ),			// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_COMBOBOX,								// ltType
-		//	LSN_AOWI_PAGE_OUT_META_COMBO,					// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_COMBO,					// wId
 		//	WC_COMBOBOXW,									// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2666,11 +2666,11 @@ namespace lsn {
 		//	LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 		//	nullptr,										// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_CHECK,					// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_CHECK,					// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2682,12 +2682,12 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_ENABLED ),			// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_ALL_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2699,11 +2699,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_ALL ),		// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_NONE_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_NONE_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2715,11 +2715,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NONE ),	// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,			// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_PULSE1_CHECK,			// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2731,12 +2731,12 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE1 ),	// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_PULSE2_CHECK,			// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_PULSE2_CHECK,			// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2748,11 +2748,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_PULSE2 ),	// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_TRI_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_TRI_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2764,11 +2764,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_TRIANGLE ),// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_NOISE_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2780,12 +2780,12 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_NOISE ),	// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_DMC_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2797,11 +2797,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_DMC ),		// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_STATUS_CHECK,			// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2813,11 +2813,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_STATUS ),	// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 		//{
 		//	LSW_LT_CHECK,									// ltType
-		//	LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,				// wId
+		//	CWinUtilities::LSN_AOWI_PAGE_OUT_META_FRAME_CHECK,				// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -2829,7 +2829,7 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER ),																																								// pwcText
 		//	0,												// sTextLen
-		//	LSN_AOWI_PAGE_RECORDING,						// dwParentId
+		//	CWinUtilities::LSN_AOWI_PAGE_RECORDING,		// dwParentId
 		//},
 
 	};
@@ -2842,7 +2842,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CAudioOptionsWindowLayout::m_wlWindow[] = {
 		{
 			LSN_LT_AUDIO_OPTIONS_DIALOG,					// ltType
-			LSN_AOWI_MAINWINDOW,							// wId
+			CWinUtilities::LSN_AOWI_MAINWINDOW,							// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2854,12 +2854,12 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																														// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_ ),					// pwcText
 			0,												// sTextLen
-			LSN_AOWI_NONE,									// dwParentId
+			CWinUtilities::LSN_AOWI_NONE,					// dwParentId
 		},
 
 		{
 			LSW_LT_TAB,										// ltType
-			LSN_AOWI_TAB,									// wId
+			CWinUtilities::LSN_AOWI_TAB,									// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2871,13 +2871,13 @@ namespace lsn {
 			WS_EX_ACCEPTFILES,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_AOWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_AOWI_MAINWINDOW,			// dwParentId
 		},
 
 
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_AOWI_OK,									// wId
+			CWinUtilities::LSN_AOWI_OK,									// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2889,7 +2889,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_OK ),								// pwcText
 			0,												// sTextLen
-			LSN_AOWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_AOWI_MAINWINDOW,			// dwParentId
 
 			LSN_LOCK_LEFT,									// pcLeftSizeExp
 			nullptr, 0,										// pcRightSizeExp
@@ -2900,7 +2900,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_AOWI_CANCEL,								// wId
+			CWinUtilities::LSN_AOWI_CANCEL,								// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2912,7 +2912,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_CANCEL ),							// pwcText
 			0,												// sTextLen
-			LSN_AOWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_AOWI_MAINWINDOW,			// dwParentId
 
 			nullptr, 0,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,									// pcRightSizeExp

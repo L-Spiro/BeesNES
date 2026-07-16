@@ -48,6 +48,10 @@ namespace lsn {
 
 	bool CUtilities::m_bNoiseIsGaussian = false;							/**< True if the last call was to GenGaussianNoise(). */
 	float CUtilities::m_fLastNoiseParm = 0.0f;								/**< The last value passed to either GenUniformNoise() or GenGaussianNoise(). */
+	float CUtilities::m_fLastNoiseVol = 0.0f;								/**< The last noise volume. */
+	float CUtilities::m_fLastNoiseBlackLevel = 0.0f;						/**< The last noise black level. */
+	float CUtilities::m_fLastNoiseWhiteLevel = 0.0f;						/**< The last noise white level. */
+
 
 	// == Functions.
 	/**

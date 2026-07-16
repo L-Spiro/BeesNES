@@ -142,7 +142,7 @@ namespace lsn {
 	 * \return Returns the client rectangle for this control or of a given child control.
 	 **/
 	LSW_RECT CControllerSetupWindow::ClientRect( const CWidget * _pwChild ) const {
-		if ( _pwChild && _pwChild->Id() == CStdControllerPageLayout::LSN_SCPI_MAINWINDOW ) {
+		if ( _pwChild && _pwChild->Id() == Layout::LSN_SCPI_MAINWINDOW ) {
 			CTab * ptTab = GetTab();
 			LSW_RECT rClient = ptTab->ClientRect();
 			LSW_RECT rItem = ptTab->GetItemRect( ptTab->GetCurSel() );

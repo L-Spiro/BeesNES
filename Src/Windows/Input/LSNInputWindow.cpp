@@ -36,8 +36,8 @@ namespace lsn {
 
 		CTab * ptTab = static_cast<CTab *>(FindChild( Layout::LSN_IWI_TAB ));
 		// Order of pushing them here determines the order in the window/list.
-		CWidget * pwGlobal = Layout::CreateGlobalPage( this, (*m_poOptions), m_pmwMainWindow );
-		CWidget * pwPerGame = Layout::CreatePerGamePage( this, (*m_poOptions), m_pmwMainWindow );
+		CWidget * pwGlobal = CInputWindowLayout::CreateGlobalPage( this, (*m_poOptions), m_pmwMainWindow );
+		CWidget * pwPerGame = CInputWindowLayout::CreatePerGamePage( this, (*m_poOptions), m_pmwMainWindow );
 		/*CWidget * pwGlobal = Layout::CreateGlobalPage( ptTab, (*m_poOptions) );
 		CWidget * pwPerGame = Layout::CreatePerGamePage( ptTab, (*m_poOptions) );*/
 		m_vPages.push_back( static_cast<CInputPage *>(pwGlobal) );
@@ -136,7 +136,7 @@ namespace lsn {
 	 * \return Returns the virtual client rectangle for this window for the given widget.
 	 */
 	const LSW_RECT CInputWindow::VirtualClientRect( const CWidget * pwChild ) const {
-		if ( pwChild->Id() == CInputWindowLayout::LSN_IWI_PER_GAME_SETTINGS_PANEL || pwChild->Id() == CInputWindowLayout::LSN_IWI_GLOBAL_SETTINGS_PANEL ) {
+		if ( pwChild->Id() == Layout::LSN_IWI_PER_GAME_SETTINGS_PANEL || pwChild->Id() == Layout::LSN_IWI_GLOBAL_SETTINGS_PANEL ) {
 			const CTab * ptTab = static_cast<const CTab *>(FindChild( Layout::LSN_IWI_TAB ));
 			if ( ptTab ) {
 				return ptTab->VirtualClientRect( pwChild );

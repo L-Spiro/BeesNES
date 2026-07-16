@@ -40,7 +40,7 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_AUDIO_ICON_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_AUDIO_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
-		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( Layout::LSN_AOWI_TAB ));
 		LONG lBottomSpace = 0;
 
 		if ( ptTab ) {
@@ -132,7 +132,7 @@ namespace lsn {
 				if ( m_vPages.size() >= 3 ) {
 					auto pwErrorWidget = reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2]);
 					if ( pwErrorWidget ) {
-						lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+						lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( Layout::LSN_AOWI_TAB ));
 						if ( ptTab ) {
 							if ( !ptTab->IsChecked( 1 ) ) {
 								pwErrorWidget->SetHz( reinterpret_cast<CAudioOptionsGeneralPage<true> *>(m_vPages[0])->GetHz() );
@@ -165,7 +165,7 @@ namespace lsn {
 			std::wstring wsErr;
 			auto pwErrorWidget = reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2])->Verify( wsErr );
 			if ( pwErrorWidget ) {
-				lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( CAudioOptionsWindowLayout::LSN_AOWI_TAB ));
+				lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( Layout::LSN_AOWI_TAB ));
 				if ( ptTab ) {
 					ptTab->SetCurSel( 2 );
 				}

@@ -15,6 +15,7 @@
 #include "../../Input/LSNControllerListener.h"
 #include "../../Peripherals/LSNPeripheralBase.h"
 #include "../../Options/LSNOptions.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <Button/LSWButton.h>
 #include <ComboBox/LSWComboBox.h>
@@ -322,7 +323,8 @@ namespace lsn {
 		static void									CreatePresets();
 
 	private :
-		typedef class CStdControllerPageLayout		Layout;
+		//typedef class CStdControllerPageLayout		Layout;
+		typedef CWinUtilities						Layout;
 	};
 
 }	// namespace lsn

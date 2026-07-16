@@ -730,7 +730,7 @@ namespace lsn {
 		
 
 		struct LSN_CONTROLS {
-			Layout::LSN_AUDIO_OPTIONS_WINDOW_IDS						wId;
+			Layout::LSN_CONTROL_IDS														wId;
 			bool																		bCloseCondition0;
 			bool																		bCloseCondition1;
 		} cControls[] = {

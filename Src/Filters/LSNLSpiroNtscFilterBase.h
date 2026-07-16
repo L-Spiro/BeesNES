@@ -256,6 +256,7 @@ namespace lsn {
 		uint8_t												m_ui8GammaG[LSN_SRGB_RES];							/**< The gamma curve for green. */
 		float												m_NormalizedLevels[16];								/**< Normalized levels. */
 		bool												m_bHandleMonitorGamma = true;						/**< If true, the monitor is assumed to be sRGB and an sRGB monitor curve is baked into gamma. */
+		bool												m_bPreProcessNormalization = true;					/**< If true, the signals are normalized once in a preprocessing step. Otherwise normalization happens in real-time after noise has been mixed in. Software preprocesses normalization while GPU filters do it in real-time for correctness. */
 
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 0.0f;								/**< The hue. */

@@ -21,6 +21,10 @@ namespace lsn {
 	// == Members.
 	CDx12NtscLSpiroFilter::CDx12NtscLSpiroFilter() {
 		SetMonitorGammaApply( false );
+
+		m_bPreProcessNormalization = false;
+		GenNormalizedSignals();
+
 		CDx12FilterBase::SetPhosphorDecayLevel( 0.15f );
 		CDx12FilterBase::SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}

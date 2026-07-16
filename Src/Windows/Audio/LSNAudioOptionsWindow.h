@@ -11,6 +11,7 @@
 #pragma once
 
 #include "LSNAudioOptionsWindowLayout.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -77,7 +78,8 @@ namespace lsn {
 		std::vector<CWidget *>								m_vPages;													/**< The pages. */
 
 	private :
-		typedef CAudioOptionsWindowLayout					Layout;
+		//typedef CAudioOptionsWindowLayout					Layout;
+		typedef CWinUtilities								Layout;
 		typedef lsw::CMainWindow							Parent;
 	};
 

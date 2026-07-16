@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNInputWindowLayout.h"
 #include "LSNInputPage.h"
+
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -110,7 +112,7 @@ namespace lsn {
 		lsn::CMainWindow *							m_pmwMainWindow;
 
 	private :
-		typedef CInputWindowLayout					Layout;
+		typedef CWinUtilities						Layout;
 		typedef lsw::CMainWindow					Parent;
 	};
 

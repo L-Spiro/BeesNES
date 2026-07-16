@@ -94,7 +94,7 @@ namespace lsn {
 		}
 
 		{
-			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
+			lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
 			if ( pcbCombo ) {
 				static const CWinUtilities::LSN_COMBO_ENTRY ceEntries[] = {
 					//pwcName																					lpParm
@@ -340,7 +340,7 @@ namespace lsn {
 			}
 
 			// Combo Boxes.
-			case CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO : {
+			case Layout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO : {
 				if ( _wCtrlCode == CBN_SELENDOK ) {
 					lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(_pwSrc);
 					if ( pcbCombo ) {
@@ -463,7 +463,7 @@ namespace lsn {
 			}
 		}
 
-		lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( CStdControllerPageLayout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
+		lsw::CComboBox * pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO ));
 		if ( pcbCombo ) {
 			pcbCombo->SetCurSelByItemData( lpPreset );
 		}

@@ -11,6 +11,8 @@
 #pragma once
 
 #include "LSNAudioOptionsWindowLayout.h"
+#include "../WinUtilities/LSNWinUtilities.h"
+
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -82,7 +84,8 @@ namespace lsn {
 		uint32_t											m_ui32SettingsHz = 0;
 
 	private :
-		typedef CAudioOptionsWindowLayout					Layout;
+		//typedef CAudioOptionsWindowLayout					Layout;
+		typedef CWinUtilities								Layout;
 		typedef lsw::CWidget								Parent;
 	};
 

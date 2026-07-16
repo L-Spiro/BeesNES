@@ -59,9 +59,9 @@ namespace lsn {
 		 * \return Returns an LSW_HANDLED code.
 		 */
 		virtual LSW_HANDLED						InitDialog() {
-			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) ));
+			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_COMBO ));
 			CWinUtilities::FillComboWithConsoleTypes( pcbBox, m_ioTmpOptions.ui8ConsoleType );
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_COMBO ));
 			CWinUtilities::FillComboWithExpansion_Famicom( pcbBox, m_ioTmpOptions.ui8Expansion );
 			UpdateConsoleType();
 			ApplyOptionsToDialog();
@@ -80,7 +80,7 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED						Command( WORD _wCtrlCode, WORD _wId, CWidget * /*_pwSrc*/ ) {
 			switch ( _wId ) {
-				case CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_COMBO : {
 					switch ( _wCtrlCode ) {
 						case CBN_SELCHANGE : {
 							ApplyDialogComboToOption( _wId, m_ioTmpOptions.ui8ConsoleType );
@@ -91,7 +91,7 @@ namespace lsn {
 					break;
 				}
 #define LSN_UPDATE_COMBO( COMBO_ID, BYTE )																	\
-	case CInputWindowLayout::LSN_IWI_GLOBAL( COMBO_ID ) : {													\
+	case CWinUtilities::COMBO_ID : {																		\
 		switch ( _wCtrlCode ) {																				\
 			case CBN_SELCHANGE : {																			\
 				ApplyDialogComboToOption( _wId, m_ioTmpOptions.BYTE );										\
@@ -101,13 +101,13 @@ namespace lsn {
 		}																									\
 		break;																								\
 	}
-				LSN_UPDATE_COMBO( EXPAND_COMBO, ui8Expansion )
-				LSN_UPDATE_COMBO( PLAYER_1_COMBO, ui8Player[0] )
-				LSN_UPDATE_COMBO( PLAYER_2_COMBO, ui8Player[1] )
-				LSN_UPDATE_COMBO( PLAYER_3_COMBO, ui8Player[2] )
-				LSN_UPDATE_COMBO( PLAYER_4_COMBO, ui8Player[3] )
+				LSN_UPDATE_COMBO( LSN_IWI_SETTINGS_EXPAND_COMBO, ui8Expansion )
+				LSN_UPDATE_COMBO( LSN_IWI_SETTINGS_PLAYER_1_COMBO, ui8Player[0] )
+				LSN_UPDATE_COMBO( LSN_IWI_SETTINGS_PLAYER_2_COMBO, ui8Player[1] )
+				LSN_UPDATE_COMBO( LSN_IWI_SETTINGS_PLAYER_3_COMBO, ui8Player[2] )
+				LSN_UPDATE_COMBO( LSN_IWI_SETTINGS_PLAYER_4_COMBO, ui8Player[3] )
 #undef LSN_UPDATE_COMBO
-				case CInputWindowLayout::LSN_IWI_GLOBAL( USE_GLOBAL_CHECK ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_USE_GLOBAL_CHECK : {
 					switch ( _wCtrlCode ) {
 						case STN_CLICKED : {
 							ApplyDialogCheckToOption( _wId, m_ioTmpOptions.bUseGlobal );
@@ -117,7 +117,7 @@ namespace lsn {
 					}
 					break;
 				}
-				case CInputWindowLayout::LSN_IWI_GLOBAL( USE_FOUR_SCORE_CHECK ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_USE_FOUR_SCORE_CHECK : {
 					switch ( _wCtrlCode ) {
 						case STN_CLICKED : {
 							ApplyDialogCheckToOption( _wId, m_ioTmpOptions.bUseFourScore );
@@ -127,19 +127,19 @@ namespace lsn {
 					}
 					break;
 				}
-				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_BUTTON ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_BUTTON : {
 					CControllerSetupWindowLayout::CreateInputDialog( this, m_ioTmpOptions, m_pmwMainWindow, 0 );
 					break;
 				}
-				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_BUTTON ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_BUTTON : {
 					CControllerSetupWindowLayout::CreateInputDialog( this, m_ioTmpOptions, m_pmwMainWindow, 1 );
 					break;
 				}
-				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_BUTTON ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_BUTTON : {
 					CControllerSetupWindowLayout::CreateInputDialog( this, m_ioTmpOptions, m_pmwMainWindow, 2 );
 					break;
 				}
-				case CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_BUTTON ) : {
+				case CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_BUTTON : {
 					CControllerSetupWindowLayout::CreateInputDialog( this, m_ioTmpOptions, m_pmwMainWindow, 3 );
 					break;
 				}
@@ -166,7 +166,7 @@ namespace lsn {
 		 * Updates based off the console type combo box selection
 		 */
 		void									UpdateConsoleType() {
-			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) ));
+			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_COMBO ));
 			if ( pcbBox ) {
 				switch ( pcbBox->GetCurSelItemData() ) {
 					case LSN_CT_FAMICOM : {
@@ -185,19 +185,19 @@ namespace lsn {
 		 * Update the panel with Famicom settings.
 		 */
 		void									SelectFamicom() {
-			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
+			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_COMBO ));
 			if ( pcbBox ) {
 				CWinUtilities::FillComboWithControllerType_Famicom( pcbBox );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_COMBO ));
 			if ( pcbBox ) {
 				CWinUtilities::FillComboWithControllerType_Famicom( pcbBox );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO ));
 			if ( pcbBox ) {
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[2], LSN_CT_NONE );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO ));
 			if ( pcbBox ) {
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[3], LSN_CT_NONE );
 			}
@@ -210,7 +210,7 @@ namespace lsn {
 		 */
 		void									SelectNes() {
 			BOOL bUseFourScore = FALSE;
-			lsw::CCheckButton * pUse4Score = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_FOUR_SCORE_CHECK ) ));
+			lsw::CCheckButton * pUse4Score = static_cast<lsw::CCheckButton *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_FOUR_SCORE_CHECK ));
 			if ( pUse4Score ) {
 				bUseFourScore = pUse4Score->IsChecked();
 			}
@@ -218,29 +218,29 @@ namespace lsn {
 			lsw::CComboBox * pcbBox;
 
 			if ( bUseFourScore ) {
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_COMBO ));
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[0], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_COMBO ));
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[1], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO ));
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[2], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO ));
 				CWinUtilities::FillComboWithControllerType_FourScore( pcbBox, m_ioTmpOptions.ui8Player[3], LSN_CT_NONE );
 			}
 			else {
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_COMBO ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[0], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_COMBO ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[1], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[2], LSN_CT_NONE );
 
-				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+				pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO ));
 				CWinUtilities::FillComboWithControllerType_NES( pcbBox, m_ioTmpOptions.ui8Player[3], LSN_CT_NONE );
 			}
 
@@ -254,25 +254,25 @@ namespace lsn {
 			lsw::CWidget::LSW_SETREDRAW srRedraw( this, false, true, RDW_INVALIDATE |
 				RDW_ERASE | RDW_UPDATENOW | RDW_ALLCHILDREN );
 			bool bEnablePanel = true;
-			lsw::CCheckButton * pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_GLOBAL_CHECK ) ));
+			lsw::CCheckButton * pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_GLOBAL_CHECK ));
 			if ( pUseGlobal ) {
 				bEnablePanel = pUseGlobal->IsChecked() == FALSE;
 			}
 
 			LPARAM lpConsoleType = LSN_CT_FAMICOM;
-			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) ));
+			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_COMBO ));
 			if ( pcbBox ) {
 				lpConsoleType = pcbBox->GetCurSelItemData();
 				pcbBox->SetEnabled( bEnablePanel );
 			}
 			LPARAM lpExpType = LSN_CT_NONE;
-			lsw::CComboBox * pcbExpBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) ));
+			lsw::CComboBox * pcbExpBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_COMBO ));
 			if ( pcbExpBox ) {
 				lpExpType = pcbExpBox->GetCurSelItemData();
 				pcbExpBox->SetEnabled( bEnablePanel );
 			}
 			BOOL bUseFourScore = FALSE;
-			lsw::CCheckButton * pUse4Score = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_FOUR_SCORE_CHECK ) ));
+			lsw::CCheckButton * pUse4Score = static_cast<lsw::CCheckButton *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_FOUR_SCORE_CHECK ));
 			if ( pUse4Score ) {
 				bUseFourScore = pUse4Score->IsChecked();
 				pUse4Score->SetEnabled( bEnablePanel );
@@ -282,122 +282,122 @@ namespace lsn {
 
 
 			// Visibility settings.
-			lsw::CWidget * pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_LABEL ) );
+			lsw::CWidget * pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( lpConsoleType == LSN_CT_FAMICOM );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_COMBO );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( lpConsoleType == LSN_CT_FAMICOM );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_BUTTON ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_BUTTON );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( lpConsoleType == LSN_CT_FAMICOM );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_FOUR_SCORE_CHECK ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_FOUR_SCORE_CHECK );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( lpConsoleType == LSN_CT_NES );
 			}
 
 			bool bShowRest = (lpConsoleType == LSN_CT_NES && bUseFourScore) || (lpConsoleType == LSN_CT_FAMICOM && lpExpType == LSN_CT_FOUR_PLAYER_ADAPTER);
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_BUTTON ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_BUTTON );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
 
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_BUTTON ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_BUTTON );
 			if ( pwTmp ) {
 				pwTmp->SetVisible( bShowRest );
 			}
 
 
 			// Enabled settings.
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_COMBO ));
 			if ( pcbBox ) {
 				bool bEnable = pcbBox->GetCurSelItemData() != LSN_CT_NONE;
-				pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_BUTTON ) );
+				pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_BUTTON );
 				if ( pwTmp ) {
 					pwTmp->SetEnabled( bEnable && bEnablePanel );
 				}
 				pcbBox->SetEnabled( bEnablePanel );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_COMBO ));
 			if ( pcbBox ) {
 				bool bEnable = pcbBox->GetCurSelItemData() != LSN_CT_NONE;
-				pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_BUTTON ) );
+				pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_BUTTON );
 				if ( pwTmp ) {
 					pwTmp->SetEnabled( bEnable && bEnablePanel );
 				}
 				pcbBox->SetEnabled( bEnablePanel );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO ));
 			if ( pcbBox ) {
 				bool bEnable = pcbBox->GetCurSelItemData() != LSN_CT_NONE;
-				pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_BUTTON ) );
+				pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_BUTTON );
 				if ( pwTmp ) {
 					pwTmp->SetEnabled( bEnable && bEnablePanel );
 				}
 				pcbBox->SetEnabled( bEnablePanel );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO ));
 			if ( pcbBox ) {
 				bool bEnable = pcbBox->GetCurSelItemData() != LSN_CT_NONE;
-				pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_BUTTON ) );
+				pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_BUTTON );
 				if ( pwTmp ) {
 					pwTmp->SetEnabled( bEnable && bEnablePanel );
 				}
 				pcbBox->SetEnabled( bEnablePanel );
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_COMBO ));
 			if ( pcbBox ) {
 				bool bEnable = pcbBox->GetCurSelItemData() != LSN_CT_NONE;
-				pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_BUTTON ) );
+				pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_BUTTON );
 				if ( pwTmp ) {
 					pwTmp->SetEnabled( bEnable && bEnablePanel );
 				}
 			}
 
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( SETTINGS_GROUP ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_SETTINGS_GROUP );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
-			pwTmp = FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_LABEL ) );
+			pwTmp = FindChild( CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_LABEL );
 			if ( pwTmp ) {
 				pwTmp->SetEnabled( bEnablePanel );
 			}
@@ -408,16 +408,16 @@ namespace lsn {
 		 */
 		void									ApplyOptionsToDialog() {
 			if ( !m_pioInputOptions ) { return; }
-			lsw::CCheckButton * pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_GLOBAL_CHECK ) ));
+			lsw::CCheckButton * pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_GLOBAL_CHECK ));
 			if ( pUseGlobal ) {
 				pUseGlobal->SetCheck( m_ioTmpOptions.bUseGlobal ? TRUE : FALSE );
 			}
-			pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( USE_FOUR_SCORE_CHECK ) ));
+			pUseGlobal = static_cast<lsw::CCheckButton *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_USE_FOUR_SCORE_CHECK ));
 			if ( pUseGlobal ) {
 				pUseGlobal->SetCheck( m_ioTmpOptions.bUseFourScore ? TRUE : FALSE );
 			}
 
-			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( CONSOLE_TYPE_COMBO ) ));
+			lsw::CComboBox * pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_CONSOLE_TYPE_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8ConsoleType );
 				if ( CB_ERR == iSel ) {
@@ -426,7 +426,7 @@ namespace lsn {
 				}
 			}
 
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( EXPAND_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_EXPAND_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Expansion );
 				if ( CB_ERR == iSel ) {
@@ -435,7 +435,7 @@ namespace lsn {
 				}
 			}
 
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_1_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_1_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[0] );
 				if ( CB_ERR == iSel ) {
@@ -443,7 +443,7 @@ namespace lsn {
 					m_ioTmpOptions.ui8Player[0] = uint8_t( pcbBox->GetCurSelItemData() );
 				}
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_2_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_2_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[1] );
 				if ( CB_ERR == iSel ) {
@@ -451,7 +451,7 @@ namespace lsn {
 					m_ioTmpOptions.ui8Player[1] = uint8_t( pcbBox->GetCurSelItemData() );
 				}
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_3_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_3_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[2] );
 				if ( CB_ERR == iSel ) {
@@ -459,7 +459,7 @@ namespace lsn {
 					m_ioTmpOptions.ui8Player[2] = uint8_t( pcbBox->GetCurSelItemData() );
 				}
 			}
-			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CInputWindowLayout::LSN_IWI_GLOBAL( PLAYER_4_COMBO ) ));
+			pcbBox = static_cast<lsw::CComboBox *>(FindChild( CWinUtilities::LSN_IWI_SETTINGS_PLAYER_4_COMBO ));
 			if ( pcbBox ) {
 				INT iSel = pcbBox->SetCurSelByItemData( m_ioTmpOptions.ui8Player[3] );
 				if ( CB_ERR == iSel ) {
