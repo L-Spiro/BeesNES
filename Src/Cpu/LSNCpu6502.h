@@ -31,30 +31,30 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( m_bRdyLow || m_bDmcDma ) { BackupState(); } } if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( _pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma ) { _pcCpu->BackupState(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
-#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = m_pbBus->Read( uint16_t( ADDR ) );																		\
-															if LSN_UNLIKELY( m_fsStateBackup.bCopiedState/*m_bRdyLow*/ ) { m_ui16DmaCpuAddress = uint16_t( ADDR );			\
-																m_bDmaGo = m_bRdyLow;																						\
-																m_bDmcGo = m_bDmcDma;																						\
-																RestoreState();																								\
-																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/										\
+#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = _pcCpu->m_pbBus->Read( uint16_t( ADDR ) );																						\
+															if LSN_UNLIKELY( _pcCpu->m_fsStateBackup.bCopiedState/*_pcCpu->m_bRdyLow*/ ) { _pcCpu->m_ui16DmaCpuAddress = uint16_t( ADDR );			\
+																_pcCpu->m_bDmaGo = _pcCpu->m_bRdyLow;																								\
+																_pcCpu->m_bDmcGo = _pcCpu->m_bDmcDma;																								\
+																_pcCpu->RestoreState();																														\
+																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/																\
 																return; }
-#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
-#define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !m_bRdyLow ) { ++m_ui8RdyOffCnt; }
+#define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				_pcCpu->m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
+#define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 
-#define LSN_NEXT_FUNCTION_BY( AMT )							m_fsState.ui8FuncIndex += uint8_t( AMT )
+#define LSN_NEXT_FUNCTION_BY( AMT )							_pcCpu->m_fsState.ui8FuncIndex += uint8_t( AMT )
 #define LSN_NEXT_FUNCTION									LSN_NEXT_FUNCTION_BY( 1 )
 #define LSN_FINISH_INST( CHECK_INTERRUPTS )					if constexpr ( CHECK_INTERRUPTS ) { LSN_CHECK_INTERRUPTS; } LSN_NEXT_FUNCTION
 
-//#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bNmiStatusPhi1Flag
-#define LSN_CHECK_INTERRUPTS								if ( !(m_fsState.rRegs.ui8Status & I()) ) { m_bHandleIrq = m_bIrqStatusPhi1Flag; } m_bHandleNmi |= m_bDetectedNmi
+//#define LSN_CHECK_INTERRUPTS								if ( !(_pcCpu->m_fsState.rRegs.ui8Status & I()) ) { _pcCpu->m_bHandleIrq = _pcCpu->m_bIrqStatusPhi1Flag; } _pcCpu->m_bHandleNmi |= _pcCpu->m_bNmiStatusPhi1Flag
+#define LSN_CHECK_INTERRUPTS								if ( !(_pcCpu->m_fsState.rRegs.ui8Status & I()) ) { _pcCpu->m_bHandleIrq = _pcCpu->m_bIrqStatusPhi1Flag; } _pcCpu->m_bHandleNmi |= _pcCpu->m_bDetectedNmi
 
-#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); m_fsState.ui8SModify = uint8_t( -1L + _i8SOff )
-#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( m_fsState.rRegs.ui8S + _i8SOff )), (RESULT) ); m_fsState.ui8SModify = uint8_t( 1 + _i8SOff )
+#define LSN_PUSH( VAL )										LSN_INSTR_START_PHI2_WRITE( (0x100 | uint8_t( _pcCpu->m_fsState.rRegs.ui8S + _i8SOff )), (VAL) ); _pcCpu->m_fsState.ui8SModify = uint8_t( -1L + _i8SOff )
+#define LSN_POP( RESULT )									LSN_INSTR_START_PHI2_READ( (0x100 | uint8_t( _pcCpu->m_fsState.rRegs.ui8S + _i8SOff )), (RESULT) ); _pcCpu->m_fsState.ui8SModify = uint8_t( 1 + _i8SOff )
 
-#define LSN_UPDATE_PC										if LSN_LIKELY( m_fsState.bAllowWritingToPc ) { m_fsState.rRegs.ui16Pc += m_fsState.ui16PcModify; } m_fsState.ui16PcModify = 0
-#define LSN_UPDATE_S										m_fsState.rRegs.ui8S += m_fsState.ui8SModify; m_fsState.ui8SModify = 0
+#define LSN_UPDATE_PC										if LSN_LIKELY( _pcCpu->m_fsState.bAllowWritingToPc ) { _pcCpu->m_fsState.rRegs.ui16Pc += _pcCpu->m_fsState.ui16PcModify; } _pcCpu->m_fsState.ui16PcModify = 0
+#define LSN_UPDATE_S										_pcCpu->m_fsState.rRegs.ui8S += _pcCpu->m_fsState.ui8SModify; _pcCpu->m_fsState.ui8SModify = 0
 
 #define LSN_R												true
 #define LSN_W												false
@@ -69,11 +69,11 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 #ifdef LSN_CYCLES_DOC
 #define LSN_PRINT_STACK																																			\
-	if ( int8_t( m_fsState.ui8SModify ) < 0 ) { lsn::DebugA( ("Dec. S by " + std::to_string( -int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }				\
-	else if ( int8_t( m_fsState.ui8SModify ) > 0 ) { lsn::DebugA( ("Inc. S by " + std::to_string( int8_t( m_fsState.ui8SModify ) ) + ". ").c_str() ); }
+	if ( int8_t( _pcCpu->m_fsState.ui8SModify ) < 0 ) { lsn::DebugA( ("Dec. S by " + std::to_string( -int8_t( _pcCpu->m_fsState.ui8SModify ) ) + ". ").c_str() ); }				\
+	else if ( int8_t( _pcCpu->m_fsState.ui8SModify ) > 0 ) { lsn::DebugA( ("Inc. S by " + std::to_string( int8_t( _pcCpu->m_fsState.ui8SModify ) ) + ". ").c_str() ); }
 #define LSN_PRINT_PC																																			\
-	if ( int16_t( m_fsState.ui16PcModify ) < 0 ) { lsn::DebugA( "Dec. PC. " ); }																				\
-	else if ( int16_t( m_fsState.ui16PcModify ) > 0 ) { lsn::DebugA( "Inc. PC. " ); }
+	if ( int16_t( _pcCpu->m_fsState.ui16PcModify ) < 0 ) { lsn::DebugA( "Dec. PC. " ); }																				\
+	else if ( int16_t( _pcCpu->m_fsState.ui16PcModify ) > 0 ) { lsn::DebugA( "Inc. PC. " ); }
 #else
 #define LSN_PRINT_STACK
 #define LSN_PRINT_PC
@@ -140,8 +140,8 @@ namespace lsn {
 			uint8_t											ui8Status = 0;																	/**< The processor status register. */
 		};
 
-		typedef void (CCpu6502:: *							PfCycle)();																		/**< A function pointer for the functions that handle each cycle. */
-		typedef void (CCpu6502:: *							PfTicks)();																		/**< A function pointer for the tick handlers. */
+		typedef void (*										PfCycle)( CCpu6502 * );															/**< A function pointer for the functions that handle each cycle. */
+		typedef void (*										PfTicks)( CCpu6502 * );															/**< A function pointer for the tick handlers. */
 
 		/** An instruction. The micro-functions (pfHandler) that make up each cycle of each instruction are programmed to know what to do and can correctly pass the cycles without
 		 *	using ui8TotalCycles or amAddrMode. This means pcName, ui8TotalCycles, and amAddrMode are only used for debugging, verification, printing things, etc.
@@ -465,11 +465,19 @@ namespace lsn {
 
 
 		// == Functions.
-		/** Fetches the next opcode and begins the next instruction. */
-		inline void											Tick_NextInstructionStd();
+		/**
+		 * Fetches the next opcode and begins the next instruction.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static inline void									Tick_NextInstructionStd( CCpu6502 * _pcCpu );
 
-		/** Performs a cycle inside an instruction. */
-		inline void											Tick_InstructionCycleStd();
+		/**
+		 * Performs a cycle inside an instruction.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static inline void									Tick_InstructionCycleStd( CCpu6502 * _pcCpu );
 
 		/**
 		 * Converts an OAM DMA function pointer to an index.
@@ -503,15 +511,19 @@ namespace lsn {
 		 **/
 		inline PfCycle										IdxToDmcFunc( uint8_t _u8Idx );
 
-		/** The OAM DMA cycles. */
+		/** 
+		 * The OAM DMA cycles.
+		 * 
+		 * \param _pcCpu The pointer to the CPU object.
+		 */
 		template <unsigned _uState, bool _bPhi2, bool _bCalledFromDmc = false>
-		void												Tick_OamDma() {
+		static void											Tick_OamDma( CCpu6502 * _pcCpu ) {
 #define LSN_GET												1
 #define LSN_PUT												(LSN_GET ^ 1)
 #define LSN_SET_PTRS( STATE )															\
-	m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
-	m_pfOamDmaFuncs[false] = &CCpu6502::Tick_OamDma<STATE, false, _bCalledFromDmc>;		\
-	m_pfOamDmaFuncs[true] = &CCpu6502::Tick_OamDma<STATE, true, _bCalledFromDmc>
+	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
+	_pcCpu->m_pfOamDmaFuncs[false] = &CCpu6502::Tick_OamDma<STATE, false, _bCalledFromDmc>;		\
+	_pcCpu->m_pfOamDmaFuncs[true] = &CCpu6502::Tick_OamDma<STATE, true, _bCalledFromDmc>
 			// _uState == LSN_DMA_STATES
 			//
 			// Triggered by Phi2 read, so can never happen between Phi1 nd Phi2.  Always begins on a Phi1.
@@ -521,26 +533,26 @@ namespace lsn {
 			// (m_ui64CycleCount & 0x1) == LSN_PUT is a "put" cycle.
 			//	When neither a get nor a put can happen, dummy read the address that allowed halting of the CPU for DMA.
 			if constexpr ( !_bCalledFromDmc ) {
-				if LSN_UNLIKELY( m_pfDmcDmaFuncs[0] ) {
-					m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<_uState, false, true>;
-					m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<_uState, true, true>;
+				if LSN_UNLIKELY( _pcCpu->m_pfDmcDmaFuncs[0] ) {
+					_pcCpu->m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<_uState, false, true>;
+					_pcCpu->m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<_uState, true, true>;
 
 					// Call the DMC DMA function.
-					(this->*m_pfDmcDmaFuncs[_bPhi2])();
+					(_pcCpu->m_pfDmcDmaFuncs[_bPhi2])( _pcCpu );
 					return;
 				}
 			}
 
 			if constexpr ( _uState == LSN_DS_IDLE ) {
-				(this->*m_pfTickFuncCopy)();
+				(_pcCpu->m_pfTickFuncCopy)( _pcCpu );
 
-				if ( m_bDmaGo ) {
+				if ( _pcCpu->m_bDmaGo ) {
 					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
 					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
 					// The CPU is now stalled.  Begin the transfer.
-					m_ui16DmaCounter = 256;
-					m_ui8DmaPos = 0;
-					m_bDmaRead = true;
+					_pcCpu->m_ui16DmaCounter = 256;
+					_pcCpu->m_ui8DmaPos = 0;
+					_pcCpu->m_bDmaRead = true;
 
 					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 
@@ -558,48 +570,48 @@ namespace lsn {
 					bAccessBus = false;
 				}
 				else {
-					bAccessBus = !m_bDmcBusAccess;
+					bAccessBus = !_pcCpu->m_bDmcBusAccess;
 				}
 				if LSN_LIKELY( bAccessBus ) {
-					if ( m_bDmaRead ) {
-						if ( (m_ui64CycleCount & 0x1) == LSN_GET ) {
+					if ( _pcCpu->m_bDmaRead ) {
+						if ( (_pcCpu->m_ui64CycleCount & 0x1) == LSN_GET ) {
 							// Read (get).
-							m_ui8DmaValue = m_pbBus->Read( uint16_t( m_ui16DmaAddress + m_ui8DmaPos ) );
-							m_bDmaRead = false;
+							_pcCpu->m_ui8DmaValue = _pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaAddress + _pcCpu->m_ui8DmaPos ) );
+							_pcCpu->m_bDmaRead = false;
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
-							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
+							_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
 						}
 						LSN_SET_PTRS( LSN_DS_READ_WRITE );
 					}
 					else {
-						if ( (m_ui64CycleCount & 0x1) == LSN_PUT ) {
+						if ( (_pcCpu->m_ui64CycleCount & 0x1) == LSN_PUT ) {
 							// Write (put).
-							m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
-							if ( --m_ui16DmaCounter == 0 ) {
+							_pcCpu->m_pbBus->Write( LSN_PR_OAMDATA, _pcCpu->m_ui8DmaValue );
+							if ( --_pcCpu->m_ui16DmaCounter == 0 ) {
 								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
-								m_bRdyLow = false;
-								m_bDmaGo = false;
-								if ( m_pfDmcDmaFuncs[0] ) {		// Still DMC DMA going?
-									m_pfTickFunc = m_pfDmcDmaFuncs[!_bPhi2];
+								_pcCpu->m_bRdyLow = false;
+								_pcCpu->m_bDmaGo = false;
+								if ( _pcCpu->m_pfDmcDmaFuncs[0] ) {		// Still DMC DMA going?
+									_pcCpu->m_pfTickFunc = _pcCpu->m_pfDmcDmaFuncs[!_bPhi2];
 								}
 								else {
-									m_pfTickFunc = m_pfTickFuncCopy;
+									_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
 								}
 
-								m_pfOamDmaFuncs[0] = nullptr;
-								m_pfOamDmaFuncs[1] = nullptr;
+								_pcCpu->m_pfOamDmaFuncs[0] = nullptr;
+								_pcCpu->m_pfOamDmaFuncs[1] = nullptr;
 							}
 							else {
-								++m_ui8DmaPos;
-								m_bDmaRead = true;
+								++_pcCpu->m_ui8DmaPos;
+								_pcCpu->m_bDmaRead = true;
 								LSN_SET_PTRS( LSN_DS_READ_WRITE );
 							}
 						}
 						else {
 							// Have to wait for alignment.  Perform the dummy read.
-							m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
+							_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
 							LSN_SET_PTRS( LSN_DS_READ_WRITE );
 						}
 					}
@@ -614,25 +626,29 @@ namespace lsn {
 #undef LSN_GET
 		}
 
-		/** The DMC DMA cycles. */
+		/**
+		 * The DMC DMA cycles.
+		 * 
+		 * \param _pcCpu The pointer to the CPU object.
+		 */
 		template <unsigned _uState, bool _bPhi2, bool _bIsReload>
-		void												Tick_DmcDma() {
+		static void											Tick_DmcDma( CCpu6502 * _pcCpu ) {
 #define LSN_GET												1
 #define LSN_PUT												(LSN_GET ^ 1)
 #define LSN_SET_PTRS( STATE )															\
-	m_pfTickFunc = &CCpu6502::Tick_DmcDma<STATE, !_bPhi2, _bIsReload>;					\
-	m_pfDmcDmaFuncs[false] = &CCpu6502::Tick_DmcDma<STATE, false, _bIsReload>;			\
-	m_pfDmcDmaFuncs[true] = &CCpu6502::Tick_DmcDma<STATE, true, _bIsReload>
+	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_DmcDma<STATE, !_bPhi2, _bIsReload>;					\
+	_pcCpu->m_pfDmcDmaFuncs[false] = &CCpu6502::Tick_DmcDma<STATE, false, _bIsReload>;			\
+	_pcCpu->m_pfDmcDmaFuncs[true] = &CCpu6502::Tick_DmcDma<STATE, true, _bIsReload>
 			
-			m_bDmcBusAccess = false;
+			_pcCpu->m_bDmcBusAccess = false;
 			if constexpr ( _uState == LSN_DS_IDLE ) {
-				if ( m_pfOamDmaFuncs[0] ) {
-					(this->*m_pfOamDmaFuncs[_bPhi2])();
+				if ( _pcCpu->m_pfOamDmaFuncs[0] ) {
+					(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
 				}
 				else {
-					(this->*m_pfTickFuncCopy)();
+					(_pcCpu->m_pfTickFuncCopy)( _pcCpu );
 				}
-				if ( m_bDmcGo ) {
+				if ( _pcCpu->m_bDmcGo ) {
 					if constexpr ( _bPhi2 ) {
 						LSN_SET_PTRS( LSN_DS_DUMMY );
 					}
@@ -646,15 +662,15 @@ namespace lsn {
 			}
 			if constexpr ( _uState == LSN_DS_DUMMY ) {
 				if constexpr ( _bPhi2 ) {
-					m_pbBus->Read( uint16_t( m_ui16DmaCpuAddress ) );
-					if ( m_pfOamDmaFuncs[_bPhi2] ) {
-						m_bDmcBusAccess = true;
-						(this->*m_pfOamDmaFuncs[_bPhi2])();
-						m_bDmcBusAccess = false;
+					_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
+					if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
+						_pcCpu->m_bDmcBusAccess = true;
+						(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
+						_pcCpu->m_bDmcBusAccess = false;
 					}
 				}
-				else if ( m_pfOamDmaFuncs[_bPhi2] ) {
-					(this->*m_pfOamDmaFuncs[_bPhi2])();
+				else if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
+					(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
 				}
 
 				if constexpr ( _bPhi2 ) {
@@ -662,7 +678,7 @@ namespace lsn {
 					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 
 					// We are trying to read.
-					m_bDmcRead = true;
+					_pcCpu->m_bDmcRead = true;
 				}
 				else {
 					LSN_SET_PTRS( LSN_DS_DUMMY );
@@ -670,32 +686,32 @@ namespace lsn {
 			}
 			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
 				if constexpr ( _bPhi2 ) {
-					if ( m_bDmcRead && (m_ui64CycleCount & 0x1) == LSN_GET ) {
-						m_bDmcBusAccess = true;
-						uint16_t ui16DmcAddr = m_psbSystem->DmcDmaAddress();
-						auto ui8DmcValue = m_pbBus->Read( ui16DmcAddr );
+					if ( _pcCpu->m_bDmcRead && (_pcCpu->m_ui64CycleCount & 0x1) == LSN_GET ) {
+						_pcCpu->m_bDmcBusAccess = true;
+						uint16_t ui16DmcAddr = _pcCpu->m_psbSystem->DmcDmaAddress();
+						auto ui8DmcValue = _pcCpu->m_pbBus->Read( ui16DmcAddr );
 						
-						m_pfDmcDmaFuncs[0] = nullptr;
-						m_pfDmcDmaFuncs[1] = nullptr;
+						_pcCpu->m_pfDmcDmaFuncs[0] = nullptr;
+						_pcCpu->m_pfDmcDmaFuncs[1] = nullptr;
 
-						m_bDmcGo = false;
-						m_bDmcDma = false;
-						m_bDmcRead = false;
+						_pcCpu->m_bDmcGo = false;
+						_pcCpu->m_bDmcDma = false;
+						_pcCpu->m_bDmcRead = false;
 
-						if ( m_pfOamDmaFuncs[_bPhi2] ) {
-							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
+						if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
+							(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );	// It will set the next function pointer.
 						}
 						else {
-							m_pfTickFunc = m_pfTickFuncCopy;
+							_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
 						}
 
-						m_psbSystem->ReceiveDmcSample( ui8DmcValue );
-						m_bDmcBusAccess = false;
+						_pcCpu->m_psbSystem->ReceiveDmcSample( ui8DmcValue );
+						_pcCpu->m_bDmcBusAccess = false;
 					}
 					else {
 						// Not a GET cycle.
-						if ( m_pfOamDmaFuncs[_bPhi2] ) {
-							(this->*m_pfOamDmaFuncs[_bPhi2])();	// It will set the next function pointer.
+						if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
+							(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );	// It will set the next function pointer.
 						}
 						LSN_SET_PTRS( LSN_DS_READ_WRITE );
 					}
@@ -704,8 +720,8 @@ namespace lsn {
 				}
 				else {
 					// Nothing for us to do.
-					if ( m_pfOamDmaFuncs[_bPhi2] ) {
-						(this->*m_pfOamDmaFuncs[_bPhi2])();
+					if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
+						(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
 					}
 					LSN_SET_PTRS( LSN_DS_READ_WRITE );
 				}
@@ -794,426 +810,879 @@ namespace lsn {
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// CYCLES
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-		/** Performs an add-with-carry with an operand, setting flags C, N, V, and Z. */
+		/**
+		 * Performs an add-with-carry with an operand, setting flags C, N, V, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Adc_BeginInst();
+		static void											Adc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Adds X and m_fsState.ui8Operand, stores to either m_ui16Address or m_ui16Pointer. */
+		/**
+		 * Adds X and m_fsState.ui8Operand, stores to either m_ui16Address or m_ui16Pointer.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
-		void												Add_XAndOperand_To_AddrOrPntr_8bit();
+		static void											Add_XAndOperand_To_AddrOrPntr_8bit( CCpu6502 * _pcCpu );
 
-		/** Adds X and m_ui16Pointer or m_ui16Address, stores to either m_ui16Address or m_ui16Pointer. */
+		/**
+		 * Adds X and m_ui16Pointer or m_ui16Address, stores to either m_ui16Address or m_ui16Pointer.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
-		void												Add_XAndPtrOrAddr_To_AddrOrPntr_8bit();
+		static void											Add_XAndPtrOrAddr_To_AddrOrPntr_8bit( CCpu6502 * _pcCpu );
 
-		/** Adds X and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Adds X and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
-		void												Add_XAndPtrOrAddr_To_AddrOrPtr();
+		static void											Add_XAndPtrOrAddr_To_AddrOrPtr( CCpu6502 * _pcCpu );
 
-		/** Adds Y and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Adds Y and either m_ui16Address.L or m_ui16Pointer.L, stores in either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bRead = true, bool _bIncPc = false>
-		void												Add_YAndPtrOrAddr_To_AddrOrPtr();
+		static void											Add_YAndPtrOrAddr_To_AddrOrPtr( CCpu6502 * _pcCpu );
 
-		/** Performs A = A & OP.  Sets flags C, N, and Z, increases PC. */
-		void												Anc_IncPc_BeginInst();
+		/**
+		 * Performs A = A & OP.  Sets flags C, N, and Z, increases PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Anc_IncPc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = A & OP.  Sets flags N and Z. */
+		/**
+		 * Performs A = A & OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												And_BeginInst();
+		static void											And_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = (A | CONST) & X & OP.  Sets flags N and Z. */
-		void												Ane_IncPc_BeginInst();
+		/**
+		 * Performs A = (A | CONST) & X & OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Ane_IncPc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z. */
+		/**
+		 * Performs A = A & OP; A = (A >> 1) | (C << 7).  Sets flags C, V, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Arr_BeginInst();
+		static void											Arr_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs M <<= 1.  Sets C, N, and V. */
-		void												Asl();
+		/**
+		 * Performs M <<= 1.  Sets C, N, and V.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Asl( CCpu6502 * _pcCpu );
 
-		/** Performs A <<= 1.  Sets C, N, and V. */
-		void												AslOnA_BeginInst();
+		/**
+		 * Performs A <<= 1.  Sets C, N, and V.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											AslOnA_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A &= OP; A >>= 1.  Sets flags C, N, and Z. */
-		void												Asr_IncPc_BeginInst();
+		/**
+		 * Performs A &= OP; A >>= 1.  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Asr_IncPc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Sets flags N, V and Z according to a bit test. */
-		void												Bit_BeginInst();
+		/**
+		 * Sets flags N, V and Z according to a bit test.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Bit_BeginInst( CCpu6502 * _pcCpu );
 
-		/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
+		/**
+		 * 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction).
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <unsigned _uBit, unsigned _uVal>
-		void												Branch_Cycle1();
+		static void											Branch_Cycle1( CCpu6502 * _pcCpu );
 
-		/** 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
-		void												Branch_Cycle1_Phi2();
+		/**
+		 * 1st cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction).
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle1_Phi2( CCpu6502 * _pcCpu );
 
-		/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
-		void												Branch_Cycle2();
+		/**
+		 * 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction).
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle2( CCpu6502 * _pcCpu );
 
-		/** 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction). */
-		void												Branch_Cycle2_Phi2();
+		/**
+		 * 2nd cycle of branch instructions. Fetches opcode of next instruction and performs the check to decide which cycle comes next (or to end the instruction).
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle2_Phi2( CCpu6502 * _pcCpu );
 
-		/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
-		void												Branch_Cycle3();
+		/**
+		 * 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle3( CCpu6502 * _pcCpu );
 
-		/** 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary. */
-		void												Branch_Cycle3_Phi2();
+		/**
+		 * 3rd cycle of branch instructions. Branch was taken and might have crossed a page boundary.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle3_Phi2( CCpu6502 * _pcCpu );
 
-		/** 4th cycle of branch instructions. Page boundary was crossed. */
-		void												Branch_Cycle4();
+		/**
+		 * 4th cycle of branch instructions. Page boundary was crossed.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Branch_Cycle4( CCpu6502 * _pcCpu );
 
-		/** Final touches to BRK (copies m_ui16Address to m_fsState.rRegs.ui16Pc) and first cycle of the next instruction. */
-		void												Brk_BeginInst();
+		/**
+		 * Final touches to BRK (copies m_ui16Address to m_fsState.rRegs.ui16Pc) and first cycle of the next instruction.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Brk_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Clears the carry bit. */
-		void												Clc_BeginInst();
+		/**
+		 * Clears the carry bit.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Clc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Clears the decimal flag. */
-		void												Cld_BeginInst();
+		/**
+		 * Clears the decimal flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Cld_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Clears the IRQ flag. */
-		void												Cli_BeginInst();
+		/**
+		 * Clears the IRQ flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Cli_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Clears the overflow flag. */
-		void												Clv_BeginInst();
+		/**
+		 * Clears the overflow flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Clv_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Compares A with OP. */
+		/**
+		 * Compares A with OP.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Cmp_BeginInst();
+		static void											Cmp_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Compares X with OP. */
+		/**
+		 * Compares X with OP.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Cpx_BeginInst();
+		static void											Cpx_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Compares Y with OP. */
+		/**
+		 * Compares Y with OP.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Cpy_BeginInst();
+		static void											Cpy_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies m_fsState.ui8Operand to Status without the B bit. */
-		void												CopyOperandToStatusWithoutB();
+		/**
+		 * Copies m_fsState.ui8Operand to Status without the B bit.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											CopyOperandToStatusWithoutB( CCpu6502 * _pcCpu );
 
-		/** Copies m_ui16Target to PC, optionally adjusts PC. */
+		/**
+		 * Copies m_ui16Target to PC, optionally adjusts PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												CopyTargetToPc();
+		static void											CopyTargetToPc( CCpu6502 * _pcCpu );
 
-		/** Copies from the vector to PC.h. */
+		/**
+		 * Copies from the vector to PC.h.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bEndInstr = false>
-		void												CopyVectorToPc_H_Phi2();
+		static void											CopyVectorToPc_H_Phi2( CCpu6502 * _pcCpu );
 			
-		/** Copies from the vector to PC.l. */
-		void												CopyVectorToPc_L_Phi2();
+		/**
+		 * Copies from the vector to PC.l.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											CopyVectorToPc_L_Phi2( CCpu6502 * _pcCpu );
 
-		/** Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z. */
-		void												Dcp();
+		/**
+		 * Performs [ADDR]--; CMP(A).  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Dcp( CCpu6502 * _pcCpu );
 
-		/** Performs [ADDR]--.  Sets flags N and Z. */
-		void												Dec();
+		/**
+		 * Performs [ADDR]--.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Dec( CCpu6502 * _pcCpu );
 
-		/** Performs X--.  Sets flags N and Z. */
-		void												Dex_BeginInst();
+		/**
+		 * Performs X--.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Dex_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs Y--.  Sets flags N and Z. */
-		void												Dey_BeginInst();
+		/**
+		 * Performs Y--.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Dey_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = A ^ OP.  Sets flags N and Z. */
+		/**
+		 * Performs A = A ^ OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Eor_BeginInst();
+		static void											Eor_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Fetches the current opcode and increments PC. */
-		void												Fetch_Opcode_IncPc_Phi2();
+		/**
+		 * Fetches the current opcode and increments PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Fetch_Opcode_IncPc_Phi2( CCpu6502 * _pcCpu );
 
-		/** Fetches the operand. */
+		/**
+		 * Fetches the operand.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bEndInstr = false>
-		void												Fetch_Operand_Discard_Phi2();
+		static void											Fetch_Operand_Discard_Phi2( CCpu6502 * _pcCpu );
 
-		/** Fetches the operand and increments PC. */
+		/**
+		 * Fetches the operand and increments PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bEndInstr = false>
-		void												Fetch_Operand_IncPc_Phi2();
+		static void											Fetch_Operand_IncPc_Phi2( CCpu6502 * _pcCpu );
 
-		/** Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC. */
+		/**
+		 * Fetches the operand to either m_ui16Address.H or m_ui16Pointer.H and increments PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bEndInstr = false>
-		void												Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2();
+		static void											Fetch_Operand_To_AddrOrPtr_H_IncPc_Phi2( CCpu6502 * _pcCpu );
 
-		/** Fetches the operand to either m_ui16Address or m_ui16Pointer and increments PC. */
+		/**
+		 * Fetches the operand to either m_ui16Address or m_ui16Pointer and increments PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Fetch_Operand_To_AddrOrPtr_IncPc_Phi2();
+		static void											Fetch_Operand_To_AddrOrPtr_IncPc_Phi2( CCpu6502 * _pcCpu );
 
-		/** Uses m_ui16Target to fix the high byte of either m_ui16Address or m_ui16Pointer. */
+		/**
+		 * Uses m_ui16Target to fix the high byte of either m_ui16Address or m_ui16Pointer.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr>
-		void												Fix_PtrOrAddr_To_AddrOrPtr_H();
+		static void											Fix_PtrOrAddr_To_AddrOrPtr_H( CCpu6502 * _pcCpu );
 
-		/** Performs the Indirect Y add on the low byte.  m_ui16Address -> m_ui16Pointer or m_ui16Pointer -> m_ui16Address. */
+		/**
+		 * Performs the Indirect Y add on the low byte.  m_ui16Address -> m_ui16Pointer or m_ui16Pointer -> m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr>
-		void												IndirectYAdd_PtrOrAddr_To_AddrOrPtr();
+		static void											IndirectYAdd_PtrOrAddr_To_AddrOrPtr( CCpu6502 * _pcCpu );
 
-		/** Performs OP++.  Sets flags N and Z. */
-		void												Inc();
+		/**
+		 * Performs OP++.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Inc( CCpu6502 * _pcCpu );
 
-		/** Performs X++.  Sets flags N and Z. */
-		void												Inx_BeginInst();
+		/**
+		 * Performs X++.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Inx_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs Y++.  Sets flags N and Z. */
-		void												Iny_BeginInst();
+		/**
+		 * Performs Y++.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Iny_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs M++; SBC.  Sets flags C, N, V, and Z. */
-		void												Isb();
+		/**
+		 * Performs M++; SBC.  Sets flags C, N, V, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Isb( CCpu6502 * _pcCpu );
 
-		/** Copies m_ui16Address into PC. */
-		void												Jmp_BeginInst();
+		/**
+		 * Copies m_ui16Address into PC.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Jmp_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies m_ui16Address into PC, adjusts S. */
-		void												Jsr_BeginInst();
+		/**
+		 * Copies m_ui16Address into PC, adjusts S.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Jsr_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = X = S = (OP & S).  Sets flags N and Z. */
+		/**
+		 * Performs A = X = S = (OP & S).  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Las_BeginInst();
+		static void											Las_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = X = OP.  Sets flags N and Z. */
+		/**
+		 * Performs A = X = OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Lax_BeginInst();
+		static void											Lax_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = OP.  Sets flags N and Z. */
+		/**
+		 * Performs A = OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Lda_BeginInst();
+		static void											Lda_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs X = OP.  Sets flags N and Z. */
+		/**
+		 * Performs X = OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Ldx_BeginInst();
+		static void											Ldx_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs Y = OP.  Sets flags N and Z. */
+		/**
+		 * Performs Y = OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Ldy_BeginInst();
+		static void											Ldy_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs OP >>= 1.  Sets flags C, N, and Z. */
-		void												Lsr();
+		/**
+		 * Performs OP >>= 1.  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Lsr( CCpu6502 * _pcCpu );
 
-		/** Performs A >>= 1.  Sets flags C, N, and Z. */
-		void												LsrOnA_BeginInst();
+		/**
+		 * Performs A >>= 1.  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											LsrOnA_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs A = X = (A | CONST) & OP.  Sets flags N and Z. */
-		void												Lxa_IncPc_BeginInst();
+		/**
+		 * Performs A = X = (A | CONST) & OP.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Lxa_IncPc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Generic null operation. */
+		/**
+		 * Generic null operation.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bRead = true, bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
-		void												Null();
+		static void											Null( CCpu6502 * _pcCpu );
 
-		/** Generic null operation for BRK that can be either a read or write, depending on RESET. */
+		/**
+		 * Generic null operation for BRK that can be either a read or write, depending on RESET.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false, bool _bAdjS = false, bool _bBeginInstr = false>
-		void												Null_RorW();
+		static void											Null_RorW( CCpu6502 * _pcCpu );
 
-		/** Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z. */
+		/**
+		 * Performs A |= Operand with m_fsState.ui8Operand.  Sets flags N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Ora_BeginInst();
+		static void											Ora_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Sets m_fsState.ui8Operand to the status byte with Break and Reserved set. */
-		void												Php();
+		/**
+		 * Sets m_fsState.ui8Operand to the status byte with Break and Reserved set.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Php( CCpu6502 * _pcCpu );
 
-		/** Pulls the accumulator: Copies m_fsState.ui8Operand to A. */
-		void												Pla_BeginInst();
+		/**
+		 * Pulls the accumulator: Copies m_fsState.ui8Operand to A.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Pla_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Pulls the status byte, unsets X, sets M. */
-		void												Plp_BeginInst();
+		/**
+		 * Pulls the status byte, unsets X, sets M.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Plp_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Pulls from the stack, stores in m_fsState.ui8Operand. */
+		/**
+		 * Pulls from the stack, stores in m_fsState.ui8Operand.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0>
-		void												Pull_To_Operand_Phi2();
+		static void											Pull_To_Operand_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pulls from the stack, stores in m_ui16Target.L. */
+		/**
+		 * Pulls from the stack, stores in m_ui16Target.L.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0>
-		void												Pull_To_Target_L_Phi2();
+		static void											Pull_To_Target_L_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pushes A. */
+		/**
+		 * Pushes A.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
-		void												Push_A_Phi2();
+		static void											Push_A_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pushes m_fsState.ui8Operand. */
+		/**
+		 * Pushes m_fsState.ui8Operand.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
-		void												Push_Operand_Phi2();
+		static void											Push_Operand_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pushes PCh with the given S offset. */
+		/**
+		 * Pushes PCh with the given S offset.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0>
-		void												Push_Pc_H_Phi2();
+		static void											Push_Pc_H_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pushes PCl with the given S offset. */
+		/**
+		 * Pushes PCl with the given S offset.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0>
-		void												Push_Pc_L_Phi2();
+		static void											Push_Pc_L_Phi2( CCpu6502 * _pcCpu );
 
-		/** Pushes Status with or without B/X to the given S offset. */
+		/**
+		 * Pushes Status with or without B/X to the given S offset.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0>
-		void												Push_S_Phi2();
+		static void											Push_S_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads a given hard-coded address, optionally moving to the next cycle or the previous cycle. */
+/**
+		 * Reads a given hard-coded address, optionally moving to the next cycle or the previous cycle.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <uint16_t _ui16Addr, bool _bMoveBack>
-		void												ReadAddr_Phi2();
+		static void											ReadAddr_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads from m_fsState.ui8Operand, discards result. */
-		void												Read_Operand_Discard_Phi2();
+		/**
+		 * Reads from m_fsState.ui8Operand, discards result.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Read_Operand_Discard_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1]. */
+		/**
+		 * Reads from either m_ui16Pointer or m_ui16Address and stores the low byte in either m_ui8Address[1] or m_ui8Pointer[1].
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr, bool _bEndInstr = false>
-		void												Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2();
+		static void											Read_PtrOrAddr_To_AddrOrPtr_H_SamePage_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H. */
+		/**
+		 * Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.H or m_ui16Pointer.H.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr>
-		void												Read_PtrOrAddr_To_AddrOrPtr_H_8Bit_Phi2();
+		static void											Read_PtrOrAddr_To_AddrOrPtr_H_8Bit_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.L or m_ui16Pointer.L. */
+		/**
+		 * Reads either m_ui16Pointer or m_ui16Address and stores in either m_ui16Address.L or m_ui16Pointer.L.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr>
-		void												Read_PtrOrAddr_To_AddrOrPtr_L_Phi2();
+		static void											Read_PtrOrAddr_To_AddrOrPtr_L_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand. */
+		/**
+		 * Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr, bool _bEndInstr = false>
-		void												Read_PtrOrAddr_To_Operand_Phi2();
+		static void											Read_PtrOrAddr_To_Operand_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand.  Skips a full cycle if m_fsState.bBoundaryCrossed is false (and only then is _bEndInstr checked). */
+		/**
+		 * Reads either m_ui16Pointer or m_ui16Address and stores in m_fsState.ui8Operand.  Skips a full cycle if m_fsState.bBoundaryCrossed is false (and only then is _bEndInstr checked).
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bFromAddr, bool _bEndInstr = false>
-		void												Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2();
+		static void											Read_PtrOrAddr_To_Operand_BoundarySkip_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads the stack, stores in m_fsState.ui8Operand. */
+		/**
+		 * Reads the stack, stores in m_fsState.ui8Operand.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bEndInstr = false>
-		void												Read_Stack_To_Operand_Phi2();
+		static void											Read_Stack_To_Operand_Phi2( CCpu6502 * _pcCpu );
 
-		/** Reads the stack, stores in m_ui16Target.H. */
+		/**
+		 * Reads the stack, stores in m_ui16Target.H.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <int8_t _i8SOff = 0, bool _bEndInstr = false>
-		void												Read_Stack_To_Target_H_Phi2();
+		static void											Read_Stack_To_Target_H_Phi2( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z. */
-		void												Rla();
+		/**
+		 * Performs OP = (OP << 1) | (C); A = A & (OP).  Sets flags C, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Rla( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
-		void												Rol();
+		/**
+		 * Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Rol( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z. */
-		void												RolOnA_BeginInst();
+		/**
+		 * Performs OP = (OP << 1) | (C).  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											RolOnA_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z. */
-		void												Ror();
+		/**
+		 * Performs OP = (OP >> 1) | (C << 7).  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Ror( CCpu6502 * _pcCpu );
 
-		/** Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z. */
-		void												RorOnA_BeginInst();
+		/**
+		 * Performs A = (A >> 1) | (C << 7).  Sets flags C, N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											RorOnA_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z. */
-		void												Rra();
+		/**
+		 * Performs OP = (OP >> 1) | (C << 7); A += OP + C.  Sets flags C, V, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Rra( CCpu6502 * _pcCpu );
 
-		/** Copies m_ui16Target to PC, adjusts S. */
-		void												Rti_BeginInst();
+		/**
+		 * Copies m_ui16Target to PC, adjusts S.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Rti_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Adjusts PC and calls BeginInst(). */
-		void												Rts_BeginInst();
+		/**
+		 * Adjusts PC and calls BeginInst().
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Rts_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Writes (A & X) to either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Writes (A & X) to either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Sax_Phi2();
+		static void											Sax_Phi2( CCpu6502 * _pcCpu );
 
-		/** Performs A = A - OP + C.  Sets flags C, V, N and Z. */
+		/**
+		 * Performs A = A - OP + C.  Sets flags C, V, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bIncPc = false>
-		void												Sbc_BeginInst();
+		static void											Sbc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Performs X = (A & X) - OP.  Sets flags C, N and Z. */
-		void												Sbx_IncPc_BeginInst();
+		/**
+		 * Performs X = (A & X) - OP.  Sets flags C, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Sbx_IncPc_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Sets the carry flag. */
-		void												Sec_BeginInst();
+		/**
+		 * Sets the carry flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Sec_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Sets the decimal flag. */
-		void												Sed_BeginInst();
+		/**
+		 * Sets the decimal flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Sed_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Sets the IRQ flag. */
-		void												Sei_BeginInst();
+		/**
+		 * Sets the IRQ flag.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Sei_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Selects the BRK vector etc. */
+		/**
+		 * Selects the BRK vector etc.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bAdjS>
-		void												SelectBrkVectors();
+		static void											SelectBrkVectors( CCpu6502 * _pcCpu );
 
-		/** Sets I and X. */
-		void												SetBrkFlags();
+		/**
+		 * Sets I and X.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											SetBrkFlags( CCpu6502 * _pcCpu );
 
-		/** Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, unsigned _uRdyCnt>
-		void												Sha_Phi2();
+		static void											Sha_Phi2( CCpu6502 * _pcCpu );
 
-		/** Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address. */
+		/**
+		 * Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Shs_Phi2();
+		static void											Shs_Phi2( CCpu6502 * _pcCpu );
 
-		/** Illegal. Stores X & (high-byte of address + 1) at the address. */
+		/**
+		 * Illegal. Stores X & (high-byte of address + 1) at the address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Shx_Phi2();
+		static void											Shx_Phi2( CCpu6502 * _pcCpu );
 
-		/** Illegal. Stores Y & (high-byte of address + 1) at the address. */
+		/**
+		 * Illegal. Stores Y & (high-byte of address + 1) at the address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Shy_Phi2();
+		static void											Shy_Phi2( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z. */
-		void												Slo();
+		/**
+		 * Performs OP = (OP << 1); A = A | (OP).  Sets flags C, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Slo( CCpu6502 * _pcCpu );
 
-		/** Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z. */
-		void												Sre();
+		/**
+		 * Performs OP = (OP >> 1); A = A ^ (OP).  Sets flags C, N and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Sre( CCpu6502 * _pcCpu );
 
-		/** Copies A into X.  Sets flags N, and Z. */
-		void												Tax_BeginInst();
+		/**
+		 * Copies A into X.  Sets flags N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Tax_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies A into Y.  Sets flags N, and Z. */
-		void												Tay_BeginInst();
+		/**
+		 * Copies A into Y.  Sets flags N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Tay_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies S into X. */
-		void												Tsx_BeginInst();
+		/**
+		 * Copies S into X.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Tsx_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies X into A.  Sets flags N, and Z. */
-		void												Txa_BeginInst();
+		/**
+		 * Copies X into A.  Sets flags N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Txa_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies Y into A.  Sets flags N, and Z. */
-		void												Tya_BeginInst();
+		/**
+		 * Copies Y into A.  Sets flags N, and Z.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Tya_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Copies X into S. */
-		void												Txs_BeginInst();
+		/**
+		 * Copies X into S.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
+		static void											Txs_BeginInst( CCpu6502 * _pcCpu );
 
-		/** Writes A to either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Writes A to either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Write_A_To_AddrOrPtr_Phi2();
+		static void											Write_A_To_AddrOrPtr_Phi2( CCpu6502 * _pcCpu );
 
-		/** Writes m_fsState.ui8Operand to either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Writes m_fsState.ui8Operand to either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr, bool _bEndInstr = false>
-		void												Write_Operand_To_AddrOrPtr_Phi2();
+		static void											Write_Operand_To_AddrOrPtr_Phi2( CCpu6502 * _pcCpu );
 
-		/** Writes X to either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Writes X to either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Write_X_To_AddrOrPtr_Phi2();
+		static void											Write_X_To_AddrOrPtr_Phi2( CCpu6502 * _pcCpu );
 
-		/** Writes Y to either m_ui16Pointer or m_ui16Address. */
+		/**
+		 * Writes Y to either m_ui16Pointer or m_ui16Address.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
+		 */
 		template <bool _bToAddr>
-		void												Write_Y_To_AddrOrPtr_Phi2();
+		static void											Write_Y_To_AddrOrPtr_Phi2( CCpu6502 * _pcCpu );
 		
 
 		/**
 		 * Prepares to enter a new instruction.
+		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
 		template <bool _bIncPc = false, bool _bAdjS = false>
-		inline void											BeginInst();
+		static inline void									BeginInst( CCpu6502 * _pcCpu );
 
 		/**
 		 * Performs an add-with-carry with an operand, setting flags C, N, V, and Z.
 		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
-		inline void											Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
+		static inline void									Adc( CCpu6502 * _pcCpu, uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
 
 		/**
 		 * Performs a compare against a register and an operand by setting flags.
 		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
-		inline void											Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal );
+		static inline void									Cmp( CCpu6502 * _pcCpu, uint8_t _ui8RegVal, uint8_t _ui8OpVal );
 
 		/**
 		 * Performs an subtract-with-carry with an operand, setting flags C, N, V, and Z.
 		 *
+		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 * \param _ui8RegVal The register value used in the comparison.
 		 * \param _ui8OpVal The operand value used in the comparison.
 		 */
-		inline void											Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
+		static inline void									Sbc( CCpu6502 * _pcCpu, uint8_t &_ui8RegVal, uint8_t _ui8OpVal );
 	};
 
 
@@ -1221,15 +1690,23 @@ namespace lsn {
 	// DEFINITIONS
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// == Fuctions.
-	/** Fetches the next opcode and begins the next instruction. */
-	inline void CCpu6502::Tick_NextInstructionStd() {
-		BeginInst();
+	/**
+	 * Fetches the next opcode and begins the next instruction.
+	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
+	 */
+	inline void CCpu6502::Tick_NextInstructionStd( CCpu6502 * _pcCpu ) {
+		CCpu6502::BeginInst( _pcCpu );
 	}
 
-	/** Performs a cycle inside an instruction. */
-	inline void CCpu6502::Tick_InstructionCycleStd() {
-		//(this->*m_iInstructionSet[m_fsState.ui16OpCode].pfHandler[m_fsState.ui8FuncIndex])();
-		(this->*m_fsState.pfCurInstruction[m_fsState.ui8FuncIndex])();
+	/**
+	 * Performs a cycle inside an instruction.
+	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
+	 */
+	inline void CCpu6502::Tick_InstructionCycleStd( CCpu6502 * _pcCpu ) {
+		//(*CCpu6502::m_iInstructionSet[(*_pcCpu).m_fsState.ui16OpCode].pfHandler[(*_pcCpu).m_fsState.ui8FuncIndex])( _pcCpu );
+		(*(*_pcCpu).m_fsState.pfCurInstruction[(*_pcCpu).m_fsState.ui8FuncIndex])( _pcCpu );
 	}
 
 	/**
@@ -1379,10 +1856,11 @@ namespace lsn {
 	/**
 	 * Prepares to enter a new instruction.
 	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 * \param _ui16Op The instruction to begin executing.
 	 */
 	template <bool _bIncPc, bool _bAdjS>
-	inline void CCpu6502::BeginInst() {
+	inline void CCpu6502::BeginInst( CCpu6502 * _pcCpu ) {
 		LSN_INSTR_START_PHI1( true );
 
 		if constexpr ( _bIncPc ) {
@@ -1393,55 +1871,58 @@ namespace lsn {
 			LSN_UPDATE_S;
 		}
 		// Enter normal instruction context.
-		m_fsState.ui8FuncIndex = 0;
+		(*_pcCpu).m_fsState.ui8FuncIndex = 0;
 		// TODO: Move this to Tick_NextInstructionStd().
-		m_pfTickFunc = m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
-		m_fsState.bBoundaryCrossed = false;
-		m_ui8RdyOffCnt = 0;
+		(*_pcCpu).m_pfTickFunc = (*_pcCpu).m_pfTickFuncCopy = &CCpu6502::Tick_InstructionCycleStd;
+		(*_pcCpu).m_fsState.bBoundaryCrossed = false;
+		(*_pcCpu).m_ui8RdyOffCnt = 0;
 		LSN_INSTR_END_PHI1;
 	}
 
 	/**
 	 * Performs an add-with-carry with an operand, setting flags C, N, V, and Z.
 	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
-	inline void CCpu6502::Adc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
-		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + (m_fsState.rRegs.ui8Status & C());
-		SetBit<V()>( m_fsState.rRegs.ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
+	inline void CCpu6502::Adc( CCpu6502 * _pcCpu, uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + uint16_t( _ui8OpVal ) + ((*_pcCpu).m_fsState.rRegs.ui8Status & C());
+		lsn::SetBit<V()>( (*_pcCpu).m_fsState.rRegs.ui8Status, (~(uint16_t( _ui8RegVal ) ^ uint16_t( _ui8OpVal )) & (uint16_t( _ui8RegVal ) ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
-		SetBit<C()>( m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
-		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
-		SetBit<N()>( m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
+		lsn::SetBit<C()>( (*_pcCpu).m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
+		lsn::SetBit<Z()>( (*_pcCpu).m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
+		lsn::SetBit<N()>( (*_pcCpu).m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 	/**
 	 * Performs a compare against a register and an operand by setting flags.
 	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
-	inline void CCpu6502::Cmp( uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
-		SetBit<C()>( m_fsState.rRegs.ui8Status, _ui8RegVal >= _ui8OpVal );
-		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == _ui8OpVal );
-		SetBit<N()>( m_fsState.rRegs.ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
+	inline void CCpu6502::Cmp( CCpu6502 * _pcCpu, uint8_t _ui8RegVal, uint8_t _ui8OpVal ) {
+		lsn::SetBit<C()>( (*_pcCpu).m_fsState.rRegs.ui8Status, _ui8RegVal >= _ui8OpVal );
+		lsn::SetBit<Z()>( (*_pcCpu).m_fsState.rRegs.ui8Status, _ui8RegVal == _ui8OpVal );
+		lsn::SetBit<N()>( (*_pcCpu).m_fsState.rRegs.ui8Status, ((_ui8RegVal - _ui8OpVal) & 0x80) != 0 );
 	}
 
 	/**
 	 * Performs an subtract-with-carry with an operand, setting flags C, N, V, and Z.
 	 *
+	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 * \param _ui8RegVal The register value used in the comparison.
 	 * \param _ui8OpVal The operand value used in the comparison.
 	 */
-	inline void CCpu6502::Sbc( uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
+	inline void CCpu6502::Sbc( CCpu6502 * _pcCpu, uint8_t &_ui8RegVal, uint8_t _ui8OpVal ) {
 		uint16_t ui16Val = uint16_t( _ui8OpVal ) ^ 0x00FF;
-		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (ui16Val) + (m_fsState.rRegs.ui8Status & C());
-		SetBit<V()>( m_fsState.rRegs.ui8Status, ((uint16_t( _ui8RegVal ) ^ ui16Result) & (ui16Val ^ ui16Result) & 0x0080) != 0 );
+		uint16_t ui16Result = uint16_t( _ui8RegVal ) + (ui16Val) + ((*_pcCpu).m_fsState.rRegs.ui8Status & C());
+		lsn::SetBit<V()>( (*_pcCpu).m_fsState.rRegs.ui8Status, ((uint16_t( _ui8RegVal ) ^ ui16Result) & (ui16Val ^ ui16Result) & 0x0080) != 0 );
 		_ui8RegVal = uint8_t( ui16Result );
-		SetBit<C()>( m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
-		SetBit<Z()>( m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
-		SetBit<N()>( m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
+		lsn::SetBit<C()>( (*_pcCpu).m_fsState.rRegs.ui8Status, ui16Result > 0xFF );
+		lsn::SetBit<Z()>( (*_pcCpu).m_fsState.rRegs.ui8Status, _ui8RegVal == 0x00 );
+		lsn::SetBit<N()>( (*_pcCpu).m_fsState.rRegs.ui8Status, (_ui8RegVal & 0x80) != 0 );
 	}
 
 #pragma warning( pop )
