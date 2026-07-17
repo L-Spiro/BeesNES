@@ -2533,55 +2533,67 @@ namespace lsn {
 	template <bool _bToAddr, unsigned _uRdyCnt>
 	void CCpu6502::Sha_Phi2() {		
 		if constexpr ( _bToAddr ) {
-			uint16_t ui16High = m_fsState.ui8Address[1];
-			if ( !m_fsState.bBoundaryCrossed ) {
-				++ui16High;
-			}
-			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
-				ui16High = 0xFFFF;
-			}
+			uint16_t ui16AddrHigh = m_fsState.ui8Address[1];
+			
+			uint16_t ui16ValueReg = m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+			
 			if ( m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+			
+			uint16_t ui16Value;
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Address, ui16Val );
+				uint16_t ui16BaseHighPlus1 = m_fsState.ui8Address[1];
+				if ( !m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+			
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "High = Address.H.\r\n\t\t"
-				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY just went low on the previous cycle, High = $FFFF.\r\n\t\t"
-				"Val = u8(High & A & X).\r\n\t"
-				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
-				"Otherwise write to Address\tWrite Val." ).c_str() );
+			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+				"ValueReg = A & X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
-			uint16_t ui16High = m_fsState.ui8Pointer[1];
-			if ( !m_fsState.bBoundaryCrossed ) {
-				++ui16High;
-			}
-			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
-				ui16High = 0xFFFF;
-			}
+			uint16_t ui16AddrHigh = m_fsState.ui8Pointer[1];
+			
+			uint16_t ui16ValueReg = m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
+			
 			if ( m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+			
+			uint16_t ui16Value;
+			if ( m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ui16High & m_fsState.rRegs.ui8A & m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( m_fsState.ui16Pointer, ui16Val );
+				uint16_t ui16BaseHighPlus1 = m_fsState.ui8Pointer[1];
+				if ( !m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+			
+			LSN_INSTR_START_PHI2_WRITE( m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "High = Pointer.H.\r\n\t\t"
-				"If !BoundaryCrossed, High = (High + 1).\r\n\t\t"
-				"If RDY just went low on the previous cycle, High = $FFFF.\r\n\t\t"
-				"Val = u8(High & A & X).\r\n\t"
-				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
-				"Otherwise write to Pointer\tWrite Val." ).c_str() );
+			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+				"ValueReg = A & X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
