@@ -9,7 +9,9 @@
  */
 
 #include "LSNSelectRomDialog.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNSelectRomDialogLayout.h"
+
 #include <Edit/LSWEdit.h>
 #include <ListBox/LSWListBox.h>
 
@@ -27,7 +29,7 @@ namespace lsn {
 	// WM_INITDIALOG.
 	CWidget::LSW_HANDLED CSelectRomDialog::InitDialog() {
 
-		CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+		CListBox * plvList = static_cast<CListBox *>(FindChild( CWinUtilities::LSN_SFI_LISTBOX ));
 		if ( plvList && m_pvFiles ) {
 			for ( size_t I = 0; I < m_pvFiles->size(); I++ ) {
 				INT iIdx = plvList->AddString( reinterpret_cast<LPCWSTR>((*m_pvFiles)[I].c_str()) );
@@ -42,7 +44,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CSelectRomDialog::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wCtrlCode ) {
 			case LBN_DBLCLK : {
-				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CWinUtilities::LSN_SFI_LISTBOX ));
 				if ( plvList ) {
 					if ( plvList->GetCurSel() != LB_ERR ) {
 						::EndDialog( Wnd(), plvList->GetCurSelItemData() );
@@ -52,8 +54,8 @@ namespace lsn {
 				return LSW_H_HANDLED;;
 			}
 			case EN_CHANGE : {
-				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
-				CEdit * peEdit = static_cast<CEdit *>(FindChild( CSelectRomDialogLayout::LSN_SFI_EDIT_SEARCH ));
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CWinUtilities::LSN_SFI_LISTBOX ));
+				CEdit * peEdit = static_cast<CEdit *>(FindChild( CWinUtilities::LSN_SFI_EDIT_SEARCH ));
 				if ( peEdit && plvList ) {
 					std::wstring wsText = peEdit->GetTextW();
 					plvList->ResetContent();
@@ -77,8 +79,8 @@ namespace lsn {
 		}
 
 		switch ( _wId ) {
-			case CSelectRomDialogLayout::LSN_SFI_BUTTON_OK : {
-				CListBox * plvList = static_cast<CListBox *>(FindChild( CSelectRomDialogLayout::LSN_SFI_LISTBOX ));
+			case CWinUtilities::LSN_SFI_BUTTON_OK : {
+				CListBox * plvList = static_cast<CListBox *>(FindChild( CWinUtilities::LSN_SFI_LISTBOX ));
 				if ( plvList ) {
 					if ( plvList->GetCurSel() != LB_ERR ) {
 						::EndDialog( Wnd(), plvList->GetCurSelItemData() );
@@ -87,7 +89,7 @@ namespace lsn {
 				}
 				break;
 			}
-			case CSelectRomDialogLayout::LSN_SFI_BUTTON_CANCEL : {
+			case CWinUtilities::LSN_SFI_BUTTON_CANCEL : {
 				return Close();
 			}
 		}

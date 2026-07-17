@@ -13,6 +13,7 @@
 #include "../../Utilities/LSNUtilities.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #define LSN_SF_W									350
 #define LSN_SF_SELECT_GROUP_TOP						LSN_TOP_JUST
@@ -28,7 +29,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CSelectRomDialogLayout::m_wlSelectRomDialog[] = {
 		{
 			LSN_LT_SELECT_ROM_DIALOG,				// ltType
-			LSN_SFI_DIALOG,							// wId
+			CWinUtilities::LSN_SFI_DIALOG,			// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -40,13 +41,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																				// dwStyleEx
 			LSN_LSTR( LSN_SELECT_ROM ),				// pwcText
 			0,										// sTextLen
-			LSN_SFI_NONE,							// dwParentId
+			CWinUtilities::LSN_SFI_NONE,			// dwParentId
 		},
 
 		// Select ROM.
 		{
 			LSW_LT_GROUPBOX,						// ltType
-			LSN_SFI_GROUP,							// wId
+			CWinUtilities::LSN_SFI_GROUP,			// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -58,7 +59,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_FILE_LISTING ),			// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -69,7 +70,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LISTBOX,							// ltType
-			LSN_SFI_LISTBOX,						// wId
+			CWinUtilities::LSN_SFI_LISTBOX,		// wId
 			WC_LISTBOXW,							// lpwcClass
 			TRUE,									// bEnabled
 			TRUE,									// bActive
@@ -81,7 +82,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE,																				// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -92,7 +93,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,							// ltType
-			LSN_SFI_LABEL_SEARCH,					// wId
+			CWinUtilities::LSN_SFI_LABEL_SEARCH,	// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -104,7 +105,7 @@ namespace lsn {
 			0,										// dwStyleEx
 			LSN_LSTR( LSN_SEARCH_ ),				// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			nullptr, 0,								// pcRightSizeExp
@@ -115,7 +116,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,							// ltType
-			LSN_SFI_EDIT_SEARCH,					// wId
+			CWinUtilities::LSN_SFI_EDIT_SEARCH,	// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -127,7 +128,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,						// dwStyleEx
 			nullptr,								// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			LSN_LOCK_LEFT,							// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -139,7 +140,7 @@ namespace lsn {
 
 		{
 			LSW_LT_BUTTON,							// ltType
-			LSN_SFI_BUTTON_OK,						// wId
+			CWinUtilities::LSN_SFI_BUTTON_OK,		// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			TRUE,									// bActive
@@ -151,7 +152,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_OK ),						// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			nullptr, 0,								// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp
@@ -162,7 +163,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,							// ltType
-			LSN_SFI_BUTTON_CANCEL,					// wId
+			CWinUtilities::LSN_SFI_BUTTON_CANCEL,	// wId
 			WC_BUTTONW,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -174,7 +175,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_CANCEL ),					// pwcText
 			0,										// sTextLen
-			LSN_SFI_DIALOG,							// dwParentId
+			CWinUtilities::LSN_SFI_DIALOG,			// dwParentId
 
 			nullptr, 0,								// pcLeftSizeExp
 			LSN_LOCK_RIGHT,							// pcRightSizeExp

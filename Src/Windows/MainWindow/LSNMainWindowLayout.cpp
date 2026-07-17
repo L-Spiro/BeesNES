@@ -9,10 +9,13 @@
  */
 
 #include "LSNMainWindowLayout.h"
-#include "../Layout/LSNLayoutMacros.h"
-#include "../Layout/LSNLayoutManager.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../../Utilities/LSNUtilities.h"
+#include "../Layout/LSNLayoutMacros.h"
+#include "../Layout/LSNLayoutManager.h"
+#include "../WinUtilities/LSNWinUtilities.h"
+
+
 #include <Base/LSWWndClassEx.h>
 
 
@@ -23,7 +26,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CMainWindowLayout::m_wlMainWindow[] = {
 		{
 			LSN_LT_MAIN_WINDOW,						// ltType
-			LSN_MWI_MAINWINDOW,						// wId
+			CWinUtilities::LSN_MWI_MAINWINDOW,		// wId
 			nullptr,								// lpwcClass
 			TRUE,									// bEnabled
 			FALSE,									// bActive
@@ -33,13 +36,13 @@ namespace lsn {
 			LSN_MAIN_WINDOW_H,						// dwHeight
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,							// dwStyle
 			0,										// dwStyleEx
-			L"BeesNES",								// pwcText
+			LSN_LSTR( LSN_BEESNES ),				// pwcText
 			0,										// sTextLen
-			LSN_MWI_NONE,							// dwParentId
+			CWinUtilities::LSN_MWI_NONE,			// dwParentId
 		},
 		//{
 		//	LSW_LT_STATUSBAR,						// ltType
-		//	LSN_MWI_STATUSBAR,						// wId
+		//	CWinUtilities::LSN_MWI_STATUSBAR,		// wId
 		//	STATUSCLASSNAMEW,						// lpwcClass
 		//	TRUE,									// bEnabled
 		//	FALSE,									// bActive
@@ -51,7 +54,7 @@ namespace lsn {
 		//	0,										// dwStyleEx
 		//	nullptr,								// pwcText
 		//	0,										// sTextLen
-		//	LSN_MWI_MAINWINDOW,						// dwParentId
+		//	CWinUtilities::LSN_MWI_MAINWINDOW,		// dwParentId
 
 		//	nullptr, 0,								// pcLeftSizeExp
 		//	nullptr, 0,								// pcRightSizeExp
@@ -379,7 +382,7 @@ namespace lsn {
 		std::vector<LSW_MENU_LAYOUT> vMenus;
 		std::vector<std::vector<LSW_MENU_ITEM> *> vMenuItems;
 
-		LSW_WIDGET_LAYOUT * _pwMain = CHelpers::FindLayout( m_wlMainWindow, std::size( m_wlMainWindow ), LSN_MWI_MAINWINDOW );
+		LSW_WIDGET_LAYOUT * _pwMain = CHelpers::FindLayout( m_wlMainWindow, std::size( m_wlMainWindow ), CWinUtilities::LSN_MWI_MAINWINDOW );
 
 		_pwMain->lpwcClass = reinterpret_cast<LPCWSTR>(m_aMainClass);
 		m_pwMainWindow = lsw::CBase::LayoutManager()->CreateWindowX( m_wlMainWindow, std::size( m_wlMainWindow ),

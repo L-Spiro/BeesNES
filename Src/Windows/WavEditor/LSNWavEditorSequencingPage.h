@@ -13,6 +13,7 @@
 #include "LSNWavEditorWindowLayout.h"
 #include "../../Options/LSNWavEditorWindowOptions.h"
 #include "../../Wav/LSNWavEditor.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -144,7 +145,7 @@ namespace lsn {
 		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages );
 
 	private :
-		typedef CWavEditorWindowLayout						Layout;
+		typedef CWinUtilities								Layout;
 		typedef lsw::CWidget								Parent;
 	};
 

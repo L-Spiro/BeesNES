@@ -43,7 +43,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CPatchWindowTopPage::InitDialog() {
 		Parent::InitDialog();
-		lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( ptlTree ) {
 			ptlTree->SetColumnText( LSN_LSTR( LSN_PATCH_PATCH ), 0 );
 			ptlTree->SetColumnWidth( 0, 450 );
@@ -79,7 +79,7 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CPatchWindowTopPage::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
-			case CPatchWindowLayout::LSN_PWI_FILE_IN_BUTTON : {
+			case CWinUtilities::LSN_PWI_FILE_IN_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::u16string szFileName;
 				szFileName.resize( 0xFFFF + 2 );
@@ -112,14 +112,14 @@ namespace lsn {
 						u16Path = reinterpret_cast<const char16_t *>(ofnOpenFile.lpstrFile);
 						u16FileName = std::filesystem::path( ofnOpenFile.lpstrFile ).filename().u16string();
 					}
-					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
+					auto pwPathEdit = FindChild( CWinUtilities::LSN_PWI_FILE_IN_EDIT );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 					}
 				}
 				break;
 			}
-			case CPatchWindowLayout::LSN_PWI_FILE_PATCH_BUTTON : {
+			case CWinUtilities::LSN_PWI_FILE_PATCH_BUTTON : {
 				OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
 				std::u16string szFileName;
 				szFileName.resize( 0xFFFF + 2 );
@@ -224,7 +224,7 @@ namespace lsn {
 						}
 						auto aTmp = CreateBasicTree( m_vPatchInfo );
 						SimplifyTree( aTmp );
-						auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+						auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 						ptvTree->DeleteAll();
 						ptvTree->BeginLargeUpdate();
 						AddToTree( aTmp, TVI_ROOT, ptvTree );
@@ -234,7 +234,7 @@ namespace lsn {
 					}
 					catch ( ... ) {
 					}
-					auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW );
+					auto pwPathEdit = FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW );
 					if ( pwPathEdit ) {
 						pwPathEdit->SetTextW( reinterpret_cast<const wchar_t *>(u16Path.c_str()) );
 						//::OutputDebugStringW( reinterpret_cast<const wchar_t *>((u16Path + u"\r\n").c_str()) );
@@ -268,7 +268,7 @@ namespace lsn {
 				}
 				break;
 			}*/
-			case CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT : {
+			case CWinUtilities::LSN_PWI_FILE_IN_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
 					m_vPatchRomFile.clear();
 					auto wsText = _pwSrc->GetTextW();
@@ -316,7 +316,7 @@ namespace lsn {
 						}
 					}*/
 					UpdateInfo();
-					auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+					auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 					if ( ptvTree ) {
 						ptvTree->BeginLargeUpdate();
 						UpdateColors();
@@ -327,8 +327,8 @@ namespace lsn {
 				}
 				break;
 			}
-			case CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON : {
-				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+			case CWinUtilities::LSN_PWI_FILE_QUICK_PATCH_BUTTON : {
+				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptvTree && m_vPatchRomFile.size() ) {
 					try {
 						std::vector<HTREEITEM> vSelected;
@@ -477,28 +477,28 @@ namespace lsn {
 				break;
 			}
 			case CPatchWindowLayout::LSN_PWI_COPY_EXPAND_SELECTED : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptlTree ) {
 					ptlTree->ExpandSelected();
 				}
 				break;
 			}
 			case CPatchWindowLayout::LSN_PWI_COPY_EXPAND_ALL : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptlTree ) {
 					ptlTree->ExpandAll();
 				}
 				break;
 			}
 			case CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_SELECTED : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptlTree ) {
 					ptlTree->CollapseSelected();
 				}
 				break;
 			}
 			case CPatchWindowLayout::LSN_PWI_COPY_COLLAPSE_ALL : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( ptlTree ) {
 					ptlTree->CollapseAll();
 				}
@@ -537,12 +537,12 @@ namespace lsn {
 		//return LSW_H_CONTINUE;
 		LONG lLeft = 100;
 		if ( m_pwParent ) {
-			auto aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
+			auto aTmp = m_pwParent->FindChild( CWinUtilities::LSN_PWI_FILE_IN_EDIT );
 			if ( aTmp ) {
 				lLeft = aTmp->WindowRect().ScreenToClient( Wnd() ).left;
 			}
 
-			aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_BUTTON );
+			aTmp = m_pwParent->FindChild( CWinUtilities::LSN_PWI_FILE_IN_BUTTON );
 			if ( aTmp ) {
 				lLeft += aTmp->WindowRect().Width();
 			}
@@ -564,7 +564,7 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 **/
 	CWidget::LSW_HANDLED CPatchWindowTopPage::ContextMenu( CWidget * _pwControl, INT _iX, INT _iY ) {
-		if ( _pwControl->Id() == CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ) {
+		if ( _pwControl->Id() == CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ) {
 			auto ptlvTree = static_cast<CTreeListView *>(_pwControl);
 			bool bHasItems = ptlvTree->GetItemCount() ? true : false;
 			bool bExpSel = ptlvTree->AnySelectedHasUnexpandedChildren();
@@ -629,52 +629,52 @@ namespace lsn {
 		if ( m_vPatchRomFile.size() && CSystemBase::LoadRom( m_vPatchRomFile, rRom, m_u16RomPath ) ) {
 			m_rRomInfo = rRom;
 
-			auto pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_CRC_LABEL );
+			auto pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_CRC_LABEL );
 			if ( pwPathEdit ) {
 				m_ui32FullCrc = CCrc::GetCrc( m_vPatchRomFile.data(), m_vPatchRomFile.size() );
 				try {
 					pwPathEdit->SetTextW( std::format( L"Full CRC32:\t\t{:08X}", m_ui32FullCrc ).c_str() );
 				} catch ( ... ) {}
 			}
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CRC_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_ROM_CRC_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"ROM CRC32:\t\t{:08X}", rRom.riInfo.ui32Crc ).c_str() );
 				} catch ( ... ) {}
 			}
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_HEADERLESS_CRC_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_HEADERLESS_CRC_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"Headerless CRC32:\t{:08X}", rRom.riInfo.ui32HeaderlessCrc ).c_str() );
 				} catch ( ... ) {}
 			}
 
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_MD5_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_MD5_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"MD5:\t\t\t{}", CUtilities::ToUpper( CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhMd5 ) ) ).c_str() );
 				} catch ( ... ) {}
 			}
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_HEADERLESS_MD5_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_HEADERLESS_MD5_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"Headerless MD5:\t\t{}", CUtilities::ToUpper( CMd5::ToString<std::wstring>( m_rRomInfo.riInfo.mhHeaderlessMd5 ) ) ).c_str() );
 				} catch ( ... ) {}
 			}
 
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_PGM_SIZE_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_ROM_PGM_SIZE_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"ROM PGM Size:\t\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vPrgRom.size(), rRom.vPrgRom.size() / 1024.0 ).c_str() );
 				} catch ( ... ) {}
 			}
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_CHR_SIZE_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_ROM_CHR_SIZE_LABEL );
 			if ( pwPathEdit ) {
 				try {
 					pwPathEdit->SetTextW( std::format( L"ROM CHR Size:\t\t{0:08X} ({0} bytes, {1:g} kibibytes)", rRom.vChrRom.size(), rRom.vChrRom.size() / 1024.0 ).c_str() );
 				} catch ( ... ) {}
 			}
-			pwPathEdit = FindChild( CPatchWindowLayout::LSN_PWI_INFO_ROM_MIRROR_LABEL );
+			pwPathEdit = FindChild( CWinUtilities::LSN_PWI_INFO_ROM_MIRROR_LABEL );
 			if ( pwPathEdit ) {
 				switch ( rRom.riInfo.mmMirroring ) {
 					case LSN_MM_VERTICAL : {
@@ -706,7 +706,7 @@ namespace lsn {
 	 * Updates the colors based on the currently loaded ROM file.
 	 **/
 	void CPatchWindowTopPage::UpdateColors() {
-		auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( !ptvTree ) { return; }
 		auto hThis = ptvTree->GetNext( TVI_ROOT );
 		while ( hThis ) {
@@ -751,13 +751,13 @@ namespace lsn {
 	 **/
 	void CPatchWindowTopPage::UpdateText() {
 		if ( m_pwParent ) {
-			auto pwText = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
+			auto pwText = m_pwParent->FindChild( CWinUtilities::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
 			if ( pwText ) {
-				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+				auto ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 				if ( !ptvTree ) {
 					pwText->SetTextW( L"" );
 
-					auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+					auto pwQuick = FindChild( CWinUtilities::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
 					if ( pwQuick ) {
 						pwQuick->SetEnabled( false );
 					}
@@ -768,7 +768,7 @@ namespace lsn {
 					if ( vSelected.size() == 0 ) {
 						pwText->SetTextW( L"" );
 
-						auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+						auto pwQuick = FindChild( CWinUtilities::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
 						if ( pwQuick ) {
 							pwQuick->SetEnabled( false );
 						}
@@ -829,7 +829,7 @@ namespace lsn {
 
 						bool bWarnOfDoom = false;
 						TrimVector( ptvTree, vSelected, bWarnOfDoom );
-						auto pwQuick = FindChild( CPatchWindowLayout::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
+						auto pwQuick = FindChild( CWinUtilities::LSN_PWI_FILE_QUICK_PATCH_BUTTON );
 						if ( pwQuick ) {
 							pwQuick->SetEnabled( vSelected.size() != 0 );
 						}
@@ -845,7 +845,7 @@ namespace lsn {
 	 * \param _bSelect If true, the items are also selected.
 	 **/
 	void CPatchWindowTopPage::RevealCompatible( bool _bSelect ) {
-		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( ptvTree ) {
 			ptvTree->BeginLargeUpdate();
 			auto hThis = ptvTree->GetNext( TVI_ROOT );
@@ -956,7 +956,7 @@ namespace lsn {
 	 * Reveals all patch files with CRC checks.
 	 **/
 	void CPatchWindowTopPage::RevealCrcPatches() {
-		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CPatchWindowLayout::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
+		lsw::CTreeListView * ptvTree = static_cast<lsw::CTreeListView *>(FindChild( CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW ));
 		if ( ptvTree ) {
 			ptvTree->BeginLargeUpdate();
 			auto hThis = ptvTree->GetNext( TVI_ROOT );

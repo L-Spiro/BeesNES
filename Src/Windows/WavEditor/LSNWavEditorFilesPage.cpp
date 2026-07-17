@@ -313,7 +313,7 @@ namespace lsn {
 		}
 		{
 			struct LSN_CONTROLS {
-				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				Layout::LSN_CONTROL_IDS									wId;
 				bool													bCloseCondition0;
 			} cControls[] = {
 				{ Layout::LSN_WEWI_FILES_ADD_META_BUTTON,				bSelected },
@@ -332,7 +332,7 @@ namespace lsn {
 			CToolBar * plvToolBar = static_cast<CToolBar *>(m_pwParent->FindChild( Layout::LSN_WEWI_TOOLBAR0 ));
 			if ( plvToolBar ) {
 				struct LSN_CONTROLS {
-					Layout::LSN_WAV_EDITOR_WINDOW_IDS					wId;
+					Layout::LSN_CONTROL_IDS								wId;
 					bool												bCloseCondition0;
 				} cControls[] = {
 					//{ Layout::LSN_WEWI_FILES_ADD_BUTTON,				bSelected },

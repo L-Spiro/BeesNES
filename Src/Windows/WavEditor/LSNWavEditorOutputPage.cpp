@@ -371,7 +371,7 @@ namespace lsn {
 
 
 		struct LSN_CONTROLS {
-			Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+			Layout::LSN_CONTROL_IDS									wId;
 			bool													bCloseCondition0;
 		} cControls[] = {
 			{ Layout::LSN_WEWI_OUTPUT_MAINS_COMBO,					bIsMainsHum },

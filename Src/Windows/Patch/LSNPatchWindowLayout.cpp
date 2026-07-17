@@ -12,6 +12,7 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../WinUtilities/LSNWinUtilities.h"
  
 
 namespace lsn {
@@ -36,7 +37,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CPatchWindowLayout::m_wlPatchWindow[] = {
 		{
 			LSN_LT_PATCH_DIALOG,								// ltType
-			LSN_PWI_MAINWINDOW,									// wId
+			CWinUtilities::LSN_PWI_MAINWINDOW,					// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -48,7 +49,7 @@ namespace lsn {
 			WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,				// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),					// pwcText
 			0,													// sTextLen
-			LSN_PWI_NONE,										// dwParentId
+			CWinUtilities::LSN_PWI_NONE,						// dwParentId
 		},
 
 	};
@@ -58,7 +59,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CPatchWindowLayout::m_wlPatchWindowTopPage[] {
 		{
 			LSN_LT_PATCH_PAGE_TOP,								// ltType
-			LSN_PWI_TOP_PAGE,									// wId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -70,7 +71,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,														// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_ROM ),					// pwcText
 			0,													// sTextLen
-			LSN_PWI_NONE,										// dwParentId
+			CWinUtilities::LSN_PWI_NONE,						// dwParentId
 
 			//LSN_LOCK_LEFT,									// pcLeftSizeExp
 			//LSN_LOCK_RIGHT,									// pcRightSizeExp
@@ -83,7 +84,7 @@ namespace lsn {
 		// File.
 		{
 			LSW_LT_GROUPBOX,									// ltType
-			LSN_PWI_FILE_GROUP,									// wId
+			CWinUtilities::LSN_PWI_FILE_GROUP,					// wId
 			WC_BUTTONW,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -95,7 +96,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_FILE ),							// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -107,7 +108,7 @@ namespace lsn {
 
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_FILE_IN_LABEL,								// wId
+			CWinUtilities::LSN_PWI_FILE_IN_LABEL,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -119,11 +120,11 @@ namespace lsn {
 			0,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_ROM_TO_PATCH ),					// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,										// ltType
-			LSN_PWI_FILE_IN_EDIT,								// wId
+			CWinUtilities::LSN_PWI_FILE_IN_EDIT,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			TRUE,												// bActive
@@ -135,7 +136,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,									// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -146,7 +147,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,										// ltType
-			LSN_PWI_FILE_IN_BUTTON,								// wId
+			CWinUtilities::LSN_PWI_FILE_IN_BUTTON,				// wId
 			WC_BUTTONW,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -158,7 +159,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_BROWSE ),						// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			nullptr, 0,											// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -170,7 +171,7 @@ namespace lsn {
 
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_FILE_PATCH_LABEL,							// wId
+			CWinUtilities::LSN_PWI_FILE_PATCH_LABEL,			// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -182,11 +183,11 @@ namespace lsn {
 			0,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_PATCH_FILE ),					// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 		},
 		{
 			LSW_LT_TREELISTVIEW,								// ltType
-			LSN_PWI_FILE_PATCH_TREELISTVIEW,					// wId
+			CWinUtilities::LSN_PWI_FILE_PATCH_TREELISTVIEW,	// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -200,7 +201,7 @@ namespace lsn {
 			//WS_EX_CLIENTEDGE,									// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -211,7 +212,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,										// ltType
-			LSN_PWI_FILE_PATCH_BUTTON,							// wId
+			CWinUtilities::LSN_PWI_FILE_PATCH_BUTTON,			// wId
 			WC_BUTTONW,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -223,7 +224,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_BROWSE ),						// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			nullptr, 0,											// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -234,7 +235,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,										// ltType
-			LSN_PWI_FILE_QUICK_PATCH_BUTTON,					// wId
+			CWinUtilities::LSN_PWI_FILE_QUICK_PATCH_BUTTON,	// wId
 			WC_BUTTONW,											// lpwcClass
 			FALSE,												// bEnabled
 			FALSE,												// bActive
@@ -246,7 +247,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_QUICK_PATCH ),					// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			nullptr, 0,											// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -258,7 +259,7 @@ namespace lsn {
 
 		//{
 		//	LSW_LT_LABEL,									// ltType
-		//	LSN_PWI_FILE_OUT_LABEL,							// wId
+		//	CWinUtilities::LSN_PWI_FILE_OUT_LABEL,			// wId
 		//	nullptr,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -270,11 +271,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_PATCH_OUTPUT_FILE ),				// pwcText
 		//	0,												// sTextLen
-		//	LSN_PWI_TOP_PAGE,								// dwParentId
+		//	CWinUtilities::LSN_PWI_TOP_PAGE,				// dwParentId
 		//},
 		//{
 		//	LSW_LT_EDIT,									// ltType
-		//	LSN_PWI_FILE_OUT_EDIT,							// wId
+		//	CWinUtilities::LSN_PWI_FILE_OUT_EDIT,			// wId
 		//	nullptr,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -286,7 +287,7 @@ namespace lsn {
 		//	WS_EX_CLIENTEDGE,								// dwStyleEx
 		//	nullptr,										// pwcText
 		//	0,												// sTextLen
-		//	LSN_PWI_TOP_PAGE,								// dwParentId
+		//	CWinUtilities::LSN_PWI_TOP_PAGE,				// dwParentId
 
 		//	LSN_LOCK_LEFT,									// pcLeftSizeExp
 		//	LSN_LOCK_RIGHT,									// pcRightSizeExp
@@ -297,7 +298,7 @@ namespace lsn {
 		//},
 		//{
 		//	LSW_LT_BUTTON,									// ltType
-		//	LSN_PWI_FILE_OUT_BUTTON,						// wId
+		//	CWinUtilities::LSN_PWI_FILE_OUT_BUTTON,		// wId
 		//	WC_BUTTONW,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -309,7 +310,7 @@ namespace lsn {
 		//	WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 		//	LSN_LSTR( LSN_PATCH_BROWSE ),					// pwcText
 		//	0,												// sTextLen
-		//	LSN_PWI_TOP_PAGE,								// dwParentId
+		//	CWinUtilities::LSN_PWI_TOP_PAGE,				// dwParentId
 
 		//	nullptr, 0,										// pcLeftSizeExp
 		//	LSN_LOCK_RIGHT,									// pcRightSizeExp
@@ -323,7 +324,7 @@ namespace lsn {
 		// Info.
 		{
 			LSW_LT_GROUPBOX,									// ltType
-			LSN_PWI_INFO_GROUP,									// wId
+			CWinUtilities::LSN_PWI_INFO_GROUP,					// wId
 			WC_BUTTONW,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -335,7 +336,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_PATCH_SRC_INFO ),						// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -346,7 +347,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_CRC_LABEL,								// wId
+			CWinUtilities::LSN_PWI_INFO_CRC_LABEL,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -358,7 +359,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -369,7 +370,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_HEADERLESS_CRC_LABEL,					// wId
+			CWinUtilities::LSN_PWI_INFO_HEADERLESS_CRC_LABEL,	// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -381,7 +382,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -392,7 +393,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_CRC_LABEL,							// wId
+			CWinUtilities::LSN_PWI_INFO_ROM_CRC_LABEL,			// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -404,7 +405,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -416,7 +417,7 @@ namespace lsn {
 
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_MD5_LABEL,								// wId
+			CWinUtilities::LSN_PWI_INFO_MD5_LABEL,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -428,7 +429,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -439,7 +440,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_HEADERLESS_MD5_LABEL,					// wId
+			CWinUtilities::LSN_PWI_INFO_HEADERLESS_MD5_LABEL,	// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -451,7 +452,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -463,7 +464,7 @@ namespace lsn {
 
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_PGM_SIZE_LABEL,					// wId
+			CWinUtilities::LSN_PWI_INFO_ROM_PGM_SIZE_LABEL,	// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -475,7 +476,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -486,7 +487,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_CHR_SIZE_LABEL,					// wId
+			CWinUtilities::LSN_PWI_INFO_ROM_CHR_SIZE_LABEL,	// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -498,7 +499,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -509,7 +510,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,										// ltType
-			LSN_PWI_INFO_ROM_MIRROR_LABEL,						// wId
+			CWinUtilities::LSN_PWI_INFO_ROM_MIRROR_LABEL,		// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -521,7 +522,7 @@ namespace lsn {
 			0,													// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_TOP_PAGE,									// dwParentId
+			CWinUtilities::LSN_PWI_TOP_PAGE,					// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -538,7 +539,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CPatchWindowLayout::m_wlPatchWindowBottomPage[] = {
 		{
 			LSN_LT_PATCH_PAGE_BOTTOM,							// ltType
-			LSN_PWI_BOTTOM_PAGE,								// wId
+			CWinUtilities::LSN_PWI_BOTTOM_PAGE,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -550,12 +551,12 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_NONE,										// dwParentId
+			CWinUtilities::LSN_PWI_NONE,						// dwParentId
 		},
 #ifdef LSN_PATCHER_TAB_BOTTOM
 		{
 			LSW_LT_TAB,											// ltType
-			LSN_PWI_BOTTOM_TABS,								// wId
+			CWinUtilities::LSN_PWI_BOTTOM_TABS,				// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -567,7 +568,7 @@ namespace lsn {
 			WS_EX_ACCEPTFILES,									// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_BOTTOM_PAGE,								// dwParentId
+			CWinUtilities::LSN_PWI_BOTTOM_PAGE,				// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp
@@ -579,7 +580,7 @@ namespace lsn {
 #else
 		{
 			LSW_LT_EDIT,										// ltType
-			CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT,	// wId
+			CWinUtilities::LSN_PWI_BOTTOM_TAB_DESC_EDIT,		// wId
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
@@ -592,7 +593,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,									// dwStyleEx
 			nullptr,											// pwcText
 			0,													// sTextLen
-			LSN_PWI_BOTTOM_PAGE,								// dwParentId
+			CWinUtilities::LSN_PWI_BOTTOM_PAGE,				// dwParentId
 
 			LSN_LOCK_LEFT,										// pcLeftSizeExp
 			LSN_LOCK_RIGHT,										// pcRightSizeExp

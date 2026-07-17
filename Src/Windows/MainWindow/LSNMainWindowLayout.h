@@ -27,16 +27,6 @@ namespace lsn {
 	class CMainWindowLayout {
 	public :
 		// == Enumerations.
-		// Control ID's.
-		enum LSN_MAIN_WINDOW_IDS {
-			LSN_MWI_NONE,
-			LSN_MWI_MAINWINDOW,
-			LSN_MWI_REBAR0,
-			LSN_MWI_TOOLBAR0,
-			LSN_MWI_STATUSBAR,
-
-		};
-
 		// Menu items
 		enum LSN_MAINWINDOW_MENU_IDS {
 			LSN_MWMI_MENU_BAR					= 300,

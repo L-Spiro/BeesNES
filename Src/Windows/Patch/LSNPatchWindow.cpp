@@ -53,7 +53,7 @@ namespace lsn {
 
 		LSW_WIDGET_LAYOUT wlLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
 			LSW_LT_SPLITTER,															// ltType
-			static_cast<WORD>(CPatchWindowLayout::LSN_PWI_SPLITTER),					// wId
+			static_cast<WORD>(CWinUtilities::LSN_PWI_SPLITTER),							// wId
 			reinterpret_cast<LPCWSTR>(lsw::CBase::SplitterAtom()),						// lpwcClass
 			TRUE,																		// bEnabled
 			FALSE,																		// bActive
@@ -90,13 +90,13 @@ namespace lsn {
 		m_psSplitter = psSplitter;
 		m_psSplitter->InitControl( m_psSplitter->Wnd() );
 
-		lsw::CTab * ptTab = static_cast<lsw::CTab *>(pwBottomPage->FindChild( WORD( CPatchWindowLayout::LSN_PWI_BOTTOM_TABS ) ));
+		lsw::CTab * ptTab = static_cast<lsw::CTab *>(pwBottomPage->FindChild( WORD( CWinUtilities::LSN_PWI_BOTTOM_TABS ) ));
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
 
 			LSW_WIDGET_LAYOUT wlEditLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager())->FixLayout( LSW_WIDGET_LAYOUT{
 				LSW_LT_EDIT,																// ltType
-				static_cast<WORD>(CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT),		// wId
+				static_cast<WORD>(CWinUtilities::LSN_PWI_BOTTOM_TAB_DESC_EDIT),				// wId
 				nullptr,																	// lpwcClass
 				TRUE,																		// bEnabled
 				FALSE,																		// bActive
@@ -137,7 +137,7 @@ namespace lsn {
 				}
 			}
 		}
-		CWidget * pwEdit = FindChild( CPatchWindowLayout::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
+		CWidget * pwEdit = FindChild( CWinUtilities::LSN_PWI_BOTTOM_TAB_DESC_EDIT );
 		if ( pwEdit ) {
 			pwEdit->SetAnsiFixedFont();
 		}
@@ -184,12 +184,12 @@ namespace lsn {
 		//return LSW_H_CONTINUE;
 		LONG lLeft = 100;
 		if ( m_pwParent ) {
-			auto aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_EDIT );
+			auto aTmp = m_pwParent->FindChild( CWinUtilities::LSN_PWI_FILE_IN_EDIT );
 			if ( aTmp ) {
 				lLeft = aTmp->WindowRect().ScreenToClient( Wnd() ).left;
 			}
 
-			aTmp = m_pwParent->FindChild( CPatchWindowLayout::LSN_PWI_FILE_IN_BUTTON );
+			aTmp = m_pwParent->FindChild( CWinUtilities::LSN_PWI_FILE_IN_BUTTON );
 			if ( aTmp ) {
 				lLeft += aTmp->WindowRect().Width();
 			}

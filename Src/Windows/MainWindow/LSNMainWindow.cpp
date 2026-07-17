@@ -213,8 +213,8 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::InitDialog() {
-		lsw::CToolBar * plvToolBar = static_cast<lsw::CToolBar *>(FindChild( CMainWindowLayout::LSN_MWI_TOOLBAR0 ));
-		lsw::CRebar * plvRebar = static_cast<lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+		lsw::CToolBar * plvToolBar = static_cast<lsw::CToolBar *>(FindChild( CWinUtilities::LSN_MWI_TOOLBAR0 ));
+		lsw::CRebar * plvRebar = static_cast<lsw::CRebar *>(FindChild( CWinUtilities::LSN_MWI_REBAR0 ));
 
 
 		// ==== TOOL BAR ==== //
@@ -242,9 +242,11 @@ namespace lsn {
 				riRebarInfo.SetColors( ::GetSysColor( COLOR_BTNTEXT ), ::GetSysColor( COLOR_BTNFACE ) );
 				riRebarInfo.SetStyle( RBBS_CHILDEDGE |
 				  RBBS_FIXEDBMP );
-				riRebarInfo.SetChild( plvToolBar->Wnd() );
+				 if ( plvToolBar ) {
+					riRebarInfo.SetChild( plvToolBar->Wnd() );
+				}
 				riRebarInfo.SetChildSize( plvToolBar->GetMinBoundingRect().Width(), plvToolBar->GetMinBoundingRect().Height() );
-				riRebarInfo.SetId( CMainWindowLayout::LSN_MWI_TOOLBAR0 );
+				riRebarInfo.SetId( CWinUtilities::LSN_MWI_TOOLBAR0 );
 				plvRebar->InsertBand( -1, riRebarInfo );
 			}
 
@@ -1950,7 +1952,7 @@ namespace lsn {
 	 */
 	const lsw::LSW_RECT CMainWindow::VirtualClientRect( const CWidget * /*_pwChild*/ ) const {
 		LSW_RECT rTemp = ClientRect( this );
-		/*const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+		/*const CRebar * plvRebar = static_cast<const CRebar *>(FindChild( CWinUtilities::LSN_MWI_REBAR0 ));
 		if ( plvRebar ) {
 			LSW_RECT rRebar = plvRebar->ClientRect( this );
 			rTemp.top += rRebar.Height();
@@ -1966,7 +1968,7 @@ namespace lsn {
 	 * \return the status bar.
 	 */
 	lsw::CStatusBar * CMainWindow::StatusBar() {
-		return static_cast<lsw::CStatusBar *>(FindChild( CMainWindowLayout::LSN_MWI_STATUSBAR ));
+		return static_cast<lsw::CStatusBar *>(FindChild( CWinUtilities::LSN_MWI_STATUSBAR ));
 	}
 
 	/**
@@ -1975,7 +1977,7 @@ namespace lsn {
 	 * \return the status bar.
 	 */
 	const lsw::CStatusBar * CMainWindow::StatusBar() const {
-		return static_cast<const lsw::CStatusBar *>(FindChild( CMainWindowLayout::LSN_MWI_STATUSBAR ));
+		return static_cast<const lsw::CStatusBar *>(FindChild( CWinUtilities::LSN_MWI_STATUSBAR ));
 	}
 
 #ifdef LSN_DX9
@@ -2098,7 +2100,7 @@ namespace lsn {
 	LSW_RECT CMainWindow::FinalWindowRect( double _dScale ) const {
 		
 		LONG lHeight = 0L;
-		const lsw::CRebar * plvRebar = static_cast<const lsw::CRebar *>(FindChild( CMainWindowLayout::LSN_MWI_REBAR0 ));
+		const lsw::CRebar * plvRebar = static_cast<const lsw::CRebar *>(FindChild( CWinUtilities::LSN_MWI_REBAR0 ));
 		if ( plvRebar ) {
 			lHeight += plvRebar->WindowRect().Height();
 		}

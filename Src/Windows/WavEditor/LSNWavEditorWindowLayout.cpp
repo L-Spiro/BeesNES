@@ -1,5 +1,3 @@
-
-
 #ifdef LSN_USE_WINDOWS
 
 /**
@@ -14,6 +12,7 @@
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNWavEditorWindow.h"
 
 #include <ListBox/LSWListBox.h>
@@ -135,7 +134,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlFilesDialog[] {
 		{
 			LSN_LT_WAV_EDITOR_FILES,						// ltType
-			LSN_WEWI_FILES,									// wId
+			CWinUtilities::LSN_WEWI_FILES,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -147,14 +146,14 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,														// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_NONE,									// dwParentId
+			CWinUtilities::LSN_WEWI_NONE,					// dwParentId
 		},
 
 
 		// Files.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_FILES_GROUP,							// wId
+			CWinUtilities::LSN_WEWI_FILES_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -166,11 +165,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_FILES ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 		},
 		{
 			LSW_LT_TREELISTVIEW,							// ltType
-			LSN_WEWI_FILES_TREELISTVIEW,					// wId
+			CWinUtilities::LSN_WEWI_FILES_TREELISTVIEW,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -182,7 +181,7 @@ namespace lsn {
 			LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,																						// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TREEVIEW )), 0,		// pcToolTip, sToolTipLen
@@ -191,7 +190,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FILES_ADD_BUTTON,						// wId
+			CWinUtilities::LSN_WEWI_FILES_ADD_BUTTON,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -203,7 +202,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_ADD_WAV ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_WAV )), 0,		// pcToolTip, sToolTipLen
@@ -212,7 +211,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FILES_ADD_META_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_FILES_ADD_META_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -224,7 +223,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_ADD_METADATA ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOAD_META )), 0,		// pcToolTip, sToolTipLen
@@ -233,7 +232,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FILES_REMOVE_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_FILES_REMOVE_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -245,7 +244,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_REMOVE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_REMOVE )), 0,																										// pcToolTip, sToolTipLen
@@ -254,7 +253,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FILES_UP_BUTTON,						// wId
+			CWinUtilities::LSN_WEWI_FILES_UP_BUTTON,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -266,7 +265,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_UP ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_MOVE_UP )), 0,																										// pcToolTip, sToolTipLen
@@ -275,7 +274,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FILES_DOWN_BUTTON,						// wId
+			CWinUtilities::LSN_WEWI_FILES_DOWN_BUTTON,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -287,7 +286,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_DOWN ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FILES,									// dwParentId
+			CWinUtilities::LSN_WEWI_FILES,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_MOVE_UP )), 0,																										// pcToolTip, sToolTipLen
@@ -300,7 +299,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlFileSettingsDialog[] = {
 		{
 			LSN_LT_WAV_EDITOR_FILE_SETTINGS,				// ltType
-			LSN_WEWI_FSETS,									// wId
+			CWinUtilities::LSN_WEWI_FSETS,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -312,13 +311,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,														// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_NONE,									// dwParentId
+			CWinUtilities::LSN_WEWI_NONE,					// dwParentId
 		},
 
 		// File Settings.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_GROUP,								// wId
+			CWinUtilities::LSN_WEWI_SEQ_GROUP,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -330,13 +329,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_FILE_SETTINGS ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_FSETS,									// dwParentId
+			CWinUtilities::LSN_WEWI_FSETS,					// dwParentId
 		},
 
 		// File Data.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_FSETS_FDATA_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -348,12 +347,12 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_FILE_DATA ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		// Track Title.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_FDATA_NAME_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_NAME_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -365,11 +364,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_TRACK_TITLE ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_FDATA_NAME_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_NAME_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -381,7 +380,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TITLE )), 0,					// pcToolTip, sToolTipLen
@@ -392,7 +391,7 @@ namespace lsn {
 		// Prefix/Postfix.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_FDATA_PREFIX_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_PREFIX_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -404,11 +403,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FILE_NAME_PREFIX ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_FDATA_PREFIX_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -420,7 +419,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_PREFIX )), 0,		// pcToolTip, sToolTipLen
@@ -429,7 +428,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_FDATA_POSTFIX_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_POSTFIX_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -441,11 +440,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FILE_NAME_POSTFIX ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -457,7 +456,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_POSTFIX )), 0,		// pcToolTip, sToolTipLen
@@ -468,7 +467,7 @@ namespace lsn {
 		// Actual Hz.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_FDATA_HZ_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_HZ_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -480,11 +479,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_ACTUAL_HZ ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_FDATA_HZ_COMBO,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_HZ_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -496,7 +495,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_ACTUAL_HZ )), 0,		// pcToolTip, sToolTipLen
@@ -505,7 +504,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_FDATA_HZ_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_FDATA_HZ_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -517,7 +516,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_ACTUAL_HZ_EDIT )), 0,		// pcToolTip, sToolTipLen
@@ -528,7 +527,7 @@ namespace lsn {
 		// Characteristics.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -540,13 +539,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_CHARACTERISTICS ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Presets.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_PRESET_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_PRESET_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -558,11 +557,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_PRESETS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_PRESET_COMBO,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_PRESET_COMBO,// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -574,7 +573,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_PRESETS )), 0,		// pcToolTip, sToolTipLen
@@ -583,7 +582,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FSETS_CHAR_SAVE_BUTTON,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_SAVE_BUTTON,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -595,7 +594,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_SAVE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_PRESETS_SAVE )), 0,			// pcToolTip, sToolTipLen
@@ -604,7 +603,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FSETS_CHAR_LOAD_BUTTON,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LOAD_BUTTON,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -616,7 +615,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_LOAD ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_PRESETS_LOAD )), 0,			// pcToolTip, sToolTipLen
@@ -627,7 +626,7 @@ namespace lsn {
 		// Volume.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_VOL_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_VOL_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -639,11 +638,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_VOL_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_VOL_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -655,7 +654,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_VOL )), 0,			// pcToolTip, sToolTipLen
@@ -664,7 +663,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_LOCK_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -676,7 +675,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_LOCK_VOL ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
@@ -685,7 +684,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_INV_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_INV_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -697,7 +696,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_INVERT ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_INVERT )), 0,			// pcToolTip, sToolTipLen
@@ -708,7 +707,7 @@ namespace lsn {
 		// LPF.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -720,7 +719,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_LPF_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LPF_CHECK )), 0,		// pcToolTip, sToolTipLen
@@ -729,7 +728,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -741,7 +740,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 			
 
 			LSW_NO_SIZE_EXP,
@@ -751,7 +750,7 @@ namespace lsn {
 		},
 		/*{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO,// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -763,11 +762,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -779,11 +778,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FALLOFF ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -795,11 +794,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_LPF_DB_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_LPF_DB_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -811,13 +810,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},*/
 
 		// HPF0.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -829,7 +828,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_1_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF0_CHECK )), 0,		// pcToolTip, sToolTipLen
@@ -838,7 +837,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -850,7 +849,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF0 )), 0,		// pcToolTip, sToolTipLen
@@ -859,7 +858,7 @@ namespace lsn {
 		},
 		/*{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -871,11 +870,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -887,11 +886,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FALLOFF ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -903,11 +902,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF0_DB_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF0_DB_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -919,13 +918,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},*/
 
 		// HPF1.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -937,7 +936,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_2_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF1_CHECK )), 0,		// pcToolTip, sToolTipLen
@@ -946,7 +945,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -958,7 +957,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF1 )), 0,		// pcToolTip, sToolTipLen
@@ -967,7 +966,7 @@ namespace lsn {
 		},
 		/*{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -979,11 +978,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -995,11 +994,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FALLOFF ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1011,11 +1010,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF1_DB_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF1_DB_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1027,13 +1026,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},*/
 
 		// HPF2.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1045,7 +1044,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HPF_3_HZ ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF2_CHECK )), 0,		// pcToolTip, sToolTipLen
@@ -1054,7 +1053,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1066,7 +1065,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF2 )), 0,		// pcToolTip, sToolTipLen
@@ -1075,7 +1074,7 @@ namespace lsn {
 		},
 		/*{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,			// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1087,11 +1086,11 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1103,11 +1102,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FALLOFF ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1119,11 +1118,11 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_CHAR_HPF2_DB_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_HPF2_DB_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1135,13 +1134,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_DB_PER_OCTAVE ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},*/
 
 		// RF Cables.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_RF_1_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_RF_1_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			FALSE,											// bEnabled
 			TRUE,											// bActive
@@ -1153,7 +1152,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_RF1 ),							// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
@@ -1162,7 +1161,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_RF_2_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			FALSE,											// bEnabled
 			TRUE,											// bActive
@@ -1174,7 +1173,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_RF2 ),							// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
@@ -1185,7 +1184,7 @@ namespace lsn {
 		// Sunsoft 5B.
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -1197,7 +1196,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_SUNSOFT_5B ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_LOCK )), 0,		// pcToolTip, sToolTipLen
@@ -1208,7 +1207,7 @@ namespace lsn {
 		// Meta Data.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_FSETS_MDATA_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1220,13 +1219,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_METADATA ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Artist.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_MDATA_ARTIST_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_ARTIST_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1238,7 +1237,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_ARTIST ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_CHAR_HPF2 )), 0,		// pcToolTip, sToolTipLen
@@ -1247,7 +1246,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_MDATA_ARTIST_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1259,7 +1258,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_ARTIST )), 0,		// pcToolTip, sToolTipLen
@@ -1270,7 +1269,7 @@ namespace lsn {
 		// Album.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_MDATA_ALBUM_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_ALBUM_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1282,11 +1281,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_ALBUM ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_MDATA_ALBUM_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1298,7 +1297,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_ALBUM )), 0,					// pcToolTip, sToolTipLen
@@ -1309,7 +1308,7 @@ namespace lsn {
 		// Year.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_MDATA_YEAR_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_YEAR_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1321,11 +1320,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_YEAR ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_MDATA_YEAR_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_YEAR_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1337,7 +1336,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_YEAR )), 0,					// pcToolTip, sToolTipLen
@@ -1348,7 +1347,7 @@ namespace lsn {
 		// Comments.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_FSETS_MDATA_COMMENTS_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_COMMENTS_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1360,11 +1359,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_COMMENTS ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1376,7 +1375,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_COMMENT )), 0,		// pcToolTip, sToolTipLen
@@ -1387,7 +1386,7 @@ namespace lsn {
 		// Apply to All.
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_FSETS_APPLY_TO_ALL_BUTTON,				// wId
+			CWinUtilities::LSN_WEWI_FSETS_APPLY_TO_ALL_BUTTON,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1399,7 +1398,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_APPLY_TO_ALL ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_APPLY_TO_ALL )), 0,			// pcToolTip, sToolTipLen
@@ -1412,7 +1411,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlSequencingDialog[] = {
 		{
 			LSN_LT_WAV_EDITOR_SEQUENCING,					// ltType
-			LSN_WEWI_SEQ,									// wId
+			CWinUtilities::LSN_WEWI_SEQ,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1424,13 +1423,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,														// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_NONE,									// dwParentId
+			CWinUtilities::LSN_WEWI_NONE,					// dwParentId
 		},
 
 		// Sequencing.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_GROUP,								// wId
+			CWinUtilities::LSN_WEWI_SEQ_GROUP,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1442,13 +1441,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_SEQUENCING ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Range.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_RANGE_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_RANGE_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1460,13 +1459,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_RANGE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Start Time.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_START_LABEL,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1478,11 +1477,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_START_TIME ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_SEQ_START_COMBO,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1494,7 +1493,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TIME_COMBO )), 0,																									// pcToolTip, sToolTipLen
@@ -1503,7 +1502,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_START_EDIT,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1515,7 +1514,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_START_TIME )), 0,																									// pcToolTip, sToolTipLen
@@ -1526,7 +1525,7 @@ namespace lsn {
 		// Exact/Minus One/Snap.
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_START_EXACT_RADIO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_EXACT_RADIO,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -1538,7 +1537,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_EXACT_TIME ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_EXACT_TIME )), 0,																									// pcToolTip, sToolTipLen
@@ -1547,7 +1546,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_START_MINUS_ONE_RADIO,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1559,7 +1558,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_MINUS_ONE ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_START_MINUS_ONE )), 0,		// pcToolTip, sToolTipLen
@@ -1568,7 +1567,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_START_SNAP_RADIO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_START_SNAP_RADIO,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1580,7 +1579,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_START_SNAP ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_START_SNAP )), 0,																									// pcToolTip, sToolTipLen
@@ -1591,7 +1590,7 @@ namespace lsn {
 		// End Time.
 		//{
 		//	LSW_LT_LABEL,									// ltType
-		//	LSN_WEWI_SEQ_END_LABEL,							// wId
+		//	CWinUtilities::LSN_WEWI_SEQ_END_LABEL,			// wId
 		//	nullptr,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -1603,11 +1602,11 @@ namespace lsn {
 		//	0,												// dwStyleEx
 		//	LSN_LSTR( LSN_WE_END_TIME ),					// pwcText
 		//	0,												// sTextLen
-		//	LSN_WEWI_SEQ,									// dwParentId
+		//	CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		//},
 		//{
 		//	LSW_LT_COMBOBOX,								// ltType
-		//	LSN_WEWI_SEQ_END_COMBO,							// wId
+		//	CWinUtilities::LSN_WEWI_SEQ_END_COMBO,			// wId
 		//	WC_COMBOBOXW,									// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -1619,11 +1618,11 @@ namespace lsn {
 		//	LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 		//	nullptr,										// pwcText
 		//	0,												// sTextLen
-		//	LSN_WEWI_SEQ,									// dwParentId
+		//	CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		//},
 		//{
 		//	LSW_LT_EDIT,									// ltType
-		//	LSN_WEWI_SEQ_END_EDIT,							// wId
+		//	CWinUtilities::LSN_WEWI_SEQ_END_EDIT,			// wId
 		//	nullptr,										// lpwcClass
 		//	TRUE,											// bEnabled
 		//	FALSE,											// bActive
@@ -1635,13 +1634,13 @@ namespace lsn {
 		//	WS_EX_CLIENTEDGE,								// dwStyleEx
 		//	nullptr,										// pwcText
 		//	0,												// sTextLen
-		//	LSN_WEWI_SEQ,									// dwParentId
+		//	CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		//},
 
 		// Looping.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_LOOPS_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1653,13 +1652,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_LOOPS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Loop/One-Shot.
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_LOOP_RADIO,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOP_RADIO,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -1671,7 +1670,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_LOOP ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_LOOPING )), 0,																										// pcToolTip, sToolTipLen
@@ -1680,7 +1679,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_ONE_SHOT_RADIO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_ONE_SHOT_RADIO,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1692,7 +1691,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_ONE_SHOT ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_ONE_SHOT )), 0,		// pcToolTip, sToolTipLen
@@ -1701,7 +1700,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_SEQ_FIND_LOOPS_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_FIND_LOOPS_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1713,7 +1712,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																							// dwStyleEx
 			LSN_LSTR( LSN_WE_FIND_LOOPS ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			//LSW_NO_SIZE_EXP,
 			//reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_END_TIME )), 0,		// pcToolTip, sToolTipLen
@@ -1724,7 +1723,7 @@ namespace lsn {
 		// End Time.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_STOP_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_STOP_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1736,11 +1735,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_STOP_TIME ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_SEQ_LOOPS_STOP_COMBO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1752,7 +1751,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TIME_COMBO )), 0,			// pcToolTip, sToolTipLen
@@ -1761,7 +1760,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_LOOPS_STOP_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_STOP_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1773,7 +1772,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_END_TIME )), 0,		// pcToolTip, sToolTipLen
@@ -1785,7 +1784,7 @@ namespace lsn {
 		// Exact/Minus One/Snap.
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_STOP_EXACT_RADIO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_STOP_EXACT_RADIO,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -1797,7 +1796,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_EXACT_TIME ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_EXACT_TIME )), 0,																																				// pcToolTip, sToolTipLen
@@ -1806,7 +1805,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1818,7 +1817,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_PLUS_ONE ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_STOP_PLUS_ONE )), 0,																																			// pcToolTip, sToolTipLen
@@ -1827,7 +1826,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_SEQ_STOP_SNAP_RADIO,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_STOP_SNAP_RADIO,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1839,7 +1838,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_STOP_SNAP ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_STOP_SNAP )), 0,																																				// pcToolTip, sToolTipLen
@@ -1850,7 +1849,7 @@ namespace lsn {
 		// Post-Loop Delay.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_DELAY_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1862,11 +1861,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_DELAY ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1878,7 +1877,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_PREFADE )), 0,		// pcToolTip, sToolTipLen
@@ -1887,7 +1886,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_DELAY_SECONDS_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1899,13 +1898,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Fade-Out Time.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_FADE_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_FADE_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1917,11 +1916,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_FADE_TIME ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_LOOPS_FADE_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1933,7 +1932,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_FADE )), 0,					// pcToolTip, sToolTipLen
@@ -1942,7 +1941,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_FADE_SECONDS_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1954,13 +1953,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Description.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_DESC_LABEL,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_DESC_LABEL,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1972,11 +1971,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_LOOPS_WARNING_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -1988,13 +1987,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Silences.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_SILENCE_GROUP,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_GROUP,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2006,13 +2005,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_WE_SILENCES ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Opening Silence.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_SILENCE_OPEN_SIL_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2024,11 +2023,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_OPENING_SIL ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2040,7 +2039,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OPENING_SILENCE )), 0,		// pcToolTip, sToolTipLen
@@ -2049,7 +2048,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_SILENCE_OPEN_SECONDS_LABEL,		// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_OPEN_SECONDS_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2061,13 +2060,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Trailing Silence.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_SILENCE_TRAIL_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_TRAIL_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2079,11 +2078,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_TRAIL ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2095,7 +2094,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_TRAILING_SILENCE )), 0,		// pcToolTip, sToolTipLen
@@ -2104,7 +2103,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_SEQ_SILENCE_SECONDS_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_SEQ_SILENCE_SECONDS_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2116,13 +2115,13 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_SECONDS ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 
 		// Operations.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_SEQ_OPS_GROUP,							// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2134,11 +2133,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_OPERATIONS ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_TREELISTVIEW,							// ltType
-			LSN_WEWI_SEQ_OPS_TREELISTVEW,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_TREELISTVEW,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2150,11 +2149,11 @@ namespace lsn {
 			LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,		// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_SEQ_OPS_ADD_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_ADD_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			FALSE,											// bEnabled
 			FALSE,											// bActive
@@ -2166,11 +2165,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_ADD_OPERATION ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2182,11 +2181,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_REMOVE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_SEQ_OPS_UP_BUTTON,						// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_UP_BUTTON,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2198,11 +2197,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_UP ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_SEQ_OPS_DOWN_BUTTON,					// wId
+			CWinUtilities::LSN_WEWI_SEQ_OPS_DOWN_BUTTON,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2214,7 +2213,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_MOVE_DOWN ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_SEQ,									// dwParentId
+			CWinUtilities::LSN_WEWI_SEQ,					// dwParentId
 		},
 	};
 
@@ -2222,7 +2221,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlOutputDialog[] = {
 		{
 			LSN_LT_WAV_EDITOR_OUTPUT,						// ltType
-			LSN_WEWI_OUTPUT,								// wId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2234,13 +2233,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,																									// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_NONE,									// dwParentId
+			CWinUtilities::LSN_WEWI_NONE,					// dwParentId
 		},
 
 		// Output.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_OUTPUT_GROUP,							// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2252,13 +2251,13 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_OUTPUT ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 
 		// Noise Volume.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_OUTPUT_NOISE_VOLUME_GROUP,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_NOISE_VOLUME_GROUP,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2270,11 +2269,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_NOISE ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_OUTPUT_MAINS_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MAINS_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2286,7 +2285,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			L"",											// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_MAINS_HUM )), 0,																										// pcToolTip, sToolTipLen
@@ -2295,7 +2294,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_OUTPUT_MAINS_COMBO,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MAINS_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2307,7 +2306,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_MAINS_COLOR )), 0,																										// pcToolTip, sToolTipLen
@@ -2316,7 +2315,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_OUTPUT_MAINS_VOL_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MAINS_VOL_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2328,11 +2327,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MAINS_VOL_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MAINS_VOL_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2344,7 +2343,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_MAINS_VOLUME )), 0,																										// pcToolTip, sToolTipLen
@@ -2354,7 +2353,7 @@ namespace lsn {
 
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_OUTPUT_NOISE_CHECK,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_NOISE_CHECK,	// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2366,7 +2365,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			L"",											// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_WHITE_NOISE )), 0,																										// pcToolTip, sToolTipLen
@@ -2375,7 +2374,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_OUTPUT_NOISE_COMBO,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_NOISE_COMBO,	// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2387,7 +2386,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_WHITE_NOISE_COMBO )), 0,																								// pcToolTip, sToolTipLen
@@ -2396,7 +2395,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_OUTPUT_NOISE_VOL_LABEL,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_NOISE_VOL_LABEL,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2408,11 +2407,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_VOLUME ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_NOISE_VOL_EDIT,					// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_NOISE_VOL_EDIT,	// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2424,7 +2423,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_WHITE_NOISE_VOLUME )), 0,																								// pcToolTip, sToolTipLen
@@ -2435,7 +2434,7 @@ namespace lsn {
 		// Master Volume.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_GROUP,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_GROUP,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2447,11 +2446,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_MASTER_VOLUME ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_RADIO,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2463,7 +2462,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_ABSOLUTE ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_ABS )), 0,																											// pcToolTip, sToolTipLen
@@ -2472,7 +2471,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_ABSOLUTE_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2484,7 +2483,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_EDIT )), 0,																											// pcToolTip, sToolTipLen
@@ -2493,7 +2492,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_RADIO,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2505,7 +2504,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_NORMALIZE ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_NORMAL )), 0,																										// pcToolTip, sToolTipLen
@@ -2514,7 +2513,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_NORMALIZE_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2526,7 +2525,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_NORMAL_EDIT )), 0,																									// pcToolTip, sToolTipLen
@@ -2535,7 +2534,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_RADIO,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_RADIO,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2547,7 +2546,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_SET_LOUDNESS_TO ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_LOUDNESS )), 0,																										// pcToolTip, sToolTipLen
@@ -2556,7 +2555,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_VOL_LOUDNESS_EDIT,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2568,7 +2567,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_VOL_LOUDNESS_EDIT )), 0,																								// pcToolTip, sToolTipLen
@@ -2579,7 +2578,7 @@ namespace lsn {
 		// Format.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_GROUP,			// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_GROUP,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2591,11 +2590,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																								// dwStyleEx
 			LSN_LSTR( LSN_WE_FORMAT ),						// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_LABEL,			// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_LABEL,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2607,11 +2606,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_HZ_ ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT,			// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_HZ_EDIT,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2623,7 +2622,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OUTPUT_HZ )), 0,																										// pcToolTip, sToolTipLen
@@ -2632,7 +2631,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_LABEL,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2644,11 +2643,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_FORMAT ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_FORMAT_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2660,7 +2659,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OUTPUT_FMT )), 0,																										// pcToolTip, sToolTipLen
@@ -2671,7 +2670,7 @@ namespace lsn {
 		// Bits.
 		{
 			LSW_LT_LABEL,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_LABEL,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_LABEL,		// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2683,11 +2682,11 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BITS_ ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_BITS_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2699,7 +2698,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OUTPUT_BITS )), 0,																										// pcToolTip, sToolTipLen
@@ -2708,7 +2707,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_DITHER_CHECK,		// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2720,7 +2719,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_DITHER ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OUTPUT_DITHER )), 0,																									// pcToolTip, sToolTipLen
@@ -2729,7 +2728,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_COMBOBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO,		// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_FORMAT_STEREO_COMBO,		// wId
 			WC_COMBOBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2741,7 +2740,7 @@ namespace lsn {
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_OUTPUT_CHANS )), 0,																																				// pcToolTip, sToolTipLen
@@ -2752,7 +2751,7 @@ namespace lsn {
 		// Folder.
 		{
 			LSW_LT_GROUPBOX,								// ltType
-			LSN_WEWI_OUTPUT_MASTER_PATH_GROUP,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_PATH_GROUP,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2764,11 +2763,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																													// dwStyleEx
 			LSN_LSTR( LSN_WE_OUTPUT_FOLDER ),				// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 		},
 		{
 			LSW_LT_EDIT,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_PATH_EDIT,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_PATH_EDIT,// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2780,7 +2779,7 @@ namespace lsn {
 			WS_EX_CLIENTEDGE,								// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_FOLDER )), 0,																																					// pcToolTip, sToolTipLen
@@ -2789,7 +2788,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_PATH_BUTTON,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_PATH_BUTTON,// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2801,7 +2800,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_AUDIO_OPTIONS_BROWSE ),			// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_BROWSE )), 0,																																					// pcToolTip, sToolTipLen
@@ -2810,7 +2809,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_CHECK,									// ltType
-			LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK,			// wId
+			CWinUtilities::LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK,			// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2822,7 +2821,7 @@ namespace lsn {
 			0,												// dwStyleEx
 			LSN_LSTR( LSN_WE_NUMBERED ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_OUTPUT,								// dwParentId
+			CWinUtilities::LSN_WEWI_OUTPUT,				// dwParentId
 
 			LSW_NO_SIZE_EXP,
 			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_WE_TT_NUMBERED )), 0,																																					// pcToolTip, sToolTipLen
@@ -2835,7 +2834,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlWindow[] {
 		{
 			LSN_LT_WAV_EDITOR_WINDOW,						// ltType
-			LSN_WEWI_MAINWINDOW,							// wId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,			// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2847,11 +2846,11 @@ namespace lsn {
 			WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,			// dwStyleEx
 			LSN_LSTR( LSN_WE_WAV_EDITOR ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_NONE,									// dwParentId
+			CWinUtilities::LSN_WEWI_NONE,					// dwParentId
 		},
 		{
 			LSW_LT_REBAR,									// ltType
-			LSN_WEWI_REBAR0,								// wId
+			CWinUtilities::LSN_WEWI_REBAR0,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2866,7 +2865,7 @@ namespace lsn {
 			0,//WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_TOOLWINDOW,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,			// dwParentId
 
 			LSN_PARENT_CLEFT,								// pcLeftSizeExp
 			LSN_PARENT_CRIGHT,								// pcRightSizeExp
@@ -2877,7 +2876,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_TOOLBAR,									// ltType
-			LSN_WEWI_TOOLBAR0,								// wId
+			CWinUtilities::LSN_WEWI_TOOLBAR0,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2890,11 +2889,11 @@ namespace lsn {
 			0,																																																					// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_CANCEL,								// wId
+			CWinUtilities::LSN_WEWI_CANCEL,				// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2906,11 +2905,11 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_CLOSE ),							// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,			// dwParentId
 		},
 		{
 			LSW_LT_BUTTON,									// ltType
-			LSN_WEWI_OK,									// wId
+			CWinUtilities::LSN_WEWI_OK,					// wId
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2922,7 +2921,7 @@ namespace lsn {
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
 			LSN_LSTR( LSN_WE_EXPORT_ALL ),					// pwcText
 			0,												// sTextLen
-			LSN_WEWI_MAINWINDOW,							// dwParentId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,			// dwParentId
 		},
 	};
 

@@ -130,21 +130,21 @@ namespace lsn {
 			rRebarRect = plvRebar->ClientRect( this );
 		}
 
-		m_pwefFiles = static_cast<CWavEditorFilesPage *>(Layout::CreateFiles( this, m_wewoWindowOptions ));
+		m_pwefFiles = static_cast<CWavEditorFilesPage *>(CWavEditorWindowLayout::CreateFiles( this, m_wewoWindowOptions ));
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
 		m_pwefFiles->SetWavEditor( m_weEditor );
 
-		CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
+		CWidget * pwSeqPage = CWavEditorWindowLayout::CreateSequencer( this, m_wewoWindowOptions );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
 		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
 		static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
-		CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
+		CWidget * pwSettingsPage = CWavEditorWindowLayout::CreateFileSettings( this, m_wewoWindowOptions );
 		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
 		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
 		static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
-		m_pweopOutput = static_cast<CWavEditorOutputPage *>(Layout::CreateOutput( this, m_wewoWindowOptions ));
+		m_pweopOutput = static_cast<CWavEditorOutputPage *>(CWavEditorWindowLayout::CreateOutput( this, m_wewoWindowOptions ));
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
 		m_pweopOutput->SetWavEditor( m_weEditor );
 
@@ -328,7 +328,7 @@ namespace lsn {
 		auto ui32Id = _ui32Id == 0 ? m_weEditor.AddWavFileSet( _wsPath ) : _ui32Id;
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
 		if ( m_pwefFiles->AddToTree( ui32Id ) ) {
-			CWidget * pwSeqPage = Layout::CreateSequencer( this, m_wewoWindowOptions );
+			CWidget * pwSeqPage = CWavEditorWindowLayout::CreateSequencer( this, m_wewoWindowOptions );
 			if ( !pwSeqPage ) { return false; }
 			m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
 			static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
@@ -337,7 +337,7 @@ namespace lsn {
 				m_vSequencePages[0]->Activate();
 			//}
 
-			CWidget * pwSettingsPage = Layout::CreateFileSettings( this, m_wewoWindowOptions );
+			CWidget * pwSettingsPage = CWavEditorWindowLayout::CreateFileSettings( this, m_wewoWindowOptions );
 			if ( !pwSettingsPage ) { return false; }
 			m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
 			static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );

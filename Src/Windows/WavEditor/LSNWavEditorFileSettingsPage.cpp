@@ -785,7 +785,7 @@ namespace lsn {
 
 
 			struct LSN_CONTROLS {
-				Layout::LSN_WAV_EDITOR_WINDOW_IDS						wId;
+				Layout::LSN_CONTROL_IDS									wId;
 				bool													bEnable;
 			} cControls[] = {
 				{ Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT,					lpHzData == LPARAM( CWavEditor::LSN_AH_CUSTOM ) },

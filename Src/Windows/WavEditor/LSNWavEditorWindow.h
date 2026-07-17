@@ -329,7 +329,7 @@ namespace lsn {
 
 
 	private :
-		typedef CWavEditorWindowLayout						Layout;
+		typedef CWinUtilities								Layout;
 
 	};
 

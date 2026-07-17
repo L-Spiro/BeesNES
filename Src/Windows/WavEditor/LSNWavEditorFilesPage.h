@@ -13,6 +13,7 @@
 #include "LSNWavEditorWindowLayout.h"
 #include "../../Options/LSNWavEditorWindowOptions.h"
 #include "../../Wav/LSNWavEditor.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <MainWindow/LSWMainWindow.h>
 
@@ -126,7 +127,7 @@ namespace lsn {
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
 
 	private :
-		typedef CWavEditorWindowLayout						Layout;
+		typedef CWinUtilities								Layout;
 		typedef lsw::CWidget								Parent;
 	};
 
