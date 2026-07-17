@@ -2710,6 +2710,36 @@ namespace lsn {
 		}
 
 		/**
+		 * \brief Generates noise based on physical thermal noise (Johnson-Nyquist) parameters.
+		 * 
+		 * \param _fTempK The absolute temperature in Kelvin.
+		 * \param _fOhms The impedance of the cable/system in Ohms.
+		 * \param _fBandwidthHz The bandwidth of the signal in Hertz.
+		 * \param _fSystemGain A linear multiplier to scale the microvolt physical noise up to visual normalized float ranges.
+		 * \param _fBlackLevel The black level.
+		 * \param _fWhiteLevel The white level.
+		 **/
+		static inline void									GenThermalNoise( float _fTempK = 293.15f, float _fOhms = 75.0f, float _fBandwidthHz = 4.2e6f, float _fSystemGain = 12000.0f, float _fBlackLevel = 0.0f, float _fWhiteLevel = 1.0f ) {
+			GenGaussianNoise( GetThermalNoiseStdDev( _fTempK, _fOhms, _fBandwidthHz, _fSystemGain ), _fBlackLevel, _fWhiteLevel );
+		}
+
+		/**
+		 * Gets the standard deviation for Gaussian noise given the absolute temperature in Kelvin, the impedance of the cable/system in Ohms, and the bandwidth of the signal in Hertz.
+		 * 
+		 * \param _fTempK The absolute temperature in Kelvin.
+		 * \param _fOhms The impedance of the cable/system in Ohms.
+		 * \param _fBandwidthHz The bandwidth of the signal in Hertz.
+		 * \param _fSystemGain A linear multiplier to scale the microvolt physical noise up to visual normalized float ranges.
+		 * \return Returns the physically based standard deviation for Gaussian noise.
+		 **/
+		static inline float									GetThermalNoiseStdDev( float _fTempK = 293.15f, float _fOhms = 75.0f, float _fBandwidthHz = 4.2e6f, float _fSystemGain = 12000.0f ) {
+			// Boltzmann constant in Joules per Kelvin.
+			constexpr float fKb = 0.000000000000000000000055225955785762901200008850603122116662557772315267357043921947479248046875f;	// 4 * 1.380649e-23
+			float fVrms = std::sqrt( fKb * _fTempK * _fOhms * _fBandwidthHz );
+			return fVrms * _fSystemGain;			
+		}
+
+		/**
 		 * Gets a pseudo-random number quickly.
 		 * 
 		 * \return Returns a random value using a super cheap and efficient random pattern.

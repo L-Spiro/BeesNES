@@ -1160,7 +1160,8 @@ namespace lsn {
 		ApplyAudioOptions();
 		ApplyPaletteOptions();
 		
-		CUtilities::GenGaussianNoise( 0.0225f/*, SystemBlackLevel( m_pmSystem ), SystemWhiteLevel( m_pmSystem )*/ );
+		//CUtilities::GenGaussianNoise( 0.0225f/*, SystemBlackLevel( m_pmSystem ), SystemWhiteLevel( m_pmSystem )*/ );
+		CUtilities::GenThermalNoise();
 	}
 
 	/**
