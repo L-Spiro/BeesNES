@@ -526,7 +526,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reads from CHR ROM using m_ui8PgmBanks[_uReg] to select a bank among _uSize-sized banks.
+		 * Reads from CHR ROM using m_ui8ChrBanks[_uReg] to select a bank among _uSize-sized banks.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.

@@ -68,6 +68,8 @@ namespace lsn {
 			m_ui8Outer = 63;
 			m_ui8Prg = 15;
 
+			m_vChrRam.resize( 32 * 1024 );
+
 			UpdateBanks();
 		}
 
@@ -81,25 +83,14 @@ namespace lsn {
 			CMapperBase::ApplyMap( _pbCpuBus, _pbPpuBus );
 
 			// ================
-			// FIXED BANKS
-			// ================
-			// Set the reads of the fixed bank at the end.		
-			m_stFixedOffset = std::max<size_t>( m_prRom->vPrgRom.size(), PgmBankSize() ) - PgmBankSize();
-			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
-				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead_Fixed, this, uint16_t( (I - 0xC000) % (m_prRom->vPrgRom.size() - m_stFixedOffset) ) );
-			}
-			
-
-			// ================
 			// SWAPPABLE BANKS
 			// ================
 			// CPU.
 			for ( uint32_t I = 0x8000; I < 0xC000; ++I ) {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<0, PgmBankSize()>, this, uint16_t( I - 0x8000 ) );
 			}
-			// PPU.
-			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
-				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+			for ( uint32_t I = 0xC000; I < 0x10000; ++I ) {
+				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::PgmBankRead<1, PgmBankSize()>, this, uint16_t( I - 0xC000 ) );
 			}
 
 
@@ -114,6 +105,11 @@ namespace lsn {
 			for ( uint32_t I = 0x8000; I < 0x10000; ++I ) {
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper028::SelectBank8000_FFFF, this, 0 );
 			}
+			// PPU.
+			for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {
+				_pbPpuBus->SetReadFunc( uint16_t( I ), &CMapper028::ChrBankRead<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+				_pbPpuBus->SetWriteFunc( uint16_t( I ), &CMapper028::ChrBankWrite<0, ChrBankSize()>, this, uint16_t( I - 0x0000 ) );
+			}
 
 
 			// ================
@@ -125,6 +121,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		std::vector<uint8_t>							m_vChrRam;									/**< CHaracter RAM. */
 		uint16_t										m_ui16PrgMask16;							/**< Mask for 16-kilobyte PGM banking. */
 		LSN_REG											m_rReg;										/**< Which register to use. */
 		uint8_t											m_ui8Reg00;									/**< Register $00. */
@@ -192,24 +189,18 @@ namespace lsn {
 				}
  				case 0x10 : {} LSN_FALLTHROUGH
  				case 0x14 : {
- 					m_ui8PrgLo = uint8_t( i32OutB & ~2 | m_ui8Prg & 2 );
- 					m_ui8PrgHi = uint8_t( i32OutB & ~2 | m_ui8Prg & 2 | 1 );
  					m_ui8PrgLo = uint8_t( i32OutB & ~2 | m_ui8Prg << 1 & 2 );
  					m_ui8PrgHi = uint8_t( i32OutB & ~2 | m_ui8Prg << 1 & 2 | 1 );
  					break;
 				}
  				case 0x20 : {} LSN_FALLTHROUGH
  				case 0x24 : {
- 					m_ui8PrgLo = uint8_t( i32OutB & ~6 | m_ui8Prg & 6 );
- 					m_ui8PrgHi = uint8_t( i32OutB & ~6 | m_ui8Prg & 6 | 1 );
  					m_ui8PrgLo = uint8_t( i32OutB & ~6 | m_ui8Prg << 1 & 6 );
  					m_ui8PrgHi = uint8_t( i32OutB & ~6 | m_ui8Prg << 1 & 6 | 1 );
  					break;
 				}
  				case 0x30 : {} LSN_FALLTHROUGH
  				case 0x34 : {
- 					m_ui8PrgLo = uint8_t( i32OutB & ~14 | m_ui8Prg & 14 );
- 					m_ui8PrgHi = uint8_t( i32OutB & ~14 | m_ui8Prg & 14 | 1 );
  					m_ui8PrgLo = uint8_t( i32OutB & ~14 | m_ui8Prg << 1 & 14 );
  					m_ui8PrgHi = uint8_t( i32OutB & ~14 | m_ui8Prg << 1 & 14 | 1 );
  					break;
@@ -259,6 +250,9 @@ namespace lsn {
  			}
  			m_ui8PrgLo &= m_ui16PrgMask16;
  			m_ui8PrgHi &= m_ui16PrgMask16;
+
+			SetPgmBank<0, PgmBankSize()>( m_ui8PrgLo );
+			SetPgmBank<1, PgmBankSize()>( m_ui8PrgHi );
 		}
 
 		/**
@@ -292,7 +286,8 @@ namespace lsn {
 					 *	   +------ Set mirroring mode bit 0 if H/V mirroring is disabled
 					 */
 					pmThis->m_ui8Reg00 = _ui8Val;
-					pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b11 );
+					//pmThis->SetChrBank<0, ChrBankSize()>( _ui8Val & 0b11 );
+					pmThis->m_ui8ChrBanks[0] = _ui8Val & 0b11;
 					pmThis->UpdateMode( _ui8Val );
 					break;
 				}
@@ -305,6 +300,7 @@ namespace lsn {
 					pmThis->m_ui8Reg01 = _ui8Val;
 					pmThis->m_ui8Prg = _ui8Val & 0xF;
 					pmThis->UpdateMode( _ui8Val );
+					pmThis->UpdateBanks();
 					break;
 				}
 				case LSN_R_80 : {
@@ -331,6 +327,36 @@ namespace lsn {
 					break;
 				}
 			}
+		}
+
+		/**
+		 * Reads from CHR ROM using m_ui8PgmBanks[_uReg] to select a bank among _uSize-sized banks.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 * \tparam _uReg The register index.
+		 * \tparam _uSize The bank size.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		static void LSN_FASTCALL						ChrBankRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper028 * pmThis = reinterpret_cast<CMapper028 *>(_pvParm0);
+			_ui8Ret = pmThis->m_vChrRam.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8ChrBanks[_uReg])*_uSize)];
+		}
+
+		/**
+		 * Writes to the CHR RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		template <unsigned _uReg, unsigned _uSize>
+		static void LSN_FASTCALL						ChrBankWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper028 * pmThis = reinterpret_cast<CMapper028 *>(_pvParm0);
+			pmThis->m_vChrRam.data()[size_t(_ui16Parm1)+(size_t(pmThis->m_ui8ChrBanks[_uReg])*_uSize)] = _ui8Val;
 		}
 	};
 
