@@ -40,6 +40,8 @@
 
 #include "../Mappers/LSNMapper056.h"
 
+#include "../Mappers/LSNMapper061.h"
+
 #include "../Mappers/LSNMapper065.h"
 #include "../Mappers/LSNMapper066.h"
 #include "../Mappers/LSNMapper067.h"
@@ -71,6 +73,8 @@
 
 #include "../Mappers/LSNMapper101.h"
 
+#include "../Mappers/LSNMapper107.h"
+
 #include "../Mappers/LSNMapper112.h"
 #include "../Mappers/LSNMapper113.h"
 
@@ -78,10 +82,13 @@
 #include "../Mappers/LSNMapper119.h"
 
 #include "../Mappers/LSNMapper132.h"
+#include "../Mappers/LSNMapper133.h"
 
 #include "../Mappers/LSNMapper140.h"
 
 #include "../Mappers/LSNMapper142.h"
+
+#include "../Mappers/LSNMapper148.h"
 
 #include "../Mappers/LSNMapper152.h"
 
@@ -89,11 +96,28 @@
 
 #include "../Mappers/LSNMapper157.h"
 
+#include "../Mappers/LSNMapper172.h"	// TODO: Venice Beach Volley (Super Mega release) title screen is jank.
+#include "../Mappers/LSNMapper173.h"
+
 #include "../Mappers/LSNMapper184.h"
 #include "../Mappers/LSNMapper185.h"
 
+#include "../Mappers/LSNMapper201.h"
+
+#include "../Mappers/LSNMapper203.h"
+
 #include "../Mappers/LSNMapper206.h"
+
+#include "../Mappers/LSNMapper212.h"
+
+#include "../Mappers/LSNMapper225.h"
+#include "../Mappers/LSNMapper226.h"
+
+#include "../Mappers/LSNMapper228.h"
+#include "../Mappers/LSNMapper229.h"
 
 #include "../Mappers/LSNMapper232.h"
 
 #include "../Mappers/LSNMapper234.h"
+
+#include "../Mappers/LSNMapper340.h"

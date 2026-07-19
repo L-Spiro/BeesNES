@@ -434,6 +434,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper056>();
 					break;
 				}
+				case 61 : {
+					m_pmbMapper = std::make_unique<CMapper061>();
+					break;
+				}
 				case 65 : {
 					m_pmbMapper = std::make_unique<CMapper065>();
 					break;
@@ -530,6 +534,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper101>();
 					break;
 				}
+				case 107 : {
+					m_pmbMapper = std::make_unique<CMapper107>();
+					break;
+				}
 				case 112 : {
 					m_pmbMapper = std::make_unique<CMapper112>();
 					break;
@@ -546,12 +554,24 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper119>();
 					break;
 				}
+				case 132 : {
+					m_pmbMapper = std::make_unique<CMapper132>();
+					break;
+				}
+				case 133 : {
+					m_pmbMapper = std::make_unique<CMapper133>();
+					break;
+				}
 				case 140 : {
 					m_pmbMapper = std::make_unique<CMapper140>();
 					break;
 				}
 				case 142 : {
 					m_pmbMapper = std::make_unique<CMapper142>();
+					break;
+				}
+				case 148 : {
+					m_pmbMapper = std::make_unique<CMapper148>();
 					break;
 				}
 				case 152 : {
@@ -570,6 +590,14 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper157>();
 					break;
 				}
+				case 172 : {
+					m_pmbMapper = std::make_unique<CMapper172>();
+					break;
+				}
+				case 173 : {
+					m_pmbMapper = std::make_unique<CMapper173>();
+					break;
+				}
 				case 184 : {
 					m_pmbMapper = std::make_unique<CMapper184>();
 					break;
@@ -578,8 +606,36 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper185>();
 					break;
 				}
+				case 201 : {
+					m_pmbMapper = std::make_unique<CMapper201>();
+					break;
+				}
+				case 203 : {
+					m_pmbMapper = std::make_unique<CMapper203>();
+					break;
+				}
 				case 206 : {
 					m_pmbMapper = std::make_unique<CMapper206>();
+					break;
+				}
+				case 212 : {
+					m_pmbMapper = std::make_unique<CMapper212>();
+					break;
+				}
+				case 225 : {
+					m_pmbMapper = std::make_unique<CMapper225>();
+					break;
+				}
+				case 226 : {
+					m_pmbMapper = std::make_unique<CMapper226>();
+					break;
+				}
+				case 228 : {
+					m_pmbMapper = std::make_unique<CMapper228>();
+					break;
+				}
+				case 229 : {
+					m_pmbMapper = std::make_unique<CMapper229>();
 					break;
 				}
 				case 232 : {
@@ -590,12 +646,20 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper234>();
 					break;
 				}
+				case 255 : {
+					m_pmbMapper = std::make_unique<CMapper225>();	// Not an error.  255 is a duplicate of 225.
+					break;
+				}
+				case 340 : {
+					m_pmbMapper = std::make_unique<CMapper340>();
+					break;
+				}
 				default : {
 					m_pmbMapper = std::make_unique<CMapperBase>();
 					m_rRom.riInfo.bMapperSupported = false;
 					std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
 #ifdef LSN_WINDOWS
-					::OutputDebugStringA( sText.c_str() );
+					lsn::DebugA( sText.c_str() );
 #endif	// #ifdef LSN_WINDOWS
 				}
 			}
@@ -603,21 +667,21 @@ namespace lsn {
 			{
 				char szBuffer[128];
 				std::sprintf( szBuffer, "****** CRC: 0x%.8X\r\n", m_rRom.riInfo.ui32Crc );
-				::OutputDebugStringA( szBuffer );
+				lsn::DebugA( szBuffer );
 				std::string sText;
 				::OutputDebugStringW( reinterpret_cast<LPCWSTR>(CUtilities::NoExtension( m_rRom.riInfo.s16RomName ).c_str()) );
-				::OutputDebugStringA( "\r\n" );
+				lsn::DebugA( "\r\n" );
 				sText = "****** Mapper: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
-				::OutputDebugStringA( sText.c_str() );
+				lsn::DebugA( sText.c_str() );
 				sText = "****** Sub Mapper: " + std::to_string( m_rRom.riInfo.ui16SubMapper ) + ".\r\n";
-				::OutputDebugStringA( sText.c_str() );
+				lsn::DebugA( sText.c_str() );
 				sText = "****** PGM Size: " + std::to_string( m_rRom.vPrgRom.size() ) + ".\r\n";
-				::OutputDebugStringA( sText.c_str() );
+				lsn::DebugA( sText.c_str() );
 				sText = "****** CHR Size: " + std::to_string( m_rRom.vChrRom.size() ) + ".\r\n";
-				::OutputDebugStringA( sText.c_str() );
+				lsn::DebugA( sText.c_str() );
 
 				sText = "****** PGM RAM Size: " + std::to_string( m_rRom.i32WorkRamSize ) + ".\r\n";
-				::OutputDebugStringA( sText.c_str() );
+				lsn::DebugA( sText.c_str() );
 			}
 #endif	// #ifdef LSN_WINDOWS
 			m_cCpu.SetMapper( m_pmbMapper.get() );

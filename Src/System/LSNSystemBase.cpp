@@ -57,6 +57,7 @@ namespace lsn {
 			{
 				auto aEntry = CDatabase::m_mDatabase.find( _rRom.riInfo.ui32Crc );
 				if ( aEntry != CDatabase::m_mDatabase.end() ) {
+					lsn::DebugA( "****** ROM Found in Database.\r\n" );
 					if ( aEntry->second.mmMirrorOverride != LSN_MM_NO_OVERRIDE ) {
 						_rRom.riInfo.mmMirroring = aEntry->second.mmMirrorOverride;
 					}
