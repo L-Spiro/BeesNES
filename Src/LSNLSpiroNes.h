@@ -356,6 +356,15 @@ namespace lsn {
 	}
 
 	/**
+	 * \brief Writes a wide C-string to stderr (no newline).
+	 *
+	 * \param _pwcStr The null-terminated wide string to output.
+	 */
+	static inline void						DebugW( const wchar_t * _pwcStr ) {
+		::fputws( _pwcStr, stderr );
+	}
+
+	/**
 	 * \brief Writes a line to stderr.
 	 *
 	 * \param _sStr The string to output.
@@ -372,6 +381,15 @@ namespace lsn {
 	 */
 	static inline void						DebugA( const char * _pcStr ) {
 		::OutputDebugStringA( _pcStr );
+	}
+
+	/**
+	 * \brief Writes a wide C-string to the debugger (no newline).
+	 *
+	 * \param _pwcStr The null-terminated wide string to output.
+	 */
+	static inline void						DebugW( const wchar_t * _pwcStr ) {
+		::OutputDebugStringW( _pwcStr );
 	}
 
 	/**

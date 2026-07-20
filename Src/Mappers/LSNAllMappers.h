@@ -23,6 +23,9 @@
 
 #include "../Mappers/LSNMapper013.h"
 
+#include "../Mappers/LSNMapper018.h"	// A few games (2?) do not load.
+#include "../Mappers/LSNMapper019.h"
+
 #include "../Mappers/LSNMapper023.h"
 #include "../Mappers/LSNMapper024.h"
 
@@ -97,7 +100,7 @@
 #include "../Mappers/LSNMapper157.h"
 
 #include "../Mappers/LSNMapper172.h"	// TODO: Venice Beach Volley (Super Mega release) title screen is jank.
-#include "../Mappers/LSNMapper173.h"
+#include "../Mappers/LSNMapper173.h"	// TODO: CHR is bad.
 
 #include "../Mappers/LSNMapper184.h"
 #include "../Mappers/LSNMapper185.h"
@@ -121,3 +124,5 @@
 #include "../Mappers/LSNMapper234.h"
 
 #include "../Mappers/LSNMapper340.h"
+
+#include "../Mappers/LSNMapper550.h"	// Untested.  Can't find a ROM.

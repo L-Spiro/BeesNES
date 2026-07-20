@@ -374,6 +374,14 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper013>();
 					break;
 				}
+				case 18 : {
+					m_pmbMapper = std::make_unique<CMapper018>();
+					break;
+				}
+				case 19 : {
+					m_pmbMapper = std::make_unique<CMapper019>();
+					break;
+				}
 				case 21 : {
 					m_pmbMapper = std::make_unique<CMapper023>();
 					break;
@@ -654,22 +662,23 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper340>();
 					break;
 				}
+				case 550 : {
+					m_pmbMapper = std::make_unique<CMapper550>();
+					break;
+				}
 				default : {
 					m_pmbMapper = std::make_unique<CMapperBase>();
 					m_rRom.riInfo.bMapperSupported = false;
 					std::string sText = "****** Mapper not handled: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
-#ifdef LSN_WINDOWS
 					lsn::DebugA( sText.c_str() );
-#endif	// #ifdef LSN_WINDOWS
 				}
 			}
-#ifdef LSN_WINDOWS
 			{
 				char szBuffer[128];
 				std::sprintf( szBuffer, "****** CRC: 0x%.8X\r\n", m_rRom.riInfo.ui32Crc );
 				lsn::DebugA( szBuffer );
 				std::string sText;
-				::OutputDebugStringW( reinterpret_cast<LPCWSTR>(CUtilities::NoExtension( m_rRom.riInfo.s16RomName ).c_str()) );
+				lsn::DebugW( reinterpret_cast<const wchar_t *>(CUtilities::NoExtension( m_rRom.riInfo.s16RomName ).c_str()) );
 				lsn::DebugA( "\r\n" );
 				sText = "****** Mapper: " + std::to_string( m_rRom.riInfo.ui16Mapper ) + ".\r\n";
 				lsn::DebugA( sText.c_str() );
@@ -683,7 +692,6 @@ namespace lsn {
 				sText = "****** PGM RAM Size: " + std::to_string( m_rRom.i32WorkRamSize ) + ".\r\n";
 				lsn::DebugA( sText.c_str() );
 			}
-#endif	// #ifdef LSN_WINDOWS
 			m_cCpu.SetMapper( m_pmbMapper.get() );
 			m_aApu.SetMapper( m_pmbMapper.get() );
 			if ( m_pmbMapper ) {
