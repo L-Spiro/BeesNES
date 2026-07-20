@@ -214,6 +214,12 @@ namespace lsn {
 			
 			// Namco 163 Internal Address port ($F800-$FFFF).
 			for ( uint32_t I = 0xF800; I < 0x10000; ++I ) { _pbCpuBus->SetWriteFunc( uint16_t( I ), &CMapper019::WriteF800, this, 0 ); }
+
+
+			// ================
+			// MIRRORING
+			// ================
+			ApplyControllableMirrorMap( _pbPpuBus );
 		}
 		
 		/**
@@ -297,7 +303,13 @@ namespace lsn {
 		template <unsigned _uBank>
 		static void LSN_FASTCALL						SetChr( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			pmThis->SetChrBank<_uBank, ChrBankSize()>( _ui8Val );
+			if ( _ui8Val < 0xE0 ) {
+				pmThis->SetChrBank<_uBank, ChrBankSize()>( _ui8Val );
+			}
+			else {
+				pmThis->m_ui8Nt[_uBank] = _ui8Val;
+				pmThis->UpdateMirroring();
+			}
 		}
 
 		/**
