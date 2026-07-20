@@ -306,10 +306,11 @@ namespace lsn {
 			if ( _ui8Val < 0xE0 ) {
 				pmThis->SetChrBank<_uBank, ChrBankSize()>( _ui8Val );
 			}
-			else {
-				pmThis->m_ui8Nt[_uBank] = _ui8Val;
+			/*else {
+				pmThis->m_ui8Nt[_uBank-3] = _ui8Val;
 				pmThis->UpdateMirroring();
-			}
+			}*/
+			//pmThis->UpdateMirroring();
 		}
 
 		/**
@@ -337,7 +338,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						InternalRamRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			_ui8Ret = pmThis->m_vWram[8192 + pmThis->m_ui8InternalRamAddr];
+			_ui8Ret = pmThis->m_vWram[8192+pmThis->m_ui8InternalRamAddr];
 			if ( pmThis->m_bInternalRamAutoInc ) {
 				pmThis->m_ui8InternalRamAddr = (pmThis->m_ui8InternalRamAddr + 1) & 0x7F;
 			}
@@ -353,7 +354,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						InternalRamWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			pmThis->m_vWram[8192 + pmThis->m_ui8InternalRamAddr] = _ui8Val;
+			pmThis->m_vWram[8192+pmThis->m_ui8InternalRamAddr] = _ui8Val;
 			if ( pmThis->m_bInternalRamAutoInc ) {
 				pmThis->m_ui8InternalRamAddr = (pmThis->m_ui8InternalRamAddr + 1) & 0x7F;
 			}
