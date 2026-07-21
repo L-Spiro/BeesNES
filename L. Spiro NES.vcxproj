@@ -1994,6 +1994,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\LSNLSpiroNes.h" />
     <ClInclude Include="Src\Mappers\LSNAllMappers.h" />
     <ClInclude Include="Src\Mappers\LSNAudio5b.h" />
+    <ClInclude Include="Src\Mappers\LSNAudioNamco163.h" />
     <ClInclude Include="Src\Mappers\LSNAudioVrc6.h" />
     <ClInclude Include="Src\Mappers\LSNMapper000.h" />
     <ClInclude Include="Src\Mappers\LSNMapper001.h" />

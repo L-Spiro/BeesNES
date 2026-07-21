@@ -789,10 +789,6 @@ namespace lsn {
 			// ========
 			// Doraemon.
 			{ .ui32Crc = 0xB00ABE1C, .mmMirrorOverride = LSN_MM_VERTICAL },
-			// Dragon Ninja (Japan)
-			{ .ui32Crc = 0xFBA98643, .mmMirrorOverride = LSN_MM_VERTICAL },
-			// Mappy Kids (Japan)
-			{ .ui32Crc = 0x598FB9F5, .mmMirrorOverride = LSN_MM_1_SCREEN_A },
 			// Master Chu & The Drunkard Hu (U)
 			{ .ui32Crc = 0x1A2D3B17, .mmMirrorOverride = LSN_MM_VERTICAL },
 			// Mach Rider (Japan, USA) (Rev A)
