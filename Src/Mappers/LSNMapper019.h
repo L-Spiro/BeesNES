@@ -77,6 +77,7 @@ namespace lsn {
 			SetChrBank<7, ChrBankSize()>( 7 );
 			
 			m_ui8E800 = 0;
+			m_ui8F800 = 0;
 			for ( size_t I = 0; I < 8; ++I ) {
 				m_ui8ChrRegisters[I] = 0;
 			}
@@ -332,6 +333,9 @@ namespace lsn {
 
 		/** Stores the exact value written to PRG bank 1 ($E800) to preserve bits 6 and 7. */
 		uint8_t											m_ui8E800;
+
+		/** Stores the write-protect and internal RAM address ($F800). */
+		uint8_t											m_ui8F800;
 		
 		/** The 8 KiB WRAM + 128 bytes internal RAM. */
 		std::vector<uint8_t>							m_vWram;
@@ -419,7 +423,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Writes to external WRAM.
+		 * Writes to external WRAM. Respects the Namco 163 write-protect bits set in $F800.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.
@@ -428,7 +432,12 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						WramWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+			
+			if ( (pmThis->m_ui8F800 & 0xF0) == 0x40 ) {
+				if ( (pmThis->m_ui8F800 & (1 << (_ui16Parm1 >> 11))) == 0 ) {
+					pmThis->m_vWram[_ui16Parm1] = _ui8Val;
+				}
+			}
 		}
 
 		/**
@@ -500,6 +509,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						WriteF800( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
+			pmThis->m_ui8F800 = _ui8Val;
 			pmThis->m_anAudio.WriteF800( _ui8Val );
 		}
 
