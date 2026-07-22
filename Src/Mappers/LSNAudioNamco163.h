@@ -44,6 +44,24 @@ namespace lsn {
 		}
 
 		/**
+		 * Sets the output volume.
+		 * 
+		 * \param _fVol The volume multiplier to set.
+		 **/
+		inline void										SetVolume( float _fVol ) {
+			m_fVolume = _fVol;
+		}
+
+		/**
+		 * Sets the Enabled status of the device.
+		 * 
+		 * \param _bEnabled Whether sound is enabled or disabled.
+		 **/
+		inline void										SetEnabled( bool _bEnabled ) {
+			m_bEnabled = _bEnabled;
+		}
+
+		/**
 		 * Ticks with the CPU.
 		 */
 		virtual void									Tick() {
@@ -71,12 +89,7 @@ namespace lsn {
 				m_ui8CurrentChannel = 0;
 				m_fSample = 0.0f;
 			}
-		}
-
-		/**
-		 * Does a soft reset.
-		 **/
-		void											ResetSoft() {
+			m_bEnabled = false;
 		}
 
 		/**
@@ -89,7 +102,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Post-process an output sample.  Applies the volume crunch.
+		 * Post-process an output sample.
 		 * 
 		 * \param _fSample The sample to modify.
 		 * \param _fHz The current sampling rate.
@@ -177,6 +190,10 @@ namespace lsn {
 		uint8_t											m_ui8CurrentChannel = 0;
 		/** The last sample output. */
 		float											m_fSample = 0.0f;
+		/** Master volume. */
+		float											m_fVolume = 1.0f;
+		/** Is sound enabled? */
+		bool											m_bEnabled = false;
 
 
 		// == Functions.
@@ -185,6 +202,10 @@ namespace lsn {
 		 */
 		inline void										TickAudioInternal() {
 			if ( !m_pui8Ram ) { return; }
+			if ( !m_bEnabled ) {
+				//m_fSample = 0.0f;
+				return;
+			}
 
 			// Bits 4-6 of $7F indicate (NumChannels - 1).
 			uint8_t ui8NumChannels = ((m_pui8Ram[0x7F] >> 4) & 0x07) + 1;
@@ -230,7 +251,7 @@ namespace lsn {
 			uint8_t ui8Vol = m_pui8Ram[ui8Base+7] & 0x0F;
 
 			// Normalize.
-			m_fSample = float( i32Sample * int32_t( ui8Vol ) ) / 120.0f;
+			m_fSample = float( i32Sample * int32_t( ui8Vol ) ) / 120.0f * m_fVolume;
 		}
 	};
 

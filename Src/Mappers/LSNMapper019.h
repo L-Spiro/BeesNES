@@ -93,12 +93,21 @@ namespace lsn {
 
 			m_vCiram.resize( 2 * 1024 );
 			std::fill( m_vCiram.begin(), m_vCiram.end(), uint8_t( 0 ) );
-
-			m_ui8InternalRamAddr = 0;
-			m_bInternalRamAutoInc = false;
 			
 			m_ui16IrqCounter = 0;
 			m_bIrqEnable = false;
+
+			// TMP.
+			//m_anAudio.SetVolume( 0.0f );
+			if ( _rRom.riInfo.ui16SubMapper == 5 ) {
+				m_anAudio.SetVolume( 0.7758271694183349609375f );
+			}
+			else if ( _rRom.riInfo.ui16SubMapper == 4 ) {
+				m_anAudio.SetVolume( 0.65392053127288818359375f );
+			}
+			else if ( _rRom.riInfo.ui16SubMapper == 3 ) {
+				m_anAudio.SetVolume( 0.4145052134990692138671875f );
+			}
 		}
 
 		/**
@@ -272,9 +281,13 @@ namespace lsn {
 		}
 		
 		/**
-		 * Performs a single CPU-cycle update for the mapper's IRQ counter.
+		 * Performs a single CPU-cycle update for the mapper's IRQ counter and expansion audio.
 		 */
-		virtual void									Tick() {
+		virtual void									Tick() override {
+			if ( m_prRom->riInfo.ui16SubMapper != 1 && m_prRom->riInfo.ui16SubMapper != 2 ) {
+				m_anAudio.Tick();
+			}
+			
 			if ( m_bIrqEnable ) {
 				// The counter continuously stops incrementing and continuously asserts once it hits 0x7FFF.
 				if ( m_ui16IrqCounter < 0x7FFF ) {
@@ -286,6 +299,26 @@ namespace lsn {
 					}
 				}
 			}
+		}
+
+		/**
+		 * Gets the extended audio sample.
+		 * 
+		 * \param _fApuSample The APU sample to mix with the extended-audio sample.
+		 * \return Returns the mixed audio sample.
+		 **/
+		virtual float									GetExtAudio( float _fApuSample ) override {
+			if ( m_prRom->riInfo.ui16SubMapper != 1 && m_prRom->riInfo.ui16SubMapper != 2 ) {
+				float fExtSample = m_anAudio.Sample();
+				if ( m_prRom->riInfo.ui16SubMapper == 3 ) {
+					_fApuSample = -_fApuSample;
+				}
+				else if ( m_prRom->riInfo.ui16SubMapper == 4 ) {
+					fExtSample = -fExtSample;
+				}
+				return fExtSample + _fApuSample;
+			}
+			return _fApuSample;
 		}
 
 
@@ -304,11 +337,6 @@ namespace lsn {
 		std::vector<uint8_t>							m_vWram;
 		/** The 2 KiB CIRAM (Console Internal RAM) used for nametables. */
 		std::vector<uint8_t>							m_vCiram;
-		
-		/** Internal memory auto-increment flag. */
-		bool											m_bInternalRamAutoInc;
-		/** Internal memory address pointer. */
-		uint8_t											m_ui8InternalRamAddr;
 		
 		/** 15-bit IRQ counter. */
 		uint16_t										m_ui16IrqCounter;
@@ -329,7 +357,10 @@ namespace lsn {
 		static void LSN_FASTCALL						SetPrg( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
 			pmThis->SetPgmBank<_uBank, PgmBankSize()>( _ui8Val & 0x3F );
-			if constexpr ( _uBank == 1 ) {
+			if constexpr ( _uBank == 0 ) {
+				pmThis->m_anAudio.SetEnabled( (_ui8Val & 0x40) == 0 );
+			}
+			else if constexpr ( _uBank == 1 ) {
 				pmThis->m_ui8E800 = _ui8Val;
 			}
 		}
@@ -349,7 +380,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Reads from internal RAM.
+		 * Reads from internal RAM. Forwards directly to expansion audio state.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.
@@ -358,14 +389,11 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						InternalRamRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			_ui8Ret = pmThis->m_vWram[(8*1024)+pmThis->m_ui8InternalRamAddr];
-			if ( pmThis->m_bInternalRamAutoInc ) {
-				pmThis->m_ui8InternalRamAddr = (pmThis->m_ui8InternalRamAddr + 1) & 0x7F;
-			}
+			pmThis->m_anAudio.Read4800( _ui8Ret );
 		}
 
 		/**
-		 * Writes to internal RAM.
+		 * Writes to internal RAM. Forwards directly to expansion audio state.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.
@@ -374,10 +402,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						InternalRamWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			pmThis->m_vWram[(8*1024)+pmThis->m_ui8InternalRamAddr] = _ui8Val;
-			if ( pmThis->m_bInternalRamAutoInc ) {
-				pmThis->m_ui8InternalRamAddr = (pmThis->m_ui8InternalRamAddr + 1) & 0x7F;
-			}
+			pmThis->m_anAudio.Write4800( _ui8Val );
 		}
 
 		/**
@@ -466,7 +491,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Handles Namco 163 Internal Address port writes ($F800).
+		 * Handles Namco 163 Internal Address port writes ($F800). Forwards directly to expansion audio state.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.
@@ -475,8 +500,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						WriteF800( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper019 * pmThis = reinterpret_cast<CMapper019 *>(_pvParm0);
-			pmThis->m_ui8InternalRamAddr = _ui8Val & 0x7F;
-			pmThis->m_bInternalRamAutoInc = (_ui8Val & 0x80) != 0;
+			pmThis->m_anAudio.WriteF800( _ui8Val );
 		}
 
 		/**
