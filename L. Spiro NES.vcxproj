@@ -2018,6 +2018,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\Mappers\LSNMapper037.h" />
     <ClInclude Include="Src\Mappers\LSNMapper038.h" />
     <ClInclude Include="Src\Mappers\LSNMapper041.h" />
+    <ClInclude Include="Src\Mappers\LSNMapper046.h" />
     <ClInclude Include="Src\Mappers\LSNMapper056.h" />
     <ClInclude Include="Src\Mappers\LSNMapper061.h" />
     <ClInclude Include="Src\Mappers\LSNMapper065.h" />
