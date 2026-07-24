@@ -26,14 +26,10 @@ namespace lsn {
 		m_dScale( 3.0 ),
 		m_dRatio( 4.0 / 3.0 ),
 		m_dRatioActual( 4.0 / 3.0 ),
-		//m_oOptions.fFilter( CFilterBase::LSN_F_AUTO_CRT_FULL ),
-		//m_ppPostProcess( CPostProcessBase::LSN_PP_BILINEAR ),
-		m_pmSystem( LSN_PM_NTSC ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ),
 		m_ui32RecentLimit( 13 * 4 ) {
 
-		std::memset( m_ui8RapidFires, 0, sizeof( m_ui8RapidFires ) );
 
 		CUtilities::GenGaussianNoise( 0.0225f );
 		CAudio::SetOutputSettings( Options().aoGlobalAudioOptions );
@@ -41,7 +37,7 @@ namespace lsn {
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
 			//LSN_PM_NTSC							LSN_PM_PAL								LSN_PM_DENDY							LSN_PM_PALM								LSN_PM_PALN
-			{ &m_r24fRgb24Filter,					&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter },					// LSN_F_RGB24
+			{ &m_r24fRgb24Filter,					&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter },					// LSN_F_INDEXED
 			{ &m_nbfBlarggNtscFilter,				&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter },				// LSN_F_NTSC_BLARGG
 			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter },				// LSN_F_NTSC_LSPIRO
 			{ &m_nbfLSpiroPalFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter },				// LSN_F_PAL_LSPIRO
@@ -54,51 +50,51 @@ namespace lsn {
 			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
 			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXEDDX9
-			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_US_DX9
-			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX9
-			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX9
+			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX9
+			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX9
 
-			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX9
 
-			{ &m_d9plsfDx9LSpiroPal,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_US_DX9
-			{ &m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_US_DX9
-			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX9
-			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRONPALN_US_DX9
+			{ &m_d9plsfDx9LSpiroPal,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_DX9
+			{ &m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_DX9
+			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_DX9
+			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIROPALN_DX9
 			
-			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX9
-			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXEDDX12
-			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_DX12
-			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_DX12
-			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_DX12
+			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX12
+			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX12
 
-			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_US_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX12
 
-			{ &m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_US_DX12
-			{ &m_d12plsfDx12LSpiroDendy,			&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_US_DX12
-			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_US_DX12
-			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_US_DX12
+			{ &m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_DX12
+			{ &m_d12plsfDx12LSpiroDendy,			&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_DX12
+			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_DX12
+			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_DX12
 
-			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_DX12
-			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
 			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXEDVULKAN1
-			{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_US_VULKAN1
-			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_US_VULKAN1
-			{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_US_VULKAN1
+			{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_VULKAN1
+			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_VULKAN1
+			{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_VULKAN1
 
-			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc },				// LSN_F_LSPIRONTSC_US_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc },				// LSN_F_LSPIRONTSC_VULKAN1
 
-			{ &m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal },				// LSN_F_LSPIROPAL_US_VULKAN1
-			{ &m_vplsfVulkanLSpiroDendy,			&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy },			// LSN_F_LSPIRODENDY_US_VULKAN1
-			{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_US_VULKAN1
-			{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_US_VULKAN1
+			{ &m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal },				// LSN_F_LSPIROPAL_VULKAN1
+			{ &m_vplsfVulkanLSpiroDendy,			&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy },			// LSN_F_LSPIRODENDY_VULKAN1
+			{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_VULKAN1
+			{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_VULKAN1
 
-			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_US_VULKAN1
-			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_US_VULKAN1
+			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
 #endif	// #ifdef LSN_VULKAN1
 		};
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -364,7 +360,7 @@ namespace lsn {
 			
 		}
 
-
+		static_assert( sizeof( m_pfbFilterTable ) == sizeof( pfbTmp ) );
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
 
 		m_pppbPostTable[CPostProcessBase::LSN_PP_NONE] = &m_ppbNoPostProcessing;
@@ -580,6 +576,218 @@ namespace lsn {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Determines if a given filter is a Direct3D 9 filter.
+	 * 
+	 * \param _fFilter The filter to test.
+	 * \return Returns true if Direct3D 9 is enabled and the filter is one of the Direct3D 9 filters.
+	 **/
+	bool CBeesNes::IsDirect3D9Filter( CFilterBase::LSN_FILTERS _fFilter ) {
+		static_cast<void>(_fFilter);
+#ifdef LSN_DX9
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDDX9 : {}							LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PAL_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPAL_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_DX9 : {}					LSN_FALLTHROUGH
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX9 : { return true; }
+		}
+#endif	// #ifdef LSN_DX9
+		return false;
+	}
+
+	/**
+	 * Determines if a given filter is a Direct3D 12 filter.
+	 * 
+	 * \param _fFilter The filter to test.
+	 * \return Returns true if Direct3D 12 is enabled and the filter is one of the Direct3D 12 filters.
+	 **/
+	bool CBeesNes::IsDirect3D12Filter( CFilterBase::LSN_FILTERS _fFilter ) {
+		static_cast<void>(_fFilter);
+#ifdef LSN_DX12
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDDX12 : {}						LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PAL_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_DX12 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPAL_DX12 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_DX12 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_DX12 : {}					LSN_FALLTHROUGH
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : { return true; }
+		}
+#endif	// #ifdef LSN_DX12
+		return false;
+	}
+
+	/**
+	 * Determines if a given filter is a Vulkan 1 filter.
+	 * 
+	 * \param _fFilter The filter to test.
+	 * \return Returns true if Vulkan 1 is enabled and the filter is one of the Vulkan 1 filters.
+	 **/
+	bool CBeesNes::IsVulkan1Filter( CFilterBase::LSN_FILTERS _fFilter ) {
+		static_cast<void>(_fFilter);
+#ifdef LSN_VULKAN1
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDVULKAN1 : {}						LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPAL_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_VULKAN1 : {}				LSN_FALLTHROUGH
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1 : { return true; }
+		}
+#endif	// #ifdef LSN_VULKAN1
+		return false;
+	}
+
+	/**
+	 * Determines if a given filter is a Metal filter.
+	 * 
+	 * \param _fFilter The filter to test.
+	 * \return Returns true if Metal is enabled and the filter is one of the Metal filters.
+	 **/
+	bool CBeesNes::IsMetalFilter( CFilterBase::LSN_FILTERS _fFilter ) {
+		static_cast<void>(_fFilter);
+#ifdef LSN_METAL
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDMETAL : {}						LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PAL_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPAL_US_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_US_METAL : {}				LSN_FALLTHROUGH
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRO_AUTO_US_METAL : { return true; }
+		}
+#endif	// #ifdef LSN_METAL
+		return false;
+	}
+
+	/**
+	 * Converts a Direct3d 9 filter to a software filter.
+	 * 
+	 * \param _fFilter The filter to convert.
+	 * \return Returns the software implementation for the given filter.
+	 **/
+	CFilterBase::LSN_FILTERS CBeesNes::Direct3D9FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
+#ifdef LSN_DX9
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDDX9 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_NTSC_BLARGG_DX9 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX9 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_PAL_CRT_FULL_DX9 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_DX9 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPAL_DX9 : { return CFilterBase::LSN_F_PAL_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIRODENDY_DX9 : { return CFilterBase::LSN_F_DENDY_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALM_DX9 : { return CFilterBase::LSN_F_PALM_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALN_DX9 : { return CFilterBase::LSN_F_PALN_LSPIRO; }
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX9 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX9 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+		}
+#endif	// #ifdef LSN_DX9
+		return _fFilter;
+	}
+
+	/**
+	 * Converts a Direct3d 12 filter to a software filter.
+	 * 
+	 * \param _fFilter The filter to convert.
+	 * \return Returns the software implementation for the given filter.
+	 **/
+	CFilterBase::LSN_FILTERS CBeesNes::Direct3D12FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
+#ifdef LSN_DX12
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDDX12 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_NTSC_BLARGG_DX12 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX12 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_PAL_CRT_FULL_DX12 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_DX12 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPAL_DX12 : { return CFilterBase::LSN_F_PAL_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIRODENDY_DX12 : { return CFilterBase::LSN_F_DENDY_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALM_DX12 : { return CFilterBase::LSN_F_PALM_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALN_DX12 : { return CFilterBase::LSN_F_PALN_LSPIRO; }
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+		}
+#endif	// #ifdef LSN_DX12
+		return _fFilter;
+	}
+
+	/**
+	 * Converts a Vulkan 1 filter to a software filter.
+	 * 
+	 * \param _fFilter The filter to convert.
+	 * \return Returns the software implementation for the given filter.
+	 **/
+	CFilterBase::LSN_FILTERS CBeesNes::Vulkan1FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
+#ifdef LSN_VULKAN1
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDVULKAN1 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_NTSC_BLARGG_VULKAN1 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_VULKAN1 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPAL_VULKAN1 : { return CFilterBase::LSN_F_PAL_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIRODENDY_VULKAN1 : { return CFilterBase::LSN_F_DENDY_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALM_VULKAN1 : { return CFilterBase::LSN_F_PALM_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALN_VULKAN1 : { return CFilterBase::LSN_F_PALN_LSPIRO; }
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+		}
+#endif	// #ifdef LSN_VULKAN1
+		return _fFilter;
+	}
+
+	/**
+	 * Converts a Metal filter to a software filter.
+	 * 
+	 * \param _fFilter The filter to convert.
+	 * \return Returns the software implementation for the given filter.
+	 **/
+	CFilterBase::LSN_FILTERS CBeesNes::MetalFilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
+#ifdef LSN_METAL
+		switch ( _fFilter ) {
+			case CFilterBase::LSN_F_INDEXEDMETAL : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_NTSC_BLARGG_METAL : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_METAL : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_PAL_CRT_FULL_METAL : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_METAL : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPAL_METAL : { return CFilterBase::LSN_F_PAL_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIRODENDY_METAL : { return CFilterBase::LSN_F_DENDY_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALM_METAL : { return CFilterBase::LSN_F_PALM_LSPIRO; }
+			case CFilterBase::LSN_F_LSPIROPALN_METAL : { return CFilterBase::LSN_F_PALN_LSPIRO; }
+			
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_METAL : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_METAL : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+		}
+#endif	// #ifdef LSN_METAL
+		return _fFilter;
 	}
 
 	/**

@@ -61,8 +61,6 @@ namespace lsn {
 	 * Description: Handles all emulator functionality.
 	 */
 	class CBeesNes {
-		typedef lsn::CDendySystem
-												CRegionalSystem;
 	public :
 		CBeesNes( CDisplayHost * _pdhDisplayHost, CInputPoller * _pipPoller );
 		~CBeesNes();
@@ -215,6 +213,70 @@ namespace lsn {
 		 * \param _fFilter The new filter to be applied after the next Swap().
 		 */
 		void									SetCurFilter( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Determines if a given filter is a Direct3D 9 filter.
+		 * 
+		 * \param _fFilter The filter to test.
+		 * \return Returns true if Direct3D 9 is enabled and the filter is one of the Direct3D 9 filters.
+		 **/
+		static bool								IsDirect3D9Filter( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Determines if a given filter is a Direct3D 12 filter.
+		 * 
+		 * \param _fFilter The filter to test.
+		 * \return Returns true if Direct3D 12 is enabled and the filter is one of the Direct3D 12 filters.
+		 **/
+		static bool								IsDirect3D12Filter( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Determines if a given filter is a Vulkan 1 filter.
+		 * 
+		 * \param _fFilter The filter to test.
+		 * \return Returns true if Vulkan 1 is enabled and the filter is one of the Vulkan 1 filters.
+		 **/
+		static bool								IsVulkan1Filter( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Determines if a given filter is a Metal filter.
+		 * 
+		 * \param _fFilter The filter to test.
+		 * \return Returns true if Metal is enabled and the filter is one of the Metal filters.
+		 **/
+		static bool								IsMetalFilter( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Converts a Direct3d 9 filter to a software filter.
+		 * 
+		 * \param _fFilter The filter to convert.
+		 * \return Returns the software implementation for the given filter.
+		 **/
+		static CFilterBase::LSN_FILTERS			Direct3D9FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Converts a Direct3d 12 filter to a software filter.
+		 * 
+		 * \param _fFilter The filter to convert.
+		 * \return Returns the software implementation for the given filter.
+		 **/
+		static CFilterBase::LSN_FILTERS			Direct3D12FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Converts a Vulkan 1 filter to a software filter.
+		 * 
+		 * \param _fFilter The filter to convert.
+		 * \return Returns the software implementation for the given filter.
+		 **/
+		static CFilterBase::LSN_FILTERS			Vulkan1FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter );
+
+		/**
+		 * Converts a Metal filter to a software filter.
+		 * 
+		 * \param _fFilter The filter to convert.
+		 * \return Returns the software implementation for the given filter.
+		 **/
+		static CFilterBase::LSN_FILTERS			MetalFilterToSoftware( CFilterBase::LSN_FILTERS _fFilter );
 
 		/**
 		 * Gets the current region.
@@ -409,13 +471,6 @@ namespace lsn {
 		  * \return Returns the value to be returned from reading register $4017.
 		  **/
 		uint8_t									Read4017();
-
-		/**
-		 * Gets the rapid-fire patterns.
-		 *
-		 * \return Returns a pointer to the 8 rapid-fire values.
-		 */
-		uint8_t *								RapidFire() { return m_ui8RapidFires; }
 
 		/**
 		 * Gets the program options.
@@ -659,9 +714,9 @@ namespace lsn {
 		/** A post-processing table. */
 		CPostProcessBase *						m_pppbPostTable[CPostProcessBase::LSN_PP_TOTAL];
 		/** The display host. */
-		CDisplayHost *							m_pdhDisplayHost;
+		CDisplayHost *							m_pdhDisplayHost = nullptr;
 		/** The input poller. */
-		CInputPoller *							m_pipPoller;
+		CInputPoller *							m_pipPoller = nullptr;
 		/** The NTSC console. */
 		CNtscSystem								m_nsNtscSystem;
 		/** The PAL console. */
@@ -673,28 +728,25 @@ namespace lsn {
 		/** The PAL-N console. */
 		CPalNSystem								m_nsPalNSystem;
 		/** The array of console pointers. */
-		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL];
+		CSystemBase *							m_psbSystems[LSN_PM_CONSOLE_TOTAL]{};
 		/** The console pointer. */
-		CSystemBase *							m_psbSystem;
+		CSystemBase *							m_psbSystem = nullptr;
 		/** The path to the executable folder. */
 		std::wstring							m_wsFolder;
 		/** The current system type. */
-		LSN_PPU_METRICS							m_pmSystem;
+		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC;
 		
 		/** The current post-processing filter. */
 		std::vector<CPostProcessBase::LSN_POST_PROCESSES>
 												m_vPostProcesses;
 		/** A temporary buffer for thread-safe copying of the PPU output for filtering. */
 		std::vector<uint8_t>					m_vTmpBuffer;
-		/** Rapid-fire buttons. */
-		uint8_t									m_ui8RapidFires[8];
 		/** The attached peripherals. */
 		std::vector<std::unique_ptr<IPeripheralBase>>
 												m_vPeripherals;
 		/** The emulation options. */
 		LSN_OPTIONS								m_oOptions;
-		/** Is this the first time setting the filter? */
-		bool									m_bHaveSetFilter = false;
+		
 		/** The per-game settings path. */
 		std::u16string							m_u16PerGameSettings;
 
@@ -702,6 +754,9 @@ namespace lsn {
 		std::vector<std::u16string>				m_vRecentFiles;
 		/** The total number of recently opened to allow. */
 		uint32_t								m_ui32RecentLimit;
+
+		/** Is this the first time setting the filter? */
+		bool									m_bHaveSetFilter = false;
 
 		/** The raw WAV stream. */
 		static CWavFile							m_wfRawStream;

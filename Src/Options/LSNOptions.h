@@ -62,11 +62,11 @@ namespace lsn {
 		LSN_PPU_METRICS										pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;					/**< The region to use. */
 		CFilterBase::LSN_FILTERS							fFilter =													/**< The current filter ID. */
 #if defined( LSN_DX12 )
-																CFilterBase::LSN_F_LSPIRO_AUTO_US_DX12;
+																CFilterBase::LSN_F_LSPIRO_AUTO_DX12;
 #elif defined( LSN_DX9 )
-																CFilterBase::LSN_F_LSPIRO_AUTO_US_DX9;
+																CFilterBase::LSN_F_LSPIRO_AUTO_DX9;
 #elif defined( LSN_VULKAN1 )
-																CFilterBase::LSN_F_LSPIRO_AUTO_US_VULKAN1;
+																CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1;
 #else
 																CFilterBase::LSN_F_AUTO_CRT_FULL;
 #endif	// #ifdef LSN_DX9

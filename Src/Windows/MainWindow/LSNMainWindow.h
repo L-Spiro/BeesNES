@@ -338,57 +338,6 @@ namespace lsn {
 		 */
 		const lsw::CStatusBar *					StatusBar() const;
 
-#ifdef LSN_DX9
-		/**
-		 * \brief Initializes the DirectX 9 device for this window.
-		 * 
-		 * Dynamically loads d3d9.dll via the DX9 wrapper and creates a device bound to this HWND.
-		 * Call once (e.g., after the window is created) and, if successful, the Paint() path will
-		 * render using DirectX 9 instead of the software blitter.
-		 *
-		 * \return Returns true if the DX9 device was created and is ready.
-		 **/
-		bool									CreateDx9();
-
-		/**
-		 * \brief Creates the child target window used for DX9 presentation.
-		 * \return Returns true if created or already exists.
-		 */
-		bool									CreateDx9TargetChild();
-
-		/**
-		 * Destroys the DirectX 9 device and all filters.
-		 **/
-		void									DestroyDx9();
-
-		/**
-		 * \brief Lays out the DX9 child target to cover the drawable client region.
-		 * \return Returns true on success.
-		 */
-		bool									LayoutDx9TargetChild() {
-			if ( !m_hWndDx9Target || !::IsWindow( m_hWndDx9Target ) ) { return false; }
-			lsw::LSW_RECT rcRect = VirtualClientRect( nullptr );
-			const int iW = std::max<LONG>( 1, rcRect.Width() );
-			const int iH = std::max<LONG>( 1, rcRect.Height() );
-			::SetWindowPos( m_hWndDx9Target, nullptr, rcRect.left, rcRect.top, iW, iH,
-				SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOCOPYBITS );
-			return true;
-		}
-
-		/**
-		 * \brief Resizes the DX9 backbuffer and reinitializes size-dependent presenter resources.
-		 *
-		 * Updates cached D3DPRESENT_PARAMETERS with the new client size and resets the device.
-		 * Then re-initializes the presenter so its DEFAULT-pool resources (index/LUT targets, VBs)
-		 * are recreated against the new device state.
-		 *
-		 * \param _ui32ClientW New client width in pixels.
-		 * \param _ui32ClientH New client height in pixels.
-		 * \return True on success; false if the DX9 path is disabled or reset failed.
-		 */
-		bool									OnSizeDx9( uint32_t _ui32ClientW, uint32_t _ui32ClientH );
-#endif	// #ifdef LSN_DX9
-
 		/**
 		 * Updates the GPU palette for GPU-enabled palette rendering.
 		 **/
@@ -410,6 +359,10 @@ namespace lsn {
 
 
 		// == Members.
+		/** The critical section for synchronizing Swap() and Paint(). */
+		lsw::CCriticalSection					m_csRenderCrit;
+		/** The critical section for reading controllers. */
+		lsw::CCriticalSection					m_csControllerCrit;
 		/** The emulator object. */
 		CBeesNes								m_bnEmulator;
 		/** DirectInput 8 controller inputs. */
@@ -435,16 +388,11 @@ namespace lsn {
 		LSW_WINDOW_PLACEMENT					m_wpPlacement;
 		/** The bar pixels. */
 		std::vector<uint8_t>					m_vBars;
-		/** The critical section for synchronizing Swap() and Paint(). */
-		lsw::CCriticalSection					m_csRenderCrit;
-		/** The critical section for reading controllers. */
-		lsw::CCriticalSection					m_csControllerCrit;
+		
 		/** The emulator thread. */
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
 		volatile std::atomic_int				m_aiThreadState;
-		/** Is the window maximized? */
-		bool									m_bMaximized = false;
 		/** The Patch window. */
 		lsw::CWidget *							m_pwPatchWindow = nullptr;
 		/** The WAV Editor window. */
@@ -453,23 +401,14 @@ namespace lsn {
 		LSN_WINDOW_OPTIONS						m_woWindowOptions;
 
 		/** Cached pointer to the status bar along the bottom. */
-		lsw::CStatusBar *						m_psbCachedBar;
+		lsw::CStatusBar *						m_psbCachedBar = nullptr;
 		/** Cached statuc-bar rectangle. */
 		LSW_RECT								m_rStatusBarRect;
 		/** Palettes. */
 		LSN_PALETTE_OPTIONS						m_poPalettes[LSN_PM_CONSOLE_TOTAL];
-
-
-#ifdef LSN_DX9
-		/** DirectX 9 device (created on demand). */
-		CDirectX9Device							m_dx9Device;
-		/** The palette renderer. */
-		std::unique_ptr<CDirectX9NesPresenter>	m_upDx9PaletteRender;
-		/** If true, Paint() renders via DX9 instead of software. */
-		bool									m_bUseDx9 = false;
-		/** Render window. */
-		HWND									m_hWndDx9Target = NULL;
-#endif	// #ifdef LSN_DX9
+		
+		/** Is the window maximized? */
+		bool									m_bMaximized = false;
 		
 
 

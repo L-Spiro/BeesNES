@@ -102,8 +102,9 @@ namespace lsn {
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		
 		if LSN_UNLIKELY( !m_pvkDevice ) {
-			if ( !s_vgsState.CreateVulkan() ) { return m_vOutputBuffer.data(); }
-			m_pvkDevice = &s_vgsState.vkDevice;
+			/*if ( !s_vgsState.CreateVulkan() ) { return m_vOutputBuffer.data(); }
+			m_pvkDevice = &s_vgsState.vkDevice;*/
+			return m_vOutputBuffer.data();
 		}
 		if ( m_pvkDevice ) {
 			if LSN_UNLIKELY( !m_bValidState || _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {

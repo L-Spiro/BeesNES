@@ -136,7 +136,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						Write6000_7FFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						Write6000_7FFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper046 * pmThis = reinterpret_cast<CMapper046 *>(_pvParm0);
 			/*uint8_t ui8Rom = pmThis->m_prRom->vPrgRom.data()[size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize()+size_t(_ui16Parm1)];
 			_ui8Val &= ui8Rom;*/
@@ -160,7 +160,7 @@ namespace lsn {
 		 * \param _pui8Data The buffer to which to write.
 		 * \param _ui8Val The value to write.
 		 */
-		static void LSN_FASTCALL						Write8000_FFFF( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+		static void LSN_FASTCALL						Write8000_FFFF( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CMapper046 * pmThis = reinterpret_cast<CMapper046 *>(_pvParm0);
 			/*uint8_t ui8Rom = pmThis->m_prRom->vPrgRom.data()[size_t(pmThis->m_ui8PgmBanks[0])*PgmBankSize()+size_t(_ui16Parm1)];
 			_ui8Val &= ui8Rom;*/

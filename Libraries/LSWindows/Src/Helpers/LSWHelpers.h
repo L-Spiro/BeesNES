@@ -1155,7 +1155,7 @@ namespace lsw {
 		/** Location of a found menu item. */
 		struct LSW_MENU_LOC {
 			HMENU							hMenu;					/**< The HMENU that directly owns the item. */
-			UINT							uPos;					/*< The zero-based position within hMenu. */
+			UINT							uPos;					/**< The zero-based position within hMenu. */
 		};
 
 		// == Functions.

@@ -888,11 +888,11 @@ namespace lsn {
 		// == Types.
 		/** The sorted tickable cycles. */
 		struct LSN_HW_SLOTS {
-			CTickable *									ptHw;
-			CTickable::PfTickFunc						pfTick;
-			uint64_t 									ui64Counter;
-			uint64_t									ui64Inc;
-			size_t										sPartnerSlot;
+			CTickable *									ptHw = nullptr;
+			CTickable::PfTickFunc						pfTick = nullptr;
+			uint64_t 									ui64Counter = 0;
+			uint64_t									ui64Inc = 0;
+			size_t										sPartnerSlot = 0;
 		};
 
 
