@@ -29,15 +29,6 @@ namespace lsn {
 	 */
 	class CGraphicsOptionsWindowLayout {
 	public :
-		// == Enumerations.
-		// Control ID's.
-		enum LSN_GRAPHICS_OPTIONS_WINDOW_IDS : WORD {
-			LSN_GOWI_NONE,
-			LSN_GOWI_MAINWINDOW					= 1890,
-			LSN_GOWI_TAB,
-			LSN_GOWI_OK,
-			LSN_GOWI_CANCEL,
-		};
 	};
 
 }	// namespace lsn

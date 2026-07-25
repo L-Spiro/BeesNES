@@ -96,9 +96,11 @@ namespace lsn {
 		 * Starts the background thread that continuously polls the audio device for disconnections.
 		 */
 		void												StartDeviceCheckThread() {
-			m_bRunDeviceCheckThread = true;
-			m_bDeviceLost = false;
-			m_tDeviceCheckThread = std::thread( &CAudioOpenAl::DeviceCheckLoop, this );
+			if ( !m_bRunDeviceCheckThread ) {
+				m_bRunDeviceCheckThread = true;
+				m_bDeviceLost = false;
+				m_tDeviceCheckThread = std::thread( &CAudioOpenAl::DeviceCheckLoop, this );
+			}
 		}
 
 		/**
@@ -134,7 +136,7 @@ namespace lsn {
 		/** The background thread responsible for polling the device status. */
 		std::thread											m_tDeviceCheckThread;
 		/** Atomic flag to signal the polling thread to continue running or shut down. */
-		std::atomic<bool>									m_bRunDeviceCheckThread;
+		std::atomic<bool>									m_bRunDeviceCheckThread = false;
 		/** Mutex used in conjunction with the condition variable for thread sleeping. */
 		std::mutex											m_mxDeviceCheckMutex;
 		/** Condition variable used to sleep the thread and instantly wake it on shutdown. */

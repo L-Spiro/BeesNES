@@ -582,6 +582,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper142>();
 					break;
 				}
+				case 144 : {
+					m_pmbMapper = std::make_unique<CMapper144>();
+					break;
+				}
 				case 148 : {
 					m_pmbMapper = std::make_unique<CMapper148>();
 					break;
@@ -658,8 +662,16 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper234>();
 					break;
 				}
+				case 240 : {
+					m_pmbMapper = std::make_unique<CMapper240>();
+					break;
+				}
 				case 255 : {
 					m_pmbMapper = std::make_unique<CMapper225>();	// Not an error.  255 is a duplicate of 225.
+					break;
+				}
+				case 271 : {
+					m_pmbMapper = std::make_unique<CMapper271>();
 					break;
 				}
 				case 340 : {

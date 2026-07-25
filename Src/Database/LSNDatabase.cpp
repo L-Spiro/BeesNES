@@ -809,6 +809,9 @@ namespace lsn {
 			// Deadly Towers (U)
 			{ .ui32Crc = 0xC2730C30, .ui16Mapper = 34 },
 
+			// Death Race (U)
+			{ .ui32Crc = 0x7ED91F80, .ui16Mapper = 144 },
+
 			// Deathbots (USA) (Unl)
 			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
 			// Don Doko Don 2 (Japan)
