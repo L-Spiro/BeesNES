@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Localization/LSNLocalization.h"
 #include "../Utilities/LSNStreamBase.h"
 #include "../Wav/LSNWavFile.h"
 
@@ -90,7 +91,7 @@ namespace lsn {
 			/** The last text in Year. */
 			std::wstring											wsYear = L"";
 			/** The last text in Comment. */
-			std::wstring											wsComment = L"Created with BeesNES";
+			std::wstring											wsComment = L"Created with " LSN_LSTR( LSN_BEESNES );
 
 			/** The last Start Time combo selection. */
 			int32_t													i32StartSelection = 0;

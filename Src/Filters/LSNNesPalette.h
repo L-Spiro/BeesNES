@@ -34,7 +34,7 @@ namespace lsn {
 
 		// == Enumerations.
 		/** The CRT/gamma to apply when copying the palette. */
-		enum LSN_GAMMA {
+		enum LSN_GAMMA : uint32_t {
 			LSN_G_NONE,								/**< Apply no gamma; use as-is. */
 			LSN_G_AUTO,								/**< Uses the sRGB flag set during load.  If not set, nothing is done, otherwise an sRGB curve is applied. */
 			LSN_G_CRT1,								/**< CUtilities::CrtProperToLinear()/CUtilities::LinearToCrtProper(). */

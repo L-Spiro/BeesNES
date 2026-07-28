@@ -1335,6 +1335,9 @@
     <ClInclude Include="Src\Mappers\LSNMapper271.h">
       <Filter>Header Files\Mappers</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNCpuTemperatureReader.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1900,6 +1903,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Graphics\LSNGraphicsOptionsWindowLayout.cpp">
       <Filter>Source Files\Windows\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utilities\LSNCpuTemperatureReader.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

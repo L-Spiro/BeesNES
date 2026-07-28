@@ -60,6 +60,7 @@ namespace lsn {
 		/** The copy/gamma pixel shader. */
 		std::unique_ptr<CDirectX9PixelShader>					m_ppsCopy;
 
+
 		// == Functions.
 		/**
 		 * Ensures the vertex buffer and pixel shaders are created.

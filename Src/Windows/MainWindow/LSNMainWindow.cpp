@@ -501,7 +501,7 @@ namespace lsn {
 			}
 #ifdef LSN_DX9
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDDX9 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXED_DX9 );
 				if ( m_bnEmulator.SwapIsSafe() ) {
 					SwapInternal( false );
 				}
@@ -553,7 +553,7 @@ namespace lsn {
 
 #ifdef LSN_DX12
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALETTE : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDDX12 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXED_DX12 );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_NTSC_BLARGG_UPSCALED : {
@@ -602,7 +602,7 @@ namespace lsn {
 
 #ifdef LSN_VULKAN1
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALETTE : {
-				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXEDVULKAN1 );
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXED_VULKAN1 );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_BLARGG_UPSCALED : {
@@ -1457,7 +1457,7 @@ namespace lsn {
 				}
 #ifdef LSN_DX9
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDDX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXED_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1517,7 +1517,7 @@ namespace lsn {
 
 #ifdef LSN_DX12
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_PALETTE : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDDX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXED_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1578,7 +1578,7 @@ namespace lsn {
 
 #ifdef LSN_VULKAN1
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PALETTE : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXEDVULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXED_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -2162,7 +2162,7 @@ namespace lsn {
 			UpdatedConsolePointer();
 
 			if ( m_bnEmulator.GetSystem()->GetRom() ) {
-				std::u16string u16Name = u"BeesNES: " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
+				std::u16string u16Name = LSN_U16STR( LSN_BEESNES ) u": " + CUtilities::NoExtension( CUtilities::GetFileName( m_bnEmulator.GetSystem()->GetRom()->riInfo.s16RomName ) );
 				uint16_t ui16Mapper = m_bnEmulator.GetSystem()->GetRom()->riInfo.ui16Mapper;
 				if ( ui16Mapper == 4 || ui16Mapper == 37 || ui16Mapper == 118 || ui16Mapper == 119 ) {
 					u16Name += u" (Partial Support)";
@@ -2179,7 +2179,7 @@ namespace lsn {
 			StartThread();
 			return true;
 		}
-		::SetWindowTextW( Wnd(), L"BeesNES" );
+		::SetWindowTextW( Wnd(), LSN_LSTR( LSN_BEESNES ) );
 		return false;
 	}
 
@@ -2304,7 +2304,7 @@ namespace lsn {
 			return false;
 		}
 
-		UINT uiTotal;
+		UINT uiTotal = 0;
 		::GetRegisteredRawInputDevices( NULL, &uiTotal, sizeof( RAWINPUTDEVICE ) );
 		std::vector<RAWINPUTDEVICE> vDevs;
 		vDevs.resize( uiTotal );

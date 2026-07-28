@@ -2113,6 +2113,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\Time\LSNClock.h" />
     <ClInclude Include="Src\Time\LSNTimer.h" />
     <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h" />
+    <ClInclude Include="Src\Utilities\LSNCpuTemperatureReader.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
     <ClInclude Include="Src\Utilities\LSNLargeVector.h" />
     <ClInclude Include="Src\Utilities\LSNMd5.h" />
@@ -2315,6 +2316,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClCompile Include="Src\System\LSNSystem.cpp" />
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
+    <ClCompile Include="Src\Utilities\LSNCpuTemperatureReader.cpp" />
     <ClCompile Include="Src\Utilities\LSNTextureAddressing.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp" />

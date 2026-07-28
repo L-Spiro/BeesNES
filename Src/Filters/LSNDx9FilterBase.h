@@ -461,8 +461,6 @@ namespace lsn {
 		float												m_fPhosphorDecayRateBlue = 0.193711475f;
 		/** The time it takes for the phosphors to decay to 0.001. */
 		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;
-		/** Enable phosphor decay? */
-		bool												m_bEnablePhosphorDecay = true;
 
 		/** Created resource width. */
 		uint32_t											m_ui32RsrcW = 0;
@@ -480,6 +478,8 @@ namespace lsn {
 		bool												m_bUse16BitInitialTarget = true;
 		/** Toggles whether the high-quality 2-pass CDirectX9Resampler handles final scaling. */
 		bool												m_bUseHighQualityResampler = true;
+		/** Enable phosphor decay? */
+		bool												m_bEnablePhosphorDecay = true;
 
 
 		// == Functions.

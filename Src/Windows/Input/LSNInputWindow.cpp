@@ -11,6 +11,7 @@
 #include "LSNInputWindow.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
+
 #include <ListBox/LSWListBox.h>
 #include <Tab/LSWTab.h>
 

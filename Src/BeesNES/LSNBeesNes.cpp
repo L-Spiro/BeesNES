@@ -49,7 +49,7 @@ namespace lsn {
 			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_AUTO_CRT_FULL
 			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
-			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXEDDX9
+			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXED_DX9
 			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_DX9
 			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX9
 			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX9
@@ -65,7 +65,7 @@ namespace lsn {
 			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
-			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXEDDX12
+			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXED_DX12
 			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_DX12
 			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX12
 			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX12
@@ -81,7 +81,7 @@ namespace lsn {
 			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
-			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXEDVULKAN1
+			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXED_VULKAN1
 			{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_VULKAN1
 			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_VULKAN1
 			{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_VULKAN1
@@ -588,13 +588,13 @@ namespace lsn {
 		static_cast<void>(_fFilter);
 #ifdef LSN_DX9
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDDX9 : {}							LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_NTSC_BLARGG_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_INDEXED_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_DX9 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_PAL_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIRONTSC_DX9 : {}					LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPAL_DX9 : {}					LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRODENDY_DX9 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_DX9 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPALM_DX9 : {}					LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPALN_DX9 : {}					LSN_FALLTHROUGH
 			
@@ -615,15 +615,15 @@ namespace lsn {
 		static_cast<void>(_fFilter);
 #ifdef LSN_DX12
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDDX12 : {}						LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_INDEXED_DX12 : {}					LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_NTSC_BLARGG_DX12 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_PAL_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRONTSC_DX12 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_DX12 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPAL_DX12 : {}					LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIRODENDY_DX12 : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIROPALM_DX12 : {}					LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIROPALN_DX12 : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_DX12 : {}				LSN_FALLTHROUGH
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : { return true; }
@@ -642,13 +642,13 @@ namespace lsn {
 		static_cast<void>(_fFilter);
 #ifdef LSN_VULKAN1
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDVULKAN1 : {}						LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_NTSC_BLARGG_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_INDEXED_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_VULKAN1 : {}			LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIRONTSC_VULKAN1 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPAL_VULKAN1 : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRODENDY_VULKAN1 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_VULKAN1 : {}			LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPALM_VULKAN1 : {}				LSN_FALLTHROUGH
 			case CFilterBase::LSN_F_LSPIROPALN_VULKAN1 : {}				LSN_FALLTHROUGH
 			
@@ -669,18 +669,18 @@ namespace lsn {
 		static_cast<void>(_fFilter);
 #ifdef LSN_METAL
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDMETAL : {}						LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_NTSC_BLARGG_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_NTSC_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_PAL_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRONTSC_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIROPAL_US_METAL : {}					LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRODENDY_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIROPALM_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIROPALN_US_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_INDEXED_METAL : {}						LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_BLARGG_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_CRT_FULL_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PAL_CRT_FULL_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPAL_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRODENDY_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALM_METAL : {}					LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIROPALN_METAL : {}					LSN_FALLTHROUGH
 			
-			case CFilterBase::LSN_F_AUTO_CRT_FULL_US_METAL : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRO_AUTO_US_METAL : { return true; }
+			case CFilterBase::LSN_F_AUTO_CRT_FULL_METAL : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRO_AUTO_METAL : { return true; }
 		}
 #endif	// #ifdef LSN_METAL
 		return false;
@@ -695,7 +695,7 @@ namespace lsn {
 	CFilterBase::LSN_FILTERS CBeesNes::Direct3D9FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
 #ifdef LSN_DX9
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDDX9 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_INDEXED_DX9 : { return CFilterBase::LSN_F_INDEXED; }
 			case CFilterBase::LSN_F_NTSC_BLARGG_DX9 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX9 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
 			case CFilterBase::LSN_F_PAL_CRT_FULL_DX9 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
@@ -721,7 +721,7 @@ namespace lsn {
 	CFilterBase::LSN_FILTERS CBeesNes::Direct3D12FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
 #ifdef LSN_DX12
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDDX12 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_INDEXED_DX12 : { return CFilterBase::LSN_F_INDEXED; }
 			case CFilterBase::LSN_F_NTSC_BLARGG_DX12 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_DX12 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
 			case CFilterBase::LSN_F_PAL_CRT_FULL_DX12 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
@@ -747,7 +747,7 @@ namespace lsn {
 	CFilterBase::LSN_FILTERS CBeesNes::Vulkan1FilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
 #ifdef LSN_VULKAN1
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDVULKAN1 : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_INDEXED_VULKAN1 : { return CFilterBase::LSN_F_INDEXED; }
 			case CFilterBase::LSN_F_NTSC_BLARGG_VULKAN1 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
 			case CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
@@ -773,7 +773,7 @@ namespace lsn {
 	CFilterBase::LSN_FILTERS CBeesNes::MetalFilterToSoftware( CFilterBase::LSN_FILTERS _fFilter ) {
 #ifdef LSN_METAL
 		switch ( _fFilter ) {
-			case CFilterBase::LSN_F_INDEXEDMETAL : { return CFilterBase::LSN_F_INDEXED; }
+			case CFilterBase::LSN_F_INDEXED_METAL : { return CFilterBase::LSN_F_INDEXED; }
 			case CFilterBase::LSN_F_NTSC_BLARGG_METAL : { return CFilterBase::LSN_F_NTSC_BLARGG; }
 			case CFilterBase::LSN_F_NTSC_CRT_FULL_METAL : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
 			case CFilterBase::LSN_F_PAL_CRT_FULL_METAL : { return CFilterBase::LSN_F_PAL_CRT_FULL; }
@@ -979,6 +979,8 @@ namespace lsn {
 	 * Toggles the current ROM's pause state.
 	 **/
 	void CBeesNes::TogglePauseRom() {
+		CCpuTemperatureReader ctrTemp;
+		lsn::DebugA( std::format( "Temperature: {}\r\n\r\n", ctrTemp.GetTemperature() ).c_str() );
 		if LSN_LIKELY( m_psbSystem ) {
 			m_psbSystem->TogglePauseRom();
 		}

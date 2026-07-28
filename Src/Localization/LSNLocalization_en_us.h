@@ -16,10 +16,10 @@
 
 #define LSN_MICROSOFT_DIRECT3D_9											Microsoft® Direct3D® 9
 #define LSN_MICROSOFT_DIRECT3D_12											Microsoft® Direct3D® 12
-#define LSN_VULKAN_1														Vulkan® 1
-#define LSN_METAL															Metal®
+#define LSN_VULKAN__1														Vulkan® 1
+#define LSN_METAL_															Metal®
 
-#define LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_							One-Time Conversion of XML Database…
+#define LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_							One-Time Conversion of XML Database. Please Wait.
 
 #define LSN_OPTIONS_TXT														Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
@@ -70,8 +70,8 @@
 #define LSN_VIDEO_FILTER_NONE												Pale&tte (Software)
 #define LSN_VIDEO_FILTER_DX9_PALETTE										Pale&tte (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_DX12_PALETTE										Pale&tte (LSN_MICROSOFT_DIRECT3D_12)
-#define LSN_VIDEO_FILTER_VULKAN_PALETTE										Pale&tte (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_METAL_PALETTE										Pale&tte (LSN_METAL)
+#define LSN_VIDEO_FILTER_VULKAN_PALETTE										Pale&tte (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_METAL_PALETTE										Pale&tte (LSN_METAL_)
 #define LSN_VIDEO_FILTER_NTSC_BLARGG										NTSC-M (Blar&gg)
 #define LSN_VIDEO_FILTER_NTSC_L_SPIRO										NTSC-M (&L. Spiro)
 #define LSN_VIDEO_FILTER_PAL_L_SPIRO										PAL-&B/B1/G/H/I/K (L. Spiro)
@@ -105,27 +105,27 @@
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL_DX12_UPSCALE							NTSC/PAL Auto (LMP889&59) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO_DX12_UPSCALE							NTSC/PAL &Auto (L. Spiro) (LSN_MICROSOFT_DIRECT3D_12)
 
-#define LSN_VIDEO_FILTER_NTSC_BLARGG_VULKAN_UPSCALE							NTSC-M (Blar&gg) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_NTSC_CRT_FULL_VULKAN_UPSCALE						NTSC-M (LMP&88959) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_PAL_CRT_FULL_VULKAN_UPSCALE						PAL-B/B1/D/D1/G/H/I/K (LMP88&959) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_LSPIRO_NTSC_VULKAN_UPSCALE							NTSC-M (&L. Spiro) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_LSPIRO_PAL_VULKAN_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_LSPIRO_DENDY_VULKAN_UPSCALE						PAL-&D/D1 (L. Spiro) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_LSPIRO_PALM_VULKAN_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_LSPIRO_PALN_VULKAN_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_AUTO_CRT_FULL_VULKAN_UPSCALE						NTSC/PAL Auto (LMP889&59) (LSN_VULKAN_1)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO_VULKAN_UPSCALE							NTSC/PAL &Auto (L. Spiro) (LSN_VULKAN_1)
+#define LSN_VIDEO_FILTER_NTSC_BLARGG_VULKAN_UPSCALE							NTSC-M (Blar&gg) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_NTSC_CRT_FULL_VULKAN_UPSCALE						NTSC-M (LMP&88959) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_PAL_CRT_FULL_VULKAN_UPSCALE						PAL-B/B1/D/D1/G/H/I/K (LMP88&959) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_VULKAN_UPSCALE							NTSC-M (&L. Spiro) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_VULKAN_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_VULKAN_UPSCALE						PAL-&D/D1 (L. Spiro) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_VULKAN_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_VULKAN_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_AUTO_CRT_FULL_VULKAN_UPSCALE						NTSC/PAL Auto (LMP889&59) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_VULKAN_UPSCALE							NTSC/PAL &Auto (L. Spiro) (LSN_VULKAN__1)
 
-#define LSN_VIDEO_FILTER_NTSC_BLARGG_METAL_UPSCALE							NTSC-M (Blar&gg) (LSN_METAL)
-#define LSN_VIDEO_FILTER_NTSC_CRT_FULL_METAL_UPSCALE						NTSC-M (LMP&88959) (LSN_METAL)
-#define LSN_VIDEO_FILTER_PAL_CRT_FULL_METAL_UPSCALE							PAL-B/B1/D/D1/G/H/I/K (LMP88&959) (LSN_METAL)
-#define LSN_VIDEO_FILTER_LSPIRO_NTSC_METAL_UPSCALE							NTSC-M (&L. Spiro) (LSN_METAL)
-#define LSN_VIDEO_FILTER_LSPIRO_PAL_METAL_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (LSN_METAL)
-#define LSN_VIDEO_FILTER_LSPIRO_DENDY_METAL_UPSCALE							PAL-&D/D1 (L. Spiro) (LSN_METAL)
-#define LSN_VIDEO_FILTER_LSPIRO_PALM_METAL_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (LSN_METAL)
-#define LSN_VIDEO_FILTER_LSPIRO_PALN_METAL_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (LSN_METAL)
-#define LSN_VIDEO_FILTER_AUTO_CRT_FULL_METAL_UPSCALE						NTSC/PAL Auto (LMP889&59) (LSN_METAL)
-#define LSN_VIDEO_FILTER_AUTO_LSPIRO_METAL_UPSCALE							NTSC/PAL &Auto (L. Spiro) (LSN_METAL)
+#define LSN_VIDEO_FILTER_NTSC_BLARGG_METAL_UPSCALE							NTSC-M (Blar&gg) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_NTSC_CRT_FULL_METAL_UPSCALE						NTSC-M (LMP&88959) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_PAL_CRT_FULL_METAL_UPSCALE							PAL-B/B1/D/D1/G/H/I/K (LMP88&959) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_LSPIRO_NTSC_METAL_UPSCALE							NTSC-M (&L. Spiro) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_LSPIRO_PAL_METAL_UPSCALE							PAL-&B/B1/G/H/I/K (L. Spiro) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_LSPIRO_DENDY_METAL_UPSCALE							PAL-&D/D1 (L. Spiro) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_LSPIRO_PALM_METAL_UPSCALE							PAL-&M (Brazil Famiclone) (L. Spiro) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_LSPIRO_PALN_METAL_UPSCALE							PAL-&N (Argentina Famiclone) (L. Spiro) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_AUTO_CRT_FULL_METAL_UPSCALE						NTSC/PAL Auto (LMP889&59) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_AUTO_LSPIRO_METAL_UPSCALE							NTSC/PAL &Auto (L. Spiro) (LSN_METAL_)
 
 #define LSN_VIDEO_FILTER_DIRECT3D_9											Mi&crosoft® Direct3D® 9
 #define LSN_VIDEO_FILTER_DIRECT3D_12										Microso&ft® Direct3D® 12
@@ -512,7 +512,7 @@
 #define LSN_WE_TT_PREFIX													The prefix will be used in the file name ([prefix][title][postfix]).
 #define LSN_WE_TT_POSTFIX													The postfix will be used in the file name ([prefix][title][postfix]).
 #define LSN_WE_TT_ACTUAL_HZ													Real consoles output audio at sample rates with fractions (IE 1,662,607.03125 Hz), but .WAV files can only have sample rates that are whole numbers.  Use this option to assign the correct Hz to the data in the .WAV file.
-#define LSN_WE_TT_ACTUAL_HZ_EDIT											Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the ideal Hz due to temperature, age, and natural clock variance.//Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the idea Hz due to temperature, age, and natural clock variance.  Some measured hardware Hz are:\r\n1662607.03125 \x2F 19.9972 * 19.9971 \x2F\x2F PAL: 1662598.71705085574649274349212646484375\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09812); \x2F\x2F N34169630: 1789762.00623316341079771518707275390625\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09857); \x2F\x2F N1151667: 1789775.40753261814825236797332763671875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09965); \x2F\x2F N0260073: 1789807.57065131026320159435272216796875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09813); \x2F\x2F Twin Famicom RCA 475711: 1789762.30403981753624975681304931640625\r\n\r\nNote that all numerical edit boxes in BeesNES allow typing of actual equations, such as \u201C1662607.03125 \x2F 19.9972 * 19.9971\u201D.
+#define LSN_WE_TT_ACTUAL_HZ_EDIT											Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the ideal Hz due to temperature, age, and natural clock variance.//Use this when none of the presets applies.  This can be used to assign sample rates that are measured from real hardware and deviate from the idea Hz due to temperature, age, and natural clock variance.  Some measured hardware Hz are:\r\n1662607.03125 \x2F 19.9972 * 19.9971 \x2F\x2F PAL: 1662598.71705085574649274349212646484375\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09812); \x2F\x2F N34169630: 1789762.00623316341079771518707275390625\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09857); \x2F\x2F N1151667: 1789775.40753261814825236797332763671875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09965); \x2F\x2F N0260073: 1789807.57065131026320159435272216796875\r\n1789772.727272727272 * (1000.0\x2F60.09848) \x2F (1000.0 \x2F 60.09813); \x2F\x2F Twin Famicom RCA 475711: 1789762.30403981753624975681304931640625\r\n\r\nNote that all numerical edit boxes in LSN_BEESNES allow typing of actual equations, such as \u201C1662607.03125 \x2F 19.9972 * 19.9971\u201D.
 #define LSN_WE_TT_PRESETS													Measured hardware presets.
 #define LSN_WE_TT_PRESETS_SAVE												Save your own custom preset.
 #define LSN_WE_TT_PRESETS_LOAD												Load your own custom preset(s).

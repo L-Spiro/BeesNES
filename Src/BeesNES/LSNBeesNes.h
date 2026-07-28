@@ -47,6 +47,7 @@
 #include "../Options/LSNOptions.h"
 #include "../Peripherals/LSNPeripheralBase.h"
 #include "../System/LSNSystem.h"
+#include "../Utilities/LSNCpuTemperatureReader.h"
 #include "../Utilities/LSNStream.h"
 
 
