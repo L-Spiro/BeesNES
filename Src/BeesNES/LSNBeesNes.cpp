@@ -1192,7 +1192,7 @@ namespace lsn {
 				}
 				if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
 					// If this is a per-game option, try the global option.
-					if ( Options().poThisGamePalette[m_pmSystem].bUseGlobal ) {
+					if ( !Options().poThisGamePalette[m_pmSystem].bUseGlobal ) {
 						poOptions = Options().poGlobalPalettes[m_pmSystem];
 						wsPath = poOptions.wsPath;
 						if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
