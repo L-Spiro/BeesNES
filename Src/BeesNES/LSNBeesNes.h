@@ -642,15 +642,15 @@ namespace lsn {
 		CDx9NtscCrtFullFilter					m_d9ncfDx9EmmirNtscFullFilter;
 		/** Direct3D 9 LMP88959 PAL CTR filter. */
 		CDx9PalCrtFullFilter					m_d9ncfDx9EmmirPalFullFilter;
-		/** Direct3D 9 up-scale L. Spiro NTSC filter. */
+		/** Direct3D 9 L. Spiro NTSC filter. */
 		CDx9NtscLSpiroFilter					m_d9nlsfDx9LSpiroNtsc;
-		/** Direct3D 9 up-scale L. Spiro PAL filter. */
+		/** Direct3D 9 L. Spiro PAL filter. */
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPal;
-		/** Direct3D 9 up-scale L. Spiro Dendy filter. */
+		/** Direct3D 9 L. Spiro Dendy filter. */
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroDendy;
-		/** Direct3D 9 up-scale L. Spiro PAL-M filter. */
+		/** Direct3D 9 L. Spiro PAL-M filter. */
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalM;
-		/** Direct3D 9 up-scale L. Spiro PAL-N filter. */
+		/** Direct3D 9 L. Spiro PAL-N filter. */
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalN;
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
@@ -662,18 +662,17 @@ namespace lsn {
 		CDx12NtscCrtFullFilter					m_d12ncfDx12EmmirNtscFullFilter;
 		/** Direct3D 12 LMP88959 PAL CTR filter. */
 		CDx12PalCrtFullFilter					m_d12ncfDx12EmmirPalFullFilter;
-		/** Direct3D 12 up-scale L. Spiro NTSC filter. */
+		/** Direct3D 12 L. Spiro NTSC filter. */
 		CDx12NtscLSpiroFilter					m_d12nlsfDx12LSpiroNtsc;
-		/** Direct3D 12 up-scale L. Spiro PAL filter. */
+		/** Direct3D 12 L. Spiro PAL filter. */
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPal;
-		/** Direct3D 12 up-scale L. Spiro Dendy filter. */
+		/** Direct3D 12 L. Spiro Dendy filter. */
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroDendy;
-		/** Direct3D 12 up-scale L. Spiro PAL-M filter. */
+		/** Direct3D 12 L. Spiro PAL-M filter. */
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalM;
-		/** Direct3D 12 up-scale L. Spiro PAL-N filter. */
+		/** Direct3D 12 L. Spiro PAL-N filter. */
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalN;
 #endif	// #ifdef LSN_DX12
-
 #ifdef LSN_VULKAN1
 		/** Vulkan 1 palette filter. */
 		CVulkanPaletteFilter					m_vpfVulkanPalette;
@@ -683,15 +682,15 @@ namespace lsn {
 		CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscFullFilter;
 		/** Vulkan 1 LMP88959 PAL CTR filter. */
 		CVulkanPalCrtFullFilter					m_vncfVulkanEmmirPalFullFilter;
-		/** Vulkan 1 up-scale L. Spiro NTSC filter. */
+		/** Vulkan 1 L. Spiro NTSC filter. */
 		CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtsc;
-		/** Vulkan 1 up-scale L. Spiro PAL filter. */
+		/** Vulkan 1 L. Spiro PAL filter. */
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPal;
-		/** Vulkan 1 up-scale L. Spiro Dendy filter. */
+		/** Vulkan 1 L. Spiro Dendy filter. */
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroDendy;
-		/** Vulkan 1 up-scale L. Spiro PAL-M filter. */
+		/** Vulkan 1 L. Spiro PAL-M filter. */
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalM;
-		/** Vulkan 1 up-scale L. Spiro PAL-N filter. */
+		/** Vulkan 1 L. Spiro PAL-N filter. */
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalN;
 #endif	// #ifdef LSN_VULKAN1
 
@@ -700,6 +699,8 @@ namespace lsn {
 		CFilterBase *							m_pfbFilterTable[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL];
 		/** The default palettes for each system. */
 		CNesPalette								m_npPalette;
+		/** The current system type. */
+		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC;
 		/** CRT gamma. */
 		CNesPalette::LSN_GAMMA					m_gCrtGamma[LSN_PM_CONSOLE_TOTAL];
 		/** Monitor gamma. */
@@ -734,8 +735,9 @@ namespace lsn {
 		CSystemBase *							m_psbSystem = nullptr;
 		/** The path to the executable folder. */
 		std::wstring							m_wsFolder;
-		/** The current system type. */
-		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC;
+
+		/** The CPU temperature. */
+		CCpuTemperatureReader					m_trTemperatureReader;
 		
 		/** The current post-processing filter. */
 		std::vector<CPostProcessBase::LSN_POST_PROCESSES>

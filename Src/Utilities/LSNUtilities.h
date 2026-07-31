@@ -2624,7 +2624,7 @@ namespace lsn {
 			return std::exp( std::log( _dTarget / _dStart ) / dSteps );
 		}
 
-/**
+		/**
 		 * \brief Generates uniformly distributed noise.
 		 * 
 		 * \param _pfTarget The buffer to fill with random values.
@@ -2732,7 +2732,7 @@ namespace lsn {
 		 * \param _fSystemGain A linear multiplier to scale the microvolt physical noise up to visual normalized float ranges.
 		 * \return Returns the physically based standard deviation for Gaussian noise.
 		 **/
-		static inline float									GetThermalNoiseStdDev( float _fTempK = 293.15f, float _fOhms = 75.0f, float _fBandwidthHz = 4.2e6f, float _fSystemGain = 12000.0f ) {
+		static inline float									GetThermalNoiseStdDev( float _fTempK = 293.15f, float _fOhms = 75.0f, float _fBandwidthHz = 4.2e6f, float _fSystemGain = 11100.0f ) {
 			// Boltzmann constant in Joules per Kelvin.
 			constexpr float fKb = 0.000000000000000000000055225955785762901200008850603122116662557772315267357043921947479248046875f;	// 4 * 1.380649e-23
 			float fVrms = std::sqrt( fKb * _fTempK * _fOhms * _fBandwidthHz );

@@ -34,8 +34,6 @@ namespace lsn {
 		nsTmp.hue = 7.89 / 180.0;
 		
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
-		SetPhosphorDecayLevel( 0.15f );
-		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx9NtscBlarggFilter::~CDx9NtscBlarggFilter() {
 	}

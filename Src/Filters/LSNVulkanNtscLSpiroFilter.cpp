@@ -24,9 +24,6 @@ namespace lsn {
 
 		m_bPreProcessNormalization = false;
 		GenNormalizedSignals();
-
-		CVulkanFilterBase::SetPhosphorDecayLevel( 0.15f );
-		CVulkanFilterBase::SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CVulkanNtscLSpiroFilter::~CVulkanNtscLSpiroFilter() {
 		StopThreads();

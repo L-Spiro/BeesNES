@@ -13,6 +13,8 @@
 namespace lsn {
 
 	CGpuFilterBase::CGpuFilterBase() {
+		SetPhosphorDecayLevel( DefaultPhophorDecayIntensity() );
+		SetPhosphorDecayPeriod( DefaultPhophorDecayDuration() );
 	}
 	CGpuFilterBase::~CGpuFilterBase() {
 	}

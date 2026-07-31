@@ -32,8 +32,6 @@ namespace lsn {
 		m_vCrtNtsc.resize( sizeof( CRT ) );
 
 		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_LINEAR );
-		SetPhosphorDecayLevel( 0.15f );
-		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CVulkanNtscCrtFullFilter::~CVulkanNtscCrtFullFilter() {
 		DeActivate();

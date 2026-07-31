@@ -25,9 +25,6 @@ namespace lsn {
 
 		m_bPreProcessNormalization = false;
 		GenNormalizedSignals();
-
-		CDx9FilterBase::SetPhosphorDecayLevel( 0.15f );
-		CDx9FilterBase::SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 		m_gGamma = CNesPalette::LSN_G_CRT1;
 	}
 	CDx9PalLSpiroFilter::~CDx9PalLSpiroFilter() {

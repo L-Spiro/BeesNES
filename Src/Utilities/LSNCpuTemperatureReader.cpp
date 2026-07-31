@@ -12,12 +12,9 @@
 
 namespace lsn {
 
-	CCpuTemperatureReader::CCpuTemperatureReader() {
+	CCpuTemperatureReader::CCpuTemperatureReader() :
+		m_mGen( m_rdDev() ) {
 #if defined( _WIN32 )
-		m_bComInitialized = false;
-		m_pLocator = NULL;
-		m_pServices = NULL;
-
 		HRESULT hRes = ::CoInitializeEx( 0, COINIT_MULTITHREADED );
 		if ( SUCCEEDED( hRes ) ) {
 			m_bComInitialized = true;
@@ -65,6 +62,7 @@ namespace lsn {
 	}
 
 	CCpuTemperatureReader::~CCpuTemperatureReader() {
+		StopThread();
 #if defined( _WIN32 )
 		if ( m_pServices ) {
 			m_pServices->Release();
@@ -86,6 +84,86 @@ namespace lsn {
 		}
 #endif
 #endif
+	}
+
+
+	// == Functions.
+	/**
+	 * \brief Starts the polling thread. Safe to call multiple times.
+	 */
+	void CCpuTemperatureReader::StartThread() {
+		std::unique_lock<std::mutex> uLock( m_mMutex );
+		if ( m_thThread.joinable() ) {
+			return;
+		}
+	
+		m_bStopThread = false;
+		m_bPoll = false;
+		m_fCachedTemperature = GetTemperature();
+		m_thThread = std::thread( &CCpuTemperatureReader::ThreadRoutine, this );
+	}
+
+	/**
+	 * \brief Stops the polling thread. Safe to call multiple times.
+	 */
+	void CCpuTemperatureReader::StopThread() {
+		{
+			std::unique_lock<std::mutex> uLock( m_mMutex );
+			if ( !m_thThread.joinable() ) {
+				return;
+			}
+		
+			m_bStopThread = true;
+			m_cvWait.notify_one();
+		}
+		m_thThread.join();
+	}
+
+	/**
+	 * \brief Sets m_bPoll to true to trigger a temperature read on the background thread.
+	 */
+	void CCpuTemperatureReader::PollTemperature() {
+		std::unique_lock<std::mutex> uLock( m_mMutex );
+		m_bPoll = true;
+		m_cvWait.notify_one();
+	}
+
+	/**
+	 * \brief Gets the most recently cached temperature from the background thread.
+	 *
+	 * \return Returns the cached temperature in Kelvin.
+	 */
+	float CCpuTemperatureReader::GetCachedTemperature() {
+		std::unique_lock<std::mutex> uLock( m_mMutex );
+		return m_fCachedTemperature;
+	}
+
+	/**
+	 * \brief The background thread routine that sits, waits, and polls.
+	 */
+	void CCpuTemperatureReader::ThreadRoutine() {
+		while ( true ) {
+			std::unique_lock<std::mutex> uLock( m_mMutex );
+		
+			m_cvWait.wait( uLock, [this]() {
+				return m_bStopThread || m_bPoll;
+			} );
+
+			if ( m_bStopThread ) { break; }
+
+			if ( m_bPoll ) {
+				m_bPoll = false;
+			
+				// Unlock before doing hardware I/O to avoid blocking GetCachedTemperature() calls on the main thread.
+				uLock.unlock(); 
+
+				float fTemp = GetTemperature();
+
+				// Re-lock to safely update the cached result.
+				uLock.lock();
+				m_fCachedTemperature = fTemp;
+			}
+		}
 	}
 
 	/**

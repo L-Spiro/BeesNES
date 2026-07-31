@@ -35,8 +35,6 @@ namespace lsn {
 		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
 
 		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUX );
-		SetPhosphorDecayLevel( 0.15f );
-		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 	}
 	CDx12NtscBlarggFilter::~CDx12NtscBlarggFilter() {
 	}

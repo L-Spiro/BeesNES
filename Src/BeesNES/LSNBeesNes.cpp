@@ -31,7 +31,8 @@ namespace lsn {
 		m_ui32RecentLimit( 13 * 4 ) {
 
 
-		CUtilities::GenGaussianNoise( 0.0225f );
+		//CUtilities::GenGaussianNoise( 0.0225f );
+		//m_trTemperatureReader.SetBuffer( reinterpret_cast<float *>(CUtilities::m_fNoiseBuffers), std::size( CUtilities::m_fNoiseBuffers ) );
 		CAudio::SetOutputSettings( Options().aoGlobalAudioOptions );
 		
 		//m_pfbFilterTable
@@ -942,6 +943,7 @@ namespace lsn {
 			UpdateCurrentSystem();
 			if ( m_psbSystem->LoadRom( rTmp ) ) {
 				//m_psbSystem->ResetState( false );
+				m_trTemperatureReader.StartThread();
 				AddPath( _s16Path );
 				return true;
 			}
@@ -955,6 +957,7 @@ namespace lsn {
 	void CBeesNes::CloseRom() {
 		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
 		}
+		m_trTemperatureReader.StopThread();
 	}
 
 	/**
@@ -1371,7 +1374,7 @@ namespace lsn {
 		ApplyPaletteOptions();
 		
 		//CUtilities::GenGaussianNoise( 0.0225f/*, SystemBlackLevel( m_pmSystem ), SystemWhiteLevel( m_pmSystem )*/ );
-		CUtilities::GenThermalNoise();
+		CUtilities::GenThermalNoise( m_trTemperatureReader.FilteredTemperature() );
 	}
 
 	/**

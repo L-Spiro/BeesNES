@@ -33,8 +33,6 @@ namespace lsn {
 		m_vCrtPal.resize( sizeof( PAL_CRT ) );
 
 		m_rsResampler.SetFilter( CResamplerBase::LSN_FF_ROBIDOUX );
-		SetPhosphorDecayLevel( 0.15f );
-		SetPhosphorDecayPeriod( 1.79113161563873291015625f / 7.0f );
 		m_gGamma = CNesPalette::LSN_G_CRT1;
 	}
 	CDx9PalCrtFullFilter::~CDx9PalCrtFullFilter() {

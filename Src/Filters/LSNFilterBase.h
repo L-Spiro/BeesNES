@@ -84,20 +84,20 @@ namespace lsn {
 			LSN_F_LSPIROPALN_VULKAN1,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
 			
 			LSN_F_AUTO_CRT_FULL_VULKAN1,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
-			LSN_F_LSPIRO_AUTO_VULKAN1,					/**< L. Spiro auto up-scaled Direct3D 12. */
+			LSN_F_LSPIRO_AUTO_VULKAN1,						/**< L. Spiro auto up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_VULKAN1
 #ifdef LSN_METAL
-			LSN_F_INDEXED_METAL,								/**< Basic paletted Direct3D 12. */
+			LSN_F_INDEXED_METAL,							/**< Basic paletted Direct3D 12. */
 			LSN_F_NTSC_BLARGG_METAL,						/**< Blargg's NTSC up-scaled Direct3D 12. */
-			LSN_F_NTSC_CRT_FULL_METAL,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 12. */
-			LSN_F_PAL_CRT_FULL_METAL,					/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 12. */
-			LSN_F_LSPIRONTSC_METAL,						/**< L. Spiro NTSC up-scaled Direct3D 12. */
-			LSN_F_LSPIROPAL_METAL,						/**< L. Spiro PAL up-scaled Direct3D 12. */
+			LSN_F_NTSC_CRT_FULL_METAL,						/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 12. */
+			LSN_F_PAL_CRT_FULL_METAL,						/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 12. */
+			LSN_F_LSPIRONTSC_METAL,							/**< L. Spiro NTSC up-scaled Direct3D 12. */
+			LSN_F_LSPIROPAL_METAL,							/**< L. Spiro PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRODENDY_METAL,						/**< L. Spiro Dendy up-scaled Direct3D 12. */
-			LSN_F_LSPIROPALM_METAL,						/**< L. Spiro PAL-M up-scaled Direct3D 12. */
-			LSN_F_LSPIROPALN_METAL,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
+			LSN_F_LSPIROPALM_METAL,							/**< L. Spiro PAL-M up-scaled Direct3D 12. */
+			LSN_F_LSPIROPALN_METAL,							/**< L. Spiro PAL-N up-scaled Direct3D 12. */
 			
-			LSN_F_AUTO_CRT_FULL_METAL,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
+			LSN_F_AUTO_CRT_FULL_METAL,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRO_AUTO_METAL,						/**< L. Spiro auto up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_METAL
 

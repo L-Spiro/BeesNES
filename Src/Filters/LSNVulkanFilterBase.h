@@ -195,77 +195,6 @@ namespace lsn {
 		 * \return Returns true if the high-quality resampler is enabled.
 		 */
 		inline bool												GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
-		
-		/**
-		 * Sets the gamma curve to be applied in the pipeline.
-		 *
-		 * \param _gGamma The gamma preset.
-		 */
-		inline void												SetGamma( CNesPalette::LSN_GAMMA _gGamma ) { m_gGamma = _gGamma; }
-		
-		/**
-		 * Gets the specified gamma curve for the pipeline.
-		 *
-		 * \return Returns the currently set gamma preset.
-		 */
-		inline CNesPalette::LSN_GAMMA							GetGamma() const { return m_gGamma; }
-		
-		/**
-		 * Resolves auto-gamma settings to a concrete gamma curve.
-		 *
-		 * \return Returns the effective gamma curve to use during rendering.
-		 */
-		virtual inline CNesPalette::LSN_GAMMA					GetEffectiveGamma() const { return m_gGamma == CNesPalette::LSN_G_AUTO ? CNesPalette::LSN_G_CRT2 : m_gGamma; }
-		
-		/**
-		 * Enables or disables the phosphor decay effect.
-		 *
-		 * \param _bEnable If true, phosphor decay is simulated.
-		 */
-		inline void												SetPhosphorDecayEnable( bool _bEnable ) { m_bEnablePhosphorDecay = _bEnable; }
-		
-		/**
-		 * Gets whether the phosphor decay effect is enabled.
-		 *
-		 * \return Returns true if phosphor decay is enabled.
-		 */
-		inline bool												GetPhosphorDecayEnable() const { return m_bEnablePhosphorDecay; }
-
-		/**
-		 * Sets the base time period for phosphor decay calculations.
-		 *
-		 * \param _fTime The decay period in seconds.
-		 */
-		void													SetPhosphorDecayPeriod( float _fTime = 1.79113161563873291015625f ) {
-			m_fPhosphorDecayTime = _fTime;
-			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
-			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
-			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
-		}
-
-		/**
-		 * Sets the framerate used for calculating the per-frame phosphor decay multipliers.
-		 *
-		 * \param _fFps The framerate in frames per second.
-		 */
-		void													SetFps( float _fFps = 60.098812103271484375f ) {
-			m_fFps = _fFps;
-			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
-			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
-			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
-		}
-
-		/**
-		 * Sets the initial decay level applied immediately when a pixel loses intensity.
-		 *
-		 * \param _fLevel The decay scalar.
-		 */
-		void													SetPhosphorDecayLevel( float _fLevel = 0.25f ) {
-			m_fInitPhosphorDecay = _fLevel;
-			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
-			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
-			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
-		}
 
 		/**
 		 * Determines the optimal convolution filter based on the target resolution scaling.
@@ -287,12 +216,12 @@ namespace lsn {
 #pragma pack( push, 1 )
 		/** A standard 2D vertex with position and UV coordinates. */
 		struct LSN_XYZRHWTEX1 {
-			float fX;					/**< The X position. */
-			float fY;					/**< The Y position. */
-			float fZ;					/**< The Z position. */
-			float fW;					/**< The W coordinate. */
-			float fU;					/**< The U texture coordinate. */
-			float fV;					/**< The V texture coordinate. */
+			float fX;											/**< The X position. */
+			float fY;											/**< The Y position. */
+			float fZ;											/**< The Z position. */
+			float fW;											/**< The W coordinate. */
+			float fU;											/**< The U texture coordinate. */
+			float fV;											/**< The V texture coordinate. */
 		};
 #pragma pack( pop )
 
@@ -413,16 +342,6 @@ namespace lsn {
 
 		uint32_t												m_ui32ScalerTargetW = 0;			/**< The absolute width in pixels of the intermediate scaling render target from the previous allocation. */
 		uint32_t												m_ui32ScalerTargetH = 0;			/**< The absolute height in pixels of the intermediate scaling render target from the previous allocation. */
-
-		// Settings...
-		CNesPalette::LSN_GAMMA									m_gGamma = CNesPalette::LSN_G_AUTO;	/**< The requested gamma curve. */
-		float													m_fFps = 60.098812103271484375f;	/**< The refresh rate used for timing. */
-		float													m_fInitPhosphorDecay = 0.25f;		/**< The base decay scalar applied immediately. */
-		float													m_fPhosphorDecayRateRed = 0.401767850f;	/**< The frame-to-frame red decay multiplier. */
-		float													m_fPhosphorDecayRateGreen = 0.663420439f;	/**< The frame-to-frame green decay multiplier. */
-		float													m_fPhosphorDecayRateBlue = 0.193711475f;	/**< The frame-to-frame blue decay multiplier. */
-		float													m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The decay curve half-life time base. */
-		bool													m_bEnablePhosphorDecay = true;		/**< True if the phosphor pass should execute. */
 
 		uint32_t												m_ui32RsrcW = 0;					/**< The base tracked width of the source textures. */
 		uint32_t												m_ui32RsrcH = 0;					/**< The base tracked height of the source textures. */
