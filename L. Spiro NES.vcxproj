@@ -2080,6 +2080,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\Mappers\LSNMapper340.h" />
     <ClInclude Include="Src\Mappers\LSNMapper550.h" />
     <ClInclude Include="Src\Mappers\LSNMapperBase.h" />
+    <ClInclude Include="Src\Mappers\LSNMapperNsf.h" />
     <ClInclude Include="Src\Mappers\LSNMapperXXX.h" />
     <ClInclude Include="Src\Math\LSNMatrix4x4.h" />
     <ClInclude Include="Src\Math\LSNSimdTypes.h" />
@@ -2101,7 +2102,9 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\Peripherals\LSNStdController.h" />
     <ClInclude Include="Src\Ppu\LSNPpu2C0X.h" />
     <ClInclude Include="Src\Ppu\LSNPpuBase.h" />
+    <ClInclude Include="Src\Roms\LSNM3u.h" />
     <ClInclude Include="Src\Roms\LSNNesHeader.h" />
+    <ClInclude Include="Src\Roms\LSNNsfHeader.h" />
     <ClInclude Include="Src\Roms\LSNRom.h" />
     <ClInclude Include="Src\Roms\LSNRomConstants.h" />
     <ClInclude Include="Src\Roms\LSNRomInfo.h" />

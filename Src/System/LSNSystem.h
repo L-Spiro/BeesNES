@@ -682,6 +682,10 @@ namespace lsn {
 					m_pmbMapper = std::make_unique<CMapper550>();
 					break;
 				}
+				case uint16_t( -1 ) : {
+					m_pmbMapper = std::make_unique<CMapperNsf>();
+					break;
+				}
 				default : {
 					m_pmbMapper = std::make_unique<CMapperBase>();
 					m_rRom.riInfo.bMapperSupported = false;

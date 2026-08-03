@@ -38,7 +38,7 @@ typedef lsw::LSW_KEY															CUiKey;
 namespace lsn {
 
 	/**
-	 * Class LSN_WINDOW_OPTIONS
+	 * Struct LSN_WINDOW_OPTIONS
 	 * \brief Provides a grouping of all of the window-/UI- specific settings, such as hotkeys, show/hide menu, etc.
 	 *
 	 * Description: Provides a grouping of all of the window-/UI- specific settings, such as hotkeys, show/hide menu, etc.

@@ -26,7 +26,7 @@ namespace lsn {
 	};
 
 	/**
-	 * Class LSN_WAV_EDITOR_WINDOW_OPTIONS
+	 * Struct LSN_WAV_EDITOR_WINDOW_OPTIONS
 	 * \brief Remembers the last texts, checks, etc., for the WAV Editor window.
 	 *
 	 * Description: Remembers the last texts, checks, etc., for the WAV Editor window.

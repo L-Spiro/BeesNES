@@ -25,6 +25,8 @@
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0
 #define LSN_NES_FILES____NES____NES_										NES Files (*.nes)\0*.nes\0
 #define LSN_ZIP_FILES____ZIP____ZIP_										ZIP Files (*.zip)\0*.zip\0
+#define LSN_ALL_SUPPORTED_FILES___NSF____ZIP____NSF___ZIP_					All Supported Files (*.nsf, *.zip)\0*.nsf;*.zip\0
+#define LSN_NSF_FILES____NSF____NSF_										NSF Files (*.nsf)\0*.nsf\0
 #define LSN_ALL_FILES___________											All Files (*.*)\0*.*\0
 #define LSN_BWAV_FILES____BWAV____BWAV_										BWAV Projects (*.bwav)\0*.bwav\0
 #define LSN__FILE															&File

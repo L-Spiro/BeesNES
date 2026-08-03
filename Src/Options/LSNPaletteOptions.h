@@ -18,7 +18,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_PALETTE_OPTIONS
+	 * Struct LSN_PALETTE_OPTIONS
 	 * \brief Palette options.
 	 *
 	 * Description: Palette options.

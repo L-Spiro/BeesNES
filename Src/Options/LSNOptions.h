@@ -23,7 +23,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_OPTIONS
+	 * Struct LSN_OPTIONS
 	 * \brief Emulator options.
 	 *
 	 * Description: Emulator options.

@@ -17,7 +17,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_ROM_INFO
+	 * Struct LSN_ROM_INFO
 	 * \brief ROM information.
 	 *
 	 * Description: ROM information.
@@ -37,6 +37,19 @@ namespace lsn {
 		uint16_t							ui16PcbClass;									/**< The PCB class. */
 		bool								bBusConficts = true;							/**< Support bus conflicts (when available)? */
 		bool								bMapperSupported;								/**< If true, the necessary mapper is supported. */
+
+		// == NSF
+		char								cTrackName[32];									/**< Track name, null-terminated. */
+		char								cArtistName[32];								/**< Artist name, null-terminated. */
+		char								cCopyrightName[32];								/**< Copyright holder, null-terminated. */
+		uint8_t								ui8BankValues[8];								/**< Bankswitch init values for $8000-$FFFF. */
+		uint16_t							ui16LoadAddress = 0;							/**< Initial address of PC. */
+		uint16_t							ui16InitAddress = 0;							/**< Load address. */
+		uint16_t							ui16PlayAddress = 0;							/**< Play address. */
+		uint16_t							ui16NtscSpeed = 0;								/**< NTSC play speed. */
+		uint16_t							ui16PalSpeed = 0;								/**< PAL play speed. */
+		uint8_t								ui8TotalTracks = 0;								/**< Total tracks (1-256). */
+		uint8_t								ui8StartingTrack = 0;							/**< Starting track (1-256). */
 	};
 
 }	// namespace lsn

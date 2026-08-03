@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: ROM data.
+ * Description: A database of ROM files (IE which mappers/submappers each uses, mirroring modes, regions, etc.)
  */
 
 

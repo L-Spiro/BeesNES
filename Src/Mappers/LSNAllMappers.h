@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "../Mappers/LSNMapperNsf.h"
+
 #include "../Mappers/LSNMapper000.h"
 #include "../Mappers/LSNMapper001.h"
 #include "../Mappers/LSNMapper002.h"

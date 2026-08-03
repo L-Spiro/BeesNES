@@ -245,7 +245,7 @@ namespace lsn {
 	 * \return Returns true if the LUT was successfully built.
 	 **/
 	bool CVulkanResampler::BuildLUT( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandList, uint32_t _ui32SrcSize, uint32_t _ui32DstSize, std::unique_ptr<CVulkanImage> &_piLut, std::unique_ptr<CVulkanDeviceMemory> &_pdmLutMemory, CVulkan::LSN_IMAGE_VIEW &_ivLutView, std::unique_ptr<CVulkanBuffer> &_pbUpload, std::unique_ptr<CVulkanDeviceMemory> &_pdmUploadMemory, uint32_t &_ui32OutMaxTaps ) {
-		if LSN_UNLIKELY( !CreateContribList( _ui32SrcSize, _ui32DstSize, LSN_TA_CLAMP, CResamplerBase::m_fFilter[m_ffFilter].pfFunc, CResamplerBase::m_fFilter[m_ffFilter].fSupport, 1.0f ) ) { return false; }
+		if LSN_UNLIKELY( !CreateContribList( _ui32SrcSize, _ui32DstSize, LSN_TA_CLAMP, CResamplerBase::m_fFilter[m_ffFilter].pfFunc, CResamplerBase::m_fFilter[m_ffFilter].fSupport, 1.0f, false ) ) { return false; }
 
 		uint32_t ui32MaxTaps = 0;
 		for ( size_t I = 0; I < m_cContribs.size(); ++I ) {

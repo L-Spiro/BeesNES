@@ -16,7 +16,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_INPUT_OPTIONS
+	 * Struct LSN_INPUT_OPTIONS
 	 * \brief Input options.
 	 *
 	 * Description: Input options.

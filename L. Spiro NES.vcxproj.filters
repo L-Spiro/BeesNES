@@ -1338,6 +1338,15 @@
     <ClInclude Include="Src\Utilities\LSNCpuTemperatureReader.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Roms\LSNNsfHeader.h">
+      <Filter>Header Files\Roms</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mappers\LSNMapperNsf.h">
+      <Filter>Header Files\Mappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Roms\LSNM3u.h">
+      <Filter>Header Files\Roms</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

@@ -32,7 +32,7 @@ namespace lsn {
 	};
 
 	/**
-	 * Class LSN_GENERIC_OPTION
+	 * Struct LSN_GENERIC_OPTION
 	 * \brief A generic option that can be of any type.
 	 *
 	 * Description: A generic option that can be of any type.

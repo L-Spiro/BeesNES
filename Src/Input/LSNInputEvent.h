@@ -23,7 +23,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_INPUT_EVENT
+	 * Struct LSN_INPUT_EVENT
 	 * \brief An input event for triggering a button press in a game.
 	 *
 	 * Description: An input event for triggering a button press in a game.  An input event can come from one of different device types (keyboard or USB controller),

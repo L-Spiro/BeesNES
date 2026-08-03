@@ -112,7 +112,7 @@ namespace lsn {
 	};
 
 	/**
-	 * Class LSN_NES_HEADER
+	 * Struct LSN_NES_HEADER
 	 * \brief The Archaic iNES, iNES 0.7, iNES, and iNES 2.0 header.
 	 *
 	 * Description: The Archaic iNES, iNES 0.7, iNES, and iNES 2.0 header.

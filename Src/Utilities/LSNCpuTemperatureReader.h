@@ -138,6 +138,11 @@ namespace lsn {
 			return std::clamp( GetCachedTemperature(), 280.0f, 400.0f );
 		}
 
+		/**
+		 * \brief Performs a per-frame update.
+		 */
+		void									Tick();
+
 
 	private :
 		// == Functions.
@@ -181,6 +186,12 @@ namespace lsn {
 
 		/** \brief The random-number generator. */
 		std::mt19937							m_mGen;
+
+		/** The index of the noise buffer next to be updated. */
+		size_t									m_sNoiseBufferIdx = 0;
+
+		/** The tick count. */
+		size_t									m_sTickCnt = 0;
 
 		/** \brief The cached temperature value. */
 		float									m_fCachedTemperature = -999.0f;

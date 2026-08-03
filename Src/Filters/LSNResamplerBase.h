@@ -75,6 +75,7 @@ namespace lsn {
 		struct LSN_CONTRIBUTIONS {
 			std::vector<float, CAlignmentAllocator<float, 64>>	fContributions;
 			std::vector<int32_t>								i32Indices;
+			bool												bInsideBounds;
 		};
 
 		typedef float (*										PfFilterFunc)( float );
@@ -119,6 +120,36 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Resamples an image.
+		 * 
+		 * \param _pfIn The input buffer.
+		 * \param _pfOut The output buffer.
+		 * \param _pParms Image/resampling parameters.
+		 * \return Returns true if all allocations succeed.
+		 */
+		bool													Resample( const float * _pfIn, float * _pfOut, const LSN_RESAMPLE &_pParms );
+
+		/**
+		 * Convolvinate.
+		 *
+		 * \param _pfWeights The convolution weights.
+		 * \param _pfTexels The texels to be convolved.
+		 * \param _sTotal The total values to which _pfTexels and _pfWeights point.
+		 * \return Returns the summed weights * texels.
+		 */
+		float													ConvolveAligned( const float * _pfWeights, const float * _pfTexels, size_t _sTotal );
+
+		/**
+		 * Convolvinate using unaligned reads.
+		 *
+		 * \param _pfWeights The convolution weights.
+		 * \param _pfTexels The texels to be convolved.
+		 * \param _sTotal The total values to which _pfTexels and _pfWeights point.
+		 * \return Returns the summed weights * texels.
+		 */
+		float													ConvolveUnaligned( const float * _pfWeights, const float * _pfTexels, size_t _sTotal );
+
+		/**
 		 * Creates a new contribution list.
 		 *
 		 * \param _ui32SrcSize Size of the source.
@@ -127,11 +158,12 @@ namespace lsn {
 		 * \param _pfFilter Filter function.
 		 * \param _fFilterSupport Filter support value.
 		 * \param _fFilterScale Filter scale.
+		 * \param _bStoreLocal If true, software resampling is assumed and m_fBuffer is allocated to fit the largest contribution list's samples.
 		 * \return Returns true if all allocations succeeded.
 		 */
 		bool													CreateContribList( uint32_t _ui32SrcSize, uint32_t _ui32DstSize,
 			LSN_TEXTURE_ADDRESSING _taAddressMode,
-			PfFilterFunc _pfFilter, float _fFilterSupport, float _fFilterScale );
+			PfFilterFunc _pfFilter, float _fFilterSupport, float _fFilterScale, bool _bStoreLocal = true );
 
 		/**
 		 * Standard sinc() function.
@@ -727,10 +759,8 @@ namespace lsn {
 		typedef struct LSN_CONTRIB_BOUNDS {
 			/** The center. */
 			float												fCenter;
-
 			/** Left. */
 			int32_t												i32Left;
-
 			/** Right. */
 			int32_t												i32Right;
 		} * LPLSN_CONTRIB_BOUNDS, * const LPCLSN_CONTRIB_BOUNDS;
@@ -739,6 +769,8 @@ namespace lsn {
 		// == Members.
 		/** Our array of contributions. */
 		std::vector<LSN_CONTRIBUTIONS>							m_cContribs;
+		/** Buffer for convolution. */
+		std::vector<float, CAlignmentAllocator<float, 64>>		m_fBuffer;
 
 	};
 

@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: ROM data.
+ * Description: A database of ROM files (IE which mappers/submappers each uses, mirroring modes, regions, etc.)
  */
 
 
@@ -19,10 +19,10 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_ROM
-	 * \brief ROM data.
+	 * Class CDatabase
+	 * \brief A database of ROM files.
 	 *
-	 * Description: ROM data.
+	 * Description: A database of ROM files (IE which mappers/submappers each uses, mirroring modes, regions, etc.)
 	 */
 	class CDatabase {
 	public :

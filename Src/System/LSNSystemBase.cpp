@@ -10,6 +10,7 @@
 #include "../Crc/LSNCrc.h"
 #include "../Database/LSNDatabase.h"
 #include "../Roms/LSNNesHeader.h"
+#include "../Roms/LSNNsfHeader.h"
 #include "../Utilities/LSNUtilities.h"
 
 
@@ -105,6 +106,60 @@ namespace lsn {
 	 * \return Returns true if the image was loaded, false otherwise.
 	 */
 	bool CSystemBase::LoadNes( const std::vector<uint8_t> &_vRom, LSN_ROM &_rRom ) {
+		if ( _vRom.size() >= sizeof( LSN_NSF_HEADER ) ) {
+			const LSN_NSF_HEADER * pnhHeader = reinterpret_cast<const LSN_NSF_HEADER *>(_vRom.data());
+			if ( std::memcmp( pnhHeader->cNesmString, "NESM\x1A", sizeof( pnhHeader->cNesmString ) ) == 0 ) {
+				size_t stDataSize = _vRom.size() - sizeof( LSN_NSF_HEADER );
+				const uint8_t * pui8Data = _vRom.data() + sizeof( LSN_NSF_HEADER );
+
+				_rRom.riInfo.ui16Mapper = uint16_t( -1 );
+				_rRom.riInfo.ui16SubMapper = 0;
+				_rRom.riInfo.mmMirroring = LSN_MM_VERTICAL;
+				switch ( pnhHeader->GetTvSystem() ) {
+					case LSN_NSF_TV_SYSTEM::LSN_NTS_PAL : {
+						_rRom.riInfo.pmConsoleRegion = LSN_PM_PAL;
+						break;
+					}
+					default : {
+						_rRom.riInfo.pmConsoleRegion = LSN_PM_NTSC;
+					}
+				}
+				_rRom.riInfo.ui32HeaderlessCrc = CCrc::GetCrc( pui8Data, stDataSize );
+				_rRom.riInfo.mhMd5 = CMd5::Compute( _vRom.data(), _vRom.size() );
+				_rRom.riInfo.mhHeaderlessMd5 = CMd5::Compute( pui8Data, stDataSize );
+
+				_rRom.i32ChrRamSize = 8 * 1024;
+				_rRom.i32SaveChrRamSize = 0;
+				_rRom.i32WorkRamSize = 8 * 1024;
+				_rRom.i32SaveRamSize = 0;
+
+				uint32_t ui32PrgSize = uint32_t( stDataSize );
+				uint32_t ui32ChrSize = 0;
+				_rRom.vPrgRom.insert( _rRom.vPrgRom.end(), pui8Data, pui8Data + ui32PrgSize );
+				pui8Data += ui32PrgSize;
+				_rRom.vChrRom.insert( _rRom.vChrRom.end(), pui8Data, pui8Data + ui32ChrSize );
+
+				for ( size_t I = 8; I--; ) {
+					_rRom.riInfo.ui8BankValues[I] = pnhHeader->GetBankValue( uint8_t( I ) );
+				}
+				_rRom.riInfo.ui16LoadAddress = pnhHeader->GetLoadAddress();
+				_rRom.riInfo.ui16InitAddress = pnhHeader->GetInitAddress();
+				_rRom.riInfo.ui16PlayAddress = pnhHeader->GetPlayAddress();
+				_rRom.riInfo.ui16NtscSpeed = pnhHeader->GetNtscSpeed();
+				_rRom.riInfo.ui16PalSpeed = pnhHeader->GetPalSpeed();
+				_rRom.riInfo.ui8TotalTracks = pnhHeader->GetTotalTracks();
+				_rRom.riInfo.ui8StartingTrack = pnhHeader->GetStartingTrack();
+				std::memcpy( _rRom.riInfo.cArtistName, pnhHeader->GetArtistName(), sizeof( _rRom.riInfo.cArtistName ) );
+				std::memcpy( _rRom.riInfo.cCopyrightName, pnhHeader->GetCopyrightName(), sizeof( _rRom.riInfo.cCopyrightName ) );
+				std::memcpy( _rRom.riInfo.cTrackName, pnhHeader->GetTrackName(), sizeof( _rRom.riInfo.cTrackName ) );
+
+				// Padding.
+				while ( _rRom.vPrgRom.size() & 0xFFF ) {
+					_rRom.vPrgRom.push_back( 0 );
+				}
+				return true;
+			}
+		}
 		if ( _vRom.size() >= sizeof( LSN_NES_HEADER ) ) {
 			size_t stDataSize = _vRom.size() - sizeof( LSN_NES_HEADER );
 			const uint8_t * pui8Data = _vRom.data() + sizeof( LSN_NES_HEADER );

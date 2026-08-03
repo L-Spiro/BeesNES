@@ -100,6 +100,7 @@ namespace lsn {
 		m_bStopThread = false;
 		m_bPoll = false;
 		m_fCachedTemperature = GetTemperature();
+		m_sNoiseBufferIdx = m_sTickCnt = 0;
 		m_thThread = std::thread( &CCpuTemperatureReader::ThreadRoutine, this );
 	}
 
@@ -247,6 +248,12 @@ namespace lsn {
 #else
 		return -999.0f;
 #endif
+	}
+
+	/**
+	 * \brief Performs a per-frame update.
+	 */
+	void CCpuTemperatureReader::Tick() {
 	}
 
 }	// namespace lsn

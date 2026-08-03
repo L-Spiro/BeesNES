@@ -16,7 +16,7 @@
 namespace lsn {
 
 	/**
-	 * Class LSN_ROM
+	 * Struct LSN_ROM
 	 * \brief ROM data.
 	 *
 	 * Description: ROM data.
