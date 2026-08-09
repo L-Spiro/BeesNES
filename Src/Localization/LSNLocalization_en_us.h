@@ -19,7 +19,7 @@
 #define LSN_VULKAN__1														Vulkan® 1
 #define LSN_METAL_															Metal®
 
-#define LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_							One-Time Conversion of XML Database. Please Wait.
+#define LSN_PERFORMING_ONE_TIME_CONVERSION_OF_XML_DATABASE__PLEASE_WAIT_	Performing One-Time Conversion of XML Database. Please Wait.
 
 #define LSN_OPTIONS_TXT														Options
 #define LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_					All Supported Files (*.nes, *.zip)\0*.nes;*.zip\0

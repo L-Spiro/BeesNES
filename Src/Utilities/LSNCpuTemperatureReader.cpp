@@ -93,9 +93,7 @@ namespace lsn {
 	 */
 	void CCpuTemperatureReader::StartThread() {
 		std::unique_lock<std::mutex> uLock( m_mMutex );
-		if ( m_thThread.joinable() ) {
-			return;
-		}
+		if ( m_thThread.joinable() ) { return; }
 	
 		m_bStopThread = false;
 		m_bPoll = false;

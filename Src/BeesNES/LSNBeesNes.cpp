@@ -1165,10 +1165,10 @@ namespace lsn {
 	 * \return Returns true if a palette was opened.
 	 **/
 	bool CBeesNes::ApplyPaletteOptions() {
-		LSN_PALETTE_OPTIONS poOptions = Options().poThisGamePalette[m_pmSystem].bUseGlobal ? Options().poGlobalPalettes[m_pmSystem] : Options().poThisGamePalette[m_pmSystem];
+		const LSN_PALETTE_OPTIONS * ppoOptions = Options().poThisGamePalette[m_pmSystem].bUseGlobal ? &Options().poGlobalPalettes[m_pmSystem] : &Options().poThisGamePalette[m_pmSystem];
 
 		if ( m_psbSystem ) {
-			std::wstring wsPath = poOptions.wsPath;
+			std::wstring wsPath = ppoOptions->wsPath;
 			if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
 				wsPath.clear();
 				switch ( m_pmSystem ) {
@@ -1196,8 +1196,8 @@ namespace lsn {
 				if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
 					// If this is a per-game option, try the global option.
 					if ( !Options().poThisGamePalette[m_pmSystem].bUseGlobal ) {
-						poOptions = Options().poGlobalPalettes[m_pmSystem];
-						wsPath = poOptions.wsPath;
+						ppoOptions = &Options().poGlobalPalettes[m_pmSystem];
+						wsPath = ppoOptions->wsPath;
 						if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
 							// Defaults were already attempted.  Nothing we can do.
 							return false;
@@ -1207,8 +1207,8 @@ namespace lsn {
 				}
 			}
 			// Success path.  Put the palette where it needs to go.
-			std::memcpy( m_gCrtGamma, poOptions.gCrtGamma, sizeof( m_gCrtGamma ) );
-			m_gMonitorGamma = poOptions.gMonitorGamma;
+			std::memcpy( m_gCrtGamma, ppoOptions->gCrtGamma, sizeof( m_gCrtGamma ) );
+			m_gMonitorGamma = ppoOptions->gMonitorGamma;
 
 			lsn::LSN_PALETTE * ppPal = m_psbSystem->Palette();
 			bool bRet = true;

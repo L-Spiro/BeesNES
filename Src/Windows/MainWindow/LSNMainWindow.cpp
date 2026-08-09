@@ -296,7 +296,7 @@ namespace lsn {
 			if ( !std::filesystem::exists( pFastDatabase ) ) {
 				pDatabase /= L"nes20db.zip";
 				std::wstring wsTitle = GetTextW();
-				SetTextW( LSN_LSTR( LSN_ONE_TIME_CONVERSION_OF_XML_DATABASE_ ) );
+				SetTextW( LSN_LSTR( LSN_PERFORMING_ONE_TIME_CONVERSION_OF_XML_DATABASE__PLEASE_WAIT_ ) );
 				CDatabase::ConvertXmlDatabase( pDatabase, pFastDatabase );
 				SetTextW( wsTitle.c_str() );
 			}

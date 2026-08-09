@@ -107,8 +107,8 @@ namespace lsn {
 		size_t sPagesSize = ui32W * ui32H * 4;
 		size_t sNewPagesSize = ui32NewW * ui32H;
 
-		uint32_t ui32DstW = ui32H;
-		uint32_t ui32DstH = ui32NewW;
+		/*uint32_t ui32DstW = ui32H;
+		uint32_t ui32DstH = ui32NewW;*/
 		for ( size_t I = 0; I < (rRes.bAlpha ? 4 : 3); ++I ) {
 			if ( I == 3 ) {
 				// Alpha channel.

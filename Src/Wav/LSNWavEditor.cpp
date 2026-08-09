@@ -454,6 +454,7 @@ namespace lsn {
 		dFadeStart += _pfFile.dOpeningSilence;
 
 		double dFileVol = 1.0;
+		double dApplyVol = 1.0;
 		// For each channel.
 		for ( size_t J = 0; J < vSamples.size(); ++J ) {
 			vSamples[J].resize( size_t( sEndSample ) );
@@ -705,6 +706,15 @@ namespace lsn {
 					}
 				}
 
+				// Before fading, calculate RMS and final volume if necessary.
+				if ( LSN_VT_LOUDNESS == _oOutput.i32VolType ) {
+					double dChannelMax = ee::CExpEval::CalcRmsGated<large_vec>( vThis, 0.0 * _pfFile.dVolume ) * std::abs( _pfFile.dVolume );
+
+					if ( dChannelMax != 0.0 ) {
+						dApplyVol = std::max( 1.0 / dChannelMax * _oOutput.dLoudness, dApplyVol );
+					}
+				}
+
 
 				{
 					// Apply any fading.
@@ -828,7 +838,7 @@ namespace lsn {
 
 		
 		// Apply volume.
-		double dApplyVol = 1.0;
+		
 		switch ( _oOutput.i32VolType ) {
 			case LSN_VT_ABS : {
 				dApplyVol = _oOutput.dAbsoluteVol;
@@ -847,14 +857,17 @@ namespace lsn {
 				break;
 			}
 			case LSN_VT_LOUDNESS : {
+				// Main RMS logic handled before the fade.  Post-fade, apply anti-clip measures.
 				double dMax = 0.0;
 				for ( auto J = vSamples.size(); J--; ) {
-					double dChannelMax = ee::CExpEval::CalcRmsGated<large_vec>( vSamples[J], 0.1 );
+					double dChannelMax = ee::CExpEval::MaxVec<large_vec>( vSamples[J] );
 
 					dMax = std::max( dMax, dChannelMax );
 				}
-				if ( dMax != 0.0 ) {
-					dApplyVol = 1.0 / dMax * _oOutput.dLoudness;
+				double dPeak = dMax * dApplyVol;
+				// 0.98855309465693885773163174235378392040729522705078125 == pow( 10, -0.1 / 20.0 ) == -0.1 dB.
+				if ( dPeak > 0.98855309465693885773163174235378392040729522705078125 ) {
+					dApplyVol = 0.98855309465693885773163174235378392040729522705078125 / dMax;
 				}
 				break;
 			}

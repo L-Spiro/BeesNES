@@ -737,7 +737,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies);$(SolutionDir)$(Platform)\$(Configuration)\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -767,7 +767,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -797,7 +797,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -827,7 +827,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -857,7 +857,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -887,7 +887,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;$(SolutionDir)$(Platform)\Debug\LSXML.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -917,7 +917,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;openal32.lib;%(AdditionalDependencies);$(SolutionDir)$(Platform)\$(Configuration)\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -947,7 +947,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -977,7 +977,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1007,7 +1007,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1037,7 +1037,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Debug\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Debug\LSWindows.lib;$(SolutionDir)$(Platform)\Debug\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Debug\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1067,7 +1067,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;$(SolutionDir)$(Platform)\Debug\LSXML.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1100,7 +1100,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1133,7 +1133,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1166,7 +1166,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1199,7 +1199,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1232,7 +1232,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1265,7 +1265,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;$(SolutionDir)$(Platform)\Release\LSXML.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1299,7 +1299,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1333,7 +1333,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1367,7 +1367,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1401,7 +1401,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1435,7 +1435,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1468,7 +1468,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1501,7 +1501,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1534,7 +1534,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1567,7 +1567,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1600,7 +1600,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Release\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Release\LSWindows.lib;$(SolutionDir)$(Platform)\Release\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Release\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1633,7 +1633,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSWindows.lib;$(SolutionDir)$(Platform)\$(Configuration)\LSon.lib;$(SolutionDir)$(Platform)\Release\LSXML.lib;openal32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1667,7 +1667,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1701,7 +1701,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1735,7 +1735,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1769,7 +1769,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -1803,7 +1803,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\Final\ExpressionEvaluator.lib;$(SolutionDir)$(Platform)\Final\LSWindows.lib;$(SolutionDir)$(Platform)\Final\LSon.lib;openal32.lib;%(AdditionalDependencies)$(SolutionDir)$(Platform)\Final\LSXML.lib</AdditionalDependencies>
-      <StackCommitSize>1048576</StackCommitSize>
+      <StackCommitSize>2097152</StackCommitSize>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
