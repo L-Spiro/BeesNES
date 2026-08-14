@@ -29,6 +29,8 @@ namespace lsn {
 				// Get Left and Right controls together.
 				uint8_t ui8Left = Poll( LSN_B_LEFT );
 				uint8_t ui8Right = Poll( LSN_B_RIGHT );
+				uint8_t ui8LeftSrc = ui8Left;
+				uint8_t ui8RightSrc = ui8Right;
 				if ( m_bDisallowInvalidDpad ) {
 					// Only one or the other may be pressed.
 					if ( !m_ui8PrevStatus[LSN_B_LEFT] && ui8Left ) {
@@ -46,13 +48,15 @@ namespace lsn {
 				}
 				m_ui8Status |= ui8Left * LSN_IB_LEFT;
 				m_ui8Status |= ui8Right * LSN_IB_RIGHT;
-				m_ui8PrevStatus[LSN_B_LEFT] = ui8Left;
-				m_ui8PrevStatus[LSN_B_RIGHT] = ui8Right;
+				m_ui8PrevStatus[LSN_B_LEFT] = ui8LeftSrc;
+				m_ui8PrevStatus[LSN_B_RIGHT] = ui8RightSrc;
 			}
 			{
 				// Get Up and Down controls together.
 				uint8_t ui8Up = Poll( LSN_B_UP );
 				uint8_t ui8Down = Poll( LSN_B_DOWN );
+				uint8_t ui8UpSrc = ui8Up;
+				uint8_t ui8DownSrc = ui8Down;
 				if ( m_bDisallowInvalidDpad ) {
 					// Only one or the other may be pressed.
 					if ( !m_ui8PrevStatus[LSN_B_UP] && ui8Up ) {
@@ -70,8 +74,8 @@ namespace lsn {
 				}
 				m_ui8Status |= ui8Up * LSN_IB_UP;
 				m_ui8Status |= ui8Down * LSN_IB_DOWN;
-				m_ui8PrevStatus[LSN_B_UP] = ui8Up;
-				m_ui8PrevStatus[LSN_B_DOWN] = ui8Down;
+				m_ui8PrevStatus[LSN_B_UP] = ui8UpSrc;
+				m_ui8PrevStatus[LSN_B_DOWN] = ui8DownSrc;
 			}
 
 			uint8_t ui8Tmp;

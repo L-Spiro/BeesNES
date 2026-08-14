@@ -340,6 +340,13 @@ namespace lsn {
 		const CSystemBase *						GetSystem() const { return m_psbSystem; }
 
 		/**
+		 * Determines whether a ROM is loaded or not.
+		 *
+		 * \return Returns true if the system pointer is valid and the system has a loaded ROM file.
+		 */
+		bool									IsRomLoaded() const;
+
+		/**
 		 * Gets the current render information.
 		 *
 		 * \return Returns a constant reference to the render state.

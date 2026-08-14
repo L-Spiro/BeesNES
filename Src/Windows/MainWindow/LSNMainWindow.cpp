@@ -425,6 +425,12 @@ namespace lsn {
 										u16sPath.append( vFinalFiles[dwIdx].c_str() );
 										u16sPath += u"}";
 										LoadRom( vExtracted, u16sPath );
+
+										CUtilities::LSN_FILE_PATHS fpPath;
+										CUtilities::DeconstructFilePath( u16sPath, fpPath );
+										fpPath.u16sPath.pop_back();	// Pops the trailing u'\\'.
+										m_u16sLastZip = fpPath.u16sPath;
+										m_u16sLastRom = fpPath.u16sFile;
 										return LSW_H_CONTINUE;
 									}
 								}
@@ -463,6 +469,28 @@ namespace lsn {
 				StopThread();
 				m_bnEmulator.PowerCycle();
 				StartThread();
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_RELOAD_ROM : {
+				lsn::DebugW( std::format( L"ROM: {}\r\nZIP: {}\r\n\r\n", (wchar_t *)m_u16sLastRom.c_str(), (wchar_t *)m_u16sLastZip.c_str() ).c_str() );
+				if ( m_u16sLastRom.empty() ) { break; }
+				if ( m_u16sLastZip.empty() ) {
+					// Not loaded from a ZIP file.
+					lsn::CStdFile sfFile;
+					if ( sfFile.Open( m_u16sLastRom.c_str() ) ) {
+						std::vector<uint8_t> vExtracted;
+						if ( sfFile.LoadToMemory( vExtracted ) ) {
+							auto u16sRom = m_u16sLastRom;
+							LoadRom( vExtracted, u16sRom );
+						}
+					}
+				}
+				else {
+					// Loaded from a ZIP file.
+					auto u16sZip = m_u16sLastZip;
+					auto u16sRom = m_u16sLastRom;
+					LoadZipRom( u16sZip, u16sRom );
+				}
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_POWER_OFF : {
@@ -1435,6 +1463,10 @@ namespace lsn {
 						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
 						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					} catch ( ... ) {}
+
+					::EnableMenuItem(
+						_hMenu, uiId,
+						MF_BYCOMMAND | (m_bnEmulator.IsRomLoaded() ? MF_ENABLED : MF_GRAYED) );
 					break;
 				}
 				case CMainWindowLayout::LSN_MWMI_POWER_CYCLE : {
@@ -1448,8 +1480,25 @@ namespace lsn {
 						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
 						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					} catch ( ... ) {}
+
+					::EnableMenuItem(
+						_hMenu, uiId,
+						MF_BYCOMMAND | (m_bnEmulator.IsRomLoaded() ? MF_ENABLED : MF_GRAYED) );
 					break;
 				}
+				case CMainWindowLayout::LSN_MWMI_RELOAD_ROM : {
+					::EnableMenuItem(
+						_hMenu, uiId,
+						MF_BYCOMMAND | (!m_u16sLastRom.empty() ? MF_ENABLED : MF_GRAYED) );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_POWER_OFF : {
+					::EnableMenuItem(
+						_hMenu, uiId,
+						MF_BYCOMMAND | (m_bnEmulator.IsRomLoaded() ? MF_ENABLED : MF_GRAYED) );
+					break;
+				}
+
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_NONE : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_INDEXED ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -2177,6 +2226,8 @@ namespace lsn {
 			m_bnEmulator.GetSystem()->ResetState( false );
 			m_cClock.SetStartingTick();
 			StartThread();
+			m_u16sLastRom = _s16Path;
+			m_u16sLastZip.clear();
 			return true;
 		}
 		::SetWindowTextW( Wnd(), LSN_LSTR( LSN_BEESNES ) );
@@ -2203,7 +2254,12 @@ namespace lsn {
 						u16sPath += u"{";
 						u16sPath.append( vFiles[I].c_str() );
 						u16sPath += u"}";
-						return LoadRom( vExtracted, u16sPath );
+						if ( LoadRom( vExtracted, u16sPath ) ) {
+							m_u16sLastZip = _s16ZipPath;
+							m_u16sLastRom = _s16File;
+							return true;
+						}
+						return false;
 					}
 				}
 			}

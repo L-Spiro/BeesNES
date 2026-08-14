@@ -1498,7 +1498,8 @@ namespace lsn {
 		std::vector<CDatabase::LSN_DATABASE_ENTRY> vEntries;
 		try {
 			vFile.push_back( 0 );
-			if ( !xXml.SetXml( reinterpret_cast<const char *>(vFile.data()) ) ) { return 0; }
+			vFile.push_back( 0 );
+			if ( !xXml.SetXml( reinterpret_cast<char *>(vFile.data()) ) ) { return 0; }
 
 			auto pxcContainer = xXml.GetContainer();
 			if ( !pxcContainer ) { return 0; }
@@ -1528,105 +1529,106 @@ namespace lsn {
 			for ( size_t I = 0; I < ptRoot->Size(); ++I ) {
 				auto ptThis = ptRoot->GetChild( I );
 				if ( !ptThis ) { return sLoaded; }
-				std::string sName = pxcContainer->GetString( ptThis->Value().stNameString );
+				auto sName = pxcContainer->GetString( ptThis->Value().stNameString );
 				// Should have 6 children.
 				CDatabase::LSN_DATABASE_ENTRY deEntry;
+				std::memset( &deEntry, 0, sizeof( deEntry ) );
 				for ( size_t C = 0; C < ptThis->Size(); ++C ) {
 					auto ptChild = ptThis->GetChild( C );
 					
 					if ( ptChild->Value().stNameString == sPrgRom ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.prPrgRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.prPrgRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 16 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								std::strncpy( deEntry.prPrgRom.szSha1, sThisAttrValu.c_str(), 40 );
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.prPrgRom.szSha1, sThisAttrValu.data(), 40 );
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSum16 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.prPrgRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.prPrgRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 16 ));
 							}
 						}
 					}
 					else if ( ptChild->Value().stNameString == sChrRom ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.crChrRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.crChrRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 16 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								std::strncpy( deEntry.crChrRom.szSha1, sThisAttrValu.c_str(), 40 );
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.crChrRom.szSha1, sThisAttrValu.data(), 40 );
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSum16 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.crChrRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.crChrRom.ui16Sum16 = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 16 ));
 							}
 						}
 					}
 					else if ( ptChild->Value().stNameString == sRom ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sSize ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.rRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.rRom.ui32Size = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sCrc32 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.rRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 16 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.rRom.ui32Crc32 = static_cast<uint32_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 16 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSha1 ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								std::strncpy( deEntry.rRom.szSha1, sThisAttrValu.c_str(), 40 );
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								std::strncpy( deEntry.rRom.szSha1, sThisAttrValu.data(), 40 );
 							}
 						}
 					}
 					else if ( ptChild->Value().stNameString == sPcb ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sMapper ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.pPcb.ui16Mapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui16Mapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sSubMapper ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.pPcb.ui16SubMapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui16SubMapper = static_cast<uint16_t>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sMirroring ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.pPcb.ui8Mirroring = sThisAttrValu.c_str()[0];
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.ui8Mirroring = sThisAttrValu.data()[0];
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sBattery ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.pPcb.bBattery = ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ) != 0;
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.pPcb.bBattery = ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ) != 0;
 							}
 						}
 					}
 					else if ( ptChild->Value().stNameString == sConsole ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sType ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.cConsole.ctType = static_cast<LSN_CONSOLE_TYPE>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.cConsole.ctType = static_cast<LSN_CONSOLE_TYPE>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 							else if ( ptChild->Value().vAttributes[A].stNameString == sRegion ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.cConsole.nrRegion = static_cast<LSN_NES2_REGION>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.cConsole.nrRegion = static_cast<LSN_NES2_REGION>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 						}
 					}
 					else if ( ptChild->Value().stNameString == sExpansion ) {
 						for ( size_t A = 0; A < ptChild->Value().vAttributes.size(); ++A ) {
 							if ( ptChild->Value().vAttributes[A].stNameString == sType ) {
-								std::string sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
-								deEntry.eExpansion.edType = static_cast<LSN_EXPANSION_DEVICE>(ee::CExpEval::StoULL( sThisAttrValu.c_str(), 10 ));
+								auto sThisAttrValu = pxcContainer->GetString( ptChild->Value().vAttributes[A].stValueString );
+								deEntry.eExpansion.edType = static_cast<LSN_EXPANSION_DEVICE>(ee::CExpEval::StoULL( sThisAttrValu.data(), 10 ));
 							}
 						}
 					}

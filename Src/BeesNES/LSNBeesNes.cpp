@@ -812,6 +812,18 @@ namespace lsn {
 	}
 
 	/**
+	 * Determines whether a ROM is loaded or not.
+	 *
+	 * \return Returns true if the system pointer is valid and the system has a loaded ROM file.
+	 */
+	bool CBeesNes::IsRomLoaded() const {
+		if LSN_LIKELY( m_psbSystem ) {
+			return m_psbSystem->IsRomLoaded();
+		}
+		return false;
+	}
+
+	/**
 	 * If the render buffer is dirty, a render is performed (PPU buffer -> Filters -> Post-Processing).
 	 *	This should be called inside the same critical section/mutex that calls Swap().
 	 *
@@ -964,8 +976,10 @@ namespace lsn {
 	 * Pauses the current ROM.
 	 **/
 	void CBeesNes::PauseRom() {
-		if LSN_LIKELY( m_psbSystem ) {
-			m_psbSystem->PauseRom();
+		for ( auto I = std::size( m_psbSystems ); I--; ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
+				m_psbSystems[I]->PauseRom();
+			}
 		}
 	}
 
@@ -973,8 +987,10 @@ namespace lsn {
 	 * Unpauses the current ROM.
 	 **/
 	void CBeesNes::UnpauseRom() {
-		if LSN_LIKELY( m_psbSystem ) {
-			m_psbSystem->UnpauseRom();
+		for ( auto I = std::size( m_psbSystems ); I--; ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
+				m_psbSystems[I]->UnpauseRom();
+			}
 		}
 	}
 
@@ -984,8 +1000,10 @@ namespace lsn {
 	void CBeesNes::TogglePauseRom() {
 		CCpuTemperatureReader ctrTemp;
 		lsn::DebugA( std::format( "Temperature: {}\r\n\r\n", ctrTemp.GetTemperature() ).c_str() );
-		if LSN_LIKELY( m_psbSystem ) {
-			m_psbSystem->TogglePauseRom();
+		for ( auto I = std::size( m_psbSystems ); I--; ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
+				m_psbSystems[I]->TogglePauseRom();
+			}
 		}
 	}
 

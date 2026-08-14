@@ -153,12 +153,10 @@ namespace lsn {
 			if ( m_bPoll ) {
 				m_bPoll = false;
 			
-				// Unlock before doing hardware I/O to avoid blocking GetCachedTemperature() calls on the main thread.
 				uLock.unlock(); 
 
 				float fTemp = GetTemperature();
 
-				// Re-lock to safely update the cached result.
 				uLock.lock();
 				m_fCachedTemperature = fTemp;
 			}

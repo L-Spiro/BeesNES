@@ -368,6 +368,11 @@ namespace lsn {
 		/** DirectInput 8 controller inputs. */
 		std::vector<CUsbControllerBase *>		m_pdi8cControllers;
 
+		/** The last ROM file loaded. */
+		std::u16string							m_u16sLastRom;
+		/** The last ZIP file loaded. */
+		std::u16string							m_u16sLastZip;
+
 		/** Outside "is alive" atomic. */
 		std::atomic_bool *						m_pabIsAlive;
 		/** A clock. */

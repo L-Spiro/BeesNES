@@ -164,8 +164,6 @@ namespace lsn {
 		 * Gets the current master counter.  During a Tick(), the components are marched toward GetMasterCounter().  The Tick() doesn't end until all of the components have ticked up to GetMasterCounter().
 		 *	But during the Tick(), GetCurMasterCounter() provides the time of the last-updated component.  Typically only components access this, and it tells the component the actual time of its update.
 		 * 
-		 * \param PARM DESC
-		 * \param PARM DESC
 		 * \return If accessed by the currently updating component, the update time of that component is returned.  If accessed by the outside, the returned value represents the last time any component was updated.
 		 **/
 		inline uint64_t									GetCurMasterCounter() const { return m_ui64CurMasterCounter; }
