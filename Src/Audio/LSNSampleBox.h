@@ -299,7 +299,7 @@ namespace lsn {
 		inline bool											HasCoefficients() const { return m_sSinc.vCeof.size() != 0; }
 
 		/**
-		 * Gets the output sample buffer, which should be cleared when teh samples are consumed.
+		 * Gets the output sample buffer, which should be cleared when the samples are consumed.
 		 * 
 		 * \return Returns a reference to the output samples.
 		 **/
