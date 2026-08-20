@@ -152,17 +152,17 @@ namespace lsn {
 		lsw::CWndClassEx wceEx(
 			[]( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam )->LRESULT {
 				switch ( _uMsg ) {
-					case WM_ERASEBKGND : return 1;
+					case WM_ERASEBKGND : { return 1; }
 					case WM_PAINT : {
 						PAINTSTRUCT ps;
 						::BeginPaint( _hWnd, &ps );
 						::EndPaint( _hWnd, &ps );
 						return 0;
 					}
-					case WM_PRINTCLIENT : return 0;
+					case WM_PRINTCLIENT : { return 0; }
 				}
 				return ::DefWindowProcW( _hWnd, _uMsg, _wParam, _lParam );
-			}, LSN_VULKAN_TARGET_CLASS, CS_DBLCLKS, lsw::CBase::GetThisHandle(), NULL, ::LoadCursorW( NULL, IDC_ARROW ), NULL );
+			}, LSN_VULKAN_TARGET_CLASS, CS_DBLCLKS | CS_OWNDC, lsw::CBase::GetThisHandle(), NULL, ::LoadCursorW( NULL, IDC_ARROW ), NULL );
 		return lsw::CBase::RegisterClassExW( wceEx.Obj() ) != 0;
 #else
 		// Platforms such as macOS/iOS use CAMetalLayer backed by NSView/UIView without manual window class registration.
@@ -723,7 +723,7 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		if ( hWndTarget && ::IsWindow( hWndTarget ) ) { return true; }
 		if ( !pwParent ) { return false; }
-		constexpr DWORD dwStyle   = WS_CHILD | WS_VISIBLE;
+		constexpr DWORD dwStyle   = WS_CHILD | WS_VISIBLE /*| WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/;
 		constexpr DWORD dwExStyle = WS_EX_NOPARENTNOTIFY;
 		rScreenRect = pwParent->VirtualClientRect( nullptr );
 		hWndTarget = ::CreateWindowExW(

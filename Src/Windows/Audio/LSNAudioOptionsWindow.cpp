@@ -88,7 +88,10 @@ namespace lsn {
 			}
 			ptTab->SetCheckable( 1 );
 			ptTab->SetChecked( 1, !m_poOptions->aoThisGameAudioOptions.bUseGlobal );
-			if ( m_poOptions && !m_poOptions->aoThisGameAudioOptions.bUseGlobal ) {
+			if ( m_poOptions && m_poOptions->ui16AudioOptionsTab < m_vPages.size() ) {
+				ptTab->SetCurSel( m_poOptions->ui16AudioOptionsTab );
+			}
+			else if ( m_poOptions && !m_poOptions->aoThisGameAudioOptions.bUseGlobal ) {
 				ptTab->SetCurSel( 1 );
 			}
 			else {
@@ -100,6 +103,9 @@ namespace lsn {
 			rWindow = WindowRect();
 			::MoveWindow( Wnd(), rWindow.left, rWindow.top, rTab.Width(), rTab.Height() + lBottomSpace, FALSE );
 		}
+
+		
+
 		if ( m_vPages.size() >= 2 ) {
 			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Update();
 		}
@@ -158,14 +164,32 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles WM_COMMAND from a menu.
+	 * \brief Invoked for menu command selections.
+	 *
+	 * \param _wId The menu command identifier.
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CAudioOptionsWindow::MenuCommand( WORD _wId ) {
+		switch ( _wId ) {
+			case IDCANCEL : {}													LSN_FALLTHROUGH
+			case Layout::LSN_AOWI_CANCEL : {
+				return Close();
+			}
+		}
+		
+		return Parent::MenuCommand( _wId );
+	}
+
+	/**
 	 * Saves the current input configuration and closes the dialog.
 	 */
 	void CAudioOptionsWindow::SaveAndClose() {
+		lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( Layout::LSN_AOWI_TAB ));
 		if ( m_vPages.size() >= 3 ) {
 			std::wstring wsErr;
 			auto pwErrorWidget = reinterpret_cast<CAudioOptionsRecordingPage *>(m_vPages[2])->Verify( wsErr );
 			if ( pwErrorWidget ) {
-				lsw::CTab * ptTab = reinterpret_cast<lsw::CTab *>(FindChild( Layout::LSN_AOWI_TAB ));
 				if ( ptTab ) {
 					ptTab->SetCurSel( 2 );
 				}
@@ -183,6 +207,10 @@ namespace lsn {
 		}
 		if ( m_vPages.size() >= 2 ) {
 			reinterpret_cast<CAudioOptionsGeneralPage<false> *>(m_vPages[1])->Save();
+		}
+
+		if ( m_poOptions ) {
+			m_poOptions->ui16AudioOptionsTab = uint16_t( ptTab->GetCurSel() );
 		}
 		::EndDialog( Wnd(), 1 );
 	}

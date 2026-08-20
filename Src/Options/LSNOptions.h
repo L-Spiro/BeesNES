@@ -74,7 +74,7 @@ namespace lsn {
 
 		// == Inputs to Dialogs.
 		double												dApuHz;
-
+		uint32_t											ui16AudioOptionsTab = 0;									/**< Which tab was active when the audio options dialog closed? */
 		
 	};
 

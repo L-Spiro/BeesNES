@@ -803,6 +803,10 @@ namespace lsn {
 				m_pwWavEditorWindow = nullptr;
 				break;
 			}
+			case CWinUtilities::LSN_GPU_DRAW : {
+				Paint();
+				break;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -915,8 +919,8 @@ namespace lsn {
 							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
 							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
 							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
-							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+							/*bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;*/
 
 							pd3d->EndScene();
 						}
@@ -948,8 +952,8 @@ namespace lsn {
 							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
 							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
 							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
-							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+							/*bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;*/
 						}
 						
 						const HRESULT hrPresent = pscSwapChain->Present( 0, 0 );
@@ -980,8 +984,8 @@ namespace lsn {
 							m_biBlitInfo.bmiHeader.biHeight = m_bnEmulator.RenderInfo().ui32Height;
 							m_biBlitInfo.bmiHeader.biBitCount = m_bnEmulator.RenderInfo().ui16Bits;
 							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
-							bMirrored = m_bnEmulator.RenderInfo().bMirrored;
-							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
+							/*bMirrored = m_bnEmulator.RenderInfo().bMirrored;
+							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;*/
 						}
 						
 						if ( m_bnEmulator.RenderInfo().pfbPrevFilter ) {
@@ -1825,9 +1829,14 @@ namespace lsn {
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 			m_bnEmulator.Swap( _bActuallySwap );
 		}
-		::RedrawWindow( Wnd(), NULL, NULL,
-			RDW_INVALIDATE |
-			RDW_NOERASE | RDW_NOFRAME | RDW_ALLCHILDREN );
+		if ( (m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter()) ) {
+			::PostMessageW( Wnd(), CWinUtilities::LSN_GPU_DRAW, 0, 0 );
+		}
+		else {
+			::RedrawWindow( Wnd(), NULL, NULL,
+				RDW_INVALIDATE |
+				RDW_NOERASE | RDW_NOFRAME | RDW_ALLCHILDREN );
+		}
 	}
 
 	/**
