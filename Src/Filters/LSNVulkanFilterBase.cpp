@@ -723,7 +723,7 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		if ( hWndTarget && ::IsWindow( hWndTarget ) ) { return true; }
 		if ( !pwParent ) { return false; }
-		constexpr DWORD dwStyle   = WS_CHILD | WS_VISIBLE /*| WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/;
+		constexpr DWORD dwStyle   = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 		constexpr DWORD dwExStyle = WS_EX_NOPARENTNOTIFY;
 		rScreenRect = pwParent->VirtualClientRect( nullptr );
 		hWndTarget = ::CreateWindowExW(

@@ -1086,9 +1086,40 @@ namespace lsw {
 	 * \return Returns a HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CTreeListView::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
+		bool bRedraw = (::GetWindowLongW( Wnd(), GWL_STYLE ) & WS_VISIBLE) != 0;
+		if ( bRedraw ) {
+			::SendMessageW( Wnd(), WM_SETREDRAW, FALSE, 0 );
+		}
+
 		CWidget::Size( _wParam, _lWidth, _lHeight );
-		//::ShowScrollBar( Wnd(), SB_VERT, FALSE );
-		//ResizeControls( VirtualClientRect( nullptr ) );
+
+		INT iCols = GetColumnCount();
+		if ( iCols > 0 && !m_bAutoResizing ) {
+			m_bAutoResizing = true;
+
+			if ( m_lLastColBaseWidth == -1 ) {
+				m_lLastColBaseWidth = ListView_GetColumnWidth( Wnd(), iCols - 1 );
+			}
+
+			LONG lTotalExceptLast = 0;
+			for ( INT I = 0; I < iCols - 1; ++I ) {
+				lTotalExceptLast += ListView_GetColumnWidth( Wnd(), I );
+			}
+
+			LONG lRemaining = _lWidth - lTotalExceptLast;
+			LONG lTargetWidth = lRemaining > m_lLastColBaseWidth ? lRemaining : m_lLastColBaseWidth;
+
+			if ( ListView_GetColumnWidth( Wnd(), iCols - 1 ) != lTargetWidth ) {
+				ListView_SetColumnWidth( Wnd(), iCols - 1, lTargetWidth );
+			}
+
+			m_bAutoResizing = false;
+		}
+
+		if ( bRedraw ) {
+			::SendMessageW( Wnd(), WM_SETREDRAW, TRUE, 0 );
+			::RedrawWindow( Wnd(), NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN );
+		}
 
 		return LSW_H_CONTINUE;
 	}
@@ -1542,10 +1573,34 @@ namespace lsw {
 	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).
 	 */
 	void CTreeListView::UpdateListView() {
-		LSW_SETREDRAW srRedraw( this );
 		ClearCache();
 		size_t stTotal = CountExpanded();
-		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );
+		INT iNewCount = static_cast<INT>( stTotal );
+		INT iCurrentCount = ListView_GetItemCount( Wnd() );
+
+		if ( iNewCount < iCurrentCount ) {
+			INT iTopIndex = ListView_GetTopIndex( Wnd() );
+			INT iPerPage = ListView_GetCountPerPage( Wnd() );
+			
+			INT iMaxTop = iNewCount - iPerPage;
+			if ( iMaxTop < 0 ) { iMaxTop = 0; }
+
+			// If the current view is stranded past the new boundary, force the view up.
+			if ( iTopIndex > iMaxTop ) {
+				if ( iMaxTop == 0 ) {
+					// If we are shrinking to less than a single page, slam the view to the top.
+					::SendMessageW( Wnd(), WM_VSCROLL, MAKEWPARAM( SB_TOP, 0 ), 0 );
+				}
+				else {
+					ListView_EnsureVisible( Wnd(), iMaxTop, FALSE );
+				}
+			}
+		}
+
+		// Now it is safe to apply the new item count. The view is within valid bounds.
+		const_cast<CTreeListView *>(this)->SetItemCount( iNewCount );
+
+		LSW_SETREDRAW srRedraw( this );
 
 		UnfocusCollapsed();
 		size_t stHighlighted = FindHighlighted();
@@ -1714,10 +1769,60 @@ namespace lsw {
 			case WM_ERASEBKGND : {
 				break;
 			}
+			case WM_SIZE : {
+				if ( ptlThis ) {
+					LSW_RECT rTemp;
+					::GetClientRect( _hWnd, &rTemp );
+					/*LSW_HANDLED hHandled =*/ ptlThis->Size( _wParam, rTemp.Width(), rTemp.Height() );
+					//::RedrawWindow( _hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW );
+				}
+				break;
+			}
 
 			// =======================================
 			// List-View Messages.
 			// =======================================
+			case LVM_INSERTCOLUMNA : {}
+			case LVM_INSERTCOLUMNW : {}
+			case LVM_DELETECOLUMN : {
+				if ( ptlThis ) {
+					ptlThis->m_lLastColBaseWidth = -1;
+				}
+				break;
+			}
+			case WM_NOTIFY : {
+				if ( ptlThis ) {
+					NMHDR * pNmHdr = reinterpret_cast<NMHDR *>( _lParam );
+					HWND hHeader = ListView_GetHeader( _hWnd );
+					
+					if ( pNmHdr->hwndFrom == hHeader ) {
+						if ( pNmHdr->code == HDN_ITEMCHANGEDW || pNmHdr->code == HDN_ITEMCHANGEDA ) {
+							NMHEADERW * pNmHeader = reinterpret_cast<NMHEADERW *>( _lParam );
+							
+
+							if ( !ptlThis->m_bAutoResizing && pNmHeader->pitem && (pNmHeader->pitem->mask & HDI_WIDTH) ) {
+								int iCols = ptlThis->GetColumnCount();
+								if ( iCols > 0 && pNmHeader->iItem == iCols - 1 ) {
+									ptlThis->m_lLastColBaseWidth = pNmHeader->pitem->cxy;
+								}
+
+								if ( wpOrig ) {
+									//LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+									LRESULT lRes = CWidget::WindowProc( _hWnd, _uMsg, _wParam, _lParam );
+									lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+									
+									LSW_RECT rClient;
+									::GetClientRect( _hWnd, &rClient );
+									ptlThis->Size( 0, rClient.Width(), rClient.Height() );
+									
+									return lRes;
+								}
+							}
+						}
+					}
+				}
+				break;
+			}
 			case LVM_SETITEMSTATE : {
 				break;
 			}
