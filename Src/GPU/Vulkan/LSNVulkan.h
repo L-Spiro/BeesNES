@@ -183,7 +183,7 @@ namespace lsn {
 	 * \return Returns TRUE if Vulkan 1.0 functionality is available.
 	 **/
 	inline BOOL CVulkan::Supported() {
-		if ( m_bSupported == 3 ) { m_bSupported = IsSupported(); }
+		if LSN_UNLIKELY( m_bSupported == 3 ) { m_bSupported = IsSupported(); }
 		return m_bSupported;
 	}
 

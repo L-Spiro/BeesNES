@@ -233,6 +233,7 @@ namespace lsn {
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];						/**< The filter kernel. */
 		float												m_fFilterY[LSN_MAX_FILTER_SIZE];					/**< The filter kernel. */
+		float												m_fBleed = 0.80;									/**< The bleed amount. */
 		
 		float												m_fPhaseCosTable[12];								/**< The cosine phase table. */
 		float												m_fPhaseSinTable[12];								/**< The sine phase table. */

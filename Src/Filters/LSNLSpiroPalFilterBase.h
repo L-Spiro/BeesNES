@@ -241,6 +241,7 @@ namespace lsn {
 		LSN_ALIGN( 32 )
 		float												m_fFilter[LSN_MAX_FILTER_SIZE];						/**< The filter kernel. */
 		float												m_fFilterY[LSN_MAX_FILTER_SIZE];					/**< The filter kernel. */
+		float												m_fBleed = 0.80;									/**< The bleed amount. */
 
 		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;			/**< The filter function for chroma. */
 		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;		/**< The filter function for Y. */

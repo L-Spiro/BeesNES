@@ -305,35 +305,39 @@ namespace lsn {
 			}
 		}
 
-		// Now that enought ime has passed, it is probably safe to attempt to test GPU API's for support.
+		// Now that enough time has passed, it is probably safe to attempt to test GPU API's for support.
 		//	My only concern is that for other people, even supported GPU API's seem to fail to initialize
 		//	at start on their machines, and I can't reproduce it to know where the issue lies.
 		// Will doing this prematurely remove all GPU API's from the menu because of a bug I can't reproduce?
 #if defined( LSN_DX9 ) || defined( LSN_DX12 ) || defined( LSN_VULKAN1 )
 		HMENU hMenu = ::GetMenu( Wnd() );
 		if ( hMenu ) {
-			lsw::CHelpers::LSW_MENU_LOC mlMenuLoc;
+			UINT uiMenuLoc;
+			HMENU hTarget = NULL;
 #if defined( LSN_DX9 )
-			if ( lsw::CHelpers::FindMenuItemById( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_DX9_MENU, mlMenuLoc ) ) {
+			if ( (hTarget = lsw::CHelpers::FindMenuParentByCommand( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_BLARGG_UPSCALED, uiMenuLoc )) != NULL ) {
 				if ( !lsn::CDirectX9::Supported() ) {
-					::DeleteMenu( mlMenuLoc.hMenu, mlMenuLoc.uPos, MF_BYPOSITION );
+					::DeleteMenu( hTarget, uiMenuLoc, MF_BYPOSITION );
 					m_bnEmulator.SetCurFilter( CBeesNes::Direct3D9FilterToSoftware( m_bnEmulator.GetCurFilter() ) );
+					lsw::CHelpers::SanitizeMenuSeparators( hTarget );
 				}
 			}
 #endif	// #if defined( LSN_DX9 )
 #if defined( LSN_DX12 )
-			if ( lsw::CHelpers::FindMenuItemById( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_DX12_MENU, mlMenuLoc ) ) {
+			if ( (hTarget = lsw::CHelpers::FindMenuParentByCommand( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_NTSC_BLARGG_UPSCALED, uiMenuLoc )) != NULL ) {
 				if ( !lsn::CDirectX12::Supported() ) {
-					::DeleteMenu( mlMenuLoc.hMenu, mlMenuLoc.uPos, MF_BYPOSITION );
+					::DeleteMenu( hTarget, uiMenuLoc, MF_BYPOSITION );
 					m_bnEmulator.SetCurFilter( CBeesNes::Direct3D12FilterToSoftware( m_bnEmulator.GetCurFilter() ) );
+					lsw::CHelpers::SanitizeMenuSeparators( hTarget );
 				}
 			}
 #endif	// #if defined( LSN_DX12 )
 #if defined( LSN_VULKAN1 )
-			if ( lsw::CHelpers::FindMenuItemById( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_VULKAN_MENU, mlMenuLoc ) ) {
+			if ( (hTarget = lsw::CHelpers::FindMenuParentByCommand( hMenu, CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_NTSC_BLARGG_UPSCALED, uiMenuLoc )) != NULL ) {
 				if ( !lsn::CVulkan::Supported() ) {
-					::DeleteMenu( mlMenuLoc.hMenu, mlMenuLoc.uPos, MF_BYPOSITION );
+					::DeleteMenu( hTarget, uiMenuLoc, MF_BYPOSITION );
 					m_bnEmulator.SetCurFilter( CBeesNes::Vulkan1FilterToSoftware( m_bnEmulator.GetCurFilter() ) );
+					lsw::CHelpers::SanitizeMenuSeparators( hTarget );
 				}
 			}
 #endif	// #if defined( LSN_VULKAN1 )

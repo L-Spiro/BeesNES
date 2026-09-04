@@ -540,15 +540,16 @@ namespace lsn {
 	 * \param _ui32Width The width of the kernel.
 	 **/
 	void CLSpiroPalFilterBase::GenFilterKernel( uint32_t _ui32Width ) {
-		double dSum = 0.0;
+		//double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = m_pfFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
-			dSum += m_fFilter[I];
+			//dSum += m_fFilter[I];
 		}
-		double dNorm = 1.0 / dSum;
+		CUtilities::BakeBleedIntoKernel( m_fFilter, _ui32Width, m_fBleed );
+		/*double dNorm = 1.0 / dSum;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilter[I] = float( m_fFilter[I] * dNorm );
-		}
+		}*/
 #ifdef __AVX__
 		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {
 			for ( size_t I = 0; I < LSN_MAX_FILTER_SIZE; ++I ) {
@@ -567,15 +568,16 @@ namespace lsn {
 #endif	// #ifdef __AVX512F__
 
 
-		dSum = 0.0;
+		//dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilterY[I] = m_pfFilterFuncY( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
-			dSum += m_fFilterY[I];
+			//dSum += m_fFilterY[I];
 		}
-		dNorm = 1.0 / dSum;
+		/*dNorm = 1.0 / dSum;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilterY[I] = float( m_fFilterY[I] * dNorm );
-		}
+		}*/
+		CUtilities::BakeBleedIntoKernel( m_fFilterY, _ui32Width, m_fBleed );
 
 #ifdef __AVX__
 		for ( size_t J = 0; J < sizeof( __m256 ) / sizeof( float ); ++J ) {

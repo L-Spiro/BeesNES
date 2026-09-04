@@ -163,6 +163,16 @@ namespace lsn {
 		virtual LSW_HANDLED							DeviceChange( WORD _wDbtEvent, LPARAM _lParam );
 
 		/**
+		 * Handles WM_INPUT_DEVICE_CHANGE.
+		 * \brief Notified when raw-input devices are added or removed.
+		 *
+		 * \param _iNotifCode GIDC_ARRIVAL or GIDC_REMOVAL.
+		 * \param _hDevice Handle to the raw input device.
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED							InputDeviceChanged( INT /*_iNotifCode*/, HANDLE /*_hDevice*/ );
+
+		/**
 		 * Gets an array of the main buttons.  There will be 8 values in the array.
 		 * 
 		 * \return Returns an array containing the 8 primary buttons.

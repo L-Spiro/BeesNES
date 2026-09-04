@@ -1525,42 +1525,48 @@ namespace lsn {
     
 			::GetRawInputDeviceList( NULL, &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
 			if ( uiDeviceCount == 0 ) { return vKeyboards; }
+			try { 
+				std::vector<RAWINPUTDEVICELIST> vRawInputDeviceList( uiDeviceCount );
+				::GetRawInputDeviceList( vRawInputDeviceList.data(), &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
+				while ( uiDeviceCount != vRawInputDeviceList.size() ) {
+					vRawInputDeviceList.resize( uiDeviceCount );
+					::GetRawInputDeviceList( vRawInputDeviceList.data(), &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
+				}
     
-			std::vector<RAWINPUTDEVICELIST> vRawInputDeviceList( uiDeviceCount );
-			::GetRawInputDeviceList( vRawInputDeviceList.data(), &uiDeviceCount, sizeof( RAWINPUTDEVICELIST ) );
-    
-			for ( UINT uiIndex = 0; uiIndex < uiDeviceCount; ++uiIndex ) {
-				if ( vRawInputDeviceList[uiIndex].dwType == RIM_TYPEKEYBOARD ) {
-					UINT uiNameSize = 0;
-					::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, NULL, &uiNameSize );
+				for ( UINT uiIndex = 0; uiIndex < uiDeviceCount; ++uiIndex ) {
+					if ( vRawInputDeviceList[uiIndex].dwType == RIM_TYPEKEYBOARD ) {
+						UINT uiNameSize = 0;
+						::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, NULL, &uiNameSize );
             
-					if ( uiNameSize > 0 ) {
-						std::wstring vDeviceNameW;
-						vDeviceNameW.resize( uiNameSize );
-						::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, vDeviceNameW.data(), &uiNameSize );
-						std::string strHardwareId = ee::CExpEval::ToUtf8( vDeviceNameW );
-						if ( strHardwareId.size() > 0 ) {
-							// Parse \\?\HID#VID_XXXX&PID_YYYY#... down to VID_XXXX&PID_YYYY.
-							size_t sFirstHash = strHardwareId.find( '#' );
-							if ( sFirstHash != std::string::npos ) {
-								size_t sSecondHash = strHardwareId.find( '#', sFirstHash + 1 );
-								if ( sSecondHash != std::string::npos ) {
-									strHardwareId = strHardwareId.substr( sFirstHash + 1, sSecondHash - sFirstHash - 1 );
+						if ( uiNameSize > 0 ) {
+							std::wstring vDeviceNameW;
+							vDeviceNameW.resize( uiNameSize );
+							::GetRawInputDeviceInfoW( vRawInputDeviceList[uiIndex].hDevice, RIDI_DEVICENAME, vDeviceNameW.data(), &uiNameSize );
+							std::string strHardwareId = ee::CExpEval::ToUtf8( vDeviceNameW );
+							if ( strHardwareId.size() > 0 ) {
+								// Parse \\?\HID#VID_XXXX&PID_YYYY#... down to VID_XXXX&PID_YYYY.
+								size_t sFirstHash = strHardwareId.find( '#' );
+								if ( sFirstHash != std::string::npos ) {
+									size_t sSecondHash = strHardwareId.find( '#', sFirstHash + 1 );
+									if ( sSecondHash != std::string::npos ) {
+										strHardwareId = strHardwareId.substr( sFirstHash + 1, sSecondHash - sFirstHash - 1 );
+									}
+								}
+                    
+								if ( std::find( vKeyboards.begin(), vKeyboards.end(), strHardwareId ) == vKeyboards.end() ) {
+									vKeyboards.push_back( strHardwareId );
 								}
 							}
-                    
-							if ( std::find( vKeyboards.begin(), vKeyboards.end(), strHardwareId ) == vKeyboards.end() ) {
-								vKeyboards.push_back( strHardwareId );
-							}
 						}
-					}
-					else {
-						if ( std::find( vKeyboards.begin(), vKeyboards.end(), "Unknown_Windows_Keyboard" ) == vKeyboards.end() ) {
-							vKeyboards.push_back( "Unknown_Windows_Keyboard" );
+						else {
+							if ( std::find( vKeyboards.begin(), vKeyboards.end(), "Unknown_Windows_Keyboard" ) == vKeyboards.end() ) {
+								vKeyboards.push_back( "Unknown_Windows_Keyboard" );
+							}
 						}
 					}
 				}
 			}
+			catch ( ... ) { return std::vector<std::string>(); }
 
 #elif defined( __linux__ )
 			std::ifstream fsFile( "/proc/bus/input/devices" );
@@ -2622,6 +2628,43 @@ namespace lsn {
 		static double										DecayMultiplier( double _dStart, double _dTarget, double _dTime, double _dRate ) {
 			double dSteps = _dRate * _dTime;
 			return std::exp( std::log( _dTarget / _dStart ) / dSteps );
+		}
+
+		/**
+		 * \brief Applies an IIR rightward bleed to an existing pre-generated kernel.
+		 *
+		 * \param _pfKernel Pointer to the pre-generated FIR weights array. It is modified in place.
+		 * \param _sTaps Total number of taps in the kernel.
+		 * \param _fBleed The exponential decay factor [0, 1) simulating the IIR feedback.
+		 */
+		static void											BakeBleedIntoKernel( float * _pfKernel, size_t _sTaps, float _fBleed ) {
+			float fFeedback = 0.0f;
+			float fTotalSum = 0.0f;
+        
+			// Sweep right-to-left so the tail accumulates on the left side of the kernel.
+			for ( size_t I = _sTaps; I--; ) {
+				float fSample = (*(_pfKernel + I));
+				fFeedback = fSample + _fBleed * fFeedback;
+            
+				(*(_pfKernel + I)) = fFeedback;
+				fTotalSum += fFeedback;
+			}
+        
+			NormalizeKernel( _pfKernel, _sTaps, fTotalSum );
+		}
+		/**
+		 * \brief Normalizes a kernel so its sum equals 1.0.
+		 *
+		 * \param _pfKernel Pointer to the kernel array.
+		 * \param _uTaps Total number of taps.
+		 * \param _fTotal Reference to the calculated total sum.
+		 */
+		static void											NormalizeKernel( float *_pfKernel, size_t _sTaps, float &_fTotal ) {
+			if ( _fTotal > 0.0f ) {
+				for ( size_t I = 0; I < _sTaps; ++I ) {
+					(*(_pfKernel + I)) /= _fTotal;
+				}
+			}
 		}
 
 		/**
