@@ -148,7 +148,7 @@ namespace lsn {
 			// GetNextRecord will throw std::runtime_error on malformed data, which will propagate up.
 			// It returns false naturally when the "EOF" marker is hit.
 			while ( GetNextRecord( irRecord ) ) {
-				_psbTargetStream->MovePointerTo( irRecord.ui32Offset );
+				_psbTargetStream->MovePointerToOrExtendFileSize( irRecord.ui32Offset );
 
 				if ( irRecord.ui16Size == 0 ) {
 					// RLE Record.
@@ -166,7 +166,7 @@ namespace lsn {
 			if ( m_psbStream->ReadUi8( ui8Trunc[0] ) && m_psbStream->ReadUi8( ui8Trunc[1] ) && m_psbStream->ReadUi8( ui8Trunc[2] ) ) {
 				uint32_t ui32TruncSize = (static_cast<uint32_t>(ui8Trunc[0]) << 16) | (static_cast<uint32_t>(ui8Trunc[1]) << 8) | ui8Trunc[2];
 				// Moving the pointer past the current end of the stream should trigger an expansion/truncation in the stream handler.
-				_psbTargetStream->MovePointerTo( ui32TruncSize );
+				_psbTargetStream->MovePointerToOrExtendFileSize( ui32TruncSize );
 			}
 
 			return true;

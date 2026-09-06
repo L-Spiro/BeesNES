@@ -265,6 +265,14 @@ namespace lsn {
 		virtual uint64_t							MovePointerTo( uint64_t /*_ui64Pos*/, bool /*_bFromEnd*/ = false ) const { return 0; }
 
 		/**
+		 * Moves the file pointer to the given file position. If the new position is beyond the size of the stream, the stream will be enlarged.
+		 * 
+		 * \param _ui64Pos The new file position to set. If the new position is beyond the size of the stream, the stream will be enlarged.
+		 * \return Returns the new file position.
+		 **/
+		virtual uint64_t							MovePointerToOrExtendFileSize( uint64_t /*_ui64Pos*/ ) { return 0; }
+
+		/**
 		 * Gets the pointer to the current data in the stream.
 		 *
 		 * \return Returns a pointer to the current position in the vector.
@@ -284,6 +292,14 @@ namespace lsn {
 		 * \return Returns the current position of the stream.
 		 **/
 		virtual size_t								Pos() const { return 0; }
+
+		/**
+		 * Sets the stream size.
+		 * 
+		 * \param _sSize The new size of the stream.
+		 * \return Returns true if the stream was resized.
+		 **/
+		virtual bool								SetSize( size_t /*_sSize*/ ) { return false; }
 
 
 

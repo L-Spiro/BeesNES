@@ -42,7 +42,7 @@ namespace lsn {
 		 * \param _ui8Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadUi8( uint8_t &_ui8Value ) const {
+		virtual bool								ReadUi8( uint8_t &_ui8Value ) const override {
 			return Read( _ui8Value );
 		}
 
@@ -52,7 +52,7 @@ namespace lsn {
 		 * \param _ui16Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadUi16( uint16_t &_ui16Value ) const {
+		virtual bool								ReadUi16( uint16_t &_ui16Value ) const override {
 			return Read( _ui16Value );
 		}
 
@@ -62,7 +62,7 @@ namespace lsn {
 		 * \param _ui32Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadUi32( uint32_t &_ui32Value ) const {
+		virtual bool								ReadUi32( uint32_t &_ui32Value ) const override {
 			return Read( _ui32Value );
 		}
 
@@ -72,7 +72,7 @@ namespace lsn {
 		 * \param _ui64Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadUi64( uint64_t &_ui64Value ) const {
+		virtual bool								ReadUi64( uint64_t &_ui64Value ) const override {
 			return Read( _ui64Value );
 		}
 
@@ -82,7 +82,7 @@ namespace lsn {
 		 * \param _i8Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadI8( int8_t &_i8Value ) const {
+		virtual bool								ReadI8( int8_t &_i8Value ) const override {
 			return Read( _i8Value );
 		}
 
@@ -92,7 +92,7 @@ namespace lsn {
 		 * \param _i16Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadI16( int16_t &_i16Value ) const {
+		virtual bool								ReadI16( int16_t &_i16Value ) const override {
 			return Read( _i16Value );
 		}
 
@@ -102,7 +102,7 @@ namespace lsn {
 		 * \param _i32Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadI32( int32_t &_i32Value ) const {
+		virtual bool								ReadI32( int32_t &_i32Value ) const override {
 			return Read( _i32Value );
 		}
 
@@ -112,7 +112,7 @@ namespace lsn {
 		 * \param _i64Value Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadI64( int64_t &_i64Value ) const {
+		virtual bool								ReadI64( int64_t &_i64Value ) const override {
 			return Read( _i64Value );
 		}
 
@@ -122,7 +122,7 @@ namespace lsn {
 		 * \param _bValue Holds the return value.
 		 * \return Returns true if there was enough space left in the stream to read the value.
 		 */
-		virtual bool								ReadBool( bool &_bValue ) const {
+		virtual bool								ReadBool( bool &_bValue ) const override {
 			return Read<bool>( _bValue );
 		}
 
@@ -132,7 +132,7 @@ namespace lsn {
 		 * \param _sString Holds the return string.
 		 * \return Returns true if there was enough space left in the stream to read the string.
 		 **/
-		virtual bool								ReadString( std::string &_sString ) const {
+		virtual bool								ReadString( std::string &_sString ) const override {
 			_sString.clear();
 			uint32_t ui32Len;
 			if ( !Read( ui32Len ) ) { return false; }
@@ -143,9 +143,7 @@ namespace lsn {
 					_sString.push_back( char( ui8Tmp ) );
 				}
 			}
-			catch( ... ) {
-				return false;
-			}
+			catch( ... ) { return false; }
 			return true;
 		}
 
@@ -155,7 +153,7 @@ namespace lsn {
 		 * \param _u16String Holds the return string.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		virtual bool								ReadStringU16( std::u16string &_u16String ) const {
+		virtual bool								ReadStringU16( std::u16string &_u16String ) const override {
 			std::string sTmp;
 			if ( !ReadString( sTmp ) ) { return false; }
 
@@ -169,7 +167,7 @@ namespace lsn {
 		 * \param _wsString Holds the return string.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		virtual bool								ReadStringU16( std::wstring &_wsString ) const {
+		virtual bool								ReadStringU16( std::wstring &_wsString ) const override {
 			std::string sTmp;
 			if ( !ReadString( sTmp ) ) { return false; }
 
@@ -209,7 +207,7 @@ namespace lsn {
 		 * \param _ui8Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteUi8( uint8_t _ui8Value ) {
+		virtual bool								WriteUi8( uint8_t _ui8Value ) override {
 			return Write( _ui8Value );
 		}
 
@@ -219,7 +217,7 @@ namespace lsn {
 		 * \param _ui16Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteUi16( uint16_t _ui16Value ) {
+		virtual bool								WriteUi16( uint16_t _ui16Value ) override {
 			return Write( _ui16Value );
 		}
 
@@ -229,7 +227,7 @@ namespace lsn {
 		 * \param _ui32Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteUi32( uint32_t _ui32Value ) {
+		virtual bool								WriteUi32( uint32_t _ui32Value ) override {
 			return Write( _ui32Value );
 		}
 
@@ -239,7 +237,7 @@ namespace lsn {
 		 * \param _ui64Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteUi64( uint64_t _ui64Value ) {
+		virtual bool								WriteUi64( uint64_t _ui64Value ) override {
 			return Write( _ui64Value );
 		}
 
@@ -249,7 +247,7 @@ namespace lsn {
 		 * \param _i8Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteI8( int8_t _i8Value ) {
+		virtual bool								WriteI8( int8_t _i8Value ) override {
 			return Write( _i8Value );
 		}
 
@@ -259,7 +257,7 @@ namespace lsn {
 		 * \param _i16Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteI16( int16_t _i16Value ) {
+		virtual bool								WriteI16( int16_t _i16Value ) override {
 			return Write( _i16Value );
 		}
 
@@ -269,7 +267,7 @@ namespace lsn {
 		 * \param _i32Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteI32( int32_t _i32Value ) {
+		virtual bool								WriteI32( int32_t _i32Value ) override {
 			return Write( _i32Value );
 		}
 
@@ -279,7 +277,7 @@ namespace lsn {
 		 * \param _i64Value The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteI64( int64_t _i64Value ) {
+		virtual bool								WriteI64( int64_t _i64Value ) override {
 			return Write( _i64Value );
 		}
 
@@ -289,7 +287,7 @@ namespace lsn {
 		 * \param _bValue The value to write.
 		 * \return Returns true if there was enough space left in the stream to write the value.
 		 */
-		virtual bool								WriteBool( bool _bValue ) {
+		virtual bool								WriteBool( bool _bValue ) override {
 			return Write<bool>( _bValue );
 		}
 
@@ -299,7 +297,7 @@ namespace lsn {
 		 * \param _sString The string to write.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		virtual bool								WriteString( const std::u8string &_sString ) {
+		virtual bool								WriteString( const std::u8string &_sString ) override {
 			if constexpr ( sizeof( _sString.size() ) > sizeof( uint32_t ) ) {
 				if ( _sString.size() & (~size_t( INT_MAX ) << 1) ) {
 					if ( !WriteUi32( 0 ) ) { return false; }
@@ -319,7 +317,7 @@ namespace lsn {
 		 * \param _u16String The string to write.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		virtual bool								WriteStringU16( const std::u16string &_u16String ) {
+		virtual bool								WriteStringU16( const std::u16string &_u16String ) override {
 			bool bErrored = false;
 			std::u8string sTmp = CUtilities::Utf16ToUtf8( _u16String.c_str(), &bErrored );
 			if ( bErrored ) {
@@ -334,7 +332,7 @@ namespace lsn {
 		 * \param _wsString The string to write.
 		 * \return Returns true if there was enough space left in the stream to write the string.
 		 **/
-		virtual bool								WriteStringU16( const std::wstring &_wsString ) {
+		virtual bool								WriteStringU16( const std::wstring &_wsString ) override {
 			bool bErrored = false;
 			std::u8string sTmp = CUtilities::Utf16ToUtf8( CUtilities::XStringToU16String( _wsString.c_str(), _wsString.size() ).c_str(), &bErrored );
 			if ( bErrored ) {
@@ -386,7 +384,7 @@ namespace lsn {
 		 * \param _sSize The total number of bytes to copy or skip.
 		 * \return Returns the total number of bytes copied.
 		 **/
-		virtual size_t								Read( uint8_t * _pui8Dst, size_t _sSize ) const {
+		virtual size_t								Read( uint8_t * _pui8Dst, size_t _sSize ) const override {
 			_sSize = std::min( _sSize, Remaining() );
 			if ( _pui8Dst ) {
 				std::memcpy( _pui8Dst, &m_vStream.data()[m_stPos], _sSize );
@@ -402,7 +400,7 @@ namespace lsn {
 		 * \param _sSize The total number of bytes to write.
 		 * \return Returns the total number of bytes written.
 		 **/
-		virtual size_t								Write( const uint8_t * _pui8Src, size_t _sSize ) {
+		virtual size_t								Write( const uint8_t * _pui8Src, size_t _sSize ) override {
 			if ( m_stPos + _sSize > m_vStream.size() ) {
 				m_vStream.resize( m_stPos + _sSize );
 			}
@@ -422,7 +420,7 @@ namespace lsn {
 		 * \param _i64Offset Amount by which to move the file pointer.
 		 * \return Returns the new line position.
 		 **/
-		virtual uint64_t							MovePointerBy( int64_t _i64Offset ) const {
+		virtual uint64_t							MovePointerBy( int64_t _i64Offset ) const override {
 			int64_t i64New = int64_t( m_stPos ) + _i64Offset;
 			m_stPos = static_cast<size_t>(std::clamp<int64_t>( i64New, 0, m_vStream.size() ));
 			return m_stPos;
@@ -435,10 +433,25 @@ namespace lsn {
 		 * \param _bFromEnd Whether _ui64Pos is from the end of the file or not. 
 		 * \return Returns the new file position.
 		 **/
-		virtual uint64_t							MovePointerTo( uint64_t _ui64Pos, bool _bFromEnd = false ) const {
+		virtual uint64_t							MovePointerTo( uint64_t _ui64Pos, bool _bFromEnd = false ) const override {
 			int64_t i64New = _bFromEnd ? (m_vStream.size() - _ui64Pos) : _ui64Pos;
 			m_stPos = static_cast<size_t>(std::clamp<int64_t>( i64New, 0, m_vStream.size() ));
 			return m_stPos;
+		}
+
+		/**
+		 * Moves the file pointer to the given file position. If the new position is beyond the size of the stream, the stream will be enlarged.
+		 * 
+		 * \param _ui64Pos The new file position to set. If the new position is beyond the size of the stream, the stream will be enlarged.
+		 * \return Returns the new file position. If the new position does not match the desired position, an error occurred.
+		 **/
+		virtual uint64_t							MovePointerToOrExtendFileSize( uint64_t _ui64Pos ) override {
+			if ( _ui64Pos > m_vStream.size() ) {
+				if ( _ui64Pos > MAXSIZE_T ) { return m_stPos; }
+				if ( !SetSize( size_t( _ui64Pos ) ) ) { return m_stPos; }
+				return m_stPos;
+			}
+			return MovePointerTo( _ui64Pos );
 		}
 
 		/**
@@ -453,14 +466,35 @@ namespace lsn {
 		 *
 		 * \return Returns the number of bytes remaining in the buffer.
 		 **/
-		virtual size_t								Remaining() const { return m_vStream.size() - m_stPos; }
+		virtual size_t								Remaining() const override { return m_vStream.size() - m_stPos; }
 
 		/**
 		 * Gets the current position of the stream.
 		 *
 		 * \return Returns the current position of the stream.
 		 **/
-		virtual size_t								Pos() const { return m_stPos; }
+		virtual size_t								Pos() const override { return m_stPos; }
+
+		/**
+		 * Sets the stream size.
+		 * 
+		 * \param _sSize The new size of the stream.
+		 * \return Returns true if the stream was resized.
+		 **/
+		virtual bool								SetSize( size_t _sSize ) override {
+			try {
+				if ( !_sSize ) {
+					m_vStream.clear();
+				}
+				else {
+					m_vStream.resize( _sSize );
+				}
+
+				m_stPos = _sSize;
+				return true;
+			}
+			catch ( ... ) { return false; }
+		}
 
 
 	protected :
