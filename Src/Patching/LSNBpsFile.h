@@ -57,6 +57,9 @@ namespace lsn {
 			if ( !DecodeVlv( ui64TargetSize ) ) { return false; }
 			if ( !DecodeVlv( ui64MetadataSize ) ) { return false; }
 
+			_psbTargetStream->SetSize( ui64TargetSize );
+			_psbTargetStream->MovePointerTo( 0 );
+
 			// Skip metadata.
 			m_psbStream->MovePointerBy( static_cast<int64_t>(ui64MetadataSize) );
 
