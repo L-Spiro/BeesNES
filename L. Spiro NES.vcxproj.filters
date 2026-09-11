@@ -298,6 +298,12 @@
     <Filter Include="Source Files\Windows\Graphics">
       <UniqueIdentifier>{623440f4-c85d-416d-8f9e-b1438723933f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Cheats">
+      <UniqueIdentifier>{2ed82c7a-59ae-4f60-8c49-3e054c881ff4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cheats">
+      <UniqueIdentifier>{08fc4212-5a38-45cd-8885-1980d693f789}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -1347,6 +1353,9 @@
     <ClInclude Include="Src\Roms\LSNM3u.h">
       <Filter>Header Files\Roms</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Cheats\LSNCheatConverter.h">
+      <Filter>Header Files\Cheats</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1915,6 +1924,9 @@
     </ClCompile>
     <ClCompile Include="Src\Utilities\LSNCpuTemperatureReader.cpp">
       <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Cheats\LSNCheatConverter.cpp">
+      <Filter>Source Files\Cheats</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

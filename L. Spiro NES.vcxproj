@@ -1852,6 +1852,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\Audio\OpenAL\LSNOpenAlSource.h" />
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
+    <ClInclude Include="Src\Cheats\LSNCheatConverter.h" />
     <ClInclude Include="Src\ColorSpace\LSNColorSpace.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\Cpu\LSNCpuBase.h" />
@@ -2186,6 +2187,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClCompile Include="Src\Audio\OpenAL\LSNOpenAlSource.cpp" />
     <ClCompile Include="Src\BeesNES\LSNBeesNes.cpp" />
     <ClCompile Include="Src\Bus\LSNBus.cpp" />
+    <ClCompile Include="Src\Cheats\LSNCheatConverter.cpp" />
     <ClCompile Include="Src\ColorSpace\LSNColorSpace.cpp" />
     <ClCompile Include="Src\Cpu\LSNCpu6502.cpp" />
     <ClCompile Include="Src\Crc\LSNCrc.cpp" />

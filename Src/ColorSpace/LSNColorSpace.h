@@ -85,6 +85,10 @@ namespace lsn {
 		static float														m_fBt470_NTSC[8];					/**< Chromaticities and white point for BT.470 NTSC. */
 		static float														m_fBt470_PAL[8];					/**< Chromaticities and white point for BT.470 PAL. */
 		static float														m_fsRgb[8];							/**< Chromaticities and white point for sRGB. */
+
+		// The hue rotation is -0.39, and the saturation factor is 1.1155. The video standard is 1953 NTSC with illuminant C and 2.2 gamma, and the CRT is also assumed to be approximately 2.2 gamma.
+		static float														m_fToshibaCF2005[8];				/**< Chromaticities and white point for a Toshiba CF2005 as measured by patchy68k: https://forums.nesdev.org/viewtopic.php?p=302438. */
+
 	};
 	
 
