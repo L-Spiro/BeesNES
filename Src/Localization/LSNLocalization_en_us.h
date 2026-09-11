@@ -667,7 +667,7 @@
 #define LSN_INVALID_FILE_FORMAT												Invalid file format.
 #define LSN_UNSUPPORTED_VERSION												Unsupported versiom.
 #define LSN_CONTINUE														Continue?
-
+#define LSN_INVALID_JSON_FILE												Invalid JSON file.
 
 
 

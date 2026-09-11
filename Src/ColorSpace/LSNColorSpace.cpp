@@ -67,6 +67,27 @@ namespace lsn {
 		0.3127f, 0.3290f
 	};
 
+	float CColorSpace::m_fNtscJ[8] = {																/**< Chromaticities and white point for NTSC-J. */
+		0.618f, 0.350f,
+		0.280f, 0.605f,
+		0.152f, 0.063f,
+		0.28315f, 0.29711f
+	};
+
+	float CColorSpace::m_fToshibaCF2005[8] = {														/**< Chromaticities and white point for a Toshiba CF2005 as measured by patchy68k: https://forums.nesdev.org/viewtopic.php?p=302438. */
+		0.642388f, 0.339424f,
+		0.301f, 0.601f,
+		0.143599f, 0.070975f,
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fNtscJ_Sony[8] = {															/**< Chromaticities and white point for NTSC-J ala Sony. */
+		0.618f, 0.350f,
+		0.280f, 0.605f,
+		0.152f, 0.063f,
+		0.2838f, 0.2984f
+	};
+
 	// == Functions.
 	/**
 	 * Creates a conversion matrix given a color-space's chromaticities and white point.

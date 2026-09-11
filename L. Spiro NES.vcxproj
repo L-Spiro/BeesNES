@@ -1853,6 +1853,7 @@ xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Databa
     <ClInclude Include="Src\BeesNES\LSNBeesNes.h" />
     <ClInclude Include="Src\Bus\LSNBus.h" />
     <ClInclude Include="Src\Cheats\LSNCheatConverter.h" />
+    <ClInclude Include="Src\Cheats\LSNCheatEntry.h" />
     <ClInclude Include="Src\ColorSpace\LSNColorSpace.h" />
     <ClInclude Include="Src\Cpu\LSNCpu6502.h" />
     <ClInclude Include="Src\Cpu\LSNCpuBase.h" />

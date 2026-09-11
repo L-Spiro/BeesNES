@@ -85,9 +85,15 @@ namespace lsn {
 		static float														m_fBt470_NTSC[8];					/**< Chromaticities and white point for BT.470 NTSC. */
 		static float														m_fBt470_PAL[8];					/**< Chromaticities and white point for BT.470 PAL. */
 		static float														m_fsRgb[8];							/**< Chromaticities and white point for sRGB. */
+		static float														m_fNtscJ[8];						/**< Chromaticities and white point for NTSC-J. */
 
 		// The hue rotation is -0.39, and the saturation factor is 1.1155. The video standard is 1953 NTSC with illuminant C and 2.2 gamma, and the CRT is also assumed to be approximately 2.2 gamma.
+		// https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h
 		static float														m_fToshibaCF2005[8];				/**< Chromaticities and white point for a Toshiba CF2005 as measured by patchy68k: https://forums.nesdev.org/viewtopic.php?p=302438. */
+
+		// About this, based on my experimentation with the JP modes of Sony's decoder chips, item 2.2 of table 2 in that document should have 9300K+8MPCD / D93 as Japan's system's white point. It's not just the studio monitors; it's the actual system too. 
+		// That's unlike the rest of the world where, despite the system being illuminant C, studio monitors have white set to D65, and their approximate color correction still tries to match the rest of the colors (especially red/yellow/green hues) based on illuminant C.
+		static float														m_fNtscJ_Sony[8];					/**< Chromaticities and white point for NTSC-J ala Sony. */
 
 	};
 	
