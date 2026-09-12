@@ -93,7 +93,10 @@ namespace lsn {
 
 		// About this, based on my experimentation with the JP modes of Sony's decoder chips, item 2.2 of table 2 in that document should have 9300K+8MPCD / D93 as Japan's system's white point. It's not just the studio monitors; it's the actual system too. 
 		// That's unlike the rest of the world where, despite the system being illuminant C, studio monitors have white set to D65, and their approximate color correction still tries to match the rest of the colors (especially red/yellow/green hues) based on illuminant C.
-		static float														m_fNtscJ_Sony[8];					/**< Chromaticities and white point for NTSC-J ala Sony. */
+		static float														m_fNtscJ_Sony_PVM_20M2U[8];			/**< Chromaticities and white point for NTSC-J ala Sony PVM 20M2U. */
+		static float														m_fNtscJ_Sony_PVM_20L2MDU[8];		/**< Chromaticities and white point for NTSC-J ala Sony PVM 20L2MDU. */
+
+		static float														m_fNtscJ_Sony_P22_Trinitron[8];		/**< Chromaticities and white point for NTSC-J ala Sony Trinitron P22. */
 
 	};
 	

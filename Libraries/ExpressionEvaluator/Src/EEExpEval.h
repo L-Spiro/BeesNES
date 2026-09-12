@@ -725,6 +725,7 @@ namespace ee {
 			if ( _sLen >= 2 && _pcValue[0] == 'x' ) { // 'x' and 1 or more hex characters.
 				size_t sHexChars = CountHexChars( _pcValue, _sLen, 1 );
 				if ( sHexChars >= 1 ) {
+					sHexChars = 2;
 					sHexChars = sHexChars < _sMaxAllowedHexChars ? sHexChars : _sMaxAllowedHexChars;
 					size_t sPos = 1;
 					uint32_t ui32Ret = 0;
@@ -1852,7 +1853,9 @@ namespace ee {
 			try {
 				for ( size_t I = 0; I < _vArray.size(); ++I ) {
 					sRet.append( _vArray[I] );
-					sRet.push_back( typename _tType::value_type( _ui32Token ) );
+					if ( I != _vArray.size() - 1 ) {
+						sRet.push_back( typename _tType::value_type( _ui32Token ) );
+					}
 				}
 				if ( pbErrored ) { (*pbErrored) = false; }
 			}

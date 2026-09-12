@@ -218,16 +218,16 @@ namespace lsn {
 		}
 
 		/**
-		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
+		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _tString.
 		 *
-		 * \param _s16String The string in which replacements are to be made.
+		 * \param _tString The string in which replacements are to be made.
 		 * \param _cReplaceMe The character to replace.
 		 * \param _cWithMe The character with which to replace _cReplaceMe.
 		 * \return Returns the new string with the given replacements made.
 		 */
 		template <typename _tType = std::u16string>
-		static _tType										Replace( const _tType &_s16String, const _tType &_cReplaceMe, const _tType &_cWithMe ) {
-			_tType sCopy = _s16String;
+		static _tType										Replace( const _tType &_tString, const _tType &_cReplaceMe, const _tType &_cWithMe ) {
+			_tType sCopy = _tString;
 			const size_t sLen = _cReplaceMe.size();
 			size_t sIdx = sCopy.find( _cReplaceMe );
 			while ( _tType::npos != sIdx ) {
@@ -238,16 +238,16 @@ namespace lsn {
 		}
 
 		/**
-		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _s16String.
+		 * Creates a string with _cReplaceMe replaced with _cWithMe inside _tString.
 		 *
-		 * \param _s16String The string in which replacements are to be made.
+		 * \param _tString The string in which replacements are to be made.
 		 * \param _cReplaceMe The character to replace.
 		 * \param _cWithMe The character with which to replace _cReplaceMe.
 		 * \return Returns the new string with the given replacements made.
 		 */
 		template <typename _tType = std::u16string>
-		static _tType										Replace( const _tType &_s16String, _tType::value_type _cReplaceMe, _tType::value_type _cWithMe ) {
-			_tType s16Copy = _s16String;
+		static _tType										Replace( const _tType &_tString, _tType::value_type _cReplaceMe, _tType::value_type _cWithMe ) {
+			_tType s16Copy = _tString;
 			auto aFound = s16Copy.find( _cReplaceMe );
 			while ( aFound != _tType::npos ) {
 				s16Copy[aFound] = _cWithMe;

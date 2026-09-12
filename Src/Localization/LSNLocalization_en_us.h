@@ -654,6 +654,29 @@
 #define LSN_WE_FAILED_TO_CREATE_METADATA									Failed to create metadata file \u201C{}\u201D.
 #define LSN_WE_FAILED_TO_WRITE_METADATA										Failed to write to metadata file \u201C{}\u201D.
 
+// Cheats.
+#define LSN_STR_CHEATS														Cheats
+#define LSN_STR_ACTIVATE													Activate
+#define LSN_STR_ACTIVATE_WITH_HOTKEY										Activate With Hotkey
+#define LSN_STR_DEACTIVATE													Deactivate
+#define LSN_STR_TOGGLE_HOTKEY												Toggle Hotkey
+#define LSN_STR_ACCEPTED_CHEAT_FORMATS										Accepts Game Genie\u00AE codes and AAAA:VV:CC formats.\r\nOne code per line.
+#define LSN_STR_ADD															Add
+#define LSN_STR_DELETE														Delete
+#define LSN_STR_EDIT														Edit
+#define LSN_STR_DUPLICATE													Duplicate
+#define LSN_STR_SEARCH														Search
+#define LSN_STR_ADD_CHEAT													Add Cheat
+#define LSN_STR_EDIT_CHEAT													Edit Cheat
+#define LSN_STR_DESCRIPTION_												Description:
+#define LSN_STR_NOTES														Notes
+#define LSN_STR_CODE														Code
+#define LSN_STR_TOGGLE_ON_OFF												Toggle On/Off
+#define LSN_STR_ACTIVATE_DEACTIVATE											Activate/Deactivate
+#define LSN_STR_HOTKEY_S_													Hotkey(s)
+#define LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE							Valid .JSON file but invalid cheat-file structure.
+#define LSN_STR_INVALID_CODE												Invalid code.
+
 
 // General.
 #define LSN_ERROR															Error
@@ -664,6 +687,7 @@
 #define LSN_FAILED_TO_CREATE_FILE											Failed to create file.
 #define LSN_FAILED_TO_WRITE_TO_FILE											Failed to write to file.
 #define LSN_FAILED_TO_READ_FROM_FILE										Failed to read from file.
+#define LSN_FAILED_TO_EXTRACT_FILE											Failed to extract file.
 #define LSN_INVALID_FILE_FORMAT												Invalid file format.
 #define LSN_UNSUPPORTED_VERSION												Unsupported versiom.
 #define LSN_CONTINUE														Continue?

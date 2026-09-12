@@ -304,6 +304,12 @@
     <Filter Include="Source Files\Cheats">
       <UniqueIdentifier>{08fc4212-5a38-45cd-8885-1980d693f789}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\Cheats">
+      <UniqueIdentifier>{c255b1fe-5433-4487-bfcd-ff3c00a91a28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Cheats">
+      <UniqueIdentifier>{d336491b-7cdd-4eaf-8504-63b7d65ab54f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -1359,6 +1365,12 @@
     <ClInclude Include="Src\Cheats\LSNCheatEntry.h">
       <Filter>Header Files\Cheats</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindowLayout.h">
+      <Filter>Header Files\Windows\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Cheats\LSNCheatManager.h">
+      <Filter>Header Files\Cheats</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1929,6 +1941,12 @@
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Src\Cheats\LSNCheatConverter.cpp">
+      <Filter>Source Files\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindowLayout.cpp">
+      <Filter>Source Files\Windows\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Cheats\LSNCheatManager.cpp">
       <Filter>Source Files\Cheats</Filter>
     </ClCompile>
   </ItemGroup>

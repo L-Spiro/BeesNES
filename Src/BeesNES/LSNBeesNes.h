@@ -507,6 +507,13 @@ namespace lsn {
 		void									ApplyAudioOptions();
 
 		/**
+		 * Gets the default folder for cheats.
+		 * 
+		 * \return Returns the default folder where default cheats can be found.
+		 **/
+		std::wstring							DefaultCheatsFolder() const;
+
+		/**
 		 * Applies the current palette.
 		 * 
 		 * \return Returns true if a palette was opened.

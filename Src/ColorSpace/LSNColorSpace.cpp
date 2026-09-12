@@ -81,10 +81,24 @@ namespace lsn {
 		0.281f, 0.311f
 	};
 
-	float CColorSpace::m_fNtscJ_Sony[8] = {															/**< Chromaticities and white point for NTSC-J ala Sony. */
-		0.618f, 0.350f,
+	float CColorSpace::m_fNtscJ_Sony_PVM_20M2U[8] = {												/**< Chromaticities and white point for NTSC-J ala Sony PVM 20M2U. */
+		0.630f, 0.345f,
+		0.285f, 0.605f,
+		0.150f, 0.065f,
+		0.2838f, 0.2984f
+	};
+
+	float CColorSpace::m_fNtscJ_Sony_PVM_20L2MDU[8] = {												/**< Chromaticities and white point for NTSC-J ala Sony PVM 20L2MDU. */
+		0.625f, 0.345f,
 		0.280f, 0.605f,
-		0.152f, 0.063f,
+		0.150f, 0.065f,
+		0.2838f, 0.2984f
+	};
+
+	float CColorSpace::m_fNtscJ_Sony_P22_Trinitron[8] = {											/**< Chromaticities and white point for NTSC-J ala Sony Trinitron P22. */
+		0.621f, 0.340f,
+		0.281f, 0.606f,
+		0.152f, 0.067f,
 		0.2838f, 0.2984f
 	};
 

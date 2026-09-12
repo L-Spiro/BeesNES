@@ -1,11 +1,11 @@
 #ifdef LSN_USE_WINDOWS
 
 /**
- * Copyright L. Spiro 2023
+ * Copyright L. Spiro 2026
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A layout template for "pages" (self-contained borderless dialogs meant for embedding into other dialogs).
+ * Description: The layout for the Cheats dialog.
  */
 
 #pragma once
@@ -22,24 +22,13 @@ using namespace lsw;
 namespace lsn {
 	
 	/**
-	 * Class CTemplatePageLayout
-	 * \brief A layout template for "pages" (self-contained borderless dialogs meant for embedding into other dialogs).
+	 * Class CCheatsDialogLayout
+	 * \brief The layout for the Cheats dialog.
 	 *
-	 * Description: A layout template for "pages" (self-contained borderless dialogs meant for embedding into other dialogs).
+	 * Description: The layout for the Cheats dialog.
 	 */
-	class CTemplatePageLayout {
+	class CCheatsDialogLayout {
 	public :
-		// == Enumerations.
-		// Control ID's.
-		enum LSN_TEMPLATE_WINDOW_IDS : WORD {
-			LSN_TWI_NONE,
-			LSN_TWI_MAINWINDOW,
-			LSN_TWI_TAB,
-			LSN_TWI_OK,
-			LSN_TWI_CANCEL,
-		};
-
-
 		// == Functions.
 		/**
 		 * Creates the page.
