@@ -110,6 +110,18 @@ IDB_UP_WAV_BITMAP_24    BITMAP                  "Resources\\icons8-up-radio-wave
 
 IDB_DOWN_WAV_BITMAP_24  BITMAP                  "Resources\\icons8-down-radio-waves-24.bmp"
 
+IDB_CHEAT_ADD_24        BITMAP                  "Resources\\icons8-add-24.bmp"
+
+IDB_CHEAT_DELETE_24     BITMAP                  "Resources\\icons8-delete-24.bmp"
+
+IDB_CHEAT_EDIT_24       BITMAP                  "Resources\\icons8-edit-24.bmp"
+
+IDB_CHEAT_DUPLICATE_24  BITMAP                  "Resources\\icons8-duplicate-24.bmp"
+
+IDB_CHEAT_FILTER_24     BITMAP                  "Resources\\icons8-filter-24.bmp"
+
+IDB_CHEAT_SEARCH_24     BITMAP                  "Resources\\icons8-search-24.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

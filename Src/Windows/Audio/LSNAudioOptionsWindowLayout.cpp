@@ -2859,7 +2859,7 @@ namespace lsn {
 
 		{
 			LSW_LT_TAB,										// ltType
-			CWinUtilities::LSN_AOWI_TAB,									// wId
+			CWinUtilities::LSN_AOWI_TAB,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive

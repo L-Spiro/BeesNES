@@ -582,19 +582,24 @@
 					++stIdx;
 				}
 				vCompounds[J][stIdx] = std::string::value_type( std::toupper( vCompounds[J][stIdx] ) );
+
+				stIdx = 0;
+				while ( stIdx < vCompounds[J].size() - 1 && (vCompounds[J][stIdx] == '(' || vCompounds[J][stIdx] == '{' || vCompounds[J][stIdx] == '[') ) {
+					++stIdx;
+				}
 #pragma warning( push )
 #pragma warning( disable : 4310 )	// warning C4310: cast truncates constant value
 				if ( vCompounds[J][stIdx] == '\'' ) {
-					vCompounds[J].erase( vCompounds[J].begin() );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0x98 ) );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0x80 ) );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0xE2 ) );
+					vCompounds[J].erase( vCompounds[J].begin() + stIdx );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0x98 ) );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0x80 ) );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0xE2 ) );
 				}
 				else if ( vCompounds[J][stIdx] == '"' ) {
-					vCompounds[J].erase( vCompounds[J].begin() );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0x9C ) );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0x80 ) );
-					vCompounds[J].insert( vCompounds[J].begin(), char( 0xE2 ) );
+					vCompounds[J].erase( vCompounds[J].begin() + stIdx );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0x9C ) );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0x80 ) );
+					vCompounds[J].insert( vCompounds[J].begin() + stIdx, char( 0xE2 ) );
 				}
 #pragma warning( pop )
 			}

@@ -2102,6 +2102,24 @@
     <Image Include="Resources\icons8-joystick-32.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-add-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-delete-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-edit-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-duplicate-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-filter-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-search-24.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">

@@ -741,8 +741,7 @@
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -772,8 +771,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -803,8 +801,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -834,8 +831,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -865,8 +861,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -896,8 +891,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -927,8 +921,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -958,8 +951,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -989,8 +981,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1020,8 +1011,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1051,8 +1041,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1082,8 +1071,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1116,8 +1104,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1150,8 +1137,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1184,8 +1170,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1218,8 +1203,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1252,8 +1236,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1286,8 +1269,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1321,8 +1303,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1356,8 +1337,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1391,8 +1371,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1426,8 +1405,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1461,8 +1439,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win32\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1495,8 +1472,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1529,8 +1505,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1563,8 +1538,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1597,8 +1571,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1631,8 +1604,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1665,8 +1637,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1700,8 +1671,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1735,8 +1705,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1770,8 +1739,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1805,8 +1773,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -1840,8 +1807,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)Resources" "$(SolutionDir)$(Platform)\$(Configuration)\Resources" /y /s /e /i
-xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
+      <Command>xcopy "$(ProjectDir)Palettes" "$(SolutionDir)$(Platform)\$(Configuration)\Palettes" /y /s /e /i
 xcopy "$(ProjectDir)Shaders" "$(SolutionDir)$(Platform)\$(Configuration)\Shaders" /y /s /e /i
 copy /b "$(ProjectDir)Libraries\OpenAL\Win64\soft_oal.dll" "$(SolutionDir)$(Platform)\$(Configuration)\OpenAL32.dll"
 xcopy "$(ProjectDir)Database" "$(SolutionDir)$(Platform)\$(Configuration)\Database" /y /s /e /i
@@ -2462,6 +2428,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
+    <Image Include="Resources\icons8-add-24.bmp" />
     <Image Include="Resources\icons8-add-radio-waves-24.bmp" />
     <Image Include="Resources\icons8-alarm-32.ico" />
     <Image Include="Resources\icons8-bee-16.ico" />
@@ -2469,11 +2436,15 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-bee-64.png" />
     <Image Include="Resources\icons8-broken-shield-16.ico" />
     <Image Include="Resources\icons8-broken-shield-32.ico" />
+    <Image Include="Resources\icons8-delete-24.bmp" />
     <Image Include="Resources\icons8-down-radio-waves-24.bmp" />
+    <Image Include="Resources\icons8-duplicate-24.bmp" />
+    <Image Include="Resources\icons8-edit-24.bmp" />
     <Image Include="Resources\icons8-exit-24.bmp" />
     <Image Include="Resources\icons8-file-24.bmp" />
     <Image Include="Resources\icons8-file-48.bmp" />
     <Image Include="Resources\icons8-file-48.ico" />
+    <Image Include="Resources\icons8-filter-24.bmp" />
     <Image Include="Resources\icons8-folder-open-24.bmp" />
     <Image Include="Resources\icons8-folder-open-48.ico" />
     <Image Include="Resources\icons8-joystick-16.ico" />
@@ -2485,6 +2456,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-puzzle-32.ico" />
     <Image Include="Resources\icons8-radio-waves-16.ico" />
     <Image Include="Resources\icons8-radio-waves-32.ico" />
+    <Image Include="Resources\icons8-search-24.bmp" />
     <Image Include="Resources\icons8-sound-mixer-16.ico" />
     <Image Include="Resources\icons8-sound-mixer-32.ico" />
     <Image Include="Resources\icons8-turntable-16.ico" />

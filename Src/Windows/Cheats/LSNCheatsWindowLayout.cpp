@@ -17,12 +17,13 @@
 
 namespace lsn {
 
-#define LSN_CHEAT_GROUP_W								(LSN_LEFT_JUST + LSN_LEFT_JUST + 200 + LSN_LEFT_JUST + LSN_LEFT_JUST)
-#define LSN_CHEAT_GROUP_H								(50 + 150 + 20)
-#define LSN_CHEAT_GROUP_T								LSN_GROUP_TOP
+#define LSN_SECTION_W									200
+#define LSN_CHEAT_GROUP_W								(LSN_LEFT_JUST + LSN_SECTION_W + LSN_LEFT_JUST + LSN_SECTION_W + LSN_LEFT_JUST)
+#define LSN_CHEAT_GROUP_H								(50 + 100 + 20)
+#define LSN_CHEAT_GROUP_T								(LSN_TOP_JUST)
 
 #define LSN_CHEAT_W										(LSN_LEFT_JUST + LSN_CHEAT_GROUP_W + LSN_LEFT_JUST)
-#define LSN_CHEAT_H										(LSN_CHEAT_GROUP_H + LSN_GROUP_TOP + 2 + LSN_DEF_BUTTON_HEIGHT + 2)
+#define LSN_CHEAT_H										(LSN_CHEAT_GROUP_H + LSN_CHEAT_GROUP_T + 2 + LSN_DEF_BUTTON_HEIGHT + 2)
 
 	// == Members.
 	/** The layout for the template window. */
@@ -37,18 +38,31 @@ namespace lsn {
 			0,												// iTop
 			LSN_CHEAT_W,									// dwWidth
 			LSN_CHEAT_H,									// dwHeight
-			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,																							// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,																														// dwStyleEx
-			nullptr,										// pwcText
+			WS_CAPTION | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SYSMENU | DS_3DLOOK | DS_FIXEDSYS | DS_MODALFRAME | DS_CENTER,		// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_WINDOWEDGE | WS_EX_CONTROLPARENT,									// dwStyleEx
+			LSN_LSTR( LSN_STR_CHEATS ),						// pwcText
 			0,												// sTextLen
 			CWinUtilities::LSN_CWI_NONE,					// dwParentId
-
-			//LSN_PARENT_VCLEFT,								// pcLeftSizeExp
-			//nullptr, 0,										// pcRightSizeExp
-			//LSN_PARENT_VCTOP,								// pcTopSizeExp
-			//nullptr, 0,										// pcBottomSizeExp
-			//LSN_FIXED_WIDTH,								// pcWidthSizeExp
-			//LSN_FIXED_HEIGHT,								// pcHeightSizeExp
+		},
+		
+		{
+			LSW_LT_REBAR,									// ltType
+			CWinUtilities::LSN_CWI_REBAR,					// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			0,												// iLeft
+			0,												// iTop
+			LSN_CHEAT_W,									// dwWidth
+			150,											// dwHeight
+			//WS_CHILDWINDOW | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TBSTYLE_TRANSPARENT | TBSTYLE_REGISTERDROP | TBSTYLE_LIST | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_NOMOVEY,
+			WS_VISIBLE | WS_BORDER | WS_CHILD | WS_CLIPCHILDREN |
+				WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NOPARENTALIGN |
+				RBS_VARHEIGHT | RBS_BANDBORDERS,																	// dwStyle
+			0,//WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_TOOLWINDOW,							// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// dwParentId
 		},
 		{
 			LSW_LT_TOOLBAR,									// ltType
@@ -61,8 +75,8 @@ namespace lsn {
 			0,												// dwWidth
 			0,												// dwHeight
 			WS_CHILD | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | WS_CLIPCHILDREN |
-				WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NORESIZE | WS_VISIBLE | CCS_ADJUSTABLE | TBSTYLE_LIST,																													// dwStyle
-			0,																																																					// dwStyleEx
+				WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NORESIZE | WS_VISIBLE | CCS_ADJUSTABLE | TBSTYLE_LIST,								// dwStyle
+			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// dwParentId
@@ -79,8 +93,43 @@ namespace lsn {
 			LSN_CHEAT_GROUP_W,								// dwWidth
 			LSN_CHEAT_GROUP_H,								// dwHeight
 			LSN_GROUPSTYLE,									// dwStyle
-			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,																																		// dwStyleEx
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
 			LSN_LSTR( LSN_STR_AVAILABLE_CHEATS ),			// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// dwParentId
+		},
+
+
+
+		{
+			LSW_LT_BUTTON,									// ltType
+			CWinUtilities::LSN_CWI_OK,						// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			TRUE,											// bActive
+			LSN_CHEAT_W - (LSN_DEF_BUTTON_WIDTH * 1 + LSN_LEFT_JUST) * 2,																	// iLeft
+			LSN_CHEAT_H - LSN_DEF_BUTTON_HEIGHT - LSN_TOP_JUST,																				// iTop
+			LSN_DEF_BUTTON_WIDTH,							// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_DEFBUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_OK ),								// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			CWinUtilities::LSN_CWI_CANCEL,					// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_CHEAT_W - LSN_DEF_BUTTON_WIDTH * 1 - LSN_LEFT_JUST,																			// iLeft
+			LSN_CHEAT_H - LSN_DEF_BUTTON_HEIGHT	- LSN_TOP_JUST,																				// iTop
+			LSN_DEF_BUTTON_WIDTH,							// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_CANCEL ),							// pwcText
 			0,												// sTextLen
 			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// dwParentId
 		},

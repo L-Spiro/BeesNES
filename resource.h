@@ -27,14 +27,20 @@
 #define IDI_SHIELD_16                   130
 #define IDI_SHIELD_32                   131
 #define IDI_JOYSTICK_16                 132
-#define IDI_ICON4                       133
 #define IDI_JOYSTICK_32                 133
+#define IDB_CHEAT_ADD_24                134
+#define IDB_CHEAT_DELETE_24             135
+#define IDB_CHEAT_EDIT_24               136
+#define IDB_CHEAT_DUPLICATE_24          137
+#define IDB_CHEAT_FILTER_24             138
+#define IDB_BITMAP1                     139
+#define IDB_CHEAT_SEARCH_24             139
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        134
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

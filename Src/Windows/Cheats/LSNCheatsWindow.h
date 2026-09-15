@@ -13,6 +13,8 @@
 #include "../../Cheats/LSNCheatManager.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 
+#include <ImageList/LSWImageList.h>
+#include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
 
 using namespace lsw;
@@ -27,10 +29,21 @@ namespace lsn {
 	 */
 	class CCheatsWindow : public lsw::CMainWindow {
 	public :
-		CCheatsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 ) :
-			lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
-			m_pcmCheatManager( reinterpret_cast<CCheatManager *>(_ui64Data) ) {
-		}
+		CCheatsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
+
+
+		// == Enumerations.
+		// Images.
+		enum LSN_IMAGES {
+			LSN_I_ADD,
+			LSN_I_DELETE,
+			LSN_I_EDIT,
+			LSN_I_DUPLICATE,
+			LSN_I_FILTER,
+			LSN_I_SEARCH,
+
+			LSN_I_TOTAL
+		};
 
 
 		// == Functions.
@@ -71,6 +84,9 @@ namespace lsn {
 	protected :
 		// == Members.
 		CCheatManager *										m_pcmCheatManager = nullptr;				/**< The pointer to the cheat manager. */
+		CImageList											m_iImages;									/** the image list for the toolbar. */
+		CBitmap												m_bBitmaps[LSN_I_TOTAL];					/** Images for the toolbar. */
+		INT													m_iImageMap[LSN_I_TOTAL];					/** Toolbar image mapping. */
 
 
 	private :

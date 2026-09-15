@@ -657,7 +657,7 @@
 // Cheats.
 #define LSN_STR__CHEATS														&Cheats
 #define LSN_STR_CHEATS														Cheats
-#define LSN_STR_AVAILABLE_CHEATS											Available Cheats
+#define LSN_STR_AVAILABLE_CHEATS											Manage Cheats
 #define LSN_STR_ACTIVATE													Activate
 #define LSN_STR_ACTIVATE_WITH_HOTKEY										Activate With Hotkey
 #define LSN_STR_DEACTIVATE													Deactivate
@@ -667,6 +667,7 @@
 #define LSN_STR_DELETE														Delete
 #define LSN_STR_EDIT														Edit
 #define LSN_STR_DUPLICATE													Duplicate
+#define LSN_STR_FILTER														Filter
 #define LSN_STR_SEARCH														Search
 #define LSN_STR_SEARCH_GAME													Search Game
 #define LSN_STR_ADD_CHEAT													Add Cheat

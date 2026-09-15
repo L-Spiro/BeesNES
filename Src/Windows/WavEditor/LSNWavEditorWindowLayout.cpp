@@ -2221,7 +2221,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlOutputDialog[] = {
 		{
 			LSN_LT_WAV_EDITOR_OUTPUT,						// ltType
-			CWinUtilities::LSN_WEWI_OUTPUT,				// wId
+			CWinUtilities::LSN_WEWI_OUTPUT,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
@@ -2834,7 +2834,7 @@ namespace lsn {
 	LSW_WIDGET_LAYOUT CWavEditorWindowLayout::m_wlWindow[] {
 		{
 			LSN_LT_WAV_EDITOR_WINDOW,						// ltType
-			CWinUtilities::LSN_WEWI_MAINWINDOW,			// wId
+			CWinUtilities::LSN_WEWI_MAINWINDOW,				// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
@@ -2850,7 +2850,7 @@ namespace lsn {
 		},
 		{
 			LSW_LT_REBAR,									// ltType
-			CWinUtilities::LSN_WEWI_REBAR0,				// wId
+			CWinUtilities::LSN_WEWI_REBAR0,					// wId
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive

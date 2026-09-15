@@ -93,16 +93,6 @@ namespace lsn {
 		}
 #endif
 
-		/*static const struct {
-			LPCWSTR				lpwsImageName;
-			DWORD				dwConst;
-		} sImages[] = {
-			{ L"1", LSN_I_OPENROM },
-
-			{ L"73", LSN_I_OPTIONS },
-		};
-		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );*/
-		//WCHAR szBuffer[MAX_PATH];
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
 		wsBuffer.resize( dwSize + 1 ); 
@@ -117,8 +107,6 @@ namespace lsn {
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
-
-		//::SendMessageW( Wnd(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)m_bBitmaps[0].Handle() );
 		// Create the basic render target.
 		m_biBlitInfo.bmiHeader.biSize = sizeof( BITMAPINFOHEADER );
 		m_biBlitInfo.bmiHeader.biWidth = 0;

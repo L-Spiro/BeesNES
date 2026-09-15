@@ -262,3 +262,14 @@ SurfaceLevel2.exe -file "icons8-coding-48.png" -outfile "..\icons8-coding-48.ico
 SurfaceLevel2.exe -file "icons8-coding-32.png" -outfile "..\icons8-coding-32.ico" -icon -fit 32 32
 SurfaceLevel2.exe -file "icons8-coding-16.png" -outfile "..\icons8-coding-16.ico" -icon -fit 16 16
 
+SurfaceLevel2.exe -file "icons8-add-24.png" -outfile "..\icons8-add-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-delete-24.png" -outfile "..\icons8-delete-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-edit-24.png" -outfile "..\icons8-edit-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-duplicate-24.png" -outfile "..\icons8-duplicate-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-filter-24.png" -outfile "..\icons8-filter-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-search-24.png" -outfile "..\icons8-search-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask

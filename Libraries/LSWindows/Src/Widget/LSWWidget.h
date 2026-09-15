@@ -1953,6 +1953,38 @@ namespace lsw {
 		virtual LSW_HANDLED					Notify_ItemChanged( LPNMLISTVIEW /*_lplvParm*/ ) { return LSW_H_CONTINUE; }
 
 		/**
+		 * The WM_NOTIFY -> HDN_DIVIDERDBLCLICK handler.
+		 *
+		 * \param _pNmHdr The notification structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Notify_HeaderDividerDblClk( NMHEADERW * /*_pNmHdr*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * The WM_NOTIFY -> HDN_ITEMCHANGED handler.
+		 *
+		 * \param _pNmHdr The notification structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Notify_HeaderItemChanged( NMHEADERW * /*_pNmHdr*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * The WM_NOTIFY -> HDN_DIVIDERDBLCLICK handler.
+		 *
+		 * \param _pNmHdr The notification structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Notify_HeaderDividerDblClk( NMHEADERA * /*_pNmHdr*/ ) { return LSW_H_CONTINUE; }
+
+		/**
+		 * The WM_NOTIFY -> HDN_ITEMCHANGED handler.
+		 *
+		 * \param _pNmHdr The notification structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED					Notify_HeaderItemChanged( NMHEADERA * /*_pNmHdr*/ ) { return LSW_H_CONTINUE; }
+
+		/**
 		 * Handles WM_NOTIFY -> LVN_ODSTATECHANGED.
 		 * \brief Notified when owner-data list-view item state changes.
 		 *

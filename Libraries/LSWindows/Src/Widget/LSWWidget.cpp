@@ -1840,6 +1840,42 @@ namespace lsw {
 						}
 						LSW_RET( 1, TRUE );
 					}
+					case HDN_DIVIDERDBLCLICKA : {
+						NMHEADERA * pNmHdr = reinterpret_cast<NMHEADERA *>(_lParam);
+						if ( pmwThis ) {
+							if ( pmwThis->Notify_HeaderDividerDblClk( pNmHdr ) == LSW_HANDLED::LSW_H_HANDLED ) {
+								LSW_RET( TRUE, TRUE );
+							}
+						}
+						break;
+					}
+					case HDN_DIVIDERDBLCLICKW : {
+						NMHEADERW * pNmHdr = reinterpret_cast<NMHEADERW *>(_lParam);
+						if ( pmwThis ) {
+							if ( pmwThis->Notify_HeaderDividerDblClk( pNmHdr ) == LSW_HANDLED::LSW_H_HANDLED ) {
+								LSW_RET( TRUE, TRUE );
+							}
+						}
+						break;
+					}
+					case HDN_ITEMCHANGEDA : {
+						NMHEADERA * pNmHdr = reinterpret_cast<NMHEADERA *>(_lParam);
+						if ( pmwThis ) {
+							if ( pmwThis->Notify_HeaderItemChanged( pNmHdr ) == LSW_HANDLED::LSW_H_HANDLED ) {
+								LSW_RET( 0, 0 );
+							}
+						}
+						break;
+					}
+					case HDN_ITEMCHANGEDW : {
+						NMHEADERW * pNmHdr = reinterpret_cast<NMHEADERW *>(_lParam);
+						if ( pmwThis ) {
+							if ( pmwThis->Notify_HeaderItemChanged( pNmHdr ) == LSW_HANDLED::LSW_H_HANDLED ) {
+								LSW_RET( 0, 0 );
+							}
+						}
+						break;
+					}
 					case NM_CUSTOMDRAW : {
 						LPNMCUSTOMDRAW pcdCustomDraw = reinterpret_cast<LPNMCUSTOMDRAW>(_lParam);
 						CWidget * pmwSrc = LSW_WIN2CLASS( pcdCustomDraw->hdr.hwndFrom );
